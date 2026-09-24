@@ -4,16 +4,16 @@
     "classicProduct": "wow_classic_era",
     "counts": {
       "byTab": {
-        "changed": 352,
-        "missing": 749,
+        "changed": 357,
+        "missing": 753,
         "new": 328,
         "unchanged": 214
       },
-      "items": 1643,
+      "items": 1652,
       "sets": 102,
       "statsFrom": {
-        "classic": 749,
-        "forever": 894
+        "classic": 753,
+        "forever": 899
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 537
+      "rendered": 540
     },
     "fallbackEffects": {
-      "effectsFromForever": 110,
-      "items": 503,
-      "spells": 627,
-      "spellsFromForever": 627
+      "effectsFromForever": 111,
+      "items": 505,
+      "spells": 629,
+      "spellsFromForever": 629
     },
     "filter": {
       "equippableOnly": true,
@@ -149,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 63,
+      "addedByList": 72,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 187,
-      "listedItems": 187,
+      "inPool": 210,
+      "listedItems": 210,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -191,6 +191,36 @@
             "snapshot": "2021-05-17",
             "title": "Paladin DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "rogue-assassination": {
+          "name": "Assassination Rogue (daggers)",
+          "note": "The guide's one list for every rogue, with its Main Hand (Daggers) row, whose rank-3 Grand Marshal's and High Warlord's daggers (Rank 14) are left out (pvpMaxRank), and the daggers of its Off-Hand row, which keep their ranks there.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+            "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "rogue-combat": {
+          "name": "Combat Rogue (swords)",
+          "note": "The guide's one list for every rogue, with its Main Hand (Swords) row and its whole Off-Hand row; the Daggers row is the other specs'. Rank-14 PvP weapons are left out (pvpMaxRank).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+            "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "rogue-subtlety": {
+          "name": "Subtlety Rogue (daggers)",
+          "note": "The guide's one list for every rogue, with its Main Hand (Daggers) row, whose rank-3 Grand Marshal's and High Warlord's daggers (Rank 14) are left out (pvpMaxRank), and the daggers of its Off-Hand row, which keep their ranks there.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+            "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear"
           }
         },
         "shaman-enhancement": {
@@ -1162,6 +1192,21 @@
           "rank": 3,
           "slot": "head",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -2308,7 +2353,23 @@
       "name": "Shadowcraft Cap",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -3696,6 +3757,77 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 26,
+          "armor": 150,
+          "crit": 1,
+          "stamina": 18,
+          "strength": 13
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["head"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_helmet_41",
+      "id": 22005,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Leather",
+      "name": "Darkmantle Cap",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 26102,
+      "setId": "512",
+      "slot": "head",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 26,
+        "armor": 150,
+        "critRating": 14,
+        "stamina": 18,
+        "strength": 13
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -6629,6 +6761,21 @@
           "rank": 3,
           "slot": "neck",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -7105,6 +7252,21 @@
           "rank": 2,
           "slot": "neck",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -7309,6 +7471,21 @@
           "rank": 3,
           "slot": "neck",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -9935,6 +10112,21 @@
           "rank": 3,
           "slot": "shoulder",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -11813,7 +12005,23 @@
       "name": "Shadowcraft Spaulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -13648,7 +13856,23 @@
       "name": "Darkmantle Spaulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -17030,6 +17254,21 @@
           "rank": 3,
           "slot": "back",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -17099,6 +17338,21 @@
           "rank": 2,
           "slot": "back",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -17258,6 +17512,21 @@
           "rank": 2,
           "slot": "back",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -20708,6 +20977,21 @@
           "rank": 3,
           "slot": "chest",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -22075,7 +22359,23 @@
       "name": "Shadowcraft Tunic",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -23201,6 +23501,75 @@
         "critRating": 14,
         "intellect": 22,
         "spellPower": 25
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 31,
+          "armor": 185,
+          "hit": 2,
+          "stamina": 15
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_leather_07",
+      "id": 22009,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Leather",
+      "name": "Darkmantle Tunic",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 31970,
+      "setId": "512",
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 31,
+        "armor": 185,
+        "hitRating": 20,
+        "stamina": 15
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -27278,6 +27647,65 @@
       "weaponType": null
     },
     {
+      "armorType": "leather",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["wrist"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_bracer_07",
+      "id": 16710,
+      "itemClass": "Armor",
+      "itemLevel": 57,
+      "itemSubclass": "Leather",
+      "name": "Shadowcraft Bracers",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 10446,
+      "setId": "184",
+      "slot": "wrist",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 15,
+        "armor": 71,
+        "stamina": 7
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
       "armorType": "plate",
       "binding": "BoE",
       "classes": null,
@@ -27612,6 +28040,21 @@
           "rank": 3,
           "slot": "wrist",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -29066,7 +29509,23 @@
       "name": "Darkmantle Bracers",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -32207,6 +32666,21 @@
           "rank": 2,
           "slot": "hands",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -33198,7 +33672,23 @@
       "name": "Shadowcraft Gloves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -35429,6 +35919,75 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 22,
+          "armor": 108,
+          "stamina": 9,
+          "strength": 12
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_24",
+      "id": 22006,
+      "itemClass": "Armor",
+      "itemLevel": 55,
+      "itemSubclass": "Leather",
+      "name": "Darkmantle Gloves",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 12034,
+      "setId": "512",
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 22,
+        "armor": 108,
+        "stamina": 9,
+        "strength": 12
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -39076,6 +39635,21 @@
           "rank": 1,
           "slot": "waist",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -40534,7 +41108,23 @@
       "name": "Shadowcraft Belt",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -43316,7 +43906,23 @@
       "name": "Darkmantle Belt",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -47247,6 +47853,21 @@
           "rank": 3,
           "slot": "legs",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -48239,7 +48860,23 @@
       "name": "Shadowcraft Pants",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -50374,7 +51011,23 @@
       "name": "Darkmantle Pants",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -53589,6 +54242,21 @@
           "rank": 1,
           "slot": "feet",
           "spec": "druid-feral-cat"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -55629,6 +56297,21 @@
           "rank": 3,
           "slot": "feet",
           "spec": "druid-feral-bear"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -58501,6 +59184,78 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 24,
+          "armor": 127,
+          "stamina": 10
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["feet"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_boots_08",
+      "id": 22003,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Leather",
+      "name": "Darkmantle Boots",
+      "notes": [],
+      "otherEquip": [
+        {
+          "raw": "Equip: Increases your effective stealth level by 1.6.",
+          "spellId": 27037
+        }
+      ],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 25261,
+      "setId": "512",
+      "slot": "feet",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 24,
+        "armor": 127,
+        "stamina": 10
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -61939,6 +62694,21 @@
           "rank": 4,
           "slot": "finger",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -62402,6 +63172,21 @@
           "rank": 3,
           "slot": "finger",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -62818,6 +63603,21 @@
           "rank": 4,
           "slot": "finger",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -63228,6 +64028,21 @@
           "rank": 1,
           "slot": "finger",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -65599,6 +66414,21 @@
           "rank": 3,
           "slot": "trinket",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [
@@ -66089,6 +66919,21 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -67028,7 +67873,23 @@
       "name": "Royal Seal of Eldre'Thalas",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15465 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -67643,6 +68504,21 @@
           "rank": 4,
           "slot": "trinket",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -72335,6 +73211,62 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_sword_18",
+      "id": 2244,
+      "itemClass": "Weapon",
+      "itemLevel": 56,
+      "itemSubclass": "One-Handed Swords",
+      "name": "Krol Blade",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7597 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "rogue-combat"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 51,
+      "requirements": [],
+      "sellPrice": 51857,
+      "setId": null,
+      "slot": "mainHand",
+      "source": null,
+      "statSpellIds": [7597],
+      "stats": {
+        "crit": 1,
+        "stamina": 5,
+        "strength": 7
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 40.9,
+        "max": 149,
+        "min": 80,
+        "school": "Physical",
+        "skill": "Swords",
+        "speed": 2.8
+      },
+      "weaponSkill": null,
+      "weaponType": "sword"
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_sword_39",
       "id": 6622,
       "itemClass": "Weapon",
@@ -72343,7 +73275,13 @@
       "name": "Sword of Zeal",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 8191 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "rogue-combat"
+        }
+      ],
       "procs": [
         {
           "raw": "Chance on hit: A burst of energy fills the caster, increasing his damage by 10 and armor by 150 for 15 sec.",
@@ -72727,6 +73665,11 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "warrior-fury"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "rogue-combat"
         }
       ],
       "procs": [],
@@ -74432,6 +75375,16 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [
@@ -74498,7 +75451,18 @@
       "name": "Heartseeker",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -75505,6 +76469,75 @@
     },
     {
       "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand", "offHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_sword_34",
+      "id": 14555,
+      "itemClass": "Weapon",
+      "itemLevel": 63,
+      "itemSubclass": "Dagger",
+      "name": "Alcor's Sunrazor",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 18833 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Chance on hit: Blasts a target for 75 to 105 Fire damage.",
+          "spellId": 18833
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 58,
+      "requirements": [],
+      "sellPrice": 78772,
+      "setId": null,
+      "slot": "oneHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "fireResistance": 10
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 45.4,
+        "max": 77,
+        "min": 41,
+        "school": "Physical",
+        "skill": "Daggers",
+        "speed": 1.3
+      },
+      "weaponSkill": null,
+      "weaponType": "dagger"
+    },
+    {
+      "armorType": null,
       "binding": "BoP",
       "classes": null,
       "classic": null,
@@ -75531,6 +76564,11 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "warrior-protection"
+        },
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "rogue-combat"
         }
       ],
       "procs": [],
@@ -76349,6 +77387,79 @@
       },
       "weaponSkill": null,
       "weaponType": "sword"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {},
+        "weapon": {
+          "dps": 47.2,
+          "max": 111,
+          "min": 59,
+          "school": "Physical",
+          "skill": "Daggers",
+          "speed": 1.8
+        },
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["mainHand", "offHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_sword_29",
+      "id": 19324,
+      "itemClass": "Weapon",
+      "itemLevel": 65,
+      "itemSubclass": "Dagger",
+      "name": "The Lobotomizer",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "mainHand",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 4,
+          "slot": "mainHand",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Chance on hit: Wounds the target for 200 to 300 damage and increases the casting time of all spells by 25% for 30 sec.",
+          "spellId": 1290950
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 251323,
+      "setId": null,
+      "slot": "oneHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 47.2,
+        "max": 111,
+        "min": 59,
+        "school": "Physical",
+        "skill": "Daggers",
+        "speed": 1.8
+      },
+      "weaponSkill": null,
+      "weaponType": "dagger"
     },
     {
       "armorType": null,
@@ -77262,6 +78373,11 @@
           "rank": 2,
           "slot": "offHand",
           "spec": "warrior-fury"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "rogue-combat"
         }
       ],
       "procs": [],
@@ -77363,7 +78479,18 @@
       "name": "Distracting Dagger",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15717 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "offHand",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 4,
+          "slot": "offHand",
+          "spec": "rogue-subtlety"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -79312,6 +80439,70 @@
     },
     {
       "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_weapon_rifle_06",
+      "id": 2100,
+      "itemClass": "Weapon",
+      "itemLevel": 48,
+      "itemSubclass": "Gun",
+      "name": "Precisely Calibrated Boomstick",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "rogue-subtlety"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 43,
+      "requirements": [],
+      "sellPrice": 24539,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 14
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 27.7,
+        "max": 45,
+        "min": 38,
+        "school": "Physical",
+        "skill": "Guns",
+        "speed": 1.5
+      },
+      "weaponSkill": null,
+      "weaponType": "gun"
+    },
+    {
+      "armorType": null,
       "binding": "BoP",
       "classes": null,
       "classic": null,
@@ -79343,6 +80534,21 @@
           "rank": 3,
           "slot": "ranged",
           "spec": "warrior-protection"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],
@@ -79919,6 +81125,21 @@
           "rank": 1,
           "slot": "ranged",
           "spec": "warrior-protection"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "rogue-assassination"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "rogue-subtlety"
         }
       ],
       "procs": [],

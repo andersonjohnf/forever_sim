@@ -3429,6 +3429,1743 @@
       ],
       "traitTreeId": 1100
     },
+    "rogue": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Assassination"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Combat"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Subtlety"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Gouge",
+          "col": 0,
+          "id": "rogue-assassination-improved-gouge",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Gouge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83039,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [500, 1000, 1500]
+            }
+          ],
+          "rankSpellIds": [13741, 13741, 13741],
+          "spellId": 13741,
+          "tier": 0,
+          "traitDefinitionId": 135272,
+          "traitNodeEntryId": 130471,
+          "traitNodeId": 105742,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Remorseless Attacks",
+          "col": 1,
+          "id": "rogue-assassination-remorseless-attacks",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Remorseless Attacks",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83053,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40]
+            }
+          ],
+          "rankSpellIds": [14144, 14144],
+          "spellId": 14144,
+          "tier": 0,
+          "traitDefinitionId": 135253,
+          "traitNodeEntryId": 130452,
+          "traitNodeId": 105723,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Malice",
+          "col": 2,
+          "id": "rogue-assassination-malice",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Malice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83052,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [14138, 14138, 14138, 14138, 14138],
+          "spellId": 14138,
+          "tier": 0,
+          "traitDefinitionId": 135252,
+          "traitNodeEntryId": 130451,
+          "traitNodeId": 105722,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Ruthlessness",
+          "col": 0,
+          "id": "rogue-assassination-ruthlessness",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Ruthlessness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83051,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60]
+            }
+          ],
+          "rankSpellIds": [14156, 14156, 14156],
+          "spellId": 14156,
+          "tier": 1,
+          "traitDefinitionId": 135251,
+          "traitNodeEntryId": 130450,
+          "traitNodeId": 105721,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Murder",
+          "col": 1,
+          "id": "rogue-assassination-murder",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Murder",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83050,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            }
+          ],
+          "rankSpellIds": [14158, 14158],
+          "spellId": 14158,
+          "tier": 1,
+          "traitDefinitionId": 135250,
+          "traitNodeEntryId": 130449,
+          "traitNodeId": 105720,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Slice and Dice",
+          "col": 3,
+          "id": "rogue-assassination-improved-slice-and-dice",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Slice and Dice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83036,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30, 45]
+            }
+          ],
+          "rankSpellIds": [14165, 14165, 14165],
+          "spellId": 14165,
+          "tier": 1,
+          "traitDefinitionId": 135269,
+          "traitNodeEntryId": 130468,
+          "traitNodeId": 105739,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Relentless Strikes",
+          "col": 0,
+          "id": "rogue-assassination-relentless-strikes",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Relentless Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83020,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20]
+            }
+          ],
+          "rankSpellIds": [14179],
+          "spellId": 14179,
+          "tier": 2,
+          "traitDefinitionId": 135289,
+          "traitNodeEntryId": 130488,
+          "traitNodeId": 105759,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Expose Armor",
+          "col": 1,
+          "id": "rogue-assassination-improved-expose-armor",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Expose Armor",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83047,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5, -10]
+            },
+            {
+              "curveId": 109807,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [14168, 14168],
+          "spellId": 14168,
+          "tier": 2,
+          "traitDefinitionId": 135247,
+          "traitNodeEntryId": 130446,
+          "traitNodeId": 105717,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105722],
+            "prerequisiteTalentIds": ["rogue-assassination-malice"],
+            "tier": 2
+          },
+          "clientName": "Lethality",
+          "col": 2,
+          "id": "rogue-assassination-lethality",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Lethality",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83046,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            }
+          ],
+          "rankSpellIds": [14128, 14128, 14128, 14128, 14128],
+          "spellId": 14128,
+          "tier": 2,
+          "traitDefinitionId": 135246,
+          "traitNodeEntryId": 130445,
+          "traitNodeId": 105716,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Vile Poisons",
+          "col": 0,
+          "id": "rogue-assassination-vile-poisons",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Vile Poisons",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83045,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            },
+            {
+              "curveId": 83044,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            },
+            {
+              "curveId": 87761,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [8, 16, 24, 32, 40]
+            }
+          ],
+          "rankSpellIds": [16513, 16513, 16513, 16513, 16513],
+          "spellId": 16513,
+          "tier": 3,
+          "traitDefinitionId": 135244,
+          "traitNodeEntryId": 130443,
+          "traitNodeId": 105714,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Cold Blood",
+          "col": 1,
+          "id": "rogue-assassination-cold-blood",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Cold Blood",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14177],
+          "spellId": 14177,
+          "tier": 3,
+          "traitDefinitionId": 135245,
+          "traitNodeEntryId": 130444,
+          "traitNodeId": 105715,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Poisons",
+          "col": 2,
+          "id": "rogue-assassination-improved-poisons",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Poisons",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83043,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 83042,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [14113, 14113, 14113, 14113, 14113],
+          "spellId": 14113,
+          "tier": 3,
+          "traitDefinitionId": 135243,
+          "traitNodeEntryId": 130442,
+          "traitNodeId": 105713,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Vigor",
+          "col": 0,
+          "id": "rogue-assassination-vigor",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Vigor",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109811,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [14983, 14983],
+          "spellId": 14983,
+          "tier": 4,
+          "traitDefinitionId": 135248,
+          "traitNodeEntryId": 130447,
+          "traitNodeId": 105718,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Mutilate",
+          "col": 1,
+          "id": "rogue-assassination-mutilate",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Mutilate",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310707],
+          "spellId": 1310707,
+          "tier": 4,
+          "traitDefinitionId": 135239,
+          "traitNodeEntryId": 130438,
+          "traitNodeId": 105709,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Kidney Shot",
+          "col": 2,
+          "id": "rogue-assassination-improved-kidney-shot",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Kidney Shot",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83041,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [14174, 14174],
+          "spellId": 14174,
+          "tier": 4,
+          "traitDefinitionId": 135241,
+          "traitNodeEntryId": 130440,
+          "traitNodeId": 105711,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Seal Fate",
+          "col": 2,
+          "id": "rogue-assassination-seal-fate",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Seal Fate",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83040,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [14186, 14186, 14186, 14186, 14186],
+          "spellId": 14186,
+          "tier": 5,
+          "traitDefinitionId": 135240,
+          "traitNodeEntryId": 130439,
+          "traitNodeId": 105710,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105709],
+            "prerequisiteTalentIds": ["rogue-assassination-mutilate"],
+            "tier": 6
+          },
+          "clientName": "Venom",
+          "col": 1,
+          "id": "rogue-assassination-venom",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Venom",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310703],
+          "spellId": 1310703,
+          "tier": 6,
+          "traitDefinitionId": 135242,
+          "traitNodeEntryId": 130441,
+          "traitNodeId": 105712,
+          "tree": "Assassination",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Eviscerate",
+          "col": 0,
+          "id": "rogue-combat-improved-eviscerate",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Eviscerate",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83054,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [7, 13, 20]
+            }
+          ],
+          "rankSpellIds": [14162, 14162, 14162],
+          "spellId": 14162,
+          "tier": 0,
+          "traitDefinitionId": 135238,
+          "traitNodeEntryId": 130437,
+          "traitNodeId": 105708,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Sinister Strike",
+          "col": 1,
+          "id": "rogue-combat-improved-sinister-strike",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Sinister Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83038,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -5]
+            }
+          ],
+          "rankSpellIds": [13732, 13732],
+          "spellId": 13732,
+          "tier": 0,
+          "traitDefinitionId": 135271,
+          "traitNodeEntryId": 130470,
+          "traitNodeId": 105741,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Lightning Reflexes",
+          "col": 2,
+          "id": "rogue-combat-lightning-reflexes",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Lightning Reflexes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 112488,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [13712, 13712, 13712, 13712, 13712],
+          "spellId": 13712,
+          "tier": 0,
+          "traitDefinitionId": 145370,
+          "traitNodeEntryId": 140697,
+          "traitNodeId": 113398,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Puncturing Wounds",
+          "col": 0,
+          "id": "rogue-combat-puncturing-wounds",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Puncturing Wounds",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83049,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 83048,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [15, 30, 45]
+            },
+            {
+              "curveId": 115028,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [1224716, 1224716, 1224716],
+          "spellId": 1224716,
+          "tier": 1,
+          "traitDefinitionId": 135249,
+          "traitNodeEntryId": 130448,
+          "traitNodeId": 105719,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Deflection",
+          "col": 1,
+          "id": "rogue-combat-deflection",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Deflection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83035,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [13713, 13713, 13713],
+          "spellId": 13713,
+          "tier": 1,
+          "traitDefinitionId": 135268,
+          "traitNodeEntryId": 130467,
+          "traitNodeId": 105738,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Precision",
+          "col": 2,
+          "id": "rogue-combat-precision",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83034,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            },
+            {
+              "curveId": 87810,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [13705, 13705, 13705],
+          "spellId": 13705,
+          "tier": 1,
+          "traitDefinitionId": 135267,
+          "traitNodeEntryId": 130466,
+          "traitNodeId": 105737,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Endurance",
+          "col": 0,
+          "id": "rogue-combat-endurance",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Endurance",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83033,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-30, -60]
+            }
+          ],
+          "rankSpellIds": [13742, 13742],
+          "spellId": 13742,
+          "tier": 2,
+          "traitDefinitionId": 135266,
+          "traitNodeEntryId": 130465,
+          "traitNodeId": 105736,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105738],
+            "prerequisiteTalentIds": ["rogue-combat-deflection"],
+            "tier": 2
+          },
+          "clientName": "Riposte",
+          "col": 1,
+          "id": "rogue-combat-riposte",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Riposte",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14251],
+          "spellId": 14251,
+          "tier": 2,
+          "traitDefinitionId": 135265,
+          "traitNodeEntryId": 130464,
+          "traitNodeId": 105735,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Sprint",
+          "col": 3,
+          "id": "rogue-combat-improved-sprint",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Sprint",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83030,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [13743, 13743],
+          "spellId": 13743,
+          "tier": 2,
+          "traitDefinitionId": 135262,
+          "traitNodeEntryId": 130461,
+          "traitNodeId": 105732,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Kick",
+          "col": 0,
+          "id": "rogue-combat-improved-kick",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Kick",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83031,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [13754, 13754],
+          "spellId": 13754,
+          "tier": 3,
+          "traitDefinitionId": 135263,
+          "traitNodeEntryId": 130462,
+          "traitNodeId": 105733,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Flawless Execution",
+          "col": 1,
+          "id": "rogue-combat-flawless-execution",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Flawless Execution",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310711],
+          "spellId": 1310711,
+          "tier": 3,
+          "traitDefinitionId": 138268,
+          "traitNodeEntryId": 133482,
+          "traitNodeId": 108100,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105737],
+            "prerequisiteTalentIds": ["rogue-combat-precision"],
+            "tier": 3
+          },
+          "clientName": "Dual Wield Specialization",
+          "col": 2,
+          "id": "rogue-combat-dual-wield-specialization",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Dual Wield Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83037,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            }
+          ],
+          "rankSpellIds": [13715, 13715, 13715, 13715, 13715],
+          "spellId": 13715,
+          "tier": 3,
+          "traitDefinitionId": 135270,
+          "traitNodeEntryId": 130469,
+          "traitNodeId": 105740,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Blade Flurry",
+          "col": 1,
+          "id": "rogue-combat-blade-flurry",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Blade Flurry",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [13877],
+          "spellId": 13877,
+          "tier": 4,
+          "traitDefinitionId": 135258,
+          "traitNodeEntryId": 130457,
+          "traitNodeId": 105728,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Hack and Slash",
+          "col": 2,
+          "id": "rogue-combat-hack-and-slash",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Hack and Slash",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83026,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 106210,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            },
+            {
+              "curveId": 106209,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [13960, 13960, 13960, 13960, 13960],
+          "spellId": 13960,
+          "tier": 4,
+          "traitDefinitionId": 135257,
+          "traitNodeEntryId": 130456,
+          "traitNodeId": 105727,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105728],
+            "prerequisiteTalentIds": ["rogue-combat-blade-flurry"],
+            "tier": 5
+          },
+          "clientName": "Weapon Expertise",
+          "col": 1,
+          "id": "rogue-combat-weapon-expertise",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Weapon Expertise",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83025,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [30919, 30919],
+          "spellId": 30919,
+          "tier": 5,
+          "traitDefinitionId": 135256,
+          "traitNodeEntryId": 130455,
+          "traitNodeId": 105726,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Aggression",
+          "col": 2,
+          "id": "rogue-combat-aggression",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Aggression",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83028,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [18427, 18427, 18427],
+          "spellId": 18427,
+          "tier": 5,
+          "traitDefinitionId": 135260,
+          "traitNodeEntryId": 130459,
+          "traitNodeId": 105730,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 6
+          },
+          "clientName": "Adrenaline Rush",
+          "col": 1,
+          "id": "rogue-combat-adrenaline-rush",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Adrenaline Rush",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [13750],
+          "spellId": 13750,
+          "tier": 6,
+          "traitDefinitionId": 135254,
+          "traitNodeEntryId": 130453,
+          "traitNodeId": 105724,
+          "tree": "Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Camouflage",
+          "col": 0,
+          "id": "rogue-subtlety-camouflage",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Camouflage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83015,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            },
+            {
+              "curveId": 83014,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2000, -3000, -4000, -5000, -6000]
+            }
+          ],
+          "rankSpellIds": [13975, 13975, 13975, 13975, 13975],
+          "spellId": 13975,
+          "tier": 0,
+          "traitDefinitionId": 135286,
+          "traitNodeEntryId": 130485,
+          "traitNodeId": 105756,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Master of Deception",
+          "col": 1,
+          "id": "rogue-subtlety-master-of-deception",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Master of Deception",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83022,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [13958, 13958, 13958],
+          "spellId": 13958,
+          "tier": 0,
+          "traitDefinitionId": 135291,
+          "traitNodeEntryId": 130490,
+          "traitNodeId": 105761,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Opportunity",
+          "col": 2,
+          "id": "rogue-subtlety-opportunity",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Opportunity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83021,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            },
+            {
+              "curveId": 110341,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [14057, 14057],
+          "spellId": 14057,
+          "tier": 0,
+          "traitDefinitionId": 135290,
+          "traitNodeEntryId": 130489,
+          "traitNodeId": 105760,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Setup",
+          "col": 0,
+          "id": "rogue-subtlety-setup",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Setup",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83009,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [13983, 13983, 13983],
+          "spellId": 13983,
+          "tier": 1,
+          "traitDefinitionId": 135281,
+          "traitNodeEntryId": 130480,
+          "traitNodeId": 105751,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Elusiveness",
+          "col": 1,
+          "id": "rogue-subtlety-elusiveness",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Elusiveness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83012,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-45000, -90000]
+            }
+          ],
+          "rankSpellIds": [13981, 13981],
+          "spellId": 13981,
+          "tier": 1,
+          "traitDefinitionId": 135283,
+          "traitNodeEntryId": 130482,
+          "traitNodeId": 105753,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Dirty Tricks",
+          "col": 2,
+          "id": "rogue-subtlety-dirty-tricks",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Dirty Tricks",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83017,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-25, -50]
+            }
+          ],
+          "rankSpellIds": [1224782, 1224782],
+          "spellId": 1224782,
+          "tier": 1,
+          "traitDefinitionId": 135287,
+          "traitNodeEntryId": 130486,
+          "traitNodeId": 105757,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Ambush",
+          "col": 3,
+          "id": "rogue-subtlety-improved-ambush",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Ambush",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83006,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30, 45]
+            }
+          ],
+          "rankSpellIds": [14079, 14079, 14079],
+          "spellId": 14079,
+          "tier": 1,
+          "traitDefinitionId": 135279,
+          "traitNodeEntryId": 130478,
+          "traitNodeId": 105749,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Initiative",
+          "col": 0,
+          "id": "rogue-subtlety-initiative",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Initiative",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83013,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [13976, 13976, 13976],
+          "spellId": 13976,
+          "tier": 2,
+          "traitDefinitionId": 135285,
+          "traitNodeEntryId": 130484,
+          "traitNodeId": 105755,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Ghostly Strike",
+          "col": 1,
+          "id": "rogue-subtlety-ghostly-strike",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Ghostly Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14278],
+          "spellId": 14278,
+          "tier": 2,
+          "traitDefinitionId": 135284,
+          "traitNodeEntryId": 130483,
+          "traitNodeId": 105754,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Distract",
+          "col": 2,
+          "id": "rogue-subtlety-improved-distract",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Distract",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109868,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 5]
+            },
+            {
+              "curveId": 109869,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-5, -10]
+            }
+          ],
+          "rankSpellIds": [14084, 14084],
+          "spellId": 14084,
+          "tier": 2,
+          "traitDefinitionId": 142620,
+          "traitNodeEntryId": 137866,
+          "traitNodeId": 110868,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Heightened Senses",
+          "col": 0,
+          "id": "rogue-subtlety-heightened-senses",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Heightened Senses",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83005,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 15]
+            },
+            {
+              "curveId": 83004,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2, -4]
+            },
+            {
+              "curveId": 97798,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-2, -4]
+            }
+          ],
+          "rankSpellIds": [30894, 30894],
+          "spellId": 30894,
+          "tier": 3,
+          "traitDefinitionId": 135277,
+          "traitNodeEntryId": 130476,
+          "traitNodeId": 105747,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Premeditation",
+          "col": 1,
+          "id": "rogue-subtlety-premeditation",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Premeditation",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14183],
+          "spellId": 14183,
+          "tier": 3,
+          "traitDefinitionId": 135273,
+          "traitNodeEntryId": 130472,
+          "traitNodeId": 105743,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Serrated Blades",
+          "col": 2,
+          "id": "rogue-subtlety-serrated-blades",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Serrated Blades",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83011,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9]
+            },
+            {
+              "curveId": 83010,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [14171, 14171, 14171],
+          "spellId": 14171,
+          "tier": 3,
+          "traitDefinitionId": 135282,
+          "traitNodeEntryId": 130481,
+          "traitNodeId": 105752,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Dirty Deeds",
+          "col": 0,
+          "id": "rogue-subtlety-dirty-deeds",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Dirty Deeds",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83003,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20]
+            }
+          ],
+          "rankSpellIds": [14082, 14082],
+          "spellId": 14082,
+          "tier": 4,
+          "traitDefinitionId": 135275,
+          "traitNodeEntryId": 130474,
+          "traitNodeId": 105745,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Preparation",
+          "col": 1,
+          "id": "rogue-subtlety-preparation",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Preparation",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14185],
+          "spellId": 14185,
+          "tier": 4,
+          "traitDefinitionId": 135276,
+          "traitNodeEntryId": 130475,
+          "traitNodeId": 105746,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105752],
+            "prerequisiteTalentIds": ["rogue-subtlety-serrated-blades"],
+            "tier": 4
+          },
+          "clientName": "Hemorrhage",
+          "col": 2,
+          "id": "rogue-subtlety-hemorrhage",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Hemorrhage",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16511],
+          "spellId": 16511,
+          "tier": 4,
+          "traitDefinitionId": 135278,
+          "traitNodeEntryId": 130477,
+          "traitNodeId": 105748,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [105745],
+            "prerequisiteTalentIds": ["rogue-subtlety-dirty-deeds"],
+            "tier": 5
+          },
+          "clientName": "Quietus",
+          "col": 0,
+          "id": "rogue-subtlety-quietus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Quietus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109866,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [1310728, 1310728, 1310728, 1310728, 1310728],
+          "spellId": 1310728,
+          "tier": 5,
+          "traitDefinitionId": 142619,
+          "traitNodeEntryId": 137865,
+          "traitNodeId": 110867,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Cutthroat",
+          "col": 2,
+          "id": "rogue-subtlety-cutthroat",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Cutthroat",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83008,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            },
+            {
+              "curveId": 83007,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15, 15, 15]
+            }
+          ],
+          "rankSpellIds": [462708, 462708, 462708, 462708, 462708],
+          "spellId": 462708,
+          "tier": 5,
+          "traitDefinitionId": 135280,
+          "traitNodeEntryId": 130479,
+          "traitNodeId": 105750,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105746],
+            "prerequisiteTalentIds": ["rogue-subtlety-preparation"],
+            "tier": 6
+          },
+          "clientName": "Thousand Cuts",
+          "col": 1,
+          "id": "rogue-subtlety-thousand-cuts",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Thousand Cuts",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109867,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3]
+            }
+          ],
+          "rankSpellIds": [1310721],
+          "spellId": 1310721,
+          "tier": 6,
+          "traitDefinitionId": 142618,
+          "traitNodeEntryId": 137864,
+          "traitNodeId": 110866,
+          "tree": "Subtlety",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1111
+    },
     "shaman": {
       "tabs": [
         {
@@ -6766,10 +8503,10 @@
     }
   },
   "counts": {
-    "byName": 206,
+    "byName": 259,
     "byPosition": 0,
-    "mapped": 206,
-    "talents": 206,
+    "mapped": 259,
+    "talents": 259,
     "unmapped": 0
   },
   "unmapped": []

@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "Hand-curated input for scripts/scrape/items-client.mjs: Classic Era pre-raid best-in-slot lists for the eight",
+    "Hand-curated input for scripts/scrape/items-client.mjs: Classic Era pre-raid best-in-slot lists for the eleven",
     "simulated specs. Every item listed here joins src/data/items/pre-bis.json whatever its quality or level",
     "(it must still be equippable and pass the Season of Discovery id guard), and pool items get",
     "preRaidBis: [{ spec, slot, rank }]. Curated 2026-09-22 (user request: 'If there are some pre-raid BIS",
@@ -2556,6 +2556,966 @@
             "name": "Totem of Rebirth",
             "rank": 2,
             "notes": "Dungeon - Dire Maul East (Isalien)"
+          }
+        ]
+      }
+    },
+    "rogue-combat": {
+      "name": "Combat Rogue (swords)",
+      "source": {
+        "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+        "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "note": "The guide's one list for every rogue, with its Main Hand (Swords) row and its whole Off-Hand row; the Daggers row is the other specs'. Rank-14 PvP weapons are left out (pvpMaxRank).",
+      "slots": {
+        "head": [
+          {
+            "id": 22005,
+            "name": "Darkmantle Cap",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16707,
+            "name": "Shadowcraft Cap",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 22008,
+            "name": "Darkmantle Spaulders",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16708,
+            "name": "Shadowcraft Spaulders",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 22009,
+            "name": "Darkmantle Tunic",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16721,
+            "name": "Shadowcraft Tunic",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 22004,
+            "name": "Darkmantle Bracers",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16710,
+            "name": "Shadowcraft Bracers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (zone drop)"
+          },
+          {
+            "id": 18375,
+            "name": "Bracers of the Eclipse",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "hands": [
+          {
+            "id": 22006,
+            "name": "Darkmantle Gloves",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16712,
+            "name": "Shadowcraft Gloves",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (290)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 22002,
+            "name": "Darkmantle Belt",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16713,
+            "name": "Shadowcraft Belt",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire (zone drop)"
+          },
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "legs": [
+          {
+            "id": 22007,
+            "name": "Darkmantle Pants",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16709,
+            "name": "Shadowcraft Pants",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (300)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22003,
+            "name": "Darkmantle Boots",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16711,
+            "name": "Shadowcraft Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 12553,
+            "name": "Swiftwalker Boots",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "finger": [
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 2,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 4,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 18465,
+            "name": "Royal Seal of Eldre'Thalas",
+            "rank": 3,
+            "notes": "Dungeon Quest - Dire Maul"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 12940,
+            "name": "Dal'Rend's Sacred Charge",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 2244,
+            "name": "Krol Blade",
+            "rank": 2,
+            "notes": "BoE World Drop"
+          },
+          {
+            "id": 6622,
+            "name": "Sword of Zeal",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 12939,
+            "name": "Dal'Rend's Tribal Guardian",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 15806,
+            "name": "Mirah's Song",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 14555,
+            "name": "Alcor's Sunrazor",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 2100,
+            "name": "Precisely Calibrated Boomstick",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          }
+        ]
+      }
+    },
+    "rogue-assassination": {
+      "name": "Assassination Rogue (daggers)",
+      "source": {
+        "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+        "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "note": "The guide's one list for every rogue, with its Main Hand (Daggers) row, whose rank-3 Grand Marshal's and High Warlord's daggers (Rank 14) are left out (pvpMaxRank), and the daggers of its Off-Hand row, which keep their ranks there.",
+      "slots": {
+        "head": [
+          {
+            "id": 22005,
+            "name": "Darkmantle Cap",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16707,
+            "name": "Shadowcraft Cap",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 22008,
+            "name": "Darkmantle Spaulders",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16708,
+            "name": "Shadowcraft Spaulders",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 22009,
+            "name": "Darkmantle Tunic",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16721,
+            "name": "Shadowcraft Tunic",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 22004,
+            "name": "Darkmantle Bracers",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16710,
+            "name": "Shadowcraft Bracers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (zone drop)"
+          },
+          {
+            "id": 18375,
+            "name": "Bracers of the Eclipse",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "hands": [
+          {
+            "id": 22006,
+            "name": "Darkmantle Gloves",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16712,
+            "name": "Shadowcraft Gloves",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (290)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 22002,
+            "name": "Darkmantle Belt",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16713,
+            "name": "Shadowcraft Belt",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire (zone drop)"
+          },
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "legs": [
+          {
+            "id": 22007,
+            "name": "Darkmantle Pants",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16709,
+            "name": "Shadowcraft Pants",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (300)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22003,
+            "name": "Darkmantle Boots",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16711,
+            "name": "Shadowcraft Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 12553,
+            "name": "Swiftwalker Boots",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "finger": [
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 2,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 4,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 18465,
+            "name": "Royal Seal of Eldre'Thalas",
+            "rank": 3,
+            "notes": "Dungeon Quest - Dire Maul"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 12590,
+            "name": "Felstriker",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12783,
+            "name": "Heartseeker",
+            "rank": 2,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 19324,
+            "name": "The Lobotomizer",
+            "rank": 4,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 14555,
+            "name": "Alcor's Sunrazor",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          },
+          {
+            "id": 18392,
+            "name": "Distracting Dagger",
+            "rank": 4,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 2100,
+            "name": "Precisely Calibrated Boomstick",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          }
+        ]
+      }
+    },
+    "rogue-subtlety": {
+      "name": "Subtlety Rogue (daggers)",
+      "source": {
+        "title": "Classic Rogue Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 5",
+        "url": "https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "note": "The guide's one list for every rogue, with its Main Hand (Daggers) row, whose rank-3 Grand Marshal's and High Warlord's daggers (Rank 14) are left out (pvpMaxRank), and the daggers of its Off-Hand row, which keep their ranks there.",
+      "slots": {
+        "head": [
+          {
+            "id": 22005,
+            "name": "Darkmantle Cap",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16707,
+            "name": "Shadowcraft Cap",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 22008,
+            "name": "Darkmantle Spaulders",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16708,
+            "name": "Shadowcraft Spaulders",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 22009,
+            "name": "Darkmantle Tunic",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16721,
+            "name": "Shadowcraft Tunic",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 22004,
+            "name": "Darkmantle Bracers",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16710,
+            "name": "Shadowcraft Bracers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (zone drop)"
+          },
+          {
+            "id": 18375,
+            "name": "Bracers of the Eclipse",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "hands": [
+          {
+            "id": 22006,
+            "name": "Darkmantle Gloves",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16712,
+            "name": "Shadowcraft Gloves",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (290)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 22002,
+            "name": "Darkmantle Belt",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16713,
+            "name": "Shadowcraft Belt",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire (zone drop)"
+          },
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "legs": [
+          {
+            "id": 22007,
+            "name": "Darkmantle Pants",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16709,
+            "name": "Shadowcraft Pants",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (300)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22003,
+            "name": "Darkmantle Boots",
+            "rank": 1,
+            "notes": "Quest - Dungeon Set 2 quest line"
+          },
+          {
+            "id": 16711,
+            "name": "Shadowcraft Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 12553,
+            "name": "Swiftwalker Boots",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "finger": [
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 2,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 4,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 18465,
+            "name": "Royal Seal of Eldre'Thalas",
+            "rank": 3,
+            "notes": "Dungeon Quest - Dire Maul"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 12590,
+            "name": "Felstriker",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12783,
+            "name": "Heartseeker",
+            "rank": 2,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 19324,
+            "name": "The Lobotomizer",
+            "rank": 4,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 14555,
+            "name": "Alcor's Sunrazor",
+            "rank": 3,
+            "notes": "BoE World Drop"
+          },
+          {
+            "id": 18392,
+            "name": "Distracting Dagger",
+            "rank": 4,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 2100,
+            "name": "Precisely Calibrated Boomstick",
+            "rank": 3,
+            "notes": "BoE World Drop"
           }
         ]
       }

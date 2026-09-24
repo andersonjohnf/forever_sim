@@ -4763,10 +4763,10 @@
     "consumablesWithEffects": 85,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1643,
-    "withEffects": 239,
-    "withItemRow": 1643,
-    "withItemSparseRow": 894
+    "items": 1652,
+    "withEffects": 242,
+    "withItemRow": 1652,
+    "withItemSparseRow": 899
   },
   "items": {
     "868": {
@@ -4882,6 +4882,32 @@
         "material": 3,
         "sheatheType": 0,
         "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "2100": {
+      "effects": [],
+      "id": 2100,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135615,
+        "inventoryType": 26,
+        "material": 1,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": null
+    },
+    "2244": {
+      "effects": [],
+      "id": 2244,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135316,
+        "inventoryType": 21,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 7
       },
       "itemSparse": null
     },
@@ -10565,6 +10591,32 @@
       },
       "itemSparse": null
     },
+    "14555": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 99834,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 18833,
+          "triggerType": 2
+        }
+      ],
+      "id": 14555,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135344,
+        "inventoryType": 13,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 15
+      },
+      "itemSparse": null
+    },
     "14576": {
       "effects": [
         {
@@ -15813,6 +15865,19 @@
         "classId": 4,
         "iconFileDataId": 134582,
         "inventoryType": 7,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": null
+    },
+    "16710": {
+      "effects": [],
+      "id": 16710,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132606,
+        "inventoryType": 9,
         "material": 8,
         "sheatheType": 0,
         "subclassId": 2
@@ -22978,6 +23043,54 @@
         "statPercentEditor": [4043, 3191, 5957, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "19324": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 102201,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 1290950,
+          "triggerType": 2
+        }
+      ],
+      "id": 19324,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135330,
+        "inventoryType": 13,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 15
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "The Lobotomizer",
+        "dmgVariance": 0.6,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 13,
+        "itemDelay": 1800,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 1,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 3,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "19325": {
       "effects": [],
       "id": 19325,
@@ -29882,6 +29995,54 @@
         "statPercentEditor": [6071, 4643, 3571, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "22003": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 103242,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 27037,
+          "triggerType": 1
+        }
+      ],
+      "id": 22003,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132542,
+        "inventoryType": 8,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Darkmantle Boots",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 8,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 512,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7273, 3030, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "22004": {
       "effects": [],
       "id": 22004,
@@ -29915,6 +30076,76 @@
         "sheatheType": 0,
         "statModifierBonusStat": [3, 7, 4, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [7143, 3333, 3333, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22005": {
+      "effects": [],
+      "id": 22005,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133143,
+        "inventoryType": 1,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Darkmantle Cap",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 1,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 512,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, 4, 32, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5909, 4091, 2955, 3182, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22006": {
+      "effects": [],
+      "id": 22006,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132958,
+        "inventoryType": 10,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Darkmantle Gloves",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 55,
+        "itemRange": 0,
+        "itemSet": 512,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 4, 7, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7333, 4000, 3000, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "22007": {
@@ -29985,6 +30216,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [3, 7, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [8571, 3571, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22009": {
+      "effects": [],
+      "id": 22009,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132722,
+        "inventoryType": 5,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Darkmantle Tunic",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 5,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 512,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, 31, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7045, 3409, 4545, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "22010": {

@@ -314,7 +314,7 @@ export interface ClientTalents {
   counts: { talents: number; mapped: number; byName: number; byPosition: number; unmapped: number }
   unmapped: { class: string; tree: string; talentId: string; name: string; reason: string }[]
   classes: Record<
-    'warrior' | 'druid' | 'paladin' | 'shaman',
+    'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue',
     { traitTreeId: number; tabs: { tree: string; index: number; posX: [number, number] | null }[]; talents: ClientTalent[] }
   >
 }

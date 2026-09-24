@@ -12,11 +12,13 @@ import type { RaceData } from './races/types'
 import druidSpellJson from './spells/druid.json'
 import paladinSpellJson from './spells/paladin.json'
 import shamanSpellJson from './spells/shaman.json'
+import rogueSpellJson from './spells/rogue.json'
 import type { SpellBook } from './spells/types'
 import warriorSpellJson from './spells/warrior.json'
 import druidTalentJson from './talents/druid.json'
 import paladinTalentJson from './talents/paladin.json'
 import shamanTalentJson from './talents/shaman.json'
+import rogueTalentJson from './talents/rogue.json'
 import {
   decodeTalentCode,
   encodeTalentCode,
@@ -33,12 +35,14 @@ const spellBooks = {
   druid: druidSpellJson as unknown as SpellBook,
   paladin: paladinSpellJson as unknown as SpellBook,
   shaman: shamanSpellJson as unknown as SpellBook,
+  rogue: rogueSpellJson as unknown as SpellBook,
 }
 const talentData = {
   warrior: warriorTalentJson as unknown as TalentData,
   druid: druidTalentJson as unknown as TalentData,
   paladin: paladinTalentJson as unknown as TalentData,
   shaman: shamanTalentJson as unknown as TalentData,
+  rogue: rogueTalentJson as unknown as TalentData,
 }
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
@@ -61,7 +65,9 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
 
 // The client spellbooks (docs/data/spells.md). Counts pin this build's books: a new build that
 // adds or drops a spell fails here on purpose, so the change gets looked at and documented.
-const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5] } as const
+// The rogue's 22 are its Poisons tab: Forever moved the Poisons skill line out of the class lines
+// (a profession-like category), so its book has none (docs/classes/rogue.md#1-wow-forever-changes).
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22] } as const
 
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   const all = book.spells.flatMap((s) => s.ranks)
@@ -157,6 +163,11 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Enhancement: "Earth's Grasp 2, Thundering Strikes 5, Ancestral Knowledge 5, Guardian Totems 2, Mental Dexterity 3, Improved Ghost Wolf 2, Improved Lightning Shield 3, Elemental Weapons 3, Shamanistic Focus 1, Anticipation 3, Toughness 5, Flurry 5, Stormstrike 1, Spirit Weapons 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
     Restoration: "Improved Healing Wave 5, Totemic Focus 5, Mindfulness 3, Natural Grace 3, Tidal Focus 5, Improved Reincarnation 2, Ancestral Healing 3, Healing Focus 3, Water Shield 1, Tidal Mastery 5, Restorative Totems 5, Mana Tide Totem 1, Healing Way 3, Nature's Swiftness 1, Purification 5, Riptide 1",
   },
+  rogue: {
+    Assassination: 'Improved Gouge 3, Remorseless Attacks 2, Malice 5, Ruthlessness 3, Murder 2, Improved Slice and Dice 3, Relentless Strikes 1, Improved Expose Armor 2, Lethality 5, Vile Poisons 5, Cold Blood 1, Improved Poisons 5, Vigor 2, Mutilate 1, Improved Kidney Shot 2, Seal Fate 5, Venom 1',
+    Combat: 'Improved Eviscerate 3, Improved Sinister Strike 2, Lightning Reflexes 5, Puncturing Wounds 3, Deflection 3, Precision 3, Endurance 2, Riposte 1, Improved Sprint 2, Improved Kick 2, Flawless Execution 1, Dual Wield Specialization 5, Blade Flurry 1, Hack and Slash 5, Weapon Expertise 2, Aggression 3, Adrenaline Rush 1',
+    Subtlety: 'Camouflage 5, Master of Deception 3, Opportunity 2, Setup 3, Elusiveness 2, Dirty Tricks 2, Improved Ambush 3, Initiative 3, Ghostly Strike 1, Improved Distract 2, Heightened Senses 2, Premeditation 1, Serrated Blades 3, Dirty Deeds 2, Preparation 1, Hemorrhage 1, Quietus 5, Cutthroat 5, Thousand Cuts 1',
+  },
 }
 
 /** Ranks by talent name, per tree, in code order: "Name rank, Name rank". */
@@ -232,7 +243,7 @@ describe('talent presets and defaults', () => {
       const { classId } = SPEC_META[spec]
       expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
     }
-    for (const classId of ['warrior', 'druid', 'paladin', 'shaman'] as const) {
+    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue'] as const) {
       const presets = talentPresets(classId)
       expect(presets.length, classId).toBeGreaterThan(0)
       expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
@@ -253,7 +264,7 @@ const NAME_USES = [/\btalents\.(?:has|get)\(\s*(['"])(.+?)\1/g, /\brank\(\s*tale
 describe('talent names the engine keys on', () => {
   const uses: { file: string; cls: keyof typeof talentData | null; name: string }[] = []
   for (const [file, source] of Object.entries(SIM_SOURCES)) {
-    const cls = (/\/classes\/(warrior|druid|paladin|shaman)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
+    const cls = (/\/classes\/(warrior|druid|paladin|shaman|rogue)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
     for (const re of NAME_USES) for (const m of source.matchAll(re)) uses.push({ file, cls, name: m[2] })
   }
   for (const name of Object.keys(TALENT_EFFECTS)) uses.push({ file: '../sim/classes/warrior/talents.ts (TALENT_EFFECTS)', cls: 'warrior', name })
@@ -266,7 +277,7 @@ describe('talent names the engine keys on', () => {
   it('exist in the talent data', () => {
     const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
     const missing = uses.filter((u) =>
-      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman'] as const).some((c) => namesOf(c).has(u.name)),
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue'] as const).some((c) => namesOf(c).has(u.name)),
     )
     expect(missing).toEqual([])
   })

@@ -24,7 +24,7 @@ describe('the About sheet and page description', () => {
     // Protection paladin since C3, and Enhancement since S1.
     expect(coverageSentence()).toBe('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) · Paladins: Retribution and Protection · Shamans: Enhancement.')
     const all = coverageSentence(specs)
-    expect(all).toMatch(/^Covers Warriors: [^·]+ · Druids: [^·]+ · Paladins: [^·]+ · Shamans: [^·]+\.$/)
+    expect(all).toMatch(/^Covers Warriors: [^·]+ · Druids: [^·]+ · Paladins: [^·]+ · Shamans: [^·]+ · Rogues: [^·]+\.$/)
     expect(all).toContain('Fury, Arms and Protection')
   })
 })

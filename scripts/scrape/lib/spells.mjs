@@ -97,7 +97,6 @@ export const DROPPED = {
   SpellClassOptions: ["ModalNextSpell"],
   SpellTargetRestrictions: ["Width"],
   SpellAuraRestrictions: ["CasterAuraType", "TargetAuraType", "ExcludeCasterAuraType", "ExcludeTargetAuraType"],
-  SpellDuration: ["DurationPerResource"],
 };
 /** Dropped columns that are informational only (never numeric game rules). */
 const DROPPED_UNCHECKED = new Set(["ActiveIconFileDataID", "ContentTuningID", "ShowFutureSpellPlayerConditionID", "SpellVisualScript", "ActiveSpellVisualScript", "PvpMultiplier", "GroupSizeBasePointsCoefficient", "EffectPos_facing", "PowerDisplayID", "AltPowerBarID", "StanceBarOrder", "EffectItemType"]);
@@ -149,7 +148,7 @@ export function createSpellIndex(t, { lenient = false } = {}) {
     const m = one(misc, id);
     const miscOut = pick(m, MISC);
     const castTime = m && m.CastingTimeIndex ? pick(t.SpellCastTimes.byId.get(m.CastingTimeIndex), ["Base", "Minimum"]) : null;
-    const duration = m && m.DurationIndex ? pick(t.SpellDuration.byId.get(m.DurationIndex), ["Duration", "MaxDuration"]) : null;
+    const duration = m && m.DurationIndex ? pick(t.SpellDuration.byId.get(m.DurationIndex), ["Duration", "MaxDuration", "DurationPerResource"]) : null;
     const range = m && m.RangeIndex ? pick(t.SpellRange.byId.get(m.RangeIndex), ["RangeMin", "RangeMax", "Flags"]) : null;
 
     const effs = (effects.get(id) ?? [])

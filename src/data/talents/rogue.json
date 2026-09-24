@@ -1,0 +1,1748 @@
+{
+  "meta": {
+    "classicBuild": "1.15.9.69722",
+    "classicProduct": "wow_classic_era",
+    "foreverBuild": "1.60.1.69913",
+    "foreverBuildDate": "2026-09-18",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scraper": "scripts/scrape/talents-client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "classic": {
+        "ChrClasses": 1361031,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "Talent": 1369062,
+        "TalentTab": 2178102
+      },
+      "forever": {
+        "ChrClasses": 1361031,
+        "CurvePoint": 892586,
+        "ItemSubClass": 1261604,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellCastTimes": 1134089,
+        "SpellClassOptions": 979663,
+        "SpellCooldowns": 1139924,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellEquippedItems": 1140011,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellPower": 982806,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "TalentTab": 2178102,
+        "TraitCond": 4543085,
+        "TraitCurrency": 4524216,
+        "TraitDefinition": 4420327,
+        "TraitDefinitionEffectPoints": 4536895,
+        "TraitEdge": 4420308,
+        "TraitNode": 4420297,
+        "TraitNodeEntry": 4420298,
+        "TraitNodeGroupXTraitCond": 4543090,
+        "TraitNodeGroupXTraitNode": 4420302,
+        "TraitNodeXTraitCond": 4543092,
+        "TraitNodeXTraitNodeEntry": 4420304,
+        "TraitTree": 4420305,
+        "TraitTreeXTraitCurrency": 4524218
+      }
+    },
+    "traitCurrencyId": 3820,
+    "traitTreeId": 1111,
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "class": "rogue",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.",
+  "rules": {
+    "maxCol": 3,
+    "maxPoints": 51,
+    "maxTier": 6,
+    "pointsPerTier": 5
+  },
+  "trees": [
+    {
+      "clientTreeId": "182",
+      "icon": "ability_rogue_eviscerate",
+      "id": "Assassination",
+      "index": 0,
+      "name": "Assassination",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Gouge",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13741,
+          "col": 0,
+          "icon": "ability_gouge",
+          "id": "rogue-assassination-improved-gouge",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Gouge",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the effect duration of your Gouge ability by 0.5 sec.", "Increases the effect duration of your Gouge ability by 1 sec.", "Increases the effect duration of your Gouge ability by 1.5 sec."],
+            "forever": ["Increases the duration of your Gouge ability by 0.5 sec.", "Increases the duration of your Gouge ability by 1 sec.", "Increases the duration of your Gouge ability by 1.5 sec."]
+          },
+          "spellId": 13741,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Remorseless Attacks",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14144,
+          "col": 1,
+          "icon": "ability_fiegndead",
+          "id": "rogue-assassination-remorseless-attacks",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Remorseless Attacks",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["After killing an opponent that yields experience or honor, gives you a 20% increased critical strike chance on your next Sinister Strike, Backstab, Ambush, or Ghostly Strike. Lasts 20 sec.", "After killing an opponent that yields experience or honor, gives you a 40% increased critical strike chance on your next Sinister Strike, Backstab, Ambush, or Ghostly Strike. Lasts 20 sec."],
+            "forever": ["After killing a non-trivial enemy, gives you a 20% increased critical strike chance on your next Sinister Strike, Backstab, Ambush, Mutilate, or Ghostly Strike. Lasts 20 sec.", "After killing a non-trivial enemy, gives you a 40% increased critical strike chance on your next Sinister Strike, Backstab, Ambush, Mutilate, or Ghostly Strike. Lasts 20 sec."]
+          },
+          "spellId": 14144,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Malice",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14138,
+          "col": 2,
+          "icon": "ability_racial_bloodrage",
+          "id": "rogue-assassination-malice",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Malice",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your critical strike chance by 1%.", "Increases your critical strike chance by 2%.", "Increases your critical strike chance by 3%.", "Increases your critical strike chance by 4%.", "Increases your critical strike chance by 5%."],
+            "forever": ["Increases your critical strike chance with all attacks and Poisons by 1%.", "Increases your critical strike chance with all attacks and Poisons by 2%.", "Increases your critical strike chance with all attacks and Poisons by 3%.", "Increases your critical strike chance with all attacks and Poisons by 4%.", "Increases your critical strike chance with all attacks and Poisons by 5%."]
+          },
+          "spellId": 14138,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Ruthlessness",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14156,
+          "col": 0,
+          "icon": "ability_druid_disembowel",
+          "id": "rogue-assassination-ruthlessness",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Ruthlessness",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your finishing moves a 20% chance to add a combo point to your target.", "Gives your finishing moves a 40% chance to add a combo point to your target.", "Gives your finishing moves a 60% chance to add a combo point to your target."],
+            "forever": ["Gives your finishing moves a 20% chance to add a Combo Point to your target.", "Gives your finishing moves a 40% chance to add a Combo Point to your target.", "Gives your finishing moves a 60% chance to add a Combo Point to your target."]
+          },
+          "spellId": 14156,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Murder",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14158,
+          "col": 1,
+          "icon": "spell_shadow_deathscream",
+          "id": "rogue-assassination-murder",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Murder",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases all damage caused against Humanoid, Giant, Beast and Dragonkin targets by 1%.", "Increases all damage caused against Humanoid, Giant, Beast and Dragonkin targets by 2%."],
+            "forever": ["Increases all damage dealt by 2% against Humanoid and Giant targets.", "Increases all damage dealt by 4% against Humanoid and Giant targets."]
+          },
+          "spellId": 14158,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Slice and Dice",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14165,
+          "col": 3,
+          "icon": "ability_rogue_slicedice",
+          "id": "rogue-assassination-improved-slice-and-dice",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Slice and Dice",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the duration of your Slice and Dice ability by 15%.", "Increases the duration of your Slice and Dice ability by 30%.", "Increases the duration of your Slice and Dice ability by 45%."],
+            "forever": ["Increases the duration of your Slice and Dice ability by 15%.", "Increases the duration of your Slice and Dice ability by 30%.", "Increases the duration of your Slice and Dice ability by 45%."]
+          },
+          "spellId": 14165,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Relentless Strikes",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14179,
+          "col": 0,
+          "icon": "ability_warrior_decisivestrike",
+          "id": "rogue-assassination-relentless-strikes",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Relentless Strikes",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your finishing moves have a 20% chance per combo point to restore 25 energy."],
+            "forever": ["Your finishing moves have a 20% chance per Combo Point to restore 25 Energy."]
+          },
+          "spellId": 14179,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Expose Armor",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14168,
+          "col": 1,
+          "icon": "ability_warrior_riposte",
+          "id": "rogue-assassination-improved-expose-armor",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Expose Armor",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the armor reduced by your Expose Armor ability by 25%.", "Increases the armor reduced by your Expose Armor ability by 50%."],
+            "forever": ["Reduces the Energy cost of your Expose Armor ability by 5, and refunds 1 Combo Point when cast with 5 Combo Points.", "Reduces the Energy cost of your Expose Armor ability by 10, and refunds 2 Combo Points when cast with 5 Combo Points."]
+          },
+          "spellId": 14168,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Lethality",
+            "prerequisite": "Malice",
+            "tier": 2,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14128,
+          "col": 2,
+          "icon": "ability_criticalstrike",
+          "id": "rogue-assassination-lethality",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Lethality",
+          "order": 8,
+          "passive": true,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "rogue-assassination-malice"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Ghostly Strike, and Hemorrhage abilities by 6%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Ghostly Strike, and Hemorrhage abilities by 12%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Ghostly Strike, and Hemorrhage abilities by 18%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Ghostly Strike, and Hemorrhage abilities by 24%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Ghostly Strike, and Hemorrhage abilities by 30%."],
+            "forever": ["Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Mutilate, Ghostly Strike, and Hemorrhage abilities by 4%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Mutilate, Ghostly Strike, and Hemorrhage abilities by 8%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Mutilate, Ghostly Strike, and Hemorrhage abilities by 12%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Mutilate, Ghostly Strike, and Hemorrhage abilities by 16%.", "Increases the critical strike damage bonus of your Sinister Strike, Gouge, Backstab, Mutilate, Ghostly Strike, and Hemorrhage abilities by 20%."]
+          },
+          "spellId": 14128,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Vile Poisons",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 16513,
+          "col": 0,
+          "icon": "ability_rogue_feigndeath",
+          "id": "rogue-assassination-vile-poisons",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Vile Poisons",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage dealt by your poisons by 4% and gives your poisons an additional 8% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 8% and gives your poisons an additional 16% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 12% and gives your poisons an additional 24% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 16% and gives your poisons an additional 32% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 20% and gives your poisons an additional 40% chance to resist dispel effects."],
+            "forever": ["Increases the damage dealt by your poisons by 4% and gives your poisons an additional 8% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 8% and gives your poisons an additional 16% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 12% and gives your poisons an additional 24% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 16% and gives your poisons an additional 32% chance to resist dispel effects.", "Increases the damage dealt by your poisons by 20% and gives your poisons an additional 40% chance to resist dispel effects."]
+          },
+          "spellId": 16513,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Cold Blood",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14177,
+          "col": 1,
+          "icon": "spell_ice_lament",
+          "id": "rogue-assassination-cold-blood",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Cold Blood",
+          "order": 10,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, increases the critical strike chance of your next Sinister Strike, Backstab, Ambush, or Eviscerate by 100%."],
+            "forever": ["When activated, increases the critical strike chance of your next Sinister Strike, Backstab, Ambush, Eviscerate, or Mutilate by 100%."]
+          },
+          "spellId": 14177,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Improved Poisons",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14113,
+          "col": 2,
+          "icon": "ability_poisons",
+          "id": "rogue-assassination-improved-poisons",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Poisons",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the chance to apply poisons to your target by 2%.", "Increases the chance to apply poisons to your target by 4%.", "Increases the chance to apply poisons to your target by 6%.", "Increases the chance to apply poisons to your target by 8%.", "Increases the chance to apply poisons to your target by 10%."],
+            "forever": ["Increases the chance to apply Poisons to your target by 2%, and gives Poison applications a 10% chance to not consume a charge.", "Increases the chance to apply Poisons to your target by 4%, and gives Poison applications a 20% chance to not consume a charge.", "Increases the chance to apply Poisons to your target by 6%, and gives Poison applications a 30% chance to not consume a charge.", "Increases the chance to apply Poisons to your target by 8%, and gives Poison applications a 40% chance to not consume a charge.", "Increases the chance to apply Poisons to your target by 10%, and gives Poison applications a 50% chance to not consume a charge."]
+          },
+          "spellId": 14113,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Vigor",
+            "prerequisite": null,
+            "tier": 6,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14983,
+          "col": 0,
+          "icon": "spell_nature_earthbindtotem",
+          "id": "rogue-assassination-vigor",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Vigor",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your maximum Energy by 10."],
+            "forever": ["Increases your maximum Energy by 5.", "Increases your maximum Energy by 10."]
+          },
+          "spellId": 14983,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_rogue_deadlybrew",
+          "id": "rogue-assassination-mutilate",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Mutilate",
+          "order": 13,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Instantly attacks with both weapons for 75% weapon damage plus an additional 17 with each weapon. Damage increased by 20% against Poisoned targets. Awards 2 Combo Points."]
+          },
+          "spellId": 1310707,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "range": "Melee range",
+            "requirements": "Requires Daggers",
+            "resourceCost": "60 Energy"
+          },
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Kidney Shot",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14174,
+          "col": 2,
+          "icon": "ability_rogue_kidneyshot",
+          "id": "rogue-assassination-improved-kidney-shot",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Kidney Shot",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["While affected by your Kidney Shot ability, the target receives an additional 3% damage from all sources.", "While affected by your Kidney Shot ability, the target receives an additional 6% damage from all sources.", "While affected by your Kidney Shot ability, the target receives an additional 9% damage from all sources."],
+            "forever": ["Enemies Stunned by your Kidney Shot ability take 5% increased damage from your poisons and attacks.", "Enemies Stunned by your Kidney Shot ability take 10% increased damage from your poisons and attacks."]
+          },
+          "spellId": 14174,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Seal Fate",
+            "prerequisite": "Cold Blood",
+            "tier": 5,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14186,
+          "col": 2,
+          "icon": "spell_shadow_chilltouch",
+          "id": "rogue-assassination-seal-fate",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Seal Fate",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your critical strikes from abilities that add combo points have a 20% chance to add an additional combo point.", "Your critical strikes from abilities that add combo points have a 40% chance to add an additional combo point.", "Your critical strikes from abilities that add combo points have a 60% chance to add an additional combo point.", "Your critical strikes from abilities that add combo points have a 80% chance to add an additional combo point.", "Your critical strikes from abilities that add combo points have a 100% chance to add an additional combo point."],
+            "forever": ["Your critical strikes from abilities that add Combo Points have a 20% chance to add an additional Combo Point.", "Your critical strikes from abilities that add Combo Points have a 40% chance to add an additional Combo Point.", "Your critical strikes from abilities that add Combo Points have a 60% chance to add an additional Combo Point.", "Your critical strikes from abilities that add Combo Points have a 80% chance to add an additional Combo Point.", "Your critical strikes from abilities that add Combo Points have a 100% chance to add an additional Combo Point."]
+          },
+          "spellId": 14186,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Assassination"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "inv_sword_31",
+          "id": "rogue-assassination-venom",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Venom",
+          "order": 16,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "rogue-assassination-mutilate"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Finishing move that increases the damage of your Poisons by 30% and your chance to apply Poisons by 10%. Lasts longer per combo point:\n1 point : 9 seconds 2 points: 12 seconds 3 points: 15 seconds 4 points: 18 seconds 5 points: 21 seconds"]
+          },
+          "spellId": 1310703,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "range": "100 yd range",
+            "requirements": "Requires Melee Weapon",
+            "resourceCost": "25 Energy"
+          },
+          "tree": "Assassination"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "181",
+      "icon": "ability_backstab",
+      "id": "Combat",
+      "index": 1,
+      "name": "Combat",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Eviscerate",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Assassination"
+          },
+          "classicSpellId": 14162,
+          "col": 0,
+          "icon": "ability_rogue_eviscerate",
+          "id": "rogue-combat-improved-eviscerate",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Eviscerate",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Eviscerate ability by 5%.", "Increases the damage done by your Eviscerate ability by 10%.", "Increases the damage done by your Eviscerate ability by 15%."],
+            "forever": ["Increases the damage done by your Eviscerate ability by 7%.", "Increases the damage done by your Eviscerate ability by 13%.", "Increases the damage done by your Eviscerate ability by 20%."]
+          },
+          "spellId": 14162,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Sinister Strike",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13732,
+          "col": 1,
+          "icon": "spell_shadow_ritualofsacrifice",
+          "id": "rogue-combat-improved-sinister-strike",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Sinister Strike",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Energy cost of your Sinister Strike ability by 3.", "Reduces the Energy cost of your Sinister Strike ability by 5."],
+            "forever": ["Reduces the Energy cost of your Sinister Strike ability by 3.", "Reduces the Energy cost of your Sinister Strike ability by 5."]
+          },
+          "spellId": 13732,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Lightning Reflexes",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13712,
+          "col": 2,
+          "icon": "spell_nature_invisibilty",
+          "id": "rogue-combat-lightning-reflexes",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Lightning Reflexes",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Dodge chance by 1%.", "Increases your Dodge chance by 2%.", "Increases your Dodge chance by 3%.", "Increases your Dodge chance by 4%.", "Increases your Dodge chance by 5%."],
+            "forever": ["Increases your Dodge chance by 1%.", "Increases your Dodge chance by 2%.", "Increases your Dodge chance by 3%.", "Increases your Dodge chance by 4%.", "Increases your Dodge chance by 5%."]
+          },
+          "spellId": 13712,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "ability_backstab",
+          "id": "rogue-combat-puncturing-wounds",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Puncturing Wounds",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases the critical strike chance of your Backstab by 10% and your Mutilate by 5%, and gives Backstab a 15% chance to add an additional Combo Point.", "Increases the critical strike chance of your Backstab by 20% and your Mutilate by 10%, and gives Backstab a 30% chance to add an additional Combo Point.", "Increases the critical strike chance of your Backstab by 30% and your Mutilate by 15%, and gives Backstab a 45% chance to add an additional Combo Point."]
+          },
+          "spellId": 1224716,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Deflection",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13713,
+          "col": 1,
+          "icon": "ability_parry",
+          "id": "rogue-combat-deflection",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Deflection",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Parry chance by 1%.", "Increases your Parry chance by 2%.", "Increases your Parry chance by 3%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 5%."],
+            "forever": ["Increases your Parry chance by 2%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 6%."]
+          },
+          "spellId": 13713,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Precision",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13705,
+          "col": 2,
+          "icon": "ability_marksmanship",
+          "id": "rogue-combat-precision",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Precision",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to hit with melee weapons by 1%.", "Increases your chance to hit with melee weapons by 2%.", "Increases your chance to hit with melee weapons by 3%.", "Increases your chance to hit with melee weapons by 4%.", "Increases your chance to hit with melee weapons by 5%."],
+            "forever": ["Improves your chance to hit by 1%.", "Improves your chance to hit by 2%.", "Improves your chance to hit by 3%."]
+          },
+          "spellId": 13705,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Endurance",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13742,
+          "col": 0,
+          "icon": "spell_shadow_shadowward",
+          "id": "rogue-combat-endurance",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Endurance",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Sprint and Evasion abilities by 45 sec.", "Reduces the cooldown of your Sprint and Evasion abilities by 1.5 min."],
+            "forever": ["Reduces the cooldown of your Sprint and Evasion abilities by 30%.", "Reduces the cooldown of your Sprint and Evasion abilities by 60%."]
+          },
+          "spellId": 13742,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Riposte",
+            "prerequisite": "Deflection",
+            "tier": 2,
+            "tree": "Combat"
+          },
+          "classicSpellId": 14251,
+          "col": 1,
+          "icon": "ability_warrior_challange",
+          "id": "rogue-combat-riposte",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Riposte",
+          "order": 7,
+          "passive": false,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "rogue-combat-deflection"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["A strike that becomes active after parrying an opponent's attack. This attack deals 150% weapon damage and disarms the target."],
+            "forever": ["A strike that becomes active after parrying an opponent's attack. This attack deals 150% weapon damage and disarms the target."]
+          },
+          "spellId": 14251,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown",
+            "range": "Melee range",
+            "resourceCost": "10 Energy"
+          },
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Sprint",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13743,
+          "col": 3,
+          "icon": "ability_rogue_sprint",
+          "id": "rogue-combat-improved-sprint",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Sprint",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives a 50% chance to remove all movement impairing effects when you activate your Sprint ability.", "Gives a 100% chance to remove all movement impairing effects when you activate your Sprint ability."],
+            "forever": ["Gives a 50% chance to remove all movement impairing effects when you activate your Sprint ability.", "Gives a 100% chance to remove all movement impairing effects when you activate your Sprint ability."]
+          },
+          "spellId": 13743,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Kick",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13754,
+          "col": 0,
+          "icon": "ability_kick",
+          "id": "rogue-combat-improved-kick",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Kick",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Kick ability a 50% chance to silence the target for 2 sec.", "Gives your Kick ability a 100% chance to silence the target for 2 sec."],
+            "forever": ["Gives your Kick ability a 50% chance to Silence the target for 2 sec.", "Gives your Kick ability a 100% chance to Silence the target for 2 sec."]
+          },
+          "spellId": 13754,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "inv_sword_35",
+          "id": "rogue-combat-flawless-execution",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Flawless Execution",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the Energy cost of your Eviscerate ability by 10."]
+          },
+          "spellId": 1310711,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Dual Wield Specialization",
+            "prerequisite": "Precision",
+            "tier": 3,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13715,
+          "col": 2,
+          "icon": "ability_dualwield",
+          "id": "rogue-combat-dual-wield-specialization",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Dual Wield Specialization",
+          "order": 11,
+          "passive": true,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "rogue-combat-precision"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your offhand weapon by 10%.", "Increases the damage done by your offhand weapon by 20%.", "Increases the damage done by your offhand weapon by 30%.", "Increases the damage done by your offhand weapon by 40%.", "Increases the damage done by your offhand weapon by 50%."],
+            "forever": ["Increases the damage done by your off-hand weapon by 5%.", "Increases the damage done by your off-hand weapon by 10%.", "Increases the damage done by your off-hand weapon by 15%.", "Increases the damage done by your off-hand weapon by 20%.", "Increases the damage done by your off-hand weapon by 25%."]
+          },
+          "spellId": 13715,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Blade Flurry",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13877,
+          "col": 1,
+          "icon": "ability_warrior_punishingblow",
+          "id": "rogue-combat-blade-flurry",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Blade Flurry",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your attack speed by 20%. In addition, attacks strike an additional nearby opponent. Lasts 15 sec."],
+            "forever": ["Increases your melee attack speed by 20% and your melee attacks strike an additional nearby opponent. Lasts 15 sec."]
+          },
+          "spellId": 13877,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown",
+            "resourceCost": "25 Energy"
+          },
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "Sword Specialization",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13960,
+          "col": 2,
+          "icon": "inv_sword_27",
+          "id": "rogue-combat-hack-and-slash",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Hack and Slash",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Sword Specialization",
+          "ranks": {
+            "classic": ["Gives you a 1% chance to get an extra attack on the same target after dealing damage with your Sword.", "Gives you a 2% chance to get an extra attack on the same target after dealing damage with your Sword.", "Gives you a 3% chance to get an extra attack on the same target after dealing damage with your Sword.", "Gives you a 4% chance to get an extra attack on the same target after dealing damage with your Sword.", "Gives you a 5% chance to get an extra attack on the same target after dealing damage with your Sword."],
+            "forever": ["Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Sword: Your successful melee attacks have a 1% chance to trigger an extra attack on the target.\nDagger/Fist: Increases your critical strike chance by 1%.\nMace: Your attacks ignore 3% of your target's armor.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Sword: Your successful melee attacks have a 2% chance to trigger an extra attack on the target.\nDagger/Fist: Increases your critical strike chance by 2%.\nMace: Your attacks ignore 6% of your target's armor.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Sword: Your successful melee attacks have a 3% chance to trigger an extra attack on the target.\nDagger/Fist: Increases your critical strike chance by 3%.\nMace: Your attacks ignore 9% of your target's armor.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Sword: Your successful melee attacks have a 4% chance to trigger an extra attack on the target.\nDagger/Fist: Increases your critical strike chance by 4%.\nMace: Your attacks ignore 12% of your target's armor.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Sword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target.\nDagger/Fist: Increases your critical strike chance by 5%.\nMace: Your attacks ignore 15% of your target's armor."]
+          },
+          "spellId": 13960,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Weapon Expertise",
+            "prerequisite": "Blade Flurry",
+            "tier": 5,
+            "tree": "Combat"
+          },
+          "classicSpellId": 30919,
+          "col": 1,
+          "icon": "spell_holy_blessingofstrength",
+          "id": "rogue-combat-weapon-expertise",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Weapon Expertise",
+          "order": 14,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "rogue-combat-blade-flurry"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your skill with Sword, Fist and Dagger weapons by 3.", "Increases your skill with Sword, Fist and Dagger weapons by 5."],
+            "forever": ["Reduces the chance for your attacks to be Dodged or Parried by 1%.", "Reduces the chance for your attacks to be Dodged or Parried by 2%."]
+          },
+          "spellId": 30919,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Aggression",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Combat"
+          },
+          "classicSpellId": 18427,
+          "col": 2,
+          "icon": "ability_racial_avatar",
+          "id": "rogue-combat-aggression",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Aggression",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage of your Sinister Strike and Eviscerate abilities by 2%.", "Increases the damage of your Sinister Strike and Eviscerate abilities by 4%.", "Increases the damage of your Sinister Strike and Eviscerate abilities by 6%."],
+            "forever": ["Increases the damage of your Sinister Strike, Backstab, and Eviscerate abilities by 2%.", "Increases the damage of your Sinister Strike, Backstab, and Eviscerate abilities by 4%.", "Increases the damage of your Sinister Strike, Backstab, and Eviscerate abilities by 6%."]
+          },
+          "spellId": 18427,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Combat"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Adrenaline Rush",
+            "prerequisite": null,
+            "tier": 6,
+            "tree": "Combat"
+          },
+          "classicSpellId": 13750,
+          "col": 1,
+          "icon": "spell_shadow_shadowworddominate",
+          "id": "rogue-combat-adrenaline-rush",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Adrenaline Rush",
+          "order": 16,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Energy regeneration rate by 100% for 15 sec."],
+            "forever": ["Increases your Energy regeneration rate by 100% for 15 sec."]
+          },
+          "spellId": 13750,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "5 min cooldown"
+          },
+          "tree": "Combat"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "183",
+      "icon": "ability_stealth",
+      "id": "Subtlety",
+      "index": 2,
+      "name": "Subtlety",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Camouflage",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 13975,
+          "col": 0,
+          "icon": "ability_stealth",
+          "id": "rogue-subtlety-camouflage",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Camouflage",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your speed while stealthed by 3% and reduces the cooldown of your Stealth ability by 1 sec.", "Increases your speed while stealthed by 6% and reduces the cooldown of your Stealth ability by 2 sec.", "Increases your speed while stealthed by 9% and reduces the cooldown of your Stealth ability by 3 sec.", "Increases your speed while stealthed by 12% and reduces the cooldown of your Stealth ability by 4 sec.", "Increases your speed while stealthed by 15% and reduces the cooldown of your Stealth ability by 5 sec."],
+            "forever": ["Reduces your speed penalty from your Stealth ability by 3% and reduces its cooldown by 2 sec.", "Reduces your speed penalty from your Stealth ability by 6% and reduces its cooldown by 3 sec.", "Reduces your speed penalty from your Stealth ability by 9% and reduces its cooldown by 4 sec.", "Reduces your speed penalty from your Stealth ability by 12% and reduces its cooldown by 5 sec.", "Reduces your speed penalty from your Stealth ability by 15% and reduces its cooldown by 6 sec."]
+          },
+          "spellId": 13975,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Master of Deception",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 13958,
+          "col": 1,
+          "icon": "spell_shadow_charm",
+          "id": "rogue-subtlety-master-of-deception",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Master of Deception",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the chance enemies have to detect you while in Stealth mode.", "Reduces the chance enemies have to detect you while in Stealth mode. More effective than Master of Deception (Rank 1).", "Reduces the chance enemies have to detect you while in Stealth mode. More effective than Master of Deception (Rank 2).", "Reduces the chance enemies have to detect you while in Stealth mode. More effective than Master of Deception (Rank 3).", "Reduces the chance enemies have to detect you while in Stealth mode. More effective than Master of Deception (Rank 4)."],
+            "forever": ["Reduces the chance enemies have to detect you while in Stealth mode as if you were 1 level higher.", "Reduces the chance enemies have to detect you while in Stealth mode as if you were 2 levels higher.", "Reduces the chance enemies have to detect you while in Stealth mode as if you were 3 levels higher."]
+          },
+          "spellId": 13958,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Opportunity",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14057,
+          "col": 2,
+          "icon": "ability_warrior_warcry",
+          "id": "rogue-subtlety-opportunity",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Opportunity",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage dealt when striking from behind with your Backstab, Garrote, or Ambush abilities by 4%.", "Increases the damage dealt when striking from behind with your Backstab, Garrote, or Ambush abilities by 8%.", "Increases the damage dealt when striking from behind with your Backstab, Garrote, or Ambush abilities by 12%.", "Increases the damage dealt when striking from behind with your Backstab, Garrote, or Ambush abilities by 16%.", "Increases the damage dealt when striking from behind with your Backstab, Garrote, or Ambush abilities by 20%."],
+            "forever": ["Increases the damage dealt by your Backstab, Garrote, Ambush, and Mutilate abilities by 5%.", "Increases the damage dealt by your Backstab, Garrote, Ambush, and Mutilate abilities by 10%."]
+          },
+          "spellId": 14057,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Setup",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 13983,
+          "col": 0,
+          "icon": "spell_nature_mirrorimage",
+          "id": "rogue-subtlety-setup",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Setup",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 15% chance to add a combo point to your target after dodging their attack or fully resisting one of their spells.", "Gives you a 30% chance to add a combo point to your target after dodging their attack or fully resisting one of their spells.", "Gives you a 45% chance to add a combo point to your target after dodging their attack or fully resisting one of their spells."],
+            "forever": ["Gives you a 33% chance to add a Combo Point to your target after Dodging an attack or fully resisting a spell.", "Gives you a 67% chance to add a Combo Point to your target after Dodging an attack or fully resisting a spell.", "Gives you a 100% chance to add a Combo Point to your target after Dodging an attack or fully resisting a spell."]
+          },
+          "spellId": 13983,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Elusiveness",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 13981,
+          "col": 1,
+          "icon": "spell_magic_lesserinvisibilty",
+          "id": "rogue-subtlety-elusiveness",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Elusiveness",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Vanish and Blind abilities by 45 sec.", "Reduces the cooldown of your Vanish and Blind abilities by 1.5 min."],
+            "forever": ["Reduces the cooldown of your Vanish and Blind abilities by 45 sec.", "Reduces the cooldown of your Vanish and Blind abilities by 90 sec."]
+          },
+          "spellId": 13981,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_sap",
+          "id": "rogue-subtlety-dirty-tricks",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Dirty Tricks",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the Energy cost of your Sap and Blind abilities by 25%.", "Reduces the Energy cost of your Sap and Blind abilities by 50%."]
+          },
+          "spellId": 1224782,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Ambush",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14079,
+          "col": 3,
+          "icon": "ability_rogue_ambush",
+          "id": "rogue-subtlety-improved-ambush",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Ambush",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Ambush ability by 15%.", "Increases the critical strike chance of your Ambush ability by 30%.", "Increases the critical strike chance of your Ambush ability by 45%."],
+            "forever": ["Increases the critical strike chance of your Ambush ability by 15%.", "Increases the critical strike chance of your Ambush ability by 30%.", "Increases the critical strike chance of your Ambush ability by 45%."]
+          },
+          "spellId": 14079,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Initiative",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 13976,
+          "col": 0,
+          "icon": "spell_shadow_fumble",
+          "id": "rogue-subtlety-initiative",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Initiative",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 25% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability.", "Gives you a 50% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability.", "Gives you a 75% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability."],
+            "forever": ["Gives you a 33% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability.", "Gives you a 67% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability.", "Gives you a 100% chance to add an additional combo point to your target when using your Ambush, Garrote, or Cheap Shot ability."]
+          },
+          "spellId": 13976,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Ghostly Strike",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14278,
+          "col": 1,
+          "icon": "spell_shadow_curse",
+          "id": "rogue-subtlety-ghostly-strike",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Ghostly Strike",
+          "order": 8,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["A strike that deals 125% weapon damage and increases your chance to dodge by 15% for 7 sec. Awards 1 combo point."],
+            "forever": ["A strike that deals 125% (180% if a Dagger is equipped in your Main Hand) weapon damage and increases your chance to dodge by 15% for 7 sec. Awards 1 combo point."]
+          },
+          "spellId": 14278,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "20 sec cooldown",
+            "range": "Melee range",
+            "requirements": "Requires Melee Weapon",
+            "resourceCost": "40 Energy"
+          },
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_rogue_distract",
+          "id": "rogue-subtlety-improved-distract",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Distract",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases the radius of your Distract ability by 3 yds, and further reduces the Stealth detection of distracted enemies as though they were an additional 1 level lower.", "Increases the radius of your Distract ability by 5 yds, and further reduces the Stealth detection of distracted enemies as though they were an additional 2 levels lower."]
+          },
+          "spellId": 14084,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Heightened Senses",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 30894,
+          "col": 0,
+          "icon": "ability_ambush",
+          "id": "rogue-subtlety-heightened-senses",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Heightened Senses",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Stealth detection and reduces the chance you are hit by spells and ranged attacks by 2%.", "Increases your Stealth detection and reduces the chance you are hit by spells and ranged attacks by 4%. More effective than Heightened Senses (Rank 1)."],
+            "forever": ["Increases your Stealth detection as if you were 1 level higher and reduces your chance to be hit by spells and ranged attacks by 2%.", "Increases your Stealth detection as if you were 3 levels higher and reduces your chance to be hit by spells and ranged attacks by 4%."]
+          },
+          "spellId": 30894,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Premeditation",
+            "prerequisite": "Preparation",
+            "tier": 6,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14183,
+          "col": 1,
+          "icon": "spell_shadow_possession",
+          "id": "rogue-subtlety-premeditation",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Premeditation",
+          "order": 11,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When used, adds 2 combo points to your target. You must add to or use those combo points within 10 sec or the combo points are lost."],
+            "forever": ["Adds 2 Combo Points to your target. You must add to or use those combo points within 20 sec or the combo points are lost."]
+          },
+          "spellId": 14183,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown",
+            "range": "20 yd range"
+          },
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Serrated Blades",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14171,
+          "col": 2,
+          "icon": "inv_sword_17",
+          "id": "rogue-subtlety-serrated-blades",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Serrated Blades",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Causes your attacks to ignore 0 of your target's Armor and increases the damage dealt by your Rupture ability by 10%. The amount of Armor reduced increases with your level.", "Causes your attacks to ignore 0 of your target's Armor and increases the damage dealt by your Rupture ability by 20%. The amount of Armor reduced increases with your level.", "Causes your attacks to ignore 0 of your target's Armor and increases the damage dealt by your Rupture ability by 30%. The amount of Armor reduced increases with your level."],
+            "forever": ["Causes your attacks to ignore 3% of your target's Armor and increases the damage dealt by your Rupture ability by 10%.", "Causes your attacks to ignore 6% of your target's Armor and increases the damage dealt by your Rupture ability by 20%.", "Causes your attacks to ignore 9% of your target's Armor and increases the damage dealt by your Rupture ability by 30%."]
+          },
+          "spellId": 14171,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Dirty Deeds",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14082,
+          "col": 0,
+          "icon": "spell_shadow_summonsuccubus",
+          "id": "rogue-subtlety-dirty-deeds",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Dirty Deeds",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Energy cost of your Cheap Shot and Garrote abilities by 10.", "Reduces the Energy cost of your Cheap Shot and Garrote abilities by 20."],
+            "forever": ["Reduces the Energy cost of your Cheap Shot and Garrote abilities by 10, and your Garrote ability no longer requires you to be behind your target.", "Reduces the Energy cost of your Cheap Shot and Garrote abilities by 20, and your Garrote ability no longer requires you to be behind your target."]
+          },
+          "spellId": 14082,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Preparation",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 14185,
+          "col": 1,
+          "icon": "spell_shadow_antishadow",
+          "id": "rogue-subtlety-preparation",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Preparation",
+          "order": 14,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, this ability immediately finishes the cooldown on your other Rogue abilities."],
+            "forever": ["When activated, this ability immediately finishes the cooldown on your other Rogue abilities."]
+          },
+          "spellId": 14185,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "10 min cooldown"
+          },
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Hemorrhage",
+            "prerequisite": "Serrated Blades",
+            "tier": 4,
+            "tree": "Subtlety"
+          },
+          "classicSpellId": 16511,
+          "col": 2,
+          "icon": "spell_shadow_lifedrain",
+          "id": "rogue-subtlety-hemorrhage",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Hemorrhage",
+          "order": 15,
+          "passive": false,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "rogue-subtlety-serrated-blades"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["An instant strike that damages the opponent and causes the target to hemorrhage, increasing any Physical damage dealt to the target by up to 3. Lasts 30 charges or 15 sec. Awards 1 combo point."],
+            "forever": ["An instant strike that deals 100% weapon damage (145% if a Dagger is equipped) and causes the target to take 15% increased Rupture damage from the Rogue. Lasts 15 sec. Awards 1 Combo Point."]
+          },
+          "spellId": 16511,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "range": "Melee range",
+            "requirements": "Requires Melee Weapon",
+            "resourceCost": "35 Energy"
+          },
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "ability_rogue_garrote",
+          "id": "rogue-subtlety-quietus",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Quietus",
+          "order": 16,
+          "passive": true,
+          "prerequisite": {
+            "rank": 2,
+            "talentId": "rogue-subtlety-dirty-deeds"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Your Sinister Strike, Ghostly Strike, and Hemorrhage abilities cause 2% more damage against targets below 35% health.", "Your Sinister Strike, Ghostly Strike, and Hemorrhage abilities cause 4% more damage against targets below 35% health.", "Your Sinister Strike, Ghostly Strike, and Hemorrhage abilities cause 6% more damage against targets below 35% health.", "Your Sinister Strike, Ghostly Strike, and Hemorrhage abilities cause 8% more damage against targets below 35% health.", "Your Sinister Strike, Ghostly Strike, and Hemorrhage abilities cause 10% more damage against targets below 35% health."]
+          },
+          "spellId": 1310728,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "classicon_rogue",
+          "id": "rogue-subtlety-cutthroat",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Cutthroat",
+          "order": 17,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Your Backstab has a 3% chance to cause your next Ambush within 10 sec to not require Stealth.", "Your Backstab has a 6% chance to cause your next Ambush within 10 sec to not require Stealth.", "Your Backstab has a 9% chance to cause your next Ambush within 10 sec to not require Stealth.", "Your Backstab has a 12% chance to cause your next Ambush within 10 sec to not require Stealth.", "Your Backstab has a 15% chance to cause your next Ambush within 10 sec to not require Stealth."]
+          },
+          "spellId": 462708,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Subtlety"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_rogue_rupture",
+          "id": "rogue-subtlety-thousand-cuts",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Thousand Cuts",
+          "order": 18,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "rogue-subtlety-preparation"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["When your Rupture ability deals periodic damage, the Energy cost of your next Hemorrhage or Backstab ability within 10 sec is reduced by 3, stacking up to 5 times."]
+          },
+          "spellId": 1310721,
+          "tier": 6,
+          "tooltip": null,
+          "tree": "Subtlety"
+        }
+      ]
+    }
+  ]
+}

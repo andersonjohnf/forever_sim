@@ -13,7 +13,7 @@
  * N * rules.pointsPerTier points spent in lower tiers of the same tree).
  */
 
-export type TalentClass = 'warrior' | 'druid' | 'paladin' | 'shaman';
+export type TalentClass = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue';
 
 /**
  * How the talent compares with Classic Era (known values; kept open): "added" (no Classic

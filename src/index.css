@@ -54,6 +54,7 @@
     --color-class-druid: var(--class-druid);
     --color-class-paladin: var(--class-paladin);
     --color-class-shaman: var(--class-shaman);
+    --color-class-rogue: var(--class-rogue);
 }
 
 :root {
@@ -114,6 +115,8 @@
     --class-paladin: oklch(0.55 0.136 352.8);
     /* The shaman's blue, #0070dd, meets AA on light surfaces as it is (4.8:1). */
     --class-shaman: #0070dd;
+    /* Rogue #FFF468 is 1.1:1 on white; this is 5.0:1. */
+    --class-rogue: oklch(0.54 0.11 102);
     --switch-off: oklch(0.64 0 0);
 }
 
@@ -163,6 +166,7 @@
     --class-paladin: #f48cba;
     /* #0070dd is 4.1:1 on the dark background, under AA, so dark surfaces take a lighter blue (6.5:1). */
     --class-shaman: #3d95ff;
+    --class-rogue: #fff468;
     /* The switch draws its off track at 80% of this. */
     --switch-off: oklch(0.62 0 0);
 }

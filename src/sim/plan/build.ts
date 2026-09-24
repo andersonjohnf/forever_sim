@@ -318,6 +318,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   block.baseSpellCrit = baseValue(base.baseSpellCrit, stand.baseSpellCrit, 'base spell crit')
   block.hasMana = base.baseMana !== null
   block.baseMana = base.baseMana ?? 0
+  // The rogue's 1 attack power per Strength and per Agility (docs/classes/rogue.md#76-base-values).
+  if (base.apPerStr !== undefined) block.apPerStr = base.apPerStr
+  if (base.apPerAgi !== undefined) block.apPerAgi = base.apPerAgi
 
   // --- Effects -------------------------------------------------------------------------------
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))

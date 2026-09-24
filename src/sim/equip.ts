@@ -59,9 +59,20 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: 'Totem',
     dualWield: false,
   },
+  // docs/classes/rogue.md#7-sensible-defaults: leather, daggers, swords, maces and fist weapons in
+  // either hand, no two-handers or shields, and bows, crossbows, guns and thrown weapons [C].
+  rogue: {
+    armor: ['cloth', 'leather'],
+    shield: false,
+    oneHand: ['mace', 'sword', 'dagger', 'fist'],
+    twoHand: [],
+    ranged: ['bow', 'crossbow', 'gun', 'thrown'],
+    relic: null,
+    dualWield: true,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {

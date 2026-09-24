@@ -49,6 +49,14 @@ export const SPELL_TEXT_TABLES = [
   "SpellLevels",
 ];
 
+/**
+ * Phrases whose token reads a spell that no client ships (a server-side spell), so the value
+ * can't be rendered: the phrase is left out of the text while that spell has no row. Riposte
+ * (14251) "disarms the target for $19718d": the disarm, 19718, is in neither the Forever
+ * 1.60.1.69913 nor the Classic Era 1.15.9.69722 client, so the text reads "disarms the target."
+ */
+const SERVER_ONLY_PHRASES = new Map([[14251, [{ phrase: " for $19718d", missingSpellId: 19718 }]]]);
+
 /** Player level used for `$PL` and per-level effect points (the sim is level 60). */
 export const PLAYER_LEVEL = 60;
 
@@ -287,7 +295,9 @@ const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxX
  * tooltips do (Rip's 44.4 is 44).
  */
 export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0, conditions = null, paragraphs = false, lines = false, wholeExpressions = false } = {}) {
-  const raw = ctx.spell.get(spellId)?.[field] ?? "";
+  let raw = ctx.spell.get(spellId)?.[field] ?? "";
+  // A phrase whose token names a spell neither client has a row for is left out while it has none.
+  for (const fix of SERVER_ONLY_PHRASES.get(spellId) ?? []) if (!ctx.spell.has(fix.missingSpellId)) raw = raw.replace(fix.phrase, "");
   const unrendered = [];
   const state = { lastNumber: null, conditions, paragraphs, lines, wholeExpressions, assumed: [] };
   const text = renderString(ctx, spellId, raw, unrendered, state, depth);

@@ -49,7 +49,7 @@ import {
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/talents-client.mjs";

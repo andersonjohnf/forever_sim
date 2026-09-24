@@ -86,6 +86,29 @@ const SHAMAN_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-dwarf': { str: 87, agi: 51, sta: 98, int: 89, spi: 99 },
 }
 
+/**
+ * Rogue base attributes at level 60, [?] placeholders (D24 rule 2;
+ * docs/classes/rogue.md#76-base-values, docs/mechanics/character-stats.md OQ-1). Origin: the mangos
+ * emulator's 1.12 rows, https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql,
+ * not evidence; every race's row is the Human class row Str 80, Agi 130, Sta 75, Int 35, Spi 50 plus
+ * the [C] race offsets, and wowsims/classic `base_stats.go` copies the class row. Spirit is stored
+ * raw (the Human's sheet 52 is 50 × 1.05). Gnome Int is 38: Forever removed its +5% Int. Skyborne has
+ * no known offsets, so both Skyborne rows are the class row. A naked Classic Era Human rogue sheet
+ * (October 2019) showed 80 Stamina, not 75; Stamina moves no DPS number.
+ */
+const ROGUE_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 80, agi: 130, sta: 75, int: 35, spi: 50 },
+  'alliance-dwarf': { str: 82, agi: 126, sta: 78, int: 34, spi: 49 },
+  'alliance-night-elf': { str: 77, agi: 135, sta: 74, int: 35, spi: 50 },
+  'alliance-gnome': { str: 75, agi: 133, sta: 74, int: 38, spi: 50 },
+  'horde-orc': { str: 83, agi: 127, sta: 77, int: 32, spi: 53 },
+  'horde-undead': { str: 79, agi: 128, sta: 76, int: 33, spi: 55 },
+  'horde-troll': { str: 81, agi: 132, sta: 76, int: 31, spi: 51 },
+  // [?] placeholder (D24): the class row, neutral race offsets (Skyborne's are unknown, OQ-1).
+  'alliance-skyborne-high-order': { str: 80, agi: 130, sta: 75, int: 35, spi: 50 },
+  'horde-skyborne-windshaper': { str: 80, agi: 130, sta: 75, int: 35, spi: 50 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -109,6 +132,12 @@ export interface ClassBase {
   baseHealth: number | null
   /** Base mana before Intellect; null = no mana. */
   baseMana: number | null
+  /**
+   * Melee attack power per point of Strength and of Agility (ChrClasses); absent, the stat block's
+   * 2 and 0 (the warrior's, the paladin's and a druid's before its forms). The rogue's are 1 and 1.
+   */
+  apPerStr?: number
+  apPerAgi?: number
 }
 
 export const CLASS_BASE: Record<ClassId, ClassBase> = {
@@ -190,6 +219,27 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseHealth: null,
     // docs/classes/shaman.md#base-stats: PlayerExpectedStat.BaseMana and basemp.txt, 1520 [F]
     baseMana: 1520,
+  },
+  rogue: {
+    // Unmeasured (OQ-1): the attribute rows, attack power, crit and health are D24 placeholders, in
+    // BASE_PLACEHOLDERS below (docs/classes/rogue.md#76-base-values).
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // docs/classes/rogue.md#76-base-values: 29 Agility per 1% (PlayerExpectedStat.CritPerAgility 0.000345) [F]
+    critPerAgi: 0.0345,
+    // No spell crit from Intellect (PlayerExpectedStat.SpellCritPerIntellect 0) [F]; base spell crit is a placeholder.
+    spellCritPerInt: 0,
+    baseSpellCrit: null,
+    baseDodge: null,
+    baseParry: 5,
+    baseBlock: 0,
+    baseHealth: null,
+    // No mana (PlayerExpectedStat.BaseMana 0) [F].
+    baseMana: null,
+    // ChrClasses AttackPowerPerStrength 1 and AttackPowerPerAgility 1 [F] (docs/classes/rogue.md#76-base-values).
+    apPerStr: 1,
+    apPerAgi: 1,
   },
 }
 
@@ -283,5 +333,18 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseSpellCrit: 2.3,
     /** Base dodge before Agility, %: matters only to a tank. */
     baseDodge: 1.7,
+  },
+  // docs/classes/rogue.md#76-base-values: every rogue base value nobody has measured, each "[?]
+  // placeholder (D24)": attributes and health from the mangos emulator (wowsims/classic copies
+  // them), attack power 2 × 60 − 20 = 100 before Strength and Agility (wowsims/classic), and 0% base
+  // melee crit, spell crit and dodge (RatingBuster's Classic Era table at its pre-SoD commit and
+  // wowsims/classic; the warrior's are 0 too). Not evidence.
+  rogue: {
+    attributes: ROGUE_ROWS,
+    baseAp: 100,
+    baseHealth: 1523,
+    baseCrit: 0,
+    baseSpellCrit: 0,
+    baseDodge: 0,
   },
 }

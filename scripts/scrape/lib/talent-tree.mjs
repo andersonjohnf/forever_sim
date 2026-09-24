@@ -50,9 +50,9 @@ export const FOREVER_TREE_TABLES = [
 export const CLASSIC_TREE_TABLES = ["Talent", "TalentTab", "ChrClasses"];
 
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8 };
 /** ChrClasses.Name_lang of each class slug. */
-const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman" };
+const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue" };
 
 const rowsOf = (t) => t?.rows ?? [];
 const groupBy = (rows, key) => {
@@ -226,6 +226,13 @@ export function readForeverTree(t, cls) {
       const empty = !c.SpentAmountRequired && !c.TraitCurrencyID && !c.TraitNodeGroupID && !c.TraitNodeID && !c.TraitNodeEntryID && !c.QuestID && !c.AchievementID && !c.SpecSetID && !c.RequiredLevel && !c.GrantedRanks;
       if (empty) {
         notes.push(`${cls} ${name}: TraitCond ${c.ID} has no requirement (ignored)`);
+        continue;
+      }
+      // Points in one node the talent's own arrow already requires (the rogue's Venom: a point in
+      // Mutilate, its arrow's source, which has one rank): the arrow says so, so it's no gate.
+      const arrowSource = into.find((x) => (x.Type === 2 || x.Type === 3) && x.LeftTraitNodeID === c.TraitNodeID);
+      if (c.CondType === 0 && c.TraitNodeID && arrowSource && c.SpentAmountRequired > 0 && !c.QuestID && !c.AchievementID && !c.SpecSetID && !c.RequiredLevel && !c.GrantedRanks) {
+        notes.push(`${cls} ${name}: TraitCond ${c.ID} needs ${c.SpentAmountRequired} point(s) in node ${c.TraitNodeID}, its arrow's source (ignored: the arrow requires it)`);
         continue;
       }
       if (c.CondType !== 0 || c.TraitCurrencyID !== currency.id || !c.TraitNodeGroupID || c.TraitNodeID || c.TraitNodeEntryID || c.QuestID || c.AchievementID || c.SpecSetID || c.RequiredLevel || c.GrantedRanks) {

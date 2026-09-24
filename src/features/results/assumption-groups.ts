@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {

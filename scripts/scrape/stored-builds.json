@@ -127,5 +127,31 @@
         "Totemic Focus 5, Tidal Focus 5"
       ]
     }
+  },
+  "rogue": {
+    "005303105001-32502300001515231-": {
+      "note": "Combat default (18/33/0), rogue.md §7.1",
+      "ranks": [
+        "Malice 5, Ruthlessness 3, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 5, Improved Poisons 1",
+        "Improved Eviscerate 3, Improved Sinister Strike 2, Lightning Reflexes 5, Deflection 2, Precision 3, Flawless Execution 1, Dual Wield Specialization 5, Blade Flurry 1, Hack and Slash 5, Weapon Expertise 2, Aggression 3, Adrenaline Rush 1",
+        ""
+      ]
+    },
+    "00531310551521051-302303-002": {
+      "note": "Assassination default (38/11/2), rogue.md §7.1",
+      "ranks": [
+        "Malice 5, Ruthlessness 3, Murder 1, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 5, Vile Poisons 5, Cold Blood 1, Improved Poisons 5, Vigor 2, Mutilate 1, Seal Fate 5, Venom 1",
+        "Improved Eviscerate 3, Lightning Reflexes 2, Puncturing Wounds 3, Precision 3",
+        "Opportunity 2"
+      ]
+    },
+    "005303103--0322003311213211551": {
+      "note": "Subtlety default (15/0/36), rogue.md §7.1",
+      "ranks": [
+        "Malice 5, Ruthlessness 3, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 3",
+        "",
+        "Master of Deception 3, Opportunity 2, Setup 2, Improved Ambush 3, Initiative 3, Ghostly Strike 1, Improved Distract 1, Heightened Senses 2, Premeditation 1, Serrated Blades 3, Dirty Deeds 2, Preparation 1, Hemorrhage 1, Quietus 5, Cutthroat 5, Thousand Cuts 1"
+      ]
+    }
   }
 }

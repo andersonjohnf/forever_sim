@@ -93,6 +93,31 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     role: 'dps',
     icon: 'spell_nature_lightningshield',
   },
+  // docs/classes/rogue.md: the three rogue specs, landed under D27.
+  'rogue-combat': {
+    id: 'rogue-combat',
+    classId: 'rogue',
+    className: 'Rogue',
+    name: 'Combat',
+    role: 'dps',
+    icon: 'ability_backstab',
+  },
+  'rogue-assassination': {
+    id: 'rogue-assassination',
+    classId: 'rogue',
+    className: 'Rogue',
+    name: 'Assassination',
+    role: 'dps',
+    icon: 'ability_rogue_eviscerate',
+  },
+  'rogue-subtlety': {
+    id: 'rogue-subtlety',
+    classId: 'rogue',
+    className: 'Rogue',
+    name: 'Subtlety',
+    role: 'dps',
+    icon: 'ability_stealth',
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -103,4 +128,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   druid: '#FF7C0A',
   paladin: '#F48CBA',
   shaman: '#0070DD',
+  rogue: '#FFF468',
 }

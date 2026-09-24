@@ -20,7 +20,7 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 | File | Size | What |
 | --- | --: | --- |
 | `spells.json` | 1.5 MB | 1,475 merged spell records (the interest set below), plus racials, radii and spell categories |
-| `talents.json` | 145 KB | every Forever talent of the three classes, mapped to its Trait node, spell and per-rank values |
+| `talents.json` | 145 KB | every Forever talent of the classes in scope, mapped to its Trait node, spell and per-rank values |
 | `items.json` | 1.2 MB | ItemEffect rows and ItemSparse/Item fields for the 1,629 pre-raid items, plus 85 consumables |
 | `enchants.json` | 56 KB | the 79 SpellItemEnchantment rows the buffs doc names, with the spells and items that apply them |
 | `gametables.json` | 4 KB | level-60 rows of combat ratings, base mana, HP per Stamina, armor mitigation, PlayerExpectedStat |
@@ -234,7 +234,7 @@ spells         { id: ClientSpell }
 ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
                misc         { attributes[17], schoolMask, speed, minDuration, spellIconFileDataId }
                castTime     { base, minimum }                  (SpellCastTimes, ms)
-               duration     { duration, maxDuration }          (SpellDuration, ms)
+               duration     { duration, maxDuration, durationPerResource } (SpellDuration, ms; the last per combo point: the rogue's finishers)
                range        { rangeMin[2], rangeMax[2], flags } (SpellRange, yards)
                effects[]    { effectIndex, effect, effectAura, effectBasePointsF, variance,
                               effectRealPointsPerLevel, effectPointsPerResource,
@@ -277,8 +277,9 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
   `ManaPerSecond`, `PowerCostMaxPct`, `PowerPctPerSecond`, `OptionalCostPct`,
   `RequiredAuraSpellID`; `SpellLevels` `MaxPassiveAuraLevel`; `SpellCooldowns` `AuraSpellID`;
   `SpellCategories` `ChargeCategory`; `SpellClassOptions` `ModalNextSpell`;
-  `SpellTargetRestrictions` `Width`; the four `…AuraType` columns of `SpellAuraRestrictions`;
-  `SpellDuration` `DurationPerResource`. Left out as irrelevant to the engine: visual scripts,
+  `SpellTargetRestrictions` `Width`; the four `…AuraType` columns of `SpellAuraRestrictions`. (`SpellDuration`
+  `DurationPerResource` is written since the rogue: Slice and Dice's and Rupture's time per combo
+  point.) Left out as irrelevant to the engine: visual scripts,
   content tuning, `PvpMultiplier`, `GroupSizeBasePointsCoefficient`, `EffectPos_facing`,
   `EffectItemType` and `StanceBarOrder`. Lookup indexes (`castingTimeIndex`, `durationIndex`, `rangeIndex`) are
   replaced by the rows they point at; radius and category rows are the top-level maps.

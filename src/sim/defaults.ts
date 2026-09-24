@@ -7,6 +7,7 @@ import type { ClassSlug } from '@/data/races/types'
 import druidTalents from '@/data/talents/druid.json'
 import paladinTalents from '@/data/talents/paladin.json'
 import shamanTalents from '@/data/talents/shaman.json'
+import rogueTalents from '@/data/talents/rogue.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
@@ -21,6 +22,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   druid: druidTalents as unknown as TalentData,
   paladin: paladinTalents as unknown as TalentData,
   shaman: shamanTalents as unknown as TalentData,
+  rogue: rogueTalents as unknown as TalentData,
 }
 
 /**
@@ -36,6 +38,10 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
+  // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
+  'rogue-combat': '005303105001-32502300001515231-',
+  'rogue-assassination': '00531310551521051-302303-002',
+  'rogue-subtlety': '005303103--0322003311213211551',
 }
 
 export interface TalentPreset {
@@ -77,6 +83,14 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/shaman.md#talents: Elemental 8 / Enhancement 33 / Restoration 10
     { name: 'Enhancement (default)', code: DEFAULT_TALENTS['shaman-enhancement'] },
   ],
+  rogue: [
+    // docs/classes/rogue.md#71-talents: Combat swords 18/33/0
+    { name: 'Combat (default)', code: DEFAULT_TALENTS['rogue-combat'] },
+    // docs/classes/rogue.md#71-talents: Assassination daggers 38/11/2
+    { name: 'Assassination (default)', code: DEFAULT_TALENTS['rogue-assassination'] },
+    // docs/classes/rogue.md#71-talents: Subtlety daggers 15/0/36
+    { name: 'Subtlety (default)', code: DEFAULT_TALENTS['rogue-subtlety'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -90,6 +104,8 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   druid: 'horde-tauren',
   paladin: 'alliance-human',
   shaman: 'horde-orc',
+  // docs/classes/rogue.md#72-race: Human, for its sword crit
+  rogue: 'alliance-human',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -161,7 +177,27 @@ const FERAL_ENCHANTS: Partial<Record<GearSlot, string>> = {
   feet: 'bootsGreaterAgility',
   mainHand: 'twoHandAgility',
 }
+/**
+ * The rogue's enchants (buffs doc §6.4; docs/classes/rogue.md#75-enchants-and-consumables): the feral
+ * column's Agility everywhere it's offered, with Crusader on each weapon and the new +5 Agility
+ * necklace. Shoulders stay empty ([none]).
+ */
+const ROGUE_ENCHANTS: Partial<Record<GearSlot, string>> = {
+  head: 'arcanumVoracityAgility',
+  legs: 'arcanumVoracityAgility',
+  back: 'cloakAgility',
+  chest: 'chestGreaterStats',
+  wrist: 'bracerSuperiorAgility',
+  hands: 'gloveGreaterAgility',
+  feet: 'bootsGreaterAgility',
+  mainHand: 'crusader',
+  offHand: 'crusader',
+  neck: 'neckAgility',
+}
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
+  'rogue-combat': ROGUE_ENCHANTS,
+  'rogue-assassination': ROGUE_ENCHANTS,
+  'rogue-subtlety': ROGUE_ENCHANTS,
   'warrior-fury': WARRIOR_DPS_ENCHANTS,
   'warrior-arms': WARRIOR_DPS_ENCHANTS,
   'warrior-protection': {

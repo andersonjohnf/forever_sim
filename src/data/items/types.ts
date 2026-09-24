@@ -292,7 +292,10 @@ export type PreRaidBisSpec =
   | "druid-feral-bear"
   | "paladin-retribution"
   | "paladin-protection"
-  | "shaman-enhancement";
+  | "shaman-enhancement"
+  | "rogue-combat"
+  | "rogue-assassination"
+  | "rogue-subtlety";
 
 /** Slot keys used by the pre-raid BiS lists: paperdoll slots, plus `twoHand` and `relic`. */
 export type PreRaidBisSlot =

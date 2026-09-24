@@ -55,6 +55,9 @@ describe('golden run (fixed config and seed)', () => {
   // - T2 (M5.6, the threat review's P2): the buffs doc's §6.4 caster enchants reach the defaults,
   //   Arcanum of Focus on head and legs and the weapon's Spell Power: 40 → 86 spell damage. On this
   //   seed's 1,000 fights TPS 423.41 → 446.30 and DPS 230.97 → 242.25; nothing else moves.
+  // - T2 (P3): the Standard raid's caster food and oil reach the catalogue and the Protection preset,
+  //   Nightfin Soup (+22 spell damage) and Wizard Oil (+30): 86 → 138. TPS 446.30 → 472.18, DPS
+  //   242.25 → 255.01.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

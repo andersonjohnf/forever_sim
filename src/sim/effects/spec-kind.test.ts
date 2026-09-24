@@ -51,8 +51,10 @@ function attacksOnly(e: Effect): boolean {
       return ATTACK_STATS.includes(e.stat)
     case 'mult':
       return e.stat === 'str' || e.stat === 'agi' || e.stat === 'ap'
-    case 'haste':
+    // A wizard oil's spell damage is a spell's too (buffs doc §3.6).
     case 'tempEnchant':
+      return !e.spellDamage && !e.spellCrit
+    case 'haste':
     case 'targetArmor':
     case 'bossAp':
     case 'weaponDamage':

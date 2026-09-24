@@ -369,7 +369,7 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Dirge's Kickin' Chimaerok Chops | 21023 | +25 Sta ("Increased Stamina" buff, not "Well Fed") | 15 min | Required level **45** (C: 55) | [F] | [fc/21023](https://foreverchanges.pro/item/21023) |
 | Savory Turtle Stew *(new)* / Spider Sausage | 250068 / 17222 | +20 Sta / **+15 Sta** (C: Spider Sausage +12 Sta/Spi) | 15 min | New / changed | [F] | [fc/250068](https://foreverchanges.pro/item/250068) · [fc/17222](https://foreverchanges.pro/item/17222) |
 | Plated Armorfish *(new)* | 286152 | +150 armor | 15 min | Required level 35 | [F] | [fc/286152](https://foreverchanges.pro/item/286152) |
-| Nightfin Soup | 13931 | **+22 spell damage** (C: 8 mana per 5 s, 10 min) | 15 min | Changed. Holy damage food for paladins | [F] | [fc/13931](https://foreverchanges.pro/item/13931) |
+| Nightfin Soup (`nightfinSoup`) | 13931 → Nutritious Food 1249513 | **+22 spell damage**, every magic school (C: 8 mana per 5 s, 10 min) | 15 min | Changed. Holy damage food for paladins: the Protection paladin's in every preset ([§6.3](#63-consumables-by-spec-and-preset)). One food at a time (`food`) | [F] | [client] (SpellEffect, 1.60.1.69913): 1249513 #1 (aura 227) passes 22 to Well Fed 1249520 (aura 13, school mask 126); Classic Era's Mana Regeneration 18194 #0: 7 + 1 [client] (SpellEffect, 1.15.9.69722) |
 | Sagefish Delight / Smoked Sagefish | 21217 / 21072 | **+7 / +4 spell damage** (C: 6 / 3 mana per 5 s) | 15 min | Changed | [F] | [fc/21217](https://foreverchanges.pro/item/21217) |
 | Blessed Sunfruit | 13810 → 18124 → 18125 | +10 Str ("Blessed Sunfruit" buff 18125, triggered by the item's spell 18124) | 10 min | Argent Dawn Revered (Same); stacking with Well Fed [?] | [F] effect · [?] stacking | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | *Herbal Salad* | — | **Does not exist** in the Classic Era or Forever clients. The only match is a Turtle WoW private-server item, which is a forbidden source; not adopted | — | — | — | [turtle-salad] (forbidden, cited only to explain the refusal) |
@@ -416,11 +416,19 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
 | Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
-| Wizard Oil | 20750 → enchant 2627 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above | Enchanting | [F] | [fc/20750](https://foreverchanges.pro/item/20750) |
-| Brilliant Wizard Oil | 20749 → enchant 2628 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [fc/20749](https://foreverchanges.pro/item/20749) |
+| Wizard Oil (`wizardOil`) | 20750 → 25121 → enchant 2627 → 25111 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above: the main hand's, ahead of a stone there | Enchanting | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25111 #0 (aura 13, all magic schools) 30; Classic Era's 23 + 1 |
+| Brilliant Wizard Oil (`brilliantWizardOil`) | 20749 → 25122 → enchant 2628 → 25113 | +36 spell damage and healing, +1% spell crit | 30 min | As above, ahead of Wizard Oil | Enchanting (reworded) | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25113 #0 36, #2 (aura 57) 1, the same in both |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
 | Instant Poison VI | 8928 → 11340 | Enchant 625: each hit of its weapon has a 20% chance of 76–100 Nature damage (spell 11337; C: 112–148); 175 charges | 30 min | One poison per weapon, in place of a stone there; rogues only | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellItemEnchantment, 1.60.1.69913); [rogue §4.1](../classes/rogue.md#41-instant-poison-vi) |
 | Deadly Poison V | 20844 → 25351 | Enchant 2630: each hit of its weapon has a 30% chance of a stack of 23 Nature damage every 3 s for 12 s, 5 stacks (spell 25349; C: 34); 180 charges | 30 min | As above | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellAuraOptions, SpellItemEnchantment, 1.60.1.69913); [rogue §4.2](../classes/rogue.md#42-deadly-poison-v) |
+
+**Wizard oils** are the casters' temporary weapon enchants: the sim puts one on your main hand, where
+it beats a stone (Brilliant Wizard Oil first), and its spell damage and spell crit are its equip
+aura's, on you. A caster that never swings its weapon still gets them from the one it holds. They
+go to the classes that spend mana and deal spell damage ([Class-only entries](#class-only-entries)),
+and they're locked off for the Enhancement shaman, whose weapon imbue is its main hand's temporary
+enchant. In `classicEra`, Windfury Totem's enchant takes the main hand's slot from an oil as it does
+from a stone ([Windfury Totem](#windfury-totem)).
 
 **Poisons** are the rogue's temporary weapon enchants: one per weapon, chosen per hand in the Buffs
 tab, and each takes the place of a stone on its weapon. Their procs, talents and the choice of
@@ -989,7 +997,8 @@ fight.
 An entry that does nothing for some classes carries the classes it's for (`forClasses` in
 `src/sim/effects/buffs.ts`). So far these are the paladin's: Prayer of Spirit, Arcane
 Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir of Holy Power,
-Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same).
+Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same),
+and since T2 the caster food and oils, Nightfin Soup, Wizard Oil and Brilliant Wizard Oil.
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
@@ -1047,7 +1056,9 @@ compared (59 buffs, debuffs and consumables, the rogue's four poisons and Thistl
 56 enchants): **34 differ**, **18 are new in Forever**, and the other **63** are the same in both
 clients. The caster core (2026-09-24, [spells §9](spells.md#9-caster-raid-buffs-and-debuffs))
 added three, the casters' own: Moonkin Aura and Curse of the Elements differ, Power Infusion is
-the same; and Minor Haste now differs, by Forever's casting speed. Two of the 34 differ only in the
+the same; and Minor Haste now differs, by Forever's casting speed. The Protection paladin's
+threat fixes (T2, 2026-09-24) added three: Nightfin Soup and Wizard Oil differ, Brilliant Wizard Oil
+is the same. Two of the 34 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -1136,6 +1147,9 @@ melee and ranged crit (aura 52) in Classic Era.
 | Grilled Squid (`grilledSquid`) | +1% crit, spells too (Well Fed 1249523, aura 290) | **+10 Agi** | 13928 → 18230 → Increased Agility 18192 #0: 9 + 1 (Forever: 1249522 #1 = 1) | [C] |
 | Dense Sharpening Stone / Weightstone (`denseSharpeningStone`) | +8 weapon damage | same | 12404 → 16138 → enchant 1643: 8; 12643 → 16622 → 1703: 8 | [C] |
 | Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
+| Nightfin Soup (`nightfinSoup`) | +22 spell damage | **8 mana every 5 s** | 13931 → Mana Regeneration 18194 #0 (aura 24, period 5000): 7 + 1 (Forever: 1249513 #1, aura 227 = 22, to Well Fed 1249520, aura 13) | [C] |
+| Wizard Oil (`wizardOil`) | +30 spell damage | **+24 spell damage** | 20750 → 25121 → enchant 2627 → 25111 #0 (aura 13, all magic schools): 23 + 1 | [C] |
+| Brilliant Wizard Oil (`brilliantWizardOil`) | +36 spell damage, +1% spell crit | same | 20749 → 25122 → enchant 2628 → 25113 #0: 35 + 1; #2 (aura 57): 0 + 1 | [C] |
 | Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |
 | Major Mana Potion (`majorManaPotion`) | 1350–2250 mana | same | 13444 → 17531 #0: 1349 + 1d901 | [C] |
 | Demonic Rune (`demonicRune`; a Dark Rune is the same) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |

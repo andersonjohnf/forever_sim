@@ -1029,6 +1029,24 @@ export const BUFFS: BuffSpec[] = [
     presets: { dungeon: ['druid-feral-cat', ...ROGUES], raid: ['druid-feral-cat', ...ROGUES], max: ['druid-feral-cat', ...ROGUES] },
   },
   {
+    id: 'nightfinSoup',
+    name: 'Nightfin Soup',
+    icon: 'inv_drink_17',
+    category: 'consumable',
+    group: 'Food',
+    summary: '+22 spell damage',
+    exclusiveGroup: 'food',
+    forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
+    docRef: `${DOC}#34-food`,
+    // 13931 → Nutritious Food 1249513 #1: aura 227's 22, passed to Well Fed 1249520, aura 13 with
+    // school mask 126, every magic school, so Holy too [F] [client] (SpellEffect, 1.60.1.69913).
+    // Classic Era's is Mana Regeneration 18194, 8 mana every 5 s [C] (SpellEffect, 1.15.9.69722).
+    effects: [{ kind: 'stat', stat: 'spellDamage', value: 22 }],
+    classicEra: { summary: '+8 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 8 }] },
+    presets: { dungeon: PROTECTION_PALADIN, raid: PROTECTION_PALADIN, max: PROTECTION_PALADIN },
+  },
+  {
     id: 'denseSharpeningStone',
     name: 'Dense Sharpening Stone / Weightstone',
     icon: 'inv_stone_sharpeningstone_05',
@@ -1056,6 +1074,41 @@ export const BUFFS: BuffSpec[] = [
     // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
     effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'] },
+  },
+  // The wizard oils (buffs doc §3.6): the main hand's temporary enchant, ahead of a stone there.
+  {
+    id: 'wizardOil',
+    name: 'Wizard Oil',
+    icon: 'inv_potion_104',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '+30 spell damage, on your main hand (in place of a stone there)',
+    forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 30 [F]; Classic Era's 24 [C]
+    // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
+    effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
+    classicEra: {
+      summary: '+24 spell damage, on your main hand (in place of a stone there)',
+      effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
+    },
+    presets: { raid: PROTECTION_PALADIN },
+  },
+  {
+    id: 'brilliantWizardOil',
+    name: 'Brilliant Wizard Oil',
+    icon: 'inv_potion_105',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '+36 spell damage and +1% spell crit, on your main hand (in place of Wizard Oil or a stone there)',
+    forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    // 20749 → 25122 → enchant 2628 → 25113: aura 13 (mask 126) 36 and aura 57 (spell crit) 1, the
+    // same in both clients [F] [C] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
+    effects: [{ kind: 'tempEnchant', id: 'brilliantWizardOil', priority: 4, hand: 'main', spellDamage: 36, spellCrit: 1 }],
+    presets: { max: PROTECTION_PALADIN },
   },
   // The rogue's poisons (buffs doc §3.6; docs/classes/rogue.md §4): one per weapon, in place of a stone there.
   {

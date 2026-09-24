@@ -19,6 +19,10 @@ const PALADIN_ONLY = [
   'elixirOfHolyPower',
   'majorManaPotion',
   'demonicRune',
+  // The caster food and oils (buffs doc §3.4, §3.6).
+  'nightfinSoup',
+  'wizardOil',
+  'brilliantWizardOil',
 ]
 /** The mana and all-schools spell damage entries are the shaman's too (docs/classes/shaman.md); Holy Power isn't. */
 const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
@@ -112,18 +116,24 @@ describe('class-only catalogue entries', () => {
       'greaterArcaneElixir',
       'majorManaPotion',
     ])
-    // Max consumables adds Elixir of Holy Power, a rune and Flask of Supreme Power.
-    expect(max('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual([...PALADIN_ONLY].sort())
-    // Protection: Elixir of Holy Power and the potion in Standard; Greater Arcane Elixir, the flask and a rune in Max.
+    // Max consumables adds Elixir of Holy Power, a rune and Flask of Supreme Power; the caster food and
+    // oils are Protection's (§6.3).
+    const PROT_ONLY = ['nightfinSoup', 'wizardOil', 'brilliantWizardOil']
+    expect(max('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => !PROT_ONLY.includes(id)).sort())
+    // Protection: Elixir of Holy Power, Nightfin Soup, Wizard Oil and the potion in Standard; Greater
+    // Arcane Elixir, the flask, Brilliant Wizard Oil (in place of Wizard Oil) and a rune in Max.
     expect(raid('paladin-protection').filter((id) => PALADIN_ONLY.includes(id))).toEqual([
       'prayerOfSpirit',
       'arcaneBrilliance',
       'blessingOfWisdom',
       'manaSpringTotem',
       'elixirOfHolyPower',
+      'nightfinSoup',
+      'wizardOil',
       'majorManaPotion',
     ])
-    expect(max('paladin-protection').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual([...PALADIN_ONLY].sort())
+    expect(max('paladin-protection').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => id !== 'wizardOil').sort())
+    expect(presetBuffIds('dungeon', 'paladin-protection', FULL_RAID)).toContain('nightfinSoup')
     // Each needs its provider: no shaman, no Mana Spring; no priest or mage, no Spirit or Intellect.
     expect(presetBuffIds('raid', 'paladin-retribution', FULL_RAID.filter((c) => c !== 'shaman'))).not.toContain('manaSpringTotem')
     const noCasters = presetBuffIds('raid', 'paladin-retribution', FULL_RAID.filter((c) => c !== 'priest' && c !== 'mage'))

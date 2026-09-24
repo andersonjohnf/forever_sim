@@ -172,6 +172,9 @@ export type Effect = (
       weapons?: WeaponType[]
       weaponDamage?: number
       crit?: number
+      /** A wizard oil's spell damage (all magic schools) and spell crit, on the wearer (buffs doc §3.6). */
+      spellDamage?: number
+      spellCrit?: number
       hand?: 'main' | 'off'
       proc?: ProcSpec
     }

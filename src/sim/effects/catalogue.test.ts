@@ -61,6 +61,9 @@ function digest(effects: Effect[]): Line[] {
       case 'tempEnchant':
         if (e.weaponDamage) lines.push([`${e.id} weaponDamage`, e.weaponDamage])
         if (e.crit) lines.push([`${e.id} crit`, e.crit])
+        // A wizard oil (buffs doc §3.6).
+        if (e.spellDamage) lines.push([`${e.id} spellDamage`, e.spellDamage])
+        if (e.spellCrit) lines.push([`${e.id} spellCrit`, e.spellCrit])
         // A rogue's poison: its proc (docs/classes/rogue.md §4).
         if (e.proc) lines.push(...digest([{ kind: 'proc', proc: e.proc }]))
         break
@@ -225,8 +228,14 @@ const ROWS: Record<string, Row> = {
   grilledSquid: { forever: [['crit', 1], ['spellCrit', 1]], classicEra: [['agi', 10]], rows: [S(1249522, 1), S(1249523)], classicRows: [S(18192)] },
   // New in Forever: Flank au Poivre (250069) → Nutritious Food 1248399, whose Well Fed 1248420 is Agility (aura 29, misc 1; checked below).
   flankAuPoivre: { foreverOnly: true, rows: [S(1248399, 1)] },
+  // Forever: Nutritious Food 1249513 #1's aura 227 amount, passed to Well Fed 1249520 (spell damage,
+  // checked below); Classic Era: Mana Regeneration 18194, 8 every 5 s.
+  nightfinSoup: { forever: [['spellDamage', 22]], classicEra: [['mp5', 8]], rows: [S(1249513, 1)], classicRows: [S(18194)] },
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
+  // The oils' enchants apply their equip spell (25111, 25113): its spell damage, then its spell crit.
+  wizardOil: { forever: [['wizardOil spellDamage', 30]], classicEra: [['wizardOil spellDamage', 24]], rows: [E(2627, 25121)] },
+  brilliantWizardOil: { rows: [E(2628, 25122), S(25113, 2)] },
   mightyRagePotion: { rows: [S(17528, 0, { bound: 'min' }), S(17528, 0, { bound: 'max' }), S(17528, 1)] },
   // Mana in tenths: the energize's bounds × 10 (the health a rune costs isn't simulated).
   majorManaPotion: { rows: [S(17531, 0, { bound: 'min', times: 10 }), S(17531, 0, { bound: 'max', times: 10 })] },
@@ -333,7 +342,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(120)
+    expect(ENTRIES).toHaveLength(123)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {
@@ -516,6 +525,52 @@ describe('Windfury Totem and a main-hand stone (buffs doc, Windfury Totem)', () 
   })
 })
 
+describe('the wizard oils (buffs doc §3.6)', () => {
+  const prot = defaultConfig('paladin-protection')
+  const noWeaponBuffs = prot.buffs.enabled.filter((id) => id !== 'wizardOil')
+  const plan = (config: SimConfig, enabled: string[], profile: 'forever' | 'classicEra' = 'forever') => buildPlan(withRules({ ...config, buffs: { ...config.buffs, enabled } }, profile)).plan
+  const sp = (p: ReturnType<typeof plan>) => p.stats.spellDamage
+
+  it('Wizard Oil is +30 spell damage on you (Classic Era 24), and the Protection paladin’s Standard raid brings it and Nightfin Soup’s +22', () => {
+    expect(prot.buffs.enabled).toEqual(expect.arrayContaining(['wizardOil', 'nightfinSoup']))
+    expect(sp(plan(prot, [...noWeaponBuffs, 'wizardOil'])) - sp(plan(prot, noWeaponBuffs))).toBe(30)
+    // Classic Era's Windfury Totem is the main hand's temporary enchant, so it takes the oil's place
+    // (buffs doc, Windfury Totem); without it, the oil's 24.
+    expect(sp(plan(prot, [...noWeaponBuffs, 'wizardOil'], 'classicEra')) - sp(plan(prot, noWeaponBuffs, 'classicEra'))).toBe(0)
+    const noTotem = noWeaponBuffs.filter((id) => id !== 'windfuryTotem')
+    expect(sp(plan(prot, [...noTotem, 'wizardOil'], 'classicEra')) - sp(plan(prot, noTotem, 'classicEra'))).toBe(24)
+    const noFood = noWeaponBuffs.filter((id) => id !== 'nightfinSoup')
+    expect(sp(plan(prot, noWeaponBuffs)) - sp(plan(prot, noFood))).toBe(22)
+    // Classic Era's Nightfin Soup is 8 mana every 5 s, and no spell damage.
+    expect(sp(plan(prot, noWeaponBuffs, 'classicEra')) - sp(plan(prot, noFood, 'classicEra'))).toBe(0)
+    expect(plan(prot, noWeaponBuffs, 'classicEra').stats.mp5 - plan(prot, noFood, 'classicEra').stats.mp5).toBe(8)
+  })
+
+  it('Brilliant Wizard Oil takes Wizard Oil’s place: +36 spell damage and +1% spell crit, once', () => {
+    const both = plan(prot, [...noWeaponBuffs, 'wizardOil', 'brilliantWizardOil'])
+    const none = plan(prot, noWeaponBuffs)
+    expect(sp(both) - sp(none)).toBe(36)
+    expect(both.stats.spellCrit - none.stats.spellCrit).toBeCloseTo(1, 9)
+  })
+
+  it('goes on the main hand in place of a stone there; the off hand keeps its stone', () => {
+    const fury = defaultConfig('warrior-fury')
+    const withStone = { ...fury, buffs: { raid: fury.buffs.raid, enabled: ['denseSharpeningStone'] } }
+    // A warrior sees no oil (it has no mana), so the plan skips it: both stones stay.
+    expect(plan(withStone, ['denseSharpeningStone', 'wizardOil']).weapons.map((w) => w?.flatDamage)).toEqual([8, 8])
+    const ret = defaultConfig('paladin-retribution')
+    const retPlan = plan(ret, ['denseSharpeningStone', 'wizardOil'])
+    expect(retPlan.weapons[0]!.flatDamage).toBe(0)
+    expect(sp(retPlan) - sp(plan(ret, ['denseSharpeningStone']))).toBe(30)
+  })
+
+  it('reaches a caster’s spells too: an Elemental shaman’s +36', () => {
+    const ele = defaultConfig('shaman-elemental')
+    const off = ele.buffs.enabled.filter((id) => id !== 'brilliantWizardOil')
+    expect(sp(plan(ele, [...off, 'brilliantWizardOil'])) - sp(plan(ele, off))).toBe(36)
+  })
+})
+
 // --- The cited client rows, when the raw client tables are cached locally -------------------------
 
 const FOREVER_BUILD = '1.60.1.69913'
@@ -657,6 +712,16 @@ describe('the cited client rows', () => {
     expect(forever.triggers(1248399, 1)).toBe(1248420)
     expect([forever.aura(1248420, 0), forever.misc(1248420, 0)]).toEqual([MOD_STAT, AGILITY])
     expect(digest(catalogueEffects(BUFFS_BY_ID.get('flankAuPoivre')!, FOREVER))).toEqual([['agi', 20]])
+  })
+
+  it.skipIf(!cached)('give Nightfin Soup’s Well Fed as spell damage: Nutritious Food 1249513 #1 triggers 1249520, aura 13 with school mask 126 (every magic school)', async () => {
+    const [forever] = await open()
+    const MOD_DAMAGE_DONE = 13
+    const MAGIC_SCHOOLS = 126
+    expect(ROWS.nightfinSoup.rows).toEqual([S(1249513, 1)])
+    expect(forever.triggers(1249513, 1)).toBe(1249520)
+    expect([forever.aura(1249520, 0), forever.misc(1249520, 0)]).toEqual([MOD_DAMAGE_DONE, MAGIC_SCHOOLS])
+    expect(digest(catalogueEffects(BUFFS_BY_ID.get('nightfinSoup')!, FOREVER))).toEqual([['spellDamage', 22]])
   })
 
   // TL4: the RL5 split, crit source by crit source (character-stats.md#implementation-notes).

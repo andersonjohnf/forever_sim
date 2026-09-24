@@ -604,13 +604,21 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   let elementalStones = 0
   /** A rogue's main-hand poison, beside Forever's Windfury Totem (the assumptions below). */
   let mainHandPoison = false
+  /** The temporary enchant a weapon of this type in this hand takes: the highest priority that fits it. */
+  const tempEnchantFor = (type: WeaponType, hand: 0 | 1) =>
+    c.tempEnchants
+      // A poison goes on its own hand only (docs/classes/rogue.md §4).
+      .filter((t) => (!t.weapons || t.weapons.includes(type)) && (!t.hand || t.hand === (hand === HAND.main ? 'main' : 'off')))
+      .sort((a, b) => b.priority - a.priority)[0]
+  // A caster swings no weapon, but a wizard oil on the one it holds is still an aura on it (buffs doc §3.6).
+  const casterMain = weapons[HAND.main] === null ? heldTypes[HAND.main] : null
+  const casterOil = casterMain && !windfuryHoldsMainHand ? tempEnchantFor(casterMain, HAND.main) : undefined
+  block.spellDamage += casterOil?.spellDamage ?? 0
+  block.spellCrit += casterOil?.spellCrit ?? 0
   for (const w of weapons) {
     if (!w || !w.item) continue
     if (windfuryHoldsMainHand && w.hand === HAND.main) continue
-    const best = c.tempEnchants
-      // A poison goes on its own hand only (docs/classes/rogue.md §4).
-      .filter((t) => (!t.weapons || t.weapons.includes(w.type)) && (!t.hand || t.hand === (w.hand === HAND.main ? 'main' : 'off')))
-      .sort((a, b) => b.priority - a.priority)[0]
+    const best = tempEnchantFor(w.type, w.hand)
     if (!best) continue
     // A poison's proc comes from that weapon's hits (rogue.md §4).
     if (best.proc) {
@@ -618,6 +626,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (w.hand === HAND.main) mainHandPoison = true
     }
     w.plan.flatDamage += best.weaponDamage ?? 0
+    // A wizard oil's spell damage and spell crit are its equip aura's, on you (buffs doc §3.6).
+    block.spellDamage += best.spellDamage ?? 0
+    block.spellCrit += best.spellCrit ?? 0
     if (best.crit) {
       block.crit += best.crit
       elementalStones++

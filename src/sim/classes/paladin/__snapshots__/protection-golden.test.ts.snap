@@ -77,8 +77,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "judgementOfFury",
-      5224217.275802781,
-      10124533.0805058,
+      5838467.275802792,
+      11314949.580505798,
       26098,
       23314,
       1468,
@@ -89,8 +89,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "holyStrike",
-      2146155.355797829,
-      5199061.349420273,
+      2458043.5037978394,
+      5954610.387950271,
       18050,
       11008,
       1016,
@@ -101,8 +101,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "consecration",
-      4868274.190000447,
-      9434715.380220825,
+      5378116.770001352,
+      10422790.30026227,
       14703,
       94648,
       5706,
@@ -113,8 +113,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "hammerOfWrath",
-      2412268.9035143154,
-      4674977.135010749,
+      2512833.3675143193,
+      4869871.066242742,
       4481,
       3827,
       238,
@@ -137,8 +137,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "sealOfFuryProc",
-      5109178.800000181,
-      9901588.514400568,
+      5718530.400002835,
+      11082511.915197778,
       110609,
       104035,
       6574,
@@ -149,8 +149,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "holyShieldProc",
-      8040517.919998192,
-      18699028.47475079,
+      8187299.360000894,
+      19040383.391617402,
       35284,
       35284,
       0,
@@ -208,9 +208,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 0.8238009603630564,
-    "mean": 242.25267465894336,
-    "stdev": 13.291506343636652,
+    "ci95": 0.8545551104206095,
+    "mean": 255.0102202947425,
+    "stdev": 13.78770506183549,
   },
   "dtps": {
     "ci95": 3.5534327540276114,
@@ -242,9 +242,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 18176.86,
   },
   "tps": {
-    "ci95": 1.6047452445942327,
-    "mean": 446.30380465296196,
-    "stdev": 25.891547381839544,
+    "ci95": 1.669296912612805,
+    "mean": 472.1846171083191,
+    "stdev": 26.933047630374162,
   },
 }
 `;

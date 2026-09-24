@@ -66,12 +66,14 @@ export function BuffsSection() {
   // Buffs the rotation keeps up itself (your own Battle Shout, warrior.md §5.2 row 1): the switch
   // shows them on and locked, since the Buffs version would be the same buff. Read through the same
   // resolver as the plan, so a default that follows the talents or another setting counts.
-  const maintained = useMemo(() => {
-    const values = rotationValues({ spec: meta.id, talents, rotation })
-    return new Set(
-      getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && Boolean(values[o.id]) ? [o.maintainsBuff] : [])),
-    )
-  }, [meta.id, talents, rotation])
+  const values = useMemo(() => rotationValues({ spec: meta.id, talents, rotation }), [meta.id, talents, rotation])
+  const maintained = useMemo(
+    () =>
+      new Set(
+        getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && Boolean(values[o.id]) ? [o.maintainsBuff] : [])),
+      ),
+    [meta.id, values],
+  )
   // Buffs the talents bring (a druid's Leader of the Pack): on and locked the same way, since the
   // plan leaves the Buffs copy out too (druid.md §2.3).
   const fromTalents = useMemo(() => new Set(talentBuffs({ spec: meta.id, talents })), [meta.id, talents])
@@ -92,7 +94,13 @@ export function BuffsSection() {
     return duty
   }, [meta.id, meta.role, meta.classId])
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
-  const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])
+  // An Enhancement shaman's Windfury Weapon disables Windfury Totem's benefit for it, so the plan
+  // leaves the totem out while that's the imbue (docs/classes/shaman.md#totems, plan/build.ts).
+  const inert = useMemo(() => {
+    const out = unusedBuffs(meta.id)
+    if (values['shaman.enhancement.imbue'] === 'windfury') out.windfuryTotem = 'Not used: your Windfury Weapon (see Rotation) turns it off for you'
+    return out
+  }, [meta.id, values])
   // Your own buffs whose Rotation setting the setup leaves unused (the bear's roar while a Demoralizing
   // Shout here takes its place, druid.md §6.3): your rotation doesn't cast them.
   const race = useSetup((s) => s.config.race)

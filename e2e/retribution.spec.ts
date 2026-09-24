@@ -78,7 +78,7 @@ test.describe('Retribution', () => {
     // About names the paladin, after the warriors and the druid.
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury, Arms and Protection · Druids: .+ · Paladins: Retribution and Protection\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury, Arms and Protection · Druids: .+ · Paladins: Retribution and Protection( · .+)?\.$/)).toBeVisible()
   })
 
   test('its Rotation tab: tuned defaults under the usual headings, the rune waiting for Buffs, and no warrior words', async ({ page }) => {

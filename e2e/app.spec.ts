@@ -34,8 +34,10 @@ test.describe('setup', () => {
     const paladins = page.getByRole('group', { name: 'Paladin' })
     await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
     await expect(paladins.getByRole('menuitem')).toHaveText([/^Retribution\s*DPS$/, /^Protection\s*Tank$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(7)
-    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/])
+    // Enhancement since S1, under the Shaman heading.
+    await expect(page.getByRole('group', { name: 'Shaman' }).getByRole('menuitem')).toHaveText([/^Enhancement\s*DPS$/])
+    await expect(page.getByRole('menuitem')).toHaveCount(8)
+    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/])
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {

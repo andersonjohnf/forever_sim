@@ -63,6 +63,9 @@ const RATING_PER_PCT: Partial<Record<keyof Stats, number>> = Object.fromEntries(
 
 const trimPct = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)}%`
 
+/** A stat's sign: "+20", or "−10" (a minus sign) for a stat an item takes away (Crown of Tyranny's Spirit). */
+const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`)
+
 /** A compact stat line, e.g. "+22 Str · +28 Crit (2%) · 1% Hit". Weapons lead with DPS and speed. */
 export function summarizeItem(item: Item): string {
   const parts: string[] = []
@@ -75,8 +78,8 @@ export function summarizeItem(item: Item): string {
     if (!value) continue
     const perPct = RATING_PER_PCT[key]
     if (unit === '%') parts.push(`${value}% ${label}`)
-    else if (perPct) parts.push(`+${value} ${label} (${trimPct(value / perPct)})`)
-    else parts.push(`+${value} ${label}`)
+    else if (perPct) parts.push(`${signed(value)} ${label} (${trimPct(value / perPct)})`)
+    else parts.push(`${signed(value)} ${label}`)
   }
   if (item.weaponSkill) {
     for (const [skill, value] of Object.entries(item.weaponSkill)) parts.push(`+${value} ${skill} skill`)

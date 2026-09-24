@@ -171,6 +171,7 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
       [DEFAULT_APL_PRESET, 'Mid'],
       ['max', 'Max'],
     ])
+    expect(aplPresets(DEF)[0].label).toBe('Default')
   })
 
   it('reads a spec-wide setting a preset names as the preset’s: each stored value is its own preset', () => {

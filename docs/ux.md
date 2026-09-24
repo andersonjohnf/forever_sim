@@ -324,9 +324,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       settings move it one place and say where it went; one that reaches the end disables
       itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
       position 11").
-    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
-      be, have no Move up or down, and no row can be dragged past them. The settings of a
-      pinned row say "Fixed at position 1 of 16".
+    - **Pinned rows** (the pre-pull) show a lock where the handle would be, have no Move up or
+      down, and no row can be dragged past them. The settings of a pinned row say "Fixed at
+      position 1 of 16". D26's duties aren't pinned: every tank preset puts them first, and their
+      timing rule is their own condition, so it moves with them (a moved duty is Custom).
     - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
       ones (D28's Defensive, Balanced and Max TPS for tanks, in that order, Balanced the default
       and named so, not "Default"). A tank's preset sets its Priority choice, a spec-wide setting

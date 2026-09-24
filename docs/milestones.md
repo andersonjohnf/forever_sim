@@ -309,6 +309,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       stay selectable. **Protection paladin done** (with its A2): Balanced is Defensive with Hammer
       of the Righteous in Holy Strike's place, a first pass (D27): −0.36% TPS, +1.27% DPS, +4.3%
       damage taken against Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps))
+      - [x] Bear: Balanced drops the roar and keeps Faerie Fire; its first-pass search moved
+            nothing else (+3.1% TPS, +2.8% DPS, +0.7% damage taken against Defensive), so Max TPS
+            plays the same in the default setup
+            ([druid.md §6.3 "Balanced"](classes/druid.md#balanced-t5))
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
@@ -326,6 +330,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       default order. **Protection paladin done**: its rows in paladin.md's order, the pre-pull and
       opener pinned, D28's rotations as presets at the top of the tab; Defensive and Max TPS give
       200 random setups their plans from before the list (its golden moved only for Balanced)
+      - [x] Feral bear: its rows in druid.md §6.3's order, Enrage before the pull pinned, the
+            duties movable with their timing rule, D28's three rotations as presets (the picker
+            is the priority); Defensive's and Max TPS's plans byte-identical for 200 random setups
+            ([druid.md §6.3 "The priority list"](classes/druid.md#the-priority-list-a2))
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

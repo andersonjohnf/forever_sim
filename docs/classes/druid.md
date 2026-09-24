@@ -1022,23 +1022,32 @@ debuff (the raid's, which the bear keeps itself: no preset gives it a warrior's 
 Shout), and **Faerie Fire**, the armor debuff. Both are the bear's own, so no preset adds the
 Buffs tab's ([buffs doc §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
 Enrage in combat isn't a duty: its armor loss costs 0.14% more damage taken for 3.8% more TPS
-(below), so the search decides it. Each duty is a setting, so the Max TPS priority (below) drops
+(below), so the search decides it. Each duty is a setting, so Balanced and Max TPS (below) drop
 the roar by moving its default.
 
-**Priority** (`druid.bear.priority`, a choice at the top of the Rotation tab), per
-[D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23),
-as Protection's ([warrior.md §5.4](warrior.md#54-protection-tps)):
+**The three rotations** ([D28](../decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)),
+the presets of the priority list ([The priority list](#the-priority-list-a2) below). Their
+value is the setting `druid.bear.priority`, which the list's preset picker sets; it has no
+control of its own:
 
-- **Tank duties first** (`duties`, the default) keeps both duties up from the pull, by the duty
-  rule below. The table's defaults are this choice's.
-- **Max TPS** (`maxTps`) drops the roar (row 5 is off by default), from a first-pass search on
-  TPS alone ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as the default does). It keeps
+- **Defensive** (`duties`, "Tank duties first" before D28) keeps both duties up from the pull,
+  by the duty rule below. The table's defaults are this rotation's, and its search is D26's
+  ([Tuning the defaults](#tuning-the-defaults-b3) below).
+- **Balanced** (`balanced`, **the default**) drops the roar (row 5 is off by default) and keeps
+  Faerie Fire, the raid's armor debuff, by the duty rule. A bear has no active mitigation to keep.
+  Its first-pass search on the balanced objective moved nothing else ([Balanced](#balanced-t5)
+  below).
+- **Max TPS** (`maxTps`) drops the roar, from a first-pass search on TPS alone
+  ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as Defensive does). It keeps
   Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
-  dropping its upkeep costs 1% of TPS. The Buffs tab's Demoralizing Roar is the bear's own, so no
-  preset turns it on: with Max TPS the boss is at full attack power unless you turn it on there
-  because another druid keeps it up.
+  dropping its upkeep costs 1% of TPS. In the default setup it plays as Balanced does: the roar
+  is the only duty that costs threat, and neither search moved anything else.
 
-The choice moves only defaults, as Protection's does: a value you set yourself still wins.
+The Buffs tab's Demoralizing Roar is the bear's own, so no preset turns it on: with Balanced or
+Max TPS the boss is at full attack power unless you turn it on there because another druid keeps
+it up. A setup or link saved with `duties` loads as Defensive, and one that kept the old default
+gets Balanced (D28). A preset moves only defaults: picking one puts the list's settings at its
+values and the rest of the list's at their defaults, and keeps the consumables you set.
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s
@@ -1093,18 +1102,55 @@ arrives, a cooldown or debuff runs out):
    count (`swipeMinTargets`) is left out: the sim has one target.
 10. **Faerie Fire** as a filler whenever it's ready (`faerieFire.filler`): free, 108 threat.
 
+#### The priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`BEAR_APL` in `bear.ts`), in this order, each with its switch and its own settings:
+
+| Row (`id`) | Switch | Its settings |
+| --- | --- | --- |
+| Before the pull (`prepull`), pinned first | — | `enrage.prepull` |
+| Berserk (`berserk`) | `berserk.enabled` | |
+| Enrage (`enrage`) | `enrage.inCombat` | `enrage.maxRage` |
+| Racial cooldown (`racial`) | `racial.enabled` | |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | |
+| Maul (`maul`) | `maul.enabled` | `maul.minRage` |
+| Demoralizing Roar (`demoRoar`) | `demoRoar.enabled` | `demoRoar.refreshBelowSec` |
+| Faerie Fire (`faerieFire`) | `faerieFire.enabled` | `faerieFire.refreshBelowSec` |
+| Mangle (`mangle`) | `mangle.enabled` | |
+| Lacerate (`lacerate`) | `lacerate.enabled` | `lacerate.refreshBelowSec`, `lacerate.onlyWithoutOtherBleeds` |
+| Swipe (`swipe`) | `swipe.enabled` | `swipe.minRage` |
+| Faerie Fire filler (`faerieFireFiller`) | `faerieFire.filler` | |
+
+- **Pinned:** only Enrage before the pull. The duties aren't pinned: every preset puts them first
+  on the global cooldown (the duty rule), and their refresh keeps the rule wherever you move them,
+  since each row's conditions are its own. Moving one is a Custom list.
+- **Spec-wide, above the list:** the Mighty Rage Potion (and its limit) and Juju Flurry, under
+  Consumables. They take their turn in the list with the on-use items (row 3), wherever that row
+  sits, as they did before the list. The priority is the preset picker.
+- **The presets move no row:** Defensive, Balanced and Max TPS share the default order and differ
+  only in the roar's default. In the default order each rotation's plan is the one it had before
+  the list, byte for byte: 200 random setups (settings, talents, race, items, Buffs, raid, fight
+  and rules) are fingerprinted against the code before it (`bear-apl.test.ts`).
+- **What reordering does,** in the default setup (Balanced, seed 28301, 20,000 paired fights):
+  Maul below the duties, Mangle or Lacerate changes nothing (±0.02%): it's off the GCD and checks
+  its rage as the swing lands. Lacerate above Mangle costs 2.9% of DPS and 0.2% of TPS; Mangle
+  above Faerie Fire's upkeep 1.0% of TPS and 0.8% of DPS; the filler above Swipe nothing, with
+  Swipe off.
+
 | Setting (`druid.bear.…`) | Default | Notes |
 | --- | --- | --- |
 | `berserk.enabled` | **on** | Needs the talent |
 | `enrage.prepull` | **on** | 12 rage at the pull; 16% less item armor for its first 8.5 s |
 | `enrage.inCombat`, `enrage.maxRage` | **on**, 70 | Tuned (below). Its armor loss ([F] [se-f] tooltip: −27%/−16% base armor) costs 0.14% more damage taken; 70 is the cap minus its 30 rage |
 | `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer and Earthstrike, the on-use trinkets the sim models |
-| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; on with Max TPS too), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
-| `priority` | **Tank duties first** | Or Max TPS ([below](#max-tps-b4)), which moves the defaults marked "Max TPS" |
-| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
+| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; in every preset), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
+| `priority` | **Balanced** | The preset picker: Defensive (`duties`), Balanced (`balanced`) or Max TPS (`maxTps`), which move the defaults marked with their names |
+| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (Max TPS too) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1112,7 +1158,8 @@ arrives, a cooldown or debuff runs out):
 
 #### Tuning the defaults (B3)
 
-This section records the tuning before M5.6's threat fixes (T3); since then Lacerate is refreshed
+These are Defensive's settings, the default before D28 (Balanced and Max TPS keep them all but the
+roar). This section records the tuning before M5.6's threat fixes (T3); since then Lacerate is refreshed
 from 12 s left, and the setup's talents and gear are T3's ([T3's re-check](#t3s-re-check-of-the-defaults)).
 The defaults were the best rotation found on 2026-09-24, per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), on TPS, the
@@ -1254,6 +1301,49 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   The roar's −204 attack power takes 0.56% off the damage the boss's swings do, for 3.6% of the
   TPS its rage and global cooldowns would make. Faerie Fire is threat for a bear (108 a free
   GCD), so a search on TPS alone keeps it; its upkeep line puts it up from the pull.
+
+#### Balanced (T5)
+
+**Balanced** is the default since M5.6 T5
+([D28](../decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)): it
+keeps Faerie Fire, the raid's armor debuff, by the duty rule, and drops Demoralizing Roar, which
+only lowers the boss's damage. A bear has no active mitigation to keep. The rest is a first pass
+([D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)) on the
+balanced objective ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)):
+Δ TPS % + Δ DPS % against Defensive, where a change that costs a larger share of TPS than it
+gains in DPS isn't adopted (D28). Against Defensive, over 200,000 paired fights on seed 28201,
+which no search used:
+
+| | Defensive | Balanced | Δ (95% CI) |
+| --- | --- | --- | --- |
+| TPS | 1,081.62 | 1,115.36 | +3.12% (± 0.03) |
+| DPS | 532.35 | 547.42 | +2.83% (± 0.03) |
+| Damage taken a second | 629.11 | 633.66 | +0.72% (± 0.01) |
+
+Max TPS gives the same fights in the default setup. The roar's −204 attack power takes 0.7% off
+the damage the boss's swings do; its 10 rage and a global cooldown every 30 s go to Maul, Mangle
+and Lacerate instead.
+
+- **Method.** `scripts/tune/rotation.mjs --spec druid-feral-bear` in the default setup
+  ([Tuning the defaults](#tuning-the-defaults-b3)), with the roar off as the base
+  (`--base demoRoar.enabled=false`), reading each candidate's Δ TPS and Δ DPS against Defensive
+  from the same fights: 20,000 fights on seed 28003 a candidate, then 100,000 on seed 28004 and
+  200,000 on seed 28005 around the best, confirmed on seed 28101 (400,000). The candidates:
+  Maul's threshold from 10 to 30, Lacerate's refresh from 6 to 15 s, Swipe from 40, 60 and 80
+  rage, Faerie Fire's refresh at 1.5 and 3 s, Enrage (in combat, its limit at 50 to 80, before
+  the pull), the potion's limit, Berserk, Mangle, Lacerate and the filler off; and the row
+  orders under [The priority list](#the-priority-list-a2) above.
+- **Nothing else moved.** Maul's threshold is flat on the objective: from 15 to 18 rage it trades
+  DPS for TPS, the best, 17, +0.11% TPS for −0.06% DPS (+0.05 on the objective, seed 28101).
+  That's under D27's resolution, and Balanced leans to DPS (D28 tunes it on DPS), so it stays
+  at 20. On TPS alone 12 to 15 gain about 0.2% (below). Lacerate's refresh peaks sharply at
+  12 s (11 s −3.0 on the objective, 13 s −0.4). Swipe loses at every threshold (from 80 −0.02,
+  from 40 −1.1); Faerie Fire's refresh, Enrage's limit and the potion's are level; everything
+  else loses (Mangle off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
+  Enrage in combat off −5.2).
+- **Max TPS is the same rotation** in the default setup. Max TPS's own search (B4) predates T3;
+  on TPS alone, Maul from 14 now makes 0.19% more TPS than from 20, for 0.20% of the DPS (seed
+  28101, 400,000 fights). It's left at 20 until the tuning milestone re-tunes both.
 
 #### Max TPS (B4)
 
@@ -1443,9 +1533,9 @@ gear and talents in today's model:
 | --- | --- | --- | --- | --- | --- | --- |
 | v1 talents and gear | 774.5 | 384.8 | 557.5 | 6,964 | 17,036 | 27,579 |
 | 9/42/0, v1 gear | 836.5 | 409.4 | 557.9 | 6,964 | 17,036 | 27,579 |
-| **Default** (9/42/0, interim gear) | **1,081.9** | **532.6** | 628.9 | 7,038 | 14,608 | 24,903 (90.3%) |
-| Default, Max TPS | 1,115.6 | 547.5 | 633.4 | 7,038 | 14,608 | 24,903 |
-| Default, Alliance (Night Elf) | 1,108.9 | 542.2 | 616.3 | 6,663 | 14,630 | 23,601 |
+| Defensive, the default before D28 (9/42/0, interim gear) | 1,081.9 | 532.6 | 628.9 | 7,038 | 14,608 | 24,903 (90.3%) |
+| **Default**, Balanced (and Max TPS) | **1,115.6** | **547.5** | 633.4 | 7,038 | 14,608 | 24,903 |
+| Defensive, Alliance (Night Elf) | 1,108.9 | 542.2 | 616.3 | 6,663 | 14,630 | 23,601 |
 
 The bear takes 12.8% more damage a second than in the v1 gear: less armor, and more of the
 boss's parries, which hasten its swings. A unit test holds the floor (`druid.test.ts`), for both

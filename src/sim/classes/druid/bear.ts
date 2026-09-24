@@ -1,10 +1,12 @@
 // The Feral bear's priority list and its settings (docs/classes/druid.md §6.3, §7.4).
 //
-// A tank's default keeps its duties first (decision D26 as amended): Demoralizing Roar and Faerie
-// Fire on the boss, timed by the duty rule, which is fixed and never tuned. Around them, the threat
-// abilities' settings are the best found on TPS, with DPS beside it (decision D23; §6.3 "Tuning the
-// defaults"). Each duty is a setting of its own, so the Max TPS priority drops the roar by moving
-// its default, and keeps Faerie Fire, whose armor makes the bear's threat (§6.3 "Max TPS").
+// Three rotations, named presets of the list (decisions D28, D31). Defensive keeps both of the tank's
+// duties first, Demoralizing Roar and Faerie Fire on the boss, timed by the duty rule, which is fixed
+// and never tuned; around them, the threat abilities' settings are the best found on TPS, with DPS
+// beside it (decision D23; §6.3 "Tuning the defaults"). Balanced, the default, drops the roar and
+// keeps Faerie Fire, the raid's armor debuff (§6.3 "Balanced"); Max TPS drops the roar too, for threat
+// (§6.3 "Max TPS"). Each duty is a setting of its own, so a preset drops the roar by moving its
+// default. The rows are a priority list you reorder (BEAR_APL), each with its own settings.
 //
 // Off the GCD: Berserk, Enrage (before the pull, and in combat on cooldown), the racial cooldown
 // (Night Elf), on-use items, the Mighty Rage Potion and Juju Flurry when they're selected in Buffs,
@@ -15,7 +17,8 @@
 import { toTenths } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, type RotationCondition } from '../../plan/types'
-import type { RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
+import { compileAplRows, DEFAULT_APL_PRESET } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, JUJU_FLURRY, maxRage, minRage, NO_CONTEXT, RAGE_POTION, reader, seconds } from '../warrior/shared'
@@ -126,35 +129,42 @@ const DUTY_RULE = (sec: number, why: string) =>
   ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.`
 
 /**
- * The priority choice's values (druid.md §6.3 "Max TPS", decision D26): the default keeps the tank's
- * duties, Demoralizing Roar and Faerie Fire; Max TPS drops the roar for threat. It keeps Faerie Fire,
- * whose armor raises the bear's damage and so its threat: dropping its upkeep costs 1% of TPS.
+ * The priority's values, the list's presets (druid.md §6.3, decisions D26 and D28): Defensive
+ * (`duties`, "Tank duties first" before D28) keeps the tank's duties, Demoralizing Roar and Faerie
+ * Fire; Balanced, the default, drops the roar and keeps Faerie Fire, the raid's armor debuff; Max TPS
+ * drops the roar for threat. Both keep Faerie Fire, whose armor raises the bear's damage and so its
+ * threat: dropping its upkeep costs 1% of TPS. A setup saved with `duties` loads as Defensive, and one
+ * that kept the old default gets Balanced (D28).
  */
-export const BEAR_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
+export const BEAR_PRIORITY = { duties: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: BEAR_PRIORITY.maxTps } as const
+const BALANCED = { option: ID.priority, is: BEAR_PRIORITY.balanced } as const
 
-/** Lacerate's refresh, 12 s left, for both priorities (§6.3 "T3's re-check of the defaults"). */
+/** Lacerate's refresh, 12 s left, for every priority (§6.3 "T3's re-check of the defaults"). */
 export const LACERATE_REFRESH_SEC = 12
 
 /** Enrage's rage, 10 at once and 20 over 10 s: 30 (druid.md §4.5). */
 const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 10
 
 /**
- * Defaults from druid.md §6.3's table, in priority order. They keep the tank's duties by D26's fixed
- * rule, and the rest is the best rotation found around them for the default setup (D23; §6.3
- * "Tuning the defaults", measured on TPS and DPS with scripts/tune/rotation.mjs).
+ * Defaults from druid.md §6.3's table, in priority order. Defensive's keep the tank's duties by D26's
+ * fixed rule, and the rest is the best rotation found around them for the default setup (D23; §6.3
+ * "Tuning the defaults", measured on TPS and DPS with scripts/tune/rotation.mjs). Balanced and Max
+ * TPS move the roar's default (§6.3 "Balanced", "Max TPS").
  */
 export const BEAR_OPTIONS: RotationOption[] = [
   {
+    // The list's preset picker is its control (BEAR_APL's presets): its value is the preset.
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage. Max TPS drops the roar for threat: about 3% more TPS and DPS, for 0.7% more damage taken in the default setup. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. Pick it when another tank or the raid covers your survival. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
+    help: 'Defensive keeps Demoralizing Roar and Faerie Fire on the boss. Balanced, the default, and Max TPS drop the roar and keep Faerie Fire.',
     choices: [
-      { value: BEAR_PRIORITY.duties, label: 'Tank duties first' },
+      { value: BEAR_PRIORITY.duties, label: 'Defensive' },
+      { value: BEAR_PRIORITY.balanced, label: 'Balanced' },
       { value: BEAR_PRIORITY.maxTps, label: 'Max TPS' },
     ],
-    default: BEAR_PRIORITY.duties,
+    default: BEAR_PRIORITY.balanced,
   },
   {
     kind: 'toggle',
@@ -209,7 +219,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.ffEnabled,
     group: 'Cooldowns and buffs',
     label: 'Faerie Fire',
-    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss, or the boss can resist it. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff. It stays on with Max TPS: its armor makes your attacks, and so your threat, bigger.',
+    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss, or the boss can resist it. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff. Every preset keeps it: it’s the raid’s armor debuff, and its armor makes your attacks, and so your threat, bigger.',
     default: true,
     maintainsBuff: 'faerieFire',
   },
@@ -227,9 +237,12 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.roarEnabled,
     group: 'Cooldowns and buffs',
     label: 'Demoralizing Roar',
-    help: 'Keep Demoralizing Roar on the boss: its attack power is 204 lower (138 in Classic Era rules), so it hits you for less. It costs 10 rage and can miss. While this is on, the Buffs tab’s Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place. Off by default with Max TPS.',
+    help: 'Keep Demoralizing Roar on the boss: its attack power is 204 lower (138 in Classic Era rules), so it hits you for less. It costs 10 rage and can miss. While this is on, the Buffs tab’s Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place. On with Defensive; off by default with Balanced and Max TPS.',
     default: true,
-    defaultWhen: [{ ...MAX_TPS, default: false }],
+    defaultWhen: [
+      { ...BALANCED, default: false },
+      { ...MAX_TPS, default: false },
+    ],
     maintainsBuff: 'demoralizingRoar',
   },
   refreshOption(
@@ -383,17 +396,113 @@ const refresh = (a: number, ms: number): RotationCondition => ({ code: COND.abil
 const stacksBelow = (a: number, n: number): RotationCondition => ({ code: COND.abilityAuraStacksBelow, a, b: n })
 
 /**
- * The bear priority list from the settings (druid.md §6.3). `talents` gates Mangle and Berserk and
- * resolves costs, Savage Fury, Feral Instinct, Genesis, Predatory Instincts and Rend and Tear;
- * `context` gives the race (Elune's Light), the equipped on-use items, Wolfshead Helm and Idol of Brutality, the
- * selected consumables and the profile (Demoralizing Roar's attack power). `_auraIndex` is unused:
- * no bear line reads a plan aura by id.
+ * The bear's rotation as a priority list (decision D31; druid.md §6.3 "The priority list"): §6.3's
+ * rows in its order, each with its switch and its own settings. Enrage before the pull is its own
+ * row, pinned first. The duties, Demoralizing Roar and Faerie Fire, aren't pinned: the presets put
+ * them first on the global cooldown (D26's rule), and their refresh keeps the duty rule wherever you
+ * move them. The priority is the preset picker, and the consumables are spec-wide, above the list;
+ * they take their turn with the on-use items (row 3), wherever that row sits.
+ *
+ * Presets (D28): Balanced is the default; Defensive and Max TPS set the priority, which moves the
+ * roar's default. None moves a row: every preset keeps the duties first.
+ */
+export const BEAR_APL: AplDefinition = {
+  rows: [
+    {
+      id: 'prepull',
+      label: 'Before the pull',
+      icon: 'ability_druid_enrage',
+      optionIds: [ID.enragePrepull],
+      summary: [{ option: ID.enragePrepull, text: 'Enrage' }],
+      help: 'What you do before the pull. It always comes first.',
+      pinned: true,
+    },
+    { id: 'berserk', label: 'Berserk', icon: BERSERK.icon, enabledId: ID.berserk, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'enrage',
+      label: 'Enrage',
+      icon: 'ability_druid_enrage',
+      enabledId: ID.enrageInCombat,
+      optionIds: [ID.enrageMaxRage],
+      summary: [{ option: ID.enrageMaxRage, text: 'up to {}' }],
+    },
+    { id: 'racial', label: 'Racial cooldown', icon: ELUNES_LIGHT.icon, enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'onUseItems', label: 'On-use items', icon: 'inv_jewelry_talisman_01', enabledId: ID.items, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'maul', label: 'Maul', icon: MAUL.icon, enabledId: ID.maulEnabled, optionIds: [ID.maulMinRage], summary: [{ option: ID.maulMinRage, text: 'from {}' }] },
+    {
+      id: 'demoRoar',
+      label: 'Demoralizing Roar',
+      icon: 'ability_druid_demoralizingroar',
+      enabledId: ID.roarEnabled,
+      optionIds: [ID.roarRefresh],
+      summary: [{ option: ID.roarRefresh, text: 'again with {}' }],
+    },
+    {
+      id: 'faerieFire',
+      label: 'Faerie Fire',
+      icon: FAERIE_FIRE_BEAR.icon,
+      enabledId: ID.ffEnabled,
+      optionIds: [ID.ffRefresh],
+      summary: [{ option: ID.ffRefresh, text: 'again with {}' }],
+    },
+    { id: 'mangle', label: 'Mangle', icon: MANGLE.icon, enabledId: ID.mangleEnabled, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'lacerate',
+      label: 'Lacerate',
+      icon: LACERATE.icon,
+      enabledId: ID.lacerateEnabled,
+      optionIds: [ID.lacerateRefresh, ID.lacerateAlone],
+      summary: [
+        { text: `${LACERATE_MAX_STACKS} stacks` },
+        { option: ID.lacerateRefresh, text: 'again with {}' },
+        { option: ID.lacerateAlone, text: 'only when nothing else bleeds' },
+      ],
+    },
+    { id: 'swipe', label: 'Swipe', icon: SWIPE.icon, enabledId: ID.swipeEnabled, optionIds: [ID.swipeMinRage], summary: [{ option: ID.swipeMinRage, text: 'from {}' }] },
+    {
+      id: 'faerieFireFiller',
+      label: 'Faerie Fire filler',
+      icon: FAERIE_FIRE_BEAR.icon,
+      enabledId: ID.ffFiller,
+      optionIds: [],
+      summary: [{ text: 'whenever it’s ready' }],
+    },
+  ],
+  specWide: [ID.potion, ID.potionMaxRage, ID.juju],
+  // Their numbers are measured in the default setup (druid.md §6.3 "Balanced"; seed 28201, 200,000
+  // paired fights): Defensive 1,081.6 TPS, 532.4 DPS and 629.1 damage taken a second; Balanced and
+  // Max TPS 1,115.4, 547.4 and 633.7.
+  presets: [
+    {
+      id: 'defensive',
+      label: 'Defensive',
+      help: 'Keeps both tank duties first, Demoralizing Roar and Faerie Fire on the boss. The roar’s −204 attack power means 0.7% less damage taken than Balanced, for 3.0% less TPS and 2.8% less DPS in the default setup. Pick it for progression fights.',
+      values: { [ID.priority]: BEAR_PRIORITY.duties },
+    },
+    { id: DEFAULT_APL_PRESET, label: 'Balanced', help: 'The default, as most tanks play fights short of progression. It drops Demoralizing Roar and keeps Faerie Fire, the raid’s armor debuff: 3.1% more TPS and 2.8% more DPS than Defensive in the default setup, for 0.7% more damage taken. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.', values: {} },
+    {
+      id: 'maxTps',
+      label: 'Max TPS',
+      help: 'Drops Demoralizing Roar for threat, and keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. For a bear it plays as Balanced does in the default setup: the roar is the only duty that costs threat. Pick it when another tank or the raid covers your survival.',
+      values: { [ID.priority]: BEAR_PRIORITY.maxTps },
+    },
+  ],
+}
+
+/**
+ * The bear priority list from the settings (druid.md §6.3), its rows in `order` (BEAR_APL; absent:
+ * the default order). `talents` gates Mangle and Berserk and resolves costs, Savage Fury, Feral
+ * Instinct, Genesis, Predatory Instincts and Rend and Tear; `context` gives the race (Elune's Light),
+ * the equipped on-use items, Wolfshead Helm and Idol of Brutality, the selected consumables and the
+ * profile (Demoralizing Roar's attack power). `_auraIndex` is unused: no bear line reads a plan aura
+ * by id. No row reads another's ability, so a row's lines are the same wherever it sits.
  */
 export function bearRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   _auraIndex: (id: string) => number,
   context: Partial<ClassRotationContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx: ClassRotationContext = { ...NO_CONTEXT, equipped: new Set(), othersBleed: false, front: true, ...context }
   const v = reader(BEAR_OPTIONS, values, talents)
@@ -402,50 +511,74 @@ export function bearRotation(
   const maul = withIdolOfBrutality(MAUL, ctx.equipped)
   const swipe = withIdolOfBrutality(SWIPE, ctx.equipped)
   const mangle = withIdolOfBrutality(MANGLE, ctx.equipped)
-
-  // --- Off the GCD (§6.3 rows 1–3) ------------------------------------------------------------------
-  // Row 1: Berserk on cooldown, with the talent.
-  if (talents.has('Berserk') && v.on(ID.berserk)) b.add(BERSERK, [])
-  // Row 2: Enrage before the pull (below), and in combat on cooldown, at rage ≤ maxRage.
   const enrageDef = enrage(ctx.equipped.has(WOLFSHEAD_HELM))
-  if (v.on(ID.enrageInCombat)) b.add(enrageDef, [maxRage(v.num(ID.enrageMaxRage))])
-  // The racial cooldown (Elune's Light, §7.2) and on-use items on cooldown.
-  if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
-  if (v.on(ID.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
-  // Consumables selected in Buffs: the potion once, the first time rage ≤ maxRage; Juju Flurry on cooldown.
   const consumable = (id: string): OnUseSpec | undefined => ctx.consumables.find((c) => c.id === id)
-  const potion = consumable(RAGE_POTION)
-  if (potion && v.on(ID.potion)) b.add({ ...onUseCast(potion), usesPerFight: 1 }, [maxRage(v.num(ID.potionMaxRage))])
-  const juju = consumable(JUJU_FLURRY)
-  if (juju && v.on(ID.juju)) b.add(onUseCast(juju), [])
-  // Row 3: the Maul queue at rage ≥ minRage; rage is checked and spent when the swing lands (§8).
-  if (v.on(ID.maulEnabled)) b.add(maul, [minRage(toTenths(v.num(ID.maulMinRage)))])
 
-  // --- On the GCD -----------------------------------------------------------------------------------
-  // Row 4: the duties first, before any threat ability on the GCD (D26's rule): Demoralizing Roar and
-  // Faerie Fire, when down or with ≤ refreshBelowSec left (the rule's 1.5 s and 6 s by default).
-  // A Demoralizing Shout in the Buffs tab takes the roar's place on the boss, so then it isn't used.
-  if (v.on(ID.roarEnabled) && !roarDisplaced(ctx)) {
-    const def = demoralizingRoar(ctx.profile)
-    b.add(def, [refresh(b.ability(def), seconds(v, ID.roarRefresh))])
-  }
-  if (v.on(ID.ffEnabled)) b.add(FAERIE_FIRE_BEAR, [refresh(b.ability(FAERIE_FIRE_BEAR), seconds(v, ID.ffRefresh))])
-  // Row 5: Mangle (the talent) whenever it's ready.
-  if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(mangle, [])
-  // Row 6: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
-  // run out before the fight does; with onlyWithoutOtherBleeds (off by default), not at all while
-  // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
-  if (v.on(ID.lacerateEnabled) && !lacerateWaits(v.on(ID.lacerateAlone), ctx)) {
-    const lacerate = b.ability(LACERATE)
-    b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
-    b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
-  }
-  // Row 7: Swipe with spare rage (the sim has one target: §6.3's target count never applies).
-  if (v.on(ID.swipeEnabled)) b.add(swipe, [minRage(toTenths(v.num(ID.swipeMinRage)))])
-  // Row 8: Faerie Fire whenever it's ready, as a free filler.
-  if (v.on(ID.ffFiller)) b.add(FAERIE_FIRE_BEAR, [])
+  compileAplRows(BEAR_APL, order, {
+    // --- Off the GCD (§6.3 rows 1–4) ----------------------------------------------------------------
+    // Row 1: Berserk on cooldown, with the talent.
+    berserk: () => {
+      if (talents.has('Berserk') && v.on(ID.berserk)) b.add(BERSERK, [])
+    },
+    // Row 2: Enrage in combat on cooldown, at rage ≤ maxRage (before the pull: the pinned row, below).
+    enrage: () => {
+      if (v.on(ID.enrageInCombat)) b.add(enrageDef, [maxRage(v.num(ID.enrageMaxRage))])
+    },
+    // Row 3: the racial cooldown (Elune's Light, §7.2) and on-use items on cooldown; then the
+    // consumables selected in Buffs, spec-wide settings that take their turn here: the potion once,
+    // the first time rage ≤ maxRage, and Juju Flurry on cooldown.
+    racial: () => {
+      if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
+    },
+    onUseItems: () => {
+      if (v.on(ID.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
+      const potion = consumable(RAGE_POTION)
+      if (potion && v.on(ID.potion)) b.add({ ...onUseCast(potion), usesPerFight: 1 }, [maxRage(v.num(ID.potionMaxRage))])
+      const juju = consumable(JUJU_FLURRY)
+      if (juju && v.on(ID.juju)) b.add(onUseCast(juju), [])
+    },
+    // Row 4: the Maul queue at rage ≥ minRage; rage is checked and spent when the swing lands (§8).
+    maul: () => {
+      if (v.on(ID.maulEnabled)) b.add(maul, [minRage(toTenths(v.num(ID.maulMinRage)))])
+    },
+    // --- On the GCD ---------------------------------------------------------------------------------
+    // Rows 5 and 6: the duties, first on the GCD in every preset (D26's rule): Demoralizing Roar
+    // (Defensive only) and Faerie Fire, when down or with ≤ refreshBelowSec left (the rule's 1.5 s and
+    // 6 s by default). A Demoralizing Shout in the Buffs tab takes the roar's place on the boss, so
+    // then it isn't used.
+    demoRoar: () => {
+      if (!v.on(ID.roarEnabled) || roarDisplaced(ctx)) return
+      const def = demoralizingRoar(ctx.profile)
+      b.add(def, [refresh(b.ability(def), seconds(v, ID.roarRefresh))])
+    },
+    faerieFire: () => {
+      if (v.on(ID.ffEnabled)) b.add(FAERIE_FIRE_BEAR, [refresh(b.ability(FAERIE_FIRE_BEAR), seconds(v, ID.ffRefresh))])
+    },
+    // Row 7: Mangle (the talent) whenever it's ready.
+    mangle: () => {
+      if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(mangle, [])
+    },
+    // Row 8: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
+    // run out before the fight does; with onlyWithoutOtherBleeds (off by default), not at all while
+    // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
+    lacerate: () => {
+      if (!v.on(ID.lacerateEnabled) || lacerateWaits(v.on(ID.lacerateAlone), ctx)) return
+      const lacerate = b.ability(LACERATE)
+      b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
+      b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
+    },
+    // Row 9: Swipe with spare rage (the sim has one target: §6.3's target count never applies).
+    swipe: () => {
+      if (v.on(ID.swipeEnabled)) b.add(swipe, [minRage(toTenths(v.num(ID.swipeMinRage)))])
+    },
+    // Row 10: Faerie Fire whenever it's ready, as a free filler.
+    faerieFireFiller: () => {
+      if (v.on(ID.ffFiller)) b.add(FAERIE_FIRE_BEAR, [])
+    },
+  })
 
-  // Before the pull: Enrage 1.5 s early, so its rage at once and its first tick are there at the pull.
+  // Row 0, before the pull, built after the list so the abilities keep their indexes: Enrage 1.5 s
+  // early, so its rage at once and its first tick are there at the pull.
   if (v.on(ID.enragePrepull)) b.prepull.casts.push({ ability: b.ability(enrageDef), atMs: PREPULL_ENRAGE_MS })
 
   return b.result([...ctx.items.map((i) => i.id), ...ctx.consumables.filter((c) => c.id === RAGE_POTION || c.id === JUJU_FLURRY).map((c) => c.id)])

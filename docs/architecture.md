@@ -129,7 +129,9 @@ A spec is data plus small ability modules, never its own loop.
     Bloodthirst) resolves it by definition (`RotationBuilder.ability`). In the default order,
     that returns the index the earlier row gave it, so the plan is byte-identical to the one
     before the list. Rows off the GCD that aren't in the list (Fury's consumables) and the
-    pre-pull are built after it.
+    pre-pull are built after it, unless they had a place of their own in the priority before
+    the list: the bear's consumables take their turn with its on-use items' row, wherever it
+    sits, so its plans stay byte-identical.
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
   it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their

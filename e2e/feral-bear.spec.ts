@@ -463,8 +463,10 @@ test.describe('Feral bear on a phone', () => {
       const box = (await about.boundingBox())!
       return box.y + box.height
     }
-    await expect.poll(bottom).toBeLessThanOrEqual(844)
-    const last = about.getByText(/Pick it when another tank or the raid covers your survival\.$/)
+    // 16 px from the screen's edges (collisionPadding).
+    await expect.poll(bottom).toBeLessThanOrEqual(844 - 16)
+    expect((await about.boundingBox())!.x).toBeGreaterThanOrEqual(16)
+    const last = about.getByText(/unless you turn it on there for another druid’s\.$/).last()
     await last.scrollIntoViewIfNeeded()
     await expect(last).toBeInViewport()
     await page.keyboard.press('Escape')

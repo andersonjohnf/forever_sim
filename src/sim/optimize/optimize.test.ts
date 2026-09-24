@@ -212,9 +212,9 @@ describe('optimize', () => {
   }, 60_000)
 
   it('in turns, a rotation pass keeps the talent pass’s winner when every variant is worse (O1-1, the review’s bear repro)', async () => {
-    // From the bear's 8/43/0, the talent pass finds a far better build (+10 points, docs/classes/druid.md);
-    // Maul held for 90 rage costs about 14 points on every build. The rotation pass must keep the
-    // talent pass's winner, not fall back to the baseline because the variant lost to it.
+    // From the bear's 8/43/0, the talent pass finds a far better build (about +14 points); Maul held
+    // for 90 rage costs points on it (about 1.6 in the review's CLI run). The rotation pass must keep
+    // the talent pass's winner, not fall back to the baseline because the variant lost to it.
     const old = { ...bear, talents: OLD_BEAR }
     const passes = await optimizeInTurns({
       config: old,

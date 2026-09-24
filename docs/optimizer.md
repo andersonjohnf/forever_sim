@@ -287,20 +287,22 @@ not every legal one, which would be astronomically many:
 Every build is checked with the app's own `validateTalentBuild`, encoded with `encodeTalentCode`,
 and must decode back to the same ranks.
 
-The spaces at the default setups (tanks with 31 points in their tree, their survival floor and
-the effective-health floor, which makes Toughness a dimension), from the screen of 2026-09-24:
+The spaces at the default setups (tanks with 31 points in their tree, their survival floor with
+Anticipation and Deflection, and the effective-health floor, which makes Toughness a dimension),
+from the screens of 2026-09-24 after the review's fixes (the defaults of that day's T3 and T4
+gear; the kept talents aren't dimensions):
 
 | Spec | Dimensions | Builds | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- |
-| `warrior-protection` | 24 objective + Toughness | 7,311 | 3,248 | 6,655 |
-| `druid-feral-bear` | 17 objective | 180 | 2,602 | 2,271 |
-| `paladin-protection` | 29 objective + Toughness | 24,312 | 4,352 | 6,131 |
+| `warrior-protection` | 22 objective + Toughness | 3,544 | 1,648 | 4,193 |
+| `druid-feral-bear` | 18 objective | 199 | 2,610 | 2,248 |
+| `paladin-protection` | 27 objective + Toughness | 10,805 | 2,240 | 2,705 |
 | `warrior-fury` (no constraints) | 20 objective | 288 | 1,636 | 1,507 |
 
-Without the effective-health floor (Toughness a filler) the warrior's space is 1,886 builds and
-the paladin's 7,026. Enumerating takes about a second. Before the tree-by-tree combination and the
-leftover-point rule, the Protection warrior's space was 17,644 builds and took eight minutes to
-list; the paladin's passed 50,000.
+So on `quick` the warrior's space runs 126 fights each in the first round, the paladin's 50 (36% of
+the budget, past the usual 30%: [budgets](#budgets)) and the bear's and Fury's 1,000. Enumerating takes about a
+second. Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's
+space was 17,644 builds and took eight minutes to list; the paladin's passed 50,000.
 
 ## Talents and rotation together
 
@@ -440,6 +442,7 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
 - **Fitting the budget.** `quick` (1,500,000) over 50,000 candidates: 50 fights each would be
   2,500,000, so the first round runs 27 each (90% of the budget, rounded down); over 100,000, even
   20 each doesn't fit, so the budget grows to 4,000,000.
-- **In turns.** From the bear's 8/43/0, the talent pass finds the build that's now the default;
-  holding Maul for 90 rage costs about 14 points on it, so the rotation pass keeps the talent
-  pass's winner with the setup's rotation.
+- **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
+  finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
+  pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline
+  before the review's fix).

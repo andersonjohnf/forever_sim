@@ -73,8 +73,9 @@ export function BuffsSection() {
   // Buffs the talents bring (a druid's Leader of the Pack): on and locked the same way, since the
   // plan leaves the Buffs copy out too (druid.md §2.3).
   const fromTalents = useMemo(() => new Set(talentBuffs({ spec: meta.id, talents })), [meta.id, talents])
-  // The spec's own buffs (the cat's Faerie Fire): while the rotation doesn't keep one up, the tab's
-  // switch is someone else's, off unless you turn it on (SpecMeta.ownBuffs, druid.md §6.2).
+  // The spec's own buffs (the cat's Faerie Fire, a Protection warrior's Thunder Clap and Demoralizing
+  // Shout): while the rotation doesn't keep one up, the tab's switch is someone else's, off unless
+  // you turn it on (SpecMeta.ownBuffs, druid.md §6.2, warrior.md §5.4).
   const ownBuffs = useMemo(() => new Set(getSpec(meta.id).ownBuffs ?? []), [meta.id])
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
   const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])

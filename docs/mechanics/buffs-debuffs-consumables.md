@@ -636,7 +636,12 @@ external toggle is ignored. A druid casts Mark of the Wild on itself, so for a d
 druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's. A paladin blesses
 itself with Might the same way, so for a paladin player Blessing of Might never needs another
 paladin; Kings, Salvation and Wisdom do, one blessing per paladin on a player. The switch is the
-blessing whoever casts it, so it counts once.
+blessing whoever casts it, so it counts once. A Protection warrior's Thunder Clap and
+Demoralizing Shout are its own the way a cat's Faerie Fire is, its duties
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
+the presets leave their toggles off, its rotation keeps them up, and a rotation that drops them
+(Max TPS) leaves the boss without them unless you turn a toggle on for another warrior's
+([warrior §5.4](../classes/warrior.md#54-protection-tps)).
 
 ### 6.2 Buffs and debuffs by preset
 
@@ -671,7 +676,7 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Curse of the Elements | — | — | Pal | Pal |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) | — | — | — | all |
-| Demoralizing Shout / Thunder Clap | — | — | Tank (self-applied by warrior tanks; external for the others) | Tank |
+| Demoralizing Shout / Thunder Clap | — | — | Bear, Prot paladin (another warrior's). Not a Prot warrior's: it applies its own ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)) | Bear, Prot paladin |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
 | Camp buffs ([§1.3](#13-camp-buffs-new-forever-system)) | — | off (option: fill in for a missing class) | off (option) | off (option) |
 | World buffs | **never** | **never** | **never** | **never** |

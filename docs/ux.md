@@ -210,12 +210,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
     way, and its note says the talents bring it.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
-    Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority)). When the rotation drops one,
-    its Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it
-    up (see Rotation); turn this on if another druid does." Turned on, it's another player's, and
-    it stays on until you turn it off. Without that class in the raid it reads "Needs another
-    druid in the raid". (A warrior's Battle Shout isn't one of these: the Buffs tab's is another
-    warrior's, and stays on when the rotation drops yours.)
+    Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a Protection warrior's Thunder
+    Clap and Demoralizing Shout, its duties under
+    [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
+    so no preset turns them on. When the rotation drops one (Protection's Max TPS drops both), its
+    Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it up
+    (see Rotation); turn this on if another druid does" (or warrior). Turned on, it's another
+    player's, and it stays on until you turn it off. Without that class in the raid it reads
+    "Needs another druid in the raid". (A warrior's Battle Shout isn't one of these: the Buffs
+    tab's is another warrior's, and stays on when the rotation drops yours.)
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default. It disables
@@ -239,7 +242,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     duties Max TPS drops (Shield Block, Thunder Clap's slow and Demoralizing Shout for a warrior,
     and Shield Slam), why the default keeps them (your survival, the raid's debuffs on the boss
     and your damage), what Max TPS gains and costs in the default setup, and that the Buffs tab's
-    Thunder Clap and Demoralizing Shout then count, as another warrior's. Choosing it moves only
+    Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another
+    player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
     help says "Off by default with Max TPS", and a value you set yourself stays set.
   - A setting that depends on another under the same heading sits under it, indented on a

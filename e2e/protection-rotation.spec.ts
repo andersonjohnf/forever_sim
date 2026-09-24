@@ -59,13 +59,16 @@ test.describe('Protection rotation', () => {
     await expect(heroicStrike).toHaveValue('50')
     await expect(heroicStrike).toHaveAccessibleDescription(/^Queue it at or above this much rage\. With Max TPS it’s 50 by default/)
 
-    // The Buffs tab's Thunder Clap counts again, as another warrior's: no longer kept up by you.
+    // The Buffs tab's Thunder Clap is the tank's own as well: off with Max TPS, and unlocked, to turn
+    // on for another warrior's (D26; SpecMeta.ownBuffs).
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
     const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
     const thunderClap = buffs.getByRole('switch', { name: 'Thunder Clap', exact: true })
-    await expect(thunderClap).toBeChecked()
+    await expect(thunderClap).not.toBeChecked()
     await expect(thunderClap).toBeEnabled()
-    await expect(thunderClap).not.toHaveAccessibleDescription(/You keep it up yourself/)
+    await expect(thunderClap).toHaveAccessibleDescription(/\. You’re not keeping it up \(see Rotation\); turn this on if another warrior does\.$/)
+    await thunderClap.click()
+    await expect(thunderClap).toBeChecked()
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
 
     // A switch you turn back on stays on, marked against its Max TPS default.
@@ -82,6 +85,11 @@ test.describe('Protection rotation', () => {
     // Advanced opens afresh on each visit to the tab (docs/ux.md "Rotation").
     await fillers.getByRole('button', { name: 'Advanced settings for Fillers' }).click()
     await expect(heroicStrike).toHaveValue('65')
+    // Back on tank duties, your own Thunder Clap replaces the one you turned on: locked, and said so.
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await expect(thunderClap).toBeChecked()
+    await expect(thunderClap).toBeDisabled()
+    await expect(thunderClap).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
   })
 
   test('a Max TPS run makes more threat and less damage than the default, and says so', async ({ page }) => {

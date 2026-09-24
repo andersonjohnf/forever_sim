@@ -249,7 +249,7 @@ describe('rotationValues', () => {
       'warrior.protection.shieldSlam.enabled': false,
       'warrior.protection.heroicStrike.minRage': 50,
     })
-    expect(rotationValues(defaultConfig('druid-feral-cat'))).toEqual({})
+    expect(rotationValues(defaultConfig('druid-feral-bear'))).toEqual({})
   })
 })
 
@@ -313,10 +313,18 @@ describe('catalogues and presets', () => {
   })
 
   it('gives tanks Devotion Aura and boss debuffs but not Salvation or Leader of the Pack', () => {
-    const prot = presetBuffs('raid', 'warrior-protection', FULL_RAID)
-    expect(prot).toEqual(expect.arrayContaining(['devotionAura', 'demoralizingShout', 'thunderClap', 'elixirOfGreaterDefense']))
-    expect(prot).not.toContain('blessingOfSalvation')
-    expect(prot).not.toContain('leaderOfThePack')
+    for (const spec of ['warrior-protection', 'druid-feral-bear', 'paladin-protection'] as const) {
+      const buffs = presetBuffs('raid', spec, FULL_RAID)
+      expect(buffs, spec).toEqual(expect.arrayContaining(['devotionAura', 'elixirOfGreaterDefense']))
+      expect(buffs, spec).not.toContain('blessingOfSalvation')
+      expect(buffs, spec).not.toContain('leaderOfThePack')
+    }
+    // Another warrior's Thunder Clap and Demoralizing Shout for the bear and the paladin; a warrior
+    // tank's are its own (below), so its presets leave the switches off (buffs doc §6.2, D26).
+    for (const preset of ['raid', 'max'] as const) {
+      expect(presetBuffs(preset, 'druid-feral-bear', FULL_RAID)).toEqual(expect.arrayContaining(['demoralizingShout', 'thunderClap']))
+      expect(presetBuffs(preset, 'paladin-protection', FULL_RAID)).toEqual(expect.arrayContaining(['demoralizingShout', 'thunderClap']))
+    }
   })
 
   it('follows composition, not faction', () => {
@@ -336,8 +344,12 @@ describe('catalogues and presets', () => {
     for (const preset of ['raid', 'max'] as const) {
       expect(presetBuffs(preset, 'druid-feral-cat', FULL_RAID)).not.toContain('faerieFire')
       expect(presetBuffs(preset, 'warrior-fury', FULL_RAID)).toContain('faerieFire')
+      // A Protection warrior's Thunder Clap and Demoralizing Shout are its duties (D26).
+      expect(presetBuffs(preset, 'warrior-protection', FULL_RAID)).not.toContain('thunderClap')
+      expect(presetBuffs(preset, 'warrior-protection', FULL_RAID)).not.toContain('demoralizingShout')
     }
     expect(getSpec('druid-feral-cat').ownBuffs).toEqual(['faerieFire'])
+    expect(getSpec('warrior-protection').ownBuffs).toEqual(['thunderClap', 'demoralizingShout'])
     expect(getSpec('warrior-arms').ownBuffs).toBeUndefined()
   })
 

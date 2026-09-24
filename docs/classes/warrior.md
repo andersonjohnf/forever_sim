@@ -1457,9 +1457,11 @@ best rotation found for the default setup that keeps the tank's toolkit
   counts as much as its threat. The table's defaults are this choice's.
 - **Max TPS** (`maxTps`) drops all four, tuned on TPS alone: rows 1, 5, 9 and 10 are off by default
   and Heroic Strike (row 12) comes from 50 rage. It makes about 12% more TPS and 28% less DPS in the
-  default setup ([Max TPS](#max-tps-p2) below). With the rotation's Thunder Clap and Demoralizing
-  Shout off, the Buffs tab's count, as another warrior's: the Standard raid preset has both, so
-  the boss stays slowed and weakened unless you turn them off there too.
+  default setup ([Max TPS](#max-tps-p2) below). The Buffs tab's Thunder Clap and Demoralizing
+  Shout are the tank's own too, so no preset turns them on for a Protection warrior (the buffs
+  doc's [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): with
+  Max TPS the boss goes unslowed and at full attack power, unless you turn them on there because
+  another player keeps them up (D26).
 
 The choice moves only defaults, as Arms' stance does ([§5.1](#51-conventions-for-rotation-settings)):
 a value you set yourself still wins.
@@ -1676,11 +1678,11 @@ fights). Every other setting keeps the default's value: the search found none be
     before the swing's rage arrives. Without the row, the swing comes first. Which of two things
     in the same millisecond goes first isn't a player's choice
     ([§5.1](#51-conventions-for-rotation-settings), no reaction time or latency).
-- **The Buffs tab's Thunder Clap and Demoralizing Shout** count while the rotation's are off, as
-  another warrior's (the Standard raid preset has both). Nobody else's either
-  (`--buffs-off thunderClap,demoralizingShout`, seed 6063, 200,000 fights): Max TPS is +142.90
-  (+142.71 to +143.09), +14.56%, at −72.98 DPS, since the faster, harder boss gives more rage. The
-  default is unchanged either way: its own debuffs make the Buffs tab's add nothing.
+- **The Buffs tab's Thunder Clap and Demoralizing Shout** are off in every preset for a
+  Protection warrior, whose own they are, so with Max TPS nobody keeps them up by default: the
+  faster, harder boss gives more rage. Turned on there, as another player's, they count while the
+  rotation's are off. The default is the same either way: its own debuffs make the Buffs tab's add
+  nothing.
 - **Robustness** (seed 6062, 200,000 paired fights each):
 
   | Fight | Max TPS against the default, Δ TPS | Δ DPS | Heroic Strike from 65, in Max TPS | Shield Slam on, in Max TPS |

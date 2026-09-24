@@ -10,8 +10,8 @@ import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
 import itemJson from '@/data/items/pre-bis.json'
 import type { ItemData } from '@/data/items/types'
-import { CRIT_MULTIPLIER, furorCatEnergyTenths } from '../../core/formulas'
-import { defaultConfig, TALENT_DATA } from '../../defaults'
+import { armorReduction, CRIT_MULTIPLIER, furorCatEnergyTenths } from '../../core/formulas'
+import { defaultConfig, preRaidListGear, TALENT_DATA } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
 import type { Effect } from '../../effects/types'
 import { buildPlan, rageFromHits } from '../../plan/build'
@@ -37,12 +37,13 @@ import {
 } from './abilities'
 import { catFormAp, direBearAp, direBearHealth, FORM_INDEX, FORM_SWING_MS, FORM_THREAT_PCT, formEffects, formWeaponRange } from './forms'
 import { abilityCritMultiplier, costReduction, withDruidTalents } from './modifiers'
-import { DRUID_TALENT_EFFECTS } from './talents'
+import { DRUID_TALENT_EFFECTS, THICK_HIDE_ARMOR_PER_DEFENSE } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const clientTalents = (talentsJson as unknown as ClientTalents).classes.druid.talents
 const CAT_CODE = defaultConfig('druid-feral-cat').talents
-const BEAR_CODE = defaultConfig('druid-feral-bear').talents
+/** The worked examples' bear build: 8/43/0 with Feral Instinct 3/3 and no Shredding Attacks (druid.md §7.1, §9), the former default. */
+const BEAR_CODE = '050012-5523032120132210551-'
 const ranks = (code: string) => talentRanksByName(TALENT_DATA.druid, code)
 const effect = (id: number, index: number) => spells[String(id)].effects.find((e) => e.effectIndex === index)!
 
@@ -344,8 +345,45 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect([druid.attributes('horde-tauren'), druid.baseAp, druid.baseHealth, druid.baseCrit, druid.baseSpellCrit, druid.baseDodge]).toEqual([null, null, null, null, null, null])
   })
 
-  it('the bear’s Dire Bear armor: item armor × 4.6, and bonus armor × 4.6 in `forever` only [?] (OQ-8)', () => {
+  it('W22: Thick Hide 3/3 is base armor in the forms: (3 × 60 + 2 × (310 − 300)) × 4.6 = 920 in Dire Bear Form, 200 in Cat Form', () => {
+    // The client's rank curves (TraitDefinitionEffectPoints): 1/2/3 per level, 67/133/200% per defense point.
+    const thickHide = clientTalents.find((t) => t.name === 'Thick Hide')!
+    expect(thickHide.rankEffects.map((e) => e.values)).toEqual([
+      [67, 133, 200],
+      [1, 2, 3],
+    ])
+    expect(THICK_HIDE_ARMOR_PER_DEFENSE.slice(1).map((x) => Math.round(100 * x))).toEqual([67, 133, 200])
+    const armor = (itemArmorPct: number, defense: number) => {
+      const b = new StatBlock()
+      b.itemArmorPct = itemArmorPct
+      b.defense = defense
+      b.armorPerAgi = 0
+      for (const e of DRUID_TALENT_EFFECTS['Thick Hide'](3, FOREVER)) if (e.kind === 'stat') b[e.stat] += e.value
+      return deriveStats(b, { profile: FOREVER, applyUnmeasured: true, level: 60 }, new DerivedStats()).armor
+    }
+    expect(armor(3.6, 10)).toBe(920)
+    expect(armor(3.6, 0)).toBe(828)
+    expect(armor(0, 10)).toBe(200)
+    // Below 5 × level the defense term adds nothing.
+    expect(armor(0, -5)).toBe(180)
+    // In the default bear's plan: its forms have it, its caster form doesn't.
     const d = bare(defaultConfig('druid-feral-bear'))
+    const without = bare({ ...d, talents: '050022-5520002023132210551-' })
+    const plan = buildPlan(d).plan
+    const other = buildPlan(without).plan
+    const defense = buildPlan(d).sheet.defense - 300
+    expect(plan.armor - other.armor).toBe(Math.floor((180 + 2 * defense) * 4.6 + 1e-9))
+    expect(plan.forms![FORM_INDEX.caster].stats.itemArmorPerDefense).toBe(0)
+    expect(plan.forms![FORM_INDEX.cat].stats.itemArmorPerDefense).toBe(2)
+    // The results say how it's read (Q19); a bear without the talent has no such line.
+    expect(buildPlan(d).assumptions.map((a) => a.id)).toContain('thickHide')
+    expect(buildPlan(without).assumptions.map((a) => a.id)).not.toContain('thickHide')
+  })
+
+  it('the bear’s Dire Bear armor: item armor × 4.6, and bonus armor × 4.6 in `forever` only [?] (OQ-8)', () => {
+    // With Sergeant's Cape (+70 bonus armor), which only Forever's second aura multiplies.
+    const base = defaultConfig('druid-feral-bear')
+    const d = bare({ ...base, gear: { ...base.gear, back: { itemId: 16342 } } })
     const forever = buildPlan(d).plan
     const classic = buildPlan({ ...d, rules: { ...d.rules, profile: 'classicEra' } }).plan
     expect(forever.stats.itemArmorPct).toBeCloseTo(3.6, 12)
@@ -449,9 +487,43 @@ describe('druid defaults (druid.md §7)', () => {
     expect(BUFFS_BY_ID.get('flankAuPoivre')?.effects).toEqual([{ kind: 'stat', stat: 'agi', value: 20 }])
   })
 
-  it('the bear: the proposed build, the tank consumables and threat gloves', () => {
+  it('the bear: the interim build and threat preset (M5.6 T3), the tank consumables and threat gloves', () => {
     const d = defaultConfig('druid-feral-bear')
-    expect(d.talents).toBe('050012-5523032120132210551-')
+    expect(d.talents).toBe('050022-5520032023132210551-')
+    // druid.md §7.3a: the review's measured threat preset, until the optimizer's (D30).
+    const items = Object.fromEntries(Object.entries(d.gear).map(([slot, e]) => [slot, e!.itemId]))
+    expect(items).toEqual({
+      head: 22005,
+      neck: 19491,
+      shoulder: 23254, // Champion's Dragonhide Shoulders
+      back: 20691,
+      chest: 12757,
+      wrist: 19587,
+      hands: 19049,
+      waist: 20190, // Defiler's Leather Girdle
+      legs: 22878, // Legionnaire's Dragonhide Leggings
+      feet: 20715,
+      finger1: 13098,
+      finger2: 19325,
+      trinket1: 21180,
+      trinket2: 11815,
+      mainHand: 9449,
+      ranged: 23198, // Idol of Brutality
+    })
+    // An Alliance bear wears its faction's twins: Lieutenant Commander's shoulders, Highlander's girdle,
+    // Knight-Captain's leggings.
+    const alliance = defaultConfig('druid-feral-bear', 'alliance-night-elf').gear
+    expect([alliance.shoulder?.itemId, alliance.waist?.itemId, alliance.legs?.itemId]).toEqual([23309, 20045, 23295])
+    expect({ ...alliance, shoulder: d.gear.shoulder, waist: d.gear.waist, legs: d.gear.legs }).toEqual(d.gear)
+    // The tanks' effective-health floor (druid.md §7.3a): health ÷ (1 − armor's reduction against the
+    // level-63 boss) in Dire Bear Form, at least 90% of the v1 preset's (its pre-raid list).
+    const ehp = (config: SimConfig) => {
+      const { sheet } = buildPlan(config)
+      return sheet.health / (1 - armorReduction(sheet.armor, 63, FOREVER))
+    }
+    const v1 = { ...d, gear: preRaidListGear('druid-feral-bear') }
+    expect(ehp(d) / ehp(v1)).toBeGreaterThanOrEqual(0.9)
+    expect(ehp({ ...d, gear: defaultConfig('druid-feral-bear', 'alliance-night-elf').gear, race: 'alliance-night-elf' }) / ehp({ ...v1, race: 'alliance-night-elf', gear: preRaidListGear('druid-feral-bear', 'alliance-night-elf') })).toBeGreaterThanOrEqual(0.9)
     expect(d.gear.mainHand?.enchantId).toBe('twoHandAgility')
     expect(d.gear.hands?.enchantId).toBe('gloveThreat')
     expect(d.buffs.enabled).toEqual(

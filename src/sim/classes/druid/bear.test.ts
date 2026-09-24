@@ -23,7 +23,7 @@ import {
   bearRotation,
   DEMO_ROAR_REFRESH_SEC,
   FAERIE_FIRE_REFRESH_SEC,
-  MAX_TPS_LACERATE_REFRESH_SEC,
+  LACERATE_REFRESH_SEC,
   PREPULL_ENRAGE_MS,
 } from './bear'
 import {
@@ -54,7 +54,11 @@ import { REND_AND_TEAR, withDruidTalents } from './modifiers'
 const spells = (spellsJson as unknown as ClientSpells).spells
 const spell = (id: number) => spells[String(id)]
 const effect = (id: number, index: number) => spell(id).effects.find((e) => e.effectIndex === index)!
-const BEAR_CODE = defaultConfig('druid-feral-bear').talents
+/**
+ * The worked examples' bear build (druid.md §7.1, §9: W16's Feral Instinct 3/3, no Shredding
+ * Attacks): 8/43/0, the former default. The default bear's own is the 9/42/0 of §7.1.
+ */
+const BEAR_CODE = '050012-5523032120132210551-'
 const TALENTS = talentRanksByName(TALENT_DATA.druid, BEAR_CODE)
 
 /** A spell's class mask, and whether any of its bits is in a spell effect's affected mask. */
@@ -235,6 +239,12 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(plan.abilities.find((a) => a.id === 'maul')!.costTenths).toBe(80)
     expect(plan.abilities.find((a) => a.id === 'mangle')!.costTenths).toBe(130)
     expect(assumptions.find((a) => a.id === 'unmodelledProcs')?.text ?? '').not.toContain('Idol of Brutality')
+    // Its Mangle part is the class mask's reading, listed while Mangle is used (Q37); without the idol, not.
+    expect(assumptions.map((a) => a.id)).toContain('idolOfBrutality')
+    const noIdol = buildPlan({ ...d, gear: { ...d.gear, ranged: undefined } }).assumptions.map((a) => a.id)
+    expect(noIdol).not.toContain('idolOfBrutality')
+    const noMangle = buildPlan({ ...d, rotation: { [BEAR_IDS.mangleEnabled]: false } }).assumptions.map((a) => a.id)
+    expect(noMangle).not.toContain('idolOfBrutality')
   })
 
   it('W14: Maul at 1200 AP is (351.286 + 128) × 1.10 = 527.214, and its threat × 1.75 × 1.3 = 1199.41', () => {
@@ -335,19 +345,19 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
 describe('Max TPS (druid.md §6.3 "Max TPS", D26)', () => {
   const MAX = { [BEAR_IDS.priority]: BEAR_PRIORITY.maxTps }
 
-  it('drops the roar by default, keeps Faerie Fire and its filler, and refreshes Lacerate from 4.5 s left', () => {
+  it('drops the roar by default, keeps Faerie Fire and its filler, and refreshes Lacerate as the default does', () => {
     const duties = resolveRotationValues(BEAR_OPTIONS, {}, TALENTS)
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
     // Faerie Fire's armor makes the bear's threat: dropping its upkeep costs 1% of TPS (§6.3 "Max TPS").
     for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
-    expect(MAX_TPS_LACERATE_REFRESH_SEC).toBe(4.5)
-    expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([6, 4.5])
-    // Nothing else moves: the first-pass search found no other setting better (D27).
+    expect(LACERATE_REFRESH_SEC).toBe(12)
+    expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([12, 12])
+    // Nothing else moves: T3's first-pass search found no other setting better (D27).
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.lacerateRefresh].sort())
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
     // Each setting's help says how it follows the choice.
-    for (const id of [BEAR_IDS.roarEnabled, BEAR_IDS.ffEnabled, BEAR_IDS.lacerateRefresh]) expect(BEAR_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
+    for (const id of [BEAR_IDS.roarEnabled, BEAR_IDS.ffEnabled]) expect(BEAR_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
   })
 
   it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
@@ -362,7 +372,7 @@ describe('Max TPS (druid.md §6.3 "Max TPS", D26)', () => {
     const r = bearRotation(MAX, TALENTS, () => -1, { ...NO_CONTEXT, profile: FOREVER })
     expect(r.rotation.map((e) => r.abilities[e.ability].id)).toEqual(['berserk', 'enrage', 'maul', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire'])
     const lacerate = r.abilities.findIndex((a) => a.id === 'lacerate')
-    expect(r.rotation.filter((e) => e.ability === lacerate)[1].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: lacerate, b: 4500 }])
+    expect(r.rotation.filter((e) => e.ability === lacerate)[1].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: lacerate, b: 12000 }])
   })
 })
 

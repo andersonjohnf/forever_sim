@@ -203,7 +203,8 @@ every tree, talent and max rank, position by position.
 | Warrior | `05-05-552001233201210531` | The former Protection default, kept for saved setups (§6.1) | 5/5/36 | yes | yes |
 | Warrior | `32-05-552001233201210531` | The former Protection "TPS" preset, kept for saved setups (§6.1) | 5/5/36 | yes | yes |
 | Druid | `050022-5520002123032213051-05` | Feral cat default ([druid.md §7.1](../classes/druid.md#71-talents)) | 9/37/5 | yes | yes |
-| Druid | `050012-5523032120132210551-` | Feral bear default (§7.1) | 8/43/0 | yes | yes |
+| Druid | `050022-5520032023132210551-` | Feral bear default, interim (§7.1) | 9/42/0 | yes | yes |
+| Druid | `050012-5523032120132210551-` | The former Feral bear default, kept for saved setups (§7.1) | 8/43/0 | yes | yes |
 | Druid | `5532220115501351-05-` | Balance (druid.md) | 41/5/0 | yes | yes |
 | Druid | `05302001-05-5050035103113251` | Restoration (the old site's popular build) | 11/5/35 | yes | yes |
 | Paladin | `250003-503-052052310012330321` | Retribution default ([paladin.md](../classes/paladin.md#retribution-defaults)) | 10/8/33 | yes | yes |

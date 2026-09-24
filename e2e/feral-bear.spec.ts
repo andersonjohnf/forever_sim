@@ -34,10 +34,10 @@ const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 /** The priority's help: what Max TPS drops, what it gains and costs, when to pick it (D26). */
 const PRIORITY_HELP =
-  /^Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage\. Max TPS drops the roar for threat: about 4% more TPS and 3% more DPS, for 0\.5% more damage taken in the default setup\. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger\. Pick it when another tank or the raid covers your survival\. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s\./
+  /^Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage\. Max TPS drops the roar for threat: about 3% more TPS and DPS, for 0\.7% more damage taken in the default setup\. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger\. Pick it when another tank or the raid covers your survival\. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s\./
 
 test.describe('Feral bear in the switcher', () => {
-  test('is under Druid as a tank, with its own talent build, a Tauren and Warden Staff', async ({ page }) => {
+  test('is under Druid as a tank, with its own talent build, a Tauren and the Manual Crowd Pummeler', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
     const bear = page.getByRole('menuitem', { name: /Feral \(Bear\)/ })
@@ -52,11 +52,11 @@ test.describe('Feral bear in the switcher', () => {
     await openTab(page, 'Character')
     await expect(page.getByRole('radio', { name: /Tauren/ })).toHaveAttribute('aria-checked', 'true')
     await openTab(page, 'Gear')
-    await expect(page.getByRole('button', { name: 'Main hand: Warden Staff' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Main hand: Manual Crowd Pummeler' })).toBeVisible()
     await openTab(page, 'Talents')
     const presets = page.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Feral bear (default)')
-    await expect(page.getByText('8 / 43 / 0')).toBeVisible()
+    await expect(page.getByText('9 / 42 / 0')).toBeVisible()
     await presets.click()
     // Both druid builds now that both ship; only the bear's is marked "(default)" here.
     await expect(page.getByRole('option')).toHaveText(['Feral cat default', 'Feral bear (default)', 'Balance default'])
@@ -84,10 +84,10 @@ test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
     }
     const core = tab.getByRole('region', { name: 'Core abilities' })
     await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Lacerate again with', exact: true })).toHaveValue('6')
+    await expect(core.getByRole('textbox', { name: 'Lacerate again with', exact: true })).toHaveValue('12')
   })
 
-  test('Max TPS turns the roar off and refreshes Lacerate later by default, keeps Faerie Fire, and Reset brings the duties back', async ({ page }) => {
+  test('Max TPS turns the roar off by default, keeps Faerie Fire and Lacerate’s refresh, and Reset brings the duties back', async ({ page }) => {
     await switchToBear(page)
     await openTab(page, 'Rotation')
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
@@ -105,12 +105,12 @@ test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
     await expect(faerieFire).toBeChecked()
     await expect(faerieFire).toHaveAccessibleDescription(/It stays on with Max TPS: its armor makes your attacks, and so your threat, bigger\./)
     await expect(tab.getByRole('switch', { name: 'Faerie Fire as a filler', exact: true })).toBeChecked()
-    // Lacerate's refresh follows it too: 4.5 s left.
+    // Lacerate's refresh stays the default's, 12 s left (druid.md §6.3, T3's re-check).
     const core = tab.getByRole('region', { name: 'Core abilities' })
     await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
     const lacerate = core.getByRole('textbox', { name: 'Lacerate again with', exact: true })
-    await expect(lacerate).toHaveValue('4.5')
-    await expect(lacerate).toHaveAccessibleDescription(/With Max TPS it’s 4\.5 s by default, for a little more threat and a little less damage\./)
+    await expect(lacerate).toHaveValue('12')
+    await expect(lacerate).toHaveAccessibleDescription(/From 12 s, the global cooldowns Maul’s rage leaves free go to Lacerate, for its threat\./)
 
     // Turned back on yourself, the roar stays on, marked against its Max TPS default.
     await roar.click()
@@ -122,7 +122,7 @@ test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
     await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeFocused()
     await expect(roar).toBeChecked()
     await expect(roar).not.toHaveAccessibleDescription(/Changed/)
-    await expect(lacerate).toHaveValue('6')
+    await expect(lacerate).toHaveValue('12')
   })
 
   test('the Buffs tab: the roar and Faerie Fire are yours; with Max TPS the roar is off, for another druid’s, and Faerie Fire still yours', async ({ page }) => {

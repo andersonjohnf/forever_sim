@@ -159,6 +159,8 @@ export const ASSUMPTION_GROUP = {
   berserkMangle: 'class',
   enrageArmor: 'class',
   bearArmor: 'class',
+  thickHide: 'class',
+  idolOfBrutality: 'class',
   shapeshifts: 'class',
   jotcBonus: 'class',
   jotcBonusFlat: 'class',

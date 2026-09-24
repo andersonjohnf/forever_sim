@@ -10,6 +10,7 @@ import { averageResist, bossOutcomeShares, glanceRange, levelResistance, PLAYER_
 import { CRIT_MULTIPLIER, negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
+import { IDOL_OF_BRUTALITY } from '../classes/druid/abilities'
 import { druidPlan } from '../classes/druid/plan'
 import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/protection'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
@@ -1639,6 +1640,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (auras.some((a) => a.itemArmorPct)) notes.add('enrageArmor')
     }
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
+    // druid.md §4.7 (Q19): Thick Hide's base armor under the form's multiplier.
+    if (setup.form === 'bear' && setup.talents.has('Thick Hide')) notes.add('thickHide')
+    // druid.md §4.1 (Q37): the idol's Mangle, while the rotation uses Mangle.
+    if (bear && uses.mangle && Object.values(config.gear).some((e) => e?.itemId === IDOL_OF_BRUTALITY)) notes.add('idolOfBrutality')
   }
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.
   for (const id of paladinAssumptions(plan)) notes.add(id)

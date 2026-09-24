@@ -275,11 +275,11 @@ describe('rotationValues', () => {
       'warrior.protection.shieldSlam.enabled': true,
       'warrior.protection.heroicStrike.minRage': 45,
     })
-    // The bear's too: Max TPS drops the roar, keeps Faerie Fire and refreshes Lacerate later (druid.md §6.3).
+    // The bear's too: Max TPS drops the roar, keeps Faerie Fire and Lacerate's refresh (druid.md §6.3).
     expect(rotationValues({ ...defaultConfig('druid-feral-bear'), rotation: { 'druid.bear.priority': 'maxTps' } })).toMatchObject({
       'druid.bear.demoRoar.enabled': false,
       'druid.bear.faerieFire.enabled': true,
-      'druid.bear.lacerate.refreshBelowSec': 4.5,
+      'druid.bear.lacerate.refreshBelowSec': 12,
     })
   })
 })

@@ -43,7 +43,8 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'warrior-arms': '30305213132515201-05050103-', // popular Arms
   'warrior-protection': '35-05-552101233301210531', // Protection 8/5/38 (docs/classes/warrior.md §6.1)
   'druid-feral-cat': '050022-5520002123032213051-05', // popular Feral (docs/classes/druid.md)
-  'druid-feral-bear': '050012-5523032120132210551-', // documented bear preset (docs/classes/druid.md)
+  // docs/classes/druid.md#71-talents: 9/42/0, interim (M5.6 T3, measured); the optimizer replaces it (D30)
+  'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   // docs/classes/paladin.md#protection-defaults: interim, measured (T2): the popular build with Conviction 5 for
@@ -99,7 +100,7 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   druid: [
     // docs/classes/druid.md#71-talents: Cat 9/37/5
     { name: 'Feral cat (default)', code: DEFAULT_TALENTS['druid-feral-cat'] },
-    // docs/classes/druid.md#71-talents: Bear 8/43/0
+    // docs/classes/druid.md#71-talents: Bear 9/42/0
     { name: 'Feral bear (default)', code: DEFAULT_TALENTS['druid-feral-bear'] },
     // docs/classes/druid.md#116-defaults: Balance 41/5/0
     { name: 'Balance (default)', code: DEFAULT_TALENTS['druid-balance'] },
@@ -339,32 +340,54 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 }
 
 /**
- * Interim default gear (M5.6 T2; D29, D30): a spec whose pre-raid list doesn't suit what it measures
- * takes these items first, slot by slot, when the race's faction can wear them and they break no
- * unique rule; otherwise the list's pick. Measured, not guide-picked: the Protection paladin's is the
- * gear review's slot-by-slot paired search for threat from the pool (2026-09-24,
- * docs/classes/paladin.md "Protection defaults"). Interim: the optimizer's results (O4) replace it.
+ * Interim default gear (M5.6 T2, T3; D29, D30): a spec whose pre-raid list doesn't suit what it
+ * measures takes these items first, slot by slot: each slot lists an item and, for a faction's item,
+ * the other faction's twin, and the first the race can wear that breaks no unique rule goes in;
+ * otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
+ * for threat from the pool (2026-09-24), held to the tanks' effective-health floor (docs/classes/
+ * paladin.md "Protection defaults", druid.md §7.3a). Interim: the optimizer's results (O4) replace it.
  */
-const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, number>>>> = {
+const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
   'paladin-protection': {
-    head: 12640, // Lionheart Helm
-    neck: 19426, // Orb of the Darkmoon
-    shoulder: 23277, // Lieutenant Commander's Lamellar Shoulders
-    back: 20697, // Crystalline Threaded Cape
-    chest: 23272, // Knight-Captain's Lamellar Breastplate
-    wrist: 12936, // Battleborn Armbraces
+    head: [12640], // Lionheart Helm
+    neck: [19426], // Orb of the Darkmoon
+    shoulder: [23277], // Lieutenant Commander's Lamellar Shoulders
+    back: [20697], // Crystalline Threaded Cape
+    chest: [23272], // Knight-Captain's Lamellar Breastplate
+    wrist: [12936], // Battleborn Armbraces
     // Deathbone Gauntlets, for the effective-health floor (the search's Darkrune Gauntlets, 20549, leave
     // 89.4% of v1's; paladin.md "Protection defaults").
-    hands: 14622,
-    waist: 22086, // Soulforge Belt
-    legs: 23273, // Knight-Captain's Lamellar Leggings
-    feet: 23275, // Knight-Lieutenant's Lamellar Sabatons
-    finger1: 20682, // Elemental Focus Band
-    finger2: 19325, // Don Julio's Band
-    trinket1: 272438, // Weakness Analyzer
-    trinket2: 12930, // Briarwood Reed
-    mainHand: 871, // Flurry Axe: the search's Simone's Cultivating Hammer (22380) makes 8.7 TPS less after T2's model fixes
-    offHand: 22336, // Draconian Aegis of the Legion
+    hands: [14622],
+    waist: [22086], // Soulforge Belt
+    legs: [23273], // Knight-Captain's Lamellar Leggings
+    feet: [23275], // Knight-Lieutenant's Lamellar Sabatons
+    finger1: [20682], // Elemental Focus Band
+    finger2: [19325], // Don Julio's Band
+    trinket1: [272438], // Weakness Analyzer
+    trinket2: [12930], // Briarwood Reed
+    mainHand: [871], // Flurry Axe: the search's Simone's Cultivating Hammer (22380) makes 8.7 TPS less after T2's model fixes
+    offHand: [22336], // Draconian Aegis of the Legion
+  },
+  // The gear review's bear set (2026-09-24), with Earthstrike for its Adaptive Combat Assistant, whose
+  // value rests on the unmeasured expertise rating (D12), then six swaps that bring its effective
+  // health up to the tanks' floor, 90% of the v1 preset's (user decision, 2026-09-24): head, neck,
+  // shoulders, back, chest and second ring (druid.md §7.3a).
+  'druid-feral-bear': {
+    head: [22005], // Darkmantle Cap (EHP swap for Eye of Rend)
+    neck: [19491], // Amulet of the Darkmoon (EHP swap for Mark of Fordring)
+    shoulder: [23254, 23309], // Champion's / Lieutenant Commander's Dragonhide Shoulders (EHP swap for Truestrike Shoulders)
+    back: [20691], // Windshear Cape (EHP swap for Cape of the Black Baron)
+    chest: [12757], // Breastplate of Bloodthirst (EHP swap for Cadaverous Armor)
+    wrist: [19587], // Forest Stalker's Bracers
+    hands: [19049], // Timbermaw Brawlers
+    waist: [20190, 20045], // Defiler's / Highlander's Leather Girdle
+    legs: [22878, 23295], // Legionnaire's / Knight-Captain's Dragonhide Leggings
+    feet: [20715], // Dunestalker's Boots
+    finger1: [13098], // Painweaver Band
+    finger2: [19325], // Don Julio's Band (EHP swap for Band of Earthen Might)
+    trinket1: [21180], // Earthstrike
+    trinket2: [11815], // Hand of Justice
+    mainHand: [9449], // Manual Crowd Pummeler
   },
 }
 
@@ -438,7 +461,9 @@ export function matchSupplies(
     next = { ...next, quiver: { itemId: twin?.id ?? preferred } }
   }
   return next
+
 }
+
 
 /**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item
@@ -447,13 +472,24 @@ export function matchSupplies(
  * rank resolve to the race's own, and the second ring or trinket is the next distinct one.
  */
 export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].classId]): Partial<Record<GearSlot, EquippedItem>> {
+  return preRaidListGear(spec, race, INTERIM_GEAR[spec] ?? {})
+}
+
+/**
+ * The gear the spec's pre-raid lists give a character of this race (`defaultGear` without a spec's
+ * interim items, or with `interim`'s in their slots), with the spec's enchants.
+ */
+export function preRaidListGear(
+  spec: SpecId,
+  race = DEFAULT_RACE[SPEC_META[spec].classId],
+  interim: Partial<Record<GearSlot, readonly number[]>> = {},
+): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
   const worn: Partial<Record<GearSlot, Item>> = {}
-  const interim = INTERIM_GEAR[spec] ?? {}
   const put = (slot: GearSlot, listed: Item[]) => {
-    // The spec's interim pick first, when it has one for the slot (INTERIM_GEAR).
-    const pick = interim[slot] !== undefined ? itemById.get(interim[slot]) : undefined
-    const candidates = pick ? [pick, ...listed] : listed
+    // The spec's interim picks first (INTERIM_GEAR: an item and its other faction's twin), then the list's.
+    const picks = (interim[slot] ?? []).flatMap((id) => itemById.get(id) ?? [])
+    const candidates = [...picks, ...listed]
     const item = candidates.find((i) => fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0)
     if (!item) return
     worn[slot] = item

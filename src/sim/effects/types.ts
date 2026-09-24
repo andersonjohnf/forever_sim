@@ -33,6 +33,8 @@ export type FlatStat =
   | 'expertiseRating'
   | 'armorPen'
   | 'itemArmor'
+  /** Base armor per point of defense skill above 5 × level, joining the item armor (Thick Hide, docs/classes/druid.md §4.7). */
+  | 'itemArmorPerDefense'
   | 'bonusArmor'
   | 'defense'
   | 'defenseRating'

@@ -132,8 +132,9 @@ const DUTY_RULE = (sec: number, why: string) =>
  */
 export const BEAR_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: BEAR_PRIORITY.maxTps } as const
-/** Max TPS's Lacerate refresh (§6.3 "Max TPS"): 4.5 s left, where the duties' default is 6 s. */
-export const MAX_TPS_LACERATE_REFRESH_SEC = 4.5
+
+/** Lacerate's refresh, 12 s left, for both priorities (§6.3 "T3's re-check of the defaults"). */
+export const LACERATE_REFRESH_SEC = 12
 
 /** Enrage's rage, 10 at once and 20 over 10 s: 30 (druid.md §4.5). */
 const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 10
@@ -148,7 +149,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage. Max TPS drops the roar for threat: about 4% more TPS and 3% more DPS, for 0.5% more damage taken in the default setup. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. Pick it when another tank or the raid covers your survival. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
+    help: 'Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage. Max TPS drops the roar for threat: about 3% more TPS and DPS, for 0.7% more damage taken in the default setup. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. Pick it when another tank or the raid covers your survival. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
     choices: [
       { value: BEAR_PRIORITY.duties, label: 'Tank duties first' },
       { value: BEAR_PRIORITY.maxTps, label: 'Max TPS' },
@@ -277,19 +278,18 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateAlone,
     group: 'Core abilities',
     label: 'Lacerate only when nothing else bleeds',
-    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about 4% less threat and 7% less damage in the default setup, with Lacerate’s “high amount of threat” at 261 an application (untested). Off by default.',
+    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about 15% less threat and damage in the default setup, with Lacerate’s “high amount of threat” at 261 an application (untested). Off by default.',
     default: false,
     dependsOn: ID.lacerateEnabled,
   },
   refreshOption(
     ID.lacerateRefresh,
     'Lacerate again with',
-    `At 5 stacks, refresh it when this much of its bleed is left; the tick under way is lost. At 0, once it has run out, when it starts again from 1 stack. With Max TPS it’s ${MAX_TPS_LACERATE_REFRESH_SEC} s by default, for a little more threat and a little less damage.`,
-    6,
+    `At 5 stacks, refresh it when this much of its bleed is left; the tick under way is lost. At 0, once it has run out, when it starts again from 1 stack. From ${LACERATE_REFRESH_SEC} s, the global cooldowns Maul’s rage leaves free go to Lacerate, for its threat.`,
+    LACERATE_REFRESH_SEC,
     15,
     ID.lacerateEnabled,
     'Core abilities',
-    [{ ...MAX_TPS, default: MAX_TPS_LACERATE_REFRESH_SEC }],
   ),
   {
     kind: 'toggle',

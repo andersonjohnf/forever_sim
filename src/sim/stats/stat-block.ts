@@ -84,6 +84,11 @@ export class StatBlock {
    * Bear Form aura 466, +360% [?]: docs/classes/druid.md §4.7, character-stats.md OQ-8).
    */
   bonusArmorPct = 0
+  /**
+   * Base armor per point of defense skill above 5 × level (Thick Hide in a druid's forms: 0.67 a rank,
+   * docs/classes/druid.md §4.7). It's added to the item armor, so the item-armor % multiplies it.
+   */
+  itemArmorPerDefense = 0
   armorPerAgi = 2
   defense = 0
   defenseRating = 0
@@ -254,8 +259,10 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   // Block value = (shield + flat + Str/20) × Π(1 + bv%) (character-stats §strength).
   out.blockValue = b.canBlock ? floorStat((b.blockValue + floorStat(out.strength / 20)) * b.blockValueMult) : 0
   // Armor = item armor × (1 + Toughness) + bonus armor × (1 + bonus armor %) + 2 × Agi (character-stats
-  // step 4; OQ-15 [?]; the bonus armor % is the Dire Bear Form's, OQ-8 [?]).
-  out.armor = floorStat(b.itemArmor * (1 + b.itemArmorPct) + b.bonusArmor * (1 + b.bonusArmorPct) + b.armorPerAgi * out.agility)
+  // step 4; OQ-15 [?]; the bonus armor % is the Dire Bear Form's, OQ-8 [?]). Base armor per defense
+  // point above 5 × level (Thick Hide, druid.md §4.7) joins the item armor.
+  const defenseArmor = b.itemArmorPerDefense * Math.max(0, out.defense - baseDefense)
+  out.armor = floorStat((b.itemArmor + defenseArmor) * (1 + b.itemArmorPct) + b.bonusArmor * (1 + b.bonusArmorPct) + b.armorPerAgi * out.agility)
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)
   const mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0

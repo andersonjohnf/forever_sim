@@ -743,7 +743,8 @@ One target: the extra targets add nothing.
   armor %", +360%) next to Classic's aura 142 on the same passive, so it may also multiply bonus
   armor [?].
 - Thick Hide 3/3: +3 × level base armor, +2.00 × (defense − 5×level), "further increased by form
-  multipliers" [F] [fc-tal].
+  multipliers" [F] [fc-tal]; per rank +1 per level and +0.67 per defense point (the client's curves
+  111990 and 85346), in Cat, Bear, Dire Bear and Moonkin Form.
 - A passive 1306459 ("additional base Armor equal to 100% of your Defense skill", with a −600
   flat effect) exists in the Forever client, but no talent or spell grants it [?].
 - Model armor only if [rage.md](../mechanics/rage.md) needs damage taken. For rage it doesn't:
@@ -754,8 +755,16 @@ One target: the extra targets add nothing.
   RatingBuster's Classic Era code does with Classic's Thick Hide ([C] [rb-vanilla];
   character-stats.md OQ-8). In `forever` its second aura also
   multiplies bonus armor by 4.6 [?] (OQ-8, Q19); `classicEra`'s Dire Bear Form has only the item
-  armor aura. Thick Hide's armor isn't modelled (§8). Armor matters to the `classic` damage-taken
-  rage model and to survival, not to `forever`'s rage.
+  armor aura. Armor matters to the `classic` damage-taken rage model and to survival, not to
+  `forever`'s rage.
+- **Thick Hide in the engine** (`talents.ts`, BR6): its base armor joins the item armor in the
+  forms, so Dire Bear Form's +360% multiplies it, as its tooltip's "further increased by
+  multipliers from those forms" says [?] (Q19). "Base armor" is the pool the form's aura 142
+  multiplies, the item armor's, which is how the engine already reads Enrage's "base armor" (§4.5).
+  At 3/3 and 300 defense that's 180 × 4.6 = **828** armor in Dire Bear Form (W22); the defense term
+  reads the sheet's defense skill (`itemArmorPerDefense`). It moves damage taken only: in the gear
+  review's set, 702.7 → 673.7 a second, −4.1% (seed 424242, 4,000 fights). The results list the
+  reading (`thickHide`).
 
 ### 4.8 Bear threat and druid rage numbers (summary for the shared docs)
 
@@ -1021,8 +1030,8 @@ as Protection's ([warrior.md §5.4](warrior.md#54-protection-tps)):
 
 - **Tank duties first** (`duties`, the default) keeps both duties up from the pull, by the duty
   rule below. The table's defaults are this choice's.
-- **Max TPS** (`maxTps`) drops the roar (row 5 is off by default) and refreshes Lacerate from
-  4.5 s left, from a first-pass search on TPS alone ([Max TPS](#max-tps-b4) below). It keeps
+- **Max TPS** (`maxTps`) drops the roar (row 5 is off by default), from a first-pass search on
+  TPS alone ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as the default does). It keeps
   Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
   dropping its upkeep costs 1% of TPS. The Buffs tab's Demoralizing Roar is the bear's own, so no
   preset turns it on: with Max TPS the boss is at full attack power unless you turn it on there
@@ -1094,7 +1103,7 @@ arrives, a cooldown or debuff runs out):
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s (4.5 s with Max TPS) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs 4% of TPS and 7% of DPS (below); refresh tuned |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (Max TPS too) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs 15% of TPS and 16% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1102,7 +1111,9 @@ arrives, a cooldown or debuff runs out):
 
 #### Tuning the defaults (B3)
 
-The defaults above are the best rotation found on 2026-09-24, per
+This section records the tuning before M5.6's threat fixes (T3); since then Lacerate is refreshed
+from 12 s left, and the setup's talents and gear are T3's ([T3's re-check](#t3s-re-check-of-the-defaults)).
+The defaults were the best rotation found on 2026-09-24, per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), on TPS, the
 tank's headline, around the duties and their fixed timing (the duty rule above,
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s
@@ -1195,9 +1206,9 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   DPS rule didn't adopt, and the break-even was about **+40 threat per landed application, or
   ×1.1** (seed 7476, 40,000 fights, on the second round's defaults; with the first round's Maul
   from 10, about +200, or ×1.6). Since T3 its tooltip's "high amount of threat" is **+261** an
-  application by the wording table (D29, Q15), well above that: leaving it out now costs 4.4% of
-  TPS and 7.3% of DPS (seed 7503, 100,000 fights; [T3's re-check](#t3s-re-check-of-the-defaults)
-  below). The break-even is still about +40.
+  application by the wording table (D29, Q15), well above that: leaving it out cost 4.4% of TPS
+  and 7.3% of DPS with that alone (seed 7503, 100,000 fights), and 15% of both in T3's setup
+  ([T3's re-check](#t3s-re-check-of-the-defaults) below).
 - **Lacerate's refresh at 6 s** acts in the default setup: at 6 s left the refresh comes right
   after a tick, with a GCD's slack before the bleed runs out. On the second round's robustness
   grid (seed 7475, 200,000 fights, 6 s against 3 s), with the raid's warriors: level at 30 s (the
@@ -1244,6 +1255,10 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   GCD), so a search on TPS alone keeps it; its upkeep line puts it up from the pull.
 
 #### Max TPS (B4)
+
+Since T3, Max TPS moves only the roar: its own Lacerate refresh (4.5 s, below) lost to the
+default's 12 s in T3's setup ([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this
+section is B4's first pass, before T3.
 
 The **Max TPS** priority is a first pass on TPS alone, per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
@@ -1296,17 +1311,26 @@ fights). Every other setting keeps the default's value.
 #### T3's re-check of the defaults
 
 M5.6's threat fixes (T3) changed what the rotation's settings trade: Lacerate's +261 threat an
-application [?] (Q15). The talents and gear stay as they were: the optimizer (D30, M5.7 O4) sets
-those. Per D27, one quick paired search on the settings those fixes touch
-(`scripts/tune/rotation.mjs --spec druid-feral-bear`), not a full re-tune:
+application [?] (Q15), Idol of Brutality's 2 rage off Maul, Swipe and Mangle (§4.1), and the
+interim 9/42/0 build and gear (§7.1, §7.3a), whose haste and crit bring more rage. Per D27, one
+quick paired search on the settings those fixes touch (`scripts/tune/rotation.mjs --spec
+druid-feral-bear`, 40,000 fights a candidate), not a full re-tune. In T3's final setup, before
+Thorns (seed 7541):
 
-- **Lacerate kept.** Leaving it out while the raid's warriors keep the boss bleeding costs
-  −31.54 TPS (−31.86 to −31.22), −4.36%, and −26.18 DPS, −7.3% (seed 7503, 100,000 fights).
-- **Lacerate's refresh** (seed 7501, 40,000 fights, from 3 to 9 s; seed 7502, 100,000 fights, from
-  8.5 to 15 s): 6 s stays within 0.2% of the best. 7 s gains +0.08% TPS for −0.13% DPS; 9 s
-  +0.14% TPS and +0.6% DPS for 0.31% more damage taken, a narrow peak (8.5 and 9.5 s lose).
-- **Max TPS's refresh** (seed 7503, 100,000 fights, from 3 to 9 s, with Max TPS as the base):
-  4.5 s is no longer its best: 6 s gains +0.20% TPS and +0.5% DPS, 7 s +0.23%, 9 s +0.24%.
+- **Lacerate's refresh: 6 → 12 s.** With rage to spare, the global cooldowns Maul's rage leaves
+  free go to Lacerate, 261 threat and a hit each: from 12 s left it's refreshed once the first of
+  its bleed's ticks has landed. 6 s makes 2.4% less TPS and 3.1% less DPS for 1.1% less damage
+  taken; 9 s −0.8%, 10.5 s −0.5% and 13.5 s −0.7% of TPS. The peak grew with the rage: on the way
+  (the idol, the 8/43/0 build and Warden Staff; seed 7512, 100,000 fights) 6 s was still the best,
+  and with the gear review's set before the effective-health swaps 12 s led 6 s by 4.9%.
+- **Maul from 20 stays.** 16 gains 0.12% TPS for 0.24% of the DPS, which the tuning rule doesn't
+  adopt; 24 loses 0.22%.
+- **Lacerate kept.** Leaving it out while the raid's warriors keep the boss bleeding costs 12.4% of
+  TPS and 13.9% of DPS.
+- **Swipe stays off** (from 60 rage −0.11%), **Enrage in combat stays on** (off −3.3%).
+- **Max TPS** drops the roar and keeps the default's 12 s refresh: +3.08% TPS, +2.8% DPS and 0.7%
+  more damage taken than the default. Its old 4.5 s refresh lost to 6 s and later ones on every
+  seed checked (−3.8% against 9 s on seed 7521, the threat review's set).
 
 ---
 
@@ -1317,7 +1341,8 @@ those. Per D27, one quick paired search on the settings those fixes touch
 | Spec | Default build | Source |
 | --- | --- | --- |
 | **Cat** | **9/37/5 `050022-5520002123032213051-05`**: Genesis 5, Nature's Majesty 2, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, King of the Jungle 3, Rend and Tear 5, Berserk 1 / Furor 5 | The most popular Forever Feral build when chosen, 2026-09-22 [fc-tal]; decode verified in [talents.md](../data/talents.md#build-codes-verified) |
-| **Bear** | **8/43/0 `050012-5523032120132210551-`**: Genesis 5, Nature's Majesty 1, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, Natural Reaction 5, Rend and Tear 5, Berserk 1 | [?] **Proposed here**: the site has no bear build. It follows the tier gates and arrows (Mangle ← Savage Fury, Primal Fury ← Sharpened Claws, Rend and Tear ← Predatory Strikes, Berserk ← LotP) |
+| **Bear** | **9/42/0 `050022-5520032023132210551-`**: Genesis 5, Nature's Majesty 2, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Thick Hide 3, Savage Fury 2, Sharpened Claws 2, Shredding Attacks 3, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, Natural Reaction 5, Rend and Tear 5, Berserk 1 | **Interim, measured** (M5.6 T3): the threat review's build, until the optimizer's (D30, M5.7 O4) replaces it. From the former 8/43/0 below, Feral Instinct 3 (only Swipe damage in Forever, and Swipe is off) goes to Shredding Attacks 3 (Lacerate −3 rage), and Feral Charge 1 to Nature's Majesty 2 (+2% crit): +5.6% TPS, +4.7% DPS, the same damage taken (seed 424242, 20,000 fights, the review's setup) |
+| Bear (former) | 8/43/0 `050012-5523032120132210551-`: as above with Feral Instinct 3, Feral Charge 1 and Nature's Majesty 1, no Shredding Attacks | The v1 default, proposed here since the site has no bear build; kept for saved setups and share links, and as the worked examples' build (§9: W16's Feral Instinct 3/3) |
 
 The 5 Restoration points in the cat build (Furor) have ~0 sim value, because cat never shifts by
 default. The site's players take them anyway. Moving them to Naturalist isn't possible (it needs
@@ -1336,6 +1361,13 @@ The sim default is **Tauren**. Racial base stats come from
 [character-stats.md](../mechanics/character-stats.md).
 
 ### 7.3 Weapon
+
+**Default (M5.6 T3): the Manual Crowd Pummeler, for the bear as for the cat.** Measured on the
+threat review's set with the 9/42/0 build (seed 424242, 20,000 fights, before Thorns and Thick
+Hide): MCP 1,019.1 TPS, 493.2 DPS; Bonecrusher (18420) 981.9 and Crystal Spiked Maul (20696)
+981.8, the best druid two-handers in the pool; Warden Staff (943), the old default, 949.3. MCP's
+3.8% over Bonecrusher comes from its use, +50% attack speed, which speeds the form's swings only
+by the [?] reading of Q28; the results list that assumption (`formHaste`) whenever it's worn.
 
 **Manual Crowd Pummeler** (item 9449: +16 Str, +5 Agi, on-use +50% attack speed for 30 s) exists
 unchanged in Forever (now Unique) [F] [fc-mcp]. That it is *the* feral weapon comes only from a
@@ -1360,6 +1392,63 @@ Agility wherever it's offered, Greater Stats on the chest, and Threat on the bea
 cat presses MCP's use on cooldown from the pull (§6.2 row 2): at 0 s and 180 s in a fight long
 enough, 3 times at most. That its haste speeds the form's swings is Q28 [?], listed in the
 results. The bear's rotation will press it too.
+
+### 7.3a Interim gear (M5.6 T3)
+
+The bear's pre-raid list (`scripts/scrape/pre-raid-bis.json`) is the Classic Phase 6 druid tank
+survival list, which D29 rules out as a preset: its defense, dodge, Stamina and armor add no threat
+(Stamina costs some, since it divides the rage from hits), and two of its pieces, Atal'ai Spaulders
+and Slaghide Gauntlets, are random-enchantment items that lost their stats in the pool. Until the
+optimizer's results replace every spec's gear (D30, M5.7 O4), the default bear wears an interim
+set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
+
+1. **The gear review's set** (2026-09-24: a paired, slot-by-slot search over the pool on TPS,
+   pre-raid sources only), with **Earthstrike** for its Adaptive Combat Assistant (272437), whose
+   +20 expertise is worth its place only under D12's unmeasured-ratings hypothesis: Earthstrike's
+   modelled 280 attack power on use makes 0.04% less TPS (1,121.0 against 1,121.4), with no
+   unmeasured rating (seed 424242, 20,000 fights, before Thick Hide).
+2. **The tanks' effective-health floor** (user decision, 2026-09-24): effective health, maximum
+   health ÷ (1 − armor's damage reduction against the level-63 boss) in Dire Bear Form, at least
+   90% of the v1 preset's (its pre-raid list's, with the same talents, buffs and Thick Hide). The
+   review's set had 74.2% (20,468 against 27,579: health 5,956 against 6,964, armor 14,022 against
+   17,036). Six swaps, each the one that gained the most effective health per 1% of TPS it cost
+   among the items the pre-raid lists rank (no unmodelled use effect, no armor-only item), bring
+   it to 90.3%, for 4.5% of the TPS and 3.7% of the DPS (seed 424242, 4,000 fights a candidate):
+
+   | Step | Slot | Out | In | TPS | Effective health |
+   | --- | --- | --- | --- | --- | --- |
+   | 1 | Head | Eye of Rend | Darkmantle Cap (22005) | −0.08% | +601 |
+   | 2 | Chest | Cadaverous Armor | Breastplate of Bloodthirst (12757) | −0.92% | +1,014 |
+   | 3 | Ring | Band of Earthen Might | Don Julio's Band (19325) | −0.45% | +547 |
+   | 4 | Back | Cape of the Black Baron | Windshear Cape (20691) | −0.76% | +681 |
+   | 5 | Neck | Mark of Fordring | Amulet of the Darkmoon (19491) | −0.55% | +560 |
+   | 6 | Shoulder | Truestrike Shoulders | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | −1.82% | +1,031 |
+
+| Slot | Item | Slot | Item |
+| --- | --- | --- | --- |
+| Head | Darkmantle Cap (22005) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
+| Neck | Amulet of the Darkmoon (19491) | Feet | Dunestalker's Boots (20715) |
+| Shoulder | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | Rings | Painweaver Band (13098), Don Julio's Band (19325) |
+| Back | Windshear Cape (20691) | Trinkets | Earthstrike (21180), Hand of Justice (11815) |
+| Chest | Breastplate of Bloodthirst (12757) | Two-hand | Manual Crowd Pummeler (9449, §7.3) |
+| Wrist | Forest Stalker's Bracers (19587) | Relic | Idol of Brutality (23198, §4.1), the list's |
+| Hands | Timbermaw Brawlers (19049) | | |
+| Waist | Defiler's Leather Girdle (20190; Alliance: Highlander's, 20045) | | |
+
+At the defaults (seed 424242, 20,000 fights), against the v1 list's gear and talents in today's
+model:
+
+| Setup | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
+| --- | --- | --- | --- | --- | --- | --- |
+| v1 talents and gear | 764.3 | 377.0 | 557.5 | 6,964 | 17,036 | 27,579 |
+| 9/42/0, v1 gear | 826.2 | 401.6 | 557.9 | 6,964 | 17,036 | 27,579 |
+| **Default** (9/42/0, interim gear) | **1,071.6** | **524.8** | 628.9 | 7,038 | 14,608 | 24,903 (90.3%) |
+| Default, Alliance (Night Elf) | 1,098.9 | 534.6 | 616.3 | 6,663 | 14,630 | 23,601 |
+
+The bear takes 12.8% more damage a second than in the v1 gear: less armor, and more of the
+boss's parries, which hasten its swings. A unit test holds the floor (`druid.test.ts`), for both
+factions. The enchants stay the spec's (buffs doc §6.4): Agility everywhere, the threat gloves,
++25 Agility on the two-hander.
 
 ### 7.4 Rotation settings
 
@@ -1434,8 +1523,9 @@ the buffs doc as a per-spec entry.
   if Rage is short the swing stays white. Swing and rage interplay is in
   [rage.md](../mechanics/rage.md).
 - **Skipped effects (< 0.5% or out of scope):** Ravage/Pounce openers, Feral Charge,
-  Bash/Growl/Frenzied Regeneration, Cower, movement, stealth, and Thick Hide armor (Forever's
-  rage from damage taken reads the hit before armor, so armor doesn't change it).
+  Bash/Growl/Frenzied Regeneration, Cower, movement and stealth. Thick Hide's armor is modelled
+  (§4.7, BR6), though it moves only damage taken: Forever's rage from damage taken reads the hit
+  before armor.
 - **Uncertainty surfacing:** the UI should flag, when they're active, the [?] assumptions that
   move DPS most:
   - flat-before-% on Shred/Claw (Q1)
@@ -1532,9 +1622,10 @@ If Q5 changes those numbers, recompute the examples; the formulas stay.
 Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 and W6
 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`); W3–W8 and W11 with the
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
-`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19, W20 and W21
-(`src/sim/classes/druid/bear.test.ts`, with W14–W16 and W19 also in the engine,
-`src/sim/engine/bear.test.ts`, whose default-bear test checks W20's +261 per landed application). W12 compares W6 and W7 by hand.
+`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19, W20, W21 and W22
+(`src/sim/classes/druid/bear.test.ts`, W22 in `druid.test.ts`, with W14–W16 and W19 also in the
+engine, `src/sim/engine/bear.test.ts`, whose default-bear test checks W20's +261 per landed
+application). W12 compares W6 and W7 by hand.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1618,6 +1709,9 @@ cat's abilities in the engine, and W8's Energy against the client (`src/sim/engi
     **339.3**. [?] (the hit, Q16; the +261, Q15 and the wording table)
 21. **Idol of Brutality with Ferocity 5/5** (§4.1): Maul 15 − 5 − 2 = **8** rage, Mangle and Swipe
     20 − 5 − 2 = **13**; Lacerate stays **15** (not in its mask). [F] Maul and Swipe, [?] Mangle (Q37)
+22. **Thick Hide 3/3 at 60** (§4.7): (3 × 60 + 2.00 × (310 − 300)) = 200 base armor with 310
+    defense; × 4.6 in Dire Bear Form = **920** (828 at 300 defense); 200 in Cat Form. [F] tooltip,
+    [?] the form's multiplier (Q19)
 
 ---
 
@@ -1647,7 +1741,7 @@ ranks.
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick |
 | Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
-| Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? | [F] data only | Character-sheet armor in and out of Dire Bear with an armor buff |
+| Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? Does Dire Bear Form multiply Thick Hide's base armor ("further increased by multipliers from those forms")? | [F] data only. The engine multiplies Thick Hide's base armor by the form's +360% with the item armor [?] (§4.7): 828 armor at 3/3 and 300 defense, where unmultiplied it would be 180 | Character-sheet armor in and out of Dire Bear with an armor buff, and in Dire Bear Form with 0 and 3 points in Thick Hide: a difference of 828 means the form multiplies it, 180 that it doesn't |
 | Q20 | Ferocious Bite under Clearcasting: all Energy converted? | Secondary only [?] [ws-fb]; that Bite empties the bar normally is [C] [wh-rot] | Bite with a proc at high Energy |
 | Q21 | Bleeds: do they snapshot TF, AP and multipliers (both profiles), and in Forever can their ticks crit, at what multiplier (does Predatory Instincts reach Rip ticks)? | Snapshot: secondary only [?] [ws-rip]. Tick crits: the Forever tooltip says periodic effects can crit [F text]; the client sets the per-spell flag on Rake, Rip, Pounce and Lacerate [F] [client] (SpellMisc, 1.60.1.69913); whether the server honours it is [?] ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions)) | Rip under TF, compare ticks after TF ends; count crits among ≥ 200 Rip and Rake ticks and their size |
 | Q22 | Nature's Reach +4% applies to melee | Aura 54 [F] | Miss rate vs mobs three levels above you with 0 vs 2 points (large sample) |

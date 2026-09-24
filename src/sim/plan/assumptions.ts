@@ -390,6 +390,16 @@ const REGISTRY = {
     text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
+  // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
+  thickHide: {
+    text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',
+    docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
+  },
+  // docs/classes/druid.md §4.1 (BR2, Q37): Idol of Brutality's class mask covers Mangle, which its tooltip doesn't name.
+  idolOfBrutality: {
+    text: 'Idol of Brutality takes 2 rage off Mangle as well as Maul and Swipe: its spell’s class mask covers Mangle, though the tooltip names only Maul and Swipe; untested.',
+    docRef: `${DRUID}#41-maul-r7-9881`,
+  },
   sealOfCommandRate: {
     text: 'Seal of Command procs 7 times a minute from your weapon’s base speed, with a 1 s internal cooldown: Classic Era’s rate. Forever sets it on the server, and it’s unmeasured.',
     docRef: `${PAL}#open-questions`,

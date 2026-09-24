@@ -14,6 +14,17 @@ import { ECLIPSE, NATURES_GRACE } from './balance-abilities'
 const DOC = 'docs/classes/druid.md'
 const ANIMAL = { form: ['cat', 'bear'] } as const
 
+/**
+ * Thick Hide, per rank [F] (the Forever tooltip; curves 111990 and 85346): +1 base armor per level,
+ * and +0.67 per point of defense skill above 5 × level, in Cat, Bear, Dire Bear and Moonkin Form;
+ * 3/3: +3 per level, 180 at 60, and +2.00 a point. "Further increased by multipliers from those
+ * forms": base armor is what Dire Bear Form's +360% multiplies (aura 142, the item armor's pool), so
+ * it joins the item armor [?] (druid.md §4.7, Q19).
+ */
+export const THICK_HIDE_ARMOR_PER_LEVEL = 1
+export const THICK_HIDE_ARMOR_PER_DEFENSE = [0, 0.67, 1.33, 2] as const
+const THICK_HIDE_FORMS = { form: ['cat', 'bear', 'moonkin'] } as const
+
 /** Effects of one talent at a rank (druid.md §5 "Sim model" column), or undefined if it has none. */
 export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesProfile) => Effect[]> = {
   // Feral 1·3: Int ×(1 + 0.02·r); Stamina ×(1 + 0.04·r) in bear; Strength ×(1 + 0.02·r) in cat (§5.1)
@@ -21,6 +32,11 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
     { kind: 'mult', stat: 'int', pct: 2 * r },
     { kind: 'mult', stat: 'sta', pct: 4 * r, when: { form: ['bear'] } },
     { kind: 'mult', stat: 'str', pct: 2 * r, when: { form: ['cat'] } },
+  ],
+  // Feral 1·4: base armor in the forms (THICK_HIDE_*, §4.7)
+  'Thick Hide': (r) => [
+    { kind: 'stat', stat: 'itemArmor', value: THICK_HIDE_ARMOR_PER_LEVEL * r * PLAYER_LEVEL, when: THICK_HIDE_FORMS },
+    { kind: 'stat', stat: 'itemArmorPerDefense', value: THICK_HIDE_ARMOR_PER_DEFENSE[r], when: THICK_HIDE_FORMS },
   ],
   // Feral 2·1: +2% dodge per rank; the Forever tooltip drops "while in Cat Form", so in every form
   // [?] (character-stats.md OQ-11)

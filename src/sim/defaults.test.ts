@@ -4,7 +4,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
-import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, TALENT_DATA } from './defaults'
+import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { fitsFaction, uniqueConflicts } from './equip'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type { GearSlot, SpecId } from './types'
@@ -80,8 +80,10 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
   })
 
   it('gives each faction its own rank-3 cloak', () => {
-    expect(ids('druid-feral-bear', 'alliance-night-elf', ['back'])).toEqual([18461]) // Sergeant's Cloak
-    expect(ids('druid-feral-bear', 'horde-tauren', ['back'])).toEqual([16342]) // Sergeant's Cape
+    // The bear's list's (its default wears the interim threat preset's cloak, druid.md §7.3a).
+    const listIds = (race: string) => preRaidListGear('druid-feral-bear', race).back?.itemId
+    expect(listIds('alliance-night-elf')).toBe(18461) // Sergeant's Cloak
+    expect(listIds('horde-tauren')).toBe(16342) // Sergeant's Cape
   })
 
   it('opens with the default race’s gear', () => {

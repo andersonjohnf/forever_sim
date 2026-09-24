@@ -606,7 +606,7 @@ describe('Max TPS in the engine (druid.md §6.3 "Max TPS", D26)', () => {
   it('makes more threat and more damage than the default, for a little more damage taken, on the same fights', () => {
     const duties = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Max TPS": +3.8% TPS, +2.7% DPS and +0.45% damage taken in the default setup (100,000 fights).
+    // §6.3 "Max TPS": +2.8% TPS, +2.5% DPS and +0.7% damage taken in the default setup (40,000 fights).
     expect(max.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
     expect(max.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
     expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)

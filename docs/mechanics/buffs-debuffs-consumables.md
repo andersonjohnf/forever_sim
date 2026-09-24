@@ -162,7 +162,8 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Gift of the Wild (r2) | 21850 | As Mark of the Wild, **whole raid** (C: target's party) | 1 h | Same as Mark of the Wild | Druid | [F] | [fc-sb-druid] |
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
-| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
+| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
+| Power Infusion | 10060 | +20% spell damage (every magic school), 15 s | 3 min cooldown | — | Priest talent, cast on another player. The casters' Buffs entry, which a caster's rotation presses on cooldown ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r5) | 25361 | **+53** Str (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
 | Grace of Air Totem (r3) | 25359 | **+89** Agi (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
@@ -958,6 +959,11 @@ Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune 
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)).
+The caster core ([spells §9, §12](spells.md#9-caster-raid-buffs-and-debuffs)) adds Moonkin Aura,
+Power Infusion and Curse of the Elements for the caster classes, and gives them the mana and spell
+damage entries above (all but Elixir of Holy Power) too, through `CASTER_CLASSES` and
+`CASTER_SPECS` in `src/sim/effects/buffs.ts`. Both are empty until the first caster spec ships, so
+no warrior, druid, paladin or shaman setup has any of them.
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever
@@ -975,10 +981,12 @@ from Forever's. They were read from the Classic Era client **1.15.9.69722** on 2
 every Forever value was checked against **1.60.1.69913** at the same time [client]. In the
 tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
-to its `SpellItemEnchantment`, and an enchant to its equip spell. All **112** entries were
-compared (56 buffs, debuffs and consumables, the rogue's four poisons and Thistle Tea among them;
-56 enchants): **31 differ**, **18 are new in Forever**, and the other **63** are the same in both
-clients. Two of the 27 differ only in the
+to its `SpellItemEnchantment`, and an enchant to its equip spell. All **115** entries were
+compared (59 buffs, debuffs and consumables, the rogue's four poisons and Thistle Tea among them;
+56 enchants): **34 differ**, **18 are new in Forever**, and the other **63** are the same in both
+clients. The caster core (2026-09-24, [spells §9](spells.md#9-caster-raid-buffs-and-debuffs))
+added three, the casters' own: Moonkin Aura and Curse of the Elements differ, Power Infusion is
+the same; and Minor Haste now differs, by Forever's casting speed. Two of the 34 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -1023,6 +1031,8 @@ melee and ranged crit (aura 52) in Classic Era.
 | Prayer of Spirit (`prayerOfSpirit`) | +40 Spi | same | 27681 #0 (aura 29, Spirit): 39 + 1 (Divine Spirit 27841 the same) | [C] |
 | Arcane Brilliance (`arcaneBrilliance`) | +31 Int | same | 23028 #0 (aura 29, Intellect): 30 + 1 (Arcane Intellect 10157 the same) | [C] |
 | Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
+| Moonkin Aura (`moonkinAura`), the casters' | +3% crit, spells too (aura 290) | **+3% spell crit** | 24907 #0 (aura 57): 2 + 1; Forever's is aura 290, all crit | [C] |
+| Power Infusion (`powerInfusion`), the casters' | +20% spell damage for 15 s, 3 min cooldown | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
 | Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r3 (`graceOfAir`) | +89 Agi | **+77 Agi** | 25360 #0 (the totem's aura): 76 + 1 | [C] |
 | Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
@@ -1038,6 +1048,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Demoralizing Roar (`demoralizingRoar`) | −204 boss AP | **−138 boss AP** | 9898 #0: −131 + 1, and −1 per level from 52, so −138 at 60 (as for Demoralizing Shout, whether combat applies the per-level term is [OQ 19](#open-questions)) | [C] |
 | Demoralizing Shout (`demoralizingShout`) | −204 boss AP | **−146 boss AP** | 11556 #0: −141 + 1, and −1 per level from 54, so −146 at 60 (both clients carry a per-level term; whether combat applies it is [OQ 19](#open-questions)) | [C] |
 | Thunder Clap (`thunderClap`) | boss attacks 20% slower | **10% slower** | 11581 #1 (aura 138): −11 + 1 | [C] |
+| Curse of the Elements (`curseOfTheElements`), the casters' | +10% damage taken from every magic school, Holy included; −75 resistance (r4, 1311680) | **Fire and Frost only** | r3 11722 #1 (aura 87, misc 20): 9 + 1; #0 (aura 22): −76 + 1 | [C] |
 
 **Consumables**
 
@@ -1110,7 +1121,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Gloves – Greater Agility (`gloveGreaterAgility`) | +10 Agi | **+7 Agi** | 20012 → 1887 → 13823: 6 + 1 (Forever: 8206) | [C] |
 | Gloves – Strength (`gloveStrength`) | +7 Str | **+5 Str** | 13887 → 856 → 13372: 4 + 1 (Forever: 927) | [C] |
 | Gloves – Agility (`gloveAgility`) | +7 Agi | **+5 Agi** | 13815 → 904 → 13365: 4 + 1 (Forever: 1887) | [C] |
-| Gloves – Minor Haste (`gloveMinorHaste`) | +1% attack speed | same (without Forever's casting speed) | 13948 → 931 → 13928 #0 (aura 138): 0 + 1 | [C] |
+| Gloves – Minor Haste (`gloveMinorHaste`) | +1% attack and casting speed | **+1% attack speed** (the tooltip has no casting speed) | 13948 → 931 → 13928 #0 (aura 138): 0 + 1; Forever's tooltip adds casting speed ([spells §4](spells.md#4-cast-times-casting-speed-and-the-gcd)) | [C] |
 | Gloves – Threat (`gloveThreat`) | +2% threat | same | 25072 → 2613 → 25063: 1 + 1 | [C] |
 | Boots – Greater Agility, Agility, Greater Stamina (`bootsGreaterAgility`, `bootsAgility`, `bootsGreaterStamina`) | +7 Agi, +5 Agi, +7 Sta | same | 20023 → 1887 → 13823: 6 + 1; 13935 → 904 → 13365: 4 + 1; 20020 → 929 → 13827: 6 + 1 | [C] |
 | Shield – Greater Stamina (`shieldGreaterStamina`) | +9 Sta | **+7 Sta** | 20017 → 929 → 13827: 6 + 1 (Forever: 1886) | [C] |

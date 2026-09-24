@@ -195,7 +195,19 @@ export const ENCHANTS: EnchantSpec[] = [
   { id: 'gloveGreaterAgility', name: 'Greater Agility', slots: ['hands'], summary: '+10 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 10)], classicEra: { summary: '+7 Agility', effects: [stat('agi', 7)] } },
   { id: 'gloveStrength', name: 'Strength', slots: ['hands'], summary: '+7 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 7)], classicEra: { summary: '+5 Strength', effects: [stat('str', 5)] } },
   { id: 'gloveAgility', name: 'Agility', slots: ['hands'], summary: '+7 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 7)], classicEra: { summary: '+5 Agility', effects: [stat('agi', 5)] } },
-  { id: 'gloveMinorHaste', name: 'Minor Haste', slots: ['hands'], summary: '+1% attack speed', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [{ kind: 'haste', pct: 1 }] },
+  // Forever's tooltip (13948): "+1% attack and casting speed"; Classic Era's attack speed only (docs/mechanics/spells.md §4).
+  {
+    id: 'gloveMinorHaste',
+    name: 'Minor Haste',
+    slots: ['hands'],
+    summary: '+1% attack and casting speed',
+    docRef: `${DOC}#55-armor-slots-enchanting`,
+    effects: [
+      { kind: 'haste', pct: 1 },
+      { kind: 'castHaste', pct: 1 },
+    ],
+    classicEra: { summary: '+1% attack speed', effects: [{ kind: 'haste', pct: 1 }] },
+  },
   { id: 'gloveThreat', name: 'Threat', slots: ['hands'], summary: '+2% threat', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [{ kind: 'threat', pct: 2 }] },
   { id: 'bootsGreaterAgility', name: 'Greater Agility', slots: ['feet'], summary: '+7 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 7)] },
   { id: 'bootsAgility', name: 'Agility', slots: ['feet'], summary: '+5 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 5)] },

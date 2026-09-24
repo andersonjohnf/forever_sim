@@ -12,6 +12,7 @@
 // with `catalogueEffects`. Entries new in Forever have no Classic Era value and keep Forever's.
 import type { BuffDefinition, BuffPreset, ClassId, SpecId } from '../types'
 import { THISTLE_TEA } from '../classes/rogue/abilities'
+import { MAGIC_SCHOOLS, schoolMask } from '../plan/types'
 import type { ClassicEraValues, Effect, EffectList, OnUseSpec, ProcSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
@@ -90,6 +91,19 @@ const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false)
 
 /** A poison on one hand: a temporary enchant that beats a stone there, with its proc (docs/classes/rogue.md §4). */
 const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 'tempEnchant', id: `${proc.id}.${hand}`, priority: 10, hand, proc }]
+/**
+ * The caster classes and specs, as the caster class slices (K2–K6) land them (docs/mechanics/spells.md
+ * §12): the entries for mana and spell damage, and the caster buffs and debuffs below, are theirs
+ * too. Empty until the first caster spec ships, so no warrior, druid or paladin setup changes: a
+ * class slice adds its class here and its specs to CASTER_SPECS. A class whose other specs cast no
+ * spells (the druid's Feral specs beside Balance) needs its entries gated per spec instead.
+ */
+export const CASTER_CLASSES: readonly ClassId[] = []
+export const CASTER_SPECS: readonly SpecId[] = []
+/** The classes that spend mana on spells: the paladin, the shaman and the casters (once each: K5 adds the shaman here too). */
+const MANA_CLASSES: readonly ClassId[] = [...new Set([...MANA_USERS, ...CASTER_CLASSES])]
+/** `Pal` in the presets (§6.2), the Enhancement shaman, and the casters. */
+const MANA_SPECS: readonly SpecId[] = [...new Set([...PALADINS, ...SHAMAN, ...CASTER_SPECS])]
 /**
  * A tank's duties are in no preset (buffs doc §6.2; D26's amendment): a warrior tank's Thunder Clap
  * and Demoralizing Shout, a Protection warrior's own (SpecMeta.ownBuffs), so a bear's or a Protection
@@ -173,6 +187,23 @@ export const DEMONIC_RUNE: OnUseSpec = {
   rageSpreadTenths: 0,
   manaTenths: 9000,
   manaSpreadTenths: 6000,
+}
+
+/**
+ * Power Infusion (10060; docs/mechanics/spells.md §9): a priest's +20% spell damage (aura 79, misc
+ * 126: every magic school) for 15 s, every 3 min, off the GCD, in both clients [F] [C] [client]
+ * (SpellEffect, SpellCooldowns, 1.60.1.69913 and 1.15.9.69722). Its 20% of the priest's base mana
+ * is the priest's. A caster's rotation presses it, as the priest would cast it on them.
+ */
+export const POWER_INFUSION: OnUseSpec = {
+  id: 'powerInfusion',
+  name: 'Power Infusion',
+  icon: 'spell_holy_powerinfusion',
+  cooldownMs: 180000,
+  gcdMs: 0,
+  aura: { id: 'powerInfusion', name: 'Power Infusion', durationMs: 15000, mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 } },
+  rageTenths: 0,
+  rageSpreadTenths: 0,
 }
 
 export const BUFFS: BuffSpec[] = [
@@ -271,11 +302,11 @@ export const BUFFS: BuffSpec[] = [
     summary: '+40 Spirit',
     providedBy: 'priest',
     // Spirit regenerates mana, which the paladin and the shaman spend in combat.
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 27681 #0 (Divine Spirit 27841 the same): aura 29, misc 4 (Spirit), 40; Classic Era's 39 + 1.
     effects: [{ kind: 'stat', stat: 'spi', value: 40 }],
-    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { raid: MANA_SPECS, max: MANA_SPECS },
   },
   {
     id: 'arcaneBrilliance',
@@ -286,11 +317,11 @@ export const BUFFS: BuffSpec[] = [
     summary: '+31 Intellect',
     providedBy: 'mage',
     // Intellect is mana, spell crit and (Champion of the Light) spell damage: the paladin's alone.
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 23028 #0 (Arcane Intellect 10157 the same): aura 29, misc 3 (Intellect), 31; Classic Era's 30 + 1.
     effects: [{ kind: 'stat', stat: 'int', value: 31 }],
-    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { raid: MANA_SPECS, max: MANA_SPECS },
   },
   {
     id: 'leaderOfThePack',
@@ -409,12 +440,12 @@ export const BUFFS: BuffSpec[] = [
     group: 'Mana',
     summary: '+40 mana every 5 s',
     providedBy: 'paladin',
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
     effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
     classicEra: { summary: '+33 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
-    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { raid: MANA_SPECS, max: MANA_SPECS },
   },
   {
     id: 'manaSpringTotem',
@@ -425,11 +456,46 @@ export const BUFFS: BuffSpec[] = [
     summary: '+10 mana every 2 s',
     providedBy: 'shaman',
     selfCast: true,
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
-    presets: { dungeon: SHAMAN, raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { dungeon: SHAMAN, raid: MANA_SPECS, max: MANA_SPECS },
+  },
+
+  // The caster core's raid buffs (docs/mechanics/spells.md §9, §12; buffs doc §1.1): the casters' only.
+  {
+    id: 'moonkinAura',
+    name: 'Moonkin Aura',
+    icon: 'spell_nature_moonglow',
+    category: 'raidBuff',
+    group: 'Crit',
+    summary: '+3% crit (moonkin druid in your party)',
+    providedBy: 'druid',
+    exclusiveGroup: 'party-crit-aura',
+    forClasses: CASTER_CLASSES,
+    docRef: `${DOC}#11-attack-power-stats-and-crit`,
+    // 24907 #0: party aura 290 (all crit) 3 [F]; Classic Era's is aura 57, spell crit only [C]
+    // [client] (SpellEffect, 1.60.1.69913 and 1.15.9.69722).
+    effects: [
+      { kind: 'stat', stat: 'crit', value: 3 },
+      { kind: 'stat', stat: 'spellCrit', value: 3 },
+    ],
+    classicEra: { summary: '+3% spell crit (moonkin druid in your party)', effects: [{ kind: 'stat', stat: 'spellCrit', value: 3 }] },
+    presets: { raid: CASTER_SPECS, max: CASTER_SPECS },
+  },
+  {
+    id: 'powerInfusion',
+    name: 'Power Infusion',
+    icon: 'spell_holy_powerinfusion',
+    category: 'raidBuff',
+    group: 'Spell damage',
+    summary: '+20% spell damage for 15 s, every 3 min (a priest’s)',
+    providedBy: 'priest',
+    forClasses: CASTER_CLASSES,
+    docRef: `${DOC}#11-attack-power-stats-and-crit`,
+    effects: [{ kind: 'onUse', id: 'powerInfusion', name: 'Power Infusion', use: POWER_INFUSION }],
+    presets: {},
   },
 
   // --- Target debuffs (§4) -------------------------------------------------------------------
@@ -499,6 +565,34 @@ export const BUFFS: BuffSpec[] = [
     effects: (p) => [{ kind: 'targetArmor', value: 3 * p.values.armorShatterPerStack }],
     classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
     presets: { max: 'all' },
+  },
+  // The caster core's (docs/mechanics/spells.md §9): Curse of the Elements, the casters' only.
+  {
+    id: 'curseOfTheElements',
+    name: 'Curse of the Elements',
+    icon: 'spell_shadow_chilltouch',
+    category: 'targetDebuff',
+    group: 'Spell damage',
+    summary: '+10% magic damage taken, −75 magic resistance',
+    providedBy: 'warlock',
+    forClasses: CASTER_CLASSES,
+    docRef: `${DOC}#42-other-debuffs`,
+    // 1311680 (rank 4, new at 50) #0 aura 22 −75, #1 aura 87 +10, both misc 126: every magic school,
+    // Holy included [F]; Classic Era's rank 3 (11722) is Fire and Frost only (misc 20) [C]
+    // [client] (SpellEffect, 1.60.1.69913 and 1.15.9.69722). The −75 can't take a boss below its
+    // own 0 (spells.md §3).
+    effects: [
+      { kind: 'schoolTaken', schools: MAGIC_SCHOOLS, pct: 10 },
+      { kind: 'targetResistance', schools: MAGIC_SCHOOLS, value: -75 },
+    ],
+    classicEra: {
+      summary: '+10% Fire and Frost damage taken, −75 Fire and Frost resistance',
+      effects: [
+        { kind: 'schoolTaken', schools: ['fire', 'frost'], pct: 10 },
+        { kind: 'targetResistance', schools: ['fire', 'frost'], value: -75 },
+      ],
+    },
+    presets: { raid: CASTER_SPECS, max: CASTER_SPECS },
   },
   // A Feral bear's duty (docs/classes/druid.md §6.3), which it keeps up itself (SpecMeta.ownBuffs), so
   // no preset has it; turned on here, it's another druid's.
@@ -627,7 +721,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Elixirs',
     summary: '+35 spell damage',
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#32-elixirs`,
     // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
@@ -668,7 +762,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Flasks',
     summary: '+150 spell damage',
     exclusiveGroup: 'flask',
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#31-flasks`,
     // 17628 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 150 }],
@@ -964,7 +1058,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Potions and bombs',
     summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
     presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
@@ -977,7 +1071,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // A Dark Rune is the same, on the same cooldown, so one entry stands for both.
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
-    forClasses: MANA_USERS,
+    forClasses: MANA_CLASSES,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
     presets: { max: [...PALADINS, ...SHAMAN] },

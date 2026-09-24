@@ -6,7 +6,7 @@ import { normalizeConfig } from '../config/normalize'
 import { defaultConfig, FULL_RAID } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { SPEC_IDS, SPEC_META } from '../specs'
-import { BUFFS } from './buffs'
+import { BUFFS, CASTER_CLASSES, CASTER_SPECS } from './buffs'
 import { forSpecClass, presetBuffIds } from './presets'
 
 const PALADIN_ONLY = [
@@ -24,10 +24,24 @@ const PALADIN_ONLY = [
 const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
 
 describe('class-only catalogue entries', () => {
-  it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, and the Mighty Rage Potion (warriors and druids only)', () => {
+  it('give the caster core’s buffs and debuffs to the casters only: no class yet, so no warrior, druid, paladin or shaman gets them (docs/mechanics/spells.md §12)', () => {
+    expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([[], []])
+    const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
+    for (const spec of SPEC_IDS) {
+      for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(false)
+      for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) {
+        for (const id of caster) expect(presetBuffIds(preset, spec, FULL_RAID), `${spec} ${preset}`).not.toContain(id)
+      }
+    }
+  })
+
+  it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, the casters’, and the Mighty Rage Potion (warriors and druids only)', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
     for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman'] : ['paladin'])
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
+      ['moonkinAura', CASTER_CLASSES],
+      ['powerInfusion', CASTER_CLASSES],
+      ['curseOfTheElements', CASTER_CLASSES],
       ['instantPoisonMainHand', ['rogue']],
       ['deadlyPoisonMainHand', ['rogue']],
       ['instantPoisonOffHand', ['rogue']],

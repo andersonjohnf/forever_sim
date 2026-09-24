@@ -37,6 +37,9 @@ function digest(effects: Effect[]): Line[] {
       case 'haste':
         lines.push([e.when?.zones ? `haste in ${e.when.zones.join('/')}` : 'haste', e.pct])
         break
+      case 'castHaste':
+        lines.push(['castHaste', e.pct])
+        break
       case 'threat':
       case 'bossSlow':
         lines.push([e.kind, round(e.pct)])
@@ -45,6 +48,15 @@ function digest(effects: Effect[]): Line[] {
       case 'targetArmor':
       case 'bossAp':
         lines.push([e.kind, e.value])
+        break
+      // The caster core's school effects (docs/mechanics/spells.md §9).
+      case 'schoolDamage':
+      case 'schoolTaken':
+      case 'schoolCrit':
+        lines.push([`${e.kind} ${e.schools.join('/')}`, e.pct])
+        break
+      case 'targetResistance':
+        lines.push([`${e.kind} ${e.schools.join('/')}`, e.value])
         break
       case 'tempEnchant':
         if (e.weaponDamage) lines.push([`${e.id} weaponDamage`, e.weaponDamage])
@@ -129,6 +141,10 @@ const ROWS: Record<string, Row> = {
   powerWordFortitude: { forever: [['sta', 70]], classicEra: [['sta', 54]], rows: [S(21564)] },
   prayerOfSpirit: { forever: [['spi', 40]], rows: [S(27681)] },
   arcaneBrilliance: { forever: [['int', 31]], rows: [S(23028)] },
+  // The casters' (docs/mechanics/spells.md §9): Moonkin Aura is all crit (aura 290) in Forever, spell
+  // crit (aura 57) in Classic Era; Power Infusion's +20% spell damage (aura 79), every magic school.
+  moonkinAura: { forever: [['crit', 3], ['spellCrit', 3]], classicEra: [['spellCrit', 3]], rows: [S(24907), S(24907)], classicRows: [S(24907)] },
+  powerInfusion: { rows: [null, S(10060, 1)] },
   // Forever: all crit (aura 290), so spell crit too; Classic Era: aura 52, melee and ranged only.
   leaderOfThePack: {
     forever: [['crit', 3], ['spellCrit', 3]],
@@ -161,6 +177,13 @@ const ROWS: Record<string, Row> = {
     classicRows: [S(11717, 1), S(11717, 0)],
   },
   armorShatter: { forever: [['targetArmor', 495]], classicEra: [['targetArmor', 600]], rows: [S(16928, 0, { times: 3 })] },
+  // Forever's rank 4 (1311680) is every magic school; Classic Era's rank 3 (11722) Fire and Frost.
+  curseOfTheElements: {
+    forever: [['schoolTaken fire/frost/shadow/nature/arcane/holy', 10], ['targetResistance fire/frost/shadow/nature/arcane/holy', -75]],
+    classicEra: [['schoolTaken fire/frost', 10], ['targetResistance fire/frost', -75]],
+    rows: [S(1311680, 1), S(1311680, 0)],
+    classicRows: [S(11722, 1), S(11722, 0)],
+  },
   // Level 60: the base points and the per-level term from 54 (−196 − 1.4 × 6; Classic −140 − 6).
   // Whether combat applies the per-level term is OQ 19's.
   // Level 60: −193 − 1.4 × 8, truncated to −204 (Classic −130 − 8): the bear's own (druid.md §4.5).
@@ -288,7 +311,8 @@ const ROWS: Record<string, Row> = {
   gloveGreaterAgility: { forever: [['agi', 10]], classicEra: [['agi', 7]], rows: [E(8206, 20012)], classicRows: [E(1887, 20012)] },
   gloveStrength: { forever: [['str', 7]], classicEra: [['str', 5]], rows: [E(927, 13887)], classicRows: [E(856, 13887)] },
   gloveAgility: { forever: [['agi', 7]], classicEra: [['agi', 5]], rows: [E(1887, 13815)], classicRows: [E(904, 13815)] },
-  gloveMinorHaste: { rows: [E(931, 13948)] },
+  // Forever's tooltip adds casting speed (docs/mechanics/spells.md §4): the same enchant row's 1.
+  gloveMinorHaste: { forever: [['haste', 1], ['castHaste', 1]], classicEra: [['haste', 1]], rows: [E(931, 13948), E(931, 13948)], classicRows: [E(931, 13948)] },
   gloveThreat: { rows: [E(2613, 25072)] },
   bootsGreaterAgility: { rows: [E(1887, 20023)] },
   bootsAgility: { rows: [E(904, 13935)] },
@@ -306,7 +330,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(114)
+    expect(ENTRIES).toHaveLength(117)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

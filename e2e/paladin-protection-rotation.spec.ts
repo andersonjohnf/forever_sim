@@ -26,8 +26,8 @@ test.describe('Protection paladin rotation', () => {
     await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
     await expect(priority).toHaveAccessibleDescription(/^Tank duties first keeps your Devotion Aura up, for its 735 armor\. Max TPS runs Retribution Aura instead/)
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase'])
-    for (const name of ['Holy Shield', 'Devotion Aura', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Hammer of Wrath']) {
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
+    for (const name of ['Holy Shield', 'Devotion Aura', 'On-use trinkets', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Hammer of Wrath', 'Major Mana Potion']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab.getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).not.toBeChecked()

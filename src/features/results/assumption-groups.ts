@@ -150,6 +150,7 @@ export const ASSUMPTION_GROUP = {
   offHandFirstSwing: 'combat',
   hasteNextSwing: 'combat',
   whiteThreat: 'combat',
+  whiteThreatPaladin: 'combat',
   bossMelee: 'combat',
   bossSlow: 'combat',
   bossApDebuff: 'combat',

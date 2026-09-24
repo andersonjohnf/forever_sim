@@ -215,6 +215,11 @@ const REGISTRY = {
     text: 'Threat uses Classic Era rules (1 threat per damage, 5 per rage from talents, stance multipliers); Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
+  // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.
+  whiteThreatPaladin: {
+    text: 'Threat uses Classic Era rules (1 threat per damage, 0.5 per mana you gain, ×1.9 on Holy damage from Righteous Fury); Forever threat is server-side and unmeasured.',
+    docRef: `${THREAT}#per-ability-threat-at-max-rank`,
+  },
   defiance: {
     text: 'Defiance multiplies with Defensive Stance (×1.495 at 3/3), as Classic Era’s stance and talent auras do.',
     docRef: `${THREAT}#open-questions`,

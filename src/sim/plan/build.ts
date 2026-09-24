@@ -1084,7 +1084,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add('weaponmasterMace')
   // threat.md#warrior: Sunder Armor's threat is the Forever client's; the rest are Classic Era's.
-  if (tank) {
+  // A paladin tank's note speaks paladin: mana and Righteous Fury, not rage and stances.
+  if (tank && classId === 'paladin') notes.add('whiteThreatPaladin')
+  else if (tank) {
     const sunder = abilities.find((a) => a.id === 'sunderArmor')
     notes.add(
       'whiteThreat',

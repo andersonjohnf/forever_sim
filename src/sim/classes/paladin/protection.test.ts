@@ -632,10 +632,11 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     const share = (minute: number) => sum[minute] / ticks[minute] / plan.mana!.maxTenths
     // It holds: from the second minute to the eighth the pool stays around 75% (Consecration takes
     // what's above 90%). Then, in the execute phase from 8 minutes (the last 20%), Hammer of Wrath
-    // runs it down: to about half in the ninth minute, and under 15% on average in the last.
+    // runs it down, a Major Mana Potion or not: to under 70% in the ninth minute, and under 45% on
+    // average in the last.
     for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.6)
-    expect(share(8)).toBeLessThan(0.5)
-    expect(share(9)).toBeLessThan(0.15)
+    expect(share(8)).toBeLessThan(0.7)
+    expect(share(9)).toBeLessThan(0.45)
     const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (fights * 600000)
     expect(up('sealOfFury')).toBeGreaterThan(0.98)
     expect(up('holyShield')).toBeGreaterThan(0.9)
@@ -763,6 +764,29 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
     expect(notes('paladin-retribution')).not.toContain('hammerOfWrathCast')
     expect(notes('paladin-retribution')).not.toContain('slamCast')
     expect(notes('warrior-arms')).toContain('slamCast')
+  })
+})
+
+describe('the assumptions speak paladin (QU13)', () => {
+  it('no rage, stances or forms in any of them, whatever the setup: the paladin’s threat and reaction notes', () => {
+    const d = defaultConfig(PROT)
+    const setups: SimConfig[] = [
+      d,
+      { ...d, rules: { ...d.rules, profile: 'classicEra' } },
+      { ...d, race: 'horde-undead' },
+      { ...d, race: 'alliance-dwarf' },
+      { ...d, rotation: MAX_TPS },
+      { ...d, fight: { ...d.fight, creatureType: 'demon', executePct: 0 } },
+      { ...d, buffs: { ...d.buffs, enabled: presetBuffIds('max', PROT, d.buffs.raid) } },
+    ]
+    for (const c of setups) {
+      const notes = buildPlan(c).assumptions
+      expect(notes.map((a) => a.id)).toEqual(expect.arrayContaining(['reactionTimeMana', 'whiteThreatPaladin']))
+      expect(notes.map((a) => a.id)).not.toContain('whiteThreat')
+      for (const a of notes) expect(a.text, a.id).not.toMatch(/\brage\b|stance|\bforms?\b|druid|energy/i)
+    }
+    // A warrior tank's keeps its own words.
+    expect(buildPlan(defaultConfig('warrior-protection')).assumptions.map((a) => a.id)).toContain('whiteThreat')
   })
 })
 

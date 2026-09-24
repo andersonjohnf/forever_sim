@@ -10,7 +10,6 @@
 // mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) and the Judgement of the Crusader rule (spells.ts; Character → Advanced, OQ 5)
 // before their costs or spells feed anything.
-import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { CreatureType, RotationOption, RotationValue } from '../../types'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
@@ -22,11 +21,11 @@ import {
   HOLY_STRIKE_ABILITY,
   JUDGE_CRUSADER,
   JUDGEMENT_OF,
-  PALADIN,
   SEAL_OF_COMMAND,
   SEAL_OF_RIGHTEOUSNESS,
   SEAL_OF_THE_CRUSADER,
 } from './abilities'
+import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS, SEAL_REFRESH_MS } from './setup'
 import { type JotcRule, withJotcRule } from './spells'
 import { type TalentRanks, withTalents } from './talents'
@@ -57,16 +56,11 @@ const ID = {
 }
 export const RETRIBUTION_IDS = ID
 
-/** Buff catalogue ids of the consumables the rotation uses (effects/buffs.ts): the mana potion and rune, and Juju Flurry. */
-export const MANA_POTION = 'majorManaPotion'
-export const MANA_RUNE = 'demonicRune'
-export const JUJU_FLURRY = 'jujuFlurry'
-
 /** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
 export const EXORCISM_TARGETS: readonly CreatureType[] = ['undead', 'demon']
 
-/** A mana threshold input: 0 to 100% of maximum mana ("65% mana"), in its parent's group. */
-const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
+/** A mana threshold input: 0 to 100% of maximum mana ("65% mana"), in its parent's group (both specs'). */
+export const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
   kind: 'number',
   id,
   label,
@@ -272,20 +266,6 @@ export const retributionSeal = (values: Record<string, RotationValue>): AbilityD
  */
 export const KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs up to 0.37%'
 
-/** An on-use item or consumable as a paladin `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
-const consumable = (use: OnUseSpec): AbilityDef => ({
-  ...PALADIN,
-  id: use.id,
-  name: use.name,
-  icon: use.icon,
-  kind: 'cast',
-  cooldownMs: use.cooldownMs,
-  gcdMs: use.gcdMs,
-  aura: use.aura,
-  manaTenths: use.manaTenths ?? 0,
-  manaSpreadTenths: use.manaSpreadTenths ?? 0,
-})
-
 /**
  * The Retribution priority list from the settings (paladin.md "Forever priority list (default)").
  * `context` gives the main hand (Seal of Righteousness), the maximum mana (the mana thresholds are
@@ -371,31 +351,9 @@ export function retributionRotation(
   if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
   if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
 
-  // On-use trinkets (Weakness Analyzer) and Juju Flurry (off the GCD), on cooldown from the pull:
-  // nothing in the rotation is worth saving them for (paladin.md "Forever priority list (default)").
-  const pressed: string[] = ctx.items.map((i) => i.id)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item), [])
-  const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
-  if (juju) {
-    pressed.push(JUJU_FLURRY)
-    if (v.on(ID.juju)) add(consumable(juju), [])
-  }
-
-  // The mana potion and rune (off the GCD), when selected in Buffs: whenever the most they restore
-  // fits under the maximum.
-  for (const [id, setting, missing, early] of [
-    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing, ID.manaPotionEarly],
-    [MANA_RUNE, ID.rune, ID.runeMissing, ID.runeEarly],
-  ] as const) {
-    const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
-    pressed.push(id)
-    if (!v.on(setting)) continue
-    const missingAtLeast = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
-    // Early, while another would be ready before the fight ends: one more use in the fight.
-    if (v.num(early) > 0) add(consumable(use), [missingAtLeast(v.num(early)), { code: COND.timeLeftAtLeast, a: use.cooldownMs, b: 0 }])
-    add(consumable(use), [missingAtLeast(v.num(missing))])
-  }
+  // On-use trinkets (Weakness Analyzer) and Juju Flurry on cooldown from the pull, then the mana
+  // potion and rune, when selected in Buffs, whenever the most they restore fits (consumables.ts).
+  const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
 
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C2)").
   const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))

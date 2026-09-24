@@ -766,10 +766,13 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
 | 5b | Hammer of the Righteous instead of Holy Strike | for 3 or more targets; 1H axe, mace or sword only | off; not simulated yet (single target, [open question 11](#open-questions)) |
-| 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%) | on (gated by target type) |
+| 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (90%: tuned for 3-minute fights with a 20% execute phase; 40–60% is better in fights of 90 s or less and without an execute phase, [below](#tuning-the-defaults-c3)) | on |
 | 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | off |
-| 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)) | on |
+| 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)). Dimmed on the Rotation tab without an execute phase | on |
+| — | On-use trinkets (Weakness Analyzer) and Juju Flurry, off the GCD, on cooldown from the pull, as Retribution's (`consumables.ts`) | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs (no Protection preset selects it) | on; neither acts in the default setup |
+| — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.earlyMissingMana` (1,500) while the fight has at least its 2 min cooldown left, so another will be ready before the end; after that, missing at least `manaPotion.missingMana` (2,250, its most). Its mana makes threat, 0.5 a point | on (Standard raid) |
+| — | Demonic Rune (a Dark Rune is the same) | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
 | — | Judgement debuff | `protJudgementDebuff`: None, Wisdom or Light. Pre-pull: seal, judge, then Seal of Fury | None; not simulated yet |
 | — | Templar's Bulwark, Divine Protection | defensive; no TPS effect | off; not simulated |
 

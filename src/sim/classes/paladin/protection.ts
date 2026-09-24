@@ -5,10 +5,11 @@
 // (row 1: Seal of Fury, or Seal of Righteousness) before the pull and whenever it's missing or about
 // to end; Holy Shield whenever its buff is gone (row 2); the seal's judgement (row 3) and Swift
 // Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead and Demons (row 6);
-// Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the execute phase (row 8); and
-// the paladin's aura, Devotion Aura (its duty) or Retribution Aura. A Priority choice at the top
-// picks the tank's duties first (the default) or Max TPS (decision D26), which moves defaults the
-// way Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
+// Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the execute phase (row 8); the
+// consumables: on-use trinkets, Juju Flurry, the mana potion and the rune (consumables.ts); and the
+// paladin's aura, Devotion Aura (its duty) or Retribution Aura. A Priority choice at the top picks
+// the tank's duties first (the default) or Max TPS (decision D26), which moves defaults the way
+// Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
 // thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) before their costs or spells feed anything. Hammer of the Righteous (row 5b) is off
 // by default and not simulated yet.
@@ -28,7 +29,8 @@ import {
   SEAL_OF_FURY,
   SEAL_OF_RIGHTEOUSNESS,
 } from './abilities'
-import { EXORCISM_TARGETS } from './retribution'
+import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
+import { EXORCISM_TARGETS, manaOption } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
 import { type TalentRanks, withTalents } from './talents'
 
@@ -53,6 +55,14 @@ const ID = {
   consecrationRank1Mana: `${P}.consecrationRank1.minManaPct`,
   hammerOfWrath: `${P}.hammerOfWrath.enabled`,
   hammerOfWrathMana: `${P}.hammerOfWrath.minManaPct`,
+  trinkets: `${P}.trinkets.enabled`,
+  juju: `${P}.jujuFlurry.enabled`,
+  manaPotion: `${P}.manaPotion.enabled`,
+  manaPotionMissing: `${P}.manaPotion.missingMana`,
+  manaPotionEarly: `${P}.manaPotion.earlyMissingMana`,
+  rune: `${P}.rune.enabled`,
+  runeMissing: `${P}.rune.missingMana`,
+  runeEarly: `${P}.rune.earlyMissingMana`,
 }
 export const PROTECTION_IDS = ID
 
@@ -308,21 +318,6 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 
 // --- Settings (paladin.md "Forever priority list (default)") -------------------------------------
 
-/** A mana threshold input: 0 to 100% of maximum mana, in its parent's group. */
-const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
-  kind: 'number',
-  id,
-  label,
-  group,
-  help,
-  unit: '% mana',
-  min: 0,
-  max: 100,
-  step: 5,
-  default: def,
-  dependsOn,
-})
-
 /**
  * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
  * They're the best rotation found for the default setup, keeping the tank's duties (decisions D23
@@ -358,6 +353,23 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     default: true,
     defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'devotionAura',
+  },
+  {
+    kind: 'toggle',
+    id: ID.trinkets,
+    group: 'Cooldowns and buffs',
+    label: 'On-use trinkets',
+    help: 'Use Weakness Analyzer on cooldown if you wear it: +5% crit and spell crit until your next crit, for up to 20 s. Other on-use trinkets aren’t simulated.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.juju,
+    group: 'Cooldowns and buffs',
+    label: 'Juju Flurry',
+    help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute. More swings are more threat from your auto attacks and Seal of Fury.',
+    default: true,
+    requiresBuff: JUJU_FLURRY,
   },
   {
     kind: 'choice',
@@ -462,11 +474,88 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfWrath,
     group: 'Execute phase',
     label: 'Hammer of Wrath',
-    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: 425 mana, and a 1 s cast that stops your auto attacks and holds Judgement until it ends.',
+    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: 425 mana, and a 1 s cast that stops your auto attacks and holds Judgement until it ends. Needs an execute phase under Fight.',
     default: true,
+    needsExecutePhase: true,
   },
   manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this share of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
+  {
+    kind: 'toggle',
+    id: ID.manaPotion,
+    group: 'Consumables',
+    label: 'Major Mana Potion',
+    help: 'Drink one every 2 minutes when you’re missing enough mana (under Advanced): a little early while another would still be ready before the fight ends, then only once all it can restore (up to 2,250) fits. Its mana makes threat too.',
+    default: true,
+    requiresBuff: MANA_POTION,
+  },
+  {
+    kind: 'number',
+    id: ID.manaPotionEarly,
+    group: 'Consumables',
+    label: 'Major Mana Potion early, when missing',
+    help: 'While another would be ready before the fight ends, drink it once you’re missing this much mana, so you get one more. At 0, never early.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 1500,
+    dependsOn: ID.manaPotion,
+  },
+  {
+    kind: 'number',
+    id: ID.manaPotionMissing,
+    group: 'Consumables',
+    label: 'Major Mana Potion when missing',
+    help: 'Once the fight has less than 2 minutes left, or with early use off, drink it when you’re missing at least this much mana. 2,250 is the most it restores.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 2250,
+    dependsOn: ID.manaPotion,
+  },
+  {
+    kind: 'toggle',
+    id: ID.rune,
+    group: 'Consumables',
+    label: 'Demonic Rune',
+    help: 'Use one every 2 minutes, apart from the potion’s cooldown, once all it can restore (up to 1,500 mana) fits. Early use while another would still be ready is off unless you set it under Advanced.',
+    default: true,
+    requiresBuff: MANA_RUNE,
+  },
+  {
+    kind: 'number',
+    id: ID.runeEarly,
+    group: 'Consumables',
+    label: 'Demonic Rune early, when missing',
+    help: 'While another would be ready before the fight ends, use it once you’re missing this much mana, so you get one more. At 0, never early.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 0,
+    dependsOn: ID.rune,
+  },
+  {
+    kind: 'number',
+    id: ID.runeMissing,
+    group: 'Consumables',
+    label: 'Demonic Rune when missing',
+    help: 'Once the fight has less than 2 minutes left, or with early use off, use it when you’re missing at least this much mana. 1,500 is the most it restores.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 1500,
+    dependsOn: ID.rune,
+  },
 ]
+
+/**
+ * What misjudging the fight's end costs the early potion line, measured with the default setup
+ * (paladin.md "Tuning the defaults (C3)"): its "another will be ready" judged 10 or 20 s off.
+ */
+export const PROTECTION_KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs under 0.01%'
 
 /**
  * What a Protection paladin always does (paladin.md "Forever priority list (default)", row 0): its
@@ -578,6 +667,12 @@ export function protectionRotation(
   // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
   if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
 
+  // On-use trinkets and Juju Flurry on cooldown from the pull, then the mana potion and rune, when
+  // selected in Buffs, whenever the most they restore fits (consumables.ts, as Retribution's).
+  const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
+  // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C3)").
+  const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))
+
   // Righteous Fury, then the aura, from 4.5 and 3 s before the pull, a GCD apart and before the
   // seal: Devotion Aura, or Retribution Aura and its damage on the boss's swings. They need no line.
   const fury = index(RIGHTEOUS_FURY)
@@ -596,8 +691,9 @@ export function protectionRotation(
       chargeTenths: 0,
       keepTenths: -1,
     },
-    onUse: [],
+    onUse: pressed,
     procs: [...paladinProcs(abilities, talents, ctx), ...procs],
+    ...(timed ? { assumes: [{ id: 'knownFightEnd' as const, detail: PROTECTION_KNOWN_FIGHT_END }] } : {}),
   }
 }
 

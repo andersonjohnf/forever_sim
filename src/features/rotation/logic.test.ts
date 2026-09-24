@@ -242,11 +242,14 @@ describe('a Protection paladin’s settings the setup can’t use (docs/ux.md "R
     const r = rowsOf(prot)
     expect(r.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: true, on: true, needsCreature: ['undead', 'demon'] })
     expect(r.get('paladin.protection.exorcism.minManaPct')!.inactive).toBe(true)
-    // Nothing else in the default setup but rank 1's threshold, whose switch is off.
+    // Nothing else in the default setup but rank 1's threshold, whose switch is off, and the rune's,
+    // which the Standard raid doesn't bring.
     expect([...r].filter(([, row]) => row.inactive).map(([id]) => id)).toEqual([
       'paladin.protection.exorcism.enabled',
       'paladin.protection.exorcism.minManaPct',
       'paladin.protection.consecrationRank1.minManaPct',
+      'paladin.protection.rune.earlyMissingMana',
+      'paladin.protection.rune.missingMana',
     ])
     const u = rowsOf({ ...prot, fight: { ...prot.fight, creatureType: 'undead' } })
     expect(u.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: false })

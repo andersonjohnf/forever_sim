@@ -40,6 +40,9 @@ describe('golden run (fixed config and seed)', () => {
   //   the Major Mana Potion (buffs doc §6.2, §6.3): 2,717 → 3,227 mana, +40 spell damage. With the
   //   old buffs every number is the same (the engine didn't move). On this seed's 1,000 fights, TPS
   //   395.79, DPS 220.73 and damage taken 680.6 a second. The snapshot records the mana ledger too.
+  // - QU13: the rotation drinks the Major Mana Potion the Standard raid brings, on Retribution's
+  //   lines and defaults for now (1,500 early, 2,250 after; consumables.ts): 0.41 a fight here,
+  //   TPS 398.23 (its mana makes threat too) and DPS 220.95.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

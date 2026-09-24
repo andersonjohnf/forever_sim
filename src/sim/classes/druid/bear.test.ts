@@ -12,9 +12,20 @@ import { COND, SCHOOL } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { RotationOption, SimConfig } from '../../types'
 import { talentRanksByName } from '../index'
+import { resolveRotationValues } from '../options'
 import { maintainedBuffs, rotationOptions } from '../rotation'
 import { NO_CONTEXT } from '../warrior/shared'
-import { BEAR_IDS, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, DEMO_ROAR_REFRESH_SEC, FAERIE_FIRE_REFRESH_SEC, PREPULL_ENRAGE_MS } from './bear'
+import {
+  BEAR_IDS,
+  BEAR_OPTIONS,
+  BEAR_PRIORITY,
+  bearMaintainedBuffs,
+  bearRotation,
+  DEMO_ROAR_REFRESH_SEC,
+  FAERIE_FIRE_REFRESH_SEC,
+  MAX_TPS_LACERATE_REFRESH_SEC,
+  PREPULL_ENRAGE_MS,
+} from './bear'
 import {
   BEAR_GCD_MS,
   DEMORALIZING_ROAR_THREAT,
@@ -221,10 +232,11 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
   const option = (id: string) => byId.get(id)!
   const toggle = (id: string) => option(id) as Extract<RotationOption, { kind: 'toggle' }>
 
-  it('are the spec’s rotation options, each id `druid.bear.<ability>.<param>` and unique', () => {
+  it('are the spec’s rotation options, each id `druid.bear.<ability>.<param>` and unique, the priority choice first', () => {
     expect(rotationOptions('druid-feral-bear')).toBe(BEAR_OPTIONS)
     expect(new Set(BEAR_OPTIONS.map((o) => o.id)).size).toBe(BEAR_OPTIONS.length)
-    for (const o of BEAR_OPTIONS) expect(o.id).toMatch(/^druid\.bear\.[a-zA-Z]+\.[a-zA-Z]+$/)
+    expect(BEAR_OPTIONS[0]).toMatchObject({ kind: 'choice', id: 'druid.bear.priority', default: BEAR_PRIORITY.duties })
+    for (const o of BEAR_OPTIONS.slice(1)) expect(o.id).toMatch(/^druid\.bear\.[a-zA-Z]+\.[a-zA-Z]+$/)
   })
 
   it('keep the tank’s duties by default (D26): Demoralizing Roar and Faerie Fire kept up; Enrage in combat isn’t one, and is on (tuned)', () => {
@@ -257,6 +269,40 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
 
   it('rage thresholds are absolute rage, 0 to the 100 cap', () => {
     for (const o of BEAR_OPTIONS) if (o.kind === 'number' && o.unit === 'rage') expect([o.min, o.max], o.id).toEqual([0, 100])
+  })
+})
+
+describe('Max TPS (druid.md §6.3 "Max TPS", D26)', () => {
+  const MAX = { [BEAR_IDS.priority]: BEAR_PRIORITY.maxTps }
+
+  it('drops the roar by default, keeps Faerie Fire and its filler, and refreshes Lacerate from 4.5 s left', () => {
+    const duties = resolveRotationValues(BEAR_OPTIONS, {}, TALENTS)
+    const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
+    expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
+    // Faerie Fire's armor makes the bear's threat: dropping its upkeep costs 1% of TPS (§6.3 "Max TPS").
+    for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
+    expect(MAX_TPS_LACERATE_REFRESH_SEC).toBe(4.5)
+    expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([6, 4.5])
+    // Nothing else moves: the first-pass search found no other setting better (D27).
+    const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.lacerateRefresh].sort())
+    // Each setting's help says how it follows the choice.
+    for (const id of [BEAR_IDS.roarEnabled, BEAR_IDS.ffEnabled, BEAR_IDS.lacerateRefresh]) expect(BEAR_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
+  })
+
+  it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
+    const own = resolveRotationValues(BEAR_OPTIONS, { ...MAX, [BEAR_IDS.roarEnabled]: true, [BEAR_IDS.lacerateRefresh]: 3 }, TALENTS)
+    expect([own[BEAR_IDS.roarEnabled], own[BEAR_IDS.lacerateRefresh]]).toEqual([true, 3])
+    const back = resolveRotationValues(BEAR_OPTIONS, { [BEAR_IDS.priority]: BEAR_PRIORITY.duties }, TALENTS)
+    expect(back).toEqual(resolveRotationValues(BEAR_OPTIONS, {}, TALENTS))
+  })
+
+  it('leaves the roar to the Buffs tab, keeps Faerie Fire, and its lines are the rest of the list', () => {
+    expect(bearMaintainedBuffs(MAX)).toEqual(['faerieFire'])
+    const r = bearRotation(MAX, TALENTS, () => -1, { ...NO_CONTEXT, profile: FOREVER })
+    expect(r.rotation.map((e) => r.abilities[e.ability].id)).toEqual(['berserk', 'enrage', 'maul', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire'])
+    const lacerate = r.abilities.findIndex((a) => a.id === 'lacerate')
+    expect(r.rotation.filter((e) => e.ability === lacerate)[1].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: lacerate, b: 4500 }])
   })
 })
 

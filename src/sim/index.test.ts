@@ -181,7 +181,7 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
       for (const [i, option] of options.entries()) {
         // Only what shapes the rest comes first without a heading: Arms' stance, and a tank's
         // Priority, its duties first or Max TPS (D26).
-        if (option.id === 'warrior.arms.baseStance' || option.id === 'warrior.protection.priority' || option.id === 'paladin.protection.priority') {
+        if (['warrior.arms.baseStance', 'warrior.protection.priority', 'paladin.protection.priority', 'druid.bear.priority'].includes(option.id)) {
           expect(option.group).toBeUndefined()
           expect(i, option.id).toBe(0)
         } else expect(rotationGroups, option.id).toContain(option.group)
@@ -240,8 +240,7 @@ describe('rotationValues', () => {
       'warrior.arms.overpower.enabled': false,
       'warrior.arms.whirlwind.enabled': true,
     })
-    // Fury's are its plain defaults; Protection's Charge follows Vanguard (warrior.md §5.4 row 0); a spec
-    // without a rotation has none.
+    // Fury's are its plain defaults; Protection's Charge follows Vanguard (warrior.md §5.4 row 0).
     expect(rotationValues(defaultConfig('warrior-fury'))['warrior.fury.bloodthirst.enabled']).toBe(true)
     const prot = defaultConfig('warrior-protection')
     expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(true)
@@ -252,8 +251,12 @@ describe('rotationValues', () => {
       'warrior.protection.shieldSlam.enabled': true,
       'warrior.protection.heroicStrike.minRage': 45,
     })
-    // A spec without settings has no values.
-    expect(rotationValues(defaultConfig('paladin-protection'))).toEqual({})
+    // The bear's too: Max TPS drops the roar, keeps Faerie Fire and refreshes Lacerate later (druid.md §6.3).
+    expect(rotationValues({ ...defaultConfig('druid-feral-bear'), rotation: { 'druid.bear.priority': 'maxTps' } })).toMatchObject({
+      'druid.bear.demoRoar.enabled': false,
+      'druid.bear.faerieFire.enabled': true,
+      'druid.bear.lacerate.refreshBelowSec': 4.5,
+    })
   })
 })
 

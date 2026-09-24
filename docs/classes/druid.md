@@ -983,8 +983,23 @@ debuff (the raid's, which the bear keeps itself: no preset gives it a warrior's 
 Shout), and **Faerie Fire**, the armor debuff. Both are the bear's own, so no preset adds the
 Buffs tab's ([buffs doc §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
 Enrage in combat isn't a duty: its armor loss costs 0.14% more damage taken for 3.8% more TPS
-(below), so the search decides it. Each duty is a setting, so the Max TPS rotation (the next
-slice) drops them by setting them.
+(below), so the search decides it. Each duty is a setting, so the Max TPS priority (below) drops
+the roar by moving its default.
+
+**Priority** (`druid.bear.priority`, a choice at the top of the Rotation tab), per
+[D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23),
+as Protection's ([warrior.md §5.4](warrior.md#54-protection-tps)):
+
+- **Tank duties first** (`duties`, the default) keeps both duties up from the pull, by the duty
+  rule below. The table's defaults are this choice's.
+- **Max TPS** (`maxTps`) drops the roar (row 5 is off by default) and refreshes Lacerate from
+  4.5 s left, from a first-pass search on TPS alone ([Max TPS](#max-tps-b4) below). It keeps
+  Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
+  dropping its upkeep costs 1% of TPS. The Buffs tab's Demoralizing Roar is the bear's own, so no
+  preset turns it on: with Max TPS the boss is at full attack power unless you turn it on there
+  because another druid keeps it up.
+
+The choice moves only defaults, as Protection's does: a value you set yourself still wins.
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s
@@ -1045,11 +1060,12 @@ arrives, a cooldown or debuff runs out):
 | `enrage.prepull` | **on** | 12 rage at the pull; 16% less item armor for its first 8.5 s |
 | `enrage.inCombat`, `enrage.maxRage` | **on**, 70 | Tuned (below). Its armor loss ([F] [se-f] tooltip: −27%/−16% base armor) costs 0.14% more damage taken; 70 is the cap minus its 30 rage |
 | `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer, the on-use item the sim models |
-| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
-| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
+| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; on with Max TPS too), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
+| `priority` | **Tank duties first** | Or Max TPS ([below](#max-tps-b4)), which moves the defaults marked "Max TPS" |
+| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s | Kept with the raid's warriors: leaving it out rests on its untested threat (below); refresh tuned |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s (4.5 s with Max TPS) | Kept with the raid's warriors: leaving it out rests on its untested threat (below); refresh tuned |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1199,6 +1215,56 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   The roar's −204 attack power takes 0.56% off the damage the boss's swings do, for 3.6% of the
   TPS its rage and global cooldowns would make. Faerie Fire is threat for a bear (108 a free
   GCD), so a search on TPS alone keeps it; its upkeep line puts it up from the pull.
+
+#### Max TPS (B4)
+
+The **Max TPS** priority is a first pass on TPS alone, per
+[D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
+and [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)
+(one quick search, about 20,000 fights on one seed; the tuning milestone brings it up to D23). It
+drops Demoralizing Roar, keeps Faerie Fire, and refreshes Lacerate from 4.5 s left. Against the
+default (tank duties first), over 100,000 paired fights on seed 13010:
+
+| | Tank duties first | Max TPS | Δ (95% CI) |
+| --- | --- | --- | --- |
+| TPS | 685.75 | 711.63 | +25.88 (+25.55 to +26.21), +3.77% |
+| DPS | 359.03 | 368.67 | +9.64 (+9.48 to +9.80), +2.69% |
+| Damage taken a second | 575 | 578 | +2.60 (+2.54 to +2.67), +0.45% |
+
+What it costs is the roar's −204 attack power on the boss, which is small for a bear: its swings
+cost 0.45% more health a second. With no roar to pay for, its 10 rage and a global cooldown every
+30 s go to Maul, Mangle and Lacerate: that's the TPS and the DPS.
+
+| Setting | Tank duties first → Max TPS | In the winner, Δ TPS (95% CI) | Δ DPS |
+| --- | --- | --- | --- |
+| `demoRoar.enabled` | on → off | +28.09 (+27.76 to +28.42) | +12.72 |
+| `lacerate.refreshBelowSec` | 6 → 4.5 s | +1.22 (+0.92 to +1.51) | −2.01 |
+
+"In the winner" is Max TPS against a copy with that change reverted, on seed 13010 (100,000
+fights). Every other setting keeps the default's value.
+
+- **Method.** `scripts/tune/rotation.mjs --spec druid-feral-bear --base demoRoar.enabled=false`,
+  in the default setup ([Tuning the defaults](#tuning-the-defaults-b3)), on TPS, 20,000 fights on
+  seed 13002 a candidate: Maul's threshold from 10 to 40 in steps of 2, Lacerate's refresh from 3
+  to 9 s, Swipe from 30 to 90 rage, and each of Faerie Fire's upkeep, its filler, its refresh (3
+  and 10 s), Enrage (in combat, its limit, before the pull), Mangle and Lacerate. Lacerate's
+  refresh from 3.5 to 5 s was checked on seed 13003 too.
+- **Faerie Fire stays** (D26: Max TPS drops a duty for threat, and this one makes threat). Its
+  −505 armor makes every attack hit harder, and it's 108 threat for a free global cooldown.
+  Dropping its upkeep line leaves only the filler to put it up, later in the fight and after each
+  lapse: −7.42 TPS (−1.04%, −7.75 to −7.09) and −2.47 DPS (−0.67%). With the filler off too, no
+  Faerie Fire at all: −66.86 TPS (−9.40%) and −24.28 DPS (−6.59%), of which the armor is most
+  (seed 13010, 100,000 fights, against Max TPS).
+- **Lacerate from 4.5 s left.** With the roar's global cooldowns free, a later refresh costs fewer
+  of the bleed's ticks: +0.14% to +0.18% TPS from 4 to 5 s on both seeds, at 0.6–0.8% of the DPS,
+  which Max TPS doesn't weigh. 6 s stays the default's (the DPS rule, above).
+- **Maul from 20** stays: 18 and 22 are level, 24 and up and 12 and down worse (−0.10% to
+  −1.04%). **Swipe** stays off (from 90 rage level, below it −0.04% to −3.96%), as does everything
+  else: Faerie Fire's refresh at 3 or 10 s and Enrage's limit at 50 are level; Enrage in combat
+  off −3.54%, Lacerate off −1.25%, Mangle off −7.71%, the filler off −1.84%.
+- **The Buffs tab's Demoralizing Roar** is the bear's own and in no preset, so with Max TPS nobody
+  keeps it up by default; turned on there, another druid's counts from the pull. Faerie Fire's
+  switch there stays the bear's own, kept up by its rotation.
 
 ---
 

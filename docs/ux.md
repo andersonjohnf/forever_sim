@@ -248,13 +248,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
     Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
-    since C2), "the common priority" for a spec until then. The cat's also says there's no
-    powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-    since a Classic Era feral would look for it. The bear's names the duties its default keeps and
-    says it's tuned for threat around them
-    ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-    "The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, by the tank
-    duties' rule, and around them are tuned for threat in the default setup."
+    since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
+    also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+    since a Classic Era feral would look for it. A tank's says no more: its priority choice,
+    first on the tab, names the duties its default keeps (below).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -267,9 +264,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
     a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
-    Aura, for Retribution Aura, for a paladin), why the default keeps them (you take less damage),
-    what Max TPS gains and costs in the default setup, when to pick it, and that the Buffs tab's
-    versions (Thunder Clap and Demoralizing Shout; Devotion Aura) stay off unless you turn them on
+    Aura, for Retribution Aura, for a paladin; the roar for a bear, which keeps Faerie Fire because
+    its armor makes the bear's threat), why the default keeps them (you take less damage), what Max
+    TPS gains and costs in the default setup, when to pick it, and that the Buffs tab's versions
+    (Thunder Clap and Demoralizing Shout; Devotion Aura; the roar) stay off unless you turn them on
     there for another player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
     help says "Off by default with Max TPS", and a value you set yourself stays set.

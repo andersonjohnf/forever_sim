@@ -3,8 +3,8 @@
 // A tank's default keeps its duties first (decision D26 as amended): Demoralizing Roar and Faerie
 // Fire on the boss, timed by the duty rule, which is fixed and never tuned. Around them, the threat
 // abilities' settings are the best found on TPS, with DPS beside it (decision D23; §6.3 "Tuning the
-// defaults"). Each duty is a setting of its own, so a rotation that drops them (Max TPS) is a matter
-// of setting them.
+// defaults"). Each duty is a setting of its own, so the Max TPS priority drops the roar by moving
+// its default, and keeps Faerie Fire, whose armor makes the bear's threat (§6.3 "Max TPS").
 //
 // Off the GCD: Berserk, Enrage (before the pull, and in combat on cooldown), the racial cooldown
 // (Night Elf), on-use items, the Mighty Rage Potion and Juju Flurry when they're selected in Buffs,
@@ -15,7 +15,7 @@
 import { toTenths } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
 import { COND, type RotationCondition } from '../../plan/types'
-import type { RotationGroup, RotationOption, RotationValue } from '../../types'
+import type { RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, JUJU_FLURRY, maxRage, minRage, NO_CONTEXT, RAGE_POTION, reader, seconds } from '../warrior/shared'
@@ -40,6 +40,7 @@ import type { TalentRanks } from './modifiers'
 
 const B = 'druid.bear'
 export const BEAR_IDS = {
+  priority: `${B}.priority`,
   berserk: `${B}.berserk.enabled`,
   enragePrepull: `${B}.enrage.prepull`,
   enrageInCombat: `${B}.enrage.inCombat`,
@@ -86,8 +87,17 @@ const rageOption = (id: string, label: string, help: string, def: number, depend
   dependsOn,
 })
 
-/** A debuff's refresh input, in seconds left. */
-const refreshOption = (id: string, label: string, help: string, def: number, max: number, dependsOn: string, group: RotationGroup): RotationOption => ({
+/** A debuff's refresh input, in seconds left; `defaultWhen` for a default that follows the priority. */
+const refreshOption = (
+  id: string,
+  label: string,
+  help: string,
+  def: number,
+  max: number,
+  dependsOn: string,
+  group: RotationGroup,
+  defaultWhen?: RotationDefaultWhen<number>[],
+): RotationOption => ({
   kind: 'number',
   id,
   label,
@@ -98,6 +108,7 @@ const refreshOption = (id: string, label: string, help: string, def: number, max
   max,
   step: 0.5,
   default: def,
+  ...(defaultWhen ? { defaultWhen } : {}),
   dependsOn,
 })
 
@@ -114,6 +125,16 @@ export const DEMO_ROAR_REFRESH_SEC = BEAR_GCD_MS / 1000
 const DUTY_RULE = (sec: number, why: string) =>
   ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.`
 
+/**
+ * The priority choice's values (druid.md §6.3 "Max TPS", decision D26): the default keeps the tank's
+ * duties, Demoralizing Roar and Faerie Fire; Max TPS drops the roar for threat. It keeps Faerie Fire,
+ * whose armor raises the bear's damage and so its threat: dropping its upkeep costs 1% of TPS.
+ */
+export const BEAR_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
+const MAX_TPS = { option: ID.priority, is: BEAR_PRIORITY.maxTps } as const
+/** Max TPS's Lacerate refresh (§6.3 "Max TPS"): 4.5 s left, where the duties' default is 6 s. */
+export const MAX_TPS_LACERATE_REFRESH_SEC = 4.5
+
 /** Enrage's rage, 10 at once and 20 over 10 s: 30 (druid.md §4.5). */
 const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 10
 
@@ -123,6 +144,17 @@ const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 1
  * "Tuning the defaults", measured on TPS and DPS with scripts/tune/rotation.mjs).
  */
 export const BEAR_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.priority,
+    label: 'Priority',
+    help: 'Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage. Max TPS drops the roar for threat: about 4% more TPS and 3% more DPS, for 0.5% more damage taken in the default setup. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. Pick it when another tank or the raid covers your survival. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
+    choices: [
+      { value: BEAR_PRIORITY.duties, label: 'Tank duties first' },
+      { value: BEAR_PRIORITY.maxTps, label: 'Max TPS' },
+    ],
+    default: BEAR_PRIORITY.duties,
+  },
   {
     kind: 'toggle',
     id: ID.berserk,
@@ -176,7 +208,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.ffEnabled,
     group: 'Cooldowns and buffs',
     label: 'Faerie Fire',
-    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss, or the boss can resist it. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff.',
+    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss, or the boss can resist it. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff. It stays on with Max TPS: its armor makes your attacks, and so your threat, bigger.',
     default: true,
     maintainsBuff: 'faerieFire',
   },
@@ -194,8 +226,9 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.roarEnabled,
     group: 'Cooldowns and buffs',
     label: 'Demoralizing Roar',
-    help: 'Keep Demoralizing Roar on the boss: its attack power is 204 lower (138 in Classic Era rules), so it hits you for less. It costs 10 rage and can miss. While this is on, the Buffs tab’s Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place.',
+    help: 'Keep Demoralizing Roar on the boss: its attack power is 204 lower (138 in Classic Era rules), so it hits you for less. It costs 10 rage and can miss. While this is on, the Buffs tab’s Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place. Off by default with Max TPS.',
     default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'demoralizingRoar',
   },
   refreshOption(
@@ -251,11 +284,12 @@ export const BEAR_OPTIONS: RotationOption[] = [
   refreshOption(
     ID.lacerateRefresh,
     'Lacerate again with',
-    'At 5 stacks, refresh it when this much of its bleed is left; the tick under way is lost. At 0, once it has run out, when it starts again from 1 stack.',
+    `At 5 stacks, refresh it when this much of its bleed is left; the tick under way is lost. At 0, once it has run out, when it starts again from 1 stack. With Max TPS it’s ${MAX_TPS_LACERATE_REFRESH_SEC} s by default, for a little more threat and a little less damage.`,
     6,
     15,
     ID.lacerateEnabled,
     'Core abilities',
+    [{ ...MAX_TPS, default: MAX_TPS_LACERATE_REFRESH_SEC }],
   ),
   {
     kind: 'toggle',

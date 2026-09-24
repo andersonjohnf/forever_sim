@@ -5,7 +5,7 @@
 // rows and settings are src/sim/classes/druid/bear.test.ts's; the plans here are hand-built from
 // the default bear, one ability at a time, as the plan builder adds them.
 import { describe, expect, it } from 'vitest'
-import { BEAR_IDS, PREPULL_ENRAGE_MS } from '../classes/druid/bear'
+import { BEAR_IDS, BEAR_PRIORITY, PREPULL_ENRAGE_MS } from '../classes/druid/bear'
 import { demoralizingRoar, enrage, FAERIE_FIRE_BEAR, LACERATE, MANGLE, MAUL, SWIPE } from '../classes/druid/bear-abilities'
 import { BERSERK } from '../classes/druid/cat-abilities'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
@@ -563,5 +563,46 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(uptime('faerieFire')).toBeGreaterThanOrEqual(0.98)
     // Its settings name every duty.
     expect(Object.values(BEAR_IDS)).toEqual(expect.arrayContaining(['druid.bear.demoRoar.enabled', 'druid.bear.faerieFire.enabled', 'druid.bear.enrage.inCombat']))
+  })
+})
+
+describe('Max TPS in the engine (druid.md §6.3 "Max TPS", D26)', () => {
+  const MAX: SimConfig['rotation'] = { [BEAR_IDS.priority]: BEAR_PRIORITY.maxTps }
+  const config = (rotation: SimConfig['rotation'], buffs: string[] = []): SimConfig => {
+    const d = defaultConfig('druid-feral-bear')
+    return { ...d, rotation, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, ...buffs] }, run: { mode: 'fixed', iterations: 2000, seed: 33 } }
+  }
+  const run = (c: SimConfig) => {
+    const bundle = buildPlan(c)
+    let agg = emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length)
+    const sim = new Sim(bundle.plan)
+    for (let k = 0; k < 4; k++) agg = mergeChunk(agg, runChunk(bundle.plan, k, 500, sim))
+    return toResult(bundle, agg, 0)
+  }
+
+  it('leaves the Buffs tab’s roar off, as the bear’s own, until you turn it on there for another druid’s; Faerie Fire stays its own', () => {
+    const duties = buildPlan(config({})).plan
+    const max = buildPlan(config(MAX)).plan
+    // Nobody else's roar in the Standard raid: the boss starts at full attack power either way.
+    expect(max.fight.bossSwing!.minDamage).toBe(duties.fight.bossSwing!.minDamage)
+    const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
+    expect(used.has('demoralizingRoar')).toBe(false)
+    expect(used.has('faerieFire')).toBe(true)
+    // Turned on in Buffs, another druid's roar counts with Max TPS: 204 × 2.0 / 14 off each swing,
+    // from the pull. Under tank duties first your own replaces it, so it changes nothing.
+    const other = buildPlan(config(MAX, ['demoralizingRoar'])).plan
+    expect(other.fight.bossSwing!.minDamage).toBeCloseTo(max.fight.bossSwing!.minDamage - (204 * 2) / 14, 0)
+    expect(buildPlan(config({}, ['demoralizingRoar'])).plan.fight.bossSwing!.minDamage).toBe(duties.fight.bossSwing!.minDamage)
+  })
+
+  it('makes more threat and more damage than the default, for a little more damage taken, on the same fights', () => {
+    const duties = run(config({}))
+    const max = run(config(MAX))
+    // §6.3 "Max TPS": +3.8% TPS, +2.7% DPS and +0.45% damage taken in the default setup (100,000 fights).
+    expect(max.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
+    expect(max.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.05)
+    expect(max.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
   })
 })

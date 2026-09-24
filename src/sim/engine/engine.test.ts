@@ -540,6 +540,14 @@ describe('golden run (fixed config and seed)', () => {
   //   M), Revenges (14.92 M → 13.80 M) and Heroic Strikes (11.18 M → 10.06 M); TPS 1,005.29 →
   //   984.26, DPS 312.89 → 303.36. Max TPS's last-seconds dump, now 12 s too, isn't in the default
   //   run. Fury, Arms and the cat are unchanged.
+  // - P1 and P2 rebased onto main's Retribution (C2): all four unchanged, and Retribution's own
+  //   (retribution-golden.test.ts), re-run rather than re-snapshotted. Main's engine additions (a
+  //   mana potion or rune as a cast, the `maxMana` condition, `abilityAuraDown` for judgements, the
+  //   mana ledger) are the paladin's, and a warrior plan uses none of them. The identity probe gives
+  //   Fury's, Arms', the cat's and Retribution's whole results as main's (Fury's and Arms'
+  //   no-main-hand note in PV7's words), Protection's as the branch's, and the bear's and the
+  //   Protection paladin's as main's once the Buffs tab gives each Thunder Clap and Demoralizing
+  //   Shout, which PV3's presets leave out.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -63,6 +63,9 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 
 ## Git workflow
 
+- **No pull requests** (user decision, D32): pull requests are switched off on GitHub. Work lands
+  on `main` by the lead's merges and pushes. Feedback comes in as GitHub **Issues**; read and
+  triage them only when the user asks.
 - **Commit as each task or slice completes,** in logical commits with descriptive messages
   (what and why): on `main`, or on a parallel track's worktree branch.
 - **Parallel tracks** work on worktree branches and are reviewed there. The lead merges them onto

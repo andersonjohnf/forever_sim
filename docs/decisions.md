@@ -547,3 +547,8 @@ cooldown the sim takes the first ability in the list whose conditions hold.
 - **The optimizer (D30) searches the list too:** row order and options are candidates like
   talents and gear.
 
+### D32: No pull requests; feedback through Issues (2026-09-24)
+User decision. Pull requests are switched off on the GitHub repository until at least 1.0. Work
+lands on `main` through the lead's merges and the review gate, as it always has. Players and
+officers give feedback as GitHub Issues, which are read and triaged only when the user asks.
+

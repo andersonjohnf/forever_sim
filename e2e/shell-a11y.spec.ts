@@ -341,8 +341,47 @@ test.describe('brand', () => {
     await popup.close()
   }
 
+  // At 320 px, the narrowest phone, the crest, every spec's switcher, Share and More all fit with no
+  // sideways scroll and no name truncated (the widest are "Marksmanship" and "Beast Mastery"), each
+  // still a 44 px target (review BR-1, BR-9).
+  test.describe('320 px', () => {
+    test.use({ viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true })
+
+    test('every spec fits the header, with no sideways scroll', async ({ page }) => {
+      await page.goto('./')
+      const switcher = page.getByRole('button', { name: /^Spec: / })
+      await switcher.click()
+      const count = await page.getByRole('menuitem').count()
+      expect(count).toBeGreaterThan(1)
+      await page.keyboard.press('Escape')
+      const header = page.getByRole('banner')
+      const targets = [
+        header.getByRole('link', { name: /^Decades: decades\.gg/ }).locator('..'),
+        switcher,
+        header.getByRole('button', { name: 'Share setup' }),
+        header.getByRole('button', { name: 'More' }),
+      ]
+      for (let i = 0; i < count; i++) {
+        await switcher.click()
+        const item = page.getByRole('menuitem').nth(i)
+        const name = (await item.innerText()).split('\n')[0].trim()
+        await item.click()
+        await expect(switcher).toHaveAccessibleName(new RegExp(`^Spec: ${name.replace(/[()]/g, '\\$&')} `))
+        const widths = await page.evaluate(() => [document.documentElement.scrollWidth, document.querySelector('header')!.scrollWidth])
+        expect(widths, name).toEqual([320, 320])
+        // Every shipped name fits whole; truncating is only a safety net for a longer one.
+        expect(await switcher.locator('span > span').evaluateAll((els) => els.every((el) => el.scrollWidth <= el.clientWidth)), name).toBe(true)
+        for (const target of targets) {
+          const box = (await target.boundingBox())!
+          expect(Math.min(box.width, box.height), name).toBeGreaterThanOrEqual(44)
+          expect(box.x + box.width, name).toBeLessThanOrEqual(320)
+        }
+      }
+    })
+  })
+
   for (const colorScheme of ['light', 'dark'] as const) {
-    for (const width of [1280, 390]) {
+    for (const width of [1280, 390, 320]) {
       const phone = width < 640
       test.describe(`${width} px, ${colorScheme}`, () => {
         test.use({ colorScheme, viewport: { width, height: phone ? 844 : 900 }, hasTouch: phone, isMobile: phone })
@@ -350,9 +389,9 @@ test.describe('brand', () => {
         test('the header’s lockup links to decades.gg, 44 px and clear of the spec switcher', async ({ page }) => {
           await stubDecades(page)
           await page.goto('./')
-          const link = page.getByRole('banner').getByRole('link', { name: /^by Decades: decades\.gg/ })
+          const link = page.getByRole('banner').getByRole('link', { name: /^Decades: decades\.gg/ })
           const lockup = link.locator('..')
-          const byline = lockup.getByText('by Decades', { exact: true })
+          const byline = lockup.getByText('Decades', { exact: true })
           // The name stays the page's one heading 1; on a phone only the crest shows (the name is
           // visually hidden, 1 px, for screen readers).
           await expect(page.getByRole('heading', { level: 1 })).toHaveText('Forever Sim')
@@ -382,9 +421,21 @@ test.describe('brand', () => {
           expect(box.x + box.width).toBeLessThanOrEqual(spec.x)
           expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
 
-          // The crest's hourglass is a graphic, 3:1 on the header; the byline is text, AA.
+          // A screen reader hears the name, then the link; the crest still shows first.
+          expect(await lockup.evaluate((el) => [...el.children].map((c) => c.querySelector('h1') ? 'name' : c.tagName))).toEqual(['name', 'A'])
+          const crest = (await link.boundingBox())!
+          if (!phone) expect(crest.x).toBeLessThan(name.x)
+          await expect(link).toHaveAttribute('title', 'decades.gg (opens in a new tab)')
+
+          // The crest's hourglass is a graphic, 3:1 on the header; the byline is text, AA, and on
+          // hover too, where it takes the text colour on the hover fill.
           expect(await contrast(lockup.locator('svg g.fill-brand-gold'), 'svg')).toBeGreaterThanOrEqual(3)
-          if (!phone) expect(await contrast(byline)).toBeGreaterThanOrEqual(4.5)
+          if (!phone) {
+            expect(await contrast(byline)).toBeGreaterThanOrEqual(4.5)
+            await lockup.hover()
+            await expect.poll(() => contrast(byline)).toBeGreaterThanOrEqual(7)
+            await page.mouse.move(width - 1, 800)
+          }
 
           // Keyboard focus shows the app's ring around the whole lockup.
           await page.keyboard.press('Shift')
@@ -392,6 +443,12 @@ test.describe('brand', () => {
           await expect.poll(() => contrast(lockup, 'ring')).toBeGreaterThanOrEqual(3)
 
           await expectSafeDecadesLink(page, link)
+          // A tap leaves no hover fill behind on a touch screen.
+          if (phone) {
+            const [popup] = await Promise.all([page.waitForEvent('popup'), link.tap()])
+            await popup.close()
+            expect(await lockup.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)')
+          }
         })
 
         test('About ends with the guild’s section, its logo for the theme, and a link to decades.gg', async ({ page }) => {

@@ -43,10 +43,15 @@ export function Header() {
   const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
   return (
     <header className="sticky top-0 z-40 border-b border-brand-gold/40 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4">
+      {/*
+       * Below 360 px the row's edge and gaps tighten, and the crest and the More button reach a little
+       * into the edge, so the widest spec's name ("Marksmanship") still fits at 320 px; a longer one
+       * would truncate in the switcher. Never a sideways scroll (docs/ux.md#layout).
+       */}
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 max-[360px]:gap-1 max-[360px]:px-3">
         <Lockup />
         <SpecSwitcher />
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1 max-[360px]:-mr-1.5 max-[360px]:gap-0">
           <ShareButton />
           <MoreMenu onOpen={setSheet} triggerRef={menuButton} />
         </div>
@@ -64,25 +69,36 @@ export function Header() {
 
 /**
  * The brand lockup (docs/ux.md#brand): the Decades crest, the app's name (the page's one heading 1,
- * docs/ux.md#accessibility) and "by Decades", the whole of it one 44 px link to the guild's site in
- * a new tab. The link is the crest; its ::after stretches over the name as well, so a click anywhere
- * on the lockup follows it, and the lockup lights up on hover and focus as a ghost button does. On a
- * phone only the crest shows.
+ * docs/ux.md#accessibility) and "Decades" under it, the whole of it one 44 px link to the guild's
+ * site in a new tab. The link is the crest; its ::after stretches over the name as well, so a click
+ * anywhere on the lockup follows it. The lockup lights up on hover (only where a pointer hovers, so
+ * a tap leaves no highlight) and shows the focus ring, as a ghost button does. The name comes first
+ * in the DOM, so a screen reader hears "Forever Sim" and then the link, though the crest shows
+ * first. On a phone only the crest shows.
  */
 function Lockup() {
   return (
-    <div className="relative -ml-1.5 flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-lg px-1.5 transition-colors has-[a:hover]:bg-muted has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:pr-2.5 dark:has-[a:hover]:bg-muted/50">
-      <a href={DECADES_URL} target="_blank" rel="noopener" className="outline-none after:absolute after:inset-0 after:rounded-lg">
-        <DecadesCrest className="size-8" />
-        <span className="sr-only">by Decades: decades.gg, opens in a new tab</span>
-      </a>
-      <div className="flex flex-col gap-1 max-sm:sr-only">
+    <div className="group/lockup relative -ml-1.5 flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-lg px-1.5 transition-colors hover:bg-muted has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:pr-2.5 max-[360px]:-ml-2 dark:hover:bg-muted/50">
+      <div className="order-last flex flex-col gap-1 max-sm:sr-only">
         <h1 className="leading-none font-semibold tracking-tight">Forever Sim</h1>
-        {/* The link says it for screen readers. */}
-        <span aria-hidden className="font-brand text-[0.6875rem] leading-none font-semibold tracking-[0.24em] text-muted-foreground uppercase">
-          by Decades
+        {/* The link says it for screen readers. On hover it takes the text colour, as a ghost button's does. */}
+        <span
+          aria-hidden
+          className="font-brand text-xs leading-none font-semibold tracking-[0.24em] text-muted-foreground uppercase transition-colors group-hover/lockup:text-foreground"
+        >
+          Decades
         </span>
       </div>
+      <a
+        href={DECADES_URL}
+        target="_blank"
+        rel="noopener"
+        title="decades.gg (opens in a new tab)"
+        className="outline-none after:absolute after:inset-0 after:rounded-lg"
+      >
+        <DecadesCrest className="size-8" />
+        <span className="sr-only">Decades: decades.gg, opens in a new tab</span>
+      </a>
     </div>
   )
 }
@@ -97,11 +113,16 @@ function SpecSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-11 gap-2 px-2" aria-label={`Spec: ${meta.name} ${meta.className}. Change spec`}>
+        {/* It gives way first when the row is tight: a name too long for it truncates, never the page scrolling sideways. */}
+        <Button
+          variant="ghost"
+          className="h-11 min-w-0 shrink gap-2 px-2 max-[360px]:gap-1.5 max-[360px]:px-1.5"
+          aria-label={`Spec: ${meta.name} ${meta.className}. Change spec`}
+        >
           <WowIcon icon={meta.icon} size="sm" />
-          <span className="flex flex-col items-start leading-tight">
-            <span className="text-sm font-semibold">{meta.name}</span>
-            <span className={cn('text-xs font-medium', CLASS_TEXT[meta.classId])}>{meta.className}</span>
+          <span className="flex min-w-0 flex-col items-start leading-tight">
+            <span className="max-w-full truncate text-sm font-semibold">{meta.name}</span>
+            <span className={cn('max-w-full truncate text-xs font-medium', CLASS_TEXT[meta.classId])}>{meta.className}</span>
           </span>
           <ChevronDown className="text-muted-foreground" />
         </Button>

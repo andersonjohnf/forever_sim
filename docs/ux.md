@@ -19,8 +19,9 @@ When a design decision isn't covered here, make it, then add it here.
    **390 px** and **1280 px**. No horizontal page scroll. Touch targets are at least 44 px.
    Everything works with a keyboard.
 5. **Calm, modern, consistent.** Use shadcn/ui components and one type scale. Surfaces are
-   neutral; color is reserved for meaning: class, item quality, better or worse. The one
-   exception is the Decades brand's gold, on the brand's own marks alone ([Brand](#brand)).
+   neutral; color is reserved for meaning: class, item quality, better or worse. The brand makes
+   two exceptions ([Brand](#brand)): the Decades gold, on the brand's own marks alone, and the dark
+   theme's surfaces, which lean slightly toward the guild's ink navy at the stock lightness.
 6. **Fast and never blocking.** Sims run in Web Workers with progress and a cancel button.
    Changing a setting never freezes the page. Results that no longer match the setup are
    marked stale.
@@ -41,8 +42,11 @@ When a design decision isn't covered here, make it, then add it here.
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **Header:** the Decades lockup ([Brand](#brand)): the guild's crest, "Forever Sim" (the page's one
-`<h1>`) and "by Decades" under it, one link to the guild's site; on phones only the crest shows,
-the name visually hidden. Then the **spec switcher**, which shows the class icon and spec in the class color. Its menu lists
+`<h1>`) and "Decades" under it, one link to the guild's site; on phones only the crest shows,
+the name visually hidden. Then the **spec switcher**, which shows the class icon and spec in the class color. It's the
+one part of the row that gives way: below 360 px the row's edge and gaps tighten so every shipped
+spec's name fits whole at 320 px ("Marksmanship", "Beast Mastery"), and a longer name would
+truncate rather than scroll the page sideways (an e2e test walks every spec at 320 px). Its menu lists
 the specs under their class's heading, each class a group named by it, so a screen reader tells a
 warrior's Protection from a paladin's too. Then
 **Share** (copies a link to this setup) and an overflow menu with Setups…
@@ -649,11 +653,14 @@ Forever Sim is made by **Decades**, a gaming community since 2005, whose site is
 the sim (principle 1).
 
 - **Where it appears,** and nowhere else:
-  - **The header's lockup:** the crest, "Forever Sim" and "by Decades" under it, in the guild's
-    lettering (Josefin Sans, uppercase, spaced) in the muted text colour, not gold, so it never
-    reads as a class colour beside the spec switcher. The whole lockup is one link, 44 px tall, that
-    lights up on hover and shows the focus ring as a ghost button does (`Lockup` in
-    `src/app/header.tsx`). On a phone it's the crest alone, 44 px square, before the spec switcher.
+  - **The header's lockup:** the crest, "Forever Sim" and "Decades" under it, in the guild's
+    lettering (Josefin Sans, uppercase, spaced, 12 px) in the muted text colour, not gold, so it
+    never reads as a class colour beside the spec switcher. The whole lockup is one link, 44 px
+    tall, that shows the focus ring as a ghost button does, and lights up on hover as one does too,
+    "Decades" taking the text colour (`Lockup` in `src/app/header.tsx`). The hover is only where a
+    pointer can hover, so a tap on a phone leaves no highlight. "Forever Sim" comes before the link
+    in the DOM, so a screen reader hears the page's name and then the link; the crest still shows
+    first. On a phone it's the crest alone, 44 px square, before the spec switcher.
   - **The header's bottom edge,** a gold hairline.
   - **About's last section, "Made by Decades":** under a gold hairline, its heading in the guild's
     lettering in gold, the guild's full logo, one line of the guild's own positioning ("a gaming
@@ -662,8 +669,9 @@ the sim (principle 1).
     stock lightness, so every contrast measured on them holds (within 0.03:1).
   - Not the favicon: the sim keeps its own mark there, since the crest's detail is lost at 16 px.
 - **Links** to the guild's site open in a new tab, with `rel="noopener"`, and say so to screen
-  readers ("opens in a new tab"). The header's is named "by Decades: decades.gg, opens in a new
-  tab", which holds its visible words (WCAG 2.5.3).
+  readers ("opens in a new tab"). The header's is named "Decades: decades.gg, opens in a new tab",
+  which holds its visible word (WCAG 2.5.3), and its tooltip says "decades.gg (opens in a new
+  tab)" for sighted users with a mouse.
 - **Assets:** the crest is the guild's own path data, unchanged (`src/components/decades-crest.tsx`):
   its blades take the text colour and its hourglass `--brand-gold`, so one drawing serves both
   themes. The full logo is two files in `public/brand/`: the guild's own, white and gold, for dark
@@ -678,7 +686,8 @@ the sim (principle 1).
   | `--brand-gold-text` | `oklch(0.53 0.09 80)` (#876527): 5.3:1 on the page and sheets, 4.9:1 on muted rows | #c4a75e: 8.5:1 and 7.7:1 | Brand lettering, AA 4.5:1. |
 
   The guild's own gold, #c4a75e, is 2.3:1 on white, so light surfaces never take it, as text or as
-  a graphic. The lockup's "by Decades" is muted text (4.7:1 light, 7.6:1 dark).
+  a graphic. The lockup's "Decades" is muted text (4.7:1 light, 7.7:1 dark), and on hover the text
+  colour on the hover fill (18:1 light, 17:1 dark).
 - **What the brand may say** follows the guild's own rules (its site's content guide): the game is
   World of Warcraft: Forever, never renamed; neither the app nor the guild claims any Blizzard
   affiliation, so About says neither is affiliated with or endorsed by Blizzard Entertainment; and

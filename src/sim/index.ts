@@ -237,7 +237,7 @@ export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[]
  * overrides (`sim/effects/items.ts`): `equip`, its equip and chance-on-hit effects and extra weapon
  * damage (an override replaces what the tooltip says); `use`, its use effect, as a cast a rotation
  * can press. The plan lists every other effect as not simulated. With a spec, an equip effect that
- * names only other specs' abilities (Idol of Brutality's Maul and Swipe, for a cat) counts as
+ * names only other specs' abilities (Totem of Rebirth's Riptide, for a damage spec) counts as
  * modelled: there's nothing in it to simulate.
  */
 export function modelledItemEffects(itemId: number, spec?: SpecId): { equip: boolean; use: boolean } {

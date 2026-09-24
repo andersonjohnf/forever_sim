@@ -156,3 +156,13 @@ export const shiftForm = (def: AbilityDef): DruidForm | null =>
 
 /** Wolfshead Helm (8345): +20 Energy from Tiger's Fury and +5 rage from Enrage in Forever; nothing on a shift [F] (druid.md §1.1, §2.8). */
 export const WOLFSHEAD_HELM = 8345
+
+/**
+ * Idol of Brutality (23198, spell 28855): −2 rage (aura 107, misc 14: −20 tenths) on class mask
+ * [2048, 64, 0, 0], which is Maul and Swipe (0x800 in the first word) and Mangle (0x40 in the second)
+ * [F] [client] (SpellEffect, SpellClassOptions, 1.60.1.69913; druid.md §4.1, §4.2, §4.4). Its tooltip
+ * names only Maul and Swipe, so Mangle's 2 rage is the client data's reading [?] (guild test G2).
+ */
+export const IDOL_OF_BRUTALITY = 23198
+export const IDOL_OF_BRUTALITY_RAGE_TENTHS = 20
+export const IDOL_OF_BRUTALITY_ABILITIES: ReadonlySet<string> = new Set(['maul', 'swipe', 'mangle'])

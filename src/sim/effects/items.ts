@@ -24,12 +24,10 @@ export interface ItemEffects {
 
 /**
  * Items whose equip effects name only some specs' abilities, by item id: for any other spec they
- * do nothing, so they aren't flagged as not simulated. Idol of Brutality (23198, spell 28855):
- * "Reduces the Rage cost of Maul and Swipe by 2", a bear's abilities (druid.md §4.1, §4.4), and
- * the cat's pre-raid relic.
+ * do nothing, so they aren't flagged as not simulated. An item with an `ITEM_EFFECTS` entry needs
+ * none: the entry says what it does for whom (Idol of Brutality, the bear's rotation).
  */
 const ITEM_EFFECT_SPECS: Record<number, readonly SpecId[]> = {
-  23198: ['druid-feral-bear'],
   // Totem of Rebirth (22345, spell 27797): "Reduces the Mana cost of Riptide by 5%", a healer's spell
   // (docs/classes/shaman.md#defaults): nothing for a damage spec.
   22345: [],
@@ -181,6 +179,15 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
       rageTenths: 0,
       rageSpreadTenths: 0,
     },
+  },
+  // Idol of Brutality (item 23198): "Equip: Reduces the Rage cost of Maul and Swipe by 2." (28855: aura
+  // 107, misc 14 (cost), −20 tenths of rage on class mask [2048, 64]: Maul and Swipe's 0x800 and Mangle's
+  // 0x40 in the second word) [F] [client] (SpellEffect, 1.60.1.69913). Nothing on its own: the bear's
+  // rotation takes 2 rage off Maul, Swipe and Mangle (docs/classes/druid.md §4.1, §4.2, §4.4; Mangle by
+  // the mask, which the tooltip doesn't name [?]). The cat's relic too, where it does nothing.
+  23198: {
+    source: 'Forever client: spell 28855’s cost modifier and class mask (1.60.1.69913); the bear rotation takes the rage off',
+    effects: [],
   },
   // Totem of Rage (item 22395): "Equip: Increases the damage of your Shock spells by 2%." (27859). Nothing
   // on its own: the shaman's shocks read it (docs/classes/shaman.md#shocks-and-lightning-bolt).

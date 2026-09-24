@@ -14,12 +14,12 @@
 // rage thresholds are absolute rage points.
 import { toTenths } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
-import { COND, type RotationCondition } from '../../plan/types'
+import { type AbilityDef, COND, type RotationCondition } from '../../plan/types'
 import type { RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, JUJU_FLURRY, maxRage, minRage, NO_CONTEXT, RAGE_POTION, reader, seconds } from '../warrior/shared'
-import { WOLFSHEAD_HELM } from './abilities'
+import { IDOL_OF_BRUTALITY, IDOL_OF_BRUTALITY_ABILITIES, IDOL_OF_BRUTALITY_RAGE_TENTHS, WOLFSHEAD_HELM } from './abilities'
 import {
   BEAR_GCD_MS,
   demoralizingRoar,
@@ -245,13 +245,13 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.maulEnabled,
     group: 'Core abilities',
     label: 'Maul',
-    help: 'Queue Maul on your next swing: your Dire Bear Form attack’s damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5, at 1.75 threat per damage. The swing it replaces gives no rage.',
+    help: 'Queue Maul on your next swing: your Dire Bear Form attack’s damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5 (8 with Idol of Brutality), at 1.75 threat per damage. The swing it replaces gives no rage.',
     default: true,
   },
   rageOption(
     ID.maulMinRage,
     'Maul from',
-    'Queue it at or above this much rage. It costs 10 with Ferocity 5/5; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat.',
+    'Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat.',
     20,
     ID.maulEnabled,
     'Core abilities',
@@ -261,7 +261,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.mangleEnabled,
     group: 'Core abilities',
     label: 'Mangle',
-    help: 'Use Mangle whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5. Needs the Mangle talent.',
+    help: 'Use Mangle whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality). Needs the Mangle talent.',
     default: true,
   },
   {
@@ -296,7 +296,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.swipeEnabled,
     group: 'Fillers',
     label: 'Swipe',
-    help: 'Spend spare rage on Swipe: 83 damage, 30% more with Feral Instinct 3/3 and 10% with Savage Fury, for 15 rage with Ferocity 5/5, at 1.75 threat per damage. It hits up to 3 targets; the sim has one.',
+    help: 'Spend spare rage on Swipe: 83 damage, 30% more with Feral Instinct 3/3 and 10% with Savage Fury, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality), at 1.75 threat per damage. It hits up to 3 targets; the sim has one.',
     default: false,
   },
   rageOption(ID.swipeMinRage, 'Swipe from', 'Use it only at or above this much rage, so Maul keeps the rage it needs.', 60, ID.swipeEnabled, 'Fillers'),
@@ -336,6 +336,13 @@ export const BEAR_OPTIONS: RotationOption[] = [
     requiresBuff: JUJU_FLURRY,
   },
 ]
+
+/**
+ * An ability with Idol of Brutality equipped: 2 rage off Maul, Swipe and Mangle (abilities.ts
+ * `IDOL_OF_BRUTALITY`; druid.md §4.1), before Ferocity's, which the plan takes off after.
+ */
+export const withIdolOfBrutality = (def: AbilityDef, equipped: ReadonlySet<number>): AbilityDef =>
+  equipped.has(IDOL_OF_BRUTALITY) && IDOL_OF_BRUTALITY_ABILITIES.has(def.id) ? { ...def, costTenths: def.costTenths - IDOL_OF_BRUTALITY_RAGE_TENTHS } : def
 
 /** The Buffs tab's exclusive group of attack-power debuffs on the boss (buffs doc §4.2), where a Demoralizing Shout takes the roar's place. */
 const AP_REDUCTION = 'ap-reduction'
@@ -378,7 +385,7 @@ const stacksBelow = (a: number, n: number): RotationCondition => ({ code: COND.a
 /**
  * The bear priority list from the settings (druid.md §6.3). `talents` gates Mangle and Berserk and
  * resolves costs, Savage Fury, Feral Instinct, Genesis, Predatory Instincts and Rend and Tear;
- * `context` gives the race (Elune's Light), the equipped on-use items and Wolfshead Helm, the
+ * `context` gives the race (Elune's Light), the equipped on-use items, Wolfshead Helm and Idol of Brutality, the
  * selected consumables and the profile (Demoralizing Roar's attack power). `_auraIndex` is unused:
  * no bear line reads a plan aura by id.
  */
@@ -391,6 +398,10 @@ export function bearRotation(
   const ctx: ClassRotationContext = { ...NO_CONTEXT, equipped: new Set(), othersBleed: false, front: true, ...context }
   const v = reader(BEAR_OPTIONS, values, talents)
   const b = new DruidRotationBuilder(talents)
+  // Idol of Brutality: 2 rage off Maul, Swipe and Mangle (druid.md §4.1).
+  const maul = withIdolOfBrutality(MAUL, ctx.equipped)
+  const swipe = withIdolOfBrutality(SWIPE, ctx.equipped)
+  const mangle = withIdolOfBrutality(MANGLE, ctx.equipped)
 
   // --- Off the GCD (§6.3 rows 1–3) ------------------------------------------------------------------
   // Row 1: Berserk on cooldown, with the talent.
@@ -408,7 +419,7 @@ export function bearRotation(
   const juju = consumable(JUJU_FLURRY)
   if (juju && v.on(ID.juju)) b.add(onUseCast(juju), [])
   // Row 3: the Maul queue at rage ≥ minRage; rage is checked and spent when the swing lands (§8).
-  if (v.on(ID.maulEnabled)) b.add(MAUL, [minRage(toTenths(v.num(ID.maulMinRage)))])
+  if (v.on(ID.maulEnabled)) b.add(maul, [minRage(toTenths(v.num(ID.maulMinRage)))])
 
   // --- On the GCD -----------------------------------------------------------------------------------
   // Row 4: the duties first, before any threat ability on the GCD (D26's rule): Demoralizing Roar and
@@ -420,7 +431,7 @@ export function bearRotation(
   }
   if (v.on(ID.ffEnabled)) b.add(FAERIE_FIRE_BEAR, [refresh(b.ability(FAERIE_FIRE_BEAR), seconds(v, ID.ffRefresh))])
   // Row 5: Mangle (the talent) whenever it's ready.
-  if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(MANGLE, [])
+  if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(mangle, [])
   // Row 6: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
   // run out before the fight does; with onlyWithoutOtherBleeds (off by default), not at all while
   // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
@@ -430,7 +441,7 @@ export function bearRotation(
     b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
   }
   // Row 7: Swipe with spare rage (the sim has one target: §6.3's target count never applies).
-  if (v.on(ID.swipeEnabled)) b.add(SWIPE, [minRage(toTenths(v.num(ID.swipeMinRage)))])
+  if (v.on(ID.swipeEnabled)) b.add(swipe, [minRage(toTenths(v.num(ID.swipeMinRage)))])
   // Row 8: Faerie Fire whenever it's ready, as a free filler.
   if (v.on(ID.ffFiller)) b.add(FAERIE_FIRE_BEAR, [])
 

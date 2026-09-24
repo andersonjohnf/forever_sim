@@ -614,6 +614,15 @@ On next swing: replaces the white swing with a yellow attack for `(W_b + 128) ×
 glance, and crits for 2.2× with Predatory Instincts. Cost 15 − 5 (Ferocity) = **10 Rage**, spent
 when the swing lands. No GCD. [F] [se-f] [sp-f]
 
+**Idol of Brutality** (item 23198, the default relic): "Reduces the Rage cost of Maul and Swipe by
+2" (28855: aura 107, misc 14, −20 tenths of rage on class mask [2048, 64, 0, 0]) [F] [client]
+(SpellEffect, SpellClassOptions, 1.60.1.69913). The mask's first word, 0x800, is Maul's and
+Swipe's; its second, 0x40, is Mangle's (1238073), which the tooltip doesn't name. The engine takes
+2 rage off all three: Maul **8**, Swipe and Mangle **13** with Ferocity 5/5 (W21). Maul and Swipe
+[F]; Mangle by the class mask [F data, ?] (Q37, guild test G2). In the engine the bear's rotation
+reads it from the equipped items (`withIdolOfBrutality`, as Wolfshead Helm's Enrage), so the
+results don't list it as not simulated.
+
 Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
 [threat.md](../mechanics/threat.md#druid-bear); Q15).
 
@@ -625,7 +634,7 @@ no rage, where a landed white swing would give 8.65 [?]
 ### 4.2 Mangle (bear only; 1238073 at level 60)
 
 - `1.00 × (W_b + 77)`. Savage Fury does **not** apply (the mask excludes it); crits for 2.2×.
-- 20 − 5 = **15 Rage**, **6 s cooldown**, 1.5 s GCD.
+- 20 − 5 = **15 Rage** (13 with Idol of Brutality, §4.1), **6 s cooldown**, 1.5 s GCD.
 - Requires Bear or Dire Bear (shapeshift mask 0x90). The Forever wiki page also lists the talent
   as "Mangle (Bear)" [wiki-forever].
 - Rank ladder: 26 (talent rank, level 25), 38 (36), 59 (48), 77 (60). Assume the trainer teaches
@@ -670,7 +679,7 @@ no rage, where a landed white swing would give 8.65 [?]
 ### 4.4 Swipe (r5, 9908)
 
 83 × SF × Feral Instinct (×1.10 × ×1.30) to up to **3** targets. No AP scaling
-(`BonusCoefficientFromAP` 0), 20 − 5 = **15 Rage**, 1.5 s GCD. [F] [se-f] [sp-f]
+(`BonusCoefficientFromAP` 0), 20 − 5 = **15 Rage** (13 with Idol of Brutality, §4.1), 1.5 s GCD. [F] [se-f] [sp-f]
 
 Threat ×1.75 [?] (LibThreatClassic2 only, [ltc2]; Q15).
 
@@ -1523,7 +1532,7 @@ If Q5 changes those numbers, recompute the examples; the formulas stay.
 Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 and W6
 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`); W3–W8 and W11 with the
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
-`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19 and W20
+`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19, W20 and W21
 (`src/sim/classes/druid/bear.test.ts`, with W14–W16 and W19 also in the engine,
 `src/sim/engine/bear.test.ts`, whose default-bear test checks W20's +261 per landed application). W12 compares W6 and W7 by hand.
 
@@ -1607,6 +1616,8 @@ cat's abilities in the engine, and W8's Energy against the client (`src/sim/engi
     hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its threat (154.566 + 261)
     × 1.3 = **540.235**. The first application of a run deals nothing and makes 261 × 1.3 =
     **339.3**. [?] (the hit, Q16; the +261, Q15 and the wording table)
+21. **Idol of Brutality with Ferocity 5/5** (§4.1): Maul 15 − 5 − 2 = **8** rage, Mangle and Swipe
+    20 − 5 − 2 = **13**; Lacerate stays **15** (not in its mask). [F] Maul and Swipe, [?] Mangle (Q37)
 
 ---
 
@@ -1653,6 +1664,7 @@ ranks.
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
 | Q34 | Shapeshifting and the timers: does a shapeshift reset or keep the swing timer, and do Energy and mana regenerate on one shared 2 s tick? Does entering cat before ever leaving it in a fight keep a full bar under Furor? | The engine keeps the swing in progress and one power tick for both, running through shifts, and counts a full bar as the Energy last left in cat [?] (§2.4, §2.8) | Log swings and Energy and mana ticks with an addon around a powershift (Cat Form → Cat Form) and a cat → bear → cat shift |
 | Q35 | Enrage's armor loss: 16% of which armor, and how does it combine with Dire Bear Form's +360%? | Tooltip only [F]: the client's effect is a dummy. The engine takes 16% of item armor, added to the +360% (§4.5) [?]. The other reading, 16% of the whole form armor, loses about five times as much. It moves damage taken only, not rage (`forever`) or threat | Character-sheet armor in Dire Bear Form before and during Enrage, with and without an armor buff |
+| Q37 | Idol of Brutality on Mangle: does its −2 rage reach Mangle, as its class mask says, or only Maul and Swipe, as its tooltip says? | 28855's mask [2048, 64] covers Maul, Swipe (0x800) and Mangle (0x40, second word) [F] [client]; the tooltip names Maul and Swipe [F]. The engine takes 2 off all three [?]; Mangle's 2 rage is 2.4% of the default bear's TPS, the idol 6.6% in all (seed 424242, 20,000 fights) | **G2:** with the idol equipped, the costs on Maul's, Swipe's and Mangle's tooltips in Dire Bear Form: Mangle 13 means the mask applies, 15 that it doesn't |
 | Q36 | Berserk and a Mangle already on cooldown: does it reset the cooldown, or only stop new ones? | 417141 #1 is a −100% cooldown modifier on Mangle [F] [client]; the engine lets a running cooldown run (§4.6) [?] | Mangle, then Berserk 1 s later; see whether Mangle is ready at once |
 
 ---

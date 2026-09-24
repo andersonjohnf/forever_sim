@@ -508,8 +508,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (!item.foreverData) classicItems.push(item.name)
     const override = ITEM_EFFECTS[item.id]
     if (override) apply(typeof override.effects === 'function' ? override.effects(profile) : override.effects, origin)
-    // An effect that names only another spec's abilities (Idol of Brutality's Maul and Swipe for a
-    // cat) does nothing here, so it isn't listed.
+    // An effect that names only another spec's abilities (Totem of Rebirth's Riptide for a damage
+    // spec) does nothing here, so it isn't listed.
     else if ((item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0) && itemEffectsApply(item.id, config.spec))
       unmodelled.push(item.name)
     if (override?.use) itemUses.push(override.use)

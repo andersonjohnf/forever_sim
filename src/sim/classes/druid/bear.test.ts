@@ -46,6 +46,7 @@ import {
   SWIPE,
   SWIPE_THREAT_MULT,
 } from './bear-abilities'
+import { IDOL_OF_BRUTALITY, IDOL_OF_BRUTALITY_ABILITIES, IDOL_OF_BRUTALITY_RAGE_TENTHS } from './abilities'
 import { BERSERK, FAERIE_FIRE_ARMOR } from './cat-abilities'
 import { formBit } from './forms'
 import { REND_AND_TEAR, withDruidTalents } from './modifiers'
@@ -178,6 +179,23 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(enrage(false).aura!.mods.itemArmorPct).toBe(ENRAGE_ITEM_ARMOR_PCT)
   })
 
+  it('Idol of Brutality (23198, 28855): −2 rage on its class mask, which covers Maul, Swipe and Mangle and nothing else of the bear’s', () => {
+    const idol = effect(28855, 0)
+    expect(idol).toMatchObject({ effect: 6, effectAura: 107, effectBasePointsF: -IDOL_OF_BRUTALITY_RAGE_TENTHS, effectMiscValue: [14, 0] })
+    const affected = idol.effectSpellClassMask!
+    const rows = [
+      [9881, MAUL],
+      [9908, SWIPE],
+      [1238073, MANGLE],
+      [1235827, LACERATE],
+      [9898, demoralizingRoar(FOREVER)],
+      [9907, FAERIE_FIRE_BEAR],
+      [5229, enrage(false)],
+    ] as const
+    for (const [id, def] of rows) expect(covers(affected, id), def.id).toBe(IDOL_OF_BRUTALITY_ABILITIES.has(def.id))
+    expect([...IDOL_OF_BRUTALITY_ABILITIES].sort()).toEqual(['mangle', 'maul', 'swipe'])
+  })
+
   it('Clearcasting (16870) pays for exactly the bear abilities its class mask covers: not Faerie Fire, which is free anyway', () => {
     const affected = effect(16870, 0).effectSpellClassMask!
     const rows = [
@@ -201,6 +219,22 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(TALENTS.get('Ferocity')).toBe(5)
     expect(TALENTS.has('Shredding Attacks')).toBe(false)
     expect([MAUL, MANGLE, SWIPE, LACERATE].map((d) => resolved(d).costTenths)).toEqual([100, 150, 150, 150])
+  })
+
+  it('W21: with Idol of Brutality, the rotation’s Maul costs 15 − 5 − 2 = 8, Mangle and Swipe 13; Lacerate stays 15', () => {
+    const cost = (equipped: number[]) => {
+      const r = bearRotation({ [BEAR_IDS.swipeEnabled]: true }, TALENTS, () => -1, { ...NO_CONTEXT, profile: FOREVER, equipped: new Set(equipped) })
+      return Object.fromEntries(['maul', 'mangle', 'swipe', 'lacerate'].map((id) => [id, r.abilities.find((a) => a.id === id)!.costTenths / 10]))
+    }
+    expect(cost([IDOL_OF_BRUTALITY])).toEqual({ maul: 8, mangle: 13, swipe: 13, lacerate: 15 })
+    expect(cost([])).toEqual({ maul: 10, mangle: 15, swipe: 15, lacerate: 15 })
+    // The default bear wears it, and its plan pays the idol's costs; its effect isn't listed as not simulated.
+    const d = defaultConfig('druid-feral-bear')
+    expect(d.gear.ranged?.itemId).toBe(IDOL_OF_BRUTALITY)
+    const { plan, assumptions } = buildPlan(d)
+    expect(plan.abilities.find((a) => a.id === 'maul')!.costTenths).toBe(80)
+    expect(plan.abilities.find((a) => a.id === 'mangle')!.costTenths).toBe(130)
+    expect(assumptions.find((a) => a.id === 'unmodelledProcs')?.text ?? '').not.toContain('Idol of Brutality')
   })
 
   it('W14: Maul at 1200 AP is (351.286 + 128) × 1.10 = 527.214, and its threat × 1.75 × 1.3 = 1199.41', () => {

@@ -276,7 +276,7 @@ describe('the Shadow priority and its plan (docs/classes/priest.md §6, §8)', (
 
   it('a caster gets no melee buffs, and its raid preset brings its caster entries and consumables', () => {
     const raid = presetBuffIds('raid', SHADOW, defaultConfig(SHADOW).buffs.raid)
-    for (const melee of ['battleShout', 'blessingOfMight', 'windfuryTotem', 'strengthOfEarth', 'sunderArmor', 'faerieFire', 'curseOfRecklessness', 'leaderOfThePack']) {
+    for (const melee of ['battleShout', 'blessingOfMight', 'windfuryTotem', 'strengthOfEarth', 'sunderArmor', 'faerieFire', 'curseOfRecklessness', 'leaderOfThePack', 'jujuFlurry']) {
       expect(raid).not.toContain(melee)
       expect(forSpecClass(BUFFS_BY_ID.get(melee)!, SHADOW), melee).toBe(false)
     }

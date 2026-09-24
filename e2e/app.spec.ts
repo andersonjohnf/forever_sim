@@ -42,8 +42,10 @@ test.describe('setup', () => {
     await expect(page.getByRole('group', { name: 'Mage' }).getByRole('menuitem')).toHaveText([/^Fire\s*DPS$/, /^Frost\s*DPS$/, /^Arcane\s*DPS$/])
     // The Destruction and Affliction warlocks since K3.
     await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(17)
-    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/])
+    // The Shadow Priest since K4, under the Priest heading.
+    await expect(page.getByRole('group', { name: 'Priest' }).getByRole('menuitem')).toHaveText([/^Shadow\s*DPS$/])
+    await expect(page.getByRole('menuitem')).toHaveCount(18)
+    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/, /^Priest/])
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {

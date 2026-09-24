@@ -132,7 +132,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.blast,
     group: 'Core abilities',
     label: 'Mind Blast',
-    help: 'Cast it whenever it’s ready: a 1.5 s cast every 5.5 s with Improved Mind Blast.',
+    help: 'Cast it whenever it’s ready: a 1.5 s cast, ready again 5.5 s after it lands with Improved Mind Blast.',
     default: true,
   },
   {
@@ -148,7 +148,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.embrace,
     group: 'Core abilities',
     label: 'Vampiric Embrace',
-    help: 'Keep it on the boss (30 s, every minute) for your party’s healing. The sim doesn’t count healing, so here it only costs a global cooldown and 20 mana.',
+    help: 'Keep it on the boss (30 s, every minute) for your party’s healing. The sim doesn’t count healing, so here it only costs a global cooldown and a little mana.',
     default: false,
     requires: { talent: 'Vampiric Embrace' },
   },

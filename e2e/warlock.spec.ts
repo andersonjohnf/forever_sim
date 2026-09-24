@@ -85,7 +85,7 @@ test.describe('Destruction warlock', () => {
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction and Affliction\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction and Affliction( · .+)?\.$/)).toBeVisible()
   })
 
   test('its Rotation tab: the common priority, the Succubus, Corruption, Bane of Doom, Incinerate and its own curse', async ({ page }) => {

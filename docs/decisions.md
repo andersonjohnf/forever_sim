@@ -555,6 +555,15 @@ sheet's (the floor, effective health, crit and crush immunity), which are exact.
 drops Anticipation entirely, when the gain is clear, is acceptable (user decision: the warrior's
 Deep Wounds build, +4.4 points).
 
+**Superseded (user decision, after O1's fifth review round): no talent-specific rules, and the
+player picks the goal.** The optimizer has no survival floor and no preferred filler: no talent is
+kept, dropped or ordered because of its name. The player tells it what to optimize for, **Defense,
+DPS, TPS or Balanced** (Balanced = the sum of each metric's change relative to the spec's current
+default, as above; Defense = the least damage taken), and it searches every legal build, gear set and
+rotation in scope and takes the best by that goal, measured. Sheet constraints stay, as options the
+player sets (the effective-health floor, crit and crush immunity); they read the character sheet,
+not talent names. Where this paragraph and the ones above disagree, this one holds.
+
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority
 list (APL)**, as SimulationCraft and wowsims model one, rather than a set of toggles. Each global

@@ -615,38 +615,38 @@ The search changed three things: the **Major Mana Potion** joined the mages' Sta
 as the other mana users'; **Evocation** also goes when mana can't pay the spec's filler, and "Evocation
 at" defaults to **0%**; and **Pyroblast** goes at **1** Hot Streak stack (it was 3).
 
-**Fire**: baseline **511.48 ± 0.50 DPS** (95% CI). Each row is the change from it:
+**Fire**: baseline **515.57 ± 0.51 DPS** (95% CI). Each row is the change from it:
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |
-| Pyroblast at 2 / 3 Hot Streak stacks | −3.41 / −8.67 | −0.67% / −1.70% |
-| Fire Blast off | −19.27 | −3.77% |
-| Scorch again at 15 s left (vs 5 s) | +1.17 | +0.23% |
-| Combustion off | −17.88 | −3.49% |
-| Evocation at 10% / 20% (vs 0%) | +0.04 / −0.27 | +0.01% / −0.05% |
-| Mana gems off | −32.72 | −6.40% |
+| Pyroblast at 2 / 3 Hot Streak stacks | −4.73 / −10.35 | −0.92% / −2.01% |
+| Fire Blast off | −19.32 | −3.75% |
+| Scorch again at 15 s left (vs 5 s) | +0.93 | +0.18% |
+| Combustion off | −18.83 | −3.65% |
+| Evocation at 10% / 20% (vs 0%) | −0.15 / −0.53 | −0.03% / −0.10% |
+| Mana gems off | −33.17 | −6.43% |
 
 **Frost**: baseline **411.01 ± 0.34 DPS**:
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |
-| Evocation at 10% / 20% (vs 0%) | −1.13 / −4.59 | −0.27% / −1.12% |
+| Evocation at 10% / 20% (vs 0%) | −1.00 / −4.59 | −0.24% / −1.12% |
 | Presence of Mind off | −2.90 | −0.71% |
-| Mana gems off | −11.86 | −2.89% |
+| Mana gems off | −12.37 | −3.01% |
 | Ice Barrier on | 0: the default build doesn't take it | — |
 
-**Arcane**: baseline **401.91 ± 0.23 DPS**:
+**Arcane**: baseline **402.25 ± 0.23 DPS**:
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |
-| Arcane Power off | −12.60 | −3.14% |
-| Presence of Mind off | −8.01 | −2.00% |
-| Evocation at 20% (vs 0%) | −1.59 | −0.40% |
-| Mana gems off | −3.35 | −0.84% |
+| Arcane Power off | −13.13 | −3.26% |
+| Presence of Mind off | −8.64 | −2.15% |
+| Evocation at 20% (vs 0%) | −1.42 | −0.35% |
+| Mana gems off | −4.41 | −1.10% |
 
-- **Fire's mana is its limit**: the gems are worth 6.40%. In the first search, before the potion
+- **Fire's mana is its limit**: the gems are worth 6.43%. In the first search, before the potion
   joined its preset, Fire ran out (416 DPS, with Evocation off costing 22% and the gems 11%), and
-  cheaper Scorch refreshes gained steadily. Scorch again at 15 s gains 0.23%, within D27's first
+  cheaper Scorch refreshes gained steadily. Scorch again at 15 s gains 0.18%, within D27's first
   pass, so it stays at R1's 5 s.
 - **Pyroblast at 1 stack**: a 4.5 s Pyroblast beats waiting for more stacks (+1.74% against 3).
 - **Berserking** doesn't haste the Arcane Missiles channel (casting speed doesn't shorten channels,

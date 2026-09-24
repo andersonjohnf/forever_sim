@@ -276,8 +276,50 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     under Max TPS, then going back to tank duties, leaves the preset as it was.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
-  header, enabled once you've set anything) puts every setting back to its default. It disables
-  itself, so it moves focus to the first setting, the next control after it.
+  header, enabled once you've set anything or moved a row) puts every setting and the order
+  back to their defaults. It disables itself, so it moves focus to the first setting, the next
+  control after it (the list's first row when nothing is above the list).
+  - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
+    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
+    abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
+    priority, the consumables) sit under their headings above the list, as below. Under
+    **Priority list** (a heading, with one line: each global cooldown the sim uses the first
+    ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+    - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
+      one-line summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
+      its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
+      or can't apply (no execute phase, a talent the build lacks, a race without a racial), is
+      dimmed by colour and its icon turns gray. A row whose note says it isn't used shows the
+      note in place of the summary ("Not used: needs the Improved Berserker Rage talent."). A
+      row with a changed setting has a dot after its name, and a screen reader hears "Changed."
+      in its description.
+    - **Selecting a row** (its icon, name and summary are one button) opens its settings: its
+      name and place ("Position 13 of 16"), **Move up** and **Move down**, then its switch and
+      its own settings, rendered like the tab's other settings (help, notes, the default and a
+      Reset when changed, a dependent setting under its parent). There's no Advanced there: the
+      row's settings are already one level down. From 1024 px they sit in a panel beside the
+      list, which stays in view as you scroll, and the selected row has a bar in the primary
+      colour on its leading edge. Until you select one the panel says to. Below 1024 px they
+      open in a bottom sheet, titled with the ability and its place, and closing it returns
+      focus to the row.
+    - **Moving a row.** Drag its handle, or focus the handle and press Space, move with the Up
+      and Down arrow keys, and press Space again (Escape cancels); a screen reader hears where
+      it is at each step ("Whirlwind is over position 10 of 16"). Move up and Move down in its
+      settings move it one place and say where it went; one that reaches the end disables
+      itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
+      position 11").
+    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
+      be, have no Move up or down, and no row can be dragged past them. The settings of a
+      pinned row say "Fixed at position 1 of 16".
+    - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
+      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+      of the list's settings away from every preset it reads "Custom". Picking a preset sets
+      its order and its values for the list's settings and puts the rest of the list's settings
+      at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
+      the order isn't the default) puts the rows back in the default order and nothing else,
+      and moves focus to the picker.
+    - A row's conditions are its own and move with it: moving Whirlwind above Bloodthirst
+      changes which comes first when both are ready, not what either waits for.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
     Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution

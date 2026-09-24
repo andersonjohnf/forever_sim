@@ -344,13 +344,14 @@ export const bloodrageOptions = (
 /**
  * The Heroic Strike queue (Fury row 11, Arms row 13), from `minRage`. `enabled` is the toggle's
  * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes). `cancel` is the cancel
- * switch's default (Fury's is on, §5.2; Arms' off) and the abilities whose rage it keeps, for its help.
+ * switch's default (Fury's is on, §5.2; Arms' off) and the abilities whose rage it keeps, for its help;
+ * `underAdvanced: false` for a priority-list spec (D31), whose row shows the threshold beside it.
  */
 export const heroicStrikeOptions = (
   ids: SharedIds,
   minRage: number,
   enabled: { default: boolean; help: string },
-  cancel: { default: boolean; spenders: string },
+  cancel: { default: boolean; spenders: string; underAdvanced?: boolean },
 ): RotationOption[] => [
   {
     kind: 'toggle',
@@ -366,7 +367,7 @@ export const heroicStrikeOptions = (
     id: ids.hsUnqueue,
     group: 'Fillers',
     label: 'Cancel Heroic Strike on low rage',
-    help: `Unqueue a queued Heroic Strike if ${cancel.spenders} spends your rage first and it drops below “Cancel Heroic Strike below” (under Advanced), so your next ${cancel.spenders} isn’t left short.`,
+    help: `Unqueue a queued Heroic Strike if ${cancel.spenders} spends your rage first and it drops below “Cancel Heroic Strike below”${cancel.underAdvanced === false ? '' : ' (under Advanced)'}, so your next ${cancel.spenders} isn’t left short.`,
     default: cancel.default,
     dependsOn: ids.hsEnabled,
   },

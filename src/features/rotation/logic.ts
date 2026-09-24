@@ -1,6 +1,16 @@
 // What the Rotation tab shows for each setting (docs/ux.md "Rotation"): its value, its default for
 // this setup, whether you've changed it, and whether it can apply at all.
-import { buffCatalogue, rotationValues, unmetRequirements, type BuffDefinition, type CreatureType, type RotationOption, type RotationValue, type SimConfig } from '@/sim'
+import {
+  type AplRow,
+  buffCatalogue,
+  rotationValues,
+  unmetRequirements,
+  type BuffDefinition,
+  type CreatureType,
+  type RotationOption,
+  type RotationValue,
+  type SimConfig,
+} from '@/sim'
 
 export interface RowState {
   /** The value the sim uses: the saved one, or the default for this setup. */
@@ -122,3 +132,45 @@ export function formatSetting(option: RotationOption, value: RotationValue): str
 
 /** Whether a number setting's field groups thousands ("1,500"): one whose range reaches them. */
 export const groupsThousands = (option: RotationOption) => option.kind === 'number' && option.max >= 1000
+
+/**
+ * A priority-list row's one-line summary (docs/ux.md "Rotation"): "Off" while its switch is off;
+ * otherwise its summary parts that apply ("From 40 rage · cancel below 20 rage"), a setting that
+ * can't apply (its own switch is off) left out; "None" for a row without a switch that does
+ * nothing (the pre-pull with every part off).
+ */
+export function aplRowSummary(row: AplRow, options: readonly RotationOption[], rows: ReadonlyMap<string, RowState>): string {
+  if (row.enabledId !== undefined && !rows.get(row.enabledId)?.on) return 'Off'
+  const byId = new Map(options.map((o) => [o.id, o]))
+  const parts: string[] = []
+  for (const part of row.summary ?? []) {
+    if (part.option === undefined) {
+      parts.push(part.text)
+      continue
+    }
+    const option = byId.get(part.option)
+    const state = rows.get(part.option)
+    if (!option || !state || state.inactive) continue
+    if (option.kind === 'toggle') {
+      if (Boolean(state.value) === (part.when ?? true)) parts.push(part.text)
+    } else if (option.kind !== 'number' || part.hideWhen === undefined || state.value !== part.hideWhen) {
+      parts.push(part.text.replace('{}', formatSetting(option, state.value)))
+    }
+  }
+  const text = parts.join(' · ')
+  if (text === '') return row.enabledId === undefined ? 'None' : ''
+  return text[0].toUpperCase() + text.slice(1)
+}
+
+/** A row's settings (its switch and its own) that differ from their defaults, so the list marks the row. */
+export const aplRowChanged = (row: AplRow, rows: ReadonlyMap<string, RowState>) =>
+  [row.enabledId, ...row.optionIds].some((id) => id !== undefined && rows.get(id)?.changed)
+
+/**
+ * The config with a priority list's order stored, or cleared while it's the default (`stored`
+ * undefined), after `rotation` as normalizeConfig puts it, so a setup's JSON reads the same either way.
+ */
+export function withRotationOrder(config: SimConfig, stored: string[] | undefined): SimConfig {
+  const { fight, rules, run, rotationOrder: _, ...head } = config
+  return { ...head, ...(stored ? { rotationOrder: stored } : {}), fight, rules, run }
+}

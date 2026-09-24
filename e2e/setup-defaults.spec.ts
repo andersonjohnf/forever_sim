@@ -188,7 +188,15 @@ for (const colorScheme of ['light', 'dark'] as const) {
     test('dependent Rotation rows, unavailable buffs and locked talents keep AA text, with no opacity', async ({ page }) => {
       await page.goto('./')
       await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-      await page.getByRole('switch', { name: 'Death Wish', exact: true }).click()
+      // Fury's priority list: Death Wish off, from its row's switch, and its settings beside the list.
+      const list = page.getByRole('list', { name: 'Priority list' })
+      await list.getByRole('button', { name: 'Death Wish', exact: true }).click()
+      await list.getByRole('switch', { name: 'Death Wish', exact: true }).click()
+      // The row that's off keeps AA text too, with no opacity.
+      const off = list.locator('[data-apl-row="deathWish"]')
+      await expect(off).toHaveAttribute('data-inactive')
+      await expect(off).toHaveCSS('opacity', '1')
+      for (const text of ['Death Wish', 'Off']) expect(await contrast(off.getByText(text, { exact: true }))).toBeGreaterThanOrEqual(4.5)
       const row = page.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Save the last Death Wish for the execute phase or the end', exact: true }) })
       await expect(row).toHaveCSS('opacity', '1')
       expect(await contrast(row.getByText('Save the last Death Wish for the execute phase or the end'))).toBeGreaterThanOrEqual(4.5)
@@ -196,7 +204,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       // The dependent switch is on, on a neutral track rather than the primary colour.
       const dimmedSwitch = row.getByRole('switch')
       await expect(dimmedSwitch).toBeChecked()
-      const primary = await page.getByRole('switch', { name: 'Recklessness', exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)
+      const primary = await list.getByRole('switch', { name: 'Recklessness', exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)
       expect(await dimmedSwitch.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(primary)
 
       await page.getByRole('tab', { name: 'Buffs', exact: true }).click()

@@ -1,54 +1,18 @@
 import { ChevronRight, RotateCcw } from 'lucide-react'
-import { type ReactNode, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
-import { NumberField } from '@/components/number-field'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { buffSwitchId } from '@/features/buffs/ids'
-import { CREATURE_TYPES, openCreatureType } from '@/features/fight/ids'
-import { ChangedHint, LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus } from '@/features/refocus'
 import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
-import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { type FixedRotationRow, getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
-import { formatSetting, groupsThousands, isAdvanced, rotationRows, type RowState } from './logic'
-
-/** What every row needs: its state, and setting or resetting a value. */
-interface RowContext {
-  rows: Map<string, RowState>
-  set: (id: string, value: RotationValue) => void
-  reset: (id: string) => void
-}
-
-const rowIds = (id: string) => ({
-  control: `rot-${id}`,
-  label: `rot-${id}-label`,
-  help: `rot-${id}-help`,
-  default: `rot-${id}-default`,
-  missing: `rot-${id}-missing`,
-  notUsed: `rot-${id}-not-used`,
-  creature: `rot-${id}-creature`,
-})
-
-/** A setting's control as it is now: its switch or input, or a choice's selected option. */
-const controlOf = (option: RotationOption) => {
-  const ids = rowIds(option.id)
-  return option.kind === 'choice'
-    ? document.querySelector<HTMLElement>(`[aria-labelledby="${ids.label}"] [data-state="on"]`)
-    : document.getElementById(ids.control)
-}
-
-/**
- * A switch that depends on one that's off is dimmed by colour, not opacity (docs/ux.md "Rotation"
- * and "Visual language"): on, its track is a neutral gray rather than the primary colour, which
- * still meets 3:1 against the page.
- */
-const INACTIVE_SWITCH = 'data-checked:bg-muted-foreground'
+import { type FixedRotationRow, getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption } from '@/sim'
+import { isAdvanced, rotationRows, withRotationOrder } from './logic'
+import { controlOf, type RowContext } from './ids'
+import { OptionList } from './option-rows'
+import { PriorityList } from './priority-list'
 
 export function RotationSection() {
   const meta = useSpecMeta()
@@ -60,9 +24,14 @@ export function RotationSection() {
   const raid = useSetup((s) => s.config.buffs.raid)
   const creatureType = useSetup((s) => s.config.fight.creatureType)
   const gear = useSetup((s) => s.config.gear)
+  const rotationOrder = useSetup((s) => s.config.rotationOrder)
   const update = useSetup((s) => s.update)
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
+  // A priority-list spec (decision D31) shows its spec-wide settings under the headings, above the
+  // list; the list's rows hold the rest.
+  const apl = spec.rotationApl
+  const headed = apl ? options.filter((o) => apl.specWide.includes(o.id)) : options
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
   // under Fight, Exorcism an Undead or Demon target, and Shield Slam its talent and a shield
@@ -83,10 +52,10 @@ export function RotationSection() {
   }
   // The few settings without a heading (Arms' stance) come first, then each heading's settings in
   // the spec's priority order (docs/ux.md "Rotation").
-  const ungrouped = options.filter((o) => o.group === undefined)
+  const ungrouped = headed.filter((o) => o.group === undefined)
   const fixedRows = getSpec(meta.id).rotationFixed
   const groups = rotationGroups
-    .map((group) => ({ group, options: options.filter((o) => o.group === group), fixed: fixedRows.filter((f) => f.group === group) }))
+    .map((group) => ({ group, options: headed.filter((o) => o.group === group), fixed: fixedRows.filter((f) => f.group === group) }))
     .filter((g) => g.options.length > 0 || g.fixed.length > 0)
   // No visible notice: the settings change in front of you, and screen readers hear it
   // (src/app/announce.ts). The button disables itself, so focus moves on to the first setting, the
@@ -95,8 +64,9 @@ export function RotationSection() {
     // Headings' thresholds may be hidden behind Advanced; their switches never are.
     const first = [...ungrouped, ...groups.flatMap((g) => g.options.filter((o) => !isAdvanced(o)))][0]
     changeAndFocus(
-      () => update((c) => ({ ...c, rotation: {} })),
-      () => first && controlOf(first),
+      () => update((c) => withRotationOrder({ ...c, rotation: {} }, undefined)),
+      // A priority list with nothing above it: its first row.
+      () => (first ? controlOf(first) : document.querySelector<HTMLElement>('[data-apl-row] button')),
     )
     announce('Rotation settings reset to their defaults.')
   }
@@ -107,7 +77,7 @@ export function RotationSection() {
         title="Rotation"
         description={['Which abilities the sim uses, and when.', spec.rotationDefaults].filter(Boolean).join(' ')}
         action={
-          <Button variant="ghost" className="h-11 shrink-0" disabled={Object.keys(rotation).length === 0} onClick={resetAll}>
+          <Button variant="ghost" className="h-11 shrink-0" disabled={Object.keys(rotation).length === 0 && rotationOrder === undefined} onClick={resetAll}>
             <RotateCcw /> Reset rotation
           </Button>
         }
@@ -121,6 +91,8 @@ export function RotationSection() {
             // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
             <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} fixed={fixed} ctx={ctx} />
           ))}
+          {/* Keyed by spec, so a switch of spec starts with no row selected. */}
+          {apl && <PriorityList key={meta.id} apl={apl} options={options} ctx={ctx} />}
         </>
       )}
     </div>
@@ -169,302 +141,3 @@ function GroupSection({ group, options, fixed, ctx }: { group: RotationGroup; op
   )
 }
 
-/**
- * Settings in a card. A setting that depends on another under the same heading sits under it,
- * indented on a rule (docs/ux.md "Rotation"). `all` is every setting under the heading, shown or
- * not, so a hidden parent's children don't come up to the top level. `fixed` rows, what the spec
- * always does, come first, with no control.
- */
-function OptionList({
-  options,
-  all = options,
-  fixed = [],
-  ctx,
-}: {
-  options: RotationOption[]
-  all?: RotationOption[]
-  fixed?: FixedRotationRow[]
-  ctx: RowContext
-}) {
-  const ids = new Set(all.map((o) => o.id))
-  const childrenOf = (id: string) => options.filter((o) => o.dependsOn === id)
-  const renderChildren = (id: string) => {
-    const children = childrenOf(id)
-    if (children.length === 0) return null
-    return (
-      <ul className="mb-2 ml-4 flex flex-col border-l">
-        {children.map((child) => (
-          <li key={child.id}>
-            <OptionRow option={child} ctx={ctx} nested />
-            {renderChildren(child.id)}
-          </li>
-        ))}
-      </ul>
-    )
-  }
-  return (
-    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
-      {fixed.map((row) => (
-        <li key={row.id}>
-          <FixedRow row={row} />
-        </li>
-      ))}
-      {options
-        .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
-        .map((option) => (
-          <li key={option.id}>
-            <OptionRow option={option} ctx={ctx} />
-            {renderChildren(option.id)}
-          </li>
-        ))}
-    </ul>
-  )
-}
-
-/**
- * Something the spec always does (a Protection paladin's Righteous Fury): a row like a switch's,
- * with what it is in place of the switch, which there's no point offering.
- */
-function FixedRow({ row }: { row: FixedRotationRow }) {
-  const ids = rowIds(row.id)
-  return (
-    <div className="flex min-h-14 items-center gap-4 p-4">
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span id={ids.label} className="text-sm font-medium">
-          {row.label}
-        </span>
-        <span id={ids.help} className="text-xs text-muted-foreground">
-          {row.help}
-        </span>
-      </span>
-      <span id={ids.control} className="shrink-0 text-sm text-muted-foreground">
-        {row.value}
-      </span>
-    </div>
-  )
-}
-
-function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ctx: RowContext; nested?: boolean }) {
-  const row = ctx.rows.get(option.id)!
-  const pad = nested ? 'px-4 py-3' : 'p-4'
-  if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} />
-  const ids = rowIds(option.id)
-  return (
-    <div
-      data-inactive={row.inactive || undefined}
-      className={cn(
-        // Number inputs and choices go under their label on a phone.
-        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
-        pad,
-        // Room for the Reset's hit area below its line, clear of the control under it on a phone
-        // and of the next row (LINK_HIT_AREA).
-        row.changed && 'gap-5 pb-5 sm:gap-3',
-        // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
-        row.inactive && 'text-muted-foreground',
-      )}
-    >
-      <div className="flex min-w-0 flex-col gap-1">
-        <label id={ids.label} htmlFor={option.kind === 'choice' ? undefined : ids.control} className="text-sm font-medium">
-          {option.label}
-        </label>
-        <p id={ids.help} className="text-xs text-muted-foreground">
-          {option.help}
-        </p>
-        {/* A setting the rest of the setup leaves unused says why, as a switch does (the Balance filler under Eclipse). */}
-        {row.notUsed && (
-          <p id={ids.notUsed} className="mt-1 text-xs text-muted-foreground">
-            {row.notUsed}
-          </p>
-        )}
-        {row.changed && <DefaultHint option={option} row={row} ctx={ctx} className="mt-1" />}
-      </div>
-      {option.kind === 'choice' ? (
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          aria-labelledby={ids.label}
-          aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
-          value={String(row.value)}
-          onValueChange={(v) => v && ctx.set(option.id, v)}
-          className="w-full shrink-0 sm:w-auto"
-        >
-          {option.choices.map((choice) => (
-            <ToggleGroupItem key={choice.value} value={choice.value} className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM, row.inactive && CHOICE_ITEM_INACTIVE)}>
-              {choice.label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      ) : (
-        <NumberField
-          id={ids.control}
-          value={Number(row.value)}
-          onChange={(v) => ctx.set(option.id, v)}
-          min={option.min}
-          max={option.max}
-          step={option.step}
-          unit={option.unit}
-          grouping={groupsThousands(option)}
-          aria-label={option.label}
-          aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
-        />
-      )}
-    </div>
-  )
-}
-
-/** "Undead or Demon": the creature types a switch needs, as the Fight tab names them. */
-const creatureList = (types: readonly string[]) => {
-  const names = types.map((t) => CREATURE_TYPES.find((c) => c.value === t)?.label ?? t)
-  return names.length < 3 ? names.join(' or ') : `${names.slice(0, -1).join(', ')} or ${names.at(-1)}`
-}
-
-/** A small link with a 44 px hit area around it, like a row's Reset (LINK_HIT_AREA). */
-const NOTE_LINK = cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)
-
-/**
- * A switch row. The whole row is its label, so any tap on it flips the switch (a 44 px target, as
- * on the Buffs tab). A consumable whose Buffs switch is off shows its own switch off and locked,
- * with a note saying why; a switch that needs another creature type is dimmed, with a note that
- * links to Fight. The notes sit outside the label, since they have buttons.
- */
-function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
-  const setSection = useSetup((s) => s.setSection)
-  const ids = rowIds(option.id)
-  const locked = row.missingBuff !== undefined || row.unmet !== undefined
-  const notes = locked || row.notUsed !== undefined || row.needsCreature !== undefined || row.changed
-  return (
-    // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
-    <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'text-muted-foreground')}>
-      <label
-        className={cn(
-          'flex min-h-14 items-center gap-4 px-4',
-          nested ? 'py-3' : 'py-4',
-          notes && 'pb-0',
-          locked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
-        )}
-      >
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span id={ids.label} className="text-sm font-medium">
-            {option.label}
-          </span>
-          <span id={ids.help} className="text-xs text-muted-foreground">
-            {option.help}
-          </span>
-        </span>
-        <Switch
-          id={ids.control}
-          checked={row.on}
-          disabled={locked}
-          className={cn(row.inactive && INACTIVE_SWITCH)}
-          aria-labelledby={ids.label}
-          aria-describedby={[ids.help, locked && ids.missing, row.notUsed && ids.notUsed, row.needsCreature && ids.creature, row.changed && ids.default].filter(Boolean).join(' ')}
-          onCheckedChange={(on) => ctx.set(option.id, on)}
-        />
-      </label>
-      {notes && (
-        // Spaced so each link's hit area (LINK_HIT_AREA: 10 px above its line, 18 px below) stays
-        // clear of the row's label, of the other link, and of the next row.
-        <div className={cn('flex flex-col px-4 pt-3 pb-5', (locked || row.needsCreature) && row.changed ? 'gap-6' : 'gap-2')}>
-          {row.missingBuff && (
-            <p id={ids.missing} className="text-xs text-muted-foreground">
-              Not used: turn on {row.missingBuff.name} in{' '}
-              <button
-                type="button"
-                className={NOTE_LINK}
-                onClick={() => {
-                  // Opens Buffs on that consumable's switch, so the next key press turns it on.
-                  const buff = row.missingBuff!.id
-                  changeAndFocus(
-                    () => setSection('buffs'),
-                    () => document.getElementById(buffSwitchId(buff)),
-                  )
-                }}
-              >
-                Buffs
-              </button>{' '}
-              first.
-            </p>
-          )}
-          {row.notUsed && (
-            <p id={ids.notUsed} className="text-xs text-muted-foreground">
-              {row.notUsed}
-            </p>
-          )}
-          {row.needsCreature && (
-            <p id={ids.creature} className="text-xs text-muted-foreground">
-              Not used: set Creature type to {creatureList(row.needsCreature)} in{' '}
-              <button type="button" className={NOTE_LINK} onClick={() => openCreatureType(setSection)}>
-                Fight
-              </button>
-              .
-            </p>
-          )}
-          {row.unmet && (
-            <p id={ids.missing} className="text-xs text-muted-foreground">
-              Not used: needs{' '}
-              {row.unmet.talent !== undefined && (
-                <>
-                  the {row.unmet.talent} talent (
-                  <SectionLink section="talents" onOpen={() => setSection('talents')}>
-                    Talents
-                  </SectionLink>
-                  )
-                </>
-              )}
-              {row.unmet.talent !== undefined && row.unmet.shield && ' and '}
-              {row.unmet.shield && (
-                <>
-                  a shield (
-                  <SectionLink section="gear" onOpen={() => setSection('gear')}>
-                    Gear
-                  </SectionLink>
-                  )
-                </>
-              )}
-              .
-            </p>
-          )}
-          {row.changed && <DefaultHint option={option} row={row} ctx={ctx} />}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/**
- * A small link that opens another setup tab and focuses where the fix is: Gear's off hand (a shield;
- * its main hand while a two-hander locks it), or the Talents panel. A 44 px hit area, like a row's Reset.
- */
-function SectionLink({ section, onOpen, children }: { section: 'gear' | 'talents'; onOpen: () => void; children: ReactNode }) {
-  const target = () =>
-    section === 'gear'
-      ? (document.querySelector<HTMLButtonElement>('[data-gear-slot="offHand"]:not(:disabled)') ?? document.querySelector<HTMLElement>('[data-gear-slot="mainHand"]'))
-      : document.querySelector<HTMLElement>('[data-section="talents"]')
-  return (
-    <button
-      type="button"
-      className={cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)}
-      onClick={() => changeAndFocus(onOpen, target)}
-    >
-      {children}
-    </button>
-  )
-}
-
-/** Marks a changed setting with its default and a reset for this row alone (docs/ux.md "Rotation"). */
-function DefaultHint({ option, row, ctx, className }: { option: RotationOption; row: RowState; ctx: RowContext; className?: string }) {
-  return (
-    <ChangedHint
-      id={rowIds(option.id).default}
-      label={option.label}
-      value={formatSetting(option, row.default)}
-      onReset={() =>
-        changeAndFocus(
-          () => ctx.reset(option.id),
-          () => controlOf(option),
-        )
-      }
-      className={className}
-    />
-  )
-}

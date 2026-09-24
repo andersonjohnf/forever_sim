@@ -96,12 +96,14 @@ test.describe('a Reset’s hit area (TU7)', () => {
   test('on a switch row, stays clear of the row it belongs to', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const slam = page.getByRole('switch', { name: 'Slam', exact: true })
+    // Fury's priority list: Slam's settings, beside the list, hold its switch row.
+    await page.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Slam', exact: true }).click()
+    const slam = page.getByRole('complementary', { name: 'Slam settings' }).getByRole('switch', { name: 'Slam', exact: true })
     await slam.click()
     const reset = page.getByRole('button', { name: 'Reset Slam, default off' })
     const area = await hitArea(reset)
     expect(area.bottom - area.top).toBeGreaterThanOrEqual(44)
-    const row = (await page.locator('label').filter({ has: slam }).boundingBox())!
+    const row = (await page.locator('label').filter({ has: page.getByRole('switch', { name: 'Slam', exact: true }) }).boundingBox())!
     expect(area.top).toBeGreaterThanOrEqual(row.y + row.height)
     // The row's last pixel still flips the switch.
     await page.mouse.click((area.left + area.right) / 2, row.y + row.height - 1)
@@ -191,7 +193,8 @@ test('number fields read what’s typed in the typist’s own style (PV2, FV3)',
 
   // A fractional field reads a decimal comma as the decimal point.
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-  await page.getByRole('button', { name: 'Advanced settings for Core abilities' }).click()
+  // Fury's priority list: Whirlwind's settings open beside the list (docs/ux.md "Rotation").
+  await page.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Whirlwind', exact: true }).click()
   const btLeft = page.getByRole('textbox', { name: 'Whirlwind: Bloodthirst cooldown left', exact: true })
   await btLeft.fill('0,5')
   await btLeft.press('Enter')

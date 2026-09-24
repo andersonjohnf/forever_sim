@@ -126,7 +126,7 @@ export const FURY_OPTIONS: RotationOption[] = [
   ...battleShoutOptions(ID),
   ...deathWishOptions(
     ID,
-    {},
+    { requires: { talent: 'Death Wish' } },
     {
       label: 'Save the last Death Wish for the execute phase or the end',
       help: 'When no later Death Wish would fit in the fight, hold the last one for the execute phase, or until 30 s are left. Earlier ones go on cooldown.',
@@ -191,6 +191,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Bloodthirst in the execute phase',
     help: 'In the execute phase, keep using Bloodthirst at high attack power (“Bloodthirst over Execute from”). Needs Execute on, and an execute phase under Fight.',
     default: true,
+    requires: { talent: 'Bloodthirst' },
     dependsOn: ID.exEnabled,
   },
   {
@@ -232,6 +233,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Bloodthirst',
     help: 'Use Bloodthirst whenever it’s ready. Needs the Bloodthirst talent.',
     default: true,
+    requires: { talent: 'Bloodthirst' },
   },
   {
     kind: 'toggle',
@@ -275,7 +277,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     ID,
     40,
     { default: true, help: 'Queue Heroic Strike on the next main-hand swing when rage is high.' },
-    { default: true, spenders: 'Bloodthirst or Whirlwind' },
+    { default: true, spenders: 'Bloodthirst or Whirlwind', underAdvanced: false },
   ),
   {
     kind: 'toggle',
@@ -302,6 +304,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Berserker Rage',
     help: 'Use Berserker Rage on cooldown for rage while Bloodthirst and Whirlwind are cooling down. Needs Improved Berserker Rage.',
     default: true,
+    requires: { talent: 'Improved Berserker Rage' },
   },
   rageOption(
     ID.bzMaxRage,

@@ -319,19 +319,30 @@ test.describe('rotation and buffs', () => {
 })
 
 test.describe('rotation groups', () => {
-  test('groups Fury’s settings under headings, each dependent setting under its parent', async ({ page }) => {
+  test('groups a spec’s settings under headings, each dependent setting under its parent (Arms, still on switches)', async ({ page }) => {
     await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const headings = page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('heading', { level: 3 })
     await expect(headings).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
     const core = page.getByRole('region', { name: 'Core abilities' })
-    await expect(core.getByRole('switch', { name: 'Bloodthirst', exact: true })).toBeVisible()
-    // Whirlwind's reserve waits behind the heading's Advanced button, then sits in Whirlwind's own list item, under it.
-    const whirlwind = core.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Whirlwind', exact: true }) })
-    await expect(whirlwind.getByRole('textbox', { name: 'Whirlwind rage reserve' })).toHaveCount(0)
+    await expect(core.getByRole('switch', { name: 'Mortal Strike', exact: true })).toBeVisible()
+    // Slam's reserve waits behind the heading's Advanced button, then sits in Slam's own list item, under it.
+    const slam = core.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Slam', exact: true }) })
+    await expect(slam.getByRole('textbox', { name: 'Slam rage reserve' })).toHaveCount(0)
     await core.getByRole('button', { name: /^Advanced/ }).click()
-    await expect(whirlwind.getByRole('textbox', { name: 'Whirlwind rage reserve' })).toBeVisible()
+    await expect(slam.getByRole('textbox', { name: 'Slam rage reserve' })).toBeVisible()
     await expect(page.getByRole('region', { name: 'Execute phase' }).getByRole('switch', { name: 'Execute', exact: true })).toBeVisible()
+  })
+
+  test('shows Fury’s consumables under their heading, above its priority list', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+    const consumables = (await tab.getByRole('region', { name: 'Consumables' }).boundingBox())!
+    expect(consumables.y).toBeLessThan((await tab.getByRole('list', { name: 'Priority list' }).boundingBox())!.y)
   })
 
   test('puts Arms’ stance first, above the headings', async ({ page }) => {

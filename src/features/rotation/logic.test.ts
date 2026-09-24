@@ -2,8 +2,8 @@
 // changed mark, a consumable switch without its Buffs switch, settings whose parent is off, and
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, getSpec, type SimConfig, specs, unusedRotationSettings } from '@/sim'
-import { formatSetting, groupsThousands, isAdvanced, rotationRows } from './logic'
+import { defaultAplOrder, defaultConfig, getSpec, moveAplRow, normalizeConfig, type SimConfig, specs, unusedRotationSettings } from '@/sim'
+import { aplRowChanged, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, withRotationOrder } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
@@ -121,11 +121,12 @@ describe('rotation rows', () => {
     const potion = ['mightyRagePotion']
     const dimmed = (config: SimConfig) =>
       [...rows(config, {}, potion)].filter(([, row]) => row.inactive).map(([id]) => id)
-    // With the phase, Fury dims only Hamstring's own settings (Hamstring is off by default); Arms'
-    // are those of its switches that are off (Heroic Strike, Whirlwind).
+    // With the phase, Fury dims only Hamstring's own settings (Hamstring is off by default) and
+    // Berserker Rage's (the default build has no Improved Berserker Rage); Arms' are those of its
+    // switches that are off (Heroic Strike, Whirlwind).
     const furyBase = dimmed(fury)
     const armsBase = dimmed(arms)
-    expect(furyBase).toEqual(['warrior.fury.hamstring.minRage', 'warrior.fury.hamstring.onlyWhenFlurryDown'])
+    expect(furyBase).toEqual(['warrior.fury.hamstring.minRage', 'warrior.fury.hamstring.onlyWhenFlurryDown', 'warrior.fury.berserkerRage.maxRage'])
     expect(dimmed(noPhase(fury)).filter((id) => !furyBase.includes(id))).toEqual([
       'warrior.fury.deathWish.beforeExecuteSec',
       'warrior.fury.recklessness.beforeExecuteSec',
@@ -290,5 +291,48 @@ describe('a Protection paladin’s settings the setup can’t use (docs/ux.md "R
       expect(d.get(id)).toMatchObject({ on: true })
       expect(d.get(id)?.unmet, id).toBeUndefined()
     }
+  })
+})
+
+describe('a priority list’s rows (decision D31)', () => {
+  const fury = defaultConfig('warrior-fury')
+  const apl = getSpec('warrior-fury').rotationApl!
+  const row = (id: string) => apl.rows.find((r) => r.id === id)!
+  const summary = (id: string, rotation: SimConfig['rotation'] = {}, config: SimConfig = fury) =>
+    aplRowSummary(row(id), getSpec(config.spec).rotationOptions, rows(config, rotation))
+
+  it('sums each row up in a line from its own settings', () => {
+    expect(summary('heroicStrike')).toBe('From 40 rage · cancel below 20 rage')
+    // A setting whose switch is off is left out; a switch's part shows at its value.
+    expect(summary('heroicStrike', { 'warrior.fury.heroicStrike.unqueue': false, 'warrior.fury.execute.heroicStrikeInExecute': false })).toBe(
+      'From 40 rage · not in the execute phase',
+    )
+    // A number at its hideWhen is left out; fixed text stays.
+    expect(summary('execute')).toBe('Execute phase')
+    expect(summary('execute', { 'warrior.fury.execute.minExtraRage': 10 })).toBe('Execute phase · 10 rage extra')
+    expect(summary('executeBloodthirst')).toBe('From 2,220 AP')
+    expect(summary('whirlwind')).toBe('Bloodthirst 0.5 s away')
+    // Off, it says so; the pre-pull, with no switch, lists what it does, or None.
+    expect(summary('slam')).toBe('Off')
+    expect(summary('prepull')).toBe('Battle Shout · Bloodrage')
+    expect(summary('prepull', { 'warrior.fury.battleShout.enabled': false, 'warrior.fury.prepull.bloodrage': false })).toBe('None')
+    // A switch whose talent the build lacks is off, whatever it's set to.
+    expect(summary('berserkerRage')).toBe('Off')
+  })
+
+  it('marks a row whose switch or own settings differ from their defaults', () => {
+    const r = rows(fury, { 'warrior.fury.heroicStrike.minRage': 50 })
+    expect(aplRowChanged(row('heroicStrike'), r)).toBe(true)
+    expect(aplRowChanged(row('whirlwind'), r)).toBe(false)
+    // A value set to its default isn't a change.
+    expect(aplRowChanged(row('heroicStrike'), rows(fury, { 'warrior.fury.heroicStrike.minRage': 40 }))).toBe(false)
+  })
+
+  it('stores the order after the rotation settings, as normalizing does, and clears it', () => {
+    const order = moveAplRow(apl, defaultAplOrder(apl), 'whirlwind', 1)!
+    const withOrder = withRotationOrder(fury, order)
+    expect(JSON.stringify(withOrder)).toBe(JSON.stringify(normalizeConfig(withOrder).config))
+    expect(withOrder.rotationOrder).toEqual(order)
+    expect(JSON.stringify(withRotationOrder(withOrder, undefined))).toBe(JSON.stringify(fury))
   })
 })

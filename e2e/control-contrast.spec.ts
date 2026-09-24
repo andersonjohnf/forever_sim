@@ -93,7 +93,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await check('switch, off', page.getByRole('tabpanel', { name: 'Buffs' }).getByRole('switch', { checked: false }).first(), true)
     // A field among the rotation's options.
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    await page.getByRole('button', { name: 'Advanced settings for Core abilities' }).click()
+    await page.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Whirlwind', exact: true }).click()
     await check('rotation option field', page.getByRole('textbox', { name: 'Whirlwind: Bloodthirst cooldown left', exact: true }))
 
     // The Gear tab: the menu's outline button, and the flags on Blackblade of Shahram's row (Arms'

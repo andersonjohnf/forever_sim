@@ -41,7 +41,7 @@ async function noSideScroll(page: Page) {
 async function expectDestructionResult(results: Locator) {
   await expect(results.getByRole('group', { name: 'DPS' })).toContainText(VALUE_WITH_CI)
   const breakdown = results.getByRole('region', { name: 'Damage by ability' })
-  for (const name of ['Incinerate', 'Immolate', 'Immolate (DoT)', 'Conflagrate', 'Shadowburn']) {
+  for (const name of ['Incinerate', 'Immolate', 'Immolate (DoT)', 'Conflagrate', 'Shadowburn', 'Corruption', 'Bane of Doom']) {
     await expect(breakdown.getByText(name, { exact: true })).toBeVisible()
   }
   // A caster doesn't swing its weapon.
@@ -88,14 +88,15 @@ test.describe('Destruction warlock', () => {
     await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction and Affliction\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: the common priority, the Succubus, Incinerate and its own curse', async ({ page }) => {
+  test('its Rotation tab: the common priority, the Succubus, Corruption, Bane of Doom, Incinerate and its own curse', async ({ page }) => {
     await switchTo(page, 'Destruction')
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
     await expect(tab.getByRole('radio', { name: 'Succubus', exact: true })).toBeChecked()
     await expect(tab.getByRole('radio', { name: 'Incinerate', exact: true })).toBeChecked()
-    for (const name of ['Curse of the Elements', 'Immolate', 'Conflagrate', 'Shadowburn', 'Racial cooldown']) {
+    await expect(tab.getByRole('radio', { name: 'Doom', exact: true })).toBeChecked()
+    for (const name of ['Curse of the Elements', 'Immolate', 'Conflagrate', 'Shadowburn', 'Corruption', 'Racial cooldown']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab).not.toContainText(OTHER_CLASS)

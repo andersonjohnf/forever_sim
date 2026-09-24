@@ -68,6 +68,7 @@ export interface WarlockDefaults {
   filler: 'shadowBolt' | 'incinerate'
   shadowburn: boolean
   lifeTapPct: number
+  corruption: boolean
   bane: 'agony' | 'doom' | 'none'
 }
 
@@ -186,6 +187,37 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
   }
 }
 
+/** Corruption and the Bane, both specs' (warlock.md §6.1, §6.2). */
+const dots = (spec: WarlockSpec, d: WarlockDefaults): RotationOption[] => {
+  const ID = warlockIds(spec)
+  return [
+    {
+      kind: 'toggle',
+      id: ID.corruption,
+      group: 'Core abilities',
+      label: 'Corruption',
+      help:
+        spec === 'affliction'
+          ? 'Keep Corruption on the boss, recast as it runs out. Its ticks give Nightfall’s Shadow Trance: an instant Shadow Bolt.'
+          : 'Keep Corruption on the boss, recast as it runs out: a 2 s cast, instant with Improved Corruption.',
+      default: d.corruption,
+    },
+    {
+      kind: 'choice',
+      id: ID.bane,
+      group: 'Core abilities',
+      label: 'Bane',
+      help: 'Your one Bane on the boss, beside your curse: Bane of Agony, kept up, or Bane of Doom, a big hit a minute after it lands, cast only while a minute is left (then Agony for the rest).',
+      choices: [
+        { value: 'agony', label: 'Agony' },
+        { value: 'doom', label: 'Doom' },
+        { value: 'none', label: 'None' },
+      ],
+      default: d.bane,
+    },
+  ]
+}
+
 /** Destruction's settings, in priority order (warlock.md §6.1). */
 export function destructionOptions(d: WarlockDefaults): RotationOption[] {
   const ID = warlockIds('destruction')
@@ -219,6 +251,7 @@ export function destructionOptions(d: WarlockDefaults): RotationOption[] {
       default: d.shadowburn,
       requires: { talent: 'Shadowburn' },
     },
+    ...dots('destruction', d),
     {
       kind: 'choice',
       id: ID.filler,
@@ -241,27 +274,7 @@ export function afflictionOptions(d: WarlockDefaults): RotationOption[] {
   const { head, tail } = common('affliction', d)
   return [
     ...head,
-    {
-      kind: 'toggle',
-      id: ID.corruption,
-      group: 'Core abilities',
-      label: 'Corruption',
-      help: 'Keep Corruption on the boss, recast as it runs out. Its ticks give Nightfall’s Shadow Trance: an instant Shadow Bolt.',
-      default: true,
-    },
-    {
-      kind: 'choice',
-      id: ID.bane,
-      group: 'Core abilities',
-      label: 'Bane',
-      help: 'Your one Bane on the boss: Bane of Agony, kept up, or Bane of Doom, a big hit a minute after it lands, cast only while a minute is left (then Agony for the rest).',
-      choices: [
-        { value: 'agony', label: 'Agony' },
-        { value: 'doom', label: 'Doom' },
-        { value: 'none', label: 'None' },
-      ],
-      default: d.bane,
-    },
+    ...dots('affliction', d),
     {
       kind: 'toggle',
       id: ID.siphonLife,
@@ -351,12 +364,8 @@ export function warlockRotation(
   // Your curse, then the DoTs, each recast as it runs out.
   if (v.on(ID.curse)) upkeep(CURSE_OF_THE_ELEMENTS)
   const shadowBolt = () => index({ ...SHADOW_BOLT, ...(rank(talents, 'Nightfall') > 0 && spec === 'affliction' ? { stackAuraId: SHADOW_TRANCE.id, stackCastPct: 100, stackCostPct: 0 } : {}) })
-  if (spec === 'destruction') {
-    const immolate = v.on(ID.immolate)
-    if (immolate) upkeep(IMMOLATE)
-    if (immolate && v.on(ID.conflagrate) && rank(talents, 'Conflagrate') > 0) add(CONFLAGRATE)
-    if (v.on(ID.shadowburn) && rank(talents, 'Shadowburn') > 0) add(SHADOWBURN)
-  } else {
+  /** Corruption, then the Bane: Doom while a minute is left, then Agony for the last minute; or Agony kept up. */
+  const dotsAndBane = () => {
     if (v.on(ID.corruption)) upkeep(CORRUPTION)
     const bane = v.str(ID.bane)
     if (bane === 'agony') upkeep(BANE_OF_AGONY)
@@ -368,6 +377,15 @@ export function warlockRotation(
         { code: COND.abilityAuraDown, a: doom, b: 0 },
       ])
     }
+  }
+  if (spec === 'destruction') {
+    const immolate = v.on(ID.immolate)
+    if (immolate) upkeep(IMMOLATE)
+    if (immolate && v.on(ID.conflagrate) && rank(talents, 'Conflagrate') > 0) add(CONFLAGRATE)
+    if (v.on(ID.shadowburn) && rank(talents, 'Shadowburn') > 0) add(SHADOWBURN)
+    dotsAndBane()
+  } else {
+    dotsAndBane()
     if (v.on(ID.siphonLife) && rank(talents, 'Siphon Life') > 0) upkeep(SIPHON_LIFE)
   }
 

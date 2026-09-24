@@ -216,9 +216,12 @@ adapted, and §6.3's search picks the biggest settings.
 4. Immolate, recast as it runs out (from its cast time before its end).
 5. Conflagrate on cooldown, while Immolate is up.
 6. Shadowburn on cooldown.
-7. Life Tap at or below 5% mana.
-8. The filler: **Incinerate** by default, or Shadow Bolt (whose crits put Improved Shadow Bolt up).
-9. Life Tap whenever the filler can't be paid for.
+7. Corruption, recast as it runs out (a 2 s cast without Improved Corruption).
+8. Your Bane, as Affliction's (§6.2): **Bane of Doom** by default, then Bane of Agony for the last
+   minute; or Bane of Agony kept up, or none. Bane of Doom is baseline, so Destruction has it too.
+9. Life Tap at or below 5% mana.
+10. The filler: **Incinerate** by default, or Shadow Bolt (whose crits put Improved Shadow Bolt up).
+11. Life Tap whenever the filler can't be paid for.
 
 ### 6.2 Affliction (shipped)
 
@@ -247,10 +250,23 @@ One search over the biggest settings, 20,000 fights on seed 2701 each, the defau
 | **Succubus, Incinerate, Shadowburn on** | **386.5** ±0.2 |
 | Immolate off (Imp, Shadow Bolt) | 322.8 |
 | Life Tap at 0 / 5 / 10 / 20% (Succubus, Incinerate, Shadowburn) | 387.1 / 387.1 / 386.5 / 384.3 |
-| The Fire build: Aftermath 5/5 in place of Improved Shadow Bolt | **397.8** ±0.3 |
+| The Fire build: Aftermath 5/5 in place of Improved Shadow Bolt | 397.8 ±0.3 |
 
-So Destruction defaults to Fire: the Succubus, Incinerate, Shadowburn on, Life Tap at 5%, and the
-Fire build (§7.1), 11% above the Classic priority. Shadow Bolt stays a choice.
+The Fire build then adds Corruption and a Bane (rerun in the K3 review, WL1, on the same seed; with no
+Bane and no Corruption it gives 398.1 there):
+
+| Destruction, the Fire build: Bane, Corruption off / on | DPS |
+| --- | --- |
+| No Bane | 398.1 / 406.1 |
+| Bane of Agony | 425.7 / 431.5 |
+| **Bane of Doom**, then Agony for the last minute | 441.9 / **447.6** ±0.3 |
+| Corruption and Doom ahead of Conflagrate / ahead of Immolate (instead of after Shadowburn) | 446.7 / 445.4 |
+| Life Tap at 0 / 5 / 10 / 20% (Corruption and Doom) | 447.0 / 447.6 / 448.0 / 447.0 |
+| Shadow Bolt filler / the Imp / Shadowburn off (Corruption and Doom) | 415.4 / 430.3 / 427.3 |
+
+So Destruction defaults to Fire: the Succubus, Incinerate, Shadowburn on, Corruption and Bane of Doom
+after Shadowburn, Life Tap at 5% (10% is within the interval), and the Fire build (§7.1), 25% above
+the Classic priority. Shadow Bolt stays a choice.
 
 | Affliction | DPS |
 | --- | --- |
@@ -261,7 +277,9 @@ Fire build (§7.1), 11% above the Classic priority. Shadow Bolt stays a choice.
 | Life Tap at 0 / 5 / 10 / 20 / 30% | 392.8 / 392.8 / 393.4 / 392.1 / 390.3 |
 
 So Affliction defaults to Bane of Doom (its coefficient 4 makes it worth more than Agony's 12 ticks),
-Siphon Life on, the Imp and Life Tap at 10%.
+Siphon Life on, the Imp and Life Tap at 10%. Keeping Immolate up too would add about 2.2% (410.8
+against 402.1 in the K3 review's probe, 6,000 fights); its rotation has no Immolate yet, left for the
+tuning milestone.
 
 ## 7. Sensible defaults
 

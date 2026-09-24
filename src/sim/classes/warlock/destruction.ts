@@ -1,6 +1,7 @@
 // The Destruction warlock's priority list (docs/classes/warlock.md §6.1): Curse of the Elements, Immolate
-// kept up, Conflagrate on cooldown, Shadow Bolt with Improved Shadow Bolt, Life Tap; the Classic Era
-// common priority adapted to Forever, with the first-pass search's picks (D27, §6.3).
+// kept up, Conflagrate and Shadowburn on cooldown, Corruption and the Bane kept up, Incinerate or Shadow
+// Bolt, Life Tap; the Classic Era common priority adapted to Forever, with the first-pass search's picks
+// (D27, §6.3).
 import type { RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import type { ClassRotation } from '../warrior/shared'
@@ -8,7 +9,7 @@ import { CURSE_BUFF, destructionOptions, warlockIds, warlockRotation, warlockUnu
 import type { TalentRanks } from './talents'
 
 /** The first-pass defaults (warlock.md §6.3). */
-export const DESTRUCTION_DEFAULTS: WarlockDefaults = { sacrifice: 'succubus', filler: 'incinerate', shadowburn: true, lifeTapPct: 5, bane: 'none' }
+export const DESTRUCTION_DEFAULTS: WarlockDefaults = { sacrifice: 'succubus', filler: 'incinerate', shadowburn: true, lifeTapPct: 5, corruption: true, bane: 'doom' }
 export const DESTRUCTION_OPTIONS = destructionOptions(DESTRUCTION_DEFAULTS)
 export const DESTRUCTION_IDS = warlockIds('destruction')
 

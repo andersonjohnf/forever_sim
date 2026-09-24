@@ -296,6 +296,23 @@ describe('the engine’s warlock pieces (warlock.md §8)', () => {
     const agony = plan.rotation.find((e) => plan.abilities[e.ability].id === 'baneOfAgony')!
     expect(agony.conditions).toContainEqual({ code: COND.timeLeftAtMost, a: 61000, b: 0 })
   })
+
+  it('Destruction casts its Bane and Corruption too: Doom then Agony by default, or Agony, or none', () => {
+    const ids = (p: Plan) => p.rotation.map((e) => p.abilities[e.ability].id)
+    const { plan } = buildPlan(fixed('warlock-destruction'))
+    // After Shadowburn, before the filler (warlock.md §6.1).
+    expect(ids(plan).slice(ids(plan).indexOf('shadowburn'), ids(plan).indexOf('incinerate'))).toEqual(['shadowburn', 'corruption', 'baneOfDoom', 'baneOfAgony', 'lifeTap'])
+    const agg = runFights(plan, 200)
+    for (const id of ['corruption', 'baneOfDoom', 'baneOfAgony']) expect(perFight(plan, agg, id, 'damage'), id).toBeGreaterThan(0)
+    expect(perFight(plan, agg, 'baneOfDoom', 'casts')).toBeGreaterThanOrEqual(1)
+
+    const agony = buildPlan(fixed('warlock-destruction', { [DESTRUCTION_IDS.bane]: 'agony', [DESTRUCTION_IDS.corruption]: false })).plan
+    expect(ids(agony).filter((id) => id.startsWith('bane') || id === 'corruption')).toEqual(['baneOfAgony'])
+    expect(perFight(agony, runFights(agony, 200), 'baneOfAgony', 'casts')).toBeGreaterThan(5)
+
+    const none = buildPlan(fixed('warlock-destruction', { [DESTRUCTION_IDS.bane]: 'none', [DESTRUCTION_IDS.corruption]: false })).plan
+    expect(none.abilities.filter((a) => a.id.startsWith('bane') || a.id === 'corruption')).toEqual([])
+  })
 })
 
 describe('golden runs (fixed config and seed)', () => {
@@ -305,6 +322,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   seed 2701 (§6.3).
   // - K3: the default Affliction warlock (§6.2, §7): the Imp, Corruption, Bane of Doom then Agony,
   //   Siphon Life, Shadow Bolt with Shadow Trance, Life Tap at 10%; 402.0 DPS on the same.
+  // - WL1 (K3 review): Destruction casts Corruption and its Bane too, Bane of Doom then Agony for the last
+  //   minute, after Shadowburn (§6.1); 447.6 DPS over 20,000 fights on seed 2701, up from 398.1 (§6.3).
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

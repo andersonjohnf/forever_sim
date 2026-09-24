@@ -9,7 +9,7 @@ import { afflictionOptions, CURSE_BUFF, warlockIds, warlockRotation, warlockUnus
 import type { TalentRanks } from './talents'
 
 /** The first-pass defaults (warlock.md §6.3). */
-export const AFFLICTION_DEFAULTS: WarlockDefaults = { sacrifice: 'imp', filler: 'shadowBolt', shadowburn: false, lifeTapPct: 10, bane: 'doom' }
+export const AFFLICTION_DEFAULTS: WarlockDefaults = { sacrifice: 'imp', filler: 'shadowBolt', shadowburn: false, lifeTapPct: 10, corruption: true, bane: 'doom' }
 export const AFFLICTION_OPTIONS = afflictionOptions(AFFLICTION_DEFAULTS)
 export const AFFLICTION_IDS = warlockIds('affliction')
 

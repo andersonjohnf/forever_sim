@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Enhancement shaman’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "mainHand",
+      44594843.3105554,
+      62045,
+      8332,
+      24880,
+      0,
+      3978,
+      24855,
+    ],
+    [
+      "stormstrike",
+      16018482.016038999,
+      21976,
+      11806,
+      8745,
+      0,
+      1425,
+      0,
+    ],
+    [
+      "lightningBolt",
+      2607049.245116301,
+      9765,
+      6951,
+      1984,
+      830,
+      0,
+      0,
+    ],
+    [
+      "earthShock",
+      10356945.395093165,
+      28436,
+      20460,
+      5542,
+      2434,
+      0,
+      0,
+    ],
+    [
+      "windfuryWeapon",
+      26334445.532211818,
+      30714,
+      4034,
+      12319,
+      0,
+      1942,
+      12419,
+    ],
+  ],
+  "dps": {
+    "ci95": 2.788659744418608,
+    "mean": 556.0582924807443,
+    "stdev": 44.99325743301999,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 3925,
+    "regeneratedPerFight": 4643.8051,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 2053.2489,
+      },
+    ],
+    "restoredPerFight": 2053.2489,
+    "spentPerFight": 9770.692,
+  },
+  "tps": {
+    "ci95": 1.9519699636162113,
+    "mean": 394.9154737354571,
+    "stdev": 31.493798140947845,
+  },
+}
+`;

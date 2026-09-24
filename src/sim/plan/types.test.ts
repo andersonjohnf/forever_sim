@@ -46,4 +46,10 @@ describe('the plan’s code tables', () => {
     expect(ACTION.manaFlat).toBe(7)
     expect(Math.max(...Object.values(ACTION))).toBe(7)
   })
+
+  it('the shaman’s auraStacksAtLeast (Lightning Bolt at 5 Maelstrom Weapon stacks) takes 34: 30–33 are the Rogue track’s', () => {
+    expect(COND.auraStacksAtLeast).toBe(34)
+    // No other condition sits in the Rogue's range yet, whichever track merges first.
+    for (const [key, code] of Object.entries(COND)) if (code >= 30 && code <= 33) expect(key).not.toBe('auraStacksAtLeast')
+  })
 })

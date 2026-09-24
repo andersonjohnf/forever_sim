@@ -99,7 +99,7 @@ in both clients with its client rows.
   doesn't. See [Windfury Totem](#windfury-totem).
 - **Presets** built on raid composition, not faction ([§6](#6-default-presets)).
 - **Class-only entries.** An entry that does nothing for the other classes (mana, spell damage:
-  the paladin's), or that only some classes can use (the Mighty Rage Potion: warriors and
+  the paladin's and the shaman's), or that only some classes can use (the Mighty Rage Potion: warriors and
   druids), says which classes it's for. The Buffs tab lists it only for them, presets
   skip it for the others, and a saved setup of another class drops it
   ([Implementation notes](#class-only-entries)).
@@ -189,7 +189,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Stoneskin Totem (r6) | 10408 | −30 **Physical** damage taken per hit (C: melee damage) | **5 min**, 30 yd (C: 2 min, 20 yd) | Earth totem, so it excludes Strength of Earth from the same shaman | Shaman | [F] | [fc-sb-shaman] |
 | Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18) | 10 min | — | Druid | [F] | [fc-sb-druid] |
 | Blessing of Wisdom (r6) / Greater (r2) | 25290 / 25918 | **40** mana per 5 s (C: 33) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] | [fc-sb-paladin] |
-| Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins use it | [F] | [fc-sb-shaman] |
+| Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins and shamans use it | [F] | [fc-sb-shaman] |
 
 ### 1.3 Camp buffs (new Forever system)
 
@@ -636,7 +636,11 @@ external toggle is ignored. A druid casts Mark of the Wild on itself, so for a d
 druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's. A paladin blesses
 itself with Might the same way, so for a paladin player Blessing of Might never needs another
 paladin; Kings, Salvation and Wisdom do, one blessing per paladin on a player. The switch is the
-blessing whoever casts it, so it counts once. A Protection warrior's Thunder Clap and
+blessing whoever casts it, so it counts once. A shaman drops its own totems the same way: Strength
+of Earth, Grace of Air and Mana Spring are its own (`selfCast`), one of each kind, so for a shaman
+player they never need another shaman in the party
+([shaman](../classes/shaman.md#totems)). Windfury Totem isn't among them: the Enhancement shaman's
+Windfury Weapon disables its benefit, so its air totem is Grace of Air. A Protection warrior's Thunder Clap and
 Demoralizing Shout are its own the way a cat's Faerie Fire is, its duties
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
 the presets leave their toggles off, its rotation keeps them up, and a rotation that drops them
@@ -647,19 +651,21 @@ and its raid has a warrior tank's Thunder Clap and Demoralizing Shout only if yo
 
 ### 6.2 Buffs and debuffs by preset
 
-`DPS` = Arms, Fury, Cat, Ret · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` = paladin
-specs only (the effect does nothing for the others) · `all` = every spec · `Pal (your own)`,
-`Druid (your own)` = that class's buff it casts on itself (`selfCast`), which Self only brings.
+`DPS` = Arms, Fury, Cat, Ret, Enhancement · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` =
+paladin specs only (the effect does nothing for the others) · `Enh` = the Enhancement shaman ·
+`all` = every spec · `Pal (your own)`, `Druid (your own)`, `Sha (your own)` = that class's buff it
+casts on itself (`selfCast`), which Self only brings.
 Devotion Aura stays `Tank` though it's a paladin tank's duty, because unlike Thunder Clap and
 Demoralizing Shout, which only a warrior tank applies, any paladin in the raid runs an aura, so a
 warrior's or bear's raid has Devotion Aura when a paladin is in it and D26's rule that a tank's
 preset leaves out another tank class's duties doesn't reach it.
 
-Spirit and Intellect are mana, and among the classes in scope only the paladin spends mana in a
-rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat
+Spirit and Intellect are mana, and among the classes in scope only the paladin and the shaman
+spend mana in a rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat
 never powershifts, since in Forever Furor keeps its Energy through a shift, so a shift gains
 nothing ([druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisdom and Mana Spring.
+and its Faerie Fire is free in Cat Form. So they're `Pal` and `Enh`, like Blessing of Wisdom and
+Mana Spring.
 
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
 | --- | --- | --- | --- | --- |
@@ -667,14 +673,15 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Blessing of Might | Pal (your own) | DPS | all | all |
 | Blessing of Kings | — | Tank | all | all |
 | Blessing of Salvation | — | — | DPS | DPS |
-| Blessing of Wisdom | — | — | Pal | Pal |
+| Blessing of Wisdom | — | — | Pal, Enh | Pal, Enh |
 | Mark / Gift of the Wild | Druid (your own) | all | all | all |
 | Power Word / Prayer of Fortitude | — | all | all | all |
-| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal | Pal |
+| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal, Enh | Pal, Enh |
 | Leader of the Pack or Moonkin Aura | — | — | DPS | DPS |
-| Windfury Totem | — | — | all | all |
-| Strength of Earth Totem | — | — | all | all |
-| Mana Spring Totem | — | — | Pal | Pal |
+| Windfury Totem | — | — | all but Enh (see below) | all but Enh |
+| Grace of Air Totem | Sha (your own) | — | Enh | Enh |
+| Strength of Earth Totem | Sha (your own) | — | all | all |
+| Mana Spring Totem | Sha (your own) | — | Pal, Enh | Pal, Enh |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
 | Faerie Fire | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
@@ -701,6 +708,12 @@ Demoralizing Shout are in no preset for any spec: they're a warrior tank's, so a
 Protection paladin's raid has them only if you add them there, as another warrior's (D26's
 amendment). The roar is a duty only a bear keeps, so it's in no preset either.
 
+No preset gives the Enhancement shaman Windfury Totem: its own Windfury Weapon "disables any
+benefit you personally receive from Windfury Totem" [F] (the imbue's Forever tooltip), so its air
+totem is Grace of Air. If you turn Windfury Totem on while Windfury Weapon is the imbue, the plan
+leaves the totem's proc out and the results say so; with Rockbiter Weapon it applies
+([shaman](../classes/shaman.md#totems)).
+
 Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
 (see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.
 
@@ -717,10 +730,13 @@ their stacking group is verified; the UI offers them as options.
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
+| Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
-bear form is owned by [druid](../classes/druid.md). Hyjal flasks are added automatically
+bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
+temporary enchant, so stones and oils are locked off for a shaman with that reason
+(`buffUnusedReason`; [shaman](../classes/shaman.md#weapon-imbues)). Hyjal flasks are added automatically
 only when the encounter is in Mount Hyjal, Hyjal Summit or the Barrow Deeps.
 
 ### 6.4 Enchant defaults by spec
@@ -744,6 +760,10 @@ are defaults only if the guild confirms the content exists; the fallback is in b
 
 The Superior Strength and Superior Agility gloves (+15) are stronger than Greater (+10) but
 come from harder-to-get formulas. Offer them as options; don't default to them.
+
+**Enhancement shaman:** Retribution's column. Its default weapon is a two-hander, so no shield, and
+the weapon's Crusader sits beside the imbue, which is the temporary enchant
+([shaman](../classes/shaman.md#defaults)).
 
 ---
 
@@ -927,6 +947,9 @@ An entry that does nothing for some classes carries the classes it's for (`forCl
 `src/sim/effects/buffs.ts`). So far these are the paladin's: Prayer of Spirit, Arcane
 Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir of Holy Power,
 Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same).
+The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
+shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
+([shaman](../classes/shaman.md#spell-damage)).
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever
@@ -934,6 +957,8 @@ lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab
 an entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
 the plan ignores it. The Feral cat brought no entries of its own: what does nothing in Cat Form
 (a weapon stone's damage) is listed for a druid, locked off with the reason (`buffUnusedReason`).
+The Enhancement shaman's stones and oils are the same: listed, and locked off because its weapon
+imbue is its main hand's temporary enchant.
 
 ### Classic Era values
 

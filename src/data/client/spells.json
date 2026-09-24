@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 78,
-      "docs": 299,
+      "docs": 333,
       "enchant": 125,
       "item": 410,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1593,
-    "spells": 1709
+    "seeds": 1601,
+    "spells": 1717
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -24559,7 +24559,7 @@
       "range": {
         "rangeMax": [20, 20]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10427": {
       "categories": {
@@ -25439,7 +25439,7 @@
       "range": {
         "rangeMax": [20, 20]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10478": {
       "categories": {
@@ -32429,7 +32429,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "15388": {
       "duration": {
@@ -33287,7 +33287,7 @@
         "spellIconFileDataId": 136026
       },
       "name": "Concussion",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16038": {
       "classOptions": {
@@ -33346,7 +33346,7 @@
         "spellIconFileDataId": 136116
       },
       "name": "Convection",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16040": {
       "classOptions": {
@@ -33371,7 +33371,7 @@
         "spellIconFileDataId": 135850
       },
       "name": "Reverberation",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16043": {
       "classOptions": {
@@ -33464,7 +33464,7 @@
         "spellIconFileDataId": 135830
       },
       "name": "Elemental Fury",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16120": {
       "classOptions": {
@@ -33489,7 +33489,7 @@
         "spellIconFileDataId": 136014
       },
       "name": "Call of Thunder",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16138": {
       "auraOptions": {
@@ -33580,7 +33580,7 @@
         "spellIconFileDataId": 136057
       },
       "name": "Totemic Focus",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16176": {
       "auraOptions": {
@@ -33710,7 +33710,7 @@
         "spellIconFileDataId": 135859
       },
       "name": "Tidal Focus",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16181": {
       "classOptions": {
@@ -34073,7 +34073,7 @@
         "spellIconFileDataId": 132325
       },
       "name": "Thundering Strikes",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16256": {
       "auraOptions": {
@@ -34100,7 +34100,44 @@
         "spellIconFileDataId": 132152
       },
       "name": "Flurry",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
+    },
+    "16257": {
+      "auraOptions": {
+        "procCategoryRecovery": 500,
+        "procChance": 100,
+        "procCharges": 3,
+        "procTypeMask": [4, 0]
+      },
+      "classOptions": {
+        "spellClassMask": [0, 512, 0, 0],
+        "spellClassSet": 11
+      },
+      "duration": {
+        "duration": 15000,
+        "maxDuration": 15000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 319,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 16257,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132152
+      },
+      "name": "Flurry",
+      "sources": ["docs"]
     },
     "16258": {
       "classOptions": {
@@ -34244,7 +34281,7 @@
       },
       "name": "Elemental Weapons",
       "nameSubtext": "Rank 1",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16268": {
       "classOptions": {
@@ -34291,6 +34328,47 @@
       },
       "name": "Spirit Weapons",
       "sources": ["talent"]
+    },
+    "16313": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [20, 0]
+      },
+      "classOptions": {
+        "spellClassMask": [4194304, 0, 0, 0],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 554,
+          "effectIndex": 0,
+          "effectRealPointsPerLevel": 16.5,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 10,
+          "effectIndex": 1,
+          "effectMiscValue": [127, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 16313,
+      "levels": {
+        "baseLevel": 54,
+        "maxLevel": 62,
+        "spellLevel": 54
+      },
+      "misc": {
+        "attributes": [192, 0, 16777216, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136086
+      },
+      "name": "Rockbiter Weapon (Passive)",
+      "nameSubtext": "Rank 7",
+      "sources": ["docs"]
     },
     "16314": {
       "categories": {
@@ -34413,7 +34491,7 @@
           "manaCost": 150
         }
       ],
-      "sources": ["spellbook"],
+      "sources": ["docs", "spellbook"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -34672,7 +34750,7 @@
           "manaCost": 155
         }
       ],
-      "sources": ["spellbook"],
+      "sources": ["docs", "spellbook"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -34788,6 +34866,54 @@
         "targets": 16
       }
     },
+    "16361": {
+      "auraOptions": {
+        "procChance": 100,
+        "procCharges": 3,
+        "procTypeMask": [4, 0]
+      },
+      "classOptions": {
+        "spellClassMask": [8388608, 0, 0, 0],
+        "spellClassSet": 11
+      },
+      "duration": {
+        "duration": 1500,
+        "maxDuration": 1500
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 333,
+          "effectIndex": 0,
+          "effectRealPointsPerLevel": 12.5,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 19,
+          "effectBasePointsF": 2,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 16361,
+      "levels": {
+        "baseLevel": 60,
+        "maxLevel": 68,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [1, 268435456, 16777216, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136018
+      },
+      "name": "Windfury Weapon",
+      "nameSubtext": "Rank 4",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
     "16362": {
       "categories": {
         "defenseType": 1,
@@ -34829,7 +34955,7 @@
           "manaCost": 165
         }
       ],
-      "sources": ["spellbook"],
+      "sources": ["docs", "spellbook"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -35243,7 +35369,7 @@
         "spellIconFileDataId": 135990
       },
       "name": "Elemental Alacrity",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16602": {
       "categories": {
@@ -38305,7 +38431,7 @@
         "spellIconFileDataId": 136162
       },
       "name": "Ancestral Knowledge",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17495": {
       "auraOptions": {
@@ -59002,7 +59128,7 @@
       "range": {
         "rangeMax": [20, 20]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "29332": {
       "castTime": {
@@ -59221,7 +59347,34 @@
         "spellIconFileDataId": 135791
       },
       "name": "Elemental Devastation",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
+    },
+    "30165": {
+      "classOptions": {
+        "spellClassSet": 11
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 52,
+          "effectBasePointsF": 3,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 30165,
+      "misc": {
+        "attributes": [16, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135791
+      },
+      "name": "Elemental Devastation",
+      "sources": ["docs"]
     },
     "30812": {
       "classOptions": {
@@ -59254,7 +59407,7 @@
         "spellIconFileDataId": 136090
       },
       "name": "Mental Quickness",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "31018": {
       "categories": {
@@ -60194,7 +60347,59 @@
         "spellIconFileDataId": 237584
       },
       "name": "Maelstrom Weapon",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
+    },
+    "408505": {
+      "auraOptions": {
+        "cumulativeAura": 5,
+        "procChance": 100,
+        "procCharges": 1,
+        "procTypeMask": [81920, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [0, 0, 0, 16],
+        "spellClassSet": 11
+      },
+      "duration": {
+        "duration": 30000,
+        "maxDuration": 30000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -20,
+          "effectIndex": 0,
+          "effectMiscValue": [10, 0],
+          "effectSpellClassMask": [1, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -20,
+          "effectIndex": 1,
+          "effectMiscValue": [14, 0],
+          "effectSpellClassMask": [1, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 408505,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 512, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 237584
+      },
+      "name": "Maelstrom Weapon",
+      "sources": ["docs"]
     },
     "408510": {
       "auraOptions": {
@@ -60543,7 +60748,7 @@
         "spellIconFileDataId": 136055
       },
       "name": "Mental Dexterity",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "417046": {
       "classOptions": {
@@ -60758,7 +60963,7 @@
         "spellIconFileDataId": 136012
       },
       "name": "Rage of the Farseer",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "426065": {
       "auraOptions": {
@@ -60845,6 +61050,34 @@
       },
       "name": "Increased Hit Chance 01",
       "sources": ["item"]
+    },
+    "436519": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [20, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 436519,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [336, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 134877
+      },
+      "name": "Flametongue Weapon",
+      "sources": ["docs"]
     },
     "437009": {
       "categories": {
@@ -60937,6 +61170,53 @@
         "shapeshiftMask": [1073741826, 0]
       },
       "sources": ["spellbook"]
+    },
+    "439431": {
+      "auraOptions": {
+        "procCategoryRecovery": 1500,
+        "procChance": 20,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 0, 256, 0],
+        "spellClassSet": 11
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 46,
+          "effectIndex": 0,
+          "effectRealPointsPerLevel": 7.2,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 2,
+        "equippedItemSubclass": 173555
+      },
+      "id": 439431,
+      "levels": {
+        "baseLevel": 30,
+        "maxLevel": 38,
+        "spellLevel": 30
+      },
+      "misc": {
+        "attributes": [192, 0, 16777216, 0, 0, 0, 67108864, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136018
+      },
+      "name": "Windfury Weapon",
+      "nameSubtext": "Rank 1",
+      "sources": ["docs"]
     },
     "440668": {
       "categories": {
@@ -61641,7 +61921,7 @@
         "spellIconFileDataId": 136027
       },
       "name": "Shamanistic Focus",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223031": {
       "auraOptions": {
@@ -61685,7 +61965,7 @@
         "spellIconFileDataId": 237581
       },
       "name": "Improved Stormstrike",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223033": {
       "effects": [
@@ -62937,6 +63217,36 @@
         "rangeMax": [30, 30]
       },
       "sources": ["spellbook"]
+    },
+    "1238931": {
+      "classOptions": {
+        "spellClassMask": [0, 536870912, 0, 0]
+      },
+      "duration": {
+        "duration": 15000,
+        "maxDuration": 15000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 134,
+          "effectBasePointsF": 50,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1238931,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [537133056, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 237581
+      },
+      "name": "Improved Stormstrike",
+      "sources": ["docs"]
     },
     "1239242": {
       "categories": {

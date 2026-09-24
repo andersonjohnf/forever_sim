@@ -122,7 +122,7 @@ const range = (base: number, variance: number, perLevel: number, baseLevel: numb
 }
 
 /**
- * Earth Shock r7 (10414): 301 base points, variance 0.0527307, +1.9 a level from 60, so 293.07–308.93
+ * Earth Shock r7 (10414): 301 base points, variance 0.0527307, +1.9 a level from 60, so 293.06–308.94
  * at 60; coefficient 0.386; Nature [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Classic
  * Era's rank 7 is 517–545 [C]. Stormstrike's aura boosts it.
  */

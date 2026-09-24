@@ -150,7 +150,17 @@ precision shown as a whole number as the game does
 factor), a duration of −1 shown as "until cancelled", description variables written as
 conditions evaluated (Classic Era Rip's `$ticks`), and `$AP` taken as 0 (Victory Rush reads
 "causing 1 damage", as the site had it). A Forever rank whose tooltip doesn't render fails the
-run.
+run, with two exceptions the client files can't resolve, listed in the book's
+`meta.unresolvedTokens` (`{ spellId, token, why }`, sorted by spell id):
+
+- `$z`, the player's home location, which only the game knows: the text reads "your home
+  location" (Astral Recall, 556).
+- A token that reads a spell the build doesn't have renders as nothing, and doesn't fail the
+  run. Windfury Totem rank 3's "within $10611a1 yards" (10614) reads the radius of 10611, the Classic
+  enchant spell Forever removed ([buffs doc › Windfury Totem](../mechanics/buffs-debuffs-consumables.md#windfury-totem)),
+  and ranks 1 and 2 do the same with their own enchant spells (8512 reads 8514, 10613 reads 10607).
+
+Only the shaman's book has any so far; any other unrendered Forever token still fails the run.
 
 ## Schema summary
 
@@ -159,8 +169,9 @@ SpellBook
   meta      { source, scraper, scrapedAt, product, foreverBuild, foreverBuildDate,
               classicProduct, classicBuild, tables { forever, classic }, wowDbDefs,
               noClientData[{ spellId, skillLine, acquireMethod, supersedes, encrypted,
-                             classic { name, rank, talentRank } | null }] }
-  class     "warrior" | "druid" | "paladin"
+                             classic { name, rank, talentRank } | null }],
+              unresolvedTokens[{ spellId, token, why }] }
+  class     "warrior" | "druid" | "paladin" | "shaman"
   counts    { total, new, changed, notInForever, differentFromClassic }
   tabs[]    { name, slug, icon, spellCount }
   spells[]  Spell

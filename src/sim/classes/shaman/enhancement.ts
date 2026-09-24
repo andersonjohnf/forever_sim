@@ -170,7 +170,7 @@ export const ENHANCEMENT_OPTIONS: RotationOption[] = [
     id: ID.manaPotion,
     group: 'Consumables',
     label: 'Major Mana Potion',
-    help: 'Drink one every 2 minutes once you’re missing enough mana (under Advanced) that all it can restore, up to 2,250, fits.',
+    help: 'Drink one every 2 minutes, once all it can restore (up to 2,250 mana) fits.',
     default: true,
     requiresBuff: MANA_POTION,
   },

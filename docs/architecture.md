@@ -193,7 +193,7 @@ A spec is data plus small ability modules, never its own loop.
   Tank specs also get the fight from the tank's side (`SimResult.tank`): damage taken per
   second, one sample per fight with its CI like DPS, and the boss's swings by outcome, summed per
   chunk and merged in chunk order like the breakdown counters (encounter §5). A spec that casts
-  spells from mana (the paladin) gets its mana over a fight (`SimResult.mana`): the pool at the
+  spells from mana (the paladin, the shaman) gets its mana over a fight (`SimResult.mana`): the pool at the
   pull, what the power ticks regenerated, what spells and consumables restored and what the
   rotation spent, each per fight, from the engine's mana totals summed per chunk the same way.
 - **Spells** (the paladin; [paladin.md › How the engine does it](classes/paladin.md#how-the-engine-does-it)):
@@ -230,8 +230,8 @@ A spec is data plus small ability modules, never its own loop.
   chances follow the new swing speed; Furor sets Energy or rage), and a proc can be bound to forms.
   White hits and hits taken give rage only in a form whose power is rage, and hits taken only
   under `plan.rage.fromDamageTaken` (warriors, a druid that can be in bear). One player-global
-  power tick every 2 s, from a random phase, adds Energy and mana. Mana is one model for druids
-  and paladins (`Plan.mana`, [character-stats](mechanics/character-stats.md#spirit-and-mana-regeneration)):
+  power tick every 2 s, from a random phase, adds Energy and mana. Mana is one model for druids,
+  paladins and shamans (`Plan.mana`, [character-stats](mechanics/character-stats.md#spirit-and-mana-regeneration)):
   the pool starts full, a cost starts the five-second rule, and each tick adds the plan's mp5
   always and spirit regeneration outside the rule, or the plan's share of it inside (the paladin
   sets mp5 and Reverence's share; the druid neither yet). Rotation conditions `minEnergy`,
@@ -249,6 +249,18 @@ A spec is data plus small ability modules, never its own loop.
   resistance with its hit (Faerie Fire, Nature). A marker aura with several stacks makes a bleed a
   stacking one, whose ticks and hit read the stacks (Lacerate). `noCooldownAura` suspends a
   cooldown (Berserk's Mangle), and `itemArmorPct` joins the defensive aura mods (Enrage).
+- **The shaman's pieces** ([shaman.md › How the engine does it](classes/shaman.md#how-the-engine-does-it)),
+  generic and optional, so a plan without them runs as before. The shaman shares the paladin's mana
+  model and the results' mana ledger, and has no rage pool. A spell can be boosted by an aura it
+  uses up when it lands (`SpellDef.boost`: Stormstrike's +20% on Earth Shock and Lightning Bolt). An
+  ability can name an aura whose stacks cut its cast time and cost by a share each and which using
+  it spends (`stackAura`: Maelstrom Weapon on Lightning Bolt; a cost it cuts rounds down, and a free
+  cast starts no five-second rule), and a second aura it puts on the player when used (`selfAura`:
+  Improved Stormstrike's). Condition 34, `auraStacksAtLeast`, waits for an aura's stacks. An aura's
+  white-swing charges can be used at most once per so many ms (`whiteSwingChargeIcdMs`: Flurry's
+  500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and the mana plan can
+  name an aura that lets a share of spirit regeneration continue inside the five-second rule while
+  it's up (`inFsrShareAura`: Improved Stormstrike's 50%).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

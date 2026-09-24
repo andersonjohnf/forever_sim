@@ -337,6 +337,15 @@ describe('catalogues and presets', () => {
     }
   })
 
+  it('leaves a warrior tank’s Thunder Clap out of a bear’s presets: it keeps its own roar instead (D26)', () => {
+    for (const preset of ['raid', 'max'] as const) {
+      const bear = presetBuffs(preset, 'druid-feral-bear', FULL_RAID)
+      expect(bear).not.toContain('thunderClap')
+      expect(bear).toContain('demoralizingRoar')
+      expect(bear).not.toContain('demoralizingShout')
+    }
+  })
+
   it('follows composition, not faction', () => {
     const noShaman = presetBuffs('raid', 'warrior-fury', FULL_RAID.filter((c) => c !== 'shaman'))
     expect(noShaman).not.toContain('windfuryTotem')

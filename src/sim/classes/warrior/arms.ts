@@ -420,11 +420,14 @@ export function armsRotation(
 
   // Row 12: Whirlwind, Mortal Strike GCD-safe, outside the execute phase. From Battle Stance it's a
   // dance to Berserker Stance at rage ≤ maxRage (30: the swap keeps 25 and Whirlwind costs 25); in
-  // Berserker Stance it needs no dance.
+  // Berserker Stance it needs no dance. The limit is the dance's: once Recklessness leaves the
+  // warrior in Berserker Stance (row 4), a plain line uses it at any rage, as from a Berserker base.
   let ww = -1
   if (v.on(ID.wwEnabled)) {
     const to = danceTo(WHIRLWIND, STANCE.berserker)
-    ww = b.line(WHIRLWIND, to, [...outside, ...msSafe(WHIRLWIND, msOut), ...(to ? [maxRage(v.num(ID.wwMaxRage))] : [])])
+    const conditions = [...outside, ...msSafe(WHIRLWIND, msOut)]
+    ww = b.line(WHIRLWIND, to, [...conditions, ...(to ? [maxRage(v.num(ID.wwMaxRage))] : [])])
+    if (to) b.add(WHIRLWIND, conditions)
   }
 
   // Row 13: the Heroic Strike queue (off the GCD) at rage ≥ minRage, outside the execute phase; a

@@ -1125,7 +1125,7 @@ have.
 | 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25 | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
 | 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (5) | yes |
 | 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (35) | yes |
-| 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance, no dance | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
+| 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance (the base stance, or after Recklessness's swap), no dance and no rage limit | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
 | 13 | Heroic Strike queue (off the GCD) | Off by default: its swing gives no rage ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), and Arms' rage does more elsewhere (notes). When it's on: rage ≥ `minRage` (125, near the 130 cap); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (off), `.minRage` (125), `.unqueue` (off), `.unqueueBelow` (20) | no |
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
@@ -1167,7 +1167,7 @@ Notes:
 - **Recklessness and the stance** (row 4). From Battle Stance the line dances to Berserker
   Stance and **stays**: that stance becomes the base stance for the rest of the fight, so the
   engine never swaps back ([§7](#7-implementation-notes) "Stance dancing"). Rend and Overpower
-  then wait for good, and the Whirlwind line, if it's on, needs no dance. There's no rage guard:
+  then wait for good, and Whirlwind, if it's on, needs no dance and no rage limit (row 12). There's no rage guard:
   the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
   worth. **When.** It follows the execute phase, whose start each fight knows, as it knows its
   length ([encounter.md](../mechanics/encounter.md#implementation-notes)). By default it comes
@@ -1223,11 +1223,14 @@ Notes:
   (−23 DPS; seed 777, 20,000 fights). Fury's Heroic Strike queue spends it on every main-hand
   swing, under Recklessness's crits.
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
-  25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
-  Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
-  in Hamstring's GCD-safe check (row 14) only at rage its dance could use (25–30): above
-  `maxRage` it isn't coming up ([§7](#7-implementation-notes) "GCD-safe and stances"), so it no
-  longer holds Hamstring back at its 40 rage or more.
+  25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. The limit is
+  the dance's: after Recklessness's swap leaves the warrior in Berserker Stance, a second, plain
+  line uses Whirlwind at any rage, as a Berserker base stance does. (Until September 2026 the line
+  kept its ≤ 30 there, and Hamstring, from 40, waited on the Whirlwind it held back: with no execute
+  phase, 606.8 → 616.6 DPS with Whirlwind on, seed 12345, 20,000 fights; the default, Whirlwind off,
+  is unchanged.) Before that swap it counts in Hamstring's GCD-safe check (row 14) only at rage
+  its dance could use (25–30): above `maxRage` it isn't coming up ([§7](#7-implementation-notes)
+  "GCD-safe and stances"), so it no longer holds Hamstring back at its 40 rage or more.
 - **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
   with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
   Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower

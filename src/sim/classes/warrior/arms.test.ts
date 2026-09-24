@@ -286,11 +286,13 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(ids(armsRotation({}, without('Spearing Strike'), noAura))).not.toContain('spearingStrike')
   })
 
-  it('row 12: the Whirlwind dance from Battle Stance at rage ≤ maxRage; in Berserker Stance, no dance', () => {
+  it('row 12: the Whirlwind dance from Battle Stance at rage ≤ maxRage, and at any rage once in Berserker Stance; in Berserker Stance, no dance', () => {
     const r = armsRotation({ 'warrior.arms.whirlwind.enabled': true }, TALENTS, noAura)
-    expect(ids(r).slice(ids(r).indexOf('spearingStrike') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['whirlwind'])
+    expect(ids(r).slice(ids(r).indexOf('spearingStrike') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['whirlwind', 'whirlwind'])
+    // The dance's limit is the dance's own: the plain line (Berserker Stance only, after Recklessness's swap) has none.
     expect(linesOf(r, 'whirlwind')).toEqual([
       { ability: at(r, 'whirlwind'), conditions: [notExec, safe(1 << at(r, 'mortalStrike')), maxRage(300)], unqueueBelowTenths: 0, danceTo: STANCE.berserker },
+      { ability: at(r, 'whirlwind'), conditions: [notExec, safe(1 << at(r, 'mortalStrike'))], unqueueBelowTenths: 0 },
     ])
     const b = armsRotation(berserker, TALENTS, noAura)
     expect(linesOf(b, 'whirlwind')).toEqual([{ ability: at(b, 'whirlwind'), conditions: [notExec, safe(1 << at(b, 'mortalStrike'))], unqueueBelowTenths: 0 }])

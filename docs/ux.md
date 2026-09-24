@@ -514,10 +514,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Expertise, Strength | Agility, Stamina | Intellect, Health | Mana, Spirit | Mana per 5 s, then
     Haste | Armor. Each label fits on one line at 390 px.
   - A caster's (a spec the caster core marks, [spells §12](mechanics/spells.md#12-what-a-class-slice-uses);
-    none ships yet) are its spell stats first: Spell damage (all schools), then each school whose
-    own lines add to it ("Shadow damage"), Spell crit, Spell hit, Casting speed, Spell penetration
-    when it has any, Intellect, Spirit, Mana, Mana per 5 s, Stamina, Health, then Armor. The
-    caster slices check them at 390 px as they ship.
+    the mage's since K2) are its spell stats first: Spell damage (all schools), then each school
+    whose own lines add to it ("Shadow damage"); Spell crit, then each school whose talents add to
+    it ("Fire crit" with Critical Mass); Spell hit, then each school the same way ("Fire hit",
+    "Frost hit" with Elemental Precision); Casting speed, Spell penetration when it has any,
+    Intellect, Spirit, Mana, Mana per 5 s, Stamina, Health, then Armor. A spell's own crit
+    (Incineration on Scorch and Fire Blast) and a buff's in the fight (Combustion) aren't in them.
+    Its footnotes name no melee value its spells don't read: no base attack power left out, no
+    base melee crit placeholder. The caster slices check them at 390 px as they ship.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
     defense above 300 or block value; a class that can't parry or block (a druid) leaves those
     rows out. A tank's sheet adds **Crit reduction (boss's crits)** after

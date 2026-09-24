@@ -462,6 +462,29 @@ describe('spell hit by school (docs/classes/mage.md#talents)', () => {
   })
 })
 
+describe('the character sheet (docs/ux.md#results; docs/classes/mage.md#talents)', () => {
+  it('shows each school’s crit and hit with the talents’: Fire’s Critical Mass +6% crit, Elemental Precision’s +5% Fire and Frost hit, Arcane Focus’s +3% Arcane hit', () => {
+    const { sheet } = buildPlan(defaultConfig('mage-fire'))
+    const spell = sheet.spell!
+    const c = spell.caster!
+    expect(c.schoolCrit.fire - spell.critPct).toBeCloseTo(6, 9)
+    for (const k of ['arcane', 'frost', 'holy', 'nature', 'shadow'] as const) expect(c.schoolCrit[k]).toBe(spell.critPct)
+    expect([c.schoolHit.fire, c.schoolHit.frost, c.schoolHit.arcane, c.schoolHit.shadow].map((h) => h - spell.hitPct)).toEqual([5, 5, 3, 0])
+  })
+
+  it('names no melee value it doesn’t use: no base attack power left out, no base melee crit placeholder', () => {
+    for (const spec of ['mage-fire', 'mage-frost', 'mage-arcane'] as const) {
+      const { sheet, assumptions } = buildPlan(defaultConfig(spec))
+      expect(sheet.unknown).toEqual([])
+      expect(sheet.placeholders).toEqual(['base attributes', 'base health', 'base spell crit'])
+      const note = assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text
+      expect(note).toContain('base spell crit')
+      expect(note).not.toContain('melee')
+      expect(note).not.toContain('attack power')
+    }
+  })
+})
+
 describe('Evocation (docs/classes/mage.md#mana)', () => {
   it('channels 8 s on the GCD, its ×16 regeneration aura up only while it channels, all of it while casting; 8 min cooldown', () => {
     const plan = examplePlan({ spec: 'arcane', rotation: { [A.evocation]: true, [A.evocationMana]: 100 }, manaTenths: 'plan' })

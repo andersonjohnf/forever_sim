@@ -498,11 +498,18 @@ export interface CharacterSheet {
     hitPct: number
     mp5: number
     /**
-     * A caster's (SpecMeta.caster; docs/mechanics/spells.md §5, §4, §3): spell damage per school
-     * (all-schools spell damage plus the school's own lines), casting speed in %, and spell
+     * A caster's (SpecMeta.caster; docs/mechanics/spells.md §5, §4, §3): spell damage, crit and hit
+     * per school (the all-schools figure plus the school's own lines), casting speed in %, and spell
      * penetration. Absent for the paladin, whose spells are Holy.
      */
-    caster?: { schoolDamage: Record<'arcane' | 'fire' | 'frost' | 'holy' | 'nature' | 'shadow', number>; castSpeedPct: number; spellPen: number }
+    caster?: {
+      schoolDamage: Record<'arcane' | 'fire' | 'frost' | 'holy' | 'nature' | 'shadow', number>
+      /** Spell crit and hit % per school: `critPct` and `hitPct` plus the school's own talents (Critical Mass, Elemental Precision). */
+      schoolCrit: Record<'arcane' | 'fire' | 'frost' | 'holy' | 'nature' | 'shadow', number>
+      schoolHit: Record<'arcane' | 'fire' | 'frost' | 'holy' | 'nature' | 'shadow', number>
+      castSpeedPct: number
+      spellPen: number
+    }
   }
   /**
    * A tank whose rotation keeps a block buff up (a Protection paladin's Holy Shield): the boss's

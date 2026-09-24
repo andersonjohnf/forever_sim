@@ -320,6 +320,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   // Avoidance matters only when the boss attacks you, so only a tank lists its avoidance
   // placeholders: the sheet's footnote and the assumptions below name the same values.
+  // A caster's spells read neither its attack power nor its melee crit (docs/classes/mage.md#what-the-sim-needs):
+  // those are neither listed nor left out for it (`listed` false).
   const baseValue = (known: number | null, placeholder: number | undefined, name: string, listed = true) => {
     if (known !== null) return known
     if (placeholder !== undefined) {
@@ -327,10 +329,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       return placeholder
     }
     // Neither measured nor a placeholder: left out of the sheet, which says so.
-    unknown.push(name)
+    if (listed) unknown.push(name)
     return 0
   }
-  block.baseAp = baseValue(base.baseAp, stand.baseAp, 'base attack power')
+  block.baseAp = baseValue(base.baseAp, stand.baseAp, 'base attack power', !meta.caster)
   block.baseHealth = baseValue(base.baseHealth, stand.baseHealth, 'base health')
   block.baseDodge = baseValue(base.baseDodge, stand.baseDodge, 'base dodge', tank)
   // A player parries with a melee weapon in hand; druids can't parry (character-stats §other base values).
@@ -341,7 +343,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Base parry and block, 5% [?], are unmeasured too (character-stats OQ-5): a tank's placeholders.
   if (tank && block.canParry) placeholders.push('base parry')
   if (tank && block.canBlock) placeholders.push('base block')
-  block.baseCrit = baseValue(base.baseCrit, stand.baseCrit, 'base crit')
+  block.baseCrit = baseValue(base.baseCrit, stand.baseCrit, 'base crit', !meta.caster)
   block.critPerAgi = base.critPerAgi
   block.spellCritPerInt = base.spellCritPerInt
   block.baseSpellCrit = baseValue(base.baseSpellCrit, stand.baseSpellCrit, 'base spell crit')
@@ -641,7 +643,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } }
       : {}),
     // docs/mechanics/spells.md §3–§5: a caster's spell stats, by school.
-    ...(meta.caster ? { spell: casterSheet(shown, block) } : {}),
+    ...(meta.caster ? { spell: casterSheet(shown, block, c.schools) } : {}),
   }
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
@@ -1549,7 +1551,15 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
  * A caster's spell block on the character sheet (docs/mechanics/spells.md §3–§5; docs/ux.md#results):
  * spell damage by school, crit, hit, mana per 5 s, casting speed and spell penetration.
  */
-export function casterSheet(d: DerivedStats, block: StatBlock): NonNullable<CharacterSheet['spell']> {
+/**
+ * A caster's spell stats for the sheet (docs/mechanics/spells.md §3–§5): spell damage, crit and hit
+ * per school, each the all-schools figure plus the school's own static lines (`schools`: a talent's
+ * Critical Mass on Fire crit, Elemental Precision on Fire and Frost hit), as the engine starts the
+ * fight with them. A spell's own crit (Incinerate's) and an aura's are the spell's and the fight's.
+ */
+export function casterSheet(d: DerivedStats, block: StatBlock, schools?: Pick<Collected['schools'], 'crit' | 'hit'>): NonNullable<CharacterSheet['spell']> {
+  const perSchool = (all: number, extra?: number[]) =>
+    Object.fromEntries(CASTER_SHEET_SCHOOLS.map((k) => [k, all + (extra?.[SCHOOL[k]] ?? 0)])) as Record<(typeof CASTER_SHEET_SCHOOLS)[number], number>
   return {
     holyDamage: d.holySpellDamage,
     critPct: d.spellCrit,
@@ -1564,11 +1574,15 @@ export function casterSheet(d: DerivedStats, block: StatBlock): NonNullable<Char
         nature: d.natureSpellDamage,
         shadow: d.shadowSpellDamage,
       },
+      schoolCrit: perSchool(d.spellCrit, schools?.crit),
+      schoolHit: perSchool(d.spellHit, schools?.hit),
       castSpeedPct: (d.castHasteMult - 1) * 100,
       spellPen: block.spellPen,
     },
   }
 }
+
+const CASTER_SHEET_SCHOOLS = ['arcane', 'fire', 'frost', 'holy', 'nature', 'shadow'] as const
 
 /**
  * The plan's school numbers (docs/mechanics/spells.md §3, §9; plan/types.ts SchoolPlan), or none

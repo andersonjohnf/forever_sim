@@ -1097,7 +1097,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (windows.has('revengeWindow')) notes.add('revengeWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
-  if (abilities.some((a) => a.castMs > 0)) notes.add('slamCast')
+  // A paladin's cast (Hammer of Wrath) has its own note (paladinAssumptions).
+  if (classId === 'warrior' && abilities.some((a) => a.castMs > 0)) notes.add('slamCast')
   if (abilities.some((a) => a.twoHandOnly) && weapons[HAND.main]?.plan.twoHand) notes.add('spearingStrike')
   // A warrior's Rend (a rage bleed); a druid's bleeds are in `catBleeds`.
   const bleeds = abilities.filter((a) => a.kind === 'bleed' && (a.resource ?? 'rage') === 'rage')

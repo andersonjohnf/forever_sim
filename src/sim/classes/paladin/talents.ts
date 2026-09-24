@@ -235,7 +235,8 @@ export const HOLY_CONDUIT: ReadonlySet<string> = new Set([
 
 /**
  * An ability with the build's talents (paladin.md#talents), after `withSpellTalents` on its spells:
- * - Instrument of Law: Hammer of Wrath's cast −0.5 s per rank (instant at 2/2; its GCD stays 1 s)
+ * - Instrument of Law: Hammer of Wrath's cast −0.5 s per rank (instant at 2/2, when it no longer
+ *   stops swings or holds Judgement; its GCD stays 1 s)
  * - Benediction −2% per rank on instant abilities and Holy Conduit −20% per rank on its four, added
  *   together [?] (OQ 19), then rounded down (paladin.md#mana-model: SoC 189, Consecration 508)
  * - Improved Judgement −1 s per rank on Judgement; Improved Holy Strike −1 s per rank; Purifying
@@ -249,7 +250,14 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     ...(def.spellDef ? { spellDef: withSpellTalents(def.spellDef, talents) } : {}),
     ...(def.tickSpellDef ? { tickSpellDef: withSpellTalents(def.tickSpellDef, talents) } : {}),
   }
-  if (def.id === HAMMER_OF_WRATH_ABILITY.id) out.castMs = Math.max(0, def.castMs - 500 * rank(talents, 'Instrument of Law'))
+  if (def.id === HAMMER_OF_WRATH_ABILITY.id) {
+    out.castMs = Math.max(0, def.castMs - 500 * rank(talents, 'Instrument of Law'))
+    // Instant at 2/2: no cast to stop swings or hold Judgement.
+    if (out.castMs === 0) {
+      out.castStopsSwings = false
+      out.castHoldsOffGcd = false
+    }
+  }
   const cut = (INSTANT(out) ? 2 * rank(talents, 'Benediction') : 0) + (HOLY_CONDUIT.has(def.id) ? 20 * rank(talents, 'Holy Conduit') : 0)
   if (def.resource === 'mana' && def.costTenths > 0 && cut > 0) out.costTenths = 10 * Math.floor((manaCostOf(def) * (100 - cut)) / 100 + 1e-9)
   if (def.category === JUDGEMENT_CATEGORY) {

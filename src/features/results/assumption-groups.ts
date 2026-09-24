@@ -100,6 +100,7 @@ export const ASSUMPTION_GROUP = {
   reckoning: 'class',
   redoubt: 'class',
   improvedSealOfFury: 'class',
+  hammerOfWrathCast: 'class',
   manaRegen: 'class',
   foreverWhiteRage: 'class',
   foreverOffHandRage: 'class',

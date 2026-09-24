@@ -279,11 +279,12 @@ describe('worked example 10: Hammer of Wrath', () => {
 })
 
 describe('Hammer of Wrath’s 1 s cast, without Instrument of Law [?] (paladin.md#other-abilities, OQ 22)', () => {
-  it('keeps the swing timer running, and lets the off-GCD Judgement act, during the cast', () => {
+  it('stops auto attacks, which start again from a full swing when it ends, and holds the off-GCD Judgement until then', () => {
     const plan = examplePlan({ core: false, weapon: { min: 200, max: 300, speedSec: 2.5 }, durationMs: 20000 })
     plan.fight.executePct = 100 // the execute phase from the pull
     plan.mana = { ...plan.mana!, maxTenths: 1e9 }
     const how = addPaladinAbility(plan, HAMMER_OF_WRATH_ABILITY)
+    expect(plan.abilities[how]).toMatchObject({ castMs: 1000, castStopsSwings: true, castHoldsOffGcd: true })
     line(plan, how)
     const seal = withSeal(plan, SEAL_OF_COMMAND)
     // A 7.5 s Judgement: ready in the middle of the second cast.
@@ -298,12 +299,16 @@ describe('Hammer of Wrath’s 1 s cast, without Instrument of Law [?] (paladin.m
     sim.runFight(0)
     // The cooldown starts when the 1 s cast ends: casts at 0, 7 and 14 s.
     expect(casts).toEqual([0, 7000, 14000])
-    const during = (t: number) => casts.some((c) => t > c && t < c + 1000)
-    // White swings every 2.5 s, one of them (7.5 s) in the middle of a cast.
-    expect(swings).toEqual(Array.from({ length: 8 }, (_, k) => 2500 * k))
-    expect(swings.filter(during)).toEqual([7500])
-    expect(judged).toEqual([0, 7500, 15000])
-    expect(judged.filter(during)).toEqual([7500])
+    const during = (t: number) => casts.some((c) => t >= c && t < c + 1000)
+    // No white swing during a cast, and the next a full 2.5 s after it ends: the swing due at the
+    // pull waits for the first cast (1 + 2.5 s), the one due at 8.5 s for the second (8 + 2.5 s).
+    expect(swings).toEqual([3500, 6000, 10500, 13000, 17500])
+    expect(swings.filter(during)).toEqual([])
+    // Judgement, off the GCD, waits for the cast too: ready at 7.5 s, in the middle of the second
+    // cast, it's used as the cast ends at 8 s. (The one at the pull comes before the first cast,
+    // whose execute phase starts at that very moment.)
+    expect(judged).toEqual([0, 8000, 15500])
+    expect(judged.filter((t) => t > 0 && during(t))).toEqual([])
   })
 })
 

@@ -358,9 +358,9 @@ These judgements are debuffs: taking one replaces your JotC.
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
-| **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. During the cast the sim keeps swinging and lets the off-GCD Judgement act [?]; in game a cast likely pauses both. No default result depends on it yet: the core rotation doesn't cast Hammer of Wrath, and the default Retribution build's Instrument of Law 2/2 makes it instant. Protection's list (row 8) casts it in 1 s | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
+| **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. The cast stops your auto attacks, which start again from a full swing when it ends, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules) has every cast do, and holds everything else until it ends, the off-GCD Judgement too: in game you can't cast one spell during another [?]. It pays its mana and starts its cooldown when the cast ends. The default Retribution build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s (row 8), where the cast costs 1.8% of TPS against letting swings and Judgement go on | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
 | **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike**; GCD 1.5 s; needs a 1H axe, mace or sword | Melee special, full table [?] | [F] [F 407632][f407632]; category 2404 with 6 s: [client] (SpellCategories, SpellCooldowns, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. Whether "weapon DPS" includes AP is [?] |
-| **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is a proc (`PROC_TRIGGER_DAMAGE`, aura 43). The sim has it always land and never crit, as a damage shield does [?] ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913; [20928][f20928]) |
+| **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is the buff's own effect (aura 43, `PROC_TRIGGER_DAMAGE`), with no damage spell of its own. The client marks spell 20928 **magic** (DefenseType 1), which would give the damage the spell table: a miss roll (14% for the default build against a level-63 boss) and spell crit. The sim overrides it and has the damage always land and never crit [?]: 20928's table is the one its cast rolls, on yourself, and nothing in the client says the damage its aura deals rolls one again. Untested ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, SpellCategories, 1.60.1.69913; [20928][f20928]) |
 | **Righteous Fury** (25780) | **+90% threat from Holy damage**; Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.69913; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
 | Templar's Bulwark (1311015), new Prot talent | absorb = 100% max health for 8 s; Forbearance | 110 mana; 5 min (−60 s Sacred Duty); off GCD | — | [F] [F 1311015][f1311015]. No TPS effect; not modelled by default |
@@ -429,7 +429,7 @@ Improved Seal of the Crusader [F].
 | Improved Hammer of Justice (3) | −15 s | same | not modelled |
 | Templar's Bulwark (1), new | absorb 100% max health, 8 s | — | not modelled by default |
 | Reckoning (5) | "Gives you a 40% chance to gain an extra attack after Blocking a melee attack and a 100% chance to gain an extra attack after being the victim of a non-periodic critical strike." ([F 20177][f20177]) | 100% on crit only | Extra main-hand auto attack (can proc seals): 8% a rank after a block, 20% a rank after a crit taken (40% and 100% at 5/5, the rank texts). In combat it swings at once, from the boss's swing that gave it; the stacking cap (Classic stored up to 4 [?]; Forever's [?]) doesn't arise |
-| Iron Creed (5), new | "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec." ([F 1311034][f1311034]) | — | Holy Strike threat ×1.25 (aura 108, modifier 2, curve 5…25, [client] (SpellEffect, CurvePoint, 1.60.1.69913)); −10% damage taken buff (tank survival only; not modelled yet, so damage taken reads up to about 6% high) |
+| Iron Creed (5), new | "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec." ([F 1311034][f1311034]) | — | Holy Strike threat ×1.25 (aura 108, modifier 2, curve 5…25, [client] (SpellEffect, CurvePoint, 1.60.1.69913)). **−2% damage taken a rank** (−10% at 5/5), all schools, for 6 s after Holy Strike, while Righteous Fury is up: the talent's aura 231 on done melee-class spells triggers 1311033 (aura 87, 6 s, caster aura 25780 Righteous Fury), at 2/4/6/8/10 on curve 110345 [F] [client] (SpellEffect, SpellDuration, SpellAuraRestrictions, CurvePoint, 1.60.1.69913). A Protection paladin's Righteous Fury is up all fight, so each landed Holy Strike puts it up; whether a missed or dodged one does is the server's [?]. Tank survival only: in the default setup it's up 43% of the fight (Holy Strike every 10 s, 72% of them landing) and cuts damage taken by 4.3% |
 | Holy Shield (1) | see [Other abilities](#other-abilities) | 30% block, 130 dmg | — |
 
 Removed from Prot: Blessing of Sanctuary, Improved Devotion Aura, Improved Concentration
@@ -502,7 +502,7 @@ stacking) live in [threat.md](../mechanics/threat.md). Paladin inputs:
 | --- | --- | --- |
 | Holy damage with Righteous Fury | damage × **1.9** | [F] [client] (SpellEffect, 1.60.1.69913; [25780][f25780]) |
 | Physical damage (white hits) | damage × 1.0. RF doesn't affect it and paladins have no stance | [C] |
-| Holy Shield block damage | damage × 1.9 × **1.2** (the 20% is multiplicative with RF [?]; additive would be ×2.1) | [F]/[?] |
+| Holy Shield block damage | damage × 1.9 × **1.2** (the 20% is multiplicative with RF [?]; additive would be ×2.1). It always lands and never crits [?] ([open question 16](#open-questions)) | [F]/[?] |
 | Holy Strike | damage × 1.9 × **1.25** (Iron Creed 5/5) | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Judgement of Fury | damage × 1.9, **taunt 4 s** (sets you to top threat; no-op when you already are) | [F] |
 | Retribution Aura | 30 per hit taken × 1.9 | [F] |
@@ -911,7 +911,9 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   triggers procs. One engine function rolls the right table, deals the damage and threat, and fires
   on-hit and crit procs unless the spell triggers none (a triggered spell without NOT_A_PROC:
   [conventions](#conventions-used-below)). The numbers and attributes are the client's, checked by
-  `data.test.ts`.
+  `data.test.ts`. With no main-hand weapon, the melee- and ranged-class spells (the judgements,
+  Hammer of Wrath) still roll the special table, unarmed: skill 5 × level and no weapon bonuses
+  [?]; Holy Strike, which deals weapon damage, isn't used.
 - **Seals** are casts that put an aura up; seals form an exclusive group, so a new one ends the
   old. Each damage seal's proc is a proc on landed main-hand auto attacks (white swings and
   extra attacks) that rolls only while its seal is up, and fires **after** the swing's own procs,
@@ -971,7 +973,15 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
     `blockCharges` ([combat-tables §8](../mechanics/combat-tables.md#8-boss--player-tanks)): each
     block uses one after its procs, so the 4th block still deals the damage. The damage is a proc on
     the block trigger while the buff is up, casting a spell that always lands and can't crit
-    (`cannotCrit`), with its 20% threat in the spell's threat multiplier.
+    (`cannotCrit`, which rolls no crit on any table), with its 20% threat in the spell's threat
+    multiplier.
+  - **Hammer of Wrath's cast** stops the swing timers (`castStopsSwings`, Slam's rule) and holds
+    every other line until it ends (`castHoldsOffGcd`): the walk stops when the cast starts and
+    starts again at its end, so an off-GCD Judgement that comes ready during it waits. An extra
+    attack granted during the cast (Reckoning's) swings when it ends. Its note is its own
+    (`hammerOfWrathCast`), not Slam's.
+  - **Iron Creed**'s buff is the Holy Strike row's aura: a `spell` ability with an aura puts it on
+    you when its spell lands, −2% damage taken a rank for 6 s.
   - **Swift Judgement** is a `cast` off the GCD whose `endsCooldownOf` ends its judgement's
     cooldown, the category's too, and whose buff is the plan's free-cast aura, Clearcasting's
     path ([druid.md §2.7](druid.md#27-omen-of-clarity-and-clearcasting)), so the judgement it
@@ -979,7 +989,10 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   - **Seal of Fury's absorb** is an aura a proc on each landed white swing puts up, with a shield,
     while Seal of Fury is up. A hit that costs health uses it up (`takenCharges`), after the
     damage-taken procs, one of which is **Improved Seal of Fury**'s mana: a flat 60 raised by the
-    boss's level (`manaFlat`, 87 against level 63).
+    boss's level (`manaFlat`, 87 against level 63). As with block charges, only an absorb up before
+    the hit's procs pays; one they put up keeps its charge.
+  - **Swift Judgement**'s `endsCooldownOf` never readies an ability that can't be used again (one
+    used up, or needing a weapon the setup lacks, ready at Infinity).
   - **Reckoning** is two procs on the boss's swings, 8% a rank on a block and 20% a rank on a crit
     taken, each an extra main-hand attack the tank core swings at once. **Redoubt** is a 10% proc on
     each landed swing taken, an aura of +6% block a rank with 5 block charges.
@@ -996,10 +1009,9 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Judgement of the Crusader up), the utility seals, another paladin's Judgement of Wisdom, a
   Protection paladin's judgement debuff for the raid (Wisdom or Light), a rune's health cost, and
   the T1 5-piece's −0.5 s Judgement. For a tank: Judgement of Fury's taunt (no threat while you
-  hold the boss), Iron Creed's −10% damage taken after Holy Strike (damage taken reads up to about
-  6% high), the damage Seal of Fury's absorb takes off a hit, Templar's Bulwark, Divine Protection
-  and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff catalogue, for
-  paladins only ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
+  hold the boss), the damage Seal of Fury's absorb takes off a hit, Templar's Bulwark, Divine
+  Protection and Eye for an Eye. Blessing of Wisdom and Mana Spring Totem are in the buff
+  catalogue, for paladins only ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
 
 ---
 
@@ -1137,11 +1149,15 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 15. **Touch of the Grave** (Undead) drain amount.
 16. **Righteous Fury and healing threat**; Holy Shield's 20% additive vs multiplicative with
     RF ([threat.md](../mechanics/threat.md)); **whether Holy Shield's block damage can miss or
-    crit**. The sim multiplies (×2.28) and has the damage always land and never crit, as a damage
-    shield does [?]. Holy Shield's damage is 28% of the default Protection TPS: additive (×2.1)
-    would cost about 2.2% of TPS, a miss on the spell table (14% for the default build against a
-    boss) about 3.9%, and a crit at spell crit would add about 0.7%. *Test:* Holy Shield's damage
-    events against a boss (misses, crits) and its threat on a threat meter.
+    crit**. The client marks Holy Shield (20928) magic, DefenseType 1 [F] [client] (SpellCategories,
+    1.60.1.69913), which would give its damage the spell table. The sim multiplies (×2.28) and has
+    the damage always land and never crit [?]: the damage is the buff's aura effect (43), with no
+    damage spell of its own, and the sim reads 20928's table as its cast's, on yourself
+    ([Other abilities](#other-abilities)). Holy Shield's damage is 28% of the default Protection
+    TPS: additive (×2.1) would cost about 2.2% of TPS, a miss on the spell table (14% for the
+    default build against a boss) about 3.9%, and a crit at spell crit would add about 0.7%.
+    *Test:* Holy Shield's damage events against a boss (misses, crits) and its threat on a threat
+    meter.
 17. **Seal of the Crusader AP at 60**: 306 or 325? The client value is settled: 306 + 2.4 per
     level over levels 52–60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Whether the
     server applies the per-level term is the in-game question. *Test:* at level 60, sheet AP
@@ -1165,15 +1181,24 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     NOT_A_PROC attribute ([conventions](#conventions-used-below)): SoC's proc and the damage
     judgements trigger on-hit and crit procs (Windfury, Crusader, Hand of Justice, Vengeance,
     Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?]. This one isn't
-    minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 12%
-    more DPS and 11% more TPS, almost all from Windfury. *Test:* in a Windfury Totem group, count
-    Windfury attacks per landed white swing with Seal of Fury up and with no seal (500+ swings
-    each; the sim expects the same 20%), and Vengeance stacks from SoR crits alone. The minor ones
-    (under 0.5% each, but the defaults are guesses): SotC's per-swing damage reduction (÷1.4
-    assumed); Eye for an Eye's damage school
-    and threat; whether Hammer of Wrath's 1 s cast (without Instrument of Law) pauses white swings
-    and keeps Judgement from being cast, which the sim doesn't do; whether Retribution Aura's
-    damage comes from blocked hits too and can crit (the sim: yes and no; Max TPS only).
+    minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 8% more
+    DPS and 5.7% more TPS, mostly from Windfury's extra attacks and the Seal of Fury procs they
+    bring (the Flurry Axe's are a sixth of it). *Test:* in a Windfury Totem group, count Windfury
+    attacks per landed white swing with Seal of Fury up and with no seal (500+ swings each; the sim
+    expects the same 20%), and Vengeance stacks from SoR crits alone. Two more that aren't minor:
+    - **Hammer of Wrath's 1 s cast** (without Instrument of Law). The sim has it stop your white
+      swings, which start again from a full swing when it ends, and hold everything else, the
+      off-GCD Judgement too, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)
+      has every cast do [?]. Letting swings and Judgement go on instead would make 1.9% more TPS
+      in the default Protection setup, all of it from the swings. *Test:* a swing timer addon's
+      log around a Hammer of Wrath cast, and whether Judgement can be pressed during one.
+    - **Retribution Aura on blocked hits** (Max TPS only). The sim has it deal its damage on each
+      of the boss's swings that lands on you, a blocked one too, and never crit [?]. Blocks are
+      59% of those swings, so if blocked ones didn't count, Max TPS would lose about 3.1% of its
+      TPS. *Test:* Retribution Aura's damage events against a boss's blocked swings.
+
+    The minor ones (under 0.5% each, but the defaults are guesses): SotC's per-swing damage
+    reduction (÷1.4 assumed); Eye for an Eye's damage school and threat.
 23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
     dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.69913). The sim assumes
     JoC never misses. *Test:* 200+ JoC judgements on mobs three levels above you, counting
@@ -1182,6 +1207,13 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 24. **Mana regeneration's timing.** The sim ticks every 2 s from a random phase, and a seal cast
     before the pull is free and starts no five-second rule [?]. *Test:* a combat log of a
     paladin's mana over the first 20 s of a pull, with and without a pre-pull seal.
+25. **Holy Shield's charges.** The client data gives Holy Shield 4 charges at every rank
+    (SpellAuraOptions procCharges 4) [F] [client] (1.60.1.69913; [20928][f20928]), and the sim uses
+    them, but Forever's rank 2 and 3 tooltips no longer end with "Each block expends a charge. 4
+    charges." (rank 1's still does) [F] (the rank texts in [`src/data/spells/paladin.json`](../../src/data/spells/paladin.json)).
+    If blocks used no charges, Holy Shield would last its full 10 s, and the default Protection
+    setup would make 0.6% more TPS. *Test:* count the blocks that deal Holy Shield's damage in one
+    10 s buff against a fast-hitting mob.
 
 ---
 

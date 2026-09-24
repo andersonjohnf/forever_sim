@@ -204,6 +204,20 @@ export const SWIFT_JUDGEMENT: AbilityDef = {
   aura: SWIFT_JUDGEMENT_AURA,
 }
 
+/**
+ * Iron Creed's buff (1311033, paladin.md#protection-tree): −2% damage taken a rank, from all schools,
+ * for 6 s after Holy Strike, while Righteous Fury is up [F] [client] (SpellEffect aura 87,
+ * SpellDuration, SpellAuraRestrictions caster aura 25780; the talent's aura 231 on done melee-class
+ * spells, 2/4/6/8/10 on curve 110345, 1.60.1.69913). A Protection paladin's Righteous Fury is up all
+ * fight, so each landed Holy Strike puts it up (landed: the proc's hit mask is the server's [?]).
+ */
+export const ironCreedAura = (rank: number): AuraSpec => ({
+  id: 'ironCreed',
+  name: 'Iron Creed',
+  durationMs: 6000,
+  mods: { damageTaken: -2 * rank },
+})
+
 /** A paladin runs one aura at a time (paladin.md#other-abilities). */
 export const PALADIN_AURA_GROUP = 'paladinAura'
 
@@ -427,7 +441,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfWrath,
     group: 'Execute phase',
     label: 'Hammer of Wrath',
-    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: a 1 s cast, 425 mana.',
+    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: 425 mana, and a 1 s cast that stops your auto attacks and holds Judgement until it ends.',
     default: true,
   },
   manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
@@ -512,8 +526,12 @@ export function protectionRotation(
     }
   }
 
-  // Row 5: Holy Strike on cooldown.
-  if (v.on(ID.holyStrike)) add(HOLY_STRIKE_ABILITY, [])
+  // Row 5: Holy Strike on cooldown; with Iron Creed, each that lands cuts damage taken for 6 s.
+  if (v.on(ID.holyStrike)) {
+    const strike = add(HOLY_STRIKE_ABILITY, [])
+    const creed = talents.get('Iron Creed') ?? 0
+    if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
+  }
 
   // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
   if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))

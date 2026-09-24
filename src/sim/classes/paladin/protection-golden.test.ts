@@ -27,6 +27,11 @@ describe('golden run (fixed config and seed)', () => {
   //   preset has no Thunder Clap or Demoralizing Shout for a paladin tank (D26). 369.04 TPS and
   //   209.98 DPS over 400,000 fights on seed 7331; on this seed's 1,000 fights, TPS 367.97 and
   //   DPS 209.61.
+  // - C3's fix round: Hammer of Wrath's 1 s cast stops auto attacks and holds Judgement (QL2),
+  //   and Iron Creed's −10% damage taken after each landed Holy Strike (QL10). The defaults held
+  //   under D23's re-check (paladin.md "Tuning the defaults"). 362.21 TPS and 204.93 DPS over
+  //   400,000 fights on seed 7331; on this seed's 1,000 fights, TPS 360.57, DPS 204.25 and damage
+  //   taken 681.7 a second (Iron Creed: 4.3% less).
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

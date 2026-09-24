@@ -135,5 +135,7 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   if (abilities.has('hammerOfWrath')) ids.push('hammerOfWrath')
   if (plan.abilities.some((a) => (a.manaReturnTenths ?? 0) > 0)) ids.push('sanctifiedJudgement')
   if (procs.has('vindication')) ids.push('vindication')
+  // paladin.md#other-abilities, OQ 22: Hammer of Wrath's cast, without Instrument of Law 2/2.
+  if (plan.abilities.some((a) => a.id === 'hammerOfWrath' && a.castMs > 0)) ids.push('hammerOfWrathCast')
   return ids
 }

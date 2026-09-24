@@ -30,7 +30,8 @@ import {
   SEAL_OF_FURY_SHIELD_AURA,
   SWIFT_JUDGEMENT,
 } from './protection'
-import { setSp } from './test-helpers'
+import { addPaladinAbility, setSp } from './test-helpers'
+import { JUDGEMENT_OF } from './abilities'
 
 const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
@@ -354,6 +355,30 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
     expect(sim.auraUpMs[auraOf(plan, 'swiftJudgement')]).toBe(0)
   })
 
+  it('ends the cooldown of every judgement in Judgement’s category, and never one that can’t be used again', () => {
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 } })
+    const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
+    // Two more judgements in the category, with no line: Righteousness's, and one this setup can
+    // never use (a two-hander's, with a one-hander: never ready, at Infinity).
+    const other = addPaladinAbility(plan, JUDGEMENT_OF.sealOfRighteousness)
+    const never = addPaladinAbility(plan, { ...JUDGEMENT_OF.sealOfCommand, twoHandOnly: true })
+    const sim = new Sim(plan)
+    const readyAt = (sim as unknown as { abReadyAt: Float64Array }).abReadyAt
+    const seen: [time: number, other: number, never: number][] = []
+    let after = -1
+    sim.castTrace = (a, t) => {
+      // The free Judgement right after Swift Judgement: the category's cooldowns have just ended.
+      if (a === 1 && t === after) seen.push([t, readyAt[other], readyAt[never]])
+      if (a === swift) after = t
+    }
+    sim.runFight(0)
+    expect(seen.map(([t]) => t)).toEqual([0, 64000, 128000])
+    for (const [t, readyOther, readyNever] of seen) {
+      expect(readyOther, `at ${t}`).toBeLessThanOrEqual(t)
+      expect(readyNever).toBe(Infinity)
+    }
+  })
+
   it('without the Judgement it frees, its free Judgement’s mana is spent as usual', () => {
     const r = protPlan({ rotation: { [ID.swiftJudgement]: false } })
     expect(r.freeCastAura).toBeUndefined()
@@ -362,7 +387,7 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
 })
 
 describe('Reckoning (paladin.md#protection-tree)', () => {
-  it('5/5: an extra attack at once after 40% of blocks and every crit taken', () => {
+  it('5/5: an extra attack at once after 40% of blocks and every crit taken; during Hammer of Wrath’s cast, when it ends', () => {
     const plan = protPlan()
     const reckoning = plan.procs.filter((p) => p.id === 'reckoning')
     expect(reckoning.map((p) => [p.trigger, p.chance[0], p.action, p.amount])).toEqual([
@@ -372,23 +397,33 @@ describe('Reckoning (paladin.md#protection-tree)', () => {
     // Some crits: defense below 440.
     plan.stats.defense -= 30
     const extra = rowOf(plan, 'reckoning')
+    const hammer = plan.abilities.findIndex((a) => a.id === 'hammerOfWrath')
     const sim = new Sim(plan)
     let blocks = 0
     let crits = 0
     let atOnce = 0
+    let afterCast = 0
     let pending = -1
+    let castEnd = -1
+    sim.castTrace = (a, t) => {
+      if (a === hammer) castEnd = t + 1000
+    }
     sim.swingTakenTrace = (o) => {
       if (o === BOSS_OUTCOME.block) blocks++
       if (o === BOSS_OUTCOME.crit) crits++
       pending = nowOf(sim)
     }
     sim.trace = (source, _hand, t) => {
-      // Each of Reckoning's swings comes at the time of the boss's swing that gave it.
-      if (source === extra && t === pending) atOnce++
+      if (source !== extra) return
+      // Each of Reckoning's swings comes at the time of the boss's swing that gave it, or, if that
+      // came during Hammer of Wrath's cast, which stops your swings, as the cast ends.
+      if (t === pending) atOnce++
+      else if (t === castEnd && pending >= castEnd - 1000 && pending < castEnd) afterCast++
     }
     for (let i = 0; i < 200; i++) sim.runFight(i)
     const swings = field(sim, plan, 'reckoning', FIELD.casts)
-    expect(atOnce).toBe(swings)
+    expect(afterCast).toBeGreaterThan(0)
+    expect(atOnce + afterCast).toBe(swings)
     expect(crits).toBeGreaterThan(100)
     // Every crit gives one; 40% of blocks give one more (a binomial: within 4 standard deviations).
     const fromBlocks = swings - crits
@@ -405,6 +440,58 @@ describe('Redoubt (paladin.md#protection-tree)', () => {
     expect(plan.auras[redoubt.amount]).toMatchObject({ durationMs: 10000, blockCharges: 5, block: 30 })
     const noShield = protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand } })
     expect(noShield.procs.some((p) => p.id === 'redoubt')).toBe(false)
+  })
+
+  it('in the fight: procs from 10% of landed swings, adds 30% block while up, and each later block uses a charge; the swing that procs it uses none', () => {
+    // Holy Shield off, so Redoubt is the only aura blocks use up.
+    const plan = protPlan({ rotation: { [ID.holyShield]: false } })
+    const aura = auraOf(plan, 'redoubt')
+    const sim = new Sim(plan)
+    const inside = sim as unknown as { auraActive: Uint8Array; auraGen: Int32Array; auraBlockCharges: Int32Array; thrBoss: Float64Array }
+    // Before each swing: whether Redoubt is up, its charges and generation, and the table's block slice.
+    let prev: { outcome: number; up: boolean; charges: number; gen: number } | null = null
+    let landed = 0
+    let procs = 0
+    let used = 0
+    let lastBlocks = 0
+    const blockUp: number[] = []
+    const blockDown: number[] = []
+    sim.swingTakenTrace = (o) => {
+      const up = inside.auraActive[aura] === 1
+      const charges = inside.auraBlockCharges[aura]
+      const gen = inside.auraGen[aura]
+      const th = inside.thrBoss
+      // This swing's table, as it was rolled: block is the slice between parry and crit.
+      ;(up ? blockUp : blockDown).push(th[3] - th[2])
+      if (prev && LANDED.has(prev.outcome)) {
+        landed++
+        const reapplied = up && gen !== prev.gen
+        if (reapplied) {
+          // The swing that procced it, blocked or not, used none of its 5 charges.
+          procs++
+          expect(charges).toBe(5)
+        } else if (prev.up && prev.outcome === BOSS_OUTCOME.block) {
+          // A block while it was up used a charge; the 5th ended it.
+          used++
+          if (prev.charges === 1) {
+            lastBlocks++
+            expect(up).toBe(false)
+          } else expect(charges).toBe(prev.charges - 1)
+        }
+      }
+      prev = { outcome: o, up, charges, gen }
+    }
+    for (let i = 0; i < 300; i++) {
+      prev = null
+      sim.runFight(i)
+    }
+    // 10% of landed swings (a binomial: within 4 standard deviations).
+    expect(Math.abs(procs - 0.1 * landed)).toBeLessThan(4 * Math.sqrt(landed * 0.1 * 0.9))
+    expect(used).toBeGreaterThan(300)
+    // Five blocks in its 10 s are rare; its 10 s end it far more often.
+    expect(lastBlocks).toBeGreaterThan(2)
+    // While it's up the table blocks 30 points more (nothing else here changes block).
+    expect(Math.max(...blockUp) - Math.max(...blockDown)).toBeCloseTo(30, 9)
   })
 })
 
@@ -525,10 +612,24 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     const sim = new Sim(plan)
     const fights = 20
     let low = Infinity
-    sim.manaTrace = () => {
-      low = Math.min(low, sim.resources().mana)
+    // The pool's mean by minute, sampled at each power tick (every 2 s).
+    const sum = new Float64Array(10)
+    const ticks = new Float64Array(10)
+    sim.manaTrace = (t) => {
+      const mana = sim.resources().mana
+      low = Math.min(low, mana)
+      const minute = Math.min(9, Math.floor(t / 60000))
+      sum[minute] += mana
+      ticks[minute]++
     }
     for (let i = 0; i < fights; i++) sim.runFight(i)
+    const share = (minute: number) => sum[minute] / ticks[minute] / plan.mana!.maxTenths
+    // It holds: from the second minute to the eighth the pool stays around 70% (Consecration takes
+    // what's above 90%). Then, in the execute phase from 8 minutes (the last 20%), Hammer of Wrath
+    // runs it down: under 10% on average in the last minute.
+    for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.6)
+    expect(share(8)).toBeLessThan(0.4)
+    expect(share(9)).toBeLessThan(0.1)
     const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (fights * 600000)
     expect(up('sealOfFury')).toBeGreaterThan(0.98)
     expect(up('holyShield')).toBeGreaterThan(0.9)
@@ -539,6 +640,112 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     // Consecration from 90% of maximum mana: at the pull, and seldom after; its cooldown allows 75.
     expect(perFight('consecration')).toBeLessThan(15)
     expect(low).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('Iron Creed’s damage taken (paladin.md#protection-tree)', () => {
+  it('5/5: each landed Holy Strike cuts damage taken by 10% for 6 s; none without the talent', () => {
+    const plan = protPlan()
+    const strike = plan.abilities.find((a) => a.id === 'holyStrike')!
+    const aura = auraOf(plan, 'ironCreed')
+    expect(strike.aura).toBe(aura)
+    expect(plan.auras[aura]).toMatchObject({ durationMs: 6000, damageTaken: -10 })
+    // A boss whose swings are all the same size: a normal hit costs one amount, or 90% of it with Iron Creed up.
+    plan.fight.bossSwing = { ...plan.fight.bossSwing!, minDamage: 5000, maxDamage: 5000 }
+    const sim = new Sim(plan)
+    const active = (sim as unknown as { auraActive: Uint8Array }).auraActive
+    const hits = new Map<boolean, Set<number>>([
+      [true, new Set()],
+      [false, new Set()],
+    ])
+    sim.swingTakenTrace = (o, lost) => {
+      if (o === BOSS_OUTCOME.hit) hits.get(active[aura] === 1)!.add(Math.round(lost * 1e6) / 1e6)
+    }
+    let ms = 0
+    for (let i = 0; i < 20; i++) {
+      sim.runFight(i)
+      ms += sim.fightMs
+    }
+    const [up] = [...hits.get(true)!]
+    const [down] = [...hits.get(false)!]
+    expect(hits.get(true)!.size).toBe(1)
+    expect(hits.get(false)!.size).toBe(1)
+    expect(up / down).toBeCloseTo(0.9, 9)
+    // Holy Strike every 10 s, a landed one up for 6 s: under 60% of the fight.
+    const uptime = sim.auraUpMs[aura] / ms
+    expect(uptime).toBeGreaterThan(0.3)
+    expect(uptime).toBeLessThan(0.6)
+    const without = protectionRotation({}, new Map([['Improved Holy Strike', 2]]), () => -1, { hasShield: true, maxMana: 2000 })
+    expect(without.abilities.find((a) => a.id === 'holyStrike')!.aura).toBeNull()
+  })
+})
+
+describe('what the fix round’s engine rules do in a Protection fight', () => {
+  it('a damage-taken proc that puts up an aura hits use up keeps it: only one up before the hit pays (the block charges’ rule)', () => {
+    const plan = protPlan()
+    const absorb = auraOf(plan, 'sealOfFuryShield')
+    // A proc on each hit that costs health, putting the absorb up again.
+    const puts = plan.procs.find((p) => p.id === 'sealOfFuryShield')!
+    plan.procs = [...plan.procs, { ...puts, trigger: TRIGGER.damageTaken, requiresAura: -1 }]
+    plan.triggers = plan.triggers.map(() => [])
+    plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))
+    const sim = new Sim(plan)
+    const active = (sim as unknown as { auraActive: Uint8Array }).auraActive
+    let afterHit = false
+    let checked = 0
+    sim.swingTakenTrace = (o, lost) => {
+      // Before this swing: a hit that cost health came last, so its proc's absorb is still up.
+      if (afterHit) {
+        expect(active[absorb]).toBe(1)
+        checked++
+      }
+      afterHit = LANDED.has(o) && lost > 0
+    }
+    for (let i = 0; i < 5; i++) {
+      afterHit = false
+      sim.runFight(i)
+    }
+    expect(checked).toBeGreaterThan(100)
+  })
+
+  it('a spell that can’t crit never does, on the melee and ranged tables too', () => {
+    const plan = protPlan()
+    plan.stats.crit = 100
+    const jof = plan.spells!.findIndex((s) => plan.sources[s.source].id === 'judgementOfFury')
+    const how = plan.spells!.findIndex((s) => plan.sources[s.source].id === 'hammerOfWrath')
+    const run = () => {
+      const sim = new Sim(plan)
+      for (let i = 0; i < 20; i++) sim.runFight(i)
+      return [field(sim, plan, 'judgementOfFury', FIELD.crits), field(sim, plan, 'hammerOfWrath', FIELD.crits)]
+    }
+    expect(Math.min(...run())).toBeGreaterThan(20)
+    plan.spells![jof] = { ...plan.spells![jof], cannotCrit: true }
+    plan.spells![how] = { ...plan.spells![how], cannotCrit: true }
+    expect(run()).toEqual([0, 0])
+  })
+
+  it('with no main hand, Judgement of Fury and Hammer of Wrath still roll their tables, unarmed', () => {
+    const plan = protPlan({ gear: { offHand: defaultConfig(PROT).gear.offHand } })
+    // Mana to spare: without a weapon there's no Seal of Fury absorb, so no Improved Seal of Fury mana.
+    plan.mana = { ...plan.mana!, maxTenths: 1e9 }
+    const sim = new Sim(plan)
+    for (let i = 0; i < 50; i++) sim.runFight(i)
+    for (const id of ['judgementOfFury', 'hammerOfWrath']) {
+      expect(field(sim, plan, id, FIELD.hits), id).toBeGreaterThan(50)
+      expect(field(sim, plan, id, FIELD.crits), id).toBeGreaterThan(0)
+      expect(field(sim, plan, id, FIELD.misses), id).toBeGreaterThan(0)
+    }
+    // No weapon, no Holy Strike.
+    expect(plan.sources.some((s) => s.id === 'holyStrike') ? field(sim, plan, 'holyStrike', FIELD.casts) : 0).toBe(0)
+  })
+
+  it('Hammer of Wrath’s cast has its own note, not Slam’s; Retribution’s instant one has none', () => {
+    const notes = (spec: 'paladin-protection' | 'paladin-retribution' | 'warrior-arms') => buildPlan(defaultConfig(spec)).assumptions.map((a) => a.id)
+    expect(notes('paladin-protection')).toContain('hammerOfWrathCast')
+    expect(notes('paladin-protection')).not.toContain('slamCast')
+    expect(notes('paladin-retribution')).not.toContain('hammerOfWrathCast')
+    expect(notes('paladin-retribution')).not.toContain('slamCast')
+    expect(notes('warrior-arms')).toContain('slamCast')
   })
 })
 

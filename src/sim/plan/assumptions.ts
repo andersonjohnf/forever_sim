@@ -452,20 +452,24 @@ const REGISTRY = {
   },
   // Protection (paladin.md "Protection: model and rotation", #protection-tree, OQ 8, 9, 16, 22).
   holyShieldDamage: {
-    text: 'Holy Shield’s damage on each block always lands and never crits, and its 20% more threat multiplies Righteous Fury’s (×2.28, not ×2.1); untested.',
-    docRef: `${PAL}#threat-paladin-specific`,
+    text: 'Holy Shield’s damage on each block always lands and never crits, though the client marks the spell as magic, which could miss and crit as spells do; and its 20% more threat multiplies Righteous Fury’s (×2.28, not ×2.1). Untested.',
+    docRef: `${PAL}#other-abilities`,
   },
   retributionAura: {
     text: 'Retribution Aura’s 30 Holy damage comes from every boss swing that lands on you, a blocked one too, always lands and never crits; untested.',
     docRef: `${PAL}#other-abilities`,
   },
   reckoning: {
-    text: 'Reckoning’s extra attack swings at once, from 40% of your blocks and every crit you take at 5/5, as its tooltip reads; how many Forever stores is untested.',
+    text: 'Reckoning gives you an extra attack after 40% of your blocks and every crit you take at 5/5, as its tooltip reads, and it swings at once. Whether Forever lets you save them up for later, and how many, is untested.',
     docRef: `${PAL}#protection-tree`,
   },
   redoubt: {
     text: 'Redoubt has a 10% chance at every rank, as its tooltips read, from every boss swing that lands on you; one reading of the client data gives 2% a rank. Untested.',
     docRef: `${PAL}#protection-tree`,
+  },
+  hammerOfWrathCast: {
+    text: 'Hammer of Wrath’s 1 s cast stops your auto attacks, which start again from a full swing when it ends, and holds Judgement until then; it pays its mana when the cast ends. Untested in Forever.',
+    docRef: `${PAL}#other-abilities`,
   },
   improvedSealOfFury: {
     text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',

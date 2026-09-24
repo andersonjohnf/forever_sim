@@ -494,6 +494,14 @@ Top Gear and the retail optimizers do:
   the sum of each one's change relative to the spec's current default. That's the Balanced
   rotation's aim too (D28). A tank's search never drops the survival talents its class doc lists
   as the floor, the ones nearly every tank takes, such as big cuts to defensive cooldowns.
+- **A tank's gear keeps an effective-health floor** (user decision). Survival stats cost a tank
+  threat in Forever (rage from hits taken divides by max health, and avoided hits give none), so
+  an unconstrained search builds glass cannons. Effective health is max health ÷ (1 − armor's
+  damage reduction against the boss's level), the physical damage it takes to kill you. A high
+  health total in light armor doesn't meet it. By default a result keeps at least 90% of the
+  effective health of the class's survival preset, and the player can change the share.
+  Avoidance and block aren't in it: they lower average damage but don't survive a spike.
+  Every result shows its health, effective health and damage taken.
 - **What stays as it was.** The model: what the sim can't measure (damage taken, a talent's
   utility) is a constraint or a tie-break, never a guess. Every value that affects the result
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat

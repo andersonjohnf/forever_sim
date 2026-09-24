@@ -252,6 +252,28 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     expect(count).toBeGreaterThan(200 * 5)
   })
 
+  it('row 12 before Recklessness: every Whirlwind is the dance’s, at rage ≤ 30; the plain line never fires, and none is cast in Battle Stance', () => {
+    const plan = armsPlan({ 'warrior.arms.whirlwind.enabled': true })
+    let before = 0
+    let total = 0
+    for (const f of fights(plan, 200).out) {
+      const reck = uses(f, 'recklessness')[0]?.t ?? f.ms
+      for (const c of uses(f, 'whirlwind')) {
+        total++
+        expect(c.stance).toBe(STANCE.berserker)
+        if (c.t >= reck) continue
+        before++
+        // The dance swapped to Berserker Stance that same millisecond, from rage ≤ maxRage (30).
+        const swap = f.swaps.find((s) => s.t === c.t && s.to === STANCE.berserker)
+        expect(swap, `Whirlwind at ${c.t} without its dance`).toBeDefined()
+        expect(swap!.before).toBeLessThanOrEqual(300)
+      }
+    }
+    // On the default fight Recklessness leads straight into the execute phase, where Whirlwind isn't used.
+    expect(before).toBeGreaterThan(50)
+    expect(total).toBe(before)
+  })
+
   it('row 12 after Recklessness’s swap: Whirlwind needs no dance, so no rage limit, and Hamstring doesn’t wait on it', () => {
     // No execute phase: Recklessness by the clock, then the rest of the fight in Berserker Stance.
     const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }

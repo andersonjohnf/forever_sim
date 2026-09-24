@@ -138,7 +138,8 @@ npm run typecheck     # tsc -b
 npm test              # vitest run (unit + data-integrity tests in src/)
 npm run test:e2e      # Playwright, headless Chromium, against the production build, served at / as deployed
 npm run test:smoke    # the smoke suite the deploy runs: vitest.smoke.config.ts + e2e tagged @smoke
-npm run test:full     # lint, typecheck, every unit and e2e test: before every push
+npm run test:full     # lint, typecheck, every unit test, scrape:check (skips without the cache), every e2e test: before every push
+npm run scrape:check  # the committed src/data against a fresh generation from the cache: offline, writes nothing
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
                       #   (--click Simulate waits for the result; on phones add --click "Show results and details")

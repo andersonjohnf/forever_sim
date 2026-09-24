@@ -3,18 +3,21 @@
 This is the engine contract for level-60 warriors in WoW Forever: every ability, proc, aura and
 talent the sim implements for Fury (dual wield), Arms (two-hander) and Protection (TPS), with
 formulas, numbers and default rotations. Forever reworked the warrior far beyond tooltip
-wording. **Bloodthirst** now scales at 35% of AP + 48 instead of 45% of AP. **Slam** has a 15 s
-cooldown. **Flurry** tops out at 25% haste. **Battle Shout** is 40% weaker at every rank and no
+wording. **Bloodthirst** now scales at 35% of AP + 48 instead of 45% of AP. **Slam** has an 18 s
+cooldown (15 s with Improved Slam 2/2). **Flurry** tops out at 25% haste. **Battle Shout** is 40% weaker at every rank and no
 talent restores it. The four Arms weapon specializations are merged into one 5-point talent,
 **Weaponmaster**, and the racials that gave weapon skill now give crit, so every race starts
 at 300 weapon skill. Dual Wield Specialization now also adds off-hand hit and doubles
 off-hand rage. Fury gains Precision, Boundless Rage and Raging Blows. Enrage now triggers when
 you are hit, not when you are crit. Shield Slam and Revenge do almost twice their Classic damage, and in the
-client data Sunder Armor now carries a large flat threat effect of its own. Where Forever is
+client data Sunder Armor now carries a flat threat effect of its own (206 at rank 5 since build
+1.60.1.70009, 1013 before it), plus a share of attack power by Blizzard's notes. Where Forever is
 silent, this doc uses Classic Era (1.13–1.15) behaviour, mostly from Magey's tested wiki and
 guybrush's WarriorSim at its pre-SoD revision.
 
-Status: researched 2026-09-22 · Forever beta build 1.60.1.69913 vs Classic Era 1.15.9.69722 ·
+Status: researched 2026-09-22 · Forever beta build 1.60.1.69913 vs Classic Era 1.15.9.69722, with
+build 1.60.1.70009's warrior changes (Sunder Armor, Slam, Improved Slam, Bloodthrill, the Overpower
+window; 2026-09-24) ·
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **How values are tagged.** **[F]** means a Forever tooltip on foreverchanges.pro or a row
@@ -87,8 +90,8 @@ utility are covered in [§4](#4-talents).
 | Change | Classic Era [C] | WoW Forever [F] | What it means for the sim |
 | --- | --- | --- | --- |
 | Bloodthirst | 45% of AP, 30 rage, 6 s cooldown [cls] | **35% of AP + 48** (the talent's rank 1 is + 30). Also +10% movement speed for 10 s instead of the heal [sb] [client] (SpellEffect, 1.60.1.69913) | Weaker at high AP (−132 at 1800 AP). The AP above which Bloodthirst beats Execute rises to about 2220–2430 ([W11](#w11-bloodthirst-versus-execute-break-even)) |
-| Slam | 1.5 s cast, **no cooldown**, rank 4 +87 | **15 s cooldown** on every rank; rank 5 is +87 and is trained at 54 [sb] [client] (SpellCooldowns, 1.60.1.69913) | No more Slam spam. Slam becomes a cooldown ability |
-| Improved Slam | Fury tier 5, 5 ranks, −0.1 s cast per rank | **Arms** tier 6, 2 ranks, **−0.25 s cast time and GCD** per rank, and Slam "no longer interrupts your melee swing time" [tal] [db-eff] | At 2/2 Slam is a 1.0 s cast on a 1.0 s GCD that leaves swing timers alone |
+| Slam | 1.5 s cast, **no cooldown**, rank 4 +87 | **18 s cooldown** on every rank (15 s before build 1.60.1.70009); rank 5 is +87 and is trained at 54 [sb] [client] (SpellCooldowns, 1.60.1.70009) | No more Slam spam. Slam becomes a cooldown ability |
+| Improved Slam | Fury tier 5, 5 ranks, −0.1 s cast per rank | **Arms** tier 6, 2 ranks, **−0.25 s cast time and GCD** and **−1.5 s cooldown** per rank (the cooldown cut is new in 1.60.1.70009), and Slam "no longer interrupts or delays your melee swing" [tal] [db-eff] [client] (SpellEffect, CurvePoint, 1.60.1.70009) | At 2/2 Slam is a 1.0 s cast on a 1.0 s GCD and a 15 s cooldown that leaves swing timers alone |
 | Flurry | +10/15/20/25/30% attack speed | **+5/10/15/20/25%** [tal] [client] (CurvePoint, 1.60.1.69913) | 5/5 is 25%, not 30% |
 | Unbridled Wrath | 8% per rank (40%), +1 rage | **12% per rank (60%), +1 rage, or +2 with a two-hander** [tal] | Much more rage, especially for two-handers |
 | Dual Wield Specialization | +5% off-hand damage per rank | +5% off-hand damage, **+20% off-hand rage and +2% off-hand hit** per rank [tal] [client] (CurvePoint, 1.60.1.69913) | At 5/5: off-hand rage ×2.0 and +10% off-hand hit |
@@ -102,7 +105,7 @@ utility are covered in [§4](#4-talents).
 | Impale | Needs Deep Wounds | No prerequisite; same +10% per rank to the crit bonus [tal] | None |
 | Improved Rend | 15/25/35% | 12/23/35% [tal] | Same at 3/3 |
 | Tactical Mastery | Talent, keeps 5/10/15/20/25 rage | **Trained at level 14 and keeps 10 rage**; the talent is now **Improved Tactical Mastery**, +3 per rank, so 25 at 5/5 [sb] [tal] | Same at 5/5. Without the talent a warrior keeps 10 rage, not 0 |
-| New in Arms | none | **Spearing Strike** (40% weapon damage, 120% against Giants, Dragonkin and mounted targets; 15 rage, 20 s cooldown, two-hander only), **Bloodthrill** (2% per rank chance that a melee attack on your Rend target enables Overpower for 6 s) [tal] | New Arms abilities and procs |
+| New in Arms | none | **Spearing Strike** (40% weapon damage, 120% against Giants, Dragonkin and mounted targets; 15 rage, 20 s cooldown, two-hander only), **Bloodthrill** (4% per rank chance that a main-hand melee attack, Heroic Strike and Cleave included, on your Rend target enables Overpower; 2% per rank from any melee attack before 1.60.1.70009) [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.70009) | New Arms abilities and procs |
 | Shield Slam | 342–358 + block value | **640–670 + block value** [sb] | About ×1.87 |
 | Revenge (rank 6) | 81–99 | **138–168** [sb] | About ×1.7 |
 | Improved Revenge | Stun chance | **+20% Revenge damage per rank** [tal] | +60% at 3/3 |
@@ -118,7 +121,7 @@ utility are covered in [§4](#4-talents).
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
 | Demoralizing Shout (rank 5) | −146 AP at 60, 30 s | **−204 AP at 60, 45 s** [sb] [client] (SpellEffect, SpellLevels, 1.60.1.69913) | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
 | Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
-| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 1013 at rank 5** (405/608/810 at ranks 2–4, which is 2.25 × the armor removed) [F] [client] (SpellEffect, 1.60.1.69913); the in-game threat is [?] | Possibly a large TPS change. Flagged for [threat.md](../mechanics/threat.md); see Q1 |
+| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 206 at rank 5** (34/75/117/158 at ranks 1–4) [F] [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1/405/608/810/1013; Blizzard's notes for 1.60.1.70009 "corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" [notes-70009], a term the client doesn't carry: **default + 0.05 × AP** [?] (Q1) | Below Classic Era's 261 flat until about 1,100 AP. See [threat.md](../mechanics/threat.md#warrior) and Q1 |
 | Victory Rush | Does not exist in Classic Era | New baseline spell: 1 damage, heals 10% of max health, 30 s cooldown, only within 20 s of killing a non-trivial enemy [sb] | Not used against bosses |
 | Retaliation, Shield Wall, Last Stand, Taunt | 30 min, 30 min (75%, 10 s), 10 min, 10 s | 15 min, 15 min (60%, 12 s), **3 min**, 8 s [sb] [db-cd] | Not simulated |
 | Concussion Blow | 15 rage | 10 rage [db-pow] | Not simulated |
@@ -431,25 +434,38 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 
 - **Overpower window.** When the target **dodges** any of the warrior's attacks (white or
   yellow, either hand), Overpower becomes usable for **5 s**. Using it closes the window [C]
-  [ws-spell]; [F] [client] (SpellMisc, SpellDuration, 1.60.1.69913) (spell 1282733 lasts 5000 ms).
+  [ws-spell]; [F] [client] (SpellMisc, SpellDuration, 1.60.1.70009) (spell 1282733 lasts 5000 ms).
   - Forever implements the window as a combo-point-like resource. Overpower has a second cost
-    of 1 point of power type 4, and the dodge aura grants 1 point, stacking to 3 [F]
-    [client] (SpellPower, SpellAuraOptions, 1.60.1.69913).
-  - **Default: one window, refreshed by each new dodge.** Whether windows can be banked is
-    Q10. The rule has no stance condition, so a dodge opens it in any stance: that's what the
+    of 1 point of power type 4, and the dodge aura grants 1 point [F] [client] (SpellPower,
+    SpellEffect, 1.60.1.70009). Build 1.60.1.69913's aura stacked to 3; **1.60.1.70009's doesn't
+    stack** (its `CumulativeAura` is gone) [F] [client] (SpellAuraOptions, 1.60.1.70009).
+  - **One window, refreshed by each new dodge**, none banked, as the unstacked aura reads [F]
+    (Q10). The rule has no stance condition, so a dodge opens it in any stance: that's what the
     Overpower dance relies on.
   - **Using Overpower closes it**, whether it lands or misses: the sim spends the window when
     Overpower is used, as the client's second cost is paid on use [?] (Q10).
   - Overpower needs Battle Stance and has a 5 s cooldown.
-- **Bloodthrill** [F] [tal] [client] (SpellAuraOptions, 1.60.1.69913):
-  - **Trigger.** When your melee attack hits a target that has **your** Rend, there is a 2%
-    per rank chance (10% at 5/5) to open the Overpower window for **6 s**, for 1 use.
-  - **Which attacks count.** The data's proc mask is 4, main-hand and off-hand **auto
-    attacks** only. The tooltip says "melee attacks". **Default: white swings only**, Q11,
-    extra attacks included, since they are auto attacks (Windfury, Weaponmaster, Hand of Justice).
-  - The window is the same one a dodge opens. If both are open, one Overpower uses it. A dodge
-    while a Bloodthrill window is open doesn't shorten it: the window lasts until the later of
-    the two ends [?] (Q11).
+- **Bloodthrill** [F] [tal] [client] (SpellEffect, SpellAuraOptions, SpellMisc, CurvePoint,
+  1.60.1.70009) [notes-70009]:
+  - **Trigger.** When your main-hand melee attack lands on a target that has **your** Rend, there
+    is a 4% per rank chance (20% at 5/5; 2% per rank before 1.60.1.70009) to open the Overpower
+    window. Its talent aura is now a proc-trigger aura (42) into 1282733, the dodge's own
+    window, so the window is **5 s**, the same as a dodge's. The tooltip still says "Lasts 6 sec."
+    (the old window spell 1289681's duration, which nothing triggers any more); the sim follows the
+    data [F] (Q11).
+  - **Which attacks count.** The proc mask is 0x14: auto attacks (0x4) and melee abilities
+    (0x10). Its attributes mark it main hand only (Attributes[3] 0x400), and the notes say "Bloodthrill
+    only activates off of Main Hand melee attacks. This includes Cleave and Heroic Strike." So:
+    **every landed main-hand attack, white or special**: white swings, extra attacks (Windfury,
+    Weaponmaster, Hand of Justice), Heroic Strike, Cleave, Mortal Strike, Slam, Overpower,
+    Whirlwind's main-hand strike, Execute, Hamstring. **Never the off hand** (Raging Blows'
+    off-hand Whirlwind, off-hand swings). Before 1.60.1.70009 the mask was 4, auto attacks only.
+  - **Still needs your Rend.** The notes left it open whether Bloodthrill keeps its Rend
+    condition. The client has no aura restriction on the spell (the condition is the server's),
+    and the 1.60.1.70009 tooltip still reads "Your Main Hand melee attacks against enemies
+    afflicted by your Rend", so the sim keeps it [F] (tooltip) [?] (Q11).
+  - The window is the same one a dodge opens. If both are open, one Overpower uses it; a new
+    one refreshes it to 5 s and never shortens it (§7).
 - **Revenge window.** After the warrior blocks, dodges or parries, Revenge is usable for
   **5 s** [?] (Q12): assumed like Overpower's, since no allowed source gives its length. It needs
   Defensive Stance and has a 5 s cooldown [F] [sb]. The length matters little: a 4 s window costs
@@ -497,7 +513,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Bloodthirst (4, 23894) | 30 | 6 s | yes | any | **0.35 × AP + 48**, physical, not weapon-based. Also +10% movement speed for 10 s (ignore) | [F] [sb] [client] (SpellEffect, 1.60.1.69913). Classic: 0.45 × AP [C] |
 | Mortal Strike (4, 21553) | 30 | 6 s | yes | any | MH `normalized` + 160. Also −50% healing on the target for 10 s | [F] [sb] [db-eff] |
 | Whirlwind (1680) | 25 | 10 s | yes | Berserker | MH `normalized` to up to 4 targets within 8 yd. With Raging Blows it also strikes with the off hand; see below | [F] [sb] [db-eff] |
-| Slam (5, 11605; Improved Slam version 1310200) | 15 | **15 s** | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [client] (SpellCooldowns, SpellCastTimes, 1.60.1.69913) [tal] |
+| Slam (5, 11605; Improved Slam version 1310200) | 15 | **18 s**, −1.5 s per rank of Improved Slam | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [client] (SpellCooldowns, SpellCastTimes, 1.60.1.70009) [tal] |
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage. The 15 per rage is client data, not a server script: the damage effect's `EffectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 (ranks 1–5: 3, 6, 9, 12, 15) | [F] [sb] [client] (SpellEffect, 1.60.1.69913); rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
@@ -514,10 +530,14 @@ for daggers. `weapon` means the real speed. Both are defined in
   cast, and when the cast completes the main-hand timer resets, and so does the off-hand's if
   there is one [C] ([marrow]: a mistimed Slam clips the next auto;
   [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)).
-- **With Improved Slam 1/2 or 2/2**, the cast and the Slam GCD shrink by 0.25 s per rank, and
-  **swing timers are unaffected**: white swings keep landing during the cast, and nothing
-  resets afterwards [F] [tal]. The Improved Slam versions of Slam (1310196–1310200) replace
-  the action bar spells [client] (SpellName, 1.60.1.69913); see Q19.
+- **With Improved Slam 1/2 or 2/2**, the cast and the Slam GCD shrink by 0.25 s per rank, the
+  cooldown by 1.5 s per rank (18 → 16.5 → 15 s), and **swing timers are unaffected**: white
+  swings keep landing during the cast, and nothing resets or is delayed afterwards [F] [tal]
+  [client] (SpellEffect, CurvePoint, 1.60.1.70009). Build 1.60.1.70009 kept the cast and GCD cut
+  and the swing rule (its tooltip: "Slam no longer interrupts or delays your melee swing") and
+  added the cooldown cut, effect 2 (aura 107 on the cooldown modifier, curve −1500 / −3000). The
+  Improved Slam versions of Slam (1310196–1310200) replace the action bar spells [client]
+  (SpellName, 1.60.1.70009); see Q19.
 - Other GCD abilities can't start during the cast.
 - The docs don't say when Slam pays its cost, what else can happen during the cast, or how
   haste affects it. The engine's choices are in [§7](#7-implementation-notes) ("Slam's cast"),
@@ -546,7 +566,7 @@ buffs. It is physical, so armor applies, and it uses the special attack table [F
 | --- | --- | --- | --- | --- | --- | --- |
 | Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min. `classicEra`: Classic Era's rank 7, +232 for 2 min (231 + 1, +1 per level from 60; `DurationIndex` 4), the same cost and GCD | [F] [sb] [client] (SpellEffect, 1.60.1.69913); `classicEra` [C] [client] (SpellEffect, SpellLevels, SpellMisc, SpellDuration, 1.15.9.69722) |
 | Demoralizing Shout (5, 11556) | 10 | none | yes | any | −204 AP to enemies within 10 yd for 45 s: the level-60 tooltip, base −196 and −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60), −204.4 shown as 204. Whether the debuff applies −204 in combat is an open question (Q22) | tooltip [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); in combat [?] |
-| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 1013 | [F] [sb] [client] (SpellEffect, 1.60.1.69913) (Q1) |
+| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 206 (1013 before 1.60.1.70009); the sim adds 0.05 × AP [?] for the notes' attack power term | [F] [sb] [client] (SpellEffect, 1.60.1.70009) (Q1) |
 | Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
 | Berserker Rage (18499) | 0 | 30 s | **yes** | Berserker | For 10 s, immune to fear and incapacitate, and extra rage from damage taken. Improved Berserker Rage: +5 / +10 rage | [F] [sb] [db-cd] [tal] |
 | Death Wish (12328) | 10 | 3 min | yes | any | For 30 s: +20% Physical damage done, +5% damage taken, fear immunity | [F] [tal] [db-eff] |
@@ -593,10 +613,10 @@ ranks from `src/data/talents/warrior.json`**; the "Model" column says what each 
 | 4·1 | **Spearing Strike (1), new** | "A brutal attack that deals 40% weapon damage. Deals an additional 80% weapon damage against Giants, Dragonkin, and mounted targets. Mounted targets are dismounted." 15 rage, 20 s cooldown, two-hander required | New | Ability, [§3.1](#31-damage-abilities) |
 | 4·2 | Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 3%." | 1%. **3 ranks, 3% (Classic 5 ranks, 5%)** | ×1.03 on all physical damage while a two-hander is equipped. WarriorSim applies the weapon modifier to every attack and to Deep Wounds [C] [ws-player] |
 | 4·3 | Impale (2) | "Increases the critical strike damage bonus of your abilities by 20%." | 10%. No longer needs Deep Wounds | Ability crit multiplier 2.2 at 2/2 |
-| 5·1 | **Bloodthrill (5), new** | "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec." | 2% | [§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge) |
+| 5·1 | **Bloodthrill (5), new** | "Your Main Hand melee attacks against enemies afflicted by your Rend have a 20% chance to allow the use of your Overpower ability on the target. Lasts 6 sec." (1.60.1.70009) | 4% (2% before 1.60.1.70009, from any melee attack) | [§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge) |
 | 5·2 | Sweeping Strikes (1) | "Your next 5 melee attacks strike an additional nearby opponent." | Unchanged | Multi-target only |
 | 5·3 | **Weaponmaster (5), new** | "Axe/Polearm: Increases your critical strike chance by 5%. Mace/Staff: Your attacks ignore 15% of your target's armor. Sword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target." | 1% / 3% / 1% | Per weapon ([§2.7](#27-weaponmaster-extra-attacks-and-windfury)): the axe and polearm crit counts only for that weapon's attacks, not spells, as its spell's tooltip (12700, "…with Axes and Polearms") reads, unlike the weapon racials' "all spells and attacks" ([§2.9](#29-racials-for-warriors), Q15) |
-| 6·1 | Improved Slam (2) | "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time." | −0.25 s. **Rewritten, moved from Fury to Arms** (Classic: −0.1 s cast per rank, 5 ranks) | [§3.1](#31-damage-abilities) Slam notes |
+| 6·1 | Improved Slam (2) | "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts or delays your melee swing and Slam's cooldown is reduced by 3.0 sec." (1.60.1.70009) | −0.25 s cast and GCD, −1.5 s cooldown (new in 1.60.1.70009). **Rewritten, moved from Fury to Arms** (Classic: −0.1 s cast per rank, 5 ranks) | [§3.1](#31-damage-abilities) Slam notes |
 | 6·3 | Improved Hamstring (3) | "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec." | Unchanged | Not simulated |
 | 7·2 | Mortal Strike (1), needs Sweeping Strikes | "A vicious strike that deals weapon damage plus 85 and wounds the target…" (rank 1) | Unchanged; rank 4 is +160 | Ability |
 
@@ -1102,13 +1122,13 @@ Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([�
 | Deep Wounds | 60% | 3/3 |
 | Weaponmaster | 5/5 | |
 | Improved Overpower | +50% crit | 2/2 |
-| Bloodthrill | 10% | 5/5 |
-| Slam | 1.0 s cast and GCD, no swing reset | Improved Slam 2/2 |
+| Bloodthrill | 20%, any main-hand attack | 5/5 |
+| Slam | 1.0 s cast and GCD, 15 s cooldown, no swing reset | Improved Slam 2/2 |
 | Rage kept on a stance swap | 25 | |
 | Not taken | Flurry, Death Wish | |
 
 This priority is **derived for Forever**. Classic Era raid Arms leaned on Slam spam, which the
-15 s Slam cooldown removes. The table is the list as built (`sim/classes/warrior/arms.ts`).
+Slam cooldown (18 s, 15 s with Improved Slam 2/2) removes. The table is the list as built (`sim/classes/warrior/arms.ts`).
 Rows 0, 1, 3–5, 13 and 16–18 share their code with Fury's (`sim/classes/warrior/shared.ts`), and
 rows 1, 3, 5 and 18 their settings' wording too. The defaults are the best rotation found for the
 default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
@@ -1441,6 +1461,18 @@ over 400,000 paired fights on seed 3031, which no search used; against the first
   the default setup it's worth +0.88 DPS (above), and 45 s fights with a 3–9% phase gain
   1.4–2.3% overall, so it stays on.
 
+#### Build 1.60.1.70009 (Arms)
+
+Bloodthrill doubled (20% at 5/5) and now procs from every landed main-hand attack, white or special
+([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)); Slam's cooldown rose to 18 s, and
+Improved Slam 2/2, in the default build, takes it back to 15 s. So Arms plays as before, with more
+Overpowers, a first-pass check (D27): **647.22 → 690.03 DPS (+6.61%, +42.46 to +43.15)** in the default setup (seed 31101,
+100,000 paired fights, `--against` the commit before). A quick check on the new defaults (seed 31101,
+20,000 paired fights) found nothing to move: Slam's reserve at 0, 10, 15 or 20 (−0.50, +0.17, −0.71,
+−1.68; 10 is level), Heroic Strike on (−0.02), Rend's refresh at 0, 2, 4 or 6 s (−1.03 to −3.08),
+Hamstring off (−3.79); Overpower off −108.44 (−15.7%), Rend off −72.54 (−10.5%), Berserker Stance
+−87.73. Fury has neither Bloodthrill nor Slam in its default build, so it's unchanged (713.47).
+
 ### 5.4 Protection (TPS)
 
 Base stance: **Defensive**. Weapon: a one-hander and a shield. The default talents are 8/5/38:
@@ -1520,10 +1552,12 @@ puts the list's settings at that preset's defaults and keeps the consumables' se
   ([Balanced](#balanced-t5) below).
   A setup saved with the old default and no Priority of its own gets Balanced, as with any changed
   default.
-- **Max TPS** (`maxTps`) drops the duties and nothing else (rows 1, 5 and 6 are off by default),
-  and is tuned on TPS alone ([Max TPS](#max-tps-p2) below). It keeps Shield Slam (row 7): dropping
-  it wins on TPS only at Classic Era's threat value, which Forever's tooltip raised (D26's
-  amendment; [Max TPS](#max-tps-p2)). The Buffs tab's Thunder Clap and Demoralizing
+- **Max TPS** (`maxTps`) drops the duties whose upkeep costs threat, Thunder Clap and Demoralizing
+  Shout (rows 5 and 6 are off by default), and is tuned on TPS alone ([Max TPS](#max-tps-p2) below).
+  It keeps Shield Block (row 1) since build 1.60.1.70009, whose lower Sunder Armor threat left its
+  blocks worth more threat than its rage (D26's rule: Max TPS drops a duty only when its upkeep
+  costs TPS; [Build 1.60.1.70009](#build-160170009-protection)), and Shield Slam (row 7), which
+  now makes the most threat of any global cooldown ([Max TPS](#max-tps-p2)). The Buffs tab's Thunder Clap and Demoralizing
   Shout are the tank's own too, so no preset turns them on for a Protection warrior (the buffs
   doc's [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): with
   Max TPS the boss goes unslowed and at full attack power, unless you turn them on there because
@@ -1534,7 +1568,7 @@ a value you set yourself still wins.
 
 | Setting | Defensive | Balanced | Max TPS |
 | --- | --- | --- | --- |
-| `shieldBlock.enabled` | on | on | off |
+| `shieldBlock.enabled` | on | on | on (off before 1.60.1.70009) |
 | `thunderClap.enabled` | on | off | off |
 | `demoShout.enabled` | on | off | off |
 | `sunder.refreshBelowSec` | 3 | 1.5 (the duty rule) | 3 |
@@ -1560,7 +1594,7 @@ taken
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
 | 0 | Pre-pull | Battle Shout at −3 s (with row 9 on); optionally Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (off: at the pull instead, row 2), `.charge` (on with Vanguard) | yes |
-| 1 | Shield Block (off the GCD) | Off cooldown at rage ≥ `minRage`, in Defensive Stance with a shield: +75% block for 7 s or 2 blocks. Each block gives 5 rage (Shield Specialization) and opens Revenge | `warrior.protection.shieldBlock.enabled` (on; off with Max TPS), `.minRage` (10: its cost) | yes |
+| 1 | Shield Block (off the GCD) | Off cooldown at rage ≥ `minRage`, in Defensive Stance with a shield: +75% block for 7 s or 2 blocks. Each block gives 5 rage (Shield Specialization) and opens Revenge | `warrior.protection.shieldBlock.enabled` (on, with Max TPS too), `.minRage` (10: its cost) | yes |
 | 2 | Bloodrage (off the GCD) | On cooldown at rage ≤ `maxRage` | `warrior.protection.bloodrage.enabled` (on), `.maxRage` (70: the 100 cap minus its 30) | yes |
 | 3 | Racial or trinket cooldowns (off the GCD) | On cooldown: there's no Death Wish to sync them with. Blood Fury, Berserking, Elune's Light; Weakness Analyzer | `warrior.protection.racial.enabled` (on), `.trinkets.enabled` (on) | yes |
 | 4 | Mighty Rage Potion; Juju Flurry (off the GCD) | The potion once, the first time rage ≤ `maxRage`, so its 45–75 rage fits under the cap: early in the fight. Juju Flurry on cooldown. Each only when it's selected in Buffs | `warrior.protection.ragePotion.enabled` (on), `.maxRage` (25: the cap minus 75); `.jujuFlurry.enabled` (on) | with the consumable |
@@ -1593,16 +1627,17 @@ Notes:
   and the Buffs tab's Sunder Armor row and the Rotation tab's Sunder Armor help say so. A stronger
   slow from the Buffs tab counts instead of your own. The results list the three with their uptimes.
 - **Threat values** per ability, including the Forever Sunder question (Q1), live in
-  [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 1013 for Sunder
-  Armor and Classic Era's values for the rest [?]; under the `classicEra` profile, Sunder's too
-  (261 [C]). The Classic reference numbers are Magey's 1.13.6
-  measurements [magey-thr].
-- **Why Sunder Armor fills every free GCD.** With its 1013 threat for 9 rage, it makes about as
-  much threat per GCD as a Shield Slam at this gear (more before crits and armor), and about twice
-  as much per rage ([W26](#w26-threat-per-global-cooldown-protection)), at Shield Slam's Classic
-  Era threat [?]. Revenge is cheaper
-  still, but waits for its window. So Shield Slam and Revenge keep their places for their damage
-  and their cooldowns, Sunder Armor takes the rest, and Heroic Strike spends rage the GCDs can't.
+  [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 206 for Sunder
+  Armor plus 0.05 × AP [?] (the notes' attack power term), Shield Slam's "very high" dmg + 475 [?]
+  (the [wording table](../mechanics/threat.md#threat-wording-table)), and Classic Era's values for
+  the rest [?]; under the `classicEra` profile, Sunder's and Shield Slam's too (261 and 254 [C]).
+  The Classic reference numbers are Magey's 1.13.6 measurements [magey-thr].
+- **Why Sunder Armor still fills the free GCDs.** Since build 1.60.1.70009 it makes about 413
+  threat a cast at 1,400 AP for 9 rage, a quarter of a Shield Slam's and a third of a Revenge's
+  ([W26](#w26-threat-per-global-cooldown-protection)), so Shield Slam and Revenge come first, as
+  they always did. But a global cooldown nothing else wants makes nothing, and the filler is the
+  only thing Protection has for it: off, Balanced loses 7.5% of its TPS (seed 31101). Heroic Strike
+  spends the rage the global cooldowns can't.
 - **Thunder Clap and Demoralizing Shout roll the spell table** (the client's `DefenseType` Magic):
   17% miss against a raid boss before spell hit (14% with the default gear's 3% hit rating), no
   dodge, parry or block, and a miss refunds 80% as a melee ability's does [?]. Thunder Clap crits at
@@ -1816,7 +1851,8 @@ The **Max TPS** priority is the best rotation found on 2026-09-23 on TPS alone, 
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
 (and its amendment) and [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23),
 on the 8/5/38 build. It drops the three duties and nothing else, and queues Heroic Strike from 45
-rage. Against Defensive (then the default, "tank duties first") it makes **+151.86 TPS (+15.52%, 95% CI +151.72 to
+rage. Since build 1.60.1.70009 it keeps Shield Block ([below](#build-160170009-protection)); the
+numbers in this section are the ones before it. Against Defensive (then the default, "tank duties first") it makes **+151.86 TPS (+15.52%, 95% CI +151.72 to
 +152.00)**, 978.23 → 1,130.09, and **27.11 more DPS (+9.0%, +27.03 to +27.18)**, over 400,000
 paired fights on seed 8104, which no search used. What it costs is survival: the boss's swings
 cost **40% more health a second** (600 → 839 damage taken a second, +39.70%; seed 8107, 100,000
@@ -1857,13 +1893,16 @@ includes the last-seconds dump, 12 s in both (PV6, below).
   seeds 11 and 12 s were level with each other and better than 10 (seeds 8011, 8012); 13 s and
   longer were worse. P2's search kept 10 s because it was better at 30, 60 and 300 s (seed 7102),
   but Max TPS is tuned for the default setup, 180 s (the user's ruling on D23).
-- **Shield Slam stays** (D26's amendment). Dropping it is +37.13 TPS (+3.29%, +37.00 to +37.26) at
-  −80.99 DPS on seed 8104, but only at Classic Era's +254 threat [?]: Forever's tooltip raised its
+- **Shield Slam stays** (D26's amendment). Dropping it was +37.13 TPS (+3.29%, +37.00 to +37.26)
+  at −80.99 DPS on seed 8104, but only at Classic Era's +254 threat [?]: Forever's tooltip raised its
   threat from "a high amount" to "a very high amount" ([threat.md](../mechanics/threat.md#warrior)).
-  The break-even is about **+449**: at +449 keeping it is level (−0.25, −0.51 to +0.01; seed 8108,
+  The break-even was about **+449**: at +449 keeping it is level (−0.25, −0.51 to +0.01; seed 8108,
   100,000 fights), and above it keeping it wins on TPS as well (Q34). Using it only from 45 rage
   (+9.10, +0.80%, at −19.74 DPS on seed 8104) rests on the same value: at +449 it's level too
-  (+0.21, −0.06 to +0.48).
+  (+0.21, −0.06 to +0.48). Since build 1.60.1.70009 the sim gives "very high" +475 [?] (the
+  [wording table](../mechanics/threat.md#threat-wording-table)), and Sunder Armor's lower threat
+  makes Shield Slam the best use of a global cooldown even at +254: dropping it costs 17.4% of
+  Balanced's TPS ([below](#build-160170009-protection)).
 - **Not adopted** (on search seeds, against the winner or its predecessor): the filler from 10
   rage (−0.24); the potion up to 15 or 35 rage (−2.60, −0.49); Bloodrage before the pull (−0.29)
   or up to 60 rage (level); Sunder Armor's refresh at 0 or 6 s (−0.31, −0.37); Heroic Strike
@@ -1927,7 +1966,8 @@ raid's armor debuff, and drops the debuffs that only lower the boss's damage:
   Heroic Strike from 84. Everything else keeps Defensive's value.
 
 Against Defensive, on seed 31101 (100,000 paired fights, which no search used), in the default
-setup: **+107.92 TPS (+9.53%, 95% CI +107.61 to +108.24)**, 1,133.05 → 1,240.98; **+23.12 DPS
+setup, before build 1.60.1.70009 ([its numbers below](#build-160170009-protection)): **+107.92 TPS
+(+9.53%, 95% CI +107.61 to +108.24)**, 1,133.05 → 1,240.98; **+23.12 DPS
 (+6.37%, +22.94 to +23.29)**, 363.06 → 386.18; and **21% more damage taken**, 610.59 → 739.10 a
 second (+128.51, +128.36 to +128.67). On the balanced objective that's +15.90%. Max TPS, on the
 same fights, is **+13.86% TPS** (1,290.09) and **+6.94% DPS** (388.25) for **41% more damage
@@ -1952,7 +1992,7 @@ taken** (862.24 a second, +251.65; [Max TPS](#max-tps-p2)).
   −0.59% DPS. The filler from its cost, 9, as Defensive has it, makes +11.23% TPS and +6.93% DPS
   against Defensive (seed 31001, Heroic Strike from 76). Each rage the filler waits for is a global
   cooldown with nothing else to spend it on, since Protection has nothing else on the global
-  cooldown; 1,013 threat for 9 rage is the best threat per rage it has
+  cooldown; 1,013 threat for 9 rage was the best threat per rage it had before build 1.60.1.70009
   ([W26](#w26-threat-per-global-cooldown-protection)). 60 stays the default, as decided; the
   numbers are here for the tuning milestone (D27).
 - **Not moved** (seed 31001, against Balanced): the last-seconds dump off (+0.24% TPS, −0.59% DPS)
@@ -1966,6 +2006,45 @@ taken** (862.24 a second, +251.65; [Max TPS](#max-tps-p2)).
   objective (−1.35 TPS, +0.45 DPS); Sunder Armor's upkeep above Shield Slam, where a duty would
   sit, cost −9.05% on the objective, since its 5 stacks from the pull hold Shield Slam and Revenge
   back. The row stays where Defensive has it; the presets share one order.
+
+#### Build 1.60.1.70009 (Protection)
+
+Build 1.60.1.70009 cut Sunder Armor's threat from 1,013 to 206 plus 0.05 × AP [?] (§1, Q1), and
+the sim now gives Shield Slam's "very high" +475 [?] (254 before; the
+[wording table](../mechanics/threat.md#threat-wording-table)). A D27 first-pass check of the three
+presets' thresholds (seed 31101, 20,000 paired fights a candidate):
+
+- **Balanced:** Heroic Strike from 84 stays best (76 −0.38%, 90 −0.39%, 82 level); the filler
+  waiting for Shield Slam is level (+0.02%). The filler's 60 is the user's (D28). The filler off
+  costs 7.5% of TPS and 10 DPS.
+- **Defensive:** Heroic Strike from 66 or 70 is level with 76 (+0.01%, +0.04%), 86 −0.23%; the filler
+  waiting for Shield Slam +0.04% and from 30 −0.13%. Nothing moves.
+- **Max TPS:** turning Shield Block back on is **+16.17 TPS (+1.72%, +15.48 to +16.86)**, −0.15 DPS,
+  and 123 less damage taken a second: with Sunder Armor's threat down, rage spent on it returns more
+  as blocks (5 rage each, Shield Specialization) and Revenges than as Sunders. By D26's rule (Max TPS
+  drops a duty only when its upkeep costs TPS) Max TPS keeps it. Thunder Clap (−5.94%) and
+  Demoralizing Shout (−2.47%) still cost TPS, so they stay dropped. Heroic Strike from 45 stays
+  (35 −0.65%, 55 +0.13%, within D27's resolution); the filler waiting for Shield Slam is +0.09%.
+- **Shield Slam** off, in Balanced: **−173.13 TPS (−17.43%)** and **−97.07 DPS (−25.1%)** (seed
+  31101, 100,000 paired fights). Before this build it was +2.6% TPS for −25% DPS: Sunder Armor's
+  global cooldowns made more threat than Shield Slam's at Classic Era's +254. At +254 it's still
+  −12.8% in Max TPS.
+
+The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup:
+
+| Preset | TPS | DPS | Damage taken a second |
+| --- | --- | --- | --- |
+| Defensive | 926.27 | 363.06 | 610.59 |
+| Balanced (the default) | 993.37, **+7.24%** (+66.79 to +67.41) | 386.18, +6.37% | 739.10, +21.0% |
+| Max TPS | 1,003.49, **+8.34%** (+76.90 to +77.52) | 388.07, +6.89% | 739.50, +21.1% |
+
+Before the build, Balanced made 1,240.98 TPS and Max TPS 1,290.09 (41% more damage taken, without
+Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D29):** Balanced's
+993 TPS is 19% over the Protection paladin's 832 and 11% under the bear's 1,115 on the same seed
+(both measured on this branch, their own 1.60.1.70009 slices pending). The guild's benchmark puts the
+paladin and the bear at 800–900 TPS with the warrior at most about 50% ahead, so the warrior is
+inside it; the bear's 1,115 is above that range, which is the druid slice's to explain. Sunder Armor
+is now 11% of the warrior's threat (33% before), and Shield Slam 27% (18%; seed 12345, 500 fights).
 
 ### 5.5 Multi-target options (light)
 
@@ -2299,7 +2378,8 @@ seed 12345). The enchants stay the spec's
   Improved Slam rank). The GCD starts with the cast, and no GCD ability starts before the cast
   completes: the engine holds the GCD until then. Off-GCD lines (the Heroic Strike queue,
   Bloodrage, racials, potions) still act during the cast [?]. Rage is checked when the cast
-  starts, and Slam pays its cost, starts its 15 s cooldown and rolls when the cast completes; if
+  starts, and Slam pays its cost, starts its 18 s cooldown (15 s with Improved Slam 2/2) and rolls
+  when the cast completes; if
   it can't pay then, it fails, costing nothing and starting no cooldown [?]. Haste doesn't shorten
   the cast, as it doesn't shorten the GCD [?]
   ([damage-and-timing §3.5](../mechanics/damage-and-timing.md#35-global-cooldown)). All three
@@ -2366,11 +2446,11 @@ seed 12345). The enchants stay the spec's
   ([damage-and-timing §5.4](../mechanics/damage-and-timing.md#54-extra-attacks-and-chaining)).
 - **Reactive windows** are auras on the warrior; Overpower's lasts 5 s
   ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)). Procs open it: a "the target
-  dodged" trigger on any of your attacks, white or special, either hand, and Bloodthrill's
-  white-swing proc with its own 6 s. A refresh keeps the later end, so a dodge doesn't cut a
-  Bloodthrill window short [?] (Q11). The ability's lines need the window (the engine puts that
-  condition in front of each line's own), and using the ability ends it, before its roll, so a
-  miss spends it too [?] (Q10). There's one window, not the client's 3 banked points [?] (Q10).
+  dodged" trigger on any of your attacks, white or special, either hand, and Bloodthrill's proc on
+  any landed main-hand attack, which triggers the same 5 s window [F]. A refresh keeps the later
+  end. The ability's lines need the window (the engine puts that condition in front of each line's
+  own), and using the ability ends it, before its roll, so a miss spends it too [?] (Q10). There's
+  one window: since build 1.60.1.70009 the client's doesn't stack either [F] (Q10).
   The rotation adds the openers only when it uses Overpower. Protection's Revenge window reuses
   it: a block, dodge or parry of the boss's swings opens it for 5 s [?] (Q12), and Revenge ends it.
   With a 5 s cooldown as long as the window, ending it changes nothing: any window open before a
@@ -2472,8 +2552,8 @@ The average is `131 + 424.29 = 555.29`, or 571.94 with ×1.03. The range is 529.
 
 Slam isn't normalized, so its AP bonus is `1800 / 14 × 3.8 = 488.57`. The average is
 `131 + 488.57 + 87 = 706.57`, or **727.77** with ×1.03. With Improved Slam 2/2 the cast is
-1000 ms, the GCD is 1000 ms and the swing timer isn't touched. Without it, the cast is 1500 ms
-and the main-hand timer resets when it completes.
+1000 ms, the GCD is 1000 ms, the cooldown is 15 s and the swing timer isn't touched. Without it, the cast is 1500 ms,
+the cooldown 18 s, and the main-hand timer resets when it completes.
 
 ### W5: Overpower with the same two-hander
 
@@ -2612,13 +2692,15 @@ Weaponmaster 5/5 with a mace brings it to `471 × 0.85 = 400.35` [?] (Q9).
 ### W26: Threat per global cooldown, Protection
 
 The default build in Defensive Stance with Defiance 3/3 and a shield (×1.495, W16), average
-hits, no crits, no armor, and the default setup's block value of 62 (the threat values are
-[threat.md](../mechanics/threat.md#warrior)'s):
+hits, no crits, no armor, the default setup's block value of 62, and 1,400 attack power, about the
+default setup's in a fight (the threat values are [threat.md](../mechanics/threat.md#warrior)'s,
+build 1.60.1.70009; before it, Sunder Armor made 1,514.44 a cast, 168.27 a rage, and Shield Slam
+1,440.93):
 
 | Ability | Threat | Rage | Threat per rage |
 | --- | --- | --- | --- |
-| Sunder Armor | `1013 × 1.495 = 1514.44` | 9 | 168.27 |
-| Shield Slam | `((655 + 62) × 0.99 + 254) × 1.495 = 1440.93` | 17 | 84.76 |
+| Sunder Armor | `(206 + 0.05 × 1400) × 1.495 = 412.62` | 9 | 45.85 |
+| Shield Slam | `((655 + 62) × 0.99 + 475) × 1.495 = 1771.32` | 17 | 104.20 |
 | Revenge | `(153 × 1.6 × 0.99 × 2.25 + 270) × 1.495 = 1218.86` | 2 | 609.43 |
 | Thunder Clap | `103 × 0.99 × 2.5 × 1.495 = 381.11` | 17 | 22.42 |
 | Demoralizing Shout | `43.2 × 1.495 = 64.58` | 7 | 9.23 |
@@ -2632,19 +2714,29 @@ the log file, or count hits by hand. Attack a mob 3 levels above the character t
 boss conditions. For threat, use the threat macro from [magey-thr]:
 `UnitDetailedThreatSituation`.
 
-1. **Sunder Armor threat.** The Forever client data adds a THREAT effect (63): 1 at rank 1, 405 /
-   608 / 810 / 1013 at ranks 2–5, which is 2.25 × the armor removed ([F] [client] (SpellEffect,
-   1.60.1.69913)). Classic has none in the client, and its threat of 261 is set on the server
-   [magey-thr]. Is Forever's Sunder threat now about 1013 at rank 5, and is that on top of the
-   server value? **Test:** read the threat macro before and after a Sunder, at every rank
-   available, in Battle Stance (×0.8). Rank 1 is especially interesting, since its data value is
-   "1". Owner: [threat.md](../mechanics/threat.md).
+1. **Sunder Armor threat.** *Partly answered by build 1.60.1.70009.* Its THREAT effect (63) is
+   now 34 / 75 / 117 / 158 / 206 by rank [F] [client] (SpellEffect, 1.60.1.70009), where
+   1.60.1.69913 had 1 / 405 / 608 / 810 / 1013; Blizzard's notes call it a correction "on all
+   ranks, including a small increase to threat generated from Attack Power" [notes-70009]. So the
+   old question (1013, or 1013 on top of the server's 261?) is moot: the client value is the base.
+   **What's left:** the attack power term, which the client doesn't carry (no bonus coefficient on
+   the effect). The sim's default is **0.05 × AP** [?] (D29): the share that brings 206 to Classic
+   Era's rank 5 total, 261, at 1,100 AP, about a level-60 tank's before raid buffs, since the
+   notes frame the change as a correction and Classic Era's is the closest allowed value for the
+   total. At the default setup's ~1,400 AP in a fight that's 276 a Sunder before the stance.
+   **Test:** at 60, in Defensive Stance with Defiance 3/3 and a shield (×1.495), read the threat
+   macro before and after a landed Sunder at two attack powers (with and without Battle Shout and
+   a Juju Might or Mighty Rage Potion): threat ÷ 1.495 − 206 = the AP term, and its change over
+   the AP change is the coefficient. Owner: [threat.md](../mechanics/threat.md#warrior); also
+   [open-questions B10](../open-questions.md#b10-sunder-armor-threat).
 2. **Bloodthirst.** Does it really deal 35% of AP + 48 at rank 4? The tooltip and data agree;
    the in-game check matters because this is Fury's core ability. **Test:** average
    non-critical Bloodthirst hits at two AP values (with and without Battle Shout) against a
    low-armor target.
 3. **Slam without Improved Slam.** Is it still the Classic swing-reset behaviour? And with
-   Improved Slam, does it truly never touch the timer? The engine also assumes that Slam pays
+   Improved Slam, does it truly never touch the timer? (Build 1.60.1.70009's tooltip says it
+   "no longer interrupts or delays your melee swing", and its data kept the cast and GCD cut and
+   added a 1.5 s cooldown cut a rank [F]; the swing rule is the tooltip's, not data.) The engine also assumes that Slam pays
    its cost and starts its cooldown when the cast completes, failing if rage fell below its cost
    during the cast; that off-GCD actions (the Heroic Strike queue, Bloodrage, racials) work during
    the cast; and that haste doesn't shorten the cast ([§7](#7-implementation-notes)). **Test:**
@@ -2683,15 +2775,24 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    only, is Q15's.)
    **Test:** mace hit damage against a mob of known armor, with and without Sunder; sword procs
    per Cleave on two mobs.
-10. **Overpower window.** The data has a combo-point-like counter that stacks to 3, on a 5,000 ms
-    window [F] [client] (SpellPower, SpellAuraOptions, SpellDuration, 1.60.1.69913). Can several
-    dodges bank several Overpowers in game? The sim keeps one window that each dodge refreshes,
-    and a used Overpower spends it even when it misses ([§7](#7-implementation-notes) "Reactive
-    windows"): does a missed Overpower give the point back?
-11. **Bloodthrill.** Does it trigger only from white swings (data mask) or from all melee
-    attacks (tooltip)? The sim takes white swings, extra attacks included. Does it need your own
-    Rend? Does its 6 s window stack with a dodge window? The sim keeps one window, which a dodge
-    refreshes but never shortens.
+10. **Overpower window.** *Banking answered by build 1.60.1.70009:* the window's aura (1282733,
+    5,000 ms) no longer stacks (1.60.1.69913's stacked to 3) [F] [client] (SpellAuraOptions,
+    SpellDuration, 1.60.1.70009), so several dodges don't bank several Overpowers: one window, each
+    dodge refreshing it, as the sim always had. **Still open:** a used Overpower spends it even when
+    it misses ([§7](#7-implementation-notes) "Reactive windows"): does a missed Overpower give the
+    point back?
+11. **Bloodthrill.** *Mostly answered by build 1.60.1.70009:* its proc mask is now 0x14 (auto
+    attacks and melee abilities), main hand only (Attributes[3] 0x400), and it triggers the dodge's
+    own window, 1282733 (5 s), at 4% a rank [F] [client] (SpellEffect, SpellAuraOptions, SpellMisc,
+    CurvePoint, 1.60.1.70009); the notes: "Bloodthrill only activates off of Main Hand melee attacks.
+    This includes Cleave and Heroic Strike" [notes-70009]. So it procs from every landed main-hand
+    attack, never the off hand, into the one window. **Still open:** does it still need your own
+    Rend? The notes don't say, the client has no aura restriction (it's the server's), and the
+    tooltip still says "against enemies afflicted by your Rend"; the sim keeps the condition. And the
+    tooltip's "Lasts 6 sec." (the old window spell 1289681's duration, which nothing triggers now)
+    against the data's 5 s: the sim takes the data. **Test:** Overpower lighting up after main-hand
+    hits with and without your Rend on the target (a Rend from another warrior, then none), and the
+    time until it greys out.
 12. **Revenge window.** Is it 5 s after a block, dodge or parry? The sim assumes Overpower's
     5 s. The only source we found for a number (4 s) is Turtle WoW, which is forbidden. It's
     small: 4 s would cost the default 0.05% TPS ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)).
@@ -2843,17 +2944,21 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     ([§7](#7-implementation-notes) "Spell-table abilities") [?]. **Test:** against mobs three
     levels higher, with and without +hit, count Thunder Clap's and Demoralizing Shout's misses and
     the rage a missed one costs, and Thunder Clap's crits and their size against its hits.
-34. **Shield Slam's threat.** The engine uses Classic Era's dmg + 254 [C] (Magey), but Forever's
-    tooltip raised it from "a high amount of threat" to "a very high amount" [F], so the bonus may
-    have risen ([threat.md](../mechanics/threat.md#warrior), OQ 1). It decides Max TPS's one
-    close call ([§5.4](#max-tps-p2)): at +254 dropping Shield Slam gains 3.3% TPS, and from about
-    +449 keeping it wins; the default keeps it either way, for its damage. **Test:** the threat
-    macro before and after a Shield Slam at 60, against its damage in the combat log, as C6 in
-    [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
+34. **Shield Slam's threat.** Forever's tooltip raised it from "a high amount of threat" to "a very
+    high amount" [F], and neither client carries a value. The engine's default is **dmg + 475** [?]:
+    the [wording table](../mechanics/threat.md#threat-wording-table)'s "very high", Classic Era's
+    "high" 254 [C] (Magey) scaled by the damage Forever gave it with the new words (640–670 against
+    342–358, ×1.871 at the midpoints), as the table's "high" on Heroic Strike scales with its bonus
+    damage. The result lists it among its assumptions. Since build 1.60.1.70009's lower Sunder
+    Armor, the value no longer decides a preset: at +254 dropping Shield Slam still costs 12.8% of
+    Max TPS's threat ([§5.4](#build-160170009-protection); before, +254 made dropping it a 3.3%
+    gain). **Test:** the threat macro before and after a Shield Slam at 60 in Defensive Stance with
+    Defiance 3/3 and a shield, against its damage in the combat log: threat ÷ 1.495 − damage = the
+    bonus. As C6 in [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
 
 35. **Sunder Armor over Expose Armor.** They share one slot on the boss ([buffs §4.1](../mechanics/buffs-debuffs-consumables.md#41-armor-reduction)),
     and in Forever both remove 2,250 armor. With the Buffs tab's Expose Armor on, the engine lets
-    your Sunders land, remove nothing and make their full 1013 threat [?]. In Classic Era a
+    your Sunders land, remove nothing and make their full threat [?]. In Classic Era a
     Sunder Armor may fail to apply over a stronger Expose Armor ("A more powerful spell is already
     active"), and a debuff that fails makes no threat. If Forever does that, the default
     Protection warrior with Expose Armor makes about 31% less TPS: 996.34 → 684.08 without any
@@ -3017,3 +3122,4 @@ the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. 
 [wh-tank]: https://www.wowhead.com/classic/guide/classes/warrior/tank-rotation-cooldowns-abilities-pve
 [bnet-hsq]: https://us.forums.blizzard.com/en/wow/t/off-hand-swings-with-hs-cleave-queued-dont-suffer-dw-miss-penalty/309417
 [ew]: https://github.com/ElliotWood/Forever/pull/108
+[notes-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-%E2%80%93-updated-september-24/2360696

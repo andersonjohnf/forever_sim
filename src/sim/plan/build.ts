@@ -1589,18 +1589,23 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('thorns')) notes.add('thorns')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
-  // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's, the rest Classic
-  // Era's; in `classicEra` all are Classic Era's, Sunder's 261 too.
+  // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's plus a share of the
+  // attack power [?] (its own note), the rest Classic Era's; in `classicEra` all are Classic Era's,
+  // Sunder's 261 too.
   // A paladin tank's note speaks paladin: mana and Righteous Fury, not rage and stances.
   if (tank && classId === 'paladin') notes.add('whiteThreatPaladin')
   else if (tank) {
-    const sunder = abilities.find((a) => a.id === 'sunderArmor')
-    notes.add(
-      'whiteThreat',
-      sunder && profile.id === 'forever'
-        ? `Sunder Armor makes ${sunder.threatBonus.toLocaleString('en-US')} threat, the Forever client’s value, in place of Classic Era’s 261; the other abilities make Classic Era’s`
-        : undefined,
-    )
+    const forever = profile.id === 'forever'
+    const sunder = forever ? abilities.find((a) => a.id === 'sunderArmor') : undefined
+    // threat.md#threat-wording-table: Forever's "very high" on Shield Slam [?].
+    const slam = forever ? abilities.find((a) => a.id === 'shieldSlam') : undefined
+    const own = [sunder && 'Sunder Armor', slam && 'Shield Slam'].filter(Boolean).join(' and ')
+    notes.add('whiteThreat', own ? `${own} ${own.includes(' and ') ? 'follow' : 'follows'} Forever’s values (below), the other abilities Classic Era’s` : undefined)
+    if (sunder) {
+      const pct = Math.round((sunder.threatApCoefficient ?? 0) * 100)
+      notes.add('sunderThreat', `${sunder.threatBonus.toLocaleString('en-US')} plus ${pct}% of your attack power`)
+    }
+    if (slam) notes.add('shieldSlamThreat', slam.threatBonus.toLocaleString('en-US'))
   }
   if (setup.stance === 'defensive' && setup.talents.has('Defiance') && hasShield) notes.add('defiance')
   if (tank) notes.add('bossMelee')

@@ -76,7 +76,10 @@ describe('Fury’s priority list (D31)', () => {
     // list added (row 6's) at its default, on, as it always was before. The snapshot is of the
     // rotation before the priority list (A1), checked byte for byte against it then: a change to
     // it is a change to what Fury plays. Since: a Gnome presses Eureka! (EI-2, September 2026), which
-    // moved 32 of the 40 Gnome cases (the rest have the racial off) and no other.
+    // moved 32 of the 40 Gnome cases (the rest have the racial off) and no other. Then 1.60.1.70009
+    // (warrior.md §1, §2.8): Slam's 18 s cooldown less Improved Slam's 1.5 s a rank, and Bloodthrill's
+    // 4% a rank from main-hand attacks into the 5 s window, moved 43 cases, each one using Slam or
+    // Bloodthrill; the 6 others that use them have Improved Slam 2/2 (15 s, as before) and no Bloodthrill.
     const before = FURY_OPTIONS.filter((o) => o.id !== 'warrior.fury.execute.bloodthirst')
     const hashes = furyCases(before, 200).map(({ values, talents, context }) => {
       const none = furyRotation(values, talents, noAura, context)

@@ -5,8 +5,9 @@ paladin TPS are first-class outputs. DPS threat is covered only as context for t
 Era rule is `threat = (damage × ability multiplier + flat bonus) × global multipliers`, measured
 on the 1.13 client. WoW Forever keeps that shape but changes several key numbers:
 
-- **Sunder Armor** now carries a client-side threat effect of **1013** at rank 5. In Classic it
-  was 261, set server-side.
+- **Sunder Armor** now carries a client-side threat effect of **206** at rank 5 (build
+  1.60.1.70009; 1013 in 1.60.1.69913), plus a share of attack power by Blizzard's notes, which the
+  sim defaults to 0.05 × AP [?]. In Classic it was 261, set server-side.
 - **Defiance** is +5% per rank, needs a shield, and has 3 ranks (+15% at 3/3).
 - **Bears** lose Feral Instinct's threat, so they stay at a flat ×1.3.
 - **Righteous Fury** is +90% baseline. Improved Righteous Fury now reduces damage taken instead.
@@ -16,16 +17,17 @@ on the 1.13 client. WoW Forever keeps that shape but changes several key numbers
 Every other per-ability value is still server-side and unverified in Forever. The engine uses the
 Classic Era numbers and flags them. A new ability whose tooltip names its threat ("a high amount
 of threat") takes the value of the known abilities with the same words, by the
-[wording table](#threat-wording-table) (D29): Lacerate's +261.
+[wording table](#threat-wording-table) (D29): Lacerate's +261, and Shield Slam's "very high" +475.
 
-Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22 · Forever client build 1.60.1.69913, and 1.60.1.70009 for Sunder Armor and the wording table (2026-09-24) · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **Client-data values.** Values cited as `[client] (Table, build)` come from the raw Forever
 client files (build 1.60.1.69913; Classic Era 1.15.9.69722 for the Classic halves), read through
 the wago.tools API and parsed by `scripts/scrape/client.mjs`. The claim check in
 [client.md][client] confirmed every value this doc had marked for a browser check, including
-Sunder Armor's threat effect of 1013, with no corrections. Only the client value is [F]: what
-the server does with it (Sunder's in-game total, a scripted dummy) stays [?]. Raw files lack
+Sunder Armor's threat effect (1013 in 1.60.1.69913; 1.60.1.70009's claim check reads 206, which
+this doc now cites). Only the client value is [F]: what the server does with it (Sunder's attack
+power term, a scripted dummy) stays [?]. Raw files lack
 server hotfixes and scripts ([hotfix caveat](../data/client.md#hotfix-caveat)). Where a
 foreverchanges.pro tooltip gives the same fact, the tooltip is the primary citation.
 
@@ -42,8 +44,9 @@ foreverchanges.pro tooltip gives the same fact, the tooltip is the primary citat
   0.8, Cat Form 0.71, Righteous Fury (Holy only), Salvation 0.7, threat enchants and items, and so
   on ([modifiers](#stance-and-form-modifiers), [global](#global-threat-modifiers)).
 - **Per-ability values** come from the tables in [per-ability threat](#per-ability-threat-at-max-rank).
-  Sunder uses the Forever client value in `forever` and Classic Era's 261 in `classicEra`.
-  Everything else uses Classic Era values flagged `[?]` for Forever.
+  Sunder uses the Forever client value plus 0.05 × AP [?] in `forever` and Classic Era's 261 in
+  `classicEra`; Shield Slam the wording table's "very high" +475 [?] in `forever` and Classic Era's
+  254 in `classicEra`. Everything else uses Classic Era values flagged `[?]` for Forever.
 - **Non-damage threat** ([healing, power gains and buffs](#threat-from-healing-power-gains-and-buffs)):
   - healing: 0.5 per point of effective healing, split across enemies [C];
   - power gains: 5 per rage [C], and 5 per energy and 0.5 per mana [?], split, with no
@@ -175,9 +178,10 @@ value (effect 63) only for Sunder Armor and Cower, so every other row is server-
 
 | Tooltip phrase | Known values | How they scale | Applied by the wording (`[?]`) |
 | --- | --- | --- | --- |
-| "causes a high amount of threat" (a special on the GCD) | Sunder Armor r5 (level 58): **261** [C] (Magey), Forever's client **1013** [F] (effect 63). Revenge r5 (54): 2.25 × dmg + **243**, r6 (60): 2.25 × dmg + **270** [C]. Shield Slam r4 (60): dmg + **254** [C], when Classic's tooltip said "high" | The flat bonus is **4.5 × the spell's level**: 261 = 4.5 × 58, 243 = 4.5 × 54, 270 = 4.5 × 60 (Shield Slam 4.23 × 60). Forever's Sunder is 2.25 × the armor it removes (180/270/360/450 → 405/608/810/1013), a Forever-only client value that no other ability with the words has | **Lacerate** r1/r2/r3 (levels 42/50/58): **189/225/261** per landed application, on top of 1 per damage ([druid bear](#druid-bear), druid.md Q15). Rank 3 is Sunder r5's analog: level 58, 15 rage, a 5-stack debuff. Classic's 4.5 × level, not Forever's 1013, since only Sunder has the Forever value |
+| "causes a high amount of threat" (a special on the GCD) | Sunder Armor r5 (level 58): **261** [C] (Magey); Forever's client **206** [F] (effect 63, 1.60.1.70009; r1–r4 34/75/117/158 at levels 10/22/34/46), plus an attack power term the notes add and the client doesn't carry, **0.05 × AP** [?] (1013 in 1.60.1.69913). Revenge r5 (54): 2.25 × dmg + **243**, r6 (60): 2.25 × dmg + **270** [C]. Shield Slam r4 (60): dmg + **254** [C], when Classic's tooltip said "high" | Classic Era's flat bonus is **4.5 × the spell's level**: 261 = 4.5 × 58, 243 = 4.5 × 54, 270 = 4.5 × 60 (Shield Slam 4.23 × 60). Forever's Sunder is about 3.4–3.55 × its level (34 / 10 … 206 / 58) plus 0.05 × AP, which meets Classic's 261 at 1,100 AP and passes it above ([warrior](#warrior)) | **Lacerate** r1/r2/r3 (levels 42/50/58): **189/225/261** per landed application, on top of 1 per damage ([druid bear](#druid-bear), druid.md Q15). Rank 3 is Sunder r5's analog: level 58, 15 rage, a 5-stack debuff. It took Classic's 4.5 × level because Forever's only value, 1013, was Sunder's alone. **Build 1.60.1.70009 reopens it** (flagged for the druid slice): Forever's Sunder r5 is now 206 + 0.05 × AP [?], which at the default bear's 1,296 AP is about 271, within 4% of 261. Following it would make Lacerate r3 206 + 0.05 × AP; the engine keeps 261 until the druid slice decides |
 | "causes a high amount of threat" (on the next swing) | Heroic Strike r9: dmg + **173**, r8: dmg + **145** [C] (Magey) | About 1.05–1.10 × the rank's bonus damage (157 → 173, 138 → 145) | None: no bear or paladin on-next-swing ability says it (Maul has no threat words) |
-| "a very high amount of threat" | Shield Slam r4 in Forever [F] text; no value | Above "high" by the words; unmeasured | Shield Slam keeps Classic's 254 [?] ([warrior](#warrior), OQ 1) |
+| "a very high amount of threat" | Shield Slam r4 in Forever [F] text (Classic's "high": dmg + 254 [C]); no value in either client | Above "high" by the words. Forever changed Shield Slam's damage and its words together: 640–670 against Classic's 342–358, ×1.871 at the midpoints (655 / 350). The bonus scales with it, as the "high" on Heroic Strike scales with its bonus damage: 254 × 1.871 = **475** | **Shield Slam**: dmg + **475** per landed hit [?] ([warrior](#warrior), OQ 1; warrior.md Q34). No bear or paladin ability says "very high" |
+| "causes a high amount of threat" (on the next swing) | Heroic Strike r9: dmg + **173**, r8: dmg + **145** [C] (Magey) | About 1.05–1.10 × the rank's bonus damage (157 → 173, 138 → 145) | None: no bear or paladin on-next-swing ability says it (Maul has no threat words) |
 | "a moderate amount of threat" | Mocking Blow r5; no value (LTC2's 250 is commented out, "NEED MORE INFO") | — | The sim doesn't use Mocking Blow |
 | "lowering your threat by a small / medium / large amount" (Cower) | −480 / −780 / −1200, and −1 per level [F] (effect 63; Classic Era −600 at r3) | By rank and level | The sim doesn't use Cower |
 | "Damage caused by X causes N% additional threat" | Holy Shield: ×1.2 on its damage [F] [C] | A multiplier on that spell's damage threat | — |
@@ -186,9 +190,12 @@ value (effect 63) only for Sunder Armor and Cower, so every other row is server-
 | "taunts" / "forces the target to attack you" | Taunt and Growl 3 s, Judgement of Fury 4 s, Mocking Blow and the challenging shouts 6 s [F] | Top threat for a taunt ([taunts](#taunts-and-forced-attacks)) | — |
 | No threat words | Maul and Swipe ×1.75, Faerie Fire 108, Demoralizing Roar 39 (LTC2 [?]); Thunder Clap ×2.5, Shield Bash 1.5 × dmg + 156, Hamstring 1.25 × dmg + 135, Demoralizing Shout 43.2 [C] | Each ability's own value; one per damage where none is known | Mangle, Holy Strike, Hammer of the Righteous, Seal of Fury, Judgement of Fury, Consecration, Hammer of Wrath and damage shields (Thorns, Retribution Aura): dmg × 1, × Righteous Fury on Holy |
 
-No paladin tooltip says "high", "very high" or "moderate" threat. A Classic Era ability that had the
-words but no measured value stays a question here, never a zero: its row names the analog and the
-scaling its default uses.
+No paladin tooltip says "high", "very high" or "moderate" threat, in 1.60.1.69913 or 1.60.1.70009's
+client, so 1.60.1.70009's changes move no paladin value: the paladin slice follows this table only
+if a later tooltip adds the words. The bear's Lacerate is the one tank ability outside the warrior's
+that the "high" row reaches, and the druid slice owns its follow-up (above). A Classic Era ability
+that had the words but no measured value stays a question here, never a zero: its row names the
+analog and the scaling its default uses.
 
 ---
 
@@ -210,16 +217,17 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
   defaults.
 - **Forever:** only Sunder Armor's threat is in the client. For every other value, Forever threat
   is server-side and untested. The engine uses the Classic value, and `[?]` in the Forever column
-  means "Classic value assumed".
+  means "Classic value assumed", unless the row gives a Forever default of its own (Shield Slam's,
+  from the wording table).
 
 ### Warrior
 
 | Ability (rank, spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| **Sunder Armor** (r5, 11597) | **261** flat per application, even at 5 stacks [C] (Magey) | **1013** flat. The client value is [F]; the in-game total is [?]. | Forever DB2 adds an explicit threat effect (effect 63) by rank: r1 **1**, r2 405, r3 608, r4 810, r5 1013. That is **2.25 × the armor removed** (180/270/360/450), as [warrior.md §1 and Q1](../classes/warrior.md#9-open-questions) notes. The Classic client has no such effect. Sources: [client] (SpellEffect, 1.60.1.69913) and [client] (SpellEffect, 1.15.9.69722); also read by [ElliotWood/Forever](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md). **Default: 1013 replaces Classic's server-side 261.** warrior.md Q1 asks whether it is instead added on top (1274). Rank 1 = 1 looks like a bug; 2.25 × 90 would be ~203. Players report low-rank Sunder "generating 10 threat instead of 100" ([forum](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684)). **Engine:** the profile's value × the global multipliers per landed application (a hit or a block): 1013 in `forever`, Classic Era's 261 in `classicEra` (`sunderArmor(profile)`; worked examples T1 and T2); none for a miss, dodge or parry. It deals no damage and can't crit ([warrior.md §7](../classes/warrior.md#7-implementation-notes)). |
+| **Sunder Armor** (r5, 11597) | **261** flat per application, even at 5 stacks [C] (Magey) | **206 + 0.05 × AP**. The 206 is [F]; the attack power term is [?]. | Forever's client has an explicit threat effect (effect 63) by rank: r1 **34**, r2 75, r3 117, r4 158, r5 **206** [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1 / 405 / 608 / 810 / 1013 (2.25 × the armor removed); Blizzard's notes for 1.60.1.70009: "Sunder Armor: Corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" ([notes](https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-%E2%80%93-updated-september-24/2360696)). The Classic client has no such effect ([client] (SpellEffect, 1.15.9.69722)). The attack power term isn't in the client: the effect has no bonus coefficient (`BonusCoefficientFromAP` and `EffectBonusCoefficient` 0), and no Forever or Classic Era ability has an attack power threat term to copy. **Default: 0.05 × AP** [?] (D29), the share that brings 206 to Classic Era's 261, the closest allowed value for the total, at 1,100 AP, about a level-60 tank's before raid buffs; the notes call the change a correction. At the default Protection warrior's ~1,400 AP in a fight it's 276 before the stance (+6% over 261). The result lists it; warrior.md Q1 and [open-questions B10](../open-questions.md#b10-sunder-armor-threat) hold the test. **Engine:** (the profile's bonus + its AP share × the attack power as it lands) × the global multipliers per landed application (a hit or a block): 206 + 0.05 × AP in `forever`, Classic Era's 261 flat in `classicEra` (`sunderArmor(profile)`; worked examples T1 and T2); none for a miss, dodge or parry. It deals no damage and can't crit ([warrior.md §7](../classes/warrior.md#7-implementation-notes)). |
 | Heroic Strike (r9, 25286; +157 dmg) | dmg + **173** [C] (Magey). r8 (11567): dmg + 145. | [?] | Tooltip unchanged ("high amount of threat"). LTC2 uses 175. **Engine:** dmg + 173. |
 | Revenge (r6, 25288) | **2.25 × dmg + 270** [C] (Magey). r5: 2.25 × dmg + 243. | [?] | Forever damage rose from 81–99 to **138–168** [F], so with the Classic formula Revenge threat rises a lot. LTC2's older code uses a flat 355, which the measurements supersede. **Engine:** 2.25 × dmg + 270. |
-| Shield Slam (r4, 23925) | dmg + **254** [C] (Magey) | [?] | Forever damage 640–670 + block value [F] (Classic 342–358). The tooltip changed from "a high amount of threat" to "**a very high** amount of threat", so the bonus may have risen. **Engine:** dmg + 254. |
+| Shield Slam (r4, 23925) | dmg + **254** [C] (Magey) | dmg + **475** [?] | Forever damage 640–670 + block value [F] (Classic 342–358). The tooltip changed from "a high amount of threat" to "**a very high** amount of threat", and neither client has a threat effect on it (1.60.1.70009 included). **Default: the [wording table](#threat-wording-table)'s "very high", 254 × 1.871 = 475** [?]: Classic's "high" bonus scaled by the damage Forever gave it with the new words. The result lists it; warrior.md Q34 holds the test. **Engine:** dmg + 475 in `forever`, dmg + 254 in `classicEra` (`shieldSlam(profile)`). |
 | Shield Bash (r3, 1672) | **1.5 × dmg + 156** [C] (Magey) | [?] | Unchanged spell |
 | Cleave (r5, 20569) | dmg + **100** per target hit, not split [C] (Magey) | [?] | Hits 2 targets |
 | Battle Shout (r7, 25289) | **60** per party member (and pet) buffed, split across enemies in combat [C] (Magey tests: r2 ≈ 12, r6 52, r7 60; not capped at 5) | [?] | Forever: 139 AP, 3 min [F]. **Engine:** not counted: the party isn't modelled ([warrior.md §7](../classes/warrior.md#7-implementation-notes)). A Protection warrior shouts about once a fight (under 0.5% of its threat) |
@@ -327,7 +335,7 @@ threat talents are out of scope.
 
 | Topic | Classic Era | Forever | Tag / source |
 | --- | --- | --- | --- |
-| Sunder Armor threat (r5) | 261 (server) | **1013** (client effect 63); r1 = 1 (bug?) | [F] [client] (SpellEffect, 1.60.1.69913); in-game total [?] |
+| Sunder Armor threat (r5) | 261 (server) | **206** (client effect 63; r1–r4 34/75/117/158), plus 0.05 × AP by the notes' attack power term [?]; 1013 in 1.60.1.69913 | [F] [client] (SpellEffect, 1.60.1.70009); attack power term [?] |
 | Defiance | +3% per rank, 5 ranks, Defensive Stance | +5% per rank, **3 ranks**, Defensive Stance **with a shield** | [F] |
 | Defensive Stance | ×1.3 | ×1.3 (now stated in the tooltip) | [F]: no change |
 | Bear Form | ×1.3 (+ Feral Instinct → ×1.45) | ×1.3; Feral Instinct is Swipe damage | [F] |
@@ -335,7 +343,7 @@ threat talents are out of scope.
 | New paladin threat talents | — | Iron Creed (Holy Strike +25%), Instrument of Law (−20% without RF) | [F] |
 | Thunder Clap | Battle Stance only, 10% slow, 4 s CD | **Usable in Defensive Stance**, 20% slow, 6 s CD | [F] |
 | Revenge / Shield Slam damage | 81–99 / 342–358 | 138–168 / 640–670 (threat grows with damage) | [F] damage; threat formula [?] |
-| Shield Slam tooltip | "a high amount of threat" | "a **very high** amount of threat" | [F] text; value [?] |
+| Shield Slam tooltip | "a high amount of threat" | "a **very high** amount of threat": dmg + 475 by the [wording table](#threat-wording-table) | [F] text; value [?] |
 | Tranquil Air Totem | ×0.8 | **Not in Forever** | [F] |
 | Blessing of Sanctuary | Talent; Holy damage on block | **Removed** | [F] |
 | Faerie Fire (Feral) | Talent, usable in forms | **Removed**; plain Faerie Fire usable in forms (mana cost) | [F] |
@@ -358,7 +366,8 @@ Checked against [docs/classes/warrior.md](../classes/warrior.md) on 2026-09-22.
   multiplicative 1.495 as [F]. This doc agrees with the value, but keeps the
   "multiplicative, not additive" part as [C] with an open test (Q3), because the DB2 shows two
   separate +30% and +15% auras, not their product.
-- Sunder Armor's client threat effect: 1, 405, 608, 810, 1013 (2.25 × armor removed).
+- Sunder Armor's client threat effect: 34, 75, 117, 158, 206 (1.60.1.70009; 1, 405, 608, 810,
+  1013 in 1.60.1.69913), plus the attack power term the notes add, 0.05 × AP [?].
 - Thunder Clap usable in Defensive Stance.
 - Using Magey's 1.13.6 measurements as the Classic reference.
 
@@ -366,7 +375,7 @@ Checked against [docs/classes/warrior.md](../classes/warrior.md) on 2026-09-22.
 
 | Topic | warrior.md | This doc | Resolution |
 | --- | --- | --- | --- |
-| Sunder threat default | Q1: open whether 1013 replaces or adds to the server's 261 (tagged [?]) | Default: 1013 replaces 261. Client value [F], in-game total [?]. | Compatible. This doc picks a default; warrior.md Q1 remains the test. |
+| Sunder threat default | Q1: the attack power term's share (tagged [?]) | Default: 206 + 0.05 × AP. Client value [F], attack power term [?]. | Compatible. warrior.md Q1 remains the test. |
 | Splitting threat across targets | Out of scope (§5.5) | Split rules documented; in single-target mode they divide by 1 | Compatible. Per-target TPS output is optional. |
 
 ---
@@ -384,7 +393,7 @@ interface ThreatEvent {
   amount: number;             // damage dealt, effective heal, power gained, or 0
   kind: 'damage' | 'debuff' | 'buff' | 'heal' | 'powerGain' | 'taunt';
   abilityMult: number;        // e.g. 1.75 Maul, 2.5 Thunder Clap, 1.2 Holy Shield, 0.5 heal
-  abilityBonus: number;       // e.g. 1013 Sunder (Forever), 173 Heroic Strike
+  abilityBonus: number;       // e.g. 206 + 0.05 × AP Sunder (Forever), 173 Heroic Strike
   abilityPct: number;         // ability-specific threat talent (Iron Creed +0.25), default 0
 }
 
@@ -434,9 +443,9 @@ Each of these becomes a unit test. T1 and T2 run in the engine under each profil
 
 | # | Input | Expected threat |
 | --- | --- | --- |
-| T1 | Forever warrior: Defensive Stance, 3/3 Defiance, shield; Sunder r5 | 1013 × 1.3 × 1.15 = **1514.435** |
+| T1 | Forever warrior: Defensive Stance, 3/3 Defiance, shield, 1,400 AP; Sunder r5 | (206 + 0.05 × 1400) × 1.3 × 1.15 = **412.62** |
 | T2 | Classic warrior (`classicEra`): Defensive Stance, 5/5 Defiance; Sunder r5 | 261 × 1.495 = **390.195** |
-| T3 | Forever warrior as T1 but **two-handed** (no shield) | Multiplier 1.3; Sunder = **1316.9** |
+| T3 | Forever warrior as T1 but **two-handed** (no shield) | Multiplier 1.3; Sunder = **358.8** |
 | T4 | Warrior ×1.495; Heroic Strike r9 hits for 500 | (500 + 173) × 1.495 = **1006.135** |
 | T5 | Warrior ×1.495; Revenge hits for 150 (Classic formula) | (2.25 × 150 + 270) × 1.495 = **908.2125** |
 | T6 | Warrior ×1.495; Thunder Clap hits 4 targets for 90 each | **336.375** per target, 1345.5 total |
@@ -467,22 +476,28 @@ ability on a mob, and read threat before and after with
 `t = (mult × dmg + bonus) × stanceMult` across several different damage rolls. Calibrate the
 threat-value scale with a plain white hit in a known stance.
 
-1. **Warrior ability threat in Forever.** Sunder went from 261 (server) to 1013 (client), so
-   Blizzard retuned at least one server-side value. Re-measure Heroic Strike, Revenge, Shield Slam
-   (the tooltip now says "very high"), Thunder Clap (now used in Defensive Stance), Cleave, Shield
-   Bash, Battle Shout, Demoralizing Shout and Mocking Blow at 60. Shield Slam's matters most for
-   Protection's Max TPS: above about +449 it keeps Shield Slam on TPS alone, below it dropping it
-   would win ([warrior.md §5.4](../classes/warrior.md#max-tps-p2), Q34).
-2. **Sunder in play** (same as [warrior.md Q1](../classes/warrior.md#9-open-questions)). Is
-   rank 5 about 1013 × stance, as the default assumes? Or is 1013 added on top of the server's
-   261? Rank 1's data value is 1: is that a bug? Test in Battle Stance (×0.8) at every rank
-   available.
+1. **Warrior ability threat in Forever.** Sunder went from 261 (server) to a client value (1013,
+   then 206 plus attack power in 1.60.1.70009), so Blizzard retuned at least one server-side
+   value. Re-measure Heroic Strike, Revenge, Shield Slam (the tooltip now says "very high": the sim
+   assumes +475 by the [wording table](#threat-wording-table)), Thunder Clap (now used in Defensive
+   Stance), Cleave, Shield Bash, Battle Shout, Demoralizing Shout and Mocking Blow at 60. Since
+   1.60.1.70009 Shield Slam no longer decides a preset (dropping it costs Max TPS 12.8% even at
+   +254; [warrior.md §5.4](../classes/warrior.md#build-160170009-protection), Q34), but it's 27%
+   of the default warrior's threat, so its bonus moves the headline most.
+2. **Sunder in play** (same as [warrior.md Q1](../classes/warrior.md#9-open-questions)). Build
+   1.60.1.70009 settled the base: the client's 206 at rank 5 (34 at rank 1, no longer the "1" that
+   looked like a bug). What's open is the attack power term the notes add: the sim assumes
+   0.05 × AP. Test at 60 in Defensive Stance with Defiance 3/3 and a shield (×1.495), a landed
+   Sunder at two attack powers: threat ÷ 1.495 − 206 is the term, and its change over the AP
+   change the coefficient.
 3. **Defiance with Defensive Stance**: ×1.495 (multiplicative) or ×1.45 (additive)? Compare a
    plain white hit in Defensive Stance with 0/3 and 3/3 Defiance. Also confirm it gives nothing
    without a shield.
 4. **Bear** [?]: Maul and Swipe multipliers (1.75), Demoralizing Roar (39) and Faerie Fire (108)
    come from LTC2 code only, in Classic Era as well as Forever; no independent Classic Era
-   measurement was found. **Lacerate**'s bonus is the wording table's +261 (4.5 × level 58) and
+   measurement was found. **Lacerate**'s bonus is the wording table's +261 (4.5 × level 58; build
+   1.60.1.70009's Sunder, 206 + 0.05 × AP, would give about 271 at the default bear's AP, for the
+   druid slice to decide) and
    **Mangle (Bear)**'s threat is assumed dmg × 1; neither is measured. The only numbers found are
    Season of Discovery values and are **not adopted**. Test: a first Lacerate on a fresh mob
    (threat ÷ 1.3 = the bonus), then applications at 1–4 stacks (÷ 1.3 − the hit = the same bonus)
@@ -520,7 +535,8 @@ threat-value scale with a plain white hit in a known stance.
 | [dfherr/LibThreatClassic2](https://github.com/dfherr/LibThreatClassic2) ([Warrior](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Warrior.lua), [Druid](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua), [Paladin](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Paladin.lua), [core](https://github.com/dfherr/LibThreatClassic2/blob/master/ThreatClassModuleCore.lua)) | Classic threat-meter code: Maul/Swipe 1.75, Demoralizing Roar, Faerie Fire, RF by school, Holy Shield 1.2, blessings, taunt logic, heal/power-gain threat and splitting, global buff multipliers. Values marked "NEED MORE INFO" are not trusted. | Mixed lineage (1.13 addon, partly inherited from the TBC ThreatLib): values only it supplies are [?]; used where Magey is silent |
 | [Warcraft Tavern: WoW Classic threat reference table](https://www.warcrafttavern.com/wow-classic/guides/threat-guide-reference-table/) | Maul/Swipe ×1.75, Demoralizing Roar 39, Faerie Fire 108, paladin heals ×0.5, mana 0.5, Execute ×1.25: the LTC2 numbers, with no sources or date | Classic (uncited; not counted as independent corroboration) |
 | [Icy Veins › Classic Feral Tank Spell Summary](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary) | "Maul has a 1.75x threat modifier" (read via a search summary; the page blocks direct fetches) | Classic (uncited; not counted as independent corroboration) |
-| [ElliotWood/Forever › docs/beta-pass/warrior.md](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md) | An independent reading of Forever's Sunder threat effect (1013) | Forever (third-party) |
-| [Blizzard forums: Forever beta rage thread](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684) | Player report that low-rank Sunder is bugged (≈10× too low) | Forever beta (community) |
+| [ElliotWood/Forever › docs/beta-pass/warrior.md](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md) | An independent reading of Forever's Sunder threat effect (1013, build 1.60.1.69913) | Forever (third-party) |
+| [Blizzard forums: Forever beta rage thread](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684) | Player report that low-rank Sunder is bugged (≈10× too low), on build 1.60.1.69913's rank 1 value of 1 | Forever beta (community) |
+| [WoW Forever Beta Development Notes, updated September 24](https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-%E2%80%93-updated-september-24/2360696) | Build 1.60.1.70009's Sunder Armor correction "including a small increase to threat generated from Attack Power" | Forever (official) |
 
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client

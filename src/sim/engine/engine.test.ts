@@ -570,6 +570,11 @@ describe('golden run (fixed config and seed)', () => {
   // - T3R-2 (buffs doc §1.2, §6.2): a raid druid's Thorns on the main tank is in every tank's raid and
   //   max presets, as Devotion Aura: 22 Nature damage on each boss swing that lands, a new `thorns` row.
   //   TPS 1,123.32 → 1,132.88, DPS 356.89 → 363.16; nothing else moves. Fury, Arms and the cat are unchanged.
+  // - 1.60.1.70009 (warrior.md §1, threat.md#warrior): Sunder Armor's threat effect fell from 1,013 to
+  //   206, plus 5% of attack power [?] (the notes' attack power term), and Shield Slam's "very high"
+  //   threat is dmg + 475 [?] (the wording table; 254 before). Defensive's Sunder Armor threat
+  //   31.28 M → 8.66 M, Shield Slam 18.96 M → 22.96 M; TPS 1,132.88 → 925.71, DPS unchanged
+  //   (363.16). Fury and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -583,6 +588,11 @@ describe('golden run (fixed config and seed)', () => {
   })
 
   // - M2.3c: the default Arms warrior (warrior.md §5.3), added with its rotation.
+  // - 1.60.1.70009 (warrior.md §1, §2.8): Bloodthrill procs 4% a rank (20% at 5/5, 10% before) from any
+  //   landed main-hand attack, white or special (white swings before), into the dodge's 5 s window
+  //   (6 s before); Slam's cooldown is 18 s, less Improved Slam's 1.5 s a rank (15 s at 2/2, as before).
+  //   Overpower 9,942 → 16,760 casts (11.44 M → 19.33 M damage), Hamstring 9,343 → 7,488 and Spearing
+  //   Strike 5,119 → 4,842 for its global cooldowns; DPS 647.48 → 690.40, TPS 373.96 → 391.03.
   it('keeps the default Arms warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-arms'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -633,6 +643,11 @@ describe('golden run (fixed config and seed)', () => {
   //   385.89, damage taken 610.54 → 737.65 a second (Max TPS: 1,292.11, 389.11, 859.25). Thunder
   //   Clap's 4,277 casts go; Sunder Armor 24,402 → 28,606 and Heroic Strike 12,696 → 18,888: the
   //   faster, unweakened boss gives more rage.
+  // - 1.60.1.70009 (warrior.md §1, threat.md#warrior): Sunder Armor 206 + 5% of attack power [?] (1,013
+  //   before), Shield Slam dmg + 475 [?] (254). The thresholds' first-pass check moved nothing
+  //   (warrior.md §5.4). Sunder Armor's threat 36.67 M → 10.16 M, Shield Slam 20.06 M → 24.28 M; TPS
+  //   1,241.15 → 993.42, DPS unchanged (385.89). Max TPS now keeps Shield Block (D26's rule: its blocks
+  //   make more threat than its rage would elsewhere): TPS 1,003.59, DPS 387.90, damage taken 738.18.
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

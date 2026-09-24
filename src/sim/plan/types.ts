@@ -688,6 +688,11 @@ export interface AbilityPlan {
   threatMult: number
   threatBonus: number
   /**
+   * A share of the attack power at the moment it lands added to its threat bonus: Sunder Armor's
+   * "threat generated from Attack Power" (threat.md#warrior, warrior.md Q1). Absent = 0.
+   */
+  threatApCoefficient?: number
+  /**
    * Breakdown row of a second strike with the off hand, or −1: Raging Blows' off-hand Whirlwind
    * (warrior.md §3.1). It rolls the off hand's special table and deals the weapon damage at the
    * off hand's speed and hand multiplier; it costs nothing more and refunds nothing.

@@ -243,6 +243,16 @@ const REGISTRY = {
     text: 'Threat uses Classic Era rules (1 threat per damage, 5 per rage from talents, stance or form multipliers); Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
+  // threat.md#threat-wording-table, warrior.md Q1: the plan gives the bonus ({detail}).
+  shieldSlamThreat: {
+    text: 'Shield Slam makes its damage plus {detail} in threat. Forever’s tooltip raised its threat from Classic Era’s “high” (254) to “very high” with no number, and raised its damage 1.87 times, so the bonus rises with it. Untested.',
+    docRef: `${THREAT}#threat-wording-table`,
+  },
+  // threat.md#warrior, warrior.md Q1: the plan gives the client's value and the attack power share ({detail}).
+  sunderThreat: {
+    text: 'Sunder Armor makes {detail} in threat, before your stance’s multiplier. The 206 is the Forever client’s; Blizzard’s notes add threat from attack power without a number, so 5% is a guess that makes Classic Era’s 261 at 1,100 attack power. Untested.',
+    docRef: `${THREAT}#warrior`,
+  },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.
   whiteThreatPaladin: {
     text: 'Threat uses Classic Era rules (1 threat per damage, 0.5 per mana you gain, ×1.9 on Holy damage from Righteous Fury); Forever threat is server-side and unmeasured.',
@@ -309,7 +319,7 @@ const REGISTRY = {
     docRef: `${PAL}#conventions-used-below`,
   },
   overpowerWindow: {
-    text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it.',
+    text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked; an Overpower that misses still closes it.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   revengeWindow: {
@@ -333,7 +343,7 @@ const REGISTRY = {
     docRef: `${WAR}#7-implementation-notes`,
   },
   bloodthrill: {
-    text: 'Bloodthrill procs only from your white swings while your own Rend is on the target, and opens the same Overpower window as a dodge, for 6 s.',
+    text: 'Bloodthrill procs from your landed main-hand attacks, white swings and abilities alike (Heroic Strike and Cleave too, never the off hand), while your own Rend is on the target, and opens the same 5 s Overpower window as a dodge, as the Forever client triggers it; its tooltip still says 6 s.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   slamCast: {

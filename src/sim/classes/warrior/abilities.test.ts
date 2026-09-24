@@ -26,7 +26,6 @@ import {
   BLOODRAGE,
   BLOODTHIRST,
   BLOODTHRILL_PCT_PER_RANK,
-  BLOODTHRILL_WINDOW_MS,
   CHARGE_RAGE_TENTHS,
   DEATH_WISH,
   ELUNES_LIGHT,
@@ -60,6 +59,7 @@ import {
   IMPALE,
   IMPROVED_OVERPOWER_CRIT_PER_RANK,
   IMPROVED_REND_PCT,
+  IMPROVED_SLAM_COOLDOWN_MS_PER_RANK,
   IMPROVED_SLAM_MS_PER_RANK,
   rageCost,
   withTalents,
@@ -251,11 +251,11 @@ describe('Overpower, its window and Bloodthrill (warrior.md §2.8, §3.1, §4.1)
     for (const a of [...ABILITIES, ...ARMS_STRIKES, REND]) expect(a.unavoidable, a.id).toBe(false)
   })
 
-  it('the window (1282733) lasts 5 s; the client stacks it to 3, the sim keeps one (Q10)', () => {
+  it('the window (1282733) lasts 5 s and, since 1.60.1.70009, doesn’t stack: one window, refreshed (Q10)', () => {
     const spell = spells['1282733']
     expect(spell.name).toBe('Overpower')
     expect(spell.duration?.duration).toBe(OVERPOWER_WINDOW.durationMs)
-    expect(spell.auraOptions?.cumulativeAura).toBe(3)
+    expect(spell.auraOptions?.cumulativeAura ?? 0).toBeLessThanOrEqual(1)
     expect(OVERPOWER_WINDOW.maxStacks ?? 1).toBe(1)
     // It energizes the point of power type 4 that Overpower spends.
     expect(spell.effects.find((e) => e.effect === ENERGIZE)?.effectMiscValue?.[0]).toBe(4)
@@ -272,21 +272,28 @@ describe('Overpower, its window and Bloodthrill (warrior.md §2.8, §3.1, §4.1)
     expect(withTalents(OVERPOWER, new Map([['Focused Rage', 3], ['Impale', 2]]))).toMatchObject({ costTenths: 20, critMultiplier: 2.2 })
   })
 
-  it('opens on any dodge for 5 s; Bloodthrill (1289682, proc mask 4: auto attacks) at 2% per rank for 6 s with your Rend up', () => {
+  it('opens on any dodge for 5 s; Bloodthrill (1289682, proc mask 0x14, main hand) at 4% per rank into the same window with your Rend up', () => {
     const talent = spells['1289682']
-    expect(talent.auraOptions?.procTypeMask?.[0]).toBe(4)
+    // 0x4 auto attacks and 0x10 melee abilities; Attributes[3] 0x400, main hand only (warrior.md §2.8).
+    expect(talent.auraOptions?.procTypeMask?.[0]).toBe(0x14)
+    expect(talent.misc?.attributes?.[3]).toBe(0x400)
+    // Aura 42 (proc trigger spell) into the dodge's window, 1282733, so the same 5 s.
+    expect([talent.effects[0].effectAura, talent.effects[0].effectTriggerSpell]).toEqual([42, 1282733])
+    expect(spells['1282733'].duration?.duration).toBe(OVERPOWER_WINDOW.durationMs)
     expect(clientTalents.find((c) => c.name === 'Bloodthrill')!.rankEffects[0].values).toEqual([1, 2, 3, 4, 5].map((r) => BLOODTHRILL_PCT_PER_RANK * r))
+    expect(BLOODTHRILL_PCT_PER_RANK).toBe(4)
     expect(overpowerWindowProcs(new Map())).toEqual([
       expect.objectContaining({ trigger: 'targetDodge', from: 'any', chance: { pct: 100 }, action: { kind: 'aura', aura: OVERPOWER_WINDOW } }),
     ])
     const [, bloodthrill] = overpowerWindowProcs(new Map([['Bloodthrill', 5]]))
     expect(bloodthrill).toMatchObject({
-      trigger: 'whiteLanded',
-      chance: { pct: 10 },
-      action: { kind: 'aura', aura: OVERPOWER_WINDOW, durationMs: BLOODTHRILL_WINDOW_MS },
+      trigger: 'meleeLanded',
+      from: 'mainHand',
+      chance: { pct: 20 },
+      action: { kind: 'aura', aura: OVERPOWER_WINDOW },
       requiresAura: REND.aura!.id,
     })
-    expect(BLOODTHRILL_WINDOW_MS).toBe(6000)
+    expect(bloodthrill.action).not.toHaveProperty('durationMs')
   })
 })
 
@@ -328,25 +335,28 @@ describe('Arms talents on the abilities (warrior.md §4.1)', () => {
     expect(ticks[3] * REND.dotTicks).toBeCloseTo(198.45, 12)
   })
 
-  it('W4: Improved Slam takes 0.25 s per rank off Slam’s cast and GCD, and any rank leaves the swing timers alone', () => {
-    // Effect 0 lowers the cast time (aura 107, misc 10), effect 1 the GCD (misc 21), −250 per rank.
+  it('W4: Improved Slam takes 0.25 s per rank off Slam’s cast and GCD and 1.5 s off its 18 s cooldown, and any rank leaves the swing timers alone', () => {
+    // Effect 0 lowers the cast time (aura 107, misc 10), effect 1 the GCD (misc 21), −250 per rank;
+    // effect 2 the cooldown (misc 11), −1500 per rank (1.60.1.70009).
     const spell = spells['12862']
-    expect(spell.effects.slice(0, 2).map((e) => [e.effectAura, e.effectMiscValue?.[0]])).toEqual([
+    expect(spell.effects.slice(0, 3).map((e) => [e.effectAura, e.effectMiscValue?.[0]])).toEqual([
       [107, 10],
       [107, 21],
+      [107, 11],
     ])
     const ms = [1, 2].map((r) => -IMPROVED_SLAM_MS_PER_RANK * r)
     expect(curve('Improved Slam')).toMatchObject([
       { effectIndex: 0, values: ms },
       { effectIndex: 1, values: ms },
+      { effectIndex: 2, values: [1, 2].map((r) => -IMPROVED_SLAM_COOLDOWN_MS_PER_RANK * r) },
     ])
     // Its ranks replace Slam with 1310196–1310200 (Q19).
-    expect(spell.effects.slice(2).map((e) => e.effectBasePointsF)).toEqual([1310196, 1310197, 1310198, 1310199, 1310200])
+    expect(spell.effects.slice(3).map((e) => e.effectBasePointsF)).toEqual([1310196, 1310197, 1310198, 1310199, 1310200])
     const slam = [0, 1, 2].map((r) => withTalents(SLAM, t([['Improved Slam', r]])))
-    expect(slam.map((a) => [a.castMs, a.gcdMs, a.castStopsSwings])).toEqual([
-      [1500, 1500, true],
-      [1250, 1250, false],
-      [1000, 1000, false],
+    expect(slam.map((a) => [a.castMs, a.gcdMs, a.cooldownMs, a.castStopsSwings])).toEqual([
+      [1500, 1500, 18000, true],
+      [1250, 1250, 16500, false],
+      [1000, 1000, 15000, false],
     ])
   })
 

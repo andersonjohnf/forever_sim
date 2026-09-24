@@ -328,7 +328,7 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
     expect(plan.auras[plan.abilities[sunder].aura]).toMatchObject({ durationMs: 30000, maxStacks: 5, targetArmor: 450 })
   })
 
-  it('lasts 30 s; its threat is 1013 × the stance’s multiplier per landed Sunder, and it never crits', () => {
+  it('lasts 30 s; its threat is (206 + 5% of attack power) × the stance’s multiplier per landed Sunder, and it never crits', () => {
     const { plan, sunder } = sunderPlan()
     line(plan, sunder, at(plan, 0))
     const hits = whiteHits(plan)
@@ -339,21 +339,36 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
     for (const [, dmg] of after) expect(dmg).toBeCloseTo(base * factor(plan, 0), 6)
     plan.stats.crit = 300
     const sim = new Sim(plan)
+    const ap = sim.inspect().attackPower
+    expect(ap).toBeGreaterThan(500)
     sim.runFight(0)
     const row = plan.abilities[sunder].source
     expect(counter(sim, row, FIELD.hits)).toBe(1)
     expect(counter(sim, row, FIELD.crits)).toBe(0)
     expect(counter(sim, row, FIELD.damage)).toBe(0)
-    expect(counter(sim, row, FIELD.threat)).toBeCloseTo(1013 * plan.threatMult, 9)
+    expect(counter(sim, row, FIELD.threat)).toBeCloseTo((206 + 0.05 * ap) * plan.threatMult, 9)
   })
 
-  it('threat.md T1 and T2: 1013 per landed Sunder in `forever`, 261 in `classicEra` (261 × 1.495 = 390.195)', () => {
-    expect(sunderArmor(PROFILES.forever).threatBonus).toBe(1013)
-    expect(sunderArmor(PROFILES.classicEra).threatBonus).toBe(261)
+  it('its attack power share reads the attack power when it lands: more attack power, more threat', () => {
+    const { plan, sunder } = sunderPlan()
+    line(plan, sunder, at(plan, 0))
+    const threatAt = (bonusAp: number) => {
+      const p = structuredClone(plan)
+      p.stats.ap += bonusAp
+      const sim = new Sim(p)
+      sim.runFight(0)
+      return counter(sim, p.abilities[sunder].source, FIELD.threat)
+    }
+    expect(threatAt(200) - threatAt(0)).toBeCloseTo(0.05 * 200 * plan.threatMult, 9)
+  })
+
+  it('threat.md T1 and T2: 206 + 5% of attack power per landed Sunder in `forever` (412.62 at 1,400), 261 in `classicEra` (390.195)', () => {
+    expect([sunderArmor(PROFILES.forever).threatBonus, sunderArmor(PROFILES.forever).threatApCoefficient]).toEqual([206, 0.05])
+    expect([sunderArmor(PROFILES.classicEra).threatBonus, sunderArmor(PROFILES.classicEra).threatApCoefficient]).toEqual([261, 0])
     // The same Protection warrior (Defensive Stance, Defiance 3/3 with a shield) under each profile,
-    // at the worked examples' ×1.495: the default's gloves enchant (×1.02) left out.
+    // at the worked examples' ×1.495 and 1,400 attack power: the default's gloves enchant (×1.02) left out.
     for (const [profile, bonus, expected] of [
-      ['forever', 1013, 1514.435],
+      ['forever', 206, 412.62],
       ['classicEra', 261, 390.195],
     ] as const) {
       const d = defaultConfig('warrior-protection')
@@ -365,7 +380,10 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
       expect(plan.abilities[sunder].threatBonus).toBe(bonus)
       rageAtPull(plan, 100)
       line(plan, sunder, at(plan, 0))
+      // Attack power 1,400 when it lands (the plan's own plus what it takes).
+      plan.stats.ap += 1400 - new Sim(plan).inspect().attackPower
       const sim = new Sim(plan)
+      expect(sim.inspect().attackPower).toBeCloseTo(1400, 9)
       sim.runFight(0)
       const row = plan.abilities[sunder].source
       expect(counter(sim, row, FIELD.hits)).toBe(1)
@@ -484,20 +502,28 @@ describe('the Defensive Protection warrior (warrior.md §5.4)', () => {
     // Defensive Stance 1.3 × Defiance 3/3 1.15 × the gloves' Threat enchant 1.02 (threat.md T20), all fight.
     expect(plan.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
     const rows = {
-      shieldSlam: [1, 254],
+      shieldSlam: [1, 475],
       revenge: [2.25, 270],
-      sunderArmor: [0, 1013],
       thunderClap: [2.5, 0],
       demoralizingShout: [0, 43.2],
       heroicStrike: [1, 173],
     } as const
+    const landedOf = (row: number) => counter(sim, row, FIELD.hits) + counter(sim, row, FIELD.crits) + counter(sim, row, FIELD.blocks)
     for (const [id, [mult, bonus]] of Object.entries(rows)) {
       const row = plan.abilities.find((a) => a.id === id)!.source
-      const landed = counter(sim, row, FIELD.hits) + counter(sim, row, FIELD.crits) + counter(sim, row, FIELD.blocks)
+      const landed = landedOf(row)
       expect(landed, id).toBeGreaterThan(0)
       const expected = (mult * counter(sim, row, FIELD.damage) + bonus * landed) * plan.threatMult
       expect(counter(sim, row, FIELD.threat) / expected, id).toBeCloseTo(1, 9)
     }
+    // Sunder Armor: 206 + 5% of the attack power as it lands, so what's left after the 206s is 5% of
+    // the attack power it landed at on average: the fight start's, or more under Battle Shout and the potion.
+    const sunder = plan.abilities.find((a) => a.id === 'sunderArmor')!.source
+    const landed = landedOf(sunder)
+    const apAtLanding = (counter(sim, sunder, FIELD.threat) / plan.threatMult - 206 * landed) / (0.05 * landed)
+    const startAp = new Sim(plan).inspect().attackPower
+    expect(apAtLanding).toBeGreaterThanOrEqual(startAp)
+    expect(apAtLanding).toBeLessThan(startAp + 400)
     // White swings: damage × 1 (and Windfury's and Hand of Justice's extra attacks).
     expect(counter(sim, 0, FIELD.threat) / (counter(sim, 0, FIELD.damage) * plan.threatMult)).toBeCloseTo(1, 9)
   })
@@ -569,19 +595,20 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
     expect(others(MAX).fight.bossSwing!.slow).toBeCloseTo(0.2, 12)
     expect(others(MAX).fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 * 2) / 14, 9)
     expect([others(DEFENSIVE).fight.bossSwing!.slow, others(DEFENSIVE).fight.bossSwing!.minDamage]).toEqual([0, 4500])
-    // Its rows: no Shield Block, Thunder Clap or Demoralizing Shout; Shield Slam stays (D26).
+    // Its rows: no Thunder Clap or Demoralizing Shout; Shield Block and Shield Slam stay (D26: each
+    // makes more threat than it costs).
     const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
-    for (const id of ['shieldBlock', 'thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
-    expect(used.has('shieldSlam')).toBe(true)
+    for (const id of ['thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
+    for (const id of ['shieldBlock', 'shieldSlam']) expect(used.has(id), id).toBe(true)
   })
 
   it('makes more threat and more damage than Defensive, on the same fights', () => {
     const duties = runFights(buildPlan(config(DEFENSIVE)).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +14% TPS and +7% DPS in the default setup, with nobody's Thunder Clap or
+    // §5.4 "Max TPS": about +8.3% TPS and +6.9% DPS in the default setup, with nobody's Thunder Clap or
     // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
-    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.12)
-    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.16)
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.065)
+    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.1)
     expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.05)
     expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.09)
   })
@@ -620,9 +647,9 @@ describe('Balanced in the engine (warrior.md §5.4 "Balanced", D28)', () => {
   it('makes more threat and more damage than Defensive, and takes more (§5.4 "Balanced")', () => {
     const dBundle = buildPlan(config(DEFENSIVE))
     const duties = runFights(dBundle.plan, 2000)
-    // About +9.5% TPS and +6.4% DPS in the default setup, with about 21% more damage taken.
-    expect(balanced.tps.mean / duties.tps.mean).toBeGreaterThan(1.075)
-    expect(balanced.tps.mean / duties.tps.mean).toBeLessThan(1.115)
+    // About +7.2% TPS and +6.4% DPS in the default setup, with about 21% more damage taken.
+    expect(balanced.tps.mean / duties.tps.mean).toBeGreaterThan(1.055)
+    expect(balanced.tps.mean / duties.tps.mean).toBeLessThan(1.09)
     expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.04)
     expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.09)
     const taken = result.tank!.dtps.mean / toResult(dBundle, duties, 0).tank!.dtps.mean

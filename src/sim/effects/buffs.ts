@@ -335,7 +335,8 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#12-threat-defense-and-mana`,
     effects: [{ kind: 'stat', stat: 'bonusArmor', value: 735 }],
     // A Protection paladin's is its own duty, which its rotation keeps up (SpecMeta.ownBuffs;
-    // paladin.md "Priority", D26): no preset adds it for the paladin.
+    // paladin.md "Priority", D26): no preset adds it for the paladin. A warrior's or bear's preset
+    // keeps it, since any paladin in the raid runs an aura (buffs doc §6.2).
     presets: { raid: 'tank', max: 'tank' },
   },
   {

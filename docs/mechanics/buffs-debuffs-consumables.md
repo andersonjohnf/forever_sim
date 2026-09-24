@@ -648,6 +648,10 @@ the presets leave their toggles off, its rotation keeps them up, and a rotation 
 `DPS` = Arms, Fury, Cat, Ret · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` = paladin
 specs only (the effect does nothing for the others) · `all` = every spec · `Pal (your own)`,
 `Druid (your own)` = that class's buff it casts on itself (`selfCast`), which Self only brings.
+Devotion Aura stays `Tank` though it's a paladin tank's duty, because unlike Thunder Clap and
+Demoralizing Shout, which only a warrior tank applies, any paladin in the raid runs an aura, so a
+warrior's or bear's raid has Devotion Aura when a paladin is in it and D26's rule that a tank's
+preset leaves out another tank class's duties doesn't reach it.
 
 Spirit and Intellect are mana, and among the classes in scope only the paladin spends mana in a
 rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat

@@ -174,13 +174,15 @@ function ReleaseStamp() {
   return (
     <p className="mt-1 text-sm text-muted-foreground">
       Updated{' '}
-      <time dateTime={RELEASE.time.toISOString()} className="whitespace-nowrap">
-        {formatReleaseTime(RELEASE.time)}
-      </time>
+      {/* The "·" stays on the time's line, so a build that wraps never opens its line with it. */}
+      <span className="whitespace-nowrap">
+        <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
+        {commit && ' ·'}
+      </span>
       {commit && (
         <>
           {' '}
-          <span className="whitespace-nowrap">· build {commit}</span>
+          <span className="whitespace-nowrap">build {commit}</span>
         </>
       )}
     </p>

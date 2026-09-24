@@ -14,7 +14,7 @@ It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 
 ## What it does
 
-- Simulates a level 60 character against a level 63 raid boss and report **DPS** or **TPS**,
+- Simulates a level 60 character against a level 63 raid boss and reports **DPS** or **TPS**,
   with a per-ability breakdown.
 - Lets you pick **gear** (pre-raid Rares, required level 55–60), **enchants**, **raid buffs,
   debuffs and consumables**, **talents**, and **which abilities the rotation uses**. Every

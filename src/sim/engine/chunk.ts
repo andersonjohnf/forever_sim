@@ -23,6 +23,8 @@ export interface ChunkResult {
   auraUpMs: Float64Array
   /** Times each plan aura was put up or refreshed over the chunk's fights (Sim.auraApplications). */
   auraApplications: Float64Array
+  /** A stacking aura's stacks × ms, summed likewise (Sim.auraStackMs): ÷ auraUpMs, its average stacks. */
+  auraStackMs: Float64Array
   /** Rage gained and lost to the cap, tenths (diagnostics). */
   rageGainedTenths: number
   rageWastedTenths: number
@@ -43,6 +45,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
   sim.auraUpMs.fill(0)
   sim.auraApplications.fill(0)
   sim.manaBySource.fill(0)
+  sim.auraStackMs.fill(0)
   sim.bossOutcomes.fill(0)
   sim.totalRageGainedTenths = 0
   sim.totalRageWastedTenths = 0
@@ -73,6 +76,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
     counters: sim.counters.slice(),
     auraUpMs: sim.auraUpMs.slice(),
     auraApplications: sim.auraApplications.slice(),
+    auraStackMs: sim.auraStackMs.slice(),
     rageGainedTenths: sim.totalRageGainedTenths,
     rageWastedTenths: sim.totalRageWastedTenths,
     manaSpentTenths: sim.totalManaSpentTenths,

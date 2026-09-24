@@ -293,6 +293,8 @@ export interface SourcePlan {
   certain?: true
   /** What its casts count, for its breakdown row: the blocks that dealt it (Holy Shield), or extra attacks (Reckoning). */
   counts?: 'blocks' | 'extraAttacks'
+  /** A spell cast on the boss (Faerie Fire, Demoralizing Roar): it can't crit, and it can only miss (or be resisted). */
+  spell?: boolean
 }
 
 /**

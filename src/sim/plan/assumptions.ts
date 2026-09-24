@@ -212,7 +212,7 @@ const REGISTRY = {
     docRef: `${WAR}#27-weaponmaster-extra-attacks-and-windfury`,
   },
   whiteThreat: {
-    text: 'Threat uses Classic Era rules (1 threat per damage, 5 per rage from talents, stance multipliers); Forever threat is server-side and unmeasured.',
+    text: 'Threat uses Classic Era rules (1 threat per damage, 5 per rage from talents, stance or form multipliers); Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.

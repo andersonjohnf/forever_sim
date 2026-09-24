@@ -16,6 +16,7 @@ import { type AbilityDef, COND, NO_PREPULL, type Plan, type RotationCondition, T
 import { FOREVER } from '../rules/profiles'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { SimConfig } from '../types'
+import { emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
 import { runChunk } from './chunk'
 import { BOSS_OUTCOME, FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
 import { addAura, at, counter, damages, expectMean, from, line, setAttackPower, timeline } from './test-helpers'
@@ -231,6 +232,12 @@ describe('Lacerate (druid.md §4.3, W19)', () => {
     // Applications count on the bleed's row, ticks as its hits; its threat is one per damage.
     expect(counter(sim, bleed, FIELD.casts)).toBe(uses[lacerate].length)
     expect(counter(sim, bleed, FIELD.threat) / counter(sim, bleed, FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
+    // Its marker is up all 40 s, and its stacks × time are (1 + 2 + 3 + 4) × 1.5 s + 5 × 15 s, then
+    // (1 + 2 + 3 + 4) × 1.5 s + 5 × 13 s to the fight's end: 90 + 80 = 170 stack-seconds, 4.25 on
+    // average (BU5).
+    const marker = plan.abilities[lacerate].aura
+    expect(sim.auraUpMs[marker]).toBe(40000)
+    expect(sim.auraStackMs[marker]).toBe(170000)
   })
 
   it('hits for 10% of the weapon damage per stack already on the boss: nothing for the first, which can’t crit', () => {
@@ -501,6 +508,26 @@ describe('the default bear (druid.md §6.3)', () => {
     const reused = new Sim(plan)
     runChunk(plan, 0, 50, reused)
     expect(runChunk(plan, 3, 50, reused)).toEqual(a)
+  })
+
+  it('shows Lacerate’s uptime and average stacks on its bleed’s row, not in Cooldowns and buffs; its spells as spells (BU5, BU8)', () => {
+    const bundle = buildPlan(config())
+    const agg = mergeChunk(emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length), runChunk(bundle.plan, 0, 100))
+    const result = toResult(bundle, agg, 0)
+    const row = (id: string) => result.abilities.find((a) => a.id === id)!
+    expect(row('lacerateBleed').bleed).toMatchObject({ ticksCanCrit: true, avoidable: false })
+    expect(row('lacerateBleed').bleed!.uptimePct).toBeGreaterThan(80)
+    expect(row('lacerateBleed').bleed!.averageStacks).toBeGreaterThan(4)
+    expect(row('lacerateBleed').bleed!.averageStacks).toBeLessThanOrEqual(5)
+    expect(result.cooldowns.map((c) => c.id)).not.toContain('lacerate')
+    // Faerie Fire and the roar can't crit: spell rows, whose only failure is a miss or a resist.
+    for (const id of ['faerieFire', 'demoralizingRoar']) {
+      expect(row(id).spell, id).toBe(true)
+      expect(row(id).crits, id).toBe(0)
+      expect(row(id).misses, id).toBeGreaterThan(0)
+    }
+    expect(row('maul').spell).toBeUndefined()
+    expect(row('lacerate').bleed).toBeUndefined()
   })
 
   it('keeps its own Faerie Fire and Demoralizing Roar up all fight, but for their first casts and misses (D26: the duties in full)', () => {

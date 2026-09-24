@@ -384,6 +384,8 @@ export interface AbilityResult {
    * that mana, over every fight. Absent for every other row.
    */
   mana?: number
+  /** A spell cast on the boss (Faerie Fire, Demoralizing Roar): it can't crit, and its misses count its resists too. */
+  spell?: true
 }
 
 export interface BleedResult {
@@ -395,6 +397,8 @@ export interface BleedResult {
   uptimePct: number | null
   /** The row of the hit that lands it, for a bleed with a row of its own (Rake's): the breakdown puts it right after. */
   hitId?: string
+  /** A bleed that stacks (Lacerate, up to 5): its average stacks while on the boss. Absent for the others. */
+  averageStacks?: number
 }
 
 /**

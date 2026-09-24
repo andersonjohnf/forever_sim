@@ -447,8 +447,9 @@ const COUNT_NOUN = { blocks: 'blocks', extraAttacks: 'extra attacks' } as const
  * that counts something gives it per fight (Holy Shield's blocks, Reckoning's extra attacks), and a
  * row whose threat is mana it gave you, that mana (Shield Specialization). A bleed's row counts
  * applications and ticks apart: crits from its ticks, avoidance from its applications, and then, on
- * a line of its own, its uptime on the boss. One that can do neither (Deep Wounds) gives its ticks
- * per fight.
+ * a line of its own, its uptime on the boss, with its average stacks for one that stacks
+ * (Lacerate). One that can do neither (Deep Wounds) gives its ticks per fight. A spell on the boss
+ * (Faerie Fire) can't crit, so it gives only its share missed.
  */
 function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][number]; fights: number }) {
   const avoided = a.misses + a.dodges + a.parries
@@ -463,7 +464,13 @@ function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][numb
     if (a.bleed.ticksCanCrit && ticks > 0) parts.push(`${formatPct((100 * a.crits) / ticks)} tick crit`)
     if (a.bleed.avoidable && a.casts > 0) parts.push(`${formatPct((100 * avoided) / a.casts)} of applications avoided`)
     if (parts.length === 0 && fights > 0) parts.push(`${formatOne(ticks / fights)} ticks per fight`)
-    if (a.bleed.uptimePct !== null) uptime = `${formatPct(a.bleed.uptimePct)} uptime on the boss`
+    if (a.bleed.uptimePct !== null) {
+      const stacks = a.bleed.averageStacks
+      uptime = `${formatPct(a.bleed.uptimePct)} uptime on the boss${stacks !== undefined ? `, ${formatOne(stacks)} stacks on average` : ''}`
+    }
+  } else if (a.spell) {
+    if (a.casts === 0) return null
+    parts.push(`${formatPct((100 * a.misses) / a.casts)} missed`)
   } else {
     const attempts = a.hits + a.crits + a.glances + a.blocks + avoided
     if (attempts > 0) {

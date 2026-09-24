@@ -169,6 +169,11 @@ export class Sim {
    * per fight for a proc the next ability spends (Clearcasting, druid.md §2.7).
    */
   readonly auraApplications: Float64Array
+  /**
+   * For an aura that stacks (Lacerate's marker, druid.md §4.3): its stacks × the time it held them,
+   * ms, summed like `auraUpMs`, so ÷ `auraUpMs` is its average stacks while up. 0 for the others.
+   */
+  readonly auraStackMs: Float64Array
   /** Last fight's results. */
   fightDamage = 0
   fightThreat = 0
@@ -663,6 +668,8 @@ export class Sim {
   private readonly auraGen: Int32Array
   /** When each active aura came up this fight (0 for a pre-pull one), for `auraUpMs`. */
   private readonly auraSince: Float64Array
+  /** When a stacking aura's stacks last changed or were counted, for `auraStackMs`. */
+  private readonly auraStackSince: Float64Array
   private readonly bleedTicksLeft: Int32Array
   private readonly bleedGen: Int32Array
   /** When each weapon bleed's next tick is due (for the refresh tie-break, damage-and-timing §4). */
@@ -921,6 +928,8 @@ export class Sim {
     this.auraSince = new Float64Array(na)
     this.auraUpMs = new Float64Array(na)
     this.auraApplications = new Float64Array(na)
+    this.auraStackSince = new Float64Array(na)
+    this.auraStackMs = new Float64Array(na)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
     const blockChargeAuras: number[] = []
@@ -1504,7 +1513,11 @@ export class Sim {
     }
     // Auras still up when the fight ends count until its end.
     const active = this.auraActive
-    for (let a = 0; a < active.length; a++) if (active[a]) this.auraUpMs[a] += end - this.auraSince[a]
+    for (let a = 0; a < active.length; a++) {
+      if (!active[a]) continue
+      this.auraUpMs[a] += end - this.auraSince[a]
+      if (this.aMaxStacks[a] > 1) this.auraStackMs[a] += this.auraStacks[a] * (end - this.auraStackSince[a])
+    }
     this.fightMs = end
   }
 
@@ -2652,6 +2665,7 @@ export class Sim {
     const oldStacks = this.auraStacks[a]
     const stacks = wasActive ? Math.min(oldStacks + 1, this.aMaxStacks[a]) : 1
     if (!wasActive) this.auraSince[a] = this.now
+    if (this.aMaxStacks[a] > 1) this.countStacks(a, wasActive ? oldStacks : 0)
     this.auraActive[a] = 1
     this.auraStacks[a] = stacks
     this.auraCharges[a] = this.aCharges[a]
@@ -2683,9 +2697,16 @@ export class Sim {
     }
   }
 
+  /** A stacking aura's stacks change now: the time it held `held` stacks counts for `auraStackMs`. */
+  private countStacks(a: number, held: number): void {
+    if (held > 0) this.auraStackMs[a] += held * (this.now - this.auraStackSince[a])
+    this.auraStackSince[a] = this.now
+  }
+
   private removeAura(a: number): void {
     const stacks = this.auraStacks[a]
     this.auraUpMs[a] += this.now - this.auraSince[a]
+    if (this.aMaxStacks[a] > 1) this.countStacks(a, stacks)
     this.auraActive[a] = 0
     this.auraStacks[a] = 0
     this.auraCharges[a] = 0

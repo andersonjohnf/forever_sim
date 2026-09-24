@@ -794,6 +794,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // effects can, damage-and-timing §4).
     const ticksCanCrit = a.periodicCanCrit && profile.combat.periodicCrits
     if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit, avoidable: true }
+    // A spell on the boss (Faerie Fire, druid.md §3.8, §4.5; Demoralizing Roar): it can't crit, and
+    // its only failure is a miss or a resist.
+    if (a.spellHit) sources[source].spell = true
     // An attack that also bleeds (Rake, druid.md §3.3; Lacerate, §4.3): its ticks get a row of their own, whose
     // applications come from landed hits, so they can't be avoided.
     let dotSource: number | undefined

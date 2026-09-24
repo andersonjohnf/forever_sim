@@ -425,7 +425,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours
     (Rotation) or the raid's (Buffs)." For another tank, whose rotation never uses a warrior
     tank's debuffs, its last sentence reads "Debuffs on it, such as a warrior tank's Demoralizing
-    Shout and Thunder Clap (Buffs), lower its damage and slow its swings." The swings
+    Shout and Thunder Clap (Buffs), lower its damage and slow its swings." A tank whose own
+    attack-power debuff is another gives that one as its example: the bear's reads "Debuffs on it,
+    such as your Demoralizing Roar (Rotation) and a warrior tank's Thunder Clap (Buffs), lower its
+    damage and slow its swings." The swings
     include parry-hastened ones; a fixed swing size reads "5,000". Its "(Fight → Advanced)", and
     the crushing line's, have non-breaking spaces around the arrow, so they never split at 390 px.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
@@ -436,7 +439,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", right after its
     hit's row, whatever their damage). The tick crit shows only where ticks can crit (the Forever profile), and the
     avoidance only for an application that rolls (Rend). A bleed that does neither, such as
-    Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight.
+    Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight. A bleed
+    that stacks adds its average stacks to the uptime line ("89.4% uptime on the boss, 4.6
+    stacks on average": the bear's "Lacerate (bleed)"), and its marker stays out of Cooldowns
+    and buffs.
+  - A **spell on the boss** that can't crit (the bear's Faerie Fire and Demoralizing Roar) shows
+    only the share of its casts that missed ("16.1% missed"), resists included.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
     out of the breakdown. They're under **Cooldowns and buffs**.
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows

@@ -200,11 +200,16 @@ describe('damageTakenText', () => {
   })
 
   it('names those debuffs as a warrior tank’s, in Buffs, for another tank, whose rotation never uses them (D26)', () => {
-    for (const spec of ['paladin-protection', 'druid-feral-bear'] as const) {
-      const text = damageTakenText(80.46, protection().fight.boss, spec)
-      expect(text, spec).toMatch(/ Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/)
-      expect(text, spec).not.toContain('yours')
-    }
+    const text = damageTakenText(80.46, protection().fight.boss, 'paladin-protection')
+    expect(text).toMatch(/ Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/)
+    expect(text).not.toContain('yours')
+  })
+
+  it('gives a tank’s own attack-power debuff as yours: the bear’s roar, beside a warrior tank’s Thunder Clap (BU7)', () => {
+    expect(damageTakenText(80.46, protection().fight.boss, 'druid-feral-bear')).toMatch(
+      / Debuffs on it, such as your Demoralizing Roar \(Rotation\) and a warrior tank’s Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/,
+    )
+    expect(damageTakenText(80.46, protection().fight.boss, 'warrior-protection')).toContain('Debuffs on it, such as Demoralizing Shout and Thunder Clap')
   })
 
   it('leaves the swing size out when the fight can’t be read', () => {

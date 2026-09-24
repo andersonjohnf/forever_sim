@@ -146,20 +146,29 @@ export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avo
 const WARRIOR_TANK_DEBUFFS = ['demoralizingShout', 'thunderClap']
 
 /**
+ * The attack-power debuff a tank that isn't a warrior keeps up itself: the damage-taken line gives it
+ * as its example (the bear's Demoralizing Roar, docs/classes/druid.md §6.3).
+ */
+const OWN_AP_DEBUFF: Partial<Record<SpecId, string>> = { 'druid-feral-bear': 'Demoralizing Roar' }
+
+/**
  * The line under damage taken per second: what it counts, how often the boss swung, and what set
  * the size of its swings. Without the fight (null) it leaves out the swing size. The debuffs it
  * names are a warrior tank's: yours to keep up (Rotation) as a Protection warrior, and only the
- * raid's (Buffs) for another tank, whose presets leave them out (D26).
+ * raid's (Buffs) for another tank, whose presets leave them out (D26); a tank with an attack-power
+ * debuff of its own (the bear's roar) names that one as yours.
  */
 export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'> | null, spec: SpecId): string {
   const swings = `It swung ${formatOne(swingsPerFight)} times a fight on average`
   const yours = WARRIOR_TANK_DEBUFFS.some((id) => SPEC_META[spec].ownBuffs?.includes(id))
+  const own = OWN_AP_DEBUFF[spec]
+  let debuffs = 'Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap (Buffs), lower its damage and slow its swings.'
+  if (yours) debuffs = 'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).'
+  else if (own) debuffs = `Debuffs on it, such as your ${own} (Rotation) and a warrior tank’s Thunder Clap (Buffs), lower its damage and slow its swings.`
   return [
     'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions.',
     boss ? `${swings}, set to ${swingDamageText(boss)} a swing before armor ${FIGHT_ADVANCED}.` : `${swings}.`,
-    yours
-      ? 'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).'
-      : 'Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap (Buffs), lower its damage and slow its swings.',
+    debuffs,
   ].join(' ')
 }
 

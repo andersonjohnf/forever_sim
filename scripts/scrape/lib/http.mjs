@@ -13,6 +13,8 @@
 //       /api/casc/<fdid>?version=…
 //     Its pages, /db2/… and the table CSV export are refused (docs/decisions.md D16).
 //   * GitHub (raw.githubusercontent.com and api.github.com) for WoWDBDefs and wow-listfile.
+// Redirects are followed by hand, at most MAX_REDIRECTS, and every hop must pass the same rules.
+// A cache key must stay inside the cache directory.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,6 +22,7 @@ import path from "node:path";
 export const USER_AGENT = "forever_sim-client-data/0.1 (+https://github.com/andersonjohnf/forever_sim)";
 const MIN_GAP_MS = 1100;
 const RETRY_DELAYS_MS = [5000, 15000, 45000];
+const MAX_REDIRECTS = 5;
 
 const WAGO_ALLOWED = [
   /^\/api\/builds$/,
@@ -30,17 +33,46 @@ const WAGO_ALLOWED = [
   /^\/api\/casc\/\d+$/,
 ];
 
-/** Throws unless `url` is one of the documented wago.tools API endpoints or a GitHub URL. */
+/** A request the rules refuse: never retried. */
+export class RefusedError extends Error {}
+
+/** Throws unless `url` is an https URL of a documented wago.tools API endpoint or of GitHub. */
 export function assertAllowed(url) {
   const u = new URL(url);
+  if (u.protocol !== "https:") throw new RefusedError(`Refusing to fetch ${url}: not https`);
   if (u.hostname === "wago.tools") {
     if (!WAGO_ALLOWED.some((re) => re.test(u.pathname))) {
-      throw new Error(`Refusing to fetch ${url}: not a documented wago.tools API endpoint (D16)`);
+      throw new RefusedError(`Refusing to fetch ${url}: not a documented wago.tools API endpoint (D16)`);
     }
     return;
   }
   if (u.hostname === "raw.githubusercontent.com" || u.hostname === "api.github.com") return;
-  throw new Error(`Refusing to fetch ${url}: host not allowed`);
+  throw new RefusedError(`Refusing to fetch ${url}: host not allowed`);
+}
+
+/**
+ * GET `url`, following redirects by hand so each hop's URL passes assertAllowed: fetch's own
+ * redirect handling would go wherever a Location header points.
+ */
+export async function fetchAllowed(url, init = {}, fetchImpl = fetch) {
+  let current = url;
+  for (let hops = 0; ; hops++) {
+    assertAllowed(current);
+    const res = await fetchImpl(current, { ...init, redirect: "manual" });
+    if (res.status < 300 || res.status >= 400 || res.status === 304) return res;
+    const location = res.headers.get("location");
+    if (!location) return res;
+    if (hops >= MAX_REDIRECTS) throw new RefusedError(`GET ${url} -> more than ${MAX_REDIRECTS} redirects`);
+    current = new URL(location, current).href;
+  }
+}
+
+/** The cache file for `cacheKey`, refusing a key that would leave `cacheDir` ("..", an absolute path). */
+export function cachePath(cacheDir, cacheKey) {
+  const root = path.resolve(cacheDir);
+  const file = path.resolve(root, cacheKey);
+  if (!file.startsWith(root + path.sep)) throw new RefusedError(`Refusing cache key ${JSON.stringify(cacheKey)}: outside ${cacheDir}`);
+  return file;
 }
 
 export function createFetcher({ cacheDir, refresh = false, log = console.log }) {
@@ -55,7 +87,7 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log }) 
    */
   async function get(url, cacheKey, { accept404 = false } = {}) {
     assertAllowed(url);
-    const file = path.join(cacheDir, cacheKey);
+    const file = cachePath(cacheDir, cacheKey);
     const metaFile = `${file}.meta.json`;
     if (!refresh && fs.existsSync(metaFile)) {
       const meta = JSON.parse(fs.readFileSync(metaFile, "utf8"));
@@ -76,8 +108,9 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log }) 
       let res;
       let error;
       try {
-        res = await fetch(url, { headers: { "user-agent": USER_AGENT } });
+        res = await fetchAllowed(url, { headers: { "user-agent": USER_AGENT } });
       } catch (e) {
+        if (e instanceof RefusedError) throw e;
         error = e;
       }
       lastRequestAt = Date.now();
@@ -120,7 +153,7 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log }) 
 
   /** Cache metadata written next to a cached response, or null. */
   function cachedMeta(cacheKey) {
-    const metaFile = path.join(cacheDir, `${cacheKey}.meta.json`);
+    const metaFile = cachePath(cacheDir, `${cacheKey}.meta.json`);
     return fs.existsSync(metaFile) ? JSON.parse(fs.readFileSync(metaFile, "utf8")) : null;
   }
 

@@ -54,6 +54,13 @@ Requests go one at a time, at least 1.1 s apart, with the User-Agent
 is cached under `.cache/client/` (git-ignored) and is never downloaded again unless
 `--refresh` is passed. `.cache/client/requests.jsonl` logs every network request.
 
+The fetch layer also follows redirects itself, at most five, and checks every hop against the
+same rules (https, the allowed hosts and wago.tools paths), so a redirect can't carry a request
+anywhere else. A build version names cache directories and goes into request URLs, so the
+scrapers refuse one that isn't four dot-separated numbers (`1.60.1.69913`), whether it came
+from `--version` or from wago.tools' answer; a WoWDBDefs commit must be a full 40-digit SHA;
+and no cache key may leave `.cache/client/`.
+
 **Request count for this snapshot: 175, all HTTP 200.**
 
 | Host | Requests |
@@ -600,7 +607,7 @@ npm run scrape:client                             # latest wow_classic_beta buil
 npm run scrape:client -- --version=<build>        # a specific build (e.g. the next beta build)
 npm run scrape:client -- --refresh                # re-ask for the latest build and re-download
 npm run scrape:client -- --claims                 # also re-check the doc claims (Classic Era 1.15.9.69722)
-npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit
+npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit (its full SHA)
 git diff --stat src/data/client
 ```
 

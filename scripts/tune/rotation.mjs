@@ -51,7 +51,10 @@
 // a change to those defaults isn't what's compared (give the other build with `talents=` if it is).
 // Then `--base` applies to the baseline only (in that commit's settings), each candidate is the
 // current defaults plus its own settings, and with no candidates given, the candidate is the current
-// defaults.
+// defaults. A `--base` order is checked against this commit's rows, as a proxy: that commit's own
+// can't be read from its bundle. So a row that commit didn't have (renamed or added since) passes the
+// check and is dropped there, as a stored order's unknown row is, and a commit from before the
+// priority lists (D31) ignores the order.
 //
 // Options (numbers are checked against the app's own limits):
 //   --spec warrior-arms   the spec (a SpecId with rotation settings: warrior-fury, warrior-arms, warrior-protection, druid-feral-cat,
@@ -327,15 +330,13 @@ function parseSweep(text, spec) {
 
 /**
  * Checks each setting against the spec's options: a known id, and a value of the right kind; an
- * order against the spec's priority-list rows (`rows`: their ids, or null for a spec without a list,
- * or undefined when the engine can't say, an older commit's with --against).
+ * order against the spec's priority-list rows (`rows`: their ids, or null for a spec without a list).
  */
 function validate(settings, options, rows) {
   for (const [id, value] of settings) {
     if (id === ORDER) {
       if (typeof value !== 'string' || value.split('>').some((row) => row === '')) throw new Error(`order is row ids joined by ">", got "${value}"`)
       if (rows === null) throw new Error('order is for a spec with a priority list, and this one has none')
-      if (rows === undefined) continue
       const named = value.split('>')
       const unknown = named.filter((row) => !rows.includes(row))
       if (unknown.length > 0) throw new Error(`order: unknown row ${unknown.join(', ')}; the rows are ${rows.join(', ')}`)
@@ -447,9 +448,11 @@ async function main() {
   // --base is the baseline's: with --against, that commit's settings.
   const baseOptions = refEngine.rotationOptions(specId)
   const base = parseSettings(args.base, ref ? settingIds(baseOptions) : spec)
-  /** A spec's priority-list row ids, null without a list, undefined when the engine predates them. */
-  const rowIds = (e) => (typeof e.rotationApl === 'function' ? (e.rotationApl(specId)?.rows.map((r) => r.id) ?? null) : undefined)
-  validate(base, baseOptions, rowIds(refEngine))
+  /** A spec's priority-list row ids, null without a list. */
+  const rowIds = (e) => e.rotationApl(specId)?.rows.map((r) => r.id) ?? null
+  // Another commit's bundle can't name its rows (REF_ENTRY_SOURCE: an older src/ may have no
+  // `rotationApl`), so --base's order is checked against this commit's as a proxy (TV-5).
+  validate(base, baseOptions, rowIds(engine))
 
   const candidates = positionals.map((p) => parseSettings(p, spec))
   if (args.sweep.length > 0) {

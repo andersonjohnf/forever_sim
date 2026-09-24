@@ -455,3 +455,10 @@ had no known number was modelled with none. Both are now rules:
   what the class's players expect, is a finding in itself: a tank below most DPS specs' threat,
   or one tank at twice another. "Every formula matches its doc" doesn't close that finding; a
   cited mechanic that explains the gap does, or a fix.
+- **The guild's benchmark for tanks** (user, 2026-09-24): at the default setup, a Protection
+  paladin and a bear should reach about 800–900 TPS, and a warrior shouldn't lead either by
+  more than about 50%. It's the officers' experience, not a measurement, so it doesn't set any
+  constant by itself. It does count as evidence when a value is unknown: where an allowed
+  source leaves a range, the default takes the reading that fits the benchmark. A tank that
+  still misses the benchmark after that is an open plausibility finding, and its fix goes to
+  the guild's in-game tests or to combat logs.

@@ -358,7 +358,8 @@ they're worth, the damage a tank doesn't take, isn't in the score. So it's prefe
 
 The report's `answer` is that candidate, and `preferred` says which and why; the CLI prints
 "preferred for Anticipation (filler): `<build>`, Anticipation 5 to the leader's 2: −0.12 (−0.30 to
-+0.06) against the leader (inside the CI)" and marks its row "the answer". `--confirm` and a
++0.06) points against the leader (inside the CI)" and marks its row "the answer
+(preferred for Anticipation)". `--confirm` and a
 search in turns use the answer. `--exclude Anticipation` searches without it, and `--keep
 Anticipation` holds it at 5/5 as the floor used to. The bear has no preferred filler: its
 avoidance, Feral Swiftness, is in its floor.

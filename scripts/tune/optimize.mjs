@@ -471,10 +471,11 @@ async function main() {
       )
     // The preferred filler (D30): a candidate level with the leader that has more of it answers instead.
     const p = r.preferred
+    const scoreUnit = objective === 'balanced' ? ' points' : ` ${objective.toUpperCase()}`
     if (p) {
-      const within = p.within === 'interval' ? 'inside the CI' : `within 0.5% of the leader's score, ${fmt(p.tolerance)}${unit}`
+      const within = p.within === 'interval' ? 'inside the CI' : `within 0.5% of the leader's score, ${p.tolerance.toFixed(2)}${scoreUnit}`
       console.log(
-        `preferred for ${p.talent} (filler): \`${r.candidates[p.candidate].talents}\`, ${p.talent} ${p.ranks} to the leader's ${p.leaderRanks}: ${ci({ mean: -p.vsLeader.mean, halfWidth: p.vsLeader.halfWidth })}${unit} against the leader (${within})`,
+        `preferred for ${p.talent} (filler): \`${r.candidates[p.candidate].talents}\`, ${p.talent} ${p.ranks} to the leader's ${p.leaderRanks}: ${ci({ mean: -p.vsLeader.mean, halfWidth: p.vsLeader.halfWidth })}${scoreUnit} against the leader (${within})`,
       )
     }
     const answer = race.standings.find((s) => s.candidate === r.answer)

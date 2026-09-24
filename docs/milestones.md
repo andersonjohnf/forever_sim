@@ -258,8 +258,9 @@ first-pass defaults within about ±5%, one combined review, shared engine cores 
 slices. Melee and physical first (user decision, 2026-09-24). Each class slice: a class doc
 (Forever changes from the client, the Classic Era priority, open questions), its scraped data,
 talents and default build, abilities, rotation, defaults, e2e, shipped.
-- [ ] **R1 Rogue:** Combat, Assassination, Subtlety. Energy and combo points reuse the cat's;
+- [x] **R1 Rogue:** Combat, Assassination, Subtlety. Energy and combo points reuse the cat's;
       poisons, Slice and Dice, Blade Flurry, Adrenaline Rush, dual wield
+      ([review](reviews/2026-09-24-rogue.md))
 - [x] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
       totems as its own buffs, mana ([review](reviews/2026-09-24-enhancement-shaman.md))
 - [ ] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,

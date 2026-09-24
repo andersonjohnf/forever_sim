@@ -994,7 +994,8 @@ deal no spell damage. The Mighty Rage Potion is for warriors and druids, the onl
 lets drink it ([§3.5](#35-potions-and-runes)).
 
 An entry for one kind of spec carries it (`forSpecs`), and a spec is a caster when its `SpecMeta`
-sets `caster` (the mage's three since K2, [spells §12](spells.md#12-what-a-class-slice-uses)):
+sets `caster` (the mage's three since K2 and the warlock's two since K3,
+[spells §12](spells.md#12-what-a-class-slice-uses)):
 
 - **The melee's** (`forSpecs: 'melee'`): what changes only attacks, so a caster's spells never
   feel it. Attack power (Battle Shout, Blessing of Might, Winterfall Firewater, Juju Might,
@@ -1011,7 +1012,8 @@ sets `caster` (the mage's three since K2, [spells §12](spells.md#12-what-a-clas
   aren't marked: they're a tank's, and every DPS spec, a caster too, sees them with the note that
   they change nothing for it ([ux.md](../ux.md) "Buffs").
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
-  Moonkin Aura, Power Infusion and Curse of the Elements.
+  Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
+  warlock's by class too (`forClasses`).
 
 A class slice opts its specs in by setting `SpecMeta.caster`: nothing else. For a class, or a
 kind of spec, an entry isn't for, the Buffs tab doesn't list it, no preset selects it,

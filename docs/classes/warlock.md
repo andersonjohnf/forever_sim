@@ -320,7 +320,10 @@ Mana Potion; Max adds Flask of Supreme Power and a Demonic Rune
 ### 7.5 Buffs
 
 The casters' Buffs entries (Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring,
-Moonkin Aura, Power Infusion) reach the warlock; Curse of the Elements is its own (§3.3).
+Moonkin Aura, Power Infusion) reach the warlock; Curse of the Elements is its own (§3.3). Both specs
+set `SpecMeta.caster`, so the melee's entries (attack power, Strength and Agility, the boss's armor,
+Leader of the Pack) are in no preset and not listed in its Buffs tab
+([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
 
 ### 7.6 Base values
 

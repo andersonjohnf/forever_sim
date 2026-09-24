@@ -88,3 +88,23 @@ test('a mage’s Buffs tab lists nothing that changes only attacks, in any prese
   await expect(buffs.getByRole('switch', { name: 'Battle Shout' })).toBeVisible()
   for (const name of ['Moonkin Aura', 'Power Infusion', 'Curse of the Elements']) await expect(buffs.getByRole('switch', { name, exact: true })).toHaveCount(0)
 })
+
+// The warlock is a caster too (SpecMeta.caster, WL2): the same melee entries are gone from both specs'
+// Buffs tabs in every preset, and its Standard raid has the casters' entries and its own elixir.
+test('a warlock’s Buffs tab lists nothing that changes only attacks, in any preset', async ({ page }) => {
+  await page.goto('./')
+  const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+  for (const spec of [/^Destruction/, /^Affliction/]) {
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem', { name: spec }).click()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await expect(buffs.getByRole('radio', { name: 'Standard raid (default)' })).toBeChecked()
+    for (const preset of ['Self only', 'Dungeon group', 'Standard raid (default)', 'Max consumables']) {
+      await buffs.getByRole('radio', { name: preset }).click()
+      for (const name of MELEE_ONLY) await expect(buffs.getByRole('switch', { name, exact: true }), `${spec} ${preset}: ${name}`).toHaveCount(0)
+    }
+    await buffs.getByRole('radio', { name: 'Standard raid (default)' }).click()
+    await expect(buffs.getByRole('switch', { name: 'Moonkin Aura' })).toBeChecked()
+    await expect(buffs.getByRole('switch', { name: 'Elixir of Shadow Power' })).toBeChecked()
+  }
+})

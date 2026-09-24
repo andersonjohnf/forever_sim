@@ -32,7 +32,8 @@ describe('class-only catalogue entries', () => {
       ['mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction'],
     ])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
-    expect(BUFFS.filter((b) => b.forSpecs === 'caster').map((b) => b.id)).toEqual(caster)
+    // And the warlock's Elixir of Shadow Power, a caster's by kind and the warlock's by class.
+    expect(BUFFS.filter((b) => b.forSpecs === 'caster').map((b) => b.id)).toEqual([...caster, 'elixirOfShadowPower'])
     for (const spec of SPEC_IDS) {
       const isCaster = CASTER_SPECS.includes(spec)
       for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(isCaster)

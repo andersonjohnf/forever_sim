@@ -764,6 +764,8 @@ export const BUFFS: BuffSpec[] = [
     group: 'Elixirs',
     summary: '+40 Shadow spell damage',
     forClasses: WARLOCK_ONLY,
+    // Spell damage only a caster's spells read (spells.md §5).
+    forSpecs: 'caster',
     docRef: `${DOC}#32-elixirs`,
     // 9264 → 11474 #0: aura 13, school mask 32 (Shadow), the same in both clients.
     effects: [{ kind: 'stat', stat: 'shadowSpellDamage', value: 40 }],

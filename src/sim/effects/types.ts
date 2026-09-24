@@ -59,10 +59,14 @@ export type FlatStat =
   | 'natureSpellDamage'
   | 'arcaneSpellDamage'
   | 'spellPen'
+  /** Ranged attack power, flat, and per point of Agility (docs/mechanics/ranged-and-pets.md §3). */
+  | 'rap'
+  | 'rapPerAgi'
 
 /** Stats that % modifiers multiply (character-stats.md#derived-stat-pipeline, step 3 and 4). */
 /** `mana`: maximum mana (Fel Vitality, a warlock's Expansive Mind; docs/classes/warlock.md#4-talents). */
-export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue' | 'mana'
+/** `rap`: ranged attack power (docs/mechanics/ranged-and-pets.md §3). */
+export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue' | 'mana' | 'rap'
 
 /** Effects that depend on the rule profile (Classic Era spell values), resolved per run. */
 export type EffectList = Effect[] | ((profile: RulesProfile) => Effect[])
@@ -201,6 +205,12 @@ export type Effect = (
   | { kind: 'castHaste'; pct: number }
   /** Spell hit % with these schools, added to your spell hit (Elemental Precision's Fire and Frost; docs/classes/mage.md#talents). */
   | { kind: 'schoolHit'; schools: readonly MagicSchool[]; pct: number }
+  /**
+   * The ranged weapon's (docs/mechanics/ranged-and-pets.md §2–§4; plan/ranged.ts): hit % and crit %
+   * for its attacks only, damage % (multiplicative), ranged attack speed % (multiplicative: a quiver or
+   * ammo pouch), flat damage per shot (a scope) and ammo's damage per second.
+   */
+  | { kind: 'ranged'; hit?: number; crit?: number; damagePct?: number; hastePct?: number; flatDamage?: number; ammoDps?: number }
 ) & { when?: Condition }
 
 /**
@@ -323,6 +333,18 @@ export interface AuraSpec {
      * −10%, docs/classes/druid.md §11.3; plan/types.ts AuraPlan).
      */
     gcdPct?: number
+    /**
+     * The ranged and pet core's (docs/mechanics/ranged-and-pets.md §3, §4, §8; plan/types.ts AuraPlan):
+     * ranged attack power, its %, ranged attack speed %; and what it does to the pet: attack power,
+     * crit %, attack speed % and damage %.
+     */
+    rap?: number
+    rapPct?: number
+    rangedHaste?: number
+    petAp?: number
+    petCrit?: number
+    petHaste?: number
+    petDamage?: number
   }
 }
 
@@ -359,6 +381,13 @@ export type ProcTrigger =
   | 'spellLanded'
   /** A spell DoT ticked (docs/mechanics/spells.md §7). */
   | 'spellTick'
+  /** A ranged attack landed, an Auto Shot or a shot; an Auto Shot landed; a ranged crit (docs/mechanics/ranged-and-pets.md §9). */
+  | 'rangedLanded'
+  | 'autoShotLanded'
+  | 'rangedCrit'
+  /** The pet's attack landed; the pet's attack crit (docs/mechanics/ranged-and-pets.md §9). */
+  | 'petLanded'
+  | 'petCrit'
 
 export type ProcAction =
   /** Extra main-hand swings, immediately (damage-and-timing §5.4); `bonusAp` applies to them only. */
@@ -402,6 +431,8 @@ export type ProcAction =
    * docs/classes/mage.md#talents); it makes threat too. Only on the spell triggers.
    */
   | { kind: 'manaOfCost'; pct: number }
+  /** Power for the pet: Focus, Energy or mana (docs/mechanics/ranged-and-pets.md §7, §9). */
+  | { kind: 'petPower'; amount: number }
 
 export interface ProcSpec {
   id: string

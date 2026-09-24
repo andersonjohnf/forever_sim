@@ -35,6 +35,8 @@ import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
 import { Assumptions, BEAR_TEXT } from './assumptions'
+import { PET_BUFFS, petPlan } from './pet'
+import { noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
   type AbilityPlan,
   ACTION,
@@ -95,6 +97,8 @@ const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   blockRating: 'blockRating',
   blockValue: 'blockValue',
   attackPower: 'ap',
+  // docs/mechanics/ranged-and-pets.md §3: ranged attack power, which only a plan with a ranged weapon reads.
+  rangedAttackPower: 'rap',
   // Classic-form gear: melee (and ranged) percentages, each to its own pool (step 2).
   hit: 'hit',
   crit: 'crit',
@@ -207,6 +211,8 @@ interface Collected {
    * and the boss's damage taken (products), your crit (a sum) and the debuffs' resistance change.
    */
   schools: { damage: number[]; taken: number[]; crit: number[]; resistance: number[]; hit: number[] }
+  /** The ranged weapon's mods (docs/mechanics/ranged-and-pets.md §2–§4): a scope, ammo, a quiver, a ranged talent. */
+  ranged: RangedMods
 }
 
 /** Every school plain: ×1, ×1, +0, +0 (docs/mechanics/spells.md §9). */
@@ -300,7 +306,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const heldTypes = weapons.map((w) => w?.type ?? null)
   // A caster fights from range with its spells (docs/mechanics/spells.md §12): it doesn't swing its
   // weapon, whose stats still count, and its weapon's procs and enchants' procs never fire.
-  if (meta.caster) {
+  // A ranged spec shoots its ranged weapon the same way (docs/mechanics/ranged-and-pets.md §12).
+  if (meta.caster || meta.ranged) {
     weapons[HAND.main] = null
     weapons[HAND.off] = null
   }
@@ -408,6 +415,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     onUse: [],
     zoneGatedUnmet: false,
     schools: plainSchools(),
+    ranged: noRangedMods(),
   }
   const holds = (when: Condition | undefined, stance = setup.stance): boolean => {
     if (!when) return true
@@ -523,6 +531,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
    * The exclusive groups the Buffs tab fills with a buff the rotation doesn't keep up, each with the
    * entry that fills it (Expose Armor's `armor-major`, Demoralizing Shout's `ap-reduction`).
    */
+  /** The Buffs tab's effects that reach a pet (docs/mechanics/ranged-and-pets.md §8). */
+  const petBuffs: Effect[] = []
   const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])])
   // A buff the talents bring takes its exclusive group too: a Balance druid's own Moonkin Aura leaves a
   // Leader of the Pack out, as the game's "exclusive with" does (docs/classes/druid.md §11.1).
@@ -534,6 +544,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (buff.exclusiveGroup !== undefined && talentGroups.has(buff.exclusiveGroup)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
+    if (PET_BUFFS.has(id)) petBuffs.push(...effects.filter((e) => holds(e.when)))
     for (const e of effects) {
       if (e.kind === 'targetArmor') hasDebuffs.armor = true
       if (e.kind === 'bossAp' && e.value !== 0) hasDebuffs.boss = true
@@ -736,6 +747,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.manaCostPct ? { manaCostPct: spec.mods.manaCostPct } : {}),
       // The Balance druid's Nature's Grace (docs/classes/druid.md §11.3), only when set.
       ...(spec.mods.gcdPct ? { gcdPct: spec.mods.gcdPct } : {}),
+      // The ranged and pet core's (docs/mechanics/ranged-and-pets.md §3, §4, §8), only when set.
+      ...(spec.mods.rap ? { rap: spec.mods.rap } : {}),
+      ...(spec.mods.rapPct ? { rapPct: spec.mods.rapPct } : {}),
+      ...(spec.mods.rangedHaste ? { rangedHaste: spec.mods.rangedHaste } : {}),
+      ...(spec.mods.petAp ? { petAp: spec.mods.petAp } : {}),
+      ...(spec.mods.petCrit ? { petCrit: spec.mods.petCrit } : {}),
+      ...(spec.mods.petHaste ? { petHaste: spec.mods.petHaste } : {}),
+      ...(spec.mods.petDamage ? { petDamage: spec.mods.petDamage } : {}),
     })
     return auras.length - 1
   }
@@ -885,6 +904,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.action = ACTION.manaOfCost
         proc.amount = action.pct
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        break
+      case 'petPower':
+        // docs/mechanics/ranged-and-pets.md §7: power for the pet, in tenths.
+        proc.action = ACTION.petPower
+        proc.amount = toTenths(action.amount)
         break
     }
     if (spec.poison) {
@@ -1160,6 +1184,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (aura.bossAp) hasDebuffs.boss = true
   }
 
+  // --- The ranged weapon and the pet (docs/mechanics/ranged-and-pets.md §12) ---------------------
+  // A ranged spec's Auto Shot fires the Gear tab's ranged weapon, at its skill (5 × level plus its
+  // type's bonuses), with the setup's ranged effects (a scope, ammo, a quiver, its talents).
+  const rangedItem = meta.ranged ? equipped.get('ranged') : undefined
+  const rangedSkill = rangedItem?.weapon?.skill
+  const ranged = rangedItem ? rangedPlan(rangedItem, 5 * PLAYER_LEVEL + (rangedSkill ? (weaponSkill[rangedSkill] ?? 0) : 0), c.ranged, -1) : null
+  if (ranged) ranged.source = sourceIndex('autoShot', 'Auto Shot', 'ability_whirlwind')
+  // The class's pet, with the buffs that reach it, its rows named for it and its abilities' auras.
+  const pet = classRot.pet ? petPlan(classRot.pet, petBuffs, profile, fight.bossLevel, sources, auraIndex) : undefined
+
   // --- Fight ------------------------------------------------------------------------------------
   const schools = schoolPlan(c.schools, block.spellPen, fight.bossLevel, profile)
   const front = fight.position === 'front'
@@ -1258,6 +1292,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(schools ? { schools } : {}),
     // docs/classes/mage.md#ignite: the rolling Ignite, when a proc feeds it.
     ...(rolling.ignite && procs.some((p) => p.action === ACTION.ignite) ? { ignite: rolling.ignite } : {}),
+    // docs/mechanics/ranged-and-pets.md: the ranged weapon and the pet, when the spec has them.
+    ...(ranged ? { ranged } : {}),
+    ...(pet ? { pet } : {}),
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -1557,6 +1594,7 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       else if (e.stat === 'health') b.healthMult *= m
       else if (e.stat === 'blockValue') b.blockValueMult *= m
       else if (e.stat === 'mana') b.manaMult *= m
+      else if (e.stat === 'rap') b.rapMult *= m
       else b[ATTRIBUTE_MULT[e.stat]] *= m
       return
     }
@@ -1646,6 +1684,17 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
     case 'castHaste':
       b.castHaste *= 1 + e.pct / 100
       return
+    // docs/mechanics/ranged-and-pets.md §2–§4: the ranged weapon's mods.
+    case 'ranged': {
+      const r = c.ranged
+      r.hit += e.hit ?? 0
+      r.crit += e.crit ?? 0
+      r.damageMult *= 1 + (e.damagePct ?? 0) / 100
+      r.hasteMult *= 1 + (e.hastePct ?? 0) / 100
+      r.flatDamage += e.flatDamage ?? 0
+      r.ammoDps += e.ammoDps ?? 0
+      return
+    }
   }
 }
 

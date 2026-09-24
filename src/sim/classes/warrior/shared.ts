@@ -5,6 +5,7 @@
 // Rage Potion and Juju Flurry. Protection shares the pre-pull, Battle Shout, the racial and
 // trinkets, Bloodrage, Heroic Strike and the consumables' settings. Setting ids are
 // `warrior.<spec>.<ability>.<param>`, and every rage threshold is in absolute rage points (§5.1).
+import type { PetDef } from '../../plan/pet'
 import { GCD_MS, toTenths } from '../../core/formulas'
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
@@ -42,6 +43,8 @@ export interface ClassRotation {
    * warrior.md §5.3 notes). The plan lists them.
    */
   assumes?: RotationAssumption[]
+  /** The class's pet, fighting beside you (docs/mechanics/ranged-and-pets.md §6, §12): the hunter's, the warlock's demon. */
+  pet?: PetDef
 }
 
 export interface RotationAssumption {

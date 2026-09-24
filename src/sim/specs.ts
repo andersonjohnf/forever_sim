@@ -24,6 +24,12 @@ export interface SpecMeta {
    * class slices (K2–K6) set it.
    */
   caster?: boolean
+  /**
+   * A spec that fights with its ranged weapon (docs/mechanics/ranged-and-pets.md §12): its plan gets
+   * the Gear tab's ranged weapon as Auto Shot and its shots (`Plan.ranged`), and swings no melee weapon,
+   * whose stats still count. The hunter's slice (H2) sets it.
+   */
+  ranged?: boolean
 }
 
 export const SPEC_META: Record<SpecId, SpecMeta> = {

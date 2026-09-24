@@ -303,7 +303,9 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
     docs' inference by effect type [?].
   - `Ranged`: miss, then block (front only), then crit roll 2. No dodge or parry, because
     creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]). Its miss chance and
-    crit are taken as the main hand's special miss and crit [?] (the paladin's Hammer of Wrath).
+    crit are taken as the main hand's special miss and crit [?] (the paladin's Hammer of Wrath);
+    Auto Shot and a shot with the ranged weapon take the ranged weapon's instead
+    ([ranged-and-pets.md §2](ranged-and-pets.md#2-the-ranged-attack-table)).
   - `Magic`: the spell table ([§9](#9-spell-hit-and-crit-generic)).
   - `None`: always hits (may still crit if the ability says so).
   - Which abilities are unblockable, undodgeable and so on is owned by the class docs.

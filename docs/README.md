@@ -38,6 +38,7 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [mechanics/rage.md](mechanics/rage.md) | Rage generation and spending (warrior, bear) |
 | [mechanics/threat.md](mechanics/threat.md) | Threat modifiers and per-ability threat |
 | [mechanics/spells.md](mechanics/spells.md) | The caster core: spell hit, crit and resists, spell power and coefficients, cast times, channels, DoTs, mana, the caster buffs and debuffs |
+| [mechanics/ranged-and-pets.md](mechanics/ranged-and-pets.md) | The ranged and pet core: the ranged table, ranged attack power, ammo and quivers, Auto Shot's timer and clipping, shots, and pets with their own stats, swings, abilities and power |
 | [mechanics/buffs-debuffs-consumables.md](mechanics/buffs-debuffs-consumables.md) | Raid buffs, target debuffs, consumables, enchants, default presets (world buffs are excluded) |
 
 ## Classes

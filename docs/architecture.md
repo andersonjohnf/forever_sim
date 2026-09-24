@@ -139,7 +139,8 @@ A spec is data plus small ability modules, never its own loop.
   (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
   Management), a cast's ticks (Bloodrage's rage, Consecration's spell), the power tick (Energy
   and mana: druids and paladins), a spell DoT's tick and a channel's end (the caster core),
-  stand-in incoming hits for DPS specs, "the rotation may act" events when a GCD, an ability's
+  stand-in incoming hits for DPS specs, Auto Shot and the pet's swings, walks, power ticks and casts
+  (the ranged and pet core), "the rotation may act" events when a GCD, an ability's
   cooldown or the stance swap cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
   the start of the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
   from the encounter's variation.
@@ -316,6 +317,31 @@ A spec is data plus small ability modules, never its own loop.
   with no threat (`noThreat`: Life Tap), a spell damage % aura (`spellDamagePct`: Forever's Blood
   Fury) and a maximum-mana % (`StatBlock.manaMult`). A caster spec (`SpecMeta.caster`) swings no
   weapon: its plan has none, though the weapon's stats count.
+- **The ranged and pet core** ([ranged-and-pets.md](mechanics/ranged-and-pets.md), slice H1; the
+  Hunter (H2) and the Demonology Warlock build on it), each part optional, so a plan without them runs
+  as before, bit for bit:
+  - **Auto Shot** (`Plan.ranged`, from the Gear tab's ranged slot for a spec with `SpecMeta.ranged`,
+    which then swings no melee weapon): its own event, beside any melee swings. After a shot the reload
+    runs `cycle − wind-up`, then the 0.5 s wind-up, which a cast or channel holds back until it ends
+    (clipping; `castsHoldAutoShot`); the cycle is the weapon speed ÷ ranged haste (the stat block's
+    attack speed × the quiver's × the ranged-haste auras'), read at each shot. Ranged attack power is
+    its own stat in the pipeline (`baseRap`, `rapPerAgi`, `rap`, `rapMult`), and ammo adds its DPS ×
+    the weapon's speed to each shot.
+  - **The ranged table**: the special table's miss at the ranged weapon's skill and hit, no dodge,
+    parry or glancing, a block from the front, and crit as a second roll with melee's +3 suppression.
+    **Shots** are `spell` abilities whose `SpellDef.ranged` rolls it and deals the ranged weapon's
+    damage (normalized at 2.8), or a school's, or lands a sting; `castRangedHasted` shortens a cast by
+    ranged haste. Triggers `rangedLanded`, `autoShotLanded`, `rangedCrit` (22–24); conditions
+    `autoShotClear` and `autoShotWithin` (62, 63), which make each Auto Shot a decision point.
+  - **The pet** (`Plan.pet`, from a class's `ClassRotation.pet` through `petPlan`): a second attacker
+    with its own stats (the stat pipeline, with the buffs that reach it, `PET_BUFFS`), white table and
+    swing event, abilities on its own power and GCD walked from its own priority list after yours at
+    each decision point, and its own random stream (`STREAM.pet`), so it changes none of your rolls.
+    Your auras reach it through pet mods (`petAp`, `petCrit`, `petHaste`, `petDamage`), procs fire on
+    its hits and crits (`petLanded`, `petCrit`, 25–26) and can give it power (`petPower`), and it reads
+    its shares of your stats as they change. Its damage counts toward your DPS, not your threat, on
+    rows that name it (`SourcePlan.pet`, `AbilityResult.pet`). Conditions `petPowerAtLeast` and
+    `petPowerAtMost` (64, 65).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

@@ -274,7 +274,8 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
 - [x] **K6 Balance Druid:** Moonkin Form ([review](reviews/2026-09-24-balance-druid.md))
 - [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
-      attacks
+      attacks. Built on its branch, awaiting review
+      ([ranged-and-pets.md](mechanics/ranged-and-pets.md))
 - [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
 
 ## M6: Multi-target 💤
@@ -430,6 +431,15 @@ slice is worked:
   - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
   - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
     power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).
+- **The ranged and pet core's gaps** (H1, [ranged-and-pets.md](mechanics/ranged-and-pets.md#open-questions)),
+  each the Hunter's slice (H2) to close, since no spec uses the core yet:
+  - **No ammo or quivers in the item pool, and no gear slots for them:** the pool keeps weapons and
+    armor only. The scraper needs ammo (item class 6) with its DPS from `ItemDamageAmmo` and quivers
+    (class 11) with their aura-557 haste, a pool rule that keeps uncommon ammo, and the Gear tab a
+    hunter-only ammo and quiver slot. Until then a class slice passes both as a `ranged` effect.
+  - **No `hunter` class id:** `PROFICIENCY`, the base stats, the talents and the specs come with it.
+  - **The sheet shows no ranged attack power**, and the breakdown doesn't yet show a row's `pet`
+    label; both wait for a spec that has them.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

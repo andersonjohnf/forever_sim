@@ -24,14 +24,33 @@ Screens (fix round): Gear matching and 17-slots-differ, Talents default and cust
 
 ## Left for the verification pass
 
-- Every pushed build from 2ee9cb28 to ee171d2a migrates fully. The earlier pushed build decd4c8c
-  (M2.4i) doesn't: its DPS pre-raid lists (Feral cat, Feral bear, Retribution, Protection paladin)
-  differed, and neither the slice nor the snapshot covers them. Such saves keep those slots as the
-  player's. Extending the snapshot to that build is possible but wasn't in this round's brief.
+- ~~Every pushed build from 2ee9cb28 to ee171d2a migrates fully. The earlier pushed build decd4c8c
+  (M2.4i) doesn't …~~ Corrected by the verification pass (FV-4): every pushed build from 5166211e
+  up migrates fully. f3d8b19e and decd4c8c fail only for the druid and paladin specs, which those
+  builds didn't offer (`AVAILABLE`), so no save of theirs can hold those specs. Closed as
+  unreachable.
 - `changeRace` also uses `followDefaults`; a slot blocked there isn't remembered, so it becomes the
-  player's at the next save (FD-4 covers the load only).
+  player's at the next save (FD-4 covers the load only). Now in the milestones' known gaps (FV-5).
 
 ## Verdict
 
 Ready to push: not yet. The fix commits need their verification pass (FD-1, FD-4 and FD-5 changed
 load logic).
+
+## Verification pass
+
+A fresh reviewer's verification pass of a46dae34..7a7da8ee cleared the gate: every FD finding is
+fixed or waived, and the fixes introduced nothing at medium or worse. Its five lows were answered in
+a later round (c4656736, 617363ec, b0cdb0cf), for a quick fresh check of those commits.
+
+Checks after the lows' fixes: lint ✓ · typecheck ✓ · `npm test` ✓ (117 files, 2588 tests) · e2e ✓
+(gear-rules, follow-defaults, app: 37 passed). Screens: Gear after Remove all gear at 390 px dark and
+1280 px light ("… Equipping it fills all 17.", the number kept on the line with "all").
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| FV-1 | low | introduced (FD-7) | Two differing slots read "Equipping it replaces all 2", and after Remove all gear the line said equipping *replaces* slots that held nothing. | fixed in c4656736: `equipEffect` (default-set.ts) says "that slot", "both" or "all N", "fills" for empty slots, and "fills 2 empty slots and replaces the other 3" for a mix; unit tests for each, the Gear e2e expects "fills all N" after Remove all gear, ux.md "Gear" gives the wording |
+| FV-2 | low | introduced (FD-1) | `follow-defaults.frozen.test.ts` guarded FD-1 only through the paladin, whose `FORMER_GEAR` would recognise its gear even if `legacyFollowing` read live gear. | fixed in 617363ec: a Fury case (no `FORMER_GEAR`) mocks `defaultConfig` and `preRaidListGear` to a new helm, so its ee171d2a gear is recognised from the snapshot alone. With `legacyFollowing` temporarily reading live gear, the Fury case fails (the paladin's passes) |
+| FV-3 | low | introduced (FD-2/FD-3) | `defaults-notice.ts`'s comment quoted the notice's old copy. | fixed in 617363ec: it quotes "Gear and talents you changed yourself are kept." |
+| FV-4 | low | introduced (the log) | The leftover item said decd4c8c's saves don't migrate. Every pushed build from 5166211e up migrates fully; f3d8b19e and decd4c8c fail only for druid and paladin specs, which those builds didn't offer (`AVAILABLE`). | fixed: the item above is corrected and closed as unreachable |
+| FV-5 | low | introduced (FD-4) | `changeRace` (`faction-gear.ts`) doesn't remember a slot its `followDefaults` blocked, so it becomes the player's at the next save. | known gap (b0cdb0cf, milestones.md): practically unreachable, since the factions' defaults differ only in non-unique PvP armour, which no Unique rule or two-hander blocks |

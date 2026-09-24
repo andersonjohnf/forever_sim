@@ -442,7 +442,8 @@ slice is worked:
   (`src/features/character/faction-gear.ts`) moves the slots that follow the defaults with
   `followDefaults`, but unlike a load it doesn't keep a slot a Unique rule or a two-hander blocked in
   `following`, so that slot becomes the player's at the next save. Practically unreachable: the
-  factions' defaults differ only in non-unique PvP armour, which no Unique rule or two-hander blocks.
+  factions' defaults differ only in single-slot PvP armour and one-handed caster main hands, which
+  no Unique rule or two-hander blocks.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),

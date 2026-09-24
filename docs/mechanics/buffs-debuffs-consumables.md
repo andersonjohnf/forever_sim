@@ -676,15 +676,20 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Curse of the Elements | — | — | Pal | Pal |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) | — | — | — | all |
-| Demoralizing Shout / Thunder Clap | — | — | Bear, Prot paladin (another warrior's). Not a Prot warrior's: it applies its own ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)) | Bear, Prot paladin |
+| Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
 | Camp buffs ([§1.3](#13-camp-buffs-new-forever-system)) | — | off (option: fill in for a missing class) | off (option) | off (option) |
 | World buffs | **never** | **never** | **never** | **never** |
 
 A buff a spec keeps up itself by default is that spec's own, and no preset adds it for the spec:
-the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-priority)). Its
-rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
-another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs").
+the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-priority)), and a
+Protection warrior's Thunder Clap and Demoralizing Shout, its duties
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
+Its rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
+another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs"). Thunder Clap and
+Demoralizing Shout are in no preset for any spec: they're a warrior tank's, so a bear's or a
+Protection paladin's raid has them only if you add them there, as another warrior's (D26's
+amendment).
 
 Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
 (see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.

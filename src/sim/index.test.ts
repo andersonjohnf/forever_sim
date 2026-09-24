@@ -319,11 +319,13 @@ describe('catalogues and presets', () => {
       expect(buffs, spec).not.toContain('blessingOfSalvation')
       expect(buffs, spec).not.toContain('leaderOfThePack')
     }
-    // Another warrior's Thunder Clap and Demoralizing Shout for the bear and the paladin; a warrior
-    // tank's are its own (below), so its presets leave the switches off (buffs doc §6.2, D26).
-    for (const preset of ['raid', 'max'] as const) {
-      expect(presetBuffs(preset, 'druid-feral-bear', FULL_RAID)).toEqual(expect.arrayContaining(['demoralizingShout', 'thunderClap']))
-      expect(presetBuffs(preset, 'paladin-protection', FULL_RAID)).toEqual(expect.arrayContaining(['demoralizingShout', 'thunderClap']))
+    // No warrior tank's Thunder Clap or Demoralizing Shout in any preset: a Protection warrior's are
+    // its own (below), and another tank's raid has none unless you add them (buffs doc §6.2, D26).
+    for (const spec of SPEC_IDS) {
+      for (const preset of buffPresets) {
+        expect(presetBuffs(preset.id, spec, FULL_RAID), `${spec} ${preset.id}`).not.toContain('thunderClap')
+        expect(presetBuffs(preset.id, spec, FULL_RAID), `${spec} ${preset.id}`).not.toContain('demoralizingShout')
+      }
     }
   })
 

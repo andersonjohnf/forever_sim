@@ -34,6 +34,12 @@ const PROTECTION_PALADIN: SpecId[] = ['paladin-protection']
 /** Mana and spell damage do something for the paladin only among the classes in scope. */
 const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 /**
+ * A warrior tank's Thunder Clap and Demoralizing Shout are in no preset (buffs doc §6.2; D26's
+ * amendment): a Protection warrior's are its own duties (SpecMeta.ownBuffs), and a bear's or a
+ * Protection paladin's raid has no warrior tank's unless you add them in Buffs.
+ */
+const NOT_IN_PRESETS: BuffSpec['presets'] = {}
+/**
  * The weapons an Elemental Sharpening Stone fits: 22756 and its enchant's aura 22755 need a weapon
  * (item class 2) of subclass mask 42483, which is one- and two-handed axes, maces and swords,
  * polearms, staves, fist weapons and daggers [F] [C] (SpellEquippedItems, 1.60.1.69913 and
@@ -440,7 +446,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#42-other-debuffs`,
     effects: (p) => [{ kind: 'bossAp', value: -p.values.demoralizingShoutAp }],
     classicEra: { summary: '−146 boss attack power' },
-    presets: { raid: 'tank', max: 'tank' },
+    presets: NOT_IN_PRESETS,
   },
   {
     id: 'thunderClap',
@@ -453,7 +459,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#42-other-debuffs`,
     effects: (p) => [{ kind: 'bossSlow', pct: 100 * p.values.thunderClapSlow }],
     classicEra: { summary: 'Boss attacks 10% slower' },
-    presets: { raid: 'tank', max: 'tank' },
+    presets: NOT_IN_PRESETS,
   },
 
   // --- Consumables (§3) ----------------------------------------------------------------------

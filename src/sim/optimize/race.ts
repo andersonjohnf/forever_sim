@@ -6,13 +6,16 @@
 // comparison needs, for two bear builds; docs/optimizer.md#the-statistics). Candidates race in rounds. Each round, every
 // survivor runs the same fights up to the round's count (the first round's, then twice as many),
 // and the leader is the survivor with the best mean score. A survivor whose paired interval
-// against the leader lies wholly below zero at 99% is dropped. The race ends when the leader's
+// against the leader lies wholly below zero at the elimination bar is dropped: Student's t at a 0.5%
+// upper tail, Bonferroni-corrected for the number of survivors, so the true best is dropped by bad
+// luck at most 0.5% a round however many it's compared with (the leader is the best of many noisy
+// means, and would otherwise knock the true best out far more often). The race ends when the leader's
 // paired 95% interval against every survivor lies above zero, D23's bar ("separated"), or when
 // the next round no longer fits in the budget ("budget"). The baseline runs every round whatever
 // its standing, so every candidate's change from it is paired on the same fights.
 //
-// Result constraints (./constraints.ts) act each round too: a survivor whose 99% interval of a
-// constrained metric lies wholly outside its limit is dropped as infeasible, and only a survivor
+// Result constraints (./constraints.ts) act each round too: a survivor whose interval of a
+// constrained metric (Student's t, 0.5% a side) lies wholly outside its limit is dropped as infeasible, and only a survivor
 // whose mean meets every limit can lead (while none does, the best score leads, marked infeasible).
 //
 // Nothing depends on how the fights were split up or which finished first: each job's samples go
@@ -20,7 +23,19 @@
 // candidates, seed and budget give the same race.
 import { limits, type ResultConstraint } from './constraints'
 import type { FightRunner, FightSamples, PlanSource } from './fights'
-import { type BaselineMeans, type Interval, lower, meanInterval, type ObjectiveId, pairedInterval, scorer, upper, Z99 } from './objective'
+import {
+  type BaselineMeans,
+  ELIMINATION_TAIL,
+  eliminationZ as bonferroniZ,
+  type Interval,
+  lower,
+  meanInterval,
+  type ObjectiveId,
+  pairedInterval,
+  scorer,
+  tQuantile,
+  upper,
+} from './objective'
 import { Z95 } from '../core/welford'
 
 export interface RaceOptions {
@@ -36,7 +51,10 @@ export interface RaceOptions {
   growth?: number
   /** Fights per job handed to the runner (default 250). */
   jobFights?: number
-  /** z of the elimination bar (default 2.576, 99% two-sided). */
+  /**
+   * A fixed z for the elimination bar, instead of the default: Student's t at a 0.5% upper tail,
+   * Bonferroni-corrected for the survivors compared with the leader (`eliminationZ` in ./objective.ts).
+   */
   eliminationZ?: number
   /** Standings to report (default 10). */
   top?: number
@@ -44,6 +62,12 @@ export interface RaceOptions {
   mergeTies?: boolean
   /** Limits on the candidates' fight metrics (./constraints.ts), relative ones to the baseline's mean. */
   constraints?: readonly ResultConstraint[]
+  /**
+   * Candidates that run every round and are reported, but never lead or drop another: the baseline
+   * or start when it doesn't keep the search's talent constraints (a tank's survival floor, D30).
+   * They're what the others are compared with, not answers. If every candidate is one, all race.
+   */
+  referenceOnly?: readonly number[]
   signal?: AbortSignal
   onProgress?: (progress: RaceProgress) => void
 }
@@ -74,7 +98,8 @@ export interface Standing {
   vsBaseline: { dps: Interval; tps: Interval; taken: Interval; score: Interval }
   /** Leader − candidate in score, 95%, over the candidate's fights (zero for the leader). */
   vsLeader: Interval
-  state: 'leader' | 'survivor' | 'dropped'
+  /** `reference`: it ran every round as a reference only (`RaceOptions.referenceOnly`). */
+  state: 'leader' | 'survivor' | 'dropped' | 'reference'
   /** The round it was dropped in, and why: clearly worse than the leader, or clearly outside a result constraint. */
   droppedInRound?: number
   droppedAs?: 'worse' | 'infeasible'
@@ -94,6 +119,8 @@ export interface RoundLog {
   infeasible: number
   merged: number
   leader: number
+  /** The elimination bar's z this round (Bonferroni-corrected Student's t, unless fixed). */
+  eliminationZ: number
 }
 
 export interface RaceResult {
@@ -104,10 +131,12 @@ export interface RaceResult {
   /** The baseline's mean TPS and DPS over all its fights (what `balanced` scores relative to). */
   baseline: BaselineMeans & { taken: number; fights: number }
   rounds: RoundLog[]
-  /** The leader first, then the survivors, then the dropped by the round they lasted to; best mean first within each. */
+  /** The leader first, then the references, the survivors, then the dropped by the round they lasted to; best mean first within each. */
   standings: Standing[]
   /** Survivors other than the leader: those the budget left unseparated. */
   unseparated: number[]
+  /** The unseparated survivor nearest the leader, and leader − it in score (95%), when the budget ended the race. */
+  closest?: { candidate: number; vsLeader: Interval }
   ms: number
 }
 
@@ -183,15 +212,16 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
   const { sources, runner, signal } = options
   const growth = options.growth ?? 2
   const jobFights = Math.max(1, Math.floor(options.jobFights ?? 250))
-  const eliminationZ = options.eliminationZ ?? Z99
   const count = sources.length
   if (count === 0) throw new Error('The optimizer needs at least one candidate.')
   if (!(options.initialFights >= 2)) throw new Error('The first round needs at least two fights a candidate.')
   if (!(growth > 1)) throw new Error('Each round must run more fights than the last.')
 
   const samples = sources.map(() => new Samples())
-  // Survivors, in candidate order; the baseline (0) always runs, survivor or not.
-  let survivors = sources.map((_, i) => i)
+  // Survivors, in candidate order; the baseline (0) and the references always run, survivors or not.
+  const references = new Set((options.referenceOnly ?? []).filter((c) => c >= 0 && c < count))
+  if (references.size === count) references.clear()
+  let survivors = sources.map((_, i) => i).filter((c) => !references.has(c))
   const droppedIn = new Map<number, number>()
   const droppedAs = new Map<number, 'worse' | 'infeasible'>()
   const constraints = options.constraints ?? []
@@ -216,7 +246,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
 
   for (let round = 0; ; round++) {
     if (signal?.aborted) throw abortError()
-    const running = survivors.includes(0) ? survivors : [0, ...survivors]
+    const running = [...new Set([0, ...references, ...survivors])]
     let target = round === 0 ? Math.floor(options.initialFights) : Math.ceil(n * growth)
     const remaining = options.budget - spent
     if (running.length * (target - n) > remaining) {
@@ -314,7 +344,9 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
     const bounds = resolveBounds(n)
     let infeasible = 0
     if (bounds.length > 0) {
-      const out = survivors.filter((c) => clearlyOutside(samples[c], n, bounds, eliminationZ))
+      // Each survivor against a fixed limit: the true best is dropped by bad luck at most 0.5% a round a limit.
+      const limitZ = options.eliminationZ ?? tQuantile(ELIMINATION_TAIL, n - 1)
+      const out = survivors.filter((c) => clearlyOutside(samples[c], n, bounds, limitZ))
       // If every survivor is out, none is dropped for it: the best of them still leads, marked infeasible.
       if (out.length < survivors.length) {
         for (const c of out) {
@@ -343,18 +375,21 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
       return takenMean(b, n) < takenMean(a, n) ? b : a
     })
     const lead = scores.get(leader)!
+    // The winner's curse: the leader is the best of many noisy means, so each comparison's bar is
+    // corrected for how many there are (docs/optimizer.md#racing).
+    const z = options.eliminationZ ?? bonferroniZ(survivors.length - 1, n)
     let dropped = infeasible
     let separated = true
     for (const c of survivors) {
       if (c === leader) continue
-      if (lower(pairedInterval(lead, scores.get(c)!, n, eliminationZ)) > 0) {
+      if (lower(pairedInterval(lead, scores.get(c)!, n, z)) > 0) {
         droppedIn.set(c, round)
         droppedAs.set(c, 'worse')
         dropped++
       } else if (!(lower(pairedInterval(lead, scores.get(c)!, n, Z95)) > 0)) separated = false
     }
     survivors = survivors.filter((c) => !droppedIn.has(c))
-    rounds.push({ round, fightsPerCandidate: n, ran: running.length, dropped, infeasible, merged, leader })
+    rounds.push({ round, fightsPerCandidate: n, ran: running.length, dropped, infeasible, merged, leader, eliminationZ: z })
     if (separated) {
       status = 'separated'
       break
@@ -380,15 +415,20 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
       mean: { dps: meanInterval(x.dps, m).mean, tps: meanInterval(x.tps, m).mean, taken: meanInterval(x.taken, m).mean, score: meanInterval(s, m).mean },
       vsBaseline: { dps: pairedInterval(x.dps, o.dps, m), tps: pairedInterval(x.tps, o.tps, m), taken: pairedInterval(x.taken, o.taken, m), score: pairedInterval(s, b, m) },
       vsLeader: c === leader ? { mean: 0, halfWidth: 0 } : pairedInterval(lead, s, m),
-      state: c === leader ? 'leader' : droppedIn.has(c) ? 'dropped' : 'survivor',
+      state: c === leader ? 'leader' : droppedIn.has(c) ? 'dropped' : references.has(c) ? 'reference' : 'survivor',
       ...(droppedIn.has(c) ? { droppedInRound: droppedIn.get(c), droppedAs: droppedAs.get(c) } : {}),
       feasible: meets(x, m, finalBounds),
       ties: ties.get(c) ?? [],
     }
   }
-  const ranked = [...droppedIn.keys(), ...survivors].map(standing)
+  const ranked = [...droppedIn.keys(), ...survivors, ...references].map(standing)
+  const unseparated = survivors.filter((c) => c !== leader)
+  const closest = unseparated
+    .map((c) => ({ candidate: c, vsLeader: pairedInterval(lead, scoresOf(c, score, samples[c].n), samples[c].n) }))
+    .reduce<{ candidate: number; vsLeader: Interval } | undefined>((a, b) => (a === undefined || b.vsLeader.mean < a.vsLeader.mean ? b : a), undefined)
   const lasted = (s: Standing) => (s.state === 'dropped' ? s.droppedInRound! : Infinity)
-  ranked.sort((a, b) => (a.state === 'leader' ? -1 : b.state === 'leader' ? 1 : lasted(b) - lasted(a) || b.mean.score - a.mean.score || a.candidate - b.candidate))
+  const order = (s: Standing) => (s.state === 'leader' ? 0 : s.state === 'reference' ? 1 : 2)
+  ranked.sort((a, b) => order(a) - order(b) || lasted(b) - lasted(a) || b.mean.score - a.mean.score || a.candidate - b.candidate)
   return {
     status,
     leader,
@@ -396,7 +436,8 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
     baseline: { ...base, taken: takenMean(0, n), fights: n },
     rounds,
     standings: ranked.slice(0, options.top ?? 10),
-    unseparated: survivors.filter((c) => c !== leader),
+    unseparated,
+    ...(closest ? { closest } : {}),
     ms: now() - start,
   }
 }

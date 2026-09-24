@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { Rng } from '../core/rng'
 import type { Plan } from '../plan/types'
 import type { FightRunner, FightSamples, PlanSource } from './fights'
-import { pairedInterval } from './objective'
+import { eliminationZ, normalQuantile, pairedInterval, tQuantile, tTail, Z99 } from './objective'
 import { race, type RaceOptions } from './race'
 
 /** A candidate's fight: its mean, the fight's shared swing, its own noise; TPS and damage taken likewise. */
@@ -27,7 +27,7 @@ const normal = (r: Rng) => Math.sqrt(-2 * Math.log(1 - r.next())) * Math.cos(2 *
 const shared = (fight: number) => normal(rng(0x5eed, fight, 1)) * 60
 
 /** A runner over toy candidates (the source key indexes `toys`), finishing jobs in a shuffled order. */
-function toyRunner(toys: Toy[], lanes = 3, shuffleSeed = 1): FightRunner & { fights: number } {
+function toyRunner(toys: Toy[], lanes = 3, shuffleSeed = 1, delays = true): FightRunner & { fights: number } {
   const order = rng(shuffleSeed, 9, 9)
   const runner = {
     lanes,
@@ -46,7 +46,7 @@ function toyRunner(toys: Toy[], lanes = 3, shuffleSeed = 1): FightRunner & { fig
       runner.fights += count
       // Finish out of order, so the race can't depend on which job came back first.
       const delay = Math.floor(order.next() * 3)
-      return new Promise((resolve) => setTimeout(() => resolve(out), delay))
+      return delays ? new Promise((resolve) => setTimeout(() => resolve(out), delay)) : Promise.resolve(out)
     },
   }
   return runner
@@ -102,7 +102,36 @@ describe('race', () => {
     expect(result.unseparated).toHaveLength(1)
     expect([1, 2]).toContain(result.leader)
     expect(result.spent).toBeLessThanOrEqual(60_000)
+    // The closest survivor, and how far behind (O1-4): the other twin, about level with the leader.
+    expect(result.closest!.candidate).toBe(result.unseparated[0])
+    expect(Math.abs(result.closest!.vsLeader.mean)).toBeLessThan(result.closest!.vsLeader.halfWidth)
   })
+
+  it('corrects the elimination bar for the number of survivors, so the true best survives the first round (O1-2)', async () => {
+    // The winner's curse: 1,000 candidates level at 1,000 and one ahead by 0.1, a small share of a
+    // candidate's own standard error over the first round's 50 fights (1.4). The leader is the
+    // luckiest of the 1,000, about 3 standard errors up, so an uncorrected 99% bar knocks the true
+    // best out in the first round about one time in six, where it should be 0.5%; the
+    // corrected bar doesn't.
+    const count = 1000
+    let fixedDrops = 0
+    let correctedDrops = 0
+    for (let rep = 0; rep < 20; rep++) {
+      const toys: Toy[] = Array.from({ length: count }, () => ({ dps: 1000 }))
+      const best = 1 + ((rep * 379) % (count - 1))
+      toys[best] = { dps: 1000.1 }
+      const run = (extra: Partial<RaceOptions>) =>
+        race({ ...options(toys), runner: toyRunner(toys, 4, rep, false), initialFights: 50, budget: count * 50, jobFights: 50, top: count, ...extra })
+      const dropped = (r: Awaited<ReturnType<typeof race>>) => r.standings.find((st) => st.candidate === best)!.droppedInRound === 0
+      if (dropped(await run({ eliminationZ: Z99 }))) fixedDrops++
+      const corrected = await run({})
+      if (dropped(corrected)) correctedDrops++
+      // The bar is Student's t at 0.5% ÷ the survivors compared with the leader.
+      expect(corrected.rounds[0].eliminationZ).toBeCloseTo(eliminationZ(count - 1, 50), 12)
+    }
+    expect(fixedDrops).toBeGreaterThan(0)
+    expect(correctedDrops).toBe(0)
+  }, 60_000)
 
   it('merges exact ties, and damage taken breaks them (D30)', async () => {
     // Candidates 2 and 3 fight identically to 1 but for damage taken (their own noise has no DPS part).
@@ -139,6 +168,20 @@ describe('race', () => {
     expect(result.rounds[0].infeasible).toBe(1)
   })
 
+  it('a reference-only candidate runs every round but never leads nor drops another', async () => {
+    // The baseline is the best here, but it's only a reference (it breaks the talent constraints).
+    const toys: Toy[] = [{ dps: 1050 }, { dps: 1000 }, { dps: 1030 }, { dps: 1010 }]
+    const result = await race(options(toys, { referenceOnly: [0] }))
+    expect(result.leader).toBe(2)
+    const base = result.standings.find((st) => st.candidate === 0)!
+    expect(base.state).toBe('reference')
+    expect(base.fights).toBe(result.baseline.fights)
+    expect(result.standings[1].candidate).toBe(0)
+    expect(result.status).toBe('separated')
+    // If every candidate is a reference, they all race.
+    expect((await race(options(toys.slice(0, 2), { referenceOnly: [0, 1] }))).leader).toBe(0)
+  })
+
   it('rejects a budget that does not cover the first round', async () => {
     await expect(race(options(field, { budget: 1000 }))).rejects.toThrow(/doesn't cover a first round/)
   })
@@ -147,6 +190,31 @@ describe('race', () => {
     const controller = new AbortController()
     const run = race(options(field, { signal: controller.signal, onProgress: (p) => p.jobsDone > 3 && controller.abort() }))
     await expect(run).rejects.toThrow(/cancelled/)
+  })
+})
+
+describe('quantiles', () => {
+  it('the normal’s and Student’s t’s match their tables', () => {
+    expect(normalQuantile(0.025)).toBeCloseTo(1.959963984540054, 9)
+    expect(normalQuantile(0.005)).toBeCloseTo(Z99, 9)
+    expect(normalQuantile(1e-8)).toBeCloseTo(5.612001244174789, 7)
+    expect(normalQuantile(0.975)).toBeCloseTo(-1.959963984540054, 9)
+    // Student's t, from its tables: ν = 1, 10, 49, 60.
+    expect(tQuantile(0.025, 1)).toBeCloseTo(12.7062047, 5)
+    expect(tQuantile(0.025, 10)).toBeCloseTo(2.2281389, 6)
+    expect(tQuantile(0.005, 49)).toBeCloseTo(2.6799519, 6)
+    expect(tQuantile(0.0005, 60)).toBeCloseTo(3.4602004, 6)
+    expect(tTail(2.2281388519649385, 10)).toBeCloseTo(0.025, 10)
+    // Many degrees of freedom: the normal's.
+    expect(tQuantile(0.005, 1e7)).toBeCloseTo(Z99, 9)
+  })
+
+  it('the elimination bar is the uncorrected 99% one for one comparison, and grows with the survivors', () => {
+    expect(eliminationZ(1, 1e7)).toBeCloseTo(Z99, 9)
+    expect(eliminationZ(0, 1e7)).toBeCloseTo(Z99, 9)
+    expect(eliminationZ(1, 50)).toBeCloseTo(tQuantile(0.005, 49), 12)
+    expect(eliminationZ(7311, 61)).toBeCloseTo(tQuantile(0.005 / 7311, 60), 12)
+    expect(eliminationZ(7311, 61)).toBeGreaterThan(5)
   })
 })
 

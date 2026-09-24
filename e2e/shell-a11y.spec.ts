@@ -13,9 +13,10 @@ const expectTouchTargets = async (locator: Locator) => {
 
 /**
  * WCAG contrast of an element's text (or, for `fill`, its background; for `ring`, its 3 px focus
- * ring) against what's behind it, compositing translucent colors and ancestors' opacity.
+ * ring; for `svg`, an SVG shape's fill) against what's behind it, compositing translucent colors and
+ * ancestors' opacity.
  */
-const contrast = (locator: Locator, what: 'text' | 'fill' | 'ring' = 'text') =>
+const contrast = (locator: Locator, what: 'text' | 'fill' | 'ring' | 'svg' = 'text') =>
   locator.first().evaluate((el, what) => {
     const canvas = document.createElement('canvas')
     canvas.width = canvas.height = 1
@@ -56,7 +57,9 @@ const contrast = (locator: Locator, what: 'text' | 'fill' | 'ring' = 'text') =>
         ? [paint(el, true), paint(el, false)]
         : what === 'ring'
           ? [over(ring(), paint(el.parentElement!, false)), paint(el.parentElement!, false)]
-          : [paint(el, false), paint(el.parentElement!, false)]
+          : what === 'svg'
+            ? [over(parse(getComputedStyle(el).fill), paint(el, false)), paint(el, false)]
+            : [paint(el, false), paint(el.parentElement!, false)]
     const [hi, lo] = [lum(fg), lum(bg)].sort((a, b) => b - a)
     return (hi + 0.05) / (lo + 0.05)
   }, what)
@@ -318,3 +321,103 @@ for (const colorScheme of ['light', 'dark'] as const) {
     })
   })
 }
+
+// docs/ux.md#brand: the Decades lockup in the header and the guild's section in About, each a link
+// to its site in a new tab, at both widths and in both themes, with the brand's gold within its
+// contrast limits.
+test.describe('brand', () => {
+  /** decades.gg, stubbed: tests never reach outside the app. */
+  const stubDecades = (page: Page) =>
+    page.context().route('https://decades.gg/**', (route) => route.fulfill({ contentType: 'text/html', body: '<title>Decades</title>' }))
+
+  /** A new-tab link to the guild's site, whose tab can't reach back to the app. */
+  const expectSafeDecadesLink = async (page: Page, link: Locator) => {
+    await expect(link).toHaveAttribute('href', 'https://decades.gg')
+    await expect(link).toHaveAttribute('target', '_blank')
+    await expect(link).toHaveAttribute('rel', /\bnoopener\b/)
+    const [popup] = await Promise.all([page.waitForEvent('popup'), link.click()])
+    await expect(popup).toHaveURL('https://decades.gg/')
+    expect(await popup.evaluate(() => window.opener)).toBeNull()
+    await popup.close()
+  }
+
+  for (const colorScheme of ['light', 'dark'] as const) {
+    for (const width of [1280, 390]) {
+      const phone = width < 640
+      test.describe(`${width} px, ${colorScheme}`, () => {
+        test.use({ colorScheme, viewport: { width, height: phone ? 844 : 900 }, hasTouch: phone, isMobile: phone })
+
+        test('the header’s lockup links to decades.gg, 44 px and clear of the spec switcher', async ({ page }) => {
+          await stubDecades(page)
+          await page.goto('./')
+          const link = page.getByRole('banner').getByRole('link', { name: /^by Decades: decades\.gg/ })
+          const lockup = link.locator('..')
+          const byline = lockup.getByText('by Decades', { exact: true })
+          // The name stays the page's one heading 1; on a phone only the crest shows (the name is
+          // visually hidden, 1 px, for screen readers).
+          await expect(page.getByRole('heading', { level: 1 })).toHaveText('Forever Sim')
+          const name = (await byline.locator('..').boundingBox())!
+          if (phone) expect(name.width).toBeLessThanOrEqual(1)
+          else expect(name.width).toBeGreaterThan(40)
+
+          // The whole lockup is the link's target, at least 44 px each way: each edge's middle (its
+          // corners are rounded) and its centre.
+          const box = (await lockup.boundingBox())!
+          expect(box.height).toBeGreaterThanOrEqual(44)
+          expect(box.width).toBeGreaterThanOrEqual(44)
+          const hits = await page.evaluate(
+            ({ x, y, width, height }) =>
+              [
+                [x + 1, y + height / 2],
+                [x + width - 1, y + height / 2],
+                [x + width / 2, y + 1],
+                [x + width / 2, y + height - 1],
+                [x + width / 2, y + height / 2],
+              ].map(([px, py]) => document.elementFromPoint(px, py)?.closest('a')?.getAttribute('href') ?? null),
+            box,
+          )
+          expect(hits).toEqual(Array(5).fill('https://decades.gg'))
+          // Clear of the spec switcher, with no page scroll sideways.
+          const spec = (await page.getByRole('button', { name: /^Spec: / }).boundingBox())!
+          expect(box.x + box.width).toBeLessThanOrEqual(spec.x)
+          expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
+
+          // The crest's hourglass is a graphic, 3:1 on the header; the byline is text, AA.
+          expect(await contrast(lockup.locator('svg g.fill-brand-gold'), 'svg')).toBeGreaterThanOrEqual(3)
+          if (!phone) expect(await contrast(byline)).toBeGreaterThanOrEqual(4.5)
+
+          // Keyboard focus shows the app's ring around the whole lockup.
+          await page.keyboard.press('Shift')
+          await link.focus()
+          await expect.poll(() => contrast(lockup, 'ring')).toBeGreaterThanOrEqual(3)
+
+          await expectSafeDecadesLink(page, link)
+        })
+
+        test('About ends with the guild’s section, its logo for the theme, and a link to decades.gg', async ({ page }) => {
+          await stubDecades(page)
+          await page.goto('./')
+          await page.getByRole('button', { name: 'More' }).click()
+          await page.getByRole('menuitem', { name: 'About & data' }).click()
+          const sheet = page.getByRole('dialog', { name: 'About Forever Sim' })
+          const section = sheet.getByRole('region', { name: 'Made by Decades' })
+          await section.scrollIntoViewIfNeeded()
+          await expect(section.getByText(/a gaming community since 2005/)).toBeVisible()
+          expect(await contrast(section.getByRole('heading', { name: 'Made by Decades' }))).toBeGreaterThanOrEqual(4.5)
+
+          // The ink logo on light surfaces, the guild's white one on dark: loaded, and never both.
+          const shown = section.locator('img').filter({ visible: true })
+          await expect(shown).toHaveCount(1)
+          await expect(shown).toHaveAttribute('src', colorScheme === 'dark' ? /decades-logo-on-dark\.svg$/ : /decades-logo-on-light\.svg$/)
+          await expect.poll(() => shown.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true)
+
+          const link = section.getByRole('link', { name: 'Visit decades.gg (opens in a new tab)' })
+          await expectTouchTargets(link)
+          await expect(sheet.getByText(/Forever Sim and Decades are not affiliated with or endorsed by Blizzard Entertainment\./)).toBeVisible()
+          expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
+          await expectSafeDecadesLink(page, link)
+        })
+      })
+    }
+  }
+})

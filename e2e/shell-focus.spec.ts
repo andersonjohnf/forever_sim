@@ -94,7 +94,8 @@ test.describe('touch targets in the shell (RU7)', () => {
     await page.getByRole('menuitem', { name: 'About & data' }).click()
     const about = page.getByRole('dialog', { name: 'About Forever Sim' })
     const links = about.getByRole('link')
-    await expect(links).toHaveCount(3)
+    // wago.tools, the repository, what still needs testing, and decades.gg.
+    await expect(links).toHaveCount(4)
     for (const link of await links.all()) {
       await link.scrollIntoViewIfNeeded()
       await expect.poll(async () => (await link.boundingBox())!.height).toBeGreaterThanOrEqual(44)

@@ -4,11 +4,13 @@ import { DataAttribution } from '@/components/data-attribution'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { DECADES_URL } from './brand'
 import { formatReleaseTime, RELEASE, shortCommit } from './release'
 import type { useSheetFocus } from './sheet-focus'
 import { appSentence, coverageSentence } from './specs'
 
 const REPO = 'https://github.com/andersonjohnf/forever_sim'
+const base = import.meta.env.BASE_URL
 
 // Only each dataset's `meta` envelope is imported, so this doesn't pull whole datasets in.
 const metas = import.meta.glob<{ foreverBuild: string; scrapedAt: string }>(
@@ -111,12 +113,48 @@ export function AboutSheet({
               </a>
             </div>
           </Section>
+          <MadeByDecades />
           <p className="text-xs text-muted-foreground">
-            World of Warcraft is a trademark of Blizzard Entertainment. This project is not affiliated with Blizzard.
+            World of Warcraft is a trademark of Blizzard Entertainment. Forever Sim and Decades are not affiliated with
+            or endorsed by Blizzard Entertainment.
           </p>
         </div>
       </SheetContent>
     </Sheet>
+  )
+}
+
+/**
+ * The guild's signature (docs/ux.md#brand): its full logo, the ink one on light surfaces and the
+ * guild's own white one on dark, a line of its own positioning, and its site in a new tab. Under a
+ * gold hairline, with its heading in the guild's lettering.
+ */
+function MadeByDecades() {
+  return (
+    <section aria-labelledby="about-decades" className="flex flex-col gap-3 border-t border-brand-gold/50 pt-6">
+      <h3 id="about-decades" className="font-brand text-xs font-semibold tracking-[0.24em] text-brand-gold-text uppercase">
+        Made by Decades
+      </h3>
+      <div className="flex items-center gap-4">
+        {/* The heading names it, so the logo is decorative. Its aspect is the guild's file's. */}
+        <img src={`${base}brand/decades-logo-on-light.svg`} alt="" width={88} height={74} className="shrink-0 dark:hidden" />
+        <img src={`${base}brand/decades-logo-on-dark.svg`} alt="" width={88} height={74} className="hidden shrink-0 dark:block" />
+        <div className="flex flex-col items-start gap-1">
+          <p>
+            Forever Sim is made by Decades, a gaming community since 2005. Community first: we invest in our players.
+          </p>
+          <a
+            className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2"
+            href={DECADES_URL}
+            target="_blank"
+            rel="noopener"
+          >
+            Visit decades.gg <ExternalLink className="size-3.5" aria-hidden />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        </div>
+      </div>
+    </section>
   )
 }
 

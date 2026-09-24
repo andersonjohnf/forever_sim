@@ -17,10 +17,12 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DecadesCrest } from '@/components/decades-crest'
 import { WowIcon } from '@/components/wow-icon'
 import { cn } from '@/lib/utils'
 import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
+import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
 import { resetTitle } from './load-notice'
 import { useSetup } from './setup-store'
@@ -40,10 +42,9 @@ export function Header() {
   const aboutFocus = useSheetFocus(() => menuButton.current)
   const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+    <header className="sticky top-0 z-40 border-b border-brand-gold/40 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4">
-        {/* The page's one heading 1 (docs/ux.md#accessibility); phones show only the spec switcher. */}
-        <h1 className="mr-1 font-semibold tracking-tight max-sm:sr-only">Forever Sim</h1>
+        <Lockup />
         <SpecSwitcher />
         <div className="ml-auto flex items-center gap-1">
           <ShareButton />
@@ -58,6 +59,31 @@ export function Header() {
       />
       <AboutSheet open={sheet === 'about'} onOpenChange={openChange('about')} titleRef={aboutFocus.titleRef} contentProps={aboutFocus.contentProps} />
     </header>
+  )
+}
+
+/**
+ * The brand lockup (docs/ux.md#brand): the Decades crest, the app's name (the page's one heading 1,
+ * docs/ux.md#accessibility) and "by Decades", the whole of it one 44 px link to the guild's site in
+ * a new tab. The link is the crest; its ::after stretches over the name as well, so a click anywhere
+ * on the lockup follows it, and the lockup lights up on hover and focus as a ghost button does. On a
+ * phone only the crest shows.
+ */
+function Lockup() {
+  return (
+    <div className="relative -ml-1.5 flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-lg px-1.5 transition-colors has-[a:hover]:bg-muted has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:pr-2.5 dark:has-[a:hover]:bg-muted/50">
+      <a href={DECADES_URL} target="_blank" rel="noopener" className="outline-none after:absolute after:inset-0 after:rounded-lg">
+        <DecadesCrest className="size-8" />
+        <span className="sr-only">by Decades: decades.gg, opens in a new tab</span>
+      </a>
+      <div className="flex flex-col gap-1 max-sm:sr-only">
+        <h1 className="leading-none font-semibold tracking-tight">Forever Sim</h1>
+        {/* The link says it for screen readers. */}
+        <span aria-hidden className="font-brand text-[0.6875rem] leading-none font-semibold tracking-[0.24em] text-muted-foreground uppercase">
+          by Decades
+        </span>
+      </div>
+    </div>
   )
 }
 

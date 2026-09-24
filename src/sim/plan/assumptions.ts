@@ -170,7 +170,7 @@ const REGISTRY = {
     docRef: `${WAR}#9-open-questions`,
   },
   gnomeEnergy: {
-    text: 'Expansive Mind’s +5% maximum Energy multiplies the total, including Vigor.',
+    text: 'Expansive Mind’s +5% maximum Energy multiplies the total, including Vigor, rounded down to whole Energy: 110 with Vigor 1/2, 115 with 2/2.',
     docRef: `${ROGUE}#21-energy`,
   },
   cooldownRacial: {

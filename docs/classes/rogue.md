@@ -137,7 +137,7 @@ Slash's extra attack (§5.2) and the Orc's axe racial.
 | Rule | Value | Tag, source |
 | --- | --- | --- |
 | Regeneration | 20 Energy per tick, every 2 s, on the player-global power tick with a random phase | [C] as the cat's ([druid.md §2.4](druid.md#24-energy-cat)) |
-| Cap | 100, +5 per rank of Vigor; a Gnome's Expansive Mind (1259803) multiplies the total by 1.05, so 105 without Vigor and 115.5 with 2/2 | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10); Expansive Mind [F] [client] (aura 178, misc 3 = Energy, 1.60.1.69913), multiplying Vigor's too [?] as the warrior's rage (warrior Q17) |
+| Cap | 100, +5 per rank of Vigor; a Gnome's Expansive Mind (1259803) multiplies the total by 1.05, rounded down to whole Energy: 105 without Vigor, 110 with 1/2 (110.25) and 115 with 2/2 (115.5) | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10); Expansive Mind [F] [client] (aura 178, misc 3 = Energy, 1.60.1.69913), multiplying Vigor's too [?] as the warrior's rage (warrior Q17); rounded down [?]: the client shows whole Energy |
 | At the pull | Full | [?] |
 | Adrenaline Rush | Each tick doubled (+100% regeneration, aura 110) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Refunds | An avoided builder gets 80% back; a finisher nothing, and keeps its points | [?] (the cat's Q29) |

@@ -293,6 +293,8 @@ export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
   threatMult: 1,
   threatBonus: 0,
   binary: true,
+  // No SpellClassOptions row: class-mask talents don't reach it (buffs doc §3.7) [?].
+  itemSpell: true,
 }
 
 /**
@@ -302,7 +304,8 @@ export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
  * lands, as a Lightning Bolt's or Hammer of Wrath's cast does [?] (docs/classes/shaman.md#shocks-and-lightning-bolt,
  * docs/classes/paladin.md#other-abilities). No GCD ability starts during it (docs/mechanics/spells.md
  * §4), so the engine gives it a GCD as long as its cast: it waits for a free GCD, and the next GCD
- * ability waits for it to land (an engine choice).
+ * ability waits for it to land (an engine choice). Nor does an off-GCD one: you can't use one
+ * during another's cast, as with Hammer of Wrath [?] (paladin.md#other-abilities).
  */
 export const EZ_THRO_DARK_BOMB: OnUseSpec = {
   id: 'ezThroDarkBomb',
@@ -316,6 +319,7 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
   spell: EZ_THRO_DARK_BOMB_SPELL,
   castMs: 1000,
   castStopsSwings: true,
+  castHoldsOffGcd: true,
 }
 
 /**
@@ -1441,14 +1445,16 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_bomb_05',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '225–675 Fire damage, every minute; its 1 s throw stops your swings',
+    // The Buffs tab adds what its throw holds for your spec (`buffSummaryFor`, review CV-2).
+    summary: '225–675 Fire damage, every minute',
     // The explosives' category (24), apart from potions and runes; the only explosive here.
     exclusiveGroup: COOLDOWN_GROUP.explosive,
     docRef: `${DOC}#37-engineering-and-explosives`,
     // Every rotation throws it on cooldown from the pull (classes/shared-consumables.ts).
     effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb', use: EZ_THRO_DARK_BOMB }],
-    // In no preset: a melee's swings lose more than the bomb deals, as its throw restarts them
-    // (Fury −2.4% at Max consumables, buffs doc §6.3).
+    // In no preset: a warrior's swings and GCD lose more than the bomb deals, even thrown just after
+    // a swing (Fury −1.1%, Arms −0.6% at Max consumables); a caster or hunter would have to move in to
+    // its 15 yd range, which isn't modelled (buffs doc §6.3).
     presets: NOT_IN_PRESETS,
   },
   {

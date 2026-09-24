@@ -372,15 +372,22 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
     }
     selected.push(buff)
   }
-  // Rivals in an exclusive group: the one with the largest effect stays (buffs doc,
+  // Rivals in an exclusive group: one the spec can use beats one locked off for it (a hunter's
+  // Grilled Squid over Smoked Desert Dumplings, whose attack power its shots don't use; presets.ts
+  // buffUnusedReason, review CV-8); then the one with the largest effect stays (buffs doc,
   // "Exclusivity groups"). Rivals that change different things have no common measure, so the
   // one the spec's Max consumables preset picks stays, else the first.
   const max = new Set(presetBuffIds('max', spec, raid))
   const winners = new Map<string, BuffSpec>()
+  const usable = (b: BuffSpec) => buffUnusedReason(b, spec) === undefined
   for (const buff of selected) {
     const group = buff.exclusiveGroup
     if (!group) continue
     const best = winners.get(group)
+    if (best && usable(buff) !== usable(best)) {
+      if (usable(buff)) winners.set(group, buff)
+      continue
+    }
     const order = best && compareEffects(buff, best, profile)
     if (!best || order === 1 || (order === null && max.has(buff.id) && !max.has(best.id))) winners.set(group, buff)
   }

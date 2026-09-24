@@ -263,9 +263,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
     as above. The Boss damage debuffs below are listed for every DPS spec, casters too.
-  - The **Boss damage** debuffs act on the boss's swings, which only a tank takes. For a DPS spec
-    each says so after its summary ("Only the tank takes the boss's swings, so it changes nothing
-    for you."), and its switch stays usable. The two attack-power debuffs, of which only one
+  - The **Boss damage** debuffs act on the boss's swings, which only a tank takes, and so does an
+    entry that only adds armor (Devotion Aura, Elixir of Greater Defense, Greater Stoneshield
+    Potion), since only those swings meet it. For a DPS spec each says so after its summary ("Only
+    the tank takes the boss's swings, so it changes nothing for you."), and its switch stays usable.
+    Turning Greater Stoneshield on still turns your other potion off, as its summary says ("Potions
+    share a cooldown, so one is on at a time"), so a DPS spec reads both before trading its potion
+    for nothing. The two attack-power debuffs, of which only one
     applies, name each other: "−204 boss attack power (instead of Demoralizing Shout)" for
     Demoralizing Roar, and the other way round.
   - Entries of which only one can be on turn each other off when one is switched on: one flask,
@@ -276,6 +280,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
     cooldown, so one is on at a time". So the switch that turns off isn't a surprise
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
+  - EZ-Thro Dark Bomb's summary ends with what its 1 s throw costs your spec, in its own terms: "its
+    1 s throw stops your melee swings" for a spec that swings, "holds your next cast" for a caster,
+    "holds your Auto Shot" for a hunter (`buffSummaryFor`;
+    [buffs §3.7](mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)). The results'
+    assumption about it says the same, and when the spec throws it.
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

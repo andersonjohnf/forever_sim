@@ -470,6 +470,11 @@ export class Sim {
   // school at 1, 1 and 0, and no channel, so none of this changes what it does.
   /** Resisted whole at its school's resistance, with its hit, and never partially (§3). */
   private readonly splBinary: Uint8Array
+  /**
+   * An item's spell (`SpellDef.itemSpell`: EZ-Thro Dark Bomb, buffs doc §3.7): none of your school's
+   * hit, crit or damage, no per-spell crit, no spell procs, and no school-limited crit charge.
+   */
+  private readonly splItem: Uint8Array
   /** It has a direct part; one without is a pure DoT, which rolls no crit when it lands (§7). */
   private readonly splHasDirect: Uint8Array
   /** Its DoT (§7): ticks, period, damage and coefficient per tick, whether a tick can crit (in this profile), its row and marker. */
@@ -1078,6 +1083,10 @@ export class Sim {
   private rNextAt = 0
   private rGen = 0
   private rLastShotAt = -Infinity
+  /** When the main hand last swung (COND.mainSwingWithin); −∞ before its first swing. */
+  private lastMainSwingAt = -Infinity
+  /** A line waits for `mainSwingWithin`, so each main-hand swing walks the list. */
+  private readonly walksOnSwing: boolean
   /** A spell is a shot with the ranged weapon (SpellDef.ranged): the ranged table and weapon. */
   private readonly splRanged: Uint8Array
   /** Ranged haste shortens its cast time (Aimed Shot's, §4). */
@@ -1501,6 +1510,7 @@ export class Sim {
     // docs/mechanics/spells.md §3, §7: binary spells and DoTs. A tick crits only with the spell's
     // flag, in a profile whose periodic effects can (damage-and-timing §4).
     this.splBinary = Uint8Array.from(spells, (x) => (x.binary ? 1 : 0))
+    this.splItem = Uint8Array.from(spells, (x) => (x.itemSpell ? 1 : 0))
     this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || (x.weaponDps ?? 0) > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
     this.splDotTicks = Int32Array.from(spells, (x) => x.dotTicks ?? 0)
     this.splDotTickMs = Float64Array.from(spells, (x) => x.dotTickMs ?? 0)
@@ -1962,6 +1972,7 @@ export class Sim {
     this.rSource = r?.source ?? -1
     this.abCastRangedHasted = Uint8Array.from(abilities, (a) => (a.castRangedHasted && r ? 1 : 0))
     this.walksOnAutoShot = this.hasRanged && (this.condCode.includes(COND.autoShotClear) || this.condCode.includes(COND.autoShotWithin))
+    this.walksOnSwing = this.condCode.includes(COND.mainSwingWithin)
     // §6–§10: the pet.
     const pet = plan.pet
     this.hasPet = pet !== undefined
@@ -2410,6 +2421,7 @@ export class Sim {
     this.rangedHasteAura = 1
     this.rGen++
     this.rLastShotAt = -Infinity
+    this.lastMainSwingAt = -Infinity
     this.rHeldUntil = 0
     this.dynPetAp = 0
     this.dynPetCrit = 0
@@ -2675,6 +2687,9 @@ export class Sim {
    * the queue is used up (warrior.md §2.4 items 1 and 7).
    */
   private mainHandSwing(source: number, bonusAp: number): void {
+    // COND.mainSwingWithin: a line waiting for a swing walks now, after this swing resolves.
+    this.lastMainSwingAt = this.now
+    if (this.walksOnSwing) this.actPending = this.hasRotation
     const a = this.queued
     if (a >= 0) {
       this.queued = -1
@@ -3014,6 +3029,10 @@ export class Sim {
           break
         case COND.autoShotWithin:
           if (!this.hasRanged || now - this.rLastShotAt > a) return false
+          break
+        // buffs doc §3.7: a throw that stops your swings waits until just after a main-hand swing.
+        case COND.mainSwingWithin:
+          if (this.hasWeapon[HAND.main] && now - this.lastMainSwingAt > a) return false
           break
         case COND.petPowerAtLeast:
           if (!this.hasPet || this.petPower < a) return false
@@ -3573,13 +3592,14 @@ export class Sim {
   /**
    * A non-periodic crit dealt, melee or spell, of this `SCHOOL`, uses a charge of each aura a crit
    * ends (Weakness Analyzer), or a crit of its schools (Combustion's Fire, docs/classes/mage.md#combustion).
+   * `anyCritOnly`: only the former, for an item's spell (buffs doc §3.7).
    */
-  private useCritCharges(school: number): void {
+  private useCritCharges(school: number, anyCritOnly = false): void {
     const list = this.critChargeAuras
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
       const schools = this.aCritChargeSchools[a]
-      if (schools !== 0 && (schools & (1 << school)) === 0) continue
+      if (schools !== 0 && (anyCritOnly || (schools & (1 << school)) === 0)) continue
       if (this.auraActive[a] && --this.auraCritCharges[a] <= 0) this.removeAura(a)
     }
   }
@@ -4196,8 +4216,9 @@ export class Sim {
       // docs/mechanics/spells.md §2, §3: a binary spell is also resisted whole, in the same roll as
       // its hit, at its school's average resist: miss + (1 − miss) × resist.
       if (defense === DEFENSE.magic && !alwaysHit) {
-        // docs/classes/mage.md#talents: its school's own hit (Elemental Precision), when the plan has any.
-        const miss = this.hasSchoolHit ? this.schMiss[this.splSchool[s]] : this.spellMissPct
+        // docs/classes/mage.md#talents: its school's own hit (Elemental Precision), when the plan has any;
+        // an item's spell never gets it (buffs doc §3.7).
+        const miss = this.hasSchoolHit && this.splItem[s] === 0 ? this.schMiss[this.splSchool[s]] : this.spellMissPct
         const threshold = this.splBinary[s] === 1 ? miss + (100 - miss) * this.resistChance[this.splSchool[s]] : miss
         if (this.rngTable.roll100() < threshold) {
           c[row + FIELD.misses]++
@@ -4212,7 +4233,10 @@ export class Sim {
       }
       // §5: spell crit, the spell's own and its school's (Critical Mass, Combustion), and an aura's
       // stacks for this spell only (Winter's Chill on Frostbolt, docs/classes/mage.md#winters-chill).
-      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]] + this.critAuraPct(s) + this.freeCrit
+      // An item's spell gets only your spell crit and its own: the others name your class's spells
+      // (buffs doc §3.7).
+      const classCrit = this.splItem[s] === 1 ? 0 : this.schCrit[this.splSchool[s]] + this.critAuraPct(s) + this.freeCrit
+      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + classCrit
     }
 
     let base: number
@@ -4253,8 +4277,11 @@ export class Sim {
       // ranged-and-pets.md §5: a physical shot takes the ranged damage multiplier and armor.
       damage *= shot ? this.physMult * this.rArmorFactor * this.rDamageMult : this.physMult * this.armorFactor[HAND.main]
     } else {
-      // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless binary.
-      damage *= this.magicMult * this.schDamage[school] * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
+      // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless
+      // binary. An item's spell takes your all-damage multiplier and the boss's damage taken, not your
+      // school's (buffs doc §3.7) [?].
+      const yours = this.splItem[s] === 1 ? this.magicMult : this.magicMult * this.schDamage[school]
+      damage *= yours * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
     }
     // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up;
     // Lava Burst's +20% while your Flame Shock is on the target, which it leaves up (#elemental-abilities).
@@ -4280,6 +4307,13 @@ export class Sim {
     if (this.splDotTicks[s] > 0) this.applySpellDot(s)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
     if (this.splTriggersProcs[s] === 0) return true
+    // buffs doc §3.7: an item's spell fires none of your spell procs, which name your class's spells
+    // (Ignite, Combustion's stacks, Master of Elements) [?]; its crit uses a charge that any crit ends
+    // (Weakness Analyzer's), not one a school's spells end (Combustion's).
+    if (this.splItem[s] === 1) {
+      if (crit) this.useCritCharges(school, true)
+      return true
+    }
     if (shot) {
       // ranged-and-pets.md §9: a shot fires the ranged procs, not the melee or spell ones.
       this.fireProcs(TRIGGER.rangedLanded, -1)

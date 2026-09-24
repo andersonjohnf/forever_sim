@@ -17,6 +17,7 @@ import {
   buffPresets,
   buffProvided,
   unusedBuffs,
+  buffSummaryFor,
   defaultConfig,
   unusedRotationSettings,
   FULL_RAID,
@@ -254,7 +255,9 @@ export function BuffsSection() {
                       const notCast = replacedBy !== undefined && notCastOwn.has(def.id)
                       // A stone's or an oil's note names what this spec's weapons can take (weapon-note.ts).
                       const note = weaponNote(def, buffCatalogue, inert)
-                      const summary = note ? `${def.summary} ${note}` : def.summary
+                      // A bomb's summary says what its throw holds for this spec (buffs doc §3.7).
+                      const base = buffSummaryFor(def, meta.id)
+                      const summary = note ? `${base} ${note}` : base
                       let help = summary
                       if (talent) help = `${summary}. Your talents bring it (see Talents), so it isn’t added twice.`
                       else if (replacedBy && notCast) help = `${summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`

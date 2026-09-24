@@ -247,6 +247,16 @@ export interface SpellDef {
    */
   lowHealthPct?: number
   lowHealthBelowPct?: number
+  /**
+   * An item's spell with no class options (spell 1269334 has no SpellClassOptions row: EZ-Thro Dark
+   * Bomb, buffs doc §3.7): your class's talents and auras, which name your class's spells, don't reach
+   * it [?]. None of your school's hit, crit or damage (Elemental Precision, Critical Mass, Combustion,
+   * a demon's sacrifice), no per-spell crit (Winter's Chill) or free-cast crit, none of your spell
+   * procs (Ignite, Combustion's stacks, Master of Elements), and only the crit charges any crit ends.
+   * Your spell hit and crit, your all-damage multiplier and the boss's damage taken apply. Absent: a
+   * spell of your class's.
+   */
+  itemSpell?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
@@ -1117,6 +1127,14 @@ export const COND = {
    * stack gained is a decision point, as every aura change is.
    */
   auraStacksAtLeast: 34,
+  /**
+   * the main hand's last swing, white or on-next-swing, from its timer or an extra attack, was at
+   * most a ms ago; false before the first, and true without a main hand, which never swings. A cast
+   * that stops your swings waits for it, so it restarts the timer just after a swing, not mid-swing
+   * (EZ-Thro Dark Bomb, buffs doc §3.7; a Slam without Improved Slam, damage-and-timing §3.3). Each
+   * main-hand swing is a decision point for a plan with such a line.
+   */
+  mainSwingWithin: 35,
   // 30–33 are the rogue's (docs/classes/rogue.md §8).
   /** combo points ≤ a (Premeditation waits for room for its 2, rogue.md §6) */
   maxComboPoints: 30,

@@ -71,9 +71,19 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: null,
     dualWield: true,
   },
+  // docs/classes/mage.md#races-and-gear: cloth; daggers, one-handed swords and staves; wands [C].
+  mage: {
+    armor: ['cloth'],
+    shield: false,
+    oneHand: ['dagger', 'sword'],
+    twoHand: ['staff'],
+    ranged: ['wand'],
+    relic: null,
+    dualWield: false,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {

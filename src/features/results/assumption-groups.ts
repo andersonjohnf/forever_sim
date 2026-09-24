@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {
@@ -140,6 +140,17 @@ export const ASSUMPTION_GROUP = {
   shamanSpellDamage: 'class',
   shamanTotems: 'class',
   manaRegenShaman: 'class',
+  // The mage's (docs/classes/mage.md#open-questions): its spells and procs, then its mana.
+  mageSpells: 'class',
+  mageIgnite: 'class',
+  mageImprovedScorch: 'class',
+  mageHotStreak: 'class',
+  mageCombustion: 'class',
+  mageWintersChill: 'class',
+  mageClearcasting: 'class',
+  mageArcaneMissiles: 'class',
+  magePresenceOfMind: 'class',
+  manaRegenMage: 'class',
   foreverWhiteRage: 'class',
   foreverOffHandRage: 'class',
   onNextSwingRage: 'class',
@@ -187,6 +198,7 @@ export const ASSUMPTION_GROUP = {
   reactionTimeRogue: 'combat',
   reactionTimeMana: 'combat',
   reactionTimeShaman: 'combat',
+  reactionTimeMage: 'combat',
   negativeArmor: 'combat',
   offHandFirstSwing: 'combat',
   hasteNextSwing: 'combat',

@@ -8,6 +8,7 @@ import druidTalents from '@/data/talents/druid.json'
 import paladinTalents from '@/data/talents/paladin.json'
 import shamanTalents from '@/data/talents/shaman.json'
 import rogueTalents from '@/data/talents/rogue.json'
+import mageTalents from '@/data/talents/mage.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
@@ -23,6 +24,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   paladin: paladinTalents as unknown as TalentData,
   shaman: shamanTalents as unknown as TalentData,
   rogue: rogueTalents as unknown as TalentData,
+  mage: mageTalents as unknown as TalentData,
 }
 
 /**
@@ -42,6 +44,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'rogue-combat': '005303105001-32502300001515231-',
   'rogue-assassination': '00531310551521051-302303-002',
   'rogue-subtlety': '005303103--0322003311213211551',
+  'mage-fire': '230225-23550000130133051-005', // docs/classes/mage.md#talents
+  'mage-frost': '230225200100301--055510033002000105', // docs/classes/mage.md#talents
+  'mage-arcane': '050225003100301531-2355001010003-', // docs/classes/mage.md#talents
 }
 
 export interface TalentPreset {
@@ -91,6 +96,12 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/rogue.md#71-talents: Subtlety daggers 15/0/36
     { name: 'Subtlety (default)', code: DEFAULT_TALENTS['rogue-subtlety'] },
   ],
+  mage: [
+    // docs/classes/mage.md#talents: Arcane 14 / Fire 32 / Frost 5, 21 / 0 / 30 and 31 / 20 / 0
+    { name: 'Fire (default)', code: DEFAULT_TALENTS['mage-fire'] },
+    { name: 'Frost (default)', code: DEFAULT_TALENTS['mage-frost'] },
+    { name: 'Arcane (default)', code: DEFAULT_TALENTS['mage-arcane'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -106,6 +117,8 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   shaman: 'horde-orc',
   // docs/classes/rogue.md#72-race: Human, for its sword crit
   rogue: 'alliance-human',
+  // docs/classes/mage.md#defaults: Berserking's casting speed.
+  mage: 'horde-troll',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -214,6 +227,10 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   // §6.4 Enhancement shaman (docs/classes/shaman.md#defaults): the Retribution column; the main hand
   // is imbued and enchanted with Crusader.
   'shaman-enhancement': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
+  // docs/classes/mage.md#defaults: Greater Stats on the chest, the one caster enchant the catalogue has yet.
+  'mage-fire': { chest: 'chestGreaterStats' },
+  'mage-frost': { chest: 'chestGreaterStats' },
+  'mage-arcane': { chest: 'chestGreaterStats' },
   'paladin-protection': {
     back: 'cloakSuperiorDefense',
     chest: 'chestGreaterStats',

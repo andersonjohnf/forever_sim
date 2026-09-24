@@ -124,6 +124,34 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     role: 'dps',
     icon: 'ability_stealth',
   },
+  // docs/classes/mage.md: the caster sheet (spell damage by school) and no own buffs.
+  'mage-fire': {
+    id: 'mage-fire',
+    classId: 'mage',
+    className: 'Mage',
+    name: 'Fire',
+    role: 'dps',
+    icon: 'spell_fire_firebolt02',
+    caster: true,
+  },
+  'mage-frost': {
+    id: 'mage-frost',
+    classId: 'mage',
+    className: 'Mage',
+    name: 'Frost',
+    role: 'dps',
+    icon: 'spell_frost_frostbolt02',
+    caster: true,
+  },
+  'mage-arcane': {
+    id: 'mage-arcane',
+    classId: 'mage',
+    className: 'Mage',
+    name: 'Arcane',
+    role: 'dps',
+    icon: 'spell_holy_magicalsentry',
+    caster: true,
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -135,4 +163,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   paladin: '#F48CBA',
   shaman: '#0070DD',
   rogue: '#FFF468',
+  mage: '#3FC7EB',
 }

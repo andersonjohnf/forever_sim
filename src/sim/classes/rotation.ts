@@ -18,6 +18,8 @@ import {
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
+import { mageOptions, mageRotation } from './mage/rotation'
+import { SPEC_META } from '../specs'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
@@ -78,6 +80,8 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'rogue-combat') return COMBAT_OPTIONS
   if (spec === 'rogue-assassination') return ASSASSINATION_OPTIONS
   if (spec === 'rogue-subtlety') return SUBTLETY_OPTIONS
+  // docs/classes/mage.md: Fire, Frost and Arcane.
+  if (SPEC_META[spec].classId === 'mage') return mageOptions(spec)
   return []
 }
 
@@ -115,6 +119,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   }
   // Decision D27: specs landed before the tuning milestone start from the common priority.
   if (spec === 'rogue-combat' || spec === 'rogue-assassination' || spec === 'rogue-subtlety') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  // docs/classes/mage.md "First-pass defaults" (D27).
+  if (SPEC_META[spec].classId === 'mage') return 'The defaults are the common priority.'
   return undefined
 }
 
@@ -141,6 +147,9 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'rogue-combat': 'rogue.combat.racial.enabled',
   'rogue-assassination': 'rogue.assassination.racial.enabled',
   'rogue-subtlety': 'rogue.subtlety.racial.enabled',
+  'mage-fire': 'mage.fire.racial.enabled',
+  'mage-frost': 'mage.frost.racial.enabled',
+  'mage-arcane': 'mage.arcane.racial.enabled',
 }
 
 /**
@@ -170,6 +179,9 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
       setup.race === 'alliance-gnome'
         ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
         : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
+  } else if (racial && SPEC_META[spec].classId === 'mage' && setup.race !== 'horde-troll') {
+    // docs/classes/mage.md#races: only Berserking's casting speed helps a mage; Blood Fury is attack power.
+    out[racial] = `Not used: ${setup.raceName}’s racial cooldown does nothing for your spells.`
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))
@@ -228,5 +240,7 @@ export function classRotation(
   if (spec === 'rogue-combat') return combatRotation(values, talents, context)
   if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
   if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
+  // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
+  if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

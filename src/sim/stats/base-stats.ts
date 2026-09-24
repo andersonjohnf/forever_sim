@@ -109,6 +109,25 @@ const ROGUE_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-skyborne-windshaper': { str: 80, agi: 130, sta: 75, int: 35, spi: 50 },
 }
 
+/**
+ * Mage base attributes at level 60, [?] placeholders (D24 rule 2; docs/classes/mage.md#base-stats,
+ * character-stats.md OQ-1). Origin: the mangos emulator's 1.12 class row, Str 30, Agi 35, Sta 45,
+ * Int 125, Spi 120 (https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql;
+ * wowsims/classic's `ClassBaseStats` has the same), plus the [C] race offsets, not evidence. Its Human,
+ * Undead and Troll rows fit that model; its Gnome row (Int 133) fits neither it nor Classic's +5%
+ * Intellect racial, which Forever removed, so the Gnome row is the model's. Classic Era had no Orc
+ * mage (the class row plus the [C] Orc offset), and the High Order Skyborne row is the class row, as
+ * Skyborne offsets are unknown (OQ-1).
+ */
+const MAGE_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 30, agi: 35, sta: 45, int: 125, spi: 120 },
+  'alliance-gnome': { str: 25, agi: 38, sta: 44, int: 128, spi: 120 },
+  'alliance-skyborne-high-order': { str: 30, agi: 35, sta: 45, int: 125, spi: 120 },
+  'horde-orc': { str: 33, agi: 32, sta: 47, int: 122, spi: 123 },
+  'horde-undead': { str: 29, agi: 33, sta: 46, int: 123, spi: 125 },
+  'horde-troll': { str: 31, agi: 37, sta: 46, int: 121, spi: 121 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -241,6 +260,25 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     apPerStr: 1,
     apPerAgi: 1,
   },
+  mage: {
+    // Unmeasured (docs/classes/mage.md#base-stats): the attribute rows, crit, spell crit, dodge and
+    // health are D24 placeholders, in BASE_PLACEHOLDERS below; base attack power has none.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // docs/classes/mage.md#base-stats: PlayerExpectedStat.CritPerAgility 0.000514, 19.46 Agility per 1% [F]
+    critPerAgi: 0.0514,
+    // PlayerExpectedStat.SpellCritPerIntellect 0.000168, 59.5 Intellect per 1% [F]
+    spellCritPerInt: 0.0168,
+    baseSpellCrit: null,
+    baseDodge: null,
+    // A mage can't parry or use a shield [C].
+    baseParry: 0,
+    baseBlock: 0,
+    baseHealth: null,
+    // docs/classes/mage.md#base-stats: PlayerExpectedStat.BaseMana and basemp.txt, 1213 [F]
+    baseMana: 1213,
+  },
 }
 
 /**
@@ -346,5 +384,19 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseCrit: 0,
     baseSpellCrit: 0,
     baseDodge: 0,
+  },
+  // docs/classes/mage.md#base-stats: MAGE_ROWS above; base health 1,360 (mangos' class table;
+  // wowsims/classic's 1,370 conflicts); base spell crit 0.2% (wowsims/classic, and RatingBuster since
+  // d8588dcd, which corrected its −4.8%); base melee crit and dodge 3.2% (both agree). All "[?]
+  // placeholder (D24); origin: …, not evidence".
+  mage: {
+    attributes: MAGE_ROWS,
+    baseHealth: 1360,
+    /** Base melee crit before Agility, % (a wand's, if ever used). */
+    baseCrit: 3.2,
+    /** Base spell crit before Intellect, %. */
+    baseSpellCrit: 0.2,
+    /** Base dodge before Agility, %: matters only to a tank. */
+    baseDodge: 3.2,
   },
 }

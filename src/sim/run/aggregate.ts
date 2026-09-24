@@ -188,7 +188,7 @@ export function tankResult(plan: Plan, agg: Aggregate): TankResult | null {
  */
 export function manaResult(plan: Plan, agg: Aggregate): ManaResult | null {
   // The shaman's too (docs/classes/shaman.md#mana): its shocks and mana potions spend and restore it.
-  if ((plan.classId !== 'paladin' && plan.classId !== 'shaman') || !plan.mana || agg.fights === 0) return null
+  if ((plan.classId !== 'paladin' && plan.classId !== 'shaman' && plan.classId !== 'mage') || !plan.mana || agg.fights === 0) return null
   const perFight = (tenths: number) => tenths / 10 / agg.fights
   // A source row's ability: the judgements return mana (Sanctified Judgement), a potion or rune restores it.
   const returns = new Set(plan.abilities.filter((a) => (a.manaReturnTenths ?? 0) > 0).map((a) => a.source))

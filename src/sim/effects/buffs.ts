@@ -94,12 +94,12 @@ const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 't
 /**
  * The caster classes and specs, as the caster class slices (K2–K6) land them (docs/mechanics/spells.md
  * §12): the entries for mana and spell damage, and the caster buffs and debuffs below, are theirs
- * too. Empty until the first caster spec ships, so no warrior, druid or paladin setup changes: a
+ * too. The mage since K2 (docs/classes/mage.md); no warrior, druid, paladin or shaman setup changes: a
  * class slice adds its class here and its specs to CASTER_SPECS. A class whose other specs cast no
  * spells (the druid's Feral specs beside Balance) needs its entries gated per spec instead.
  */
-export const CASTER_CLASSES: readonly ClassId[] = []
-export const CASTER_SPECS: readonly SpecId[] = []
+export const CASTER_CLASSES: readonly ClassId[] = ['mage']
+export const CASTER_SPECS: readonly SpecId[] = ['mage-fire', 'mage-frost', 'mage-arcane']
 /** The classes that spend mana on spells: the paladin, the shaman and the casters (once each: K5 adds the shaman here too). */
 const MANA_CLASSES: readonly ClassId[] = [...new Set([...MANA_USERS, ...CASTER_CLASSES])]
 /** `Pal` in the presets (§6.2), the Enhancement shaman, and the casters. */
@@ -725,7 +725,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#32-elixirs`,
     // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
-    presets: { raid: RETRIBUTION, max: [...PALADINS, ...SHAMAN] },
+    presets: { raid: [...RETRIBUTION, ...CASTER_SPECS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
   },
   {
     id: 'elixirOfHolyPower',
@@ -766,7 +766,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#31-flasks`,
     // 17628 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 150 }],
-    presets: { max: [...PALADINS, ...SHAMAN] },
+    presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
   },
   {
     id: 'flaskOfNaturalAccuracy',
@@ -1074,7 +1074,7 @@ export const BUFFS: BuffSpec[] = [
     forClasses: MANA_CLASSES,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
-    presets: { max: [...PALADINS, ...SHAMAN] },
+    presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
   },
   {
     id: 'thistleTea',

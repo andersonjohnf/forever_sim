@@ -16,6 +16,7 @@ const DRUID = 'docs/classes/druid.md'
 const PAL = 'docs/classes/paladin.md'
 const SHAM = 'docs/classes/shaman.md'
 const ROGUE = 'docs/classes/rogue.md'
+const MAGE = 'docs/classes/mage.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -658,6 +659,51 @@ const REGISTRY = {
   cutthroat: {
     text: 'Cutthroat’s chance rolls on each Backstab that lands, crits and blocks included, and Ambush is used only in its window: the sim has no Stealth opener. Untested.',
     docRef: `${ROGUE}#53-subtlety`,
+  },
+  // The mage's (docs/classes/mage.md#open-questions).
+  reactionTimeMage: {
+    text: 'The rotation reacts instantly: it acts the moment a cast lands, a cooldown or the global cooldown ends or you have the mana, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
+  mageSpells: {
+    text: 'Your spells roll the spell table against a level-63 boss with a level-based resistance of 24 (an average partial resist of 6%; Frostbolt, whose slow makes it binary, is resisted whole instead). Projectiles land the moment the cast does. The Forever spell values are the client’s rows, not yet checked in game.',
+    docRef: `${MAGE}#open-questions`,
+  },
+  mageIgnite: {
+    text: 'Ignite pools: each Fire crit adds 40% of its damage to what’s still to come and gives it 2 more ticks, 2 s apart; a tick already due keeps its time. The boss’s Fire Vulnerability and Curse of the Elements apply again at each tick. Forever’s pooling rules are server-side and untested.',
+    docRef: `${MAGE}#ignite`,
+  },
+  mageImprovedScorch: {
+    text: 'Improved Scorch’s stacks land with Scorch’s hit, with no separate roll to resist the debuff.',
+    docRef: `${MAGE}#improved-scorch`,
+  },
+  mageHotStreak: {
+    text: 'Hot Streak stacks on non-periodic crits of Fireball, Fire Blast and Scorch, and Pyroblast uses them all; the client’s charge rule is server-side.',
+    docRef: `${MAGE}#hot-streak`,
+  },
+  mageCombustion: {
+    text: 'Combustion gives the first Fire spell after it +10% crit, then +10% more for each Fire spell that hits; it ends after 4 Fire crits, and its cooldown starts then.',
+    docRef: `${MAGE}#combustion`,
+  },
+  mageWintersChill: {
+    text: 'Winter’s Chill stacks on landed Frost spells and gives your Frostbolt +2% crit a stack, as the Forever tooltip says.',
+    docRef: `${MAGE}#winters-chill`,
+  },
+  mageClearcasting: {
+    text: 'Clearcasting can come from any damage spell that hits, each Arcane Missile included, at most once a second, and makes the next damage spell free.',
+    docRef: `${MAGE}#talents`,
+  },
+  mageArcaneMissiles: {
+    text: 'Arcane Missiles fires 5 missiles a second apart, each with its own hit, crit and resist; casting speed doesn’t shorten it.',
+    docRef: `${MAGE}#arcane-priority`,
+  },
+  magePresenceOfMind: {
+    text: 'Presence of Mind makes your next spell with a cast time instant, and its 3-minute cooldown starts when you use it.',
+    docRef: `${MAGE}#presence-of-mind`,
+  },
+  manaRegenMage: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 13 + Spirit / 4 when you’ve spent none for 5 s, and inside that rule Mage Armor’s share (kept up all fight) with Arcane Meditation’s; your mp5 always. Mana gems are conjured before the pull.',
+    docRef: `${MAGE}#mana`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

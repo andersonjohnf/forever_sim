@@ -7,7 +7,7 @@ import type { PreRaidBisSpec } from '@/data/items/types'
 import type { ClassSlug } from '@/data/races/types'
 
 export type SpecId = PreRaidBisSpec
-export type ClassId = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue'
+export type ClassId = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue' | 'mage'
 export type Role = 'dps' | 'tank'
 
 /** Paper-doll slots. Rings and trinkets have two each. */

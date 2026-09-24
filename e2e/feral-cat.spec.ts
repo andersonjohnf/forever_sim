@@ -172,7 +172,7 @@ test.describe('Feral cat', () => {
     for (const name of ['Berserk', 'Manual Crowd Pummeler', 'Tiger’s Fury', 'Faerie Fire']) {
       await expect(table.getByRole('row', { name: new RegExp(`^${name} \\d+\\.\\d% \\d+\\.\\d$`) })).toBeVisible()
     }
-    const clearcasting = table.getByRole('row', { name: /^Clearcasting \d+\.\d a fight, each spent by your next ability \d+\.\d% none$/ })
+    const clearcasting = table.getByRole('row', { name: /^Clearcasting \d+\.\d a fight, each spent by the next ability it makes free \d+\.\d% none$/ })
     await expect(clearcasting).toBeVisible()
 
     await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()

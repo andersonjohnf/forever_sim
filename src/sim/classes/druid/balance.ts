@@ -104,7 +104,8 @@ export const BALANCE_OPTIONS: RotationOption[] = [
     label: 'Innervate at or below',
     help: 'Cast it once your mana is at or below this share of your maximum. Lower wastes less of its regeneration on a full bar; too low and you run dry first.',
     unit: '% mana',
-    min: 0,
+    // 5, not 0: at 0% it would wait for a bar that never empties, and never be cast.
+    min: 5,
     max: 100,
     step: 5,
     default: 40,
@@ -199,7 +200,7 @@ export const BALANCE_OPTIONS: RotationOption[] = [
 export function balanceUnusedSettings(values: Record<string, RotationValue>, talents: ReadonlyMap<string, number>): Record<string, string> {
   const v = reader(BALANCE_OPTIONS, values, talents)
   if (!v.on(ID.eclipse) || !talents.has('Eclipse')) return {}
-  return { [ID.filler]: 'Not used while “Wrath for Eclipse” is on: Starfire and Wrath already take turns. Turn it off to cast only the filler.' }
+  return { [ID.filler]: 'Not used while “Wrath for Eclipse” is on: Starfire and Wrath already take turns. Turn “Wrath for Eclipse” off to cast only the filler.' }
 }
 
 /** Buff catalogue ids the Balance druid keeps up itself with these settings: its Faerie Fire, if it's its duty. */

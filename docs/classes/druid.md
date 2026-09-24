@@ -1738,9 +1738,9 @@ with K6, gear's mp5 every tick and Reflection's share inside the rule (none in t
 Spending mana happens when a cast lands (spells.md §4).
 
 - **Innervate on yourself** (§11.2): cast once your mana is at or below a share of your maximum
-  (default 40%): five times your Spirit regeneration, all of it while casting, for 20 s. In a raid it
-  often goes to a healer instead (the Classic Era guide's advice [wh-bal-rot]); the sim's default is
-  the druid's own, as a Balance DPS spec's mana is its limit.
+  (default 40%, from 5% up: at 0% it would never be cast): five times your Spirit regeneration, all
+  of it while casting, for 20 s. In a raid it often goes to a healer instead (the Classic Era guide's
+  advice [wh-bal-rot]); the sim's default is the druid's own, as a Balance DPS spec's mana is its limit.
 - **Major Mana Potion and Demonic Rune** (buffs doc §3.5), off the GCD, each once you're missing its
   "when missing" mana. The potion's default, 2,000, was the quick search's best (§11.5).
 

@@ -127,6 +127,10 @@ test.describe('Balance druid', () => {
     const results = page.getByRole('complementary', { name: 'Results' })
     await simulate(results)
     await expectResult(results)
+    // Clearcasting waits for a Starfire, Moonfire or Insect Swarm, not a Wrath: the next ability it makes free (BD1).
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    const clearcasting = results.getByRole('table').getByRole('row', { name: /^Clearcasting \d+\.\d a fight, each spent by the next ability it makes free \d+\.\d% none$/ })
+    await expect(clearcasting).toBeVisible()
   })
 
   test('a share link brings back the Balance druid with its rotation settings', async ({ page, context }) => {

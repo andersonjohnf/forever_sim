@@ -534,9 +534,10 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
                   <span className="flex min-w-0 flex-col">
                     <span>{c.name}</span>
                     {unhit && <span className="text-xs text-muted-foreground">Needs damage taken (Fight → Advanced)</span>}
-                    {/* A proc the next ability spends is up only moments: how often it came says what it did. */}
+                    {/* A proc the next ability it makes free spends is up only moments: how often it came says what it did.
+                        "It makes free": a Balance druid's Clearcasting waits for a Starfire, Moonfire or Insect Swarm, not Wrath. */}
                     {c.procsPerFight !== undefined && (
-                      <span className="text-xs text-muted-foreground">{formatOne(c.procsPerFight)} a fight, each spent by your next ability</span>
+                      <span className="text-xs text-muted-foreground">{formatOne(c.procsPerFight)} a fight, each spent by the next ability it makes free</span>
                     )}
                     {c.beforePull && <span className="text-xs text-muted-foreground">{BEFORE_PULL[c.id] ?? 'Before the pull'}</span>}
                   </span>

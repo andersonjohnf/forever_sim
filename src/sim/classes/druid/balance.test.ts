@@ -13,6 +13,7 @@ import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
 import { Sim } from '../../engine/sim'
 import { timeline } from '../../engine/test-helpers'
+import { normalizeConfig } from '../../config/normalize'
 import { buildPlan } from '../../plan/build'
 import { COND, type Plan } from '../../plan/types'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
@@ -386,7 +387,18 @@ describe('the Rotation tab’s notes (docs/ux.md "Rotation")', () => {
   it('says the filler isn’t used while Wrath for Eclipse is on, and is used without it or without the talent', () => {
     const unused = (values: Record<string, RotationValue>, talents = DEFAULT_TALENTS) => balanceUnusedSettings(values, talents)[ID.filler]
     expect(unused({})).toMatch(/^Not used while “Wrath for Eclipse” is on/)
+    // It names the switch to turn off, not an unclear "it" (BD3).
+    expect(unused({})).toMatch(/Turn “Wrath for Eclipse” off to cast only the filler\.$/)
     expect(unused({ [ID.eclipse]: false })).toBeUndefined()
     expect(unused({}, new Map())).toBeUndefined()
+  })
+
+  it('never lets Innervate’s mana share reach 0%, where it would never be cast: 5% at least (BD2)', () => {
+    const option = BALANCE_OPTIONS.find((o) => o.id === ID.innervateMana)
+    expect(option).toMatchObject({ kind: 'number', min: 5, max: 100, step: 5, default: 40 })
+    const d = defaultConfig('druid-balance')
+    const { config, warnings } = normalizeConfig({ ...d, rotation: { ...d.rotation, [ID.innervateMana]: 0 } })
+    expect(config.rotation[ID.innervateMana]).toBe(5)
+    expect(warnings).toContain('Innervate at or below was out of range and was set to 5.')
   })
 })

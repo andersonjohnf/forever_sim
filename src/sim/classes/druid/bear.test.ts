@@ -489,5 +489,9 @@ describe('the default bear’s plan', () => {
     const noWarrior = { raid: d.buffs.raid.filter((c) => c !== 'warrior'), enabled: buffs.enabled }
     expect(buildPlan({ ...d, buffs: noWarrior }).plan.abilities.map((a) => a.id)).toContain('demoralizingRoar')
     expect(unused({ ...d, buffs: noWarrior })).toBeUndefined()
+    // With the roar off (Max TPS) and the Buffs tab's roar on for another druid, that roar fills
+    // the group: no Shout is on the boss, so no note (BF1).
+    const other = { ...d.buffs, enabled: [...d.buffs.enabled, 'demoralizingRoar'] }
+    expect(unused({ ...d, buffs: other, rotation: { [BEAR_IDS.roarEnabled]: false } })).toBeUndefined()
   })
 })

@@ -354,7 +354,10 @@ export function bearUnusedSettings(values: Record<string, RotationValue>, setup:
   const v = reader(BEAR_OPTIONS, values)
   const out: Record<string, string> = {}
   const label = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.label
-  if (roarDisplaced(setup)) out[ID.roarEnabled] = 'Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.'
+  // Only while the rotation keeps its roar up: the roar is then the bear's own, left out of the Buffs
+  // tab's fillers, so what fills its group is a Demoralizing Shout. With the roar off (Max TPS), the
+  // Buffs tab's roar may fill it, another druid's (BF1).
+  if (v.on(ID.roarEnabled) && roarDisplaced(setup)) out[ID.roarEnabled] = 'Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.'
   if (lacerateWaits(v.on(ID.lacerateAlone), setup)) {
     out[ID.lacerateEnabled] = `Not used in this raid: its warriors keep the boss bleeding. Turn off “${label(ID.lacerateAlone)}” to use it anyway.`
   }

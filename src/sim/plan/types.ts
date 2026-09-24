@@ -240,6 +240,13 @@ export interface SpellDef {
    * hand's table).
    */
   ranged?: boolean
+  /**
+   * Damage % on its direct damage once the target is below `lowHealthBelowPct`% health, from
+   * t = floor(L × (1 − that/100)), the execute phase's rule (Decimation: Shadow Bolt +6% below 35%,
+   * docs/classes/warlock.md §11.3), as an ability's `lowHealthPct`. Absent: none.
+   */
+  lowHealthPct?: number
+  lowHealthBelowPct?: number
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
@@ -934,6 +941,12 @@ export interface AbilityPlan {
   castRangedHasted?: boolean
   /** It needs a ranged weapon (a shot): never used without `Plan.ranged`. */
   needsRanged?: boolean
+  // --- The Demonology warlock's (docs/classes/warlock.md §11). Optional: absent, a row behaves as before. ---
+  /**
+   * `cast`: power in tenths it gives the pet at once, capped at the pet's maximum (Demonic Energies:
+   * the demon gains the mana your Life Tap gives, §11.3). Absent, 0 or without a pet with power: none.
+   */
+  petPowerTenths?: number
 }
 
 /**
@@ -1142,6 +1155,13 @@ export const COND = {
   petPowerAtLeast: 64,
   /** the pet's power ≤ a, in tenths; false without a pet */
   petPowerAtMost: 65,
+  // 70–73 the Demonology warlock's (docs/classes/warlock.md §11).
+  /**
+   * the target is at or below a% health: from t = floor(L × (1 − a/100)), the execute phase's rule
+   * (Decimation's Soul Fire below 35%, docs/classes/warlock.md §11.3). Checked on each walk; it
+   * schedules no wake-up, so it suits a caster, who walks as each cast lands.
+   */
+  healthAtMost: 70,
 } as const
 
 export interface RotationCondition {

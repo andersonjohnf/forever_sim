@@ -413,6 +413,11 @@ export class Sim {
   private readonly splBoostAura: Int32Array
   /** 1: the boost's aura stays up when the spell lands (Incinerate on Immolate, docs/classes/warlock.md §3; Lava Burst on your Flame Shock, shaman.md). */
   private readonly splBoostKeep: Uint8Array
+  /** A spell's direct damage % below a health share, and from when this fight (Decimation, docs/classes/warlock.md §11.3). */
+  private readonly splLowPct: Float64Array
+  private readonly splLowBelow: Float64Array
+  private readonly splLowAt: Float64Array
+  private readonly lowHealthSpells: Int32Array
   /** A DoT's own multiplier, snapshotted in place of `splDamageMult` (docs/classes/warlock.md §4). */
   private readonly splDotMult: Float64Array
   private readonly splBoostPct: Float64Array
@@ -613,6 +618,8 @@ export class Sim {
   /** `cast` abilities: mana at once in tenths, plus a random 0…spread (a mana potion or rune). */
   private readonly abManaGain: Float64Array
   private readonly abManaSpread: Int32Array
+  /** A `cast`'s power for the pet, in tenths (Demonic Energies on Life Tap, docs/classes/warlock.md §11.3). */
+  private readonly abPetPower: Int32Array
   /** The next ability of the same cooldown category, in a ring (itself when it has none). */
   private readonly abCatNext: Int32Array
   /** The pre-pull casts (ability, time < 0) and the opener's rage (warrior.md §5.2 row 0). */
@@ -1458,6 +1465,10 @@ export class Sim {
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
     this.splBoostPct = Float64Array.from(spells, (x) => x.boostPct ?? 0)
     this.splBoostKeep = Uint8Array.from(spells, (x) => (x.boostKeep ? 1 : 0))
+    this.splLowPct = Float64Array.from(spells, (x) => x.lowHealthPct ?? 0)
+    this.splLowBelow = Float64Array.from(spells, (x) => x.lowHealthBelowPct ?? 0)
+    this.splLowAt = new Float64Array(spells.length).fill(Infinity)
+    this.lowHealthSpells = Int32Array.from(spells.flatMap((x, i) => ((x.lowHealthPct ?? 0) !== 0 ? [i] : [])))
     this.splDotMult = Float64Array.from(spells, (x) => x.dotDamageMult ?? x.damageMult)
     this.splSource = Int32Array.from(spells, (x) => x.source)
     this.splSchool = Int32Array.from(spells, (x) => x.school)
@@ -1621,6 +1632,7 @@ export class Sim {
     this.abManaReturnChance = Float64Array.from(abilities, (a) => a.manaReturnChance ?? 0)
     this.abManaGain = Float64Array.from(abilities, (a) => a.manaTenths ?? 0)
     this.abManaSpread = Int32Array.from(abilities, (a) => a.manaSpreadTenths ?? 0)
+    this.abPetPower = Int32Array.from(abilities, (a) => a.petPowerTenths ?? 0)
     this.abCatNext = ring(abilities.map((a) => a.category))
     this.abStackAura = Int32Array.from(abilities, (a) => a.stackAura ?? -1)
     this.abStackCast = Float64Array.from(abilities, (a) => a.stackCastPct ?? 0)
@@ -2067,6 +2079,11 @@ export class Sim {
     for (let i = 0; i < this.lowHealthAbilities.length; i++) {
       const a = this.lowHealthAbilities[i]
       this.abLowAt[a] = executePhaseStart(this.fightEnd, this.abLowBelow[a])
+    }
+    // docs/classes/warlock.md §11.3: Decimation's Shadow Bolt bonus from the target's 35%, by the same rule.
+    for (let i = 0; i < this.lowHealthSpells.length; i++) {
+      const s = this.lowHealthSpells[i]
+      this.splLowAt[s] = executePhaseStart(this.fightEnd, this.splLowBelow[s])
     }
     const hasExecute = this.executeAtMs < this.fightEnd
     // Time left ≤ x ⇔ now ≥ fightEnd − x; time left ≥ x ⇔ now ≤ fightEnd − x (warrior.md §5.2 rows 2–4).
@@ -3000,6 +3017,11 @@ export class Sim {
         case COND.petPowerAtMost:
           if (!this.hasPet || this.petPower > a) return false
           break
+        // docs/classes/warlock.md §11.3: the target below a% health, from t = floor(L × (1 − a/100)),
+        // the execute phase's rule. Read on each walk: a caster walks as each cast lands.
+        case COND.healthAtMost:
+          if (now < executePhaseStart(this.fightEnd, a)) return false
+          break
       }
     }
     return true
@@ -3245,6 +3267,8 @@ export class Sim {
     const spread = this.abManaSpread[a]
     if (this.abManaGain[a] > 0) this.gainMana(this.abManaGain[a] + (spread > 0 ? Math.floor(this.rngProc.next() * (spread + 1)) : 0), source, this.abNoThreat[a] === 0)
     if (this.abManaReturn[a] > 0) this.returnMana(a)
+    // docs/classes/warlock.md §11.3: Demonic Energies gives the demon the mana your Life Tap gives.
+    if (this.abPetPower[a] > 0) this.gainPetPower(this.abPetPower[a])
     this.startTicks(a)
     // paladin.md#protection-tree: Swift Judgement ends Judgement's cooldown.
     if (this.abEndsCd[a] >= 0) this.endCooldown(this.abEndsCd[a])
@@ -4231,6 +4255,8 @@ export class Sim {
     // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up;
     // Lava Burst's +20% while your Flame Shock is on the target, which it leaves up (#elemental-abilities).
     const boost = this.splBoostAura[s]
+    // docs/classes/warlock.md §11.3: Decimation's Shadow Bolt below 35%.
+    if (this.splLowPct[s] !== 0 && this.now >= this.splLowAt[s]) damage *= 1 + this.splLowPct[s] / 100
     if (boost >= 0 && this.auraActive[boost]) {
       damage *= 1 + this.splBoostPct[s] / 100
       if (this.splBoostKeep[s] === 0) this.removeAura(boost)

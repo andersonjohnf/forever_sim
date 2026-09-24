@@ -81,4 +81,10 @@ describe('the plan’s code tables', () => {
     expect(TRIGGER_COUNT).toBe(27)
     expect(ACTION.petPower).toBe(22)
   })
+
+  it('the Demonology warlock’s code (docs/classes/warlock.md §11): healthAtMost takes 70, the first of its 70–73, and adds no trigger or action', () => {
+    expect(COND.healthAtMost).toBe(70)
+    for (const [key, code] of Object.entries(COND)) if (code >= 70 && code <= 73) expect(key).toBe('healthAtMost')
+    expect(TRIGGER_COUNT).toBe(27)
+  })
 })

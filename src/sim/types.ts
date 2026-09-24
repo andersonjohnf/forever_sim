@@ -527,7 +527,37 @@ export interface AbilityResult {
   spell?: true
   /** The pet's name, on a row of the pet's damage, which counts toward your DPS (docs/mechanics/ranged-and-pets.md §10). */
   pet?: string
+  /**
+   * What the row's count a fight counts, which its outcomes line starts with (docs/ux.md#results
+   * "Breakdown"): `swings`, a white melee swing's (Main hand, Off hand, a form's or a pet's Auto
+   * attack); `shots`, Auto Shot's; `procs`, an item's, talent's, weapon's or seal's proc (Hand of
+   * Justice, Windfury, Seal of Command, Deep Wounds, Deadly Poison, Ignite); `applications`, a bleed's
+   * or DoT's put on the boss (Rend, Corruption, Rake's bleed); `ticks`, a periodic effect's ticks
+   * where nothing counts its casts; `uses`, a consumable's (a potion, a rune); `casts`, everything
+   * else, a channel's (Mind Flay, Arcane Missiles) and a rage cast's (Bloodrage, Enrage) included.
+   * The count is `casts`, but `procs` where the row has it (an extra-attacks proc's fires) and its
+   * attempts (hits, crits, glances, blocks, misses, dodges, parries) for `ticks`. Absent for a row
+   * that shows its own count (`counts`) or has nothing to count (a talent's row of mana or rage:
+   * Shield Specialization, Improved Seal of Fury).
+   */
+  unit?: AbilityUnit
+  /**
+   * On a `procs` row an extra-attacks proc feeds (Windfury Weapon, Ironfoe, Hand of Justice): the
+   * times it fired, over every fight, which is the row's count. Its `casts` count the extra swings
+   * (Windfury Weapon's and Ironfoe's two a proc), and its crit and avoided shares are over those.
+   * A fire whose swing becomes a queued Heroic Strike or Maul still counts here, but that swing's
+   * damage lands on the Heroic Strike's or Maul's row.
+   */
+  procs?: number
+  /**
+   * What one of its landings is, on a `casts` row that lands more than once a cast: a tick
+   * (Consecration) or a missile (Arcane Missiles). Its average damage and its crit and avoided
+   * shares are per landing and say so: "9.1% tick crit · 11.0% of ticks avoided · 95 avg tick".
+   */
+  landing?: 'tick' | 'missile'
 }
+
+export type AbilityUnit = 'casts' | 'swings' | 'shots' | 'procs' | 'applications' | 'ticks' | 'uses'
 
 export interface BleedResult {
   /** Its ticks can crit (Rend in the `forever` profile; damage-and-timing §4). */

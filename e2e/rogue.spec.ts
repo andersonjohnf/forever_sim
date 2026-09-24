@@ -104,7 +104,7 @@ test.describe('Combat rogue', () => {
     for (const ability of ['Sinister Strike', 'Main hand', 'Off hand', 'Eviscerate', 'Deadly Poison', 'Instant Poison']) {
       await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
     }
-    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deadly Poison/ })).toContainText(/applications avoided/)
+    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deadly Poison/ })).toContainText(/\d+\.\d procs a fight · .*\d+\.\d% avoided · [\d,]+ avg tick/)
 
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     const table = results.getByRole('table')

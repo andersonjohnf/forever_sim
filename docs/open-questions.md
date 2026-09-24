@@ -19,11 +19,12 @@ client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C2
 2026-09-23 from the beta-log analysis of rage from damage taken
 ([rage.md](mechanics/rage.md#forever-)), and B77 added the same day from its rounding
 ([rage.md](mechanics/rage.md#rounding)); B9, B14 and C2 noted 2026-09-24 from two bears' logs
-([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), defaults unchanged · Forever beta
-1.60.1.69913 · Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch
-2026-11-04, raids unlock 2026-12-09
+([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), defaults unchanged; B79 added
+2026-09-24 from the ability-counts review (Deep Wounds' refresh,
+[its review](reviews/2026-09-24-ability-counts.md)) · Forever beta 1.60.1.69913 · Classic Era
+1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-09
 
-**145 entries, 122 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 77 (20 / 27 / 30) ·
+**146 entries, 123 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 78 (21 / 27 / 30) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
@@ -369,6 +370,25 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [combat-tables §2.3](mechanics/combat-tables.md#23-glancing-blows),
   [OQ 4](mechanics/combat-tables.md#open-questions);
   [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules)
+
+#### B79. Deep Wounds' refresh: restart or keep the tick timer
+**High · M2 · ≤20 (Arms tier 3)**
+- **Assumes:** a crit that refreshes Deep Wounds restarts its 12 s and its tick timer, the next
+  tick 3 s after the crit, as Classic Era's WarriorSim does [C; ? in Forever]. A Fury warrior
+  crits about every 1.6 s, so it ticks about 17 times a fight from 115 procs; a refresh that
+  kept the timer would tick about 60 times, about **+2% Fury DPS** (+1.5% Arms). The rogue model
+  assumes the other rule for Deadly Poison's stacks (renew without a restart, [rogue
+  Q8](classes/rogue.md#10-open-questions)), so the two conflict.
+- **Test:** with Deep Wounds (1/3 is enough) vs a mob three levels higher, crit it every 1–2 s
+  (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times from the
+  combat log. Restarting: ticks come 3 s after the latest crit, so a crit less than 3 s after the
+  last one pushes the tick back. Keeping: ticks come every 3 s from the first application,
+  whatever crits in between. Then apply Deadly Poison stacks on a rogue the same way.
+- **Samples:** 10 refresh trials with at least 5 refreshes each, per spell.
+- **Changes:** the refresh rule of `weaponBleed` (Deep Wounds) or of Deadly Poison's stacks.
+- **Docs:** [warrior §2.5](classes/warrior.md#25-crits-impale-flurry-deep-wounds),
+  [Q21](classes/warrior.md#9-open-questions); [rogue Q8](classes/rogue.md#10-open-questions);
+  [damage §4 "Refresh"](mechanics/damage-and-timing.md#4-dots-and-bleeds)
 
 #### B8. Dual Wield Specialization: off-hand-only hit and rage
 **High · M2 · ≤30 (Fury tier 4)**

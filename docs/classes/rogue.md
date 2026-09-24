@@ -603,7 +603,12 @@ R11–R13 are in `subtlety.test.ts`.
 - **Q6 Cold Blood.** Used up only when the strike lands?
 - **Q7 Mutilate.** One roll for both strikes or one each; Seal Fate from either hand's crit.
 - **Q8 Deadly Poison's timer.** A new stack renews the duration without restarting the tick timer
-  (the modern engine's rule), and its ticks crit in Forever (the client flag).
+  (the modern engine's rule), and its ticks crit in Forever (the client flag). This conflicts
+  with the warrior's Deep Wounds, whose refresh restarts its tick timer (Classic Era's rule,
+  [warrior §2.5 and Q21](warrior.md#9-open-questions)); if Forever runs one rule for both, one of
+  the two models is wrong. Deep Wounds' test ([open-questions
+  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)) settles
+  which, and this one with it.
 - **Q9 Hack and Slash.** Whether a dagger or fist in one hand gives its crit to the other's attacks.
 - **Q10 Base values.** §7.6's placeholders (OQ-1 in character-stats); the rogue's crit per point is
   about 1.7% of Combat DPS, so a 0–1% base crit error is over D24's 1%: measure it first (a naked

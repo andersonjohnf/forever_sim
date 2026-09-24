@@ -1328,14 +1328,16 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     ([Other abilities](#other-abilities)). Holy Shield's damage is 28% of the default Protection
     TPS: additive (×2.1) would cost about 2.2% of TPS, a miss on the spell table (14% for the
     default build against a boss) about 3.9%, and a crit at spell crit would add about 0.7%.
-    *Test:* Holy Shield's damage events against a boss (misses, crits) and its threat on a threat
-    meter.
+    *Test (guild test T6):* Holy Shield's damage events against a boss (misses, crits), and the
+    threat of each block ÷ its damage: 2.28 means multiplied, 2.10 additive; count misses over 100
+    blocks.
 17. **Seal of the Crusader AP at 60**: 306 or 325? The client value is settled: 306 + 2.4 per
     level over levels 52–60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Whether the
     server applies the per-level term is the in-game question. *Test:* at level 60, sheet AP
     with and without SotC.
 18. **Consecration ticks**: does each tick roll spell hit and crit separately (Forever
-    periodic crits)? Which 4 targets count as "first to enter" on a multi-mob pull?
+    periodic crits)? Which 4 targets count as "first to enter" on a multi-mob pull? *Test (guild test
+    T7):* count missed Consecration ticks over 300+ on a mob three levels above you.
 19. **Spell modifier stacking** (Benediction + Holy Conduit): additive or multiplicative?
 20. **Vindication proc chance** (data reads 100% on melee damage).
 21. ✅ **Resolved from client data** ([client.md][client]). The DB2-derived values this doc
@@ -1396,6 +1398,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     *Test (guild test T4):* a Holy Strike's threat ÷ (its damage × 1.9 × 1.25 × the gloves' 1.02):
     1.00 means no bonus; repeat without Iron Creed.
 
+28. **Judgement of Fury's scripted dummy** (1607 + 42.3/level, coefficient 0.18): the sim gives it no
+    damage and no threat, as the Classic Era client's identical dummy on Judgement of Righteousness
+    has none ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)). As flat threat it would be
+    about +454 TPS. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.9,
+    judged while you already have top threat (so the taunt does nothing).
 ---
 
 ## Sources

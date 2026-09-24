@@ -427,7 +427,7 @@ const REGISTRY = {
     docRef: `${BUFFS}#42-other-debuffs`,
   },
   holyStrike: {
-    text: 'Holy Strike deals 40% of a normalized main-hand swing plus 81–105, as its tooltip reads (not 40% of the 81–105 too), plus the full 0.429 × spell damage; untested.',
+    text: 'Holy Strike deals 40% of a normalized main-hand swing plus 81–105, as its tooltip reads (not 40% of the 81–105 too), plus the full 0.429 × spell damage, and its script effect adds no threat; untested.',
     docRef: `${PAL}#other-abilities`,
   },
   consecrationTicks: {

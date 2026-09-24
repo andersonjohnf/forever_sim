@@ -943,8 +943,9 @@ Each with its effect on the default setup's DPS, per
   moved 368.76 → 368.72, within its ± 0.23). *Effect:* under 0.1%.
 - **E7: Eye of the Beast's use** (+7% spell hit for 20 s, 5 min) isn't simulated. *Effect:* one use
   a 3-minute fight, about +0.6%.
-- **E8: Alliance gear.** The list's honor mail and weapons are Horde's, with no Alliance counterpart
-  that has spell power, so a Dwarf takes the next rank: 15% less. *Effect:* Alliance only.
+- **E8: Alliance gear.** The list's honor mail is Horde's, with no Alliance counterpart that has spell
+  power, so a Dwarf takes the next rank; its main hand is Sageclaw, Mindfang's Alliance twin. A Dwarf
+  is 3.3% behind an Orc (356.7 against 368.8). *Effect:* Alliance only.
 - **E9: the caster enchants** (Spell Power on the weapon, Arcanum of Focus) are in the catalogue
   (the warlock's slice) but not the Elemental defaults yet, and Zandalar Signet of Mojo waits on
   Zandalar: about 50 spell damage, roughly +5%. The caster food and oil (Nightfin Soup, Brilliant

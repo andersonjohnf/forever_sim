@@ -24,41 +24,31 @@ export interface Release {
 export const RELEASES: readonly Release[] = [
   {
     id: '2026-09-24.4',
-    time: '2026-09-24T23:08:55Z',
+    time: '2026-09-24T23:24:22Z',
     groups: [
       {
         label: 'Tanks',
         items: [
           'Pick a rotation style: Defensive, Balanced (the new default) or Max TPS, and reorder the priority list on the Rotation tab.',
-          'Protection Warrior Balanced: Shield Block and 5 Sunders kept, no Thunder Clap or Demoralizing Shout, about +10% TPS for about 21% more damage taken.',
+          'Protection Warrior Balanced: Shield Block and 5 Sunders kept, no Thunder Clap or Demoralizing Shout: about +10% TPS for about 21% more damage taken.',
+          'Feral Bear Balanced: +3% TPS and +3% DPS for under 1% more damage taken; Max TPS Mauls from 14 rage.',
           'Protection Paladin uses our lead theorycrafter’s talents: +1% TPS.',
-          'Feral Bear Max TPS Mauls from 14 rage.',
         ],
       },
       {
-        label: 'Casters',
+        label: 'DPS specs',
         items: [
-          'Frost and Arcane Mages wear Mindfang: about +8%.',
-          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power.',
-        ],
-      },
-      {
-        label: 'Races',
-        items: ['Gnome Eureka! for every class (+0.3 to 2.2%), and Expansive Mind for mages, priests and rogues.'],
-      },
-      {
-        label: 'Consumables',
-        items: [
-          'One stone or oil per weapon; potions, runes and explosives share cooldowns.',
-          'Greater Stoneshield and the EZ-Thro Dark Bomb are simulated; the bomb costs melee a little, so no preset uses it.',
-          'Casters’ Max consumables include Brilliant Wizard Oil.',
+          'Horde Frost and Arcane Mages wear Mindfang (+8 to 9%); Alliance Fire Mages (+9%) and Dwarf Elemental Shamans (+13%) wear Sageclaw.',
+          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power (+0.7%).',
+          'Gnome Eureka! for every class (+0.4 to 2.2%), and Expansive Mind for mages, priests and rogues.',
+          'Max consumables add Brilliant Wizard Oil for every caster: Destruction +4.7%, Shadow +3.5%, Balance +5%.',
         ],
       },
       {
         label: 'Your setup',
         items: [
           'Gear and talents you never changed follow new defaults; your own changes are kept.',
-          'An Equip pre-raid best in slot button on the Gear tab.',
+          'Equip pre-raid best in slot is now a button on the Gear tab.',
           'Fight details show each ability’s casts, swings, procs or ticks a fight and its average hit.',
           'What’s new, and a Release history in the menu.',
         ],
@@ -67,9 +57,15 @@ export const RELEASES: readonly Release[] = [
         label: 'Fixes',
         items: [
           'Arms Whirlwind no longer stalls after Recklessness.',
-          'Switching spec cancels a running sim.',
-          'Long sims survive switching apps on your phone.',
+          'Switching spec cancels a running sim, and a sim that gets stuck stops after a minute and offers a reload.',
           'Share links work with the tracking bits chat apps add.',
+        ],
+      },
+      {
+        label: 'Consumables',
+        items: [
+          'One stone or oil per weapon; potions, runes and explosives share cooldowns.',
+          'Greater Stoneshield and the EZ-Thro Dark Bomb are simulated; no preset uses the bomb (it costs melee a little, and casters would need to stand within 15 yards).',
         ],
       },
     ],

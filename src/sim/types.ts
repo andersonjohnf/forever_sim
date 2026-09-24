@@ -379,7 +379,10 @@ export interface AbilityResult {
   certain?: true
   /** What its casts count, shown a fight on its row: blocks (Holy Shield's damage) or extra attacks (Reckoning). */
   counts?: 'blocks' | 'extraAttacks'
-  /** Mana its effects gave, over every fight (Shield Specialization, Improved Seal of Fury); absent for none. */
+  /**
+   * For a row whose threat is only the mana it gave (Shield Specialization, Improved Seal of Fury):
+   * that mana, over every fight. Absent for every other row.
+   */
   mana?: number
 }
 

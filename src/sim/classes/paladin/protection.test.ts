@@ -630,12 +630,12 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     }
     for (let i = 0; i < fights; i++) sim.runFight(i)
     const share = (minute: number) => sum[minute] / ticks[minute] / plan.mana!.maxTenths
-    // It holds: from the second minute to the eighth the pool stays around 70% (Consecration takes
+    // It holds: from the second minute to the eighth the pool stays around 75% (Consecration takes
     // what's above 90%). Then, in the execute phase from 8 minutes (the last 20%), Hammer of Wrath
-    // runs it down: under 10% on average in the last minute.
+    // runs it down: to about half in the ninth minute, and under 15% on average in the last.
     for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.6)
-    expect(share(8)).toBeLessThan(0.4)
-    expect(share(9)).toBeLessThan(0.1)
+    expect(share(8)).toBeLessThan(0.5)
+    expect(share(9)).toBeLessThan(0.15)
     const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (fights * 600000)
     expect(up('sealOfFury')).toBeGreaterThan(0.98)
     expect(up('holyShield')).toBeGreaterThan(0.9)
@@ -643,8 +643,8 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
     expect(perFight('holyStrike')).toBeGreaterThan(0.97 * 60)
-    // Consecration from 90% of maximum mana: at the pull, and seldom after; its cooldown allows 75.
-    expect(perFight('consecration')).toBeLessThan(15)
+    // Consecration from 90% of maximum mana: at the pull, and a third as often as its cooldown allows (75).
+    expect(perFight('consecration')).toBeLessThan(30)
     expect(low).toBeGreaterThanOrEqual(0)
   })
 })

@@ -177,8 +177,9 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
     it(`puts every ${spec.name} setting under a heading, a dependent one with its parent or naming it`, () => {
       const options = spec.rotationOptions
       for (const [i, option] of options.entries()) {
-        // Only Arms' stance and Protection's priority, which shape the rest, come first without a heading.
-        if (option.id === 'warrior.arms.baseStance' || option.id === 'warrior.protection.priority') {
+        // Only what shapes the rest comes first without a heading: Arms' stance, and a tank's
+        // Priority, its duties first or Max TPS (D26).
+        if (option.id === 'warrior.arms.baseStance' || option.id === 'warrior.protection.priority' || option.id === 'paladin.protection.priority') {
           expect(option.group).toBeUndefined()
           expect(i, option.id).toBe(0)
         } else expect(rotationGroups, option.id).toContain(option.group)

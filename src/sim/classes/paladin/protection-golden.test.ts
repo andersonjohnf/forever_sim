@@ -35,6 +35,11 @@ describe('golden run (fixed config and seed)', () => {
   // - Then its results: Righteous Fury is a cast before the pull, so the results list its buff
   //   (QU5), and Swift Judgement's cast shows no uptime, since the next Judgement uses its buff at
   //   once (QU10). Nothing else moves.
+  // - After the rebase onto main's Retribution (C2): a paladin's Standard raid now brings Prayer of
+  //   Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem, Elixir of Holy Power and
+  //   the Major Mana Potion (buffs doc §6.2, §6.3): 2,717 → 3,227 mana, +40 spell damage. With the
+  //   old buffs every number is the same (the engine didn't move). On this seed's 1,000 fights, TPS
+  //   395.79, DPS 220.73 and damage taken 680.6 a second. The snapshot records the mana ledger too.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -46,6 +51,7 @@ describe('golden run (fixed config and seed)', () => {
       durationSec: result.durationSec,
       abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.casts, a.hits, a.crits, a.misses, a.dodges, a.parries, a.blocks]),
       cooldowns: result.cooldowns.map((c) => [c.id, c.uptimePct, c.castsPerFight]),
+      mana: result.mana,
     }).toMatchSnapshot()
   })
 })

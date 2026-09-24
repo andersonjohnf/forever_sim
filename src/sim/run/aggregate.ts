@@ -219,9 +219,10 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     }
     if (source.certain) result.certain = true
     if (source.counts) result.counts = source.counts
-    // Mana its effects gave (Shield Specialization, Improved Seal of Fury), the ledger's per-row count.
+    // A row whose threat is the mana it gave (Shield Specialization, Improved Seal of Fury): that
+    // mana, from the ledger's count per row.
     const mana = agg.manaBySource[i] ?? 0
-    if (mana > 0) result.mana = mana / 10
+    if (damage === 0 && mana > 0) result.mana = mana / 10
     if (source.bleed) {
       // Rend's marker aura is up from an application until its last tick; Rake's is on its bleed's row.
       const marker = plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i))

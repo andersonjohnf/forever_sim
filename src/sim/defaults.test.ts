@@ -112,6 +112,19 @@ describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
     expect(d.gear).not.toEqual(v1.gear)
     expect(ehp(d) / ehp(v1)).toBeGreaterThanOrEqual(0.9)
   })
+  // The Lamellar PvP pieces are Alliance's: an Undead paladin wears the Horde picks (T2R-2).
+  it.each(['alliance-human', 'alliance-dwarf', 'horde-undead'])('holds for the Protection paladin’s interim gear as %s', (race) => {
+    const d = defaultConfig('paladin-protection', race)
+    const v1 = { ...d, gear: preRaidListGear('paladin-protection', race) }
+    expect(d.gear).not.toEqual(v1.gear)
+    expect(ehp(d) / ehp(v1)).toBeGreaterThanOrEqual(0.9)
+  })
+  it('gives a Horde paladin the Horde picks where the Lamellar pieces are Alliance’s', () => {
+    const { shoulder, chest, legs, feet } = defaultConfig('paladin-protection', 'horde-undead').gear
+    expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([19695, 13168, 22673, 272718])
+    const ally = defaultConfig('paladin-protection', 'alliance-human').gear
+    expect([ally.shoulder, ally.chest, ally.legs, ally.feet].map((e) => e?.itemId)).toEqual([23277, 23272, 23273, 23275])
+  })
 })
 
 describe('matchSupplies (docs/classes/hunter.md#73-gear)', () => {

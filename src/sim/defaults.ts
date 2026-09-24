@@ -358,16 +358,18 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
   'paladin-protection': {
     head: [12640], // Lionheart Helm
     neck: [19426], // Orb of the Darkmoon
-    shoulder: [23277], // Lieutenant Commander's Lamellar Shoulders
+    // The Lamellar PvP pieces are Alliance's, with no Horde twin: a Horde paladin takes the second item,
+    // the best Horde set for threat within the effective-health floor (T2R-2; paladin.md "Protection defaults").
+    shoulder: [23277, 19695], // Lieutenant Commander's Lamellar Shoulders; Horde: Darksoul Shoulders
     back: [20697], // Crystalline Threaded Cape
-    chest: [23272], // Knight-Captain's Lamellar Breastplate
+    chest: [23272, 13168], // Knight-Captain's Lamellar Breastplate; Horde: Plate of the Shaman King
     wrist: [12936], // Battleborn Armbraces
     // Deathbone Gauntlets, for the effective-health floor (the search's Darkrune Gauntlets, 20549, leave
     // 89.4% of v1's; paladin.md "Protection defaults").
     hands: [14622],
     waist: [22086], // Soulforge Belt
-    legs: [23273], // Knight-Captain's Lamellar Leggings
-    feet: [23275], // Knight-Lieutenant's Lamellar Sabatons
+    legs: [23273, 22673], // Knight-Captain's Lamellar Leggings; Horde: Outrider's Chain Leggings
+    feet: [23275, 272718], // Knight-Lieutenant's Lamellar Sabatons; Horde: Premier Chevalier Sabatons
     finger1: [20682], // Elemental Focus Band
     finger2: [19325], // Don Julio's Band
     trinket1: [272438], // Weakness Analyzer

@@ -455,11 +455,13 @@ slice is worked:
     about −5 damage taken a second), Force of Will's 51-damage cut (~5% [?]) isn't simulated, and
     Templar's Bulwark and Divine Protection aren't used.
   - **A11:** mana-gain threat doesn't take the global multiplier [?] (+0.1%).
-- **Interim Protection paladin gear** (T2): the Lamellar PvP pieces are Alliance's, so a Horde race
-  takes the pre-raid list's survival pick in those slots; and the threat set leaves the boss 5.2% crit
-  chance (defense 310, v1's 433) and 32% more damage taken than v1's preset (898 a second against
-  681), within the user's effective-health floor (90.6% of v1's). The optimizer (O2) replaces the set;
-  D30's survival constraint for it is the class doc's floor.
+- **Interim Protection paladin gear** (T2; T2R-2's fix): the Lamellar PvP pieces are Alliance's with
+  no Horde twin, so a Horde paladin wears the Horde picks measured for those slots, 787.2 TPS against
+  Alliance's 823.6 (−4.4%, all of it the gear), both within the floor (90.6% and 90.4% of v1's). The
+  threat set leaves the boss 4.4% crit chance (defense 330, v1's 433) and about a third more damage
+  taken than v1's preset (905 a second against 681 in C3's setup), within the user's effective-health
+  floor. The optimizer (O2) replaces the set; D30's survival constraint for it is the class doc's
+  floor, and its crit-immune switch the crit.
 - **Caster food and oil across the caster presets** (T2 review T2R-6, pre-existing, low): Nightfin
   Soup and Brilliant Wizard Oil are in Elemental's Standard raid and the mages' Max consumables, and
   Nightfin Soup and Wizard Oil in the Protection paladin's Standard raid, but in no warlock, Shadow

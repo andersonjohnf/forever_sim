@@ -1,50 +1,97 @@
 import { deflateRawSync } from 'node:zlib'
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The Protection paladin's Rotation tab (docs/ux.md "Rotation"; docs/classes/paladin.md "Protection:
-// model and rotation"): its priority choice first, "Tank duties first" by default or "Max TPS"
-// (decision D26), which turns its duty, Devotion Aura, off for Retribution Aura; the Buffs tab's
-// Devotion Aura as yours or, with Max TPS, off for another paladin's; and a run with each. These
-// tests load it from a plain share link (paladin-protection.spec.ts gets there from the switcher).
-const PROTECTION = `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'paladin-protection' })).toString('base64url')}`
+// model and rotation"): its priority list (decision D31), with D28's three rotations as presets
+// first on the tab, Balanced by default, Defensive (D26's "Tank duties first") and Max TPS, which
+// turns its duty, Devotion Aura, off for Retribution Aura; editing the list makes it Custom; the
+// Buffs tab's Devotion Aura as yours or, with Max TPS, off for another paladin's; and a run with
+// each. These tests load it from a plain share link (paladin-protection.spec.ts gets there from the
+// switcher).
+const link = (config: object) => `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'paladin-protection', ...config })).toString('base64url')}`
+const PROTECTION = link({})
 
-async function openRotation(page: Page) {
-  await page.goto(PROTECTION)
+const DEFAULT_ORDER = [
+  'prepull',
+  'seal',
+  'holyShield',
+  'judgement',
+  'swiftJudgement',
+  'holyStrike',
+  'hammerOfTheRighteous',
+  'exorcism',
+  'consecration',
+  'consecrationRank1',
+  'hammerOfWrath',
+]
+const BALANCED_HELP = /^Balanced keeps Devotion Aura and Holy Shield up, as Defensive does, and is tuned for threat and damage together: Hammer of the Righteous in Holy Strike’s place, 0\.4% less TPS for 1\.3% more DPS/
+
+async function openRotation(page: Page, url = PROTECTION) {
+  await page.goto(url)
   await expect(page.getByText('Loaded a shared setup')).toBeVisible()
   await expect(page.getByRole('button', { name: /Spec: Protection Paladin/ })).toBeVisible()
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
   return page.getByRole('tabpanel', { name: 'Rotation' })
 }
+const preset = (page: Page) => page.getByRole('combobox', { name: 'Rotation preset' })
+const pick = async (page: Page, name: string) => {
+  await preset(page).click()
+  await page.getByRole('option', { name, exact: true }).click()
+}
+const list = (tab: Locator) => tab.getByRole('list', { name: 'Priority list' })
+const row = (tab: Locator, id: string) => tab.locator(`[data-apl-row="${id}"]`)
+/** The rows' ids in the list's order. */
+const order = (page: Page) => page.locator('[data-apl-row]').evaluateAll((rows) => rows.map((r) => r.getAttribute('data-apl-row')))
+/** A row's settings in the desktop panel. */
+const openRow = async (page: Page, tab: Locator, name: string) => {
+  await list(tab).getByRole('button', { name, exact: true }).click()
+  return page.getByRole('complementary', { name: `${name} settings` })
+}
 
 test.describe('Protection paladin rotation', () => {
-  test('puts the priority first, tank duties by default with Devotion Aura up, and its headings under it', async ({ page }) => {
+  test('puts the preset first, Balanced by default, and the list in paladin.md’s order', async ({ page }) => {
     const tab = await openRotation(page)
-    await expect(tab.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
-    await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
-    await expect(priority).toHaveAccessibleDescription(/^Tank duties first keeps your Devotion Aura up, \+735 armor, so you take less damage\. Max TPS runs Retribution Aura instead for threat/)
-    expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
-    for (const name of ['Judgement of the Crusader', 'Holy Shield', 'Devotion Aura', 'On-use trinkets', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
-      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, has a first quick search on top of them.', { exact: true })).toBeVisible()
+    await expect(preset(page)).toHaveText('Balanced (default)')
+    await expect(preset(page)).toHaveAccessibleDescription(BALANCED_HELP)
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Cooldowns and buffs', 'Consumables', 'Priority list'])
+    // The preset comes before everything else on the tab, as a tank's priority choice always did.
+    expect((await preset(page).boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
+    await preset(page).click()
+    await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
+    await page.keyboard.press('Escape')
+
+    expect(await order(page)).toEqual(DEFAULT_ORDER)
+    await expect(row(tab, 'prepull')).toContainText('Devotion Aura · Righteous Fury · Judgement of the Crusader at the pull')
+    await expect(row(tab, 'prepull').getByText('Fixed in place:')).toHaveCount(1)
+    await expect(row(tab, 'seal')).toContainText('Seal of Fury · again with 2.5 s left')
+    for (const name of ['Holy Shield', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Hammer of the Righteous', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
+      await expect(list(tab).getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    // Hammer of the Righteous in Holy Strike's place is off: Holy Strike makes more threat (T2).
-    await expect(tab.getByRole('switch', { name: 'Hammer of the Righteous', exact: true })).not.toBeChecked()
+    await expect(tab.getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
+    await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+    // Balanced's Hammer of the Righteous takes Holy Strike's place with the default axe, and Holy Strike's row says so.
+    await expect(row(tab, 'hammerOfTheRighteous')).toContainText('In Holy Strike’s place, on cooldown')
+    await expect(row(tab, 'holyStrike')).toContainText('Not used: Hammer of the Righteous takes its place (they share a cooldown).')
+    await expect(row(tab, 'holyStrike')).toHaveAttribute('data-inactive')
+    await expect(row(tab, 'consecration')).toContainText('Rank 5 · from 20% mana')
 
     // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
     const buffs = tab.getByRole('region', { name: 'Cooldowns and buffs' })
     await expect(buffs.getByRole('listitem').first()).toContainText(/^Righteous Fury.*×1\.9 threat from your Holy damage.*Always on$/)
     await expect(buffs.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
     // Exorcism against a boss that isn't Undead or a Demon: dimmed, and it says why.
-    const exorcism = tab.getByRole('switch', { name: 'Exorcism', exact: true })
-    await expect(exorcism).toHaveAccessibleDescription(/Not used: set Creature type to Undead or Demon in Fight/)
-    await expect(tab.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Exorcism', exact: true }) })).toHaveCount(1)
-    // Mana thresholds read "% mana".
-    const fillers = tab.getByRole('region', { name: 'Fillers' })
-    await fillers.getByRole('button', { name: /^Advanced settings for Fillers/ }).click()
-    await expect(fillers.getByText('% mana').first()).toBeVisible()
+    await expect(row(tab, 'exorcism')).toContainText('Not used: needs another creature type (Fight tab).')
+    await expect(row(tab, 'exorcism')).toHaveAttribute('data-inactive')
+
+    // The pre-pull's settings: Devotion Aura, the duty, and the opener; mana thresholds read "% mana".
+    const prepull = await openRow(page, tab, 'Before the pull')
+    await expect(prepull.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeChecked()
+    await expect(prepull.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })).toBeChecked()
+    await expect(prepull.getByRole('button', { name: /^Move (up|down)$/ })).toHaveCount(0)
+    const consecration = await openRow(page, tab, 'Consecration')
+    await expect(consecration.getByText('% mana').first()).toBeVisible()
 
     // The Buffs tab's Devotion Aura is yours: on and locked.
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
@@ -56,13 +103,24 @@ test.describe('Protection paladin rotation', () => {
     await expect(page.getByRole('switch', { name: 'Thunder Clap', exact: true })).not.toBeChecked()
   })
 
-  test('Max TPS turns Devotion Aura off for Retribution Aura, leaves the Buffs tab’s off, and a run shows its damage', async ({ page }) => {
+  test('Defensive plays Holy Strike; Max TPS turns Devotion Aura off for Retribution Aura, and the Buffs tab’s is then another paladin’s', async ({ page }) => {
     const tab = await openRotation(page)
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await priority.getByRole('radio', { name: 'Max TPS' }).click()
-    await expect(priority.getByRole('radio', { name: 'Max TPS' })).toBeChecked()
-    const devotion = tab.getByRole('switch', { name: 'Devotion Aura', exact: true })
-    // Its default follows the choice: off, and not marked as changed.
+    await pick(page, 'Defensive')
+    await expect(preset(page)).toHaveText('Defensive')
+    await expect(preset(page)).toHaveAccessibleDescription(/^Defensive keeps your Devotion Aura up, \+735 armor, and is tuned for threat: Holy Strike/)
+    await expect(page.locator('[data-announcer]')).toHaveText('Rotation set to Defensive.')
+    await expect(list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true })).not.toBeChecked()
+    await expect(row(tab, 'holyStrike')).toContainText('On cooldown')
+    // A preset moves defaults: nothing is marked changed.
+    await expect(list(tab).getByRole('button', { name: 'Hammer of the Righteous', exact: true })).not.toHaveAccessibleDescription(/Changed/)
+
+    await pick(page, 'Max TPS')
+    await expect(preset(page)).toHaveText('Max TPS')
+    await expect(preset(page)).toHaveAccessibleDescription(/^Max TPS runs Retribution Aura instead of Devotion Aura for threat/)
+    await expect(row(tab, 'prepull')).toContainText('Retribution Aura · Righteous Fury')
+    const prepull = await openRow(page, tab, 'Before the pull')
+    const devotion = prepull.getByRole('switch', { name: 'Devotion Aura', exact: true })
+    // Its default follows the preset: off, and not marked as changed.
     await expect(devotion).not.toBeChecked()
     await expect(devotion).not.toHaveAccessibleDescription(/Changed/)
     await expect(devotion).toHaveAccessibleDescription(/Off by default with Max TPS/)
@@ -79,56 +137,94 @@ test.describe('Protection paladin rotation', () => {
     await expect(page.getByText('Retribution Aura', { exact: true }).first()).toBeVisible()
   })
 
-  test('with tank duties again, a Devotion Aura you turned on in Buffs leaves the preset as it was', async ({ page }) => {
+  test('editing the list after picking a preset makes it Custom, and picking one again puts it back', async ({ page }) => {
     const tab = await openRotation(page)
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await priority.getByRole('radio', { name: 'Max TPS' }).click()
+    await pick(page, 'Defensive')
+    await list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true }).click()
+    await expect(preset(page)).toHaveText('Custom')
+    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the priority list from every preset. Pick one to start again from it.')
+    await pick(page, 'Defensive')
+    await expect(list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).toBeChecked()
+    // Moving a row makes it Custom too; Reset order hands focus to the list's first row.
+    const holyShield = await openRow(page, tab, 'Holy Shield')
+    await holyShield.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect(preset(page)).toHaveText('Custom')
+    await page.getByRole('button', { name: 'Reset order' }).click()
+    await expect(preset(page)).toHaveText('Defensive')
+    await expect(list(tab).getByRole('button', { name: 'Before the pull', exact: true })).toBeFocused()
+    // Reset rotation: Balanced again, with focus on the preset.
+    await page.getByRole('button', { name: 'Reset rotation' }).click()
+    await expect(preset(page)).toHaveText('Balanced (default)')
+    await expect(preset(page)).toBeFocused()
+  })
+
+  test('a setup saved with D26’s rotations loads them by their new names (D28)', async ({ page }) => {
+    await openRotation(page, link({ rotation: { 'paladin.protection.priority': 'duties' } }))
+    await expect(preset(page)).toHaveText('Defensive')
+    await openRotation(page, link({ rotation: { 'paladin.protection.priority': 'maxTps' } }))
+    await expect(preset(page)).toHaveText('Max TPS')
+  })
+
+  test('with Defensive again, a Devotion Aura you turned on in Buffs leaves the Buffs preset as it was', async ({ page }) => {
+    await openRotation(page)
+    await pick(page, 'Max TPS')
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    const preset = page.getByRole('radiogroup', { name: 'Preset' })
-    await expect(preset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
+    const buffPreset = page.getByRole('radiogroup', { name: 'Preset' })
+    await expect(buffPreset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
     // Another paladin's Devotion Aura: a choice of your own, so the preset no longer matches.
     await page.getByRole('switch', { name: 'Devotion Aura', exact: true }).click()
     await expect(page.getByText('Custom selection.')).toBeVisible()
-    // Back to tank duties: it's yours again, on whatever the preset says, so the preset matches.
+    // Back to Defensive: it's yours again, on whatever the preset says, so the preset matches.
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    await priority.getByRole('radio', { name: 'Tank duties first' }).click()
+    await pick(page, 'Defensive')
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    await expect(preset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
+    await expect(buffPreset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
     await expect(page.getByText('Custom selection.')).toHaveCount(0)
   })
 
-  test('a run shows Righteous Fury up all fight, Holy Shield’s blocks, the mana rows’ mana, and the boss’s table with Holy Shield up', async ({ page }) => {
+  test('a Balanced run shows Hammer of the Righteous, Righteous Fury up all fight, Holy Shield’s blocks, the mana rows’ mana, and the boss’s table with Holy Shield up', async ({ page }) => {
     await openRotation(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     const breakdown = results.getByRole('region', { name: 'Threat by ability' })
-    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
-    await expect(row('Holy Shield')).toContainText(/\d+\.\d blocks a fight$/)
-    await expect(row('Holy Shield')).not.toContainText('crit')
-    await expect(row('Reckoning')).toContainText(/\d+\.\d extra attacks a fight · \d+\.\d% crit/)
-    await expect(row('Improved Seal of Fury')).toContainText(/from [\d,]+ mana a fight$/)
-    await expect(row('Shield Specialization')).toContainText(/from [\d,]+ mana a fight$/)
+    const line = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
+    await expect(line('Hammer of the Righteous')).toHaveCount(1)
+    await expect(line('Holy Strike')).toHaveCount(0)
+    await expect(line('Holy Shield')).toContainText(/\d+\.\d blocks a fight$/)
+    await expect(line('Holy Shield')).not.toContainText('crit')
+    await expect(line('Reckoning')).toContainText(/\d+\.\d extra attacks a fight · \d+\.\d% crit/)
+    await expect(line('Improved Seal of Fury')).toContainText(/from [\d,]+ mana a fight$/)
+    await expect(line('Shield Specialization')).toContainText(/from [\d,]+ mana a fight$/)
 
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     const table = results.getByRole('table')
     await expect(table.getByRole('row', { name: /^Righteous Fury 100\.0% 1\.0$/ })).toBeVisible()
     await expect(table.getByRole('row', { name: /^Swift Judgement none \d+\.\d$/ })).toBeVisible()
-    await expect(table.getByRole('row', { name: /^Iron Creed \d+\.\d% none$/ })).toBeVisible()
 
     // The mana ledger and the sheet's spell rows, as Retribution's (QU6).
     const ledger = results.getByRole('region', { name: 'Mana per fight' })
-    for (const line of ['At the pull', 'Regenerated', 'Improved Seal of Fury', 'Shield Specialization', 'Major Mana Potion', 'Spent', 'Left at the end']) {
-      await expect(ledger.getByText(line, { exact: true })).toBeVisible()
+    for (const label of ['At the pull', 'Regenerated', 'Improved Seal of Fury', 'Shield Specialization', 'Major Mana Potion', 'Spent', 'Left at the end']) {
+      await expect(ledger.getByText(label, { exact: true })).toBeVisible()
     }
 
     await results.getByRole('button', { name: 'Character sheet' }).click()
-    for (const row of ['Spell damage', 'Spell crit', 'Spell hit', 'Mana', 'Mana per 5 s']) {
-      await expect(results.getByText(row, { exact: true })).toBeVisible()
+    for (const label of ['Spell damage', 'Spell crit', 'Spell hit', 'Mana', 'Mana per 5 s']) {
+      await expect(results.getByText(label, { exact: true })).toBeVisible()
     }
     const boss = results.getByRole('region', { name: 'Boss’s attack table' })
     await expect(boss).toContainText(/Its chances on each swing at you with Holy Shield up, from the stats above and its 20\.0% more block\. Your rotation kept it up \d+\.\d% of the fight\./)
     await expect(boss).not.toContainText('a little')
+  })
+
+  test('a Defensive run shows Iron Creed from Holy Strike', async ({ page }) => {
+    await openRotation(page)
+    await pick(page, 'Defensive')
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    await expect(results.getByRole('table').getByRole('row', { name: /^Iron Creed \d+\.\d% none$/ })).toBeVisible()
   })
 })
 

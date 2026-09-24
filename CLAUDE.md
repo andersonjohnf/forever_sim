@@ -88,6 +88,11 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 
 ## Release updates
 
+**Every push that brings player-facing changes adds an entry at the top of
+`src/app/releases.ts`**, with the push's time, written by the rules below. The app shows it to
+returning visitors as What's New and lists it under Release history; the Discord post is made from
+that entry (its groups become the bold labels and bullets).
+
 When the user asks for an update to post, write it for the sim's dedicated channel in the guild
 Discord. Its readers already know what the sim is, where it lives and how to report issues.
 - **No preamble or sign-off.** Leave out what the sim is, the site link, "report issues on

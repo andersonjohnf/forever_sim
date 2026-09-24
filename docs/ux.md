@@ -50,8 +50,8 @@ truncate rather than scroll the page sideways (an e2e test walks every spec at 3
 the specs under their class's heading, each class a group named by it, so a screen reader tells a
 warrior's Protection from a paladin's too. Then
 **Share** (copies a link to this setup) and an overflow menu with Setups…
-([Setups](#setups)), About & data, Theme (system, light, dark) and Reset setup. Menu items are
-44 px tall.
+([Setups](#setups)), About & data, Release history ([What's new](#whats-new)), Theme (system,
+light, dark) and Reset setup. Menu items are 44 px tall.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 and TPS simulator for World of Warcraft: Forever", since Protection, the first tank spec, shipped; "A DPS
@@ -62,10 +62,40 @@ Graph descriptions in `index.html` carry the same description line, so they chan
 the first tank spec shipped; an e2e test compares them. Right under the description line, above
 the specs, the **release stamp** says when this release went out, in the viewer's own time zone,
 and its build: "Updated 8:05 PM EDT · Sep 24, 2026 · build 1a2b3c4". Players check it to see
-whether a fix they heard about is live, and quote the build when they report something. The sheet
+whether a fix they heard about is live, and quote the build when they report something. Under it,
+a 44 px link-style button, **What changed in each release**, opens Release history in About's place
+([What's new](#whats-new)); closing it gives focus back to the menu's button, as About would. The sheet
 ends with **Made by Decades** ([Brand](#brand)) and the line that neither Forever Sim nor Decades
 is affiliated with or endorsed by Blizzard Entertainment. Every link in the sheet opens in a new
 tab, so the sheet stays open, with `rel="noopener"` and "(opens in a new tab)" for screen readers.
+
+### What's new
+
+Players hear what changed from the app itself, in the words of the Discord posts (CLAUDE.md,
+"Release updates"): each release's changes grouped by who notices, from `src/app/releases.ts`
+([architecture, "Release notes"](architecture.md#release-notes)).
+- **What's new** opens by itself on a returning visitor's first load of a newer release, and lists
+  every release since the one they saw last, newest first, not only the newest. It's shown once:
+  the newest release's id is stored as it opens (`forever-sim:last-seen-release`), so a reload, or
+  closing it any way, doesn't bring it back. A first visit shows nothing, nor does an id the list
+  doesn't know: the whole history isn't dumped on anyone. Without storage it shows nothing, and the
+  app works as usual.
+  - From 640 px it's a dialog (up to 32 rem wide and 85% of the window's height, its list
+    scrolling); below, a bottom sheet up to 85% of the screen's height. Its title, "What's new", and
+    "Since your last visit, newest first." head it, with a 44 px Close in the corner; **Got it**, 44 px
+    tall (full width on a phone), closes it at the end.
+  - Focus goes to its title, stays inside, and Escape closes it. Nothing opened it, so on closing
+    focus goes back where it was when the page loaded.
+  - The load's own notices (a shared link loaded, newer defaults, parts out of date) come up as
+    usual, over it, as toasts do over any dialog ([Notices](#persistence-and-sharing)); the link's
+    setup is loaded under it.
+- **Release history**, in the header's menu after About & data (and from About's release stamp), is
+  a side sheet like About, full width on a phone, with focus on its title and back to the menu's
+  button when it closes. "What each release changed, newest first, in your time zone." Then every
+  release.
+- Each release, in both, is headed by its time in the viewer's own zone, as the release stamp
+  reads ("2:46 PM EDT · Sep 24, 2026"), then its groups: a small uppercase label in the muted text
+  colour ("Tanks", "DPS specs", "Your setup") over a bulleted list. Releases are divided by a rule.
 
 **Footer:** "Game data from" the wago.tools logo (decision D16, its logo exactly as its branding
 guidelines supply it), then "An app by" the Decades mark ([Brand](#brand)): side by side on a wide
@@ -1062,7 +1092,7 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   results, the item picker) also have a 44 px close button in the header's corner, as the
   About sheet and the desktop dialogs do.
 - When a sheet or dialog opens, focus moves into it: to its title when the content is long
-  (About, Setups, the phone's results, the phone's item picker, so the on-screen keyboard
+  (About, Setups, Release history, What's new, the phone's results, the phone's item picker, so the on-screen keyboard
   doesn't pop up over the list), or to its first field (the desktop item picker's search box).
   When it closes, however it closes, focus goes back to the control that opened it: the item
   picker gives it back to the slot's button after Escape, its close button or a pick. Radix does

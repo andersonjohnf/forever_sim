@@ -1,4 +1,4 @@
-import { ChevronDown, FolderOpen, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
+import { ChevronDown, FolderOpen, History, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { type Ref, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
+import { ReleaseHistorySheet } from './release-history-sheet'
 import { resetTitle } from './load-notice'
 import { useSetup } from './setup-store'
 import { SetupsSheet } from './setups-sheet'
@@ -32,7 +33,7 @@ import { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
 
 /** The sheets the overflow menu opens. */
-type MenuSheet = 'setups' | 'about'
+type MenuSheet = 'setups' | 'about' | 'history'
 
 export function Header() {
   const [sheet, setSheet] = useState<MenuSheet | null>(null)
@@ -40,7 +41,23 @@ export function Header() {
   const menuButton = useRef<HTMLButtonElement>(null)
   const setupsFocus = useSheetFocus(() => menuButton.current)
   const aboutFocus = useSheetFocus(() => menuButton.current)
+  const historyFocus = useSheetFocus(() => menuButton.current)
   const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
+  // About's release stamp opens Release history in its place. About, closing, then leaves focus to
+  // the history sheet, which gives it back to the menu's button when it closes.
+  const toHistory = useRef(false)
+  const aboutContentProps = {
+    ...aboutFocus.contentProps,
+    onCloseAutoFocus: (event: Event) => {
+      if (!toHistory.current) return aboutFocus.contentProps.onCloseAutoFocus(event)
+      toHistory.current = false
+      event.preventDefault()
+    },
+  }
+  const showHistory = () => {
+    toHistory.current = true
+    setSheet('history')
+  }
   return (
     <header className="sticky top-0 z-40 border-b border-brand-gold/40 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       {/*
@@ -62,7 +79,19 @@ export function Header() {
         titleRef={setupsFocus.titleRef}
         contentProps={setupsFocus.contentProps}
       />
-      <AboutSheet open={sheet === 'about'} onOpenChange={openChange('about')} titleRef={aboutFocus.titleRef} contentProps={aboutFocus.contentProps} />
+      <AboutSheet
+        open={sheet === 'about'}
+        onOpenChange={openChange('about')}
+        titleRef={aboutFocus.titleRef}
+        contentProps={aboutContentProps}
+        onShowHistory={showHistory}
+      />
+      <ReleaseHistorySheet
+        open={sheet === 'history'}
+        onOpenChange={openChange('history')}
+        titleRef={historyFocus.titleRef}
+        contentProps={historyFocus.contentProps}
+      />
     </header>
   )
 }
@@ -213,6 +242,14 @@ function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; 
           className="min-h-11"
         >
           <Info /> About &amp; data
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => {
+            chosen.current = 'history'
+          }}
+          className="min-h-11"
+        >
+          <History /> Release history
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="min-h-11">

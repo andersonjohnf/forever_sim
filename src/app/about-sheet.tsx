@@ -30,11 +30,14 @@ export function AboutSheet({
   onOpenChange,
   titleRef,
   contentProps,
+  onShowHistory,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   titleRef: SheetFocus['titleRef']
   contentProps: SheetFocus['contentProps']
+  /** Opens Release history in About's place. */
+  onShowHistory: () => void
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -54,7 +57,7 @@ export function AboutSheet({
           </SheetTitle>
           {/* What it is, then the specs it covers, which grow as they ship (docs/ux.md principle 8). */}
           <SheetDescription>{keepGameNameWhole(appSentence())} Everything runs in your browser.</SheetDescription>
-          <ReleaseStamp />
+          <ReleaseStamp onShowHistory={onShowHistory} />
           <p className="mt-1 text-sm text-muted-foreground">{coverageSentence()}</p>
         </SheetHeader>
         <SheetClose asChild>
@@ -168,24 +171,32 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-/** When this release went out, in the viewer's time zone, and its build (docs/ux.md "About & data"). */
-function ReleaseStamp() {
+/**
+ * When this release went out, in the viewer's time zone, and its build (docs/ux.md "About & data"),
+ * then a 44 px link-style button to Release history, which says what each release changed.
+ */
+function ReleaseStamp({ onShowHistory }: { onShowHistory: () => void }) {
   const commit = shortCommit(RELEASE.commit)
   return (
-    <p className="mt-1 text-sm text-muted-foreground">
-      Updated{' '}
-      {/* The "·" stays on the time's line, so a build that wraps never opens its line with it. */}
-      <span className="whitespace-nowrap">
-        <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
-        {commit && ' ·'}
-      </span>
-      {commit && (
-        <>
-          {' '}
-          <span className="whitespace-nowrap">build {commit}</span>
-        </>
-      )}
-    </p>
+    <div className="mt-1 flex flex-col items-start">
+      <p className="text-sm text-muted-foreground">
+        Updated{' '}
+        {/* The "·" stays on the time's line, so a build that wraps never opens its line with it. */}
+        <span className="whitespace-nowrap">
+          <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
+          {commit && ' ·'}
+        </span>
+        {commit && (
+          <>
+            {' '}
+            <span className="whitespace-nowrap">build {commit}</span>
+          </>
+        )}
+      </p>
+      <Button variant="link" className="h-11 px-0 text-sm text-foreground underline underline-offset-2" onClick={onShowHistory}>
+        What changed in each release
+      </Button>
+    </div>
   )
 }
 

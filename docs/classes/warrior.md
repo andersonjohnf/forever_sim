@@ -1973,7 +1973,10 @@ The gain is in every hit's threat: Sunder Armor 309 → 348 TPS, Shield Slam 185
 and more Strength, crit and hit do the rest. The warrior takes 1.8% more damage a second than in
 the v1 gear. The default warrior is 1.39× the Protection paladin's TPS (810.8) and 1.04× the bear's
 (1,081.9), within D29's benchmark. A unit test holds the floor (`defaults.test.ts`), for both
-factions. The enchants stay the spec's
+factions. The table is before a raid druid's Thorns joined every tank's Standard raid preset
+(T3R-2, 2026-09-24): +9.6 TPS (+0.9%) and +6.3 DPS in the golden run (1,123.3 → 1,132.9 TPS),
+and nothing else moves; the paladin gained the same Thorns and its fix round's talents (823.6 TPS,
+seed 12345). The enchants stay the spec's
 ([buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
 
 ## 7. Implementation notes

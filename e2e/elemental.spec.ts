@@ -6,8 +6,8 @@ import { expect, test } from './fixtures.ts'
 // brings it back, on a desktop and on a phone (docs/ux.md). It casts from range: nothing on its
 // screens may speak of swings, and no other class's words.
 
-/** Words an Elemental screen must never show: another class's, or a melee spec's swings. */
-const OTHER_CLASS = /\brage\b|\bstances?\b|Enrage|Energy|combo point|Cat Form|Bear Form|Seal of|Judgement|Consecration|Stormstrike|Maelstrom|Windfury Weapon/i
+/** Words an Elemental screen must never show: another class's, or a melee spec's swings (its Royal Seal of Eldre'Thalas trinket isn't a paladin's seal). */
+const OTHER_CLASS = /\brage\b|\bstances?\b|Enrage|Energy|combo point|Cat Form|Bear Form|(?<!Royal )Seal of|Judgement|Consecration|Stormstrike|Maelstrom|Windfury Weapon/i
 
 /** A value with its ± 95% CI in the headline, e.g. "336.0± 0.8". */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/

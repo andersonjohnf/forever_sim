@@ -222,11 +222,19 @@
       ]
     },
     "-0325003231120001351-0350305003": {
-      "note": "Demonology default (0/32/19, Demonic Pact), warlock.md §11.6",
+      "note": "Demonology's first pass (0/32/19, Demonic Pact), warlock.md §11.6",
       "ranks": [
         "",
         "Improved Imp 3, Demonic Embrace 2, Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice 1, Master Summoner 1, Decimation 2, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1",
         "Improved Shadow Bolt 3, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3"
+      ]
+    },
+    "-0325003221120001351-0450305003": {
+      "note": "Demonology default (0/31/20, Demonic Pact), warlock.md §11.6",
+      "ranks": [
+        "",
+        "Improved Imp 3, Demonic Embrace 2, Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice 1, Master Summoner 1, Decimation 2, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1",
+        "Improved Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3"
       ]
     }
   },

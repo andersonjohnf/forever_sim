@@ -1986,6 +1986,14 @@ than the default, and with Max TPS, which doesn't use Thunder Clap, 22.64 less (
 hold them (`scripts/scrape/stored-builds.json`). Builds aren't tuned by the sim (D23), so these
 numbers settle only the preset's question.
 
+**D30's survival floor** (user decisions, 2026-09-24): no default or search drops **Last Stand**,
+**Improved Shield Wall 2/2** (the big cuts to defensive cooldowns) or **Deflection 5/5** (+5%
+parry: an avoided hit costs a warrior rage, so a threat-first search would drop it, but tanks take
+it). **Anticipation isn't in the floor** (user decision, after the paladin theorycrafter's build
+measured +1.0% TPS with Anticipation 2/5): it's the **preferred filler**, where a build's points
+left after its threat talents go before Toughness or other weaker talents. The default keeps
+Anticipation 5/5. **Toughness is optional.** A unit test holds the floor (`defaults.test.ts`).
+
 ### 6.2 Race, weapons and consumables
 
 | Spec | Alliance default | Horde default | Weapon default | Why |

@@ -474,9 +474,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfTheRighteous,
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
-    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so you use whichever of the two sits higher in the list. It makes about 1% more DPS for 0.4% less TPS, but Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used.',
-    // paladin.md "Priority: Defensive, Balanced or Max TPS": +1.3% DPS for −0.4% TPS in the default
-    // setup, but Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
+    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so you use whichever of the two sits higher in the list. It makes about 0.8% more DPS for 1.2% less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used.',
+    // paladin.md "Priority: Defensive, Balanced or Max TPS": +0.8% DPS for −1.2% TPS in the default
+    // setup, and Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
     default: false,
   },
   {
@@ -669,10 +669,10 @@ export function protectionUnusedSettings(
  */
 const DEFENSIVE_SUMMARY = 'Devotion Aura, Holy Shield and Holy Strike’s Iron Creed kept: the most survival. Tuned on threat.'
 const DEFENSIVE_HELP =
-  'Keeps your Devotion Aura up, +735 armor, and Holy Shield, and uses Holy Strike, whose Iron Creed cuts your damage taken 10%. Tuned on threat. The most survival of the three.'
+  'Keeps your Devotion Aura up, +735 armor, and Holy Shield, and uses Holy Strike, whose Iron Creed cuts your damage taken 10%. Tuned on threat. The most survival of the three: 832 TPS, 448 DPS and 918 damage taken a second in the default setup.'
 const BALANCED_SUMMARY = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 const BALANCED_HELP =
-  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 1% more DPS and 0.4% less TPS, without Iron Creed.'
+  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 0.8% more DPS and 1.2% less TPS, and 5% more damage taken without Iron Creed.'
 const MAX_TPS_SUMMARY = 'Retribution Aura instead of Devotion Aura, for threat: +3% TPS and 6% more damage taken than Defensive.'
 const MAX_TPS_HELP =
   'Runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage to the boss each time it hits you: 3% more TPS and 3% more DPS than Defensive, for 6% more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.'

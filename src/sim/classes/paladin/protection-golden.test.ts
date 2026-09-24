@@ -90,6 +90,12 @@ describe('golden run (fixed config and seed)', () => {
   //   200 random Defensive and Max TPS setups their previous plans (protection-apl.test.ts). On this
   //   seed's 1,000 fights: TPS 821.34, DPS 445.72, damage taken 902.7 a second. Max TPS, for the
   //   record: see paladin.md.
+  // - The guild's lead theorycrafter's talents (user decision, 2026-09-24; paladin.md "Protection
+  //   defaults"): 240003-0530213321301551-502, 9/35/7, for T2's fix-round build; D30's floor no longer
+  //   holds Anticipation at 5/5. Improved Seals 3, Divine Strength 4 and Improved Holy Strike 2 for
+  //   Anticipation's last three ranks, Holy Conduit and Conviction. On this seed's 1,000 fights, for
+  //   Balanced and Defensive alike: TPS 821.34 → 830.39, DPS 445.72 → 447.21, damage taken 902.7 →
+  //   917.4 a second (Max TPS: 855.29, 460.06, 969.9).
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

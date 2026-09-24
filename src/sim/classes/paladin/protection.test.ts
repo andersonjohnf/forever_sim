@@ -396,8 +396,13 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
   })
 
   it('ends the cooldown of every judgement in Judgement’s category, and never one that can’t be used again', () => {
-    // Without buffs, Consecration off, so mana never delays a judgement.
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { ...DEFENSIVE, [ID.consecration]: false } })
+    // Without buffs, Consecration off, so mana never delays a judgement. On T2's fix-round build (the
+    // default until the theorycrafter's), whose global cooldowns the timing below is worked out on.
+    const plan = protPlan({
+      talents: '-0530513321301551-50215',
+      fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 },
+      rotation: { ...DEFENSIVE, [ID.consecration]: false },
+    })
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     // Two more judgements in the category, with no line: Righteousness's, and one this setup can
     // never use (a two-hander's, with a one-hander: never ready, at Infinity).

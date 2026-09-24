@@ -68,16 +68,17 @@ describe.each(SPEC_IDS)('default setup for %s', (spec) => {
 })
 
 describe('the tanks keep D30\'s survival floor in their default talents', () => {
-  // docs/decisions.md D30: Anticipation 5/5 and Deflection 5/5 for a warrior and a paladin (Toughness
-  // optional), Feral Swiftness 2/2 for a bear, besides each class's cooldown talents.
+  // docs/decisions.md D30: Deflection 5/5 for a warrior and a paladin (Anticipation the preferred
+  // filler, not required; Toughness optional), Feral Swiftness 2/2 for a bear, besides each class's
+  // cooldown talents.
   const ranks = (spec: SpecId) => {
     const data = TALENT_DATA[SPEC_META[spec].classId]
     const ranks = decodeTalentCode(data, defaultConfig(spec).talents)
     return new Map(talentsInCodeOrder(data).flat().map((t) => [t.name, ranks[t.id] ?? 0]))
   }
   it.each([
-    ['warrior-protection', { Anticipation: 5, Deflection: 5, 'Last Stand': 1, 'Improved Shield Wall': 2 }],
-    ['paladin-protection', { Anticipation: 5, Deflection: 5, 'Improved Righteous Fury': 3, 'Sacred Duty': 2, "Templar's Bulwark": 1, 'Holy Shield': 1 }],
+    ['warrior-protection', { Deflection: 5, 'Last Stand': 1, 'Improved Shield Wall': 2 }],
+    ['paladin-protection', { Deflection: 5, 'Improved Righteous Fury': 3, 'Sacred Duty': 2, "Templar's Bulwark": 1, 'Holy Shield': 1 }],
     ['druid-feral-bear', { 'Feral Swiftness': 2, 'Thick Hide': 3, 'Heart of the Wild': 5 }],
   ] as const)('%s', (spec, floor) => {
     const got = ranks(spec as SpecId)

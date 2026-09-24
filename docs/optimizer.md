@@ -266,10 +266,17 @@ the Wild ([below](#which-talents-matter)). A player who wants survival first pic
 [Defense goal](#goals); the sheet constraints keep a floor under the others.
 
 A talent that changes what a constraint reads is searched, whatever it does to the score
-([the talent space](#the-talent-space)): with the effective-health floor, a talent that adds armor
-or health is a search dimension, not a filler that only gets leftover points; under crit
-immunity, so is one that adds defense. That reads the character sheet, never the talent's name. A
-bear's Thick Hide armor is modelled (BR6,
+([the talent space](#the-talent-space)), **where the constraint could bind without it** (OG-1):
+with the effective-health floor, a talent that adds armor or health is then a search dimension,
+not a filler that only gets leftover points; under crit immunity, so is one that adds defense.
+That reads the character sheet, never the talent's name. The check is exact, not a guess: the
+space is built first with those talents as fillers, and if every build in it (with every rotation
+variant) meets every sheet constraint, they stay fillers, since searching them would only add
+builds that give up objective points or tie-break for a limit already met (the report's
+`space.notBinding`; the CLI says "not searched for the constraints"). Otherwise they're dimensions
+(`space.constrained`). The Protection paladin's default floor never binds in a talent search, so
+Toughness and Sacred Duty stay fillers; searching them had made its space 23,841 builds for the
+same leader as 1,254. A bear's Thick Hide armor is modelled (BR6,
 [druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it's in the
 bear's effective health.
 
@@ -322,11 +329,13 @@ talent kept by default.
   whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
   for a bear), is never forced by the maximality rule below nor given leftover points: builds with
   and without it both race.
-- **So is a talent a constraint reads.** One that changes a sheet number a constraint reads
-  (Toughness's armor, Sacred Duty's health, under the effective-health floor) is a dimension too,
-  whatever its role, so builds with and without it both race. It has no screened value, so it's
-  never forced by the maximality rule. A harmful one (Heart of the Wild, for Balanced) is searched
-  but never given leftover points.
+- **So is a talent a constraint reads, where the constraint could bind.** One that changes a sheet
+  number a constraint reads (Toughness's armor, Sacred Duty's health, under the effective-health
+  floor) is a dimension too, whatever its role, so builds with and without it both race, unless
+  every build made without it as a dimension meets the constraints already
+  ([constraints](#constraints), OG-1). It has no screened value, so it's never forced by the
+  maximality rule. A harmful one (Heart of the Wild, for Balanced) is searched but never given
+  leftover points.
 - **Leftover points go to partial ranks, then by the tie-break.** Points the core leaves go first
   to partial ranks of objective talents, where the sim measures them, the most score per point
   first; then to the talents that can't change the score (tie-break and no-effect talents, and

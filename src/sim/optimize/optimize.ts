@@ -218,6 +218,12 @@ export interface OptimizeReport {
   space?: Omit<TalentSpace, 'builds'> & {
     builds: number
     constrained: string[]
+    /**
+     * Talents a constraint reads that stayed fillers, by id, because the constraints can't bind
+     * without them: every build of the space made without them as dimensions meets every sheet
+     * constraint already (OG-1).
+     */
+    notBinding: string[]
     minPoints?: Readonly<Record<string, number>>
   }
   /**
@@ -313,6 +319,18 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const constraints = [...(options.constraints ?? [])]
   const search = options.talents
   const talentRules = search ? talentConstraintsOf(spec, search) : undefined
+  // Each candidate's sheet once: the space's check of its constraints and the race's filter share them.
+  const sheetCache = new Map<string, SheetValues>()
+  const sheetOf = (c: Candidate) => {
+    const key = candidateKey(config, c)
+    let sheet = sheetCache.get(key)
+    if (!sheet) sheetCache.set(key, (sheet = sheetValues(buildPlan(applyCandidate(config, c)))))
+    return sheet
+  }
+  const baseline = setupCandidate(config)
+  const baselineSheet = sheetOf(baseline)
+  const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : baselineSheet
+  const sheetRules = constraints
   let screen: TalentScreen | undefined
   let space: OptimizeReport['space']
   let builds = [start.talents]
@@ -331,25 +349,42 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const maxRank = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t.maxRank]))
     const values = new Map(screen.verdicts.filter((v) => v.effect).map((v) => [v.id, v.effect!.mean / maxRank.get(v.id)!]))
     const tieValues = new Map(screen.verdicts.filter((v) => v.tieEffect).map((v) => [v.id, v.tieEffect!.mean / maxRank.get(v.id)!]))
-    // A talent that changes what a constraint reads is searched, not a filler (./talents.ts).
+    // A talent that changes what a constraint reads is searched, not a filler (./talents.ts), but
+    // only where the constraint could bind without it (OG-1): if every build of the space made
+    // without these dimensions meets every sheet constraint, searching them only adds builds that
+    // trade score for a limit already met. Those builds differ from the space's only in points the
+    // score can't see (the fillers), or in fewer points on objective talents, so none scores better.
     const reads = (v: TalentVerdict) => constraints.some((c) => v.sheetStats.includes(c.stat))
-    const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
-    const found = talentSpace({
-      data,
-      roles: screen.roles,
-      values,
-      tieValues,
-      constrained,
-      keep,
-      exclude,
-      minPoints,
-      preferTree: search.preferTree ?? mainTree(data, start.talents),
-      searchPartials: search.searchPartials,
-      limit: search.limit,
-    })
+    const readByConstraint = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
+    const spaceWith = (constrained: ReadonlySet<string>) =>
+      talentSpace({
+        data,
+        roles: screen!.roles,
+        values,
+        tieValues,
+        constrained,
+        keep,
+        exclude,
+        minPoints,
+        preferTree: search.preferTree ?? mainTree(data, start.talents),
+        searchPartials: search.searchPartials,
+        limit: search.limit,
+      })
+    let found = spaceWith(new Set())
+    const binds =
+      readByConstraint.size > 0 &&
+      (found.builds.length === 0 ||
+        found.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
+    if (binds) found = spaceWith(readByConstraint)
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
-    space = { ...rest, builds: list.length, constrained: [...constrained], ...(minPoints ? { minPoints } : {}) }
+    space = {
+      ...rest,
+      builds: list.length,
+      constrained: binds ? [...readByConstraint] : [],
+      notBinding: binds ? [] : [...readByConstraint],
+      ...(minPoints ? { minPoints } : {}),
+    }
   }
 
   // The candidates: the setup itself (if it's valid and best, it wins like any candidate), the start
@@ -368,11 +403,6 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   for (const talents of builds) for (const rotation of rotations) add({ talents, rotation: { ...start.rotation, ...rotation } })
 
   // Every candidate must meet every talent and sheet constraint.
-  const sheetOf = (c: Candidate) => sheetValues(buildPlan(applyCandidate(config, c)))
-  const baseline = setupCandidate(config)
-  const baselineSheet = sheetOf(baseline)
-  const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : baselineSheet
-  const sheetRules = constraints
   const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules) : [])
   const keepsTalents = pool.filter((c) => talentFails(c).length === 0)
   const sheets = sheetRules.length > 0 ? keepsTalents.map(sheetOf) : []

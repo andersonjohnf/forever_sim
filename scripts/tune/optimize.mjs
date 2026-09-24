@@ -433,6 +433,8 @@ async function main() {
       if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
       if (r.space.constrained.length) console.log(`  searched for the constraints (they change what a limit reads): ${r.space.constrained.map(name).join(', ')}`)
+      if (r.space.notBinding?.length)
+        console.log(`  not searched for the constraints: every build meets them without it (${r.space.notBinding.map(name).join(', ')} stay fillers)`)
       if (r.space.minPoints && Object.values(r.space.minPoints).some((n) => n > 0))
         console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}${t in minPoints ? '' : " (the tank's default)"}`).join(', ')}`)
     }

@@ -149,6 +149,27 @@ describe('optimize', () => {
     for (const s of keepEhp.race.standings) expect(keepEhp.sheets[s.candidate].ehp).toBeGreaterThanOrEqual(keepEhp.reference.ehp)
   }, 60_000)
 
+  it('a constraint that can’t bind makes no dimension: the space is the one without it (OG-1)', async () => {
+    const run = (constraints: { stat: 'ehp'; min: number; relative: true }[]) =>
+      optimize({ config: bear, talents: search, constraints, budget: { fights: 20_000, initialFights: 20 }, runner: localFightRunner(), top: 1 })
+    // Half the default's effective health: no build of the bear's falls that low, with Heart of the
+    // Wild and Thick Hide or without.
+    const low = await run([{ stat: 'ehp', min: 0.5, relative: true }])
+    const none = await run([])
+    const readers = low.screen!.verdicts.filter((v) => v.role !== 'objective' && v.sheetStats.includes('ehp')).map((v) => v.id)
+    expect(readers.length).toBeGreaterThan(0)
+    expect(low.space!.constrained).toEqual([])
+    expect(low.space!.notBinding).toEqual(readers)
+    expect(low.space!.dimensions).toEqual(none.space!.dimensions)
+    expect(low.space!.builds).toBe(none.space!.builds)
+    expect(low.excluded.sheet).toBe(0)
+    // The whole default: a limit the builds without them miss makes them dimensions (the test above).
+    const high = await run([{ stat: 'ehp', min: 1, relative: true }])
+    expect(high.space!.constrained).toEqual(readers)
+    expect(high.space!.notBinding).toEqual([])
+    expect(high.space!.builds).toBeGreaterThan(none.space!.builds)
+  }, 60_000)
+
   it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
     // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).
     const candidate = { talents: OLD_BEAR, rotation: {} }

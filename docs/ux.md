@@ -349,14 +349,17 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
       the order isn't the default) puts the rows back in the default order and nothing else,
       and moves focus to the picker (a tank's, at the top: the list's first row).
-    - **Rows that share a cooldown.** With both on, the higher one is used and the lower never is,
-      and the lower says so in place of its summary, dimmed: a Protection paladin's Holy Strike
-      under Hammer of the Righteous, which is off by default just above it ("Not used: Hammer of the
-      Righteous, above it, takes its place (they share a cooldown)."), or Hammer of the Righteous
-      moved below Holy Strike ("Not used: Holy Strike, above it, takes its place (they share a
-      cooldown). Move it above Holy Strike to use it instead."). Hammer of the Righteous says when
-      the main hand can't use it ("Not used: needs a one-handed axe, mace or sword in your main
-      hand, so Holy Strike is used.").
+    - **Rows that share a cooldown.** With both on, the higher one is used whenever it can be, and
+      the lower only when the higher can't be paid for; the lower says so in place of its summary,
+      dimmed: a Protection paladin's Holy Strike under Hammer of the Righteous, which is off by
+      default just above it ("Rarely used: Hammer of the Righteous, above it, takes its place (they
+      share a cooldown). It's used when you can't pay Hammer's 90 mana."), or Hammer of the
+      Righteous moved below Holy Strike, which costs less and so always takes it ("Not used: Holy
+      Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it
+      instead."). Hammer of the Righteous says when the main hand can't use it, and what happens
+      instead: "Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is
+      used.", or with Holy Strike off "… main hand. Turn Holy Strike on to use it instead.", and
+      with no main hand, where Holy Strike can't be used either, just "… in your main hand.".
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and

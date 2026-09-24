@@ -343,8 +343,9 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
  * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
  * Defensive's are the best rotation found for the default setup, keeping the tank's duties
  * (decisions D23 and D26; paladin.md "Tuning the defaults", measured on TPS with
- * scripts/tune/rotation.mjs); Balanced, the default, differs by a first-pass search on TPS and DPS
- * together (D27, D28; paladin.md "Priority: Defensive, Balanced or Max TPS").
+ * scripts/tune/rotation.mjs); Balanced, the default, plays as Defensive: it keeps the same upkeep,
+ * Holy Strike's Iron Creed included, and its first-pass search on TPS and DPS together moved nothing
+ * (D27, D28; paladin.md "Priority: Defensive, Balanced or Max TPS").
  */
 export const PROTECTION_OPTIONS: RotationOption[] = [
   {
@@ -474,8 +475,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfTheRighteous,
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
-    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so you use whichever of the two sits higher in the list. It makes about 0.8% more DPS for 1.2% less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used.',
-    // paladin.md "Priority: Defensive, Balanced or Max TPS": +0.8% DPS for −1.2% TPS in the default
+    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so the higher of the two in the list is used, and the lower only when you can’t pay for the higher. It makes about 0.9% more DPS for 1.1% less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used if it’s on.',
+    // paladin.md "Priority: Defensive, Balanced or Max TPS": +0.9% DPS for −1.1% TPS in the default
     // setup, and Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
     default: false,
   },
@@ -643,9 +644,11 @@ const hammerAbove = (order: readonly string[] | undefined): boolean => {
 /**
  * What the Rotation tab says under Holy Strike or Hammer of the Righteous when the other takes its
  * place (docs/ux.md "Rotation"). They share a cooldown, so with both on, the higher row is used and
- * the lower never is. Hammer of the Righteous needs a one-handed axe, mace or sword; with any other
- * main hand it can't be used, and Holy Strike is. The weapon's note waits while the main hand isn't
- * known (the Buffs tab's reading).
+ * the lower only when you can't pay for the higher: Holy Strike under Hammer of the Righteous when
+ * Hammer's 90 mana isn't there, and Hammer under Holy Strike never, since Holy Strike costs less.
+ * Hammer of the Righteous needs a one-handed axe, mace or sword; with any other main hand it can't
+ * be used, and Holy Strike is if it's on; with no main hand, neither is. The weapon's note waits
+ * while the main hand isn't known (the Buffs tab's reading).
  */
 export function protectionUnusedSettings(
   values: Record<string, RotationValue>,
@@ -654,12 +657,18 @@ export function protectionUnusedSettings(
 ): Record<string, string> {
   const v = reader(PROTECTION_OPTIONS, values)
   if (!v.on(ID.hammerOfTheRighteous)) return {}
+  const strike = v.on(ID.holyStrike)
   if (mainHand !== undefined && !hammerFits(mainHand)) {
-    return { [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is used.' }
+    const why = 'Not used: needs a one-handed axe, mace or sword in your main hand'
+    // No main hand: Holy Strike, a weapon strike, can't be used either.
+    if (mainHand === null) return { [ID.hammerOfTheRighteous]: `${why}.` }
+    return { [ID.hammerOfTheRighteous]: strike ? `${why}, so Holy Strike is used.` : `${why}. Turn Holy Strike on to use it instead.` }
   }
-  if (!v.on(ID.holyStrike)) return {}
+  if (!strike) return {}
   if (!hammerAbove(order)) return { [ID.hammerOfTheRighteous]: 'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.' }
-  return mainHand === undefined ? {} : { [ID.holyStrike]: 'Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown).' }
+  return mainHand === undefined
+    ? {}
+    : { [ID.holyStrike]: 'Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.' }
 }
 
 /**
@@ -672,7 +681,7 @@ const DEFENSIVE_HELP =
   'Keeps your Devotion Aura up, +735 armor, and Holy Shield, and uses Holy Strike, whose Iron Creed cuts your damage taken 10%. Tuned on threat. The most survival of the three: 832 TPS, 448 DPS and 918 damage taken a second in the default setup.'
 const BALANCED_SUMMARY = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 const BALANCED_HELP =
-  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 0.8% more DPS and 1.2% less TPS, and 5% more damage taken without Iron Creed.'
+  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 0.9% more DPS and 1.1% less TPS, and 5% more damage taken without Iron Creed.'
 const MAX_TPS_SUMMARY = 'Retribution Aura instead of Devotion Aura, for threat: +3% TPS and 6% more damage taken than Defensive.'
 const MAX_TPS_HELP =
   'Runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage to the boss each time it hits you: 3% more TPS and 3% more DPS than Defensive, for 6% more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.'
@@ -838,10 +847,10 @@ export function protectionRotation(
   const jotc = crusader ? index(JUDGE_CRUSADER) : -1
   const prepullSeal = crusader ? sotc : seal
   // Row 5b: Hammer of the Righteous, with a one-handed axe, mace or sword. It shares Holy Strike's
-  // cooldown (row 5), so with both on, only the higher of the two rows is used: Hammer of the
-  // Righteous in Holy Strike's place while it sits above it, as it does by default.
+  // cooldown (row 5), so with both on, the shared cooldown decides, as in a real priority list: the
+  // higher row is used whenever it can be, and the lower when it can't (Holy Strike when Hammer's 90
+  // mana isn't there).
   const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand)
-  const hammerFirst = hammerAbove(order)
 
   compileAplRows(PROTECTION_APL, order, {
     // Row 0c (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s before
@@ -883,18 +892,18 @@ export function protectionRotation(
       add({ ...SWIFT_JUDGEMENT, endsCooldownOf: judge }, [{ code: COND.cooldownAtLeast, a: judge, b: seconds(v, ID.swiftJudgementCooldown) }, auraUp(seal)])
       abilities[judge] = { ...abilities[judge], clearcastable: true }
     },
-    // Row 5: Holy Strike on cooldown, unless Hammer of the Righteous takes its place; with Iron
-    // Creed, each that lands cuts damage taken for 6 s.
+    // Row 5: Holy Strike on cooldown, when Hammer of the Righteous above it hasn't taken the shared
+    // cooldown; with Iron Creed, each that lands cuts damage taken for 6 s.
     holyStrike: () => {
-      if ((hammer && hammerFirst) || !v.on(ID.holyStrike)) return
+      if (!v.on(ID.holyStrike)) return
       const strike = add(HOLY_STRIKE_ABILITY, [])
       const creed = talents.get('Iron Creed') ?? 0
       if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
     },
-    // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place, unless Holy Strike is on
-    // and above it.
+    // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place, when Holy Strike above it
+    // hasn't taken the shared cooldown (which, costing less, it always has).
     hammerOfTheRighteous: () => {
-      if (hammer && (hammerFirst || !v.on(ID.holyStrike))) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
+      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
     },
     // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
     exorcism: () => {

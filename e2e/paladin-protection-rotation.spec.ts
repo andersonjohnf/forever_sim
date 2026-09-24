@@ -78,13 +78,13 @@ test.describe('Protection paladin rotation', () => {
     await expect(tab.getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
     await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
     // Balanced keeps Holy Strike (D28); Hammer of the Righteous is off just above it. Turned on, it takes
-    // Holy Strike's place with the default axe, and Holy Strike's row says so; moved below it, it says why it isn't used.
+    // Holy Strike's place with the default axe, and Holy Strike's row says it's only the fallback; moved below it, it says why it isn't used.
     const hammer = list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true })
     await expect(hammer).not.toBeChecked()
     await expect(row(tab, 'holyStrike')).toContainText('On cooldown')
     await hammer.click()
     await expect(row(tab, 'hammerOfTheRighteous')).toContainText('On cooldown, in Holy Strike’s place')
-    await expect(row(tab, 'holyStrike')).toContainText('Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown).')
+    await expect(row(tab, 'holyStrike')).toContainText('Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.')
     await expect(row(tab, 'holyStrike')).toHaveAttribute('data-inactive')
     await expect(preset(page)).toHaveText('Custom')
     const hammerRow = await openRow(page, tab, 'Hammer of the Righteous')

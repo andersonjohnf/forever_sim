@@ -796,10 +796,12 @@ pull; then rows 1–8, each its own row with its switch and settings (the seal's
 since there's always one), in this order. The on-use trinkets, Juju Flurry and the mana consumables
 are spec-wide, above the list, and always come after it: they're off the global cooldown. A row's
 conditions are its own wherever it sits: Swift Judgement still frees Judgement wherever it is.
-Hammer of the Righteous and Holy Strike share a cooldown, so with both on, the higher of the two
-rows is used and the lower never is: Hammer of the Righteous sits just above Holy Strike by default,
-off, so turning it on puts it in Holy Strike's place, and moving it below Holy Strike keeps Holy
-Strike. In the default order the plan is the one the rotation gave before the list, fight for
+Hammer of the Righteous and Holy Strike share a cooldown, so with both on, the plan has both rows
+and the shared cooldown decides, as a real priority list would: the higher row is used whenever it
+can be, and the lower only when the higher can't be paid for. Hammer of the Righteous sits just
+above Holy Strike by default, off, so turning it on puts it in Holy Strike's place, with Holy Strike
+as its fallback when Hammer's 90 mana isn't there (rarely, in the default setup); moving it below
+Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing. In the default order the plan is the one the rotation gave before the list, fight for
 fight (`protection-apl.test.ts`).
 
 | # | Action | Condition (setting, default) | Default |
@@ -811,7 +813,7 @@ fight (`protection-apl.test.ts`).
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
-| 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used: this one, while it's above Holy Strike and on. The Rotation tab's Holy Strike row then says so ("Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown)."); its own row says when the main hand can't use it, or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
+| 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used whenever it can be: this one, while it's above Holy Strike and on, with Holy Strike when its 90 mana isn't there. The Rotation tab's Holy Strike row then says so ("Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It's used when you can't pay Hammer's 90 mana."); its own row says when the main hand can't use it (and that Holy Strike is used, or to turn Holy Strike on; with no main hand, neither is), or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
@@ -870,9 +872,11 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
   - **So Balanced is Defensive's rotation**, fight for fight. With the theorycrafter's talents, the
     default since ([Protection defaults](#protection-defaults)), on seed 20260926 (100,000 fights):
     832.13 TPS, 447.95 DPS and 918.3 damage taken a second. Max TPS against it: **+24.93 TPS
-    (+3.00%)**, +12.87 DPS (+2.87%), +52.5 damage taken (+5.7%). Hammer of the Righteous turned on:
-    **−9.95 TPS (−1.20%)**, +3.77 DPS (+0.84%), +47.3 damage taken (+5.1%). (The search above ran on
-    T2's fix-round build: 823.8 TPS and 447.0 DPS on seed 20260925.)
+    (+3.00%)**, +12.87 DPS (+2.87%), +52.5 damage taken (+5.7%). Hammer of the Righteous turned on,
+    with Holy Strike as its fallback (the tank integration review's TI-5): **−8.85 TPS (−1.06%)**,
+    +4.12 DPS (+0.92%), +46.3 damage taken (+5.0%); before the fallback, when a Hammer it couldn't
+    pay for left the cooldown unused, −9.95 TPS (−1.20%) and +3.77 DPS (+0.84%). (The search above
+    ran on T2's fix-round build: 823.8 TPS and 447.0 DPS on seed 20260925.)
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -987,8 +991,9 @@ gear. The grid by fight length below is C3's. **After T2's fix round** (its tale
 seed 777, 40,000 paired fights) Consecration from 20% still holds (10% level, 30% −0.06%, 40%
 −0.18%; rank 1 off −0.03%), and Hammer of the Righteous in Holy Strike's place loses 0.39% of TPS
 but gains 1.24% of DPS, for 4.3% more damage taken (Iron Creed's cut goes with Holy Strike): under
-D23's rule for tanks, TPS first, Holy Strike stays in Defensive; D28's Balanced rotation takes it
-([above](#priority-defensive-balanced-or-max-tps)). The tuning below is Defensive's (and Max TPS's).
+D23's rule for tanks, TPS first, Holy Strike stays in Defensive; D28's Balanced declines it too,
+keeping Holy Strike's Iron Creed as active mitigation (user decision,
+[above](#priority-defensive-balanced-or-max-tps)). The tuning below is Defensive's (and Max TPS's).
 
 The defaults are the best rotation found on 2026-09-24 per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23) and, keeping

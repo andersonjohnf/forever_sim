@@ -896,14 +896,22 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
     expect(unmetRequirements({ ...d, talents: '', gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ talent: 'Holy Shield', shield: true })
     expect(unmetRequirements({ ...d, talents: '' }, { talent: 'Swift Judgement' })).toEqual({ talent: 'Swift Judgement' })
     // Nothing else is unused with any preset. Hammer of the Righteous, turned on, takes Holy Strike's
-    // place with the default axe while it sits above it (paladin.md row 5b), and says why without one
-    // or below Holy Strike. Exorcism's target is its option's.
+    // place with the default axe while it sits above it (paladin.md row 5b), Holy Strike only its
+    // fallback; and says why without the weapon or below Holy Strike. Exorcism's target is its option's.
     expect(unusedRotationSettings({ ...d, rotation: DEFENSIVE })).toEqual({})
     expect(unusedRotationSettings(d)).toEqual({})
     const hammer = { ...d, rotation: { [ID.hammerOfTheRighteous]: true } }
-    expect(unusedRotationSettings(hammer)).toEqual({ [ID.holyStrike]: 'Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown).' })
+    expect(unusedRotationSettings(hammer)).toEqual({
+      [ID.holyStrike]: 'Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.',
+    })
     const twoHander = { ...hammer, gear: { mainHand: { itemId: 12784 } } }
     expect(unusedRotationSettings(twoHander)).toEqual({ [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is used.' })
+    // With Holy Strike off, neither is used: the note says how to get Holy Strike back (TI-6).
+    expect(unusedRotationSettings({ ...twoHander, rotation: { ...hammer.rotation, [ID.holyStrike]: false } })).toEqual({
+      [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand. Turn Holy Strike on to use it instead.',
+    })
+    // With no main hand, Holy Strike can't be used either, so the note doesn't promise it.
+    expect(unusedRotationSettings({ ...hammer, gear: {} })).toEqual({ [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand.' })
     const below = { ...hammer, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] }
     expect(unusedRotationSettings(below)).toEqual({
       [ID.hammerOfTheRighteous]: 'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.',
@@ -1022,7 +1030,8 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     const on = { [ID.hammerOfTheRighteous]: true }
     const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'weaponOnly') =>
       protectionRotation(on, TALENTS, () => -1, { ...ctx, mainHand, hotrWeaponDps: rules }).abilities.filter((a) => a.id === 'holyStrike' || a.id === 'hammerOfTheRighteous')
-    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous'])
+    // Both, Hammer first: the shared cooldown leaves Holy Strike only when Hammer can't be paid (TI-5).
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous', 'holyStrike'])
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
@@ -1039,10 +1048,27 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     for (let i = 0; i < 3; i++) sim.runFight(i)
     const casts = field(sim, on.plan, 'hammerOfTheRighteous', FIELD.casts) / 3
     expect(casts).toBeGreaterThan(0.9 * (on.plan.fight.durationMs / 6000) * 0.8)
-    expect(on.plan.sources.some((s) => s.id === 'holyStrike')).toBe(false)
+    // Holy Strike waits under it, for when Hammer's 90 mana isn't there: in the default setup, rarely.
+    expect(field(sim, on.plan, 'holyStrike', FIELD.casts) / 3).toBeLessThan(casts / 4)
     expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
     const weaponOnly = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'weaponOnly' }, rotation: { [ID.hammerOfTheRighteous]: true } })
     expect(weaponOnly.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+  })
+})
+
+describe('Hammer of the Righteous’s fallback, Holy Strike (TI-5)', () => {
+  it('when Hammer’s 90 mana isn’t there, Holy Strike, 20 mana, under it takes the shared cooldown', () => {
+    // A paladin whose bar holds 50 mana can never pay Hammer of the Righteous's 90: before the fix,
+    // neither was cast; now Holy Strike is, from its 20.
+    const plan = buildPlan({ ...defaultConfig(PROT), rotation: { [ID.hammerOfTheRighteous]: true } }).plan
+    const hammer = plan.abilities.findIndex((a) => a.id === 'hammerOfTheRighteous')
+    const strike = plan.abilities.findIndex((a) => a.id === 'holyStrike')
+    expect(plan.rotation.map((e) => e.ability).filter((a) => a === hammer || a === strike)).toEqual([hammer, strike])
+    const starved = { ...plan, mana: { ...plan.mana!, maxTenths: 500 } }
+    const sim = new Sim(starved)
+    sim.runFight(0)
+    expect(field(sim, starved, 'hammerOfTheRighteous', FIELD.casts)).toBe(0)
+    expect(field(sim, starved, 'holyStrike', FIELD.casts)).toBeGreaterThan(0)
   })
 })
 

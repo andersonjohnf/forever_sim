@@ -97,18 +97,20 @@ describe('Protection paladin’s priority list (D31)', () => {
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
   })
 
-  it('keeps a moved row’s own conditions: Hammer of the Righteous, on, still takes Holy Strike’s place above it, Swift Judgement still frees Judgement', () => {
+  it('keeps a moved row’s own conditions: Hammer of the Righteous, on, still sits above Holy Strike, which shares its cooldown; Swift Judgement still frees Judgement', () => {
     const order = moveAplRow(PROTECTION_APL, moved('hammerOfTheRighteous', 'seal'), 'swiftJudgement', 1)!
     expect(order.slice(0, 4)).toEqual(['prepull', 'swiftJudgement', 'hammerOfTheRighteous', 'seal'])
     const hammerOn = { [ID.hammerOfTheRighteous]: true }
     const r = protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, order)
-    expect(ids(r).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['hammerOfTheRighteous'])
+    // Both rows, in the list's order: the shared cooldown decides (TI-5), so Holy Strike is the fallback
+    // when Hammer's 90 mana isn't there.
+    expect(ids(r).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['hammerOfTheRighteous', 'holyStrike'])
     // Off, as in every preset, Holy Strike.
     expect(ids(protectionRotation({}, TALENTS, noAura, CONTEXT, order)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
-    // On but below Holy Strike, which shares its cooldown: Holy Strike, the higher row.
+    // On but below Holy Strike, which shares its cooldown: Holy Strike first, the higher row.
     const below = moveAplRow(PROTECTION_APL, defaultAplOrder(PROTECTION_APL), 'hammerOfTheRighteous', defaultAplOrder(PROTECTION_APL).indexOf('holyStrike'))!
     expect(below.indexOf('hammerOfTheRighteous')).toBeGreaterThan(below.indexOf('holyStrike'))
-    expect(ids(protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
+    expect(ids(protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike', 'hammerOfTheRighteous'])
     // …and Hammer of the Righteous there once Holy Strike is off.
     expect(
       ids(protectionRotation({ ...hammerOn, [ID.holyStrike]: false }, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous'),

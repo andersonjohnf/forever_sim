@@ -104,7 +104,7 @@ test.describe('Protection paladin', () => {
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) · Paladins: Retribution and Protection · Shamans: Enhancement.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('dialog').getByText('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) · Paladins: Retribution and Protection · Shamans: Enhancement · Rogues: Combat and Assassination.', { exact: true })).toBeVisible()
   })
 
   test('its Rotation tab under tank duties and under Max TPS', async ({ page }) => {

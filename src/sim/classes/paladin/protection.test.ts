@@ -1014,7 +1014,7 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
     // On with Balanced, the default, for its damage; off with Defensive and Max TPS, since Holy Strike
-    // makes more threat in the default setup (paladin.md "Balanced", "Tuning the defaults").
+    // makes more threat in the default setup (paladin.md "Priority: Defensive, Balanced or Max TPS", "Tuning the defaults").
     expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)[ID.hammerOfTheRighteous]).toBe(true)
     expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
     expect(resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)

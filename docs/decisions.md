@@ -432,8 +432,9 @@ kept the old default gets Balanced, like any other changed default. Settings you
 hand stay as you set them: choosing Balanced moves only the defaults of the abilities it drops,
 as Max TPS does.
 
-Status: decided, not built yet. The rotation slice (T5 in the milestones) comes after the tanks'
-threat fixes.
+Status: decided. The rotation slice (T5 in the milestones) comes after the tanks' threat fixes;
+the Protection paladin's is built (Balanced is Defensive with Hammer of the Righteous in Holy
+Strike's place, [paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)).
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

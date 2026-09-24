@@ -306,7 +306,9 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       [warrior.md §6.3](classes/warrior.md#63-protection-gear-interim-measured-m56-t4)); its talents
       still come from the optimizer
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
-      stay selectable
+      stay selectable. **Protection paladin done** (with its A2): Balanced is Defensive with Hammer
+      of the Righteous in Holy Strike's place, a first pass (D27): −0.36% TPS, +1.27% DPS, +4.3%
+      damage taken against Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps))
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
@@ -321,7 +323,9 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       tanks declare named ones
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
-      default order
+      default order. **Protection paladin done**: its rows in paladin.md's order, the pre-pull and
+      opener pinned, D28's rotations as presets at the top of the tab; Defensive and Max TPS give
+      200 random setups their plans from before the list (its golden moved only for Balanced)
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

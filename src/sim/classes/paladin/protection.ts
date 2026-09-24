@@ -340,8 +340,10 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 
 /**
  * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
- * They're the best rotation found for the default setup, keeping the tank's duties (decisions D23
- * and D26; paladin.md "Tuning the defaults", measured on TPS with scripts/tune/rotation.mjs).
+ * Defensive's are the best rotation found for the default setup, keeping the tank's duties
+ * (decisions D23 and D26; paladin.md "Tuning the defaults", measured on TPS with
+ * scripts/tune/rotation.mjs); Balanced, the default, differs by a first-pass search on TPS and DPS
+ * together (D27, D28; paladin.md "Priority: Defensive, Balanced or Max TPS").
  */
 export const PROTECTION_OPTIONS: RotationOption[] = [
   {
@@ -472,7 +474,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
     help: 'Use Hammer of the Righteous in place of Holy Strike: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so it’s one or the other, and Iron Creed’s extra threat and lower damage taken come only with Holy Strike. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used. On with Balanced, for more damage; off with Defensive and Max TPS, since Holy Strike makes more threat.',
-    // paladin.md "Balanced": +1.3% DPS for −0.4% TPS in the default setup, so Balanced takes it.
+    // paladin.md "Priority: Defensive, Balanced or Max TPS": +1.3% DPS for −0.4% TPS in the default setup, so Balanced takes it.
     default: true,
     defaultWhen: [
       { ...DEFENSIVE, default: false },

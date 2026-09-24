@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { checkConflicts, checkNeeds, createOutput, inWords, recordedSource } from "./output.mjs";
-import { CHECK_BUILDS, CLASSIC_BASELINE, DOC_TABLES_BUILD } from "./wago.mjs";
+import { CHECK_BUILDS, CLASSIC_BASELINE, DOC_TABLES_BUILD, FROZEN_TALENT_BUILDS } from "./wago.mjs";
 
 let dir;
 beforeEach(() => {
@@ -92,18 +92,21 @@ describe("checkNeeds", () => {
     { version: null, dbdefs: null },
   ];
 
-  it("names the recorded build and commit, the Classic Era baseline and the build of the doc-cited tables, each once (LC-1)", () => {
-    expect(checkNeeds({ recorded, cacheDir: "/c" })).toEqual([
-      ["the Forever build 1.60.1.69913", path.join("/c", "1.60.1.69913")],
+  it("names the recorded build and commit, the Classic Era baseline, the build of the doc-cited tables and the frozen talent builds, each once (LC-1)", () => {
+    expect(checkNeeds({ recorded: [{ version: "1.60.1.70009", dbdefs: "a".repeat(40) }, ...recorded.slice(2)], cacheDir: "/c" })).toEqual([
+      ["the Forever build 1.60.1.70009", path.join("/c", "1.60.1.70009")],
       [`the Classic Era baseline ${CLASSIC_BASELINE}`, path.join("/c", CLASSIC_BASELINE)],
       [`the Forever build ${DOC_TABLES_BUILD} (the tables the docs cite)`, path.join("/c", DOC_TABLES_BUILD)],
+      ["the Forever build 1.60.1.69913 (a frozen talent code order)", path.join("/c", "1.60.1.69913")],
       ["the WoWDBDefs commit aaaaaaaaaaaa", path.join("/c", "github", "wowdbdefs", "a".repeat(40))],
     ]);
+    // A recorded build that is also frozen is named once, as the recorded build.
+    expect(checkNeeds({ recorded, cacheDir: "/c" }).filter(([, dir]) => dir === path.join("/c", "1.60.1.69913"))).toEqual([["the Forever build 1.60.1.69913", path.join("/c", "1.60.1.69913")]]);
   });
 
   it("lets --version and --dbdefs replace what the data records, and names a directory once when a build is both", () => {
     const needs = checkNeeds({ recorded, version: DOC_TABLES_BUILD, dbdefs: "b".repeat(40), cacheDir: "/c" });
-    expect(needs.map(([, dir]) => dir)).toEqual([path.join("/c", DOC_TABLES_BUILD), path.join("/c", CLASSIC_BASELINE), path.join("/c", "github", "wowdbdefs", "b".repeat(40))]);
+    expect(needs.map(([, dir]) => dir)).toEqual([path.join("/c", DOC_TABLES_BUILD), path.join("/c", CLASSIC_BASELINE), ...FROZEN_TALENT_BUILDS.map((b) => path.join("/c", b)), path.join("/c", "github", "wowdbdefs", "b".repeat(40))]);
     expect(needs[0][0]).toBe(`the Forever build ${DOC_TABLES_BUILD}`);
   });
 
@@ -113,7 +116,7 @@ describe("checkNeeds", () => {
     const names = [...client.slice(start, client.indexOf("];", start)).matchAll(/build: (\w+)/g)].map((m) => m[1]);
     expect(names).toEqual(["DOC_TABLES_BUILD", "DEFAULT_BASELINE"]);
     expect(client).toContain("const DEFAULT_BASELINE = CLASSIC_BASELINE;");
-    expect(CHECK_BUILDS.map((c) => c.build)).toEqual([CLASSIC_BASELINE, DOC_TABLES_BUILD]);
+    expect(CHECK_BUILDS.map((c) => c.build)).toEqual([CLASSIC_BASELINE, DOC_TABLES_BUILD, ...FROZEN_TALENT_BUILDS]);
   });
 });
 

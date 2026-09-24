@@ -27,9 +27,12 @@ import mageTalentJson from './talents/mage.json'
 import warlockTalentJson from './talents/warlock.json'
 import priestTalentJson from './talents/priest.json'
 import hunterTalentJson from './talents/hunter.json'
+import frozenJson from './talents/frozen.json'
 import {
+  decodeFrozenCode,
   decodeTalentCode,
   encodeTalentCode,
+  type FrozenTalentOrders,
   pointsPerTree,
   type TalentData,
   talentsInCodeOrder,
@@ -209,6 +212,43 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Survival: "Improved Tracking 5, Deflection 5, Entrapment 5, Savage Strikes 2, Survivalist 5, Improved Wing Clip 3, Clever Traps 2, Surefooted 3, Deterrence 1, Survival Tactics 2, Predator's Edge 5, Counterattack 1, Resourcefulness 2, Expose Prey 2, Survivalist's Discipline 2, Strider Kick 1, Lightning Reflexes 5, Lacerating Strikes 1",
   },
 }
+
+// The code order of 1.60.1.69913, frozen (docs/data/talents.md#tree-versions): setups saved on it
+// (config version 1) hold codes on these trees, so every position keeps its meaning forever.
+const CODE_ORDER_69913: Record<keyof typeof talentData, Record<string, string>> = CODE_ORDER
+
+const frozen = frozenJson as unknown as FrozenTalentOrders
+
+describe('frozen talent code orders (frozen.json)', () => {
+  const legacy = (storedBuildsJson as unknown as { legacy: Record<string, Record<string, Record<string, { note: string; ranks: string[] }>>> }).legacy
+
+  it('keeps 1.60.1.69913’s every position: the same talent and max rank, tree by tree', () => {
+    const orders = frozen.builds['1.60.1.69913'].classes
+    for (const cls of Object.keys(talentData) as (keyof typeof talentData)[]) {
+      const actual = Object.fromEntries(orders[cls].map((tree) => [tree.name, tree.talents.map(([name, max]) => `${name} ${max}`).join(', ')]))
+      expect(actual, cls).toEqual(CODE_ORDER_69913[cls])
+    }
+  })
+
+  it('freezes only builds stored-builds.json keeps codes of, and keeps every tree in tier-then-column order', () => {
+    expect(Object.keys(frozen.builds)).toEqual(Object.keys(legacy).filter((k) => !k.startsWith('$')))
+    for (const { classes } of Object.values(frozen.builds)) {
+      for (const tree of Object.values(classes).flat()) {
+        const sorted = [...tree.talents].sort((a, b) => a[3] - b[3] || a[4] - b[4])
+        expect(tree.talents, tree.name).toEqual(sorted)
+      }
+    }
+  })
+
+  const legacyCodes = Object.entries(legacy)
+    .filter(([build]) => !build.startsWith('$'))
+    .flatMap(([build, classes]) => Object.entries(classes).flatMap(([cls, codes]) => Object.entries(codes).map(([code, b]) => [build, cls, code, b.ranks] as const)))
+  it.each(legacyCodes)('%s %s %s decodes to the ranks it was written with', (build, cls, code, ranks) => {
+    const trees = frozen.builds[build].classes[cls as keyof typeof talentData]
+    const byName = decodeFrozenCode(trees, code)
+    expect(trees.map((tree) => tree.talents.filter(([name]) => byName[name]).map(([name]) => `${name} ${byName[name]}`).join(', '))).toEqual(ranks)
+  })
+})
 
 /** Ranks by talent name, per tree, in code order: "Name rank, Name rank". */
 function describeBuild(data: TalentData, code: string): string[] {

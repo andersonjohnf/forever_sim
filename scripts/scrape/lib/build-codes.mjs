@@ -3,6 +3,26 @@
 // build to the next. The same algorithm as src/data/talents/types.ts. Pure functions over a talent
 // dataset (src/data/talents/<class>.json); scripts/scrape/talents-client.mjs runs the guard.
 
+/**
+ * The fields of a talent in src/data/talents/frozen.json, in order: each talent is one array
+ * (docs/data/talents.md#tree-versions).
+ */
+export const FROZEN_TALENT_FIELDS = ["name", "maxRank", "spellId", "tier", "col"];
+
+/**
+ * A class's frozen trees (src/data/talents/frozen.json: `[{ name, talents: [[name, maxRank, spellId,
+ * tier, col], …] }, …]`) in the dataset's shape, as far as the helpers below read it, so a code
+ * written on a frozen build decodes as the dataset's own codes do.
+ */
+export function frozenAsData(trees) {
+  return {
+    trees: trees.map((tree) => ({
+      name: tree.name,
+      talents: tree.talents.map(([name, maxRank, spellId, tier, col]) => ({ name, maxRank, spellId, tier, col, inForeverTree: true })),
+    })),
+  };
+}
+
 /** The talents of each tree in build-code order: Forever-tree talents by tier, then column. */
 export const codeOrder = (data) => data.trees.map((tree) => tree.talents.filter((t) => t.inForeverTree).sort((a, b) => a.tier - b.tier || a.col - b.col));
 

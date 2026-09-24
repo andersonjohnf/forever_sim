@@ -52,14 +52,16 @@ import {
   slug,
   tooltipHeader,
 } from "./lib/talent-tree.mjs";
-import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
-import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
+import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, FROZEN_TALENT_BUILDS, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
+import { FROZEN_TALENT_FIELDS, codeOrder, codePositionChanges, decodeByName, describeRanks, frozenAsData, validate } from "./lib/build-codes.mjs";
 
 const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/talents-client.mjs";
 const OUT_DIR = "src/data/talents";
+/** The frozen code orders of FROZEN_TALENT_BUILDS (docs/data/talents.md#tree-versions). */
+const FROZEN_FILE = `${OUT_DIR}/frozen.json`;
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = CLASSIC_BASELINE;
@@ -81,6 +83,8 @@ const TOOLTIP_STATS = { SPS: 0, SPFI: 0, BH: 0, RAP: 0 };
 const STORED_BUILDS_FILE = "scripts/scrape/stored-builds.json";
 const STORED_BUILDS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, STORED_BUILDS_FILE), "utf8"));
 const storedCodes = (cls) => Object.keys(STORED_BUILDS[cls] ?? {});
+/** The codes stored when the trees were a frozen build's, by class: `legacy[<build>][<class>]`, checked against that build's frozen order. */
+const legacyCodes = (build, cls) => STORED_BUILDS.legacy?.[build]?.[cls] ?? {};
 
 const CODE_FORMAT =
   'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.';
@@ -118,7 +122,7 @@ const version = opts.version ?? recorded.version ?? (await latestBuild(fetcher, 
 const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 
-async function load(build, names) {
+async function load(build, names, { text = true } = {}) {
   const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   const tables = {};
   const used = new Map(); // table → FileDataID
@@ -129,11 +133,14 @@ async function load(build, names) {
     tables[name] = t;
     used.set(name, t.fdid);
   }
-  return { build, source, tables, used, text: createSpellTextContext(tables, { stats: TOOLTIP_STATS }) };
+  return { build, source, tables, used, text: text ? createSpellTextContext(tables, { stats: TOOLTIP_STATS }) : null };
 }
 
 const forever = await load(version, [...FOREVER_TREE_TABLES, ...SPELL_TEXT_TABLES]);
 const classic = await load(opts.baseline, [...CLASSIC_TREE_TABLES, ...SPELL_TEXT_TABLES]);
+/** The Trait tables of each frozen build, read for its code order alone (frozenOrders). */
+const frozenBuilds = [];
+for (const build of FROZEN_TALENT_BUILDS) frozenBuilds.push(await load(build, [...FOREVER_TREE_TABLES, "SpellName"], { text: false }));
 
 /** The committed dataset of each class (git show <against>:src/data/talents/<class>.json): { data, error }. */
 const committedReads = Object.fromEntries(CLASSES.map((cls) => [cls, readCommitted(REPO_ROOT, `${OUT_DIR}/${cls}.json`, opts.against)]));
@@ -192,6 +199,60 @@ function checkCodes(cls, old, next) {
     results.push({ code, talents: Object.keys(b).length, points: Object.values(b).reduce((x, y) => x + y, 0), sameRanks: same, legal: problems.length === 0 });
   }
   return results;
+}
+
+/**
+ * The frozen code order of each FROZEN_TALENT_BUILDS build (src/data/talents/frozen.json): per class
+ * and tree, the talents in build-code order as [name, maxRank, spellId, tier, col], read from that
+ * build's own Trait tables on every run, so a check regenerates it byte for byte. A code written on
+ * that build decodes against it, and the app maps it onto today's trees by talent name
+ * (docs/data/talents.md#tree-versions). Each code the repo stored on that build (stored-builds.json
+ * `legacy`) must still decode to the ranks it lists: a frozen order never changes meaning.
+ */
+function frozenOrders() {
+  for (const build of Object.keys(STORED_BUILDS.legacy ?? {}).filter((k) => !k.startsWith("$"))) {
+    if (!FROZEN_TALENT_BUILDS.includes(build)) fail(`${STORED_BUILDS_FILE} stores codes of ${build}, which isn't a frozen build (lib/wago.mjs FROZEN_TALENT_BUILDS)`);
+  }
+  const builds = {};
+  for (const b of frozenBuilds) {
+    const classes = {};
+    for (const cls of CLASSES) {
+      const tree = readForeverTree(b.tables, cls);
+      for (const p of tree.problems) fail(`${b.build}: ${p}`);
+      classes[cls] = tree.tabs.map((tab, i) => ({
+        name: tab.name,
+        talents: tree.talents
+          .filter((t) => t.tab === i)
+          .sort((x, y) => x.tier - y.tier || x.col - y.col)
+          .map((t) => [t.name, t.maxRank, t.spellId, t.tier, t.col]),
+      }));
+      const names = classes[cls].flatMap((t) => t.talents.map(([name]) => name));
+      if (new Set(names).size !== names.length) fail(`${b.build} ${cls}: two talents share a name, so its codes can't be mapped by name`);
+      const data = frozenAsData(classes[cls]);
+      for (const [code, { note, ranks }] of Object.entries(legacyCodes(b.build, cls))) {
+        try {
+          decodeByName(data, code);
+          const got = describeRanks(data, code);
+          if (JSON.stringify(got) !== JSON.stringify(ranks)) fail(`${b.build} ${cls} ${code} (${note}): decodes to ${JSON.stringify(got)}, not the ${JSON.stringify(ranks)} of ${STORED_BUILDS_FILE}`);
+        } catch (e) {
+          fail(`${b.build} ${cls} ${code}: doesn't decode under the frozen order (${e.message})`);
+        }
+      }
+    }
+    const tables = Object.fromEntries([...b.used.entries()].sort(([x], [y]) => compareText(x, y)));
+    builds[b.build] = { tables, classes };
+  }
+  return {
+    meta: {
+      source: "https://wago.tools/api/casc",
+      scraper: SCRAPER,
+      product: PRODUCT,
+      wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
+      talentFields: FROZEN_TALENT_FIELDS,
+      note: "The build-code order of each frozen Forever build: per class and tree, the talents in code order (tier, then column). A code written on one of these builds decodes against it and maps onto today's trees by talent name (docs/data/talents.md#tree-versions). Generated; never edited.",
+    },
+    builds,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -382,6 +443,7 @@ async function write() {
     };
     codeResults[cls] = checkCodes(cls, committed[cls], b.data);
   }
+  const frozen = frozenOrders();
   printSummary(built, codeResults);
   if (errors.length) {
     for (const e of errors) console.error(`ERROR: ${e}`);
@@ -395,6 +457,9 @@ async function write() {
     output.write(file, text);
     if (!opts.check) console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
   }
+  const frozenText = stableStringify(frozen);
+  output.write(path.join(REPO_ROOT, FROZEN_FILE), frozenText);
+  if (!opts.check) console.log(`Wrote ${FROZEN_FILE} (${(frozenText.length / 1024).toFixed(0)} KB: the code orders of ${FROZEN_TALENT_BUILDS.join(", ")})`);
   output.finish();
 }
 

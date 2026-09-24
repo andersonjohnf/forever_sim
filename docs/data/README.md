@@ -132,9 +132,11 @@ that, both part of `npm run test:full`:
   `src/data`. `test:full` runs it as its own step after the unit tests, with `--if-cached`, which
   skips it (exit 0, with a line saying so) when the cache has no directory for the Forever build
   or the WoWDBDefs commit the committed data records, for the Classic Era baseline
-  (1.15.9.69722), or for Forever 1.60.1.69977, the build the client scraper reads the tables the
-  docs cite from ([client.md § Tables the docs cite](client.md#tables-the-docs-cite); both builds
-  are `CHECK_BUILDS` in `scripts/scrape/lib/wago.mjs`), as in CI. Without `--if-cached`, a check
+  (1.15.9.69722), for Forever 1.60.1.69977, the build the client scraper reads the tables the
+  docs cite from ([client.md § Tables the docs cite](client.md#tables-the-docs-cite)), or for
+  Forever 1.60.1.69913, whose talent code order is frozen
+  ([talents.md § Tree versions](talents.md#tree-versions); all three are `CHECK_BUILDS` in
+  `scripts/scrape/lib/wago.mjs`), as in CI. Without `--if-cached`, a check
   with one of them absent stops before any generator runs (exit 1) and names each that isn't in
   the cache, so a missing cache never reads as stale data. It isn't a unit test because it runs the generators for
   about 15 s, which would compete with the unit tests' timing checks for the CPU.

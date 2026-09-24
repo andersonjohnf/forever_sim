@@ -251,6 +251,25 @@ Worked decodes, one per class (each entry is `order` Talent rank/max):
   13 Vengeance 3/3, 15 Champion of the Light 3/3, 16 Instrument of Law 2/2,
   17 Twist of Light 1/1.
 
+## Tree versions
+
+A new client build can move a talent, rename it, change its max rank or remove it, and then a code
+written on the old trees means another build, or none, on the new ones. The app keeps reading such
+codes: **each older build whose codes a setup may hold keeps its code order, frozen**, and a code
+written on it decodes against that order.
+
+- **The frozen orders** are [`src/data/talents/frozen.json`](../../src/data/talents/frozen.json):
+  per build, class and tree, the talents in code order as `[name, maxRank, spellId, tier, col]`.
+  The talent scraper writes it on every run from each frozen build's own Trait tables
+  (`FROZEN_TALENT_BUILDS` in [`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs):
+  `1.60.1.69913`), whatever build it generates, so `npm run scrape:check` regenerates it byte for
+  byte and needs that build in the cache.
+- **The frozen codes.** [`stored-builds.json`](../../scripts/scrape/stored-builds.json)'s
+  `legacy[<build>]` keeps, frozen, every code the repo stored when the trees were that build's,
+  with its ranks by name then. The scraper checks each against the build's frozen order and fails
+  if one decodes to other ranks; `src/data/data.test.ts` pins the same, and 1.60.1.69913's order
+  position by position.
+
 ## Prerequisite arrows
 
 From `TraitEdge` (types 2 and 3). The prerequisite must be at **max rank**. All arrows point

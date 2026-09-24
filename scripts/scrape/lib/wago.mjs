@@ -63,6 +63,14 @@ export const CLASSIC_BASELINE = "1.15.9.69722";
 export const DOC_TABLES_BUILD = "1.60.1.69977";
 
 /**
+ * The Forever builds whose talent code order the talent scraper keeps, frozen, in
+ * src/data/talents/frozen.json, so a build code written on one of them still decodes after a later
+ * build moves a position (docs/data/talents.md#tree-versions). It reads their Trait tables whatever
+ * build it generates.
+ */
+export const FROZEN_TALENT_BUILDS = ["1.60.1.69913"];
+
+/**
  * The builds a check reads from the cache whatever build the committed data records, each with
  * how all.mjs --check names it when its directory is absent
  * (docs/data/README.md#checking-the-committed-data).
@@ -70,6 +78,7 @@ export const DOC_TABLES_BUILD = "1.60.1.69977";
 export const CHECK_BUILDS = [
   { build: CLASSIC_BASELINE, what: `the Classic Era baseline ${CLASSIC_BASELINE}` },
   { build: DOC_TABLES_BUILD, what: `the Forever build ${DOC_TABLES_BUILD} (the tables the docs cite)` },
+  ...FROZEN_TALENT_BUILDS.map((build) => ({ build, what: `the Forever build ${build} (a frozen talent code order)` })),
 ];
 
 /**

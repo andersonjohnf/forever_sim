@@ -1,5 +1,5 @@
 {
-  "$comment": "Every talent build code the repo stores or documents, by class: the spec defaults and presets (src/sim/defaults.ts), the class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), a popular Restoration build and the codes in tests. Share links and saved setups store build codes, so a code must keep meaning the same build: `ranks` lists, per tree, the ranks by talent name the code decoded to when it was written ('Name rank, Name rank'; '' for an empty tree). Hand-authored scraper input, the one source of truth for stored codes: scripts/scrape/talents-client.mjs refuses to write a dataset under which a code decodes to other ranks, and src/data/data.test.ts checks the committed datasets against it (docs/data/talents.md#build-codes-verified). If a doc changes a build, change it here too.",
+  "$comment": "Every talent build code the repo stores or documents, by class: the spec defaults and presets (src/sim/defaults.ts), the class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), a popular Restoration build and the codes in tests. Share links and saved setups store build codes, so a code must keep meaning the same build: `ranks` lists, per tree, the ranks by talent name the code decoded to when it was written ('Name rank, Name rank'; '' for an empty tree). Hand-authored scraper input, the one source of truth for stored codes: scripts/scrape/talents-client.mjs refuses to write a dataset under which a code decodes to other ranks, and src/data/data.test.ts checks the committed datasets against it (docs/data/talents.md#build-codes-verified). If a doc changes a build, change it here too. The class sections are codes on today's trees; `legacy` keeps the codes stored when the trees were an older build's, frozen.",
   "warrior": {
     "30305013002-050530035150010051-": {
       "note": "Fury default (17/34/0), warrior.md §6.1",
@@ -296,6 +296,309 @@
         "Lethal Attacks 5, Efficiency 5, Careful Aim 5, Rapid Killing 1, Improved Arcane Shot 5",
         "Improved Tracking 5, Deflection 5, Survivalist 5, Surefooted 3, Deterrence 1, Survival Tactics 2, Predator's Edge 4, Lightning Reflexes 5"
       ]
+    }
+  },
+  "legacy": {
+    "$comment": "Frozen: never edited. The codes the repo stored when the trees were each build's, with the ranks by name they decoded to then, by build and class. A setup saved then (config version 1: 1.60.1.69913) holds codes on those trees, so the talent scraper checks each one against that build's frozen code order (src/data/talents/frozen.json), and the app maps them onto today's trees by name (docs/data/talents.md#tree-versions).",
+    "1.60.1.69913": {
+      "warrior": {
+        "30305013002-050530035150010051-": {
+          "note": "Fury default (17/34/0), warrior.md §6.1",
+          "ranks": [
+            "Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3, Impale 2",
+            "Cruelty 5, Unbridled Wrath 5, Improved Cleave 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Death Wish 1, Flurry 5, Bloodthirst 1",
+            ""
+          ]
+        },
+        "30305013-050520035150310051-": {
+          "note": "Fury + Precision (15/36/0), warrior.md §6.1",
+          "ranks": [
+            "Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3",
+            "Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Precision 3, Death Wish 1, Flurry 5, Bloodthirst 1",
+            ""
+          ]
+        },
+        "30305213132515201-05050103-": {
+          "note": "Arms default (37/14/0), warrior.md §6.1",
+          "ranks": [
+            "Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Spearing Strike 1, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Mortal Strike 1",
+            "Cruelty 5, Unbridled Wrath 5, Piercing Howl 1, Boundless Rage 3",
+            ""
+          ]
+        },
+        "35-05-552101233301210531": {
+          "note": "Protection default (8/5/38), warrior.md §6.1",
+          "ranks": [
+            "Improved Heroic Strike 3, Deflection 5",
+            "Cruelty 5",
+            "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Toughness 1, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 3, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+          ]
+        },
+        "05-05-552131233301210531": {
+          "note": "Protection + Improved Thunder Clap (5/5/41), warrior.md §6.1",
+          "ranks": [
+            "Deflection 5",
+            "Cruelty 5",
+            "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Toughness 1, Improved Thunder Clap 3, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 3, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+          ]
+        },
+        "05-05-552001233201210531": {
+          "note": "The former Protection default (5/5/36, 46 points; until P2's review): saved setups and share links may hold it",
+          "ranks": [
+            "Deflection 5",
+            "Cruelty 5",
+            "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+          ]
+        },
+        "32-05-552001233201210531": {
+          "note": "The former Protection \"TPS\" preset (5/5/36, 46 points; until P2's review): saved setups and share links may hold it",
+          "ranks": [
+            "Improved Heroic Strike 3, Deflection 2",
+            "Cruelty 5",
+            "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+          ]
+        }
+      },
+      "druid": {
+        "050022-5520002123032213051-05": {
+          "note": "Feral cat default (9/37/5), druid.md §7.1",
+          "ranks": [
+            "Genesis 5, Nature's Majesty 2, Nature's Reach 2",
+            "Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Rend and Tear 5, Berserk 1",
+            "Furor 5"
+          ]
+        },
+        "050022-5520032023132210551-": {
+          "note": "Feral bear default (9/42/0), druid.md §7.1",
+          "ranks": [
+            "Genesis 5, Nature's Majesty 2, Nature's Reach 2",
+            "Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Thick Hide 3, Savage Fury 2, Sharpened Claws 2, Shredding Attacks 3, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, Natural Reaction 5, Rend and Tear 5, Berserk 1",
+            ""
+          ]
+        },
+        "050012-5523032120132210551-": {
+          "note": "Feral bear with Feral Charge (8/43/0), the former default, druid.md §7.1",
+          "ranks": [
+            "Genesis 5, Nature's Majesty 1, Nature's Reach 2",
+            "Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, Natural Reaction 5, Rend and Tear 5, Berserk 1",
+            ""
+          ]
+        },
+        "5532220115501351-05-": {
+          "note": "Balance (41/5/0), druid.md Balance notes",
+          "ranks": [
+            "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
+            "Heart of the Wild 5",
+            ""
+          ]
+        },
+        "05302001-05-5050035103113251": {
+          "note": "Restoration (11/5/35), a popular build of September 2026",
+          "ranks": [
+            "Genesis 5, Moonglow 3, Nature's Majesty 2, Nature's Splendor 1",
+            "Heart of the Wild 5",
+            "Nature's Focus 5, Naturalist 5, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1"
+          ]
+        }
+      },
+      "paladin": {
+        "250003-503-052052310012330321": {
+          "note": "Retribution default (10/8/33), paladin.md Retribution defaults",
+          "ranks": [
+            "Improved Holy Strike 2, Divine Strength 5, Improved Seals 3",
+            "Toughness 5, Precision 3",
+            "Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command 1, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light 1"
+          ]
+        },
+        "240003-0530213321301551-502": {
+          "note": "Protection default (9/35/7), the guild's lead theorycrafter's build (2026-09-24), paladin.md Protection defaults",
+          "ranks": [
+            "Improved Holy Strike 2, Divine Strength 4, Improved Seals 3",
+            "Redoubt 5, Precision 3, Anticipation 2, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+            "Deflection 5, Improved Judgement 2"
+          ]
+        },
+        "-0530513321301551-50215": {
+          "note": "The former Protection default, interim (0/38/13, T2's fix round), kept for saved setups, paladin.md Protection defaults",
+          "ranks": [
+            "",
+            "Redoubt 5, Precision 3, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+            "Deflection 5, Improved Judgement 2, Holy Conduit 1, Conviction 5"
+          ]
+        },
+        "2-4530013321301551-50205": {
+          "note": "The former Protection default, interim (2/37/12, T2), kept for saved setups, paladin.md Protection defaults",
+          "ranks": [
+            "Improved Holy Strike 2",
+            "Toughness 4, Redoubt 5, Precision 3, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+            "Deflection 5, Improved Judgement 2, Conviction 5"
+          ]
+        },
+        "2-4530513321301551-502": {
+          "note": "Protection, the popular build (2/42/7; v1's default), paladin.md Protection defaults",
+          "ranks": [
+            "Improved Holy Strike 2",
+            "Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+            "Deflection 5, Improved Judgement 2"
+          ]
+        },
+        "005320213225131051-5032-05": {
+          "note": "Holy (36/10/5), paladin.md Sources",
+          "ranks": [
+            "Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Holy Power 5, Light's Vigil 1",
+            "Toughness 5, Precision 3, Guardian's Favor 2",
+            "Benediction 5"
+          ]
+        }
+      },
+      "shaman": {
+        "050003-055030031005102251-05005": {
+          "note": "Enhancement default (8/33/10), shaman.md#talents",
+          "ranks": [
+            "Concussion 5, Elemental Devastation 3",
+            "Thundering Strikes 5, Ancestral Knowledge 5, Mental Dexterity 3, Elemental Weapons 3, Shamanistic Focus 1, Flurry 5, Stormstrike 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
+            "Totemic Focus 5, Tidal Focus 5"
+          ]
+        },
+        "5504301500103031-04-053250000001": {
+          "note": "Elemental default (31/4/16), shaman.md#elemental-defaults",
+          "ranks": [
+            "Convection 5, Concussion 5, Reverberation 4, Call of Flame 3, Elemental Focus 1, Elemental Fury 5, Call of Thunder 1, Lightning Overload 3, Elemental Alacrity 3, Lava Burst 1",
+            "Thundering Strikes 4",
+            "Totemic Focus 5, Mindfulness 3, Natural Grace 2, Tidal Focus 5, Mana Tide Totem 1"
+          ]
+        }
+      },
+      "rogue": {
+        "005303105001-32502300001515231-": {
+          "note": "Combat default (18/33/0), rogue.md §7.1",
+          "ranks": [
+            "Malice 5, Ruthlessness 3, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 5, Improved Poisons 1",
+            "Improved Eviscerate 3, Improved Sinister Strike 2, Lightning Reflexes 5, Deflection 2, Precision 3, Flawless Execution 1, Dual Wield Specialization 5, Blade Flurry 1, Hack and Slash 5, Weapon Expertise 2, Aggression 3, Adrenaline Rush 1",
+            ""
+          ]
+        },
+        "00531310551521051-302303-002": {
+          "note": "Assassination default (38/11/2), rogue.md §7.1",
+          "ranks": [
+            "Malice 5, Ruthlessness 3, Murder 1, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 5, Vile Poisons 5, Cold Blood 1, Improved Poisons 5, Vigor 2, Mutilate 1, Seal Fate 5, Venom 1",
+            "Improved Eviscerate 3, Lightning Reflexes 2, Puncturing Wounds 3, Precision 3",
+            "Opportunity 2"
+          ]
+        },
+        "005303103--0322003311213211551": {
+          "note": "Subtlety default (15/0/36), rogue.md §7.1",
+          "ranks": [
+            "Malice 5, Ruthlessness 3, Improved Slice and Dice 3, Relentless Strikes 1, Lethality 3",
+            "",
+            "Master of Deception 3, Opportunity 2, Setup 2, Improved Ambush 3, Initiative 3, Ghostly Strike 1, Improved Distract 1, Heightened Senses 2, Premeditation 1, Serrated Blades 3, Dirty Deeds 2, Preparation 1, Hemorrhage 1, Quietus 5, Cutthroat 5, Thousand Cuts 1"
+          ]
+        }
+      },
+      "mage": {
+        "230225-23550000130133051-005": {
+          "note": "Fire default (14/32/5), mage.md#talents",
+          "ranks": [
+            "Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5",
+            "Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Pyroblast 1, Improved Scorch 3, Hot Streak 1, Master of Elements 3, Critical Mass 3, Fire Power 5, Combustion 1",
+            "Elemental Precision 5"
+          ]
+        },
+        "230225200100301--055510033002000105": {
+          "note": "Frost default (21/0/30), mage.md#talents",
+          "ranks": [
+            "Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Resilience 2, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1",
+            "",
+            "Improved Frostbolt 5, Elemental Precision 5, Ice Shards 5, Permafrost 1, Piercing Ice 3, Frost Channeling 3, Arctic Reach 2, Cold Snap 1, Winter's Chill 5"
+          ]
+        },
+        "050225003100301531-2355001010003-": {
+          "note": "Arcane default (31/20/0), mage.md#talents",
+          "ranks": [
+            "Arcane Focus 5, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Impact 3, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1, Arcane Mind 5, Arcane Instability 3, Arcane Power 1",
+            "Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Burning Soul 1, Pyroblast 1, Master of Elements 3",
+            ""
+          ]
+        }
+      },
+      "warlock": {
+        "25-0050203001-0050355103101351": {
+          "note": "Destruction default (7/11/33, Fire), warlock.md §7.1",
+          "ranks": [
+            "Improved Life Tap 2, Suppression 5",
+            "Demonic Embrace 5, Demonic Aegis 2, Fel Vitality 3, Demonic Sacrifice 1",
+            "Bane 5, Cataclysm 3, Aftermath 5, Ruin 5, Shadowburn 1, Agonizing Flames 3, Conflagrate 1, Bane of Havoc 1, Fire and Brimstone 3, Shadow and Flame 5, Incinerate 1"
+          ]
+        },
+        "2555002003520105-0050203001-005": {
+          "note": "Affliction default (35/11/5), warlock.md §7.1",
+          "ranks": [
+            "Improved Life Tap 2, Suppression 5, Improved Corruption 5, Malediction 5, Improved Bane of Agony 2, Pandemic 3, Malevolence 5, Nightfall 2, Siphon Life 1, Shadow Mastery 5",
+            "Demonic Embrace 5, Demonic Aegis 2, Fel Vitality 3, Demonic Sacrifice 1",
+            "Bane 5"
+          ]
+        },
+        "-0325003231120001351-0350305003": {
+          "note": "Demonology's first pass (0/32/19, Demonic Pact), warlock.md §11.6",
+          "ranks": [
+            "",
+            "Improved Imp 3, Demonic Embrace 2, Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice 1, Master Summoner 1, Decimation 2, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1",
+            "Improved Shadow Bolt 3, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3"
+          ]
+        },
+        "-0325003221120001351-0450305003": {
+          "note": "Demonology default (0/31/20, Demonic Pact), warlock.md §11.6",
+          "ranks": [
+            "",
+            "Improved Imp 3, Demonic Embrace 2, Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice 1, Master Summoner 1, Decimation 2, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1",
+            "Improved Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3"
+          ]
+        }
+      },
+      "priest": {
+        "025300031303--500320501201312051": {
+          "note": "Shadow default (20/0/31), priest.md §7.1",
+          "ranks": [
+            "Wand Specialization 2, Twin Disciplines 5, Silent Resolve 3, Mental Agility 3, Inner Focus 1, Meditation 3, Mental Strength 3",
+            "",
+            "Shadow Focus 5, Shadow Affinity 3, Improved Shadow Word: Pain 2, Improved Mind Blast 5, Mind Flay 1, Improved Mind Flay 2, Vampiric Embrace 1, Shadow Weaving 3, Silence 1, Devouring Contagion 2, Darkness 5, Shadowform 1"
+          ]
+        }
+      },
+      "hunter": {
+        "55-0053552511503051-": {
+          "note": "Marksmanship default (10/41/0, Lone Wolf), hunter.md §7.1",
+          "ranks": [
+            "Deadly Aspects 5, Endurance Training 5",
+            "Lethal Attacks 5, Improved Stings 3, Efficiency 5, Careful Aim 5, Rapid Killing 2, Improved Arcane Shot 5, Lone Wolf 1, Trueshot Aura 1, Mortal Shots 5, Barrage 3, Ranged Weapon Specialization 5, Sniper Shot 1",
+            ""
+          ]
+        },
+        "5023-1053552501503051-": {
+          "note": "Marksmanship with a pet (10/41/0), hunter.md §7.1",
+          "ranks": [
+            "Deadly Aspects 5, Focused Fire 2, Improved Aspect of the Monkey 3",
+            "Hawk Eye 1, Lethal Attacks 5, Improved Stings 3, Efficiency 5, Careful Aim 5, Rapid Killing 2, Improved Arcane Shot 5, Trueshot Aura 1, Mortal Shots 5, Barrage 3, Ranged Weapon Specialization 5, Sniper Shot 1",
+            ""
+          ]
+        },
+        "5023001505011251-00505505-": {
+          "note": "Beast Mastery default (31/20/0), hunter.md §7.1",
+          "ranks": [
+            "Deadly Aspects 5, Focused Fire 2, Improved Aspect of the Monkey 3, Bestial Swiftness 1, Unleashed Fury 5, Ferocity 5, Spirit Bond 1, Intimidation 1, Bestial Discipline 2, Frenzy 5, Bestial Wrath 1",
+            "Lethal Attacks 5, Efficiency 5, Careful Aim 5, Improved Arcane Shot 5",
+            ""
+          ]
+        },
+        "-00505515-55005003124000005": {
+          "note": "Survival default (0/21/30), hunter.md §7.1",
+          "ranks": [
+            "",
+            "Lethal Attacks 5, Efficiency 5, Careful Aim 5, Rapid Killing 1, Improved Arcane Shot 5",
+            "Improved Tracking 5, Deflection 5, Survivalist 5, Surefooted 3, Deterrence 1, Survival Tactics 2, Predator's Edge 4, Lightning Reflexes 5"
+          ]
+        }
+      }
     }
   }
 }

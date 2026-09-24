@@ -121,6 +121,13 @@ proc chances (20% and 30%) and 5 stacks are unchanged, their charges grow (175 a
 Deadly Poison's ticks now carry the periodic-crit flag [F] [client] (SpellEffect, SpellItemEnchantment,
 SpellMisc, 1.60.1.69913). See [§4](#4-poisons).
 
+### 1.4 Weapons
+
+Forever's rogues train **one-handed axes**: One-Handed Axes (spell 196, skill line 44) has class
+mask 79 in Forever, the rogue's bit (8) included, and 71 in Classic Era, without it [F] [client]
+(SkillLineAbility row 248, 1.60.1.69913; [C] 1.15.9.69722). An axe in either hand gets Hack and
+Slash's extra attack (§5.2) and the Orc's axe racial.
+
 ---
 
 ## 2. Rogue mechanics
@@ -480,7 +487,8 @@ plus two alternatives per slot, four for rings and trinkets, no PvP rank above 1
 Guardian (swords). Assassination and Subtlety: Felstriker or Heartseeker in the main hand, Alcor's
 Sunrazor or Distracting Dagger in the off hand. Armor: Darkmantle (Dungeon Set 2) where the guide
 ranks it first; many of these items have no Forever client row yet and use their Classic Era stats
-(D6).
+(D6). The item picker offers daggers, swords, maces, fist weapons and, in Forever, one-handed axes
+(§1.4) for either hand [F].
 
 ### 7.4 Rotation settings
 

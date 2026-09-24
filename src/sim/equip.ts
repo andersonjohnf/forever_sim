@@ -59,12 +59,13 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: 'Totem',
     dualWield: false,
   },
-  // docs/classes/rogue.md#7-sensible-defaults: leather, daggers, swords, maces and fist weapons in
-  // either hand, no two-handers or shields, and bows, crossbows, guns and thrown weapons [C].
+  // docs/classes/rogue.md#73-weapons-and-gear: leather, daggers, swords, maces and fist weapons in
+  // either hand, no two-handers or shields, and bows, crossbows, guns and thrown weapons [C]; and
+  // one-handed axes, which Forever trains (SkillLineAbility 196's class mask 79 has the rogue) [F].
   rogue: {
     armor: ['cloth', 'leather'],
     shield: false,
-    oneHand: ['mace', 'sword', 'dagger', 'fist'],
+    oneHand: ['axe', 'mace', 'sword', 'dagger', 'fist'],
     twoHand: [],
     ranged: ['bow', 'crossbow', 'gun', 'thrown'],
     relic: null,

@@ -3,6 +3,8 @@
 // combo points, poisons and dual wield, the Combat priority list, a golden run and determinism.
 import { describe, expect, it } from 'vitest'
 import itemsJson from '@/data/client/items.json'
+import preBisJson from '@/data/items/pre-bis.json'
+import type { ItemData } from '@/data/items/types'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
@@ -10,6 +12,7 @@ import { CRIT_MULTIPLIER } from '../../core/formulas'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
 import { catalogueEffects } from '../../effects/types'
+import { fitsSlot } from '../../equip'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
 import { FIELD, Sim } from '../../engine/sim'
 import { alwaysLandNoCrit, counter, damages, expectMean, setAttackPower, timeline } from '../../engine/test-helpers'
@@ -54,6 +57,7 @@ import { rogueEnergy } from './setup'
 import { ROGUE_TALENT_EFFECTS } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
+const preBis = (preBisJson as unknown as ItemData).items
 const clientTalents = (talentsJson as unknown as ClientTalents).classes.rogue.talents
 const consumables = (itemsJson as unknown as { consumables: Record<string, { effects: { spellId: number; coolDownMSec: number }[] }> }).consumables
 const spell = (id: number) => spells[String(id)]
@@ -440,6 +444,21 @@ describe('the engine with a rogue (rogue.md §2, §4, §8)', () => {
     expect(uses[id('eviscerate')].length).toBeGreaterThan(3)
     expect(uses[id('sliceAndDice')].length).toBeGreaterThan(3)
     expect(sim.resources().comboPoints).toBeLessThanOrEqual(5)
+  })
+
+  it('wields one-handed axes, and Hack and Slash’s extra attack comes from an axe’s hits (RG2)', () => {
+    const axe = preBis.find((i) => i.name === 'Flurry Axe')!
+    const dagger = preBis.find((i) => i.name === "Alcor's Sunrazor")!
+    expect([fitsSlot('rogue', 'mainHand', axe), fitsSlot('rogue', 'offHand', axe)]).toEqual([true, true])
+    const hackAndSlash = (mainHand: number) => {
+      const base = defaultConfig('rogue-combat')
+      const b = buildPlan({ ...base, gear: { ...base.gear, mainHand: { itemId: mainHand }, offHand: { itemId: dagger.id } } })
+      return b.plan.procs.find((p) => p.id === 'hackAndSlash')
+    }
+    // Axe in the main hand, dagger in the off hand: the main hand's hits proc it, at 5% with 5/5.
+    const proc = hackAndSlash(axe.id)!
+    expect([proc.hands, proc.chance[0], proc.action]).toEqual([1, 0.05, ACTION.extraAttacks])
+    expect(hackAndSlash(dagger.id)).toBeUndefined()
   })
 
   it('gives the same result for the same config and seed (decision D15)', () => {

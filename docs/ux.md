@@ -793,7 +793,9 @@ Every view handles these states:
   forward (retry, or reset to defaults).
   - A setup the engine refuses (a Skyborne warrior or hunter) is titled "This setup can't be simulated",
     and its message says what to change, so no retry advice follows it. Any other failure is
-    titled "The simulation failed" and suggests trying again, then resetting the spec.
+    titled "The simulation failed" and suggests trying again, then resetting the spec, except a
+    run that stopped answering for a minute: "The simulation stopped responding for a minute, so
+    it was stopped. Run it again." says all there is to say, since no setup causes a hang.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
     start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out

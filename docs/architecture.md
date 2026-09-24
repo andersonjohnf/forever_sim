@@ -495,9 +495,13 @@ A spec is data plus small ability modules, never its own loop.
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
   chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
-  with an error when a worker that has work doesn't answer for 60 s (a chunk takes well under a
-  second on a desktop even at the longest fight), and replaces that worker; it never changes a
-  result. Where workers don't exist (Node, tests), the same chunks run on the calling thread,
+  with an error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes
+  well under a second on a desktop even at the longest fight), and replaces that worker; it never
+  changes a result. It counts in 1 s heartbeats while the pool has work, and a beat adds at most
+  2 s however long it's been since the last one, so a tab the phone or Energy Saver froze resumes
+  its run instead of failing it on waking; time the page is hidden doesn't count either. Any
+  future pool work (the optimizer's) must also answer within 60 s of awake time, or scale the
+  timeout. Where workers don't exist (Node, tests), the same chunks run on the calling thread,
   where nothing can interrupt a chunk.
 
 ## Testing

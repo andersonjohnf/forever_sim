@@ -12,6 +12,7 @@ import type { SimConfig, SimProgress } from '../types'
 import { type Aggregate, emptyAggregate, mergeChunk } from './aggregate'
 import { ADAPTIVE, type ChunkExecutor, drive, headlineMetrics, type Metric, preciseEnough, projectedFights } from './driver'
 import { localExecutor } from './local'
+import { WORKER_HANG_MESSAGE } from './pool'
 
 const planFor = (spec: SimConfig['spec'], seed = 1) =>
   buildPlan({ ...defaultConfig(spec), run: { mode: 'adaptive', iterations: 3000, seed } }).plan
@@ -204,11 +205,11 @@ describe('a failed chunk (a crashed worker, or one the pool watchdog gave up on)
       lanes: 2,
       run: (chunk, fights) => {
         asked.push(chunk)
-        if (chunk === 3) return Promise.reject(new Error('A simulation worker stopped responding (no answer in 60 s), so the run was stopped.'))
+        if (chunk === 3) return Promise.reject(new Error(WORKER_HANG_MESSAGE))
         return real.run(chunk, fights)
       },
     }
-    await expect(drive(plan, failing, { mode: 'fixed', iterations: 100 * CHUNK_SIZE })).rejects.toThrow(/stopped responding/)
+    await expect(drive(plan, failing, { mode: 'fixed', iterations: 100 * CHUNK_SIZE })).rejects.toThrow(WORKER_HANG_MESSAGE)
     const dispatched = asked.length
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(asked.length).toBe(dispatched)

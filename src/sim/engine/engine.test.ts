@@ -567,6 +567,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Strength, crit and hit raise every hit's threat: Sunder Armor 27.74 M → 31.28 M, Shield Slam
   //   16.64 M → 18.96 M, Revenge 13.87 M → 15.87 M, Heroic Strike 10.29 M → 13.50 M, Windfury 4.81 M
   //   → 7.03 M. TPS 978.76 → 1,123.32, DPS 302.44 → 356.89. Fury, Arms and the cat are unchanged.
+  // - T3R-2 (buffs doc §1.2, §6.2): a raid druid's Thorns on the main tank is in every tank's raid and
+  //   max presets, as Devotion Aura: 22 Nature damage on each boss swing that lands, a new `thorns` row.
+  //   TPS 1,123.32 → 1,132.88, DPS 356.89 → 363.16; nothing else moves. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -518,10 +518,11 @@ describe('the default bear (druid.md §6.3)', () => {
     // The results say how it's modelled, only while it's on.
     expect(buildPlan(config()).assumptions.map((a) => a.id)).toContain('thorns')
     expect(buildPlan({ ...d, buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((id) => id !== 'thorns') } }).assumptions.map((a) => a.id)).not.toContain('thorns')
-    // Another tank has it from a druid in the raid, at its own multipliers: a warrior's ×1.495 × 1.02.
+    // Another tank has it from a druid in the raid (its Standard raid preset, T3R-2), at its own
+    // multipliers: a warrior's ×1.495 × 1.02.
     const w = defaultConfig('warrior-protection')
-    expect(w.buffs.enabled).not.toContain('thorns')
-    const warrior = buildPlan({ ...w, buffs: { ...w.buffs, enabled: [...w.buffs.enabled, 'thorns'] }, run: { mode: 'fixed', iterations: 200, seed: 99 } }).plan
+    expect(w.buffs.enabled).toContain('thorns')
+    const warrior = buildPlan({ ...w, run: { mode: 'fixed', iterations: 200, seed: 99 } }).plan
     const ws = new Sim(warrior)
     for (let i = 0; i < 10; i++) ws.runFight(i)
     const wr = warrior.sources.findIndex((s) => s.id === 'thorns')

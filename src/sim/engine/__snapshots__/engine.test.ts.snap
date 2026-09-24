@@ -591,6 +591,13 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
       567,
     ],
     [
+      "thorns",
+      564446.1239999209,
+      860723.8944877151,
+      0,
+      0,
+    ],
+    [
       "bloodrage",
       0,
       254632,
@@ -648,14 +655,14 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     ],
   ],
   "dps": {
-    "ci95": 2.0755764475461844,
-    "mean": 356.8863403768905,
-    "stdev": 23.6796699624046,
+    "ci95": 2.077293303592299,
+    "mean": 363.15989167134336,
+    "stdev": 23.699257091846647,
   },
   "tps": {
-    "ci95": 4.176844412904654,
-    "mean": 1123.3167081832435,
-    "stdev": 47.65244725089559,
+    "ci95": 4.178265131955977,
+    "mean": 1132.883246552154,
+    "stdev": 47.668655836363214,
   },
 }
 `;

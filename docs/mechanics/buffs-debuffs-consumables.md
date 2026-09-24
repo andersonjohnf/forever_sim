@@ -200,9 +200,12 @@ crits [?], and as a pure Nature damage spell the boss's resistance takes its ave
 (stance, form; not Righteous Fury, which is Holy only) [?]: no tooltip gives it a threat of its
 own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). A bear casts it
 on itself before the pull (it lasts 10 min), so it's in every bear preset and Self only
-(`selfCast`); any other tank has it from a druid in the raid, turned on in Buffs. Only a tank takes
-the boss's swings, so for any other spec it does nothing, and the Buffs tab says so. About 10 TPS
-for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000 fights).
+(`selfCast`). In a raid a druid puts it on the main tank, so every tank's Standard and Max-consumables
+raid presets have it, as they have Devotion Aura, when a druid is in the raid (T2's fix round, T3R-2;
+[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
+a known effect isn't left at zero). Only a tank takes the boss's swings, so for any other spec it does
+nothing, and the Buffs tab says so. About 10 TPS for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 9.1
+for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000 fights).
 
 ### 1.3 Camp buffs (new Forever system)
 
@@ -722,7 +725,7 @@ Mana Spring.
 | Strength of Earth Totem † | Sha (your own) | Enh | all | all |
 | Mana Spring Totem | Sha (your own) | Enh | Pal, Enh, Mage | Pal, Enh, Mage |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
-| Thorns (on the tank) | Druid (your own: the bear) | Bear | Bear (another tank: an option with a druid in the raid) | Bear |
+| Thorns (on the tank) | Druid (your own: the bear) | Bear | Tank (a druid puts it on the main tank) | Tank |
 | Sunder Armor ×5 † | — | DPS | all | all |
 | Faerie Fire † | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness † | — | — | all | all |

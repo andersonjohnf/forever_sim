@@ -393,10 +393,20 @@ describe('catalogues and presets', () => {
     // Self only is what you cast on yourself: a paladin's Might, a druid's Mark of the Wild.
     expect(presetBuffs('self', 'paladin-retribution', FULL_RAID)).toEqual(['blessingOfMight'])
     expect(presetBuffs('self', 'druid-feral-cat', [])).toEqual(['markOfTheWild'])
-    // A bear's Thorns too, which only a tank feels; another tank has it only from a druid in Buffs.
+    // A bear's Thorns too, which only a tank feels. In a raid a druid puts it on the main tank, so every
+    // tank's raid and max presets have it, as Devotion Aura; a DPS spec's don't, and without a druid
+    // only the bear's own does.
     expect(presetBuffs('self', 'druid-feral-bear', [])).toEqual(['markOfTheWild', 'thorns'])
-    expect(presetBuffs('raid', 'druid-feral-bear', FULL_RAID)).toContain('thorns')
-    for (const spec of ['warrior-protection', 'paladin-protection', 'druid-feral-cat'] as const) expect(presetBuffs('raid', spec, FULL_RAID)).not.toContain('thorns')
+    for (const spec of ['druid-feral-bear', 'warrior-protection', 'paladin-protection'] as const) {
+      expect(presetBuffs('raid', spec, FULL_RAID)).toContain('thorns')
+      expect(presetBuffs('max', spec, FULL_RAID)).toContain('thorns')
+    }
+    for (const spec of ['warrior-protection', 'paladin-protection'] as const) {
+      expect(presetBuffs('self', spec, FULL_RAID)).not.toContain('thorns')
+      expect(presetBuffs('raid', spec, FULL_RAID.filter((c) => c !== 'druid'))).not.toContain('thorns')
+    }
+    expect(presetBuffs('raid', 'druid-feral-bear', [])).toContain('thorns')
+    expect(presetBuffs('raid', 'druid-feral-cat', FULL_RAID)).not.toContain('thorns')
     // A bigger preset never has fewer of your own buffs: the shaman's totems are in its dungeon group too (SF1).
     for (const id of presetBuffs('self', 'shaman-enhancement', [])) expect(presetBuffs('dungeon', 'shaman-enhancement', [])).toContain(id)
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).toEqual(expect.arrayContaining(['jujuPower', 'jujuMight', 'roids', 'armorShatter', 'elementalSharpeningStone']))

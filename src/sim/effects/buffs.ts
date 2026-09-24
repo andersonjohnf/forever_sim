@@ -520,8 +520,9 @@ export const BUFFS: BuffSpec[] = [
     presets: { raid: 'tank', max: 'tank' },
   },
   // Thorns on the tank (buffs doc §1.2, §6.2): a bear casts it on itself before the pull, so every
-  // bear preset has it; any other tank has it from a druid in the raid, turned on here. Only a tank
-  // takes the boss's swings, so for any other spec it does nothing (the Buffs tab says so).
+  // bear preset has it; in a raid a druid puts it on the main tank, so every tank's raid and max
+  // presets have it, as Devotion Aura (from a druid in the raid). Only a tank takes the boss's swings,
+  // so for any other spec it does nothing (the Buffs tab says so).
   {
     id: 'thorns',
     name: 'Thorns',
@@ -534,7 +535,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#12-threat-defense-and-mana`,
     effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.forever) }],
     classicEra: { summary: '18 Nature damage to the boss each time it hits you', effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.classicEra) }] },
-    presets: { dungeon: ['druid-feral-bear'], raid: ['druid-feral-bear'], max: ['druid-feral-bear'] },
+    presets: { dungeon: ['druid-feral-bear'], raid: 'tank', max: 'tank' },
   },
   {
     id: 'blessingOfWisdom',

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import type { SpecId } from '@/sim'
+import { showWhenClear } from './held-toasts'
 import { defaultsUpdateNotice, type DefaultsUpdate } from './follow-defaults'
 import { readLinkSetup } from './shared-link'
 import { takeDefaultsUpdates, useSetup } from './setup-store'
@@ -42,7 +43,8 @@ export function useDefaultsNotice() {
     // The link's spec is read before useSharedLink's effect takes the link out of the URL.
     void linkedSpec().then((linked) => {
       const notice = defaultsUpdateNotice(withoutLinked(updates, linked), current)
-      if (notice) toast(notice.title, { id: 'defaults-update', description: notice.description })
+      // It waits while What's New is open (src/app/held-toasts.ts).
+      if (notice) showWhenClear(() => toast(notice.title, { id: 'defaults-update', description: notice.description }))
     })
   }, [])
 }

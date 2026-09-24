@@ -43,7 +43,7 @@ export function ReleaseHistorySheet({
           </Button>
         </SheetClose>
         <div className="px-4 pb-8 text-sm">
-          <ReleaseNotes releases={RELEASES} />
+          <ReleaseNotes releases={RELEASES} markLatest />
         </div>
       </SheetContent>
     </Sheet>

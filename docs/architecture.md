@@ -607,21 +607,33 @@ environment pins the time. The About sheet shows it in the viewer's own time zon
 ### Release notes
 
 `src/app/releases.ts` is the release notes: a hand-written, checked-in list (not generated, so not
-under `src/data`), newest first. Each entry has a stable `id` (its date and number that day,
-`2026-09-24.3`, never changed once pushed), its `time` (ISO 8601 with an offset) and its `groups`,
+under `src/data`), newest first. Each entry has a stable `id` (its date in UTC and its number that
+UTC day, `2026-09-24.3`, never changed once pushed), its `time` (ISO 8601 with an offset) and its `groups`,
 each a label and its changes, written by CLAUDE.md's "Release updates" rules. Every push that brings
 player-facing changes adds one at the top, with the push's time. The file imports nothing, so the
 e2e fixtures read it too.
 
 - **What's New** (`src/app/whats-new.tsx`) calls `checkReleases` once per page: it reads the newest id
   this browser has seen from `localStorage` (`forever-sim:last-seen-release`), stores the newest id,
-  and returns every entry newer than the one it read. A missing key (a first visit) or an id the
-  list doesn't have returns none. Reading and writing are in try/catch: storage that can't be read
-  shows nothing, and storage that can't be written still shows what's new this once.
+  and returns every entry newer than the one it read.
+  - A missing key returns none (a first visit), unless the browser has an automatic save
+    (`forever-sim:setup`) or named setups (`forever-sim:saved-setups`): it was here before What's New
+    shipped, so it's treated as having seen the entry before the newest, and gets the newest alone.
+    So `checkReleases` runs in What's New's first render, before `useSharedLink`'s effect can write
+    the automatic save on a first visit.
+  - An id the list doesn't have returns none. It's replaced by the newest only if it sorts older
+    (`compareReleaseIds`: the date, then the day's number as a number) or isn't an id at all; a newer
+    one (a tab that saw a later release, then a rollback) is kept.
+  - Reading and writing are in try/catch: storage that can't be read shows nothing, and storage that
+    can't be written still shows what's new this once.
+  - While it has anything to show, the load's toasts (the share link's on open, the defaults notice)
+    go through `showWhenClear` (`src/app/held-toasts.ts`) and wait. It lets them go once it has
+    closed and unmounted, when the page is heard again; after All releases, Release history does,
+    as it closes (`src/app/header.tsx`, which opens it on `openReleaseHistory`).
 - **Release history** (`src/app/release-history-sheet.tsx`) lists every entry. Both render through
   `ReleaseNotes` (`src/app/release-notes.tsx`), with `formatReleaseTime` for the times.
-- `src/app/releases.test.ts` holds the list to its rules: unique ids, valid times strictly newest
-  first, no empty group, no emoji or internal words, each short enough for a Discord post.
+- `src/app/releases.test.ts` holds the list to its rules: unique ids dated by their time in UTC,
+  valid times strictly newest first, no empty group, no emoji or internal words, each short enough for a Discord post.
 - The e2e fixtures store the newest id before the app loads (only when the page hasn't stored one),
   so What's New stays shut in every test but those that opt in with `test.use({ lastSeenRelease })`
   (`e2e/fixtures.ts`, `e2e/whats-new.spec.ts`).

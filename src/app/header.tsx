@@ -1,6 +1,6 @@
 import { ChevronDown, FolderOpen, History, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { type Ref, useId, useRef, useState } from 'react'
+import { type Ref, useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +24,8 @@ import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
+import { releaseToasts } from './held-toasts'
+import { onOpenReleaseHistory } from './release-history-request'
 import { ReleaseHistorySheet } from './release-history-sheet'
 import { resetTitle } from './load-notice'
 import { useSetup } from './setup-store'
@@ -58,6 +60,16 @@ export function Header() {
     toHistory.current = true
     setSheet('history')
   }
+  // What's New's All releases opens it too, in What's New's place, handing it the load's toasts it
+  // held (src/app/held-toasts.ts): they come up once the history has closed and the page is heard again.
+  useEffect(() => onOpenReleaseHistory(() => setSheet('history')), [])
+  const historyContentProps = {
+    ...historyFocus.contentProps,
+    onCloseAutoFocus: (event: Event) => {
+      historyFocus.contentProps.onCloseAutoFocus(event)
+      releaseToasts()
+    },
+  }
   return (
     <header className="sticky top-0 z-40 border-b border-brand-gold/40 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       {/*
@@ -90,7 +102,7 @@ export function Header() {
         open={sheet === 'history'}
         onOpenChange={openChange('history')}
         titleRef={historyFocus.titleRef}
-        contentProps={historyFocus.contentProps}
+        contentProps={historyContentProps}
       />
     </header>
   )

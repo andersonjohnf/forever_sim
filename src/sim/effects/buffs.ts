@@ -908,7 +908,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('main', DEADLY_POISON),
     classicEra: { summary: '30% of main-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('main', DEADLY_POISON_CLASSIC_ERA) },
-    // Deadly on the main hand, Instant on the off hand: the rogue's best pair in the first-pass search (docs/classes/rogue.md §4.5).
+    // Deadly on the main hand, Instant on the off hand: the rogue's best pair in the first-pass search (docs/classes/rogue.md §4.4).
     presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
   },
   {

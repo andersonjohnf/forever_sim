@@ -298,7 +298,8 @@ Era).
 - **Improved Poisons** 5/5: +10 points of apply chance (Instant 30%, Deadly 40%) [F].
 - **Vile Poisons** 5/5: +20% poison damage [F].
 - **Venom** (finisher): +30% poison damage and +10 points of apply chance for (6 + 3 × CP) s [F].
-  Its first effect, a dummy on the target, is taken to add nothing [?] (Q11).
+  Its first effect, a dummy on the target, is taken to add nothing, and its +30% multiplies with
+  Vile Poisons' +20% (×1.56) [?] (Q11).
 - **Malice**: +5% crit, poisons included [F].
 
 ### 4.4 Which poison where
@@ -609,7 +610,9 @@ R11–R13 are in `subtlety.test.ts`.
   sheet: crit − Agi × 0.0345).
 - **Q11 Venom's dummy.** Venom's effect 0 is a dummy (effect 3) on the enemy target, with a bonus
   coefficient of 1; the tooltip names only the poisons' +30% and +10%. If it does damage or more,
-  Venom may be worth keeping up (§6.2). Test: a 5-point Venom on a dummy, the combat log.
+  Venom may be worth keeping up (§6.2). The sim also multiplies its +30% with Vile Poisons' +20%
+  (×1.56, not +50%). Test: a 5-point Venom on a dummy, the combat log; Instant Poison's hits with
+  Vile Poisons 5/5, with Venom and without.
 - **Q12 Hemorrhage.** Does its +15% count on Rupture ticks while the debuff is up (the sim), or only
   on a Rupture applied under it? Does its 145% need the dagger in the main hand? Test: Rupture ticks
   before and after a Hemorrhage; a Hemorrhage with a dagger only in the off hand.

@@ -639,7 +639,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#311-mutilate-r4-1241584`,
   },
   venom: {
-    text: 'Venom does nothing beyond its three effects on your poisons: the client’s fourth, a dummy on the target, is taken to add nothing. Untested.',
+    text: 'Venom does nothing beyond its three effects on your poisons: the client’s fourth, a dummy on the target, is taken to add nothing. Its +30% multiplies with Vile Poisons’ +20%, ×1.56 in all. Untested.',
     docRef: `${ROGUE}#43-poison-talents`,
   },
   // Subtlety's (docs/classes/rogue.md §3.9, §5.3, §10).

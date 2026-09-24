@@ -19,7 +19,7 @@ export function rogueEnergy(talents: ReadonlyMap<string, number>): EnergyPlan {
 }
 
 /**
- * The rogue's [?] this plan relies on (rogue.md §9), for the results' assumptions: Energy, the
+ * The rogue's [?] this plan relies on (rogue.md §10), for the results' assumptions: Energy, the
  * finishers' attack power, the two-roll abilities, Backstab's flat bonus, Lethality, the poisons,
  * Hack and Slash, Slice and Dice's haste, Cold Blood and Subtlety's talents, each only when the plan uses it.
  */

@@ -65,7 +65,7 @@ export const COMBAT_OPTIONS: RotationOption[] = [
     id: ID.rupture,
     group: 'Core abilities',
     label: 'Rupture',
-    help: 'Keep Rupture on the boss: a bleed of 8 s plus 2 s per combo point that ignores armor. Combat does more with Eviscerate.',
+    help: 'Keep Rupture on the boss: a bleed of 6 s plus 2 s per combo point that ignores armor. Combat does more with Eviscerate.',
     default: false,
   },
   comboPointOption(ID.ruptureCp, 'Rupture at', 'Use Rupture at or above this many combo points.', 5, ID.rupture),

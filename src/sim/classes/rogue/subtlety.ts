@@ -88,7 +88,7 @@ export const SUBTLETY_OPTIONS: RotationOption[] = [
     id: ID.rupture,
     group: 'Core abilities',
     label: 'Rupture',
-    help: 'Keep Rupture on the boss: a bleed of 8 s plus 2 s per combo point that ignores armor, 30% stronger with Serrated Blades 3/3. With Thousand Cuts, each tick makes your next Backstab or Hemorrhage 3 Energy cheaper.',
+    help: 'Keep Rupture on the boss: a bleed of 6 s plus 2 s per combo point that ignores armor, 30% stronger with Serrated Blades 3/3. With Thousand Cuts, each tick makes your next Backstab or Hemorrhage 3 Energy cheaper.',
     default: true,
   },
   comboPointOption(ID.ruptureCp, 'Rupture at', 'Use Rupture at or above this many combo points when it’s off the boss.', 3, ID.rupture),

@@ -169,7 +169,7 @@ export const GHOSTLY_STRIKE_DAGGER_PCT = 1.8
  * Ambush rank 6 (spells.json 11269): 60 Energy, GCD 1000, `NORMALIZED_WEAPON_DMG` +116 and
  * `WEAPON_PERCENT_DAMAGE` 250, so 2.5 × (normalized weapon damage + 116), the tooltip's "250% weapon
  * damage plus 290"; +1 combo point; from behind with a dagger in the main hand [F]. It needs Stealth,
- * so the sim uses it only in Cutthroat's window (rogue.md §3.12, §5.3).
+ * so the sim uses it only in Cutthroat's window (rogue.md §3.13, §5.3).
  */
 export const AMBUSH: AbilityDef = {
   id: 'ambush',

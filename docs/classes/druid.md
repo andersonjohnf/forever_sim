@@ -1933,7 +1933,7 @@ common priority, with a first quick search".
 | Race | Tauren (the druid's default, §7.2): Endurance's +1% hit is spell hit too | [F] |
 | Gear | the Balance pre-raid BiS list (D11): Wowhead's Classic Balance guide's Phase 6 pre-raid section, archived 2021-05-16 (`scripts/scrape/pre-raid-bis.json`, [items.md](../data/items.md#pre-raid-bis-lists)): main hand and off hand (Mindfang for the Horde, Sageclaw for the Alliance; Tome of Arcane Domination) | [C] |
 | Enchants | Greater Stats on the chest, the one caster enchant the catalogue has | buffs doc §6.4 |
-| Buffs and consumables | the casters' Standard raid, as the mage's: the raid buffs, Arcane Brilliance, Blessing of Wisdom, Mana Spring, its own Moonkin Aura, Curse of the Elements, Greater Arcane Elixir and the Major Mana Potion; no attack-power or armor entries (`forSpecs: 'melee'`) | buffs doc §6.2, [spells §12](../mechanics/spells.md#12-what-a-class-slice-uses) |
+| Buffs and consumables | the casters' Standard raid, as the mage's: the raid buffs, Arcane Brilliance, Blessing of Wisdom, Mana Spring, its own Moonkin Aura, Curse of the Elements, Greater Arcane Elixir and the Major Mana Potion; Max consumables adds Flask of Supreme Power, the Demonic Rune and Brilliant Wizard Oil; no attack-power or armor entries (`forSpecs: 'melee'`) | buffs doc §6.2, §6.3, [spells §12](../mechanics/spells.md#12-what-a-class-slice-uses) |
 
 **The druid's caster entries are per spec.** The druid isn't a caster class (its Feral specs aren't
 casters), so Arcane Brilliance, Blessing of Wisdom, Mana Spring Totem, Prayer of Spirit, the spell

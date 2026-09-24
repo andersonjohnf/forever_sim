@@ -330,6 +330,8 @@ describe('one stone or oil a weapon (buffs doc §3.6)', () => {
     const paladin = presetBuffIds('max', 'paladin-protection', defaultConfig('paladin-protection').buffs.raid)
     expect(paladin).toContain('brilliantWizardOil')
     expect(paladin).not.toContain('wizardOil')
+    // Review CR-6: every caster's Max consumables has Brilliant Wizard Oil (§6.3).
+    for (const spec of SPEC_IDS.filter((s) => SPEC_META[s].caster)) expect(presetBuffIds('max', spec, defaultConfig(spec).buffs.raid), spec).toContain('brilliantWizardOil')
   })
 
   it('no class that can use an oil dual-wields, so an oil is always its only weapon’s', () => {

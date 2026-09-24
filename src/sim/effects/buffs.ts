@@ -1297,8 +1297,8 @@ export const BUFFS: BuffSpec[] = [
     // 20749 → 25122 → enchant 2628 → 25113: aura 13 (mask 126) 36 and aura 57 (spell crit) 1, the
     // same in both clients [F] [C] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'brilliantWizardOil', priority: 4, hand: 'main', spellDamage: 36, spellCrit: 1 }],
-    // The Elemental shaman's Standard raid and a mage's Max too (§6.3).
-    presets: { raid: ELEMENTAL, max: [...PROTECTION_PALADIN, ...ELEMENTAL, ...MAGES] },
+    // The Elemental shaman's Standard raid, and every caster's Max (§6.3).
+    presets: { raid: ELEMENTAL, max: [...PROTECTION_PALADIN, ...CASTER_SPECS] },
   },
   // The rogue's poisons (buffs doc §3.6; docs/classes/rogue.md §4): one per weapon, in place of a stone there.
   {

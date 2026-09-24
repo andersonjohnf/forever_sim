@@ -327,11 +327,13 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
 sets. Each spec's defaults are then its results.
-- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
+- [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
       enumerator (tree rules, required talents, the minimum points in a tree, the class's
       survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`)
+      (`npm run optimize`). Also constraints on the sheet and the results, with effective health
+      and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's `fightRunner` for
+      O3 ([optimizer.md](optimizer.md))
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
@@ -485,6 +487,9 @@ slice is worked:
 - **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
   shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
   on the TPS row instead.
+- **The optimizer (O1):** a bear's effective health leaves out Thick Hide's armor, which the
+  engine doesn't model ([optimizer.md](optimizer.md#constraints)); `WorkerPool.fightRunner` runs
+  only in a browser, so it's first exercised by O3's e2e tests.
 - **Encounter settings the contract lacks:** `biome`, `extraTargetUptimePct` and
   `bossExtraDtps` ([encounter.md](mechanics/encounter.md#encounter-settings)).
 - **Engine choices where the docs are silent (made in M1):**

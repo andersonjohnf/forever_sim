@@ -917,6 +917,20 @@ review log):
 - **Not searched:** Improved Seals, which needs five Holy points before it; the rotation's
   thresholds, held from T2's re-check (the optimizer, O4, searches them with the talents).
 
+#### Protection survival floor
+
+Protection's talent search keeps these in every build ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24);
+[optimizer.md](../optimizer.md#the-talent-space)). Nearly every Protection paladin takes them for
+survival, and the sim can't value them in TPS or DPS. Retribution has no floor.
+
+| Talent (ranks) | Forever tooltip at max rank | Why it's in the floor |
+| --- | --- | --- |
+| Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." [F] [F 20468][f20468] | A flat cut to all damage taken. The sim measures it in damage taken only ([Protection tree](#protection-tree): no threat effect) |
+| Sacred Duty (2) | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." [F] [F 1224697][f1224697] | Health, and a cut to three defensive cooldowns the sim never presses. A paladin's health changes no fight number (it has no rage), so the screen finds no effect |
+| Templar's Bulwark (1) | "When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec." 5 min cooldown [F] [F 1311015][f1311015] | An emergency cooldown, not modelled by default. It's also Holy Shield's prerequisite |
+
+The default build ([Protection defaults](#protection-defaults)) already has all three.
+
 #### Tuning the defaults (C3)
 
 **T2's re-check (2026-09-24).** The threat fixes (the caster enchants, Nightfin Soup and Wizard Oil,

@@ -1493,6 +1493,19 @@ the buffs doc as a per-spec entry.
 
 ---
 
+### 7.6 Survival floor
+
+The bear's talent search keeps these in every build ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24);
+[optimizer.md](../optimizer.md#the-talent-space)). Nearly every bear takes them for survival, and
+the sim can't value them. The cat and Balance specs have no floor.
+
+| Talent (ranks) | Forever tooltip at max rank | Why it's in the floor |
+| --- | --- | --- |
+| Heart of the Wild (5) | "Increases your Intellect by 10%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 20% and while in Cat Form your Strength is increased by 10%." [F] [client](../data/client.md#talentsjson) (spell 17003, 1.60.1.69913) | A bear's health. The sim values it **below zero**: Forever's rage from a hit divides by max health (§4.7, [rage.md](../mechanics/rage.md#forever-)), so more health means less rage and less threat, and the optimizer's screen calls it harmful. Health is what keeps a tank alive through a spike, so the floor keeps it |
+| Thick Hide (3) | "While in Bear Form, Cat Form, Dire Bear Form, or Moonkin Form, you gain 3 additional base Armor per level and another 2.00 base Armor for each point of defense skill beyond five times your level. This amount can be further increased by multipliers from those forms." [F] [client](../data/client.md#talentsjson) (spell 16929) | A bear's armor. Not modelled (§4.7): armor doesn't move Forever's rage, so the screen finds the plan unchanged. It also means Thick Hide's armor isn't in the bear's effective health yet ([optimizer.md](../optimizer.md#constraints)) |
+
+The default build (§7.1) already has both.
+
 ## 8. Implementation notes
 
 - **Reading DB2 values** (as parsed into `src/data/client/*.json`,

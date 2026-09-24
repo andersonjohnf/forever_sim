@@ -5,7 +5,7 @@
 import type { SpecId } from '../types'
 
 export const SURVIVAL_FLOOR: Partial<Record<SpecId, Readonly<Record<string, number>>>> = {
-  // docs/classes/warrior.md#63-survival-floor
+  // docs/classes/warrior.md#64-survival-floor
   'warrior-protection': { 'Last Stand': 1, 'Improved Shield Wall': 2 },
   // docs/classes/druid.md#76-survival-floor
   'druid-feral-bear': { 'Heart of the Wild': 5, 'Thick Hide': 3 },

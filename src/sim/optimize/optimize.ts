@@ -202,7 +202,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // A talent that changes what a constraint reads is searched, not a filler (./talents.ts).
     const reads = (v: TalentVerdict) =>
       constraints.some((c) => (c.on === 'sheet' ? v.sheetStats.includes(c.stat) : c.metric === 'taken' ? v.takenChanges : v.scoreChanges))
-    const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && reads(v)).map((v) => v.id))
+    const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
     const found = talentSpace({
       data,
       roles: screen.roles,

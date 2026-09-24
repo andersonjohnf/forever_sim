@@ -42,15 +42,16 @@ describe('Protection paladin’s priority list (D31)', () => {
       if (!row.enabledId) expect(row.help, row.id).toBeTruthy()
     }
     expect(new Set(PROTECTION_APL.rows.map((r) => r.id)).size).toBe(PROTECTION_APL.rows.length)
-    // paladin.md's order: the pre-pull and opener pinned first (rows 0–0c), then rows 1–8.
+    // paladin.md's order: the pre-pull and opener pinned first (rows 0–0c), then rows 1–8, Hammer of
+    // the Righteous (5b, off) just above Holy Strike (5), so turning it on puts it in Holy Strike's place.
     expect(defaultAplOrder(PROTECTION_APL)).toEqual([
       'prepull',
       'seal',
       'holyShield',
       'judgement',
       'swiftJudgement',
-      'holyStrike',
       'hammerOfTheRighteous',
+      'holyStrike',
       'exorcism',
       'consecration',
       'consecrationRank1',
@@ -87,7 +88,7 @@ describe('Protection paladin’s priority list (D31)', () => {
       'holyShield',
       'judgementOfFury',
       'swiftJudgement',
-      'hammerOfTheRighteous',
+      'holyStrike',
       'consecrationRank1',
       'hammerOfWrath',
     ])
@@ -96,18 +97,29 @@ describe('Protection paladin’s priority list (D31)', () => {
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
   })
 
-  it('keeps a moved row’s own conditions: Hammer of the Righteous still takes Holy Strike’s place, Swift Judgement still frees Judgement', () => {
+  it('keeps a moved row’s own conditions: Hammer of the Righteous, on, still takes Holy Strike’s place above it, Swift Judgement still frees Judgement', () => {
     const order = moveAplRow(PROTECTION_APL, moved('hammerOfTheRighteous', 'seal'), 'swiftJudgement', 1)!
     expect(order.slice(0, 4)).toEqual(['prepull', 'swiftJudgement', 'hammerOfTheRighteous', 'seal'])
-    const r = protectionRotation({}, TALENTS, noAura, CONTEXT, order)
+    const hammerOn = { [ID.hammerOfTheRighteous]: true }
+    const r = protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, order)
     expect(ids(r).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['hammerOfTheRighteous'])
+    // Off, as in every preset, Holy Strike.
+    expect(ids(protectionRotation({}, TALENTS, noAura, CONTEXT, order)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
+    // On but below Holy Strike, which shares its cooldown: Holy Strike, the higher row.
+    const below = moveAplRow(PROTECTION_APL, defaultAplOrder(PROTECTION_APL), 'hammerOfTheRighteous', defaultAplOrder(PROTECTION_APL).indexOf('holyStrike'))!
+    expect(below.indexOf('hammerOfTheRighteous')).toBeGreaterThan(below.indexOf('holyStrike'))
+    expect(ids(protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
+    // …and Hammer of the Righteous there once Holy Strike is off.
+    expect(
+      ids(protectionRotation({ ...hammerOn, [ID.holyStrike]: false }, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous'),
+    ).toEqual(['hammerOfTheRighteous'])
     const judge = r.abilities.findIndex((a) => a.id === 'judgementOfFury')
     const swift = r.rotation.find((e) => r.abilities[e.ability].id === 'swiftJudgement')!
     expect(swift.conditions[0]).toEqual({ code: COND.cooldownAtLeast, a: judge, b: 4500 })
     expect(r.abilities[swift.ability].endsCooldownOf).toBe(judge)
     expect(r.abilities[judge].clearcastable).toBe(true)
     // With a two-hander, Holy Strike in its own place.
-    const two = protectionRotation({}, TALENTS, noAura, { ...CONTEXT, mainHand: { speedSec: 3.5, twoHand: true, type: 'axe' } }, order)
+    const two = protectionRotation(hammerOn, TALENTS, noAura, { ...CONTEXT, mainHand: { speedSec: 3.5, twoHand: true, type: 'axe' } }, order)
     expect(ids(two).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
   })
 })
@@ -148,10 +160,11 @@ describe('Defensive, Balanced and Max TPS as the list’s presets (D28)', () => 
     expect(applyAplPreset(PROTECTION_APL, saved, 'defensive')).toEqual({ rotation: { [ID.manaPotionEarly]: 1000, [ID.priority]: 'duties' }, rotationOrder: undefined })
     // Balanced, the default, puts the priority back to its default.
     expect(applyAplPreset(PROTECTION_APL, saved, DEFAULT_APL_PRESET)).toEqual({ rotation: { [ID.manaPotionEarly]: 1000 }, rotationOrder: undefined })
-    // Defensive plays the rotation that was the default before Balanced: the same plan.
+    // Defensive plays the rotation that was the default before Balanced; Balanced plays it too,
+    // keeping Holy Strike (user decision in D28).
     const d = defaultConfig(PROT)
     const defensive = applyAplPreset(PROTECTION_APL, {}, 'defensive')!.rotation
     expect(buildPlan({ ...d, rotation: defensive }).plan).toEqual(buildPlan({ ...d, rotation: { [ID.priority]: 'duties', [ID.hammerOfTheRighteous]: false } }).plan)
-    expect(buildPlan({ ...d, rotation: defensive }).plan).not.toEqual(buildPlan(d).plan)
+    expect(buildPlan({ ...d, rotation: defensive }).plan).toEqual(buildPlan(d).plan)
   })
 })

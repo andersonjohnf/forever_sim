@@ -101,11 +101,11 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
   })
 
   it('has the tuned defaults (paladin.md "Tuning the defaults", "Balanced")', () => {
-    // Balanced, the default, is Defensive with Hammer of the Righteous in Holy Strike's place.
+    // Balanced, the default, plays as Defensive: Holy Strike, and Hammer of the Righteous off (D28).
     expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
     expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)).toMatchObject({
       [ID.priority]: 'balanced',
-      [ID.hammerOfTheRighteous]: true,
+      [ID.hammerOfTheRighteous]: false,
       [ID.seal]: 'fury',
       [ID.sealRefresh]: 2.5,
       [ID.holyShield]: true,
@@ -133,15 +133,16 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
 })
 
 describe('Defensive, Balanced and Max TPS (paladin.md "Priority: Defensive, Balanced or Max TPS", D26, D28)', () => {
-  it('Max TPS drops Devotion Aura, the paladin’s duty, for Retribution Aura; Balanced plays Hammer of the Righteous; nothing else moves', () => {
+  it('Max TPS drops Devotion Aura, the paladin’s duty, for Retribution Aura; Balanced plays as Defensive; nothing else moves', () => {
     const defensive = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)
     const balanced = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
     expect([defensive[ID.devotionAura], max[ID.devotionAura], balanced[ID.devotionAura]]).toEqual([true, false, true])
     const moved = (values: typeof max) => Object.keys(defensive).filter((id) => defensive[id] !== values[id])
     expect(moved(max).sort()).toEqual([ID.priority, ID.devotionAura].sort())
-    // D28: a paladin's Balanced keeps Defensive's upkeep, Devotion Aura and Holy Shield.
-    expect(moved(balanced).sort()).toEqual([ID.priority, ID.hammerOfTheRighteous].sort())
+    // D28: a paladin's Balanced keeps Defensive's upkeep, Devotion Aura and Holy Shield, and Holy
+    // Strike too (user decision: Iron Creed is active mitigation), so only the priority differs.
+    expect(moved(balanced)).toEqual([ID.priority])
     const devotion = PROTECTION_OPTIONS.find((o) => o.id === ID.devotionAura)!
     expect(devotion).toMatchObject({ kind: 'toggle', maintainsBuff: 'devotionAura' })
     expect(devotion.help).toContain('Max TPS')
@@ -889,14 +890,21 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
     expect(unmetRequirements({ ...d, gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ shield: true })
     expect(unmetRequirements({ ...d, talents: '', gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ talent: 'Holy Shield', shield: true })
     expect(unmetRequirements({ ...d, talents: '' }, { talent: 'Swift Judgement' })).toEqual({ talent: 'Swift Judgement' })
-    // Nothing else is unused with Defensive; Balanced's Hammer of the Righteous takes Holy Strike's
-    // place with the default axe (paladin.md row 5b), and says why without one. Exorcism's target is its option's.
+    // Nothing else is unused with any preset. Hammer of the Righteous, turned on, takes Holy Strike's
+    // place with the default axe while it sits above it (paladin.md row 5b), and says why without one
+    // or below Holy Strike. Exorcism's target is its option's.
     expect(unusedRotationSettings({ ...d, rotation: DEFENSIVE })).toEqual({})
-    expect(unusedRotationSettings(d)).toEqual({ [ID.holyStrike]: 'Not used: Hammer of the Righteous takes its place (they share a cooldown).' })
-    const twoHander = { ...d, gear: { mainHand: { itemId: 12784 } } }
+    expect(unusedRotationSettings(d)).toEqual({})
+    const hammer = { ...d, rotation: { [ID.hammerOfTheRighteous]: true } }
+    expect(unusedRotationSettings(hammer)).toEqual({ [ID.holyStrike]: 'Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown).' })
+    const twoHander = { ...hammer, gear: { mainHand: { itemId: 12784 } } }
     expect(unusedRotationSettings(twoHander)).toEqual({ [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is used.' })
-    // The Buffs tab reads it without the gear: nothing.
-    const { gear: _, ...noGear } = d
+    const below = { ...hammer, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] }
+    expect(unusedRotationSettings(below)).toEqual({
+      [ID.hammerOfTheRighteous]: 'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.',
+    })
+    // The Buffs tab reads it without the gear: nothing for the weapon, which it can't know.
+    const { gear: _, ...noGear } = hammer
     expect(unusedRotationSettings(noGear)).toEqual({})
     expect(option(ID.exorcism)).toMatchObject({ needsCreatureType: ['undead', 'demon'] })
   })
@@ -1013,9 +1021,9 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
-    // On with Balanced, the default, for its damage; off with Defensive and Max TPS, since Holy Strike
-    // makes more threat in the default setup (paladin.md "Priority: Defensive, Balanced or Max TPS", "Tuning the defaults").
-    expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)[ID.hammerOfTheRighteous]).toBe(true)
+    // Off in every preset: Holy Strike makes more threat, and Balanced keeps its Iron Creed as active
+    // mitigation (paladin.md "Priority: Defensive, Balanced or Max TPS"; D28).
+    expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
     expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
     expect(resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
   })

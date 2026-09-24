@@ -65,6 +65,8 @@ export function mageAssumptions(plan: Plan): AssumptionId[] {
   if (plan.ignite) ids.push('mageIgnite')
   if (procs.has('improvedScorch')) ids.push('mageImprovedScorch')
   if (auras.has('hotStreak') && abilities.has('pyroblast')) ids.push('mageHotStreak')
+  // docs/classes/mage.md#fire-priority rows 10 and 12: the Fire rotation's short waits.
+  if (abilities.has('fireball') && (abilities.has('fireBlast') || abilities.has('pyroblast'))) ids.push('mageFireWait')
   if (abilities.has('combustion')) ids.push('mageCombustion')
   if (procs.has('wintersChill')) ids.push('mageWintersChill')
   if (procs.has('arcaneConcentration')) ids.push('mageClearcasting')

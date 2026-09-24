@@ -220,6 +220,7 @@ export const ASSUMPTION_GROUP = {
   mageIgnite: 'class',
   mageImprovedScorch: 'class',
   mageHotStreak: 'class',
+  mageFireWait: 'class',
   mageCombustion: 'class',
   mageWintersChill: 'class',
   mageClearcasting: 'class',

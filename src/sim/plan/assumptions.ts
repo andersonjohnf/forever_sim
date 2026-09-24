@@ -756,6 +756,10 @@ const REGISTRY = {
     text: 'Hot Streak stacks on non-periodic crits of Fireball, Fire Blast and Scorch, and Pyroblast uses them all; the client’s charge rule is server-side.',
     docRef: `${MAGE}#hot-streak`,
   },
+  mageFireWait: {
+    text: 'Fireball waits up to 0.3 s for a Fire Blast coming off cooldown, and Pyroblast up to 0.3 s so it lands with its own DoT’s next tick instead of cutting it off: what a perfect player would do, a reasoned estimate.',
+    docRef: `${MAGE}#fire-priority`,
+  },
   mageCombustion: {
     text: 'Combustion gives the first Fire spell after it +10% crit, then +10% more for each Fire spell that hits; it ends after 4 Fire crits, and its cooldown starts then.',
     docRef: `${MAGE}#combustion`,

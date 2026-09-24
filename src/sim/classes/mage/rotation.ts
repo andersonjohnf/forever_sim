@@ -33,6 +33,15 @@ export const MANA_POTION = 'majorManaPotion'
 export const MANA_RUNE = 'demonicRune'
 export const POWER_INFUSION = 'powerInfusion'
 
+/**
+ * The longest the Fire rotation waits, doing nothing, rather than lose more (docs/classes/mage.md
+ * "Fire priority", rows 10 and 12) [?] (`mageFireWait`): Fireball waits for a Fire Blast ready this
+ * soon, and Pyroblast for its own DoT's tick due this soon after it would land. At about 560 DPS,
+ * 0.3 s idle costs about 170 damage, what a cut-off Pyroblast tick or a Fire Blast held back a whole
+ * Fireball costs, so a perfect player waits up to about this long. A reasoned estimate.
+ */
+export const FIRE_WAIT_MS = 300
+
 type Spec = 'fire' | 'frost' | 'arcane'
 const SPEC_OF: Partial<Record<SpecId, Spec>> = { 'mage-fire': 'fire', 'mage-frost': 'frost', 'mage-arcane': 'arcane' }
 
@@ -205,7 +214,7 @@ function fireOptions(): RotationOption[] {
       id: ID.scorchRefresh,
       group: CORE,
       label: 'Scorch again with',
-      help: 'Refresh the stacks when they have at most this long left. Scorch lands 1.5 s after you start it.',
+      help: 'Refresh the stacks when they have at most this long left, or sooner if your next Pyroblast or Fireball would let them run out before a Scorch after it lands.',
       unit: 's left',
       min: 2,
       max: 25,
@@ -400,24 +409,32 @@ export function mageRotation(
   }
 
   if (spec === 'fire') {
-    // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left.
-    if (v.on(ID.scorch) && has('Improved Scorch')) {
-      const scorch = index(SCORCH)
-      const fv = auraIndex(FIRE_VULNERABILITY.id)
-      if (fv >= 0) {
-        rotation.push({ ability: scorch, conditions: [{ code: COND.auraStacksBelow, a: fv, b: 5 }], unqueueBelowTenths: 0 })
-        rotation.push({ ability: scorch, conditions: [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }], unqueueBelowTenths: 0 })
-      }
+    const hs = auraIndex(HOT_STREAK.id)
+    const fv = auraIndex(FIRE_VULNERABILITY.id)
+    const scorchOn = v.on(ID.scorch) && has('Improved Scorch') && fv >= 0
+    const pyroOn = v.on(ID.pyroblast) && has('Hot Streak') && has('Pyroblast') && hs >= 0
+    const pyroWhen: RotationCondition = { code: COND.auraStacksAtLeast, a: hs, b: Math.max(1, Math.min(3, Math.round(v.num(ID.pyroblastStacks)))) }
+    // The abilities in the priority's order, so the rows keep it; each line refers to them by index.
+    const scorch = scorchOn ? index(SCORCH) : -1
+    const pyro = pyroOn ? index(PYROBLAST) : -1
+    const fireBlast = v.on(ID.fireBlast) ? index(FIRE_BLAST) : -1
+    const fireball = index(FIREBALL)
+    const line = (ability: number, conditions: RotationCondition[]) => rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
+    // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left, or sooner when the
+    // Pyroblast or Fireball below would let it run out before the Scorch after it lands (mage.md "Fire
+    // priority" row 9): a player refreshes so the Scorch lands in time, at any casting speed.
+    if (scorchOn) {
+      line(scorch, [{ code: COND.auraStacksBelow, a: fv, b: 5 }])
+      line(scorch, [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }])
+      if (pyroOn) line(scorch, [pyroWhen, { code: COND.auraEndsBeforeCasts, a: fv, b: pyro }])
+      line(scorch, [{ code: COND.auraEndsBeforeCasts, a: fv, b: fireball }])
     }
-    // Pyroblast at x Hot Streak stacks.
-    if (v.on(ID.pyroblast) && has('Hot Streak') && has('Pyroblast')) {
-      const pyro = index(PYROBLAST)
-      const hs = auraIndex(HOT_STREAK.id)
-      const stacks = Math.max(1, Math.min(3, Math.round(v.num(ID.pyroblastStacks))))
-      if (hs >= 0) rotation.push({ ability: pyro, conditions: [{ code: COND.auraStacksAtLeast, a: hs, b: stacks }], unqueueBelowTenths: 0 })
-    }
-    if (v.on(ID.fireBlast)) add(FIRE_BLAST)
-    add(FIREBALL)
+    // Pyroblast at x Hot Streak stacks, waiting up to FIRE_WAIT_MS so it doesn't land just before its
+    // own DoT's next tick and cut it off (row 10).
+    if (pyroOn) line(pyro, [pyroWhen, { code: COND.dotTickWait, a: pyro, b: FIRE_WAIT_MS }])
+    // Fire Blast when it's ready; Fireball waits for one ready within FIRE_WAIT_MS (rows 11 and 12).
+    if (fireBlast >= 0) line(fireBlast, [])
+    line(fireball, fireBlast >= 0 ? [{ code: COND.cooldownAtLeast, a: fireBlast, b: FIRE_WAIT_MS }] : [])
   } else if (spec === 'frost') {
     if (v.on(ID.iceBarrier) && has('Ice Barrier')) add(ICE_BARRIER)
     add(FROSTBOLT)

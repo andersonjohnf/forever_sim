@@ -909,6 +909,8 @@ export class Sim {
   private swingsStopped = false
   /** A cast that holds every other action is running: the rotation waits for it (paladin.md#other-abilities). */
   private castHolding = false
+  /** A line that waits set this in its walk: the walk ends and resumes then (COND.dotTickWait). */
+  private walkWaitUntil = 0
   /** The STANCE bit the warrior is in: the base stance, or the one a dance swapped to (warrior.md §7). */
   private stance = 0
   /**
@@ -2365,6 +2367,7 @@ export class Sim {
     this.castGcdEnd = 0
     this.swingsStopped = false
     this.castHolding = false
+    this.walkWaitUntil = 0
     for (let i = 0; i < this.abReadyAt.length; i++) this.abReadyAt[i] = this.abNeverReady[i] ? Infinity : 0
     this.abUses.fill(0)
     this.abTicksLeft.fill(0)
@@ -2859,7 +2862,15 @@ export class Sim {
       if (this.abKind[a] === KIND_ON_NEXT_SWING) {
         if (this.queued >= 0) continue
       } else if (this.abGcd[a] > 0 && this.gcdEnd > now) continue
-      if (!this.conditionsHold(e)) continue
+      if (!this.conditionsHold(e)) {
+        // A line that waits (COND.dotTickWait) ends the walk; it resumes when the wait is over.
+        if (this.walkWaitUntil > now) {
+          this.q.push(this.walkWaitUntil, EV_ACT, 0, 0)
+          this.walkWaitUntil = 0
+          return
+        }
+        continue
+      }
       if (dance !== 0) this.swapStance(dance)
       if (this.entryStay[e] !== 0) this.home = this.stance
       this.use(a)
@@ -2986,6 +2997,28 @@ export class Sim {
         case COND.maxMana:
           if (this.mana > a) return false
           break
+        // docs/classes/mage.md#fire-priority: Pyroblast waits, up to b ms, for its own DoT's next tick
+        // rather than land just before it and cut it off; the walk stops and resumes as it can land
+        // with the tick (a tick due that moment lands first, spells.md §7).
+        case COND.dotTickWait: {
+          const s = this.abSpell[a]
+          if (s >= 0 && this.spDotTicksLeft[s] > 0) {
+            // The first of its ticks due as the cast lands or after: the ticks before it land first.
+            const lands = now + this.castMsNow(a)
+            let tick = this.spDotNextAt[s]
+            let left = this.spDotTicksLeft[s]
+            while (left > 1 && tick < lands) {
+              tick += this.splDotTickMs[s]
+              left--
+            }
+            const early = tick - lands
+            if (early > 0 && early <= b) {
+              this.walkWaitUntil = now + early
+              return false
+            }
+          }
+          break
+        }
         // docs/mechanics/spells.md §11: a plan aura is up (Clearcasting, Shadow Trance).
         case COND.auraUp:
           if (!this.auraActive[a]) return false
@@ -3006,6 +3039,11 @@ export class Sim {
           break
         case COND.auraEndsWithin:
           if (this.auraActive[a] && this.auraEndAt(a) - now > b) return false
+          break
+        // docs/classes/mage.md#fire-priority: Scorch now if the Pyroblast or Fireball below would let
+        // Fire Vulnerability run out before a Scorch after it lands (a tie counts as running out).
+        case COND.auraEndsBeforeCasts:
+          if (this.auraActive[a] && this.auraEndAt(a) - now > this.castMsNow(b) + this.castMsNow(this.rotAbility[e])) return false
           break
         // docs/classes/priest.md#6-rotation: Inner Focus waits until Mind Blast could start now.
         case COND.abilityReady:
@@ -4602,15 +4640,27 @@ export class Sim {
    */
   private autoShotClear(a: number, spare: number): boolean {
     if (!this.hasRanged) return false
-    let castMs = this.abCastMs[a]
-    if (castMs === 0) return true
-    const instant = this.abInstantAura[a]
-    if (instant >= 0 && this.auraActive[instant]) return true
-    if (this.abStackAura[a] >= 0) castMs *= this.stackCut(a, this.abStackCast[a])
-    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
-    if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
+    const castMs = this.castMsNow(a)
     if (castMs === 0) return true
     return this.now + castMs + spare <= this.rNextAt - this.rWindupMs
+  }
+
+  /**
+   * The cast time ability a would start with now, as `use` computes it without spending anything: 0
+   * for an instant or under its instant-cast aura, else its stacks' cut, a charge's cut, casting speed
+   * and ranged haste (docs/mechanics/spells.md §4).
+   */
+  private castMsNow(a: number): number {
+    let castMs = this.abCastMs[a]
+    if (castMs === 0) return 0
+    const instant = this.abInstantAura[a]
+    if (instant >= 0 && this.auraActive[instant]) return 0
+    if (this.abStackAura[a] >= 0) castMs *= this.stackCut(a, this.abStackCast[a])
+    const charge = this.abChargeAura[a]
+    if (charge >= 0 && this.auraActive[charge]) castMs = Math.max(0, castMs - this.abChargeCastMs[a])
+    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+    if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
+    return castMs
   }
 
   // ------------------------------------------------------------------------------------------

@@ -10,9 +10,10 @@ import { buildPlan } from '../../plan/build'
 import { COND, type Plan, SCHOOL } from '../../plan/types'
 import { addPaladinAbility } from '../paladin/test-helpers'
 import { FROSTBOLT, FROSTBOLT_SPELL, PRESENCE_OF_MIND } from './abilities'
-import { MAGE_IDS, MAGE_OPTIONS } from './rotation'
+import { FIRE_WAIT_MS, MAGE_IDS, MAGE_OPTIONS } from './rotation'
 import { withSpellTalents, withTalents } from './talents'
-import { abilityOf, auraOf, auraState, damagesOf, events, examplePlan, fixSpell, procOf, row, run, SPEC_ID, spellOf, type MageSpec } from './test-helpers'
+import { toResult } from '../../run/aggregate'
+import { abilityOf, auraOf, auraState, damagesOf, events, examplePlan, fixSpell, procOf, row, run, runFights, SPEC_ID, spellOf, type MageSpec } from './test-helpers'
 
 /** The level-63 boss's average partial resist for a level-60 caster: 0.75 × 24 / 300 (combat-tables §9). */
 const RESIST = 0.94
@@ -178,12 +179,16 @@ describe('Improved Scorch (docs/classes/mage.md#improved-scorch)', () => {
     expect(damage('ignite')[0].value).toBeCloseTo(((0.4 * crit) / 2) * 1.15 * RESIST, 9)
   })
 
-  it('the Fire priority casts Scorch until 5 stacks (COND 42), and again at ≤ the refresh setting’s time left (COND 43)', () => {
+  it('the Fire priority casts Scorch until 5 stacks (COND 42), and again at ≤ the refresh setting’s time left (COND 43) or before a Fireball would let them run out (COND 44)', () => {
     const plan = scorchPlan()
     const scorch = abilityOf(plan, 'scorch')
     const fv = auraOf(plan, 'fireVulnerability')
     const lines = plan.rotation.filter((r) => r.ability === scorch)
-    expect(lines.map((r) => r.conditions)).toEqual([[{ code: COND.auraStacksBelow, a: fv, b: 5 }], [{ code: COND.auraEndsWithin, a: fv, b: 5000 }]])
+    expect(lines.map((r) => r.conditions)).toEqual([
+      [{ code: COND.auraStacksBelow, a: fv, b: 5 }],
+      [{ code: COND.auraEndsWithin, a: fv, b: 5000 }],
+      [{ code: COND.auraEndsBeforeCasts, a: fv, b: abilityOf(plan, 'fireball') }],
+    ])
     // At 10 s left, the Fireball landing at 28.5 s (9 s left) is followed by a Scorch.
     const ten = scorchPlan({ rotation: { [F.scorch]: true, [F.scorchRefresh]: 10 } })
     expect(events(ten).uses('scorch').map((u) => u.t)).toEqual([0, 1500, 3000, 4500, 6000, 28500, 51000])
@@ -607,14 +612,20 @@ describe('the priority lists (docs/classes/mage.md "Fire priority", "Frost prior
     return { plan, ids: plan.rotation.map((r) => plan.abilities[r.ability].id).filter((id) => MAGE_ROWS.has(id)) }
   }
 
-  it('Fire: Combustion, the racial, the gems, Evocation (at x% mana, or when Fireball can’t be paid), Scorch ×2, Pyroblast on Hot Streak, Fire Blast, Fireball', () => {
+  it('Fire: Combustion, the racial, the gems, Evocation (at x% mana, or when Fireball can’t be paid), Scorch ×4, Pyroblast on Hot Streak, Fire Blast, Fireball', () => {
     const { plan, ids } = order('fire', { [F.pyroblastStacks]: 2, [F.scorchRefresh]: 7 })
-    expect(ids).toEqual(['combustion', 'berserking', 'manaRuby', 'manaCitrine', 'evocation', 'evocation', 'scorch', 'scorch', 'pyroblast', 'fireBlast', 'fireball'])
+    expect(ids).toEqual(['combustion', 'berserking', 'manaRuby', 'manaCitrine', 'evocation', 'evocation', 'scorch', 'scorch', 'scorch', 'scorch', 'pyroblast', 'fireBlast', 'fireball'])
     const line = (id: string, k = 0) => plan.rotation.filter((r) => plan.abilities[r.ability].id === id)[k]
-    expect(line('scorch', 0).conditions).toEqual([{ code: COND.auraStacksBelow, a: auraOf(plan, 'fireVulnerability'), b: 5 }])
-    expect(line('scorch', 1).conditions).toEqual([{ code: COND.auraEndsWithin, a: auraOf(plan, 'fireVulnerability'), b: 7000 }])
-    expect(line('pyroblast').conditions).toEqual([{ code: COND.auraStacksAtLeast, a: auraOf(plan, 'hotStreak'), b: 2 }])
-    expect(line('fireball').conditions).toEqual([])
+    const fv = auraOf(plan, 'fireVulnerability')
+    const hotStreak = { code: COND.auraStacksAtLeast, a: auraOf(plan, 'hotStreak'), b: 2 }
+    expect(line('scorch', 0).conditions).toEqual([{ code: COND.auraStacksBelow, a: fv, b: 5 }])
+    expect(line('scorch', 1).conditions).toEqual([{ code: COND.auraEndsWithin, a: fv, b: 7000 }])
+    // Before a Pyroblast, or a Fireball, that would let the stacks run out before a Scorch after it lands.
+    expect(line('scorch', 2).conditions).toEqual([hotStreak, { code: COND.auraEndsBeforeCasts, a: fv, b: abilityOf(plan, 'pyroblast') }])
+    expect(line('scorch', 3).conditions).toEqual([{ code: COND.auraEndsBeforeCasts, a: fv, b: abilityOf(plan, 'fireball') }])
+    expect(line('pyroblast').conditions).toEqual([hotStreak, { code: COND.dotTickWait, a: abilityOf(plan, 'pyroblast'), b: FIRE_WAIT_MS }])
+    expect(line('fireball').conditions).toEqual([{ code: COND.cooldownAtLeast, a: abilityOf(plan, 'fireBlast'), b: FIRE_WAIT_MS }])
+    expect(FIRE_WAIT_MS).toBe(300)
   })
 
   it('Frost: Presence of Mind, the racial, the gems, Evocation, Frostbolt (Ice Barrier only when talented)', () => {
@@ -633,5 +644,73 @@ describe('the priority lists (docs/classes/mage.md "Fire priority", "Frost prior
     const d = defaultConfig('mage-fire')
     const bare = buildPlan({ ...d, talents: '', rotation: allOn('fire') }).plan
     expect(bare.rotation.map((r) => bare.abilities[r.ability].id).filter((id) => MAGE_ROWS.has(id))).toEqual(['berserking', 'manaRuby', 'manaCitrine', 'evocation', 'evocation', 'fireBlast', 'fireball'])
+  })
+})
+
+describe('the Fire priority at any casting speed (docs/classes/mage.md "Fire priority", rows 9, 10 and 12)', () => {
+  /** The default Fire mage, its casting speed × `speed`; with unlimited mana unless `mana`. */
+  const firePlan = (speed: number, mana = false) => {
+    const bundle = buildPlan(defaultConfig('mage-fire'))
+    const plan = bundle.plan
+    plan.stats.castHaste *= speed
+    if (!mana) plan.mana = { ...plan.mana!, maxTenths: 1e9 }
+    return { bundle, plan }
+  }
+
+  it('Fireball waits up to 0.3 s for Fire Blast (COND 1), and no longer', () => {
+    // No talents: Fire Blast's cooldown is 8 s, Fireball's cast 3.5 s ÷ the casting speed.
+    const fireBlast = (castMs: number) => {
+      const plan = examplePlan({ rotation: { [F.fireBlast]: true } })
+      plan.stats.castHaste = 3500 / castMs
+      return events(plan)
+    }
+    // Two 3,150 ms Fireballs after Fire Blast's GCD land at 7.8 s: Fire Blast is 200 ms away, so the mage waits.
+    const wait = fireBlast(3150)
+    expect(wait.uses('fireball').slice(0, 2).map((u) => u.t)).toEqual([1500, 4650])
+    expect(wait.uses('fireBlast').slice(0, 3).map((u) => u.t)).toEqual([0, 8000, 16000])
+    // At 3,050 ms they land at 7.6 s, 400 ms early: a third Fireball goes first.
+    const go = fireBlast(3050)
+    expect(go.uses('fireball').slice(0, 3).map((u) => u.t)).toEqual([1500, 4550, 7600])
+    expect(go.uses('fireBlast').slice(0, 2).map((u) => u.t)).toEqual([0, 10650])
+  })
+
+  it('Pyroblast waits up to 0.3 s to land with its own DoT’s tick rather than cut it off (COND 45)', () => {
+    // Every spell crits, so each Fireball gives a Hot Streak stack and a 1-stack Pyroblast follows it.
+    // At a casting speed of 1/1.1, Fireball takes 3,850 ms and that Pyroblast 4,950: the first lands at
+    // 8.8 s, its DoT ticking at 11.8, 14.8 and 17.8 s; the second would land at 17.6 s, 200 ms before
+    // the third tick, so it waits 200 ms and lands with it (a tick due that moment lands first).
+    const plan = examplePlan({ talents: { 'Hot Streak': 1, Pyroblast: 1 }, rotation: { [F.pyroblast]: true }, spellCrit: 200, sp: 100 })
+    plan.stats.castHaste = 1 / 1.1
+    const { uses, damage } = events(plan)
+    expect(uses('pyroblast').slice(0, 2).map((u) => u.t)).toEqual([3850, 12850])
+    expect(damage('pyroblast').slice(0, 2).map((d) => d.t)).toEqual([8800, 17800])
+    expect(damage('pyroblastDot').slice(0, 4).map((d) => d.t)).toEqual([11800, 14800, 17800, 20800])
+  })
+
+  it('Scorch keeps Fire Vulnerability up after the opener at ×1.00, ×1.002 and ×1.01 casting speed (COND 43, 44)', () => {
+    for (const speed of [1, 1.002, 1.01]) {
+      const { plan } = firePlan(speed)
+      // Scorches that never miss: two missed refreshes in a row let the stacks run out, rightly.
+      plan.stats.spellHit = 100
+      let drops = 0
+      for (let fight = 0; fight < 200; fight++) {
+        const { uses } = events(plan, ['fireVulnerability'], fight)
+        const stacks = uses('scorch').map((u) => u.stacks.fireVulnerability)
+        // A Scorch after the stacks first reached 5 that finds fewer: they ran out, and a Scorch landing as
+        // they did started them again.
+        const full = stacks.indexOf(5)
+        if (full >= 0) drops += stacks.slice(full).filter((n) => n < 5).length
+      }
+      expect(drops, `×${speed}`).toBe(0)
+    }
+  })
+
+  it('+1% and +2% casting speed are never a loss: the default Fire mage’s DPS at ×1.01 and ×1.02 is at least ×1.00’s, within its 95% CI', () => {
+    const dps = (speed: number) => {
+      const { bundle, plan } = firePlan(speed, true)
+      return toResult(bundle, runFights(plan, 3000), 0).dps
+    }
+    const base = dps(1)
+    for (const speed of [1.01, 1.02]) expect(dps(speed).mean, `×${speed}`).toBeGreaterThanOrEqual(base.mean - base.ci95)
   })
 })

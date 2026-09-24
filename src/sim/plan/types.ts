@@ -1135,6 +1135,20 @@ export const COND = {
    * lands, sees it at its next decision; it schedules no wake-up.
    */
   auraEndsWithin: 43,
+  /**
+   * plan aura a is down, or runs out before ability b's cast and then this line's own cast would
+   * land: at most b's cast time + the line's cast time left, both as they'd start now (casting
+   * speed, their stacks' cut, an instant-cast aura). Scorch before a Pyroblast or Fireball that would
+   * let Fire Vulnerability run out before the Scorch after it lands (docs/classes/mage.md#fire-priority).
+   * Checked on each walk.
+   */
+  auraEndsBeforeCasts: 44,
+  /**
+   * ability a's spell DoT has no tick due within b ms after a cast of a started now would land. When
+   * one is, the walk waits there until the cast would land with the tick, rather than cut it off:
+   * Pyroblast and its own DoT (docs/classes/mage.md#fire-priority). Checked on each walk.
+   */
+  dotTickWait: 45,
   // 50–53 are the Shadow Priest's (docs/classes/priest.md#8-implementation-notes).
   /**
    * ability a could start now: it's off cooldown and affordable, and a GCD ability's global cooldown

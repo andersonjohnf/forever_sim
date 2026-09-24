@@ -21,6 +21,10 @@ describe('golden run (fixed config and seed)', () => {
   //   230225-23550000130133051-005, Combustion (its stacks from each Fire hit) and Berserking on
   //   cooldown, Scorch for Improved Scorch's 5 stacks, Pyroblast on Hot Streak, Fire Blast, Fireball,
   //   the mana gems and Evocation; the Standard raid's buffs.
+  // - EI-1 (September 2026): Scorch refreshes Fire Vulnerability early enough to land before it runs
+  //   out after a 4.5 s Pyroblast (COND 44); Fireball waits up to 0.3 s for Fire Blast; Pyroblast
+  //   waits up to 0.3 s so it doesn't cut off its own DoT's tick (COND 45). 513.15 → 514.50 DPS;
+  //   Scorches 13.9 → 12.6 a fight (the stacks no longer drop and rebuild), Fire Blasts 19.8 → 20.2.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

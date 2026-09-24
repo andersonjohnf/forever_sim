@@ -342,8 +342,11 @@ A spec is data plus small ability modules, never its own loop.
   limited to crits of some schools and kept when a stack is added (`critChargeSchools`,
   `refreshKeepsCharges`), and it can raise mana costs (`manaCostPct`: Arcane Power). A proc can return
   a share of the critting spell's cost (`manaOfCost`: Master of Elements). A caster's Clearcasting is
-  the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42) and
-  `auraEndsWithin` (43) keep a stacking debuff up (Scorch's Fire Vulnerability). A one-use ability's
+  the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42),
+  `auraEndsWithin` (43) and `auraEndsBeforeCasts` (44) keep a stacking debuff up (Scorch's Fire
+  Vulnerability, refreshed so the Scorch lands before the spell cast next lets it run out), and
+  `dotTickWait` (45) makes the walk wait for a DoT's tick rather than cut it off (Pyroblast): the
+  one condition that ends the walk and schedules its return. A one-use ability's
   last use still holds its cooldown category (the mana gems, which the Demonic Rune joins).
 - **The warlock's pieces** ([warlock.md §8](classes/warlock.md#8-implementation-notes)), on the caster
   core, each optional so a plan without them runs as before: a DoT's own multiplier

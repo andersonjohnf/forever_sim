@@ -115,7 +115,16 @@ test.describe('Protection paladin rotation', () => {
     await expect(table.getByRole('row', { name: /^Swift Judgement none \d+\.\d$/ })).toBeVisible()
     await expect(table.getByRole('row', { name: /^Iron Creed \d+\.\d% none$/ })).toBeVisible()
 
+    // The mana ledger and the sheet's spell rows, as Retribution's (QU6).
+    const ledger = results.getByRole('region', { name: 'Mana per fight' })
+    for (const line of ['At the pull', 'Regenerated', 'Improved Seal of Fury', 'Shield Specialization', 'Major Mana Potion', 'Spent', 'Left at the end']) {
+      await expect(ledger.getByText(line, { exact: true })).toBeVisible()
+    }
+
     await results.getByRole('button', { name: 'Character sheet' }).click()
+    for (const row of ['Spell damage', 'Spell crit', 'Spell hit', 'Mana', 'Mana per 5 s']) {
+      await expect(results.getByText(row, { exact: true })).toBeVisible()
+    }
     const boss = results.getByRole('region', { name: 'Boss’s attack table' })
     await expect(boss).toContainText(/Its chances on each swing at you with Holy Shield up, from the stats above and its 20\.0% more block\. Your rotation kept it up \d+\.\d% of the fight\./)
     await expect(boss).not.toContainText('a little')

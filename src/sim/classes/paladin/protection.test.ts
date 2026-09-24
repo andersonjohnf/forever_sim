@@ -94,7 +94,7 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
     expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)).toMatchObject({
       [ID.priority]: 'duties',
       [ID.seal]: 'fury',
-      [ID.sealRefresh]: 2,
+      [ID.sealRefresh]: 2.5,
       [ID.holyShield]: true,
       [ID.swiftJudgement]: true,
       [ID.swiftJudgementCooldown]: 4.5,
@@ -103,10 +103,18 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
       [ID.holyStrike]: true,
       [ID.consecration]: true,
       [ID.exorcismMana]: 0,
-      [ID.consecrationMana]: 90,
+      [ID.consecrationMana]: 40,
       [ID.consecrationRank1]: false,
       [ID.hammerOfWrath]: true,
       [ID.hammerOfWrathMana]: 0,
+      [ID.trinkets]: true,
+      [ID.juju]: true,
+      [ID.manaPotion]: true,
+      [ID.manaPotionEarly]: 1500,
+      [ID.manaPotionMissing]: 2250,
+      [ID.rune]: true,
+      [ID.runeEarly]: 0,
+      [ID.runeMissing]: 1500,
     })
   })
 })
@@ -196,7 +204,7 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(r.abilities[fury].aura).toMatchObject({ id: 'righteousFury', mods: {} })
     const lines = Object.fromEntries(r.rotation.map((e) => [r.abilities[e.ability].id, e.conditions]))
     const shield = r.abilities.findIndex((a) => a.id === 'holyShield')
-    expect(lines.sealOfFury).toEqual([{ code: COND.abilityAuraRefresh, a: 0, b: 2000 }])
+    expect(lines.sealOfFury).toEqual([{ code: COND.abilityAuraRefresh, a: 0, b: 2500 }])
     expect(lines.holyShield).toEqual([{ code: COND.abilityAuraRefresh, a: shield, b: 0 }])
     expect(lines.judgementOfFury).toEqual([{ code: COND.abilityAuraUp, a: 0, b: 0 }])
     expect(lines.swiftJudgement).toEqual([
@@ -204,8 +212,8 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
       { code: COND.abilityAuraUp, a: 0, b: 0 },
     ])
     expect(lines.holyStrike).toEqual([])
-    // 90% of 2,000 mana, in tenths.
-    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 18000, b: 0 }])
+    // 40% of 2,000 mana, in tenths.
+    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 8000, b: 0 }])
     expect(lines.hammerOfWrath).toEqual([])
     // Swift Judgement ends the judgement's cooldown, and its buff makes that judgement free.
     const swift = r.abilities.find((a) => a.id === 'swiftJudgement')!
@@ -335,7 +343,8 @@ describe('Holy Shield’s charges (paladin.md#other-abilities; combat-tables §8
 
 describe('Swift Judgement (paladin.md#protection-tree)', () => {
   it('ends Judgement’s cooldown once a minute, right after a Judgement, and the Judgement it frees costs nothing', () => {
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 } })
+    // Without buffs, Consecration off, so mana never delays a judgement.
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { [ID.consecration]: false } })
     const judge = 1
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     expect(plan.freeCastAura).toBe(auraOf(plan, 'swiftJudgement'))
@@ -362,7 +371,8 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
   })
 
   it('ends the cooldown of every judgement in Judgement’s category, and never one that can’t be used again', () => {
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 } })
+    // Without buffs, Consecration off, so mana never delays a judgement.
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { [ID.consecration]: false } })
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     // Two more judgements in the category, with no line: Righteousness's, and one this setup can
     // never use (a two-hander's, with a one-hander: never ready, at Infinity).
@@ -613,7 +623,7 @@ describe('threat per ability (paladin.md#threat-paladin-specific; threat.md)', (
 })
 
 describe('mana over a long fight (paladin.md "Protection: model and rotation", #mana-model)', () => {
-  it('10 minutes: the seal, Holy Shield, Judgement and Holy Strike stay up; Consecration goes down at the pull', () => {
+  it('10 minutes: the seal, Holy Shield, Judgement and Holy Strike stay up; Consecration and the potion hold the pool until the execute phase', () => {
     const plan = protPlan({ buffs: defaultConfig(PROT).buffs, fight: { ...defaultConfig(PROT).fight, durationSec: 600, durationVariationPct: 0 } })
     const sim = new Sim(plan)
     const fights = 20
@@ -630,13 +640,13 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     }
     for (let i = 0; i < fights; i++) sim.runFight(i)
     const share = (minute: number) => sum[minute] / ticks[minute] / plan.mana!.maxTenths
-    // It holds: from the second minute to the eighth the pool stays around 75% (Consecration takes
-    // what's above 90%). Then, in the execute phase from 8 minutes (the last 20%), Hammer of Wrath
-    // runs it down, a Major Mana Potion or not: to under 70% in the ninth minute, and under 45% on
-    // average in the last.
-    for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.6)
-    expect(share(8)).toBeLessThan(0.7)
-    expect(share(9)).toBeLessThan(0.45)
+    // It holds: from the second minute to the eighth the pool stays around 35–50% (Consecration
+    // takes what's above 40%, and a Major Mana Potion every 2 minutes tops it up). Then, in the
+    // execute phase from 8 minutes (the last 20%), Hammer of Wrath runs it down: under 30% on
+    // average in the ninth minute, and under 15% in the last.
+    for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.3)
+    expect(share(8)).toBeLessThan(0.3)
+    expect(share(9)).toBeLessThan(0.15)
     const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (fights * 600000)
     expect(up('sealOfFury')).toBeGreaterThan(0.98)
     expect(up('holyShield')).toBeGreaterThan(0.9)
@@ -644,8 +654,10 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
     expect(perFight('holyStrike')).toBeGreaterThan(0.97 * 60)
-    // Consecration from 90% of maximum mana: at the pull, and a third as often as its cooldown allows (75).
-    expect(perFight('consecration')).toBeLessThan(30)
+    // Consecration from 40% of maximum mana: about half as often as its cooldown allows (75). The
+    // potion every 2 minutes, from the pull's first: 5.
+    expect(perFight('consecration')).toBeLessThan(50)
+    expect(perFight('majorManaPotion')).toBe(5)
     expect(low).toBeGreaterThanOrEqual(0)
   })
 })

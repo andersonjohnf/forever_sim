@@ -46,6 +46,12 @@ describe('golden run (fixed config and seed)', () => {
   // - D26's fixed duty rule: the duty first, so Devotion Aura goes up 4.5 s before the pull and
   //   Righteous Fury at 3 s (they were the other way round). Casts before the pull are free and
   //   roll nothing, so only the cooldowns' order moves: Devotion Aura before Righteous Fury.
+  // - D23 re-run on the new raid buffs and the potion, the threat abilities only (paladin.md
+  //   "Tuning the defaults (C3)"): Consecration from 40% (was 90%) and the seal again with 2.5 s
+  //   left (was 2 s). +25.54 TPS (+6.40%, 399.26 → 424.80, 95% CI +25.48 to +25.60) and +9.99
+  //   DPS (+4.51%) over 400,000 paired fights on seed 4481, which no search used. On this seed's
+  //   1,000 fights: Consecration 8,422 → 14,703 casts, the potion 0.41 → 1.90 a fight; TPS 398.23
+  //   → 423.41, DPS 220.95 → 230.97, damage taken 680.5 → 682.1 a second.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

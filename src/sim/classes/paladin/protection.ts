@@ -74,10 +74,11 @@ export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as con
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 
 /**
- * Protection recasts its seal with 2 s left, half a second earlier than the core's 1.5 s, so a
- * global cooldown on Holy Shield never lets it drop (paladin.md "Tuning the defaults").
+ * Protection recasts its seal with 2.5 s left, a second earlier than the core's 1.5 s: the global
+ * cooldowns after it then leave Holy Shield's recast on time more often (paladin.md "Tuning the
+ * defaults (C3)").
  */
-const PROT_SEAL_REFRESH_SEC = 2
+const PROT_SEAL_REFRESH_SEC = 2.5
 
 
 // --- Abilities, spells and procs (paladin.md#other-abilities, #protection-tree) -----------------
@@ -332,7 +333,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, for about 5% more TPS and 5% more damage taken in the default setup. Pick it when threat is short and your healers can take the damage, or when another paladin in your group keeps Devotion Aura up. It turns Devotion Aura off by default, here and in the Buffs tab.',
+    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, for about 5% more TPS and 6% more damage taken in the default setup. Pick it when threat is short and your healers can take the damage, or when another paladin in your group keeps Devotion Aura up. It turns Devotion Aura off by default, here and in the Buffs tab.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -453,14 +454,14 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.consecration,
     group: 'Fillers',
     label: 'Consecration',
-    help: 'Put down Consecration (rank 5, 565 mana): 8 ticks of Holy damage over 8 s. By default only from 90% mana, so at the pull and seldom after: the mana does more for Holy Shield, your seal and Hammer of Wrath.',
+    help: 'Put down Consecration (rank 5, 565 mana): 8 ticks of Holy damage over 8 s. By default only from 40% mana: below that, the mana does more for Holy Shield, your seal and Hammer of Wrath.',
     default: true,
   },
   manaOption(
     ID.consecrationMana,
     'Consecration from',
-    'Use rank 5 only at or above this share of your maximum mana. 90 is tuned for 3-minute fights with a 20% execute phase, where Hammer of Wrath spends the mana better at the end. For fights of 90 s or less, or without an execute phase, 40 to 60 does better, by up to 7% of TPS.',
-    90,
+    'Use rank 5 only at or above this share of your maximum mana. 40 is tuned for the default 3-minute fight, and it’s within half a percent of the best from 30 s to 5 minutes.',
+    40,
     ID.consecration,
     'Fillers',
   ),
@@ -559,7 +560,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
  * What misjudging the fight's end costs the early potion line, measured with the default setup
  * (paladin.md "Tuning the defaults (C3)"): its "another will be ready" judged 10 or 20 s off.
  */
-export const PROTECTION_KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs under 0.01%'
+export const PROTECTION_KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs up to 0.51%'
 
 /**
  * What a Protection paladin always does (paladin.md "Forever priority list (default)", row 0): its

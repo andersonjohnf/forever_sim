@@ -534,9 +534,9 @@ slice is worked:
   which the sim doesn't model; the sim throws it from where you stand. Measured without that cost
   (Max consumables, seed 12345, 2,000 fights), the casters are mixed, a Fire mage +0.63% and
   Affliction and Elemental +0.24% while Destruction −0.21%, Shadow −0.33% and Demonology −0.45%
-  lose, and the hunters gain (Marksmanship +0.89%, Survival +0.85%, Beast Mastery +0.51%). A Feral
-  cat gains +0.3%, but whether a druid can throw it in a form is open (buffs doc open question 21),
-  so its Max waits too ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+  lose, and the hunters gain (Marksmanship +0.89%, Survival +0.85%, Beast Mastery +0.51%). Every melee
+  spec loses (a Feral cat −0.8%, an upper bound), and whether a druid can throw it in a form is open
+  (buffs doc open question 21) ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
   The Sapper, Dense Dynamite and the other explosives aren't in the catalogue; one entry per cooldown category means a tank's
   Stoneshield-then-rage-potion pairing isn't simulated, and simulating an item with a longer cooldown
   of its own beside another of its category needs an alternation model ([buffs doc](mechanics/buffs-debuffs-consumables.md#on-use-items-and-cooldown-categories)).

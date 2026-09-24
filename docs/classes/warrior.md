@@ -942,8 +942,10 @@ Notes:
   one). If equipped, the result lists them. EZ-Thro Dark Bomb and Greater Stoneshield Potion are
   used on cooldown from the pull, ahead of the spec's own lines, when they're selected
   ([buffs §3.5, §3.7](../mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)); the
-  bomb waits until just after a main-hand swing, and its 1 s throw still restarts both swings and
-  holds the GCD: Fury −1.1% and Arms −0.6% at Max consumables, so it's in no preset.
+  bomb's first throw waits for the first main-hand swing, the rest go on cooldown wherever the swing
+  timer is, and its 1 s throw restarts both swings and holds the GCD: Fury −1.9% and Arms −2.7% at
+  Max consumables, an upper bound (−1.1% and −0.6% thrown only just after a swing), so it's in no
+  preset.
 - **2H Fury** (Fury talents with a two-hander) is supported by the engine but has no default
   preset. Unbridled Wrath's 2 rage per proc suits it, but Dual Wield Specialization and Raging
   Blows are wasted, and Improved Slam is out of reach in the Arms tree. Use it only if a guild

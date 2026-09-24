@@ -15,8 +15,10 @@
 import { GCD_MS, toTenths } from '../../core/formulas'
 import { type RotationCondition, STANCE } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
-import { compileAplRows, DEFAULT_APL_PRESET } from '../apl'
+import { compileAplRows, DEFAULT_APL_PRESET, normalizeAplOrder } from '../apl'
 import {
+  type AbilityDef,
+  BATTLE_SHOUT,
   BLOODRAGE,
   DEMORALIZING_SHOUT,
   demoralizingShout,
@@ -32,7 +34,7 @@ import {
   THUNDER_CLAP,
   thunderClap,
 } from './abilities'
-import type { TalentRanks } from './modifiers'
+import { type TalentRanks, withTalents } from './modifiers'
 import {
   auraRefresh,
   battleShoutLine,
@@ -368,6 +370,47 @@ export function protectionMaintainedBuffs(values: Record<string, RotationValue>)
     ...(v.on(ID.tcEnabled) ? ['thunderClap'] : []),
     ...(v.on(ID.demoEnabled) ? ['demoralizingShout'] : []),
   ]
+}
+
+/**
+ * The rows on the global cooldown that a filler above them can starve, each with its switch and its
+ * ability: the duties Thunder Clap and Demoralizing Shout, and Battle Shout's upkeep. None needs a
+ * talent or a shield, so the note never hides one that says what's missing.
+ */
+const STARVABLE: readonly { row: string; enabled: string; ability: AbilityDef }[] = [
+  { row: 'thunderClap', enabled: ID.tcEnabled, ability: THUNDER_CLAP },
+  { row: 'demoShout', enabled: ID.demoEnabled, ability: DEMORALIZING_SHOUT },
+  { row: 'battleShout', enabled: ID.bsEnabled, ability: BATTLE_SHOUT },
+]
+
+/**
+ * What the Rotation tab says under a row the Sunder Armor filler, moved or left above it, leaves
+ * almost nothing (docs/ux.md "Rotation"; warrior.md §5.4 "The priority list"). A row keeps its own
+ * conditions wherever it sits, so a duty keeps its refresh rule below the filler; but the filler
+ * takes the global cooldown first whenever rage is at its threshold. While that threshold is at most
+ * the duty's cost, the duty never has the rage when the filler doesn't; while it's at most Sunder
+ * Armor's own cost (Defensive's and Max TPS's 9), the filler uses every global cooldown it can pay
+ * for, and a cheaper duty only gets the moments between its cost and Sunder's (Demoralizing Shout's
+ * 7 to 9: under one cast a fight, measured). Unless the filler waits for Shield Slam. Thunder Clap on
+ * cooldown (`maintainOnly` off) is tried just above the filler, so it's used wherever its row is.
+ */
+export function protectionUnusedSettings(values: Record<string, RotationValue>, talents: TalentRanks, order?: readonly string[]): Record<string, string> {
+  const v = reader(PROTECTION_OPTIONS, values, talents)
+  if (!v.on(ID.fillerEnabled)) return {}
+  // Waiting for Shield Slam leaves the rows below it global cooldowns (with the talent and Shield Slam on).
+  if (v.on(ID.fillerSafe) && v.on(ID.slamEnabled) && talents.has('Shield Slam')) return {}
+  const current = normalizeAplOrder(PROTECTION_APL, order)
+  const filler = current.indexOf('sunderFiller')
+  const threshold = toTenths(v.num(ID.fillerMinRage))
+  const sunderCost = withTalents(SUNDER_ARMOR, talents).costTenths
+  const out: Record<string, string> = {}
+  for (const { row, enabled, ability } of STARVABLE) {
+    if (!v.on(enabled) || current.indexOf(row) < filler) continue
+    if (row === 'thunderClap' && !v.on(ID.tcMaintainOnly)) continue
+    if (threshold > Math.max(sunderCost, withTalents(ability, talents).costTenths)) continue
+    out[enabled] = 'Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above the filler, or raise the filler’s rage.'
+  }
+  return out
 }
 
 /**

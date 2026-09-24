@@ -161,6 +161,20 @@ test.describe('Protection rotation', () => {
     await expect(page.getByRole('button', { name: 'Reset order' })).toBeDisabled()
   })
 
+  test('a duty moved below Defensive’s filler says it’s rarely used, dimmed, until the filler is off (TI-4)', async ({ page }) => {
+    await openProtectionRotation(page)
+    await pick(page, 'Defensive')
+    const ds = await openRow(page, 'Demoralizing Shout')
+    for (let i = 0; i < 5; i++) await ds.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect.poll(() => order(page)).toEqual([...DEFAULT_ORDER.slice(0, 6), ...DEFAULT_ORDER.slice(7, 12), 'demoShout', ...DEFAULT_ORDER.slice(12)])
+    const note = 'Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above the filler, or raise the filler’s rage.'
+    await expect(row(page, 'demoShout')).toContainText(note)
+    await expect(row(page, 'demoShout')).toHaveAttribute('data-inactive')
+    await rowSwitch(page, 'sunderFiller').click()
+    await expect(row(page, 'demoShout')).not.toContainText('Rarely used')
+    await expect(row(page, 'demoShout')).toContainText('Again with 1.5 s left')
+  })
+
   test('a duty moves and keeps its refresh rule; the refresh times follow the duty rule, Balanced’s Sunder Armor too (D26, D28, D31)', async ({ page }) => {
     await openProtectionRotation(page)
     await pick(page, 'Defensive')

@@ -27,7 +27,7 @@ import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './sh
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { WARLOCK_RACIALS } from './warlock/abilities'
-import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
+import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
@@ -270,6 +270,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.
+  if (spec === 'warrior-protection') Object.assign(out, protectionUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
   if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
   // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.

@@ -10,7 +10,10 @@ import type { OnUseSpec } from '../../effects/types'
 import { talentRanksByName } from '..'
 import { resolveRotationValues } from '../options'
 import { buildPlan } from '../../plan/build'
-import { rotationPreset, rotationValues } from '../..'
+import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
+import type { SimConfig } from '../../types'
+import { rotationPreset, rotationValues, unusedRotationSettings } from '../..'
+import { defaultAplOrder, moveAplRow } from '../apl'
 import {
   DEMORALIZING_SHOUT,
   demoralizingShout,
@@ -25,7 +28,7 @@ import {
   thunderClap,
 } from './abilities'
 import { IMPROVED_REVENGE_PCT_PER_RANK, withTalents } from './modifiers'
-import { PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
+import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
 import { maxRageOf } from './shared'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -520,5 +523,58 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     const r = protectionRotation(DEFENSIVE, TALENTS, noAura, { profile: CLASSIC_ERA })
     expect(r.abilities[at(r, 'thunderClap')].aura!.mods.bossSlow).toBe(10)
     expect(r.abilities[at(r, 'demoralizingShout')].aura!.mods.bossAp).toBe(-146)
+  })
+})
+
+describe('a row below the Sunder Armor filler that takes every global cooldown it can pay for (TI-4; docs/ux.md "Rotation")', () => {
+  const RARELY = 'Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above the filler, or raise the filler’s rage.'
+  const d = defaultConfig('warrior-protection')
+  /** The default order with `id` moved to just below the filler. */
+  const belowFiller = (id: string) => {
+    const order = defaultAplOrder(PROTECTION_APL)
+    const moved = moveAplRow(PROTECTION_APL, order, id, order.indexOf('sunderFiller'))!
+    expect(moved.indexOf(id)).toBe(moved.indexOf('sunderFiller') + 1)
+    return moved
+  }
+  /** The notes but the racial's (the default Human's has none the sim uses). */
+  const unused = (rotation: SimConfig['rotation'], rotationOrder?: string[]) => {
+    const { [ID.racialEnabled]: _, ...rest } = unusedRotationSettings({ ...d, rotation, ...(rotationOrder ? { rotationOrder } : {}) })
+    return rest
+  }
+
+  it('says nothing in any preset’s own order', () => {
+    for (const rotation of [{}, DEFENSIVE, { [ID.priority]: PROTECTION_PRIORITY.maxTps }]) expect(unused(rotation), JSON.stringify(rotation)).toEqual({})
+  })
+
+  it('Defensive’s filler from 9, Sunder Armor’s cost, starves Thunder Clap (17 with the talents), Demoralizing Shout (7) and Battle Shout (10) moved below it', () => {
+    expect(unused(DEFENSIVE, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: RARELY })
+    expect(unused(DEFENSIVE, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: RARELY })
+    expect(unused(DEFENSIVE, belowFiller('battleShout'))).toEqual({ [ID.bsEnabled]: RARELY })
+  })
+
+  it('not while the filler waits for more rage than the row costs, waits for Shield Slam, or is off; nor Thunder Clap on cooldown, which is tried above the filler', () => {
+    // Balanced's filler from 60: the shout gets every global cooldown with 7 to 59 rage.
+    expect(unused({ [ID.demoEnabled]: true }, belowFiller('demoShout'))).toEqual({})
+    // From 15, the shout gets 7 to 14; Thunder Clap, 17, never has the rage when the filler doesn't.
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('demoShout'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: RARELY })
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 18 }, belowFiller('thunderClap'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.fillerSafe]: true }, belowFiller('demoShout'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.fillerEnabled]: false }, belowFiller('demoShout'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.tcMaintainOnly]: false }, belowFiller('thunderClap'))).toEqual({})
+    // An off row has nothing to say.
+    expect(unused({ ...DEFENSIVE, [ID.demoEnabled]: false }, belowFiller('demoShout'))).toEqual({})
+  })
+
+  it('is what the engine does: Demoralizing Shout below Defensive’s filler is cast only at the pull, if ever', () => {
+    const plan = (order?: string[]) => buildPlan({ ...d, rotation: DEFENSIVE, ...(order ? { rotationOrder: order } : {}) }).plan
+    const casts = (p: ReturnType<typeof plan>) => {
+      const sim = new Sim(p)
+      for (let i = 0; i < 3; i++) sim.runFight(i)
+      const i = p.sources.findIndex((s) => s.id === 'demoralizingShout')
+      return sim.counters[i * FIELD_COUNT + FIELD.casts] / 3
+    }
+    expect(casts(plan())).toBeGreaterThan(3)
+    expect(casts(plan(belowFiller('demoShout')))).toBeLessThan(1)
   })
 })

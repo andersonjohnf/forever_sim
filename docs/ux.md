@@ -342,7 +342,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       the duty timing keeps its own rule wherever the duty sits): a warrior's Shield Block, Thunder
       Clap and Demoralizing Shout, a bear's Demoralizing Roar and Faerie Fire. Every tank preset
       puts them first on the global cooldown, and their refresh stays the duty rule's wherever you
-      move them, since it's the row's own condition; a moved duty makes the list Custom.
+      move them, since it's the row's own condition; a moved duty makes the list Custom. The rule
+      decides when a duty wants the global cooldown, not that it gets it: a row above it takes it
+      first. Below a filler that takes every global cooldown it can pay for (a warrior's Sunder
+      Armor filler from Defensive's or Max TPS's 9 rage), a warrior's Thunder Clap, Demoralizing
+      Shout or Battle Shout is hardly ever cast, and says so in place of its summary, dimmed:
+      "Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above
+      the filler, or raise the filler's rage."
     - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without
       named ones (Fury), or a tank's three (above). A tank's preset sets its Priority choice, which
       moves defaults; picking any preset sets it (Balanced back to its default). Once you move a row or change one

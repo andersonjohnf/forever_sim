@@ -1477,7 +1477,13 @@ duties, Shield Block, Thunder Clap and Demoralizing Shout (rows 1, 5 and 6), are
 rest ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24):
 D26's duty timing keeps its own rule wherever the duty sits in the list): every preset puts them
 before any threat ability on the global cooldown, and their refresh stays the duty rule's wherever
-you move them; a moved duty makes the list Custom. The consumables (row 4) are spec-wide, above
+you move them; a moved duty makes the list Custom. The rule says when a duty wants the global
+cooldown, not that it gets it: moved below the Sunder Armor filler while the filler's threshold is
+at most Sunder Armor's cost (Defensive's and Max TPS's 9) or the duty's own, and it doesn't wait for
+Shield Slam, Thunder Clap (with `maintainOnly`), Demoralizing Shout or Battle Shout is hardly ever
+cast: Demoralizing Shout there, costing 7, gets under one cast a fight in the default setup. The
+Rotation tab says so on the row ("Rarely used: …"). Balanced's filler waits for 60% of the bar, so a
+duty below it still gets every global cooldown with less rage than that. The consumables (row 4) are spec-wide, above
 the list, and take their turn with the on-use trinkets (row 3), wherever that row sits, which in
 the default order is where they always were: after rows 1–3, before Thunder Clap. A row keeps its
 own conditions wherever it sits: the filler moved above Shield Slam still waits for it (with its

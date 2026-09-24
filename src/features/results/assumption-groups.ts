@@ -160,6 +160,7 @@ export const ASSUMPTION_GROUP = {
   enrageArmor: 'class',
   bearArmor: 'class',
   thickHide: 'class',
+  thorns: 'class',
   idolOfBrutality: 'class',
   shapeshifts: 'class',
   jotcBonus: 'class',

@@ -375,7 +375,8 @@ describe('catalogues and presets', () => {
   })
 
   it('marks the debuffs on the boss’s swings, and each attack-power debuff names its rival (BU1)', () => {
-    expect(buffCatalogue.filter((b) => b.bossMelee).map((b) => b.id)).toEqual(['demoralizingRoar', 'demoralizingShout', 'thunderClap'])
+    // Thorns too: a damage shield acts only on the boss's swings that land on you (buffs doc §1.2).
+    expect(buffCatalogue.filter((b) => b.bossMelee).map((b) => b.id)).toEqual(['thorns', 'demoralizingRoar', 'demoralizingShout', 'thunderClap'])
     const summary = (id: string, profile: 'forever' | 'classicEra' = 'forever') => buffCatalogueFor(profile).find((b) => b.id === id)!.summary
     expect(summary('demoralizingRoar')).toBe('−204 boss attack power (instead of Demoralizing Shout)')
     expect(summary('demoralizingShout')).toBe('−204 boss attack power (instead of Demoralizing Roar)')
@@ -391,6 +392,10 @@ describe('catalogues and presets', () => {
     // Self only is what you cast on yourself: a paladin's Might, a druid's Mark of the Wild.
     expect(presetBuffs('self', 'paladin-retribution', FULL_RAID)).toEqual(['blessingOfMight'])
     expect(presetBuffs('self', 'druid-feral-cat', [])).toEqual(['markOfTheWild'])
+    // A bear's Thorns too, which only a tank feels; another tank has it only from a druid in Buffs.
+    expect(presetBuffs('self', 'druid-feral-bear', [])).toEqual(['markOfTheWild', 'thorns'])
+    expect(presetBuffs('raid', 'druid-feral-bear', FULL_RAID)).toContain('thorns')
+    for (const spec of ['warrior-protection', 'paladin-protection', 'druid-feral-cat'] as const) expect(presetBuffs('raid', spec, FULL_RAID)).not.toContain('thorns')
     // A bigger preset never has fewer of your own buffs: the shaman's totems are in its dungeon group too (SF1).
     for (const id of presetBuffs('self', 'shaman-enhancement', [])) expect(presetBuffs('dungeon', 'shaman-enhancement', [])).toContain(id)
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).toEqual(expect.arrayContaining(['jujuPower', 'jujuMight', 'roids', 'armorShatter', 'elementalSharpeningStone']))

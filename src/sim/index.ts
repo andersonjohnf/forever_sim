@@ -164,10 +164,16 @@ function perProfile<T>(build: (profile: RuleProfileId) => T): Record<RuleProfile
   return { forever: build('forever'), classicEra: build('classicEra') }
 }
 
-/** Its effects act only on the boss's melee swings: an attack-power debuff or a slow (encounter.md §5). */
+/**
+ * Its effects act only on the boss's melee swings: an attack-power debuff or a slow (encounter.md §5),
+ * or a proc of the swings that land on you (a damage shield: Thorns).
+ */
 const onBossMeleeOnly = (b: (typeof BUFFS)[number]) => {
   const effects = catalogueEffects(b, PROFILES.forever)
-  return effects.length > 0 && effects.every((e) => e.kind === 'bossAp' || e.kind === 'bossSlow')
+  return (
+    effects.length > 0 &&
+    effects.every((e) => e.kind === 'bossAp' || e.kind === 'bossSlow' || (e.kind === 'proc' && e.proc.trigger === 'meleeTaken'))
+  )
 }
 
 const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>

@@ -75,6 +75,8 @@ function digest(effects: Effect[]): Line[] {
         else if (action.kind === 'aura') for (const [mod, v] of Object.entries(action.aura.mods)) lines.push([`${id} ${mod}`, v])
         else if (action.kind === 'spellDamage') lines.push([`${id} ${action.school}`, action.min], ...(action.max !== action.min ? [[`${id} ${action.school} max`, action.max] as Line] : []))
         else if (action.kind === 'stackingDot') lines.push([`${id} ${action.school} tick`, action.tick], [`${id} stacks`, action.maxStacks])
+        // A damage shield's spell (Thorns): its damage.
+        else if (action.kind === 'spell') lines.push([`${id} ${action.spell.school}`, action.spell.min], ...(action.spell.max !== action.spell.min ? [[`${id} ${action.spell.school} max`, action.spell.max] as Line] : []))
         else lines.push([`${id} ${action.kind}`, NaN])
         break
       }
@@ -165,6 +167,8 @@ const ROWS: Record<string, Row> = {
   strengthOfEarth: { forever: [['str', 53]], classicEra: [['str', 77]], rows: [S(25362)] },
   blessingOfSalvation: { rows: [S(1038)] },
   devotionAura: { rows: [S(10293)] },
+  // A damage shield on the tank: 100% of the boss's landed swings, and its damage.
+  thorns: { forever: [['thorns chance %', 100], ['thorns nature', 22]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, S(9910)] },
   // Mana per 5 s: 40 every 5 s (Classic Era 33); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
   blessingOfWisdom: { forever: [['mp5', 40]], classicEra: [['mp5', 33]], rows: [S(25290)] },
   manaSpringTotem: { forever: [['mp5', 25]], rows: [S(10494, 0, { times: 2.5 })] },
@@ -345,7 +349,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(124)
+    expect(ENTRIES).toHaveLength(125)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

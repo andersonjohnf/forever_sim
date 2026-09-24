@@ -329,6 +329,31 @@ sets. Each spec's defaults are then its results.
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 
+## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
+
+The officers' review of v1 found the Protection paladin and the bear far behind the warrior:
+survival presets, known effects modelled as zero, and tank abilities treated differently for the
+same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
+until each slice logs its own review. The guild's benchmark (D29): a paladin and a bear at about
+800–900 TPS, a warrior no more than about 50% ahead.
+- [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
+      armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
+      presets built for threat (the gear review)
+- [ ] **T2 Protection paladin:** its documented enchants and consumables
+      (Nightfin Soup, Wizard Oil), another paladin's Judgement of the Crusader and the JotC
+      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous; its
+      talents and gear then come from the optimizer (O4)
+- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
+      armor; its talents and gear then come from the optimizer (O4). Built on its branch as a quick
+      fix ahead of the optimizer, awaiting review: the four fixes, threat.md's wording table, Classic
+      Era Sunder at 261 (T1's), and interim 9/42/0 talents and threat gear with an effective-health
+      floor ([druid.md §7.1, §7.3a](classes/druid.md#73a-interim-gear-m56-t3))
+- [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
+- [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
+      stay selectable
+- [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
+      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+
 ## M6: Multi-target 💤
 
 The engine fights one target today. The design is
@@ -592,6 +617,19 @@ slice is worked:
   the white-threat note ("stance or form"); Max TPS results naming "your" roar when it's off; the
   bear's swings table listing 0% parry and block; Enrage's damage-taken figure (0.16% vs 0.14%);
   setup-store tests for a known but hidden spec.
+- **The bear threat review's lows** (M5.6, `.cache/probes/tank-review-bear/report.md`; the guild's
+  tests decide them, so the model keeps its Forever reading until then):
+  - **BR7, rage from hits divides by the bear's maximum health.** Rage from hits taken is 46% of the
+    bear's rage, and Forever's rule (`10 × damage before mitigation ÷ max health`,
+    [rage.md](mechanics/rage.md#forever-)) divides by health that Dire Bear Form's +1,240 and Heart
+    of the Wild raise, so a bear gets less rage a hit than a warrior of the same gear; the evidence
+    for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. Guild test G3: 30+ hits at
+    two maximum-health levels, fit rage = k × damage ÷ max health.
+  - **BR8, the bear's white rage uses the one-handed rate** (8.65 a landed swing; the two-handed
+    11.25 would be +0.8% to +2.4% TPS) [?] ([rage.md](mechanics/rage.md#bear-druid-rage)). Guild
+    test G4: 30+ auto attacks in Dire Bear Form.
+  - **BR9, spell 414647** (20% weapon damage, server-triggered) may be Lacerate's hit; the model
+    follows the tooltip's 10% a stack already there (druid.md Q16). Guild test G5.
 - **The shaman's review lows** ([its log](reviews/2026-09-24-enhancement-shaman.md)): Rockbiter
   with Windfury Totem (+3.6%, untried by the first pass); the imbue help's +653 AP against 783.6
   with Elemental Weapons; derived Dwarf and Skyborne base rows; the inferred 16361 link;

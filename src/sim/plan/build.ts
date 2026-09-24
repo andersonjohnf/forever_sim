@@ -1539,6 +1539,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
   if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
   if (procIds.has('deepWounds')) notes.add('deepWounds')
+  // buffs doc §1.2 (BR5): Thorns on the tank.
+  if (procIds.has('thorns')) notes.add('thorns')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
   // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's, the rest Classic

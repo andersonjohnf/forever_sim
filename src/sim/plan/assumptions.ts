@@ -390,6 +390,11 @@ const REGISTRY = {
     text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
+  // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
+  thorns: {
+    text: 'Thorns’ Nature damage comes from every boss swing that lands on you, a blocked one too, always lands and never crits, and makes threat at your threat multipliers; untested.',
+    docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
+  },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
   thickHide: {
     text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',

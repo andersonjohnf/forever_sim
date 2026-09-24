@@ -278,7 +278,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateAlone,
     group: 'Core abilities',
     label: 'Lacerate only when nothing else bleeds',
-    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about 15% less threat and damage in the default setup, with Lacerate’s “high amount of threat” at 261 an application (untested). Off by default.',
+    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul: about 12% less threat and 14% less damage in the default setup, with Lacerate’s “high amount of threat” at 261 an application (untested). Off by default.',
     default: false,
     dependsOn: ID.lacerateEnabled,
   },

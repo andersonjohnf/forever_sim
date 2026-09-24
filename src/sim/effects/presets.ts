@@ -85,10 +85,12 @@ export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: read
   // Buffs tab's, which then means someone else's (SpecMeta.ownBuffs; buffs doc §6.2).
   const own = SPEC_META[spec].ownBuffs ?? []
   // Self only is the buffs you cast on yourself: a paladin's Blessing of Might, a druid's Mark of
-  // the Wild (buffs doc §6.2).
+  // the Wild, a bear's Thorns (buffs doc §6.2); those the spec's raid preset gives it, so not a cat's Thorns.
   if (preset === 'self') {
     const classId = SPEC_META[spec].classId
-    return BUFFS.filter((b) => b.selfCast === true && b.providedBy === classId && forSpecClass(b, spec) && !own.includes(b.id)).map((b) => b.id)
+    return BUFFS.filter(
+      (b) => b.selfCast === true && b.providedBy === classId && forSpecClass(b, spec) && !own.includes(b.id) && b.presets.raid !== undefined && reaches(b.presets.raid, spec),
+    ).map((b) => b.id)
   }
   const ids: string[] = []
   const taken = new Set<string>()

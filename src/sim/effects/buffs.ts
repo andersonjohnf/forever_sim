@@ -13,7 +13,7 @@
 // with `catalogueEffects`. Entries new in Forever have no Classic Era value and keep Forever's.
 import type { BuffDefinition, BuffPreset, ClassId, SpecId } from '../types'
 import { THISTLE_TEA } from '../classes/rogue/abilities'
-import { MAGIC_SCHOOLS, schoolMask } from '../plan/types'
+import { MAGIC_SCHOOLS, schoolMask, type SpellDef } from '../plan/types'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import type { ClassicEraValues, Effect, EffectList, OnUseSpec, ProcSpec } from './types'
 
@@ -236,6 +236,51 @@ export const POWER_INFUSION: OnUseSpec = {
   rageTenths: 0,
   rageSpreadTenths: 0,
 }
+
+/**
+ * Thorns r6 (9910; buffs doc §1.2 "Thorns"): a damage shield (aura 15) of 22 Nature damage to each
+ * melee attacker that hits its target, 10 min, no spell damage coefficient [F] [client] (SpellEffect,
+ * 1.60.1.69913); Classic Era's 18 [C]. Like every damage shield it always lands and never crits [?],
+ * and each of the boss's swings that lands on you (a hit, crit, crushing blow or block) triggers it,
+ * as Retribution Aura's does (paladin.md#other-abilities). As a pure Nature damage spell the boss's
+ * resistance takes its average share (spells.md §3). Its threat is its damage × your threat
+ * multipliers (stance, form, Righteous Fury on Holy only) [?]: no tooltip names a threat of its own.
+ */
+const thornsDamage = (damage: number): SpellDef => ({
+  id: 'thorns',
+  name: 'Thorns',
+  icon: 'spell_nature_thorns',
+  school: 'nature',
+  defense: 'none',
+  noActiveDefense: true,
+  alwaysHit: true,
+  triggersProcs: false,
+  min: damage,
+  max: damage,
+  weaponPercent: 0,
+  normalized: false,
+  spCoefficient: 0,
+  takenScale: 0,
+  critMultiplier: 1.5,
+  bonusCrit: 0,
+  damageMult: 1,
+  threatMult: 1,
+  threatBonus: 0,
+  cannotCrit: true,
+})
+/** Thorns on the tank: its damage on each of the boss's swings that lands (the `meleeTaken` trigger). */
+const thorns = (damage: number): ProcSpec => ({
+  id: 'thorns',
+  name: 'Thorns',
+  icon: 'spell_nature_thorns',
+  trigger: 'meleeTaken',
+  from: 'any',
+  chance: { pct: 100 },
+  action: { kind: 'spell', spell: thornsDamage(damage) },
+  docRef: `${DOC}#12-threat-defense-and-mana`,
+})
+/** Thorns r6's damage per swing that lands: Forever's 22 [F], Classic Era's 18 [C] (buffs doc §1.2). */
+export const THORNS_DAMAGE = { forever: 22, classicEra: 18 } as const
 
 export const BUFFS: BuffSpec[] = [
   // --- Raid buffs (§1.1, §1.2) ---------------------------------------------------------------
@@ -473,6 +518,23 @@ export const BUFFS: BuffSpec[] = [
     // paladin.md "Priority", D26): no preset adds it for the paladin. A warrior's or bear's preset
     // keeps it, since any paladin in the raid runs an aura (buffs doc §6.2).
     presets: { raid: 'tank', max: 'tank' },
+  },
+  // Thorns on the tank (buffs doc §1.2, §6.2): a bear casts it on itself before the pull, so every
+  // bear preset has it; any other tank has it from a druid in the raid, turned on here. Only a tank
+  // takes the boss's swings, so for any other spec it does nothing (the Buffs tab says so).
+  {
+    id: 'thorns',
+    name: 'Thorns',
+    icon: 'spell_nature_thorns',
+    category: 'raidBuff',
+    group: 'Threat and defense',
+    summary: '22 Nature damage to the boss each time it hits you',
+    providedBy: 'druid',
+    selfCast: true,
+    docRef: `${DOC}#12-threat-defense-and-mana`,
+    effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.forever) }],
+    classicEra: { summary: '18 Nature damage to the boss each time it hits you', effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.classicEra) }] },
+    presets: { dungeon: ['druid-feral-bear'], raid: ['druid-feral-bear'], max: ['druid-feral-bear'] },
   },
   {
     id: 'blessingOfWisdom',

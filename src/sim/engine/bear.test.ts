@@ -498,6 +498,37 @@ describe('the default bear (druid.md §6.3)', () => {
     }
   })
 
+  it('Thorns (Buffs, BR5): 22 Nature damage on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
+    const { plan } = buildPlan(config())
+    const sim = new Sim(plan)
+    for (let i = 0; i < 30; i++) sim.runFight(i)
+    const r = plan.sources.findIndex((s) => s.id === 'thorns')
+    expect(r).toBeGreaterThanOrEqual(0)
+    const o = sim.bossOutcomes
+    const landed = o[BOSS_OUTCOME.hit] + o[BOSS_OUTCOME.crit] + o[BOSS_OUTCOME.crush] + o[BOSS_OUTCOME.block]
+    expect(counter(sim, r, FIELD.casts)).toBe(landed)
+    expect(counter(sim, r, FIELD.crits)).toBe(0)
+    // buffs doc §1.2: 22 × (1 − 0.75 × 24 / 300), Nature's average resist against a level-63 boss.
+    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(22 * 0.94, 9)
+    expect(counter(sim, r, FIELD.threat) / counter(sim, r, FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
+    // Without it in Buffs, no row.
+    const d = config()
+    const off = buildPlan({ ...d, buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((id) => id !== 'thorns') } }).plan
+    expect(off.sources.some((s) => s.id === 'thorns')).toBe(false)
+    // The results say how it's modelled, only while it's on.
+    expect(buildPlan(config()).assumptions.map((a) => a.id)).toContain('thorns')
+    expect(buildPlan({ ...d, buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((id) => id !== 'thorns') } }).assumptions.map((a) => a.id)).not.toContain('thorns')
+    // Another tank has it from a druid in the raid, at its own multipliers: a warrior's ×1.495 × 1.02.
+    const w = defaultConfig('warrior-protection')
+    expect(w.buffs.enabled).not.toContain('thorns')
+    const warrior = buildPlan({ ...w, buffs: { ...w.buffs, enabled: [...w.buffs.enabled, 'thorns'] }, run: { mode: 'fixed', iterations: 200, seed: 99 } }).plan
+    const ws = new Sim(warrior)
+    for (let i = 0; i < 10; i++) ws.runFight(i)
+    const wr = warrior.sources.findIndex((s) => s.id === 'thorns')
+    expect(counter(ws, wr, FIELD.threat) / counter(ws, wr, FIELD.damage)).toBeCloseTo(warrior.threatMult, 12)
+    expect(warrior.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
+  })
+
   it('gains rage from the boss’s hits in bear (rage.md#forever-): none without them', () => {
     const { plan } = buildPlan(config())
     expect(plan.rage.fromDamageTaken).toBe(true)

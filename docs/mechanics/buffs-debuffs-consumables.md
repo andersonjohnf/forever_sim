@@ -188,9 +188,21 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
 | Stoneskin Totem (r6) | 10408 | −30 **Physical** damage taken per hit (C: melee damage) | **5 min**, 30 yd (C: 2 min, 20 yd) | Earth totem, so it excludes Strength of Earth from the same shaman | Shaman | [F] | [fc-sb-shaman] |
-| Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18) | 10 min | — | Druid | [F] | [fc-sb-druid] |
+| Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18) | 10 min | — | Druid. On the tank: a damage shield on the boss's swings (below) | [F] | [fc-sb-druid] · [client] (SpellEffect, 1.60.1.69913) |
 | Blessing of Wisdom (r6) / Greater (r2) | 25290 / 25918 | **40** mana per 5 s (C: 33) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] | [fc-sb-paladin] |
 | Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins, shamans and mages use it | [F] | [fc-sb-shaman] |
+
+**Thorns on the tank** (`thorns`; M5.6 T3, BR5). A damage shield (aura 15) of 22 Nature damage
+to the boss on each of its swings that lands on the tank, a hit, crit, crushing blow or block, as
+Retribution Aura's is ([paladin](../classes/paladin.md#other-abilities)): it always lands and never
+crits [?], and as a pure Nature damage spell the boss's resistance takes its average share (6% at
+24 resistance, [spells §3](spells.md)). Its threat is its damage × the tank's threat multipliers
+(stance, form; not Righteous Fury, which is Holy only) [?]: no tooltip gives it a threat of its
+own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). A bear casts it
+on itself before the pull (it lasts 10 min), so it's in every bear preset and Self only
+(`selfCast`); any other tank has it from a druid in the raid, turned on in Buffs. Only a tank takes
+the boss's swings, so for any other spec it does nothing, and the Buffs tab says so. About 10 TPS
+for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 7.3 for a Protection paladin (+1.7%; seed 424242, 20,000 fights).
 
 ### 1.3 Camp buffs (new Forever system)
 
@@ -710,6 +722,7 @@ Mana Spring.
 | Strength of Earth Totem † | Sha (your own) | Enh | all | all |
 | Mana Spring Totem | Sha (your own) | Enh | Pal, Enh, Mage | Pal, Enh, Mage |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
+| Thorns (on the tank) | Druid (your own: the bear) | Bear | Bear (another tank: an option with a druid in the raid) | Bear |
 | Sunder Armor ×5 † | — | DPS | all | all |
 | Faerie Fire † | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness † | — | — | all | all |
@@ -996,9 +1009,10 @@ fight.
   change DPS.
 - **Hyjal flasks** are enabled only if the encounter zone is Mount Hyjal, Hyjal Summit or
   the Barrow Deeps.
-- **Skipped (< 0.5% of DPS/TPS)**: Retribution Aura and Thorns damage, Blood Pact, Gift of
-  Arthas, Battle Squawk, healer-proc armor buffs (Inspiration / Ancestral Fortitude), and
-  debuff-slot pressure.
+- **Skipped (< 0.5% of DPS/TPS)**: Blood Pact, Gift of Arthas, Battle Squawk, healer-proc armor
+  buffs (Inspiration / Ancestral Fortitude), and debuff-slot pressure. Retribution Aura (the
+  Protection paladin's) and Thorns on the tank are modelled: a tank breaks the 0.5% bar
+  ([§1.2](#12-threat-defense-and-mana)); on anyone else they do nothing, since only the tank is hit.
 
 ### Class-only entries
 
@@ -1120,6 +1134,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
 | Devotion Aura r7 (`devotionAura`) | +735 armor | same | 10293 #0: 734 + 1 | [C] |
+| Thorns r6 (`thorns`), on the tank | 22 Nature damage on each boss swing that lands | **18** | 9910 #0 (aura 15): 17 + 1 | [C] |
 | Blessing of Wisdom r6 (`blessingOfWisdom`) | 40 mana every 5 s | **33 every 5 s** | 25290 #0 (aura 24, period 5000): 32 + 1 (Greater 25918 the same) | [C] |
 | Mana Spring Totem r4 (`manaSpringTotem`) | 10 mana every 2 s (25 per 5 s) | same | the totem's Mana Spring 10494 #0 (aura 24, period 2000): 9 + 1 | [C] |
 | Sunder Armor ×5 (`sunderArmor`) | −2250 armor | same | 11597 #0: −451 + 1, ×5 | [C] |

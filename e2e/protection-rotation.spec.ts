@@ -29,7 +29,7 @@ test.describe('Protection rotation', () => {
     await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
     // Its help says what Max TPS drops, why the default keeps it, what it gains and costs, and when to pick it.
     await expect(priority).toHaveAccessibleDescription(
-      /^Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage\. Max TPS drops all three for threat: about 15% more TPS and 39% more damage taken in the default setup\. Pick it when another tank or the raid covers your survival\./,
+      /^Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage\. Max TPS drops all three for threat: about 16% more TPS and 40% more damage taken in the default setup\. Pick it when another tank or the raid covers your survival\./,
     )
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y)
     // Execute is the tank's only execute-phase setting, so it sits under Core abilities: no heading over one setting.
@@ -44,6 +44,24 @@ test.describe('Protection rotation', () => {
     for (const name of DUTIES) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     // The default Protection warrior is a Human, whose racial cooldown isn't used, as for every spec.
     await expect(tab.getByRole('switch', { name: 'Racial cooldown', exact: true })).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
+  })
+
+  test('the debuffs’ refresh times follow the duty rule by default, and their help says so (D26, PW1)', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    const core = tab.getByRole('region', { name: 'Core abilities' })
+    await core.getByRole('button', { name: 'Advanced settings for Core abilities' }).click()
+    // Refreshed as soon as a miss could still be tried again before it falls off: Thunder Clap from
+    // its 6 s cooldown, Demoralizing Shout, which has none, from one 1.5 s global cooldown.
+    const rule = 'follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.'
+    const thunderClap = core.getByRole('textbox', { name: 'Thunder Clap again with' })
+    await expect(thunderClap).toHaveValue('6')
+    await expect(thunderClap).toHaveAccessibleDescription(new RegExp(`The default, 6 s \\(its cooldown\\), ${rule}$`))
+    const demoShout = core.getByRole('textbox', { name: 'Demoralizing Shout again with' })
+    await expect(demoShout).toHaveValue('1.5')
+    await expect(demoShout).toHaveAccessibleDescription(new RegExp(`The default, 1\\.5 s \\(one global cooldown, as it has none\\), ${rule}$`))
+    // Sunder Armor's is a threat ability's, tuned by the search: no rule.
+    await expect(core.getByRole('textbox', { name: 'Sunder Armor again with' })).toHaveValue('3')
+    await expect(core.getByRole('textbox', { name: 'Sunder Armor again with' })).toHaveAccessibleDescription(/^Refresh it on the boss when this much of it is left, unless it lasts to the end of the fight\.$/)
   })
 
   test('Max TPS turns the duties off by default, and a switch you set stays set until Reset', async ({ page }) => {

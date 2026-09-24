@@ -548,6 +548,15 @@ describe('golden run (fixed config and seed)', () => {
   //   no-main-hand note in PV7's words), Protection's as the branch's, and the bear's and the
   //   Protection paladin's as main's once the Buffs tab gives each Thunder Clap and Demoralizing
   //   Shout, which PV3's presets leave out.
+  // - The duty rule (PW1, D26's amendment): Thunder Clap is refreshed with 6 s left (3), its
+  //   cooldown, and Demoralizing Shout with 1.5 s left (3), one global cooldown, so a miss can be
+  //   tried again before either falls off. The search around them moved no threat setting
+  //   (warrior.md §5.4). Over 400,000 paired fights on a seed no search used, against the refreshes
+  //   at 3 s: −3.14 TPS (−0.32%), −1.41 DPS and 0.26% less damage taken, with Thunder Clap up 98.96%
+  //   of the fight (97.64%). On this seed's 500 fights, more Thunder Claps (their threat 1.41 M →
+  //   1.55 M), fewer Shield Slams (17.14 M → 16.64 M) and Sunder Armors (28.18 M → 27.74 M), and
+  //   Demoralizing Shout's threat 0.154 M → 0.148 M; TPS 984.26 → 978.76, DPS 303.36 → 302.44. Max
+  //   TPS drops both debuffs, so its fights are the same. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

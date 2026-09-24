@@ -279,9 +279,10 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
   const rot = (values: Record<string, boolean | number> = {}, talents = TALENTS) =>
     protectionRotation(values, talents, noAura, { consumables: [potion], race: 'alliance-human' })
 
-  it('uses §5.4’s rows in priority order with the default settings: the best rotation found (D23, P1, PV1)', () => {
+  it('uses §5.4’s rows in priority order with the default settings: the duty rule, and the best rotation found around it (D23, D26, P1, PV1, PW1)', () => {
     const r = rot()
-    // Thunder Clap and Demoralizing Shout first from the pull, before any threat ability (D26's amendment).
+    // Thunder Clap and Demoralizing Shout first from the pull, before any threat ability on the global
+    // cooldown (D26's amendment).
     expect(ids(r)).toEqual([
       'shieldBlock',
       'bloodrage',
@@ -306,6 +307,9 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       [ID.hsMinRage]: 76,
       [ID.hsLastSec]: 12,
       [ID.fillerMinRage]: 9,
+      // The duties' refresh: D26's fixed rule, never tuned (the next test).
+      [ID.tcRefresh]: 6,
+      [ID.demoRefresh]: 1.5,
     })
     // Charge in Defensive Stance with Vanguard: its 15 rage, no swap.
     expect([r.prepull.chargeTenths, r.prepull.keepTenths]).toEqual([150, -1])
@@ -326,8 +330,13 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       [{ code: COND.abilityAuraRefresh, a: sunder, b: 3000 }],
       [{ code: COND.minRage, a: 90, b: 0 }],
     ])
-    expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 3000 }])
-    expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 3000 }])
+    // The duties' refresh is D26's fixed rule, not the search's: as soon as a miss could still be tried
+    // again before the debuff falls off. Thunder Clap from its 6 s cooldown; Demoralizing Shout, which
+    // has none, from one 1.5 s global cooldown (§5.4, PW1).
+    expect(THUNDER_CLAP.cooldownMs).toBe(6000)
+    expect(DEMORALIZING_SHOUT.cooldownMs).toBe(0)
+    expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 6000 }])
+    expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 1500 }])
     // From 76 rage, and in the fight's last 12 s from its cost: rage left at the end is wasted.
     expect(linesOf(r, 'heroicStrike').map((e) => e.conditions)).toEqual([
       [{ code: COND.minRage, a: 760, b: 0 }],

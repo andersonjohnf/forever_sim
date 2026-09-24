@@ -1448,18 +1448,17 @@ This started from the Classic Era tank priority [wh-tank], adjusted for Forever'
 abilities, the Thunder Clap change and Shield Block's two blocks. The table is the list as built
 (`sim/classes/warrior/protection.ts`). Rows 0, 2, 3, 4, 9 and 12 share their code with Fury's and
 Arms' (`sim/classes/warrior/shared.ts`). Every row applies in both phases: a tank doesn't change
-its rotation in the execute phase, and only Execute (row 13) waits for it. The defaults are the
-best rotation found for the default setup that keeps the tank's toolkit
-([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+its rotation in the execute phase, and only Execute (row 13) waits for it. The duties' timing
+follows a fixed rule (below), and the other defaults are the best rotation found around it for the
+default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
 [Tuning the defaults](#tuning-the-defaults-p1) below).
 
 **Priority** (`warrior.protection.priority`, a choice at the top of the Rotation tab), per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
 
-- **Tank duties first** (`duties`, the default) keeps the tank's duties up, with full uptime from
-  the pull: Shield Block, for its survival, and Thunder Clap's slow and Demoralizing Shout, the
-  raid's debuffs on the boss, which go up first, before any threat ability (rows 5 and 6; D26's
-  amendment). The table's defaults are this choice's.
+- **Tank duties first** (`duties`, the default) keeps the tank's duties up from the pull: Shield
+  Block, for its survival, and Thunder Clap's slow and Demoralizing Shout, the raid's debuffs on the
+  boss, by the duty rule below. The table's defaults are this choice's.
 - **Max TPS** (`maxTps`) drops the duties and nothing else (rows 1, 5 and 6 are off by default),
   and is tuned on TPS alone ([Max TPS](#max-tps-p2) below). It keeps Shield Slam (row 7): dropping
   it wins on TPS only at Classic Era's threat value, which Forever's tooltip raised (D26's
@@ -1472,6 +1471,21 @@ best rotation found for the default setup that keeps the tank's toolkit
 The choice moves only defaults, as Arms' stance does ([§5.1](#51-conventions-for-rotation-settings)):
 a value you set yourself still wins.
 
+**The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s amendment):
+
+- The duties come first in the priority, before any threat ability on the global cooldown: Shield
+  Block (row 1, off the global cooldown), then Thunder Clap and Demoralizing Shout (rows 5 and 6).
+- A duty that has a cooldown is used when it's ready: Shield Block, from its 10 rage.
+- A debuff is refreshed as soon as a miss could still be tried again before it falls off: from its
+  own cooldown, or from one global cooldown if it has none. So Thunder Clap is refreshed with 6 s
+  left, its cooldown, and Demoralizing Shout, which has no cooldown, with 1.5 s left.
+
+The refresh times stay settings under Advanced, whose help says what the rule is, so you can
+change them; the search tunes only the threat abilities around the duties. Against the tuned
+timing the rule replaced, it costs about 2.2% of TPS and saves 2.9% of damage taken
+([Tuning the defaults](#tuning-the-defaults-p1)).
+
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
 | 0 | Pre-pull | Battle Shout at −3 s (with row 9 on); optionally Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (off: at the pull instead, row 2), `.charge` (on with Vanguard) | yes |
@@ -1479,8 +1493,8 @@ a value you set yourself still wins.
 | 2 | Bloodrage (off the GCD) | On cooldown at rage ≤ `maxRage` | `warrior.protection.bloodrage.enabled` (on), `.maxRage` (70: the 100 cap minus its 30) | yes |
 | 3 | Racial or trinket cooldowns (off the GCD) | On cooldown: there's no Death Wish to sync them with. Blood Fury, Berserking, Elune's Light; Weakness Analyzer | `warrior.protection.racial.enabled` (on), `.trinkets.enabled` (on) | yes |
 | 4 | Mighty Rage Potion; Juju Flurry (off the GCD) | The potion once, the first time rage ≤ `maxRage`, so its 45–75 rage fits under the cap: early in the fight. Juju Flurry on cooldown. Each only when it's selected in Buffs | `warrior.protection.ragePotion.enabled` (on), `.maxRage` (25: the cap minus 75); `.jujuFlurry.enabled` (on) | with the consumable |
-| 5 | Thunder Clap | First from the pull, before any threat ability: its slow is missing from the boss, or (with `maintainOnly`) has at most `refreshBelowSec` left. Without `maintainOnly` it's also used on cooldown, after row 10, when Shield Slam is GCD-safe. It replaces the Buffs tab's Thunder Clap | `warrior.protection.thunderClap.enabled` (on; off with Max TPS), `.maintainOnly` (on), `.refreshBelowSec` (3) | yes |
-| 6 | Demoralizing Shout | Next, before any threat ability: missing from the boss, or at most `refreshBelowSec` left. It replaces the Buffs tab's Demoralizing Shout | `warrior.protection.demoShout.enabled` (on; off with Max TPS), `.refreshBelowSec` (3) | yes |
+| 5 | Thunder Clap | First from the pull, before any threat ability on the global cooldown: its slow is missing from the boss, or (with `maintainOnly`) has at most `refreshBelowSec` left. Without `maintainOnly` it's also used on cooldown, after row 10, when Shield Slam is GCD-safe. It replaces the Buffs tab's Thunder Clap | `warrior.protection.thunderClap.enabled` (on; off with Max TPS), `.maintainOnly` (on), `.refreshBelowSec` (6: its cooldown, the duty rule) | yes |
+| 6 | Demoralizing Shout | Next, before any threat ability on the global cooldown: missing from the boss, or at most `refreshBelowSec` left. It replaces the Buffs tab's Demoralizing Shout | `warrior.protection.demoShout.enabled` (on; off with Max TPS), `.refreshBelowSec` (1.5: one global cooldown, the duty rule) | yes |
 | 7 | Shield Slam | Off cooldown at rage ≥ `minRage`; the talent and a shield | `warrior.protection.shieldSlam.enabled` (on, with Max TPS too), `.minRage` (17: its cost) | yes |
 | 8 | Revenge | Its window is open ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | `warrior.protection.revenge.enabled` (on) | yes |
 | 9 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
@@ -1496,8 +1510,9 @@ Notes:
   takes effect when it lands, so the fight starts with the boss at full armor, speed and attack
   power. Thunder Clap and Demoralizing Shout go up first: in the median fight they land at 0 s and
   1.5 s, with Shield Slam, Revenge and Sunder Armor's first stack after them (at 6 s), and they're
-  up about 98% and 99% of the fight (seed 8101). Both roll the spell table, so either can miss and
-  go up a GCD or a cooldown later. Sunder Armor's stacks take 450 armor each off your attacks;
+  each up about 99% of the fight (98.96% and 98.90%, seed 8101). Both roll the spell table, so
+  either can miss and go up a GCD or a cooldown later; the duty rule refreshes each early enough to
+  try again before it falls off. Sunder Armor's stacks take 450 armor each off your attacks;
   Thunder Clap's slow lengthens the boss's swings from its next one; Demoralizing Shout lowers its
   damage ([§7](#7-implementation-notes) "Debuffs on the boss"). Your Sunder Armor and the Buffs
   tab's Expose Armor don't stack in game: with Expose Armor selected, your Sunders remove no armor,
@@ -1549,16 +1564,16 @@ Notes:
 The defaults above are the best rotation found on 2026-09-23, per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), on TPS, the
 tank's headline ([D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)
-keeps DPS beside it), that keeps the tank's duties with full uptime from the pull (D26's
+keeps DPS beside it), around the tank's duties and their fixed timing (the duty rule above, D26's
 amendment): first on the popular 46-point build (P1), then on the 51-point build that replaced it
 (P2's review), then again once Thunder Clap and Demoralizing Shout went first (P2's verification,
-PV1). Against the starting defaults (the Classic Era priority as built: P1's first commit, tagged
-`tune/protection-p1-start`), on the default build, the result is **−7.68 TPS (−0.78%, 95% CI
-−7.82 to −7.54)**, 989.19 → 981.51, with DPS −8.34 (−8.41 to −8.27) and **2.66% less damage
-taken** (618.18 → 601.73 a second), over 400,000 paired fights on seed 8101, which no search used.
-The starting defaults put the debuffs after Sunder Armor's five stacks, where they first landed
-about 20 s into the fight. Putting them first costs more threat than the tuning found
-(below).
+PV1), and once more under the duty rule (PW1). Against the starting defaults (the Classic Era
+priority as built: P1's first commit, tagged `tune/protection-p1-start`), on the default build,
+the result is **−10.82 TPS (−1.09%, 95% CI −10.96 to −10.68)**, 989.19 → 978.37, with DPS −9.75
+(−9.82 to −9.68) and **2.91% less damage taken** (618.18 → 600.18 a second), over 400,000 paired
+fights on seed 8101, which no search used. The starting defaults put the debuffs after Sunder
+Armor's five stacks, where they first landed about 20 s into the fight. Keeping them up by the
+duty rule costs more threat than the tuning found (below).
 
 - **Method.** As Arms' ([§5.3](#tuning-the-defaults-m25a)): `scripts/tune/rotation.mjs --spec
   warrior-protection` runs the real engine with common random numbers; for a tank spec it compares
@@ -1570,67 +1585,78 @@ about 20 s into the fight. Putting them first costs more threat than the tuning 
   as it went; its winner made +14.83 TPS (+1.53%) there, on seed 5051. The re-tune checked each of
   those settings again on the new build, and searched the ones its cheaper Sunder Armor and Heroic
   Strike could move (seeds 7001–7004, 200,000 fights a candidate). With the debuffs first, every
-  setting was checked again (seeds 8001–8006, 200,000–800,000 fights a candidate). The winner was
-  frozen and confirmed on seed 8101: against the starting defaults (`--against
-  tune/protection-p1-start`), against the defaults before PV1, and against itself with each change
-  reverted. Per the user's ruling on D23, the defaults are the best for the default setup, 180 s,
-  not at every length; the robustness table below shows the others.
-- **What the search may change.** The duties stay in, with full uptime
-  ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
-  and its amendment): Shield Block on cooldown, and Thunder Clap and Demoralizing Shout first from
-  the pull and refreshed before they fall off. The search tunes how the rest is used: the filler,
-  Heroic Strike, the upkeep timings, Bloodrage and the potion. A change that costs a larger share
-  of DPS than it gains in TPS isn't adopted (D26, D18). Dropping the duties is [Max
-  TPS](#max-tps-p2)'s search.
+  setting was checked again (seeds 8001–8006, 200,000–800,000 fights a candidate). Under the duty
+  rule, every threat setting was searched again (seeds 9001–9003, 200,000–400,000 fights a
+  candidate), and none moved. The winner was frozen and confirmed on seeds 8101 and 9104, which no
+  search used: against the starting defaults (`--against tune/protection-p1-start`), against
+  itself with each change reverted, and against its nearest neighbours. Per the user's ruling on
+  D23, the defaults are the best for the default setup, 180 s, not at every length; the robustness
+  table below shows the others.
+- **What the search may change.** Not the duties' timing: the duty rule fixes it
+  ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s
+  amendment). The search tunes only the threat abilities around the duties: the filler, Heroic
+  Strike, Shield Slam's threshold, the upkeep of Sunder Armor and Battle Shout, Bloodrage and the
+  potion. A change that costs a larger share of DPS than it gains in TPS isn't adopted (D26, D18).
+  Dropping the duties is [Max TPS](#max-tps-p2)'s search.
 
 | Setting | Starting default → default | In the winner, Δ TPS (95% CI) | Δ DPS |
 | --- | --- | --- | --- |
-| `heroicStrike.anyRageLastSec` | none (0) → 12 s | +8.47 (+8.44 to +8.50) | +2.70 |
-| `sunderFiller.waitForShieldSlam` | on → off | +2.45 (+2.41 to +2.48) | −0.59 |
-| `heroicStrike.minRage` | 45 → 76 | +2.01 (+1.91 to +2.12) | +3.99 |
-| `sunderFiller.minRage` | 10 → 9 | +0.48 (+0.46 to +0.49) | −0.07 |
-| `prepull.bloodrage` | on → off | +0.31 (+0.28 to +0.33) | −0.02 |
-| `battleShout.refreshBelowSec` | 3 → 0 | +0.21 (+0.19 to +0.23) | −0.02 |
+| `heroicStrike.anyRageLastSec` | none (0) → 12 s | +8.63 (+8.60 to +8.65) | +2.75 |
+| `heroicStrike.minRage` | 45 → 76 | +3.49 (+3.38 to +3.59) | +2.82 |
+| `sunderFiller.waitForShieldSlam` | on → off | +2.26 (+2.23 to +2.29) | −0.51 |
+| `battleShout.refreshBelowSec` | 3 → 0 | +0.55 (+0.52 to +0.57) | −0.03 |
+| `sunderFiller.minRage` | 10 → 9 | +0.42 (+0.41 to +0.44) | −0.06 |
+| `prepull.bloodrage` | on → off | +0.34 (+0.31 to +0.36) | −0.01 |
 
 "In the winner" is the winner against a copy with that change reverted, on seed 8101 (400,000
 fights). P1 adopted all but the filler's threshold, with a 7 s dump and Heroic Strike from 65. The
 re-tune moved two: the filler from 9 rage, Sunder Armor's cost with Improved Sunder Armor 3/3, and
 the dump to 10 s. With the debuffs first, Heroic Strike moved again (PV5): from 76 rage and with
-any rage in the fight's last 12 s, **+0.17 TPS (+0.11 to +0.22, +0.02%) and +0.45 DPS** over 65
-and 10 s on the new order (seed 8101). The changes interact: the last-seconds dump lets Heroic
-Strike's threshold rise without leaving rage unspent when the fight ends, which is what a high
-threshold cost in short fights.
+any rage in the fight's last 12 s, **+0.36 TPS (+0.31 to +0.41, +0.04%) and +0.31 DPS** over 65
+and 10 s under the duty rule (seed 8101). The duty rule moved none (PW1). The changes interact:
+the last-seconds dump lets Heroic Strike's threshold rise without leaving rage unspent when the
+fight ends, which is what a high threshold cost in short fights.
 
-- **The debuffs first** (rows 5 and 6) aren't a setting: D26's amendment puts them there. In the
-  winner, putting them back after Sunder Armor's upkeep would be +19.31 TPS (+19.17 to +19.45,
-  +1.97%) and +9.04 DPS, for 2.66% more damage taken (seed 8101). Shield Slam and Revenge wait a
-  GCD or two at the pull, and a boss that's slowed and weakened sooner gives less rage.
+- **The duty rule's cost.** The duties' timing isn't a setting the search moves (the duty rule
+  above). Against the tuned timing it replaced, the defaults before PV1 (the debuffs after Sunder
+  Armor's upkeep, each refreshed with 3 s left, and Heroic Strike from 65 with a 10 s dump), the
+  defaults make **−22.47 TPS (−2.25%, 95% CI −22.61 to −22.33)**, 1,000.65 → 978.18, with DPS
+  −10.23 (−3.28%) and **2.85% less damage taken** (617.89 → 600.28 a second), over 400,000 paired
+  fights on seed 9102, which no search used. Most of it is the order: with the rule's refresh times
+  and the winner's Heroic Strike, the debuffs after Sunder Armor's upkeep would be +15.99 TPS
+  (+1.63%) and +10.01 DPS, for 2.52% more damage taken (seed 9102). Shield Slam and Revenge wait a GCD or two
+  at the pull, and a boss that's slowed and weakened sooner gives less rage. The refresh times
+  alone, against 3 s for both with the debuffs first (PV1's): −3.14 TPS (−0.32%, −3.27 to −3.01)
+  and −1.41 DPS, for 0.26% less damage taken (seed 8101), with Thunder Clap up 98.96% of the fight
+  where it was 97.64%, and Demoralizing Shout 98.90% where it was 99.01%.
 - **Heroic Strike.** From 76, and with any rage in the fight's last 12 s. Without the dump, a high
   threshold lost in short fights (P1: 60–70 best at 180 s, −1.1% at 30 s against 45): the rage it
-  pools isn't spent before the end. With the debuffs first, 70–76 with an 11–12 s dump were within
-  0.05 TPS of each other (seeds 8001–8006). 76 and 12 s was best or level with the best on each:
-  over 74, +0.03 (+0.01 to +0.05; seed 8005), level on seeds 8003 and 8101; 75 was +0.02 (+0.00 to
-  +0.04) over it on seed 8006 but at −0.03 DPS, a larger share of DPS, so 76 stays. A dump of 11
-  or 13 s was worse (−0.04, −0.03; seed 8005). The verification's 70 and 11 s is −0.05 (−0.09 to
-  −0.00) and −0.21 DPS against it (seed 8101).
+  pools isn't spent before the end. Under the duty rule, 72–80 with an 11–13 s dump were within
+  0.22 TPS of each other, and 76 with 12 s was best or level with the best on each seed: 75 and 77
+  with 12 s were level with it (−0.00 on seed 9002, −0.01 on 9003), 74 was −0.03 and −0.05, and 78
+  −0.03 on both. On the fresh seed 9104, 74 and 78 are −0.02 (−0.05 to +0.00) and −0.04, and a dump
+  of 11 or 13 s −0.07 and −0.03.
 - **The filler doesn't wait for Shield Slam.** A GCD held for Shield Slam makes less threat than a
   Sunder Armor in it (W26), and Shield Slam's cooldown then runs from the next GCD. It's the
-  closest call under D26's rule: +0.25% TPS for −0.19% DPS.
-- **The filler from 9 rage**, Sunder Armor's cost: from 10, −0.48; from 11, −0.92 (seed 8004).
+  closest call under D26's rule: +0.23% TPS for −0.17% DPS.
+- **The filler from 9 rage**, Sunder Armor's cost: from 10, −0.43; from 11, −0.80 (seed 9001).
 - **Bloodrage at the pull**, where its rage makes 5 threat a point, beat its use before the pull,
   whose rage comes out of combat and makes none ([threat.md](../mechanics/threat.md)).
 - **Battle Shout's refresh** once it has run out is small, as it was for Arms.
-- **Not adopted** (on search seeds, against the winner or its predecessor). The verification's
-  re-tune, with the debuffs first (seed 8004, 200,000 fights, unless named):
-  - Shield Slam from 20, 25 or 30 rage: +0.15, +0.52, +0.94 TPS (+0.02% to +0.10%) at −0.50,
-    −1.51, −2.52 DPS (−0.17% to −0.83%), a larger share of DPS, and resting on Shield Slam's
-    untested threat value ([Max TPS](#max-tps-p2)).
-  - Thunder Clap's refresh at 4.5 or 6 s: −1.87, −5.30. Demoralizing Shout's at 4.5 s: level; at
-    6 s: −0.27. Below 3 s they trade uptime (the ties note, below).
-  - Heroic Strike from 73 or 75: level; unqueued below 20: −0.08. The filler from 10 or 11: −0.48,
-    −0.92. The potion up to 15 rage: −0.25; up to 20–35: the same fights. Bloodrage up to 60:
-    −0.06; up to 80: level. Before the pull: −0.29. Sunder Armor's refresh at 1.5 s: level; at 4.5
-    or 6 s: −0.08, −0.18. Battle Shout's at 3 s: −0.21.
+- **Not adopted** (on search seeds, against the winner or its predecessor). Under the duty rule
+  (PW1; seed 9001, 200,000 fights, unless named):
+  - Shield Slam from 20, 25 or 30 rage: +0.06, +0.30, +0.55 TPS (+0.01% to +0.06%) at −0.39,
+    −1.17, −1.93 DPS (−0.13% to −0.64%), a larger share of DPS, and resting on Shield Slam's
+    untested threat value ([Max TPS](#max-tps-p2)). From 25 on the fresh seed 9104: +0.31 at −1.16.
+  - Heroic Strike from 60–72 or 78–90: −0.05 to −3.05; from 74: level. Unqueued below 20, 30 or
+    40: −0.07, −0.15, −0.25. The dump at 8–11 or 13–16 s: −0.92 to −0.02. The filler from 10, 11 or 12: −0.43,
+    −0.80, −1.20; waiting for Shield Slam: −2.27.
+  - The potion up to 15 rage: −0.44; up to 20–35: the same fights. Bloodrage up to 50 or 60:
+    −0.74, −0.10; up to 80–100: level. Before the pull: −0.34.
+  - Sunder Armor's refresh at 0, 1.5, 4.5 or 6 s: −0.25, −0.16, −0.16, −0.27. Battle Shout's at
+    1.5 or 3 s: −0.24, −0.55.
+  - Thunder Clap on cooldown for its threat as well (`maintainOnly` off): −100.76 (−10.30%).
+    Revenge off: −9.51, at −42.19 DPS.
 
   The re-tune's, on the 8/5/38 build:
   - Heroic Strike from 60: +0.10 (+0.01%) at −0.22 DPS (seed 7002), a larger share of DPS; from 55
@@ -1654,68 +1680,63 @@ threshold cost in short fights.
   - Your own Battle Shout off: +3.61, only because the Buffs tab's Battle Shout, another
     warrior's, then applies at no cost: the raid's composition, not the rotation (as for Arms).
   - No Charge in: −2.28; no pre-pull Battle Shout: −7.05 (seed 3).
-- **What the duties cost in TPS** (seed 8109, 200,000 fights, against the tuned defaults):
+- **What the duties cost in TPS** (seed 8109, 200,000 fights, against the defaults):
 
   | Change | Δ TPS (95% CI) | Δ DPS |
   | --- | --- | --- |
-  | Thunder Clap off | +81.08 (+80.88 to +81.27), +8.26% | +17.86 |
-  | Demoralizing Shout off | +34.53 (+34.33 to +34.72), +3.52% | +5.62 |
-  | Shield Block off | +33.36 (+33.17 to +33.55), +3.40% | +4.60 |
-  | All three off | +142.71 (+142.51 to +142.91), +14.54% | +24.07 |
-  | Shield Slam off | +36.76 (+36.58 to +36.95), +3.75% | −76.34 (−25%) |
-  | Thunder Clap refreshed once it has run out (0 s) | +4.50 (+4.32 to +4.68) | +2.93 |
-  | Demoralizing Shout refreshed once it has run out | +3.03 (+2.87 to +3.20) | −2.53 |
-  | Shield Block only from 30 rage | +2.04 (+1.98 to +2.10) | +0.72 |
+  | Thunder Clap off | +85.88 (+85.68 to +86.07), +8.78% | +15.51 |
+  | Demoralizing Shout off | +32.55 (+32.36 to +32.75), +3.33% | +7.14 |
+  | Shield Block off | +33.30 (+33.11 to +33.49), +3.40% | +3.71 |
+  | All three off | +145.93 (+145.73 to +146.13), +14.92% | +25.52 |
+  | Shield Slam off | +35.81 (+35.62 to +36.00), +3.66% | −76.22 (−25%) |
+  | Thunder Clap refreshed with 3 s left | +5.41 (+5.23 to +5.59) | +0.28 |
+  | Thunder Clap refreshed once it has run out (0 s) | +9.80 (+9.63 to +9.98) | +0.58 |
+  | Demoralizing Shout refreshed with 3 s left | −2.07 (−2.24 to −1.91) | +3.54 |
+  | Demoralizing Shout refreshed once it has run out | −0.69 (−0.86 to −0.53) | +1.57 |
+  | Shield Block only from 30 rage | +2.05 (+1.99 to +2.11) | +0.72 |
 
   With the rotation's Thunder Clap or Demoralizing Shout off, nobody's is on the boss: the Buffs
   tab's are off by default for a Protection warrior (D26). So each row measures the whole effect,
   the global cooldowns and rage it takes and what it does to the boss. Thunder Clap off lets the
-  boss swing faster, and its swings give more rage (Δ DPS +17.86). Demoralizing Shout's −204 attack
+  boss swing faster, and its swings give more rage (Δ DPS +15.51). Demoralizing Shout's −204 attack
   power takes only about 29 off a 5,000 hit. Shield Block's blocks replace crushing blows and
   crits, whose bigger swings give more rage, for 10 rage a use. Shield Slam's GCD and 17 rage make
   more threat as Sunder Armor and Heroic Strike at Classic Era's +254 threat [?]
   ([W26](#w26-threat-per-global-cooldown-protection)). The duties stay on by default
   ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-  keeping the boss slowed and weakened and crushing blows off the table is the tank's job (the
-  buffs doc has the warrior tank apply Thunder Clap and Demoralizing Shout itself,
-  [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)). The last three
-  rows clear D23's bar too, but trade a duty's uptime for threat, which D26's amendment keeps out
-  of the default. Shield Slam is its damage, which D18 weighs as much as its threat, and
-  [Max TPS](#max-tps-p2) keeps it too.
-- **Robustness** (seed 8103, 200,000 paired fights each): the tuned defaults against the starting
-  ones (`--against tune/protection-p1-start`), and the verification's re-tune alone (Heroic Strike
-  from 76 with a 12 s dump), against 65 and 10 s with the debuffs first.
+  keeping the boss slowed and weakened and crushing blows off the table is the tank's job, and no
+  preset lists a tank's duty, since the Buffs tab's versions assume the tank applies them
+  ([§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)). The rows
+  after Shield Slam are timings the duty rule rules out; some would clear D23's bar, but the rule
+  fixes the duties' timing whatever it costs in threat. Shield Slam is its damage, which D18 weighs
+  as much as its threat, and [Max TPS](#max-tps-p2) keeps it too.
+- **Robustness** (seed 8103, 200,000 paired fights each): the defaults against the starting ones
+  (`--against tune/protection-p1-start`), and the duty rule's refresh times alone, against 3 s for
+  both.
 
-  | Fight | Against the starting defaults, Δ TPS | Δ DPS | The re-tune alone, Δ TPS | Δ DPS |
+  | Fight | Against the starting defaults, Δ TPS | Δ DPS | The rule's refresh times, Δ TPS | Δ DPS |
   | --- | --- | --- | --- | --- |
-  | 30 s | −39.71 (−40.21 to −39.22), −3.79% | −26.42 | +0.63 (+0.46 to +0.79), +0.06% | +0.70 |
-  | 60 s | −37.03 (−37.37 to −36.68), −3.63% | −15.93 | +0.61 (+0.51 to +0.72), +0.06% | +0.64 |
-  | 90 s | −18.95 (−19.23 to −18.67), −1.88% | −12.35 | +0.36 (+0.27 to +0.45), +0.04% | +0.51 |
-  | 180 s | −7.68 (−7.82 to −7.54), −0.78% (seed 8101) | −8.34 | +0.17 (+0.11 to +0.22), +0.02% (seed 8101) | +0.45 |
-  | 300 s | −3.31 (−3.46 to −3.15), −0.34% | −6.77 | +0.23 (+0.15 to +0.30), +0.02% | +0.41 |
+  | 30 s | −45.54 (−46.03 to −45.04), −4.34% | −25.12 | −5.83 (−5.99 to −5.66), −0.58% | +1.31 |
+  | 60 s | −44.26 (−44.61 to −43.91), −4.34% | −18.24 | −7.24 (−7.50 to −6.98), −0.74% | −2.31 |
+  | 90 s | −21.95 (−22.23 to −21.66), −2.18% | −13.65 | −3.00 (−3.23 to −2.76), −0.30% | −1.30 |
+  | 180 s | −10.82 (−10.96 to −10.68), −1.09% (seed 8101) | −9.75 | −3.14 (−3.27 to −3.01), −0.32% (seed 8101) | −1.41 |
+  | 300 s | −7.27 (−7.42 to −7.12), −0.74% | −8.72 | −3.96 (−4.11 to −3.82), −0.40% | −1.95 |
 
   The shorter the fight, the more the debuffs' GCDs at the pull cost against the starting
-  defaults, which spent them on threat; the re-tune wins at every length. With a 0%, 10% or 20%
-  execute phase the fights are identical: every row applies in both phases, and Execute is off. An
-  Orc (Blood Fury, the Horde's gear): −7.53 (−7.72 to −7.33), −0.77%. Boss armor 3,009: −10.15
-  (−10.37 to −9.94), −0.96%.
-- **Refreshes on the global cooldown's grid, and same-millisecond ties.** Thunder Clap and
-  Demoralizing Shout go up at the pull and 1.5 s later, so their refreshes come on the global
-  cooldown's 1.5 s grid: at 3 s left each is refreshed on a grid point, and at anything under 3 s
-  it waits for the next one, at 1.5 s left. That's +2.85 TPS (+2.45 to +3.25) for Thunder Clap and
-  +2.16 (+1.82 to +2.51) for Demoralizing Shout (seed 12345, 40,000 fights; 3.001 or 3.5 s is
-  level), but a miss then leaves the debuff down longer: Thunder Clap's uptime 97.62% → 97.07%,
-  with 0.13% more damage taken (seed 8101, 20,000 fights). That trades a duty's uptime, which D26's
-  amendment keeps out of the default. Sunder Armor's is a tie: when two things are due in the same
-  millisecond, the event queue runs the one queued first, and that isn't a player's choice
-  ([§5.1](#51-conventions-for-rotation-settings): no reaction time or latency). Its upkeep row's
-  refresh wakes the rotation 27 s after a Sunder Armor, on the grid, before a main-hand swing due in
-  the same millisecond, so the ability goes out before the swing's rage arrives. Its refresh at
-  2,999, 3,001 or 2,500 ms instead of 3,000 is +0.33 (+0.21 to +0.44), +0.03% (seed 12345). In Max
-  TPS, Sunder Armor's upkeep rows off or off the grid: +0.65 (+0.48 to +0.83), +0.06%. So the order
-  of same-millisecond events moves the defaults by up to about ±0.06%, which is why no refresh
-  setting is adopted for it. Fixing it needs an engine-wide rule for such ties, which moves every
-  golden: it's left for its own slice (P2's review, PL4).
+  defaults, which spent them on threat. With a 0%, 10% or 20% execute phase the fights are
+  identical: every row applies in both phases, and Execute is off. An Orc (Blood Fury, the Horde's
+  gear): −10.62 (−10.82 to −10.43), −1.08%. Boss armor 3,009: −13.32 (−13.54 to −13.10), −1.25%.
+- **Same-millisecond ties.** When two things are due in the same millisecond, the event queue runs
+  the one queued first, and that isn't a player's choice
+  ([§5.1](#51-conventions-for-rotation-settings): no reaction time or latency). Sunder Armor's
+  upkeep row's refresh wakes the rotation 27 s after a Sunder Armor, on the global cooldown's
+  1.5 s grid, before a main-hand swing due in the same millisecond, so the ability goes out before
+  the swing's rage arrives. Its refresh at 2,999, 3,001 or 2,500 ms instead of 3,000 is +0.38
+  (+0.24 to +0.52), +0.04% (seed 12345, 40,000 fights). In Max TPS, Sunder Armor's upkeep rows off
+  or off the grid: +0.65 (+0.48 to +0.83), +0.06%. So the order of same-millisecond events moves
+  the defaults by up to about ±0.06%, which is why no refresh setting is adopted for it. Fixing it
+  needs an engine-wide rule for such ties, which moves every golden: it's left for its own slice
+  (P2's review, PL4).
 
 #### Max TPS (P2)
 
@@ -1723,18 +1744,18 @@ The **Max TPS** priority is the best rotation found on 2026-09-23 on TPS alone, 
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
 (and its amendment) and [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23),
 on the 8/5/38 build. It drops the three duties and nothing else, and queues Heroic Strike from 45
-rage. Against the default (tank duties first) it makes **+148.74 TPS (+15.16%, 95% CI +148.59 to
-+148.88)**, 981.35 → 1,130.09, and **25.72 more DPS (+8.5%, +25.65 to +25.79)**, over 400,000
+rage. Against the default (tank duties first) it makes **+151.86 TPS (+15.52%, 95% CI +151.72 to
++152.00)**, 978.23 → 1,130.09, and **27.11 more DPS (+9.0%, +27.03 to +27.18)**, over 400,000
 paired fights on seed 8104, which no search used. What it costs is survival: the boss's swings
-cost **39% more health a second** (602 → 839 damage taken a second; seed 8107, 100,000 fights),
-since 11% of them are blocked where 66% were, and 15% are crushing blows where 1.2% were. With
+cost **40% more health a second** (600 → 839 damage taken a second, +39.70%; seed 8107, 100,000
+fights), since 11% of them are blocked where 66% were, and 15% are crushing blows where 1.2% were. With
 nobody's Thunder Clap or Demoralizing Shout on the boss, its faster, harder swings also give more
 rage, and more rage is more Heroic Strikes: that's the DPS.
 
 | Setting | Tank duties first → Max TPS | In the winner, Δ TPS (95% CI) | Δ DPS |
 | --- | --- | --- | --- |
-| `thunderClap.enabled` | on → off | +79.24 (+79.10 to +79.38) | +17.91 |
-| `demoShout.enabled` | on → off | +35.42 (+35.28 to +35.55) | +3.74 |
+| `thunderClap.enabled` | on → off | +84.73 (+84.59 to +84.86) | +18.17 |
+| `demoShout.enabled` | on → off | +33.41 (+33.27 to +33.54) | +6.15 |
 | `shieldBlock.enabled` | on → off | +33.16 (+33.03 to +33.30) | +5.58 |
 | `heroicStrike.minRage` | 76 → 45 | +5.81 (+5.74 to +5.88) | +1.58 |
 
@@ -1748,10 +1769,11 @@ includes the last-seconds dump, 12 s in both (PV6, below).
   (seeds 7011–7013, 200,000–400,000 fights a candidate), froze the winner and confirmed it on seed
   7104: against the default (`priority=maxTps`), and against itself with each change reverted
   (`--base priority=maxTps`). The verification's re-tune searched the dump and Heroic Strike again
-  (seeds 8011 and 8012), and the numbers here are against the default after PV1, on seeds 8102 and
-  8104. P2's first search, on the 5/5/36 build with Shield Slam dropped and the Buffs tab's Thunder
-  Clap and Demoralizing Shout on, had found Heroic Strike from 50. Max TPS drops Thunder Clap and
-  Demoralizing Shout, so PV1's order doesn't change its rotation: the same fights, on seed 777001.
+  (seeds 8011 and 8012), and the numbers here are against the default under the duty rule (PW1),
+  on seeds 8102 and 8104. P2's first search, on the 5/5/36 build with Shield Slam dropped and the
+  Buffs tab's Thunder Clap and Demoralizing Shout on, had found Heroic Strike from 50. Max TPS drops
+  Thunder Clap and Demoralizing Shout, so neither PV1's order nor the duty rule's refresh times
+  change its rotation: the same fights, on seeds 777001 and 9103 (200,000 fights).
 - **What it may change** (D26's amendment): the duties go; every other ability stays unless
   dropping it wins on TPS without resting on an untested threat value.
 - **Heroic Strike from 45.** With no duties to pay for, there's more rage to spend: 43–48 were
@@ -1779,21 +1801,21 @@ includes the last-seconds dump, 12 s in both (PV6, below).
   rows off: +0.65, a same-millisecond tie ([Tuning the defaults](#tuning-the-defaults-p1)).
 - **The Buffs tab's Thunder Clap and Demoralizing Shout** are in no preset, and a Protection
   warrior's own, so with Max TPS nobody keeps them up by default. Turned on there, as another
-  warrior's, they count while the rotation's are off: then Max TPS makes +118.86 TPS (+12.11%) over
+  warrior's, they count while the rotation's are off: then Max TPS makes +122.05 TPS (+12.48%) over
   the default, and 18% more damage taken (seed 8107, 100,000 fights). The default is the same
   either way: its own debuffs make the Buffs tab's add nothing.
 - **Robustness** (seed 8106, 200,000 paired fights each):
 
   | Fight | Max TPS against the default, Δ TPS | Δ DPS | Heroic Strike from 50, in Max TPS |
   | --- | --- | --- | --- |
-  | 30 s | +179.64 (+179.12 to +180.17), +17.81% | +41.08 | −3.15 (−3.32 to −2.98), −0.27% |
-  | 60 s | +169.76 (+169.40 to +170.11), +17.28% | +32.90 | −1.05 (−1.19 to −0.91), −0.09% |
-  | 90 s | +158.11 (+157.83 to +158.40), +15.99% | +29.07 | −0.17 (−0.29 to −0.06), −0.02% |
-  | 180 s | +148.74 (+148.59 to +148.88), +15.16% (seed 8104) | +25.72 | −0.01 (−0.07 to +0.05), level (seed 8104) |
-  | 300 s | +145.38 (+145.22 to +145.53), +14.83% | +24.04 | +0.03 (−0.03 to +0.10), level |
+  | 30 s | +185.44 (+184.91 to +185.96), +18.49% | +39.72 | −3.15 (−3.32 to −2.98), −0.27% |
+  | 60 s | +177.15 (+176.79 to +177.50), +18.17% | +35.32 | −1.05 (−1.19 to −0.91), −0.09% |
+  | 90 s | +161.54 (+161.25 to +161.83), +16.39% | +30.51 | −0.17 (−0.29 to −0.06), −0.02% |
+  | 180 s | +151.86 (+151.72 to +152.00), +15.52% (seed 8104) | +27.11 | −0.01 (−0.07 to +0.05), level (seed 8104) |
+  | 300 s | +149.34 (+149.18 to +149.49), +15.30% | +25.98 | +0.03 (−0.03 to +0.10), level |
 
   Every row applies in both phases, so an execute phase changes nothing, as for the default (0%
-  and 10% on seed 8106: +148.70 both).
+  and 10% on seed 8106: +151.96 both).
 
 ### 5.5 Multi-target options (light)
 

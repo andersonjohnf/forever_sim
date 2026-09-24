@@ -2,13 +2,14 @@
 //
 // This covers the pre-pull (row 0), Shield Block (row 1), Bloodrage (row 2), the racial and on-use
 // trinkets (row 3), the Mighty Rage Potion and Juju Flurry (row 4), the upkeep of Thunder Clap and
-// Demoralizing Shout, the tank's debuffs, first from the pull (rows 5 and 6, D26), Shield Slam and
-// Revenge (rows 7 and 8), the upkeep of Battle Shout and Sunder Armor (rows 9 and 10), the Sunder
-// Armor filler (row 11), the Heroic Strike queue (row 12) and Execute (row 13, off by
-// default). Setting ids are `warrior.protection.<ability>.<param>` and every rage threshold is in
-// absolute rage points (§5.1). Abilities are resolved with the build's talents (modifiers.ts) before
-// their costs feed any condition. The lines apply in both phases: only Execute is the execute phase's.
-import { toTenths } from '../../core/formulas'
+// Demoralizing Shout, the tank's debuffs, first from the pull and refreshed by the duty rule (rows 5
+// and 6, D26), Shield Slam and Revenge (rows 7 and 8), the upkeep of Battle Shout and Sunder Armor
+// (rows 9 and 10), the Sunder Armor filler (row 11), the Heroic Strike queue (row 12) and Execute
+// (row 13, off by default). Setting ids are `warrior.protection.<ability>.<param>` and every rage
+// threshold is in absolute rage points (§5.1). Abilities are resolved with the build's talents
+// (modifiers.ts) before their costs feed any condition. The lines apply in both phases: only Execute
+// is the execute phase's.
+import { GCD_MS, toTenths } from '../../core/formulas'
 import { type RotationCondition, STANCE } from '../../plan/types'
 import type { RotationOption, RotationValue } from '../../types'
 import {
@@ -20,6 +21,7 @@ import {
   SHIELD_BLOCK,
   SHIELD_SLAM,
   SUNDER_ARMOR,
+  THUNDER_CLAP,
   thunderClap,
 } from './abilities'
 import type { TalentRanks } from './modifiers'
@@ -92,13 +94,25 @@ const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 /** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where the duties' default is 76. */
 const MAX_TPS_HS_MIN_RAGE = 45
 
-/** A debuff's refresh input, in seconds left (rows 5, 6 and 10). */
-const refreshOption = (id: string, what: string, dependsOn: string, def = 3): RotationOption => ({
+/**
+ * The tank duties' refresh rule (warrior.md §5.4, decision D26's amendment): a debuff is refreshed as
+ * soon as a miss could still be tried again before it falls off, so from its own cooldown, or from
+ * one global cooldown if it has none. It's a fixed rule, never tuned: Thunder Clap from its 6 s
+ * cooldown, Demoralizing Shout, which has none, from the 1.5 s global cooldown.
+ */
+const TC_REFRESH_SEC = THUNDER_CLAP.cooldownMs / 1000
+const DS_REFRESH_SEC = GCD_MS / 1000
+/** The refresh help's second sentence: where the default comes from, the duty rule (warrior.md §5.4). */
+const DUTY_RULE = (sec: number, why: string) =>
+  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.`
+
+/** A debuff's refresh input, in seconds left (rows 5, 6 and 10); `why` says where its default comes from. */
+const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why = ''): RotationOption => ({
   kind: 'number',
   id,
   group: 'Core abilities',
   label: `${what} again with`,
-  help: `Refresh it on the boss when this much of it is left, unless it lasts to the end of the fight.`,
+  help: `Refresh it on the boss when this much of it is left, unless it lasts to the end of the fight.${why}`,
   unit: 's left',
   min: 0,
   max: 30,
@@ -108,16 +122,16 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3): Ro
 })
 
 /**
- * Defaults from warrior.md §5.4's table, in priority order. They're the best rotation found for the
- * default setup (decision D23; §5.4 "Tuning the defaults", measured on TPS with
- * scripts/tune/rotation.mjs).
+ * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
+ * the rest is the best rotation found around it for the default setup (decision D23; §5.4 "Tuning
+ * the defaults", measured on TPS with scripts/tune/rotation.mjs).
  */
 export const PROTECTION_OPTIONS: RotationOption[] = [
   {
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 15% more TPS and 39% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.',
+    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 16% more TPS and 40% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -172,7 +186,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     default: true,
     dependsOn: ID.tcEnabled,
   },
-  refreshOption(ID.tcRefresh, 'Thunder Clap', ID.tcMaintainOnly),
+  refreshOption(ID.tcRefresh, 'Thunder Clap', ID.tcMaintainOnly, TC_REFRESH_SEC, DUTY_RULE(TC_REFRESH_SEC, 'its cooldown')),
   {
     kind: 'toggle',
     id: ID.demoEnabled,
@@ -183,7 +197,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'demoralizingShout',
   },
-  refreshOption(ID.demoRefresh, 'Demoralizing Shout', ID.demoEnabled),
+  refreshOption(ID.demoRefresh, 'Demoralizing Shout', ID.demoEnabled, DS_REFRESH_SEC, DUTY_RULE(DS_REFRESH_SEC, 'one global cooldown, as it has none')),
   {
     kind: 'toggle',
     id: ID.slamEnabled,
@@ -327,10 +341,11 @@ export function protectionRotation(
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
   if (juju && v.on(ID.jujuEnabled)) b.add(onUseAbility(juju), [])
 
-  // Rows 5 and 6: the tank's debuffs on the boss, first from the pull, before any threat ability
-  // (D26's amendment, §5.4): Thunder Clap's slow, and Demoralizing Shout, each missing or with
-  // ≤ refreshBelowSec left. Without maintainOnly, Thunder Clap's slow goes up here once it's down, and
-  // it's also used on cooldown for its threat below Sunder Armor's upkeep.
+  // Rows 5 and 6: the tank's debuffs on the boss, first from the pull, before any threat ability on
+  // the global cooldown (D26's amendment, §5.4): Thunder Clap's slow, and Demoralizing Shout, each
+  // missing or with ≤ refreshBelowSec left, by default the duty rule's (TC_REFRESH_SEC,
+  // DS_REFRESH_SEC). Without maintainOnly, Thunder Clap's slow goes up here once it's down, and it's
+  // also used on cooldown for its threat below Sunder Armor's upkeep.
   const tcDef = thunderClap(ctx.profile)
   if (v.on(ID.tcEnabled)) b.add(tcDef, [auraRefresh(b.ability(tcDef), v.on(ID.tcMaintainOnly) ? seconds(v, ID.tcRefresh) : 0)])
   if (v.on(ID.demoEnabled)) {

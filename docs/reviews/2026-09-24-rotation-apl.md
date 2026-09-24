@@ -36,3 +36,17 @@ Every finding was introduced by A1.
 ## Verdict
 
 Ready to push: after the verification pass of `e81c982..9a91191`.
+
+## Verification pass
+
+**Gate passes.** All nine findings are confirmed fixed. A comparison of the tab's rows over 66,000
+random setups across all 22 specs changed only Fury's Bloodthirst-over-Execute setting (now dimmed
+with Bloodthirst off, as the engine uses it); the 200 fingerprints match main's pre-list `fury.ts`.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| AV-1 | low | introduced by the fix | Berserker Rage's row didn't say "while Bloodthirst and Whirlwind cool down", though the engine keeps it GCD-safe like Overpower. | fixed: its summary says so |
+| AV-2 | low | introduced by the fix | Slam's summary parts ran in the opposite order to Hamstring's. | fixed: "Not in the execute phase · while Bloodthirst and Whirlwind cool down" |
+| AV-3 | low | introduced by the fix | Escape in a panel number field saves what was typed (the field saves on blur). | waived: it matches the phone sheet, where closing with Escape saves the same way |
+| AV-4 | low | introduced by the fix | With Whirlwind off, the fillers drop the "while … cool down" part, though they still wait for Bloodthirst. | accepted: the shorter summary says nothing wrong |
+

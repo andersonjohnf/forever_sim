@@ -325,7 +325,7 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')
     expect(summary('overpower')).toBe('Up to 40 rage · while Bloodthirst and Whirlwind cool down')
     expect(summary('hamstring', fillers)).toBe('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
-    expect(summary('slam', fillers)).toBe('While Bloodthirst and Whirlwind cool down · not in the execute phase')
+    expect(summary('slam', fillers)).toBe('Not in the execute phase · while Bloodthirst and Whirlwind cool down')
     // Execute off, or no phase: they don't stop for it.
     expect(summary('bloodthirst', { 'warrior.fury.execute.enabled': false })).toBe('On cooldown')
     const noPhase = { ...fury, fight: { ...fury.fight, executePct: 0 } }

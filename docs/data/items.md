@@ -911,8 +911,8 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - The picker leaves out the other faction's items, except the one equipped.
 - `normalizeConfig` leaves them alone.
 - A race change on the Character tab that crosses factions swaps each item the new race can't
-  wear for its twin: the other faction's item with the same slot, level, stats and effects (the
-  closest name when several match), keeping the slot's enchant. An item with no twin, or whose
+  wear for its [faction twin](#faction-twins), read from the client (the closest name when several
+  match), keeping the slot's enchant. An item with no twin, or whose
   twin would break a Unique rule, stays. A notice names the items swapped and those
   kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
 

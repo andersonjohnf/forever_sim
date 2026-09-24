@@ -119,6 +119,13 @@ describe('the default hunters’ plans', () => {
     expect(buildPlan(config).assumptions.some((a) => a.id === 'ammoNotFired')).toBe(false)
   })
 
+  it('lists the resist assumption when Serpent Sting is used without Arcane Shot, and not with neither', () => {
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    // Marksmanship's default: Serpent Sting on, Arcane Shot off.
+    expect(ids(defaultConfig(MM))).toContain('arcaneShotResists')
+    expect(ids({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.serpentSting.enabled': false } })).not.toContain('arcaneShotResists')
+  })
+
   it('Lone Wolf: Marksmanship fights without a pet for +20% damage; Beast Mastery and Survival have a cat', () => {
     expect(plan(defaultConfig(MM)).pet).toBeUndefined()
     const withPet = plan({ ...defaultConfig(MM), talents: '5023-1053552501503051-' })

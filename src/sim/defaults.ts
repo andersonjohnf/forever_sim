@@ -426,7 +426,7 @@ export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].cl
   // Paladins and druids equip a relic in the ranged slot.
   if (!gear.ranged) put('ranged', bisFor(spec, 'relic'))
   // docs/classes/hunter.md#73-gear: the ammo the ranged weapon fires and the quiver or ammo pouch that
-  // holds it, the best the pool has outside raids (the guide lists neither).
+  // holds it: the best non-epic ammo with a Forever row, and a 15% quiver (the guide lists neither).
   if (usesSupplies(SPEC_META[spec].classId)) {
     const gun = ammoKind(worn.ranged) === 'bullet'
     for (const [slot, id] of [

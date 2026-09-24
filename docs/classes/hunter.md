@@ -199,9 +199,12 @@ Night Elf Elune's Light (+10% crit for 15 s) are simulated too; Forever's racial
 ### 7.3 Gear
 Wowhead's Classic Hunter pre-raid list (D11; its Phase 6 table, archived 2021-05-16, the same for every
 spec; `scripts/scrape/pre-raid-bis.json`): Dwarven Hand Cannon, Dal'Rend's pair, Devilsaur, Mongoose
-Boots and the rest. The guide lists no ammo or quiver, so the defaults take the best the pool has
-outside raids for what the weapon fires: **Thorium Shells** or **Thorium Headed Arrows** (17.715 damage
-per second, crafted) and the 15% **Gnoll Skin Bandolier** or **Harpy Hide Quiver** (required level 55)
+Boots and the rest. The guide lists no ammo or quiver, so the defaults take the best non-epic ammo
+with a Forever row for what the weapon fires: **Thorium Shells** or **Thorium Headed Arrows** (17.715
+damage per second, crafted). The pool has more: Miniature Cannon Balls (20.901) and Doomshot (20.244),
+rare and bind-on-pickup, with no Forever row (Classic Era data, D6), and Forever's new epic, bind-on-pickup
+Swiftfeather Arrow and Swiftstrike Shot (24.617), whose source the client doesn't give. The quiver is
+the 15% **Gnoll Skin Bandolier** or **Harpy Hide Quiver** (required level 55)
 [F] ([items.md](../data/items.md#ammo-and-quivers)). Picking a ranged weapon that fires the other kind
 swaps the ammo for that default, and the quiver or pouch for the other kind's with the same haste
 (`matchSupplies`); a thrown weapon fires none and keeps both. The Gear tab dims ammo the weapon doesn't

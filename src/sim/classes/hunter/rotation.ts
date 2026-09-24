@@ -95,7 +95,7 @@ export function hunterOptions(spec: HunterSpec): RotationOption[] {
       id: ID.rapidFire,
       group: 'Cooldowns and buffs',
       label: 'Rapid Fire',
-      help: 'Use it on cooldown from the pull: +40% ranged attack speed for 15 s, every 5 minutes (3 with Rapid Killing). It’s off the global cooldown.',
+      help: 'Use it on cooldown from the pull: +40% ranged attack speed for 15 s, every 5 minutes (4 with 1 point in Rapid Killing, 3 with 2). It’s off the global cooldown.',
       default: true,
     },
     {
@@ -149,7 +149,7 @@ export function hunterOptions(spec: HunterSpec): RotationOption[] {
       id: ID.sting,
       group: 'Core abilities',
       label: 'Serpent Sting',
-      help: 'Keep it on the boss: 555 Nature damage over 15 s, whose ticks can crit in Forever.',
+      help: 'Keep it on the boss: 555 Nature damage over 15 s (666 with Improved Stings 3/3), whose ticks can crit in Forever.',
       default: true,
     },
     {

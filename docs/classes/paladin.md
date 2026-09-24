@@ -532,7 +532,7 @@ rotation found for the default setup ([D23](../decisions.md#d23-the-default-rota
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 0 | Pre-pull: Seal of the Crusader at −1.5 s (free, no five-second rule), its judgement at the pull, then the main seal | `judgementOfTheCrusader.enabled` | on |
-| — | On-use trinkets (Weakness Analyzer) and Juju Flurry, off the GCD, on cooldown from the pull: nothing in the list is worth saving them for | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs | on; neither acts in the default setup |
+| — | On-use trinkets (Weakness Analyzer) and Juju Flurry, off the GCD, on cooldown from the pull: nothing in the list is worth saving them for | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs (Max consumables selects it) | on; neither acts in the default setup, and each gains in every cell of D23's grid where it acts ([Tuning the defaults](#tuning-the-defaults-c2)) |
 | 1 | The main seal: Seal of Command, or Seal of Righteousness (`seal.primary`) | the seal missing, or at most `seal.refreshBelowSec` (1.5 s) of it left. With row 0 on, never over Seal of the Crusader before its judgement has landed | Command |
 | 2 | Judgement of the Crusader | the debuff is missing: cast Seal of the Crusader (GCD) when neither it nor the debuff is up, judge it when Judgement is ready, then recast the main seal (row 1). Your landed auto attacks restart its 40 s, so after the pull this fires only if it drops | with row 0 |
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready, with the seal up | on |
@@ -659,6 +659,27 @@ before the fight ends, which the sim knows exactly and a player has to judge; th
 minutes 10 or 20 s off costs up to 0.37% (150 s with 140 s judged: −0.37%; 100 s: −0.29%), and
 nothing in a 180 s fight judged short. The review measured up to 0.58% on the first round's setup.
 
+**On-use trinkets and Juju Flurry (C2's review, RV2).** Neither acts in the default setup, which
+wears no on-use trinket and selects no Juju Flurry, so each is held to D23's rule for a change that
+doesn't act there: on a fresh seed, its interval lies above zero in every cell of the grid where it
+acts. Against the same setup with the switch off, on seed 8675309 with 20,000 paired fights a cell:
+`trinkets.enabled` with Weakness Analyzer worn (in place of Blackhand's Breadth), and
+`jujuFlurry.enabled` with Juju Flurry selected in Buffs.
+
+| Fight | Weakness Analyzer on cooldown: no execute phase, 10%, 20% | Juju Flurry on cooldown: no execute phase, 10%, 20% |
+| --- | --- | --- |
+| 30 s | +0.72%, +0.69%, +0.68% | +1.55%, +1.45%, +1.46% |
+| 45 s | +0.50%, +0.48%, +0.46% | +0.95%, +0.90%, +0.88% |
+| 60 s | +0.38%, +0.37%, +0.36% | +0.82%, +0.76%, +0.71% |
+| 90 s | +0.31%, +0.30%, +0.29% | +1.09%, +1.07%, +1.05% |
+| 180 s | +0.26%, +0.26%, +0.25% | +0.86%, +0.80%, +0.76% |
+| 300 s | +0.25%, +0.24%, +0.24% | +0.85%, +0.79%, +0.80% |
+
+All 36 intervals lie above zero (the lowest bounds: +0.23% for the trinket at 300 s, +0.60% for
+Juju Flurry at 60 s with a 20% phase), so both stay on. The trinket gains most in short fights,
+where its one use at the pull is a larger share of the fight. The review's verification ran the
+same grid and seed and agreed.
+
 **First round (C2).** Against the documented priority (Consecration from 60% and rank 1 from 30%,
 the potion only when missing 2,250), on the setup without Prayer of Spirit and Arcane Brilliance:
 **+7.99 DPS (+1.33%, 95% CI +7.86 to +8.11)**, 600.61 → 608.60, over 400,000 paired fights on seed
@@ -685,11 +706,10 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
   the "another will be ready" condition (missing 1,125, with Consecration from 70% and rank 1 from
   20%), won +0.87% in the default fight but lost 0.55% in a 120 s fight and 0.23% against Undead:
   it drank early whatever the fight's length.
-- **Not tuned:** the rune's pair (not in the default Standard raid preset); on-use trinkets and
-  Juju Flurry (on cooldown, with nothing to save them for, and in no default setup); the
-  Judgement of the Crusader rule (an engine switch for [open question 5](#open-questions) under
-  Character → Advanced, not a rotation choice: All of it adds +46.24 DPS, +7.60%, on the first
-  round's setup); and seal twisting (not simulated).
+- **Not tuned:** the rune's pair (not in the default Standard raid preset); the Judgement of the
+  Crusader rule (an engine switch for [open question 5](#open-questions) under Character →
+  Advanced, not a rotation choice: All of it adds +46.24 DPS, +7.60%, on the first round's setup);
+  and seal twisting (not simulated). On-use trinkets and Juju Flurry have their grid above.
 - Rerun with, for example, `node scripts/tune/rotation.mjs --spec paladin-retribution --fights
   400000 --seed 6464 consecration.minManaPct=65` (a candidate against the defaults) or
   `--sweep consecration.minManaPct=50:70:2`.

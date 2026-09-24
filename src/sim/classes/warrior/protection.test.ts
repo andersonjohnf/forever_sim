@@ -526,8 +526,8 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
   })
 })
 
-describe('a row below the Sunder Armor filler that takes every global cooldown it can pay for (TI-4; docs/ux.md "Rotation")', () => {
-  const RARELY = 'Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above the filler, or raise the filler’s rage.'
+describe('a duty below the Sunder Armor filler says when it’s used (TI-4 and TV-1; docs/ux.md "Rotation")', () => {
+  const below = (rage: number) => `Below the Sunder Armor filler: used only while your rage is under its ${rage}.`
   const d = defaultConfig('warrior-protection')
   /** The default order with `id` moved to just below the filler. */
   const belowFiller = (id: string) => {
@@ -546,23 +546,29 @@ describe('a row below the Sunder Armor filler that takes every global cooldown i
     for (const rotation of [{}, DEFENSIVE, { [ID.priority]: PROTECTION_PRIORITY.maxTps }]) expect(unused(rotation), JSON.stringify(rotation)).toEqual({})
   })
 
-  it('Defensive’s filler from 9, Sunder Armor’s cost, starves Thunder Clap (17 with the talents), Demoralizing Shout (7) and Battle Shout (10) moved below it', () => {
-    expect(unused(DEFENSIVE, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: RARELY })
-    expect(unused(DEFENSIVE, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: RARELY })
-    expect(unused(DEFENSIVE, belowFiller('battleShout'))).toEqual({ [ID.bsEnabled]: RARELY })
+  it('on Thunder Clap, Demoralizing Shout and Battle Shout moved below Defensive’s filler from 9', () => {
+    expect(unused(DEFENSIVE, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: below(9) })
+    expect(unused(DEFENSIVE, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+    expect(unused(DEFENSIVE, belowFiller('battleShout'))).toEqual({ [ID.bsEnabled]: below(9) })
   })
 
-  it('not while the filler waits for more rage than the row costs, waits for Shield Slam, or is off; nor Thunder Clap on cooldown, which is tried above the filler', () => {
-    // Balanced's filler from 60: the shout gets every global cooldown with 7 to 59 rage.
-    expect(unused({ [ID.demoEnabled]: true }, belowFiller('demoShout'))).toEqual({})
-    // From 15, the shout gets 7 to 14; Thunder Clap, 17, never has the rage when the filler doesn't.
-    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('demoShout'))).toEqual({})
-    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: RARELY })
-    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 18 }, belowFiller('thunderClap'))).toEqual({})
-    expect(unused({ ...DEFENSIVE, [ID.fillerSafe]: true }, belowFiller('demoShout'))).toEqual({})
+  it('whatever the threshold, and while the filler waits for Shield Slam: the filler still takes the global cooldown first (TV-1)', () => {
+    // Balanced's filler from 60% of the bar: 60 at 100, 63 for a Gnome's 105.
+    expect(unused({ [ID.demoEnabled]: true }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(60) })
+    const gnome = unusedRotationSettings({ ...d, race: 'alliance-gnome', rotation: { [ID.demoEnabled]: true }, rotationOrder: belowFiller('demoShout') })
+    expect(gnome[ID.demoEnabled]).toBe(below(63))
+    // Just above a duty's cost (Demoralizing Shout's 7, Thunder Clap's 17) it's still under it only.
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(15) })
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 18 }, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: below(18) })
+    // Waiting for Shield Slam, the filler still comes first whenever it doesn't wait.
+    expect(unused({ ...DEFENSIVE, [ID.fillerSafe]: true }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+    // Under Sunder Armor's cost, the filler can't be cast: the note gives the cost.
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 5 }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+  })
+
+  it('not with the filler off or the row off, nor on Thunder Clap on cooldown, which is tried above the filler', () => {
     expect(unused({ ...DEFENSIVE, [ID.fillerEnabled]: false }, belowFiller('demoShout'))).toEqual({})
     expect(unused({ ...DEFENSIVE, [ID.tcMaintainOnly]: false }, belowFiller('thunderClap'))).toEqual({})
-    // An off row has nothing to say.
     expect(unused({ ...DEFENSIVE, [ID.demoEnabled]: false }, belowFiller('demoShout'))).toEqual({})
   })
 

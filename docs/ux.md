@@ -344,11 +344,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       puts them first on the global cooldown, and their refresh stays the duty rule's wherever you
       move them, since it's the row's own condition; a moved duty makes the list Custom. The rule
       decides when a duty wants the global cooldown, not that it gets it: a row above it takes it
-      first. Below a filler that takes every global cooldown it can pay for (a warrior's Sunder
-      Armor filler from Defensive's or Max TPS's 9 rage), a warrior's Thunder Clap, Demoralizing
-      Shout or Battle Shout is hardly ever cast, and says so in place of its summary, dimmed:
-      "Rarely used: the Sunder Armor filler above it takes the global cooldowns first. Move it above
-      the filler, or raise the filler's rage."
+      first. A warrior's Thunder Clap, Demoralizing Shout or Battle Shout, on and below the Sunder
+      Armor filler (on), says so in place of its summary, dimmed, with the filler's threshold (or
+      Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your
+      rage is under its 9." It's a fact about the order, whatever the threshold, and judges nothing:
+      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 most of the time.
+      Thunder Clap on cooldown (its "only to keep the slow up" off) is tried just above the filler
+      wherever its row is, so it has no note.
     - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without
       named ones (Fury), or a tank's three (above). A tank's preset sets its Priority choice, which
       moves defaults; picking any preset sets it (Balanced back to its default). Once you move a row or change one

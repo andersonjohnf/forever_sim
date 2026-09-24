@@ -349,7 +349,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1 (its Defensive and Max TPS: Balanced, its default since T5, says it's a first quick search), Retribution
     since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
     also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says no more: its priority choice,
@@ -377,6 +377,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     there for another player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
     help says "Off by default with Max TPS", and a value you set yourself stays set.
+    - **On a priority list** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24);
+      the Protection warrior since A2), the choice is the list's preset picker
+      (`AplDefinition.presetChoice`): **Defensive** (the old "Tank duties first"), **Balanced**
+      (the default) and **Max TPS**, with no separate Default, since Balanced is it. It isn't shown
+      again above the list. Its help sits under the picker, as the picker's description: each
+      preset in a sentence or two, with what it measures against Defensive in the default setup
+      (TPS, DPS and damage taken), when to pick Max TPS, and the Buffs tab's versions. Picking one
+      puts the list's settings at that preset's defaults; editing the list after reads "Custom".
   - A setting that depends on another under the same heading sits under it, indented on a
     rule (Heroic Strike's rage threshold under Heroic Strike, "Save the last Death Wish for
     the end" under Death Wish). A dependent switch works the same way as a dependent number

@@ -624,8 +624,27 @@ describe('golden run (fixed config and seed)', () => {
     }).toMatchSnapshot()
   })
 
+  // - M5.65 A2 and M5.6 T5 (D28, D31): Protection's rotation is a priority list, and its default is
+  //   Balanced: Shield Block and Sunder Armor's 5 stacks (refreshed with 1.5 s left, the duty rule),
+  //   no Thunder Clap, Demoralizing Shout or Sunder Armor filler, and Heroic Strike from 40
+  //   (warrior.md §5.4 "Balanced"). The old default, Defensive, keeps its snapshot byte for byte
+  //   under its own name below. On this seed's 500 fights, Defensive → Balanced: TPS 1,132.88 →
+  //   1,009.33, DPS 363.16 → 381.02, damage taken 610.54 → 725.85 a second (Max TPS: 1,292.11,
+  //   389.11, 859.25). No Thunder Clap, Demoralizing Shout or filler rows; Sunder Armor's casts fall
+  //   to its upkeep, and the rage goes to Heroic Strike.
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
+    const agg = runFights(bundle.plan, 500)
+    const result = toResult(bundle, agg, 0)
+    expect({ dps: result.dps, tps: result.tps, abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.parries, a.blocks]) }).toMatchSnapshot()
+  })
+
+  // - M5.65 A2 (D28, D31): Defensive, the Protection default until Balanced, and its snapshot, byte
+  //   for byte (the priority list changed nothing it plays; protection-apl.test.ts checks 200 random
+  //   setups too).
+  it('keeps the Defensive Protection warrior’s result unchanged', () => {
+    const d = defaultConfig('warrior-protection')
+    const bundle = buildPlan({ ...d, rotation: { 'warrior.protection.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
     const result = toResult(bundle, agg, 0)
     expect({ dps: result.dps, tps: result.tps, abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.parries, a.blocks]) }).toMatchSnapshot()

@@ -27,7 +27,7 @@ import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './sh
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { WARLOCK_RACIALS } from './warlock/abilities'
-import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
+import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
@@ -113,6 +113,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
+  if (spec === 'warrior-protection') return PROTECTION_APL
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
@@ -140,10 +141,11 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
  * no powershifting, which a Classic Era feral would look for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
+  // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS are tuned.
+  if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, is a first quick search and isn’t tuned yet.'
   if (
     spec === 'warrior-arms' ||
     spec === 'warrior-fury' ||
-    spec === 'warrior-protection' ||
     spec === 'paladin-retribution'
   ) {
     return 'The defaults are tuned for the default setup.'
@@ -316,7 +318,7 @@ export function classRotation(
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context, order)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
-  if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context)
+  if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)

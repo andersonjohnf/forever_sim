@@ -500,9 +500,12 @@ Top Gear and the retail optimizers do:
   the sum of each one's change relative to the spec's current default. That's the Balanced
   rotation's aim too (D28). A tank's search never drops the survival talents its class doc lists
   as the floor, the ones nearly every tank takes, such as big cuts to defensive cooldowns. The
-  avoidance talents are in the floor too (user decision): **Anticipation 5/5 and Deflection 5/5**
-  for a warrior and a paladin, and **Feral Swiftness 2/2** for a bear (user decision). Toughness
-  is optional: the search decides its ranks (user decision, refining the first list). The model says avoided hits cost a tank rage, mana and
+  avoidance talents are in the floor too (user decision): **Deflection 5/5** for a warrior and a
+  paladin, and **Feral Swiftness 2/2** for a bear. **Anticipation is not in the floor** but is the
+  **preferred filler**: points a build has left after its threat talents go to Anticipation before
+  Toughness or other weaker talents (user decision, after the guild's lead theorycrafter's
+  Protection paladin build, 240003-0530213321301551-502, took Anticipation 2/5 and measured +1.0%
+  TPS over the floor-bound default). Toughness is optional. The model says avoided hits cost a tank rage, mana and
   Reckoning procs, so a threat-first search drops them, but tanks take them.
 - **A tank's gear keeps an effective-health floor** (user decision). Survival stats cost a tank
   threat in Forever (rage from hits taken divides by max health, and avoided hits give none), so

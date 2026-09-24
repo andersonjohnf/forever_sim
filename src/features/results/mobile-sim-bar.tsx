@@ -17,7 +17,7 @@ export function MobileSimBar() {
   const { result, running, progressPct, error } = useRunState()
   const summaryId = useId()
   const canOpen = result !== null || running || error !== null
-  // Focus moves to the sheet's title when it opens, and back to "Show results" when it closes,
+  // Focus moves to the sheet's title when it opens, and back to "Show results and details" when it closes,
   // unless a link in the sheet opened a setup tab ("Open Gear"): then it goes into that tab.
   const { returnRef, titleRef, contentProps } = useSheetFocus<HTMLButtonElement>()
   const afterClose = useRef<(() => void) | null>(null)
@@ -45,13 +45,20 @@ export function MobileSimBar() {
             onClick={() => setOpen(true)}
             disabled={!canOpen}
             className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            aria-label="Show results"
+            aria-label="Show results and details"
             aria-describedby={summaryId}
           >
             <span id={summaryId} className="flex min-w-0 flex-1">
               {error !== null ? <BarError message={error} /> : <Headline compact />}
             </span>
-            {canOpen && <ChevronUp className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
+            {/* A labelled pill, not a bare chevron: people missed the chevron and took the headline for
+                the whole result. Below 360 px there's room only for its outline and chevron. */}
+            {canOpen && (
+              <span className="flex h-9 shrink-0 items-center gap-1 rounded-md border bg-background px-2.5 text-sm font-medium shadow-xs max-[359px]:px-2">
+                <span className="max-[359px]:hidden">Details</span>
+                <ChevronUp className="size-4 text-muted-foreground" aria-hidden />
+              </span>
+            )}
           </button>
           <SimulateButton className="px-5" />
         </div>

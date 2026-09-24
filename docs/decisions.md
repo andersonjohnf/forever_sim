@@ -400,22 +400,24 @@ pieces separately. So, for new specs until the tuning milestone:
   ranged core with Hunter.
 
 ### D28: Three tank rotations, Defensive, Balanced and Max TPS (2026-09-24)
-User decision, after the officers' review of v1. It amends D26. Each tank spec's Priority choice
-offers three rotations:
+User decision, after the officers' review of v1. It amends D26: a tank's default is now
+Balanced. Each tank spec's Priority choice offers three rotations:
 - **Defensive** is D26's default, "Tank duties first", renamed. Its duties and their fixed
-  timing rule are unchanged. It stays the default until the user decides otherwise.
-- **Balanced** is how most tanks play fights below progression difficulty that can still kill
-  a careless tank. It keeps the tank's active mitigation and the raid's armor debuff, drops the
-  debuffs that only lower the boss's damage, and tunes the rest for DPS:
+  timing rule are unchanged, and so are D26's rules for its search (the DPS-share rule, and
+  not dropping an ability on an untested threat value).
+- **Balanced is the default** (user decision). It's how most tanks play fights below
+  progression difficulty that can still kill a careless tank. It keeps the tank's active
+  mitigation and the raid's armor debuff, drops the debuffs that only lower the boss's damage,
+  and tunes the rest for DPS:
   - a warrior uses Shield Block when it's ready and keeps Sunder Armor at 5 stacks, refreshed
     by D26's duty rule but not used as a filler; it drops Thunder Clap and Demoralizing Shout
   - a bear keeps Faerie Fire and drops Demoralizing Roar
   - a paladin keeps Devotion Aura and Holy Shield
-  
+
   The kept upkeep follows D26's fixed timing rule. The search tunes the other abilities on DPS.
   A change that costs a larger share of TPS than it gains in DPS isn't adopted, which is D18's
   rule turned around. Until the tuning milestone, Balanced's defaults are first-pass (D27).
 - **Max TPS** is unchanged (D26).
 
-Stored settings keep their values, so saved setups and shared links still load; only the
-labels change.
+A saved setup or shared link that chose a rotation still loads it under its new name. One that
+kept the old default gets Balanced, like any other changed default.

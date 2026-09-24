@@ -96,6 +96,24 @@ test.describe('a failed run, on a phone (RU4)', () => {
   })
 })
 
+test.describe('the phone bar’s Details button', () => {
+  // People missed the bare chevron and took the headline for the whole result (docs/ux.md#layout).
+  test('is labelled at 390 px, only an outlined chevron below 360 px, and opens the results sheet', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('./')
+    const bar = page.getByRole('button', { name: 'Show results and details' })
+    await expect(bar).toBeDisabled()
+    await expect(bar.getByText('Details', { exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Run again', exact: true })).toBeVisible({ timeout: 60_000 })
+    await expect(bar.getByText('Details', { exact: true })).toBeVisible()
+    await page.setViewportSize({ width: 320, height: 700 })
+    await expect(bar.getByText('Details', { exact: true })).toBeHidden()
+    await bar.click()
+    await expect(page.getByRole('dialog', { name: 'Results' })).toBeVisible()
+  })
+})
+
 test.describe('a re-run on desktop (RU17)', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 

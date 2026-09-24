@@ -36,7 +36,7 @@ When a design decision isn't covered here, make it, then add it here.
 | Width | Layout |
 | --- | --- |
 | **≥ 1024 px** | A header, then two columns. **Left:** the setup, as section tabs. **Right:** a sticky results panel with the Simulate button. |
-| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result and the Simulate button; tapping the result opens the full results as a sheet. |
+| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. Below 360 px only the button's outline and chevron fit, and a tank's ± column moves to the sheet below 400 px. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
@@ -649,7 +649,7 @@ Every view handles these states:
     and its message says what to change, so no retry advice follows it. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Couldn't simulate"
-    and the start of the reason, in AA colors. "Show results" stays enabled, with or without an
+    and the start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
     too (on desktop the panel's alert does).
   - A failure belongs to the setup that failed, as a result does. It shows, in the panel,
@@ -873,7 +873,7 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage)
   takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
   or the tab's panel. From the phone's results sheet, this replaces handing focus back to
-  "Show results".
+  "Show results and details".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
 - **A change with no notice is still announced** (WCAG 4.1.3), through a polite live region in

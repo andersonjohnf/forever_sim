@@ -10,8 +10,8 @@
 //   npm run snap -- --dark --width 390             # dark mode at phone width
 //   node scripts/snap.mjs --click Talents --out .cache/snaps/talents.png   # reuse the snap build, open a tab first
 //   node scripts/snap.mjs --click Simulate --out .cache/snaps/result.png   # waits for the run to finish
-//   node scripts/snap.mjs --width 390 --click Simulate --click "Show results"   # phone: open the results sheet
-//   node scripts/snap.mjs --width 390 --click Simulate --click "Show results" --click "Cooldowns and buffs" --scroll "Cooldowns and buffs"
+//   node scripts/snap.mjs --width 390 --click Simulate --click "Show results and details"   # phone: open the results sheet
+//   node scripts/snap.mjs --width 390 --click Simulate --click "Show results and details" --click "Cooldowns and buffs" --scroll "Cooldowns and buffs"
 //                                                  # …and scroll the sheet to a section it opened
 //
 // Seeding and filling in, for states a fresh page doesn't reach (the Setups sheet's list, say):

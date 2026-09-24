@@ -108,7 +108,7 @@ npm run test:smoke    # the smoke suite the deploy runs: vitest.smoke.config.ts 
 npm run test:full     # lint, typecheck, every unit and e2e test: before every push
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
-                      #   (--click Simulate waits for the result; on phones add --click "Show results")
+                      #   (--click Simulate waits for the result; on phones add --click "Show results and details")
                       #   --storage seed.json sets localStorage keys before the app loads ({ "key": value });
                       #   --fill "Label=text" types in a field; --upload f.json answers a file picker;
                       #   --viewport shoots just the viewport, as an open sheet shows it

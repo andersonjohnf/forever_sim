@@ -138,8 +138,8 @@ function SingleHeadline({ row, compact, dimmed, badge }: { row: MetricRow; compa
 }
 
 /**
- * Tanks: TPS and DPS as equals (decision D18). Stacked rows fit the phone's bottom bar (below 375 px
- * wide it drops the ± column, which the results sheet still shows); the panel sets them side by side.
+ * Tanks: TPS and DPS as equals (decision D18). Stacked rows fit the phone's bottom bar (below 400 px
+ * wide, beside the Details button, it drops the ± column, which the results sheet still shows); the panel sets them side by side.
  */
 function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; compact: boolean; dimmed: boolean; badge: ReactNode }) {
   if (compact) {
@@ -148,7 +148,7 @@ function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; com
         {badge && <span className="text-xs font-medium">{badge}</span>}
         <div
           data-dimmed={dimmed}
-          className={cn('grid min-w-0 grid-cols-[auto_auto_auto_1fr] items-baseline gap-x-1.5 max-[375px]:grid-cols-[auto_auto_1fr]', DIM_ROOT)}
+          className={cn('grid min-w-0 grid-cols-[auto_auto_auto_1fr] items-baseline gap-x-1.5 max-[399px]:grid-cols-[auto_auto_1fr]', DIM_ROOT)}
         >
           {rows.map((row) => (
             <Fragment key={row.key}>
@@ -156,7 +156,7 @@ function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; com
               <span className={cn('text-lg leading-6 font-semibold tracking-tight tabular-nums', !row.value && 'text-muted-foreground')}>
                 {row.value ? formatOne(row.value.mean) : '—'}
               </span>
-              <span className="text-xs text-muted-foreground tabular-nums max-[375px]:hidden">{row.value && `± ${formatOne(row.value.ci95)}`}</span>
+              <span className="text-xs text-muted-foreground tabular-nums max-[399px]:hidden">{row.value && `± ${formatOne(row.value.ci95)}`}</span>
               <span className="text-xs">{row.value && <Delta value={row.value.mean} previous={row.previous} />}</span>
             </Fragment>
           ))}
@@ -222,7 +222,7 @@ function RunSummary({ result, runConfig }: { result: SimResult; runConfig: SimCo
 
 /**
  * Closes the phone's results sheet when a link in it opens a setup tab. `then` moves focus into
- * that tab, and runs once the sheet has closed, in place of handing focus back to "Show results".
+ * that tab, and runs once the sheet has closed, in place of handing focus back to "Show results and details".
  */
 type Navigate = (then: () => void) => void
 

@@ -391,7 +391,7 @@ slice is worked:
   dagger, the Rotation tab doesn't say that Hemorrhage builds instead
   ([rogue.md §5.3, §6.3](classes/rogue.md#63-subtlety-shipped)).
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
-  `--click "Show results"` opens the phone's results sheet.
+  `--click "Show results and details"` opens the phone's results sheet.
 - **Arms tuning findings:** re-measured and adopted in M2.5a. The Arms defaults are now the best
   rotation found ([warrior.md §5.3](classes/warrior.md#tuning-the-defaults-m25a)): +37.0 DPS
   (+6.1%, 610.3 → 647.3) over the old ones. Of the old findings, Rend's 3 s refresh is adopted;

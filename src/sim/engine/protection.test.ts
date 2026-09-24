@@ -594,7 +594,7 @@ describe('Balanced in the engine (warrior.md §5.4 "Balanced", D28)', () => {
   const balanced = runFights(bundle.plan, 2000, sim)
   const result = toResult(bundle, balanced, 0)
 
-  it('keeps Shield Block and Sunder Armor’s 5 stacks up, and casts no Thunder Clap, Demoralizing Shout or filler', () => {
+  it('keeps Shield Block and Sunder Armor’s 5 stacks up, casts no Thunder Clap or Demoralizing Shout, and Sunders as a filler only from 60 rage', () => {
     const casts = (id: string) => {
       const a = bundle.plan.abilities.find((x) => x.id === id)
       return a === undefined ? 0 : counter(sim, a.source, FIELD.casts)
@@ -604,19 +604,29 @@ describe('Balanced in the engine (warrior.md §5.4 "Balanced", D28)', () => {
     expect(casts('shieldBlock')).toBeGreaterThan(0)
     // Its blocks as Defensive's: about 66% of the swings.
     expect(result.tank!.outcomes.block).toBeGreaterThan(60)
-    // The stacks are up nearly all fight, from a handful of Sunders: no filler.
+    // The stacks are up nearly all fight. The filler waits for 60 rage, so it Sunders far less than
+    // Defensive's filler from 9 does.
     expect(result.cooldowns.find((a) => a.id === 'sunderArmor')!.uptimePct!).toBeGreaterThan(95)
-    expect(casts('sunderArmor') / 2000).toBeLessThan(15)
+    const defensive = buildPlan(config(DEFENSIVE))
+    const dSim = new Sim(defensive.plan)
+    runFights(defensive.plan, 200, dSim)
+    const dSunders = counter(dSim, defensive.plan.abilities.find((a) => a.id === 'sunderArmor')!.source, FIELD.casts) / 200
+    expect(casts('sunderArmor') / 2000).toBeLessThan(dSunders / 2)
+    expect(casts('sunderArmor') / 2000).toBeGreaterThan(5)
     // The boss unslowed and at full attack power: nobody's Thunder Clap or Demoralizing Shout.
     expect([bundle.plan.fight.bossSwing!.slow, bundle.plan.fight.bossSwing!.minDamage]).toEqual([0, 4500])
   })
 
-  it('makes less threat and more damage than Defensive, and takes more (§5.4 "Balanced")', () => {
-    const duties = runFights(buildPlan(config(DEFENSIVE)).plan, 2000)
-    // About −11% TPS and +5% DPS in the default setup, with about 19% more damage taken.
-    expect(balanced.tps.mean / duties.tps.mean).toBeGreaterThan(0.87)
-    expect(balanced.tps.mean / duties.tps.mean).toBeLessThan(0.91)
-    expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.03)
-    expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.07)
+  it('makes more threat and more damage than Defensive, and takes more (§5.4 "Balanced")', () => {
+    const dBundle = buildPlan(config(DEFENSIVE))
+    const duties = runFights(dBundle.plan, 2000)
+    // About +9.5% TPS and +6.4% DPS in the default setup, with about 21% more damage taken.
+    expect(balanced.tps.mean / duties.tps.mean).toBeGreaterThan(1.075)
+    expect(balanced.tps.mean / duties.tps.mean).toBeLessThan(1.115)
+    expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.04)
+    expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.09)
+    const taken = result.tank!.dtps.mean / toResult(dBundle, duties, 0).tank!.dtps.mean
+    expect(taken).toBeGreaterThan(1.17)
+    expect(taken).toBeLessThan(1.25)
   })
 })

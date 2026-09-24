@@ -287,7 +287,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
 describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
   const BALANCED = { [ID.priority]: PROTECTION_PRIORITY.balanced }
 
-  it('keeps Shield Block and Sunder Armor’s 5 stacks, refreshed by the duty rule; drops Thunder Clap, Demoralizing Shout and the filler; Heroic Strike from 40', () => {
+  it('keeps Shield Block and Sunder Armor’s 5 stacks, refreshed by the duty rule; drops Thunder Clap and Demoralizing Shout; the filler from 60 rage; Heroic Strike from 84', () => {
     const def = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const bal = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
     expect(resolveRotationValues(PROTECTION_OPTIONS, BALANCED, TALENTS)).toEqual(bal)
@@ -299,26 +299,29 @@ describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
       [ID.sunderRefresh]: 1.5,
       [ID.tcEnabled]: false,
       [ID.demoEnabled]: false,
-      [ID.fillerEnabled]: false,
+      [ID.fillerEnabled]: true,
+      // The filler only above 60% rage (user decision, D28): 60 of the default build's 100.
+      [ID.fillerMinRage]: 60,
       [ID.slamEnabled]: true,
-      [ID.hsMinRage]: 40,
+      [ID.hsMinRage]: 84,
       [ID.hsLastSec]: 12,
     })
     // Nothing else moves: the first-pass search found no other setting better (§5.4 "Balanced", D27).
     const moved = Object.keys(def).filter((id) => def[id] !== bal[id])
-    expect(moved.sort()).toEqual([ID.priority, ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerEnabled, ID.hsMinRage].sort())
-    for (const id of [ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerEnabled, ID.hsMinRage]) expect(PROTECTION_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Balanced')
+    expect(moved.sort()).toEqual([ID.priority, ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerMinRage, ID.hsMinRage].sort())
+    for (const id of [ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerMinRage, ID.hsMinRage]) expect(PROTECTION_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Balanced')
   })
 
-  it('builds the list without Thunder Clap, Demoralizing Shout or the filler, Sunder Armor again with 1.5 s left', () => {
+  it('builds the list without Thunder Clap or Demoralizing Shout, Sunder Armor again with 1.5 s left, and the filler from 60 rage', () => {
     const r = protectionRotation({}, TALENTS, noAura, { race: 'alliance-human' })
-    expect(ids(r)).toEqual(['shieldBlock', 'bloodrage', 'shieldSlam', 'revenge', 'battleShout', 'sunderArmor', 'sunderArmor', 'heroicStrike', 'heroicStrike'])
+    expect(ids(r)).toEqual(['shieldBlock', 'bloodrage', 'shieldSlam', 'revenge', 'battleShout', 'sunderArmor', 'sunderArmor', 'sunderArmor', 'heroicStrike', 'heroicStrike'])
     const sunder = at(r, 'sunderArmor')
     expect(linesOf(r, 'sunderArmor').map((e) => e.conditions)).toEqual([
       [{ code: COND.abilityAuraStacksBelow, a: sunder, b: 5 }],
       [{ code: COND.abilityAuraRefresh, a: sunder, b: 1500 }],
+      [{ code: COND.minRage, a: 600, b: 0 }],
     ])
-    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 400, b: 0 }])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 840, b: 0 }])
   })
 })
 

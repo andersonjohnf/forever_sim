@@ -106,7 +106,13 @@ const BALANCED = { option: ID.priority, is: PROTECTION_PRIORITY.balanced } as co
 /** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where Defensive's is 76. */
 const MAX_TPS_HS_MIN_RAGE = 45
 /** Balanced's Heroic Strike threshold (§5.4 "Balanced"), a first pass (D27). */
-const BALANCED_HS_MIN_RAGE = 40
+const BALANCED_HS_MIN_RAGE = 84
+/**
+ * Balanced's Sunder Armor filler threshold (§5.4 "Balanced"; user decision, D28): the filler only
+ * above 60% rage, 60 of the default build's 100 (no Boundless Rage). Rage thresholds are absolute
+ * (§5.1), so a build with Boundless Rage keeps 60.
+ */
+const BALANCED_FILLER_MIN_RAGE = 60
 
 /**
  * The tank duties' refresh rule (warrior.md §5.4, decision D26's amendment): a debuff is refreshed as
@@ -138,15 +144,20 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 })
 
 /**
- * The Priority choice's help, which the preset picker shows (docs/ux.md "Rotation"): each preset in
- * a sentence or two, with what it measures against Defensive in the default setup (warrior.md §5.4
- * "Balanced" and "Max TPS").
+ * The presets' help, which the preset picker's info lists, and their short lines, which the picker
+ * shows under it for the one picked (docs/ux.md "Rotation"): what each keeps and drops, with what it
+ * measures against Defensive in the default setup (warrior.md §5.4 "Balanced" and "Max TPS"; seed
+ * 31101, 100,000 paired fights).
  */
-const PRIORITY_HELP =
-  'Defensive keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take the least damage. ' +
-  'Balanced, the default, keeps Shield Block and Sunder Armor’s 5 stacks and drops the rest of the upkeep, the Sunder Armor filler too: against Defensive in the default setup, about 11% less TPS, 5% more DPS and 19% more damage taken. ' +
-  'Max TPS drops Shield Block, Thunder Clap and Demoralizing Shout for threat: about 14% more TPS, 7% more DPS and 41% more damage taken than Defensive. Pick it when another tank or the raid covers your survival. ' +
-  'The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
+const DEFENSIVE_HELP =
+  'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 1,133 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
+const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout, Sunder filler from 60 rage: +10% TPS, +6% DPS vs Defensive.'
+const BALANCED_HELP =
+  'The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from 60 rage, 60% of your bar, and Heroic Strike from 84. Against Defensive in the default setup: 9.5% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+const MAX_TPS_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout dropped for threat: +14% TPS, 41% more damage taken than Defensive.'
+const MAX_TPS_HELP =
+  'Drops Shield Block, Thunder Clap and Demoralizing Shout for threat, and keeps Shield Slam. Against Defensive in the default setup: 13.9% more TPS, 6.9% more DPS and 41% more damage taken. Pick it when another tank or the raid covers your survival.'
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
@@ -158,7 +169,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: PRIORITY_HELP,
+    // Not shown as a control: the priority list's preset picker sets it (PROTECTION_APL's presets).
+    help: 'Which of the three rotations you play: Defensive, Balanced or Max TPS. The priority list’s preset picker sets it.',
     choices: [
       { value: PROTECTION_PRIORITY.defensive, label: 'Defensive' },
       { value: PROTECTION_PRIORITY.balanced, label: 'Balanced' },
@@ -269,12 +281,15 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.fillerEnabled,
     group: 'Fillers',
     label: 'Sunder Armor filler',
-    help: 'Fill each global cooldown the abilities above leave free with Sunder Armor, for its threat. Off by default with Balanced, which keeps the 5 stacks up and spends the rest of its rage on Heroic Strike.',
+    help: 'Fill each global cooldown the abilities above leave free with Sunder Armor, for its threat.',
     default: true,
-    defaultWhen: [{ ...BALANCED, default: false }],
     maintainsBuff: 'sunderArmor',
   },
-  rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 9 with the default talents.', 9, ID.fillerEnabled, 'Fillers'),
+  {
+    ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 9 with the default talents.', 9, ID.fillerEnabled, 'Fillers'),
+    help: `Use it only at or above this much rage. It costs 9 with the default talents. With Balanced it’s ${BALANCED_FILLER_MIN_RAGE} by default, 60% of your 100 rage, so the filler spends only rage you have to spare.`,
+    defaultWhen: [{ ...BALANCED, default: BALANCED_FILLER_MIN_RAGE }],
+  },
   {
     kind: 'toggle',
     id: ID.fillerSafe,
@@ -466,19 +481,22 @@ export const PROTECTION_APL: AplDefinition = {
     {
       id: 'defensive',
       label: 'Defensive',
-      help: 'Keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, tuned on threat.',
+      summary: DEFENSIVE_SUMMARY,
+      help: DEFENSIVE_HELP,
       values: { [ID.priority]: PROTECTION_PRIORITY.defensive },
     },
     {
       id: DEFAULT_APL_PRESET,
       label: 'Balanced',
-      help: 'Keeps Shield Block and Sunder Armor’s five stacks up, and spends the rest on threat and damage.',
+      summary: BALANCED_SUMMARY,
+      help: BALANCED_HELP,
       values: {},
     },
     {
       id: 'maxTps',
       label: 'Max TPS',
-      help: 'Drops the tank duties for threat.',
+      summary: MAX_TPS_SUMMARY,
+      help: MAX_TPS_HELP,
       values: { [ID.priority]: PROTECTION_PRIORITY.maxTps },
     },
   ],

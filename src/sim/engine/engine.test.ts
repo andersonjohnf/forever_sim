@@ -626,12 +626,13 @@ describe('golden run (fixed config and seed)', () => {
 
   // - M5.65 A2 and M5.6 T5 (D28, D31): Protection's rotation is a priority list, and its default is
   //   Balanced: Shield Block and Sunder Armor's 5 stacks (refreshed with 1.5 s left, the duty rule),
-  //   no Thunder Clap, Demoralizing Shout or Sunder Armor filler, and Heroic Strike from 40
-  //   (warrior.md §5.4 "Balanced"). The old default, Defensive, keeps its snapshot byte for byte
-  //   under its own name below. On this seed's 500 fights, Defensive → Balanced: TPS 1,132.88 →
-  //   1,009.33, DPS 363.16 → 381.02, damage taken 610.54 → 725.85 a second (Max TPS: 1,292.11,
-  //   389.11, 859.25). No Thunder Clap, Demoralizing Shout or filler rows; Sunder Armor's casts fall
-  //   to its upkeep, and the rage goes to Heroic Strike.
+  //   no Thunder Clap or Demoralizing Shout, the Sunder Armor filler only from 60 rage (user
+  //   decision), and Heroic Strike from 84, a first pass on TPS and DPS together (warrior.md §5.4
+  //   "Balanced"). The old default, Defensive, keeps its snapshot byte for byte under its own name
+  //   below. On this seed's 500 fights, Defensive → Balanced: TPS 1,132.88 → 1,241.15, DPS 363.16 →
+  //   385.89, damage taken 610.54 → 737.65 a second (Max TPS: 1,292.11, 389.11, 859.25). Thunder
+  //   Clap's 4,277 casts go; Sunder Armor 24,402 → 28,606 and Heroic Strike 12,696 → 18,888: the
+  //   faster, unweakened boss gives more rage.
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -676,8 +677,25 @@ describe('golden run (fixed config and seed)', () => {
   //   default before; its plans unchanged, bear-apl.test.ts) gives TPS 1,081.78, DPS 532.43 and 629.00
   //   damage taken a second, as before; Balanced TPS 1,114.45, DPS 547.00 and 633.32. The roar's
   //   3,747 casts go: Maul 35,653 → 36,750, Mangle 18,198 → 18,936, Lacerate 24,790 → 26,578.
+  //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"):
+  //   TPS 1,115.32, DPS 545.44, damage taken 633.07.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
+    const agg = runFights(bundle.plan, 500)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.casts, a.hits, a.crits, a.misses, a.dodges, a.parries]),
+    }).toMatchSnapshot()
+  })
+
+  // - M5.65 A2 and M5.6 T5 (D28, D31): Defensive, the bear's default until Balanced, and its
+  //   snapshot, byte for byte as the default's was before (the priority list changed nothing it
+  //   plays; bear-apl.test.ts checks 200 random setups too).
+  it('keeps the Defensive Feral bear’s result unchanged', () => {
+    const d = defaultConfig('druid-feral-bear')
+    const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
     const result = toResult(bundle, agg, 0)
     expect({

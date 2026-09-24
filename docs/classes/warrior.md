@@ -1472,15 +1472,17 @@ the rule for the default setup ([D23](../decisions.md#d23-the-default-rotation-i
 
 **The priority list** ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
 `PROTECTION_APL`). The Rotation tab shows the rows in this order, and you can reorder them. Row 3
-is two rows there, the racial and the trinkets. The pre-pull (row 0) and the duties, Shield Block,
-Thunder Clap and Demoralizing Shout (rows 1, 5 and 6), are pinned: the duty rule puts them before
-any threat ability on the global cooldown, so they don't move and no row moves past them. Bloodrage
-and the cooldowns (rows 2 and 3) move among themselves between Shield Block and Thunder Clap, the
-rest below Demoralizing Shout. The consumables (row 4) are spec-wide, above the list, and keep
-their place: after rows 1–3, before Thunder Clap. A row keeps its own conditions wherever it sits:
-the filler moved above Shield Slam still waits for it (with its switch on), and Thunder Clap on
-cooldown (`maintainOnly` off) is tried just above the filler, wherever that is. The presets share
-this order.
+is two rows there, the racial and the trinkets. Only the pre-pull (row 0) is pinned, first. The
+duties, Shield Block, Thunder Clap and Demoralizing Shout (rows 1, 5 and 6), are rows like the
+rest ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24):
+D26's duty timing keeps its own rule wherever the duty sits in the list): every preset puts them
+before any threat ability on the global cooldown, and their refresh stays the duty rule's wherever
+you move them; a moved duty makes the list Custom. The consumables (row 4) are spec-wide, above
+the list, and take their turn with the on-use trinkets (row 3), wherever that row sits, which in
+the default order is where they always were: after rows 1–3, before Thunder Clap. A row keeps its
+own conditions wherever it sits: the filler moved above Shield Slam still waits for it (with its
+switch on), and Thunder Clap on cooldown (`maintainOnly` off) is tried just above the filler,
+wherever that is. The presets share this order.
 
 **Priority** (`warrior.protection.priority`, the list's preset picker), per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
@@ -1494,9 +1496,10 @@ puts the list's settings at that preset's defaults and keeps the consumables' se
   defaults are this choice's, tuned on TPS.
 - **Balanced** (`balanced`, the default) keeps Shield Block, used when it's ready, and Sunder
   Armor's 5 stacks, refreshed by the duty rule (1.5 s left, one global cooldown); it drops Thunder
-  Clap, Demoralizing Shout and the Sunder Armor filler, and queues Heroic Strike from 40
-  ([Balanced](#balanced-t5) below). A setup saved with the old default and no Priority of its own
-  gets Balanced, as with any changed default.
+  Clap and Demoralizing Shout, uses the Sunder Armor filler only from 60 rage (60% of the default
+  build's 100; user decision), and queues Heroic Strike from 84 ([Balanced](#balanced-t5) below).
+  A setup saved with the old default and no Priority of its own gets Balanced, as with any changed
+  default.
 - **Max TPS** (`maxTps`) drops the duties and nothing else (rows 1, 5 and 6 are off by default),
   and is tuned on TPS alone ([Max TPS](#max-tps-p2) below). It keeps Shield Slam (row 7): dropping
   it wins on TPS only at Classic Era's threat value, which Forever's tooltip raised (D26's
@@ -1515,8 +1518,8 @@ a value you set yourself still wins.
 | `thunderClap.enabled` | on | off | off |
 | `demoShout.enabled` | on | off | off |
 | `sunder.refreshBelowSec` | 3 | 1.5 (the duty rule) | 3 |
-| `sunderFiller.enabled` | on | off | on |
-| `heroicStrike.minRage` | 76 | 40 | 45 |
+| `sunderFiller.minRage` | 9 (its cost) | 60 | 9 |
+| `heroicStrike.minRage` | 76 | 84 | 45 |
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s amendment):
@@ -1547,8 +1550,8 @@ taken
 | 8 | Revenge | Its window is open ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | `warrior.protection.revenge.enabled` (on) | yes |
 | 9 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 10 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3; 1.5 with Balanced, the duty rule) | yes |
-| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on; off with Balanced), `.minRage` (9: its cost), `.waitForShieldSlam` (off) | yes |
-| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; 40 with Balanced, 45 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (9: its cost; 60 with Balanced, 60% of the 100 cap), `.waitForShieldSlam` (off) | yes |
+| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; 84 with Balanced, 45 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 13 | Execute | Execute phase only: a dance to Battle Stance and back, which loses Defensive Stance's threat. The swap keeps at most 10 rage, +3 per Improved Tactical Mastery rank, and that must pay Execute's cost (12), so the default build can never use it | `warrior.protection.execute.enabled` (off) | no |
 
 Notes:
@@ -1881,48 +1884,57 @@ raid's armor debuff, and drops the debuffs that only lower the boss's damage:
 - **Kept:** Shield Block (row 1), used when it's ready, from its 10 rage; and Sunder Armor's 5
   stacks (row 10), refreshed by the duty rule, from one global cooldown (1.5 s left), as it has no
   cooldown.
-- **Dropped:** Thunder Clap and Demoralizing Shout (rows 5 and 6), and the Sunder Armor filler (row
-  11): D28 keeps Sunder Armor for its armor, not as a filler.
+- **Dropped:** Thunder Clap and Demoralizing Shout (rows 5 and 6).
+- **The Sunder Armor filler only above 60% rage** (row 11; user decision, 2026-09-24, amending
+  D28's "not used as a filler"): its threshold is 60 rage, 60% of the default build's 100 (no
+  Boundless Rage). Thresholds are absolute rage ([§5.1](#51-conventions-for-rotation-settings)), so
+  a build with Boundless Rage keeps 60 unless you change it. The filler row's summary reads "From
+  60 rage", and its setting's help says it's 60% of the bar.
 - **Tuned** on the balanced objective, ΔTPS% + ΔDPS% against Defensive
   ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)),
   a first pass ([D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)):
-  Heroic Strike from 40. Everything else keeps Defensive's value.
+  Heroic Strike from 84. Everything else keeps Defensive's value.
 
-Against Defensive, on seed 20260924 (100,000 paired fights, which no search used), in the default
-setup: **−123.45 TPS (−10.89%, 95% CI −123.76 to −123.13)**, 1,133.05 → 1,009.60; **+18.27 DPS
-(+5.03%, +18.11 to +18.44)**, 362.96 → 381.23; and **19% more damage taken**, 610.61 → 727.28 a
-second (+116.67, +116.52 to +116.82). On the balanced objective that's −5.86%. Max TPS, on the same
-fights, is +13.89% TPS and +6.99% DPS for 41% more damage taken ([Max TPS](#max-tps-p2)).
+Against Defensive, on seed 31101 (100,000 paired fights, which no search used), in the default
+setup: **+107.92 TPS (+9.53%, 95% CI +107.61 to +108.24)**, 1,133.05 → 1,240.98; **+23.12 DPS
+(+6.37%, +22.94 to +23.29)**, 363.06 → 386.18; and **21% more damage taken**, 610.59 → 739.10 a
+second (+128.51, +128.36 to +128.67). On the balanced objective that's +15.90%. Max TPS, on the
+same fights, is **+13.86% TPS** (1,290.09) and **+6.94% DPS** (388.25) for **41% more damage
+taken** (862.24 a second, +251.65; [Max TPS](#max-tps-p2)).
 
 - **Method** (D27's first pass). `scripts/tune/rotation.mjs --spec warrior-protection --base
   priority=duties` compares each candidate with Defensive on the same fights, and prints Defensive's
-  own TPS, DPS and damage taken, so each Δ reads as a share. The search swept the settings with room
-  to move on seed 11 (20,000 fights a candidate): Heroic Strike's threshold (10–80 by 5), its
-  last-seconds dump (0–30 s by 3), Shield Slam's threshold (17–47 by 5) and Bloodrage's (40–100 by
-  10). The winner was confirmed on seed 20260924 with its nearest neighbours.
-- **Heroic Strike from 40.** With no filler, the rage the global cooldowns leave goes to Heroic
-  Strike. 35–45 were level and best on both TPS and DPS (seed 11): 40 made −10.88% TPS and +18.09
-  DPS; 10 made −12.46% and +15.13 (it starves Shield Slam and Revenge), 80 −11.84% and +14.50. On
-  the fresh seed, 35 is −0.46 TPS and −0.09 DPS against 40, and 45 −0.16 and −0.13.
-- **Not moved** (seed 11, against Balanced with Heroic Strike from 40): the dump at 9 or 15 s
-  (−0.19 and +0.15 TPS; on the fresh seed −0.18 and +0.13, with DPS within 0.02: level with 12);
-  Shield Slam from 22 or more (−0.42 TPS and −0.46 DPS at 22, worse above); Bloodrage up to 40–100
-  (level).
-- **What the rule fixes** (fresh seed, against Balanced):
-  - Sunder Armor refreshed with 3 s left, Defensive's tuned value, instead of the rule's 1.5 s:
-    −1.35 TPS and +0.45 DPS, level on the objective.
-  - Sunder Armor's upkeep above Shield Slam, where D26's rule puts a duty: −49.34 TPS (−15.25%
-    against Defensive) and +4.22 DPS, −9.05% on the objective. Its 5 stacks from the pull hold
-    Shield Slam and Revenge back. D28 fixes the refresh by the rule, not the row's place, and the
-    three presets share one order (above), so the row stays where Defensive has it.
-- **What D28's "no filler" costs.** With the filler on, Balanced would make **+11.30% TPS and
-  +6.64% DPS against Defensive** (1,261.07 TPS, 387.05 DPS, 739.49 damage taken a second; fresh seed),
-  +17.9% on the objective: every global cooldown the rows above leave free is a Sunder Armor, 1,013
-  threat for 9 rage ([W26](#w26-threat-per-global-cooldown-protection)). Without it those global
-  cooldowns are empty, since Protection has nothing else on the global cooldown to spend them on,
-  and Heroic Strike takes the rage. So Balanced is below Defensive on TPS and on the objective, and
-  below Max TPS on both TPS and DPS. That's D28's definition as decided; it's flagged for the user
-  in the T5 review.
+  own TPS, DPS and damage taken, so each Δ reads as a share. On seed 31001 (20,000 fights a
+  candidate) it swept Heroic Strike's threshold (30–100) with the filler from 60, then a grid of
+  the filler's threshold (50–70 by 5) against Heroic Strike's (80–88 by 2), then the other
+  settings with room to move, against Balanced. The winner was confirmed on seed 31101 with the
+  filler's 50 and 70 beside it.
+- **Heroic Strike from 84.** With the filler waiting for 60 rage, Heroic Strike's queue decides how
+  much rage reaches it: from 40 (the first pass without the filler) it spends the rage before the
+  filler can, −11.39% TPS against Defensive; from 60 +0.96%, 70 +6.46%, 80 +9.11%. With the filler
+  at 60, 82, 84 and 86 are level on the objective (+15.76%, +15.77%, +15.75%; 84: +9.46% TPS, +6.31%
+  DPS), and 88 and up lose DPS faster than they gain TPS (100: +7.56% TPS, +3.68% DPS).
+- **The filler's 60 is the user's number, not the search's.** Lower is better on the objective, and
+  higher worse (seed 31001, Heroic Strike at its best for each): 50 +16.90%, 55 +16.39%, 60 +15.77%,
+  65 +14.88%, 70 +13.64%. On the fresh seed, from 50 is **+0.72% TPS and +0.20% DPS against 60**
+  (+10.25% and +6.57% against Defensive, +16.82% on the objective), and from 70 −2.09% TPS and
+  −0.59% DPS. The filler from its cost, 9, as Defensive has it, makes +11.23% TPS and +6.93% DPS
+  against Defensive (seed 31001, Heroic Strike from 76). Each rage the filler waits for is a global
+  cooldown with nothing else to spend it on, since Protection has nothing else on the global
+  cooldown; 1,013 threat for 9 rage is the best threat per rage it has
+  ([W26](#w26-threat-per-global-cooldown-protection)). 60 stays the default, as decided; the
+  numbers are here for the tuning milestone (D27).
+- **Not moved** (seed 31001, against Balanced): the last-seconds dump off (+0.24% TPS, −0.59% DPS)
+  or at 24 s (−1.56% TPS); cancelling Heroic Strike below 20 rage, Shield Slam from 30 and Shield
+  Block from 30 (all level or worse); Bloodrage up to 50 or 90 (−0.13% and −0.01% TPS); the filler
+  waiting for Shield Slam (−0.72% TPS, +0.29% DPS). Shield Slam off (+2.64% TPS, −25.1% DPS) fails
+  D28's rule, a larger share of DPS lost than TPS gained. Battle Shout off (+0.28% TPS, +0.05% DPS)
+  is within D27's resolution and would leave the raid's Battle Shout to the Buffs tab, so it stays.
+- **What the rule fixes** (T5's first pass, before the filler, against Balanced): Sunder Armor
+  refreshed with 3 s left, Defensive's tuned value, instead of the rule's 1.5 s was level on the
+  objective (−1.35 TPS, +0.45 DPS); Sunder Armor's upkeep above Shield Slam, where a duty would
+  sit, cost −9.05% on the objective, since its 5 stacks from the pull hold Shield Slam and Revenge
+  back. The row stays where Defensive has it; the presets share one order.
 
 ### 5.5 Multi-target options (light)
 

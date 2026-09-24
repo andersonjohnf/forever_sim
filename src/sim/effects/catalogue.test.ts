@@ -585,11 +585,11 @@ describe('the wizard oils (buffs doc §3.6)', () => {
 
 // --- The cited client rows, when the raw client tables are cached locally -------------------------
 
-const FOREVER_BUILD = '1.60.1.69913'
+const FOREVER_BUILD = '1.60.1.70009'
 const CLASSIC_BUILD = '1.15.9.69722'
 const TABLES = import.meta.glob<string>(
   [
-    '/.cache/client/1.60.1.69913/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
+    '/.cache/client/1.60.1.70009/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
     '/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
   ],
   { query: '?raw', import: 'default' },

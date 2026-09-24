@@ -861,7 +861,8 @@ const REGISTRY = {
     docRef: `${LOCK}#112-your-demon`,
   },
   masterDemonologist: {
-    text: 'Master Demonologist’s +10% Fire (the Imp) or Shadow (the Succubus) is on you and on your demon’s spells of that school, as its Forever tooltip reads; the Succubus’s swings don’t get it. Untested.',
+    // docs/classes/warlock.md §11.4; the plan names the demon out, its school and its spell ({detail}).
+    text: 'Master Demonologist gives {detail}. Untested.',
     docRef: `${LOCK}#113-talents`,
   },
   decimation: {

@@ -63,8 +63,21 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
     improvedShadowBolt: String(vulnerability),
     improvedImpCast: String((firebolt?.castMs ?? 0) / 1000),
     ...(plan.pet ? demonDetails(plan.pet) : {}),
+    ...(plan.pet ? { masterDemonologist: masterDemonologistDetail(plan) } : {}),
   }
   return ids.map((id) => ({ id, detail: detail[id] }))
+}
+
+/**
+ * Master Demonologist's text, worded for the demon out (warlock.md §11.4): its rank's school damage on
+ * you and on the demon's spell of that school, and, for the Succubus, that its swings don't get it (Q17).
+ */
+function masterDemonologistDetail(plan: Plan): string {
+  const pet = plan.pet!
+  const pct = plan.auras.find((a) => a.id === 'masterDemonologist')?.schoolDamage ?? 0
+  const spell = pet.abilities.find((a) => a.kind === 'spell')?.name ?? 'spells'
+  const school = pet.id === 'imp' ? 'Fire' : 'Shadow'
+  return `+${pct}% ${school} damage with the ${pet.name} out, on you and on its ${spell}, as its Forever tooltip reads${pet.weapon !== null ? '; its swings don’t get it' : ''}`
 }
 
 /**

@@ -99,6 +99,14 @@ test.describe('Demonology warlock', () => {
     buffs = await openTab(page, 'Buffs')
     await expect(buffs.getByRole('switch', { name: /^Sunder Armor/ })).toBeChecked()
     await expect(buffs).not.toContainText('Not used: only your demon’s swings')
+    // With no demon out, they're locked off again, saying so.
+    const none = await openTab(page, 'Rotation')
+    await choice(none, 'Demon', 'None').click()
+    buffs = await openTab(page, 'Buffs')
+    const sunderNone = buffs.getByRole('switch', { name: /^Sunder Armor/ })
+    await expect(sunderNone).toBeDisabled()
+    await expect(sunderNone).not.toBeChecked()
+    await expect(buffs.getByText(/Not used: only your demon’s swings meet the boss’s armor, and you keep no demon out \(see Rotation\)\.$/).first()).toBeVisible()
   })
 
   test('simulates, and its results show the demon’s rows, its passives and its assumptions', { tag: '@smoke' }, async ({ page }) => {

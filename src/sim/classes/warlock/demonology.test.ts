@@ -371,6 +371,15 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(felhunter.table).not.toContain('spells')
   })
 
+  it('Master Demonologist’s text names the demon out, its school and its spell; none with the Felhunter or no demon (DV2-8)', () => {
+    const text = (demon: string) =>
+      buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: demon, [DEMONOLOGY_IDS.sacrifice]: demon === 'imp' ? 'succubus' : 'imp' })).assumptions.find((a) => a.id === 'masterDemonologist')?.text
+    expect(text('imp')).toBe('Master Demonologist gives +10% Fire damage with the Imp out, on you and on its Firebolt, as its Forever tooltip reads. Untested.')
+    expect(text('succubus')).toBe('Master Demonologist gives +10% Shadow damage with the Succubus out, on you and on its Lash of Pain, as its Forever tooltip reads; its swings don’t get it. Untested.')
+    expect(text('felhunter')).toBeUndefined()
+    expect(text('none')).toBeUndefined()
+  })
+
   it('the demon’s crit and hit follow yours, and its spells never read your school auras', () => {
     const { plan } = buildPlan(fixed(SUCCUBUS))
     const agg = (p: Plan) => runFights(p, 300)

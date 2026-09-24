@@ -241,6 +241,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     for you."), and its switch stays usable. The two attack-power debuffs, of which only one
     applies, name each other: "−204 boss attack power (instead of Demoralizing Shout)" for
     Demoralizing Roar, and the other way round.
+  - Entries of which only one can be on turn each other off when one is switched on: one flask,
+    one stone or oil (a weapon takes one temporary enchant). The stones' and oils' summaries end
+    "(one stone or oil per weapon)", so the switch that turns off isn't a surprise ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

@@ -150,6 +150,14 @@ const NOT_IN_PRESETS: BuffSpec['presets'] = {}
 export const ELEMENTAL_STONE_WEAPONS = ['axe', 'mace', 'polearm', 'sword', 'staff', 'fist', 'dagger'] as const
 
 /**
+ * One temporary enchant a weapon (buffs doc §3.6, "Exclusivity groups"): the stones and the wizard
+ * oils are one exclusive group. A stone goes on each weapon you hold, and the oils' classes hold one
+ * weapon (none of them dual-wields), so one of them is on at a time. The rogue's poisons are chosen
+ * per hand (`poison:mainHand`, `poison:offHand`) and take a stone's place on theirs.
+ */
+export const TEMP_ENCHANT = 'temp-enchant'
+
+/**
  * Mighty Rage Potion (item 13442 → spell 17528; buffs doc §3.5): an energize of 600 tenths with
  * variance 0.5, so 45–75 rage, drawn as 450 + a whole 0…300 tenths (Classic Era's 449 + 1d301),
  * and +60 Strength (aura 29) for 20 s. No GCD on the spell; the potion category's 2 min cooldown
@@ -1138,14 +1146,15 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_sharpeningstone_05',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+8 weapon damage on each weapon',
+    summary: '+8 weapon damage on each weapon (one stone or oil per weapon)',
     forSpecs: 'melee',
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: [{ kind: 'tempEnchant', id: 'denseStone', priority: 1, weaponDamage: 8 }],
+    // Max consumables has the Elemental stone in its place (§6.3).
     presets: {
       dungeon: [...WARRIOR_DPS, 'paladin-retribution'],
       raid: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'],
-      max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'],
     },
   },
   {
@@ -1154,29 +1163,32 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_02',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+2% crit for each weapon it’s on (replaces the dense stone there)',
+    summary: '+2% crit for each weapon it’s on (one stone or oil per weapon)',
     forSpecs: 'melee',
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
     effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'] },
   },
-  // The wizard oils (buffs doc §3.6): the main hand's temporary enchant, ahead of a stone there.
+  // The wizard oils (buffs doc §3.6): the main hand's temporary enchant, one at a time with a stone. No
+  // class that can use them dual-wields, so it's their only weapon.
   {
     id: 'wizardOil',
     name: 'Wizard Oil',
     icon: 'inv_potion_104',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+30 spell damage, on your main hand (in place of a stone there)',
+    summary: '+30 spell damage, on your main hand (one stone or oil per weapon)',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 30 [F]; Classic Era's 24 [C]
     // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
     classicEra: {
-      summary: '+24 spell damage, on your main hand (in place of a stone there)',
+      summary: '+24 spell damage, on your main hand (one stone or oil per weapon)',
       effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
     },
     presets: { raid: PROTECTION_PALADIN },
@@ -1187,9 +1199,10 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_105',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+36 spell damage and +1% spell crit, on your main hand (in place of Wizard Oil or a stone there)',
+    summary: '+36 spell damage and +1% spell crit, on your main hand (one stone or oil per weapon)',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // 20749 → 25122 → enchant 2628 → 25113: aura 13 (mask 126) 36 and aura 57 (spell crit) 1, the
     // same in both clients [F] [C] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).

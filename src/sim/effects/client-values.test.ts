@@ -2,7 +2,7 @@
 // (docs/data/client.md), and what the plan builder makes of them: Hand of Justice's and Ironfoe's
 // chances and internal cooldowns per profile (damage-and-timing §5.2), Windfury Totem's internal cooldown
 // (§5.4), and the weapons an Elemental Sharpening Stone fits and how two of them stack (buffs doc
-// §3.6).
+// §3.6), with the stones' and oils' one group.
 import { describe, expect, it } from 'vitest'
 import enchantsJson from '@/data/client/enchants.json'
 import itemsJson from '@/data/client/items.json'
@@ -11,11 +11,13 @@ import type { ClientItems, ClientSpells } from '@/data/client/types'
 import itemJson from '@/data/items/pre-bis.json'
 import type { ItemData, WeaponType } from '@/data/items/types'
 import { defaultConfig } from '../defaults'
-import { presetBuffIds } from './presets'
+import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { RuleProfileId, SimConfig } from '../types'
-import { BUFFS_BY_ID, ELEMENTAL_STONE_WEAPONS } from './buffs'
+import { BUFFS_BY_ID, ELEMENTAL_STONE_WEAPONS, TEMP_ENCHANT } from './buffs'
+import { PROFICIENCY } from '../equip'
+import { SPEC_IDS, SPEC_META } from '../specs'
 import { HAND_OF_JUSTICE_ICD_MS, ITEM_EFFECTS } from './items'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -246,6 +248,29 @@ describe('Elemental Sharpening Stone (item 18262 → 22756 → enchant 2506 → 
     const one = buildPlan({ ...arms, buffs: { raid: arms.buffs.raid, enabled: [...arms.buffs.enabled, 'elementalSharpeningStone'] } })
     expect(one.sheet.critPct - buildPlan(arms).sheet.critPct).toBeCloseTo(2, 9)
     expect(one.assumptions.map((a) => a.id)).not.toContain('elementalStone')
+  })
+})
+
+describe('one stone or oil a weapon (buffs doc §3.6)', () => {
+  it('puts the stones and the wizard oils in one group, and the Max preset’s Elemental stone replaces the dense one', () => {
+    for (const id of ['denseSharpeningStone', 'elementalSharpeningStone', 'wizardOil', 'brilliantWizardOil']) expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBe(TEMP_ENCHANT)
+    for (const spec of ['warrior-fury', 'warrior-arms', 'warrior-protection', 'paladin-retribution'] as const) {
+      const max = presetBuffIds('max', spec, defaultConfig(spec).buffs.raid)
+      expect(max, spec).toContain('elementalSharpeningStone')
+      expect(max, spec).not.toContain('denseSharpeningStone')
+    }
+    const paladin = presetBuffIds('max', 'paladin-protection', defaultConfig('paladin-protection').buffs.raid)
+    expect(paladin).toContain('brilliantWizardOil')
+    expect(paladin).not.toContain('wizardOil')
+  })
+
+  it('no class that can use an oil dual-wields, so an oil is always its only weapon’s', () => {
+    for (const id of ['wizardOil', 'brilliantWizardOil']) {
+      for (const spec of SPEC_IDS) {
+        if (!forSpecClass(BUFFS_BY_ID.get(id)!, spec)) continue
+        expect(PROFICIENCY[SPEC_META[spec].classId].dualWield, `${id}: ${spec}`).toBe(false)
+      }
+    }
   })
 })
 

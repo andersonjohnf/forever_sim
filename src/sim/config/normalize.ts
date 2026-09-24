@@ -7,7 +7,7 @@ import raceJson from '@/data/races/races.json'
 import type { ClassSlug, RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
 import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
-import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
+import { BUFFS_BY_ID, type BuffSpec, TEMP_ENCHANT } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
 import { buffProvided, forSpecClass, presetBuffIds } from '../effects/presets'
@@ -300,17 +300,34 @@ function effectSizes(buff: BuffSpec, profile: RulesProfile): Map<string, number>
   return sizes
 }
 
+/** The priority of a buff that is one temporary weapon enchant (a stone or an oil), else undefined. */
+function tempEnchantPriority(buff: BuffSpec, profile: RulesProfile): number | undefined {
+  const effects = catalogueEffects(buff, profile)
+  return effects.length === 1 && effects[0].kind === 'tempEnchant' && !effects[0].proc ? effects[0].priority : undefined
+}
+
 /**
  * 1 when `a`'s effect is larger than `b`'s, -1 when smaller, 0 when the same, and null when they
- * change different things or each is larger at something. Exported for its tests.
+ * change different things or each is larger at something. Temporary weapon enchants (a stone or an
+ * oil) compare by the priority the plan gives them on a weapon (buffs doc §3.6): Brilliant Wizard
+ * Oil over Wizard Oil over the Elemental stone over the Dense one. Exported for its tests.
  */
 export function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile): 1 | 0 | -1 | null {
+  const pa = tempEnchantPriority(a, profile)
+  const pb = tempEnchantPriority(b, profile)
+  if (pa !== undefined && pb !== undefined && pa !== pb) return pa > pb ? 1 : -1
   const x = effectSizes(a, profile)
   const y = effectSizes(b, profile)
   if (!x || !y || x.size !== y.size || [...x.keys()].some((k) => !y.has(k))) return null
   const larger = [...x].some(([k, v]) => v > y.get(k)!)
   const smaller = [...x].some(([k, v]) => v < y.get(k)!)
   return larger && smaller ? null : larger ? 1 : smaller ? -1 : 0
+}
+
+/** Why two entries of an exclusive group can't both be on, as the repair note says it (buffs doc, "Exclusivity groups"). */
+function rivalReason(group: string): string {
+  if (group === TEMP_ENCHANT) return 'takes the same weapon as'
+  return 'doesn’t stack with'
 }
 
 function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, legacy: boolean, r: Repairs): SimConfig['buffs'] {
@@ -369,7 +386,7 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
   const enabled: string[] = []
   for (const buff of selected) {
     const winner = buff.exclusiveGroup && winners.get(buff.exclusiveGroup)
-    if (winner && winner !== buff) r.add(`${buff.name} doesn’t stack with ${winner.name}, so it was turned off.`)
+    if (winner && winner !== buff) r.add(`${buff.name} ${rivalReason(buff.exclusiveGroup as string)} ${winner.name}, so it was turned off.`)
     else enabled.push(buff.id)
   }
   return { raid, enabled }

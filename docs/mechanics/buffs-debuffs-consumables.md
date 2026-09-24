@@ -94,7 +94,8 @@ in both clients with its client rows.
 - **Cooldown categories for on-use items**: potions, Frenzy potions included (shared 2 min), runes (shared 2 min,
   separate from potions), explosives (shared 1 min), and the Blasted Lands buffs (shared
   1 h). See [Implementation notes](#on-use-items-and-cooldown-categories).
-- **One temporary enchant per weapon** (stone, oil or poison). In Classic, Windfury Totem
+- **One temporary enchant per weapon** (stone, oil or poison): one stone or oil is on at a time,
+  and a rogue picks a poison per hand. In Classic, Windfury Totem
   took the main-hand slot, and the `classicEra` profile models that; in Forever it probably
   doesn't. See [Windfury Totem](#windfury-totem).
 - **Presets** built on raid composition, not faction ([§6](#6-default-presets)).
@@ -405,9 +406,16 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 
 ### 3.6 Weapon enhancements (temporary)
 
-One temporary enchant per weapon, 30 min. Dense sharpening stones fit bladed weapons and
-weightstones fit blunt ones [C]. In Classic, Windfury Totem overwrote the main-hand slot;
-in Forever it probably doesn't ([Windfury Totem](#windfury-totem)).
+One temporary enchant per weapon, 30 min: a second one replaces the first [C]. Dense sharpening
+stones fit bladed weapons and weightstones fit blunt ones [C]. The Buffs tab has **one stone or
+oil on at a time** (the `temp-enchant` group): a stone goes on each weapon you hold, and an oil on
+your one weapon, since no class that can use the oils dual-wields (warriors, rogues and hunters do;
+paladins, shamans and the casters don't, per the class proficiencies in `src/sim/equip.ts` [C]). A
+saved setup with two keeps the one the weapon would take: Brilliant Wizard Oil, then Wizard Oil,
+then the Elemental stone, then the Dense one. A dual-wielding warrior with an Elemental stone on
+one weapon and a Dense one on the other isn't offered: the stone you pick goes on both. In
+Classic, Windfury Totem overwrote the main-hand slot; in Forever it probably doesn't
+([Windfury Totem](#windfury-totem)).
 
 **Elemental Sharpening Stone.** It fits any melee weapon, blunt ones included: the item's spell
 22756 and the aura its enchant applies, 22755, both require an item of class 2 (weapon) with
@@ -427,19 +435,19 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 
 | Name | ID | Effect | Duration | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit to all melee attacks, on any melee weapon (above) | 30 min | Temporary-enchant slot of that weapon; one per weapon, and two stack [?] | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, SpellEquippedItems, 1.60.1.69913) |
+| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit to all melee attacks, on any melee weapon (above) | 30 min | Temporary-enchant slot of that weapon; one stone or oil per weapon (`temp-enchant`), and two stack [?] | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, SpellEquippedItems, 1.60.1.69913) |
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
 | Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
-| Wizard Oil (`wizardOil`) | 20750 → 25121 → enchant 2627 → 25111 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above: the main hand's, ahead of a stone there | Enchanting | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25111 #0 (aura 13, all magic schools) 30; Classic Era's 23 + 1 |
-| Brilliant Wizard Oil (`brilliantWizardOil`) | 20749 → 25122 → enchant 2628 → 25113 | +36 spell damage and healing, +1% spell crit | 30 min | As above, ahead of Wizard Oil | Enchanting (reworded) | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25113 #0 36, #2 (aura 57) 1, the same in both |
+| Wizard Oil (`wizardOil`) | 20750 → 25121 → enchant 2627 → 25111 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above: the main hand's, one stone or oil at a time | Enchanting | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25111 #0 (aura 13, all magic schools) 30; Classic Era's 23 + 1 |
+| Brilliant Wizard Oil (`brilliantWizardOil`) | 20749 → 25122 → enchant 2628 → 25113 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25113 #0 36, #2 (aura 57) 1, the same in both |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
 | Instant Poison VI | 8928 → 11340 | Enchant 625: each hit of its weapon has a 20% chance of 76–100 Nature damage (spell 11337; C: 112–148); 175 charges | 30 min | One poison per weapon, in place of a stone there; rogues only | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellItemEnchantment, 1.60.1.69913); [rogue §4.1](../classes/rogue.md#41-instant-poison-vi) |
 | Deadly Poison V | 20844 → 25351 | Enchant 2630: each hit of its weapon has a 30% chance of a stack of 23 Nature damage every 3 s for 12 s, 5 stacks (spell 25349; C: 34); 180 charges | 30 min | As above | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellAuraOptions, SpellItemEnchantment, 1.60.1.69913); [rogue §4.2](../classes/rogue.md#42-deadly-poison-v) |
 
-**Wizard oils** are the casters' temporary weapon enchants: the sim puts one on your main hand, where
-it beats a stone (Brilliant Wizard Oil first), and its spell damage and spell crit are its equip
-aura's, on you. A caster that never swings its weapon still gets them from the one it holds. They
+**Wizard oils** are the casters' temporary weapon enchants: the sim puts the one you pick on your main
+hand, in place of a stone, and its spell damage and spell crit are its equip aura's, on you. A
+caster that never swings its weapon still gets them from the one it holds. They
 go to the classes that spend mana and deal spell damage ([Class-only entries](#class-only-entries)),
 and they're locked off for the Enhancement shaman, whose weapon imbue is its main hand's temporary
 enchant. In `classicEra`, Windfury Totem's enchant takes the main hand's slot from an oil as it does
@@ -786,7 +794,7 @@ their stacking group is verified; the UI offers them as options.
 | Spec | Pre-raid dungeon group | Standard raid | Max-consumables raid (adds / replaces) |
 | --- | --- | --- | --- |
 | Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon); EZ-Thro Dark Bomb (or Sapper + Dense Dynamite if `engineer`) |
-| Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone; Greater Stoneshield Potion (on use) |
+| Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone (replaces Dense); Greater Stoneshield Potion (on use) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
@@ -919,12 +927,15 @@ auras ([§2](#2-world-buffs-excluded)).
 
 ### Exclusivity groups
 
-Encode these as data (`exclusivityGroup` on each entry). When several entries in a group
-are selected, keep only the one with the largest effect and warn in the UI.
+Encode these as data (`exclusiveGroup` on each entry). When several entries in a group
+are selected, keep only the one with the largest effect and warn in the UI. Turning one on in
+the Buffs tab turns the others of its group off.
 `normalizeConfig` compares effects when both entries change the same things (Juju Power's
 +30 Strength beats Elixir of Greater Strength's +25) and keeps the first on a tie. When they
 change different things (Mightfish Steak's attack power against Smoked Desert Dumplings'
-Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first.
+Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first. A
+stone or oil keeps the one a weapon would take, by its priority ([§3.6](#36-weapon-enhancements-temporary)). The
+note says why the other went: it "doesn't stack with" or "takes the same weapon as" the one kept.
 
 | Group key | Members | Tag |
 | --- | --- | --- |
@@ -941,7 +952,8 @@ Strength), it keeps the one the spec's Max consumables preset picks, and otherwi
 | `zanza` | Spirit / Swiftness / Sheen of Zanza | [F] tooltip |
 | `food` | All Well Fed foods (Dirge's and Sunfruit [?]) | [?] |
 | `health-elixir` | Lesser Fortitude, Fortitude, Greater Fortitude | [?] |
-| `temp-enchant:mh`, `temp-enchant:oh` | Stones, oils, poisons (plus Windfury Totem on MH in Classic only) | [C] / [?] |
+| `temp-enchant` | Dense and Elemental Sharpening Stones, Wizard Oil, Brilliant Wizard Oil: one stone on each weapon, or one oil on the only weapon of a class that can use oils ([§3.6](#36-weapon-enhancements-temporary)); Windfury Totem takes the main hand's in Classic only | [C] |
+| `poison:mainHand`, `poison:offHand` | The rogue's poisons, one per hand, each in place of a stone there ([rogue §4](../classes/rogue.md#4-poisons)) | [C] |
 | `armor-major` | Sunder Armor ×5, Expose Armor | [C] / [?] |
 | `ap-reduction` | Demoralizing Shout, Demoralizing Roar | [?] |
 | `curse:<warlock n>` | One curse per warlock | [F] |
@@ -993,7 +1005,8 @@ fight.
   The totem aura is not a weapon enchant, so a main-hand temporary enchant is allowed ([?]).
   `classicEra`: +315 AP, and the totem's enchant replaces the main-hand temporary enchant [C]
   ([Windfury Totem](#windfury-totem)).
-- **Temporary weapon enchants**: each weapon takes the best one it fits, Elemental over Dense.
+- **Temporary weapon enchants**: one stone or oil is on at a time (`temp-enchant`), and each weapon
+  takes it if it fits; a rogue's poison on a hand takes that weapon's place from a stone.
   Each Elemental Sharpening Stone adds +2% crit to all melee attacks, so a stone on each weapon
   gives +4% [?] ([§3.6](#36-weapon-enhancements-temporary)).
 - **Weapon enchant procs** use PPM (`chance = PPM × weaponSpeed / 60`, see

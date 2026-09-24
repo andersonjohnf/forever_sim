@@ -85,7 +85,7 @@ export const cooldownOptions = (ids: RogueIds): RotationOption[] => [
     id: ids.items,
     group: 'Cooldowns and buffs',
     label: 'On-use items',
-    help: 'Use the on-use trinkets you wear that the sim models on cooldown, such as Weakness Analyzer.',
+    help: 'Use Weakness Analyzer (+5% crit until your next crit, for up to 20 s) and Earthstrike (+280 attack power for 20 s) on cooldown if you wear them. Other on-use trinkets aren’t simulated.',
     default: true,
   },
 ]

@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 81,
-      "docs": 355,
+      "docs": 357,
       "enchant": 125,
       "item": 413,
       "racial": 44,
@@ -48,7 +48,7 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1756,
+    "seeds": 1757,
     "spells": 1887
   },
   "excludedWorldBuffs": {
@@ -30928,7 +30928,7 @@
       "shapeshift": {
         "shapeshiftMask": [536870912, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11273": {
       "categories": {
@@ -78227,7 +78227,7 @@
         "spellIconFileDataId": 132302
       },
       "name": "Thousand Cuts",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1310728": {
       "classOptions": {

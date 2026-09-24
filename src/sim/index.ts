@@ -46,7 +46,7 @@ export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from '
 /**
  * Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c,
  * Protection, the first tank, from P2, the Feral cat from B2, Retribution from C2, the Protection
- * paladin from C3, the Feral bear from B4, and the three rogues from R1.
+ * paladin from C3, the Feral bear from B4, the Enhancement shaman from S1, and the three rogues from R1.
  */
 const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'warrior-fury',

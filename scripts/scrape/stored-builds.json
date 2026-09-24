@@ -153,5 +153,31 @@
         "Master of Deception 3, Opportunity 2, Setup 2, Improved Ambush 3, Initiative 3, Ghostly Strike 1, Improved Distract 1, Heightened Senses 2, Premeditation 1, Serrated Blades 3, Dirty Deeds 2, Preparation 1, Hemorrhage 1, Quietus 5, Cutthroat 5, Thousand Cuts 1"
       ]
     }
+  },
+  "mage": {
+    "230225-23550000130133051-005": {
+      "note": "Fire default (14/32/5), mage.md#talents",
+      "ranks": [
+        "Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5",
+        "Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Pyroblast 1, Improved Scorch 3, Hot Streak 1, Master of Elements 3, Critical Mass 3, Fire Power 5, Combustion 1",
+        "Elemental Precision 5"
+      ]
+    },
+    "230225200100301--055510033002000105": {
+      "note": "Frost default (21/0/30), mage.md#talents",
+      "ranks": [
+        "Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Resilience 2, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1",
+        "",
+        "Improved Frostbolt 5, Elemental Precision 5, Ice Shards 5, Permafrost 1, Piercing Ice 3, Frost Channeling 3, Arctic Reach 2, Cold Snap 1, Winter's Chill 5"
+      ]
+    },
+    "050225003100301531-2355001010003-": {
+      "note": "Arcane default (31/20/0), mage.md#talents",
+      "ranks": [
+        "Arcane Focus 5, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Impact 3, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1, Arcane Mind 5, Arcane Instability 3, Arcane Power 1",
+        "Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Burning Soul 1, Pyroblast 1, Master of Elements 3",
+        ""
+      ]
+    }
   }
 }

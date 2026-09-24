@@ -44,7 +44,7 @@ import {
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/spells-client.mjs";

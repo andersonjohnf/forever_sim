@@ -295,7 +295,10 @@ export type PreRaidBisSpec =
   | "shaman-enhancement"
   | "rogue-combat"
   | "rogue-assassination"
-  | "rogue-subtlety";
+  | "rogue-subtlety"
+  | "mage-fire"
+  | "mage-frost"
+  | "mage-arcane";
 
 /** Slot keys used by the pre-raid BiS lists: paperdoll slots, plus `twoHand` and `relic`. */
 export type PreRaidBisSlot =

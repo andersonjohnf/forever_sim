@@ -1,0 +1,1798 @@
+{
+  "meta": {
+    "classicBuild": "1.15.9.69722",
+    "classicProduct": "wow_classic_era",
+    "foreverBuild": "1.60.1.69913",
+    "foreverBuildDate": "2026-09-18",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scraper": "scripts/scrape/talents-client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "classic": {
+        "ChrClasses": 1361031,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "Talent": 1369062,
+        "TalentTab": 2178102
+      },
+      "forever": {
+        "ChrClasses": 1361031,
+        "CurvePoint": 892586,
+        "ItemSubClass": 1261604,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellCastTimes": 1134089,
+        "SpellClassOptions": 979663,
+        "SpellCooldowns": 1139924,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellEquippedItems": 1140011,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellPower": 982806,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "TalentTab": 2178102,
+        "TraitCond": 4543085,
+        "TraitCurrency": 4524216,
+        "TraitDefinition": 4420327,
+        "TraitDefinitionEffectPoints": 4536895,
+        "TraitEdge": 4420308,
+        "TraitNode": 4420297,
+        "TraitNodeEntry": 4420298,
+        "TraitNodeGroupXTraitCond": 4543090,
+        "TraitNodeGroupXTraitNode": 4420302,
+        "TraitNodeXTraitCond": 4543092,
+        "TraitNodeXTraitNodeEntry": 4420304,
+        "TraitTree": 4420305,
+        "TraitTreeXTraitCurrency": 4524218
+      }
+    },
+    "traitCurrencyId": 3820,
+    "traitTreeId": 1112,
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "class": "mage",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.",
+  "rules": {
+    "maxCol": 3,
+    "maxPoints": 51,
+    "maxTier": 6,
+    "pointsPerTier": 5
+  },
+  "trees": [
+    {
+      "clientTreeId": "81",
+      "icon": "spell_holy_magicalsentry",
+      "id": "Arcane",
+      "index": 0,
+      "name": "Arcane",
+      "talents": [
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Wand Specialization",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 6057,
+          "col": 0,
+          "icon": "inv_wand_01",
+          "id": "mage-arcane-wand-specialization",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Wand Specialization",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your damage with Wands by 13%.", "Increases your damage with Wands by 25%."],
+            "forever": ["Increases your damage with Wands by 13%.", "Increases your damage with Wands by 25%."]
+          },
+          "spellId": 6057,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Arcane Focus",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11222,
+          "col": 1,
+          "icon": "spell_holy_devotion",
+          "id": "mage-arcane-arcane-focus",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Arcane Focus",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the chance that the opponent can resist your Arcane spells by 2%.", "Reduces the chance that the opponent can resist your Arcane spells by 4%.", "Reduces the chance that the opponent can resist your Arcane spells by 6%.", "Reduces the chance that the opponent can resist your Arcane spells by 8%.", "Reduces the chance that the opponent can resist your Arcane spells by 10%."],
+            "forever": ["Improves your chance to hit with Arcane spells by 1%.", "Improves your chance to hit with Arcane spells by 2%.", "Improves your chance to hit with Arcane spells by 3%.", "Improves your chance to hit with Arcane spells by 4%.", "Improves your chance to hit with Arcane spells by 5%."]
+          },
+          "spellId": 11222,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "Improved Arcane Missiles",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11237,
+          "col": 2,
+          "icon": "spell_nature_starfall",
+          "id": "mage-arcane-improved-channeling",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Channeling",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Arcane Missiles",
+          "ranks": {
+            "classic": ["Gives you a 20% chance to avoid interruption caused by damage while channeling Arcane Missiles.", "Gives you a 40% chance to avoid interruption caused by damage while channeling Arcane Missiles.", "Gives you a 60% chance to avoid interruption caused by damage while channeling Arcane Missiles.", "Gives you a 80% chance to avoid interruption caused by damage while channeling Arcane Missiles.", "Gives you a 100% chance to avoid interruption caused by damage while channeling Arcane Missiles."],
+            "forever": ["Gives you a 20% chance to avoid interruption caused by damage while channeling Arcane Missiles and a 14% chance while casting Arcane Blast.", "Gives you a 40% chance to avoid interruption caused by damage while channeling Arcane Missiles and a 28% chance while casting Arcane Blast.", "Gives you a 60% chance to avoid interruption caused by damage while channeling Arcane Missiles and a 42% chance while casting Arcane Blast.", "Gives you a 80% chance to avoid interruption caused by damage while channeling Arcane Missiles and a 56% chance while casting Arcane Blast.", "Gives you a 100% chance to avoid interruption caused by damage while channeling Arcane Missiles and a 70% chance while casting Arcane Blast."]
+          },
+          "spellId": 11237,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Arcane Subtlety",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11210,
+          "col": 0,
+          "icon": "spell_holy_dispelmagic",
+          "id": "mage-arcane-arcane-subtlety",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Arcane Subtlety",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces your target's resistance to all your spells by 5 and reduces the threat caused by your Arcane spells by 20%.", "Reduces your target's resistance to all your spells by 10 and reduces the threat caused by your Arcane spells by 40%."],
+            "forever": ["Reduces your target's resistance to all your spells by 8 and reduces the threat caused by your Arcane spells by 15%.", "Reduces your target's resistance to all your spells by 15 and reduces the threat caused by your Arcane spells by 30%."]
+          },
+          "spellId": 11210,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Magic Absorption",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 29441,
+          "col": 1,
+          "icon": "spell_nature_astralrecalgroup",
+          "id": "mage-arcane-magic-absorption",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Magic Absorption",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases all resistances by 2 and causes all spells you fully resist to restore 1% of your total mana. 1 sec. cooldown.", "Increases all resistances by 4 and causes all spells you fully resist to restore 2% of your total mana. 1 sec. cooldown.", "Increases all resistances by 6 and causes all spells you fully resist to restore 3% of your total mana. 1 sec. cooldown.", "Increases all resistances by 8 and causes all spells you fully resist to restore 4% of your total mana. 1 sec. cooldown.", "Increases all resistances by 10 and causes all spells you fully resist to restore 5% of your total mana. 1 sec. cooldown."],
+            "forever": ["Increases all your resistances by 5 and causes all spells you fully resist to restore 1% of your total mana. Cannot trigger more often than 1 time per sec.", "Increases all your resistances by 10 and causes all spells you fully resist to restore 2% of your total mana. Cannot trigger more often than 1 time per sec."]
+          },
+          "spellId": 29441,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Arcane Concentration",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11213,
+          "col": 2,
+          "icon": "spell_shadow_manaburn",
+          "id": "mage-arcane-arcane-concentration",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Arcane Concentration",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 2% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 4% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 6% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 8% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 10% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%."],
+            "forever": ["Gives you a 2% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 4% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 6% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 8% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%.", "Gives you a 10% chance of entering a Clearcasting state after any damage spell hits a target. The Clearcasting state reduces the mana cost of your next damage spell by 100%."]
+          },
+          "spellId": 11213,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Arcane Resilience",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 28574,
+          "col": 3,
+          "icon": "spell_arcane_arcaneresilience",
+          "id": "mage-arcane-arcane-resilience",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Arcane Resilience",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your armor by an amount equal to 50% of your Intellect."],
+            "forever": ["Increases your Armor by an amount equal to 25% of your Intellect.", "Increases your Armor by an amount equal to 50% of your Intellect."]
+          },
+          "spellId": 28574,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_spell",
+            "maxRank": 2,
+            "name": "Magic Attunement",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11247,
+          "col": 0,
+          "icon": "inv_ability_mage_radiantspark",
+          "id": "mage-arcane-arcane-geometry",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Arcane Geometry",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Magic Attunement",
+          "ranks": {
+            "classic": ["Increases the effect of your Amplify Magic and Dampen Magic spells by 25%.", "Increases the effect of your Amplify Magic and Dampen Magic spells by 50%."],
+            "forever": ["Increases the range of your Arcane spells by 3 yards.", "Increases the range of your Arcane spells by 6 yards."]
+          },
+          "spellId": 11247,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_spell",
+            "maxRank": 3,
+            "name": "Improved Arcane Explosion",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11242,
+          "col": 1,
+          "icon": "spell_nature_wispsplode",
+          "id": "mage-arcane-arcane-impact",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Arcane Impact",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Arcane Explosion",
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Arcane Explosion spell by an additional 2%.", "Increases the critical strike chance of your Arcane Explosion spell by an additional 4%.", "Increases the critical strike chance of your Arcane Explosion spell by an additional 6%."],
+            "forever": ["Increases the critical strike chance of your Arcane spells by 2%.", "Increases the critical strike chance of your Arcane spells by 4%.", "Increases the critical strike chance of your Arcane spells by 6%."]
+          },
+          "spellId": 11242,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "spell_arcane_blast",
+          "id": "mage-arcane-arcane-blast",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Arcane Blast",
+          "order": 9,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Blasts the target with energy, dealing 57 to 65 Arcane damage. Each time you cast Arcane Blast, the damage of all your other spells is increased by 10% and the mana cost of Arcane Blast is increased by 175%. Effect stacks up to 4 times and lasts 8 sec or until any other damage spell is cast."]
+          },
+          "spellId": 400574,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "2.5 sec cast",
+            "range": "30 yd range",
+            "resourceCost": "15% of base mana"
+          },
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_spell",
+            "maxRank": 2,
+            "name": "Improved Mana Shield",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11252,
+          "col": 0,
+          "icon": "spell_shadow_detectlesserinvisibility",
+          "id": "mage-arcane-arcane-shielding",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Arcane Shielding",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Mana Shield",
+          "ranks": {
+            "classic": ["Decreases the mana lost per point of damage taken when Mana Shield is active by 10%.", "Decreases the mana lost per point of damage taken when Mana Shield is active by 20%."],
+            "forever": ["Decreases the Mana lost per point of damage taken when your Mana Shield spell is active by 17% and increases the resistances granted by your Mage Armor spell by 25%.", "Decreases the Mana lost per point of damage taken when your Mana Shield spell is active by 33% and increases the resistances granted by your Mage Armor spell by 50%."]
+          },
+          "spellId": 11252,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Counterspell",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11255,
+          "col": 1,
+          "icon": "spell_frost_iceshock",
+          "id": "mage-arcane-improved-counterspell",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Counterspell",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Counterspell a 50% chance to silence the target for 4 sec.", "Gives your Counterspell a 100% chance to silence the target for 4 sec."],
+            "forever": ["Your Counterspell also Silences the target for 2 sec.", "Your Counterspell also Silences the target for 4 sec."]
+          },
+          "spellId": 11255,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Arcane Meditation",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 18462,
+          "col": 2,
+          "icon": "spell_shadow_siphonmana",
+          "id": "mage-arcane-arcane-meditation",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Arcane Meditation",
+          "order": 12,
+          "passive": true,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "mage-arcane-arcane-concentration"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Allows 5% of your Mana regeneration to continue while casting.", "Allows 10% of your Mana regeneration to continue while casting.", "Allows 15% of your Mana regeneration to continue while casting."],
+            "forever": ["Allows 17% of your Mana regeneration to continue while casting.", "Allows 33% of your Mana regeneration to continue while casting.", "Allows 50% of your Mana regeneration to continue while casting."]
+          },
+          "spellId": 18462,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "ability_mage_missilebarrage",
+          "id": "mage-arcane-missile-barrage",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Missile Barrage",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Gives your Arcane Blast spell a 40% chance, and your Fireball, Frostbolt, and Frostfire Bolt spells a 20% chance to reduce the channeled duration of your next Arcane Missiles spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec."]
+          },
+          "spellId": 400588,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Presence of Mind",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 12043,
+          "col": 1,
+          "icon": "spell_nature_enchantarmor",
+          "id": "mage-arcane-presence-of-mind",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Presence of Mind",
+          "order": 14,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, your next Mage spell with a casting time less than 10 sec becomes an instant cast spell."],
+            "forever": ["When activated, your next Mage spell with a casting time less than 10 sec becomes an instant cast spell."]
+          },
+          "spellId": 12043,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Arcane Mind",
+            "prerequisite": "Arcane Resilience",
+            "tier": 4,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 11232,
+          "col": 2,
+          "icon": "spell_shadow_charm",
+          "id": "mage-arcane-arcane-mind",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Arcane Mind",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your maximum Mana by 2%.", "Increases your maximum Mana by 4%.", "Increases your maximum Mana by 6%.", "Increases your maximum Mana by 8%.", "Increases your maximum Mana by 10%."],
+            "forever": ["Increases your Intellect by 2% and increases the critical strike damage bonus of your Arcane spells by 20%.", "Increases your Intellect by 4% and increases the critical strike damage bonus of your Arcane spells by 40%.", "Increases your Intellect by 6% and increases the critical strike damage bonus of your Arcane spells by 60%.", "Increases your Intellect by 8% and increases the critical strike damage bonus of your Arcane spells by 80%.", "Increases your Intellect by 10% and increases the critical strike damage bonus of your Arcane spells by 100%."]
+          },
+          "spellId": 11232,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Arcane Instability",
+            "prerequisite": "Presence of Mind",
+            "tier": 5,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 15058,
+          "col": 2,
+          "icon": "spell_shadow_teleport",
+          "id": "mage-arcane-arcane-instability",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Arcane Instability",
+          "order": 16,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your spell damage and critical strike chance by 1%.", "Increases your spell damage and critical strike chance by 2%.", "Increases your spell damage and critical strike chance by 3%."],
+            "forever": ["Increases the damage done by your spells by 1% and your critical strike chance by 1%.", "Increases the damage done by your spells by 2% and your critical strike chance by 2%.", "Increases the damage done by your spells by 3% and your critical strike chance by 3%."]
+          },
+          "spellId": 15058,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Arcane"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Arcane Power",
+            "prerequisite": "Arcane Instability",
+            "tier": 6,
+            "tree": "Arcane"
+          },
+          "classicSpellId": 12042,
+          "col": 1,
+          "icon": "spell_nature_lightning",
+          "id": "mage-arcane-arcane-power",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Arcane Power",
+          "order": 17,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "mage-arcane-presence-of-mind"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, your spells deal 30% more damage while costing 30% more mana to cast. This effect lasts 15 sec."],
+            "forever": ["For the next 15 sec, your spells deal 30% more damage while costing 30% more mana to cast."]
+          },
+          "spellId": 12042,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Arcane"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "41",
+      "icon": "spell_fire_firebolt02",
+      "id": "Fire",
+      "index": 1,
+      "name": "Fire",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 3,
+            "name": "Improved Fire Blast",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11078,
+          "col": 0,
+          "icon": "spell_fire_lavaspawn",
+          "id": "mage-fire-wake-of-fire",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Wake of Fire",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Fire Blast",
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Fire Blast spell by 0.5 sec.", "Reduces the cooldown of your Fire Blast spell by 1 sec.", "Reduces the cooldown of your Fire Blast spell by 1.5 sec."],
+            "forever": ["Reduces the cooldown of your Fire Blast spell by 1 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 20 sec by 25%.", "Reduces the cooldown of your Fire Blast spell by 2 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 20 sec by 50%."]
+          },
+          "spellId": 11078,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_spell",
+            "maxRank": 2,
+            "name": "Incinerate",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fire"
+          },
+          "classicSpellId": 18459,
+          "col": 1,
+          "icon": "spell_fire_flameshock",
+          "id": "mage-fire-incineration",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Incineration",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Incinerate",
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Fire Blast and Scorch spells by 2%.", "Increases the critical strike chance of your Fire Blast and Scorch spells by 4%."],
+            "forever": ["Increases the critical strike chance of your Fire Blast, Ice Lance, Arcane Blast, and Scorch spells by 2%.", "Increases the critical strike chance of your Fire Blast, Ice Lance, Arcane Blast, and Scorch spells by 4%.", "Increases the critical strike chance of your Fire Blast, Ice Lance, Arcane Blast, and Scorch spells by 6%."]
+          },
+          "spellId": 18459,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Improved Fireball",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11069,
+          "col": 2,
+          "icon": "spell_fire_flamebolt",
+          "id": "mage-fire-improved-fireball",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Fireball",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the casting time of your Fireball spell by 0.1 sec.", "Reduces the casting time of your Fireball spell by 0.2 sec.", "Reduces the casting time of your Fireball spell by 0.3 sec.", "Reduces the casting time of your Fireball spell by 0.4 sec.", "Reduces the casting time of your Fireball spell by 0.5 sec."],
+            "forever": ["Reduces the casting time of your Fireball and Frostfire Bolt spells by 0.1 sec.", "Reduces the casting time of your Fireball and Frostfire Bolt spells by 0.2 sec.", "Reduces the casting time of your Fireball and Frostfire Bolt spells by 0.3 sec.", "Reduces the casting time of your Fireball and Frostfire Bolt spells by 0.4 sec.", "Reduces the casting time of your Fireball and Frostfire Bolt spells by 0.5 sec."]
+          },
+          "spellId": 11069,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Ignite",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11119,
+          "col": 0,
+          "icon": "spell_fire_incinerate",
+          "id": "mage-fire-ignite",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Ignite",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your critical strikes from Fire damage spells cause the target to burn for an additional 8% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 16% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 24% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 32% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 40% of your spell's damage over 4 sec."],
+            "forever": ["Your critical strikes from Fire damage spells cause the target to burn for an additional 8% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 16% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 24% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 32% of your spell's damage over 4 sec.", "Your critical strikes from Fire damage spells cause the target to burn for an additional 40% of your spell's damage over 4 sec."]
+          },
+          "spellId": 11119,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Flame Throwing",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11100,
+          "col": 1,
+          "icon": "spell_fire_flare",
+          "id": "mage-fire-flame-throwing",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Flame Throwing",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the range of your Fire spells by 3 yards.", "Increases the range of your Fire spells by 6 yards."],
+            "forever": ["Increases the range of your Fire spells by 3 yards.", "Increases the range of your Fire spells by 6 yards."]
+          },
+          "spellId": 11100,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Impact",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11103,
+          "col": 2,
+          "icon": "spell_fire_meteorstorm",
+          "id": "mage-fire-impact",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Impact",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Fire spells a 2% chance to stun the target for 2 sec.", "Gives your Fire spells a 4% chance to stun the target for 2 sec.", "Gives your Fire spells a 6% chance to stun the target for 2 sec.", "Gives your Fire spells a 8% chance to stun the target for 2 sec.", "Gives your Fire spells a 10% chance to stun the target for 2 sec."],
+            "forever": ["Gives your Fire spells a 3% chance to stun the target for 2 sec.", "Gives your Fire spells a 7% chance to stun the target for 2 sec.", "Gives your Fire spells a 10% chance to stun the target for 2 sec."]
+          },
+          "spellId": 11103,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Burning Soul",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11083,
+          "col": 0,
+          "icon": "spell_fire_fire",
+          "id": "mage-fire-burning-soul",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Burning Soul",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Fire spells a 35% chance to not lose casting time when you take damage and reduces the threat caused by your Fire spells by 15%.", "Gives your Fire spells a 70% chance to not lose casting time when you take damage and reduces the threat caused by your Fire spells by 30%."],
+            "forever": ["Gives your Fire spells a 23% chance to not lose casting time when you take damage and reduces the threat caused by your Fire spells by 10%.", "Gives your Fire spells a 47% chance to not lose casting time when you take damage and reduces the threat caused by your Fire spells by 20%.", "Gives your Fire spells a 70% chance to not lose casting time when you take damage and reduces the threat caused by your Fire spells by 30%."]
+          },
+          "spellId": 11083,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Flamestrike",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11108,
+          "col": 1,
+          "icon": "spell_fire_selfdestruct",
+          "id": "mage-fire-improved-flamestrike",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Flamestrike",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Flamestrike spell by 5%.", "Increases the critical strike chance of your Flamestrike spell by 10%.", "Increases the critical strike chance of your Flamestrike spell by 15%."],
+            "forever": ["Increases the critical strike chance of your Flamestrike spell by 5%.", "Increases the critical strike chance of your Flamestrike spell by 10%.", "Increases the critical strike chance of your Flamestrike spell by 15%."]
+          },
+          "spellId": 11108,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Pyroblast",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11366,
+          "col": 2,
+          "icon": "spell_fire_fireball02",
+          "id": "mage-fire-pyroblast",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Pyroblast",
+          "order": 8,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Hurls an immense fiery boulder that causes 148 to 194 Fire damage and an additional 56 Fire damage over 12 sec."],
+            "forever": ["Hurls an immense fiery boulder that causes 101 to 131 Fire damage and an additional 44 Fire damage over 12 sec."]
+          },
+          "spellId": 11366,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "6 sec cast",
+            "range": "35 yd range",
+            "resourceCost": "125 Mana"
+          },
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Scorch",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11095,
+          "col": 0,
+          "icon": "spell_fire_windsofwoe",
+          "id": "mage-fire-improved-scorch",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Scorch",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your Scorch spells have a 33% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases the Fire damage dealt to your target by 3% and lasts 30 sec. Stacks up to 5 times.", "Your Scorch spells have a 66% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases the Fire damage dealt to your target by 3% and lasts 30 sec. Stacks up to 5 times.", "Your Scorch spells have a 100% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases the Fire damage dealt to your target by 3% and lasts 30 sec. Stacks up to 5 times."],
+            "forever": ["Your Scorch spell has a 33% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases all Fire damage you deal to your target by 3% and lasts 30 sec, stacking up to 5 times.", "Your Scorch spell has a 67% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases all Fire damage you deal to your target by 3% and lasts 30 sec, stacking up to 5 times.", "Your Scorch spell has a 100% chance to cause your target to be vulnerable to Fire damage. This vulnerability increases all Fire damage you deal to your target by 3% and lasts 30 sec, stacking up to 5 times."]
+          },
+          "spellId": 11095,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Fire Ward",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11094,
+          "col": 1,
+          "icon": "spell_fire_firearmor",
+          "id": "mage-fire-improved-fire-ward",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Fire Ward",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Causes your Fire Ward to have a 10% chance to reflect Fire spells while active.", "Causes your Fire Ward to have a 20% chance to reflect Fire spells while active."],
+            "forever": ["Causes your Fire Ward to have a 10% chance to reflect Fire spells while active.", "Causes your Fire Ward to have a 20% chance to reflect Fire spells while active."]
+          },
+          "spellId": 11094,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_mage_hotstreak",
+          "id": "mage-fire-hot-streak",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Hot Streak",
+          "order": 11,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "mage-fire-pyroblast"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Your non-periodic critical strikes with Fireball, Frostfire Bolt, Fire Blast, and Scorch grant Hot Streak for 15 sec. Hot Streak reduces the cast time of Pyroblast by 25%, stacking up to 3 times."]
+          },
+          "spellId": 400624,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Master of Elements",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fire"
+          },
+          "classicSpellId": 29074,
+          "col": 3,
+          "icon": "spell_fire_masterofelements",
+          "id": "mage-fire-master-of-elements",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Master of Elements",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your Fire and Frost spell criticals will refund 10% of their base mana cost.", "Your Fire and Frost spell criticals will refund 20% of their base mana cost.", "Your Fire and Frost spell criticals will refund 30% of their base mana cost."],
+            "forever": ["Your Fire and Frost critical strikes will refund 10% of their base mana cost.", "Your Fire and Frost critical strikes will refund 20% of their base mana cost.", "Your Fire and Frost critical strikes will refund 30% of their base mana cost."]
+          },
+          "spellId": 29074,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Critical Mass",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11115,
+          "col": 1,
+          "icon": "spell_nature_wispheal",
+          "id": "mage-fire-critical-mass",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Critical Mass",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Fire spells by 2%.", "Increases the critical strike chance of your Fire spells by 4%.", "Increases the critical strike chance of your Fire spells by 6%."],
+            "forever": ["Increases the critical strike chance of your Fire spells by 2%.", "Increases the critical strike chance of your Fire spells by 4%.", "Increases the critical strike chance of your Fire spells by 6%."]
+          },
+          "spellId": 11115,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Blast Wave",
+            "prerequisite": "Pyroblast",
+            "tier": 4,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11113,
+          "col": 2,
+          "icon": "spell_holy_excorcism_02",
+          "id": "mage-fire-blast-wave",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Blast Wave",
+          "order": 14,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["A wave of flame radiates outward from the caster, damaging all enemies caught within the blast for 160 to 192 Fire damage, and dazing them for 6 sec."],
+            "forever": ["A wave of flame radiates outward from the caster, damaging all enemies caught within the blast for 154 to 184 Fire damage, and Dazing them for 50% reduced movement speed for 6 sec."]
+          },
+          "spellId": 11113,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "45 sec cooldown",
+            "resourceCost": "215 Mana"
+          },
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Fire Power",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11124,
+          "col": 2,
+          "icon": "spell_fire_immolation",
+          "id": "mage-fire-fire-power",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Fire Power",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Fire spells by 2%.", "Increases the damage done by your Fire spells by 4%.", "Increases the damage done by your Fire spells by 6%.", "Increases the damage done by your Fire spells by 8%.", "Increases the damage done by your Fire spells by 10%."],
+            "forever": ["Increases the damage done by your Fire spells by 2%.", "Increases the damage done by your Fire spells by 4%.", "Increases the damage done by your Fire spells by 6%.", "Increases the damage done by your Fire spells by 8%.", "Increases the damage done by your Fire spells by 10%."]
+          },
+          "spellId": 11124,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Fire"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Combustion",
+            "prerequisite": "Critical Mass",
+            "tier": 6,
+            "tree": "Fire"
+          },
+          "classicSpellId": 11129,
+          "col": 1,
+          "icon": "spell_fire_sealoffire",
+          "id": "mage-fire-combustion",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Combustion",
+          "order": 16,
+          "passive": false,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "mage-fire-critical-mass"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, this spell causes each of your Fire damage spell hits to increase your critical strike chance with Fire damage spells by 10%. This effect lasts until you have caused 3 critical strikes with Fire spells."],
+            "forever": ["When activated, this spell causes each of your Fire damage spell hits to increase your critical strike chance with Fire damage spells by 10%. This effect lasts until you have caused 4 non-periodic critical strikes with Fire spells."]
+          },
+          "spellId": 11129,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Fire"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "61",
+      "icon": "spell_frost_frostbolt02",
+      "id": "Frost",
+      "index": 2,
+      "name": "Frost",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Frost Warding",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11189,
+          "col": 0,
+          "icon": "spell_frost_frostward",
+          "id": "mage-frost-frost-warding",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Frost Warding",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the armor and resistances given by your Frost Armor and Ice Armor spells by 15%. In addition, gives your Frost Ward a 10% chance to reflect Frost spells and effects while active.", "Increases the armor and resistances given by your Frost Armor and Ice Armor spells by 30%. In addition, gives your Frost Ward a 20% chance to reflect Frost spells and effects while active."],
+            "forever": ["Increases the Armor and resistance given by your Frost Armor and Ice Armor spells by 15%. In addition, gives your Frost Ward a 10% chance to reflect Frost spells and effects while active.", "Increases the Armor and resistance given by your Frost Armor and Ice Armor spells by 30%. In addition, gives your Frost Ward a 20% chance to reflect Frost spells and effects while active."]
+          },
+          "spellId": 11189,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Improved Frostbolt",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11070,
+          "col": 1,
+          "icon": "spell_frost_frostbolt02",
+          "id": "mage-frost-improved-frostbolt",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Frostbolt",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the casting time of your Frostbolt spell by 0.1 sec.", "Reduces the casting time of your Frostbolt spell by 0.2 sec.", "Reduces the casting time of your Frostbolt spell by 0.3 sec.", "Reduces the casting time of your Frostbolt spell by 0.4 sec.", "Reduces the casting time of your Frostbolt spell by 0.5 sec."],
+            "forever": ["Reduces the casting time of your Frostbolt spell by 0.1 sec.", "Reduces the casting time of your Frostbolt spell by 0.2 sec.", "Reduces the casting time of your Frostbolt spell by 0.3 sec.", "Reduces the casting time of your Frostbolt spell by 0.4 sec.", "Reduces the casting time of your Frostbolt spell by 0.5 sec."]
+          },
+          "spellId": 11070,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Elemental Precision",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Frost"
+          },
+          "classicSpellId": 29438,
+          "col": 2,
+          "icon": "spell_ice_magicdamage",
+          "id": "mage-frost-elemental-precision",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Elemental Precision",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the chance that the opponent can resist your Frost and Fire spells by 2%.", "Reduces the chance that the opponent can resist your Frost and Fire spells by 4%.", "Reduces the chance that the opponent can resist your Frost and Fire spells by 6%."],
+            "forever": ["Improves your chance to hit with Frost and Fire spells by 1%.", "Improves your chance to hit with Frost and Fire spells by 2%.", "Improves your chance to hit with Frost and Fire spells by 3%.", "Improves your chance to hit with Frost and Fire spells by 4%.", "Improves your chance to hit with Frost and Fire spells by 5%."]
+          },
+          "spellId": 29438,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Ice Shards",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11207,
+          "col": 0,
+          "icon": "spell_frost_iceshard",
+          "id": "mage-frost-ice-shards",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Ice Shards",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike damage bonus of your Frost spells by 20%.", "Increases the critical strike damage bonus of your Frost spells by 40%.", "Increases the critical strike damage bonus of your Frost spells by 60%.", "Increases the critical strike damage bonus of your Frost spells by 80%.", "Increases the critical strike damage bonus of your Frost spells by 100%."],
+            "forever": ["Increases the critical strike damage bonus of your Frost spells by 20%.", "Increases the critical strike damage bonus of your Frost spells by 40%.", "Increases the critical strike damage bonus of your Frost spells by 60%.", "Increases the critical strike damage bonus of your Frost spells by 80%.", "Increases the critical strike damage bonus of your Frost spells by 100%."]
+          },
+          "spellId": 11207,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Permafrost",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11175,
+          "col": 1,
+          "icon": "spell_frost_wisp",
+          "id": "mage-frost-permafrost",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Permafrost",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the duration of your Chill effects by 1 sec and reduces the target's speed by an additional 4%.", "Increases the duration of your Chill effects by 2 secs and reduces the target's speed by an additional 7%.", "Increases the duration of your Chill effects by 3 secs and reduces the target's speed by an additional 10%."],
+            "forever": ["Increases the duration of your Chill effects by 11% and reduces the target's speed by an additional 3%.", "Increases the duration of your Chill effects by 22% and reduces the target's speed by an additional 7%.", "Increases the duration of your Chill effects by 33% and reduces the target's speed by an additional 10%."]
+          },
+          "spellId": 11175,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Frost Nova",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11165,
+          "col": 2,
+          "icon": "spell_frost_freezingbreath",
+          "id": "mage-frost-improved-frost-nova",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Frost Nova",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Frost Nova spell by 2 sec.", "Reduces the cooldown of your Frost Nova spell by 4 sec."],
+            "forever": ["Reduces the cooldown of your Frost Nova spell by 2 sec.", "Reduces the cooldown of your Frost Nova spell by 4 sec."]
+          },
+          "spellId": 11165,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Frostbite",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11071,
+          "col": 3,
+          "icon": "spell_frost_frostarmor",
+          "id": "mage-frost-frostbite",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Frostbite",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Chill effects a 5% chance to freeze the target for 5 sec.", "Gives your Chill effects a 10% chance to freeze the target for 5 sec.", "Gives your Chill effects a 15% chance to freeze the target for 5 sec."],
+            "forever": ["Gives your Chill effects a 5% chance to Freeze the target for 5 sec.", "Gives your Chill effects a 10% chance to Freeze the target for 5 sec.", "Gives your Chill effects a 15% chance to Freeze the target for 5 sec."]
+          },
+          "spellId": 11071,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Piercing Ice",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11151,
+          "col": 0,
+          "icon": "spell_frost_frostbolt",
+          "id": "mage-frost-piercing-ice",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Piercing Ice",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Frost spells by 2%.", "Increases the damage done by your Frost spells by 4%.", "Increases the damage done by your Frost spells by 6%."],
+            "forever": ["Increases the damage done by your Frost spells by 2%.", "Increases the damage done by your Frost spells by 4%.", "Increases the damage done by your Frost spells by 6%."]
+          },
+          "spellId": 11151,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Frost Channeling",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11160,
+          "col": 1,
+          "icon": "spell_frost_stun",
+          "id": "mage-frost-frost-channeling",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Frost Channeling",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the mana cost of your Frost spells by 5% and reduces the threat caused by your Frost spells by 10%.", "Reduces the mana cost of your Frost spells by 10% and reduces the threat caused by your Frost spells by 20%.", "Reduces the mana cost of your Frost spells by 15% and reduces the threat caused by your Frost spells by 30%."],
+            "forever": ["Reduces the mana cost of your Frost spells by 5% and reduces the threat caused by your Frost spells by 10%.", "Reduces the mana cost of your Frost spells by 10% and reduces the threat caused by your Frost spells by 20%.", "Reduces the mana cost of your Frost spells by 15% and reduces the threat caused by your Frost spells by 30%."]
+          },
+          "spellId": 11160,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_frost_frostblast",
+          "id": "mage-frost-ice-lance",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Ice Lance",
+          "order": 9,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Deals 28 to 32 Frost damage to an enemy target. Deals 300% increased damage to Frozen targets."]
+          },
+          "spellId": 1312002,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "range": "30 yd range",
+            "resourceCost": "45 Mana"
+          },
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Blizzard",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11185,
+          "col": 3,
+          "icon": "spell_frost_icestorm",
+          "id": "mage-frost-improved-blizzard",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Blizzard",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Adds a chill effect to your Blizzard spell. This effect lowers the target's movement speed by 30%. Lasts 1.5 sec.", "Adds a chill effect to your Blizzard spell. This effect lowers the target's movement speed by 50%. Lasts 1.5 sec.", "Adds a chill effect to your Blizzard spell. This effect lowers the target's movement speed by 65%. Lasts 1.5 sec."],
+            "forever": ["Adds a Chill effect to your Blizzard spell. This effect lowers the target's movement speed by 15% for 1.5 sec.", "Adds a Chill effect to your Blizzard spell. This effect lowers the target's movement speed by 25% for 1.5 sec.", "Adds a Chill effect to your Blizzard spell. This effect lowers the target's movement speed by 40% for 1.5 sec."]
+          },
+          "spellId": 11185,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Arctic Reach",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Frost"
+          },
+          "classicSpellId": 16757,
+          "col": 0,
+          "icon": "spell_shadow_darkritual",
+          "id": "mage-frost-arctic-reach",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Arctic Reach",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the range of your Frostbolt and Blizzard spells and the radius of your Frost Nova and Cone of Cold spells by 10%.", "Increases the range of your Frostbolt and Blizzard spells and the radius of your Frost Nova and Cone of Cold spells by 20%."],
+            "forever": ["Increases the range of your Frostbolt and Blizzard spells and the radius of your Frost Nova and Cone of Cold spells by 10%.", "Increases the range of your Frostbolt and Blizzard spells and the radius of your Frost Nova and Cone of Cold spells by 20%."]
+          },
+          "spellId": 16757,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Ice Block",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11958,
+          "col": 1,
+          "icon": "spell_frost_frost",
+          "id": "mage-frost-ice-block",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Ice Block",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["You become encased in a block of ice, protecting you from all physical attacks and spells for 10 sec, but during that time you cannot attack, move or cast spells."],
+            "forever": ["You become encased in a block of ice, protecting you from all physical attacks and spells for 10 sec, but during that time you cannot attack, move, or cast spells."]
+          },
+          "spellId": 11958,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "5 min cooldown",
+            "resourceCost": "15 Mana"
+          },
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Shatter",
+            "prerequisite": "Improved Frost Nova",
+            "tier": 3,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11170,
+          "col": 3,
+          "icon": "spell_frost_frostshock",
+          "id": "mage-frost-shatter",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Shatter",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike chance of all your spells against frozen targets by 10%.", "Increases the critical strike chance of all your spells against frozen targets by 20%.", "Increases the critical strike chance of all your spells against frozen targets by 30%.", "Increases the critical strike chance of all your spells against frozen targets by 40%.", "Increases the critical strike chance of all your spells against frozen targets by 50%."],
+            "forever": ["Increases the critical strike chance of all your spells against Frozen targets by 17%.", "Increases the critical strike chance of all your spells against Frozen targets by 33%.", "Increases the critical strike chance of all your spells against Frozen targets by 50%."]
+          },
+          "spellId": 11170,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Cone of Cold",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11190,
+          "col": 0,
+          "icon": "spell_frost_glacier",
+          "id": "mage-frost-improved-cone-of-cold",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Cone of Cold",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage dealt by your Cone of Cold spell by 15%.", "Increases the damage dealt by your Cone of Cold spell by 25%.", "Increases the damage dealt by your Cone of Cold spell by 35%."],
+            "forever": ["Increases the damage dealt by your Cone of Cold spell by 12%.", "Increases the damage dealt by your Cone of Cold spell by 23%.", "Increases the damage dealt by your Cone of Cold spell by 35%."]
+          },
+          "spellId": 11190,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Cold Snap",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Frost"
+          },
+          "classicSpellId": 12472,
+          "col": 1,
+          "icon": "spell_frost_wizardmark",
+          "id": "mage-frost-cold-snap",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Cold Snap",
+          "order": 15,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, this spell finishes the cooldown on all of your Frost spells."],
+            "forever": ["Finishes the remaining cooldown on all your other Frost spells."]
+          },
+          "spellId": 12472,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "10 min cooldown"
+          },
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_mage_wintersgrasp",
+          "id": "mage-frost-fingers-of-frost",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Fingers of Frost",
+          "order": 16,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "mage-frost-ice-lance"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Gives your Chill effects a 15% chance to grant you the Fingers of Frost effect, which treats your next 1 spell cast as if the target were Frozen. Lasts 15 sec.", "Gives your Chill effects a 15% chance to grant you the Fingers of Frost effect, which treats your next 2 spells cast as if the target were Frozen. Lasts 15 sec."]
+          },
+          "spellId": 400647,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Winter's Chill",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11180,
+          "col": 2,
+          "icon": "spell_frost_chillingblast",
+          "id": "mage-frost-winters-chill",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Winter's Chill",
+          "order": 17,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Frost damage spells a 20% chance to apply the Winter's Chill effect, which increases the chance a Frost spell will critically hit the target by 2% for 15 sec. Stacks up to 5 times.", "Gives your Frost damage spells a 40% chance to apply the Winter's Chill effect, which increases the chance a Frost spell will critically hit the target by 2% for 15 sec. Stacks up to 5 times.", "Gives your Frost damage spells a 60% chance to apply the Winter's Chill effect, which increases the chance a Frost spell will critically hit the target by 2% for 15 sec. Stacks up to 5 times.", "Gives your Frost damage spells a 80% chance to apply the Winter's Chill effect, which increases the chance a Frost spell will critically hit the target by 2% for 15 sec. Stacks up to 5 times.", "Gives your Frost damage spells a 100% chance to apply the Winter's Chill effect, which increases the chance a Frost spell will critically hit the target by 2% for 15 sec. Stacks up to 5 times."],
+            "forever": ["Gives your Frost damage spells a 20% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 1 times.", "Gives your Frost damage spells a 40% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 2 times.", "Gives your Frost damage spells a 60% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 3 times.", "Gives your Frost damage spells a 80% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 4 times.", "Gives your Frost damage spells a 100% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 5 times."]
+          },
+          "spellId": 11180,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Frost"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Ice Barrier",
+            "prerequisite": "Ice Block",
+            "tier": 6,
+            "tree": "Frost"
+          },
+          "classicSpellId": 11426,
+          "col": 1,
+          "icon": "spell_ice_lament",
+          "id": "mage-frost-ice-barrier",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Ice Barrier",
+          "order": 18,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "mage-frost-cold-snap"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Instantly shields you, absorbing 454 damage. Lasts 1 min. While the shield holds, spells will not be interrupted."],
+            "forever": ["Instantly shields you, absorbing 447 damage. Lasts 1 min. While the shield holds, your spellcasts will not be interrupted or delayed from taking damage."]
+          },
+          "spellId": 11426,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "30 sec cooldown",
+            "resourceCost": "305 Mana"
+          },
+          "tree": "Frost"
+        }
+      ]
+    }
+  ]
+}

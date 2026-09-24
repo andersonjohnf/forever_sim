@@ -200,6 +200,9 @@ describe("formatting", () => {
     expect(evaluate(ctx, 0, "$max(2, $floor(3.7))")).toBe(3);
     expect(evaluate(ctx, 0, "-4/2")).toBe(-2);
     expect(evaluate(ctx, 0, "1+")).toBeNull();
+    // A `$` before an operator is the operator (the mage's Frostbolt: `${$m2$*$<frostdamage>}`).
+    expect(evaluate(ctx, 0, "2$*3")).toBe(6);
+    expect(evaluate(ctx, 0, "8$/2$+1")).toBe(5);
   });
 });
 

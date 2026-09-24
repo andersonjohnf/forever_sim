@@ -7,7 +7,7 @@
 //   import type { SpellBook } from "@/data/spells/types";
 //   const warrior = warriorJson as SpellBook;
 
-export type SpellClass = "warrior" | "druid" | "paladin" | "shaman";
+export type SpellClass = "warrior" | "druid" | "paladin" | "shaman" | "mage";
 export type SpellResource = "rage" | "energy" | "mana" | "health";
 
 /**

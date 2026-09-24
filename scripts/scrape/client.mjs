@@ -39,7 +39,7 @@ import { stableStringify } from "./lib/json.mjs";
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/client.mjs";
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage"];
 const DEFAULT_PRODUCT = "wow_classic_beta";
 const DEFAULT_BASELINE = "1.15.9.69722";
 

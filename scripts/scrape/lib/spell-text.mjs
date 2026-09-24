@@ -651,6 +651,13 @@ export function evaluate(ctx, spellId, expr, depth = 0, conditions = null) {
       i++;
       continue;
     }
+    // A `$` before an operator is the operator: the mage's Frostbolt reads `${$m2$*$<frostdamage>}`
+    // in both clients, "515 to 555" at rank 11 in game (docs/classes/mage.md#frostbolt).
+    if (rest[0] === "$" && "+-*/".includes(rest[1] ?? "")) {
+      tokens.push({ type: "op", value: rest[1] });
+      i += 2;
+      continue;
+    }
     const fn = /^\$(max|min|floor|ceil|abs|round|cond|gt|lt|gte|lte)\s*\(/.exec(rest);
     if (fn) {
       tokens.push({ type: "fn", value: fn[1] });

@@ -50,9 +50,9 @@ export const FOREVER_TREE_TABLES = [
 export const CLASSIC_TREE_TABLES = ["Talent", "TalentTab", "ChrClasses"];
 
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3 };
 /** ChrClasses.Name_lang of each class slug. */
-const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue" };
+const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage" };
 
 const rowsOf = (t) => t?.rows ?? [];
 const groupBy = (rows, key) => {
@@ -129,11 +129,13 @@ export function readForeverTree(t, cls) {
 
   // The class tree: a talent tree (spends a currency and has tier conditions) whose node spells
   // are mostly of the class's spell family. The client also ships an older druid tree (1083)
-  // with no conditions or currency.
+  // with no conditions or currency, and a nine-node mage tree (1058) with one condition, whose
+  // talents are all in the real one (1112): a class tree gates each of its three tabs' tiers, so it
+  // has more than one condition.
   const candidates = [];
   for (const tree of rowsOf(t.TraitTree)) {
     const nodes = nodesOfTree.get(tree.ID) ?? [];
-    if (!nodes.length || !(currencyOf.get(tree.ID) ?? []).length || !(condsOfTree.get(tree.ID) ?? []).length) continue;
+    if (!nodes.length || !(currencyOf.get(tree.ID) ?? []).length || (condsOfTree.get(tree.ID) ?? []).length < 2) continue;
     const families = new Map();
     for (const n of nodes)
       for (const { def: d } of nodeEntries(n.ID)) {

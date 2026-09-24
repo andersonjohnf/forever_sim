@@ -38,6 +38,9 @@
 // are numbers, true/false, or a choice's value. A candidate's settings are separated by commas.
 // `talents=<build code>` is a setting too: that candidate's talents instead of the spec's default
 // build (docs/data/talents.md), so builds are compared on the same fights as settings are.
+// `order=<row>><row>…` is one too, for a priority-list spec (D31): the rows' order, as the Rotation
+// tab stores it (`order=sunder>shieldSlam` puts Sunder Armor's upkeep above Shield Slam; rows it
+// doesn't name keep their places around those it does, as for a stored order).
 // `--base` changes the baseline from the spec's defaults, and each candidate is applied on top of it.
 //
 // `--against <commit>` runs the baseline on the engine and defaults of another commit (any git
@@ -239,6 +242,9 @@ if (!isMainThread) {
       const baseTaken = dtps(sims[0])
       sum[0] += base
       sumSq[0] += base * base
+      // The baseline's own other metric and damage taken, in the slots its differences don't use.
+      oSum[0] += baseOther
+      tSum[0] += baseTaken
       for (let c = 1; c < sims.length; c++) {
         sims[c].runFight(i)
         const x = read(sims[c])
@@ -273,11 +279,13 @@ function settingIds(options) {
   let n = 0
   while (parts.length > 0 && parts.every((p) => n < p.length && p[n] === parts[0][n])) n++
   const prefix = n > 0 ? parts[0].slice(0, n).join('.') + '.' : ''
-  return { ids, prefix, qualify: (id) => (ids.has(id) || id === TALENTS ? id : prefix + id) }
+  return { ids, prefix, qualify: (id) => (ids.has(id) || id === TALENTS || id === ORDER ? id : prefix + id) }
 }
 
 /** The pseudo-setting for a candidate's talent build code. */
 const TALENTS = 'talents'
+/** The pseudo-setting for a priority-list spec's row order (D31): row ids joined by `>`, as `SimConfig.rotationOrder`. */
+const ORDER = 'order'
 
 /** `a=1,b=true,c=x` → [[id, value], …], ids qualified with the spec's prefix. */
 function parseSettings(text, spec) {
@@ -316,6 +324,10 @@ function parseSweep(text, spec) {
 /** Checks each setting against the spec's options: a known id, and a value of the right kind. */
 function validate(settings, options) {
   for (const [id, value] of settings) {
+    if (id === ORDER) {
+      if (typeof value !== 'string' || value.split('>').some((row) => row === '')) throw new Error(`order is row ids joined by ">", got "${value}"`)
+      continue
+    }
     if (id === TALENTS) {
       if (typeof value !== 'string' || !/^[0-9]*-[0-9]*-[0-9]*$/.test(value)) throw new Error(`talents is a build code (digits and two "-"), got "${value}"`)
       continue
@@ -459,10 +471,11 @@ async function main() {
   const config = (settings) => ({
     ...d,
     ...Object.fromEntries(settings.filter(([id]) => id === TALENTS)),
+    ...Object.fromEntries(settings.filter(([id]) => id === ORDER).map(([, value]) => ['rotationOrder', value.split('>')])),
     buffs,
     fight,
     rules,
-    rotation: Object.fromEntries(settings.filter(([id]) => id !== TALENTS)),
+    rotation: Object.fromEntries(settings.filter(([id]) => id !== TALENTS && id !== ORDER)),
     run: { mode: 'fixed', iterations: 0, seed },
   })
   // The app's own checks for the rest (the race, the fight's ranges, the creature type): a setup it
@@ -536,8 +549,9 @@ async function main() {
   const halfWidth = (s, sq) => Z95 * Math.sqrt(Math.max(0, (sq - (s * s) / n) / (n - 1)) / n)
   const baseMean = mean(0)
   console.log(`baseline ${metric.toUpperCase()}: ${baseMean.toFixed(2)} ± ${halfWidth(totals.sum[0], totals.sumSq[0]).toFixed(2)} (95% CI)`)
-  console.log('')
   const O = otherMetric.toUpperCase()
+  if (showOther) console.log(`baseline ${O}: ${(totals.oSum[0] / n).toFixed(2)}; damage taken: ${(totals.tSum[0] / n).toFixed(2)} a second`)
+  console.log('')
   // A tank's damage taken too, beside its Δ DPS: the survival a rotation change costs or saves (D26).
   console.log(`| Candidate | ${metric.toUpperCase()} | Δ | 95% CI of Δ | Δ % | Clears |${showOther ? ` Δ ${O} (95% CI) | Δ damage taken (95% CI) |` : ''}`)
   console.log(`| --- | --- | --- | --- | --- | --- |${showOther ? ' --- | --- |' : ''}`)

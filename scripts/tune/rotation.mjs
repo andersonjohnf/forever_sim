@@ -6,7 +6,9 @@
 // difference, candidate DPS − baseline DPS, and the report is the mean difference with its 95%
 // confidence interval (± 1.96 standard errors of the paired differences). A candidate clears D23's
 // bar when the whole interval is above zero. Tank specs are compared on TPS by default (D23), and the
-// report adds each candidate's paired Δ DPS beside it, since tanks report both (D18).
+// report adds each candidate's paired Δ DPS beside it, since tanks report both (D18), and its Δ
+// damage taken (the health the boss's swings cost a second), since a tank's duties are weighed on it
+// (D26).
 //
 // The engine is bundled from src/ with Vite (the same modules the app and the tests run, with the
 // full data) into .cache/tune/<hash>/engine.mjs, where <hash> is a digest of every file under src/.
@@ -212,7 +214,9 @@ if (!isMainThread) {
   })
   const tps = (sim) => sim.fightThreat / (sim.fightMs / 1000)
   const dps = (sim) => sim.fightDamage / (sim.fightMs / 1000)
-  // The compared metric, and the other one beside it (a tank's Δ DPS, D18).
+  // A tank's health lost to the boss's swings a second (the results' damage taken, encounter §5).
+  const dtps = (sim) => sim.fightDamageTaken / (sim.fightMs / 1000)
+  // The compared metric, and the other one beside it (a tank's Δ DPS, D18), and its damage taken.
   const [read, other] = metric === 'tps' ? [tps, dps] : [dps, tps]
   parentPort.on('message', ({ from, to }) => {
     // Per config: sum of its metric, and (candidates) sum and sum of squares of the paired difference,
@@ -223,10 +227,13 @@ if (!isMainThread) {
     const dSq = new Float64Array(configs.length)
     const oSum = new Float64Array(configs.length)
     const oSq = new Float64Array(configs.length)
+    const tSum = new Float64Array(configs.length)
+    const tSq = new Float64Array(configs.length)
     for (let i = from; i < to; i++) {
       sims[0].runFight(i)
       const base = read(sims[0])
       const baseOther = other(sims[0])
+      const baseTaken = dtps(sims[0])
       sum[0] += base
       sumSq[0] += base * base
       for (let c = 1; c < sims.length; c++) {
@@ -234,15 +241,18 @@ if (!isMainThread) {
         const x = read(sims[c])
         const d = x - base
         const o = other(sims[c]) - baseOther
+        const t = dtps(sims[c]) - baseTaken
         sum[c] += x
         sumSq[c] += x * x
         dSum[c] += d
         dSq[c] += d * d
         oSum[c] += o
         oSq[c] += o * o
+        tSum[c] += t
+        tSq[c] += t * t
       }
     }
-    parentPort.postMessage({ n: to - from, sum, sumSq, dSum, dSq, oSum, oSq })
+    parentPort.postMessage({ n: to - from, sum, sumSq, dSum, dSq, oSum, oSq, tSum, tSq })
   })
   parentPort.postMessage({ ready: true })
 }
@@ -456,7 +466,7 @@ async function main() {
   const fights = Math.ceil(requested / JOB) * JOB
   const workers = Math.min(workerCount, fights / JOB)
   const zeros = () => new Float64Array(configs.length)
-  const totals = { n: 0, sum: zeros(), sumSq: zeros(), dSum: zeros(), dSq: zeros(), oSum: zeros(), oSq: zeros() }
+  const totals = { n: 0, sum: zeros(), sumSq: zeros(), dSum: zeros(), dSq: zeros(), oSum: zeros(), oSq: zeros(), tSum: zeros(), tSq: zeros() }
 
   const setup = [
     `${specId}, ${d.race}`,
@@ -499,6 +509,8 @@ async function main() {
               totals.dSq[c] += m.dSq[c]
               totals.oSum[c] += m.oSum[c]
               totals.oSq[c] += m.oSq[c]
+              totals.tSum[c] += m.tSum[c]
+              totals.tSq[c] += m.tSq[c]
             }
           }
           dispatch()
@@ -515,16 +527,19 @@ async function main() {
   console.log(`baseline ${metric.toUpperCase()}: ${baseMean.toFixed(2)} ± ${halfWidth(totals.sum[0], totals.sumSq[0]).toFixed(2)} (95% CI)`)
   console.log('')
   const O = otherMetric.toUpperCase()
-  console.log(`| Candidate | ${metric.toUpperCase()} | Δ | 95% CI of Δ | Δ % | Clears |${showOther ? ` Δ ${O} (95% CI) |` : ''}`)
-  console.log(`| --- | --- | --- | --- | --- | --- |${showOther ? ' --- |' : ''}`)
+  // A tank's damage taken too, beside its Δ DPS: the survival a rotation change costs or saves (D26).
+  console.log(`| Candidate | ${metric.toUpperCase()} | Δ | 95% CI of Δ | Δ % | Clears |${showOther ? ` Δ ${O} (95% CI) | Δ damage taken (95% CI) |` : ''}`)
+  console.log(`| --- | --- | --- | --- | --- | --- |${showOther ? ' --- | --- |' : ''}`)
   for (let c = 1; c < configs.length; c++) {
     const delta = totals.dSum[c] / n
     const hw = halfWidth(totals.dSum[c], totals.dSq[c])
     const clears = delta - hw > 0 ? 'yes' : delta + hw < 0 ? 'worse' : 'no'
     const o = totals.oSum[c] / n
     const ohw = halfWidth(totals.oSum[c], totals.oSq[c])
+    const t = totals.tSum[c] / n
+    const thw = halfWidth(totals.tSum[c], totals.tSq[c])
     console.log(
-      `| ${label(candidates[c - 1], prefix) || 'the defaults'} | ${mean(c).toFixed(2)} | ${fmt(delta)} | ${fmt(delta - hw)} to ${fmt(delta + hw)} | ${fmt((100 * delta) / baseMean)}% | ${clears} |${showOther ? ` ${fmt(o)} (${fmt(o - ohw)} to ${fmt(o + ohw)}) |` : ''}`,
+      `| ${label(candidates[c - 1], prefix) || 'the defaults'} | ${mean(c).toFixed(2)} | ${fmt(delta)} | ${fmt(delta - hw)} to ${fmt(delta + hw)} | ${fmt((100 * delta) / baseMean)}% | ${clears} |${showOther ? ` ${fmt(o)} (${fmt(o - ohw)} to ${fmt(o + ohw)}) | ${fmt(t)} (${fmt(t - thw)} to ${fmt(t + thw)}) |` : ''}`,
     )
   }
   console.log('')

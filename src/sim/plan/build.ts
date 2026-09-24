@@ -36,7 +36,7 @@ import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
 import { Assumptions, BEAR_TEXT } from './assumptions'
 import { PET_BUFFS, petPlan } from './pet'
-import { noRangedMods, rangedPlan, type RangedMods } from './ranged'
+import { isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
   type AbilityPlan,
   ACTION,
@@ -96,8 +96,10 @@ const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   block: 'block',
   blockRating: 'blockRating',
   blockValue: 'blockValue',
+  // Forever's "+x Attack Power" (ItemSparse stat 38) counts for melee and ranged: `addGearStat` adds
+  // it to `rap` too (docs/mechanics/ranged-and-pets.md §3).
   attackPower: 'ap',
-  // docs/mechanics/ranged-and-pets.md §3: ranged attack power, which only a plan with a ranged weapon reads.
+  // docs/mechanics/ranged-and-pets.md §3: ranged attack power beyond it, which only a plan with a ranged weapon reads.
   rangedAttackPower: 'rap',
   // Classic-form gear: melee (and ranged) percentages, each to its own pool (step 2).
   hit: 'hit',
@@ -156,6 +158,29 @@ const AP_VS: Partial<Record<keyof Stats, SimConfig['fight']['creatureType']>> = 
  * (docs/classes/druid.md#22-attack-power-in-forms, Q28). It goes into those forms' own stat blocks
  * (druidForms); any other class, or a druid in caster form, gets nothing from it.
  */
+/**
+ * Adds an item's or a set bonus's flat stat to the block (character-stats.md#derived-stat-pipeline,
+ * step 2). "+x Attack Power", and "+x Attack Power against <type>" when the boss is that type, is the
+ * item's melee and ranged attack power both (docs/mechanics/ranged-and-pets.md §3): the scraper
+ * keeps only a ranged surplus as `rangedAttackPower`. False when the key isn't a flat stat here.
+ */
+function addGearStat(block: StatBlock, key: keyof Stats, value: number, creatureType: SimConfig['fight']['creatureType']): boolean {
+  const stat = ITEM_STAT[key]
+  if (stat) {
+    block[stat] += value
+    if (key === 'attackPower') block.rap += value
+    return true
+  }
+  if (key in AP_VS) {
+    if (AP_VS[key] === creatureType) {
+      block.ap += value
+      block.rap += value
+    }
+    return true
+  }
+  return false
+}
+
 const feralAp = (value: number): Effect => ({ kind: 'stat', stat: 'ap', value, when: { form: ['cat', 'bear'] } })
 
 const ATTRIBUTE_MULT = { str: 'strMult', agi: 'agiMult', sta: 'staMult', int: 'intMult', spi: 'spiMult' } as const
@@ -311,6 +336,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     weapons[HAND.main] = null
     weapons[HAND.off] = null
   }
+  /** A ranged spec's ranged weapon, when the ranged slot holds one Auto Shot fires (docs/mechanics/ranged-and-pets.md §1, §12). */
+  const rangedSlot = meta.ranged ? equipped.get('ranged') : undefined
+  const rangedItem = isRangedWeapon(rangedSlot) ? rangedSlot : undefined
+  // A ranged spec shoots nothing without one: an empty slot or a wand is a blocker, not 0 DPS.
+  if (meta.ranged && !rangedItem) blockers.push('Add a ranged weapon (a bow, gun, crossbow or thrown weapon) in Gear to simulate this spec.')
 
   // --- Stat block: base ----------------------------------------------------------------------
   const base = CLASS_BASE[classId]
@@ -449,13 +479,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const origin = slot === 'mainHand' ? HAND.main : slot === 'offHand' ? HAND.off : null
     for (const [key, value] of Object.entries(item.stats) as [keyof Stats, number][]) {
       if (!value) continue
-      const stat = ITEM_STAT[key]
-      if (stat) block[stat] += value
-      else if (key in AP_VS && AP_VS[key] === fight.creatureType) block.ap += value
-      else if (key === 'feralAttackPower') formItemEffects.push(feralAp(value))
+      if (addGearStat(block, key, value, fight.creatureType)) continue
+      if (key === 'feralAttackPower') formItemEffects.push(feralAp(value))
       else if (key in SPELL_DAMAGE_VS && SPELL_DAMAGE_VS[key] === fight.creatureType) block.spellDamage += value
       else if (key === 'weaponDamage') {
-        for (const w of weapons) if (w && (origin === null || w.hand === origin)) w.plan.flatDamage += value
+        // A ranged item's "+x damage" is its own shots' (docs/mechanics/ranged-and-pets.md §3), never a melee weapon's.
+        if (slot === 'ranged') c.ranged.flatDamage += value
+        else for (const w of weapons) if (w && (origin === null || w.hand === origin)) w.plan.flatDamage += value
       }
     }
     for (const [skill, value] of Object.entries(item.weaponSkill ?? {}) as [WeaponSkill, number][]) {
@@ -489,9 +519,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         continue
       }
       for (const [key, value] of Object.entries(bonus.parsed ?? {}) as [keyof Stats, number][]) {
-        const stat = ITEM_STAT[key]
-        if (stat && value) block[stat] += value
-        else if (key === 'feralAttackPower' && value) formItemEffects.push(feralAp(value))
+        if (!value || addGearStat(block, key, value, fight.creatureType)) continue
+        if (key === 'feralAttackPower') formItemEffects.push(feralAp(value))
       }
       for (const [skill, value] of Object.entries(bonus.weaponSkill ?? {}) as [WeaponSkill, number][]) {
         weaponSkill[skill] = (weaponSkill[skill] ?? 0) + value
@@ -798,7 +827,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const procSpells: (string | undefined)[] = []
   const chainBits = new Map<string, number>()
   const addProc = (spec: ProcSpec, origin: 0 | 1 | null) => {
-    const proc = resolveProc(spec, origin, weapons)
+    const proc = resolveProc(spec, origin, weapons, rangedItem ? rangedItem.weapon.speed : null)
     if (!proc) return
     const { action } = spec
     /** Vile Poisons' factor on a rogue's poison damage; 1 on any other proc (rogue.md §4.3). */
@@ -1187,8 +1216,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- The ranged weapon and the pet (docs/mechanics/ranged-and-pets.md §12) ---------------------
   // A ranged spec's Auto Shot fires the Gear tab's ranged weapon, at its skill (5 × level plus its
   // type's bonuses), with the setup's ranged effects (a scope, ammo, a quiver, its talents).
-  const rangedItem = meta.ranged ? equipped.get('ranged') : undefined
-  const rangedSkill = rangedItem?.weapon?.skill
+  const rangedSkill = rangedItem?.weapon.skill
   const ranged = rangedItem ? rangedPlan(rangedItem, 5 * PLAYER_LEVEL + (rangedSkill ? (weaponSkill[rangedSkill] ?? 0) : 0), c.ranged, -1) : null
   if (ranged) ranged.source = sourceIndex('autoShot', 'Auto Shot', 'ability_whirlwind')
   // The class's pet, with the buffs that reach it, its rows named for it and its abilities' auras.
@@ -1877,9 +1905,15 @@ function druidForms(
 
 const TRIGGER_CODE: Record<ProcSpec['trigger'], number> = TRIGGER
 
-/** Resolves hands and chances for a proc; null when nothing can trigger it in this setup. */
-function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | null, Weapon | null]): ProcPlan | null {
+/**
+ * Resolves hands and chances for a proc; null when nothing can trigger it in this setup.
+ * `rangedSpeedSec`: the ranged weapon's speed, for a PPM proc on a ranged trigger (null: none).
+ * Exported for its tests.
+ */
+export function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | null, Weapon | null], rangedSpeedSec: number | null): ProcPlan | null {
   const trigger = TRIGGER_CODE[spec.trigger]
+  // docs/mechanics/ranged-and-pets.md §9: a ranged trigger's PPM reads the ranged weapon's speed.
+  const onRanged = trigger === TRIGGER.rangedLanded || trigger === TRIGGER.autoShotLanded || trigger === TRIGGER.rangedCrit
   const onAttack =
     trigger === TRIGGER.meleeLanded ||
     trigger === TRIGGER.whiteLanded ||
@@ -1906,6 +1940,11 @@ function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | nu
       // docs/mechanics/damage-and-timing.md#51-ppm-formula: PPM × base weapon speed / 60
       chance[h] = w ? ppmChance(spec.chance.ppm, w.plan.speedSec) : 0
     } else if ('pct' in spec.chance) {
+      // docs/mechanics/damage-and-timing.md#51-ppm-formula: PPM × base weapon speed / 60; a ranged
+      // trigger fires with no hand (−1), so its chance is slot 0's, from the ranged weapon.
+      const speed = onRanged ? (h === HAND.main ? rangedSpeedSec : null) : w ? w.plan.speedSec : null
+      chance[h] = speed !== null ? ppmChance(spec.chance.ppm, speed) : 0
+    } else {
       chance[h] = spec.chance.pct / 100
     }
   }

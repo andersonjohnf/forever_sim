@@ -123,6 +123,11 @@ const KIND_CODE = {
   channel: KIND_CHANNEL,
 } as const
 
+/** A pet ability's kind (PetAbilityPlan.kind; docs/mechanics/ranged-and-pets.md §7). */
+const PAB_MELEE = 0
+const PAB_SPELL = 1
+const PAB_BUFF = 2
+
 /** The pool an ability pays from (AbilityPlan.resource). */
 const RES_RAGE = 0
 const RES_ENERGY = 1
@@ -1969,7 +1974,7 @@ export class Sim {
     this.petPowerTick = power?.tickTenths ?? 0
     this.petPowerTickMs = power?.tickMs ?? 0
     const pabs = pet?.abilities ?? []
-    this.pabKind = Uint8Array.from(pabs, (x) => (x.kind === 'spell' ? 1 : 0))
+    this.pabKind = Uint8Array.from(pabs, (x) => (x.kind === 'buff' ? PAB_BUFF : x.kind === 'spell' ? PAB_SPELL : PAB_MELEE))
     this.pabSchool = Int32Array.from(pabs, (x) => x.school)
     this.pabCost = Int32Array.from(pabs, (x) => x.costTenths)
     this.pabCd = Float64Array.from(pabs, (x) => x.cooldownMs)
@@ -3546,9 +3551,12 @@ export class Sim {
    * Rolls every proc on this trigger (damage-and-timing §5), in the plan's order, then those that
    * need an aura, while it's up. `hand` is −1 for non-attack triggers. An extra-attack source that
    * already procced in this chain doesn't roll (§5.4), so it starts no internal cooldown either.
+   * The pet's triggers roll their chances on the pet's stream, so a pet changes none of your rolls
+   * (docs/mechanics/ranged-and-pets.md#implementation-notes).
    */
   private fireProcs(trigger: number, hand: number): void {
     const list = this.triggerLists[trigger]
+    const rng = trigger === TRIGGER.petLanded || trigger === TRIGGER.petCrit ? this.rngPet : this.rngProc
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
@@ -3556,18 +3564,18 @@ export class Sim {
       let chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
       if (this.pPoison[p] === 1) chance += this.poisonChance
-      if (chance < 1 && this.rngProc.next() >= chance) continue
+      if (chance < 1 && rng.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
       this.doAction(p)
     }
-    if (this.gatedLists[trigger].length > 0) this.fireGatedProcs(trigger, hand)
+    if (this.gatedLists[trigger].length > 0) this.fireGatedProcs(trigger, hand, rng)
   }
 
   /**
    * The procs on this trigger that need an aura or a form: each rolls only while its aura is up
    * (Bloodthrill: your Rend) and in its forms (Primal Fury's rage: bear).
    */
-  private fireGatedProcs(trigger: number, hand: number): void {
+  private fireGatedProcs(trigger: number, hand: number, rng: Rng): void {
     const list = this.gatedLists[trigger]
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
@@ -3585,7 +3593,7 @@ export class Sim {
       let chance = this.pPpmCast[p] > 0 ? (this.pPpmCast[p] * this.srcProcCastMs[this.procSource]) / 60000 : this.pChance[2 * p + (hand > 0 ? hand : 0)]
       // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
       if (this.pPoison[p] === 1) chance += this.poisonChance
-      if (chance < 1 && this.rngProc.next() >= chance) continue
+      if (chance < 1 && rng.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
       this.doAction(p)
     }
@@ -4754,18 +4762,23 @@ export class Sim {
    * roll at its spell crit; damage `min…max` + its coefficient × the pet's spell damage (its own and
    * its share of yours in that school), × the boss's damage taken of the school and its average
    * resist. Both × the pet's damage multiplier and the ability's crit multiplier on a crit; then its
-   * aura, if any, and `petLanded`, then `petCrit` on a crit.
+   * aura, if any, and `petLanded`, then `petCrit` on a crit. `buff`: no target, so it only puts its
+   * aura up: no roll, no damage, no `petLanded`.
    */
   private petStrike(a: number): void {
     const source = this.pabSource[a]
     const row = source * FIELD_COUNT
     const c = this.counters
     c[row + FIELD.casts]++
+    if (this.pabKind[a] === PAB_BUFF) {
+      if (this.pabAura[a] >= 0) this.applyAura(this.pabAura[a])
+      return
+    }
     const rng = this.rngPet
     let damage = this.pabMin[a] === this.pabMax[a] ? this.pabMin[a] : rng.uniform(this.pabMin[a], this.pabMax[a])
     let crit: boolean
     let blocked = false
-    if (this.pabKind[a] === 0) {
+    if (this.pabKind[a] === PAB_MELEE) {
       const th = this.petThrSpecial
       const r = rng.roll100()
       if (r < th[0]) {

@@ -92,7 +92,7 @@ Forever racial adds any ([combat-tables §4.1](combat-tables.md#41-effects-per-p
 | --- | --- | --- |
 | Ranged attack power | `floor((base + rate × Agility + flat) × Π(1 + %))`, its own stat beside melee's. The Forever client's `ChrClasses` gives the hunter **2 ranged attack power per Agility**, and 1 melee attack power per Strength and per Agility (warrior 2 / 0 / 2, rogue 1 / 1 / 2); Classic Era's client leaves the fields 0 | [F] [client] (ChrClasses, 1.60.1.69977); the base is [?] ([OQ-1](#oq-1-hunter-base-attack-power)) |
 | Hunter crit per Agility | **0.000189** per point, 52.9 Agility per 1% | [F] [client] (PlayerExpectedStat, 1.60.1.69977) |
-| Gear | "+x Ranged Attack Power" is its own stat; Forever's melee-and-ranged lines add to both | [F] ([items dataset](../data/items.md)) |
+| Gear | "+x Attack Power" (Forever's `ItemSparse` stat 38, and the set bonuses' and "against <type>" lines when the boss is that type) adds to melee and ranged attack power both; "+x Ranged Attack Power" (stat 39, or a Classic Era item's surplus over its melee line) to ranged only. A ranged weapon's own "+x damage" adds to its shots, never a melee weapon's | [F] ([items dataset](../data/items.md)) |
 | Auto Shot damage | `weapon roll + ammo DPS × weapon speed + scope + RAP / 14 × weapon speed`, at the weapon's real speed | [?] ([wys-formulas]; Classic Era community, 2019–20) |
 | Normalized shots | a shot whose client effect is "normalized weapon damage" (effect 121: Aimed Shot, Multi-Shot) takes `RAP / 14 × 2.8`; the ammo still adds its DPS × the real speed | 121 [F] [client] (SpellEffect); 2.8 [?] ([wys-formulas]) |
 | Multipliers | the ranged damage multiplier (a ranged-weapon talent), your physical multipliers, the boss's armor at your level | [C] ([damage-and-timing §2.6](damage-and-timing.md#26-order-of-operations-physical-direct-hit)) |
@@ -166,6 +166,7 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 | Bite (17261) | 35 Focus, 10 s cooldown, 81–99 (Forever 90 ±20%) | [F] [client]; [C] ([wh-bite]) |
 | Its GCD | its own, per ability (1.5 s for the hunter pet's) | [F] [client] (SpellCooldowns) |
 | A pet spell | the spell table at the pet's level and spell hit, the school's average resist, a crit ×1.5; a cast time holds only the pet (the Imp's Firebolt: 2 s) | Firebolt [F] [client] (SpellCastTimes); the rest [?] |
+| A buff ability | one with no target (Furious Howl's party buff): no roll, no damage and no `petLanded`; it puts its aura up (`kind: 'buff'`) | the sim's |
 | Its choices | the pet walks its own priority list whenever it could act: an ability off cooldown, affordable, its GCD free, the line's conditions true (keep Focus for Bite: §11) | the sim's |
 
 ## 8. How owner buffs reach the pet
@@ -194,7 +195,9 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 | `petCrit` (26) | the pet's attack crit: Frenzy, Ferocious Inspiration | the sim's |
 
 The action `petPower` (22) gives the pet power. Ranged attacks fire no melee procs (Hand of Justice,
-a weapon enchant's) [?].
+a weapon enchant's) [?]. A PPM proc on a ranged trigger takes its chance from the ranged weapon's
+speed ([damage-and-timing §5.1](damage-and-timing.md#51-ppm-formula)); the pet's triggers roll their
+chances on the pet's random stream ([Implementation notes](#implementation-notes)).
 
 ## 10. Pet damage in the results
 
@@ -221,11 +224,13 @@ The API the Hunter (H2) and Demonology (warlock) slices build on:
 - **The ranged weapon**: set `SpecMeta.ranged` on the spec. `buildPlan` then makes `Plan.ranged` from
   the Gear tab's ranged slot with `rangedPlan` (`sim/plan/ranged.ts`), its skill, and the setup's
   `ranged` effects, and swings no melee weapon (its stats still count). Auto Shot gets its own row.
+  An empty ranged slot, or one with a wand, is a blocker ("Add a ranged weapon…"), not 0 DPS.
   `AUTO_SHOT` holds the wind-up, clipping, normalization and crit rules; `windupHasted` and
   `castsHoldAutoShot` switch the two [?] models.
 - **Effects** (`Effect`): the stats `rap` and `rapPerAgi`, `mult` `rap`, and
   `{ kind: 'ranged', hit, crit, damagePct, hastePct, flatDamage, ammoDps }`: a scope, a ranged
-  talent, the ammo's DPS and a quiver's haste. Items' `rangedAttackPower` reaches `rap`. The class's
+  talent, the ammo's DPS and a quiver's haste. Items' and set bonuses' "+x Attack Power" reaches `ap`
+  and `rap`, their `rangedAttackPower` `rap` only (§3). The class's
   base ranged attack power goes in its stat block (`baseRap`, `rapPerAgi`).
 - **Shots**: a `spell` ability whose `SpellDef` has `ranged: true` and `defense: 'ranged'`:
   `weaponPercent`, `normalized`, `min`–`max` (the shot's bonus), `critMultiplier`; a pure DoT for a
@@ -236,8 +241,8 @@ The API the Hunter (H2) and Demonology (warlock) slices build on:
 - **Procs** (`ProcSpec`): the triggers of §9 and the action `{ kind: 'petPower', amount }`.
 - **The pet**: return a `PetDef` (`sim/plan/pet.ts`) as `ClassRotation.pet`: its base stats (as stat
   block fields), melee, damage multiplier (family, happiness, talents), shares of your stats,
-  whether it glances and where it stands, its power, its abilities (`melee` or `spell`, with an
-  optional aura), and its priority list. `petPlan` derives its stats, adds the buffs that reach it
+  whether it glances and where it stands, its power, its abilities (`melee`, `spell`, or `buff` for
+  one with no target, each with an optional aura), and its priority list. `petPlan` derives its stats, adds the buffs that reach it
   (`PET_BUFFS`), and gives it rows that name it.
 - **Conditions**: §11.
 
@@ -289,7 +294,9 @@ bit for bit (probed: every shipped spec in both profiles, identical `SimResult`s
   parry, a block from the front, and its crit as a separate roll, rebuilt with the stats. Auto Shot
   and shots use the table and damage streams, as your other attacks do.
 - **The pet** has its own swing event, walk, power tick (from a random phase) and cast end, and its
-  own random stream (`STREAM.pet`), so adding one changes none of your rolls. Its numbers are rebuilt
+  own random stream (`STREAM.pet`), which also rolls the chances of procs on its triggers (`petLanded`,
+  `petCrit`), so adding one changes none of your rolls. (A proc on them whose action rolls a table of its
+  own, a damage proc, would roll it on your streams; no pet proc the docs name does.) Its numbers are rebuilt
   when your stats change (its shares, your armor debuffs) and when an aura with pet mods changes. It
   walks after you at each decision point; what it does can make one for you. Its damage adds to the
   fight's damage, not its threat.

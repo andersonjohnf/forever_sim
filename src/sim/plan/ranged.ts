@@ -24,6 +24,12 @@ export const AUTO_SHOT = {
 /** The ranged weapon types Auto Shot fires (Auto Shot 75's SpellEquippedItems: bows, guns, crossbows; §2) [F]; thrown weapons too [?]. */
 export const RANGED_WEAPONS = ['bow', 'gun', 'crossbow', 'thrown'] as const
 
+/** Whether an item is a ranged weapon Auto Shot fires (§1): a bow, gun, crossbow or thrown weapon with damage. Not a wand. */
+export function isRangedWeapon(item: Item | undefined): item is Item & { weapon: NonNullable<Item['weapon']> } {
+  const w = item?.weapon
+  return !!item && !!w && w.min !== null && w.max !== null && !!item.weaponType && (RANGED_WEAPONS as readonly string[]).includes(item.weaponType)
+}
+
 /**
  * What the setup's effects add to the ranged weapon (effects/types.ts `ranged`, summed): hit % and
  * crit % for its attacks only, damage % (multiplied), ranged haste % (multiplied: quivers and ammo
@@ -47,7 +53,7 @@ export const noRangedMods = (): RangedMods => ({ hit: 0, crit: 0, damageMult: 1,
  */
 export function rangedPlan(item: Item | undefined, skill: number, mods: RangedMods, source: number): RangedPlan | null {
   const w = item?.weapon
-  if (!item || !w || w.min === null || w.max === null || !item.weaponType || !(RANGED_WEAPONS as readonly string[]).includes(item.weaponType)) return null
+  if (!isRangedWeapon(item) || !w || w.min === null || w.max === null) return null
   return {
     name: item.name,
     icon: item.icon,

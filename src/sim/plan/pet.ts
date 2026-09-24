@@ -98,6 +98,10 @@ export function petPlan(
     else if (e.kind === 'damage') damageMult *= 1 + e.pct / 100
   }
   const d = deriveStats(block, { profile, applyUnmeasured: false, level: def.level }, new DerivedStats())
+  // Its all-schools spell damage (docs/mechanics/spells.md §5): the pipeline derives it only inside each
+  // school's total (all schools + that school's own line), so take one school's and drop its own line.
+  // The engine adds a share of yours in the spell's school (PetPlan.spellDamageFromOwner).
+  const allSchoolsSpellDamage = d.holySpellDamage - block.holySpellDamage
   const skill = 5 * def.level
   const [glanceLow, glanceHigh] = def.glances ? glanceRange(profile, bossLevel, skill) : [1, 1]
   const row = (id: string, name: string, icon: string) => {
@@ -120,7 +124,7 @@ export function petPlan(
     crit: d.crit,
     auraCrit: d.auraCrit,
     hit: d.hit,
-    spellDamage: d.holySpellDamage,
+    spellDamage: allSchoolsSpellDamage,
     spellCrit: d.spellCrit,
     spellHit: d.spellHit,
     apFromOwnerAp: def.apFromOwnerAp ?? 0,

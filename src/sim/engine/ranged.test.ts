@@ -383,6 +383,41 @@ describe('the pet (§6–§10)', () => {
     expect(timeline(plan).petSwings).toEqual([0, 1538, 3076, 4614, 6152, 7690])
   })
 
+  it('a buff ability (Furious Howl’s kind) has no target: no roll, no damage and no `petLanded`, just its aura (§7)', () => {
+    const plan = withPet(rangedPlan(60000), { weapon: null, hit: 0, power: { kind: 'focus', maxTenths: 1000, startTenths: 1000, tickTenths: 50, tickMs: 1000 } })
+    // With no hit and a boss that dodges, a rolled ability would miss or be dodged about 13% of the time.
+    plan.fight.bossCanDodge = true
+    const howl = addPlanAura(plan, 'howl', 10000, { ap: 136, petAp: 136 })
+    const a = addPetAbility(plan, { kind: 'buff', min: 0, max: 0, aura: howl, cooldownMs: 10000, gcdMs: 1500, costTenths: 200 })
+    petLine(plan, a)
+    const landed = addPlanAura(plan, 'landed', 1000, {})
+    addProc(plan, { trigger: TRIGGER.petLanded, chance: [1, 1], hands: 0, action: ACTION.aura, amount: landed, b: 0 })
+    const sim = new Sim(plan)
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    const row = plan.pet!.abilities[a].source
+    expect(counter(sim, row, FIELD.casts)).toBe(20 * 6)
+    for (const f of [FIELD.misses, FIELD.dodges, FIELD.parries, FIELD.hits, FIELD.crits, FIELD.damage]) expect(counter(sim, row, f)).toBe(0)
+    expect(sim.auraApplications[howl]).toBe(20 * 6)
+    expect(sim.auraApplications[landed]).toBe(0)
+  })
+
+  it('its triggers’ procs roll on its stream: a pet with 50% `petLanded` and `petCrit` procs changes none of your rolls', () => {
+    const shots = (pet: boolean) => {
+      let plan = rangedPlan(60000)
+      plan.stats.crit = 30
+      addProc(plan, { trigger: TRIGGER.rangedLanded, chance: [0.5, 0.5], hands: 0, action: ACTION.aura, amount: addPlanAura(plan, 'x', 3500, { damage: 10 }), b: 0 })
+      if (pet) {
+        plan = withPet(plan, { crit: 50 })
+        addProc(plan, { trigger: TRIGGER.petLanded, chance: [0.5, 0.5], hands: 0, action: ACTION.aura, amount: addPlanAura(plan, 'y', 1000, {}), b: 0 })
+        addProc(plan, { trigger: TRIGGER.petCrit, chance: [0.5, 0.5], hands: 0, action: ACTION.aura, amount: addPlanAura(plan, 'frenzy', 1000, { petHaste: 30 }), b: 0 })
+      }
+      return damages(plan, plan.ranged!.source, 3)
+    }
+    const mine = shots(false)
+    expect(mine.length).toBeGreaterThan(50)
+    expect(shots(true)).toEqual(mine)
+  })
+
   it('an aura’s pet attack power and crit add to its own; its shares of your stats follow them (§6)', () => {
     const plan = withPet(rangedPlan(), { apFromOwnerRap: 0.1 })
     plan.stats.rap = 1000

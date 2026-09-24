@@ -1400,7 +1400,11 @@ export interface PetAbilityPlan {
   id: string
   name: string
   icon: string
-  kind: 'melee' | 'spell'
+  /**
+   * `melee`: its special table; `spell`: its spell table; `buff`: no target, so no roll, no damage and
+   * no `petLanded`: it only puts its aura up (Furious Howl; docs/mechanics/ranged-and-pets.md §7).
+   */
+  kind: 'melee' | 'spell' | 'buff'
   /** `SCHOOL` code: physical for melee. */
   school: number
   costTenths: number

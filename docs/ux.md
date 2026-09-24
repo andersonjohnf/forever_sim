@@ -405,8 +405,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     shows a neutral gray track rather than the primary colour. It stays usable.
   - A setting the rest of the setup leaves unused is dimmed, with a note under it saying why, in
     the consumables' words: the racial cooldown for a race without one the sim uses ("Not used:
-    Tauren has no racial cooldown that adds damage.", and the Gnome's Eureka!, which isn't
-    simulated), a cat's Rake or Rip or a bear's Lacerate while its "only when nothing else bleeds"
+    Tauren has no racial cooldown that adds damage."; every Gnome class has its Eureka!), a cat's Rake or Rip or a bear's Lacerate while its "only when nothing else bleeds"
     meets a raid whose warriors keep the boss bleeding ("Not used in this raid: its warriors keep
     the boss bleeding. Turn off … to use it anyway."), and a bear's Demoralizing Roar while a
     Demoralizing Shout in Buffs takes its place ("Not used: the Demoralizing Shout in Buffs is on

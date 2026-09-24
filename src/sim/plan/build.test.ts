@@ -659,10 +659,31 @@ describe('assumptions', () => {
     expect(ids({ ...fury, rotation: { 'warrior.fury.whirlwind.enabled': false } })).not.toContain('ragingBlows')
   })
 
-  it('flags Eureka! as not simulated, and no other racial cooldown (warrior.md §2.9, Q18)', () => {
-    const ids = (race: string) => buildPlan({ ...defaultConfig('warrior-fury'), race }).assumptions.map((a) => a.id)
-    expect(ids('alliance-gnome')).toContain('cooldownRacial')
-    for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) expect(ids(race)).not.toContain('cooldownRacial')
+  it('gives a Gnome of every class its Eureka!: the aura, its charges and cuts, the abilities it modifies, and the assumption with its cut (classes/eureka.ts)', () => {
+    const cases = [
+      ['warrior-fury', 40, 'rage', ['bloodthirst', 'whirlwind', 'execute', 'heroicStrike']],
+      ['rogue-combat', 20, 'Energy', ['sinisterStrike', 'eviscerate']],
+      ['mage-fire', 50, 'mana', ['fireball', 'scorch', 'fireBlast']],
+      ['warlock-affliction', 50, 'mana', ['shadowBolt', 'corruption']],
+      ['priest-shadow', 15, 'mana', ['mindBlast', 'shadowWordPain', 'mindFlay']],
+    ] as const
+    for (const [spec, cut, resource, modified] of cases) {
+      const { plan, assumptions } = buildPlan({ ...defaultConfig(spec), race: 'alliance-gnome' })
+      const eureka = plan.abilities.find((a) => a.id === 'eureka')
+      expect(eureka, spec).toMatchObject({ cooldownMs: 120000, gcdMs: 0, costTenths: 0 })
+      expect(plan.auras[eureka!.aura].durationMs, spec).toBe(15000)
+      expect(plan.eureka, spec).toEqual({ aura: eureka!.aura, charges: 3, costPct: cut, damagePct: 10, dotPct: 10 })
+      for (const id of modified) expect(plan.abilities.find((a) => a.id === id)?.eureka ?? 0, `${spec} ${id}`).toBeGreaterThan(0)
+      // Pyroblast and Incinerate are outside the masks; the racial itself too.
+      for (const a of plan.abilities) if (['pyroblast', 'incinerate', 'eureka'].includes(a.id)) expect(a.eureka ?? 0, `${spec} ${a.id}`).toBe(0)
+      expect(assumptions.find((a) => a.id === 'eureka')?.text, spec).toContain(`${cut}% ${resource}`)
+    }
+    // Another race has none.
+    for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) {
+      const { plan, assumptions } = buildPlan({ ...defaultConfig('warrior-fury'), race })
+      expect(plan.eureka, race).toBeUndefined()
+      expect(assumptions.map((a) => a.id), race).not.toContain('eureka')
+    }
   })
 
   it('flags the damage-taken rage model in use, only when you take damage, and says rage divides by the placeholder base health (rage.md#forever-, D24)', () => {

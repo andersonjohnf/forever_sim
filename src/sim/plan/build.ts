@@ -16,6 +16,7 @@ import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/pr
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
+import { EUREKA, EUREKA_ABILITIES, EUREKA_RESOURCE, type EurekaClass } from '../classes/eureka'
 import { balanceAssumptions } from '../classes/druid/balance'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
@@ -28,7 +29,7 @@ import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
-import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
+import { racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand, PROFICIENCY } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
@@ -1382,6 +1383,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(ranged ? { ranged } : {}),
     ...(pet ? { pet } : {}),
   }
+  // Gnome Eureka! (classes/eureka.ts): its aura's charges and cuts, and the abilities it modifies.
+  const eurekaAt = abilities.findIndex((a) => a.id === 'eureka')
+  if (eurekaAt >= 0 && abilities[eurekaAt].aura >= 0 && classId in EUREKA) {
+    const eurekaClass = classId as EurekaClass
+    const e = EUREKA[eurekaClass]
+    for (const a of abilities) {
+      const bits = EUREKA_ABILITIES[eurekaClass][a.id]?.bits
+      if (bits) a.eureka = bits
+    }
+    plan.eureka = { aura: abilities[eurekaAt].aura, charges: e.charges, costPct: e.costPct, damagePct: e.damagePct, dotPct: e.dotPct }
+  }
 
   // --- Assumptions ---------------------------------------------------------------------------------
   if (setup.simulated && abilities.length === 0) notes.add('whiteSwingsOnly')
@@ -1527,8 +1539,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if ((racialWeapon && mixed([racialWeapon])) || (setup.talents.has('Weaponmaster') && mixed(['axe', 'polearm']))) notes.add('racialWeaponCrit')
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
   if (config.race === 'alliance-gnome' && classId === 'rogue' && (setup.talents.get('Vigor') ?? 0) > 0) notes.add('gnomeEnergy')
-  // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
-  if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
+  // src/sim/classes/eureka.ts: Eureka!'s charges and cut, the class's own [?].
+  if (plan.eureka) notes.add('eureka', `${plan.eureka.costPct}% ${EUREKA_RESOURCE[classId as EurekaClass]}`)
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
   // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
   if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')

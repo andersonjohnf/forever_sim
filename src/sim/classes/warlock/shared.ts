@@ -28,6 +28,7 @@ import {
   SIPHON_LIFE,
 } from './abilities'
 import { CASTER_RACIALS } from '../caster-racials'
+import { eurekaFor } from '../eureka'
 import { rank, type TalentRanks, withTalents } from './talents'
 import {
   DECIMATION_BELOW_PCT,
@@ -119,7 +120,7 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         id: ID.racial,
         group: 'Cooldowns and buffs',
         label: 'Racial cooldown',
-        help: 'Use Blood Fury (Orc: +10% spell power for 15 s) or Berserking (Troll: +10% casting speed for 10 s) on cooldown from the pull.',
+        help: 'Use Blood Fury (Orc: +10% spell power for 15 s), Berserking (Troll: +10% casting speed for 10 s) or Eureka! (Gnome: your next 3 spells cost 50% less and deal 10% more) on cooldown from the pull.',
         default: true,
       },
       {
@@ -425,7 +426,7 @@ export function warlockRotation(
   }
 
   // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion.
-  const racial = CASTER_RACIALS[ctx.race]
+  const racial = eurekaFor(ctx.race, 'warlock') ?? CASTER_RACIALS[ctx.race]
   if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.trinkets)) for (const item of ctx.items) if (CASTER_TRINKETS.has(item.id)) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION)

@@ -947,6 +947,11 @@ export interface AbilityPlan {
    * the demon gains the mana your Life Tap gives, §11.3). Absent, 0 or without a pet with power: none.
    */
   petPowerTenths?: number
+  /**
+   * What Gnome Eureka! does to it (`Plan.eureka`), bits: 1 its cost, 2 its direct damage, 4 its DoT's
+   * or bleed's snapshot (src/sim/classes/eureka.ts). Absent or 0: nothing, and it spends no charge.
+   */
+  eureka?: number
 }
 
 /**
@@ -1365,6 +1370,13 @@ export interface Plan {
    * Focus's +25%, docs/classes/priest.md#35-inner-focus-14751). Absent: none (Clearcasting's).
    */
   freeCastCritPct?: number
+  /**
+   * Gnome Eureka! (src/sim/classes/eureka.ts, docs/mechanics/character-stats.md#racials-that-matter-to-the-sim):
+   * its aura, the charges it goes up with, and what it does to the abilities marked `eureka`: their
+   * cost −costPct% (rounded down to whole resource), their direct damage +damagePct%, their DoT's or
+   * bleed's snapshot +dotPct%. Each use of a marked ability, as it's paid, spends a charge [?].
+   */
+  eureka?: { aura: number; charges: number; costPct: number; damagePct: number; dotPct: number }
   /** Damaging spells (seal procs, judgements, Holy Strike), indexed by abilities and procs. */
   spells?: SpellPlan[]
   /** Multiplier on Holy damage done, static (paladin.md#conventions-used-below). */

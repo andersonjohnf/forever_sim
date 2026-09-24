@@ -12,6 +12,7 @@ import type { AssumptionId } from '../../plan/assumptions'
 import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import { FOREVER, type RulesProfile } from '../../rules/profiles'
 import type { CreatureType, RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
+import { eurekaFor } from '../eureka'
 import { resolveRotationValues } from '../options'
 import {
   type AbilityDef,
@@ -273,7 +274,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
     id: ids.racialEnabled,
     group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
-    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll) or Elune’s Light (Night Elf). Gnome Eureka! isn’t simulated.',
+    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll), Elune’s Light (Night Elf) or Eureka! (Gnome: your next 3 attacks cost 40% less rage and deal 10% more).',
     default: true,
   },
   {
@@ -575,7 +576,8 @@ function withDeathWish(b: RotationBuilder, v: Reader, ids: SharedIds, { dw, alig
 
 /** The racial cooldown's lines of `cooldownLines`, on their own (a priority-list row, D31). */
 export function racialLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, dw: { dw: number; align: boolean }): void {
-  const racial = RACIAL_COOLDOWNS[ctx.race]
+  // A Gnome's Eureka! (classes/eureka.ts) is aligned as the others: its 3 charges go to the next abilities it modifies.
+  const racial = eurekaFor(ctx.race, 'warrior') ?? RACIAL_COOLDOWNS[ctx.race]
   if (racial && v.on(ids.racialEnabled)) withDeathWish(b, v, ids, dw, racial)
 }
 

@@ -230,7 +230,8 @@ describe('unusedRotationSettings (docs/ux.md "Rotation")', () => {
   it('names a racial cooldown setting the race can’t use, in every spec with one', () => {
     const note = (spec: SpecId, race: string) => unusedRotationSettings({ ...defaultConfig(spec), race })
     expect(note('warrior-fury', 'alliance-human')).toEqual({ 'warrior.fury.racial.enabled': 'Not used: Human has no racial cooldown that adds damage.' })
-    expect(note('warrior-arms', 'alliance-gnome')).toEqual({ 'warrior.arms.racial.enabled': 'Not used: the Gnome’s Eureka! isn’t simulated.' })
+    // Every class a Gnome can be presses its Eureka! (classes/eureka.ts).
+    for (const spec of ['warrior-arms', 'rogue-combat', 'mage-fire', 'warlock-affliction', 'priest-shadow'] as SpecId[]) expect(Object.keys(note(spec, 'alliance-gnome')).filter((k) => k.endsWith('.racial.enabled')), spec).toEqual([])
     expect(note('warrior-fury', 'horde-orc')).toEqual({})
     expect(note('warrior-arms', 'horde-troll')).toEqual({})
     expect(Object.keys(note('druid-feral-cat', 'alliance-night-elf'))).not.toContain('druid.cat.racial.enabled')

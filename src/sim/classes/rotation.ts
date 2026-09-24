@@ -218,7 +218,7 @@ export interface UnusedSetup {
 /**
  * Settings that can't do anything in this setup, each with the note the Rotation tab shows under
  * it (docs/ux.md "Rotation"): the racial cooldown for a race without one the sim uses (Orc, Troll
- * and Night Elf have one; Gnome's Eureka! isn't simulated), the cat's Rake and Rip when "only
+ * and Night Elf have one, and a Gnome its class's Eureka!, classes/eureka.ts), the cat's Rake and Rip when "only
  * when nothing else bleeds" meets a raid with warriors, the bear's Lacerate the same way and its
  * Demoralizing Roar while the Buffs tab's Demoralizing Shout takes its place, and the Subtlety
  * rogue's Ambush and Hemorrhage upkeep while Hemorrhage builds.
@@ -227,11 +227,9 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   const out: Record<string, string> = {}
   const racial = RACIAL_SETTING[spec]
   // Every class's racial cooldowns are for the same races (a caster's are caster-racials.ts's).
-  if (racial && !RACIAL_COOLDOWNS[setup.race]) {
-    out[racial] =
-      setup.race === 'alliance-gnome'
-        ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
-        : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
+  // Every class a Gnome can be has its Eureka! (classes/eureka.ts).
+  if (racial && !RACIAL_COOLDOWNS[setup.race] && setup.race !== 'alliance-gnome') {
+    out[racial] = `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))

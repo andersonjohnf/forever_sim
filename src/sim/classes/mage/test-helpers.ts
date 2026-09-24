@@ -57,6 +57,8 @@ export interface ExampleOptions {
   manaTenths?: number | 'plan'
   /** Buff catalogue ids to enable (none by default), with the full raid present. */
   buffs?: string[]
+  /** The race (the spec's default by default): a Gnome's Eureka! (classes/eureka.ts). */
+  race?: string
 }
 
 /**
@@ -69,6 +71,7 @@ export function examplePlan(o: ExampleOptions = {}): Plan {
   const d = defaultConfig(SPEC_ID[spec])
   const plan = buildPlan({
     ...d,
+    ...(o.race ? { race: o.race } : {}),
     talents: talentCode(o.talents ?? {}),
     gear: {},
     buffs: { raid: d.buffs.raid, enabled: o.buffs ?? [] },

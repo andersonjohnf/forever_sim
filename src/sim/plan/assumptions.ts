@@ -173,9 +173,10 @@ const REGISTRY = {
     text: 'Expansive Mind’s +5% maximum Energy multiplies the total, including Vigor, rounded down to whole Energy: 110 with Vigor 1/2, 115 with 2/2.',
     docRef: `${ROGUE}#21-energy`,
   },
-  cooldownRacial: {
-    text: 'Eureka! isn’t simulated: how its 40% cost cut rounds, and what spends its charges, are open questions.',
-    docRef: `${WAR}#9-open-questions`,
+  eureka: {
+    // src/sim/classes/eureka.ts; the plan names the class's cut and its resource ({detail}).
+    text: 'Eureka! spends a charge on each of the next 3 abilities it modifies (the client’s spell masks) as you pay for it, landed or not, and cuts its cost by {detail}, rounded down to whole points; their damage and their DoTs’ get +10%. Untested.',
+    docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {
     text: 'Touch of the Grave isn’t simulated: whether it deals damage is unknown.',

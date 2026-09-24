@@ -543,7 +543,6 @@ slice is worked:
   180 s, +0.38% at 30 s); it needs D23's full process before it's adopted.
 - **Arms in Berserker Stance doesn't wait for Recklessness before its potion;** the wait is
   unmeasured for it (warrior.md §6.2, FL4).
-- **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **Retribution against Undead or Demons in long fights:** the re-tuned defaults trail the first
   round's by 0.14–0.63% at 180 s with a 20% phase and at 300 s with 10–20%, where Exorcism from 40%
   was ahead; 40% loses everywhere else, and a reserve tied to the execute phase lost too

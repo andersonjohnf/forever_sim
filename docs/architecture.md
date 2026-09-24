@@ -348,6 +348,10 @@ A spec is data plus small ability modules, never its own loop.
   `dotTickWait` (45) makes the walk wait for a DoT's tick rather than cut it off (Pyroblast): the
   one condition that ends the walk and schedules its return. A one-use ability's
   last use still holds its cooldown category (the mana gems, which the Demonic Rune joins).
+- **Gnome Eureka!** (`Plan.eureka`, `AbilityPlan.eureka`; `src/sim/classes/eureka.ts`): an aura
+  with charges and bits per ability (cost, direct damage, DoT). A marked ability used while it's up
+  pays its cut cost (`costNow`, which the warrior's marked rows then pay through), spends a charge
+  (`eurekaTake`), and only its own strike, spell and DoT or bleed snapshot read the +10%.
 - **The warlock's pieces** ([warlock.md §8](classes/warlock.md#8-implementation-notes)), on the caster
   core, each optional so a plan without them runs as before: a DoT's own multiplier
   (`SpellDef.dotDamageMult`), a boost that keeps its aura (`boost.keep`: Incinerate on Immolate), an

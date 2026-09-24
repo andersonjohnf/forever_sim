@@ -800,6 +800,24 @@ export class Sim {
    * the spell fires or into the next fight (docs/classes/priest.md#35-inner-focus-14751).
    */
   private freeCrit = 0
+  /**
+   * Gnome Eureka! (Plan.eureka, src/sim/classes/eureka.ts): its aura (−1: none), its charges, and its
+   * cost, damage and DoT factors; each ability's bits (1 cost, 2 damage, 4 DoT) and the charges left.
+   */
+  private readonly euAura: number
+  private readonly euCharges: number
+  private readonly euCostMult: number
+  private readonly euDamageMult: number
+  private readonly euDotMult: number
+  private readonly abEureka: Uint8Array
+  private euLeft = 0
+  /**
+   * The ability whose use took a Eureka! charge, while it resolves (−1: none), and its damage and DoT
+   * factors: only its own strike, spell and DoT read them, never a proc's (src/sim/classes/eureka.ts).
+   */
+  private euA = -1
+  private euDamage = 1
+  private euDot = 1
   /** The form the fight starts in (−1: no forms), and the forms Furor's rules name (druid.md §2.8). */
   private readonly startForm: number
   private readonly catForm: number
@@ -1634,6 +1652,13 @@ export class Sim {
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.freeCritPct = plan.freeCastCritPct ?? 0
+    const eu = plan.eureka
+    this.euAura = eu ? eu.aura : -1
+    this.euCharges = eu ? eu.charges : 0
+    this.euCostMult = eu ? 1 - eu.costPct / 100 : 1
+    this.euDamageMult = eu ? 1 + eu.damagePct / 100 : 1
+    this.euDotMult = eu ? 1 + eu.dotPct / 100 : 1
+    this.abEureka = Uint8Array.from(abilities, (a) => (eu ? (a.eureka ?? 0) : 0))
     this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
@@ -1691,7 +1716,9 @@ export class Sim {
       this.abResistSchool[i] = a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? school : -1
       this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
       this.abNoCdAura[i] = a.noCooldownAura ?? -1
-      this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
+      // A Gnome's Eureka! cuts some rows' cost (Plan.eureka): they pay through costNow, as the druid's.
+      const euCut = plan.eureka !== undefined && ((a.eureka ?? 0) & 1) !== 0
+      this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] && !euCut ? 1 : 0
       this.abKind[i] = KIND_CODE[a.kind]
       this.abCost[i] = a.costTenths
       this.abCd[i] = a.cooldownMs
@@ -2368,6 +2395,10 @@ export class Sim {
     this.swingsStopped = false
     this.castHolding = false
     this.walkWaitUntil = 0
+    this.euLeft = 0
+    this.euA = -1
+    this.euDamage = 1
+    this.euDot = 1
     for (let i = 0; i < this.abReadyAt.length; i++) this.abReadyAt[i] = this.abNeverReady[i] ? Infinity : 0
     this.abUses.fill(0)
     this.abTicksLeft.fill(0)
@@ -2689,9 +2720,11 @@ export class Sim {
       if (this.affordable(a)) {
         if (this.castTrace !== null) this.castTrace(a, this.now, this.pool(this.abRes[a]))
         this.payCost(a)
+        this.eurekaTake(a)
         // No white rage from the replaced swing (rage.md#yellow-damage-and-on-next-swing-attacks),
         // and it doesn't use Flurry charges in Forever (warrior.md §2.4 item 5).
         this.special(a, HAND.main, bonusAp)
+        this.euA = -1
         return
       }
     }
@@ -3123,6 +3156,7 @@ export class Sim {
     }
     if (stackCost >= 0) this.payStackCost(stackCost)
     else this.payCost(a)
+    this.eurekaTake(a)
     const gcd = this.gcdOf(a)
     if (gcd > 0) {
       this.gcdEnd = this.now + gcd
@@ -3162,6 +3196,7 @@ export class Sim {
       return
     }
     this.strike(a)
+    this.euA = -1
     if (this.exCount > 0) this.drainExtraAttacks()
   }
 
@@ -3238,6 +3273,7 @@ export class Sim {
     if (stackCost >= 0 ? this.mana >= stackCost : this.affordable(a)) {
       if (stackCost >= 0) this.payStackCost(stackCost)
       else this.payCost(a)
+      this.eurekaTake(a)
       const cd = this.abCd[a]
       if (this.countUse(a)) {
         if (cd > 0 && this.abCatNext[a] !== a) this.holdCategory(a, now + cd)
@@ -3250,6 +3286,7 @@ export class Sim {
       // docs/mechanics/spells.md §6: a channel with a cast before it starts channeling as the cast lands.
       else if (this.abKind[a] === KIND_CHANNEL) this.channel(a)
       else this.strike(a)
+      this.euA = -1
     }
     if (this.swingsStopped) {
       this.swingsStopped = false
@@ -3513,6 +3550,8 @@ export class Sim {
     if (this.abPoisonedPct[a] !== 0 && this.poisonedDots > 0) base *= 1 + this.abPoisonedPct[a] / 100
     // rogue.md §5.3: Quietus, once the target is below 35% health.
     if (this.abLowPct[a] !== 0 && this.now >= this.abLowAt[a]) base *= 1 + this.abLowPct[a] / 100
+    // src/sim/classes/eureka.ts: the use that took a Eureka! charge deals its +10%, both hands.
+    if (this.euA === a) base *= this.euDamage
     return base * this.physMult * this.armorFactor[hand]
   }
 
@@ -3584,9 +3623,9 @@ export class Sim {
    * Pays an ability's cost. Less rage can make a `maxRage` line usable (Bloodrage, Berserker
    * Rage), so the rotation walks again if it has one.
    */
-  private spendRage(a: number): void {
-    if (this.abCost[a] > 0) {
-      this.rage -= this.abCost[a]
+  private spendRage(a: number, cost = this.abCost[a]): void {
+    if (cost > 0) {
+      this.rage -= cost
       if (this.hasMaxRage) this.actPending = true
     }
     this.afterRageSpent()
@@ -3780,6 +3819,8 @@ export class Sim {
     this.auraStacks[a] = stacks
     this.auraEnd[a] = end
     this.auraCharges[a] = this.aCharges[a]
+    // src/sim/classes/eureka.ts: Eureka! goes up with its charges.
+    if (a === this.euAura) this.euLeft = this.euCharges
     // docs/classes/mage.md#combustion: a stack added to an aura that keeps its charges leaves them as they are.
     if (!wasActive || this.aKeepsCharges[a] === 0) this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
@@ -4002,7 +4043,7 @@ export class Sim {
     const ticks = this.abDotTicks[a] + (this.abFinisher[a] === 1 ? this.abDotTicksPerCp[a] * cp : 0)
     this.dotTicksLeft[a] = ticks
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
-    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult
+    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult * (this.euA === a ? this.euDot : 1)
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -4184,6 +4225,12 @@ export class Sim {
    * `countCast`: count a cast on its row (a proc's spell; an ability counts its own).
    */
   private castSpell(s: number, countCast: boolean): boolean {
+    // src/sim/classes/eureka.ts: the spell of the use that took a Eureka! charge reads its factors,
+    // and only it: a spell its procs cast finds them gone.
+    const eu = this.euA >= 0 && this.abSpell[this.euA] === s
+    const euDamage = eu ? this.euDamage : 1
+    const euDot = eu ? this.euDot : 1
+    if (eu) this.euA = -1
     const source = this.splSource[s]
     const row = source * FIELD_COUNT
     const c = this.counters
@@ -4211,7 +4258,7 @@ export class Sim {
         blocked = r < blockTh
         if (shot && this.splHasDirect[s] === 0) {
           // ranged-and-pets.md §5: a sting (a pure DoT) lands its DoT and rolls no crit.
-          this.applySpellDot(s)
+          this.applySpellDot(s, euDot)
           if (this.splTriggersProcs[s] === 1) this.fireProcs(TRIGGER.rangedLanded, -1)
           return true
         }
@@ -4257,7 +4304,7 @@ export class Sim {
       }
       // docs/mechanics/spells.md §7: a pure DoT deals nothing as it lands and rolls no crit: its ticks start.
       if (this.splHasDirect[s] === 0) {
-        this.applySpellDot(s)
+        this.applySpellDot(s, euDot)
         if (this.hasSpellLanded && this.splTriggersProcs[s] === 1) this.spellProcs(TRIGGER.spellLanded, s)
         return true
       }
@@ -4294,7 +4341,7 @@ export class Sim {
     }
     // docs/mechanics/spells.md §5: the school's spell damage (Holy's is the paladin's "SP").
     const school = this.splSchool[s]
-    let damage = (base + this.splSpCoef[s] * this.spSchool[school]) * this.splDamageMult[s]
+    let damage = (base + this.splSpCoef[s] * this.spSchool[school]) * this.splDamageMult[s] * euDamage
     const holy = school === SCHOOL.holy
     if (holy) {
       // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: the target's flat bonus × the spell's share.
@@ -4328,7 +4375,7 @@ export class Sim {
     const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(source, damage, threat)
     // docs/mechanics/spells.md §7: a hybrid's DoT starts as its direct part lands (Fireball, Immolate).
-    if (this.splDotTicks[s] > 0) this.applySpellDot(s)
+    if (this.splDotTicks[s] > 0) this.applySpellDot(s, euDot)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
     if (this.splTriggersProcs[s] === 0) return true
     if (shot) {
@@ -4419,11 +4466,11 @@ export class Sim {
    * whose periodic effects can). The boss's side (damage taken, the resist) is read at each tick.
    * Its marker aura is up until the last tick; on a hybrid's own DoT row an application counts as a cast.
    */
-  private applySpellDot(s: number): void {
+  private applySpellDot(s: number, mult = 1): void {
     const now = this.now
     if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
     const school = this.splSchool[s]
-    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school]
+    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school] * mult
     if (school === SCHOOL.holy) snapshot *= this.holyMult
     this.spDotDamage[s] = snapshot
     this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] + this.freeCrit : -1
@@ -4998,11 +5045,28 @@ export class Sim {
     this.manaSpentAt = this.now
   }
 
-  /** An ability's cost now: its own, less Thousand Cuts' Energy per stack while that's up (rogue.md §5.3). */
+  /**
+   * Gnome Eureka! (src/sim/classes/eureka.ts): an ability it modifies, used while it's up, spends a
+   * charge as it's paid (its cost already cut), and the last charge takes the aura down; its own
+   * strike, spell and DoT then read its factors (`euA`) [?].
+   */
+  private eurekaTake(a: number): void {
+    this.euA = -1
+    const bits = this.abEureka[a]
+    if (bits === 0 || !this.auraActive[this.euAura]) return
+    this.euA = a
+    this.euDamage = (bits & 2) !== 0 ? this.euDamageMult : 1
+    this.euDot = (bits & 4) !== 0 ? this.euDotMult : 1
+    if (--this.euLeft <= 0) this.removeAura(this.euAura)
+  }
+
+  /** An ability's cost now: its own, less Thousand Cuts' Energy per stack while that's up (rogue.md §5.3), and Eureka!'s cut. */
   private costNow(a: number): number {
     const aura = this.abCostAura[a]
-    if (aura < 0 || !this.auraActive[aura]) return this.abCost[a]
-    return Math.max(0, this.abCost[a] - this.abCostPerStack[a] * this.auraStacks[aura])
+    const cost = aura < 0 || !this.auraActive[aura] ? this.abCost[a] : Math.max(0, this.abCost[a] - this.abCostPerStack[a] * this.auraStacks[aura])
+    // src/sim/classes/eureka.ts: Eureka!'s cut while it's up, rounded down to whole resource [?].
+    if ((this.abEureka[a] & 1) === 0 || !this.auraActive[this.euAura]) return cost
+    return 10 * Math.floor((cost * this.euCostMult) / 10 + 1e-9)
   }
 
   /** The pool of a resource, in tenths. */
@@ -5037,7 +5101,7 @@ export class Sim {
       return
     }
     const res = this.abRes[a]
-    if (res === RES_RAGE) this.spendRage(a)
+    if (res === RES_RAGE) this.spendRage(a, cost)
     else if (res === RES_ENERGY) {
       this.energy -= cost
       if (cost > 0 && this.hasMaxEnergy) this.actPending = true

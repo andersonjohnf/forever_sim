@@ -64,7 +64,7 @@ export const ASSUMPTION_GROUP = {
   racialWeaponCrit: 'character',
   gnomeRage: 'character',
   gnomeEnergy: 'character',
-  cooldownRacial: 'character',
+  eureka: 'character',
   touchOfTheGrave: 'character',
   baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.

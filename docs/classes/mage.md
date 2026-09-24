@@ -60,7 +60,7 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Orc | Horde | no | **yes (new)** | **Blood Fury** (20572): +10% attack power and **+10% spell power** (aura 317) for 15 s, 2 min [F]: the casters' shared definition, a live multiplier on your spell damage while it's up ([warlock.md §7.2](warlock.md#72-race)). Simulated since issue #10; on the defaults (seed 12345, 20,000 fights) an Orc measures level with or above a Troll: Fire 521.13 vs 516.26, Frost 411.11 vs 410.81, Arcane 405.13 vs 402.32 (± 0.2–0.5). For Fire a Human (520.65) and an Undead (517.96) measure above a Troll too: Fire's mana binds, so Berserking's casting speed mostly spends it sooner (+0.45 DPS). The default race stays Troll until the tuning milestone looks at it |
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
-| Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; Eureka! isn't simulated |
+| Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; **Eureka!** (1259817), pressed on cooldown from the pull: the next 3 of Fireball, Scorch, Fire Blast, Frostbolt and Arcane Missiles cost 50% less mana and deal +10% (Fireball's DoT +10%; Arcane Missiles only its cost, its missiles are outside the mask; not Pyroblast) [F], its rules [?] (`src/sim/classes/eureka.ts`, `eureka`): +1.98% Fire, +0.84% Frost, +0.32% Arcane (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights) |
 | High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (1259710): +1% melee and ranged haste (aura 342) and **+1% casting speed** (aura 65) [F]. Worth +0.4 Fire DPS on the default setup (+1.5 with unlimited mana) and +3.8 Frost, 20,000 fights ([Casting speed](#fire-priority-list-default)) |
 
 [F] [client] (ChrRaces, CharBaseInfo, SkillLineAbility, SpellEffect, 1.60.1.69913;
@@ -487,7 +487,7 @@ the prefix below), in the Rotation tab's groups. A mana threshold is a share of 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 1 | Combustion, off the GCD | `combustion.enabled`, with the talent; ready | on |
-| 2 | Berserking (Troll) or Blood Fury (Orc), off the GCD | `racial.enabled`; on cooldown | on |
+| 2 | Berserking (Troll), Blood Fury (Orc) or Eureka! (Gnome), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
 | 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
 | 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |

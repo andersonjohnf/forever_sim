@@ -75,7 +75,8 @@ describe('Fury’s priority list (D31)', () => {
     // Settings, talents, race, on-use items, consumables, phase and rules at random; the switch the
     // list added (row 6's) at its default, on, as it always was before. The snapshot is of the
     // rotation before the priority list (A1), checked byte for byte against it then: a change to
-    // it is a change to what Fury plays.
+    // it is a change to what Fury plays. Since: a Gnome presses Eureka! (EI-2, September 2026), which
+    // moved 32 of the 40 Gnome cases (the rest have the racial off) and no other.
     const before = FURY_OPTIONS.filter((o) => o.id !== 'warrior.fury.execute.bloodthirst')
     const hashes = furyCases(before, 200).map(({ values, talents, context }) => {
       const none = furyRotation(values, talents, noAura, context)

@@ -7,6 +7,7 @@ import type { OnUseSpec } from '../../effects/types'
 import { COND, type RotationCondition } from '../../plan/types'
 import type { RotationGroup, RotationOption } from '../../types'
 import { onUseCast } from '../druid/cat-abilities'
+import { eurekaFor } from '../eureka'
 import { RACIAL_COOLDOWNS } from '../warrior/abilities'
 import { type Reader, RotationBuilder, seconds } from '../warrior/shared'
 import { type AbilityDef, EVISCERATE, EXPOSE_ARMOR, SLICE_AND_DICE, THISTLE_TEA, THISTLE_TEA_CAST } from './abilities'
@@ -77,7 +78,7 @@ export const cooldownOptions = (ids: RogueIds): RotationOption[] => [
     id: ids.racial,
     group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
-    help: 'Use Blood Fury (Orc, +10% attack power for 15 s), Berserking (Troll, +10% attack speed for 10 s) or Elune’s Light (Night Elf, +10% crit for 15 s) on cooldown.',
+    help: 'Use Blood Fury (Orc, +10% attack power for 15 s), Berserking (Troll, +10% attack speed for 10 s), Elune’s Light (Night Elf, +10% crit for 15 s) or Eureka! (Gnome, your next 3 attacks cost 20% less Energy and deal 10% more) on cooldown.',
     default: true,
   },
   {
@@ -191,7 +192,8 @@ export interface RogueContext {
 
 /** The off-GCD lines every spec has: the racial, on-use items, Thistle Tea and Juju Flurry (rogue.md §6). */
 export function offGcdLines(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ctx: RogueContext): void {
-  const racial = RACIAL_COOLDOWNS[ctx.race]
+  // A Gnome's Eureka! (classes/eureka.ts): its 3 charges go to the next abilities it modifies.
+  const racial = eurekaFor(ctx.race, 'rogue') ?? RACIAL_COOLDOWNS[ctx.race]
   if (racial && v.on(ids.racial)) b.add(racial, [])
   if (v.on(ids.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
   if (ctx.consumables.some((c) => c.id === THISTLE_TEA.id) && v.on(ids.tea)) b.add(THISTLE_TEA_CAST, [maxEnergy(v.num(ids.teaEnergy))])

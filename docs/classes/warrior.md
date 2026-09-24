@@ -251,8 +251,9 @@ This section adds the warrior's own sources and sinks.
   - utility and cooldowns: Pummel, Shield Bash, Intercept, Mocking Blow, Disarm, Concussion
     Blow, Death Wish, Sweeping Strikes
   - **not** reduced: Battle Shout, Shield Block, Berserker Rage, Bloodrage
-- Gnome Eureka! cuts the next 3 damaging abilities' cost by 40%. How it rounds is Q18 [F]
-  [rac] [db-eff].
+- Gnome Eureka! cuts the next 3 damaging abilities' cost by 40%, rounded down to whole rage
+  (Q18 [?]): Bloodthirst and Mortal Strike 30 → 18, Whirlwind 25 → 15, Execute's 15 → 9 [F]
+  [rac] [db-eff]. The model is every class's ([§7](#7-implementation-notes), `src/sim/classes/eureka.ts`).
 
 ### 2.4 Heroic Strike and Cleave (on-next-swing)
 
@@ -718,7 +719,7 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s. No Charge; the warrior walks in, as in [wh-fury] | `fury.prepull.battleShout` (on; needs `fury.battleShout.enabled`), `fury.prepull.bloodrage` (on), `fury.prepull.charge` (off; adds 15 rage, +3 per Improved Charge rank, and needs a swap to Berserker Stance that keeps only 25) | yes |
 | 1 | Battle Shout | Buff missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout; see the notes | `fury.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 2 | Death Wish | On cooldown from the pull. If `alignToEnd` is on, the final use waits until 30 s are left, so it lasts until the fight ends, or until `beforeExecuteSec` before the execute phase starts, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the 30 s | `fury.deathWish.enabled` (on), `.alignToEnd` (on), `.beforeExecuteSec` (3; dimmed with Execute off) | yes |
-| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman). Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
+| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking, Elune's Light and Eureka! ([§2.9](#29-racials-for-warriors), §7), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute off, only the latter. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off), `.lastSec` (16) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.bloodthirst` (on; new with the priority list, below, so the row has its own switch), `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
@@ -2089,9 +2090,13 @@ seed 12345). The enchants stay the spec's
   ([rage.md](../mechanics/rage.md#forever-)).
 - **Berserker Rage's extra rage from damage taken** uses rage.md's ×1.0 default [?] (Q20), so
   its aura would change nothing and isn't applied. The result flags this when damage is taken.
-- **Eureka! isn't simulated** (Gnome). Its 3 charges would need a per-cast cost and damage
-  modifier on damaging abilities, and three unknowns from Q18: how the 40% rounds, whether it
-  cuts Execute's extra rage, and whether a miss spends a charge. The result says so for Gnomes.
+- **Eureka!** (Gnome, `src/sim/classes/eureka.ts`) goes with the other racials (row 3, aligned with
+  Death Wish when that's on). Its aura has 3 charges; each use of an ability the client's masks cover
+  (Bloodthirst, Mortal Strike, Whirlwind, Slam, Execute, Overpower, Heroic Strike, Hamstring, Shield
+  Slam, Thunder Clap, Rend; not Sunder Armor, Revenge or Spearing Strike) spends one as it's paid,
+  whether it lands or not, at 40% off its cost rounded down, and deals +10% (Rend's bleed +10%). The
+  Q18 answers are [?]: rounded down, Execute's base cost only, a miss spends a charge (`eureka`).
+  Worth +1.48% Fury, +1.46% Arms and +0.64% Protection TPS (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights).
 - **Time-left conditions.** The fight's drawn length is known, so "time left ≤ x" and "≥ x"
   become a window of times per line for each fight: the engine compares the time with it,
   without evaluating a condition, and wakes the rotation at `fight end − x`, when a "≤ x"
@@ -2589,7 +2594,8 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or
     100 × 1.05 + 30 = 135? How does the fraction round?
 18. **Eureka!.** How does the 40% cost cut round? Execute costs 15, and 40% of it is 6. Does
-    Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss?
+    Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss? The sim
+    rounds down, cuts only the base cost and spends a charge on a miss (`eureka`) [?].
 19. **Improved Slam's replacement spells.** The Improved Slam ranks replace the Slam spells
     (1310196–1310200, [F] [client] (SpellName, 1.60.1.69913)) and carry an extra attribute. Does
     anything else change: cooldown, rage?

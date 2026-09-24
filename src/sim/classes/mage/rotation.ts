@@ -8,6 +8,7 @@ import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type Rotatio
 import type { RotationOption, RotationValue, SpecId } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
 import { CASTER_RACIALS } from '../caster-racials'
+import { eurekaFor } from '../eureka'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
   ARCANE_MISSILES,
@@ -86,7 +87,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.racial,
         group: COOLDOWNS,
         label: 'Racial cooldown',
-        help: 'Use Berserking (Troll: +10% casting speed for 10 s) or Blood Fury (Orc: +10% spell power for 15 s) on cooldown from the pull.',
+        help: 'Use Berserking (Troll: +10% casting speed for 10 s), Blood Fury (Orc: +10% spell power for 15 s) or Eureka! (Gnome: your next 3 spells cost 50% less and deal 10% more) on cooldown from the pull.',
         default: true,
       },
       {
@@ -372,7 +373,8 @@ export function mageRotation(
   if (spec === 'fire' && v.on(ID.combustion) && has('Combustion')) add(COMBUSTION)
   if (spec === 'arcane' && v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
   if (spec !== 'fire' && v.on(ID.presenceOfMind) && has('Presence of Mind')) add(PRESENCE_OF_MIND)
-  const racial = CASTER_RACIALS[ctx.race]
+  // A Gnome's Eureka! (classes/eureka.ts) goes with them: its 3 charges go to the spells it modifies.
+  const racial = eurekaFor(ctx.race, 'mage') ?? CASTER_RACIALS[ctx.race]
   if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const pi = ctx.consumables.find((c) => c.id === POWER_INFUSION)

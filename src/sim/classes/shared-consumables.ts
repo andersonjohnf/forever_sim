@@ -61,7 +61,7 @@ export function throwHolds(spec: SpecId): string {
  */
 export function explosiveThrowDetail(spec: SpecId): string {
   if (swingsInMelee(spec))
-    return `EZ-Thro Dark Bomb is thrown on cooldown: the first just after your first main-hand swing, the rest as it’s ready, wherever the swing timer is. Its 1 s throw ${throwHolds(spec)}, which start again from a full swing when it lands, and holds your other abilities until then. So the melee it costs here is an upper bound: a throw right after a swing costs less.`
+    return `EZ-Thro Dark Bomb is thrown on cooldown: the first just after your first main-hand swing, the rest as it’s ready, wherever the swing timer is. Its 1 s throw ${throwHolds(spec)}, which start again from a full swing when it lands, and holds your other abilities until then. So the melee damage it costs here is an upper bound: a throw right after a swing costs less.`
   return `EZ-Thro Dark Bomb is thrown on cooldown from the pull, from within its 15 yd range. Its 1 s throw ${throwHolds(spec)} and your other abilities until it lands.`
 }
 

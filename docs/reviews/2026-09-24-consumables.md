@@ -157,3 +157,15 @@ The tanks' Max TPS moved since the second fix round's table (Protection warrior 
 beyond its interval; the cat's and Retribution's small gains under the swing window (+0.28%,
 +0.24%, the latter −0.07% on a second seed) are gone, and timed to the swings the warriors still
 lost (Fury −1.07%, Arms −0.56%). The casters' and hunters' known gap (its 15 yd range) is unchanged.
+
+### Verification of the simplification (e149be84)
+
+With the bomb off, every spec's result is byte-identical (all 23 defaults and 60 random setups). Every
+spec throws 1, 3 and 5 times in 60, 180 and 300 s fights, and no throw comes before the first
+main-hand swing. The §6.3 numbers reproduce. **Passes.**
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| BV-1 | low | introduced | §6.3 argued only the warriors' swing-timed loss; timed to the swings the cat, Retribution, the Protection paladin and Subtlety gain 0.2–0.3%. | fixed by the lead: §6.3 gives both models and says the effect is within ±0.3% for those four |
+| BV-2 | low | introduced | "give or take a GCD" misses a caster's longer wait for its cast in progress. | fixed by the lead |
+| BV-3 | low | introduced | "the melee it costs" read oddly. | fixed by the lead: "the melee damage it costs" |

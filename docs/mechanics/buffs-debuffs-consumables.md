@@ -512,7 +512,7 @@ that swings from just after its first main-hand swing (below), and the results l
 A warrior with no spell hit fails 17% + 83% × 6% = **21.98%** of its throws, and at 5% spell crit a
 throw averages 0.7802 × 450 × 1.025 = **359.87** damage (worked example 12). Every spec throws it
 three times in a 3 min fight: at the pull (a melee spec just after its first swing), then at 61 s
-and 122 s, give or take a GCD. For a spec that swings the throw costs more than it deals: the swings
+and 122 s, give or take a GCD (for a caster, the cast in progress). For a spec that swings the throw costs more than it deals: the swings
 it restarts and the GCD it holds lose white damage and rage, so it's in no melee preset
 ([§6.3](#63-consumables-by-spec-and-preset)).
 
@@ -883,8 +883,10 @@ spec loses: **Fury from 814.5 ± 2.0 to 799.3 ± 2.1 DPS (−1.87%)**, **Arms fr
 1.0 (−0.78%), Subtlety 569.2 ± 1.0 → 566.5 ± 1.0 (−0.47%) and Assassination 594.2 ± 1.1 → 592.3 ±
 1.1 (−0.31%). The tanks lose threat: Protection warrior 1,293.2 ± 2.4 → 1,275.3 ± 2.4 TPS (−1.38%),
 bear 1,191.5 ± 3.7 → 1,166.5 ± 3.6 (−2.10%), Protection paladin 962.4 ± 1.6 → 941.5 ± 1.6 (−2.17%).
-Timed to the swings the warriors still lose: the swing window the sim used before (§3.7), which
-threw only just after a swing, measured Fury −1.07% and Arms −0.56%. So no melee preset throws it
+Timed to the swings, the true cost lies between the two models: the swing window the sim used
+before (§3.7), which threw only just after a swing, measured Fury −1.07% and Arms −0.56%, but a small
+gain for the Feral cat (+0.28%), Retribution (+0.24%), the Protection paladin (+0.23% TPS) and
+Subtlety (+0.19%). For those four the effect is within ±0.3% either way, so no melee preset throws it
 (D29); whether a druid can throw it in Cat or Bear Form at all is open too
 ([open questions](#open-questions)). A caster loses a second of casting instead, and its result is
 mixed (seed 12345, 2,000 fights): a Fire mage +0.63%, Affliction +0.24%, Elemental +0.24% and

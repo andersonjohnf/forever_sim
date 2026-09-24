@@ -190,3 +190,67 @@ as decided, but it costs the warrior 0.8% more boss crits, and the lead may want
 
 Checks: lint and typecheck clean; `npx vitest run src/sim/optimize` 65 passed. No UI changed, so no
 e2e run or screenshots.
+
+## Third verification (OV3) and step 6
+
+A fresh reviewer's third pass (probes in the O1 worktree's `.cache/probes/o1-verify3/`) found one
+medium and six more. Two rounds in a row had now found new problems in the same two mechanisms,
+the end-of-race preferred-filler rule and result limits in the race, so under CLAUDE.md's step 6
+they were **cut rather than patched a third time** (user decision, D30 "Simplified after O1's
+third review round", `dcfc85e` on `main`). The branch was merged with `main` first (`daeb07f`: the
+worker pool's new watchdog now also covers the optimizer's fight jobs, with a test).
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| OV3-1 | medium | introduced (the preferred filler's fill order) | The maximality rule counted a dimension only a constraint made (Toughness, read by the effective-health floor) as a raise, so a core with 5 or more spare points and Toughness 0 was dropped before the points reached Anticipation; with `--screen-fights 3000`, where Anticipation screens as harmful, no build in the warrior's space had any Anticipation. | fixed, `3a250e5`: only objective dimensions are raises; a test with 5–9 spare points and Anticipation objective, none and harmful. That alone left the reproduction's space unchanged (1,101 builds, none with Anticipation): a harmful Anticipation was only a filler, and the objective talents' partial ranks take every spare point first. `678c2bc`: the preferred filler is a dimension whatever its role (a raise only when objective and not below zero), so builds with it at 5/5 and without it both race; that space is now 4,388 builds, 3,287 with Anticipation 5, and the answer is the same; a test on the modelled warrior tree |
+| OV3-2 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule (grouped with OV3-3 and OV3-5 in the lead's brief). | resolved by the cut, `12ff38e`: the rule is gone |
+| OV3-3 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule: it read a candidate dropped early over its own few fights (the probes' `antic.mjs`, `antic2.mjs`). | resolved by the cut, `12ff38e` |
+| OV3-4 | per the reviewer's report | introduced (OV2-1's hold) | Result limits in the race: with `taken<=104.5%` the warrior's race ran to its budget with the leader meeting the limit by its means alone (`war-taken.log`). | resolved by the cut, `53648f9`: the race takes no result limits; supersedes OV2-1 |
+| OV3-5 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule. | resolved by the cut, `12ff38e` |
+| OV3-6 | low | introduced (CLI) | The space line said "24 objective talents" when one of them was Toughness, a constraint's dimension. | fixed, `53648f9` and `678c2bc`: "24 dimensions (23 objective + Toughness)", naming each one that isn't objective |
+| OV3-7 | low | introduced (CLI) | "(pts) behind" in the budget line. | fixed, `12ff38e`: "points behind" (or "DPS behind"); `--confirm`'s "the setup itself leads" stays, now that nothing is preferred to the leader; the `--search both` help line is re-aligned (`53648f9`) |
+
+The severities and full text of OV3-2 to OV3-5 are in the reviewer's report to the lead; this log
+records what the lead's brief said of them, and each is resolved by removing the code it was about.
+
+**What was cut, and why.**
+
+- **The end-of-race preferred-filler rule** (`preferFiller`, `src/sim/optimize/prefer.ts` and its
+  tests; the report's `answer` and `preferred`; the CLI's "preferred for Anticipation" line). It
+  preferred a candidate with more Anticipation within 0.5% of the leader or inside its interval.
+  Three rounds found problems in how it chose and whom it could see. Now the leader is the answer,
+  and the preferred filler is only the talent space's fill order (spare points go to Anticipation
+  before Toughness and the other fillers) plus, from OV3-1, a dimension, so the race compares
+  builds with and without it. An answer that drops Anticipation when the gain is clear is
+  acceptable (user decision: the warrior's Deep Wounds build).
+- **Result limits in the race** (`--require` on `dps`, `tps` or `taken`; the infeasible drop, OV2-1's
+  hold on a leader over a limit, `leaderInsideLimits`, `outside`, `feasible`, `whyNoneInRace`, the
+  CLI's "clearly outside a limit" counts and "by its means alone" note). Judging a limit with
+  intervals in the race broke in two rounds running, and D30 already rules out a damage-taken cap.
+  The sheet constraints stay, exact and checked before the race: the survival floor, the
+  effective-health floor, crit and crush immunity, and any `--require` on a sheet stat. A result
+  metric in `--require` is refused with one line.
+
+The code shrank: across `src/sim/optimize` and the CLI, tests included, this round removed 554
+lines and added 216 (85 of them the OV3-1 fixes and their tests), 338 fewer; the docs, 103 removed
+and 84 added.
+
+### The numbers after this round
+
+The default searches (`quick`, seed 1, `--confirm` on seed 2654435770, 40,000 fights each):
+
+| Spec | Space | Result | Confirmed vs the default |
+| --- | --- | --- | --- |
+| Protection warrior | 4,735 builds from 24 dimensions (23 objective + Toughness), unchanged | Improved Rend 0→3, Deep Wounds 0→3, Improved Thunder Clap 0→3 for Anticipation 5→0, Toughness 1→0, Master of Defense 2→0, Vanguard 1→0; separated after 3 rounds | **+4.43** (+4.35 to +4.50), unchanged; +4.64 with ratings ignored |
+| Protection paladin | 8,918 builds, unchanged | `050003-0530213321301511-50205`, unchanged; separated after round 0 | **+6.48** (+6.40 to +6.56), unchanged |
+| Feral bear | 129 builds, unchanged | the setup itself | nothing to confirm |
+| Protection warrior, `--screen-fights 3000` (Anticipation harmful) | 4,388 builds, 3,287 with Anticipation 5 (was 1,101, none with any) | the same build as the default search, separated after 3 rounds | +4.48 (+3.68 to +5.28) in the race |
+
+The merge with `main` brought its committed-data test, which O1's survival-floor tables failed: they
+cite four spells (Last Stand, Improved Shield Wall and two druid floor talents) that `spells.json`
+carried without the docs source. `be85fd3` regenerates it from the cache (`npm run scrape:client`,
+no requests); `scrape:check` matches.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run` 85 passed; `npm
+test` 2,634 passed, with the two one-core benchmarks failing only under the machine's load (load
+average 36) and passing when rerun alone. No UI changed, so no e2e run or screenshots.

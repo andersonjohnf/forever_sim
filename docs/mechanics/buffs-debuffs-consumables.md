@@ -186,7 +186,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Blessing of Salvation | 1038 | −30% threat generated | **1 h** (C: 5 min) | One Blessing per paladin. **Default off for tanks** | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Greater Blessing of Salvation | 25895 | −30% threat, class-wide | **1 h** (C: 15 min) | Class-wide, so it also hits warrior/druid/paladin tanks of the same class unless they cancel it | Paladin | [F] | [fc-sb-paladin] |
 | Blessing / Greater Blessing of Sanctuary | 20914 / 25899 | **Not in Forever** (C: −24 damage taken per hit, 35 Holy on block) | — | — | Removed spell and talent | [F] | [fc-sb-paladin] (missing list) · [fc-changes] |
-| Tranquil Air Totem | 25908 → 25909 | −20% threat, party (aura 10 = −20) | 5 min | An air totem: doesn't stack with Windfury or Grace of Air, **even from another shaman** (1.60.1.70009) | Shaman; not in the catalogue: it only lowers threat, in the air slot Windfury or Grace of Air fills | [F] notes; [?] how it's learned | [dev-70009] · [client] (SpellEffect, SpellMisc, 1.60.1.70009): 25909 gains the air totems' shared `Attributes[11]` 0x400. Forever's trainer data (SkillLineAbility) has no row for the totem 25908, which this doc read as removed until the notes named it |
+| Tranquil Air Totem | 25908 → 25909 | −20% threat, party (aura 10 = −20) | 5 min | An air totem: doesn't stack with Windfury or Grace of Air, **even from another shaman** (1.60.1.70009) | Shaman, if it can be cast at all [?]; not in the catalogue: it only lowers threat, in the air slot Windfury or Grace of Air fills | [F] notes; [?] whether a shaman has it | [dev-70009] · [client] (SpellEffect, SpellMisc, SpellName, 1.60.1.70009): the aura 25909 is in the client and gains the air totems' shared `Attributes[11]` 0x400, but the totem spell 25908 isn't (no row, not an encrypted one), nor in the trainer data (SkillLineAbility). This doc read it as removed until the notes named it |
 | Devotion Aura (r7) | 10293 | +735 armor, party within 30 yd | Aura | One Aura per paladin on a player. **Improved Devotion Aura removed** (C: +25%) | Paladin | [F] | [fc-sb-paladin] · [fc-changes] |
 | Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
@@ -961,7 +961,8 @@ the weapon's Crusader sits beside the imbue, which is the temporary enchant
   315 → **246** AP and now a **party aura** instead of a weapon enchant. Enhancing Totems,
   Improved Weapon Totems and Totemic Mastery removed. The site listed **Tranquil Air** as removed
   too; the 1.60.1.70009 development notes name it among the air totems that no longer stack
-  ([dev-70009]), so it exists (§1.2).
+  ([dev-70009]), and its aura 25909 is still in the client, though its totem spell 25908 isn't
+  (§1.2).
 - Sanctity Aura and Improved Devotion Aura removed. Retribution Aura 20 → 30.
 - Both factions have paladins and shamans ([F] client `CharBaseInfo`; the site's own list is
   community-reported).

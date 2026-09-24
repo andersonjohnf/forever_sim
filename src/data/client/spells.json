@@ -36,9 +36,9 @@
   },
   "counts": {
     "bySource": {
-      "buffsDoc": 48,
+      "buffsDoc": 49,
       "consumable": 82,
-      "docs": 573,
+      "docs": 580,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -47,7 +47,7 @@
       "trigger": 311
     },
     "encryptedSpellNameRecords": 884,
-    "notInClient": 0,
+    "notInClient": 1,
     "seeds": 2833,
     "spells": 3109
   },
@@ -55,7 +55,13 @@
     "15366": "Songflower Serenade",
     "22888": "Rallying Cry of the Dragonslayer"
   },
-  "notInClient": [],
+  "notInClient": [
+    {
+      "encrypted": false,
+      "id": 25908,
+      "sources": ["buffsDoc"]
+    }
+  ],
   "racials": {
     "alliance-dwarf": {
       "chrRacesId": 3,
@@ -96762,7 +96768,7 @@
       },
       "name": "Expansive Mind",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "20593": {
       "effects": [
@@ -111502,7 +111508,7 @@
       },
       "name": "Tranquil Air",
       "nameSubtext": "Rank 1",
-      "sources": ["docs"]
+      "sources": ["buffsDoc", "docs"]
     },
     "25916": {
       "categories": {
@@ -125171,7 +125177,7 @@
       },
       "name": "Wind Blessed",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259718": {
       "categories": {
@@ -125320,7 +125326,7 @@
       },
       "name": "Expansive Mind",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259812": {
       "auraOptions": {
@@ -125389,7 +125395,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259813": {
       "auraOptions": {
@@ -125527,7 +125533,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259821": {
       "auraOptions": {
@@ -125596,7 +125602,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259823": {
       "auraOptions": {
@@ -125665,7 +125671,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259918": {
       "categories": {

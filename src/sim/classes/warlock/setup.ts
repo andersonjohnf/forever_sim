@@ -6,6 +6,7 @@ import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type ManaPlan, type Plan, POWER_TICK_MS } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
+import { FIREBOLT } from './demons'
 import { type TalentRanks, warlockTalentEffects } from './talents'
 
 /** The warlock's passive effects for this build (warlock.md §4). */
@@ -40,7 +41,7 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   if (spells.some((s) => (s.dotTicks ?? 0) > 0)) ids.push(plan.profile.combat.periodicCrits ? 'casterDotCrits' : 'casterDots')
   if (has('lifeTap')) ids.push('lifeTap')
   // docs/classes/warlock.md §11.7: Demonology's demon replaces the "no pet" ones.
-  if (plan.pet) ids.push('demonOut', 'demonStats', 'demonTable', ...(plan.pet.power ? (['demonMana'] as const) : []))
+  if (plan.pet) ids.push('demonOut', 'demonStats', 'demonInherits', 'demonTable', ...(plan.pet.power ? (['demonMana'] as const) : []))
   else if (has('demonicSacrifice')) ids.push('demonicSacrifice')
   else if (plan.spec !== 'warlock-demonology') ids.push('warlockNoPet')
   if (has('masterDemonologist')) ids.push('masterDemonologist')
@@ -53,7 +54,11 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   if (plan.procs.some((p) => p.id === 'improvedShadowBolt')) ids.push('improvedShadowBolt')
   if (has('baneOfAgony')) ids.push('baneOfAgonyRamp')
   ids.push('warlockTalentStacking')
+  // Improved Imp's hidden effect, read as Firebolt's cast time (§11.7 Q19), when it shortens the Imp's.
+  const firebolt = plan.pet?.abilities.find((a) => a.id === 'firebolt')
+  if (firebolt && firebolt.castMs < FIREBOLT.castMs) ids.push('improvedImpCast')
   // Improved Shadow Bolt's text names the rank's Shadow Vulnerability: +4% a rank (warlock.md §4.1).
   const vulnerability = plan.auras.find((a) => a.id === 'shadowVulnerability')?.schoolTaken ?? 0
-  return ids.map((id) => (id === 'improvedShadowBolt' ? { id, detail: String(vulnerability) } : { id }))
+  const detail: Partial<Record<AssumptionId, string>> = { improvedShadowBolt: String(vulnerability), improvedImpCast: String((firebolt?.castMs ?? 0) / 1000) }
+  return ids.map((id) => ({ id, detail: detail[id] }))
 }

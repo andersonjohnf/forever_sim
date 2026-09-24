@@ -147,6 +147,8 @@ export function withPet(plan: Plan, patch: Partial<PetPlan> = {}): Plan {
     apFromOwnerAp: 0,
     apFromOwnerRap: 0,
     spellDamageFromOwner: 0,
+    critFromOwnerSpellCrit: 0,
+    hitFromOwnerSpellHit: 0,
     damageMult: 1,
     hasteMult: 1,
     critMultiplier: 2,

@@ -1498,6 +1498,9 @@ export interface PetPlan {
   apFromOwnerAp: number
   apFromOwnerRap: number
   spellDamageFromOwner: number
+  /** Shares of your spell crit and spell hit it adds to its own, melee and spells alike (§6; a warlock's demon) [?]. */
+  critFromOwnerSpellCrit: number
+  hitFromOwnerSpellHit: number
   /** All its damage %, as a product: its family's, happiness's, your talents' (§6). */
   damageMult: number
   /** Static attack speed, a product (1: none). */

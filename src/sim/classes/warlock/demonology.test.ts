@@ -20,6 +20,7 @@ import { lifeTap } from './abilities'
 import { DEMONOLOGY_IDS } from './demonology'
 import {
   DEMO_CURVE,
+  DEMON_INHERITS,
   DEMON_STATS,
   DEMON_WEAPON,
   demonicKnowledge,
@@ -88,6 +89,7 @@ describe('rows against the Forever client (warlock.md §11.1)', () => {
 
   it('the talents’ curves are the client’s', () => {
     expect(curve('Improved Imp', 1)).toEqual(DEMO_CURVE.improvedImp)
+    expect(curve('Improved Imp', 2)).toEqual(DEMO_CURVE.improvedImpCast)
     expect(curve('Unholy Power')).toEqual(DEMO_CURVE.unholyPower)
     expect(curve('Improved Sayaad')).toEqual(DEMO_CURVE.improvedSayaad)
     expect(curve('Fel Vitality')).toEqual(DEMO_CURVE.felVitality)
@@ -147,6 +149,31 @@ describe('worked examples (warlock.md §11.8)', () => {
     const sf = withTalents(SOUL_FIRE, ranks([['Bane', 5], ['Decimation', 2]]))
     expect([sf.castMs, sf.cooldownMs]).toEqual([2400, 6000])
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
+  })
+
+  it('8. What the Succubus inherits in the default: 253.8 attack power, 108.6 spell damage, your 11.73% crit, 13% spell miss; Lash of Pain 156.49', () => {
+    const { plan } = buildPlan(fixed())
+    expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, ...DEMON_INHERITS })
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    const s = sim as unknown as { ap: number; derived: { spellCrit: number; spellHit: number }; spSchool: Float64Array; petAp: number; petCritPct: number; petSpellCritNow: number; petSpellMissPct: number }
+    expect(s.ap).toBe(138)
+    expect(s.petAp).toBeCloseTo(253.8, 9)
+    expect(s.derived.spellCrit).toBeCloseTo(11.7325, 9)
+    expect([s.petCritPct, s.petSpellCritNow]).toEqual([s.derived.spellCrit, s.derived.spellCrit])
+    expect(s.derived.spellHit).toBe(4)
+    expect(s.petSpellMissPct).toBe(13)
+    // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 486 Shadow (426 + your own 60).
+    expect(s.spSchool[SCHOOL.shadow]).toBe(486)
+    const lash = plan.pet!.abilities[0]
+    const sp = plan.pet!.spellDamage + DEMON_INHERITS.spellDamageFromOwner * s.spSchool[SCHOOL.shadow]
+    expect(sp).toBeCloseTo(108.6, 9)
+    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(156.493, 3)
+  })
+
+  it('9. Improved Imp’s hidden effect as Firebolt’s cast time: 1.7 / 1.3 / 1 s', () => {
+    expect([1, 2, 3].map((r) => demonPet('imp', ranks([['Improved Imp', r]]))!.abilities[0].castMs)).toEqual([1700, 1300, 1000])
+    expect(demonPet('imp', ranks([]))!.abilities[0].castMs).toBe(FIREBOLT.castMs)
   })
 
   it('7. Shadow in the default: ×1.30295 from Burning Shadow, Master Demonologist and Soul Link', () => {
@@ -241,6 +268,23 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(Math.min(...casts)).toBeGreaterThanOrEqual(executePhaseStart(steady.fight.durationMs, 35))
   })
 
+  it('COND.healthAtMost at its bounds: 100 holds from the pull, 0 never', () => {
+    const { plan } = buildPlan(fixed({ [DEMONOLOGY_IDS.soulFire]: true }))
+    const sf = plan.abilities.findIndex((a) => a.id === 'soulFire')
+    const at = (pct: number) => {
+      const p: Plan = { ...plan, rotation: plan.rotation.map((e) => (e.ability === sf ? { ...e, conditions: [{ code: COND.healthAtMost, a: pct, b: 0 }] } : e)) }
+      const sim = new Sim(p)
+      const casts: number[] = []
+      sim.castTrace = (a, t) => {
+        if (a === sf) casts.push(t)
+      }
+      for (let i = 0; i < 10; i++) sim.runFight(i)
+      return casts
+    }
+    expect(Math.min(...at(100))).toBeLessThan(10000)
+    expect(at(0)).toEqual([])
+  })
+
   it('the Rotation tab says why a sacrifice does nothing', () => {
     const setup = (talents: string) => ({ race: 'horde-orc', raceName: 'Orc', othersBleed: false, buffGroups: new Set<string>(), talents: talentRanksByName(TALENT_DATA.warlock, talents) })
     const talents = defaultConfig('warlock-demonology').talents
@@ -257,8 +301,33 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(plan.fight.targetArmor).toBeLessThan(1000)
     const result = toResult(buildPlan(fixed()), runFights(plan, 100), 0)
     expect(result.abilities.filter((a) => a.pet).map((a) => a.name)).toEqual(['Auto attack', 'Lash of Pain'])
-    expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonTable', 'demonMana', 'masterDemonologist']))
+    expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonInherits', 'demonTable', 'demonMana', 'masterDemonologist']))
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
+    // Improved Imp's cast time is the Imp's alone (Q19).
+    expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpCast')
+    const imp = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }))
+    expect(imp.assumptions.find((a) => a.id === 'improvedImpCast')!.text).toContain('its 2 s cast becomes 1 s')
+  })
+
+  it('the demon’s crit and hit follow yours, and its spells never read your school auras', () => {
+    const { plan } = buildPlan(fixed())
+    const agg = (p: Plan) => runFights(p, 300)
+    const base = agg(plan)
+    // No inherited crit or hit: fewer crits and more misses on both of the Succubus's rows.
+    const own: Plan = { ...plan, pet: { ...plan.pet!, critFromOwnerSpellCrit: 0, hitFromOwnerSpellHit: 0 } }
+    const lone = agg(own)
+    for (const id of ['succubus.melee', 'succubus.lashOfPain']) {
+      expect(perFight(own, lone, id, 'crits'), id).toBe(0)
+      expect(perFight(own, lone, id, 'misses'), id).toBeGreaterThan(perFight(plan, base, id, 'misses'))
+    }
+    // docs/classes/warlock.md §11.4: your Burning Shadow, Master Demonologist and Soul Link auras are
+    // yours; the demon's own talents are in its damage already. Without them your damage falls and
+    // its is the same to the last point.
+    const mine = new Set(['burningShadow', 'masterDemonologist', 'soulLink'])
+    const bare: Plan = { ...plan, auras: plan.auras.map((a) => (mine.has(a.id) ? { ...a, schoolDamage: 0 } : a)) }
+    const without = agg(bare)
+    for (const id of ['succubus.melee', 'succubus.lashOfPain']) expect(perFight(bare, without, id, 'damage'), id).toBe(perFight(plan, base, id, 'damage'))
+    expect(perFight(bare, without, 'shadowBolt', 'damage')).toBeLessThan(perFight(plan, base, 'shadowBolt', 'damage'))
   })
 
   it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +20% at 5/5', () => {
@@ -280,6 +349,8 @@ describe('golden runs (fixed config and seed)', () => {
   // - H3: the default Demonology warlock (warlock.md §11.5, §11.6): the Succubus out, the Imp sacrificed
   //   with Demonic Pact, Soul Link, Master Demonologist and Demonic Knowledge, Immolate, Corruption, Bane
   //   of Doom then Agony, Shadow Bolt, Life Tap at 10%; 492.8 DPS over 20,000 fights on seed 2701 (§11.6).
+  // - H3 review (DM4): the demon inherits 10% of your attack power and spell damage, and your spell crit
+  //   and hit (§11.2, D29): 491.39 → 500.64 here (+1.9%); 492.8 → 502.0 over 20,000 fights.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

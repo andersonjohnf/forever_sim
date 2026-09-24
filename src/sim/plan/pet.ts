@@ -41,6 +41,9 @@ export interface PetDef {
   apFromOwnerAp?: number
   apFromOwnerRap?: number
   spellDamageFromOwner?: number
+  /** Shares of your spell crit and spell hit it adds to its own crit and hit, melee and spells alike [?] (§6). */
+  critFromOwnerSpellCrit?: number
+  hitFromOwnerSpellHit?: number
   /** Its white swings can glance against a higher-level boss, as a player's do [?] (§6). */
   glances: boolean
   /** It attacks from in front of the boss (parried and blocked) rather than from behind [?] (§6). */
@@ -130,6 +133,8 @@ export function petPlan(
     apFromOwnerAp: def.apFromOwnerAp ?? 0,
     apFromOwnerRap: def.apFromOwnerRap ?? 0,
     spellDamageFromOwner: def.spellDamageFromOwner ?? 0,
+    critFromOwnerSpellCrit: def.critFromOwnerSpellCrit ?? 0,
+    hitFromOwnerSpellHit: def.hitFromOwnerSpellHit ?? 0,
     damageMult,
     hasteMult: d.hasteMult,
     critMultiplier: CRIT_MULTIPLIER.melee,

@@ -148,7 +148,7 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 
 | Rule | Value | Tag |
 | --- | --- | --- |
-| Inheritance | **Classic Era: none.** Pets took a share of their owner's stats from patch 2.0.1 on ([wiki-201], for the date only). **Forever** ships "Hunter Pet Scaling" (415429) and "Warlock Pet Scaling" (416189) auras with every amount 0 in the client, and new aura types (max health, melee haste, dodge): the amounts are server-side. Forever testers report 10% of the hunter's higher attack power and all of its crit ([fh-changes]) | [C] by inference ([bnet-petdps]; players' reports); Forever's auras [F] [client] (SpellEffect, 1.60.1.69977); their amounts [?] ([OQ-6](#oq-6-pet-stats-and-inheritance)) |
+| Inheritance | **Classic Era: none.** Pets took a share of their owner's stats from patch 2.0.1 on ([wiki-201], for the date only). **Forever** ships "Hunter Pet Scaling" (415429) and "Warlock Pet Scaling" (416189) auras with every amount 0 in the client, and new aura types (max health, melee haste, dodge): the amounts are server-side. Forever testers report 10% of the hunter's higher attack power and all of its crit ([fh-changes]). By D29 that report is each class's default: the warlock's demon reads it for a caster ([warlock.md §11.2](../classes/warlock.md#112-your-demon)) | [C] by inference ([bnet-petdps]; players' reports); Forever's auras [F] [client] (SpellEffect, 1.60.1.69977); their amounts [?] ([OQ-6](#oq-6-pet-stats-and-inheritance)) |
 | Base stats at 60 | not in either client. A Classic Era player reported a level-60 hunter pet's base damage as 22.9 DPS and its attack power as 252 (2 × 136 Strength − 20) | [?] ([bnet-petdps]; [OQ-6](#oq-6-pet-stats-and-inheritance)) |
 | Attack speed | most hunter pets 2.0 s; faster ones deal proportionally less a hit | [C] ([petopia-speed]); Forever reports pets aren't normalized [?] ([fbugs] #31) |
 | Family and happiness | a family's damage modifier (cat ×1.10) and Happy ×1.25, Content ×1, Unhappy ×0.75, all in the pet's damage multiplier; loyalty changes only training points | cat and happiness [C] ([wt-pets]); loyalty [C] ([petopia-train]); other families [?] |
@@ -183,7 +183,9 @@ random stream. Its class doc gives its numbers; the rules here are shared.
   (Bestial Wrath's +50%, Frenzy's +30% speed, a howl that buffs you both). A proc on your attacks can
   put one up, or give the pet power ([§9](#9-procs)).
 - **Your stats.** A pet with shares of your attack power, ranged attack power or spell damage (§6)
-  reads them whenever they change.
+  reads them whenever they change, and so does one with shares of your spell crit and spell hit,
+  which add to its own crit and hit, melee and spells alike (a warlock's demon,
+  [warlock.md §11.2](../classes/warlock.md#112-your-demon)).
 
 ## 9. Procs
 

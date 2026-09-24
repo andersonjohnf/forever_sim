@@ -1113,6 +1113,8 @@ export class Sim {
   private readonly petApFromAp: number
   private readonly petApFromRap: number
   private readonly petSpFromOwner: number
+  private readonly petCritFromOwner: number
+  private readonly petHitFromOwner: number
   private readonly petStaticDamage: number
   private readonly petStaticHaste: number
   private readonly petCritMult: number
@@ -1163,6 +1165,7 @@ export class Sim {
   private petSwingMs = 0
   private petArmorFactor = 1
   private petSpellMissPct = 0
+  private petSpellCritNow = 0
   private petSpecCrit = 0
   private readonly petThrWhite = new Float64Array(6)
   private readonly petThrSpecial = new Float64Array(6)
@@ -1978,6 +1981,8 @@ export class Sim {
     this.petApFromAp = pet?.apFromOwnerAp ?? 0
     this.petApFromRap = pet?.apFromOwnerRap ?? 0
     this.petSpFromOwner = pet?.spellDamageFromOwner ?? 0
+    this.petCritFromOwner = pet?.critFromOwnerSpellCrit ?? 0
+    this.petHitFromOwner = pet?.hitFromOwnerSpellHit ?? 0
     this.petStaticDamage = pet?.damageMult ?? 1
     this.petStaticHaste = pet?.hasteMult ?? 1
     this.petCritMult = pet?.critMultiplier ?? CRIT_MULTIPLIER.melee
@@ -4613,7 +4618,8 @@ export class Sim {
 
   /**
    * The pet's numbers against the current stats and auras (§6, §8): attack power (its own, the
-   * auras' and its shares of yours), crit, damage and attack speed; its white and special tables
+   * auras' and its shares of yours), crit and hit (its own and its shares of your spell crit and spell
+   * hit, melee and spells alike), damage and attack speed; its white and special tables
    * against the boss at its level and skill (combat-tables §2–§4, from behind or the front, glancing
    * only if it glances); its spell miss (combat-tables §9); and the boss's armor, less your debuffs on
    * it, at its level.
@@ -4622,7 +4628,11 @@ export class Sim {
     const plan = this.plan
     const f = plan.fight
     this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petApFromAp * this.ap + this.petApFromRap * this.rap)
-    this.petCritPct = this.petBaseCrit + this.dynPetCrit
+    // Its shares of your spell crit and spell hit (§6: a warlock's demon, warlock.md §11.2) [?].
+    const ownerCrit = this.petCritFromOwner * this.derived.spellCrit
+    const ownerHit = this.petHitFromOwner * this.derived.spellHit
+    this.petCritPct = this.petBaseCrit + ownerCrit + this.dynPetCrit
+    this.petSpellCritNow = this.petSpellCrit + ownerCrit
     this.petDamageMult = this.petStaticDamage * this.petAuraDamage
     if (this.petHasWeapon) this.petSwingMs = swingMs(this.petWSpeedSec, this.petStaticHaste * this.petAuraHaste)
     const inputs = this.meleeIn
@@ -4630,7 +4640,7 @@ export class Sim {
     inputs.attackerLevel = this.petLevel
     inputs.targetLevel = f.targetLevel
     inputs.skill = this.petSkill
-    inputs.hit = this.petHit
+    inputs.hit = this.petHit + ownerHit
     inputs.sheetCrit = this.petCritPct
     inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit
     inputs.expertise = 0
@@ -4644,7 +4654,7 @@ export class Sim {
     meleeChances(plan.profile, inputs, false, false, ch)
     thresholds(specialSlices(ch, 0, this.slices), this.petThrSpecial)
     this.petSpecCrit = ch.crit
-    this.petSpellMissPct = spellMiss(plan.profile, this.petLevel, f.targetLevel, this.petSpellHit)
+    this.petSpellMissPct = spellMiss(plan.profile, this.petLevel, f.targetLevel, this.petSpellHit + ownerHit)
     this.petArmorFactor = 1 - armorReduction(f.targetArmor - this.dynTargetArmor, this.petLevel, plan.profile)
   }
 
@@ -4847,7 +4857,7 @@ export class Sim {
       }
       const sp = this.petBaseSp + this.petSpFromOwner * this.spSchool[school]
       damage = (damage + this.pabSpCoef[a] * sp) * this.petDamageMult * this.schTaken[school] * this.resistFactor[school]
-      crit = rng.roll100() < this.petSpellCrit + this.pabBonusCrit[a]
+      crit = rng.roll100() < this.petSpellCritNow + this.pabBonusCrit[a]
     }
     if (crit) {
       damage *= this.pabCritMult[a]

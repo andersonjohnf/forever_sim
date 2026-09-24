@@ -23,6 +23,11 @@ const DEMO = `${DOC}#11-demonology`
 export const DEMO_CURVE = {
   /** Improved Imp #1: Firebolt's damage % (aura 108, mask 4096). */
   improvedImp: [10, 20, 30],
+  /**
+   * Improved Imp #2, a dummy (aura 4) the tooltip doesn't show: read as Firebolt's cast time in ms, as
+   * the client's tooltips read the dummies like it (`$m1/-1000` sec) [?] (warlock.md §11.3, Q19).
+   */
+  improvedImpCast: [-300, -700, -1000],
   /** Unholy Power #0: all your demon's damage %, its Forever tooltip. */
   unholyPower: [2, 4, 6, 8, 10],
   /** Improved Sayaad #0: Lash of Pain's effect % (aura 108, mask 8192). */
@@ -59,8 +64,17 @@ export const DEMON_STATS = {
  * reported for a level-60 hunter pet (ranged-and-pets.md §6), ±20% [?] (warlock.md Q14).
  */
 export const DEMON_WEAPON = { min: 36.64, max: 54.96, speedSec: 2 } as const
-/** Its crit, melee and spell, 5% [?], and its spell crits' multiplier ×1.5 (ranged-and-pets.md §7) [?]. */
-export const DEMON_CRIT = 5
+/**
+ * What your demon inherits from you (warlock.md §11.2, Q15), D29's closest-analog default [?]. The
+ * Forever client's "Warlock Pet Scaling" (416189) carries attack power (aura 99), spell damage (13, every
+ * magic school), melee and spell hit (54, 55) and crit (52, 57), with every amount 0: they're set
+ * server-side. Its only allowed analog is the hunter's pet, which Forever testers report inherits 10% of
+ * the hunter's attack power and all of its crit (ranged-and-pets.md §6). So the demon takes 10% of your
+ * attack power and of your spell damage in its spell's school, and your spell crit and spell hit as its
+ * own crit and hit, melee and spells alike (the same aura carries hit beside crit). Its spell crits
+ * deal ×1.5 (ranged-and-pets.md §7) [?].
+ */
+export const DEMON_INHERITS = { apFromOwnerAp: 0.1, spellDamageFromOwner: 0.1, critFromOwnerSpellCrit: 1, hitFromOwnerSpellHit: 1 } as const
 
 /**
  * Firebolt r7 (11763), the Imp's: 44 Fire, variance 0.11363637, +0.6 a level from 58, so 42.70–47.70
@@ -80,7 +94,7 @@ export const FIREBOLT = (() => {
  */
 export const LASH_OF_PAIN = { min: 50, max: 50, spCoefficient: 0.429, costTenths: 1600, cooldownMs: 12000, gcdMs: 1500 } as const
 
-/** A pet's mana regeneration: 8 + Spirit / 4 every 2 s, the warlock's own formula, casting or not [?] (warlock.md Q15). */
+/** A pet's mana regeneration: 8 + Spirit / 4 every 2 s, the warlock's own formula, casting or not [?] (warlock.md Q16). */
 export const demonRegenTenths = (spirit: number) => Math.floor(10 * (8 + spirit / 4) + 1e-9)
 
 const petSpell = (
@@ -115,8 +129,8 @@ const petSpell = (
  * Your demon as a pet (warlock.md §11.2, §11.4): its placeholder stats and melee, its spell, its mana,
  * and what your talents give it: Unholy Power and Soul Link on all its damage, Improved Imp on
  * Firebolt, Improved Sayaad on Lash of Pain, Master Demonologist's school on its spells, Demonic
- * Knowledge's spell damage and Fel Vitality's mana. It inherits none of your stats (Classic Era's
- * rule; Forever's scaling aura is server-side, ranged-and-pets.md §6) [?]. Null for 'none'.
+ * Knowledge's spell damage and Fel Vitality's mana; and its shares of your stats (`DEMON_INHERITS`)
+ * [?]. Null for 'none'.
  */
 export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
   if (demon === 'none') return null
@@ -133,16 +147,17 @@ export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
       baseAgi: stats.agi,
       // 2 attack power a Strength − 20, the hunter pet's reported rule (ranged-and-pets.md §6) [?].
       baseAp: -20,
-      baseCrit: DEMON_CRIT,
-      baseSpellCrit: DEMON_CRIT,
+      // Its crit and hit are yours (DEMON_INHERITS), none of its own.
       spellDamage: demonicKnowledge(talents),
     },
+    ...DEMON_INHERITS,
     damageMult,
     glances: true,
     front: false,
   }
   if (demon === 'imp') {
     const mult = (1 + talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImp) / 100) * (1 + md / 100)
+    const firebolt = { ...FIREBOLT, castMs: FIREBOLT.castMs + talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImpCast) }
     return {
       ...base,
       id: 'imp',
@@ -150,7 +165,7 @@ export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
       icon: 'spell_shadow_summonimp',
       weapon: null,
       power,
-      abilities: [petSpell('firebolt', 'Firebolt', 'spell_fire_firebolt', 'fire', FIREBOLT, mult)],
+      abilities: [petSpell('firebolt', 'Firebolt', 'spell_fire_firebolt', 'fire', firebolt, mult)],
       rotation: [{ ability: 0, conditions: [] }],
     }
   }

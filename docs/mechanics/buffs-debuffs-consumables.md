@@ -399,7 +399,7 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Great Rage Potion | 5633 → 6613 | +30–60 rage | 2 min, potion | Potion | **Warrior and Druid** (C: Warrior) | [F] | [fc/5633](https://foreverchanges.pro/item/5633) |
 | Major Mana Potion | 13444 → 17531 | +1350–2250 mana | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Major Healing Potion | 13446 → 17534 | +1050–1750 health | 2 min, potion | Potion | Same | [F] | [fc-items] |
-| Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
+| Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min (aura 22 with misc 1, the Physical resistance: armor) | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, SpellDuration, 1.60.1.69913) |
 | Free Action Potion | 5634 → 6615 | Immunity to stun and movement impairment for 30 s | 2 min, potion | Potion | Same (no DPS effect) | [F] | [fc-items] |
 | Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | Tooltip: **+40 / +28 / +20 Attack Power** for 30 s. Client aura: +40/28/20 flat **physical damage done** (aura 13, school mask 1). No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] tooltip, category · [?] AP vs flat damage | [fc/250943](https://foreverchanges.pro/item/250943) · [client] (SpellEffect, SpellCategories, 1.60.1.69913) |
 | Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
@@ -414,6 +414,19 @@ explosives [F] [client] (ItemEffect, 1.60.1.69913). (The spells carry older cate
 category and its 2 min come from.) So a Major Mana Potion and a Greater Stoneshield Potion share one
 2 min cooldown, and a rune or an EZ-Thro Dark Bomb doesn't touch it. The Buffs tab lets you pick
 one entry of each category ([On-use items and cooldown categories](#on-use-items-and-cooldown-categories)).
+
+**Greater Stoneshield Potion in the sim.** Every rotation drinks it on cooldown from the pull, at
+0 s, 120 s, 240 s and so on, so its +2,000 armor is up all fight (`classes/shared-consumables.ts`).
+An aura's armor is **bonus armor**, not item armor ([character-stats](character-stats.md#derived-stat-pipeline)
+step 4): Toughness and Enrage leave it alone, and in `forever` Dire Bear Form's second armor aura
+multiplies it by 4.6, as it does every bonus armor, so a bear gets **9,200** [?]
+([druid §4.7](../classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it), Q19). The armor goes
+through the tank's armor factor against the boss's level, so each of the boss's swings costs less
+health ([combat-tables §8](combat-tables.md#8-boss--player-tanks); worked example 11). Rage from
+damage taken reads the hit before armor in `forever`, so there it changes no rage; the `classic` rage
+model reads the health lost, so there it lowers rage ([rage](rage.md#rage-from-damage-taken)). For a
+DPS spec it changes nothing: the damage it takes isn't mitigated by armor
+([encounter](encounter.md#4-targets-and-position)).
 
 ### 3.6 Weapon enhancements (temporary)
 
@@ -475,13 +488,33 @@ potions' and runes'. The Sapper also has its own 5-minute cooldown [F: "(1 Min C
 "(5 Min Cooldown)" in the tooltips]. EZ-Thro Dark Bomb is the catalogue's only explosive, in its
 own `cooldown:explosive` group.
 
+**EZ-Thro Dark Bomb in the sim** (`EZ_THRO_DARK_BOMB` in `effects/buffs.ts`). Its client rows:
+item 260817 uses spell 1269334 with the explosive category's 60 s; the spell is School Damage 450
+with variance 1, so **225–675 Fire**, and a 4 s stun; Fire school, the Magic `DefenseType`, no spell
+damage coefficient, a **1 s cast** and no GCD [F] [client] (ItemEffect, SpellEffect, SpellMisc,
+SpellCategories, SpellCastTimes, 1.60.1.69913). Every rotation throws it on cooldown from the pull
+(`classes/shared-consumables.ts`), and the results list the rules below (`explosiveThrow`).
+
+| Rule | Value | Tag |
+| --- | --- | --- |
+| Hit and crit | the spell table, like Fiery Weapon's damage: your spell hit, then your spell crit at ×1.5 ([combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)) | [C] rule; [?] for this item |
+| Resistance | the stun beside the damage makes it a **binary** spell: resisted whole at the boss's average Fire resistance, 6% at 24, with no partial resist on a landed one ([spells §3](spells.md#3-resistances)); a boss is immune to the stun itself | [?] |
+| Its cast | stops your swings, which start again from a full swing when it lands, as a Lightning Bolt's or Hammer of Wrath's cast does ([shaman](../classes/shaman.md#shocks-and-lightning-bolt), [paladin](../classes/paladin.md#other-abilities)); no GCD ability starts during it ([spells §4](spells.md#4-cast-times-casting-speed-and-the-gcd)), so the engine gives it a GCD as long as its cast, and it waits for a free GCD | [?] rule; the wait is an engine choice |
+| Threat | its damage × your threat multipliers; no tooltip names a threat of its own, as Thorns' doesn't | [?] |
+| Talents and buffs | its Fire damage takes the multipliers the plan has for Fire (the boss's Fire damage taken; a Fire mage's Fire talents too, which read the school) | [?] engine choice |
+
+A warrior with no spell hit fails 17% + 83% × 6% = **21.98%** of its throws, and at 5% spell crit a
+throw averages 0.7802 × 450 × 1.025 = **359.87** damage (worked example 12). Three throws land in
+a 3 min fight. For a melee spec the throw costs more than it deals: the swings it restarts lose
+white damage and rage, so it's in no preset ([§6.3](#63-consumables-by-spec-and-preset)).
+
 | Name | ID | Effect | Cooldown | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
 | Goblin Sapper Charge | 10646 → 13241 | 450–750 Fire damage to nearby enemies; 375–625 to self | 5 min own + 1 min shared | Requires Engineering 205 to use (Same tooltip) | [F] | [fc-items] · [wh-sapper] · [client] (ItemEffect, 1.60.1.69913) |
 | Dense Dynamite | 18641 → 23063 | 340–460 Fire, 5 yd | 1 min shared | Requires Engineering 250 | [F] | [fc-items] · [wh-dyn] |
 | Thorium Grenade | 15993 → 19769 | 300–500 Fire, 3 s stun, 3 yd | 1 min shared | Requires Engineering 260 | [F] | [fc-items] · [wh-thor] |
 | EZ-Thro Thorium Grenade *(new)* | 260816 | 300–500 Fire, 3 s stun | 1 min shared | **Usable by anyone** ("Anyone can use grenades with EZ-Thro!") | [F] | [fc/260816](https://foreverchanges.pro/item/260816) |
-| EZ-Thro Dark Bomb *(new)* | 260817 | 225–675 Fire, 4 s stun, 5 yd | 1 min shared | Usable by anyone | [F] | [fc/260817](https://foreverchanges.pro/item/260817) |
+| EZ-Thro Dark Bomb *(new)* | 260817 → 1269334 | 225–675 Fire, 4 s stun, 5 yd; 1 s cast | 1 min shared | Usable by anyone | [F] | [fc/260817](https://foreverchanges.pro/item/260817) · [client] (ItemEffect, SpellEffect, SpellMisc, 1.60.1.69913) |
 | SAF-T Clever Dynamite *(new)* | 260814 | 340–460 Fire, 5 yd | 1 min shared | No Engineering requirement in the tooltip | [F] | [fc/260814](https://foreverchanges.pro/item/260814) |
 
 ---
@@ -806,7 +839,7 @@ their stacking group is verified; the UI offers them as options.
 
 | Spec | Pre-raid dungeon group | Standard raid | Max-consumables raid (adds / replaces) |
 | --- | --- | --- | --- |
-| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon); EZ-Thro Dark Bomb (or Sapper + Dense Dynamite if `engineer`) |
+| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon). No explosive: EZ-Thro Dark Bomb's throw costs a warrior more than it deals (below), and the Sapper and Dense Dynamite aren't in the catalogue; one explosive would be on at a time anyway (`cooldown:explosive`) |
 | Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone (replaces Dense). Keeps the Mighty Rage Potion: Greater Stoneshield shares its cooldown (below) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum. Keeps the Mighty Rage Potion (below) |
@@ -820,9 +853,20 @@ their stacking group is verified; the UI offers them as options.
 | Mage (Fire, Frost, Arcane) | — | Greater Arcane Elixir; Major Mana Potion. Conjured mana gems are the mage's own ([mage](../classes/mage.md#mana)) | Flask of Supreme Power; Demonic / Dark Rune; Nightfin Soup; Brilliant Wizard Oil. Elixir of Frost Power and the other caster foods aren't in the catalogue yet (a known gap) |
 
 **One potion in Max consumables.** The potions share one cooldown, so a preset turns on one: the
-tanks keep the Mighty Rage Potion, which their rotations drink for rage, and Greater Stoneshield
-Potion is in no preset. It stays in the Buffs tab (it isn't simulated, and the result says so),
-where turning it on turns the rage potion off.
+tanks keep the Mighty Rage Potion, whose rage makes threat, and Greater Stoneshield Potion is in no
+preset: its armor lowers the damage you take and nothing a tank's TPS reads (rage from damage taken
+reads the hit before armor in `forever`, [§3.5](#35-potions-and-runes)). Turning it on in the Buffs
+tab turns the rage potion off; the rotation then drinks Stoneshield on cooldown from the pull. At
+Max consumables it lowers a Protection warrior's damage taken from 609 to 531 a second, a bear's
+from 627 to 554 and a Protection paladin's (in place of its Major Mana Potion) from 904 to 788,
+for 0.7–3.7% less threat without the rage potion or the mana potion (seed 12345, 2,000 fights).
+
+**No bomb in Max consumables.** EZ-Thro Dark Bomb deals about 7 damage a second over a 3 min fight,
+and for a melee spec its 1 s throw costs more: it restarts both swings and holds the next GCD, so
+white damage and rage are lost. At Max consumables it takes Fury from 814.5 to 794.7 DPS (−2.4%) and
+Arms from 728.7 to 703.4 (−3.5%), and the other melee specs lose 0.9–3.1% too, so no preset throws it.
+A caster loses one second of casting instead, and comes out slightly ahead (a Fire mage +0.8%); the
+casters' Max consumables don't include it yet.
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
@@ -998,12 +1042,16 @@ SpellCategories, 1.60.1.69913).
 `cooldown:rune`, `cooldown:explosive`, [Exclusivity groups](#exclusivity-groups)), so the Buffs tab
 has at most one potion, one rune and one explosive on, and each is used on its category's
 cooldown. That's how the rotations use them: a warrior or a bear drinks its Mighty Rage Potion once
-a fight, and anyone who spends mana drinks their Major Mana Potion whenever they're short of it, on
-the 2 min cooldown, so a second kind of potion would only take the first one's turns; the rune,
-on a cooldown of its own, goes beside the potion. The one pairing players do use, a tank's Greater
-Stoneshield Potion on the pull and a rage potion 2 min later, would add only Stoneshield's armor,
-which the sim doesn't simulate. `effects/client-values.test.ts` ties each entry's group to its
-item's category.
+a fight, anyone who spends mana drinks their Major Mana Potion whenever they're short of it, and
+Greater Stoneshield Potion is drunk whenever it's ready, each on the 2 min cooldown, so a second kind
+of potion would only take the first one's turns; the rune, on a cooldown of its own, goes beside the
+potion. That holds while no entry of a category has a cooldown of its own longer than the
+category's. One that does (the Sapper's 300 s, Thistle Tea's 300 s) leaves the category's cooldown
+free in between, which a second entry could use: once such items are simulated side by side, the
+category needs an alternation model rather than one entry. The same goes for the one pairing
+players do use, a tank's Greater Stoneshield Potion on the pull and a rage potion 2 min later: the
+sim offers one potion, so that pairing isn't simulated. `effects/client-values.test.ts` ties each
+entry's group to its item's category.
 
 **Which the rotation uses** ([warrior §5.2](../classes/warrior.md#52-fury-dual-wield) rows 16
 and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of the execute
@@ -1013,8 +1061,10 @@ potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldow
 ([paladin](../classes/paladin.md#forever-priority-list-default)) uses Juju Flurry on cooldown from
 the pull too (more swings, more Seal of Command procs), and drinks the Major Mana Potion and uses
 a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD and
-each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. EZ-Thro Dark
-Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so. An
+each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. Every
+rotation uses Greater Stoneshield Potion and EZ-Thro Dark Bomb, when they're selected, on their
+categories' cooldowns from the pull, ahead of its own lines (`classes/shared-consumables.ts`;
+[§3.5](#35-potions-and-runes), [§3.7](#37-engineering-and-explosives)). An
 on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from its
 item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F] [client]
 (ItemEffect, 1.60.1.69913; [druid §7.3](../classes/druid.md#73-weapon)). The long buffs above
@@ -1320,6 +1370,15 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
 9. **Blasted Lands cooldown.** Using R.O.I.D.S. at t = 0 blocks Ground Scorpok Assay
    until t = 3600 s. The sim must not allow both.
 10. **Distilled + Winterfall Firewater.** Both apply spell 17038 → one buff, +35 AP total.
+11. **Greater Stoneshield Potion on a tank.** A Protection warrior with 6,000 armor against a
+    level-63 boss: 6000 / (6000 + 400 + 85 × 63) = **51.04%** reduction, so a 5,000 hit in
+    Defensive Stance (×0.9) costs 5000 × 0.9 × 0.4896 = **2,203.1** health. With the potion's
+    +2,000: 8000 / 13755 = 58.16%, and the hit costs **1,882.8**, 14.5% less
+    ([combat-tables §8](combat-tables.md#8-boss--player-tanks)).
+12. **EZ-Thro Dark Bomb on a warrior, Forever.** With no spell hit it fails 17% + 83% × 0.06 =
+    **21.98%** of its throws (miss, or resisted whole at 24 Fire resistance); a landed one deals
+    225–675, 450 on average, ×1.5 on a crit. At 5% spell crit a throw averages 0.7802 × 450 ×
+    1.025 = **359.87**.
 
 ---
 

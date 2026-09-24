@@ -22,9 +22,10 @@ import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
+import { withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
-import { BUFFS_BY_ID } from '../effects/buffs'
+import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
@@ -1016,11 +1017,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A raid with warriors keeps their Deep Wounds on the boss, so it bleeds from others all fight: an
   // assumption for Rend and Tear and the cat's Rip (druid.md §5.1, §6.2, Q9 [?]).
   const othersBleed = othersKeepBleeding(config.buffs.raid)
+  const consumables = c.onUse.flatMap((u) => (u.use ? [u.use] : []))
+  // Greater Stoneshield Potion and EZ-Thro Dark Bomb go on cooldown from the pull in every rotation
+  // (buffs doc "On-use items and cooldown categories"; classes/shared-consumables.ts).
   const classRot = setup.simulated
-    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
+    ? withSharedConsumables(classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
         race: config.race,
         items: itemUses,
-        consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
+        consumables,
         executePhase: fight.executePct > 0,
         profile,
         // paladin.md#protection-model-and-rotation: Holy Shield needs a shield.
@@ -1037,7 +1041,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
-      }, config.rotationOrder)
+      }, config.rotationOrder), consumables)
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
@@ -1578,6 +1582,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
+  // buffs doc §3.7: the bomb's throw and table [?].
+  if (abilities.some((a) => a.id === EZ_THRO_DARK_BOMB.id)) notes.add('explosiveThrow')
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
   // warrior.md §2.8: the reactive windows this rotation waits for, Q10 and Q12.
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))

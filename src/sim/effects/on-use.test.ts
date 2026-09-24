@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import itemsJson from '@/data/client/items.json'
 import spellsJson from '@/data/client/spells.json'
 import type { ClientItems, ClientSpells } from '@/data/client/types'
-import { DEMONIC_RUNE, JUJU_FLURRY, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION } from './buffs'
+import { DEMONIC_RUNE, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, JUJU_FLURRY, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION } from './buffs'
 import { ITEM_EFFECTS } from './items'
 import type { OnUseSpec } from './types'
 
@@ -15,7 +15,8 @@ const items = itemsJson as unknown as ClientItems
 /** SpellEffectName and SpellAuraName codes (src/data/client/types.ts). */
 const APPLY_AURA = 6
 const ENERGIZE = 30
-const AURA = { modStat: 29, attackSpeed: 9, allCrit: 290, meleeHaste: 319 }
+const SCHOOL_DAMAGE = 2
+const AURA = { modStat: 29, attackSpeed: 9, allCrit: 290, meleeHaste: 319, modResistance: 22, stun: 12 }
 /** ItemEffect trigger: on use. */
 const ON_USE = 0
 
@@ -93,6 +94,47 @@ describe('on-use consumables match src/data/client (buffs doc §3.3, §3.5)', ()
     const haste = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === AURA.attackSpeed)!
     expect(JUJU_FLURRY.aura?.mods).toEqual({ haste: haste.effectBasePointsF })
     expect([JUJU_FLURRY.rageTenths, JUJU_FLURRY.rageSpreadTenths]).toEqual([0, 0])
+  })
+
+  it('Greater Stoneshield Potion (13455 → 17540): +2,000 armor for 2 min, no GCD, the 2 min potion cooldown', () => {
+    const { effect, spell } = useOf(13455, true)
+    expect(spell.name).toBe('Greater Stoneshield')
+    expectCast(GREATER_STONESHIELD_POTION, spell)
+    expect(GREATER_STONESHIELD_POTION.aura?.durationMs).toBe(120000)
+    expect(effect.spellCategoryId).toBe(4) // the potion category
+    expect(GREATER_STONESHIELD_POTION.cooldownMs).toBe(cooldownOf(effect))
+    // Aura 22 (a resistance) with misc 1, the Physical school's bit: armor.
+    const armor = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === AURA.modResistance)!
+    expect(armor.effectMiscValue?.[0]).toBe(1)
+    expect(GREATER_STONESHIELD_POTION.aura?.mods).toEqual({ armor: armor.effectBasePointsF })
+    expect(GREATER_STONESHIELD_POTION.aura?.mods.armor).toBe(2000)
+  })
+
+  it('EZ-Thro Dark Bomb (260817 → 1269334): 225–675 Fire, a 1 s cast with no GCD, the 60 s explosive cooldown', () => {
+    const { effect, spell } = useOf(260817, true)
+    expect(spell.name).toBe('EZ-Thro Dark Bomb')
+    expect(effect.spellCategoryId).toBe(24) // the explosives
+    expect(EZ_THRO_DARK_BOMB.cooldownMs).toBe(cooldownOf(effect))
+    expect(EZ_THRO_DARK_BOMB.castMs).toBe(spell.castTime?.base)
+    expect(EZ_THRO_DARK_BOMB.castMs).toBe(1000)
+    // No GCD of its own; the engine's is its cast, so nothing else on the GCD starts during it.
+    expect(spell.cooldowns?.startRecoveryTime ?? 0).toBe(0)
+    expect(EZ_THRO_DARK_BOMB.gcdMs).toBe(EZ_THRO_DARK_BOMB.castMs)
+    // School Damage 450, variance 1: 450 × (1 ± 0.5). Fire (school mask 4), the Magic defense type, no coefficient.
+    const damage = spell.effects.find((e) => e.effect === SCHOOL_DAMAGE)!
+    const [low, high] = [damage.effectBasePointsF! * (1 - damage.variance! / 2), damage.effectBasePointsF! * (1 + damage.variance! / 2)]
+    const bomb = EZ_THRO_DARK_BOMB.spell!
+    expect([bomb.min, bomb.max]).toEqual([low, high])
+    expect([low, high]).toEqual([225, 675])
+    expect(spell.misc?.schoolMask).toBe(4)
+    expect(bomb.school).toBe('fire')
+    expect(spell.categories?.defenseType).toBe(1)
+    expect(bomb.defense).toBe('magic')
+    expect(damage.effectBonusCoefficient ?? 0).toBe(bomb.spCoefficient)
+    // The stun beside the damage makes it a binary spell (docs/mechanics/spells.md §3).
+    expect(spell.effects.some((e) => e.effect === APPLY_AURA && e.effectAura === AURA.stun)).toBe(true)
+    expect(bomb.binary).toBe(true)
+    expect(EZ_THRO_DARK_BOMB.aura).toBeNull()
   })
 })
 

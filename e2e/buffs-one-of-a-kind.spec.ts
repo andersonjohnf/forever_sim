@@ -22,13 +22,17 @@ test('a warrior’s stones and potions: one of each, the other switched off', as
 
   const rage = buffs.getByRole('switch', { name: 'Mighty Rage Potion' })
   const stoneshield = buffs.getByRole('switch', { name: 'Greater Stoneshield Potion' })
+  const bomb = buffs.getByRole('switch', { name: 'EZ-Thro Dark Bomb' })
   await expect(rage).toBeChecked()
-  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min. One kind of potion, as potions share a cooldown')
+  // No preset throws the bomb (buffs doc §6.3); it's yours to turn on.
+  await expect(bomb).not.toBeChecked()
+  await bomb.click()
+  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min, drunk on cooldown from the pull. One kind of potion, as potions share a cooldown')
   await stoneshield.click()
   await expect(stoneshield).toBeChecked()
   await expect(rage).not.toBeChecked()
   // The bomb has a cooldown of its own: it stays on.
-  await expect(buffs.getByRole('switch', { name: 'EZ-Thro Dark Bomb' })).toBeChecked()
+  await expect(bomb).toBeChecked()
 })
 
 test('a mage’s oils: one at a time, and the potion stays beside the rune', async ({ page }) => {

@@ -245,6 +245,80 @@ export const DEMONIC_RUNE: OnUseSpec = {
 }
 
 /**
+ * Greater Stoneshield Potion (item 13455 → spell 17540; buffs doc §3.5): +2,000 armor (aura 22 with
+ * misc 1, the Physical resistance, which is armor) for 120 s. No GCD; the potion category's 2 min
+ * cooldown is on the item [F] [client] (SpellEffect, SpellDuration, ItemEffect, 1.60.1.69913). An
+ * aura's armor is bonus armor, not item armor (character-stats step 4), so a Toughness or Enrage
+ * leaves it alone and Forever's Dire Bear Form multiplies it [?] (docs/classes/druid.md §4.7, Q19).
+ */
+export const GREATER_STONESHIELD_POTION: OnUseSpec = {
+  id: 'greaterStoneshieldPotion',
+  name: 'Greater Stoneshield Potion',
+  icon: 'inv_potion_69',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: { id: 'greaterStoneshield', name: 'Greater Stoneshield', durationMs: 120000, mods: { armor: 2000 } },
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+}
+
+/**
+ * EZ-Thro Dark Bomb's damage (item 260817 → spell 1269334; buffs doc §3.7): School Damage 450 with
+ * variance 1, so 225–675 Fire, and a 4 s stun no boss takes; no spell damage coefficient, a Magic
+ * `DefenseType` [F] [client] (SpellEffect, SpellCategories, SpellMisc, 1.60.1.69913). Like Fiery
+ * Weapon's damage it rolls the spell table: your spell hit, then your spell crit at ×1.5
+ * (combat-tables §9). The stun makes it a binary spell, resisted whole at the boss's average Fire
+ * resistance (docs/mechanics/spells.md §3) [?]. Its threat is its damage × your threat multipliers
+ * [?]: no tooltip names a threat of its own, as Thorns' doesn't.
+ */
+export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
+  id: 'ezThroDarkBomb',
+  name: 'EZ-Thro Dark Bomb',
+  icon: 'inv_misc_bomb_05',
+  school: 'fire',
+  defense: 'magic',
+  noActiveDefense: true,
+  alwaysHit: false,
+  // A spell you cast yourself (plan/types.ts SpellDef.triggersProcs).
+  triggersProcs: true,
+  min: 225,
+  max: 675,
+  weaponPercent: 0,
+  normalized: false,
+  spCoefficient: 0,
+  takenScale: 0,
+  critMultiplier: 1.5,
+  bonusCrit: 0,
+  damageMult: 1,
+  threatMult: 1,
+  threatBonus: 0,
+  binary: true,
+}
+
+/**
+ * EZ-Thro Dark Bomb (item 260817 → spell 1269334; buffs doc §3.7): a 1 s cast (`SpellCastTimes`),
+ * no GCD of its own, and the explosive category's 60 s on the item [F] [client] (SpellMisc,
+ * ItemEffect, 1.60.1.69913). Its cast stops your swings, which start again from a full swing when it
+ * lands, as a Lightning Bolt's or Hammer of Wrath's cast does [?] (docs/classes/shaman.md#shocks-and-lightning-bolt,
+ * docs/classes/paladin.md#other-abilities). No GCD ability starts during it (docs/mechanics/spells.md
+ * §4), so the engine gives it a GCD as long as its cast: it waits for a free GCD, and the next GCD
+ * ability waits for it to land (an engine choice).
+ */
+export const EZ_THRO_DARK_BOMB: OnUseSpec = {
+  id: 'ezThroDarkBomb',
+  name: 'EZ-Thro Dark Bomb',
+  icon: 'inv_misc_bomb_05',
+  cooldownMs: 60000,
+  gcdMs: 1000,
+  aura: null,
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+  spell: EZ_THRO_DARK_BOMB_SPELL,
+  castMs: 1000,
+  castStopsSwings: true,
+}
+
+/**
  * Power Infusion (10060; docs/mechanics/spells.md §9): a priest's +20% spell damage (aura 79, misc
  * 126: every magic school) for 15 s, every 3 min, off the GCD, in both clients [F] [C] [client]
  * (SpellEffect, SpellCooldowns, 1.60.1.69913 and 1.15.9.69722). Its 20% of the priest's base mana
@@ -1367,12 +1441,15 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_bomb_05',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '225–675 Fire damage, every minute',
+    summary: '225–675 Fire damage, every minute; its 1 s throw stops your swings',
     // The explosives' category (24), apart from potions and runes; the only explosive here.
     exclusiveGroup: COOLDOWN_GROUP.explosive,
     docRef: `${DOC}#37-engineering-and-explosives`,
-    effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb' }],
-    presets: { max: WARRIOR_DPS },
+    // Every rotation throws it on cooldown from the pull (classes/shared-consumables.ts).
+    effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb', use: EZ_THRO_DARK_BOMB }],
+    // In no preset: a melee's swings lose more than the bomb deals, as its throw restarts them
+    // (Fury −2.4% at Max consumables, buffs doc §6.3).
+    presets: NOT_IN_PRESETS,
   },
   {
     id: 'greaterStoneshieldPotion',
@@ -1380,12 +1457,13 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_69',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '+2,000 armor for 2 min. One kind of potion, as potions share a cooldown',
+    summary: '+2,000 armor for 2 min, drunk on cooldown from the pull. One kind of potion, as potions share a cooldown',
     exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
-    effects: [{ kind: 'onUse', id: 'greaterStoneshieldPotion', name: 'Greater Stoneshield Potion' }],
-    // In no preset: it shares the potion cooldown with the tanks' Mighty Rage Potion, which their
-    // rotations drink, and its armor isn't simulated (buffs doc §6.3).
+    // Every rotation drinks it on cooldown from the pull (classes/shared-consumables.ts).
+    effects: [{ kind: 'onUse', id: 'greaterStoneshieldPotion', name: 'Greater Stoneshield Potion', use: GREATER_STONESHIELD_POTION }],
+    // In no preset: it shares the potion cooldown with the tanks' Mighty Rage Potion, whose rage
+    // makes threat, and its armor only lowers the damage you take (buffs doc §6.3).
     presets: NOT_IN_PRESETS,
   },
 ]

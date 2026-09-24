@@ -757,7 +757,8 @@ One target: the extra targets add nothing.
   character-stats.md OQ-8). In `forever` its second aura also
   multiplies bonus armor by 4.6 [?] (OQ-8, Q19); `classicEra`'s Dire Bear Form has only the item
   armor aura. Armor matters to the `classic` damage-taken rage model and to survival, not to
-  `forever`'s rage.
+  `forever`'s rage. Greater Stoneshield Potion's +2,000 is bonus armor, so in `forever` Dire Bear
+  Form makes it 9,200 [?] ([buffs §3.5](../mechanics/buffs-debuffs-consumables.md#35-potions-and-runes)).
 - **Thick Hide in the engine** (`talents.ts`, BR6): its base armor joins the item armor in the
   forms, so Dire Bear Form's +360% multiplies it, as its tooltip's "further increased by
   multipliers from those forms" says [?] (Q19). "Base armor" is the pool the form's aura 142

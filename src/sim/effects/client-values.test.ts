@@ -15,7 +15,7 @@ import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { RuleProfileId, SimConfig } from '../types'
-import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
+import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
 import { PROFICIENCY } from '../equip'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { HAND_OF_JUSTICE_ICD_MS, ITEM_EFFECTS } from './items'
@@ -302,6 +302,8 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
       ['mightyRagePotion', MIGHTY_RAGE_POTION],
       ['majorManaPotion', MAJOR_MANA_POTION],
       ['demonicRune', DEMONIC_RUNE],
+      ['greaterStoneshieldPotion', GREATER_STONESHIELD_POTION],
+      ['ezThroDarkBomb', EZ_THRO_DARK_BOMB],
     ] as const) {
       const row = categoryOf(id)
       expect(use.cooldownMs, id).toBe(Math.max(row.categoryCoolDownMSec, row.coolDownMSec))

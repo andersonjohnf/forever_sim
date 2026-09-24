@@ -410,8 +410,8 @@ A spec is data plus small ability modules, never its own loop.
   it spends (`stackAura`: Maelstrom Weapon on Lightning Bolt; a cost it cuts rounds down, and a free
   cast starts no five-second rule), and a second aura it puts on the player when used (`selfAura`:
   Improved Stormstrike's). Condition 34, `auraStacksAtLeast`, waits for an aura's stacks; condition
-  35, `mainSwingWithin`, for a main-hand swing a moment ago, which makes each main-hand swing a
-  decision point (a spec that swings throws EZ-Thro Dark Bomb just after one). An aura's
+  35, `mainHandSwung`, for the fight's first main-hand swing, which makes that swing a decision
+  point (a spec that swings throws EZ-Thro Dark Bomb first just after it). An aura's
   white-swing charges can be used at most once per so many ms (`whiteSwingChargeIcdMs`: Flurry's
   500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and an aura can let a share
   of spirit regeneration continue inside the five-second rule while it's up (the caster core's

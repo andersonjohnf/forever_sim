@@ -6,7 +6,6 @@
 import { describe, expect, it } from 'vitest'
 import { armorReduction, bossHitHealthLost } from '../core/formulas'
 import { defaultConfig } from '../defaults'
-import { THROW_AFTER_SWING_MS } from '../classes/shared-consumables'
 import { EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION } from '../effects/buffs'
 import { buildPlan } from '../plan/build'
 import { COND, SCHOOL, type Plan } from '../plan/types'
@@ -109,35 +108,39 @@ describe('Greater Stoneshield Potion (buffs doc §3.5)', () => {
 describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
   const fury = (enabled: string[]) => buildPlan(config('warrior-fury', enabled)).plan
 
-  it('is thrown on its 60 s cooldown just after a main-hand swing, a 1 s cast during which neither hand swings (review CV-5)', () => {
+  it('is a 1 s spell on the explosive category’s 60 s cooldown', () => {
     const plan = fury(['ezThroDarkBomb'])
     const a = plan.abilities.findIndex((x) => x.id === EZ_THRO_DARK_BOMB.id)
     expect(plan.abilities[a]).toMatchObject({ kind: 'spell', castMs: 1000, gcdMs: 1000, castStopsSwings: true, cooldownMs: 60000 })
-    let waited = 0
-    for (let fight = 0; fight < 20; fight++) {
-      const { uses, swings } = timeline(plan, fight)
-      const throws = uses[a]
-      expect(throws.length).toBe(3)
-      // Not at the pull: the first throw follows the first swing.
-      expect(throws[0]).toBeGreaterThanOrEqual(swings[0][0])
-      for (let i = 1; i < throws.length; i++) {
-        // The explosive category's 60 s from the cast's end, then the wait for a swing.
-        expect(throws[i] - throws[i - 1]).toBeGreaterThanOrEqual(61000)
-        expect(throws[i] - throws[i - 1]).toBeLessThanOrEqual(61000 + 10000)
-        if (throws[i] - throws[i - 1] > 61000 + 1500) waited++
-      }
-      for (const t of throws) {
-        // Each throw starts at most THROW_AFTER_SWING_MS after a main-hand swing (white, or a Heroic
-        // Strike's), which restarts from full as it lands: no swing of either hand during it.
-        const mainSwings = [...swings[0], ...plan.abilities.flatMap((x, b) => (x.kind === 'onNextSwing' ? uses[b] : []))]
-        const last = Math.max(...mainSwings.filter((s) => s <= t))
-        expect(t - last).toBeLessThanOrEqual(THROW_AFTER_SWING_MS)
-        for (const hand of swings) expect(hand.filter((s) => s > t && s < t + 1000)).toEqual([])
-      }
-    }
-    // Its cooldown sometimes ends mid-swing, so it waits for the next.
-    expect(waited).toBeGreaterThan(0)
   })
+
+  it.each(['warrior-fury', 'druid-feral-bear', 'shaman-enhancement'] as const)(
+    '%s throws it 3 times in a 180 s fight: just after its first main-hand swing, then on cooldown, whatever the swing timer (step 6 of review QC-1)',
+    (spec) => {
+      const plan = buildPlan(config(spec, ['ezThroDarkBomb'])).plan
+      const a = plan.abilities.findIndex((x) => x.id === EZ_THRO_DARK_BOMB.id)
+      const line = plan.rotation.find((e) => e.ability === a)!
+      expect(line.conditions).toEqual([{ code: COND.mainHandSwung, a: 0, b: 0 }])
+      for (let fight = 0; fight < 20; fight++) {
+        const { uses, swings } = timeline(plan, fight)
+        const throws = uses[a]
+        expect(throws.length, `${spec} fight ${fight}`).toBe(3)
+        // Not before the pull's first swing (white, or an on-next-swing ability's), which it would
+        // cancel (review CV-5), and no later than the next GCD after it.
+        const mainSwings = [...swings[0], ...plan.abilities.flatMap((x, b) => (x.kind === 'onNextSwing' ? uses[b] : []))]
+        const first = Math.min(...mainSwings)
+        expect(throws[0]).toBeGreaterThanOrEqual(first)
+        expect(throws[0] - first).toBeLessThanOrEqual(1500)
+        for (let i = 1; i < throws.length; i++) {
+          // The explosive category's 60 s from the cast's end, then at most a GCD's wait: no wait for a swing.
+          expect(throws[i] - throws[i - 1]).toBeGreaterThanOrEqual(61000)
+          expect(throws[i] - throws[i - 1]).toBeLessThanOrEqual(61000 + 1500)
+        }
+        // Neither hand swings during a throw: they start again from full as it lands.
+        for (const t of throws) for (const hand of swings) expect(hand.filter((x) => x > t && x < t + 1000)).toEqual([])
+      }
+    },
+  )
 
   it('holds your off-GCD abilities too while it’s thrown, as Hammer of Wrath’s cast does (review CV-6)', () => {
     // A Fire mage throws it at the pull, where Greater Stoneshield, off the GCD and after it in the
@@ -255,18 +258,16 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
       const rules = bundle.assumptions.find((x) => x.id === 'explosiveThrow')!.text
       const holds = spec === 'mage-fire' ? 'holds your next cast' : spec === 'hunter-marksmanship' ? 'holds your Auto Shot' : 'stops your melee swings'
       expect(rules, spec).toContain(`Its 1 s throw ${holds}`)
-      expect(rules, spec).toContain(spec === 'mage-fire' || spec === 'hunter-marksmanship' ? 'from the pull, from within its 15 yd range' : 'within 200 ms after a main-hand swing')
+      expect(rules, spec).toContain(spec === 'mage-fire' || spec === 'hunter-marksmanship' ? 'from the pull, from within its 15 yd range' : 'the first just after your first main-hand swing, the rest as it’s ready')
       expect(rules, spec).not.toMatch(/stops your swings/)
       const result = toResult(bundle, aggregate(bundle.plan, 20), 0)
       const row = result.abilities.find((x) => x.id === EZ_THRO_DARK_BOMB.id)
-      // A melee spec waits for a main-hand swing; a caster or a hunter, who doesn't swing, throws when it's ready.
+      // A melee spec's first throw waits for its first main-hand swing; a caster or a hunter, who doesn't swing, throws when it's ready.
       const line = bundle.plan.rotation.find((e) => bundle.plan.abilities[e.ability].id === EZ_THRO_DARK_BOMB.id)!
       const swings = spec !== 'mage-fire' && spec !== 'hunter-marksmanship'
-      expect(line.conditions, spec).toEqual(swings ? [{ code: COND.mainSwingWithin, a: THROW_AFTER_SWING_MS, b: 0 }] : [])
-      // Three throws a 3 min fight; a melee spec's wait for a swing with its GCD free sometimes costs
-      // it the third (a bear, whose GCD is rarely free).
-      if (spec === 'mage-fire' || spec === 'hunter-marksmanship') expect(row?.casts, spec).toBe(60)
-      else expect(row?.casts, spec).toBeGreaterThanOrEqual(45)
+      expect(line.conditions, spec).toEqual(swings ? [{ code: COND.mainHandSwung, a: 0, b: 0 }] : [])
+      // Three throws each 3 min fight, a bear's too, whose GCD is rarely free (review QC-1).
+      expect(row?.casts, spec).toBe(60)
       expect(row!.damage, spec).toBeGreaterThan(0)
     }
   })

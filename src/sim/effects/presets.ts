@@ -6,7 +6,7 @@ import type { ClassSlug } from '@/data/races/types'
 import { SPEC_META } from '../specs'
 import type { BuffDefinition, BuffPreset, SpecId } from '../types'
 import { FOREVER } from '../rules/profiles'
-import { type Audience, BUFFS, type BuffSpec } from './buffs'
+import { type Audience, BUFFS, BUFFS_BY_ID, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
 
 /** Whether the entry does anything for the spec's class (`forClasses`; absent, every class). */
@@ -79,3 +79,26 @@ export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: read
   }
   return ids
 }
+
+/**
+ * The exclusive groups the Buffs tab fills in the plan, each with the name of the entry that fills
+ * it: each enabled entry the plan applies (for the spec's class, provided by the raid or by
+ * yourself, not unused in its form), except those in `skip` (kept up by the rotation, or brought by
+ * the talents), whose Buffs copy the plan leaves out; the last of them, if two share a group. An
+ * Expose Armor there takes `armor-major` from a warrior's Sunder Armor (warrior.md §7), a Demoralizing
+ * Shout `ap-reduction` from a bear's roar (docs/classes/druid.md §6.3).
+ */
+export function buffGroupFillers(enabled: readonly string[], raid: readonly ClassSlug[], spec: SpecId, skip: readonly string[]): Map<string, string> {
+  const fillers = new Map<string, string>()
+  for (const id of enabled) {
+    const buff = BUFFS_BY_ID.get(id)
+    if (!buff?.exclusiveGroup || skip.includes(id)) continue
+    if (!forSpecClass(buff, spec) || !buffProvided(buff, raid, spec) || buffUnusedReason(buff, spec)) continue
+    fillers.set(buff.exclusiveGroup, buff.name)
+  }
+  return fillers
+}
+
+/** The exclusive groups the Buffs tab fills in the plan (`buffGroupFillers`). */
+export const filledBuffGroups = (enabled: readonly string[], raid: readonly ClassSlug[], spec: SpecId, skip: readonly string[]): Set<string> =>
+  new Set(buffGroupFillers(enabled, raid, spec, skip).keys())

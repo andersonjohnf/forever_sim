@@ -3,14 +3,14 @@
 import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
-import { fixedRotationRows, othersKeepBleeding, ROTATION_GROUPS, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
-import { presetBuffIds } from './effects/presets'
+import { filledBuffGroups, presetBuffIds } from './effects/presets'
 import { catalogueSummary } from './effects/types'
 import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
@@ -87,14 +87,17 @@ export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
 /**
  * Rotation settings that can't do anything in this setup, each with the note the Rotation tab shows
  * under it, "Not used: …" (docs/ux.md "Rotation"): the racial cooldown for a race without one the
- * sim uses, and the cat's Rake or Rip when "only when nothing else bleeds" meets a raid whose
- * warriors keep the boss bleeding.
+ * sim uses, the cat's Rake or Rip and the bear's Lacerate when "only when nothing else bleeds" meets
+ * a raid whose warriors keep the boss bleeding, and the bear's Demoralizing Roar while the Buffs
+ * tab's Demoralizing Shout takes its place. The Buffs tab is read as the plan reads it.
  */
 export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'>): Record<string, string> {
-  return unusedSettings(config.spec, rotationValues(config), {
+  const values = rotationValues(config)
+  return unusedSettings(config.spec, values, {
     race: config.race,
     raceName: raceName(config.race),
     othersBleed: othersKeepBleeding(config.buffs.raid),
+    buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
   })
 }
 

@@ -211,6 +211,24 @@ describe('rotation rows', () => {
     expect(rows(prot, { [`${P}.shieldSlam.enabled`]: false }).get(`${P}.sunderFiller.waitForShieldSlam`)?.inactive).toBe(true)
   })
 
+  it('says why the bear’s Lacerate and Demoralizing Roar do nothing here, and dims only them (BU4, BL3)', () => {
+    const bear = defaultConfig('druid-feral-bear')
+    const unusedRows = (config: SimConfig) => rotationRows(config, getSpec(config.spec).rotationOptions, config.buffs.enabled, unusedRotationSettings(config))
+    const lacerate = 'druid.bear.lacerate.enabled'
+    const roar = 'druid.bear.demoRoar.enabled'
+    const byDefault = unusedRows(bear)
+    for (const id of [lacerate, roar]) expect(byDefault.get(id)?.notUsed, id).toBeUndefined()
+    // Lacerate set to wait for no other bleeds, in a raid with warriors: unused, as the cat's Rake
+    // is; the switch that makes it wait stays live.
+    const waits = unusedRows({ ...bear, rotation: { 'druid.bear.lacerate.onlyWithoutOtherBleeds': true } })
+    expect(waits.get(lacerate)).toMatchObject({ on: true, inactive: true })
+    expect(waits.get(lacerate)?.notUsed).toContain('its warriors keep the boss bleeding')
+    expect(waits.get('druid.bear.lacerate.onlyWithoutOtherBleeds')?.inactive).toBe(false)
+    // A Demoralizing Shout in Buffs takes the roar's place.
+    const shout = { ...bear, buffs: { ...bear.buffs, enabled: [...bear.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] } }
+    expect(unusedRows(shout).get(roar)).toMatchObject({ on: true, inactive: true, notUsed: 'Not used: the Demoralizing Shout in Buffs takes its place on the boss.' })
+  })
+
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
     const options = [
       ...getSpec('warrior-fury').rotationOptions,

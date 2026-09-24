@@ -306,11 +306,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A setting the rest of the setup leaves unused is dimmed, with a note under it saying why, in
     the consumables' words: the racial cooldown for a race without one the sim uses ("Not used:
     Tauren has no racial cooldown that adds damage.", and the Gnome's Eureka!, which isn't
-    simulated), and a cat's Rake or Rip while its "only when nothing else bleeds" meets a raid
-    whose warriors keep the boss bleeding ("Not used in this raid: its warriors keep the boss
-    bleeding. Turn off … to use it anyway."). Its switch stays usable, since it takes effect once
-    the setup lets it, and the settings under it aren't dimmed with it: one may be the way to use
-    it.
+    simulated), a cat's Rake or Rip or a bear's Lacerate while its "only when nothing else bleeds"
+    meets a raid whose warriors keep the boss bleeding ("Not used in this raid: its warriors keep
+    the boss bleeding. Turn off … to use it anyway."), and a bear's Demoralizing Roar while a
+    Demoralizing Shout in Buffs takes its place ("Not used: the Demoralizing Shout in Buffs takes
+    its place on the boss."). Its switch stays usable, since it takes effect once the setup lets
+    it, and the settings under it aren't dimmed with it: one may be the way to use it.
   - Numbers carry their unit in the field and in the hint: "60% mana" for a share of maximum
     mana, "1,500 mana" (thousands grouped) for mana missing. The field is as wide as its unit
     needs, and at least as wide as one without a unit; a grouped value's box has room for its

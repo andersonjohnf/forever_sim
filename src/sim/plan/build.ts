@@ -19,7 +19,7 @@ import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
-import { buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
+import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
@@ -467,13 +467,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // (classes/warrior/abilities.ts `battleShout`: +139, `classicEra` +232), and the sheet shows that.
     if (buff) sheetOnly.push(...catalogueEffects(buff, profile))
   }
-  /** The exclusive groups the Buffs tab fills with a buff the rotation doesn't keep up (Expose Armor's `armor-major`). */
-  const filledGroups = new Map<string, string>()
+  /**
+   * The exclusive groups the Buffs tab fills with a buff the rotation doesn't keep up, each with the
+   * entry that fills it (Expose Armor's `armor-major`, Demoralizing Shout's `ap-reduction`).
+   */
+  const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])])
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
-    if (buff.exclusiveGroup) filledGroups.set(buff.exclusiveGroup, buff.name)
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -757,6 +759,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         front: fight.position === 'front',
         maxMana: block.hasMana ? derived.mana : 0,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
+        buffGroups: new Set(filledGroups.keys()),
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a

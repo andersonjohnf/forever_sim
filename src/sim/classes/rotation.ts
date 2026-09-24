@@ -6,7 +6,7 @@
 import { NO_PREPULL } from '../plan/types'
 import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
-import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation } from './druid/bear'
+import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import {
@@ -34,6 +34,11 @@ export interface ClassRotationContext extends PaladinContext {
   othersBleed: boolean
   /** You attack from in front of the boss (the Fight tab's position), where a cat can't Shred (druid.md §3.1). */
   front: boolean
+  /**
+   * The exclusive groups the Buffs tab fills (effects/presets.ts `filledBuffGroups`): a Demoralizing
+   * Shout there takes `ap-reduction`, so the bear's own roar isn't used (druid.md §6.3). Absent: none.
+   */
+  buffGroups?: ReadonlySet<string>
 }
 
 /**
@@ -99,30 +104,37 @@ export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, st
 
 /**
  * A raid with warriors keeps the boss bleeding all fight from their Deep Wounds [?]: Rend and Tear,
- * and the cat's "only when nothing else bleeds" settings, read it (druid.md §5.1, §6.2, Q9).
+ * and the cat's and the bear's "only when nothing else bleeds" settings, read it (druid.md §5.1,
+ * §6.2, §6.3, Q9).
  */
 export const othersKeepBleeding = (raid: readonly string[]) => raid.includes('warrior')
 
-/** Each spec's racial cooldown setting (warrior.md §5.2 row 3, §5.4 row 3, druid.md §6.2 row 2). */
+/** Each spec's racial cooldown setting (warrior.md §5.2 row 3, §5.4 row 3, druid.md §6.2 row 2, §6.3). */
 export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'warrior-fury': 'warrior.fury.racial.enabled',
   'warrior-arms': 'warrior.arms.racial.enabled',
   'warrior-protection': 'warrior.protection.racial.enabled',
   'druid-feral-cat': 'druid.cat.racial.enabled',
+  'druid-feral-bear': 'druid.bear.racial.enabled',
 }
 
-/** What the setup around a rotation decides about its settings: the race (and its name) and the raid. */
+/**
+ * What the setup around a rotation decides about its settings: the race (and its name), the raid,
+ * and the exclusive groups the Buffs tab fills (`filledBuffGroups`).
+ */
 export interface UnusedSetup {
   race: string
   raceName: string
   othersBleed: boolean
+  buffGroups: ReadonlySet<string>
 }
 
 /**
  * Settings that can't do anything in this setup, each with the note the Rotation tab shows under
  * it (docs/ux.md "Rotation"): the racial cooldown for a race without one the sim uses (Orc, Troll
- * and Night Elf have one; Gnome's Eureka! isn't simulated), and the cat's Rake and Rip when "only
- * when nothing else bleeds" meets a raid with warriors.
+ * and Night Elf have one; Gnome's Eureka! isn't simulated), the cat's Rake and Rip when "only
+ * when nothing else bleeds" meets a raid with warriors, and the bear's Lacerate the same way and
+ * its Demoralizing Roar while the Buffs tab's Demoralizing Shout takes its place.
  */
 export function unusedSettings(spec: SpecId, values: Record<string, RotationValue>, setup: UnusedSetup): Record<string, string> {
   const out: Record<string, string> = {}
@@ -134,6 +146,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
         : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
+  if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))
   return out
 }
 

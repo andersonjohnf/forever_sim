@@ -7,9 +7,10 @@ import spellsJson from '@/data/client/spells.json'
 import type { ClientSpells } from '@/data/client/types'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { buildPlan } from '../../plan/build'
+import { unusedRotationSettings } from '../../index'
 import { COND, SCHOOL } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
-import type { RotationOption } from '../../types'
+import type { RotationOption, SimConfig } from '../../types'
 import { talentRanksByName } from '../index'
 import { maintainedBuffs, rotationOptions } from '../rotation'
 import { NO_CONTEXT } from '../warrior/shared'
@@ -254,11 +255,17 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
   }
 
   it('with the defaults: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
-    expect(lines().ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire'])
-    // A raid whose warriors keep the boss bleeding: no Lacerate (tuned, §6.3).
-    expect(lines({}, { othersBleed: true }).ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
+    const all = ['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
+    expect(lines().ids).toEqual(all)
+    // A raid whose warriors keep the boss bleeding keeps Lacerate too (§6.3, BL1), unless it's set
+    // to wait for no other bleeds.
+    expect(lines({}, { othersBleed: true }).ids).toEqual(all)
+    expect(lines({ [BEAR_IDS.lacerateAlone]: true }, { othersBleed: true }).ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
+    expect(lines({ [BEAR_IDS.lacerateAlone]: true }).ids).toEqual(all)
+    // A Demoralizing Shout in the Buffs tab takes the roar's group: no roar.
+    expect(lines({}, { buffGroups: new Set(['ap-reduction']) }).ids).not.toContain('demoralizingRoar')
     // Swipe, when it's on, comes before the filler.
-    expect(lines({ [BEAR_IDS.swipeEnabled]: true }, { othersBleed: true }).ids.slice(-2)).toEqual(['swipe', 'faerieFire'])
+    expect(lines({ [BEAR_IDS.swipeEnabled]: true }).ids.slice(-2)).toEqual(['swipe', 'faerieFire'])
   })
 
   it('Enrage 1.5 s before the pull, and in combat only when set, up to the cap minus its 30 rage', () => {
@@ -319,16 +326,22 @@ describe('the default bear’s plan', () => {
     return buildPlan({ ...d, buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') }, rules: { profile, unmeasuredRatings: 'apply' } }).plan
   }
 
-  it('leaves Lacerate out while the raid’s warriors keep the boss bleeding, for Rend and Tear (§6.3, tuned)', () => {
+  it('keeps Lacerate while the raid’s warriors keep the boss bleeding; set to wait for no other bleeds, it leaves it out (§6.3, BL1)', () => {
     expect(plan.fight.othersBleed).toBe(true)
-    expect(plan.abilities.map((a) => a.id)).not.toContain('lacerate')
+    expect(plan.abilities.map((a) => a.id)).toContain('lacerate')
     const alone = withoutWarriors()
     expect(alone.fight.othersBleed).toBe(false)
     expect(alone.abilities.map((a) => a.id)).toContain('lacerate')
-    // With it off, Lacerate stays in whoever else bleeds the boss.
     const d = defaultConfig('druid-feral-bear')
-    const always = buildPlan({ ...d, rotation: { [BEAR_IDS.lacerateAlone]: false } }).plan
-    expect(always.abilities.map((a) => a.id)).toContain('lacerate')
+    const unused = (config: SimConfig) => unusedRotationSettings(config)[BEAR_IDS.lacerateEnabled]
+    expect(unused(d)).toBeUndefined()
+    const waits = { ...d, rotation: { [BEAR_IDS.lacerateAlone]: true } }
+    expect(buildPlan(waits).plan.abilities.map((a) => a.id)).not.toContain('lacerate')
+    // The Rotation tab says why, as it does for the cat's Rake and Rip.
+    expect(unused(waits)).toBe('Not used in this raid: its warriors keep the boss bleeding. Turn off “Lacerate only when nothing else bleeds” to use it anyway.')
+    const noWarriors = { ...waits, buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') } }
+    expect(buildPlan(noWarriors).plan.abilities.map((a) => a.id)).toContain('lacerate')
+    expect(unused(noWarriors)).toBeUndefined()
   })
 
   it('Lacerate’s ticks get their own row, a bleed whose applications can’t be avoided and whose ticks may crit in Forever', () => {
@@ -356,11 +369,20 @@ describe('the default bear’s plan', () => {
     expect(plan.fight.bossSwing!.minDamage).toBe(4500)
   })
 
-  it('a Demoralizing Shout in the Buffs tab takes the roar’s place on the boss; the roar keeps its threat', () => {
+  it('a Demoralizing Shout in the Buffs tab takes the roar’s place on the boss, so the roar isn’t used (BL3)', () => {
     const d = defaultConfig('druid-feral-bear')
-    const shout = buildPlan({ ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] } }).plan
-    expect(shout.auras.find((a) => a.id === 'demoralizingRoar')!.bossAp).toBeUndefined()
+    const buffs = { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] }
+    const shout = buildPlan({ ...d, buffs }).plan
+    expect(shout.abilities.map((a) => a.id)).not.toContain('demoralizingRoar')
+    expect(shout.auras.map((a) => a.id)).not.toContain('demoralizingRoar')
     expect(shout.fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 / 14) * 2, 9)
-    expect(shout.abilities.find((a) => a.id === 'demoralizingRoar')!.threatBonus).toBe(39)
+    // The Rotation tab says why.
+    const unused = (config: SimConfig) => unusedRotationSettings(config)[BEAR_IDS.roarEnabled]
+    expect(unused(d)).toBeUndefined()
+    expect(unused({ ...d, buffs })).toBe('Not used: the Demoralizing Shout in Buffs takes its place on the boss.')
+    // Without a warrior in the raid, nobody brings the Shout: the roar is used again.
+    const noWarrior = { raid: d.buffs.raid.filter((c) => c !== 'warrior'), enabled: buffs.enabled }
+    expect(buildPlan({ ...d, buffs: noWarrior }).plan.abilities.map((a) => a.id)).toContain('demoralizingRoar')
+    expect(unused({ ...d, buffs: noWarrior })).toBeUndefined()
   })
 })

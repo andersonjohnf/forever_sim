@@ -222,8 +222,8 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateAlone,
     group: 'Core abilities',
     label: 'Lacerate only when nothing else bleeds',
-    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss: Rend and Tear then applies without it, and Maul makes more threat for the rage.',
-    default: true,
+    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul, which makes more threat only if Lacerate’s untested “high threat” is under about 200 more an application. Off by default: that threat is likely there.',
+    default: false,
     dependsOn: ID.lacerateEnabled,
   },
   refreshOption(
@@ -281,6 +281,30 @@ export const BEAR_OPTIONS: RotationOption[] = [
   },
 ]
 
+/** The Buffs tab's exclusive group of attack-power debuffs on the boss (buffs doc §4.2), where a Demoralizing Shout takes the roar's place. */
+const AP_REDUCTION = 'ap-reduction'
+/** A Demoralizing Shout in the Buffs tab fills the roar's group: only one applies in game, so the roar isn't used (druid.md §6.3 row 5). */
+const roarDisplaced = (setup: { buffGroups?: ReadonlySet<string> }) => setup.buffGroups?.has(AP_REDUCTION) === true
+/** Lacerate waits for no other bleeds (`onlyWithoutOtherBleeds`), and the raid's warriors keep the boss bleeding (druid.md §6.3 row 8). */
+const lacerateWaits = (alone: boolean, setup: { othersBleed: boolean }) => alone && setup.othersBleed
+
+/**
+ * The bear's settings that do nothing in this setup, with why (docs/ux.md "Rotation"), from the same
+ * rules as `bearRotation`: its roar while a Demoralizing Shout in the Buffs tab takes its place, and
+ * Lacerate while "only when nothing else bleeds" meets a raid whose warriors keep the boss bleeding,
+ * as the cat's Rake and Rip say it.
+ */
+export function bearUnusedSettings(values: Record<string, RotationValue>, setup: { othersBleed: boolean; buffGroups?: ReadonlySet<string> }): Record<string, string> {
+  const v = reader(BEAR_OPTIONS, values)
+  const out: Record<string, string> = {}
+  const label = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.label
+  if (roarDisplaced(setup)) out[ID.roarEnabled] = 'Not used: the Demoralizing Shout in Buffs takes its place on the boss.'
+  if (lacerateWaits(v.on(ID.lacerateAlone), setup)) {
+    out[ID.lacerateEnabled] = `Not used in this raid: its warriors keep the boss bleeding. Turn off “${label(ID.lacerateAlone)}” to use it anyway.`
+  }
+  return out
+}
+
 /** Buff catalogue ids the bear keeps up itself with these settings: its Faerie Fire and Demoralizing Roar (druid.md §6.3). */
 export function bearMaintainedBuffs(values: Record<string, RotationValue>): string[] {
   const v = reader(BEAR_OPTIONS, values)
@@ -329,7 +353,8 @@ export function bearRotation(
 
   // --- On the GCD -----------------------------------------------------------------------------------
   // Row 4: the duties first (D26): Demoralizing Roar and Faerie Fire, when down or with ≤ refreshBelowSec left.
-  if (v.on(ID.roarEnabled)) {
+  // A Demoralizing Shout in the Buffs tab takes the roar's place on the boss, so then it isn't used.
+  if (v.on(ID.roarEnabled) && !roarDisplaced(ctx)) {
     const def = demoralizingRoar(ctx.profile)
     b.add(def, [refresh(b.ability(def), seconds(v, ID.roarRefresh))])
   }
@@ -339,7 +364,7 @@ export function bearRotation(
   // Row 6: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
   // run out before the fight does; with onlyWithoutOtherBleeds, not at all while others keep the
   // boss bleeding (a raid with warriors: Rend and Tear applies without it).
-  if (v.on(ID.lacerateEnabled) && !(v.on(ID.lacerateAlone) && ctx.othersBleed)) {
+  if (v.on(ID.lacerateEnabled) && !lacerateWaits(v.on(ID.lacerateAlone), ctx)) {
     const lacerate = b.ability(LACERATE)
     b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
     b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])

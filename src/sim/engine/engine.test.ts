@@ -557,6 +557,15 @@ describe('golden run (fixed config and seed)', () => {
   //   1.55 M), fewer Shield Slams (17.14 M → 16.64 M) and Sunder Armors (28.18 M → 27.74 M), and
   //   Demoralizing Shout's threat 0.154 M → 0.148 M; TPS 984.26 → 978.76, DPS 303.36 → 302.44. Max
   //   TPS drops both debuffs, so its fights are the same. Fury, Arms and the cat are unchanged.
+  // - M5.6 T4 (D29, D30): the default Protection warrior wears the interim threat set, like the
+  //   paladin's and the bear's: the gear review's search with Darksoul Shoulders (GR11), then Don
+  //   Julio's Band, Krol Blade and Knight-Lieutenant's Plate Greaves for the effective-health floor
+  //   (warrior.md §6.3; 91.5% of v1's). Talents and rotation are unchanged. Adaptive Combat
+  //   Assistant's and Stalwart Watcher's Signet's 30 expertise rating (D12) cut the boss's parries
+  //   (the rows' parried column: main hand 5,828 → 2,634, Sunder Armor 4,075 → 3,269), and more
+  //   Strength, crit and hit raise every hit's threat: Sunder Armor 27.74 M → 31.28 M, Shield Slam
+  //   16.64 M → 18.96 M, Revenge 13.87 M → 15.87 M, Heroic Strike 10.29 M → 13.50 M, Windfury 4.81 M
+  //   → 7.03 M. TPS 978.76 → 1,123.32, DPS 302.44 → 356.89. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

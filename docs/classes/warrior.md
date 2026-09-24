@@ -1899,6 +1899,83 @@ parts:
 - **Tanks.** A defensive tier (armor and health consumables) matters to survival, not TPS.
   It's included in the preset for completeness only.
 
+### 6.3 Protection gear: interim, measured (M5.6 T4)
+
+The Protection pre-raid list (`scripts/scrape/pre-raid-bis.json`) is a survival list, which
+[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)
+rules out as a preset: its Stamina and defense add no threat (Stamina costs some, since rage from
+hits divides by max health), and its Mark of the Chosen is an effect the sim doesn't model. Until
+the optimizer's results replace every spec's gear
+([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24),
+M5.7 O4), the default Protection warrior wears an interim set, built the way the paladin's
+([paladin.md "Protection defaults"](paladin.md#protection-defaults)) and the bear's
+([druid.md §7.3a](druid.md#73a-interim-gear-m56-t3)) were, so the three tanks' presets are like
+for like. It's set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's. The talents (§6.1)
+and the rotation (§5.4) are unchanged: the rotation was tuned on the v1 gear, and O4 re-tunes it
+with the talents and gear.
+
+1. **The gear review's set** (2026-09-24: a paired, slot-by-slot search over the pool on TPS, plate
+   and a shield, PvP rank 10 at most, no raid drops), with **Darksoul Shoulders** for its Abyssal
+   Plate Epaulets, a random-enchantment base that lost its stats in the pool (GR11; the review
+   measured −4 TPS against the Epaulets' partial stats).
+2. **Adaptive Combat Assistant stays.** Its +20 expertise rating is worth its place only under
+   [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)'s
+   hypothesis, but the best trinket without an unmeasured rating, Earthstrike, makes 44.1 TPS
+   (3.9%) and 11.9 DPS less, where the bear's swap cost 0.04%. The rule was to swap only at little
+   cost. With unmeasured ratings ignored, Earthstrike would make 7.4 more. Stalwart Watcher's
+   Signet's +10 expertise stays for the same reason: the best ring without it, Painweaver Band,
+   makes 17.1 TPS (1.5%) less. The two items' expertise is worth 77.3 TPS (6.9%) at the default
+   (the "unmeasured ratings ignored" row below). Adaptive Combat Assistant's use (a 450 absorb and
+   Nature damage) isn't simulated, and the results' assumptions say so.
+3. **The tanks' effective-health floor** (D30, user decision, 2026-09-24): effective health, maximum
+   health ÷ (1 − armor's damage reduction against the level-63 boss), is at least 90% of the v1
+   preset's (the pre-raid list's, with the same talents and buffs): 13,218 of 14,686 for a Human.
+   The review's set had 85.3% (12,534: health 5,209, armor 8,093). Three swaps, each the one that
+   gained the most effective health per 1% of TPS it cost, bring it to 91.5%, for 0.73% of the TPS
+   and 1.01% of the DPS. The candidates were the items the pre-raid lists rank: plate or no armor
+   type, no unmodelled use effect, no armor-only item, no random-enchantment base or raid drop. At
+   each step the 60 largest effective-health gains were screened at 4,000 fights, and the best 8
+   re-run at 20,000 (seed 424242, paired against the step's set):
+
+   | Step | Slot | Out | In | TPS | DPS | Effective health |
+   | --- | --- | --- | --- | --- | --- | --- |
+   | 1 | Ring | Band of Earthen Might | Don Julio's Band (19325) | −2.2 (−0.19%) | −0.8 | +313 |
+   | 2 | Main hand | Dal'Rend's Sacred Charge | Krol Blade (2244) | −0.6 (−0.05%) | −0.2 | +120 |
+   | 3 | Feet | Battlechaser's Greaves | Knight-Lieutenant's Plate Greaves (23287; Horde: Blood Guard's, 22858) | −5.5 (−0.49%) | −2.7 | +473 |
+
+| Slot | Item | Slot | Item |
+| --- | --- | --- | --- |
+| Head | Lionheart Helm (12640) | Feet | Knight-Lieutenant's Plate Greaves (23287; Horde: Blood Guard's, 22858) |
+| Neck | Pendant of Celerity (22340) | Rings | Don Julio's Band (19325), Stalwart Watcher's Signet (275971) |
+| Shoulder | Darksoul Shoulders (19695) | Trinkets | Adaptive Combat Assistant (272437), Hand of Justice (11815) |
+| Back | Earthweave Cloak (21187) | Main hand | Krol Blade (2244), a sword for Human's Sword Specialization |
+| Chest | Knight-Captain's Plate Hauberk (23300; Horde: Legionnaire's, 22872) | Shield | Dreadguard's Protector (18756) |
+| Wrist | Vambraces of the Sadist (13400) | Ranged | Satyr's Bow (18323), the list's |
+| Hands | Death Grips (18722) | | |
+| Waist | Brigam Girdle (13142) | | |
+| Legs | Knight-Captain's Plate Leggings (23301; Horde: Legionnaire's, 22873) | | |
+
+At the defaults (seed 424242, 20,000 fights), against the v1 list's gear with the same talents,
+buffs and rotation:
+
+| Setup | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
+| --- | --- | --- | --- | --- | --- | --- |
+| v1 gear (Human) | 978.7 | 301.4 | 600.1 | 6,029 | 8,264 | 14,686 |
+| **Default** (Human, interim gear) | **1,124.2** | **357.0** | 610.7 | 5,559 | 8,159 | 13,440 (91.5%) |
+| Default, unmeasured ratings ignored | 1,046.9 | 331.4 | 622.2 | 5,559 | 8,159 | 13,440 |
+| v1 gear, Max TPS | 1,130.5 | 328.3 | 838.9 | 6,029 | 8,264 | 14,686 |
+| Default, Max TPS | 1,279.2 | 380.9 | 862.6 | 5,559 | 8,159 | 13,440 |
+| v1 gear (Orc) | 971.0 | 297.1 | 601.6 | 6,049 | 8,258 | 14,729 |
+| Default (Orc) | 1,116.3 | 352.8 | 612.1 | 5,579 | 8,153 | 13,483 (91.5%) |
+
+The gain is in every hit's threat: Sunder Armor 309 → 348 TPS, Shield Slam 185 → 212, Revenge
+156 → 177, Heroic Strike 112 → 150, Windfury 53 → 79. The expertise lowers the boss's parries,
+and more Strength, crit and hit do the rest. The warrior takes 1.8% more damage a second than in
+the v1 gear. The default warrior is 1.39× the Protection paladin's TPS (810.8) and 1.04× the bear's
+(1,081.9), within D29's benchmark. A unit test holds the floor (`defaults.test.ts`), for both
+factions. The enchants stay the spec's
+([buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
+
 ## 7. Implementation notes
 
 - **Where rank values come from.** Read talent ranks from `src/data/talents/warrior.json`.

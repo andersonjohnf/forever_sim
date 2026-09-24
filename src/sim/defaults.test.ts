@@ -5,9 +5,12 @@ import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
 import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
+import { armorReduction } from './core/formulas'
 import { fitsFaction, uniqueConflicts } from './equip'
+import { buildPlan } from './plan/build'
+import { FOREVER } from './rules/profiles'
 import { SPEC_IDS, SPEC_META } from './specs'
-import type { GearSlot, SpecId } from './types'
+import type { GearSlot, SimConfig, SpecId } from './types'
 
 const items = new Map((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
 const raceData = raceJson as unknown as RaceData
@@ -74,9 +77,13 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
       expect(ids(spec, 'horde-orc', ['shoulder', 'feet'])).toEqual([23243, 22858])
       expect(ids(spec, 'horde-undead', ['shoulder', 'feet'])).toEqual([23243, 22858])
     }
-    // Knight-Captain's / Legionnaire's Plate Hauberk.
-    expect(ids('warrior-protection', 'alliance-gnome', ['shoulder', 'chest', 'feet'])).toEqual([23315, 23300, 23287])
-    expect(ids('warrior-protection', 'horde-tauren', ['shoulder', 'chest', 'feet'])).toEqual([23243, 22872, 22858])
+    // Protection's pre-raid list, and its interim picks (warrior.md §6.3): Knight-Captain's /
+    // Legionnaire's Plate Hauberk and Leggings, the greaves above.
+    const listIds = (race: string) => (['shoulder', 'chest', 'feet'] as const).map((s) => preRaidListGear('warrior-protection', race)[s]?.itemId)
+    expect(listIds('alliance-gnome')).toEqual([23315, 23300, 23287])
+    expect(listIds('horde-tauren')).toEqual([23243, 22872, 22858])
+    expect(ids('warrior-protection', 'alliance-gnome', ['chest', 'legs', 'feet'])).toEqual([23300, 23301, 23287])
+    expect(ids('warrior-protection', 'horde-tauren', ['chest', 'legs', 'feet'])).toEqual([22872, 22873, 22858])
   })
 
   it('gives each faction its own rank-3 cloak', () => {
@@ -89,6 +96,21 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
   it('opens with the default race’s gear', () => {
     expect(defaultConfig('warrior-fury')).toEqual(defaultConfig('warrior-fury', 'alliance-human'))
     expect(defaultConfig('druid-feral-cat')).toEqual(defaultConfig('druid-feral-cat', 'horde-tauren'))
+  })
+})
+
+describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
+  // Health ÷ (1 − armor's reduction against the level-63 boss), at least 90% of the v1 preset's (the
+  // pre-raid list's gear with the same talents, buffs and race), for either faction's default race.
+  const ehp = (config: SimConfig) => {
+    const { sheet } = buildPlan(config)
+    return sheet.health / (1 - armorReduction(sheet.armor, 63, FOREVER))
+  }
+  it.each(['alliance-human', 'horde-orc'])('holds for the Protection warrior’s interim gear as %s', (race) => {
+    const d = defaultConfig('warrior-protection', race)
+    const v1 = { ...d, gear: preRaidListGear('warrior-protection', race) }
+    expect(d.gear).not.toEqual(v1.gear)
+    expect(ehp(d) / ehp(v1)).toBeGreaterThanOrEqual(0.9)
   })
 })
 

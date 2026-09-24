@@ -29,7 +29,7 @@ import { addAbility, addProc, at, counter, damages, expectMean, from, line, rage
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
 
 /**
- * The default Protection warrior (Defensive Stance, Mirah's Song and Draconian Deflector) with no
+ * The default Protection warrior (Defensive Stance, Krol Blade and Dreadguard's Protector) with no
  * rotation, buffs, procs or periodic rage, against 5,000-damage swings every 2.0 s that the boss's
  * parries never hasten, in a fight of exactly `durationMs`: each test adds its own abilities and lines.
  */

@@ -340,12 +340,13 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 }
 
 /**
- * Interim default gear (M5.6 T2, T3; D29, D30): a spec whose pre-raid list doesn't suit what it
+ * Interim default gear (M5.6 T2, T3, T4; D29, D30): a spec whose pre-raid list doesn't suit what it
  * measures takes these items first, slot by slot: each slot lists an item and, for a faction's item,
  * the other faction's twin, and the first the race can wear that breaks no unique rule goes in;
  * otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
  * for threat from the pool (2026-09-24), held to the tanks' effective-health floor (docs/classes/
- * paladin.md "Protection defaults", druid.md §7.3a). Interim: the optimizer's results (O4) replace it.
+ * paladin.md "Protection defaults", druid.md §7.3a, warrior.md §6.3). Interim: the optimizer's
+ * results (O4) replace it.
  */
 const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
   'paladin-protection': {
@@ -388,6 +389,29 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
     trinket1: [21180], // Earthstrike
     trinket2: [11815], // Hand of Justice
     mainHand: [9449], // Manual Crowd Pummeler
+  },
+  // The gear review's warrior set (2026-09-24) with Darksoul Shoulders for its random-enchantment
+  // Abyssal Plate Epaulets (GR11), then three swaps that bring its effective health up to the tanks'
+  // floor, 90% of the v1 preset's: first ring, main hand and feet (warrior.md §6.3). Adaptive Combat
+  // Assistant stays: its +20 expertise is D12's hypothesis, but the best trinket without an unmeasured
+  // rating, Earthstrike, makes 3.9% less TPS.
+  'warrior-protection': {
+    head: [12640], // Lionheart Helm
+    neck: [22340], // Pendant of Celerity
+    shoulder: [19695], // Darksoul Shoulders (GR11)
+    back: [21187], // Earthweave Cloak
+    chest: [23300, 22872], // Knight-Captain's / Legionnaire's Plate Hauberk
+    wrist: [13400], // Vambraces of the Sadist
+    hands: [18722], // Death Grips
+    waist: [13142], // Brigam Girdle
+    legs: [23301, 22873], // Knight-Captain's / Legionnaire's Plate Leggings
+    feet: [23287, 22858], // Knight-Lieutenant's / Blood Guard's Plate Greaves (EHP swap for Battlechaser's Greaves)
+    finger1: [19325], // Don Julio's Band (EHP swap for Band of Earthen Might)
+    finger2: [275971], // Stalwart Watcher's Signet
+    trinket1: [272437], // Adaptive Combat Assistant
+    trinket2: [11815], // Hand of Justice
+    mainHand: [2244], // Krol Blade (EHP swap for Dal'Rend's Sacred Charge)
+    offHand: [18756], // Dreadguard's Protector
   },
 }
 

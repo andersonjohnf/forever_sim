@@ -712,8 +712,10 @@ describe('assumptions', () => {
     expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toBe(
       "Some on-use items and consumables aren’t simulated: Blackhand's Breadth.",
     )
+    // Protection's interim trinket, Adaptive Combat Assistant, keeps its not-simulated use (warrior.md §6.3).
     const prot = defaultConfig('warrior-protection')
-    expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } })).not.toContain('Weakness Analyzer')
+    expect(note(prot)).toBe('Some on-use items and consumables aren’t simulated: Adaptive Combat Assistant.')
+    expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } }) ?? '').not.toContain('Weakness Analyzer')
   })
 
   it('surfaces the Arms rotation’s assumptions: the Overpower window, Bloodthrill, Slam’s cast, Spearing Strike and Rend (warrior.md §7, Q3, Q10, Q11, Q13, Q32)', () => {

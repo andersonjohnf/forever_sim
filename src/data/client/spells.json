@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 577,
+      "docs": 581,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -61080,7 +61080,7 @@
         "spellIconFileDataId": 132362
       },
       "name": "Improved Shield Wall",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "12313": {
       "classOptions": {
@@ -62626,7 +62626,7 @@
         "spellIconFileDataId": 135871
       },
       "name": "Last Stand",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "13018": {
       "categories": {
@@ -77407,7 +77407,7 @@
         "spellIconFileDataId": 134355
       },
       "name": "Thick Hide",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16934": {
       "classOptions": {
@@ -77760,7 +77760,7 @@
         "spellIconFileDataId": 136095
       },
       "name": "Feral Swiftness",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17003": {
       "effects": [

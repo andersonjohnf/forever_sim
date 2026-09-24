@@ -244,7 +244,7 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
     expect(refresh(BEAR_IDS.ffRefresh).default).toBe(6)
     expect(refresh(BEAR_IDS.roarRefresh).default).toBe(1.5)
     expect(refresh(BEAR_IDS.ffRefresh).help).toContain('The default, 6 s (its cooldown), follows the tank duties’ rule')
-    expect(refresh(BEAR_IDS.roarRefresh).help).toContain('The default, 1.5 s (one global cooldown), follows the tank duties’ rule')
+    expect(refresh(BEAR_IDS.roarRefresh).help).toContain('The default, 1.5 s (one global cooldown, as it has none), follows the tank duties’ rule')
   })
 
   it('keep the Buffs tab’s Faerie Fire and Demoralizing Roar out while the bear keeps its own', () => {

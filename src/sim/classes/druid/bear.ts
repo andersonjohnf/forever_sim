@@ -102,16 +102,17 @@ const refreshOption = (id: string, label: string, help: string, def: number, max
 })
 
 /**
- * The tank duties' refresh rule (druid.md §6.3, decision D26's amendment): a debuff is refreshed as
- * soon as a miss could still be tried again before it falls off, so from its own cooldown, or from
- * one global cooldown if it has none. It's a fixed rule, never tuned: Faerie Fire from its 6 s
- * cooldown, Demoralizing Roar, which has none, from the 1.5 s global cooldown.
+ * The tank duties' refresh rule (druid.md §6.3, decision D26's amendment): a debuff, with or without
+ * a cooldown, is refreshed as soon as a missed cast could still be tried again before it falls off,
+ * so from its own cooldown, or from one global cooldown if it has none. It's a fixed rule, never
+ * tuned: Faerie Fire from its 6 s cooldown, Demoralizing Roar, which has none, from the 1.5 s global
+ * cooldown.
  */
 export const FAERIE_FIRE_REFRESH_SEC = FAERIE_FIRE_BEAR.cooldownMs / 1000
 export const DEMO_ROAR_REFRESH_SEC = BEAR_GCD_MS / 1000
 /** A duty's refresh help, second sentence: where the default comes from, the duty rule (druid.md §6.3). */
 const DUTY_RULE = (sec: number, why: string) =>
-  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.`
+  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.`
 
 /** Enrage's rage, 10 at once and 20 over 10 s: 30 (druid.md §4.5). */
 const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 10
@@ -200,7 +201,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
   refreshOption(
     ID.roarRefresh,
     'Demoralizing Roar again with',
-    `Refresh it when this much of it is left, unless it lasts to the end of the fight.${DUTY_RULE(DEMO_ROAR_REFRESH_SEC, 'one global cooldown')}`,
+    `Refresh it when this much of it is left, unless it lasts to the end of the fight.${DUTY_RULE(DEMO_ROAR_REFRESH_SEC, 'one global cooldown, as it has none')}`,
     DEMO_ROAR_REFRESH_SEC,
     30,
     ID.roarEnabled,

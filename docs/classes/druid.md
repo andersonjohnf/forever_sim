@@ -993,11 +993,12 @@ amendment):
 - The duties come first in the priority, before any threat ability on the global cooldown: the
   roar and Faerie Fire are rows 5 and 6, the first lines on the global cooldown. Only off-GCD rows
   (Berserk, Enrage, the Maul queue) come before them.
-- A duty that has a cooldown is used when it's ready. The bear has none of its own: Faerie Fire's
-  6 s cooldown is a debuff's, which the next point covers.
-- A debuff is refreshed as soon as a miss could still be tried again before it falls off: from its
-  own cooldown, or from one global cooldown if it has none. So Faerie Fire is refreshed with 6 s
-  left, its cooldown, and Demoralizing Roar, which has none, with 1.5 s left.
+- A duty that isn't a debuff on the boss is used when it's ready. The bear has none: both of its
+  duties are debuffs.
+- A debuff, with or without a cooldown, is refreshed as soon as a missed cast could still be tried
+  again before it falls off: from its own cooldown, or from one global cooldown if it has none. So
+  Faerie Fire is refreshed with 6 s left, its cooldown, and Demoralizing Roar, which has none, with
+  1.5 s left.
 
 The refresh times stay settings, whose help says what the rule is, so you can change them; D23's
 search tuned only the threat abilities around the duties, on TPS with DPS beside it
@@ -1065,13 +1066,13 @@ DPS beside it. Over 400,000 paired fights on seed 12104, which no search used:
 
 | Against | TPS | Δ TPS (95% CI) | DPS | Δ DPS (95% CI) | Δ damage taken (95% CI) |
 | --- | --- | --- | --- | --- | --- |
-| The first priority as built (`ca35ec8`) | 649.23 → 685.75 | +36.52 (+36.36 to +36.68), +5.62% | 337.28 → 359.04 | +21.76 (+21.68 to +21.84), +6.45% | +0.75 (+0.72 to +0.78), +0.13% |
-| The first round's tuned defaults (`9a134cc`) | 675.29 → 685.75 | +10.46 (+10.30 to +10.62), +1.55% | 326.18 → 359.04 | +32.86 (+32.79 to +32.94), +10.08% | +8.22 (+8.19 to +8.25), +1.45% |
-| The second round's, with tuned duty timing (`35b6407`) | 684.02 → 685.75 | +1.72 (+1.57 to +1.88), +0.25% | 358.14 → 359.04 | +0.90 (+0.83 to +0.98), +0.25% | −0.01 (−0.04 to +0.02), −0.00% |
+| The first priority as built (`8d7bbad`) | 649.23 → 685.75 | +36.52 (+36.36 to +36.68), +5.62% | 337.28 → 359.04 | +21.76 (+21.68 to +21.84), +6.45% | +0.75 (+0.72 to +0.78), +0.13% |
+| The first round's tuned defaults (`eaf7034`) | 675.29 → 685.75 | +10.46 (+10.30 to +10.62), +1.55% | 326.18 → 359.04 | +32.86 (+32.79 to +32.94), +10.08% | +8.22 (+8.19 to +8.25), +1.45% |
+| The second round's, with tuned duty timing (`dacd315`) | 684.02 → 685.75 | +1.72 (+1.57 to +1.88), +0.25% | 358.14 → 359.04 | +0.90 (+0.83 to +0.98), +0.25% | −0.01 (−0.04 to +0.02), −0.00% |
 
 Each baseline runs on its own engine and settings in today's setup (so with Faerie Fire's
 resistance, §4.5, and no Thunder Clap). The three are the rebased `11e9fbf`, `9377c50` and
-`92ae3d0`, which give the same fights. Damage taken is the health the boss's swings cost a second
+`92ae3d0` (rebased onto Warrior Protection's main), which give the same fights. Damage taken is the health the boss's swings cost a second
 (574–575 for the defaults). Against the first round it's 1.45% higher: the first round left
 Lacerate out, and Lacerate's attacks give the boss more to parry, each parry hastening its next
 swing ([encounter §5](../mechanics/encounter.md#5-boss-melee-tank-modeling)). Without parry haste
@@ -1079,13 +1080,13 @@ Lacerate changes nothing there (538.84 and 538.82 a second, 20,000 fights); with
 Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
 
 - **Method.** As Arms' ([warrior.md §5.3](warrior.md#tuning-the-defaults-m25a)):
-  `scripts/tune/rotation.mjs --spec druid-feral-bear --metric both` runs the real engine with
-  common random numbers and reports TPS and DPS from the same fights, and `--metric all` damage
-  taken too. The setup is the default bear (Tauren, the 8/43/0 build, pre-raid BiS with Warden
+  `scripts/tune/rotation.mjs --spec druid-feral-bear` runs the real engine with common random
+  numbers and compares TPS, with each candidate's Δ DPS and Δ damage taken beside it from the same
+  fights. The setup is the default bear (Tauren, the 8/43/0 build, pre-raid BiS with Warden
   Staff, the Standard raid buffs, 180 s ± 10%, armor 3,731), the rotation aside. Its raid has no
   Thunder Clap or Demoralizing Shout, a warrior tank's duties
   ([buffs doc §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)).
-  A raid without warriors is `--raid -warrior`: it drops the buffs only a warrior brings
+  A raid without warriors is `--raid=-warrior`: it drops the buffs only a warrior brings
   (Battle Shout, Sunder Armor), as the Buffs tab's class button does. The execute phase changes
   nothing: the bear reads nothing from it (0% and 20% give the same fights).
 - **Three rounds.** The first (seeds 1–9, confirmed on 3131 and 3132) left Lacerate out while the
@@ -1158,14 +1159,14 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   after a tick, with a GCD's slack before the bleed runs out. On the second round's robustness
   grid (seed 7475, 200,000 fights, 6 s against 3 s), with the raid's warriors: level at 30 s (the
   stacks never need a refresh), −0.12% at 60 s, +0.93% at 180 s and +0.88% at 300 s; without
-  warriors (`--raid -warrior`): level, −0.11%, +1.06% and +1.03%.
+  warriors (`--raid=-warrior`): level, −0.11%, +1.06% and +1.03%.
 - **No Swipe.** On one target it's 118.69 damage for 15 rage and a GCD, and Maul does more with
   the rage (above).
 - **Not adopted** in the second round (on search seeds, against the winner or its predecessor):
   the potion up to 0 rage (−3.3%; 10–50 is the same as 25: it's drunk at the pull); Berserk off
   (−0.92%), Mangle off (−4.95%), the Faerie Fire filler off (−1.95%).
 - **The duty rule's cost** against the tuned timing it replaced (both debuffs refreshed from 3 s
-  left, `35b6407`; seed 12104, above): nothing. It makes +0.25% TPS and +0.25% DPS for the same
+  left, `dacd315`; seed 12104, above): nothing. It makes +0.25% TPS and +0.25% DPS for the same
   damage taken. From 1.5 s left the roar goes out 7.45 times a fight rather than 7.80, and its
   uptime is 99.68% rather than 99.86%, since a roar that misses is cast again as it falls off;
   Faerie Fire's refresh at 6 s changes nothing, since the filler keeps it fresh (98.40% either way;
@@ -1176,7 +1177,7 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   modelled (above) and Maul from 20 (−2.07% at 30 s, −0.70% at 60 s) cost more there than
   in-combat Enrage gains (nothing at 30 s, +0.60% at 60 s).
 
-  | Fight | Δ TPS vs `ca35ec8` | Δ DPS vs `ca35ec8` | Δ TPS vs `9a134cc` | Δ DPS vs `9a134cc` |
+  | Fight | Δ TPS vs `8d7bbad` | Δ DPS vs `8d7bbad` | Δ TPS vs `eaf7034` | Δ DPS vs `eaf7034` |
   | --- | --- | --- | --- | --- |
   | 30 s | −18.23 (−18.53 to −17.94), −2.29% | −1.34, −0.32% | −50.83 (−51.23 to −50.43), −6.13% | −5.54, −1.32% |
   | 60 s | −1.02 (−1.34 to −0.70), −0.15% | +6.39, +1.75% | −30.79 (−31.14 to −30.43), −4.20% | +11.39, +3.16% |

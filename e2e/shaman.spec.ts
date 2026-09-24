@@ -127,7 +127,7 @@ test.describe('Enhancement shaman', () => {
 
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/^Covers .+ · Shamans: Enhancement\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/^Covers .+ · Shamans: Enhancement · Rogues: .+\.$/)).toBeVisible()
   })
 
   test('its Rotation tab: the common priority under the usual headings, its thresholds behind Advanced, and no other class’s words', async ({ page }) => {

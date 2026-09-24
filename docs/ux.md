@@ -171,9 +171,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     names them and says what the button replaces, since it replaces them all at once and there's
     no undo ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
     "3 slots differ from the threat set: Head, Legs and Main hand. Equipping it replaces all 3."
-    ("… replaces that slot." for one), after a dot in the primary colour (the changed-setting
-    marker of Character and Rotation); the row takes a muted fill and the button is the primary
-    one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
+    ("… replaces that slot." for one, "… replaces both." for two; an empty slot, as after Remove all
+    gear, is filled rather than replaced: "… fills all 17.", or for a mix "… fills 2 empty slots and
+    replaces the other 3."; a slot the default leaves empty but the player filled, such as an Arms
+    warrior's off hand beside a one-hander, is cleared, by name: "… replaces 1 slot and clears Off
+    hand.", "… fills 15 empty slots, replaces 1 and clears Ammo and Quiver.", or "… clears Off
+    hand." alone). A no-break space joins each count to the word before it, so a wrapped line never
+    splits a count from that word ("all 17", "the other 3"). The line follows a dot in the primary colour
+    (the changed-setting marker of Character and Rotation); the row takes a muted fill and the
+    button is the primary one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
     and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that
     line as the button goes. The line is the button's description for screen readers. Below 640 px
     the button takes the row's full width under the line. The button used to hide in the options menu;
@@ -257,11 +263,28 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
     as above. The Boss damage debuffs below are listed for every DPS spec, casters too.
-  - The **Boss damage** debuffs act on the boss's swings, which only a tank takes. For a DPS spec
-    each says so after its summary ("Only the tank takes the boss's swings, so it changes nothing
-    for you."), and its switch stays usable. The two attack-power debuffs, of which only one
+  - The **Boss damage** debuffs act on the boss's swings, which only a tank takes, and so does an
+    entry that only adds armor (Devotion Aura, Elixir of Greater Defense, Greater Stoneshield
+    Potion), since only those swings meet it. For a DPS spec each says so after its summary ("Only
+    the tank takes the boss's swings, so it changes nothing for you."), and its switch stays usable.
+    Turning Greater Stoneshield on still turns your other potion off, as its summary says ("Potions
+    share a cooldown, so one is on at a time"), so a DPS spec reads both before trading its potion
+    for nothing. The two attack-power debuffs, of which only one
     applies, name each other: "−204 boss attack power (instead of Demoralizing Shout)" for
     Demoralizing Roar, and the other way round.
+  - Entries of which only one can be on turn each other off when one is switched on: one flask,
+    one stone or oil (a weapon takes one temporary enchant), one potion (potions share a cooldown).
+    The stones' and oils' summaries end with what the spec can put on its weapons: "(one stone per
+    weapon)" for a warrior, "(one stone or poison per weapon)" for a rogue, "(one stone or oil per
+    weapon)" for a Retribution paladin, "(one oil at a time)" for a caster; one the spec can't use
+    says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
+    cooldown, so one is on at a time". So the switch that turns off isn't a surprise
+    ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
+  - EZ-Thro Dark Bomb's summary ends with what its 1 s throw costs your spec, in its own terms: "its
+    1 s throw stops your melee swings" for a spec that swings, "holds your next cast" for a caster,
+    "holds your Auto Shot" for a hunter (`buffSummaryFor`;
+    [buffs §3.7](mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)). The results'
+    assumption about it says the same, and when the spec throws it.
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.
@@ -282,8 +305,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
     a Protection warrior's Thunder Clap and Demoralizing Shout, a Protection paladin's Devotion
     Aura, and a bear's Faerie Fire and Demoralizing Roar, [druid §6.3](classes/druid.md#63-forever-bear-priority-tps)),
-    so no preset turns them on. When the rotation drops one (a Protection warrior's Max TPS drops
-    both of its own, a paladin's its Devotion Aura), its Buffs switch is off by default and
+    so no preset turns them on. When the rotation drops one (a Protection warrior's Balanced and
+    Max TPS drop both of its own, a bear's its roar, a paladin's Max TPS its Devotion Aura), its Buffs switch is off by default and
     unlocked, and its note says so: "You're not keeping it up (see Rotation); turn this on if
     another druid does" (or warrior, or paladin). Turned on, it's another
     player's, and it stays on until you turn it off. Without that class in the raid it reads
@@ -294,18 +317,35 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     warrior tank's duty, so presets leave it out; turn this on if one keeps it up."
   - A preset matches on what you choose: a buff your rotation keeps up shows on whatever the
     preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
-    under Max TPS, then going back to tank duties, leaves the preset as it was.
+    under Max TPS, then going back to Defensive, leaves the preset as it was.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
-    abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
-    priority, the consumables) sit under their headings above the list, as below. Under
+    A spec on the list (Fury first, then the three tanks in A2; the rest follow in M5.65 A2)
+    shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
+    stance, a pet, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+  - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
+    A spec with named rotations (a tank's **Defensive**, **Balanced** and **Max TPS**) has its
+    picker at the top of the tab instead, under a **Preset** heading, first as a tank's priority
+    choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
+    order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
+    no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
+    a popover that lists all three with their full help: what each keeps and drops, what it
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's Max TPS
+    against Balanced too, which it differs from by one setting), when to pick it, and the Buffs
+    tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
+    the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
+    most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken
+    cost among them; at Custom, "Custom: the list matches none of the presets. Pick one to start
+    again from it." The picker's trigger takes that line as its description.
+    A tank's Priority choice has no control of its own: the picker sets it (`AplDefinition.presets`,
+    architecture.md). Under Priority list there's then only **Reset order**, which hands focus to
+    the list's first row, and **Reset rotation** hands focus to the picker.
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
       short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
@@ -339,27 +379,58 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       settings move it one place and say where it went; one that reaches the end disables
       itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
       position 11").
-    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
-      be, have no Move up or down, and no row can be dragged past them. The settings of a
-      pinned row say "Fixed at position 1 of 16".
-    - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
-      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+    - **Pinned rows** (the pre-pull and opener, first) show a lock where the handle would be, have
+      no Move up or down, and no row can be dragged past them. The settings of a pinned row say
+      "Fixed at position 1 of 16". **D26's duties are movable rows**, like any other
+      ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24):
+      the duty timing keeps its own rule wherever the duty sits): a warrior's Shield Block, Thunder
+      Clap and Demoralizing Shout, a bear's Demoralizing Roar and Faerie Fire. Every tank preset
+      puts them first on the global cooldown, and their refresh stays the duty rule's wherever you
+      move them, since it's the row's own condition; a moved duty makes the list Custom. The rule
+      decides when a duty wants the global cooldown, not that it gets it: a row above it takes it
+      first. A warrior's Thunder Clap, Demoralizing Shout or Battle Shout, on and below the Sunder
+      Armor filler (on), says so in place of its summary, dimmed, with the filler's threshold (or
+      Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your
+      rage is under its 9." It's a fact about the order, whatever the threshold, and judges nothing:
+      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 about a third of its casts.
+      Thunder Clap on cooldown (its "only to keep the slow up" off) is tried just above the filler
+      wherever its row is, so it has no note.
+    - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without
+      named ones (Fury), or a tank's three (above). A tank's preset sets its Priority choice, which
+      moves defaults; picking any preset sets it (Balanced back to its default). Once you move a row or change one
       of the list's settings away from every preset it reads "Custom". Picking a preset sets
       its order and its values for the list's settings and puts the rest of the list's settings
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
       the order isn't the default) puts the rows back in the default order and nothing else,
-      and moves focus to the picker.
+      and moves focus to the picker (a tank's, at the top: the list's first row).
+    - **Rows that share a cooldown.** With both on, the higher one is used whenever it can be, and
+      the lower only when the higher can't be paid for; the lower says so in place of its summary,
+      dimmed: a Protection paladin's Holy Strike under Hammer of the Righteous, which is off by
+      default just above it ("Rarely used: Hammer of the Righteous, above it, takes its place (they
+      share a cooldown). It's used when you can't pay Hammer's 90 mana."), or Hammer of the
+      Righteous moved below Holy Strike, which costs less and so always takes it ("Not used: Holy
+      Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it
+      instead."). Hammer of the Righteous says when the main hand can't use it, and what happens
+      instead: "Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is
+      used.", or with Holy Strike off "… main hand. Turn Holy Strike on to use it instead.", and
+      with no main hand, where Holy Strike can't be used either, just "… in your main hand.". With
+      no main hand, Holy Strike (on) says so too, with Hammer on or off: "Not used: needs a weapon
+      in your main hand."
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and
       Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
-    since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
-    also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-    since a Classic Era feral would look for it. A tank's says no more: its priority choice,
-    first on the tab, names the duties its default keeps (below).
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Retribution since C2), "the
+    common priority" for a spec until then. The cat's also says there's no powershifting, and why
+    ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+    since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
+    which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS are
+    tuned for the default setup; Balanced, the default, hasn't been fully tuned yet." (the warrior);
+    "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
+    tuned yet." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
+    default, plays as Defensive." (the paladin).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -370,7 +441,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
     Cooldowns and buffs).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-    a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
+    before the priority list, a choice at the top, **Tank duties first** (the default) or **Max
+    TPS**. On the priority list (D28, D31; all three tanks since A2) it's the preset picker at the
+    top instead ("A tank's presets", above): **Defensive** (Tank duties first, renamed),
+    **Balanced** (the default) and **Max TPS**, whose help in the picker's info says the same things
+    with each one's measured numbers. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
     Aura, for Retribution Aura, for a paladin; the roar for a bear, which keeps Faerie Fire because
     its armor makes the bear's threat), why the default keeps them (you take less damage), what Max
@@ -549,28 +624,58 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     damage and slow its swings." The swings
     include parry-hastened ones; a fixed swing size reads "5,000". Its "(Fight → Advanced)", and
     the crushing line's, have non-breaking spaces around the arrow, so they never split at 390 px.
-- **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
-  percentages and average hit. White swings are "Main hand" and "Off hand"; a druid's, in a form
-  with its own weapon, are "Auto attack".
+- **Breakdown:** a per-ability damage share bar, then a line of its outcomes: "31.2 casts a
+  fight · 24.1% crit · 3.0% avoided · 1,204 avg hit". White swings are "Main hand" and "Off
+  hand"; a druid's, in a form with its own weapon, are "Auto attack".
+  - **The count comes first,** a fight, named for what it counts (`AbilityResult.unit`, from
+    `rowUnit` in `src/sim/run/aggregate.ts`): **swings** for white swings (Main hand, Off hand, a
+    form's or a pet's Auto attack), **shots** for Auto Shot, **procs** for what an item, talent,
+    weapon or seal fires (Hand of Justice, Windfury, Seal of Command, Thorns, Deep Wounds, Deadly
+    Poison, Ignite), **applications** for a bleed or DoT the rotation puts on the boss (Rend,
+    Corruption, "Rake (bleed)", "Fireball (DoT)"), **ticks** for a periodic effect whose casts
+    nothing counts, **uses** for a potion or rune, and **casts** for the rest: a channel you press
+    (Mind Flay, Arcane Missiles), whatever its ticks do, and a rage cast a tank's Threat view shows
+    (Bloodrage, Enrage) included. Swings, shots, casts and procs count attempts, misses included.
+    An extra-attacks proc counts the times it fired, so Windfury Weapon's and Ironfoe's two swings
+    are one proc; its crit and avoided shares are over the swings. A fire whose swing becomes a
+    queued Heroic Strike or Maul still counts, but that swing's damage lands on the Heroic
+    Strike's or Maul's row. A row with a count of its own (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
+    of mana or rage (Shield Specialization, Primal Fury) shows none: one count a row.
+  - **The average ends the line,** on the Damage metric only: the row's damage over its landed
+    hits (hits, crits, glances and blocks; misses left out), "1,204 avg hit", or "412 avg tick"
+    for a bleed's, a DoT's or a periodic effect's row. A cast whose every cast lands several times
+    on its own row counts its casts, but its average and shares are per landing, named for what
+    lands: "21.3 casts a fight · 9.1% tick crit · 11.0% of ticks avoided · 95 avg tick"
+    (Consecration's ticks), "missile crit · of missiles avoided · 430 avg missile" (Arcane
+    Missiles). A row with no damage or no landed hits has
+    none. A screen reader hears it in words: "1,204 damage a hit on average". Each part stays
+    whole, so the line wraps only between parts; at 390 px a DoT's or bleed's line may take three
+    or four lines, its uptime included.
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
-    "32.2% tick crit · 1.1% of applications avoided", with its uptime on the boss on a second
+    "9.0 applications a fight · 32.2% tick crit · 1.1% avoided · 40 avg tick", the avoided share
+    being of what the count counts (its applications, a proc's procs, a channel's casts),
+    with its uptime on the boss on a second
     line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", right after its
     hit's row, whatever their damage). The tick crit shows only where ticks can crit (the Forever profile), and the
-    avoidance only for an application that rolls (Rend). A bleed that does neither, such as
-    Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight. A bleed
+    avoidance only for an application that rolls (Rend, Corruption, Serpent Sting, Deadly
+    Poison's procs, Mind Flay's casts). A bleed that does neither, such as Deep Wounds (a crit
+    applies it, and its ticks can't crit), shows only its count and its average tick. A bleed
     that stacks adds its average stacks to the uptime line ("89.4% uptime on the boss, 4.6
     stacks on average": the bear's "Lacerate (bleed)"), and its marker stays out of Cooldowns
     and buffs.
   - A **spell on the boss** that deals no damage, so can't crit (the bear's Faerie Fire and
     Demoralizing Roar, a warrior's Demoralizing Shout), shows only the share of its casts that
-    missed ("16.4% missed"), resists included.
+    missed ("20.1 casts a fight · 16.4% missed"), resists included.
   - A **pet's rows** name it after the ability, in the muted color: "Auto attack · Succubus",
     "Firebolt · Imp" ([ranged-and-pets §10](mechanics/ranged-and-pets.md#10-pet-damage-in-the-results)).
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
-    out of the breakdown. They're under **Cooldowns and buffs**.
+    out of the breakdown's Damage view. They're under **Cooldowns and buffs**. On a tank's Threat
+    view, one whose rage or mana makes threat has a row: "3.5 casts a fight" (Bloodrage), "1.5
+    uses a fight · from 2,628 mana a fight" (a paladin's Major Mana Potion).
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows
-    no crit or avoided shares. A row that counts something shows it a fight: "35.6 blocks a
-    fight" (Holy Shield's damage), "14.8 extra attacks a fight" (Reckoning). A row whose threat
+    no crit or avoided shares. A row that counts something of its own shows it a fight, in place
+    of its unit's count: "35.6 blocks a fight" (Holy Shield's damage), "14.8 extra attacks a
+    fight" (Reckoning). A row whose threat
     is the mana it gave you says how much: "from 4,397 mana a fight" (Improved Seal of Fury,
     Shield Specialization).
   - **Tank specs** get a **Threat / Damage** switch above it. Threat is the default, and the
@@ -800,6 +905,12 @@ Every view handles these states:
     it, so the badge comes back.
   - A polite live region, mounted once at every width, says "Simulating…" when a run starts
     and then "Done: 682.5 DPS" or "Simulation cancelled."
+  - Switching spec cancels a run in progress, as Cancel does, however the spec changed (the
+    switcher, a shared link, a saved setup): there's never a run going on out of sight, so no
+    progress or number from one spec's run shows, or is announced, under another. The live region
+    says "Simulation cancelled." The spec switched to shows its own last result, or is ready to
+    simulate, in the panel, the sheet and the phone's bar alike, and switching back shows the
+    cancelled spec as Cancel would have left it: its last completed result, or ready to simulate.
 - **Stale:** the setup changed after the last run, so results are dimmed with a "Re-run" hint.
   - The whole result dims, the breakdown and details included, not just the headline. Dimmed
     text turns to the muted text color, which still meets AA; bars and icons fade to gray. The
@@ -816,7 +927,14 @@ Every view handles these states:
     and its message says what to change, so no retry advice follows it. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec, except a
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so
-    it was stopped. Run it again." says all there is to say, since no setup causes a hang.
+    it was stopped. Run it again." says all there is to say, since no setup causes a hang. Nor does
+    a run whose workers couldn't start (most likely the site updated since the page loaded): "The
+    simulation couldn't start. Reload the page, then run it again." A "Reload page" button (44 px)
+    under it does that, in the panel and the phone's sheet; the phone's bar says "Failed" as for
+    any failure. A run whose worker stopped after it had started says "The simulation stopped
+    unexpectedly.", with the retry advice. The next Simulate replaces any worker that failed. If
+    the workers fail to start in two runs in a row, later runs go on the page itself instead,
+    slower but with a result, until a reload.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
     start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
@@ -834,6 +952,13 @@ Every view handles these states:
   than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`). It says what makes
   room as the Setups sheet does: deleting saved setups, or with none shown, that the storage is
   full of something else and clearing the site's data makes room.
+- **A stored save is read carefully,** like a shared link: anything in it that this version doesn't
+  save falls back to the default instead of breaking the page. A tab that no longer exists opens
+  Gear; a setup stored under a spec the sim doesn't know, or under another spec's name, is dropped,
+  so that spec opens on its defaults; a last-used spec it doesn't know opens the default spec, on
+  your own stored setup for it; a save that isn't a setup at all, or isn't JSON, opens the
+  defaults; and a save from another version of the app is read the same way (`merge` in
+  `src/app/setup-store.ts`). Nothing is announced: there's nothing you can do about it.
 - **What you never changed follows the defaults.** A gear slot or talent build that still holds
   the spec's default when the setup is saved takes the newer default on the next visit; what you
   changed stays yours ([architecture, "Following the defaults"](architecture.md#following-the-defaults)).
@@ -858,7 +983,12 @@ Every view handles these states:
   setup. It replaced your Arms Warrior setup, and you're on Arms now." A link for another spec
   keeps your setup for the spec you were on, as switching spec does. A code's import and a Load
   say the same (`replacedDescription` in `src/app/load-notice.ts`), and **Reset setup** says "Your
-  Fury Warrior setup is back to its defaults".
+  Fury Warrior setup is back to its defaults". When loading had to change something, the notice
+  then says what, in the repair's own words: "Rotation settings that don't apply to this spec were
+  reset.", "Greater Stoneshield Potion shares a cooldown with Mighty Rage Potion, so it was turned
+  off." Up to three changes are spelled out; past that, the first two and "3 other parts changed
+  too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
+  stone) did nothing, so it isn't mentioned.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A swipe
   sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
@@ -895,6 +1025,12 @@ Every view handles these states:
 - **A toast stays solid over an open sheet or dialog** (the results sheet, the item picker,
   About): a tap on it lands on the toast, not on what's under it, and neither a tap nor a swipe
   closes the sheet. (`src/app/toast-layer.ts` explains how.)
+- A link's setup is the `s` parameter of its fragment, whatever else is there: chat apps append
+  tracking parameters to a link they pass on, in the query (`?utm_source=…#s=…`) or after the code
+  (`#s=…&fbclid=…`, `#s=…?utm_source=…`), and those links load as they are. `&` or `?` ends the
+  code, and the code itself is read as it is, so a damaged one is still refused. The whole fragment
+  leaves the URL when it's read; the query stays (`fragmentCode` in `src/app/share.ts`). Import's
+  field reads a pasted link the same way.
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.
@@ -950,8 +1086,8 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - **Load** replaces the current setup, switching to its spec if needed, with no prompt. Your
   setup for the spec you were on is kept, as switching spec does. The sheet closes, and a notice
   says "Loaded “Raid night”", whose setup it replaced and the spec it switched to ("It replaced
-  your Fury Warrior setup, and you're on Fury now."), and any parts that were out of date, as a
-  shared link's does.
+  your Fury Warrior setup, and you're on Fury now."), and what loading it changed, as a shared
+  link's does.
 - **Rename** edits the name in place. Enter or Rename keeps it; Escape or Cancel doesn't, and
   leaves the sheet open. Focus goes back to the row's Rename. A name another save has is
   refused, so a rename never replaces a save. Below 640 px the field takes the row's width, with

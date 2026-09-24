@@ -67,8 +67,11 @@ function rowName(cell) {
     .trim();
 }
 
-/** §1–§5 tables that have no ids by design: the camp buffs (§1.3) are objects players place. */
-const NO_ID_TABLES = /^Camp object\b/;
+/**
+ * §1–§5 tables that have no ids by design: the camp buffs (§1.3) are objects players place, and a
+ * rules table (§3.7's "Rule | Value | Tag") states how the sim models an item already listed by id.
+ */
+const NO_ID_TABLES = /^(Camp object|Rule)\b/;
 
 /**
  * @returns {{

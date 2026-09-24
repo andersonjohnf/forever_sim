@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 581,
+      "docs": 582,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -129766,7 +129766,7 @@
       "range": {
         "rangeMax": [15, 15]
       },
-      "sources": ["consumable"],
+      "sources": ["consumable", "docs"],
       "targetRestrictions": {
         "targets": 64
       }

@@ -5,7 +5,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { checkConflicts, createOutput, recordedSource } from "./output.mjs";
+import { checkConflicts, checkNeeds, createOutput, inWords, recordedSource } from "./output.mjs";
+import { CHECK_BUILDS, CLASSIC_BASELINE, DOC_TABLES_BUILD } from "./wago.mjs";
 
 let dir;
 beforeEach(() => {
@@ -81,5 +82,46 @@ describe("recordedSource", () => {
       expect(version, f).toMatch(/^1\.60\.\d+\.\d+$/);
       expect(dbdefs, f).toMatch(/^[0-9a-f]{40}$/);
     }
+  });
+});
+
+describe("checkNeeds", () => {
+  const recorded = [
+    { version: "1.60.1.69913", dbdefs: "a".repeat(40) },
+    { version: "1.60.1.69913", dbdefs: "a".repeat(40) },
+    { version: null, dbdefs: null },
+  ];
+
+  it("names the recorded build and commit, the Classic Era baseline and the build of the doc-cited tables, each once (LC-1)", () => {
+    expect(checkNeeds({ recorded, cacheDir: "/c" })).toEqual([
+      ["the Forever build 1.60.1.69913", path.join("/c", "1.60.1.69913")],
+      [`the Classic Era baseline ${CLASSIC_BASELINE}`, path.join("/c", CLASSIC_BASELINE)],
+      [`the Forever build ${DOC_TABLES_BUILD} (the tables the docs cite)`, path.join("/c", DOC_TABLES_BUILD)],
+      ["the WoWDBDefs commit aaaaaaaaaaaa", path.join("/c", "github", "wowdbdefs", "a".repeat(40))],
+    ]);
+  });
+
+  it("lets --version and --dbdefs replace what the data records, and names a directory once when a build is both", () => {
+    const needs = checkNeeds({ recorded, version: DOC_TABLES_BUILD, dbdefs: "b".repeat(40), cacheDir: "/c" });
+    expect(needs.map(([, dir]) => dir)).toEqual([path.join("/c", DOC_TABLES_BUILD), path.join("/c", CLASSIC_BASELINE), path.join("/c", "github", "wowdbdefs", "b".repeat(40))]);
+    expect(needs[0][0]).toBe(`the Forever build ${DOC_TABLES_BUILD}`);
+  });
+
+  it("covers every build the client scraper's doc tables read", () => {
+    const client = fs.readFileSync(path.join(import.meta.dirname, "..", "client.mjs"), "utf8");
+    const start = client.indexOf("const DOC_TABLES = [");
+    const names = [...client.slice(start, client.indexOf("];", start)).matchAll(/build: (\w+)/g)].map((m) => m[1]);
+    expect(names).toEqual(["DOC_TABLES_BUILD", "DEFAULT_BASELINE"]);
+    expect(client).toContain("const DEFAULT_BASELINE = CLASSIC_BASELINE;");
+    expect(CHECK_BUILDS.map((c) => c.build)).toEqual([CLASSIC_BASELINE, DOC_TABLES_BUILD]);
+  });
+});
+
+describe("inWords", () => {
+  it("joins a list the way a sentence does", () => {
+    expect(inWords([])).toBe("");
+    expect(inWords(["a"])).toBe("a");
+    expect(inWords(["a", "b"])).toBe("a and b");
+    expect(inWords(["a", "b", "c"])).toBe("a, b and c");
   });
 });

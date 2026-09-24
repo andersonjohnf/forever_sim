@@ -223,7 +223,7 @@ const REGISTRY = {
     docRef: `${CT}#9-spell-hit-and-crit-generic`,
   },
   deepWounds: {
-    text: 'Deep Wounds follows Classic Era rules: recomputed each tick from current attack power, and it can’t crit.',
+    text: 'Deep Wounds follows Classic Era rules: recomputed each tick from current attack power, and it can’t crit. Each crit restarts it with its next tick 3 s away, so while you crit more often than that it rarely ticks; if a crit kept its tick timer instead, Fury would do about 2% more DPS and Arms about 1.5%. Untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   angerManagement: {
@@ -286,6 +286,12 @@ const REGISTRY = {
   onUseConsumables: {
     text: 'Some on-use items and consumables aren’t simulated',
     docRef: `${BUFFS}#on-use-items-and-cooldown-categories`,
+  },
+  // buffs doc §3.7: EZ-Thro Dark Bomb's throw and its spell table, the [?] rules it rests on; the plan
+  // says when this spec throws it and what the throw holds ({detail}: build.ts explosiveThrowDetail).
+  explosiveThrow: {
+    text: '{detail} It rolls your spell hit and crit, none of your class’s talents reach it, and the boss resists it whole at its average Fire resistance. Untested in Forever.',
+    docRef: `${BUFFS}#37-engineering-and-explosives`,
   },
   weaknessAnalyzer: {
     text: 'Weakness Analyzer’s +5% crit ends on your next crit, white or special, and it’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
@@ -387,7 +393,7 @@ const REGISTRY = {
     docRef: `${RAGE}#bear-druid-rage`,
   },
   bearArmor: {
-    text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
+    text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, a Greater Stoneshield Potion, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.

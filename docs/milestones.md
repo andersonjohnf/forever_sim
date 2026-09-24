@@ -305,14 +305,42 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       like the paladin's and the bear's (1,124.2 TPS, 357.0 DPS;
       [warrior.md §6.3](classes/warrior.md#63-protection-gear-interim-measured-m56-t4)); its talents
       still come from the optimizer
-- [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
-      stay selectable
+- [x] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
+      stay selectable. First pass (D27), against Defensive in the default setup:
+      - Warrior ([warrior.md §5.4 "Balanced"](classes/warrior.md#balanced-t5)): Shield Block and
+        Sunder Armor's 5 stacks kept, no Thunder Clap or Demoralizing Shout, the Sunder filler only
+        from 60 rage (user decision), Heroic Strike from 84: +9.5% TPS, +6.4% DPS, +21% damage taken
+      - Bear ([druid.md §6.3 "Balanced"](classes/druid.md#balanced-t5)): the roar dropped, Faerie
+        Fire kept: +3.1% TPS, +2.8% DPS, +0.7% damage taken. Max TPS, tuned on TPS alone, now
+        Mauls from 14 ([Max TPS](classes/druid.md#max-tps-b4)): +3.3% TPS, +2.6% DPS
+      - Paladin ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)): plays as
+        Defensive, Holy Strike kept for Iron Creed (user decision); Hammer of the Righteous a row,
+        off, above Holy Strike
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
-      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken.
-      The bear is already above the benchmark (1,081.9 TPS). Two bears' logs of 23–24 Sep suggest
-      more rage for it (hits taken rise with the mob's level; one auto at the two-hander's rate),
-      not adopted until the logs listed in
-      [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-) settle it
+      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+      - **Open plausibility finding (TI-2, the tank integration review, 2026-09-24): the bear is
+        above D29's benchmark, and the model stays as it is until a test explains it.** The default
+        bear (Balanced) makes **1,115 TPS** on seed 31101 (100,000 fights; 547 DPS), against the
+        officers' 800–900 for a paladin or a bear; on the same run the warrior's Balanced makes 1,241
+        and the paladin's 832 (D28; the review log's 1,240.98, 1,115.34 and 832.09). Its
+        threat by ability (seed 31101, 10,000 fights, share of threat, TPS, casts a fight): Maul
+        **58.8%, 657, 73.6**; Lacerate 14.2%, 159, 53.2, and its bleed 3.5%, 39; Mangle 14.1%, 158,
+        37.9; Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15, 21.9;
+        Thorns 0.9%, 10; the rest (Primal Fury, Enrage, Hand of Justice, Natural Reaction, the
+        Mighty Rage Potion) under 1% each. Maul alone is more than half, so the candidates are
+        what sets Maul's threat and how often the bear can pay for it. To test in game, in this
+        order:
+        - **Maul's threat modifier,** ×1.75 [?] from LibThreatClassic2 only (druid.md §4.8, Q15):
+          threat on the boss from one Maul against its damage, with no other threat source
+        - **Rage from damage dealt and taken,** both `forever` [?] models (rage.md): the rage bar
+          after a measured stretch of white swings, and after a measured stretch of hits taken
+        - **The Dire Bear Form threat multiplier,** ×1.3 [F] from Bear Form Passive2 (21178), and
+          whether anything else in Forever stacks on it (druid.md §4.8)
+        - **Savage Fury's** ×1.10 on Maul (druid.md §2.3, [F]): whether it reaches Maul's threat as
+          well as its damage
+        - **Rage logs:** two bears' logs of 23–24 Sep suggest more rage for it (rage from hits taken
+          rises with the mob's level; one auto at the two-hander's rate), not adopted until the logs
+          listed in [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-) settle it
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 
@@ -326,6 +354,14 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
       default order
+      - [x] The three tanks (Protection warrior, Feral bear, Protection paladin): their rows in
+            their class docs' order, only the pre-pull and opener pinned, D26's duties movable with
+            their timing rule, D28's rotations as one preset mechanism (the `default` preset named
+            and placed by the spec, the Priority set only by the picker, which sits at the top of
+            the tab with a short line and every preset's numbers in its info). Defensive's and Max
+            TPS's plans byte-identical to before the list for 200 random setups each, and a
+            Defensive golden per tank equal to its old default's
+            ([architecture.md](architecture.md), "Rotation as a priority list")
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 
@@ -442,8 +478,17 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **The shared consumables run ahead of every priority list (TM-5).** EZ-Thro Dark Bomb and Greater
+  Stoneshield Potion, when picked in Buffs, run before any row of Fury's or a tank's list
+  (`withSharedConsumables`), and the Rotation tab shows no row for them. The buffs doc says so;
+  the tanks' and Fury's priority-list docs don't yet. Both are off by default.
+
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
+- **The DPS specs' Rotation intros say "with a first quick search; they aren't tuned yet"** (tank
+  integration review TU-9): process jargon, which the tanks' intros replaced with "hasn't been fully
+  tuned yet". The rogues, warlocks, Shadow Priest, hunters, Elemental and Balance still carry it, with
+  their e2e tests; ux.md's intro rule for them changes with it.
 - **The warrior's interim gear** (T4 review): Adaptive Combat Assistant's use (a 450 absorb every
   90 s, 90–110 Nature damage when it breaks) isn't simulated, about +1.7 TPS (0.15%) and −5 damage
   taken a second (T4R-3); the greedy EHP search never revisits a swap, so Dal'Rend's Sacred Charge
@@ -452,9 +497,12 @@ slice is worked:
   assumptions list it (T4R-8).
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
-- **Pre-push check lows** (PV-1..PV-3, tank quick-fix log): README's "report" → "reports"; the release
-  stamp's second line opens on its separator at 390 px; a test that every `INTERIM_GEAR` id is
-  wearable by its class.
+- **A race change doesn't remember a slot it blocked** (gear-defaults verification FV-5): `changeRace`
+  (`src/features/character/faction-gear.ts`) moves the slots that follow the defaults with
+  `followDefaults`, but unlike a load it doesn't keep a slot a Unique rule or a two-hander blocked in
+  `following`, so that slot becomes the player's at the next save. Practically unreachable: the
+  factions' defaults differ only in single-slot PvP armour and one-handed caster main hands, which
+  no Unique rule or two-hander blocks.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),
@@ -489,12 +537,23 @@ slice is worked:
   taken than v1's preset (905 a second against 681 in C3's setup), within the user's effective-health
   floor. The optimizer (O2) replaces the set; D30's survival constraint for it is the class doc's
   floor, and its crit-immune switch the crit.
-- **Caster food and oil across the caster presets** (T2 review T2R-6, pre-existing, low): Nightfin
-  Soup and Brilliant Wizard Oil are in Elemental's Standard raid and the mages' Max consumables, and
-  Nightfin Soup and Wizard Oil in the Protection paladin's Standard raid, but in no warlock, Shadow
-  Priest or Balance preset ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
-  Each is a Buffs switch those specs can turn on; aligning the presets waits for the consumables' own
-  review (or the optimizer's), since it moves every caster golden.
+- **Caster food across the caster presets** (T2 review T2R-6, pre-existing, low): Brilliant Wizard
+  Oil is in every caster's Max consumables since the consumables review (CR-6), but Nightfin Soup is
+  in Elemental's Standard raid, the mages' Max and the Protection paladin's presets only, in no
+  warlock, Shadow Priest or Balance preset ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+  It's a Buffs switch those specs can turn on; the optimizer (O2) or a presets pass aligns it.
+- **Consumables left for later** (consumables review, 2026-09-24, and its verification pass CV-7):
+  EZ-Thro Dark Bomb is in no caster's or hunter's Max consumables. Its range is 15 yd
+  (`SpellRange` 15), and a caster or hunter stands at 30 yd or more, so throwing it means moving in,
+  which the sim doesn't model; the sim throws it from where you stand. Measured without that cost
+  (Max consumables, seed 12345, 2,000 fights), the casters are mixed, a Fire mage +0.63% and
+  Affliction and Elemental +0.24% while Destruction −0.21%, Shadow −0.33% and Demonology −0.45%
+  lose, and the hunters gain (Marksmanship +0.89%, Survival +0.85%, Beast Mastery +0.51%). A Feral
+  cat gains +0.3%, but whether a druid can throw it in a form is open (buffs doc open question 21),
+  so its Max waits too ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+  The Sapper, Dense Dynamite and the other explosives aren't in the catalogue; one entry per cooldown category means a tank's
+  Stoneshield-then-rage-potion pairing isn't simulated, and simulating an item with a longer cooldown
+  of its own beside another of its category needs an alternation model ([buffs doc](mechanics/buffs-debuffs-consumables.md#on-use-items-and-cooldown-categories)).
 - **Hammer of the Righteous's extra targets** (its effect 1, 120 to 3 chain targets, and the other 3
   targets' weapon damage) wait for M6, as does Consecration's 12 to every enemy.
 - **Crit from auras and the paladin (GR9, not a bug):** against a +3 boss the first 1.8% of crit from
@@ -569,8 +628,8 @@ slice is worked:
 - **The Shadow Priest's gaps** (K4, [priest.md](classes/priest.md#9-open-questions)):
   - **The caster enchants aren't in its defaults** (Arcanum of Focus, the +30 Spell Power weapon),
     though the catalogue has them, and Brilliant Mana Oil isn't in the catalogue: the priest's
-    enchants are Greater Stats and Minor Haste only (priest.md §7.4). Brilliant Wizard Oil is in the
-    catalogue since T2, in no priest preset (the buffs doc's §6.3 gives it none). A few percent of DPS.
+    enchants are Greater Stats and Minor Haste only (priest.md §7.4). Brilliant Wizard Oil is in its Max
+    consumables since the consumables review, in no Standard raid. A few percent of DPS.
   - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
   - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
     power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).

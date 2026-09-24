@@ -89,6 +89,8 @@ function digest(effects: Effect[]): Line[] {
         if (use.rageTenths || use.rageSpreadTenths) lines.push([`${e.id} rage tenths min`, use.rageTenths], [`${e.id} rage tenths max`, use.rageTenths + use.rageSpreadTenths])
         if (use.manaTenths) lines.push([`${e.id} mana tenths min`, use.manaTenths], [`${e.id} mana tenths max`, use.manaTenths + (use.manaSpreadTenths ?? 0)])
         for (const [mod, v] of Object.entries(use.aura?.mods ?? {})) lines.push([`${e.id} ${mod}`, v])
+        // An explosive's damage (EZ-Thro Dark Bomb, buffs doc §3.7).
+        if (use.spell) lines.push([`${e.id} ${use.spell.school}`, use.spell.min], [`${e.id} ${use.spell.school} max`, use.spell.max])
         break
       }
       default:
@@ -273,8 +275,10 @@ const ROWS: Record<string, Row> = {
   },
   // Its Energy in tenths: Restore Energy 9512's 100 × 10.
   thistleTea: { rows: [S(9512, 0, { times: 10 }), S(9512, 0, { times: 10 })] },
-  ezThroDarkBomb: { foreverOnly: true, rows: [null] },
-  greaterStoneshieldPotion: { rows: [null] },
+  // School Damage 450 with variance 1: 225–675 Fire.
+  ezThroDarkBomb: { foreverOnly: true, rows: [S(1269334, 0, { bound: 'min' }), S(1269334, 0, { bound: 'max' })] },
+  // Aura 22 (armor), 2,000.
+  greaterStoneshieldPotion: { rows: [S(17540)] },
   // Enchants
   crusader: { rows: [null, S(20007)] },
   weaponAgility: { rows: [E(2564, 23800)] },

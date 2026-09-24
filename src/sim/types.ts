@@ -189,7 +189,15 @@ export interface RotationRequirement {
  * The first entry that matches wins; with none, the option's `default` applies. A switch's is on or
  * off; a number's is a number (Protection's Max TPS moves Heroic Strike's threshold, §5.4).
  */
-export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & { default: V }
+export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & {
+  default: V
+  /**
+   * A number's `default` is a share of the build's rage bar, in %, not rage points: it resolves to
+   * that share of the max rage (100, raised by Boundless Rage and a Gnome's Expansive Mind), to the
+   * nearest point. Protection's Balanced thresholds (warrior.md §5.4 "Balanced", D28).
+   */
+  pctOfMaxRage?: true
+}
 
 /**
  * The heading a rotation setting sits under on the Rotation tab (docs/ux.md "Rotation"). The tab
@@ -310,6 +318,8 @@ export interface AplSummaryPart {
   when?: boolean
   /** A number's part is left out at this value (Execute's extra rage at 0). */
   hideWhen?: number
+  /** A number's part reads this instead at 0 (Battle Shout's refresh: "again once it runs out"). */
+  zeroText?: string
   /**
    * Switches of other rows that must be on and apply too, for a part about them (Fury's fillers:
    * "while Bloodthirst and Whirlwind cool down").
@@ -350,8 +360,16 @@ export interface AplRow {
 export interface AplPreset {
   id: string
   label: string
-  /** One line on what it is and when to pick it. */
+  /**
+   * What it is and when to pick it, with its measured numbers for a tank's (D28): the preset
+   * picker's info lists each one's.
+   */
   help: string
+  /**
+   * The short line under the picker while it's the one picked: what it keeps and gives up, three
+   * lines at most on a phone (docs/ux.md "Rotation"). Absent: `help`.
+   */
+  summary?: string
   /** Its order; absent: the default order. */
   order?: readonly string[]
   values: Readonly<Record<string, RotationValue>>
@@ -366,7 +384,14 @@ export interface AplDefinition {
    * tank's priority, the consumables.
    */
   specWide: readonly string[]
-  /** Named presets besides the default (id `default`, the spec's defaults). */
+  /**
+   * Named presets, in the picker's order. The spec's defaults are the preset with the id `default`
+   * (DEFAULT_APL_PRESET): a spec with named rotations lists it itself, to name and place it (a
+   * tank's Balanced, between Defensive and Max TPS; its values are empty and it has no order, since
+   * it's the defaults), and the picker marks it "(default)". Otherwise it's "Default", first. A
+   * spec-wide setting a preset names (a tank's Priority) is the presets' to set: it has no control
+   * but the picker, and every preset is compared on it (sim/classes/apl.ts).
+   */
   presets: readonly AplPreset[]
 }
 
@@ -432,9 +457,10 @@ export interface BuffDefinition {
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /**
-   * It acts only on the boss's melee swings (Demoralizing Shout and Roar, Thunder Clap), which only
-   * a tank takes: for the other specs it changes nothing, and the Buffs tab says so. Set by the
-   * catalogue from its effects.
+   * It acts only on the boss's melee swings (Demoralizing Shout and Roar, Thunder Clap, Thorns), or
+   * adds only armor, which only those swings meet (Devotion Aura, Elixir of Greater Defense, Greater
+   * Stoneshield Potion); only a tank takes them: for the other specs it changes nothing, and the
+   * Buffs tab says so. Set by the catalogue from its effects.
    */
   bossMelee?: true
   /** Owning doc section, e.g. "docs/mechanics/buffs-debuffs-consumables.md#…". */
@@ -501,7 +527,37 @@ export interface AbilityResult {
   spell?: true
   /** The pet's name, on a row of the pet's damage, which counts toward your DPS (docs/mechanics/ranged-and-pets.md §10). */
   pet?: string
+  /**
+   * What the row's count a fight counts, which its outcomes line starts with (docs/ux.md#results
+   * "Breakdown"): `swings`, a white melee swing's (Main hand, Off hand, a form's or a pet's Auto
+   * attack); `shots`, Auto Shot's; `procs`, an item's, talent's, weapon's or seal's proc (Hand of
+   * Justice, Windfury, Seal of Command, Deep Wounds, Deadly Poison, Ignite); `applications`, a bleed's
+   * or DoT's put on the boss (Rend, Corruption, Rake's bleed); `ticks`, a periodic effect's ticks
+   * where nothing counts its casts; `uses`, a consumable's (a potion, a rune); `casts`, everything
+   * else, a channel's (Mind Flay, Arcane Missiles) and a rage cast's (Bloodrage, Enrage) included.
+   * The count is `casts`, but `procs` where the row has it (an extra-attacks proc's fires) and its
+   * attempts (hits, crits, glances, blocks, misses, dodges, parries) for `ticks`. Absent for a row
+   * that shows its own count (`counts`) or has nothing to count (a talent's row of mana or rage:
+   * Shield Specialization, Improved Seal of Fury).
+   */
+  unit?: AbilityUnit
+  /**
+   * On a `procs` row an extra-attacks proc feeds (Windfury Weapon, Ironfoe, Hand of Justice): the
+   * times it fired, over every fight, which is the row's count. Its `casts` count the extra swings
+   * (Windfury Weapon's and Ironfoe's two a proc), and its crit and avoided shares are over those.
+   * A fire whose swing becomes a queued Heroic Strike or Maul still counts here, but that swing's
+   * damage lands on the Heroic Strike's or Maul's row.
+   */
+  procs?: number
+  /**
+   * What one of its landings is, on a `casts` row that lands more than once a cast: a tick
+   * (Consecration) or a missile (Arcane Missiles). Its average damage and its crit and avoided
+   * shares are per landing and say so: "9.1% tick crit · 11.0% of ticks avoided · 95 avg tick".
+   */
+  landing?: 'tick' | 'missile'
 }
+
+export type AbilityUnit = 'casts' | 'swings' | 'shots' | 'procs' | 'applications' | 'ticks' | 'uses'
 
 export interface BleedResult {
   /** Its ticks can crit (Rend in the `forever` profile; damage-and-timing §4). */

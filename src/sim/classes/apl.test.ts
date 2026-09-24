@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { AplDefinition, RotationOption } from '../types'
+import { SPEC_META } from '../specs'
+import type { AplDefinition, RotationOption, SpecId } from '../types'
 import {
   activeAplPreset,
   aplPresets,
@@ -12,6 +13,7 @@ import {
   normalizeAplOrder,
   storedAplOrder,
 } from './apl'
+import { rotationApl } from './rotation'
 
 // The priority list's core (decision D31; docs/architecture.md "Rotation as a priority list"): a
 // made-up spec with a pinned opener, a pinned duty in the middle, a spec-wide stance and a preset.
@@ -141,5 +143,81 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
     // Back to the default: every row setting and the order reset, the stance kept.
     expect(applyAplPreset(DEF, picked.rotation, DEFAULT_APL_PRESET)).toEqual({ rotation: { stance: 'b' }, rotationOrder: undefined })
     expect(applyAplPreset(DEF, {}, 'nope')).toBeUndefined()
+  })
+
+  // D28's tank rotations: a spec-wide Priority choice the presets set, whose value moves rows'
+  // defaults, and a default the spec names and places itself (Balanced, between the other two).
+  const TANK_OPTIONS: RotationOption[] = [
+    { kind: 'choice', id: 'priority', label: 'Priority', help: '', choices: ['safe', 'mid', 'max'].map((value) => ({ value, label: value })), default: 'mid' },
+    { ...toggle('a.on'), defaultWhen: [{ option: 'priority', is: 'max', default: false }] } as RotationOption,
+    { ...toggle('b.on', false), defaultWhen: [{ option: 'priority', is: 'safe', default: true }] } as RotationOption,
+    { kind: 'number', id: 'potion', label: 'Potion', help: '', unit: 'mana', min: 0, max: 100, step: 1, default: 10 },
+  ]
+  const TANK: AplDefinition = {
+    rows: [
+      { id: 'a', label: 'A', icon: '', enabledId: 'a.on', optionIds: [] },
+      { id: 'b', label: 'B', icon: '', enabledId: 'b.on', optionIds: [] },
+    ],
+    specWide: ['potion'],
+    presets: [
+      { id: 'safe', label: 'Safe', help: '', values: { priority: 'safe' } },
+      { id: DEFAULT_APL_PRESET, label: 'Mid', help: '', values: {} },
+      { id: 'max', label: 'Max', help: '', values: { priority: 'max' } },
+    ],
+  }
+  const tank = (saved: Record<string, string | number | boolean>) => activeAplPreset(TANK, TANK_OPTIONS, saved, undefined, NO_TALENTS)
+
+  it('lists a default the spec names in its own place, with its own label', () => {
+    expect(aplPresets(TANK).map((p) => [p.id, p.label])).toEqual([
+      ['safe', 'Safe'],
+      [DEFAULT_APL_PRESET, 'Mid'],
+      ['max', 'Max'],
+    ])
+    expect(aplPresets(DEF)[0].label).toBe('Default')
+  })
+
+  it('reads a spec-wide setting a preset names as the preset’s: each stored value is its own preset', () => {
+    expect(tank({})).toBe(DEFAULT_APL_PRESET)
+    expect(tank({ priority: 'safe' })).toBe('safe')
+    // Not the default, though every row resolves the same as with the priority at its default.
+    expect(tank({ priority: 'max' })).toBe('max')
+    expect(tank({ priority: 'max', 'a.on': true })).toBe(CUSTOM_APL_PRESET)
+    expect(tank({ priority: 'max', potion: 50 })).toBe('max')
+    // Picking one sets it, and picking the default puts it back to its default; the potion stays.
+    expect(applyAplPreset(TANK, { priority: 'safe', 'b.on': false, potion: 50 }, 'max')).toEqual({ rotation: { potion: 50, priority: 'max' }, rotationOrder: undefined })
+    expect(applyAplPreset(TANK, { priority: 'max', potion: 50 }, DEFAULT_APL_PRESET)).toEqual({ rotation: { potion: 50 }, rotationOrder: undefined })
+  })
+})
+
+describe('every spec’s presets (decision D28, docs/ux.md "Rotation")', () => {
+  const specs = (Object.keys(SPEC_META) as SpecId[]).flatMap((spec) => {
+    const apl = rotationApl(spec)
+    return apl ? [[spec, apl] as const] : []
+  })
+
+  it('name the default with the `default` id, with no values or order, and keep the line under the picker short', () => {
+    // The three tanks have named rotations; Fury has none, only "Default".
+    expect(specs.filter(([, apl]) => apl.presets.length > 0).map(([spec]) => spec).sort()).toEqual(['druid-feral-bear', 'paladin-protection', 'warrior-protection'])
+    expect(aplPresets(rotationApl('warrior-fury')!).map((p) => p.label)).toEqual(['Default'])
+    for (const [spec, apl] of specs) {
+      if (apl.presets.length === 0) continue
+      // A spec with named rotations (the tanks) names and places its default itself.
+      const own = apl.presets.find((p) => p.id === DEFAULT_APL_PRESET)
+      expect(own, spec).toBeDefined()
+      expect([own!.values, own!.order], spec).toEqual([{}, undefined])
+      for (const p of apl.presets) {
+        // Three lines at most at 390 px (about 45 characters a line in the tab's small text).
+        expect(p.summary, `${spec} ${p.id}`).toBeDefined()
+        expect(p.summary!.length, `${spec} ${p.id}`).toBeLessThanOrEqual(125)
+        expect(p.help.length, `${spec} ${p.id}`).toBeGreaterThan(p.summary!.length)
+        // A preset that drops a duty (every one but Defensive, and the paladin's Balanced, which plays
+        // as Defensive) says in its line what that costs in damage taken (docs/ux.md "A tank's
+        // presets"), and in its help names the Buffs tab's version of the duty ("A tank's priority").
+        const dropsDuty = p.id !== 'defensive' && !(spec === 'paladin-protection' && p.id === DEFAULT_APL_PRESET)
+        if (!dropsDuty) continue
+        expect(p.summary, `${spec} ${p.id}`).toMatch(/damage taken/)
+        expect(p.help, `${spec} ${p.id}`).toMatch(/The Buffs tab’s .* stays? off unless you turn (it|them) on there/)
+      }
+    }
   })
 })

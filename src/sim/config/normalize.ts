@@ -7,10 +7,10 @@ import raceJson from '@/data/races/races.json'
 import type { ClassSlug, RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
 import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
-import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
+import { BUFFS_BY_ID, type BuffSpec, TEMP_ENCHANT } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
-import { buffProvided, forSpecClass, presetBuffIds } from '../effects/presets'
+import { buffProvided, buffUnusedReason, forSpecClass, presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
@@ -300,17 +300,35 @@ function effectSizes(buff: BuffSpec, profile: RulesProfile): Map<string, number>
   return sizes
 }
 
+/** The priority of a buff that is one temporary weapon enchant (a stone or an oil), else undefined. */
+function tempEnchantPriority(buff: BuffSpec, profile: RulesProfile): number | undefined {
+  const effects = catalogueEffects(buff, profile)
+  return effects.length === 1 && effects[0].kind === 'tempEnchant' && !effects[0].proc ? effects[0].priority : undefined
+}
+
 /**
  * 1 when `a`'s effect is larger than `b`'s, -1 when smaller, 0 when the same, and null when they
- * change different things or each is larger at something. Exported for its tests.
+ * change different things or each is larger at something. Temporary weapon enchants (a stone or an
+ * oil) compare by the priority the plan gives them on a weapon (buffs doc §3.6): Brilliant Wizard
+ * Oil over Wizard Oil over the Elemental stone over the Dense one. Exported for its tests.
  */
 export function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile): 1 | 0 | -1 | null {
+  const pa = tempEnchantPriority(a, profile)
+  const pb = tempEnchantPriority(b, profile)
+  if (pa !== undefined && pb !== undefined && pa !== pb) return pa > pb ? 1 : -1
   const x = effectSizes(a, profile)
   const y = effectSizes(b, profile)
   if (!x || !y || x.size !== y.size || [...x.keys()].some((k) => !y.has(k))) return null
   const larger = [...x].some(([k, v]) => v > y.get(k)!)
   const smaller = [...x].some(([k, v]) => v < y.get(k)!)
   return larger && smaller ? null : larger ? 1 : smaller ? -1 : 0
+}
+
+/** Why two entries of an exclusive group can't both be on, as the repair note says it (buffs doc, "Exclusivity groups"). */
+function rivalReason(group: string): string {
+  if (group === TEMP_ENCHANT) return 'takes the same weapon as'
+  if (group.startsWith('cooldown:')) return 'shares a cooldown with'
+  return 'doesn’t stack with'
 }
 
 function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, legacy: boolean, r: Repairs): SimConfig['buffs'] {
@@ -354,23 +372,32 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
     }
     selected.push(buff)
   }
-  // Rivals in an exclusive group: the one with the largest effect stays (buffs doc,
+  // Rivals in an exclusive group: one the spec can use beats one locked off for it (a hunter's
+  // Grilled Squid over Smoked Desert Dumplings, whose attack power its shots don't use; presets.ts
+  // buffUnusedReason, review CV-8); then the one with the largest effect stays (buffs doc,
   // "Exclusivity groups"). Rivals that change different things have no common measure, so the
   // one the spec's Max consumables preset picks stays, else the first.
   const max = new Set(presetBuffIds('max', spec, raid))
   const winners = new Map<string, BuffSpec>()
+  const usable = (b: BuffSpec) => buffUnusedReason(b, spec) === undefined
   for (const buff of selected) {
     const group = buff.exclusiveGroup
     if (!group) continue
     const best = winners.get(group)
+    if (best && usable(buff) !== usable(best)) {
+      if (usable(buff)) winners.set(group, buff)
+      continue
+    }
     const order = best && compareEffects(buff, best, profile)
     if (!best || order === 1 || (order === null && max.has(buff.id) && !max.has(best.id))) winners.set(group, buff)
   }
   const enabled: string[] = []
   for (const buff of selected) {
     const winner = buff.exclusiveGroup && winners.get(buff.exclusiveGroup)
-    if (winner && winner !== buff) r.add(`${buff.name} doesn’t stack with ${winner.name}, so it was turned off.`)
-    else enabled.push(buff.id)
+    if (!winner || winner === buff) enabled.push(buff.id)
+    // One locked off for the spec anyway (an Enhancement shaman's stone, presets.ts buffUnusedReason)
+    // did nothing, so turning it off changes nothing to warn about.
+    else if (!buffUnusedReason(buff, spec)) r.add(`${buff.name} ${rivalReason(buff.exclusiveGroup as string)} ${winner.name}, so it was turned off.`)
   }
   return { raid, enabled }
 }

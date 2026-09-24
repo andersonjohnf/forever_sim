@@ -37,6 +37,12 @@ test('the Boss damage debuffs say they change nothing for a DPS spec, and the ro
   await expect(buffs.getByRole('switch', { name: 'Demoralizing Roar' })).toHaveAccessibleDescription(`−204 boss attack power (instead of Demoralizing Shout). ${note}`)
   await expect(buffs.getByRole('switch', { name: 'Demoralizing Shout' })).toHaveAccessibleDescription(`−204 boss attack power (instead of Demoralizing Roar). ${note}`)
   await expect(buffs.getByRole('switch', { name: 'Thunder Clap' })).toHaveAccessibleDescription(`Boss attacks 20% slower. ${note}`)
+  // Armor meets only the boss's swings too, so the armor-only entries say the same (review CV-1):
+  // Greater Stoneshield would otherwise cost a DPS spec its potion with no word why.
+  await expect(buffs.getByRole('switch', { name: 'Elixir of Greater Defense' })).toHaveAccessibleDescription(`+450 armor. ${note}`)
+  await expect(buffs.getByRole('switch', { name: 'Greater Stoneshield Potion' })).toHaveAccessibleDescription(
+    `+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time. ${note}`,
+  )
 })
 
 /** The melee's entries (`forSpecs: 'melee'`) a caster never sees: attack power, the boss's armor, weapon enchants. */

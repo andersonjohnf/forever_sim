@@ -17,6 +17,7 @@ import {
   type SimConfig,
   type SpecId,
 } from '@/sim'
+import { SLOT_LABEL } from './slots'
 
 const cache = new Map<string, Readonly<SimConfig['gear']>>()
 
@@ -43,6 +44,36 @@ export function sameEntry(a: EquippedItem | undefined, b: EquippedItem | undefin
 export function slotsOffDefault(config: Pick<SimConfig, 'spec' | 'race' | 'gear'>): GearSlot[] {
   const defaults = defaultGearFor(config.spec, config.race)
   return GEAR_SLOTS.filter((slot) => !sameEntry(config.gear[slot], defaults[slot]))
+}
+
+/**
+ * What equipping the default set (`defaults`) does to the slots that differ from it, for the Gear
+ * tab's line (docs/ux.md "Gear"): an empty slot is filled, one holding something is replaced, and
+ * one the default leaves empty is cleared, by name (a Fury warrior's ammo, an Arms off hand, a
+ * Balance druid's ranged slot). "replaces that slot", "replaces both", "fills all 17", for a mix
+ * "fills 2 empty slots and replaces the other 3", and with a slot cleared "replaces 3 slots and
+ * clears Off hand" or "fills 15 empty slots, replaces 1 and clears Ammo and Quiver".
+ */
+export function equipEffect(gear: SimConfig['gear'], offSlots: readonly GearSlot[], defaults: Readonly<SimConfig['gear']>): string {
+  const cleared = offSlots.filter((slot) => !defaults[slot])
+  const rest = offSlots.filter((slot) => defaults[slot])
+  const empty = rest.filter((slot) => !gear[slot]).length
+  const held = rest.length - empty
+  // A no-break space before each count keeps it with the word before it, so a wrapped line never
+  // ends on "all", "fills", "replaces" or "the other" (docs/ux.md "Gear").
+  const slots = (n: number) => (n === 1 ? 'slot' : 'slots')
+  if (cleared.length) {
+    const names = cleared.map((slot) => SLOT_LABEL[slot])
+    const clears = `clears ${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`}`
+    if (rest.length === 0) return clears
+    if (empty === 0) return `replaces\u00a0${held} ${slots(held)} and ${clears}`
+    if (held === 0) return `fills\u00a0${empty} empty ${slots(empty)} and ${clears}`
+    return `fills\u00a0${empty} empty ${slots(empty)}, replaces\u00a0${held} and ${clears}`
+  }
+  const count = (n: number) => (n === 1 ? 'that slot' : n === 2 ? 'both' : `all\u00a0${n}`)
+  if (empty === 0) return `replaces ${count(held)}`
+  if (held === 0) return `fills ${count(empty)}`
+  return `fills\u00a0${empty} empty ${slots(empty)} and replaces the other${held === 1 ? '' : `\u00a0${held}`}`
 }
 
 /** The parts of a spec's setup that follow its defaults: gear slots, and whether the talent build. */

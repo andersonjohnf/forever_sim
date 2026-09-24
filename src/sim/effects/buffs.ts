@@ -150,6 +150,30 @@ const NOT_IN_PRESETS: BuffSpec['presets'] = {}
 export const ELEMENTAL_STONE_WEAPONS = ['axe', 'mace', 'polearm', 'sword', 'staff', 'fist', 'dagger'] as const
 
 /**
+ * One temporary enchant a weapon (buffs doc §3.6, "Exclusivity groups"): the stones and the wizard
+ * oils are one exclusive group. A stone goes on each weapon you hold, and the oils' classes hold one
+ * weapon (none of them dual-wields), so one of them is on at a time. The rogue's poisons are chosen
+ * per hand (`poison:mainHand`, `poison:offHand`) and take a stone's place on theirs.
+ */
+export const TEMP_ENCHANT = 'temp-enchant'
+
+/**
+ * The shared cooldown categories of the on-use consumables, as exclusive groups (buffs doc "On-use
+ * items and cooldown categories"): the category on each item's ItemEffect row [F] [client]
+ * (ItemEffect, 1.60.1.69913). Only one of a category is on at a time: the rotation uses it on that
+ * category's cooldown, and a second one would only take its turns. effects/client-values.test.ts ties
+ * each entry's group to its item's category.
+ */
+export const COOLDOWN_GROUP = {
+  /** Category 4, 120 s: every potion (Mighty Rage, Major Mana, Greater Stoneshield). */
+  potion: 'cooldown:potion',
+  /** Category 1153, 120 s: the Demonic and Dark Runes, and Thistle Tea (beside its own 5 min). */
+  rune: 'cooldown:rune',
+  /** Category 24, 60 s: the explosives (EZ-Thro Dark Bomb). */
+  explosive: 'cooldown:explosive',
+} as const
+
+/**
  * Mighty Rage Potion (item 13442 → spell 17528; buffs doc §3.5): an energize of 600 tenths with
  * variance 0.5, so 45–75 rage, drawn as 450 + a whole 0…300 tenths (Classic Era's 449 + 1d301),
  * and +60 Strength (aura 29) for 20 s. No GCD on the spell; the potion category's 2 min cooldown
@@ -218,6 +242,84 @@ export const DEMONIC_RUNE: OnUseSpec = {
   rageSpreadTenths: 0,
   manaTenths: 9000,
   manaSpreadTenths: 6000,
+}
+
+/**
+ * Greater Stoneshield Potion (item 13455 → spell 17540; buffs doc §3.5): +2,000 armor (aura 22 with
+ * misc 1, the Physical resistance, which is armor) for 120 s. No GCD; the potion category's 2 min
+ * cooldown is on the item [F] [client] (SpellEffect, SpellDuration, ItemEffect, 1.60.1.69913). An
+ * aura's armor is bonus armor, not item armor (character-stats step 4), so a Toughness or Enrage
+ * leaves it alone and Forever's Dire Bear Form multiplies it [?] (docs/classes/druid.md §4.7, Q19).
+ */
+export const GREATER_STONESHIELD_POTION: OnUseSpec = {
+  id: 'greaterStoneshieldPotion',
+  name: 'Greater Stoneshield Potion',
+  icon: 'inv_potion_69',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: { id: 'greaterStoneshield', name: 'Greater Stoneshield', durationMs: 120000, mods: { armor: 2000 } },
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+}
+
+/**
+ * EZ-Thro Dark Bomb's damage (item 260817 → spell 1269334; buffs doc §3.7): School Damage 450 with
+ * variance 1, so 225–675 Fire, and a 4 s stun no boss takes; no spell damage coefficient, a Magic
+ * `DefenseType` [F] [client] (SpellEffect, SpellCategories, SpellMisc, 1.60.1.69913). Like Fiery
+ * Weapon's damage it rolls the spell table: your spell hit, then your spell crit at ×1.5
+ * (combat-tables §9). The stun makes it a binary spell, resisted whole at the boss's average Fire
+ * resistance (docs/mechanics/spells.md §3) [?]. Its threat is its damage × your threat multipliers
+ * [?]: no tooltip names a threat of its own, as Thorns' doesn't.
+ */
+export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
+  id: 'ezThroDarkBomb',
+  name: 'EZ-Thro Dark Bomb',
+  icon: 'inv_misc_bomb_05',
+  school: 'fire',
+  defense: 'magic',
+  noActiveDefense: true,
+  alwaysHit: false,
+  // A spell you cast yourself (plan/types.ts SpellDef.triggersProcs).
+  triggersProcs: true,
+  min: 225,
+  max: 675,
+  weaponPercent: 0,
+  normalized: false,
+  spCoefficient: 0,
+  takenScale: 0,
+  critMultiplier: 1.5,
+  bonusCrit: 0,
+  damageMult: 1,
+  threatMult: 1,
+  threatBonus: 0,
+  binary: true,
+  // No SpellClassOptions row: class-mask talents don't reach it (buffs doc §3.7) [?].
+  itemSpell: true,
+}
+
+/**
+ * EZ-Thro Dark Bomb (item 260817 → spell 1269334; buffs doc §3.7): a 1 s cast (`SpellCastTimes`),
+ * no GCD of its own, and the explosive category's 60 s on the item [F] [client] (SpellMisc,
+ * ItemEffect, 1.60.1.69913). Its cast stops your swings, which start again from a full swing when it
+ * lands, as a Lightning Bolt's or Hammer of Wrath's cast does [?] (docs/classes/shaman.md#shocks-and-lightning-bolt,
+ * docs/classes/paladin.md#other-abilities). No GCD ability starts during it (docs/mechanics/spells.md
+ * §4), so the engine gives it a GCD as long as its cast: it waits for a free GCD, and the next GCD
+ * ability waits for it to land (an engine choice). Nor does an off-GCD one: you can't use one
+ * during another's cast, as with Hammer of Wrath [?] (paladin.md#other-abilities).
+ */
+export const EZ_THRO_DARK_BOMB: OnUseSpec = {
+  id: 'ezThroDarkBomb',
+  name: 'EZ-Thro Dark Bomb',
+  icon: 'inv_misc_bomb_05',
+  cooldownMs: 60000,
+  gcdMs: 1000,
+  aura: null,
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+  spell: EZ_THRO_DARK_BOMB_SPELL,
+  castMs: 1000,
+  castStopsSwings: true,
+  castHoldsOffGcd: true,
 }
 
 /**
@@ -1140,12 +1242,13 @@ export const BUFFS: BuffSpec[] = [
     group: 'Weapon',
     summary: '+8 weapon damage on each weapon',
     forSpecs: 'melee',
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: [{ kind: 'tempEnchant', id: 'denseStone', priority: 1, weaponDamage: 8 }],
+    // Max consumables has the Elemental stone in its place (§6.3).
     presets: {
       dungeon: [...WARRIOR_DPS, 'paladin-retribution'],
       raid: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'],
-      max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'],
     },
   },
   {
@@ -1154,29 +1257,32 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_02',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+2% crit for each weapon it’s on (replaces the dense stone there)',
+    summary: '+2% crit for each weapon it’s on',
     forSpecs: 'melee',
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
     effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'] },
   },
-  // The wizard oils (buffs doc §3.6): the main hand's temporary enchant, ahead of a stone there.
+  // The wizard oils (buffs doc §3.6): the main hand's temporary enchant, one at a time with a stone. No
+  // class that can use them dual-wields, so it's their only weapon.
   {
     id: 'wizardOil',
     name: 'Wizard Oil',
     icon: 'inv_potion_104',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+30 spell damage, on your main hand (in place of a stone there)',
+    summary: '+30 spell damage, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 30 [F]; Classic Era's 24 [C]
     // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
     classicEra: {
-      summary: '+24 spell damage, on your main hand (in place of a stone there)',
+      summary: '+24 spell damage, on your main hand',
       effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
     },
     presets: { raid: PROTECTION_PALADIN },
@@ -1187,15 +1293,16 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_105',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+36 spell damage and +1% spell crit, on your main hand (in place of Wizard Oil or a stone there)',
+    summary: '+36 spell damage and +1% spell crit, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // 20749 → 25122 → enchant 2628 → 25113: aura 13 (mask 126) 36 and aura 57 (spell crit) 1, the
     // same in both clients [F] [C] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'brilliantWizardOil', priority: 4, hand: 'main', spellDamage: 36, spellCrit: 1 }],
-    // The Elemental shaman's Standard raid and a mage's Max too (§6.3).
-    presets: { raid: ELEMENTAL, max: [...PROTECTION_PALADIN, ...ELEMENTAL, ...MAGES] },
+    // The Elemental shaman's Standard raid, and every caster's Max (§6.3).
+    presets: { raid: ELEMENTAL, max: [...PROTECTION_PALADIN, ...CASTER_SPECS] },
   },
   // The rogue's poisons (buffs doc §3.6; docs/classes/rogue.md §4): one per weapon, in place of a stone there.
   {
@@ -1263,10 +1370,11 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // When it's drunk, if at all, is the spec's Rotation setting (a warrior's execute phase, a cat's
     // Berserk); a spec whose rotation has no potion setting doesn't drink it.
-    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation)',
+    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation). Potions share a cooldown, so one is on at a time',
     // Forever lets warriors and druids drink it (buffs doc §3.5), no one else.
     forClasses: ['warrior', 'druid'],
     forSpecs: 'melee',
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {
@@ -1280,9 +1388,10 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_76',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
+    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when. Potions share a cooldown, so one is on at a time',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
     presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
@@ -1297,6 +1406,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: COOLDOWN_GROUP.rune,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
     presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
@@ -1310,6 +1420,8 @@ export const BUFFS: BuffSpec[] = [
     summary: '+100 Energy, every 5 min; the Rotation tab says when',
     // Forever lets druids use it too (AllowableClass 1032), but only the rogue's rotation drinks it.
     forClasses: ROGUE_ONLY,
+    // The runes' category too (1153), beside its own 5 min; no class sees both.
+    exclusiveGroup: COOLDOWN_GROUP.rune,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'thistleTea', name: 'Thistle Tea', use: THISTLE_TEA }],
     presets: { raid: ROGUES, max: ROGUES },
@@ -1333,10 +1445,17 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_bomb_05',
     category: 'consumable',
     group: 'Potions and bombs',
+    // The Buffs tab adds what its throw holds for your spec (`buffSummaryFor`, review CV-2).
     summary: '225–675 Fire damage, every minute',
+    // The explosives' category (24), apart from potions and runes; the only explosive here.
+    exclusiveGroup: COOLDOWN_GROUP.explosive,
     docRef: `${DOC}#37-engineering-and-explosives`,
-    effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb' }],
-    presets: { max: WARRIOR_DPS },
+    // Every rotation throws it on cooldown from the pull (classes/shared-consumables.ts).
+    effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb', use: EZ_THRO_DARK_BOMB }],
+    // In no preset: a warrior's swings and GCD lose more than the bomb deals, even thrown just after
+    // a swing (Fury −1.1%, Arms −0.6% at Max consumables); a caster or hunter would have to move in to
+    // its 15 yd range, which isn't modelled (buffs doc §6.3).
+    presets: NOT_IN_PRESETS,
   },
   {
     id: 'greaterStoneshieldPotion',
@@ -1344,10 +1463,14 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_69',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '+2,000 armor for 2 min',
+    summary: '+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time',
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
-    effects: [{ kind: 'onUse', id: 'greaterStoneshieldPotion', name: 'Greater Stoneshield Potion' }],
-    presets: { max: MELEE_TANKS },
+    // Every rotation drinks it on cooldown from the pull (classes/shared-consumables.ts).
+    effects: [{ kind: 'onUse', id: 'greaterStoneshieldPotion', name: 'Greater Stoneshield Potion', use: GREATER_STONESHIELD_POTION }],
+    // In no preset: it shares the potion cooldown with the tanks' Mighty Rage Potion, whose rage
+    // makes threat, and its armor only lowers the damage you take (buffs doc §6.3).
+    presets: NOT_IN_PRESETS,
   },
 ]
 

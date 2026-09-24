@@ -41,6 +41,7 @@ export const ASSUMPTION_GROUP = {
   unmodelledProcs: 'gear',
   unmodelledSetBonuses: 'gear',
   onUseConsumables: 'gear',
+  explosiveThrow: 'gear',
   hyjalFlask: 'gear',
   procRates: 'gear',
   ironfoeChance: 'gear',

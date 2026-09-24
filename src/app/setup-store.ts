@@ -6,13 +6,24 @@ import { toast } from 'sonner'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { sameEntry } from '@/features/gear/default-set'
-import { defaultConfig, GEAR_SLOTS, normalizeConfig, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { defaultConfig, GEAR_SLOTS, normalizeConfig, SPEC_IDS, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
 import { followDefaults, following, legacyFollowing, readFollowing, type DefaultsUpdate, type Following } from './follow-defaults'
 import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
 
-export type Section = 'character' | 'talents' | 'gear' | 'buffs' | 'rotation' | 'fight'
+/**
+ * Every tab, in the order the app shows them (src/App.tsx), so a stored one that no longer exists
+ * opens the default instead (issue #8). `Section` is derived from it, so the two can't drift.
+ */
+export const SECTION_IDS = ['character', 'talents', 'gear', 'buffs', 'rotation', 'fight'] as const
+export type Section = (typeof SECTION_IDS)[number]
+
+/** The tab a first visit opens on, and a stored tab that no longer exists. */
+const DEFAULT_SECTION: Section = 'gear'
+
+/** Whether a stored value is one of today's tabs. */
+export const isSection = (value: unknown): value is Section => typeof value === 'string' && (SECTION_IDS as readonly string[]).includes(value)
 
 interface SetupState {
   config: SimConfig
@@ -149,7 +160,7 @@ export const useSetup = create<SetupState>()(
     (set, get) => ({
       config: fresh(defaultSpec()),
       bySpec: {},
-      section: 'gear',
+      section: DEFAULT_SECTION,
       setSection: (section) => set({ section }),
       setSpec: (spec) => {
         const { config, bySpec } = get()
@@ -172,6 +183,10 @@ export const useSetup = create<SetupState>()(
       name: 'forever-sim:setup',
       version: 1,
       storage: createJSONStorage(() => autoSaveStorage),
+      // A save from another version of the app (an older one, or a newer one's in another tab) goes
+      // through the same careful merge as any other, which keeps what it can read; without this,
+      // zustand logs an error and drops it.
+      migrate: (persisted) => persisted,
       partialize: ({ config, bySpec, section }): SavedSetup => {
         const follows: SavedSetup['following'] = {}
         for (const other of Object.values(bySpec)) if (other) follows[other.spec] = followingOf(other)
@@ -179,8 +194,10 @@ export const useSetup = create<SetupState>()(
         follows[config.spec] = followingOf(config)
         return { config, bySpec, section, following: follows }
       },
+      // The stored save is untrusted (issue #8): anything it holds that isn't what this version
+      // saves falls back to the default rather than breaking the page or mixing up specs.
       merge: (persisted, current) => {
-        const saved = (persisted ?? {}) as Partial<Record<keyof SavedSetup, unknown>>
+        const saved: Partial<Record<keyof SavedSetup, unknown>> = isRecord(persisted) ? persisted : {}
         const follows = readFollowing(saved.following)
         const updates: DefaultsUpdate[] = []
         const moves: SimConfig[] = []
@@ -202,14 +219,22 @@ export const useSetup = create<SetupState>()(
           return moved.config
         }
         // The last spec used, if the app still offers it (docs/ux.md principles 1 and 8); a setup
-        // for a spec it doesn't offer is kept for later, and the default spec opens instead.
-        let config = saved.config ? load(saved.config) : current.config
+        // for a spec it doesn't offer is kept for later, and the default spec opens instead. One
+        // for a spec this version doesn't know at all (a newer version's, in another tab) is
+        // ignored: normalizing would read it as the default spec's and replace the player's own
+        // setup for that spec (AR-5). The default spec's stored setup opens instead.
+        const known = isRecord(saved.config) && SPEC_IDS.includes(saved.config.spec as SpecId)
+        let config: SimConfig | null = known ? load(saved.config) : null
         const bySpec: SetupState['bySpec'] = {}
         for (const [spec, other] of Object.entries(isRecord(saved.bySpec) ? saved.bySpec : {})) {
+          // Only a setup stored under its own spec's key: an unknown key ("__proto__" included) or
+          // one holding another spec's setup would open the wrong setup when you switch to it.
+          if (!SPEC_IDS.includes(spec as SpecId) || !isRecord(other) || other.spec !== spec) continue
           // The current spec's entry is stale, and `following` describes the current setup, not it.
-          bySpec[spec as SpecId] = spec === config.spec ? normalizeConfig(other).config : load(other)
+          bySpec[spec as SpecId] = spec === config?.spec ? normalizeConfig(other).config : load(other)
         }
-        if (!isVisibleSpec(config.spec)) {
+        if (config === null) config = bySpec[defaultSpec()] ?? (saved.config === undefined ? current.config : fresh(defaultSpec()))
+        else if (!isVisibleSpec(config.spec)) {
           bySpec[config.spec] = config
           config = bySpec[defaultSpec()] ?? fresh(defaultSpec())
         }
@@ -223,7 +248,8 @@ export const useSetup = create<SetupState>()(
           ...current,
           config,
           bySpec,
-          section: (saved.section as Section | undefined) ?? current.section,
+          // A tab that no longer exists (or never did) opens the default one.
+          section: isSection(saved.section) ? saved.section : DEFAULT_SECTION,
         }
       },
     },

@@ -4,16 +4,17 @@ import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
 import { activeAplPreset } from './classes/apl'
-import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, rotationSetup, unusedSettings } from './classes/rotation'
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
+import { throwHolds } from './classes/shared-consumables'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
-import { catalogueEffects, catalogueSummary } from './effects/types'
-import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
+import { catalogueEffects, catalogueSummary, type OnUseSpec } from './effects/types'
+import { buildPlan, mainHandWeapon, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
@@ -64,8 +65,9 @@ export {
   normalizeAplOrder,
   storedAplOrder,
 } from './classes/apl'
-// What a run that stopped answering says, so the results can tell it from a setup's own refusal.
-export { WORKER_HANG_MESSAGE } from './run/pool'
+// What a run whose worker hung, failed to start or crashed says, so the results can tell it from a
+// setup's own refusal and leave out advice the message already gives.
+export { WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE } from './run/pool'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
@@ -137,11 +139,14 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 /**
  * Every rotation setting's value for a setup: the saved one, or the option's default for this
  * setup, which can follow the build's talents or another setting (Arms: Rend with Bloodthrill,
- * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3). The plan uses the same values.
+ * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3), or the race and talents' max rage
+ * (Protection's Balanced thresholds, §5.4; without `race`, a race that doesn't change it). The plan
+ * uses the same values.
  */
-export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
+export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & Partial<Pick<SimConfig, 'race'>>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
-  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+  const talents = talentRanksByName(TALENT_DATA[classId], config.talents)
+  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**
@@ -149,11 +154,13 @@ export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * preset's id, or `custom` once you've changed its order or a row's setting away from every preset.
  * Undefined for a spec still on switches.
  */
-export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'>): string | undefined {
+export function rotationPreset(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'> & Partial<Pick<SimConfig, 'race'>>,
+): string | undefined {
   const apl = rotationApl(config.spec)
   if (!apl) return undefined
   const talents = talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents)
-  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents)
+  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**
@@ -163,7 +170,9 @@ export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * a raid whose warriors keep the boss bleeding, and the bear's Demoralizing Roar while the Buffs
  * tab's Demoralizing Shout takes its place. The Buffs tab is read as the plan reads it.
  */
-export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'>): Record<string, string> {
+export function unusedRotationSettings(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'> & Partial<Pick<SimConfig, 'gear' | 'rotationOrder'>>,
+): Record<string, string> {
   const values = rotationValues(config)
   return unusedSettings(config.spec, values, {
     race: config.race,
@@ -171,6 +180,10 @@ export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents
     othersBleed: othersKeepBleeding(config.buffs.raid),
     buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
     talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
+    // A Protection paladin's Hammer of the Righteous needs the weapon for it (paladin.md row 5b).
+    ...(config.gear ? { mainHand: mainHandWeapon(config.gear) } : {}),
+    // Which of two rows sharing a cooldown sits higher (D31): the paladin's Holy Strike and Hammer of the Righteous.
+    ...(config.rotationOrder ? { order: config.rotationOrder } : {}),
   })
 }
 
@@ -207,14 +220,29 @@ function perProfile<T>(build: (profile: RuleProfileId) => T): Record<RuleProfile
 
 /**
  * Its effects act only on the boss's melee swings: an attack-power debuff or a slow (encounter.md §5),
- * or a proc of the swings that land on you (a damage shield: Thorns).
+ * a proc of the swings that land on you (a damage shield: Thorns), or armor, which only those swings
+ * meet (Elixir of Greater Defense, Greater Stoneshield Potion's aura): a DPS spec's damage taken
+ * isn't mitigated by armor (encounter.md §4; buffs doc §3.5).
  */
 const onBossMeleeOnly = (b: (typeof BUFFS)[number]) => {
   const effects = catalogueEffects(b, PROFILES.forever)
   return (
     effects.length > 0 &&
-    effects.every((e) => e.kind === 'bossAp' || e.kind === 'bossSlow' || (e.kind === 'proc' && e.proc.trigger === 'meleeTaken'))
+    effects.every(
+      (e) =>
+        e.kind === 'bossAp' ||
+        e.kind === 'bossSlow' ||
+        (e.kind === 'proc' && e.proc.trigger === 'meleeTaken') ||
+        (e.kind === 'stat' && (e.stat === 'bonusArmor' || e.stat === 'itemArmor')) ||
+        (e.kind === 'onUse' && e.use !== undefined && armorOnlyUse(e.use)),
+    )
   )
+}
+
+/** An on-use whose only effect is an aura of armor (Greater Stoneshield Potion): no damage, rage or mana. */
+const armorOnlyUse = (u: OnUseSpec): boolean => {
+  const mods = u.aura ? Object.entries(u.aura.mods).filter(([, v]) => v !== undefined && v !== 0) : []
+  return !u.spell && !u.rageTenths && !u.rageSpreadTenths && !u.manaTenths && !u.manaSpreadTenths && mods.length > 0 && mods.every(([k]) => k === 'armor')
 }
 
 const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
@@ -258,6 +286,18 @@ export const buffPresets: BuffPreset[] = [
 ]
 
 export { buffProvided, forSpecClass, unusedBuffs } from './effects/presets'
+
+/**
+ * A Buffs entry's summary for this spec: the catalogue's, and for a consumable whose cast stops your
+ * swings (EZ-Thro Dark Bomb), what its throw holds for you: your melee swings, your next cast or your
+ * Auto Shot (buffs doc §3.7; docs/ux.md "Sections").
+ */
+export function buffSummaryFor(def: Pick<BuffDefinition, 'id' | 'summary'>, spec: SpecId): string {
+  const buff = BUFFS.find((b) => b.id === def.id)
+  const use = buff ? catalogueEffects(buff, PROFILES.forever).find((e) => e.kind === 'onUse') : undefined
+  const cast = use?.kind === 'onUse' && use.use?.castStopsSwings ? (use.use.castMs ?? 0) : 0
+  return cast > 0 ? `${def.summary}; its ${cast / 1000} s throw ${throwHolds(spec)}` : def.summary
+}
 
 /** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */
 export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassSlug[]): string[] {
@@ -305,8 +345,13 @@ export function computeSheet(config: SimConfig): CharacterSheet | null {
 
 let pool: WorkerPool | null = null
 
+/**
+ * The pool's workers, or this thread where there are none, or where they've failed to start in two
+ * runs in a row (the site updated since the page loaded, most likely): a slower run on the page beats
+ * none until a reload (docs/architecture.md#iterations-determinism-and-workers).
+ */
 function executorFor(plan: Parameters<typeof localExecutor>[0]): ChunkExecutor {
-  if (WorkerPool.supported()) {
+  if (WorkerPool.supported() && !pool?.unstartable) {
     try {
       pool ??= new WorkerPool(WorkerPool.defaultSize())
       return pool.executor(plan)

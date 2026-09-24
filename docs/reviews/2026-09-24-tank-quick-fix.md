@@ -133,3 +133,8 @@ isn't.
 
 **Verdict: ready to push.**
 
+
+**The three lows, fixed (b0cdb0cf):** PV-1, README reads "reports"; PV-2, the stamp's "·" stays on the
+time's line, so a wrapped build opens its own line (snapped at 390 px dark and 1280 px light); PV-3,
+`defaults.test.ts` checks every `INTERIM_GEAR` id exists and passes `canUse` for its spec's class.
+They get a quick fresh check of that commit.

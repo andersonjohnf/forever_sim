@@ -146,17 +146,19 @@ export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avo
 const WARRIOR_TANK_DEBUFFS = ['demoralizingShout', 'thunderClap']
 
 /**
- * The attack-power debuff a tank that isn't a warrior keeps up itself: the damage-taken line gives it
- * as its example (the bear's Demoralizing Roar, docs/classes/druid.md §6.3).
+ * The attack-power debuff a tank that isn't a warrior can keep up itself, and whose other player
+ * brings it in Buffs: the damage-taken line gives it as its example (the bear's Demoralizing Roar,
+ * docs/classes/druid.md §6.3). Only Defensive keeps it (D28), so the line says it can be either.
  */
-const OWN_AP_DEBUFF: Partial<Record<SpecId, string>> = { 'druid-feral-bear': 'Demoralizing Roar' }
+const OWN_AP_DEBUFF: Partial<Record<SpecId, { name: string; other: string }>> = { 'druid-feral-bear': { name: 'Demoralizing Roar', other: 'druid' } }
 
 /**
  * The line under damage taken per second: what it counts, how often the boss swung, and what set
  * the size of its swings. Without the fight (null) it leaves out the swing size. The debuffs it
  * names are a warrior tank's: yours to keep up (Rotation) as a Protection warrior, and only the
  * raid's (Buffs) for another tank, whose presets leave them out (D26); a tank with an attack-power
- * debuff of its own (the bear's roar) names that one as yours.
+ * debuff of its own (the bear's roar) names it as yours or another player's, since only Defensive
+ * keeps it (D28).
  */
 export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'> | null, spec: SpecId): string {
   const swings = `It swung ${formatOne(swingsPerFight)} times a fight on average`
@@ -164,7 +166,7 @@ export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['
   const own = OWN_AP_DEBUFF[spec]
   let debuffs = 'Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap (Buffs), lower its damage and slow its swings.'
   if (yours) debuffs = 'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).'
-  else if (own) debuffs = `Debuffs on it, such as your ${own} (Rotation) and a warrior tank’s Thunder Clap (Buffs), lower its damage and slow its swings.`
+  else if (own) debuffs = `Debuffs on it, such as ${own.name} (yours in Rotation, or another ${own.other}’s in Buffs) and a warrior tank’s Thunder Clap (Buffs), lower its damage and slow its swings.`
   return [
     'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions.',
     boss ? `${swings}, set to ${swingDamageText(boss)} a swing before armor ${FIGHT_ADVANCED}.` : `${swings}.`,

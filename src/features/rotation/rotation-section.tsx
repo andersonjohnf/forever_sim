@@ -10,9 +10,9 @@ import { SectionHeader } from '@/features/section'
 import { cn } from '@/lib/utils'
 import { type FixedRotationRow, getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption } from '@/sim'
 import { isAdvanced, rotationRows, withRotationOrder } from './logic'
-import { controlOf, type RowContext } from './ids'
+import { APL_PRESET_TRIGGER_ID, controlOf, hasNamedPresets, type RowContext } from './ids'
 import { OptionList } from './option-rows'
-import { PriorityList } from './priority-list'
+import { AplPresetPicker, PriorityList } from './priority-list'
 
 export function RotationSection() {
   const meta = useSpecMeta()
@@ -38,9 +38,9 @@ export function RotationSection() {
   // (docs/ux.md "Rotation").
   // A setting the rest of the setup leaves unused says why: the race's, or the raid's (docs/ux.md "Rotation").
   const rows = useMemo(() => {
-    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs } })
-    return rotationRows({ spec: meta.id, talents, rotation, gear, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
-  }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid])
+    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs }, gear, rotationOrder })
+    return rotationRows({ spec: meta.id, talents, rotation, race, gear, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
+  }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid, rotationOrder])
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
@@ -65,8 +65,13 @@ export function RotationSection() {
     const first = [...ungrouped, ...groups.flatMap((g) => g.options.filter((o) => !isAdvanced(o)))][0]
     changeAndFocus(
       () => update((c) => withRotationOrder({ ...c, rotation: {} }, undefined)),
-      // A priority list with nothing above it: its first row.
-      () => (first ? controlOf(first) : document.querySelector<HTMLElement>('[data-apl-row] button')),
+      // A tank's named rotations come first (the preset picker); a priority list with nothing above it: its first row.
+      () =>
+        apl && hasNamedPresets(apl)
+          ? document.getElementById(APL_PRESET_TRIGGER_ID)
+          : first
+            ? controlOf(first)
+            : document.querySelector<HTMLElement>('[data-apl-row] button'),
     )
     announce('Rotation settings reset to their defaults.')
   }
@@ -86,6 +91,8 @@ export function RotationSection() {
         <EmptyState title="No rotation options yet">{meta.name} options come with its simulation.</EmptyState>
       ) : (
         <>
+          {/* D28's rotations as the list's presets: first on the tab, as a tank's priority choice always was. */}
+          {apl && hasNamedPresets(apl) && <AplPresetPicker apl={apl} />}
           {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} />}
           {groups.map(({ group, options: grouped, fixed }) => (
             // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.

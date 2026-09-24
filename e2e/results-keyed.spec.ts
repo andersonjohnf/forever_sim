@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Page, Route } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#states: a failed run's message belongs to its setup, as a result does (RU4); a re-run
@@ -140,6 +140,128 @@ test.describe('a re-run on desktop (RU17)', () => {
     await expect(panel.getByText(/^Simulating…/)).toBeVisible()
     await expect(dps).toContainText('Setup changed')
     await panel.getByRole('button', { name: 'Cancel' }).click()
+  })
+})
+
+// A spec switch cancels a run in progress (#5, a user decision): switching spec mid-run used to show
+// Fury's progress and Cancel under Arms, and announce Fury's headline there. There's never a run going
+// on out of sight now, so nothing of one spec's run shows or is announced under another.
+test.describe('a spec switch while a run is under way', () => {
+  test.use({ viewport: { width: 1280, height: 900 } })
+
+  /**
+   * Holds the workers' script until `release`, so a run stays under way for as long as the test needs:
+   * messages to a worker that hasn't started wait for it.
+   */
+  async function holdWorkers(page: Page) {
+    const held: Route[] = []
+    let holding = true
+    await page.route('**/assets/sim.worker*.js', (route) => (holding ? void held.push(route) : route.continue()))
+    return async () => {
+      holding = false
+      for (const route of held.splice(0)) await route.continue()
+    }
+  }
+
+  /** Workers that hold each answer for `ms`, so even a run on warm workers is under way long enough to switch. */
+  async function slowWorkers(page: Page, ms: number) {
+    await page.route('**/assets/sim.worker*.js', async (route) => {
+      const response = await route.fetch()
+      const delay = `const post = self.postMessage.bind(self); self.postMessage = (m, t) => setTimeout(() => post(m, t), m.type === 'ready' ? 0 : ${ms});\n`
+      return route.fulfill({ response, body: delay + (await response.text()) })
+    })
+  }
+
+  test('cancels it: Arms is ready to simulate, Fury is left as Cancel would leave it, and the run never lands', async ({ page }) => {
+    const release = await holdWorkers(page)
+    await page.goto('./')
+    const panel = page.getByRole('complementary', { name: 'Results' })
+    const dps = panel.getByRole('group', { name: 'DPS' })
+    const status = page.getByRole('status', { name: 'Simulation status' })
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    await expect(panel.getByRole('button', { name: 'Cancel' })).toBeVisible()
+    await expect(status).toHaveText('Simulating…')
+
+    await switchSpec(page, 'Arms')
+    await expect(status).toHaveText('Simulation cancelled.')
+    await expect(panel.getByRole('button', { name: 'Simulate' })).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Cancel' })).toHaveCount(0)
+    await expect(panel.getByText(/^Simulating…/)).toHaveCount(0)
+    await expect(panel.getByRole('progressbar')).toHaveCount(0)
+    await expect(panel).toContainText('Simulate to see your DPS.')
+    await expect(dps).toContainText('—')
+
+    // Back on Fury: no run under way, and no result, as before it ran.
+    await switchSpec(page, 'Fury')
+    await expect(panel.getByRole('button', { name: 'Simulate' })).toBeVisible()
+    await expect(panel.getByRole('progressbar')).toHaveCount(0)
+    await expect(panel).toContainText('Simulate to see your DPS.')
+
+    // The held workers start now, but the cancelled run's result never lands.
+    await release()
+    await page.waitForTimeout(1_000)
+    await expect(dps).toContainText('—')
+    await expect(status).toHaveText('Simulation cancelled.')
+
+    // And the next Simulate runs afresh.
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await expect(status).toHaveText(/^Done: [\d,]+\.\d DPS$/)
+  })
+
+  test('each spec keeps its last result: the one switched to shows its own, and switching back shows the last completed', async ({ page }) => {
+    test.setTimeout(120_000)
+    await slowWorkers(page, 1_000)
+    await page.goto('./')
+    const panel = page.getByRole('complementary', { name: 'Results' })
+    const dps = panel.getByRole('group', { name: 'DPS' })
+    const status = page.getByRole('status', { name: 'Simulation status' })
+    const again = panel.getByRole('button', { name: 'Run again' })
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    await expect(again).toBeVisible({ timeout: 60_000 })
+    const fury = (await dps.textContent())!
+    await switchSpec(page, 'Arms')
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    await expect(again).toBeVisible({ timeout: 60_000 })
+    const arms = (await dps.textContent())!
+    expect(arms).not.toBe(fury)
+
+    // Fury again, mid-run: the switch cancels it, and Arms shows its own result, as it was.
+    await switchSpec(page, 'Fury')
+    await again.click()
+    await expect(panel.getByText(/^Simulating…/)).toBeVisible()
+    await switchSpec(page, 'Arms')
+    await expect(status).toHaveText('Simulation cancelled.')
+    await expect(dps).toHaveText(arms)
+    await expect(dps.locator('[data-dimmed="true"]')).toHaveCount(0)
+    await expect(panel.getByRole('progressbar')).toHaveCount(0)
+    await expect(again).toBeVisible()
+
+    // Back on Fury, its last completed result, not dimmed and with no run under way.
+    await switchSpec(page, 'Fury')
+    await expect(dps).toHaveText(fury)
+    await expect(dps.locator('[data-dimmed="true"]')).toHaveCount(0)
+    await expect(panel.getByRole('progressbar')).toHaveCount(0)
+    await expect(again).toBeVisible()
+  })
+
+  test('on a phone, the switch cancels it too: the bar shows no progress on either spec', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const release = await holdWorkers(page)
+    await page.goto('./')
+    const bar = page.getByRole('button', { name: 'Show results and details' })
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toBeVisible()
+    await expect(bar).toBeEnabled()
+    await switchSpec(page, 'Arms')
+    await expect(page.getByRole('status', { name: 'Simulation status' })).toHaveText('Simulation cancelled.')
+    await expect(page.getByRole('button', { name: 'Simulate', exact: true })).toBeVisible()
+    await expect(bar).toBeDisabled()
+    await switchSpec(page, 'Fury')
+    await expect(page.getByRole('button', { name: 'Simulate', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toHaveCount(0)
+    await expect(bar).toBeDisabled()
+    await release()
   })
 })
 

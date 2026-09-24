@@ -65,7 +65,7 @@ describe('a save from before `following` (the migration)', () => {
 
   it('keeps a slot the player changed, and talents that were never a default', () => {
     const own = { itemId: 16731, enchantId: 'arcanumFocus' } // Helm of Valor
-    const talents = '-0530513321301551-5021' // not a default, ever: one point short of today's
+    const talents = '-0530513321301551-5021' // not a default, ever: one point short of the former default
     const old = setup(PROT_PALADIN, { gear: { ...v1Gear(PROT_PALADIN), head: own }, talents })
     expect(old.talents).toBe(talents)
     const moved = migrate(old)

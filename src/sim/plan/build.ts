@@ -22,9 +22,10 @@ import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
+import { explosiveThrowDetail, swingsInMelee, withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
-import { BUFFS_BY_ID } from '../effects/buffs'
+import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
@@ -74,6 +75,13 @@ export function wieldsShield(gear: SimConfig['gear']): boolean {
   const mh = gear.mainHand && ITEMS.get(gear.mainHand.itemId)
   const oh = gear.offHand && ITEMS.get(gear.offHand.itemId)
   return !(mh && isTwoHand(mh)) && oh?.slot === 'shield'
+}
+
+/** The main-hand weapon's hands and type, or null without one: what a Protection paladin's Hammer of the Righteous needs (paladin.md row 5b). */
+export function mainHandWeapon(gear: SimConfig['gear']): { twoHand: boolean; type?: WeaponType } | null {
+  const mh = gear.mainHand && ITEMS.get(gear.mainHand.itemId)
+  if (!mh || mh.itemClass !== 'Weapon') return null
+  return { twoHand: isTwoHand(mh), ...(mh.weaponType ? { type: mh.weaponType } : {}) }
 }
 
 /** Item stat → stat block field (character-stats.md#derived-stat-pipeline, step 2). */
@@ -855,7 +863,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (direct) {
         dotSource = sourceIndex(`${def.id}Dot`, `${def.name} (DoT)`, def.icon)
         sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
-      } else sources[source].bleed = { ticksCanCrit, avoidable: defense === 'magic' && !def.alwaysHit }
+        // A pure DoT's application rolls to land (Corruption's spell hit, Serpent Sting's ranged hit),
+        // so its row shows the share avoided.
+      } else sources[source].bleed = { ticksCanCrit, avoidable: (defense === 'magic' || defense === 'ranged') && !def.alwaysHit }
     }
     spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source, ...(dotSource !== undefined ? { dotSource } : {}) })
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
@@ -1016,11 +1026,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A raid with warriors keeps their Deep Wounds on the boss, so it bleeds from others all fight: an
   // assumption for Rend and Tear and the cat's Rip (druid.md §5.1, §6.2, Q9 [?]).
   const othersBleed = othersKeepBleeding(config.buffs.raid)
+  const consumables = c.onUse.flatMap((u) => (u.use ? [u.use] : []))
+  // Greater Stoneshield Potion and EZ-Thro Dark Bomb go on cooldown from the pull in every rotation
+  // (buffs doc "On-use items and cooldown categories"; classes/shared-consumables.ts).
   const classRot = setup.simulated
-    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
+    ? withSharedConsumables(classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
         race: config.race,
         items: itemUses,
-        consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
+        consumables,
         executePhase: fight.executePct > 0,
         profile,
         // paladin.md#protection-model-and-rotation: Holy Shield needs a shield.
@@ -1037,7 +1050,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
-      }, config.rotationOrder)
+      }, config.rotationOrder), consumables, swingsInMelee(config.spec))
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
@@ -1072,6 +1085,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       window,
       spellDef,
       tickSpellDef,
+      tickNoun,
       auraCrit: __,
       noCooldownWhile: ___,
       stackAuraId: ____,
@@ -1094,6 +1108,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // Shout): it can't crit, and its only failure is a miss or a resist.
     const noDamage = a.weaponPercent === 0 && a.flatDamage === 0 && a.apCoefficient === 0 && a.damagePerExtraRage === 0 && !(a.blockValueCoefficient ?? 0)
     if (a.spellHit || (a.kind === 'spellTable' && noDamage)) sources[source].spell = true
+    // A potion's or rune's row counts its uses (docs/ux.md#results "Breakdown").
+    if (BUFFS_BY_ID.get(a.id)?.category === 'consumable') sources[source].consumable = true
     // An attack that also bleeds (Rake, druid.md §3.3; Lacerate, §4.3): its ticks get a row of their own, whose
     // applications come from landed hits, so they can't be avoided.
     let dotSource: number | undefined
@@ -1101,16 +1117,25 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       dotSource = sourceIndex(`${a.id}Bleed`, `${a.name} (bleed)`, a.icon)
       sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
     }
+    // In this order, as the plan's sources, auras and spells are numbered as they're first met.
+    const offHandSource = offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1
+    const auraRef = aura ? auraIndex(aura, aura.id, a.icon) : -1
+    const windowRef = window ? auraIndex(window, window.id, a.icon) : -1
+    const spell = spellDef ? spellIndex(spellDef) : undefined
+    const tickSpell = tickSpellDef ? spellIndex(tickSpellDef) : undefined
+    // Ticks that cast a spell onto the ability's own row (Consecration's, Arcane Missiles'): the row
+    // lands more often than it's cast, so its average is per landing (docs/ux.md#results "Breakdown").
+    if (tickSpell !== undefined && spells[tickSpell].source === source) sources[source].landing = tickNoun ?? 'tick'
     return {
       ...a,
       weaponPercent: weaponPercentVs(def, fight.creatureType),
       source,
-      offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
-      aura: aura ? auraIndex(aura, aura.id, a.icon) : -1,
-      window: window ? auraIndex(window, window.id, a.icon) : -1,
+      offHandSource,
+      aura: auraRef,
+      window: windowRef,
       // A paladin ability's spells (paladin.md): its own shares its row.
-      ...(spellDef ? { spell: spellIndex(spellDef) } : {}),
-      ...(tickSpellDef ? { tickSpell: spellIndex(tickSpellDef) } : {}),
+      ...(spell !== undefined ? { spell } : {}),
+      ...(tickSpell !== undefined ? { tickSpell } : {}),
       ...(dotSource !== undefined ? { dotSource } : {}),
       // docs/classes/shaman.md: an aura it puts on the player when used (Improved Stormstrike's).
       ...(selfAuraSpec ? { selfAura: auraIndex(selfAuraSpec, selfAuraSpec.id, a.icon) } : {}),
@@ -1578,6 +1603,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
+  // buffs doc §3.7: the bomb's throw and table [?].
+  if (abilities.some((a) => a.id === EZ_THRO_DARK_BOMB.id)) notes.add('explosiveThrow', explosiveThrowDetail(config.spec))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
   // warrior.md §2.8: the reactive windows this rotation waits for, Q10 and Q12.
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))

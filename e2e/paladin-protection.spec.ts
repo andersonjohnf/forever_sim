@@ -2,10 +2,10 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The Protection paladin, shipped in C3, as a visitor gets to it: from the spec switcher, its
-// Rotation tab under both priorities (decision D26), the Buffs tab's Devotion Aura as yours or,
-// with Max TPS, another paladin's, a run whose results read as a paladin tank's, and a share link
-// that brings it back; on a desktop and on a phone. paladin-protection-rotation.spec.ts covers the
-// Rotation tab's details from a share link.
+// Rotation tab's presets (decisions D26, D28: Balanced by default, Defensive and Max TPS), the Buffs
+// tab's Devotion Aura as yours or, with Max TPS, another paladin's, a run whose results read as a
+// paladin tank's, and a share link that brings it back; on a desktop and on a phone.
+// paladin-protection-rotation.spec.ts covers the Rotation tab's details from a share link.
 
 /** Warrior or druid words a paladin screen must never show. */
 const OTHER_CLASS = /\brage\b|\bstances?\b|Enrage|Energy|combo point|Cat Form|Bear Form/i
@@ -13,7 +13,7 @@ const OTHER_CLASS = /\brage\b|\bstances?\b|Enrage|Energy|combo point|Cat Form|Be
 /** A value with its ± 95% CI in the headline, e.g. "425.1± 1.0". */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 
-/** The Buffs tab's Devotion Aura: yours under tank duties, another paladin's under Max TPS. */
+/** The Buffs tab's Devotion Aura: yours under Balanced and Defensive, another paladin's under Max TPS. */
 const YOURS = 'You keep it up yourself (see Rotation), so it isn’t added twice.'
 const ANOTHER_PALADINS = 'You’re not keeping it up (see Rotation); turn this on if another paladin does.'
 /** The Buffs tab's Judgement of the Crusader: yours from the opener, or another paladin's (T2). */
@@ -44,29 +44,55 @@ async function openDetails(scope: Locator, title: RegExp) {
   if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click()
 }
 
-/** The Rotation tab under tank duties, then under Max TPS, whose default drops Devotion Aura. */
-async function expectBothPriorities(tab: Locator) {
-  const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-  const devotion = tab.getByRole('switch', { name: 'Devotion Aura', exact: true })
+/** Picks a rotation preset (D28). */
+async function pickPreset(page: Page, name: string) {
+  await page.getByRole('combobox', { name: 'Rotation preset' }).click()
+  await page.getByRole('option', { name, exact: true }).click()
+  await expect(page.getByRole('combobox', { name: 'Rotation preset' })).toHaveText(name)
+}
+
+/** The pre-pull row's settings, beside the list on a desktop or in a sheet on a phone; `close` closes the sheet. */
+async function prepullSettings(page: Page, tab: Locator) {
+  await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Before the pull', exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'Before the pull' })
+  const phone = (await sheet.count()) > 0
+  return {
+    scope: phone ? sheet : page.getByRole('complementary', { name: 'Before the pull settings' }),
+    close: async () => {
+      if (!phone) return
+      await page.getByRole('button', { name: 'Close', exact: true }).click()
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+    },
+  }
+}
+
+/** The Rotation tab under Balanced, the default, then under Max TPS, whose default drops Devotion Aura. */
+async function expectBothPriorities(page: Page, tab: Locator) {
+  const preset = page.getByRole('combobox', { name: 'Rotation preset' })
   const holyShield = tab.getByRole('switch', { name: 'Holy Shield', exact: true })
-  await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
-  await expect(devotion).toBeChecked()
+  await expect(preset).toHaveText('Balanced (default)')
   await expect(holyShield).toBeChecked()
+  let prepull = await prepullSettings(page, tab)
+  await expect(prepull.scope.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeChecked()
+  await prepull.close()
   await expect(tab).not.toContainText(OTHER_CLASS)
 
-  await priority.getByRole('radio', { name: 'Max TPS' }).click()
-  await expect(priority.getByRole('radio', { name: 'Max TPS' })).toBeChecked()
-  // The duty's default follows the choice: off, not marked as changed, and it says so.
+  await pickPreset(page, 'Max TPS')
+  // The duty's default follows the preset: off, not marked as changed, and it says so.
+  prepull = await prepullSettings(page, tab)
+  const devotion = prepull.scope.getByRole('switch', { name: 'Devotion Aura', exact: true })
   await expect(devotion).not.toBeChecked()
   await expect(devotion).toHaveAccessibleDescription(/Off by default with Max TPS/)
   await expect(devotion).not.toHaveAccessibleDescription(/Changed/)
+  await prepull.close()
   // Holy Shield isn't a duty: it stays on for its threat.
   await expect(holyShield).toBeChecked()
   await expect(tab).not.toContainText(OTHER_CLASS)
 }
 
 /** What a Protection paladin's run must show, in the desktop panel or the phone's sheet. */
-async function expectProtectionResult(results: Locator) {
+/** `strike`: Holy Strike, which every preset plays (D28); Hammer of the Righteous when you turn it on. */
+async function expectProtectionResult(results: Locator, strike = 'Holy Strike') {
   // The tank headline: TPS and DPS, each with its CI.
   await expect(results.getByRole('group', { name: 'TPS' })).toContainText(VALUE_WITH_CI)
   await expect(results.getByRole('group', { name: 'DPS' })).toContainText(VALUE_WITH_CI)
@@ -76,7 +102,7 @@ async function expectProtectionResult(results: Locator) {
   await expect(taken).toContainText('Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap (Buffs), lower its damage and slow its swings.')
   await expect(taken).not.toContainText('yours')
   const threat = results.getByRole('region', { name: 'Threat by ability' })
-  for (const name of ['Holy Shield', 'Seal of Fury', 'Judgement of Fury', 'Consecration', 'Holy Strike']) {
+  for (const name of ['Holy Shield', 'Seal of Fury', 'Judgement of Fury', 'Consecration', strike]) {
     await expect(threat.getByText(name, { exact: true })).toBeVisible()
   }
   // Mana per fight: the ledger, with Improved Seal of Fury's and Shield Specialization's mana.
@@ -100,7 +126,7 @@ test.describe('Protection paladin', () => {
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Protection (default)')
-    await expect(talents.getByText('0 / 38 / 13')).toBeVisible()
+    await expect(talents.getByText('9 / 35 / 7')).toBeVisible()
     await presets.click()
     // Only this spec's default is "(default)": Retribution's reads plainly (TU10). The popular build,
     // v1's default, stays a preset (T2).
@@ -126,9 +152,9 @@ test.describe('Protection paladin', () => {
     await expect(gear.getByText('Starts as Retribution Paladin pre-raid best in slot. Choose a slot to change its item.', { exact: true })).toBeVisible()
   })
 
-  test('its Rotation tab under tank duties and under Max TPS', async ({ page }) => {
+  test('its Rotation tab under Balanced and under Max TPS', async ({ page }) => {
     await switchToProtection(page)
-    await expectBothPriorities(await openTab(page, 'Rotation'))
+    await expectBothPriorities(page, await openTab(page, 'Rotation'))
   })
 
   test('its Buffs tab: Devotion Aura locked as yours, and under Max TPS yours to turn on for another paladin’s', async ({ page }) => {
@@ -139,8 +165,8 @@ test.describe('Protection paladin', () => {
     await expect(devotion).toBeDisabled()
     await expect(devotion).toHaveAccessibleDescription(`+735 armor. ${YOURS}`)
 
-    const rotation = await openTab(page, 'Rotation')
-    await rotation.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
+    await openTab(page, 'Rotation')
+    await pickPreset(page, 'Max TPS')
     const again = await openTab(page, 'Buffs')
     const buff = again.getByRole('switch', { name: 'Devotion Aura', exact: true })
     await expect(buff).not.toBeChecked()
@@ -156,7 +182,10 @@ test.describe('Protection paladin', () => {
     await expect(jotc).toBeChecked()
     await expect(jotc).toBeDisabled()
     await expect(jotc).toHaveAccessibleDescription(YOURS_JOTC)
-    // Character → Advanced: the JotC rule is in use; Hammer of the Righteous's is dimmed while it's off in Rotation.
+    // Character → Advanced: the JotC rule is in use; Hammer of the Righteous's is dimmed while it's off
+    // in Rotation, as every preset has it (D28).
+    await openTab(page, 'Rotation')
+    await pickPreset(page, 'Defensive')
     const character = await openTab(page, 'Character')
     await character.getByRole('button', { name: /^Advanced/ }).click()
     const bonus = character.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' })
@@ -173,7 +202,8 @@ test.describe('Protection paladin', () => {
     // and the Buffs tab's becomes another paladin's, off.
     const rotation = await openTab(page, 'Rotation')
     await rotation.getByRole('switch', { name: 'Hammer of the Righteous', exact: true }).click()
-    await rotation.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    const prepull = await prepullSettings(page, rotation)
+    await prepull.scope.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
     const buffsAgain = await openTab(page, 'Buffs')
     const other = buffsAgain.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })
     await expect(other).not.toBeChecked()
@@ -192,12 +222,15 @@ test.describe('Protection paladin', () => {
     await expectProtectionResult(results)
   })
 
-  test('a share link brings back the Protection paladin with its priority', async ({ page, context }) => {
+  test('a share link brings back the Protection paladin with its preset and seal', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await switchToProtection(page)
     const tab = await openTab(page, 'Rotation')
-    await tab.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
-    await tab.getByRole('radio', { name: 'Righteousness' }).click()
+    await pickPreset(page, 'Max TPS')
+    await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Seal', exact: true }).click()
+    await page.getByRole('complementary', { name: 'Seal settings' }).getByRole('radio', { name: 'Righteousness' }).click()
+    // The seal is one of the list's settings, so the list now matches no preset: Custom.
+    await expect(page.getByRole('combobox', { name: 'Rotation preset' })).toHaveText('Custom')
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const url = await page.evaluate(() => navigator.clipboard.readText())
@@ -210,9 +243,9 @@ test.describe('Protection paladin', () => {
     await expect(other.getByText('Loaded a shared setup')).toBeVisible()
     await expect(other.getByRole('button', { name: /^Spec: Protection Paladin/ })).toBeVisible()
     const shared = await openTab(other, 'Rotation')
-    await expect(shared.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' })).toBeChecked()
-    await expect(shared.getByRole('radio', { name: 'Righteousness' })).toBeChecked()
-    await expect(shared.getByRole('switch', { name: 'Devotion Aura', exact: true })).not.toBeChecked()
+    await expect(other.getByRole('combobox', { name: 'Rotation preset' })).toHaveText('Custom')
+    await expect(shared.locator('[data-apl-row="seal"]')).toContainText('Seal of Righteousness')
+    await expect(shared.locator('[data-apl-row="prepull"]')).toContainText('Retribution Aura')
     const buffs = await openTab(other, 'Buffs')
     await expect(buffs.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeEnabled()
     expect(new URL(other.url()).hash).toBe('')
@@ -225,23 +258,21 @@ test.describe('Protection paladin on a phone', () => {
 
   const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
 
-  test('switches to it, shows both priorities and its Buffs without sideways scroll, and runs to a result in the sheet', async ({ page }) => {
+  test('switches to it, shows its presets and its Buffs without sideways scroll, and runs to a result in the sheet', async ({ page }) => {
     await switchToProtection(page)
     const tab = await openTab(page, 'Rotation')
     expect(await overflow(page), 'no horizontal page scroll').toBeLessThanOrEqual(0)
-    // Both priority buttons are full-size touch targets inside the screen.
-    for (const name of ['Tank duties first', 'Max TPS']) {
-      const box = (await tab.getByRole('radio', { name }).boundingBox())!
-      expect(box.height, name).toBeGreaterThanOrEqual(44)
-      expect(box.x + box.width, name).toBeLessThanOrEqual(390 - 16)
-    }
-    await expectBothPriorities(tab)
+    // The preset picker is a full-size touch target inside the screen.
+    const box = (await page.getByRole('combobox', { name: 'Rotation preset' }).boundingBox())!
+    expect(box.height).toBeGreaterThanOrEqual(44)
+    expect(box.x + box.width).toBeLessThanOrEqual(390 - 16)
+    await expectBothPriorities(page, tab)
     expect(await overflow(page), 'no horizontal page scroll under Max TPS').toBeLessThanOrEqual(0)
 
     const buffs = await openTab(page, 'Buffs')
     await expect(buffs.getByRole('switch', { name: 'Devotion Aura', exact: true })).toHaveAccessibleDescription(`+735 armor. ${ANOTHER_PALADINS}`)
     await openTab(page, 'Rotation')
-    await page.getByRole('radio', { name: 'Tank duties first' }).click()
+    await pickPreset(page, 'Defensive')
     const locked = (await openTab(page, 'Buffs')).getByRole('switch', { name: 'Devotion Aura', exact: true })
     await expect(locked).toBeDisabled()
     await expect(locked).toHaveAccessibleDescription(`+735 armor. ${YOURS}`)
@@ -253,7 +284,8 @@ test.describe('Protection paladin on a phone', () => {
     await expect(bar).toContainText(/DPS\s*\d[\d,]*\.\d/)
     await bar.click()
     const sheet = page.getByRole('dialog', { name: 'Results' })
-    await expectProtectionResult(sheet)
+    // Defensive, picked above: Holy Strike.
+    await expectProtectionResult(sheet, 'Holy Strike')
     expect(await overflow(page), 'no horizontal page scroll').toBeLessThanOrEqual(0)
   })
 })

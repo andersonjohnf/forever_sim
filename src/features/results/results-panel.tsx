@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronsDown, Loader2, Play, RotateCw, Square, TriangleAlert } from 'lucide-react'
+import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type ReactNode, useId, useRef } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
@@ -11,10 +11,11 @@ import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { casterSheetRows, rangedSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
-import type { SimConfig, SimResult, Summary } from '@/sim'
+import { WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { ManaPerFight } from './mana-results'
+import { outcomeLines } from './outcomes'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
 import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
@@ -199,8 +200,9 @@ function StaleBadge() {
 
 /** What a failed run says, and the way forward (docs/ux.md#states "Error"). */
 function RunError({ message }: { message: string }) {
-  // The engine's refusals name what to change, and a hung worker's message says to run it again;
-  // only other failures get the retry advice.
+  // The engine's refusals name what to change, a hung worker's message says to run it again, and
+  // workers that couldn't start say to reload, with a button for it; only other failures get the
+  // retry advice.
   const setup = isSetupError(message)
   const advice = !carriesItsOwnAdvice(message)
   return (
@@ -211,6 +213,13 @@ function RunError({ message }: { message: string }) {
         <p>{message}</p>
         {advice && (
           <p className="text-muted-foreground">Try again. If it keeps failing, reset this spec to its defaults from the More menu (⋯).</p>
+        )}
+        {/* Workers that couldn't start: most likely the site updated since the page loaded, and a
+            reload fetches the new one (docs/ux.md#states "Error"). */}
+        {message === WORKER_START_MESSAGE && (
+          <Button variant="outline" className="mt-1 h-11 self-start" onClick={() => window.location.reload()}>
+            <RefreshCw aria-hidden /> Reload page
+          </Button>
         )}
       </div>
     </div>
@@ -439,7 +448,7 @@ function Breakdown({ result }: { result: SimResult }) {
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
                   <div className={cn('h-full rounded-full bg-primary', DIM_FILL)} style={{ width: `${share}%` }} />
                 </div>
-                <Outcomes ability={a} fights={result.iterations} />
+                <Outcomes ability={a} fights={result.iterations} damageMetric={metric === 'dps'} />
               </div>
             </li>
           )
@@ -449,50 +458,41 @@ function Breakdown({ result }: { result: SimResult }) {
   )
 }
 
-/** What a row's count a fight reads as (`AbilityResult.counts`). */
-const COUNT_NOUN = { blocks: 'blocks', extraAttacks: 'extra attacks' } as const
-
 /**
- * A breakdown row's outcomes (docs/ux.md#results): crit, avoided and glancing shares of its
- * attempts, left out for a row that can neither crit nor be avoided (Holy Shield's damage). A row
- * that counts something gives it per fight (Holy Shield's blocks, Reckoning's extra attacks), and a
- * row whose threat is mana it gave you, that mana (Shield Specialization). A bleed's row counts
- * applications and ticks apart: crits from its ticks, avoidance from its applications, and then, on
- * a line of its own, its uptime on the boss, with its average stacks for one that stacks
- * (Lacerate). One that can do neither (Deep Wounds) gives its ticks per fight. A spell on the boss
- * (Faerie Fire) can't crit, so it gives only its share missed.
+ * A breakdown row's outcomes (docs/ux.md#results "Breakdown", `outcomeLines`): its count a fight and
+ * shares, ending on the Damage metric with its average damage per landed hit, which a screen reader
+ * hears in words; and a bleed's uptime on a line of its own.
  */
-function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][number]; fights: number }) {
-  const avoided = a.misses + a.dodges + a.parries
-  const parts: string[] = []
-  let uptime: string | null = null
-  if (a.counts && fights > 0) parts.push(`${formatOne(a.casts / fights)} ${COUNT_NOUN[a.counts]} a fight`)
-  if (a.damage === 0 && a.mana && fights > 0) parts.push(`from ${formatInt(a.mana / fights)} mana a fight`)
-  if (a.certain) {
-    // Always lands, never crits: nothing to share out.
-  } else if (a.bleed) {
-    const ticks = a.hits + a.crits
-    if (a.bleed.ticksCanCrit && ticks > 0) parts.push(`${formatPct((100 * a.crits) / ticks)} tick crit`)
-    if (a.bleed.avoidable && a.casts > 0) parts.push(`${formatPct((100 * avoided) / a.casts)} of applications avoided`)
-    if (parts.length === 0 && fights > 0) parts.push(`${formatOne(ticks / fights)} ticks per fight`)
-    if (a.bleed.uptimePct !== null) {
-      const stacks = a.bleed.averageStacks
-      uptime = `${formatPct(a.bleed.uptimePct)} uptime on the boss${stacks !== undefined ? `, ${formatOne(stacks)} stacks on average` : ''}`
-    }
-  } else if (a.spell) {
-    if (a.casts === 0) return null
-    parts.push(`${formatPct((100 * a.misses) / a.casts)} missed`)
-  } else {
-    const attempts = a.hits + a.crits + a.glances + a.blocks + avoided
-    if (attempts > 0) {
-      parts.push(`${formatPct((100 * a.crits) / attempts)} crit`, `${formatPct((100 * avoided) / attempts)} avoided`)
-      if (a.glances > 0) parts.push(`${formatPct((100 * a.glances) / attempts)} glancing`)
-    }
-  }
-  if (parts.length === 0 && uptime === null) return null
+function Outcomes({ ability, fights, damageMetric }: { ability: SimResult['abilities'][number]; fights: number; damageMetric: boolean }) {
+  const { parts, average, uptime } = outcomeLines(ability, fights, damageMetric)
+  if (parts.length === 0 && average === null && uptime === null) return null
   return (
     <span className="flex flex-col text-xs text-muted-foreground tabular-nums">
-      {parts.length > 0 && <span>{parts.join(' · ')}</span>}
+      {(parts.length > 0 || average) && (
+        <span>
+          {/* It wraps only between parts, never inside one ("1,318 avg | hit"). */}
+          {parts.map((p, i) => (
+            <Fragment key={p}>
+              {i > 0 && ' · '}
+              <span className="whitespace-nowrap">{p}</span>
+            </Fragment>
+          ))}
+          {average && (
+            <>
+              <span aria-hidden>
+                {parts.length > 0 ? ' · ' : ''}
+                <span className="whitespace-nowrap">
+                  {average.value} avg {average.per}
+                </span>
+              </span>
+              <span className="sr-only">
+                {parts.length > 0 ? ', ' : ''}
+                {average.value} damage a {average.per} on average
+              </span>
+            </>
+          )}
+        </span>
+      )}
       {uptime && <span>{uptime}</span>}
     </span>
   )

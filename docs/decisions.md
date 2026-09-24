@@ -415,7 +415,10 @@ Balanced. Each tank spec's Priority choice offers three rotations:
   mitigation and the raid's armor debuff, drops the debuffs that only lower the boss's damage,
   and tunes the rest for DPS:
   - a warrior uses Shield Block when it's ready and keeps Sunder Armor at 5 stacks, refreshed
-    by D26's duty rule but not used as a filler; it drops Thunder Clap and Demoralizing Shout
+    by D26's duty rule, and uses it as a filler only above 60% rage (user decision, 2026-09-24,
+    replacing "not used as a filler"): 60% of the warrior's max rage, which race and talents set
+    (60 of the default 100, 78 with Boundless Rage 3/3), with Heroic Strike's threshold scaled the
+    same way (84%); it drops Thunder Clap and Demoralizing Shout
   - a bear keeps Faerie Fire and drops Demoralizing Roar
   - a paladin keeps Devotion Aura and Holy Shield, and Holy Strike too, whose Iron Creed cuts
     damage taken by 10% (user decision: that's active mitigation Balanced keeps), so a paladin's
@@ -436,8 +439,15 @@ kept the old default gets Balanced, like any other changed default. Settings you
 hand stay as you set them: choosing Balanced moves only the defaults of the abilities it drops,
 as Max TPS does.
 
-Status: decided, not built yet. The rotation slice (T5 in the milestones) comes after the tanks'
-threat fixes.
+Status: built for all three tanks (T5, with their priority lists in M5.65 A2), first-pass (D27):
+the warrior's Balanced against Defensive +9.5% TPS, +6.4% DPS and 21% more damage taken
+([warrior.md §5.4](classes/warrior.md#balanced-t5)); the bear's +3.1%, +2.8% and 0.7%, and its Max
+TPS, tuned on TPS alone, Mauls from 14 ([druid.md §6.3](classes/druid.md#balanced-t5)); the
+paladin's plays as Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)).
+The warrior leads: its Balanced makes 1,241 TPS against the paladin's 832 and the bear's 1,115
+(seed 31101, 100,000 fights), **+49.1%** over the paladin, at D29's
+ceiling, and Sunder Armor's 1,013 threat [F] is 33% of the warrior's threat. The next change that
+moves either tank checks against this.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the
@@ -546,6 +556,15 @@ drops Anticipation entirely, when the gain is clear, is acceptable (user decisio
 Deep Wounds build, +4.4 points). After the fourth verification (step 6 again), a dimension only a
 constraint made (Toughness, for the effective-health floor) takes ranks only after the preferred
 filler is full.
+
+**Superseded (user decision, after O1's fifth review round): no talent-specific rules, and the
+player picks the goal.** The optimizer has no survival floor and no preferred filler: no talent is
+kept, dropped or ordered because of its name. The player tells it what to optimize for, **Defense,
+DPS, TPS or Balanced** (Balanced = the sum of each metric's change relative to the spec's current
+default, as above; Defense = the least damage taken), and it searches every legal build, gear set and
+rotation in scope and takes the best by that goal, measured. Sheet constraints stay, as options the
+player sets (the effective-health floor, crit and crush immunity); they read the character sheet,
+not talent names. Where this paragraph and the ones above disagree, this one holds.
 
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority

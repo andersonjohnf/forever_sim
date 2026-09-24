@@ -47,6 +47,14 @@ describe("src/data/client agrees with what the docs decide (no cache needed)", (
     expect(sorted([...Object.keys(enchants.enchants), ...enchants.notInClient])).toEqual(fromDoc);
   });
 
+  it("items.json's consumables and enchants.json record no disagreement between the buffs doc's chains and the client", () => {
+    // The generator writes these and warns of each; an empty list is the only committed state that
+    // means the doc's item → spell → enchant chains all hold (docs/data/client.md#what-the-docs-decide).
+    const consumables = Object.fromEntries(Object.entries(items.consumables).filter(([, c]) => c.docMismatches.length > 0).map(([id, c]) => [id, c.docMismatches]));
+    expect(consumables).toEqual({});
+    expect(enchants.docMismatches).toEqual([]);
+  });
+
   it("spells.json's buffsDoc spells are the buffs doc's §1 and §4 spells", () => {
     const notExtracted = new Set([...Object.keys(spells.excludedWorldBuffs), ...spells.notInClient.map((m) => m.id)].map(Number));
     expect(withSource("buffsDoc")).toEqual(sorted(buffsDoc.buffSpells.map((b) => b.spellId).filter((id) => !notExtracted.has(id))));

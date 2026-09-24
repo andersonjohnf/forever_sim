@@ -26,7 +26,7 @@ async function linkedSpec(): Promise<SpecId | null> {
 
 /**
  * What to announce: the moved specs, less the one a share link replaces, whose moved setup the link's
- * own takes the place of ("Anything you changed…" would contradict it). None when that leaves nothing.
+ * own takes the place of ("Gear and talents you changed yourself are kept." would contradict it). None when that leaves nothing.
  */
 export function withoutLinked(updates: readonly DefaultsUpdate[], linked: SpecId | null): DefaultsUpdate[] {
   return updates.filter((u) => u.spec !== linked)

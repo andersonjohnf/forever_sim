@@ -318,8 +318,8 @@ has only their base items. A caster doesn't swing its weapon: its stats count, i
 Arcanum of Focus (+8 spell damage) on head and legs, Greater Stats on the chest, Minor Haste gloves
 (Forever's +1% casting speed) and Spell Power (+30) on the weapon; nothing else in the catalogue helps
 a caster yet. Standard raid: Greater Arcane Elixir, Elixir of Shadow Power (+40 Shadow), the Major
-Mana Potion; Max adds Flask of Supreme Power and a Demonic Rune
-([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+Mana Potion; Max adds Flask of Supreme Power, a Demonic Rune and Brilliant Wizard Oil (+36 spell damage
+and +1% spell crit) ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
 
 ### 7.5 Buffs
 

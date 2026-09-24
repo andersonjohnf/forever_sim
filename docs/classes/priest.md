@@ -280,9 +280,8 @@ the catalogue, aren't in the priest's defaults yet (you can pick them on the Gea
 in the catalogue. Both are a known gap. Consumables by preset
 ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)):
 Standard raid has Greater Arcane Elixir (+35), **Elixir of Shadow Power** (+40 Shadow; 11474, 30 min
-[F] [C]) and the Major Mana Potion; Max adds Flask of Supreme Power and the Demonic Rune. Brilliant
-Wizard Oil is in the catalogue since T2 (+36 and +1% spell crit), but not in the priest's presets, which
-the buffs doc's §6.3 doesn't give it. The Buffs tab doesn't offer a caster what only helps melee
+[F] [C]) and the Major Mana Potion; Max adds Flask of Supreme Power, the Demonic Rune and Brilliant
+Wizard Oil (+36 spell damage and +1% spell crit), as every caster's Max does. The Buffs tab doesn't offer a caster what only helps melee
 (Battle Shout, Windfury Totem, armor debuffs).
 
 ### 7.5 Gear

@@ -377,7 +377,7 @@ export const FURY_APL: AplDefinition = {
       icon: 'ability_warrior_battleshout',
       enabledId: ID.bsEnabled,
       optionIds: [ID.bsRefresh],
-      summary: [{ option: ID.bsRefresh, text: 'again with {}' }],
+      summary: [{ option: ID.bsRefresh, text: 'again with {}', zeroText: 'again once it runs out' }],
     },
     {
       id: 'deathWish',

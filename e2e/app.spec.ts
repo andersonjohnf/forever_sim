@@ -74,6 +74,29 @@ test.describe('setup', () => {
     await expect(page.getByRole('tab', { name: 'Rotation', exact: true })).toHaveAttribute('aria-selected', 'true')
   })
 
+  // #8: a stored tab that no longer exists left no tab selected and no section showing, and a setup
+  // stored under another spec's key opened when you switched to that spec.
+  test('a malformed save falls back safely: an unknown tab opens Gear, and a misfiled setup is dropped', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const fury = { version: 1, spec: 'warrior-fury', race: 'horde-orc' }
+      const bySpec = { 'warrior-arms': { ...fury }, 'warrior-berserker': { version: 1, spec: 'warrior-arms' }, 'rogue-combat': 'garbage' }
+      const state = { config: fury, bySpec, section: 'stats', junk: { a: 1 } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    await expect(page.getByRole('tab', { name: 'Gear', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tabpanel', { name: 'Gear' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'Orc', exact: true })).toBeChecked()
+    // Arms opens on its own defaults, not on the Fury setup stored under its name.
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await expect(page.getByRole('button', { name: /^Spec: Arms Warrior/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'Human', exact: true })).toBeChecked()
+  })
+
   test('remembers the setup across reloads', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
@@ -242,6 +265,13 @@ test.describe('simulation', () => {
     for (const ability of ['Bloodthirst', 'Execute', 'Whirlwind', 'Heroic Strike', 'Main hand', 'Off hand']) {
       await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
     }
+    // Each row's line starts with its count a fight, named for what it counts, and ends with its
+    // average per landed hit (docs/ux.md#results "Breakdown").
+    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
+    await expect(row('Main hand')).toContainText(/\d+\.\d swings a fight · \d+\.\d% crit · \d+\.\d% avoided · \d+\.\d% glancing · [\d,]+ avg hit/)
+    await expect(row('Bloodthirst')).toContainText(/\d+\.\d casts a fight · \d+\.\d% crit · \d+\.\d% avoided · [\d,]+ avg hit/)
+    await expect(row('Hand of Justice')).toContainText(/\d+\.\d procs a fight/)
+    await expect(row('Deep Wounds')).toContainText(/\d+\.\d procs a fight · [\d,]+ avg tick/)
   })
 
   test('shows Fury’s cooldowns and buffs with uptimes and casts per fight, collapsed until opened', async ({ page }) => {
@@ -279,9 +309,9 @@ test.describe('simulation', () => {
     // Rend's row reads its ticks and its applications apart (docs/ux.md#results).
     const rend = breakdown.getByRole('listitem').filter({ hasText: /^Rend/ })
     await expect(rend).toContainText(/\d+\.\d% uptime on the boss/)
-    await expect(rend).toContainText(/\d+\.\d% tick crit/)
-    await expect(rend).toContainText(/\d+\.\d% of applications avoided/)
-    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d ticks per fight/)
+    // Its count names what its avoided share is of.
+    await expect(rend).toContainText(/\d+\.\d applications a fight · \d+\.\d% tick crit · \d+\.\d% avoided · [\d,]+ avg tick/)
+    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d procs a fight · [\d,]+ avg tick/)
     // The Overpower window is among the buffs.
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     await expect(results.getByRole('table').getByRole('row', { name: /^Overpower window \d+\.\d% none$/ })).toBeVisible()

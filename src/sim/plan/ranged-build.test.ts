@@ -7,7 +7,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { catalogueEffects } from '../effects/types'
 import { defaultConfig } from '../defaults'
-import { Sim } from '../engine/sim'
+import { FIELD, FIELD_COUNT, Sim } from '../engine/sim'
 import { PROFILES } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import { buildPlan, resolveProc } from './build'
@@ -64,7 +64,7 @@ describe('buildPlan for a ranged spec (§12)', () => {
     expect(plan.ranged!.skill).toBe(300)
     const sim = new Sim(plan)
     sim.runFight(0)
-    expect(sim.counters[plan.ranged!.source * 10]).toBeGreaterThan(0)
+    expect(sim.counters[plan.ranged!.source * FIELD_COUNT + FIELD.damage]).toBeGreaterThan(0)
   })
 
   it('a spec that isn’t ranged gets none, whatever is in its ranged slot', () => {

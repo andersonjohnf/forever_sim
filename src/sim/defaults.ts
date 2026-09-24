@@ -47,10 +47,10 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
-  // docs/classes/paladin.md#protection-defaults: interim, measured (T2's fix round): the best build found that keeps
-  // the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Anticipation 5,
-  // Deflection 5; Toughness optional, D30); the optimizer (O4) replaces it.
-  'paladin-protection': '-0530513321301551-50215',
+  // docs/classes/paladin.md#protection-defaults: 9/35/7, the guild's lead theorycrafter's build (2026-09-24), which
+  // keeps the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Deflection 5;
+  // Anticipation the preferred filler, Toughness optional, D30); the optimizer (O4) replaces it.
+  'paladin-protection': '240003-0530213321301551-502',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
@@ -114,7 +114,7 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   paladin: [
     // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
     { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
-    // docs/classes/paladin.md#protection-defaults: Holy 0 / Prot 38 / Ret 13, interim (T2's fix round)
+    // docs/classes/paladin.md#protection-defaults: Holy 9 / Prot 35 / Ret 7, the guild's lead theorycrafter's
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
     // docs/classes/paladin.md#protection-defaults: the popular Forever build, v1's default, Holy 2 / Prot 42 / Ret 7
     { name: 'Protection popular build', code: '2-4530513321301551-502' },
@@ -355,9 +355,10 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
  * otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
  * for threat from the pool (2026-09-24), held to the tanks' effective-health floor (docs/classes/
  * paladin.md "Protection defaults", druid.md §7.3a, warrior.md §6.3). Interim: the optimizer's
- * results (O4) replace it.
+ * results (O4) replace it. Exported for its test: `preRaidListGear` silently skips an item the class
+ * can't use, so the test checks every id is one it can.
  */
-const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
+export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
   'paladin-protection': {
     head: [12640], // Lionheart Helm
     neck: [19426], // Orb of the Darkmoon

@@ -132,6 +132,8 @@ export function printHelp(fileUrl) {
 
 /** The pseudo-setting for a candidate's talent build code. */
 export const TALENTS = 'talents'
+/** The pseudo-setting for a priority-list spec's row order (D31): row ids joined by `>`, as `SimConfig.rotationOrder`. */
+export const ORDER = 'order'
 
 /**
  * The spec's setting ids and their shared prefix (`warrior.arms.`): an id given without it gets it,
@@ -143,7 +145,7 @@ export function settingIds(options) {
   let n = 0
   while (parts.length > 0 && parts.every((p) => n < p.length && p[n] === parts[0][n])) n++
   const prefix = n > 0 ? parts[0].slice(0, n).join('.') + '.' : ''
-  return { ids, prefix, qualify: (id) => (ids.has(id) || id === TALENTS ? id : prefix + id) }
+  return { ids, prefix, qualify: (id) => (ids.has(id) || id === TALENTS || id === ORDER ? id : prefix + id) }
 }
 
 /** `a=1,b=true,c=x` → [[id, value], …], ids qualified with the spec's prefix. */
@@ -187,9 +189,22 @@ export function sweepProduct(sweeps, spec) {
   return product
 }
 
-/** Checks each setting against the spec's options: a known id, and a value of the right kind. */
-export function validate(settings, options) {
+/**
+ * Checks each setting against the spec's options: a known id, and a value of the right kind; an
+ * order against the spec's priority-list rows (`rows`: their ids, or null for a spec without a list).
+ */
+export function validate(settings, options, rows = null) {
   for (const [id, value] of settings) {
+    if (id === ORDER) {
+      if (typeof value !== 'string' || value.split('>').some((row) => row === '')) throw new Error(`order is row ids joined by ">", got "${value}"`)
+      if (rows === null) throw new Error('order is for a spec with a priority list, and this one has none')
+      const named = value.split('>')
+      const unknown = named.filter((row) => !rows.includes(row))
+      if (unknown.length > 0) throw new Error(`order: unknown row ${unknown.join(', ')}; the rows are ${rows.join(', ')}`)
+      const twice = named.filter((row, i) => named.indexOf(row) !== i)
+      if (twice.length > 0) throw new Error(`order: ${twice.join(', ')} named more than once`)
+      continue
+    }
     if (id === TALENTS) {
       if (typeof value !== 'string' || !/^[0-9]*-[0-9]*-[0-9]*$/.test(value)) throw new Error(`talents is a build code (digits and two "-"), got "${value}"`)
       continue

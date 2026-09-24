@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, normalizeConfig, WORKER_HANG_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
+import { defaultConfig, normalizeConfig, WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
 import { TALENT_EFFECTS } from '@/sim/classes/warrior/talents'
 import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
 import { ITEM_EFFECTS } from '@/sim/effects/items'
 import { buildPlan } from '@/sim/plan/build'
-import { breakdownRows, carriesItsOwnAdvice, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
+import { breakdownRows, carriesItsOwnAdvice, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError, runOutcomeMessage } from './run-logic'
 
 const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) => normalizeConfig(change(defaultConfig(spec))).config
 
@@ -19,17 +19,19 @@ describe('isSetupError', () => {
   })
 
   it('treats other failures as ones a retry may fix', () => {
-    expect(isSetupError('A simulation worker stopped unexpectedly.')).toBe(false)
+    expect(isSetupError('The simulation stopped unexpectedly.')).toBe(false)
     expect(isSetupError('The worker has no plan for this chunk.')).toBe(false)
     expect(isSetupError("Cannot read properties of undefined (reading 'x')")).toBe(false)
   })
 })
 
 describe('carriesItsOwnAdvice', () => {
-  it('skips the retry advice for setup refusals and a hung worker, which already say what to do', () => {
+  it('skips the retry advice for setup refusals and a hung or unstartable worker, which already say what to do', () => {
     expect(carriesItsOwnAdvice(WORKER_HANG_MESSAGE)).toBe(true)
+    expect(carriesItsOwnAdvice(WORKER_START_MESSAGE)).toBe(true)
     expect(carriesItsOwnAdvice('Paladin simulation isn’t available yet.')).toBe(true)
-    expect(carriesItsOwnAdvice('A simulation worker stopped unexpectedly.')).toBe(false)
+    expect(carriesItsOwnAdvice(WORKER_CRASH_MESSAGE)).toBe(false)
+    expect(isSetupError(WORKER_START_MESSAGE)).toBe(false)
   })
 })
 
@@ -94,6 +96,24 @@ describe('headlineText', () => {
   it('reads DPS for a DPS spec, and TPS then DPS for a tank', () => {
     expect(headlineText(result('warrior-fury'))).toBe('682.5 DPS')
     expect(headlineText(result('warrior-protection'))).toBe('1,204.3 TPS and 682.5 DPS')
+  })
+})
+
+// What the live region says when a run ends (docs/ux.md#states "Running").
+describe('runOutcomeMessage', () => {
+  const summary = (mean: number) => ({ mean, stdev: 1, ci95: 0.5 })
+  const fury = { spec: 'warrior-fury', dps: summary(682.46), tps: summary(0) } as unknown as SimResult
+  const base = { status: 'done', error: null, result: fury, desktop: true }
+
+  it('says a run is done, or was cancelled', () => {
+    expect(runOutcomeMessage(base)).toBe('Done: 682.5 DPS')
+    expect(runOutcomeMessage({ ...base, status: 'idle', result: null })).toBe('Simulation cancelled.')
+  })
+
+  it('reads a failure on a phone; on desktop the panel’s alert does', () => {
+    const failed = { ...base, status: 'error', error: 'This setup can’t be simulated.', result: null }
+    expect(runOutcomeMessage(failed)).toBe('')
+    expect(runOutcomeMessage({ ...failed, desktop: false })).toBe('Couldn’t simulate: This setup can’t be simulated. Open the results for details.')
   })
 })
 

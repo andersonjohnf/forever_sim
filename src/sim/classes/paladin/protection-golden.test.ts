@@ -82,8 +82,40 @@ describe('golden run (fixed config and seed)', () => {
   //   Improved Holy Strike 2 (paladin.md "Protection defaults"). TPS 818.32 → 821.34, DPS 442.58 →
   //   445.72, damage taken 897.9 → 902.7 a second (Toughness's armor goes; Anticipation's defense
   //   comes).
+  // - T5/A2 (D28, D31): the rotation is a priority list, and its default is Balanced, which plays
+  //   as Defensive (D26's "Tank duties first"): it keeps Holy Strike, whose Iron Creed is active
+  //   mitigation (user decision in D28), and Hammer of the Righteous is a row, off, that takes its
+  //   place when turned on (paladin.md "Priority: Defensive, Balanced or Max TPS"). Nothing moves:
+  //   Balanced and Defensive give this snapshot's previous result exactly (both tests below), and
+  //   200 random Defensive and Max TPS setups their previous plans (protection-apl.test.ts). On this
+  //   seed's 1,000 fights: TPS 821.34, DPS 445.72, damage taken 902.7 a second. Max TPS, for the
+  //   record: see paladin.md.
+  // - The guild's lead theorycrafter's talents (user decision, 2026-09-24; paladin.md "Protection
+  //   defaults"): 240003-0530213321301551-502, 9/35/7, for T2's fix-round build; D30's floor no longer
+  //   holds Anticipation at 5/5. Improved Seals 3, Divine Strength 4 and Improved Holy Strike 2 for
+  //   Anticipation's last three ranks, Holy Conduit and Conviction. On this seed's 1,000 fights, for
+  //   Balanced and Defensive alike: TPS 821.34 → 830.39, DPS 445.72 → 447.21, damage taken 902.7 →
+  //   917.4 a second (Max TPS: 855.29, 460.06, 969.9).
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const agg = runFights(bundle.plan, 1000)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      dtps: result.tank!.dtps,
+      durationSec: result.durationSec,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.casts, a.hits, a.crits, a.misses, a.dodges, a.parries, a.blocks]),
+      cooldowns: result.cooldowns.map((c) => [c.id, c.uptimePct, c.castsPerFight]),
+      mana: result.mana,
+    }).toMatchSnapshot()
+  })
+
+  // - T5/A2 (D28): Defensive, the default before Balanced, keeps the old default's result byte for
+  //   byte; it's the same snapshot as the default's above, since Balanced plays as Defensive.
+  it('keeps the Defensive Protection paladin’s result unchanged', () => {
+    const d = defaultConfig('paladin-protection')
+    const bundle = buildPlan({ ...d, rotation: { 'paladin.protection.priority': 'duties' }, run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
     const result = toResult(bundle, agg, 0)
     expect({

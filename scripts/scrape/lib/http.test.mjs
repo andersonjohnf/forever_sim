@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RefusedError, assertAllowed, cachePath, createFetcher, fetchAllowed } from "./http.mjs";
-import { assertBuildVersion, assertCommitSha } from "./wago.mjs";
+import { assertBuildVersion, assertCommitSha, dbdefsProblems } from "./wago.mjs";
 
 /** A fetch that answers from a table of URL → [status, location?], recording what it was asked. */
 function fakeFetch(routes) {
@@ -104,6 +104,54 @@ describe("createFetcher", () => {
     expect(f.logged()).toEqual(["301 https://api.github.com/repos/a/b", "302 https://api.github.com/repositories/1", "200 https://raw.githubusercontent.com/a/b/c"]);
   });
 
+  describe("offline (a generator's --check)", () => {
+    /** An offline fetcher over a fresh cache holding `seed` ({ key: [meta, body?] }), with a spy that redirects every request. */
+    function offlineFetcher(seed = {}) {
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "forever-sim-http-offline-"));
+      dirs.push(cacheDir);
+      for (const [key, [meta, body]] of Object.entries(seed)) {
+        const file = path.join(cacheDir, key);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(`${file}.meta.json`, JSON.stringify(meta));
+        if (body !== undefined) fs.writeFileSync(file, body);
+      }
+      const fetchImpl = vi.fn(async () => new Response(null, { status: 302, headers: { location: "https://wago.tools/api/builds" } }));
+      const log = vi.fn();
+      const f = createFetcher({ cacheDir, offline: true, log, fetchImpl });
+      return { f, fetchImpl, log, requestLog: path.join(cacheDir, "requests.jsonl") };
+    }
+    const url = "https://wago.tools/api/builds";
+
+    it("throws on a miss, with accept404 too, and on a meta without its body, without a request", async () => {
+      const { f, fetchImpl, log, requestLog } = offlineFetcher({ "no-body.json": [{ url, status: 200 }] });
+      await expect(f.get(url, "missing.json")).rejects.toThrow(/isn't in the cache.*offline run makes no requests/);
+      await expect(f.get(url, "missing.json", { accept404: true })).rejects.toThrow(/isn't in the cache/);
+      await expect(f.get(url, "no-body.json")).rejects.toThrow(/isn't in the cache/);
+      expect(fetchImpl).not.toHaveBeenCalled();
+      // No hook ran: nothing counted as a request, logged or written to requests.jsonl.
+      expect(f.stats().requests).toBe(0);
+      expect(log).not.toHaveBeenCalled();
+      expect(fs.existsSync(requestLog)).toBe(false);
+    });
+
+    it("serves cached hits and cached 404s, without a request", async () => {
+      const { f, fetchImpl, requestLog } = offlineFetcher({
+        "hit.json": [{ url, status: 200 }, "cached body"],
+        "gone.json": [{ url, status: 404 }],
+      });
+      expect((await f.get(url, "hit.json")).toString()).toBe("cached body");
+      expect(await f.get(url, "gone.json", { accept404: true })).toBeNull();
+      await expect(f.get(url, "gone.json")).rejects.toThrow(/HTTP 404 \(cached\)/);
+      expect(f.stats()).toEqual({ requests: 0, cacheHits: 3 });
+      expect(fetchImpl).not.toHaveBeenCalled();
+      expect(fs.existsSync(requestLog)).toBe(false);
+    });
+
+    it("refuses offline with refresh", () => {
+      expect(() => createFetcher({ cacheDir: os.tmpdir(), offline: true, refresh: true, fetchImpl: vi.fn() })).toThrow(/offline fetcher can't refresh/);
+    });
+  });
+
   it("logs the request already made when the next hop is refused", async () => {
     const f = fetcher({ "https://wago.tools/api/builds": [302, "https://evil.example/x"] });
     await expect(f.get("https://wago.tools/api/builds", "builds.json")).rejects.toThrow(RefusedError);
@@ -124,5 +172,11 @@ describe("build versions and commits", () => {
     for (const v of ["../..", "1.60.1", "1.60.1.69913/../x", "1.60&x=1", " 1.60.1.69913", undefined, 1601]) expect(() => assertBuildVersion(v)).toThrow(/build version/);
     expect(assertCommitSha("2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e")).toBe("2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e");
     for (const sha of ["2f0893f", "../master", "2F0893F8B18B45A9CBE7CBBFB0DA73C00DA6651E"]) expect(() => assertCommitSha(sha)).toThrow(/SHA/);
+  });
+
+  it("makes a --dbdefs that isn't a full SHA a usage error, before the generator runs", () => {
+    expect(dbdefsProblems({ dbdefs: null })).toEqual([]);
+    expect(dbdefsProblems({ dbdefs: "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e" })).toEqual([]);
+    expect(dbdefsProblems({ dbdefs: "deadbeef" })).toEqual(["--dbdefs=deadbeef isn't a WoWDBDefs commit SHA (40 lowercase hex digits)"]);
   });
 });

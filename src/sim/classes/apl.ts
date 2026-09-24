@@ -8,7 +8,7 @@
 // place for what it doesn't name. The spec's compiler emits each row's lines in that order
 // (`compileAplRows`), so the engine's priority list is the tab's.
 import type { AplDefinition, AplPreset, RotationOption, RotationValue } from '../types'
-import { resolveRotationValues } from './options'
+import { type RotationSetup, resolveRotationValues } from './options'
 
 /** The preset that's the spec's defaults: the default order, every setting at its default. */
 export const DEFAULT_APL_PRESET = 'default'
@@ -99,16 +99,28 @@ export function aplRowOptionIds(def: AplDefinition): Set<string> {
   return new Set(def.rows.flatMap((r) => [...(r.enabledId === undefined ? [] : [r.enabledId]), ...r.optionIds]))
 }
 
-/** The spec's default and its named presets, the default first. */
+/**
+ * The spec's default and its named presets: the default first, unless the spec names it itself (a
+ * preset with id DEFAULT_APL_PRESET, placed and labelled as the spec lists it: the Protection
+ * paladin's Balanced, between Defensive and Max TPS).
+ */
 export function aplPresets(def: AplDefinition): AplPreset[] {
+  if (def.presets.some((p) => p.id === DEFAULT_APL_PRESET)) return [...def.presets]
   return [{ id: DEFAULT_APL_PRESET, label: 'Default', help: 'The spec’s defaults.', values: {} }, ...def.presets]
 }
 
 /**
+ * The settings the presets decide: every row setting, and every spec-wide one a preset names (a
+ * tank's Priority choice). Picking any preset sets them all, to its values or their defaults.
+ */
+function presetOptionIds(def: AplDefinition): Set<string> {
+  return new Set([...aplRowOptionIds(def), ...def.presets.flatMap((p) => Object.keys(p.values))])
+}
+
+/**
  * Which preset the list matches: the first whose order is the list's and whose settings resolve to
- * the list's for every row setting and every setting the preset names (a default can follow the
- * talents or another setting, so values are compared as the sim uses them). CUSTOM_APL_PRESET
- * when none does.
+ * the list's for every setting the presets decide (a default can follow the talents or another
+ * setting, so values are compared as the sim uses them). CUSTOM_APL_PRESET when none does.
  */
 export function activeAplPreset(
   def: AplDefinition,
@@ -116,31 +128,32 @@ export function activeAplPreset(
   saved: Readonly<Record<string, RotationValue>>,
   order: readonly string[] | undefined,
   talents: ReadonlyMap<string, number>,
+  setup: RotationSetup = {},
 ): string {
   const current = normalizeAplOrder(def, order)
-  const values = resolveRotationValues(options, saved, talents)
-  const rowIds = aplRowOptionIds(def)
+  const values = resolveRotationValues(options, saved, talents, setup)
+  const ids = [...presetOptionIds(def)]
   for (const preset of aplPresets(def)) {
     const presetOrder = normalizeAplOrder(def, preset.order)
     if (presetOrder.some((id, i) => id !== current[i])) continue
-    const theirs = resolveRotationValues(options, presetSaved(def, saved, preset), talents)
-    const ids = [...rowIds, ...Object.keys(preset.values)]
+    const theirs = resolveRotationValues(options, presetSaved(def, saved, preset), talents, setup)
     if (ids.every((id) => theirs[id] === values[id])) return preset.id
   }
   return CUSTOM_APL_PRESET
 }
 
-/** The saved settings with a preset picked: the spec-wide ones you set stay, unless the preset names them. */
+/** The saved settings with a preset picked: the spec-wide ones you set stay, unless the presets decide them. */
 function presetSaved(def: AplDefinition, saved: Readonly<Record<string, RotationValue>>, preset: AplPreset): Record<string, RotationValue> {
-  const rowIds = aplRowOptionIds(def)
-  const kept = Object.fromEntries(Object.entries(saved).filter(([id]) => !rowIds.has(id)))
+  const decided = presetOptionIds(def)
+  const kept = Object.fromEntries(Object.entries(saved).filter(([id]) => !decided.has(id)))
   return { ...kept, ...preset.values }
 }
 
 /**
  * The saved settings and stored order with preset `id` picked: its order and its values for the
  * list's settings, the rest of the list's at their defaults; the spec-wide settings you set stay
- * (a potion's limit), unless the preset names them. Undefined for an unknown preset.
+ * (a potion's limit), unless a preset names them (a tank's Priority: its value, or its default).
+ * Undefined for an unknown preset.
  */
 export function applyAplPreset(
   def: AplDefinition,

@@ -59,9 +59,9 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
     await expect(gear.getByText('1 slot differs from the threat set: Head. Equipping it replaces that slot.', { exact: true })).toBeVisible()
 
-    // Today's default build, 0/38/13.
+    // Today's default build, the guild theorycrafter's 9/35/7 (D30).
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/0\s*\/\s*38\s*\/\s*13/).first()).toBeVisible()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/9\s*\/\s*35\s*\/\s*7/).first()).toBeVisible()
 
     // The load saved what follows, so a reload moves nothing and says nothing.
     await page.reload()
@@ -110,7 +110,7 @@ test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
       await gear.getByRole('button', { name: 'Gear options' }).click()
       await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
       await expect(page.getByRole('menuitem', { name: /Equip/ })).toHaveCount(0)
-      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and \\d+ more\\. Equipping it replaces all '
+      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and \\d+ more\\. Equipping it fills all\\s'
       await expect(equip).toHaveAccessibleDescription(new RegExp(`^(\\d+) ${differs}\\1\\.$`))
       expect((await equip.boundingBox())!.height).toBeGreaterThanOrEqual(44)
 
@@ -125,6 +125,29 @@ test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     })
   }
+
+  test('names a slot it clears: an Arms warrior’s own off hand, which the two-hander leaves empty', async ({ page }) => {
+    await page.goto('about:blank')
+    await page.goto(`./${await linkFor(page, { version: 1, spec: 'warrior-arms' })}`)
+    const gear = page.getByRole('tabpanel', { name: 'Gear' })
+    const onIcon = { position: { x: 24, y: 24 } }
+    for (const [slot, search, item] of [
+      ['main hand', 'ironfoe', /Ironfoe/],
+      ['off hand', 'mirah', /Mirah/],
+    ] as const) {
+      await gear.getByRole('button', { name: new RegExp(`^${slot[0].toUpperCase()}${slot.slice(1)}: `) }).click(onIcon)
+      const picker = page.getByRole('dialog', { name: `Choose ${slot}` })
+      await picker.getByLabel('Search items').fill(search)
+      await picker.getByRole('button', { name: item }).click(onIcon)
+      await expect(picker).toBeHidden()
+    }
+    await expect(gear.locator('#gear-default-status')).toHaveText(
+      /^2 slots differ from pre-raid best in slot: Main hand and Off hand\. Equipping it replaces\s1 slot and clears Off hand\.$/,
+    )
+    await gear.getByRole('button', { name: 'Equip pre-raid best in slot' }).click()
+    await expect(gear.getByRole('button', { name: /^Main hand: Blackblade of Shahram/ })).toBeVisible()
+    await expect(gear.getByRole('button', { name: /^Off hand: two-handed weapon equipped/ })).toBeVisible()
+  })
 })
 
 test.describe('the Talents tab’s default build line (docs/ux.md "Talents")', () => {

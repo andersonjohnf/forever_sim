@@ -11,11 +11,13 @@ import { Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { buffSwitchId } from './ids'
+import { weaponNote } from './weapon-note'
 import {
   buffCatalogueFor,
   buffPresets,
   buffProvided,
   unusedBuffs,
+  buffSummaryFor,
   defaultConfig,
   unusedRotationSettings,
   FULL_RAID,
@@ -251,19 +253,24 @@ export function BuffsSection() {
                       // Replaced, and your rotation doesn't cast it then (a bear's roar under a Demoralizing
                       // Shout: its Rotation setting says it isn't used; druid.md §6.3).
                       const notCast = replacedBy !== undefined && notCastOwn.has(def.id)
-                      let help = def.summary
-                      if (talent) help = `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
-                      else if (replacedBy && notCast) help = `${def.summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`
-                      else if (replacedBy) help = `${def.summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
-                      else if (own) help = `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
-                      else if (unused !== undefined) help = `${def.summary}. ${unused}.`
+                      // A stone's or an oil's note names what this spec's weapons can take (weapon-note.ts).
+                      const note = weaponNote(def, buffCatalogue, inert)
+                      // A bomb's summary says what its throw holds for this spec (buffs doc §3.7).
+                      const base = buffSummaryFor(def, meta.id)
+                      const summary = note ? `${base} ${note}` : base
+                      let help = summary
+                      if (talent) help = `${summary}. Your talents bring it (see Talents), so it isn’t added twice.`
+                      else if (replacedBy && notCast) help = `${summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`
+                      else if (replacedBy) help = `${summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
+                      else if (own) help = `${summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
+                      else if (unused !== undefined) help = `${summary}. ${unused}.`
                       // You're one of your class yourself, so a buff your class brings that you don't count
                       // for needs another (a paladin's Blessing of Kings, a cat's Faerie Fire when its
                       // rotation drops it; docs/ux.md "Buffs").
                       else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
-                      else if (dropped) help = `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
-                      else if (dutyOf) help = `${def.summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
-                      else if (tankOnly) help = `${def.summary}. Only the tank takes the boss’s swings, so it changes nothing for you.`
+                      else if (dropped) help = `${summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
+                      else if (dutyOf) help = `${summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
+                      else if (tankOnly) help = `${summary}. Only the tank takes the boss’s swings, so it changes nothing for you.`
                       return (
                         // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
                         // colour, never opacity: its text turns to the muted colour (AA) and its icon to

@@ -85,4 +85,32 @@ test.describe('faction gear', () => {
     await expect(feet.getByRole('button', { name: /Blood Guard's Plate Greaves/ })).toBeVisible()
     await expect(feet.getByRole('button', { name: /Knight-Lieutenant's Plate Greaves/ })).toHaveCount(0)
   })
+
+  // #12 said the picker offers the other faction's items. It doesn't (e7a9c882): this pins the filter
+  // for a character wearing one of the other faction's items, which stays listed rather than vanishing.
+  test('a worn item of the other faction stays in its slot and the picker; the rest of that faction’s aren’t offered', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      // A Human wearing the Horde's Champion's Plate Shoulders (23243); nothing follows the defaults.
+      const config = { version: 1, spec: 'warrior-fury', race: 'alliance-human', gear: { shoulder: { itemId: 23243 } } }
+      const state = { config, bySpec: {}, section: 'gear', following: { 'warrior-fury': { gear: [], talents: false } } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    await expect(page.getByRole('button', { name: 'Shoulders: Champion\'s Plate Shoulders' })).toBeVisible()
+    await page.getByRole('button', { name: /^Shoulders: / }).click(onIcon)
+    const picker = page.getByRole('dialog', { name: 'Choose shoulders' })
+    await picker.getByRole('radio', { name: 'All items' }).click()
+    await expect(picker.getByRole('button', { name: /^Champion's Plate Shoulders\..*Equipped$/ })).toBeVisible()
+    await expect(picker.getByRole('button', { name: /^Lieutenant Commander's Plate Shoulders/ })).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    // Other slots offer the Alliance's own, and none of the Horde's.
+    await page.getByRole('button', { name: /^Feet: / }).click(onIcon)
+    const feet = page.getByRole('dialog', { name: 'Choose feet' })
+    await feet.getByLabel('Search items').fill('plate greaves')
+    await expect(feet.getByRole('button', { name: /Knight-Lieutenant's Plate Greaves/ })).toBeVisible()
+    await expect(feet.getByRole('button', { name: /Blood Guard's Plate Greaves/ })).toHaveCount(0)
+  })
 })

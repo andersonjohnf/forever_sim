@@ -60,6 +60,12 @@ UI state ──► SimConfig (plain, serializable) ──► Plan ──► Work
   casts and buffs that deal no damage (`cooldowns`), the character sheet, the assumptions,
   and later optionally one sample combat log. A `SimResult` lives only in memory: nothing
   saves or shares it, so it can grow fields freely.
+- **Results are keyed by spec** (`src/app/sim-store.ts`). Each spec keeps its latest result and
+  the config it ran (`bySpec`, `resultKey`), and a result lands under its own spec
+  (`result.spec`). The run under way records its config (`runKey`). A spec switch cancels it at
+  once (the store subscribes to the setup's spec), so a run never goes on out of sight and
+  switching spec never mixes two specs' numbers. One run goes at a time: a new one aborts the
+  last.
 - Class data is loaded lazily (dynamic `import()` per class), so the first paint stays small.
 
 ### Following the defaults
@@ -78,6 +84,11 @@ talent build, and what they changed stays theirs.
   holds `following: { [spec]: { gear: GearSlot[], talents: boolean } }`, worked out by comparison
   on every save (`following()`), for the current setup and each spec's last one. The setups
   themselves are saved whole, so an older copy of the app reading the save still gets a full setup.
+- **A load trusts nothing in the save** (`merge` in `setup-store.ts`): a state that isn't an object
+  reads as none, `bySpec` keeps only entries whose key is a spec id (`SPEC_IDS`) and whose setup is
+  that spec's, `section` falls back to Gear unless it's one of today's tabs (`SECTION_IDS`), and
+  unknown keys are dropped. A save from another version (`version` other than 1) goes through the
+  same merge (`migrate` passes it on) rather than being dropped with a console error.
 - **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
   The player's own slots go in first: a default item that would break a Unique rule with one of
   them, or a default two-hander beside their own off hand, leaves its slot as it was, and a
@@ -146,18 +157,29 @@ A spec is data plus small ability modules, never its own loop.
   of a few named values).
 - **Rotation as a priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
   A spec on the list declares its rotation as an `AplDefinition` (`sim/types.ts`, returned by
-  `rotationApl` in `sim/classes/rotation.ts`; Fury first, the rest in M5.65 A2):
+  `rotationApl` in `sim/classes/rotation.ts`; Fury first, then the three tanks in A2, the rest in
+  M5.65 A2):
   - **Rows**, in the default order. Each has a stable `id`, a label and icon, the switch that turns
     it on (`enabledId`), its own settings (`optionIds`) and a summary built from them. Row settings
     are the spec's ordinary `RotationOption`s, so the resolver, `normalizeConfig`, the unused
-    notes and the changed marks work as before. A `pinned` row's place is a rule (the pre-pull):
-    it doesn't move and no row crosses it.
-  - **Spec-wide settings** (`specWide`: a stance, a pet, a tank's priority, the consumables) sit
-    above the list, not in a row.
-  - **Presets** (`presets`): an order plus values for the rows' settings. The spec's defaults are
-    the implicit `default` preset. `activeAplPreset` says which one the list matches, or `custom`.
-    Picking one (`applyAplPreset`) sets its order and row values and resets the rest of the rows'
-    settings, keeping the spec-wide ones you set.
+    notes and the changed marks work as before. A `pinned` row's place is a rule: only the
+    pre-pull and opener are pinned, first; it doesn't move and no row crosses it. D26's duties are
+    ordinary rows (D31): their timing rule is their own condition, so it holds wherever they sit.
+  - **Spec-wide settings** (`specWide`: a stance, a pet, the consumables) sit above the list, not
+    in a row.
+  - **Presets** (`presets`, one mechanism for every spec): an order plus values for the rows'
+    settings, with `help` (the full text, for a tank's with its measured numbers) and `summary`
+    (the short line under the picker). The spec's defaults are the `default` preset: a spec
+    without named rotations gets an implicit one, "Default", first (Fury); a spec with them lists
+    it itself, which names and places it (a tank's Balanced, between Defensive and Max TPS, with
+    empty values and no order, since it's the defaults). `activeAplPreset` says which one the
+    list matches, or `custom`. Picking one (`applyAplPreset`) sets its order and row values and
+    resets the rest of the rows' settings, keeping the spec-wide ones you set. **A setting a
+    preset names is the presets'** (a tank's Priority choice, D28, whose value is the preset): it
+    isn't in `specWide` and has no control but the picker; picking any preset sets it, to its
+    value or its default, and the match compares it, so a stored Max TPS reads as Max TPS even
+    where its rows resolve as the default's. For such a spec the Rotation tab puts the picker at
+    the top of the tab (`AplPresetPicker`, docs/ux.md "A tank's presets").
   - **The order** is `SimConfig.rotationOrder`, row ids, stored only while it differs from the
     default. `normalizeAplOrder` (`sim/classes/apl.ts`) reads any stored order. It drops unknown
     ids, and keeps pinned rows fixed. A row the order doesn't name goes just after the nearest
@@ -177,8 +199,17 @@ A spec is data plus small ability modules, never its own loop.
     wherever it sits, so a row that refers to another's ability (Whirlwind waiting on
     Bloodthirst) resolves it by definition (`RotationBuilder.ability`). In the default order,
     that returns the index the earlier row gave it, so the plan is byte-identical to the one
-    before the list. Rows off the GCD that aren't in the list (Fury's consumables) and the
-    pre-pull are built after it.
+    before the list. Rows off the GCD that aren't in the list (Fury's and the paladin's
+    consumables) and the pre-pull are built after it, unless they had a place of their own in the
+    priority before the list: the warrior's and the bear's consumables take their turn with the
+    on-use trinkets' or items' row, wherever it sits, which in the default order is where they
+    were, so their plans stay byte-identical. Two rows that share a cooldown (the paladin's
+    Hammer of the Righteous and Holy Strike) read the order: the higher one that's on is used,
+    and `unusedRotationSettings` takes `rotationOrder` so the lower one says why it isn't.
+  - **Equivalence.** Each tank moved onto the list with a snapshot of 200 random setups' plans
+    taken on the code before it (`*-apl-cases.ts`, `*-apl.test.ts`): Defensive and Max TPS give
+    them byte for byte (the bear's Max TPS with Maul at its old 20, since T5 moved it on purpose),
+    and each tank keeps a Defensive golden equal to its old default's.
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
   it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their
@@ -381,7 +412,9 @@ A spec is data plus small ability modules, never its own loop.
   ability can name an aura whose stacks cut its cast time and cost by a share each and which using
   it spends (`stackAura`: Maelstrom Weapon on Lightning Bolt; a cost it cuts rounds down, and a free
   cast starts no five-second rule), and a second aura it puts on the player when used (`selfAura`:
-  Improved Stormstrike's). Condition 34, `auraStacksAtLeast`, waits for an aura's stacks. An aura's
+  Improved Stormstrike's). Condition 34, `auraStacksAtLeast`, waits for an aura's stacks; condition
+  35, `mainSwingWithin`, for a main-hand swing a moment ago, which makes each main-hand swing a
+  decision point (a spec that swings throws EZ-Thro Dark Bomb just after one). An aura's
   white-swing charges can be used at most once per so many ms (`whiteSwingChargeIcdMs`: Flurry's
   500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and an aura can let a share
   of spirit regeneration continue inside the five-second rule while it's up (the caster core's
@@ -550,11 +583,24 @@ A spec is data plus small ability modules, never its own loop.
   (100–100,000).
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
-  chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
-  with an error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes
-  well under a second on a desktop even at the longest fight), and replaces that worker; it never
-  changes a result. It counts in 1 s heartbeats while the pool has work, and a beat adds at most
-  2 s however long it's been since the last one, so a tab the phone or Energy Saver froze resumes
+  chunks; cancelling stops dispatch, and a worker still busy with the cancelled run's chunks is
+  terminated (`abandon` on the executor), so a chunk that hung after the cancel can't fail the next
+  run; the next run replaces it, while an idle worker stays warm. A watchdog fails the run with an
+  error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes well
+  under a second on a desktop even at the longest fight), and drops that worker; it never
+  changes a result. A worker that crashes is dropped the same way. The next run replaces what was
+  dropped, and nothing else does: a worker whose script can't load (the site updated since the page
+  loaded) would otherwise fail and respawn in a loop, and each run now costs at most one worker per
+  lane however often they fail. A worker posts `ready` once its script has loaded and run: one that
+  fails before that says the simulation couldn't start and to reload the page; one that fails after
+  it says it stopped unexpectedly (`WORKER_START_MESSAGE`, `WORKER_CRASH_MESSAGE` in
+  `src/sim/run/pool.ts`). A plan the engine can't build doesn't crash the worker: its chunks answer
+  with the error (`src/worker/handler.ts`). When fresh workers have failed to start in two runs in a
+  row (`START_FAILURES_BEFORE_FALLBACK`), with none starting since, the pool is `unstartable` and
+  `executorFor` (`src/sim/index.ts`) runs every later run on the page's own thread, as where workers
+  don't exist: slower, but a result rather than none until a reload. The watchdog counts in 1 s
+  heartbeats while the pool has work, and a beat adds at most 2 s however long it's been since the
+  last one, so a tab the phone or Energy Saver froze resumes
   its run instead of failing it on waking; time the page is hidden doesn't count either. Any
   future pool work (the optimizer's) must also answer within 60 s of awake time, or scale the
   timeout. Where workers don't exist (Node, tests), the same chunks run on the calling thread,

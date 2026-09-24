@@ -1,5 +1,5 @@
 // The Protection paladin (docs/classes/paladin.md "Protection: model and rotation", #protection-tree,
-// #threat-paladin-specific): its settings and the Max TPS priority (D26), its priority list, Holy
+// #threat-paladin-specific): its settings and its three rotations (D26, D28), its priority list, Holy
 // Shield (worked example 12, its charges and its threat), Swift Judgement, Reckoning, Redoubt,
 // Devotion Aura and Retribution Aura, Seal of Fury's absorb with Improved Seal of Fury's mana, the
 // threat of each ability, mana over a long fight, and determinism.
@@ -37,6 +37,8 @@ const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
 const NO_BUFFS: SimConfig['buffs'] = { raid: [], enabled: [] }
 const MAX_TPS = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
+/** Defensive, D26's "Tank duties first": Holy Strike, which the fights below were written for (Balanced plays Hammer of the Righteous). */
+const DEFENSIVE = { [ID.priority]: PROTECTION_PRIORITY.duties }
 /** Without your own Judgement of the Crusader (paladin.md "the opener"), for the tests of other rows' numbers and order. */
 const NO_JOTC = { [ID.crusader]: false }
 
@@ -66,7 +68,13 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
     const ids = PROTECTION_OPTIONS.map((o) => o.id)
     expect(new Set(ids).size).toBe(ids.length)
     const [priority, ...rest] = PROTECTION_OPTIONS
-    expect(priority).toMatchObject({ kind: 'choice', id: 'paladin.protection.priority', default: 'duties' })
+    expect(priority).toMatchObject({ kind: 'choice', id: 'paladin.protection.priority', default: 'balanced' })
+    // D28: the stored values of D26's two rotations still load, as Defensive and Max TPS.
+    expect(priority.kind === 'choice' && priority.choices).toEqual([
+      { value: 'duties', label: 'Defensive' },
+      { value: 'balanced', label: 'Balanced' },
+      { value: 'maxTps', label: 'Max TPS' },
+    ])
     expect(priority.group).toBeUndefined()
     for (const [i, option] of rest.entries()) {
       expect(option.id).toMatch(/^paladin\.protection\.[a-zA-Z0-9]+\.[a-zA-Z]+$/)
@@ -92,9 +100,12 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
     }
   })
 
-  it('has the tuned defaults (paladin.md "Tuning the defaults")', () => {
+  it('has the tuned defaults (paladin.md "Tuning the defaults", "Balanced")', () => {
+    // Balanced, the default, plays as Defensive: Holy Strike, and Hammer of the Righteous off (D28).
+    expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
     expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)).toMatchObject({
-      [ID.priority]: 'duties',
+      [ID.priority]: 'balanced',
+      [ID.hammerOfTheRighteous]: false,
       [ID.seal]: 'fury',
       [ID.sealRefresh]: 2.5,
       [ID.holyShield]: true,
@@ -121,22 +132,27 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
   })
 })
 
-describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', () => {
-  it('drops Devotion Aura, the paladin’s duty, for Retribution Aura, and moves nothing else', () => {
-    const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
+describe('Defensive, Balanced and Max TPS (paladin.md "Priority: Defensive, Balanced or Max TPS", D26, D28)', () => {
+  it('Max TPS drops Devotion Aura, the paladin’s duty, for Retribution Aura; Balanced plays as Defensive; nothing else moves', () => {
+    const defensive = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)
-    expect([duties[ID.devotionAura], max[ID.devotionAura]]).toEqual([true, false])
-    const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([ID.priority, ID.devotionAura].sort())
+    const balanced = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
+    expect([defensive[ID.devotionAura], max[ID.devotionAura], balanced[ID.devotionAura]]).toEqual([true, false, true])
+    const moved = (values: typeof max) => Object.keys(defensive).filter((id) => defensive[id] !== values[id])
+    expect(moved(max).sort()).toEqual([ID.priority, ID.devotionAura].sort())
+    // D28: a paladin's Balanced keeps Defensive's upkeep, Devotion Aura and Holy Shield, and Holy
+    // Strike too (user decision: Iron Creed is active mitigation), so only the priority differs.
+    expect(moved(balanced)).toEqual([ID.priority])
     const devotion = PROTECTION_OPTIONS.find((o) => o.id === ID.devotionAura)!
     expect(devotion).toMatchObject({ kind: 'toggle', maintainsBuff: 'devotionAura' })
     expect(devotion.help).toContain('Max TPS')
   })
 
-  it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
+  it('keeps a value you set yourself, and Balanced is the default', () => {
     const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX_TPS, [ID.devotionAura]: true }, TALENTS)
     expect(own[ID.devotionAura]).toBe(true)
-    const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.duties }, TALENTS)
+    expect(resolveRotationValues(PROTECTION_OPTIONS, { ...DEFENSIVE, [ID.hammerOfTheRighteous]: true }, TALENTS)[ID.hammerOfTheRighteous]).toBe(true)
+    const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.balanced }, TALENTS)
     expect(back).toEqual(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS))
   })
 
@@ -178,7 +194,7 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
       const plan = buildPlan({ ...d, rotation }).plan
       return toResult({ plan, sheet: buildPlan({ ...d, rotation }).sheet, assumptions: [] }, runFights(plan, 400), 0)
     }
-    const duties = run({})
+    const duties = run(DEFENSIVE)
     const max = run(MAX_TPS)
     // Retribution Aura's 30 a hit has no spell damage coefficient, so its share falls as spell damage rises.
     expect(max.tps.mean).toBeGreaterThan(duties.tps.mean * 1.02)
@@ -380,8 +396,13 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
   })
 
   it('ends the cooldown of every judgement in Judgement’s category, and never one that can’t be used again', () => {
-    // Without buffs, Consecration off, so mana never delays a judgement.
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { [ID.consecration]: false } })
+    // Without buffs, Consecration off, so mana never delays a judgement. On T2's fix-round build (the
+    // default until the theorycrafter's), whose global cooldowns the timing below is worked out on.
+    const plan = protPlan({
+      talents: '-0530513321301551-50215',
+      fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 },
+      rotation: { ...DEFENSIVE, [ID.consecration]: false },
+    })
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     // Two more judgements in the category, with no line: Righteousness's, and one this setup can
     // never use (a two-hander's, with a one-hander: never ready, at Infinity).
@@ -635,7 +656,7 @@ describe('threat per ability (paladin.md#threat-paladin-specific; threat.md)', (
 
 describe('mana over a long fight (paladin.md "Protection: model and rotation", #mana-model)', () => {
   it('10 minutes: the seal, Holy Shield, Judgement and Holy Strike stay up; Consecration and the potion hold the pool until the execute phase', () => {
-    const plan = protPlan({ buffs: defaultConfig(PROT).buffs, fight: { ...defaultConfig(PROT).fight, durationSec: 600, durationVariationPct: 0 } })
+    const plan = protPlan({ buffs: defaultConfig(PROT).buffs, rotation: DEFENSIVE, fight: { ...defaultConfig(PROT).fight, durationSec: 600, durationVariationPct: 0 } })
     const sim = new Sim(plan)
     const fights = 20
     let low = Infinity
@@ -680,7 +701,7 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
 
 describe('Iron Creed’s damage taken (paladin.md#protection-tree)', () => {
   it('5/5: each landed Holy Strike cuts damage taken by 10% for 6 s; none without the talent', () => {
-    const plan = protPlan()
+    const plan = protPlan({ rotation: DEFENSIVE })
     const strike = plan.abilities.find((a) => a.id === 'holyStrike')!
     const aura = auraOf(plan, 'ironCreed')
     expect(strike.aura).toBe(aura)
@@ -744,7 +765,7 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
   })
 
   it('a spell that can’t crit never does, on the melee and ranged tables too', () => {
-    const plan = protPlan()
+    const plan = protPlan({ rotation: DEFENSIVE })
     plan.stats.crit = 100
     const jof = plan.spells!.findIndex((s) => plan.sources[s.source].id === 'judgementOfFury')
     const how = plan.spells!.findIndex((s) => plan.sources[s.source].id === 'hammerOfWrath')
@@ -826,7 +847,7 @@ describe('the assumptions speak paladin (QU13)', () => {
 
 describe('the results’ rows (docs/ux.md#results)', () => {
   it('Holy Shield’s damage counts blocks and shows no crit or avoided; Reckoning counts extra attacks; the mana rows their mana; Swift Judgement no uptime', () => {
-    const bundle = buildPlan(defaultConfig(PROT))
+    const bundle = buildPlan({ ...defaultConfig(PROT), rotation: DEFENSIVE })
     const result = toResult(bundle, runFights(bundle.plan, 200), 0)
     const row = (id: string) => result.abilities.find((a) => a.id === id)!
     expect(row('holyShieldProc')).toMatchObject({ certain: true, counts: 'blocks' })
@@ -874,15 +895,44 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
     expect(unmetRequirements({ ...d, gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ shield: true })
     expect(unmetRequirements({ ...d, talents: '', gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ talent: 'Holy Shield', shield: true })
     expect(unmetRequirements({ ...d, talents: '' }, { talent: 'Swift Judgement' })).toEqual({ talent: 'Swift Judgement' })
-    // Nothing else is unused in the default setup; Exorcism's target is its option's.
+    // Nothing else is unused with any preset. Hammer of the Righteous, turned on, takes Holy Strike's
+    // place with the default axe while it sits above it (paladin.md row 5b), Holy Strike only its
+    // fallback; and says why without the weapon or below Holy Strike. Exorcism's target is its option's.
+    expect(unusedRotationSettings({ ...d, rotation: DEFENSIVE })).toEqual({})
     expect(unusedRotationSettings(d)).toEqual({})
+    const hammer = { ...d, rotation: { [ID.hammerOfTheRighteous]: true } }
+    expect(unusedRotationSettings(hammer)).toEqual({
+      [ID.holyStrike]: 'Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.',
+    })
+    const twoHander = { ...hammer, gear: { mainHand: { itemId: 12784 } } }
+    expect(unusedRotationSettings(twoHander)).toEqual({ [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is used.' })
+    // With Holy Strike off, neither is used: the note says how to get Holy Strike back (TI-6).
+    expect(unusedRotationSettings({ ...twoHander, rotation: { ...hammer.rotation, [ID.holyStrike]: false } })).toEqual({
+      [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand. Turn Holy Strike on to use it instead.',
+    })
+    // With no main hand, Holy Strike can't be used either, so the note doesn't promise it, and Holy
+    // Strike says so too, with Hammer on or off (TV-3); off, it has nothing to say.
+    const noWeapon = 'Not used: needs a weapon in your main hand.'
+    expect(unusedRotationSettings({ ...hammer, gear: {} })).toEqual({
+      [ID.holyStrike]: noWeapon,
+      [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand.',
+    })
+    expect(unusedRotationSettings({ ...d, gear: {} })).toEqual({ [ID.holyStrike]: noWeapon })
+    expect(unusedRotationSettings({ ...d, gear: {}, rotation: { [ID.holyStrike]: false } })).toEqual({})
+    const below = { ...hammer, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] }
+    expect(unusedRotationSettings(below)).toEqual({
+      [ID.hammerOfTheRighteous]: 'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.',
+    })
+    // The Buffs tab reads it without the gear: nothing for the weapon, which it can't know.
+    const { gear: _, ...noGear } = hammer
+    expect(unusedRotationSettings(noGear)).toEqual({})
     expect(option(ID.exorcism)).toMatchObject({ needsCreatureType: ['undead', 'demon'] })
   })
 })
 
 describe('determinism', () => {
   it('the same config and seed give the same fights, with either priority; another seed doesn’t', () => {
-    for (const rotation of [{}, MAX_TPS]) {
+    for (const rotation of [{}, DEFENSIVE, MAX_TPS]) {
       const plan = buildPlan({ ...defaultConfig(PROT), rotation }).plan
       const a = runChunk(plan, 0, 50)
       const b = runChunk(plan, 0, 50)
@@ -899,7 +949,7 @@ describe('Judgement of the Crusader, your own (paladin.md "the opener", worked e
   const spellOf = (plan: Plan, id: string) => plan.spells!.find((s) => s.id === id)!
 
   it('is on by default: Seal of the Crusader before the pull, judged at the pull, and your auto attacks keep it up all fight', () => {
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationVariationPct: 0 } })
+    const plan = protPlan({ rotation: DEFENSIVE, fight: { ...defaultConfig(PROT).fight, durationVariationPct: 0 } })
     expect(plan.prepull.casts.map((c) => plan.abilities[c.ability].id)).toEqual(['devotionAura', 'righteousFury', 'sealOfTheCrusader'])
     expect(plan.procs.some((p) => p.id === 'judgementOfTheCrusaderRefresh')).toBe(true)
     const sim = new Sim(plan)
@@ -987,12 +1037,16 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     const on = { [ID.hammerOfTheRighteous]: true }
     const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'weaponOnly') =>
       protectionRotation(on, TALENTS, () => -1, { ...ctx, mainHand, hotrWeaponDps: rules }).abilities.filter((a) => a.id === 'holyStrike' || a.id === 'hammerOfTheRighteous')
-    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous'])
+    // Both, Hammer first: the shared cooldown leaves Holy Strike only when Hammer can't be paid (TI-5).
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous', 'holyStrike'])
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
-    // Off by default: Holy Strike makes more threat in the default setup (paladin.md "Tuning the defaults").
+    // Off in every preset: Holy Strike makes more threat, and Balanced keeps its Iron Creed as active
+    // mitigation (paladin.md "Priority: Defensive, Balanced or Max TPS"; D28).
     expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
+    expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
+    expect(resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
   })
 
   it('in the fight: every 6 s, holding Holy Strike, and the results note which weapon DPS it used', () => {
@@ -1001,10 +1055,42 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     for (let i = 0; i < 3; i++) sim.runFight(i)
     const casts = field(sim, on.plan, 'hammerOfTheRighteous', FIELD.casts) / 3
     expect(casts).toBeGreaterThan(0.9 * (on.plan.fight.durationMs / 6000) * 0.8)
-    expect(on.plan.sources.some((s) => s.id === 'holyStrike')).toBe(false)
+    // Holy Strike waits under it, for when Hammer's 90 mana isn't there: in the default setup, rarely.
+    expect(field(sim, on.plan, 'holyStrike', FIELD.casts) / 3).toBeLessThan(casts / 4)
     expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
     const weaponOnly = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'weaponOnly' }, rotation: { [ID.hammerOfTheRighteous]: true } })
     expect(weaponOnly.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+  })
+})
+
+describe('Hammer of the Righteous’s fallback, Holy Strike (TI-5)', () => {
+  it('when Hammer’s 90 mana isn’t there, Holy Strike, 20 mana, under it takes the shared cooldown', () => {
+    // A paladin whose bar holds 50 mana can never pay Hammer of the Righteous's 90: before the fix,
+    // neither was cast; now Holy Strike is, from its 20.
+    const plan = buildPlan({ ...defaultConfig(PROT), rotation: { [ID.hammerOfTheRighteous]: true } }).plan
+    const hammer = plan.abilities.findIndex((a) => a.id === 'hammerOfTheRighteous')
+    const strike = plan.abilities.findIndex((a) => a.id === 'holyStrike')
+    expect(plan.rotation.map((e) => e.ability).filter((a) => a === hammer || a === strike)).toEqual([hammer, strike])
+    const starved = { ...plan, mana: { ...plan.mana!, maxTenths: 500 } }
+    const sim = new Sim(starved)
+    sim.runFight(0)
+    expect(field(sim, starved, 'hammerOfTheRighteous', FIELD.casts)).toBe(0)
+    expect(field(sim, starved, 'holyStrike', FIELD.casts)).toBeGreaterThan(0)
+  })
+
+  it('below Holy Strike (on), which always takes the shared cooldown, it’s left out of the plan, and its assumption with it (TV-2)', () => {
+    const on = { [ID.hammerOfTheRighteous]: true }
+    const below = buildPlan({ ...defaultConfig(PROT), rotation: on, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
+    expect(below.plan.abilities.map((a) => a.id)).not.toContain('hammerOfTheRighteous')
+    expect(below.plan.abilities.map((a) => a.id)).toContain('holyStrike')
+    expect(below.assumptions.map((a) => a.id).filter((id) => id.startsWith('hammerOfTheRighteous'))).toEqual([])
+    // It plays exactly as Hammer off.
+    const off = buildPlan(defaultConfig(PROT))
+    expect(below.plan.rotation).toEqual(off.plan.rotation)
+    // With Holy Strike off, it's used wherever it sits.
+    const alone = buildPlan({ ...defaultConfig(PROT), rotation: { ...on, [ID.holyStrike]: false }, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
+    expect(alone.plan.abilities.map((a) => a.id)).toContain('hammerOfTheRighteous')
+    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
   })
 })
 

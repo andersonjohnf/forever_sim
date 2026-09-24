@@ -461,9 +461,11 @@ describe('Enrage (druid.md §4.5)', () => {
 
 describe('the default bear (druid.md §6.3)', () => {
   const config = (): SimConfig => ({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 200, seed: 99 } })
+  /** With Defensive, which keeps the roar too (D28). */
+  const defensive = (): SimConfig => ({ ...config(), rotation: { [BEAR_IDS.priority]: BEAR_PRIORITY.duties } })
 
   it('makes each ability’s threat per threat.md: damage × its multiplier × the form’s, and its flat threat per landed cast', () => {
-    const { plan } = buildPlan(config())
+    const { plan } = buildPlan(defensive())
     const sim = new Sim(plan)
     for (let i = 0; i < 30; i++) sim.runFight(i)
     const t = plan.threatMult
@@ -551,7 +553,7 @@ describe('the default bear (druid.md §6.3)', () => {
   })
 
   it('shows Lacerate’s uptime and average stacks on its bleed’s row, not in Cooldowns and buffs; its spells as spells (BU5, BU8)', () => {
-    const bundle = buildPlan(config())
+    const bundle = buildPlan(defensive())
     const agg = mergeChunk(emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length), runChunk(bundle.plan, 0, 100))
     const result = toResult(bundle, agg, 0)
     const row = (id: string) => result.abilities.find((a) => a.id === id)!
@@ -576,7 +578,7 @@ describe('the default bear (druid.md §6.3)', () => {
       const agg = mergeChunk(emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length), runChunk(bundle.plan, 0, 50))
       return toResult(bundle, agg, 0).cooldowns.find((c) => c.id === 'clearcasting')!
     }
-    // Maul, Mangle, Lacerate and the roar spend it: a few procs a fight, each spent soon after.
+    // Maul, Mangle and Lacerate spend it (and the roar, with Defensive): a few procs a fight, each spent soon after.
     const spent = clearcasting({})
     expect(spent.procsPerFight).toBeGreaterThan(5)
     expect(spent.uptimePct).toBeLessThan(15)
@@ -587,8 +589,8 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(idle.uptimePct).toBeGreaterThan(spent.uptimePct!)
   })
 
-  it('keeps its own Faerie Fire and Demoralizing Roar up all fight, but for their first casts and misses (D26: the duties by its rule)', () => {
-    const { plan } = buildPlan(config())
+  it('keeps its own Faerie Fire and Demoralizing Roar up all fight with Defensive, but for their first casts and misses (D26: the duties by its rule)', () => {
+    const { plan } = buildPlan(defensive())
     const sim = new Sim(plan)
     let ms = 0
     for (let i = 0; i < 100; i++) {
@@ -606,8 +608,9 @@ describe('the default bear (druid.md §6.3)', () => {
   })
 })
 
-describe('Max TPS in the engine (druid.md §6.3 "Max TPS", D26)', () => {
+describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)', () => {
   const MAX: SimConfig['rotation'] = { [BEAR_IDS.priority]: BEAR_PRIORITY.maxTps }
+  const DEFENSIVE: SimConfig['rotation'] = { [BEAR_IDS.priority]: BEAR_PRIORITY.duties }
   const config = (rotation: SimConfig['rotation'], buffs: string[] = []): SimConfig => {
     const d = defaultConfig('druid-feral-bear')
     return { ...d, rotation, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, ...buffs] }, run: { mode: 'fixed', iterations: 2000, seed: 33 } }
@@ -621,7 +624,7 @@ describe('Max TPS in the engine (druid.md §6.3 "Max TPS", D26)', () => {
   }
 
   it('leaves the Buffs tab’s roar off, as the bear’s own, until you turn it on there for another druid’s; Faerie Fire stays its own', () => {
-    const duties = buildPlan(config({})).plan
+    const duties = buildPlan(config(DEFENSIVE)).plan
     const max = buildPlan(config(MAX)).plan
     // Nobody else's roar in the Standard raid: the boss starts at full attack power either way.
     expect(max.fight.bossSwing!.minDamage).toBe(duties.fight.bossSwing!.minDamage)
@@ -629,20 +632,30 @@ describe('Max TPS in the engine (druid.md §6.3 "Max TPS", D26)', () => {
     expect(used.has('demoralizingRoar')).toBe(false)
     expect(used.has('faerieFire')).toBe(true)
     // Turned on in Buffs, another druid's roar counts with Max TPS: 204 × 2.0 / 14 off each swing,
-    // from the pull. Under tank duties first your own replaces it, so it changes nothing.
+    // from the pull, and with Balanced, the default. Under Defensive your own replaces it, so it
+    // changes nothing.
     const other = buildPlan(config(MAX, ['demoralizingRoar'])).plan
     expect(other.fight.bossSwing!.minDamage).toBeCloseTo(max.fight.bossSwing!.minDamage - (204 * 2) / 14, 0)
-    expect(buildPlan(config({}, ['demoralizingRoar'])).plan.fight.bossSwing!.minDamage).toBe(duties.fight.bossSwing!.minDamage)
+    expect(buildPlan(config({}, ['demoralizingRoar'])).plan.fight.bossSwing!.minDamage).toBe(other.fight.bossSwing!.minDamage)
+    expect(buildPlan(config(DEFENSIVE, ['demoralizingRoar'])).plan.fight.bossSwing!.minDamage).toBe(duties.fight.bossSwing!.minDamage)
   })
 
-  it('makes more threat and more damage than the default, for a little more damage taken, on the same fights', () => {
-    const duties = run(config({}))
+  it('make more threat and more damage than Defensive, for a little more damage taken, on the same fights', () => {
+    const duties = run(config(DEFENSIVE))
+    const balanced = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Max TPS": +2.8% TPS, +2.5% DPS and +0.7% damage taken in the default setup (40,000 fights).
-    expect(max.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
-    expect(max.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
-    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
-    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.05)
-    expect(max.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
+    // §6.3 "Balanced": +3.1% TPS, +2.8% DPS and +0.7% damage taken in the default setup (200,000 fights).
+    expect(balanced.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
+    expect(balanced.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
+    expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
+    expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.05)
+    expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
+    expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
+    // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
+    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS.
+    expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
+    expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
+    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)
+    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.994)
   })
 })

@@ -58,7 +58,7 @@ describe('the frozen defaults (src/app/legacy-defaults.ts)', () => {
       expect(spent, spec).toBeGreaterThan(40)
       expect(spent, spec).toBeLessThanOrEqual(data.rules.maxPoints)
     }
-    // The Protection paladin's 0/38/13 from T2's fix round, which a change to the default is about to replace.
+    // The Protection paladin's 0/38/13 from T2's fix round, which the theorycrafter's build has since replaced.
     expect(LEGACY_DEFAULTS['paladin-protection']!.talents).toBe('-0530513321301551-50215')
   })
 })

@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 81,
-      "docs": 367,
+      "docs": 419,
       "enchant": 125,
       "item": 419,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2007,
-    "spells": 2154
+    "seeds": 2016,
+    "spells": 2159
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -32064,6 +32064,66 @@
       ],
       "sources": ["spellbook"]
     },
+    "10057": {
+      "categories": {
+        "category": 30,
+        "defenseType": 1
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 60000
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 850,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0],
+          "variance": 0.1764706
+        }
+      ],
+      "id": 10057,
+      "levels": {
+        "spellLevel": 48
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 134105
+      },
+      "name": "Replenish Mana",
+      "nameSubtext": "Rank 3",
+      "sources": ["docs"]
+    },
+    "10058": {
+      "categories": {
+        "category": 30,
+        "defenseType": 1
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 60000
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 1100,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0],
+          "variance": 0.18181819
+        }
+      ],
+      "id": 10058,
+      "levels": {
+        "spellLevel": 58
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 134128
+      },
+      "name": "Replenish Mana",
+      "nameSubtext": "Rank 4",
+      "sources": ["docs"]
+    },
     "10059": {
       "castTime": {
         "base": 10000,
@@ -33904,7 +33964,7 @@
       "range": {
         "rangeMax": [20, 20]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10201": {
       "categories": {
@@ -34149,7 +34209,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10211": {
       "categories": {
@@ -38811,7 +38871,7 @@
         "spellIconFileDataId": 135812
       },
       "name": "Improved Fireball",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11070": {
       "classOptions": {
@@ -38839,7 +38899,7 @@
         "spellIconFileDataId": 135846
       },
       "name": "Improved Frostbolt",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11071": {
       "classOptions": {
@@ -38906,7 +38966,7 @@
         "spellIconFileDataId": 135819
       },
       "name": "Wake of Fire",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11083": {
       "classOptions": {
@@ -39172,7 +39232,7 @@
         "spellIconFileDataId": 136115
       },
       "name": "Critical Mass",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11119": {
       "auraOptions": {
@@ -39202,7 +39262,7 @@
         "spellIconFileDataId": 135818
       },
       "name": "Ignite",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11124": {
       "classOptions": {
@@ -39239,7 +39299,7 @@
         "spellIconFileDataId": 135817
       },
       "name": "Fire Power",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11129": {
       "auraOptions": {
@@ -39288,7 +39348,7 @@
         "spellIconFileDataId": 135824
       },
       "name": "Combustion",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "11151": {
       "classOptions": {
@@ -39325,7 +39385,7 @@
         "spellIconFileDataId": 135845
       },
       "name": "Piercing Ice",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11160": {
       "classOptions": {
@@ -39361,7 +39421,7 @@
         "spellIconFileDataId": 135860
       },
       "name": "Frost Channeling",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11165": {
       "classOptions": {
@@ -39744,7 +39804,7 @@
         "spellIconFileDataId": 135855
       },
       "name": "Ice Shards",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11210": {
       "classOptions": {
@@ -39780,7 +39840,7 @@
         "spellIconFileDataId": 135894
       },
       "name": "Arcane Subtlety",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11213": {
       "auraOptions": {
@@ -39819,7 +39879,7 @@
         "spellIconFileDataId": 136170
       },
       "name": "Arcane Concentration",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11222": {
       "classOptions": {
@@ -39847,7 +39907,7 @@
         "spellIconFileDataId": 135892
       },
       "name": "Arcane Focus",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11232": {
       "classOptions": {
@@ -39883,7 +39943,7 @@
         "spellIconFileDataId": 136129
       },
       "name": "Arcane Mind",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11237": {
       "classOptions": {
@@ -39948,7 +40008,7 @@
         "spellIconFileDataId": 136116
       },
       "name": "Arcane Impact",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "11247": {
       "classOptions": {
@@ -41644,7 +41704,7 @@
       "range": {
         "rangeMax": [35, 35]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "11371": {
       "auraOptions": {
@@ -42069,7 +42129,7 @@
           "manaCost": 305
         }
       ],
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "11549": {
       "categories": {
@@ -43766,7 +43826,7 @@
         "spellIconFileDataId": 136048
       },
       "name": "Arcane Power",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "12043": {
       "auraOptions": {
@@ -43812,7 +43872,7 @@
         "spellIconFileDataId": 136031
       },
       "name": "Presence of Mind",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "12051": {
       "auraOptions": {
@@ -43871,7 +43931,7 @@
         "spellIconFileDataId": 136075
       },
       "name": "Evocation",
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "12162": {
       "categories": {
@@ -45423,7 +45483,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "12579": {
       "auraOptions": {
@@ -46306,7 +46366,7 @@
           "manaCost": 545
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "13031": {
       "categories": {
@@ -46459,7 +46519,7 @@
           "manaCost": 480
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "13198": {
       "duration": {
@@ -50068,7 +50128,7 @@
         "spellIconFileDataId": 136222
       },
       "name": "Arcane Instability",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "15107": {
       "categories": {
@@ -58505,7 +58565,7 @@
         "spellIconFileDataId": 135813
       },
       "name": "Incineration",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18461": {
       "classOptions": {
@@ -58562,7 +58622,7 @@
         "spellIconFileDataId": 136208
       },
       "name": "Arcane Meditation",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18498": {
       "categories": {
@@ -59234,7 +59294,7 @@
       "range": {
         "rangeMax": [35, 35]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "18815": {
       "auraOptions": {
@@ -70720,7 +70780,7 @@
           "manaCost": 490
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "22801": {
       "auraOptions": {
@@ -71333,7 +71393,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "23025": {
       "auraOptions": {
@@ -75302,7 +75362,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25306": {
       "auraOptions": {
@@ -75369,7 +75429,7 @@
       "range": {
         "rangeMax": [35, 35]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25345": {
       "categories": {
@@ -75424,7 +75484,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25346": {
       "categories": {
@@ -75462,7 +75522,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "25349": {
       "auraOptions": {
@@ -78069,7 +78129,7 @@
         "spellIconFileDataId": 135824
       },
       "name": "Combustion",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "28852": {
       "classOptions": {
@@ -78452,7 +78512,7 @@
         "spellIconFileDataId": 135820
       },
       "name": "Master of Elements",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "29077": {
       "categories": {
@@ -78481,7 +78541,7 @@
       "range": {
         "rangeMax": [50000, 50000]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "29131": {
       "classOptions": {
@@ -78764,7 +78824,7 @@
         "spellIconFileDataId": 135989
       },
       "name": "Elemental Precision",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "29441": {
       "auraOptions": {
@@ -79694,7 +79754,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "400588": {
       "auraOptions": {
@@ -79734,7 +79794,7 @@
         "spellIconFileDataId": 236221
       },
       "name": "Missile Barrage",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "400589": {
       "categories": {
@@ -79818,7 +79878,55 @@
         "spellIconFileDataId": 236218
       },
       "name": "Hot Streak",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
+    },
+    "400625": {
+      "auraOptions": {
+        "cumulativeAura": 3,
+        "procChance": 100,
+        "procCharges": 1,
+        "procTypeMask": [65536, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 3
+      },
+      "duration": {
+        "duration": 15000,
+        "maxDuration": 15000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -25,
+          "effectIndex": 0,
+          "effectMiscValue": [10, 161],
+          "effectSpellClassMask": [4194304, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": -3,
+          "effectIndex": 1
+        }
+      ],
+      "id": 400625,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 64, -2147483648, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 236218
+      },
+      "name": "Hot Streak",
+      "sources": ["docs"]
     },
     "400640": {
       "auraOptions": {
@@ -79919,7 +80027,7 @@
         "spellIconFileDataId": 236227
       },
       "name": "Fingers of Frost",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "401502": {
       "auraOptions": {
@@ -80853,6 +80961,83 @@
         "shapeshiftExclude": [1073741824, 0]
       },
       "sources": ["spellbook", "talent"]
+    },
+    "412538": {
+      "auraOptions": {
+        "cumulativeAura": 1,
+        "procChance": 101
+      },
+      "categories": {
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [134217728, 0, 0, 0],
+        "spellClassSet": 3
+      },
+      "duration": {
+        "duration": 4000,
+        "maxDuration": 4000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 226,
+          "effectAuraPeriod": 2000,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 412538,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [8388608, 136, 4, 1074004096, 1048576, 8388608, 0, 0, 4096, 0, 0, 0, 0, 33554560, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135818
+      },
+      "name": "Ignite",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
+    },
+    "412545": {
+      "auraOptions": {
+        "cumulativeAura": 1,
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [134217728, 0, 0, 0],
+        "spellClassSet": 3
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectIndex": 0,
+          "implicitTarget": [25, 0]
+        }
+      ],
+      "id": 412545,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [8388608, 136, 536870916, 1107558400, 0, 8389632, 0, 0, 0, 0, 0, 0, 0, 33554432, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135818
+      },
+      "name": "Ignite",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
     },
     "412609": {
       "auraOptions": {
@@ -83214,7 +83399,7 @@
       "range": {
         "rangeMax": [35, 35]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1237948": {
       "castTime": {
@@ -84250,7 +84435,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1240044": {
       "auraOptions": {
@@ -84510,7 +84695,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1240193": {
       "castTime": {
@@ -92899,7 +93084,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "1312176": {
       "auraOptions": {

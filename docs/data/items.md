@@ -553,7 +553,9 @@ name and source. The run fails if a listed name differs from the client's name f
 and the rest), crafting, quests, reputation, world drops and BoEs, and PvP ranks up to Rank
 10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out. Doctrine §2
 allows only Classic Era guides, so every list comes from **Wowhead's WoW Classic pre-raid BiS
-guides as they stood in 2021, before Season of Mastery and TBC Classic**. The live pages on
+guides as they stood in 2021, before Season of Mastery and TBC Classic**, with one exception:
+Wowhead's Classic mage guide has no Fire list, so `mage-fire` comes from **Icy Veins' Classic mage
+pre-raid guide**, archived in February 2021 (also before Season of Mastery). The live pages on
 the same topics (for example
 [the current Warrior Tank guide](https://www.wowhead.com/classic/guide/warrior-tank-pre-raid-best-in-slot-bis-gear-wow-classic))
 have been rewritten for **Season of Mastery**, so they aren't used, and the Wayback Machine
@@ -568,13 +570,21 @@ copies are cited instead. Wowhead's Season of Discovery guides weren't used eith
 | `druid-feral-bear` | [Druid Tank Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210518140340/https://classic.wowhead.com/guides/wow-classic-feral-druid-tank-pre-raid-best-in-slot-gear) | 2021-05-18 | all rows |
 | `paladin-retribution` | [Paladin DPS Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210517000811/https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear) | 2021-05-17 | all rows (Two-Hand, Relic) |
 | `paladin-protection` | [Paladin Tank Pre-Raid BiS, Phase 3](https://web.archive.org/web/20210505223134/https://classic.wowhead.com/guides/wow-classic-paladin-tank-pre-raid-best-in-slot-gear) | 2021-05-05 | all rows (Main Hand, Shield; the guide has no libram) |
+| `shaman-enhancement` | [Enhancement Shaman Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear) | 2021-05-15 | armor, jewelry, One-Handed (as the main hand), Two-Hand, Totem; the guide lists no shield |
+| `rogue-combat` | [Rogue Pre-Raid BiS, Phase 5](https://web.archive.org/web/20210518052722/https://classic.wowhead.com/guides/wow-classic-rogue-dps-pre-raid-best-in-slot-gear) | 2021-05-18 | armor, jewelry, Main Hand (Swords), Off-Hand, Ranged |
+| `rogue-assassination`, `rogue-subtlety` | same guide | 2021-05-18 | armor, jewelry, Main Hand (Daggers), the Off-Hand row's daggers, Ranged |
+| `mage-fire` | [Icy Veins: Mage DPS Pre-Raid Gear](https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear) (for Fire mages heading into AQ40) | 2021-02-15 | all rows (Main Hand, Off-Hand, Two-Hand, Wand) |
+| `mage-frost` | [Mage Pre-Raid BiS, WoW Classic 1.13](https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear) (one list, a Frost list by its picks) | 2021-05-15 | all rows |
+| `mage-arcane` | same guide as `mage-frost`: Classic Era had no Arcane list | 2021-05-15 | all rows |
 
 **Selection.** Each guide row lists items best-first. The list keeps that order as `rank` (1 =
 BiS, 2+ = alternatives), up to the top pick plus two alternatives per slot. Finger and
 trinket keep four, since two are worn. The guides link Horde PvP items; each one's Alliance
 counterpart is added at the same rank, as is the Frostwolf twin of Stormpike Insignia Rank 6.
 Slot keys are the paperdoll slots plus `twoHand` and `relic`; tanks' shields are under
-`offHand`.
+`offHand`. **Random-suffix items** are listed by their base id, and the pool has only the base
+row's stats; one whose base row has no spell stats is left out like a raid drop, and the entries
+below it move up (the mage lists' notes name them).
 
 **Left out for Forever.** An item Forever redesigned out of the spec's role is taken off the
 list, and the spec's `note` says why; the other entries keep the guide's rank. So far that's
@@ -584,6 +594,8 @@ filter doesn't keep it, so it's out of the pool; the lists' trinket ranks run 1,
 default gear is unchanged, since it wears ranks 1 and 2.
 
 ### Coverage
+
+The counts below were taken before the shaman, rogue and mage lists joined.
 
 158 distinct items are listed. **All 158 have a client row and are in the pool**
 (`meta.preRaidBis.notInData` is empty). **49** are in the pool only because of the lists: 6

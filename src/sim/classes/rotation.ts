@@ -180,8 +180,11 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
         ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
         : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
   } else if (racial && SPEC_META[spec].classId === 'mage' && setup.race !== 'horde-troll') {
-    // docs/classes/mage.md#races: only Berserking's casting speed helps a mage; Blood Fury is attack power.
-    out[racial] = `Not used: ${setup.raceName}’s racial cooldown does nothing for your spells.`
+    // docs/classes/mage.md#races: only Berserking's casting speed is simulated for a mage; Blood Fury's spell power (aura 317) isn't yet.
+    out[racial] =
+      setup.race === 'horde-orc'
+        ? 'Not used: Blood Fury’s spell power isn’t simulated for a mage yet.'
+        : `Not used: ${setup.raceName}’s racial cooldown does nothing for your spells.`
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))

@@ -213,7 +213,8 @@ A spec is data plus small ability modules, never its own loop.
   multiplier (Impale), not at spell crit; a miss refunds 80% of the rage, as a special's does; a
   landed one puts its debuff on the boss; and one that deals no damage never rolls for a crit. A
   `spell` ability rolls nothing itself and hands its `SpellDef` to the one resolver above.
-- **The caster core** ([spells.md](mechanics/spells.md), slice K1; no caster spec yet) extends that
+- **The caster core** ([spells.md](mechanics/spells.md), slice K1; the mage's specs are the first on
+  it, K2) extends that
   resolver rather than adding a second path, and every addition is an optional field a plan
   without it never reads, so every warrior, druid and paladin result is unchanged, bit for bit:
   - **Schools:** spell damage per school (all-schools plus the school's own lines), and per
@@ -237,8 +238,8 @@ A spec is data plus small ability modules, never its own loop.
     proc's `schools` or one spell (`fromSource`) in the gated lists; condition `auraUp` (38).
   - **Mana hooks** for the class slices: auras' `spiritRegen` and `castingRegen`, and each class's
     Spirit regeneration (`SPIRIT_REGEN`). The caster buffs and debuffs (Curse of the Elements,
-    Moonkin Aura, Power Infusion) are class-only entries for `CASTER_CLASSES`, empty until the first
-    caster spec ships; a caster spec's sheet shows spell damage by school (`SpecMeta.caster`).
+    Moonkin Aura, Power Infusion) are class-only entries for `CASTER_CLASSES` (the mage since K2); a
+    caster spec's sheet shows spell damage by school (`SpecMeta.caster`).
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,
@@ -287,6 +288,21 @@ A spec is data plus small ability modules, never its own loop.
   500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and an aura can let a share
   of spirit regeneration continue inside the five-second rule while it's up (the caster core's
   `castingRegen`: Improved Stormstrike's 50%).
+- **The mage's pieces** ([mage.md › Implementation notes](classes/mage.md#implementation-notes)),
+  generic and optional, so a plan without them runs as before. A mage casts and never swings: its
+  plan has no weapon. A crit can feed one **rolling, pooled DoT** (`Plan.ignite`: each feed adds a
+  share of the crit's damage and resets the ticks left, a due tick keeps its time, and each tick reads
+  the boss's damage taken and resist). A spell can take crit from an aura's stacks (`SpellDef.critAura`:
+  Winter's Chill on Frostbolt), and spell hit can differ by school (`schoolHit`: each school reads its
+  own miss). An ability can be made instant by an aura it uses up (`instantAura`: Presence of Mind),
+  have stacks that cut only its cast time (Hot Streak on Pyroblast), and start its cooldown when its
+  aura ends rather than when used (`cooldownAfterAura`: Combustion). An aura's crit charges can be
+  limited to crits of some schools and kept when a stack is added (`critChargeSchools`,
+  `refreshKeepsCharges`), and it can raise mana costs (`manaCostPct`: Arcane Power). A proc can return
+  a share of the critting spell's cost (`manaOfCost`: Master of Elements). A caster's Clearcasting is
+  the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42) and
+  `auraEndsWithin` (43) keep a stacking debuff up (Scorch's Fire Vulnerability). A one-use ability's
+  last use still holds its cooldown category (the mana gems, which the Demonic Rune joins).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

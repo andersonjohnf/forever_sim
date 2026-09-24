@@ -18,8 +18,9 @@ that covers every magic school, Holy included, and makes Moonkin Aura all crit
 ([WoW Forever deviations](#wow-forever-deviations)).
 
 Status: researched 2026-09-24 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 ·
-ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the caster core (slice K1),
-no caster spec yet ([Implementation notes](#implementation-notes))
+ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the caster core (slice K1)
+([Implementation notes](#implementation-notes)); the first caster specs on it are the mage's (K2,
+[mage.md](../classes/mage.md))
 
 ---
 
@@ -149,7 +150,7 @@ share (ticks never miss, the refresh tie-break, periodic crits). For spell DoTs:
 | The boss's side | its damage taken (Curse of the Elements, a Fire Vulnerability) and its resist apply **at each tick** | [C] ([R1][r1-mech] applies Scorch stacks and CoE to each Ignite tick) |
 | Partial resist | each tick of a non-binary DoT, on average; a binary one's ticks none | [C] ([R1][r1-mech]) |
 | Refresh | recasting restarts it: a tick due that moment lands first, the partial tick in progress is lost, and it snapshots again | [?] (as damage-and-timing §4) |
-| Can ticks crit? | `forever`: yes if the spell has the periodic-crit flag (SpellMisc Attributes[8] 0x200), at the snapshot's crit × the spell's crit multiplier. **Forever flags** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay and Fireball's DoT; Classic Era flags none of them. `classicEra`: never. The flag alone decides: a spell's `cannotCrit` covers only its direct part, never its ticks | [F] flags [client] (SpellMisc, 1.60.1.69913); [?] in combat; [C] never |
+| Can ticks crit? | `forever`: yes if the spell has the periodic-crit flag (SpellMisc Attributes[8] 0x200), at the snapshot's crit × the spell's crit multiplier. **Forever flags** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay, and Fireball's and Pyroblast's DoTs; Classic Era flags none of them. `classicEra`: never. The flag alone decides: a spell's `cannotCrit` covers only its direct part, never its ticks | [F] flags [client] (SpellMisc, 1.60.1.69913); [?] in combat; [C] never |
 | Procs from ticks | a tick fires only the `spellTick` procs ([§10](#10-spell-procs)): no crit procs | [?] |
 
 ## 8. Mana
@@ -162,7 +163,7 @@ the pull, costs paid from it, one power tick every 2 s from a random phase.
 | Spirit regeneration per 2 s tick, outside the five-second rule | mage and priest **13 + Spirit/4**; warlock **8 + Spirit/4**; shaman, druid, paladin and hunter **15 + Spirit/5** (`SPIRIT_REGEN`) | [C] ([mana guide][wt-mana]'s table; the shaman is 15, not 17) |
 | Five-second rule | after a cast that costs mana lands (a channel: as it starts), Spirit regeneration stops for 5 s; a free cast (Clearcasting) doesn't start it | [C] ([mana guide][wt-mana]) |
 | mp5 | always, inside the rule too | [C] ([mana guide][wt-mana]) |
-| Regeneration while casting | a talent's or buff's share of Spirit regeneration goes on inside the rule, added up, at most all of it: Forever's Mage Armor **50%** (Classic Era 30%), Innervate 100% (with +400%), Evocation (+1500%, 100%), the shaman's Improved Stormstrike 50% for 15 s ([shaman.md](../classes/shaman.md#mana)) | [F] [C] [client] (SpellEffect aura 134, both builds) |
+| Regeneration while casting | a talent's or buff's share of Spirit regeneration goes on inside the rule, added up, at most all of it: Forever's Mage Armor **50%** (Classic Era 30%) and Arcane Meditation 50% (15%; [mage.md](../classes/mage.md#mana)), Innervate 100% (with +400%), Evocation (+1500%, 100%), the shaman's Improved Stormstrike 50% for 15 s ([shaman.md](../classes/shaman.md#mana)) | [F] [C] [client] (SpellEffect aura 134, both builds) |
 | Base mana at 60 | mage 1213, priest 1376, warlock 1373, shaman 1520, druid 1244 | [F] `PlayerExpectedStat.BaseMana` [client] (1.60.1.69913) |
 | Potions and runes | the Major Mana Potion and the runes of [buffs §3.5](buffs-debuffs-consumables.md#35-potions-and-runes) | [F] |
 
@@ -188,8 +189,8 @@ are the spell's own multiplier, set by the class slice.
 | **Curse of the Elements** r4 (1311680, new at 50) | **+10% damage taken from every magic school, Holy included**, −75 resistance to them; 5 min; one curse per warlock | r3 (11722): Fire and Frost only | Buffs entry, the casters' ([§12](#12-what-a-class-slice-uses)); its −75 changes nothing on a boss ([§3](#3-resistances)) | [F] [C] [client] (SpellEffect, both builds) |
 | **Curse of Shadow** | **gone** (folded into Curse of the Elements; r2 17937 isn't in the client) | r2: Shadow and Arcane +10%, −75 | not in the catalogue | [F] [client] (SpellName, 1.60.1.69913) |
 | **Shadow Weaving** (15257 → 15258) | a **debuff on the boss that counts only the priest's own damage**: "Taking 2% increased Shadow damage from the caster" a stack (aura 270 on the enemy, ImplicitTarget 6, as Improved Scorch's), 5 stacks, 15 s; 100% chance from each of the priest's Shadow damage spells. The talent's tooltip words it as "the Shadow damage you deal" | a debuff on the boss for everyone: +3% Shadow taken a stack (aura 87), 5 stacks, 15 s, 20–100% chance by rank | K4's, as an aura the priest keeps on the boss (`schoolTaken`), read at each hit and tick; no Buffs entry (another priest's stacks don't count for you) | [F] [client] (SpellEffect, Spell, SpellAuraOptions, 1.60.1.69913); [C] [client] (SpellEffect, 1.15.9.69722) |
-| **Improved Scorch** (11095 → 22959) | **the mage's own**: "+3% Fire damage **from the Mage**" a stack, 5 stacks, 30 s; 100% chance from Scorch | Fire Vulnerability on the boss for everyone, 33/66/100% by rank | K2's, as an aura the mage keeps (`schoolTaken`) | [F] tooltip; [C] ([R1][r1-const]) |
-| **Winter's Chill** (11180 → 12579) | **the mage's own**: +2% crit a stack for "your Ice Lance and Frostbolt", 5 stacks, 15 s | +2% Frost crit a stack for anyone's Frost spells, 20–100% by rank | K2's (`schoolCrit`) | [F] tooltip; [C]; the talent's chance [?] ([OQ-S9](#open-questions)) |
+| **Improved Scorch** (11095 → 22959) | **the mage's own**: "+3% Fire damage **from the Mage**" a stack, 5 stacks, 30 s; 100% chance from Scorch | Fire Vulnerability on the boss for everyone, 33/66/100% by rank | the mage's, as an aura it keeps on the boss (`schoolTaken`; [mage.md](../classes/mage.md#improved-scorch)) | [F] tooltip; [C] ([R1][r1-const]) |
+| **Winter's Chill** (11180 → 12579) | **the mage's own**: +2% crit a stack for "your Ice Lance and Frostbolt", 5 stacks, 15 s | +2% Frost crit a stack for anyone's Frost spells, 20–100% by rank | the mage's, as Frostbolt's crit from the aura's stacks (`SpellDef.critAura`; [mage.md](../classes/mage.md#winters-chill)) | [F] tooltip; [C]; the talent's chance [?] ([OQ-S9](#open-questions)) |
 | **Improved Shadow Bolt** (Shadow Vulnerability 17794) | the Forever row has no charges; the ranks are Forever talents | +20% Shadow taken, 4 charges, 12 s (17800) | K3's | [F] [C] [client] |
 | **Nightfall** (item 19169, Spell Vulnerability 23605) | +15% spell damage taken (every magic school, not physical), 5 s, unchanged | the same | not in the catalogue yet: its proc rate is server-side and a static entry needs an uptime ([OQ-S10](#open-questions)) | [F] [C] [client] (SpellEffect, both builds); rate [?] |
 | **Moonkin Aura** (24907) | **+3% crit, all** (aura 290), party; exclusive with Leader of the Pack | +3% spell crit (aura 57) | Buffs entry, the casters' | [F] [C] [client] (SpellEffect, both builds) |
@@ -232,15 +233,18 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
 - **Spells** (`SpellDef`): school, `defense: 'magic'`, `min`–`max`, `spCoefficient`,
   `critMultiplier` (`spellCritMultiplier(talent%)`), `bonusCrit`, `damageMult` (the class's
   talents), `binary`, and a DoT: `dotTicks`, `dotTickMs`, `dotTickDamage`, `dotSpCoefficient`,
-  `dotCanCrit` (the periodic-crit flag). A hybrid's DoT gets its own breakdown row.
+  `dotCanCrit` (the periodic-crit flag). A hybrid's DoT gets its own breakdown row. `critAura`
+  gives one spell crit per stack of an aura (Winter's Chill on Frostbolt,
+  [mage.md](../classes/mage.md#winters-chill)).
 - **Abilities** (`AbilityPlan`, starting from `CASTER_ROW`): `kind: 'spell'` with `castMs`,
   `castHasted`, `resource: 'mana'`, `costTenths`, and an `aura` that marks its DoT on the boss;
   `kind: 'channel'` with its `spell` (a DoT channel) or `tickSpell`, `rageTicks`, `rageTickMs` (a
   triggering channel), and `channelTicks` to cut it off; `kind: 'cast'` for a cooldown's buff.
 - **Auras** (`AuraSpec.mods`): `schoolMask` with `schoolDamage` (your damage, which a DoT
   snapshots), `schoolTaken` (the boss's damage taken, read at each hit and tick: a debuff you keep
-  up, including one that counts only your damage, Improved Scorch's and Shadow Weaving's, since
-  the sim deals no one else's) and `schoolCrit`; `spellDamage`; `castHaste`; and the mana hooks
+  up, including one that counts only your damage, Improved Scorch's
+  ([mage.md](../classes/mage.md#improved-scorch)) and Shadow Weaving's, since the sim deals no one
+  else's) and `schoolCrit`; `spellDamage`; `castHaste`; and the mana hooks
   `spiritRegen` and `castingRegen`. A channel's `aura` is up while it channels (Evocation).
 - **Static effects** (`Effect`): `schoolDamage`, `schoolTaken`, `schoolCrit`, `targetResistance`,
   `castHaste`, and the stats `fireSpellDamage` … `arcaneSpellDamage`, `spellPen`.
@@ -262,8 +266,8 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
 What the Forever client changes for casters, read from its tables against Classic Era's
 [F] [C] [client] (SpellEffect, SpellMisc, SpellCastTimes, SpellCooldowns, both builds):
 
-- **Periodic crits:** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay and Fireball's
-  DoT carry the periodic-crit flag; no Classic Era spell does.
+- **Periodic crits:** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay, and Fireball's and
+  Pyroblast's DoTs carry the periodic-crit flag; no Classic Era spell does.
 - **Top-rank base damage is lower, the coefficients the same or higher.** At level 60, before
   spell damage:
 

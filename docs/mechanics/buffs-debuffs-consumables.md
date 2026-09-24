@@ -190,7 +190,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Stoneskin Totem (r6) | 10408 | −30 **Physical** damage taken per hit (C: melee damage) | **5 min**, 30 yd (C: 2 min, 20 yd) | Earth totem, so it excludes Strength of Earth from the same shaman | Shaman | [F] | [fc-sb-shaman] |
 | Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18) | 10 min | — | Druid | [F] | [fc-sb-druid] |
 | Blessing of Wisdom (r6) / Greater (r2) | 25290 / 25918 | **40** mana per 5 s (C: 33) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] | [fc-sb-paladin] |
-| Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins and shamans use it | [F] | [fc-sb-shaman] |
+| Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins, shamans and mages use it | [F] | [fc-sb-shaman] |
 
 ### 1.3 Camp buffs (new Forever system)
 
@@ -660,8 +660,9 @@ and its raid has a warrior tank's Thunder Clap and Demoralizing Shout only if yo
 
 ### 6.2 Buffs and debuffs by preset
 
-`DPS` = Arms, Fury, Cat, Ret, Enhancement · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` =
-paladin specs only (the effect does nothing for the others) · `Enh` = the Enhancement shaman ·
+`DPS` = Arms, Fury, Cat, Ret, Enhancement, the rogues and the mages · `Tank` = Prot warrior, Bear,
+Prot paladin · `Pal` = paladin specs only (the effect does nothing for the others) · `Enh` = the
+Enhancement shaman · `Mage` = the Fire, Frost and Arcane mages (the casters, `CASTER_SPECS`) ·
 `all` = every spec · `Pal (your own)`, `Druid (your own)`, `Sha (your own)` = that class's buff it
 casts on itself (`selfCast`), which Self only brings.
 Devotion Aura stays `Tank` though it's a paladin tank's duty, because unlike Thunder Clap and
@@ -669,11 +670,11 @@ Demoralizing Shout, which only a warrior tank applies, any paladin in the raid r
 warrior's or bear's raid has Devotion Aura when a paladin is in it and D26's rule that a tank's
 preset leaves out another tank class's duties doesn't reach it.
 
-Spirit and Intellect are mana, and among the classes in scope only the paladin and the shaman
-spend mana in a rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat
+Spirit and Intellect are mana, and among the classes in scope only the paladin, the shaman and
+the mage spend mana in a rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat
 never powershifts, since in Forever Furor keeps its Energy through a shift, so a shift gains
 nothing ([druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-and its Faerie Fire is free in Cat Form. So they're `Pal` and `Enh`, like Blessing of Wisdom and
+and its Faerie Fire is free in Cat Form. So they're `Pal`, `Enh` and `Mage`, like Blessing of Wisdom and
 Mana Spring.
 
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
@@ -682,20 +683,21 @@ Mana Spring.
 | Blessing of Might | Pal (your own) | DPS | all | all |
 | Blessing of Kings | — | Tank | all | all |
 | Blessing of Salvation | — | — | DPS | DPS |
-| Blessing of Wisdom | — | — | Pal, Enh | Pal, Enh |
+| Blessing of Wisdom | — | — | Pal, Enh, Mage | Pal, Enh, Mage |
 | Mark / Gift of the Wild | Druid (your own) | all | all | all |
 | Power Word / Prayer of Fortitude | — | all | all | all |
-| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal, Enh | Pal, Enh |
-| Leader of the Pack or Moonkin Aura | — | — | DPS | DPS |
+| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal, Enh, Mage | Pal, Enh, Mage |
+| Leader of the Pack or Moonkin Aura | — | — | DPS (Moonkin Aura: Mage; see below) | the same |
 | Windfury Totem | — | — | all but Enh (see below) | all but Enh |
 | Grace of Air Totem | Sha (your own) | Enh | Enh | Enh |
 | Strength of Earth Totem | Sha (your own) | Enh | all | all |
-| Mana Spring Totem | Sha (your own) | Enh | Pal, Enh | Pal, Enh |
+| Mana Spring Totem | Sha (your own) | Enh | Pal, Enh, Mage | Pal, Enh, Mage |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
 | Faerie Fire | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness | — | — | all | all |
-| Curse of the Elements | — | — | Pal | Pal |
+| Curse of the Elements | — | — | Mage; Pal once it reaches the paladin ([spells OQ-S12](spells.md#open-questions)) | the same |
+| Power Infusion | — | — | — (an option for a Mage) | — |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) | — | — | — | all |
 | Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
@@ -723,6 +725,13 @@ totem is Grace of Air. If you turn Windfury Totem on while Windfury Weapon is th
 leaves the totem's proc out and the results say so; with Rockbiter Weapon it applies
 ([shaman](../classes/shaman.md#totems)).
 
+A mage's presets reach both party crit auras, Leader of the Pack (`DPS`) and Moonkin Aura (`Mage`),
+and the first of an exclusive group wins, so a mage gets Leader of the Pack. In `forever` both are
++3% crit with spells and attacks, so the mage's numbers are the same; in `classicEra` Leader of the
+Pack is melee crit only, so a mage there gets none. Power Infusion is another priest's cooldown, so
+no preset has it; turned on, a mage's rotation takes it whenever it's ready
+([mage](../classes/mage.md#defaults)).
+
 Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
 (see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.
 
@@ -742,6 +751,7 @@ their stacking group is verified; the UI offers them as options.
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
 | Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
+| Mage (Fire, Frost, Arcane) | — | Greater Arcane Elixir; Major Mana Potion. Conjured mana gems are the mage's own ([mage](../classes/mage.md#mana)) | Flask of Supreme Power; Demonic / Dark Rune. Brilliant Wizard Oil, Elixir of Frost Power and the caster foods aren't in the catalogue yet (a known gap) |
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
@@ -963,8 +973,9 @@ shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no sh
 The caster core ([spells §9, §12](spells.md#9-caster-raid-buffs-and-debuffs)) adds Moonkin Aura,
 Power Infusion and Curse of the Elements for the caster classes, and gives them the mana and spell
 damage entries above (all but Elixir of Holy Power) too, through `CASTER_CLASSES` and
-`CASTER_SPECS` in `src/sim/effects/buffs.ts`. Both are empty until the first caster spec ships, so
-no warrior, druid, paladin or shaman setup has any of them.
+`CASTER_SPECS` in `src/sim/effects/buffs.ts`. The mage is the first caster
+([mage](../classes/mage.md#defaults)), so no warrior, druid, paladin, shaman or rogue setup has any
+of them.
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever

@@ -47,7 +47,7 @@ const range = (base: number, variance: number, perLevel = 0, spellLevel = 60, ma
 /**
  * Fireball r12 (25306) [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913): 483 base points, variance
  * 0.24188791, so 424.58–541.42 at 60 (Classic Era 596–760), coefficient 1.0; its DoT 15 every 2 s for 8 s
- * (4 ticks, Classic Era 19), coefficient 0. Its DoT has no periodic-crit flag.
+ * (4 ticks, Classic Era 19), coefficient 0. Its DoT carries the periodic-crit flag (SpellMisc Attributes[8] 0x200), so its ticks can crit in `forever` (docs/mechanics/spells.md §7).
  */
 export const FIREBALL_SPELL: SpellDef = {
   ...SPELL,
@@ -61,6 +61,7 @@ export const FIREBALL_SPELL: SpellDef = {
   dotTickMs: 2000,
   dotTickDamage: 15,
   dotSpCoefficient: 0,
+  dotCanCrit: true,
 }
 
 /** Scorch r7 (10207): 178 base points, variance 0.16535433, +1.7 a level from 58 to 62, so 166.68–196.12 at 60 (Classic Era 237–279), coefficient 0.429 [F] [client]. */
@@ -101,6 +102,7 @@ export const PYROBLAST_SPELL: SpellDef = {
   dotTickMs: 3000,
   dotTickDamage: 53,
   dotSpCoefficient: 0.15,
+  dotCanCrit: true,
 }
 
 // --- Frost (mage.md#frost-spells) --------------------------------------------------------------------

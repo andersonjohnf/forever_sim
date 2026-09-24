@@ -108,13 +108,14 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect(def).toMatchObject({ triggersProcs: true, weaponPercent: 0, critMultiplier: 1.5, alwaysHit: false, noActiveDefense: false })
   }
 
-  it('Fireball r12: 483 ± 12.09% (424.58–541.42), 1.0; its DoT 15 every 2 s for 8 s, coefficient 0, no periodic crit', () => {
+  it('Fireball r12: 483 ± 12.09% (424.58–541.42), 1.0; its DoT 15 every 2 s for 8 s, coefficient 0; its DoT has the periodic-crit flag (Attributes[8] 0x200)', () => {
     matches(FIREBALL_SPELL, FB, 0)
     expect([FIREBALL_SPELL.min.toFixed(2), FIREBALL_SPELL.max.toFixed(2)]).toEqual(['424.58', '541.42'])
     const dot = effect(FB, 1)
     expect([dot.effectAura, dot.effectAuraPeriod, dot.effectBasePointsF, dot.effectBonusCoefficient ?? 0]).toEqual([3, FIREBALL_SPELL.dotTickMs, FIREBALL_SPELL.dotTickDamage, FIREBALL_SPELL.dotSpCoefficient])
     expect(spell(FB).duration!.duration! / dot.effectAuraPeriod!).toBe(FIREBALL_SPELL.dotTicks)
-    expect(FIREBALL_SPELL.dotCanCrit).toBeUndefined()
+    expect(((spell(FB).misc!.attributes![8] ?? 0) & 0x200) !== 0).toBe(true)
+    expect(FIREBALL_SPELL.dotCanCrit).toBe(true)
   })
 
   it('Scorch r7: 178 ± 8.27%, +1.7 a level from 58 to 62 (166.68–196.12), 0.429', () => {
@@ -133,6 +134,8 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     const dot = effect(PY, 1)
     expect([dot.effectAura, dot.effectAuraPeriod, dot.effectBasePointsF, dot.effectBonusCoefficient]).toEqual([3, PYROBLAST_SPELL.dotTickMs, PYROBLAST_SPELL.dotTickDamage, PYROBLAST_SPELL.dotSpCoefficient])
     expect(spell(PY).duration!.duration! / dot.effectAuraPeriod!).toBe(PYROBLAST_SPELL.dotTicks)
+    expect(((spell(PY).misc!.attributes![8] ?? 0) & 0x200) !== 0).toBe(true)
+    expect(PYROBLAST_SPELL.dotCanCrit).toBe(true)
   })
 
   it('Frostbolt r11: 475 ± 3.74% (457.24–492.76), 0.814; its slow (aura 33) makes it binary', () => {

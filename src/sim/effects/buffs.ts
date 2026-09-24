@@ -45,6 +45,8 @@ const SHAMAN: SpecId[] = ['shaman-enhancement']
 const MANA_USERS: readonly ClassId[] = ['paladin', 'shaman']
 /** The rogue specs, and entries only a rogue can use (its poisons, docs/classes/rogue.md §4). */
 const ROGUES: SpecId[] = ['rogue-combat', 'rogue-assassination', 'rogue-subtlety']
+/** The melee DPS specs: Leader of the Pack's audience, which the casters' Moonkin Aura rivals. */
+const MELEE_DPS: SpecId[] = [...WARRIOR_DPS, 'druid-feral-cat', 'paladin-retribution', ...SHAMAN, ...ROGUES]
 const ROGUE_ONLY: readonly ClassId[] = ['rogue']
 const ROGUE_DOC = 'docs/classes/rogue.md'
 
@@ -339,7 +341,8 @@ export const BUFFS: BuffSpec[] = [
       { kind: 'stat', stat: 'spellCrit', value: 3 },
     ],
     classicEra: { summary: '+3% melee crit (feral druid in your party)', effects: [{ kind: 'stat', stat: 'crit', value: 3 }] },
-    presets: { raid: 'dps', max: 'dps' },
+    // Not the casters': Moonkin Aura, its rival, is theirs (docs/classes/mage.md#defaults), and in `classicEra` this is melee crit only.
+    presets: { raid: MELEE_DPS, max: MELEE_DPS },
   },
   {
     id: 'windfuryTotem',

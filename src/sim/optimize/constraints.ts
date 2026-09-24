@@ -3,12 +3,11 @@
 //
 // For a tank, TPS alone favours a glass cannon: more health means less rage from each hit taken,
 // and an avoided hit gives none, so survival costs threat. The optimizer keeps survival in its own
-// terms instead of weighing it against threat:
-// - a **sheet** constraint reads the character sheet before any fight (health, armor, defense, …).
-//   A candidate that misses it is left out of the race.
-// - a **result** constraint reads a fight metric (DPS, TPS, damage taken per second), so it's
-//   judged with its interval in the race: a candidate whose 99% interval lies wholly outside the
-//   limit is dropped, and only one whose mean meets it can lead.
+// terms instead of weighing it against threat: a constraint reads the character sheet before any
+// fight (health, armor, defense, effective health, the boss's crit and crush chances), and a
+// candidate that misses one is left out of the race. Sheet values are exact, so there's nothing to
+// judge in the race. There are no limits on fight results, such as damage taken or TPS (D30, cut at
+// step 6 of O1's review: judging them with intervals in the race kept breaking).
 // A bound is absolute, or relative to a reference setup's value (1.02 is 102% of it): the baseline's,
 // or another the caller names (a tank's survival preset, for the effective-health floor).
 //
@@ -27,7 +26,6 @@
 import { armorReduction } from '../core/formulas'
 import type { PlanBundle } from '../plan/types'
 import type { BossOutcomes, Role } from '../types'
-import type { FightSamples } from './fights'
 
 /** The sheet's numbers a constraint can read: the character sheet's, and effective health (`ehp`). */
 export const SHEET_STATS = [
@@ -97,9 +95,9 @@ export function sheetValues(bundle: PlanBundle): SheetValues {
 const share = (pct: number | undefined) => (pct === undefined || pct < 1e-9 ? 0 : pct)
 
 /** Crit immunity (D30, off by default): the boss's crit chance against you is 0. */
-export const CRIT_IMMUNE: SheetConstraint = { on: 'sheet', stat: 'bossCritPct', max: 0 }
+export const CRIT_IMMUNE: Constraint = { stat: 'bossCritPct', max: 0 }
 /** Crush immunity (D30, off by default): your avoidance and block push crushing blows off the boss's table. */
-export const CRUSH_IMMUNE: SheetConstraint = { on: 'sheet', stat: 'bossCrushPct', max: 0 }
+export const CRUSH_IMMUNE: Constraint = { stat: 'bossCrushPct', max: 0 }
 
 /** The share of the reference's effective health a tank keeps by default (D30, user decision). */
 export const EHP_FLOOR = 0.9
@@ -110,12 +108,11 @@ export const EHP_FLOOR = 0.9
  * damage-taken cap (D30).
  */
 export function defaultConstraints(role: Role): Constraint[] {
-  return role === 'tank' ? [{ on: 'sheet', stat: 'ehp', min: EHP_FLOOR, relative: true }] : []
+  return role === 'tank' ? [{ stat: 'ehp', min: EHP_FLOOR, relative: true }] : []
 }
 
-/** The fight metrics a constraint can read (FightSamples' fields). */
-export const RESULT_METRICS = ['dps', 'tps', 'taken'] as const satisfies readonly (keyof FightSamples)[]
-export type ResultMetric = (typeof RESULT_METRICS)[number]
+/** Fight results, which a constraint can't read (D30): `parseConstraint` names them to say so. */
+const RESULT_METRICS = ['dps', 'tps', 'taken'] as const
 
 export interface Bound {
   min?: number
@@ -124,9 +121,8 @@ export interface Bound {
   relative?: boolean
 }
 
-export type SheetConstraint = { on: 'sheet'; stat: SheetStat } & Bound
-export type ResultConstraint = { on: 'result'; metric: ResultMetric } & Bound
-export type Constraint = SheetConstraint | ResultConstraint
+/** A limit on a sheet number. */
+export type Constraint = { stat: SheetStat } & Bound
 
 /** The absolute limits of a bound, given the baseline's value. */
 export function limits(bound: Bound, baseline: number): { min: number; max: number } {
@@ -134,10 +130,9 @@ export function limits(bound: Bound, baseline: number): { min: number; max: numb
   return { min: bound.min === undefined ? -Infinity : bound.min * k, max: bound.max === undefined ? Infinity : bound.max * k }
 }
 
-/** Whether sheet values meet every sheet constraint, relative ones against the reference's. */
+/** Whether sheet values meet every constraint, relative ones against the reference's. */
 export function meetsSheet(values: SheetValues, reference: SheetValues, constraints: readonly Constraint[]): boolean {
   return constraints.every((c) => {
-    if (c.on !== 'sheet') return true
     const { min, max } = limits(c, reference[c.stat])
     return values[c.stat] >= min && values[c.stat] <= max
   })
@@ -145,8 +140,8 @@ export function meetsSheet(values: SheetValues, reference: SheetValues, constrai
 
 /**
  * A constraint from its command-line form: `ehp>=90%` (of the reference's), `health>=8000`,
- * `taken<=102%`, `armor>=6500`. Sheet stats are SHEET_STATS; result metrics are dps, tps and
- * taken (damage taken per second).
+ * `armor>=6500`, `defense>=440`. The names are SHEET_STATS; a fight result (dps, tps, taken) is
+ * refused with a line that says the race takes no result limits.
  */
 export function parseConstraint(text: string): Constraint {
   const m = /^\s*([A-Za-z]+)\s*(<=|>=)\s*(-?[0-9.]+)\s*(%?)\s*$/.exec(text)
@@ -155,24 +150,24 @@ export function parseConstraint(text: string): Constraint {
   const value = Number(number) / (pct ? 100 : 1)
   if (!Number.isFinite(value)) throw new Error(`"${number}" isn't a number in "${text}"`)
   const bound: Bound = { ...(op === '>=' ? { min: value } : { max: value }), ...(pct ? { relative: true } : {}) }
-  if ((RESULT_METRICS as readonly string[]).includes(name)) return { on: 'result', metric: name as ResultMetric, ...bound }
-  if ((SHEET_STATS as readonly string[]).includes(name)) return { on: 'sheet', stat: name as SheetStat, ...bound }
-  throw new Error(`"${name}" isn't a sheet stat (${SHEET_STATS.join(', ')}) or a result metric (${RESULT_METRICS.join(', ')})`)
+  if ((RESULT_METRICS as readonly string[]).includes(name))
+    throw new Error(`"${name}" is a fight result: the optimizer takes limits only on the sheet (${SHEET_STATS.join(', ')}), not on results (D30)`)
+  if ((SHEET_STATS as readonly string[]).includes(name)) return { stat: name as SheetStat, ...bound }
+  throw new Error(`"${name}" isn't a sheet stat (${SHEET_STATS.join(', ')})`)
 }
 
 /** A constraint's name in words: "crit immune", "crush immune", or its command-line form. */
 export function constraintName(c: Constraint): string {
-  if (c.on === 'sheet' && c.stat === 'bossCritPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crit immune'
-  if (c.on === 'sheet' && c.stat === 'bossCrushPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crush immune'
+  if (c.stat === 'bossCritPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crit immune'
+  if (c.stat === 'bossCrushPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crush immune'
   return formatConstraint(c)
 }
 
 /** A constraint in its command-line form. */
 export function formatConstraint(c: Constraint): string {
-  const name = c.on === 'sheet' ? c.stat : c.metric
   const parts: string[] = []
   const show = (v: number) => (c.relative ? `${+(v * 100).toFixed(2)}%` : `${v}`)
-  if (c.min !== undefined) parts.push(`${name}>=${show(c.min)}`)
-  if (c.max !== undefined) parts.push(`${name}<=${show(c.max)}`)
+  if (c.min !== undefined) parts.push(`${c.stat}>=${show(c.min)}`)
+  if (c.max !== undefined) parts.push(`${c.stat}<=${show(c.max)}`)
   return parts.join(', ')
 }

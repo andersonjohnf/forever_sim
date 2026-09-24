@@ -23,7 +23,7 @@
 //   --search talents      talents (the default); the setup's rotation
 //   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's
 //                         talents, with no talent constraints (the talent flags below are refused with it)
-//   --search both        every build with every rotation variant, and with the setup's own rotation
+//   --search both         every build with every rotation variant, and with the setup's own rotation
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
 //                         Every pass races its start too, and holds every candidate to every constraint.
@@ -47,13 +47,13 @@
 //   --partials            search partial ranks too, one per build (a far larger space)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
-// Constraints on the result (docs/optimizer.md#constraints), repeatable:
-//   --require <limit>     name>=value or name<=value; a % makes it a share of the baseline's value.
-//                         Sheet: ehp (effective health: health ÷ (1 − armor's reduction vs the boss)),
+// Constraints on the character sheet (docs/optimizer.md#constraints), repeatable:
+//   --require <limit>     name>=value or name<=value; a % makes it a share of the baseline's value:
+//                         ehp (effective health: health ÷ (1 − armor's reduction vs the boss)),
 //                         health, armor, stamina, defense, dodgePct, parryPct, blockPct, blockValue,
 //                         critReductionPct, hitPct, critPct, attackPower, bossCritPct and bossCrushPct
-//                         (the boss's crit and crushing blow chances against you). Results: dps, tps,
-//                         taken (damage taken per second). "ehp>=95%", "health>=8000", "taken<=102%".
+//                         (the boss's crit and crushing blow chances against you). "ehp>=95%",
+//                         "health>=8000". Fight results (dps, tps, damage taken) take no limits (D30).
 //   --no-ehp-floor        drop a tank's default floor, 90% of the default's effective health (D30)
 //   --crit-immune         the boss can't crit you (bossCritPct<=0: 440 defense vs a level-63 boss, on the
 //                         table with no block buff up); off by default
@@ -281,7 +281,7 @@ async function main() {
   const exclude = list(args.exclude).map((name) => talentByName(name).name)
   const required = args.require.map((text) => engine.parseConstraint(text))
   // A tank keeps 90% of the default's effective health unless told otherwise (D30).
-  const floorOff = args['no-ehp-floor'] || required.some((c) => c.on === 'sheet' && c.stat === 'ehp')
+  const floorOff = args['no-ehp-floor'] || required.some((c) => c.stat === 'ehp')
   const immune = [...(args['crit-immune'] ? [engine.CRIT_IMMUNE] : []), ...(args['crush-immune'] ? [engine.CRUSH_IMMUNE] : [])]
   if (immune.length && !tank) throw new Error('--crit-immune and --crush-immune are for tanks: the boss attacks only a tank')
   const constraints = [...(floorOff ? [] : engine.defaultConstraints(meta.role)), ...required, ...immune]
@@ -403,7 +403,11 @@ async function main() {
     }
     if (r.space) {
       const floor = Object.keys(r.space.floor).map((id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name)
-      console.log(`talent space: ${count(r.space.builds)} builds${r.space.truncated ? ' (truncated)' : ''} from ${r.space.dimensions.length} objective talents; ${count(r.space.cores)} legal cores, ${count(r.space.dominated)} dominated`)
+      // The dimensions: the objective talents, and those only a constraint made one (OV3-6).
+      const dims = r.space.dimensions
+      const byConstraint = dims.filter((d) => r.space.constrained.includes(d.id)).map((d) => d.name)
+      const dimensions = `${dims.length} dimensions (${dims.length - byConstraint.length} objective${byConstraint.length ? ` + ${byConstraint.join(', ')}` : ''})`
+      console.log(`talent space: ${count(r.space.builds)} builds${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}; ${count(r.space.cores)} legal cores, ${count(r.space.dominated)} dominated`)
       const kept = Object.keys(keep).filter((name) => !floor.includes(name))
       if (floor.length) console.log(`  survival floor kept: ${floor.join(', ')}${kept.length ? `; and kept (--keep): ${kept.join(', ')}` : ''}`)
       else if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
@@ -439,11 +443,11 @@ async function main() {
         const cand = r.candidates[s.candidate]
         const sheet = r.sheets[s.candidate]
         const state =
-          s.state === 'dropped' ? `dropped r${s.droppedInRound}${s.droppedAs === 'infeasible' ? ' (outside a limit)' : ''}` : s.state
+          s.state === 'dropped' ? `dropped r${s.droppedInRound}` : s.state
         console.log(
           `| ${i + 1} | \`${cand.talents}\` | ${describe(s.candidate)} | ${tank ? `${s.mean.tps.toFixed(1)} | ` : ''}${s.mean.dps.toFixed(1)} | ${tank ? `${s.mean.taken.toFixed(1)} | ${Math.round(sheet.health)} | ${Math.round(sheet.ehp)} | ${chance(sheet.bossCritPct)} | ${chance(sheet.bossCrushPct)} | ` : ''}${ci(s.vsBaseline.score)} |` +
             (tank ? ` ${ci(s.vsBaseline.tps, 1)} | ${ci(s.vsBaseline.dps, 1)} | ${ci(s.vsBaseline.taken, 1)} |` : ` ${pct((100 * s.vsBaseline.dps.mean) / race.baseline.dps)} |`) +
-            ` ${count(s.fights)} | ${state}${s.feasible || s.droppedAs === 'infeasible' ? '' : ', misses a limit'}${s.ties.length ? `, ${s.ties.length} ties` : ''} |`,
+            ` ${count(s.fights)} | ${state}${s.ties.length ? `, ${s.ties.length} ties` : ''} |`,
         )
       })
     }
@@ -458,17 +462,12 @@ async function main() {
       console.log(speed)
       return
     }
-    const infeasible = race.rounds.reduce((n, round) => n + round.infeasible, 0)
     console.log(
       race.status === 'separated'
-        ? `result: the leader clears every other candidate at 95% (D23's bar) after ${race.rounds.length} rounds${infeasible ? `; ${count(infeasible)} were dropped as clearly outside a limit` : ''}`
+        ? `result: the leader clears every other candidate at 95% (D23's bar) after ${race.rounds.length} rounds`
         : `result: the budget ran out after ${race.rounds.length} rounds with ${count(race.unseparated.length)} candidates the leader isn't clear of at 95%` +
             (race.closest ? `; the closest (\`${r.candidates[race.closest.candidate].talents}\`: ${describe(race.closest.candidate)}) is ${ci(race.closest.vsLeader)}${units} behind (95% CI)` : ''),
     )
-    if (!race.leaderInsideLimits)
-      console.log(
-        `note: the leader meets ${r.constraints.filter((c) => c.on === 'result').map(engine.formatConstraint).join(' and ')} by its means alone: the budget ended before its 95% intervals were inside the limits`,
-      )
     const leader = race.standings.find((s) => s.candidate === race.leader)
     const beatsBase = leader.vsBaseline.score.mean - leader.vsBaseline.score.halfWidth > 0
     const own = engine.isSetup(config, r.candidates[race.leader])

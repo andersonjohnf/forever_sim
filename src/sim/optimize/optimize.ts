@@ -3,7 +3,8 @@
 // 1. Screen the class's talents for this setup (./screen.ts), if talents are searched.
 // 2. Build the candidates: every sensible talent build under the constraints (./talents.ts), each
 //    with every rotation variant given, and the setup and the start themselves. Every candidate
-//    must meet every constraint, talent, sheet and result alike.
+//    must meet every constraint, talent and sheet alike, before the race; the race takes no limits
+//    on fight results (D30).
 // 3. Race them on common random numbers (./race.ts) within the budget, beside the baseline, the
 //    setup as it is: the measuring stick every candidate is paired with, never an answer. If no
 //    candidate meets the constraints, there's no answer, and the report says which ones block.
@@ -19,7 +20,7 @@ import type { Plan } from '../plan/types'
 import { SPEC_META } from '../specs'
 import type { Assumption, RotationValue, SimConfig, SpecId } from '../types'
 import { type FightRunner, type PlanSource, planKey } from './fights'
-import { type Constraint, constraintName, formatConstraint, limits, meetsSheet, type ResultConstraint, type SheetConstraint, sheetValues, type SheetValues } from './constraints'
+import { type Constraint, constraintName, limits, meetsSheet, sheetValues, type SheetValues } from './constraints'
 import { PREFERRED_FILLER, SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
 import { defaultObjective, type Interval, lower, type ObjectiveId } from './objective'
 import { race, type RaceProgress, type RaceResult } from './race'
@@ -145,10 +146,7 @@ export interface OptimizeOptions {
   start?: Candidate
   /** Rotation settings the talent screen also tries (default: `rotations`), so a talent only they use counts. */
   screenRotations?: readonly Record<string, RotationValue>[]
-  /**
-   * Limits every candidate must meet (./constraints.ts): sheet ones leave a candidate out before any
-   * fights, result ones are judged in the race.
-   */
+  /** Limits on the sheet every candidate must meet (./constraints.ts): one that misses any is left out before any fights. */
   constraints?: readonly Constraint[]
   /**
    * The setup relative sheet constraints are measured against (default: the baseline). A tank's gear
@@ -321,8 +319,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const maxRank = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t.maxRank]))
     const values = new Map(screen.verdicts.filter((v) => v.effect).map((v) => [v.id, v.effect!.mean / maxRank.get(v.id)!]))
     // A talent that changes what a constraint reads is searched, not a filler (./talents.ts).
-    const reads = (v: TalentVerdict) =>
-      constraints.some((c) => (c.on === 'sheet' ? v.sheetStats.includes(c.stat) : c.metric === 'taken' ? v.takenChanges : v.scoreChanges))
+    const reads = (v: TalentVerdict) => constraints.some((c) => v.sheetStats.includes(c.stat))
     const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
     const preferred = fillerId !== undefined && !(fillerId in keep) && !exclude.includes(fillerId) ? fillerId : undefined
     const found = talentSpace({
@@ -365,12 +362,12 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   add(start)
   for (const talents of builds) for (const rotation of rotations) add({ talents, rotation: { ...start.rotation, ...rotation } })
 
-  // Every candidate must meet every talent and sheet constraint; result constraints are judged in the race.
+  // Every candidate must meet every talent and sheet constraint.
   const sheetOf = (c: Candidate) => sheetValues(buildPlan(applyCandidate(config, c)))
   const baseline = setupCandidate(config)
   const baselineSheet = sheetOf(baseline)
   const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : baselineSheet
-  const sheetRules = constraints.filter((c): c is SheetConstraint => c.on === 'sheet')
+  const sheetRules = constraints
   const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules.constraints) : [])
   const keepsTalents = pool.filter((c) => talentFails(c).length === 0)
   const sheets = sheetRules.length > 0 ? keepsTalents.map(sheetOf) : []
@@ -396,7 +393,6 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const sources: PlanSource[] = candidates.map((c) => ({ key: planKey(), plan: () => candidatePlan(config, c) }))
   // Build the baseline's plan now, so a setup that can't be simulated fails before any fights.
   sources[0].plan()
-  const resultRules = constraints.filter((c): c is ResultConstraint => c.on === 'result')
   const raced = await race({
     sources,
     // The setup's copy is the baseline's own plan: it takes the baseline's samples (OV2-5).
@@ -405,18 +401,14 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     objective,
     budget: planned.fights,
     initialFights: planned.initialFights,
-    constraints: resultRules,
     top: options.top,
     signal,
     onProgress: (p) => options.onProgress?.({ phase: 'race', ...p }),
   })
 
-  let blocked: string[] = []
-  if (raced.leader === null)
-    blocked =
-      valid.length === 0
-        ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules: talentRules?.constraints, data })
-        : whyNoneInRace(resultRules, raced, valid.length)
+  // With a candidate there's always a leader: only a constraint that leaves every one out blocks.
+  const blocked =
+    valid.length === 0 ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules: talentRules?.constraints, data }) : []
   return {
     spec,
     objective,
@@ -477,7 +469,7 @@ export function whyNoneBefore(from: {
   keepsTalents: Candidate[]
   sheets: SheetValues[]
   reference: SheetValues
-  sheetRules: SheetConstraint[]
+  sheetRules: readonly Constraint[]
   data: TalentData
   space?: OptimizeReport['space']
   talentRules?: TalentConstraints
@@ -504,13 +496,6 @@ export function whyNoneBefore(from: {
     else lines.push(`${name}: no candidate meets it; the closest has ${c.stat} ${show(closest[c.stat])} against a limit of ${show(max < Infinity ? max : min)}`)
   }
   if (lines.length === 0) lines.push(`no candidate meets ${sheetRules.map(constraintName).join(' and ')} together, though each alone is met`)
-  return lines
-}
-
-/** Why the race ended with no leader: the result constraints its candidates were clearly outside, or the budget ran out first. */
-export function whyNoneInRace(rules: ResultConstraint[], race: RaceResult, candidates: number): string[] {
-  const lines = rules.flatMap((c, i) => (race.outside[i] > 0 ? [`${formatConstraint(c)}: ${race.outside[i].toLocaleString('en-US')} of ${candidates.toLocaleString('en-US')} candidates were clearly outside it in the race`] : []))
-  if (race.status === 'budget') lines.push(`the budget ran out before any candidate's means met ${rules.map(formatConstraint).join(' and ')}`)
   return lines
 }
 

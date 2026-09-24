@@ -176,26 +176,15 @@ describe('race', () => {
     expect(result.standings.some((s) => s.candidate === 0)).toBe(false)
   })
 
-  it('drops a candidate clearly outside a result constraint, and only a feasible one leads', async () => {
-    // The best DPS takes 20% more damage; a limit of 105% of the baseline's damage taken rules it out.
+  it('takes no result limits: the best mean leads whatever its damage taken (D30, step 6)', async () => {
+    // The best DPS takes 20% more damage: with no limits on results, it leads all the same.
     const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, taken: 600 }, { dps: 1030 }, { dps: 1010 }]
-    const result = await race(options(toys, { constraints: [{ on: 'result', metric: 'taken', max: 1.05, relative: true }] }))
-    expect(result.leader).toBe(2)
-    const out = result.standings.find((s) => s.candidate === 1)!
-    expect(out.droppedAs).toBe('infeasible')
-    expect(out.feasible).toBe(false)
-    expect(result.rounds[0].infeasible).toBe(1)
-    expect(result.outside).toEqual([1])
-  })
-
-  it('has no leader when every candidate is clearly outside a result constraint', async () => {
-    const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, taken: 600 }, { dps: 1030, taken: 620 }]
-    const result = await race(options(toys, { constraints: [{ on: 'result', metric: 'taken', max: 1.05, relative: true }] }))
-    expect(result.status).toBe('none')
-    expect(result.leader).toBeNull()
-    expect(result.outside).toEqual([2])
-    expect(result.standings.every((st) => st.state === 'dropped' && st.droppedAs === 'infeasible')).toBe(true)
-    expect(result.unseparated).toEqual([])
+    const result = await race(options(toys))
+    expect(result.leader).toBe(1)
+    expect(result.status).toBe('separated')
+    for (const round of result.rounds) expect(round.leader).toBe(1)
+    // Nothing is dropped as outside a limit: a standing is the leader, a survivor or dropped as worse.
+    for (const st of result.standings) for (const key of ['droppedAs', 'feasible']) expect(st).not.toHaveProperty(key)
   })
 
   it('the baseline is only the measuring stick: it runs every round but never leads, drops another or stands', async () => {
@@ -212,78 +201,6 @@ describe('race', () => {
     const alone = await race(options(toys.slice(0, 1)))
     expect(alone).toMatchObject({ status: 'none', leader: null, standings: [], spent: 100 })
     expect(alone.baseline.fights).toBe(100)
-  })
-
-  it('a leader over a result limit on its true mean never drops a feasible candidate, nor ends the race separated (OV2-1)', async () => {
-    // The verification's toy (lostfeasible.probe.ts): a limit of 505 damage taken a second; the
-    // best DPS takes 507 (truly over it), the next 495. Before the fix the first stood as leader on a
-    // lucky first round, dropped the second as worse and separated in 1 of 3 seeds of these.
-    const toys = [
-      { dps: 1000, taken: 500 },
-      { dps: 1100, taken: 507 },
-      { dps: 1050, taken: 495 },
-    ]
-    const seeded = (seed: number): FightRunner => ({
-      lanes: 2,
-      run: async (source, from, count) => {
-        const out: FightSamples = { dps: new Float64Array(count), tps: new Float64Array(count), taken: new Float64Array(count) }
-        for (let i = 0; i < count; i++) {
-          const s = normal(rng(seed, from + i, 1)) * 60
-          const own = rng(seed * 100 + source.key + 1, from + i, 3)
-          const t = toys[source.key]
-          out.dps[i] = t.dps + s + normal(own) * 10
-          out.tps[i] = out.dps[i]
-          out.taken[i] = t.taken + normal(own) * 20
-        }
-        return out
-      },
-    })
-    for (let seed = 1; seed <= 30; seed++) {
-      const r = await race({
-        sources: sources(3),
-        runner: seeded(seed),
-        objective: 'dps',
-        budget: 60_000,
-        initialFights: 100,
-        jobFights: 50,
-        constraints: [{ on: 'result', metric: 'taken', max: 505 }],
-      })
-      expect(r.leader).toBe(2)
-      expect(r.status).toBe('separated')
-      expect(r.leaderInsideLimits).toBe(true)
-      expect(r.standings.find((s) => s.candidate === 2)!.state).toBe('leader')
-      // The over-limit one is only ever dropped as outside the limit, never kept as the answer.
-      const over = r.standings.find((s) => s.candidate === 1)!
-      expect(over.droppedAs).toBe('infeasible')
-      // A round led by it dropped no one as worse.
-      for (const round of r.rounds) if (round.leader === 1) expect(round.dropped).toBe(round.infeasible)
-    }
-  })
-
-  it('counts the ties merged into a candidate as outside a limit with it (OV2-4)', async () => {
-    // Candidates 2 and 3 fight exactly as 1 does, and all three take far too much damage.
-    const runner = toyRunner([{ dps: 1000 }, { dps: 1010, taken: 700 }])
-    const tieRunner: FightRunner = { lanes: 2, run: (source, from, count) => runner.run({ ...source, key: Math.min(source.key, 1) }, from, count) }
-    const result = await race({ ...options([]), sources: sources(4), runner: tieRunner, constraints: [{ on: 'result', metric: 'taken', max: 1.05, relative: true }] })
-    expect(result.rounds[0].merged).toBe(2)
-    expect(result.status).toBe('none')
-    expect(result.outside).toEqual([3])
-  })
-
-  it('with no leader when the budget runs out, the standings have no comparison with one (OV2-7)', async () => {
-    // Taken 505.5 against a limit of 505: every mean is over it, but not clearly, on so few fights.
-    const toys: Toy[] = [{ dps: 1000 }, { dps: 1010, taken: 505.5 }, { dps: 1020, taken: 505.5 }]
-    const result = await race(options(toys, { budget: 1_500, initialFights: 100, constraints: [{ on: 'result', metric: 'taken', max: 505 }] }))
-    expect(result.status).toBe('budget')
-    expect(result.leader).toBeNull()
-    expect(result.leaderInsideLimits).toBe(false)
-    expect(result.standings).toHaveLength(2)
-    for (const s of result.standings) {
-      expect(s.state).toBe('survivor')
-      expect(s).not.toHaveProperty('vsLeader')
-    }
-    expect(result.unseparated).toEqual([])
-    expect(JSON.stringify(result.standings)).not.toContain('"halfWidth":null') // no Infinity written out as null
   })
 
   it('a copy of the baseline takes its samples and costs no fights (OV2-5)', async () => {

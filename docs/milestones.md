@@ -335,7 +335,7 @@ sets. Each spec's defaults are then its results.
       racing over candidates in the worker pool, with confidence intervals), the talent build
       enumerator (tree rules, required talents, the minimum points in a tree, the class's
       survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`). Also constraints on the sheet and the results, with effective health
+      (`npm run optimize`). Also constraints on the sheet, with effective health
       and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's `fightRunner` for
       O3 ([optimizer.md](optimizer.md)). After its review
       ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination

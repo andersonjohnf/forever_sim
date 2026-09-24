@@ -11,8 +11,7 @@ import { CRIT_IMMUNE, CRUSH_IMMUNE, defaultConstraints, effectiveHealth, formatC
 import { describeBuildChange } from './describe'
 import { type FightRunner, localFightRunner } from './fights'
 import { SURVIVAL_FLOOR } from './floor'
-import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate, whyNoneInRace } from './optimize'
-import type { RaceResult } from './race'
+import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate } from './optimize'
 import { screenTalents } from './screen'
 import { brokenConstraints } from './talents'
 
@@ -100,7 +99,7 @@ describe('optimize', () => {
     const keepEhp = await optimize({
       config: bear,
       talents: { ...search, floor: false },
-      constraints: [{ on: 'sheet', stat: 'ehp', min: 1, relative: true }],
+      constraints: [{ stat: 'ehp', min: 1, relative: true }],
       budget: { fights: 20_000, initialFights: 20 },
       runner: localFightRunner(),
     })
@@ -256,8 +255,8 @@ describe('optimize', () => {
       config: warrior,
       talents,
       constraints: [
-        { on: 'sheet', stat: 'armor', min: Math.max(...armor) },
-        { on: 'sheet', stat: 'armor', max: Math.min(...armor) },
+        { stat: 'armor', min: Math.max(...armor) },
+        { stat: 'armor', max: Math.min(...armor) },
       ],
       budget: { fights: 4_000, initialFights: 2 },
       runner: localFightRunner(),
@@ -265,30 +264,6 @@ describe('optimize', () => {
     expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual([`no candidate meets armor>=${Math.max(...armor)} and armor<=${Math.min(...armor)} together, though each alone is met`])
   }, 120_000)
-
-  it('names a result constraint every candidate was clearly outside, counting each one (OV2-8)', async () => {
-    // Half the default's damage taken: no bear rotation gets near it.
-    const report = await optimize({
-      config: bear,
-      rotations: [{ [MAUL]: 90 }],
-      constraints: [{ on: 'result', metric: 'taken', max: 0.5, relative: true }],
-      budget: { fights: 4_000, initialFights: 50 },
-      runner: localFightRunner(),
-    })
-    expect(report.race.status).toBe('none')
-    expect(report.race.leader).toBeNull()
-    expect(report.blocked).toEqual(['taken<=50%: 2 of 2 candidates were clearly outside it in the race'])
-  }, 60_000)
-
-  it('says when the budget ran out before any candidate’s means met a result constraint (OV2-8)', () => {
-    const rules = [{ on: 'result', metric: 'taken', max: 505 } as const]
-    const race = { status: 'budget', outside: [0] } as unknown as RaceResult
-    expect(whyNoneInRace(rules, race, 2)).toEqual(["the budget ran out before any candidate's means met taken<=505"])
-    expect(whyNoneInRace(rules, { ...race, outside: [1] }, 2)).toEqual([
-      'taken<=505: 1 of 2 candidates were clearly outside it in the race',
-      "the budget ran out before any candidate's means met taken<=505",
-    ])
-  })
 
   it('answers with the leader; the preferred filler is only the fill order, before Toughness (D30, step 6)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))
@@ -417,9 +392,10 @@ describe('constraints', () => {
   })
 
   it('parses and prints the command line’s limits', () => {
-    expect(parseConstraint('ehp>=90%')).toEqual({ on: 'sheet', stat: 'ehp', min: 0.9, relative: true })
-    expect(parseConstraint('taken <= 102%')).toEqual({ on: 'result', metric: 'taken', max: 1.02, relative: true })
-    expect(parseConstraint('health>=8000')).toEqual({ on: 'sheet', stat: 'health', min: 8000 })
+    expect(parseConstraint('ehp>=90%')).toEqual({ stat: 'ehp', min: 0.9, relative: true })
+    // The race takes no limits on fight results (D30): a result metric is refused, saying so.
+    for (const text of ['taken <= 102%', 'tps>=1000', 'dps>=90%']) expect(() => parseConstraint(text)).toThrow(/fight result: the optimizer takes limits only on the sheet/)
+    expect(parseConstraint('health>=8000')).toEqual({ stat: 'health', min: 8000 })
     expect(formatConstraint(parseConstraint('ehp>=90%'))).toBe('ehp>=90%')
     expect(() => parseConstraint('luck>=1')).toThrow(/isn't a sheet stat/)
     expect(() => parseConstraint('ehp=1')).toThrow(/name>=value/)
@@ -432,8 +408,7 @@ describe('constraints', () => {
     expect(meetsSheet({ ...ref, ehp: ref.ehp * 0.89 }, ref, floor)).toBe(false)
     expect(defaultConstraints('dps')).toEqual([])
     // D30: the EHP floor is a tank's only default; no damage-taken cap, and immunity is off.
-    expect(floor).toEqual([{ on: 'sheet', stat: 'ehp', min: 0.9, relative: true }])
-    expect(floor.some((c) => c.on === 'result')).toBe(false)
+    expect(floor).toEqual([{ stat: 'ehp', min: 0.9, relative: true }])
   })
 
   it('reads the boss’s crit and crush chances from the tables the engine and the Results use (D30)', () => {

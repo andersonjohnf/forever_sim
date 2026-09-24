@@ -6,7 +6,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "immolate",
       null,
-      5268976.556923393,
+      5332648.737791618,
       12452,
       9630,
       1562,
@@ -16,7 +16,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "immolateDot",
       null,
-      12050233.890880149,
+      12246480.74678898,
       11192,
       45689,
       7595,
@@ -26,7 +26,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "corruption",
       null,
-      12596641.016462095,
+      12850748.066055458,
       10224,
       44569,
       7469,
@@ -36,7 +36,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "baneOfDoom",
       null,
-      10213761.117438603,
+      10408833.418299358,
       2184,
       1704,
       259,
@@ -46,7 +46,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "baneOfAgony",
       null,
-      2948796.382260738,
+      3009990.7267045337,
       2376,
       15926,
       2703,
@@ -56,7 +56,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "soulFire",
       null,
-      9566197.543752579,
+      9753163.551385377,
       6005,
       4652,
       764,
@@ -66,7 +66,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "shadowBolt",
       null,
-      37770527.23621889,
+      38569914.915011376,
       36101,
       27839,
       4744,
@@ -76,7 +76,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "imp.firebolt",
       "Imp",
-      28929907.724148117,
+      29216356.74814876,
       156698,
       120659,
       20554,
@@ -126,15 +126,20 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
       null,
     ],
     [
+      "draconicInfusedEmblem",
+      null,
+      98.12598428421998,
+    ],
+    [
       "shadowVulnerability",
       null,
       27.30588367796663,
     ],
   ],
   "dps": {
-    "ci95": 1.8237031767409564,
-    "mean": 664.1912020230991,
-    "stdev": 29.424294834373654,
+    "ci95": 1.860540593376864,
+    "mean": 675.5616998550902,
+    "stdev": 30.018643203042185,
   },
   "mana": {
     "max": 6190,

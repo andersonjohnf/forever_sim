@@ -386,6 +386,10 @@ describe('golden runs (fixed config and seed)', () => {
   //   Shadow items where they lead (Felcloth Gloves, Tome of Shadow Force, Skul's Ghastly Touch):
   //   402.07 → 503.79 here; 402.0 → 502.5 over 20,000 fights on seed 2701. Destruction's list lost its
   //   event-only items and gained Ironbark Staff for the Alliance, neither worn: its result is unchanged.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Draconic Infused Emblem's
+  //   proc is modelled and leads both lists' trinkets, in place of Briarwood Reed (Destruction's third
+  //   ring is Wrath of Cenarius, not worn). Affliction 503.79 → 514.05, Destruction 585.96 → 597.86 here;
+  //   502.5 → 512.7 and 586.0 → 597.9 over 20,000 fights on seed 2701.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

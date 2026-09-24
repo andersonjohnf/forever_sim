@@ -230,7 +230,7 @@
         },
         "mage-fire": {
           "name": "Fire Mage",
-          "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear's Alliance faction twins take the same rank (docs/data/items.md#faction-twins); the Alliance's Rank 7 to 10 silk has the same stats but no item set in Forever's client, so it isn't a twin and is listed at the Horde piece's rank on its own. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rank-2 two-hander, Staff of Balzaphon, is left out as event-only (Balzaphon appears in Stratholme only during the Scourge Invasion; docs/data/items.md#sources-c), so Lord Valthalak's Staff of Command moves up.",
+          "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear's Alliance faction twins take the same rank (docs/data/items.md#faction-twins); the Alliance's Rank 7 to 10 silk has the same stats but no item set in Forever's client, so it isn't a twin and is listed at the Horde piece's rank on its own. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rank-2 two-hander, Staff of Balzaphon, is left out as event-only (Balzaphon appears in Stratholme only during the Scourge Invasion; docs/data/items.md#sources-c), so Lord Valthalak's Staff of Command moves up. Its rings and trinkets are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Rune Band of Wizardry, Flaming Band (-2.1), Don Mauricio's Band of Domination (-2.5) and Wrath of Cenarius (-4.7, its proc modelled); Draconic Infused Emblem (+9.6 over Briarwood Reed, its proc modelled), Briarwood Reed, Burst of Knowledge and Eye of the Beast. Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's and Burst of Knowledge's uses).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear",
             "snapshot": "2021-02-15",
@@ -270,7 +270,7 @@
         },
         "priest-shadow": {
           "name": "Shadow Priest",
-          "note": "The guide's Phase 6 list (patch 1.13.7). Its random-suffix entries (Green Lens, Archivist Cape, Tearfall Bracers, Flameweave Cuffs, Master's Bracers, Drakestone and Lunar Wand, each 'of Shadow Wrath') are left out and keep no rank: the pool has no suffixes, so the base item would carry none of its Shadow damage. The others keep the guide's rank. Its Weapon (1H) row is the main hand and its Wand row the ranged slot. Its PvP items sit below the top three in every slot, so none is kept. Not from the guide: Mindfang and Sageclaw lead the main hand (Forever gave them +94 spell power, a [?] estimate; Classic Era +30), so the guide's Scepter of the Unholy and Blade of the New Moon move to ranks 2 and 3 and its Witchblade drops (docs/classes/priest.md#75-gear).",
+          "note": "The guide's Phase 6 list (patch 1.13.7). Its random-suffix entries (Green Lens, Archivist Cape, Tearfall Bracers, Flameweave Cuffs, Master's Bracers, Drakestone and Lunar Wand, each 'of Shadow Wrath') are left out and keep no rank: the pool has no suffixes, so the base item would carry none of its Shadow damage. The others keep the guide's rank. Its Weapon (1H) row is the main hand and its Wand row the ranged slot. Its PvP items sit below the top three in every slot, so none is kept. Not from the guide: Mindfang and Sageclaw lead the main hand (Forever gave them +94 spell power, a [?] estimate; Classic Era +30), so the guide's Scepter of the Unholy and Blade of the New Moon move to ranks 2 and 3 and its Witchblade drops (docs/classes/priest.md#75-gear). Its off hand is re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Spirit of Aquementas, the default's, lost its Forever row in 1.60.1.70009 (Classic Era stats since), and Tome of Shadow Force (+6.0 over it) and Therazane's Touch (+4.7) now lead it. Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's, Burst of Knowledge's and Second Wind's uses).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210518011006/https://classic.wowhead.com/guides/wow-classic-shadow-priest-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-18",
@@ -310,7 +310,7 @@
         },
         "shaman-elemental": {
           "name": "Elemental Shaman",
-          "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance faction twin a shaman can wear in the client (the Alliance's honor chain is the hunter's; docs/data/items.md#faction-twins), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's.",
+          "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance faction twin a shaman can wear in the client (the Alliance's honor chain is the hunter's; docs/data/items.md#faction-twins), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rings, trinkets and off hand are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Wrath of Cenarius, Elemental Focus Band (a tie, -0.07), Rune Band of Wizardry (-0.6) and Maiden's Circle; Draconic Infused Emblem (+14.4 over Eye of the Beast), Royal Seal of Eldre'Thalas (+6.0), Briarwood Reed (+4.5) and Eye of the Beast; Therazane's Touch (+3.4 over Scepter of Interminable Focus), the Scepter, and Spirit of Aquementas (-2.1; it lost its Forever row in 1.60.1.70009). Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's use; Energetic Rod's mana proc).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-16",
@@ -330,7 +330,7 @@
         },
         "warlock-affliction": {
           "name": "Affliction Warlock",
-          "note": "Ranked by the sim for the default Affliction build (warlock.md §7.1, a Shadow build), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear): Wowhead's one Classic warlock list (the source below) is among the candidates, but it was written for Classic Era's items, and Forever gave Mindfang and Sageclaw +94 spell power (a [?] estimate; Classic Era +30), worth +41 DPS on its own. The search starts from the guide's gear (the default Orc Affliction setup, 402.0 DPS) and ends at 502.5 (20,000 fights on seed 2701). Its Shadow items keep the slots where they lead: Felcloth Gloves, Tome of Shadow Force and Skul's Ghastly Touch. Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.14 ± 0.15 on a direct paired run), Blade of the New Moon over Dark Whisper Blade (the same +19 on its Shadow spells). Rune of the Guard Captain (Forever's +7 hit rating) beats Eye of the Beast by 0.21 ± 0.15. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -17 to -23 DPS, 6 pieces -34). Ironbark Staff leads the Alliance's two-handers (-13.9 DPS against Sageclaw and Tome of Shadow Force); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
+          "note": "Ranked by the sim for the default Affliction build (warlock.md §7.1, a Shadow build), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear): Wowhead's one Classic warlock list (the source below) is among the candidates, but it was written for Classic Era's items, and Forever gave Mindfang and Sageclaw +94 spell power (a [?] estimate; Classic Era +30), worth +41 DPS on its own. The search starts from the guide's gear (the default Orc Affliction setup, 402.0 DPS) and ends at 502.5 (20,000 fights on seed 2701). Its Shadow items keep the slots where they lead: Felcloth Gloves, Tome of Shadow Force and Skul's Ghastly Touch. Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.14 ± 0.15 on a direct paired run), Blade of the New Moon over Dark Whisper Blade (the same +19 on its Shadow spells). Rune of the Guard Captain (Forever's +7 hit rating) beats Eye of the Beast by 0.21 ± 0.15. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -17 to -23 DPS, 6 pieces -34). Ironbark Staff leads the Alliance's two-handers (-13.9 DPS against Sageclaw and Tome of Shadow Force); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring. Trinkets and rings re-ranked with Wrath of Cenarius's and Draconic Infused Emblem's procs modelled (DV2-4, 1.60.1.70009, paired in the finished set, 20,000 fights on seed 2701): Draconic Infused Emblem leads the trinkets (+10.2 DPS in place of Briarwood Reed), then Royal Seal of Eldre'Thalas, Briarwood Reed and Burst of Knowledge; Wrath of Cenarius stays below the four rings (-3.1). Item effects the sim doesn't model count as zero in its runs, and each is listed in the milestones' known gaps (docs/data/items.md#modelled-item-effects): here Eye of the Beast's +7% spell hit use, Burst of Knowledge's mana-cost use and Robe of the Void's pet heal.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-18",
@@ -340,7 +340,7 @@
         },
         "warlock-demonology": {
           "name": "Demonology Warlock",
-          "note": "Ranked by the sim for the default Demonology build (warlock.md §11.6: the Imp out, the Succubus sacrificed, so every buff is on Fire), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear). Wowhead's one Classic warlock list (the source below) is among the candidates. The search starts from the guide's gear (the default Orc Demonology setup, 534.2 DPS) and ends at 663.7 (20,000 fights on seed 2701), wearing Destruction's set: the search ended on Sandworm Skin Gloves and Ritssyn's Wand of Bad Mojo, which tie Hands of Power and Bonecreeper Stylus (+0.04 ± 0.33). Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.06 ± 0.23 on a direct paired run) and Deathmist Wraps (-0.28 ± 0.29 against Sandworm), and Maiden's Circle over Don Mauricio's Band of Domination (-0.06 ± 0.28); Don Julio's Band (Forever's +14 crit and +10 hit rating) beats Maiden's Circle by 0.46 ± 0.30. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -22 to -37 DPS, 6 pieces -47). Ironbark Staff leads the Alliance's two-handers (-11.9 DPS against Sageclaw and Therazane's Touch); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
+          "note": "Ranked by the sim for the default Demonology build (warlock.md §11.6: the Imp out, the Succubus sacrificed, so every buff is on Fire), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear). Wowhead's one Classic warlock list (the source below) is among the candidates. The search starts from the guide's gear (the default Orc Demonology setup, 534.2 DPS) and ends at 663.7 (20,000 fights on seed 2701), wearing Destruction's set: the search ended on Sandworm Skin Gloves and Ritssyn's Wand of Bad Mojo, which tie Hands of Power and Bonecreeper Stylus (+0.04 ± 0.33). Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.06 ± 0.23 on a direct paired run) and Deathmist Wraps (-0.28 ± 0.29 against Sandworm), and Maiden's Circle over Don Mauricio's Band of Domination (-0.06 ± 0.28); Don Julio's Band (Forever's +14 crit and +10 hit rating) beats Maiden's Circle by 0.46 ± 0.30. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -22 to -37 DPS, 6 pieces -47). Ironbark Staff leads the Alliance's two-handers (-11.9 DPS against Sageclaw and Therazane's Touch); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring. Trinkets and rings re-ranked with Wrath of Cenarius's and Draconic Infused Emblem's procs modelled (DV2-4, 1.60.1.70009, paired in the finished set, 20,000 fights on seed 2701): Draconic Infused Emblem leads the trinkets (+11.4 DPS in place of Briarwood Reed), then Royal Seal of Eldre'Thalas, Briarwood Reed and Burst of Knowledge; Wrath of Cenarius stays below the four rings (-2.8). Item effects the sim doesn't model count as zero in its runs, and each is listed in the milestones' known gaps (docs/data/items.md#modelled-item-effects): here Eye of the Beast's +7% spell hit use, Burst of Knowledge's mana-cost use and Robe of the Void's pet heal.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-18",
@@ -350,7 +350,7 @@
         },
         "warlock-destruction": {
           "name": "Destruction Warlock",
-          "note": "Ranked by the sim, not copied from a guide (docs/data/items.md 'Forever caveat': let the sim decide; docs/classes/warlock.md#73-gear). Wowhead's Classic warlock guide (the source below) has one Shadow list for every warlock, and it never considers the Fire items the default Fire build (warlock.md §7.1) can use. Candidates: every pool item a warlock can wear with spell damage (any school), spell power, spell hit or crit, Intellect or an effect, from pre-raid sources (dungeons, quests, reputation, crafting, world drops, PvP Rank 10 or lower), with the guide's picks among them. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); event-only items, from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and the invasion's other bosses' loot); Forever-new items, whose sources aren't known yet; random-suffix items, whose base rows have no spell stats; and four weapons whose Classic Era sources couldn't be confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power, a [?] estimate; the sim would rank them second and third in the main hand), Whiteout Staff (+74 spell power; Ironbark Staff and its twin, with +94 and 28 crit rating, would still lead the two-handers) and Amethyst War Staff. Method: a slot-by-slot paired search from the old default gear (the default Orc Destruction setup, 6,000 fights a candidate on seed 2701, common random numbers) until no swap helped, then each slot's alternatives ranked by their paired DPS in the finished set (20,000 fights); close calls get a direct paired run (40,000 fights). Within the 95% interval the guide's pick keeps the place (Deathmist Wraps over Inferno Gloves; Eye of the Beast over Rune of the Guard Captain, +0.02 ± 0.15). The Bloodvine Garb 3-piece (+2% spell crit) and the Champion's Dreadgear 2-piece (+23 spell power) win over more Dreadgear (paired, in the finished set: 4 pieces -20 to -31 DPS, 5 pieces -30, 6 pieces -42). Fire items lose most slots: the default build still casts Shadow (Shadowburn, Corruption, Bane of Doom), so +1 Fire spell damage is worth about 70% of +1 to every school (the sim's weights: 0.41 against 0.58 DPS), and Tome of Fiery Arcana's +40 Fire ranks second to Therazane's Touch's +31. The two-hand row's rank 1 is Ironbark Staff, the League of Arathor's, and its faction twin, The Defilers' (paired, a Human: -12.9 DPS against Sageclaw and Therazane's Touch; Lord Valthalak's Staff -54.1). Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
+          "note": "Ranked by the sim, not copied from a guide (docs/data/items.md 'Forever caveat': let the sim decide; docs/classes/warlock.md#73-gear). Wowhead's Classic warlock guide (the source below) has one Shadow list for every warlock, and it never considers the Fire items the default Fire build (warlock.md §7.1) can use. Candidates: every pool item a warlock can wear with spell damage (any school), spell power, spell hit or crit, Intellect or an effect, from pre-raid sources (dungeons, quests, reputation, crafting, world drops, PvP Rank 10 or lower), with the guide's picks among them. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); event-only items, from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and the invasion's other bosses' loot); Forever-new items, whose sources aren't known yet; random-suffix items, whose base rows have no spell stats; and four weapons whose Classic Era sources couldn't be confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power, a [?] estimate; the sim would rank them second and third in the main hand), Whiteout Staff (+74 spell power; Ironbark Staff and its twin, with +94 and 28 crit rating, would still lead the two-handers) and Amethyst War Staff. Method: a slot-by-slot paired search from the old default gear (the default Orc Destruction setup, 6,000 fights a candidate on seed 2701, common random numbers) until no swap helped, then each slot's alternatives ranked by their paired DPS in the finished set (20,000 fights); close calls get a direct paired run (40,000 fights). Within the 95% interval the guide's pick keeps the place (Deathmist Wraps over Inferno Gloves; Eye of the Beast over Rune of the Guard Captain, +0.02 ± 0.15). The Bloodvine Garb 3-piece (+2% spell crit) and the Champion's Dreadgear 2-piece (+23 spell power) win over more Dreadgear (paired, in the finished set: 4 pieces -20 to -31 DPS, 5 pieces -30, 6 pieces -42). Fire items lose most slots: the default build still casts Shadow (Shadowburn, Corruption, Bane of Doom), so +1 Fire spell damage is worth about 70% of +1 to every school (the sim's weights: 0.41 against 0.58 DPS), and Tome of Fiery Arcana's +40 Fire ranks second to Therazane's Touch's +31. The two-hand row's rank 1 is Ironbark Staff, the League of Arathor's, and its faction twin, The Defilers' (paired, a Human: -12.9 DPS against Sageclaw and Therazane's Touch; Lord Valthalak's Staff -54.1). Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring. Trinkets and rings re-ranked with Wrath of Cenarius's and Draconic Infused Emblem's procs modelled (DV2-4, 1.60.1.70009, paired in the finished set, 20,000 fights on seed 2701): Draconic Infused Emblem leads the trinkets (+11.9 DPS in place of Briarwood Reed), then Royal Seal of Eldre'Thalas, Briarwood Reed and Burst of Knowledge; Wrath of Cenarius takes the third ring (-1.1 against Elemental Focus Band, ahead of Maiden's Circle's -2.8). Item effects the sim doesn't model count as zero in its runs, and each is listed in the milestones' known gaps (docs/data/items.md#modelled-item-effects): here Eye of the Beast's +7% spell hit use, Burst of Knowledge's mana-cost use and Robe of the Void's pet heal.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-18",
@@ -67458,11 +67458,6 @@
         {
           "rank": 4,
           "slot": "finger",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 4,
-          "slot": "finger",
           "spec": "warlock-affliction"
         },
         {
@@ -67582,11 +67577,6 @@
         {
           "rank": 4,
           "slot": "finger",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 4,
-          "slot": "finger",
           "spec": "warlock-affliction"
         },
         {
@@ -67684,7 +67674,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 4,
+          "rank": 2,
           "slot": "finger",
           "spec": "mage-fire"
         }
@@ -67742,7 +67732,7 @@
           "spec": "shaman-elemental"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "finger",
           "spec": "warlock-destruction"
         },
@@ -69880,7 +69870,7 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 3,
+          "rank": 2,
           "slot": "finger",
           "spec": "shaman-elemental"
         },
@@ -70157,14 +70147,19 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "finger",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 2,
+          "rank": 4,
           "slot": "finger",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [
@@ -70458,7 +70453,7 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "finger",
           "spec": "shaman-elemental"
         },
@@ -72024,7 +72019,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 4,
+          "rank": 3,
           "slot": "trinket",
           "spec": "mage-fire"
         },
@@ -72039,17 +72034,17 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "trinket",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "trinket",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "trinket",
           "spec": "warlock-demonology"
         },
@@ -72122,12 +72117,12 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "trinket",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "trinket",
           "spec": "mage-fire"
         },
@@ -72142,17 +72137,17 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "trinket",
           "spec": "warlock-destruction"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "trinket",
           "spec": "warlock-affliction"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "trinket",
           "spec": "warlock-demonology"
         },
@@ -72649,12 +72644,12 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 1,
+          "rank": 4,
           "slot": "trinket",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 3,
+          "rank": 4,
           "slot": "trinket",
           "spec": "mage-fire"
         },
@@ -72667,16 +72662,6 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "mage-arcane"
-        },
-        {
-          "rank": 4,
-          "slot": "trinket",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 4,
-          "slot": "trinket",
-          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -73840,7 +73825,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 4,
+          "rank": 2,
           "slot": "trinket",
           "spec": "shaman-elemental"
         }
@@ -74232,11 +74217,6 @@
           "rank": 4,
           "slot": "trinket",
           "spec": "rogue-subtlety"
-        },
-        {
-          "rank": 4,
-          "slot": "trinket",
-          "spec": "warlock-affliction"
         },
         {
           "rank": 4,
@@ -74872,14 +74852,29 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 3,
+          "rank": 1,
           "slot": "trinket",
           "spec": "shaman-elemental"
         },
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "trinket",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [
@@ -86680,7 +86675,7 @@
           "spec": "shaman-elemental"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "offHand",
           "spec": "priest-shadow"
         }
@@ -87338,7 +87333,7 @@
           "spec": "warlock-demonology"
         },
         {
-          "rank": 4,
+          "rank": 1,
           "slot": "offHand",
           "spec": "priest-shadow"
         }
@@ -87500,7 +87495,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "offHand",
           "spec": "shaman-elemental"
         },
@@ -87530,7 +87525,7 @@
           "spec": "warlock-demonology"
         },
         {
-          "rank": 3,
+          "rank": 2,
           "slot": "offHand",
           "spec": "priest-shadow"
         }
@@ -87716,7 +87711,7 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "offHand",
           "spec": "shaman-elemental"
         },

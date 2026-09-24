@@ -302,7 +302,15 @@ guide's Scepter of the Unholy (the Destruction gear review, DG-2). They take ran
 move to ranks 2 and 3, and the default gains 7.0% (523.3 → 559.7 DPS, 20,000 fights on seed 2701). A
 sim-ranked list, as the warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent
 more; it's a known gap. Briarwood Reed's Forever effect ("+15 Spell Power in
-certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated.
+certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated: they count as zero (E7 in
+[shaman.md](shaman.md), the milestones' known gaps).
+
+**The off hand is re-ranked by the sim** (DV2-4, 1.60.1.70009): Spirit of Aquementas, the default's,
+lost its Forever row in 1.60.1.70009 and has Classic Era's stats, so its slot was ranked again among the
+list's own items (paired in the default set, 20,000 fights on seed 2701): Tome of Shadow Force (+34
+Shadow; +6.0 DPS over Spirit of Aquementas), Therazane's Touch (+4.7), Spirit of Aquementas. The default
+goes 559.7 → **565.7** DPS. Draconic Infused Emblem, off the guide's list, would add +9.6 in the second
+trinket: a known gap with the full ranking of the guide lists.
 
 ## 8. Implementation notes
 

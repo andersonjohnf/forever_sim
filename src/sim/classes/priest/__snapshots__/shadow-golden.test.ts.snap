@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
   "abilities": [
     [
       "shadowWordPain",
-      21120623.32252258,
+      21382991.314106442,
       7902,
       50313,
       7312,
@@ -13,7 +13,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "devouringPlague",
-      5243452.791709325,
+      5290751.979263747,
       3210,
       23436,
       0,
@@ -21,7 +21,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "mindBlast",
-      22795128.712514,
+      22990384.2059694,
       21877,
       17824,
       2936,
@@ -29,7 +29,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "mindFlay",
-      51358438.42546131,
+      51924396.97183917,
       46219,
       106957,
       15448,
@@ -59,9 +59,9 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
   ],
   "dps": {
-    "ci95": 1.0496712665832646,
-    "mean": 559.4288108591635,
-    "stdev": 16.935780570559103,
+    "ci95": 1.0601520965690305,
+    "mean": 565.3887768173032,
+    "stdev": 17.104882119288778,
   },
   "durationSec": 179.690222,
   "mana": {

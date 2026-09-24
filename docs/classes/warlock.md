@@ -245,9 +245,9 @@ Dark Pact isn't in Forever, so Life Tap is the mana ability.
 
 One search over the biggest settings, 20,000 fights on seed 2701 each, the default setup otherwise
 (Orc, the guide's pre-raid list, the Standard raid buffs). DPS ± the 95% interval. Every warlock has
-since worn its own list (§7.3): Destruction's default deals 586.0 there and the Fire choices still lead
-(the Shadow Bolt filler loses 10.8% and the Imp 4.5%, paired, 20,000 fights on seed 2701), and
-Affliction's deals 502.5.
+since worn its own list (§7.3, whose last table has the defaults: Destruction 597.9, Affliction 512.7).
+On Destruction's list as first ranked (586.0) the Fire choices still led (the Shadow Bolt filler loses
+10.8% and the Imp 4.5%, paired, 20,000 fights on seed 2701).
 
 | Destruction (with the Imp, Shadow Bolt, no Shadowburn: the Classic priority) | DPS |
 | --- | --- |
@@ -335,13 +335,18 @@ from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balza
 the invasion's other bosses' loot: [items.md "Sources"](../data/items.md#sources-c)); Forever-new items
 (no known source yet); random-suffix items; and four weapons whose Classic Era source couldn't be
 confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power
-`[?]`; they would rank second and third in the main hand), Whiteout Staff (it would lead a Horde
-warlock's two-handers; the Alliance's leader is Ironbark Staff, below) and Amethyst War Staff. A
+`[?]`; they would rank second and third in the main hand), Whiteout Staff (+74 spell power: Ironbark
+Staff and its faction twin, below, would still lead the two-handers) and Amethyst War Staff. A
 slot-by-slot paired search from the guide's gear (each spec's default Orc setup, 6,000 fights a
 candidate on seed 2701) swapped items until no swap helped. Each slot's alternatives are then ranked
 by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000
 fights). Within the 95% interval the guide's pick keeps its place. Each list's `note` has the details,
-and the sources no guide gave cite Wowhead Classic ([wh-items]).
+and the sources no guide gave cite Wowhead Classic ([wh-items]). **An item effect the sim doesn't model
+counts as zero** in these runs, and each one on a candidate is a known gap in the
+[milestones](../milestones.md): Eye of the Beast's +7% spell hit use (E7), Burst of Knowledge's mana-cost
+use, Robe of the Void's pet heal. Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled
+([items.md](../data/items.md#modelled-item-effects)), and each list names one side's faction reward: its
+[twin](../data/items.md#faction-twins), read from the client, takes the same rank.
 
 **What +1 is worth** to the default Destruction setup, in DPS a point (paired: +20 of a stat, or 1%
 of hit or crit, on 20,000 fights on seed 2701; the intervals are ±0.01 a point for spell damage, ±0.25
@@ -410,25 +415,40 @@ gains, alone on the guide's gear and left out of the new set:
 | Back | Amplifying Cloak | Crystalline Threaded Cape | +1.5 | +1.6 |
 | Off hand | Therazane's Touch | Tome of Shadow Force | +1.5 | +1.6 |
 
-More Dreadgear loses Affliction 17 to 23 DPS (4 pieces) and 34 (6). Rune of the Guard Captain (Forever's
-+7 hit rating) beats Eye of the Beast for its fourth trinket by 0.21 ± 0.15.
+More Dreadgear loses Affliction 17 to 23 DPS (4 pieces) and 34 (6).
+
+**Trinkets and rings with the item procs modelled** (DV2-4; 1.60.1.70009, paired in each spec's set,
+20,000 fights on seed 2701). The searches above counted Wrath of Cenarius's and Draconic Infused
+Emblem's procs as zero. Modelled, **Draconic Infused Emblem** (+35 spell damage from the first landed
+spell on, the client's 100% chance `[?]`) leads every warlock's trinkets: in place of Briarwood Reed it
+adds +10.2 (Affliction), +11.9 (Destruction) and +11.4 DPS (Demonology). Royal Seal of Eldre'Thalas
+(+1.6 to +1.8 over Briarwood Reed) is second, Briarwood Reed third and Burst of Knowledge fourth (its
+use counts as zero); Rune of the Guard Captain and Eye of the Beast leave the lists. **Wrath of
+Cenarius** (5%: +132 for 10 s) takes Destruction's third ring (−1.1 against Elemental Focus Band, ahead
+of Maiden's Circle's −2.8, so Eye of Orgrimmar leaves), and stays below Affliction's and Demonology's
+four (−3.1 and −2.8).
 
 **Two-handers.** Ironbark Staff (League of Arathor Exalted: +94 spell power `[?]` and 2% spell crit)
-leads an Alliance warlock's, ahead of Lord Valthalak's Staff (paired, a Human in each spec's set: −12.9,
-−13.9 and −11.9 DPS against Sageclaw and the off hand for Destruction, Affliction and Demonology;
-Lord Valthalak's −54.1, −48.7 and −52.7). A Horde warlock can't wear it, and its best is Lord
-Valthalak's. Whiteout Staff (left out, above) would be second for the Alliance (−32.4 for Destruction).
+leads them, ahead of Lord Valthalak's Staff (paired, a Human in each spec's set: −12.9, −13.9 and −11.9
+DPS against Sageclaw and the off hand for Destruction, Affliction and Demonology; Lord Valthalak's
+−54.1, −48.7 and −52.7). **A Horde warlock has it too**: The Defilers' Ironbark Staff (20220), whose
+client row matches the League of Arathor's but for the faction and price, is its faction twin and takes
+the same rank. The hand-written lists had missed it (DV2-1), and the twins are now read from the client
+([items.md](../data/items.md#faction-twins)). Whiteout Staff (left out, above) would be second (−32.4
+for Destruction, a Human).
 
 **The defaults** (20,000 fights on seed 2701):
 
-| Spec | The guide's list | Its own list | Gain |
-| --- | --: | --: | --: |
-| Destruction | 447.6 | **586.0** | +30.9% (586.2 on seed 1) |
-| Affliction | 402.0 | **502.5** | +25.0% |
-| Demonology | 534.2 | **663.7** | +24.2% |
+| Spec | The guide's list | Its own list (DG-1) | Gain | With the procs modelled (DV2-4) |
+| --- | --: | --: | --: | --: |
+| Destruction | 447.6 | 586.0 | +30.9% (586.2 on seed 1) | **597.9** |
+| Affliction | 402.0 | 502.5 | +25.0% | **512.7** |
+| Demonology | 534.2 | 663.7 | +24.2% | **675.0** |
 
-The order of §6.3 and §11.6 holds: Demonology leads Destruction by 13%, and Affliction trails it by
-14%. The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
+The first three columns were measured on 1.60.1.69913; the lists give the same DPS on 1.60.1.70009
+(585.97, 502.51 and 663.66 before the trinket change), and the last column is 1.60.1.70009. The order
+of §6.3 and §11.6 holds: Demonology leads Destruction by 13% (77 DPS), and Affliction trails it by 14%.
+42 of Demonology's 77-DPS lead rests on Q19 `[?]` (§11.6; the milestones' plausibility findings). The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
 Band of the Unicorn and Inventor's Focal Sword) stay in it with no rank, so saved setups and share links
 that wear them keep them ([items.md](../data/items.md#pre-raid-bis-lists)).
 
@@ -630,7 +650,8 @@ it inherits is every pet's one rule
   boss its swings lose 1.8% of that crit, as yours do; its spells don't. Demonic Knowledge's spell
   damage is its own besides. Its Intellect, mana regeneration, health, resistance and healing slots
   aren't modelled (§6.1; Q15). Against inheriting nothing (with the 5% crit of its own the sim first
-  gave it), the default gains +7.7% (496.2 → 534.2) and the Succubus build +1.3% (495.8 → 502.2).
+  gave it), the default gains +7.7% (496.2 → 534.2) and the Succubus build +1.3% (495.8 → 502.2), both
+  on the guide's list (§11.6).
 - Its tables are a player's at its level (ranged-and-pets §6, §7): its spells miss a level-63 boss
   17% of the time less its spell hit (13% with your 4%), lose 6% to its resistance and crit for ×1.5;
   its swings, from behind, miss (6% with your 2% melee hit on a special), are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
@@ -653,7 +674,7 @@ it inherits is every pet's one rule
   off Recently Bandaged [F] [client] (SpellEffect, Spell, 1.60.1.69913); and its thirds (−0.3, −0.7,
   −1.0 s) are Demonic Knowledge's 33/67/100% pattern. Firebolt is the Imp's
   only timed spell a DPS result reads. With a 1 s GCD, a 1 s Firebolt is cast back to back, so the Imp
-  is limited by its mana: +12.1% on the default (476.6 → 534.2, the Imp out with Soul Fire), +12.4%
+  is limited by its mana, on the guide's list: +12.1% on the default (476.6 → 534.2, the Imp out with Soul Fire), +12.4%
   without Soul Fire (465.0 → 522.7), nothing with the Succubus out.
 - **Unholy Power** and **Soul Link** multiply all your demon's damage; **Improved Imp** Firebolt;
   **Improved Sayaad** Lash of Pain; **Master Demonologist** the demon's spells of its school (the Imp's
@@ -732,7 +753,8 @@ out-damages a 2.4 s Soul Fire, which only Soul Link raises.
 **After the review (DM4, Q19) and its verifications (DV3; the third round's one inheritance rule for
 every pet, and DV2-4's talent point),** with the demon's inheritance (§11.2), its inherited crit
 counted as aura crit on its swings, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701,
-on the default talents below:
+on the default talents below, **on the guide's list** (Demonology has since worn its own, §7.3; the
+figures after the table are on it):
 
 | Demon kept out, demon sacrificed | DPS |
 | --- | --- |
@@ -747,14 +769,18 @@ on the default talents below:
 
 So Demonology defaults to the sim's best found build (D30): the **Imp out and the Succubus
 sacrificed**, with Soul Fire below 35%, Immolate, Corruption and Bane of Doom, and Life Tap at 10%.
-Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.2%. The default is **+19%** on
-Destruction's default (447.6, §6.3), the build Classic Era's warlocks raided with, and +42% on the
-same talents with no demon out (376.0). Both on the guide's list: every warlock now wears its own
-(§7.3), Destruction's default deals 586.0 and Demonology's 663.7, still 13% ahead.
+Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.2%. On the guide's list the default
+is **+19%** on Destruction's default there (447.6, §6.3), the build Classic Era's warlocks raided with,
+and +42% on the same talents with no demon out (376.0). On each spec's own list (§7.3; 1.60.1.70009,
+with the trinket procs modelled) Destruction's default deals 597.9 and Demonology's **675.0**, 13% ahead.
 
-**Its lead rests on Q19 [?].** The Imp leads the Succubus by 6% only through the sim's reading of
-Improved Imp's hidden effect as Firebolt's cast time: without it the default deals 476.6, 5% below the
-Succubus build. The optimizer (D30, O4) confirms the build on a fresh seed, and the guild's test of
+**Its lead rests on Q19 [?].** The Imp leads the Succubus only through the sim's reading of Improved
+Imp's hidden effect as Firebolt's cast time. On its own list (1.60.1.70009, 20,000 fights on seed 2701)
+the default deals 675.0 and the Succubus build (the Succubus out, the Imp sacrificed, Soul Fire off)
+632.7; without Q19's reading the Imp default falls to 605.2, below the Succubus build, which it doesn't
+touch. So **42 of Demonology's 77-DPS lead over Destruction rests on Q19**: without it the default
+would be the Succubus build, 35 ahead (on the guide's list: 476.6 without it, 5% below the Succubus
+build's 502.2). The optimizer (D30, O4) confirms the build on a fresh seed, and the guild's test of
 Q19 settles the reading; if it fails, the default goes back to the Succubus.
 
 **Talents: Demonology 0/31/20** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
@@ -764,7 +790,7 @@ Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Demonic Pact nee
 tiers above it and the first pass's 0/32/19 (`-0325003231120001351-0350305003`) had 31 there, so one
 point could leave them: with the Imp out, Improved Sayaad's 3rd point did nothing (Lash of Pain is the
 Succubus's), and Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes it, **+0.4%** (531.9 →
-534.2). The Succubus build gains from the same point too (499.5 → 502.2).
+534.2, on the guide's list). The Succubus build gains from the same point too (499.5 → 502.2).
 The other Demonology points add no DPS in the sim (Demonic Embrace, Master Summoner; Demonic Brand is
 Q21's, not cast), so they only fill the tiers, and the optimizer's talent search (O4) takes up the
 rest.
@@ -803,9 +829,10 @@ Each with its estimated effect on Demonology's DPS.
   If "up to" means less on some condition (the demon's health, or its distance), the default loses up
   to about 15% (60 spell damage on you and the Imp; 7% with the Succubus).
 - **Q19 Improved Imp's #2** (−300/−700/−1000, a dummy): the sim takes it as Firebolt's cast time
-  (§11.3), 1 s at 3/3, so the Imp casts about 1.7 times as often: +12.1% on the default (476.6 →
-  534.2), and it's why the default keeps the Imp out, 6% ahead of the Succubus (§11.6). If it's
-  something else, the default loses that and falls 5% below the Succubus build, which it doesn't
+  (§11.3), 1 s at 3/3, so the Imp casts about 1.7 times as often: +11.5% on the default (605.2 →
+  675.0 on its own list, 1.60.1.70009; +12.1% on the guide's, 476.6 → 534.2), and it's why the default
+  keeps the Imp out, 6.7% ahead of the Succubus (632.7, §11.6). If it's
+  something else, the default loses that and falls 4% below the Succubus build, which it doesn't
   touch, and the default goes back to the Succubus. The optimizer (O4) confirms the build. Test:
   Firebolt's cast bar with Improved Imp 0/3 and 3/3.
 - **Q20 Decimation's buff** comes from a Shadow Bolt cast below 35%; the sim takes it as up from the
@@ -851,8 +878,9 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    crit) = **9.25%** and misses 8 − 5 = **3%**. Lash of Pain's spell damage 60 + 0.1 × 634 (574 Shadow
    + your Demonic Knowledge's 60) = **123.4**, so `(50 + 0.429 × 123.4) × 1.2 × 1.1 × 1.133` =
    **153.95**; it crits at your spell crit, **14.42%**, and misses 17 − 7 = **10%**. (On Demonology's
-   sim-ranked list since 2026-09-24, §7.3; on the guide's list it was 9.65% and 2% hit, 486 Shadow,
-   108.6, 144.46, 11.73% and 13%.)
+   sim-ranked list since 2026-09-24, §7.3, with Briarwood Reed in the first trinket, where the default
+   wears Draconic Infused Emblem since DV2-4: its proc adds its +35 only while it's up. On the guide's
+   list it was 9.65% and 2% hit, 486 Shadow, 108.6, 144.46, 11.73% and 13%.)
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
 
 ---
@@ -871,13 +899,17 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 - [wh-bis] Wowhead, *Classic Warlock Best in Slot Pre-Raid Gear Guide*, archived 2021-05-18:
   https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear
 - [wh-items] Wowhead Classic item pages, for the sim-ranked lists' sources that no guide gave (Classic
-  Era [C]; the lists' `notes` carry each link): Mantle of the Timbermaw
-  https://www.wowhead.com/classic/item=19050, Argent Shoulders https://www.wowhead.com/classic/item=19059,
-  Frostwolf Cloth Belt https://www.wowhead.com/classic/item=19090, Stormpike Cloth Girdle
-  https://www.wowhead.com/classic/item=19094, Leggings of Torment https://www.wowhead.com/classic/item=22342,
-  Ironbark Staff https://www.wowhead.com/classic/item=20069; the Scourge Invasion's, left out as
-  event-only: Chains of the Lich https://www.wowhead.com/classic/item=23125 and Staff of Balzaphon
-  https://www.wowhead.com/classic/item=23124.
+  Era [C]; the lists' `notes` carry each link), cited as Wayback Machine copies of the pre-Season of
+  Mastery classic.wowhead.com pages, as the guides are: the live wowhead.com/classic pages have been
+  rewritten since (DV2-7). The year-only timestamp takes the copy nearest 2021; **each copy's date is
+  unchecked** (no network in the review round that switched the links), a known gap: Mantle of the
+  Timbermaw https://web.archive.org/web/2021/https://classic.wowhead.com/item=19050, Argent Shoulders
+  https://web.archive.org/web/2021/https://classic.wowhead.com/item=19059, Frostwolf Cloth Belt
+  https://web.archive.org/web/2021/https://classic.wowhead.com/item=19090, Leggings of Torment
+  https://web.archive.org/web/2021/https://classic.wowhead.com/item=22342, Ironbark Staff
+  https://web.archive.org/web/2021/https://classic.wowhead.com/item=20069; the Scourge Invasion's, left
+  out as event-only: Chains of the Lich https://web.archive.org/web/2021/https://classic.wowhead.com/item=23125
+  and Staff of Balzaphon https://web.archive.org/web/2021/https://classic.wowhead.com/item=23124.
 - [mangos-stats] https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql
   and `player_classlevelstats.sql` (D24 placeholders, not evidence).
 - [ws-base] https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go (placeholder origin).

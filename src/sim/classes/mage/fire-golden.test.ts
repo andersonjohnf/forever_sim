@@ -25,6 +25,10 @@ describe('golden run (fixed config and seed)', () => {
   //   out after a 4.5 s Pyroblast (COND 44); Fireball waits up to 0.3 s for Fire Blast; Pyroblast
   //   waits up to 0.3 s so it doesn't cut off its own DoT's tick (COND 45). 513.15 → 514.50 DPS;
   //   Scorches 13.9 → 12.6 a fight (the stacks no longer drop and rebuild), Fire Blasts 19.8 → 20.2.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Wrath of Cenarius's and Draconic
+  //   Infused Emblem's spell-damage procs are modelled (effects/items.ts; the default wore both), and the
+  //   list's rings and trinkets are re-ranked by the sim: Flaming Band for Wrath of Cenarius. 514.50 →
+  //   543.10 here; 542.1 → 544.7 over 20,000 fights on seed 2701 for the re-rank alone.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

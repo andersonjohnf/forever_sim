@@ -26,6 +26,9 @@ describe('golden run (fixed config and seed)', () => {
   // - The Destruction gear review (DG-2): Mindfang (Sageclaw for the Alliance) leads the main hand,
   //   ahead of the guide's Scepter of the Unholy: 523.04 → 559.43 here; 523.3 → 559.7 over 20,000
   //   fights on seed 2701 (+7.0%).
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Spirit of Aquementas lost its Forever
+  //   row, so the list's off hand is re-ranked by the sim: Tome of Shadow Force. 559.43 → 565.39 here;
+  //   559.7 → 565.7 over 20,000 fights on seed 2701.
   it('keeps the default Shadow Priest’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('priest-shadow'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

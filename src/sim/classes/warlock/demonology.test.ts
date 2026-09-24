@@ -155,7 +155,10 @@ describe('worked examples (warlock.md §11.8)', () => {
   })
 
   it('8. What the Succubus inherits: 253.8 attack power; your 11.65% melee crit (9.25% on its swings vs the boss) and 5% melee hit on its swings; 123.4 spell damage, your 14.42% spell crit and 10% spell miss on Lash of Pain, 153.95', () => {
-    const { plan } = buildPlan(fixed(SUCCUBUS))
+    // Briarwood Reed in the first trinket, where the default wears Draconic Infused Emblem since DV2-4:
+    // its proc's +35 would be in the sheet only while it's up.
+    const d = defaultConfig('warlock-demonology')
+    const { plan } = buildPlan(fixed(SUCCUBUS, { gear: { ...d.gear, trinket1: { itemId: 12930 } } }))
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, inherit: PET_INHERITANCE })
     const sim = new Sim(plan)
     sim.runFight(0)
@@ -464,6 +467,9 @@ describe('golden runs (fixed config and seed)', () => {
   //   (`-0325003221120001351-0450305003`): 530.79 → 533.08 here; 531.92 → 534.22 over 20,000 fights.
   // - The Destruction gear review (DG-1): Demonology wears its own sim-ranked list (§7.3), the same set
   //   as Destruction's: 533.08 → 664.19 here; 534.2 → 663.7 over 20,000 fights on seed 2701.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Draconic Infused Emblem's
+  //   proc is modelled and leads the list's trinkets, in place of Briarwood Reed: 664.19 → 675.56 here;
+  //   663.7 → 675.0 over 20,000 fights on seed 2701.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

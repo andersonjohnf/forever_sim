@@ -198,6 +198,9 @@ describe('the casters’ spell-damage procs (docs/data/items.md#modelled-item-ef
     expect(procOf(withTrinket(22268), 'draconicInfusedEmblem')?.chance[0]).toBe(1)
     expect(mods(withTrinket(22268, 'humanoid'))).toMatchObject({ spellDamage: base })
     expect(mods(withTrinket(22268, 'dragonkin'))).toMatchObject({ spellDamage: base + dragonkin })
+    // The [?] reading is in the results' assumptions whenever it's worn.
+    expect(assumptionIds(withTrinket(22268))).toContain('draconicEmblemChance')
+    expect(assumptionIds(defaultConfig('mage-frost'))).not.toContain('draconicEmblemChance')
   })
 })
 

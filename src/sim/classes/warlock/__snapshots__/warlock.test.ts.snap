@@ -5,7 +5,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
   "abilities": [
     [
       "corruption",
-      18027940.81714721,
+      18328761.22628879,
       10115,
       44228,
       10432,
@@ -13,7 +13,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
     ],
     [
       "baneOfDoom",
-      14540281.681186752,
+      14831361.80313475,
       2304,
       1748,
       439,
@@ -21,7 +21,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
     ],
     [
       "baneOfAgony",
-      3761055.3738111556,
+      3843097.5956646446,
       2107,
       13814,
       3292,
@@ -29,7 +29,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
     ],
     [
       "siphonLife",
-      5184619.701962821,
+      5259800.498628203,
       6364,
       55393,
       0,
@@ -37,7 +37,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
     ],
     [
       "shadowBolt",
-      49021523.36610208,
+      50115245.38892221,
       48414,
       37094,
       8939,
@@ -71,15 +71,20 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-afflict
       null,
     ],
     [
+      "draconicInfusedEmblem",
+      null,
+      99.07877569431686,
+    ],
+    [
       "shadowTrance",
       null,
       2.3408942084784115,
     ],
   ],
   "dps": {
-    "ci95": 1.5800768272286976,
-    "mean": 503.79468124846966,
-    "stdev": 25.493538103291257,
+    "ci95": 1.6124701205144498,
+    "mean": 514.0486761781308,
+    "stdev": 26.01618335853484,
   },
   "mana": {
     "max": 6000,
@@ -107,7 +112,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
   "abilities": [
     [
       "immolate",
-      7236664.733760086,
+      7329687.455397219,
       11695,
       9529,
       1608,
@@ -115,7 +120,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "immolateDot",
-      10811943.450783662,
+      11001962.775591053,
       11137,
       45484,
       7580,
@@ -123,7 +128,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "conflagrate",
-      15492740.07911885,
+      15755744.26544644,
       15864,
       9038,
       6031,
@@ -131,7 +136,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "shadowburn",
-      7722457.764577883,
+      7851141.637335332,
       10855,
       8840,
       1479,
@@ -139,7 +144,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "corruption",
-      11639955.985812046,
+      11890071.42457317,
       9338,
       42932,
       7272,
@@ -147,7 +152,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "baneOfDoom",
-      9812735.08907998,
+      10011268.879480004,
       2049,
       1662,
       280,
@@ -155,7 +160,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "baneOfAgony",
-      2825525.44007187,
+      2887581.637475093,
       2199,
       15968,
       2686,
@@ -163,7 +168,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "incinerate",
-      39716656.48416998,
+      40669100.51735941,
       34157,
       27960,
       4551,
@@ -197,6 +202,11 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
       null,
     ],
     [
+      "draconicInfusedEmblem",
+      null,
+      98.26540088530805,
+    ],
+    [
       "shadowAndFlameShadow",
       null,
       96.5580865051188,
@@ -208,9 +218,9 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
   ],
   "dps": {
-    "ci95": 1.474880345591444,
-    "mean": 585.9561507338406,
-    "stdev": 23.796259549023,
+    "ci95": 1.5059251523218447,
+    "mean": 597.8569995302705,
+    "stdev": 24.297147828410584,
   },
   "mana": {
     "max": 6190,

@@ -32,6 +32,11 @@ describe('golden run (fixed config and seed)', () => {
   //   +10% spell damage multiplier while it's up, no longer a flat 10% of the sheet's Nature spell
   //   damage fixed at the pull: DPS 370.34 → 370.30, TPS 264.19 → 264.16 (20,000 fights: 368.76 →
   //   368.72, ± 0.23, so no measurable change).
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Wrath of Cenarius's and Draconic
+  //   Infused Emblem's procs are modelled, and the list's rings, trinkets and off hand are re-ranked by
+  //   the sim (Spirit of Aquementas lost its Forever row): Wrath of Cenarius and Elemental Focus Band,
+  //   Draconic Infused Emblem and Royal Seal of Eldre'Thalas, Therazane's Touch. DPS 370.30 → 401.07,
+  //   TPS 264.16 → 284.89; 381.7 → 401.1 over 20,000 fights on seed 2701 for the re-rank alone.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

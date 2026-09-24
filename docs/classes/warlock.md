@@ -381,6 +381,14 @@ a caster yet. Standard raid: Greater Arcane Elixir, Elixir of Shadow Power (+40 
 Mana Potion; Max adds Flask of Supreme Power and a Demonic Rune
 ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
 
+**No Elixir of Greater Firepower for Destruction.** Forever re-schooled it to +40 Holy (Elixir of Holy
+Power, [buffs §3.2](../mechanics/buffs-debuffs-consumables.md#32-elixirs)) [F]. The only Fire elixir
+the Forever client still links is the low-level **Elixir of Fire Power** (6373, required level 18):
++10 Fire spell damage (spell 7844, aura 13, school mask 4) [F] [client] (ItemEffect, SpellEffect,
+1.60.1.69913). No item links the old +40 Fire spell (26276) any more. Elixir of Fire Power isn't in
+the catalogue yet (a known gap); by §7.3's weights it's worth about 4 DPS (10 × 0.43), if it stacks
+with Shadow Power as the two schools' elixirs did in Classic Era [?].
+
 ### 7.5 Buffs
 
 The casters' Buffs entries (Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring,

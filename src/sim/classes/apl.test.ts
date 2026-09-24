@@ -142,4 +142,46 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
     expect(applyAplPreset(DEF, picked.rotation, DEFAULT_APL_PRESET)).toEqual({ rotation: { stance: 'b' }, rotationOrder: undefined })
     expect(applyAplPreset(DEF, {}, 'nope')).toBeUndefined()
   })
+
+  // D28's tank rotations: a spec-wide Priority choice the presets set, whose value moves rows'
+  // defaults, and a default the spec names and places itself (Balanced, between the other two).
+  const TANK_OPTIONS: RotationOption[] = [
+    { kind: 'choice', id: 'priority', label: 'Priority', help: '', choices: ['safe', 'mid', 'max'].map((value) => ({ value, label: value })), default: 'mid' },
+    { ...toggle('a.on'), defaultWhen: [{ option: 'priority', is: 'max', default: false }] } as RotationOption,
+    { ...toggle('b.on', false), defaultWhen: [{ option: 'priority', is: 'safe', default: true }] } as RotationOption,
+    { kind: 'number', id: 'potion', label: 'Potion', help: '', unit: 'mana', min: 0, max: 100, step: 1, default: 10 },
+  ]
+  const TANK: AplDefinition = {
+    rows: [
+      { id: 'a', label: 'A', icon: '', enabledId: 'a.on', optionIds: [] },
+      { id: 'b', label: 'B', icon: '', enabledId: 'b.on', optionIds: [] },
+    ],
+    specWide: ['potion'],
+    presets: [
+      { id: 'safe', label: 'Safe', help: '', values: { priority: 'safe' } },
+      { id: DEFAULT_APL_PRESET, label: 'Mid', help: '', values: {} },
+      { id: 'max', label: 'Max', help: '', values: { priority: 'max' } },
+    ],
+  }
+  const tank = (saved: Record<string, string | number | boolean>) => activeAplPreset(TANK, TANK_OPTIONS, saved, undefined, NO_TALENTS)
+
+  it('lists a default the spec names in its own place, with its own label', () => {
+    expect(aplPresets(TANK).map((p) => [p.id, p.label])).toEqual([
+      ['safe', 'Safe'],
+      [DEFAULT_APL_PRESET, 'Mid'],
+      ['max', 'Max'],
+    ])
+  })
+
+  it('reads a spec-wide setting a preset names as the preset’s: each stored value is its own preset', () => {
+    expect(tank({})).toBe(DEFAULT_APL_PRESET)
+    expect(tank({ priority: 'safe' })).toBe('safe')
+    // Not the default, though every row resolves the same as with the priority at its default.
+    expect(tank({ priority: 'max' })).toBe('max')
+    expect(tank({ priority: 'max', 'a.on': true })).toBe(CUSTOM_APL_PRESET)
+    expect(tank({ priority: 'max', potion: 50 })).toBe('max')
+    // Picking one sets it, and picking the default puts it back to its default; the potion stays.
+    expect(applyAplPreset(TANK, { priority: 'safe', 'b.on': false, potion: 50 }, 'max')).toEqual({ rotation: { potion: 50, priority: 'max' }, rotationOrder: undefined })
+    expect(applyAplPreset(TANK, { priority: 'max', potion: 50 }, DEFAULT_APL_PRESET)).toEqual({ rotation: { potion: 50 }, rotationOrder: undefined })
+  })
 })

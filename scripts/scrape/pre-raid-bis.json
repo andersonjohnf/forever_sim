@@ -3070,6 +3070,12 @@
             "notes": "PvP - Arathi Basin Exalted"
           },
           {
+            "id": 20070,
+            "name": "Sageclaw",
+            "rank": 1,
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
+          },
+          {
             "id": 13964,
             "name": "Witchblade",
             "rank": 2,
@@ -4404,6 +4410,12 @@
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
           },
           {
+            "id": 20070,
+            "name": "Sageclaw",
+            "rank": 1,
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
+          },
+          {
             "id": 20720,
             "name": "Dark Whisper Blade",
             "rank": 2,
@@ -4760,6 +4772,12 @@
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
           },
           {
+            "id": 20214,
+            "name": "Mindfang",
+            "rank": 1,
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
+          },
+          {
             "id": 13964,
             "name": "Witchblade",
             "rank": 2,
@@ -5102,6 +5120,12 @@
             "name": "Sageclaw",
             "rank": 1,
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
+          },
+          {
+            "id": 20214,
+            "name": "Mindfang",
+            "rank": 1,
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
           },
           {
             "id": 13964,

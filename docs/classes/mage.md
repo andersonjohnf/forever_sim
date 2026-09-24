@@ -632,9 +632,9 @@ nothing for a mage.
   list). A Troll wears: Champion's Silk Cowl, Orb of the Darkmoon, Boreal Mantle, Amplifying Cloak, Robe
   of the Archmage, Rockfury Bracers, Hands of Power, Ban'thok Sash, Legionnaire's Silk Legguards, Blood
   Guard's Silk Walkers, Rune Band of Wizardry, Don Mauricio's Band of Domination, Briarwood Reed, Eye of
-  the Beast, Witchblade, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger, Sageclaw,
-  needs the League of Arathor (Alliance), and the list has no Horde twin, so a Troll's main hand is the
-  rank-2 Witchblade.
+  the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger is Sageclaw
+  (League of Arathor, Alliance) or its Horde twin Mindfang (The Defilers), so a Troll's main hand is
+  Mindfang (+8.8% Frost, +8.1% Arcane over the Witchblade it wore before; engine merge check EM-6).
 - **Random-suffix items** whose base item has no spell stats are dropped, and the entries below them
   move up; the lists' notes name them (`scripts/scrape/pre-raid-bis.json`).
 

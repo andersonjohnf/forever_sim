@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 578,
+      "docs": 585,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -96839,7 +96839,7 @@
       },
       "name": "Expansive Mind",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "20593": {
       "effects": [
@@ -125467,7 +125467,7 @@
       },
       "name": "Wind Blessed",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259718": {
       "categories": {
@@ -125616,7 +125616,7 @@
       },
       "name": "Expansive Mind",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259812": {
       "auraOptions": {
@@ -125685,7 +125685,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259813": {
       "auraOptions": {
@@ -125823,7 +125823,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259821": {
       "auraOptions": {
@@ -125892,7 +125892,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259823": {
       "auraOptions": {
@@ -125961,7 +125961,7 @@
       },
       "name": "Eureka!",
       "nameSubtext": "Racial",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1259918": {
       "categories": {

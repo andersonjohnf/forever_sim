@@ -1152,7 +1152,7 @@ export const COND = {
   // 30–33 are the rogue's (docs/classes/rogue.md §8).
   /** combo points ≤ a (Premeditation waits for room for its 2, rogue.md §6) */
   maxComboPoints: 30,
-  // 35–37 are free for the parallel tracks; 38–41 the caster core's (docs/mechanics/spells.md §11).
+  // 35 is mainHandSwung, 36–37 are free for the parallel tracks; 38–41 the caster core's (docs/mechanics/spells.md §11).
   /** aura a is up: a proc's buff a caster spends (Clearcasting, Shadow Trance), or any plan aura */
   auraUp: 38,
   // 42–45 the mage's (docs/classes/mage.md).

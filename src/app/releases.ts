@@ -30,7 +30,7 @@ export const RELEASES: readonly Release[] = [
         label: 'Tanks',
         items: [
           'Protection Warrior about 980 to 1,130 TPS: a threat set that keeps about 90% of the old pre-raid best in slot set’s effective health.',
-          'Feral Bear about 690 to 1,080 TPS, from the three changes below and a threat set.',
+          'Feral Bear about 690 to 1,080 TPS: Lacerate’s threat, Idol of Brutality, new talents and a threat set.',
           'Protection Paladin about 425 to 820 TPS: spell damage enchants, Nightfin Soup and Wizard Oil, its own Judgement of the Crusader, and the full damage of Seal of Fury and Holy Strike.',
           'Hammer of the Righteous is simulated, as an option in place of Holy Strike.',
           'New default talents for Protection Paladin and Feral Bear.',
@@ -195,7 +195,8 @@ type ReleaseStorage = Pick<Storage, 'getItem' | 'setItem'>
  *   (or isn't a release id at all): a newer one, from a later release a newer tab has seen, is kept,
  *   so going back to that release doesn't show it again.
  * - Storage that can't be read shows nothing (it couldn't remember that it had); storage that can't
- *   be written still shows what's new this time.
+ *   be written still shows what's new this time, except to an earlier visitor with no stored id,
+ *   who'd otherwise see it on every load.
  */
 export function checkReleases(storage: ReleaseStorage | null, releases: readonly Release[] = RELEASES): Release[] {
   const newest = releases[0]?.id

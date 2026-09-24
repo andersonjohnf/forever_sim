@@ -464,6 +464,12 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **What's New and pasted links (WQ-2, WQ-4).** A refused link pasted while What's New is open drops
+  the opening link's held "Loaded" notice, though the opening link did load; no e2e test pastes a link
+  while a notice is held (the review's probe covered both). Rare.
+- **A flaky spec-switch test (EM-7).** `e2e/results-keyed.spec.ts` "cancels on a spec switch" can see
+  the Fury run finish before the switch under heavy load.
+
 - **The auto-save error isn't held behind What's New (WV-4).** On a load whose first save fails,
   "Your changes aren't being kept" shows over What's New at once and can run out its 10 s unread.
 

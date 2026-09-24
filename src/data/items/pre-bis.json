@@ -79326,6 +79326,16 @@
         {
           "rank": 1,
           "slot": "mainHand",
+          "spec": "shaman-elemental"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
           "spec": "mage-frost"
         },
         {
@@ -79422,6 +79432,16 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-arcane"
         }
       ],
       "procs": [],

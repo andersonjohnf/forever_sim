@@ -200,6 +200,26 @@ describe('talentSpace', () => {
     }
   })
 
+  it('races builds with the preferred filler at max rank even when screened harmful, beside the objective talents’ partial ranks (OV3-1)', () => {
+    // The warrior's modelled talents objective, Anticipation harmful: the objective talents' partial
+    // ranks take every leftover point, so as a filler alone it would never get one. As a dimension,
+    // builds with it and without it race, and Toughness (for the effective-health floor) with each.
+    const base = {
+      data: warrior,
+      roles: roles(MODELLED.filter((n) => n !== 'Anticipation'), { Toughness: 'survival', Anticipation: 'harmful' }),
+      keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2, [id('Deflection')]: 5 },
+      minPoints: { Protection: 31 },
+      constrained: new Set([id('Toughness')]),
+      preferTree: 'Protection',
+    }
+    const kinds = (space: ReturnType<typeof talentSpace>) => new Set(space.builds.map((b) => `A${rank(b.code, 'Anticipation')}/T${rank(b.code, 'Toughness')}`))
+    expect(kinds(talentSpace(base))).not.toContain('A5/T0')
+    const space = talentSpace({ ...base, preferred: [id('Anticipation')] })
+    expect(space.dimensions.map((d) => d.name)).toContain('Anticipation')
+    for (const kind of ['A5/T0', 'A5/T5', 'A0/T0', 'A0/T5']) expect(kinds(space)).toContain(kind)
+    expectLegal(space.builds.slice(0, 200).map((b) => b.code))
+  })
+
   it('rejects contradictory constraints', () => {
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), keep: { [id('Cruelty')]: 5 }, exclude: [id('Cruelty')] })).toThrow(/both kept and excluded/)
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), minPoints: { Arms: 31, Fury: 31 } })).toThrow(/more than 51/)

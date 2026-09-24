@@ -15,6 +15,8 @@
 //   is where the leftover points do the most, not a dimension of its own (`searchPartials` makes it
 //   one, for a small space). A tank's **preferred filler** (D30: Anticipation, ./floor.ts) comes
 //   between the two: after the partial ranks, before the fillers, whatever the screen made of it.
+//   It's also a dimension whatever its role, so builds with it at max rank and without it both race
+//   (OV3-1), though it's a raise only when the screen finds it objective and not below zero.
 // - A talent that changes what a sheet constraint reads (health, armor, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): under the effective-health
 //   floor, a build that keeps Toughness is one to try, not a tie.
@@ -82,7 +84,9 @@ export interface TalentSpaceOptions extends TalentConstraints {
   /**
    * The preferred filler, by id (D30; PREFERRED_FILLER in ./floor.ts): leftover points go to it
    * after the objective talents' partial ranks and before every other filler, whatever the screen
-   * made of it (harmful, or a dimension whose effect is below zero). Kept or excluded, it's left alone.
+   * made of it (harmful, or a dimension whose effect is below zero). It's a dimension too, whatever
+   * its role, so builds with and without it at max rank both race (OV3-1). Kept or excluded, it's
+   * left alone.
    */
   preferred?: readonly string[]
   /** Search partial ranks too, one per build, instead of only filling leftover points with them (a far larger space). */
@@ -204,10 +208,17 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     }
   }
 
-  // Search dimensions: objective talents, and those a constraint reads, neither kept nor excluded.
+  // The preferred filler (D30), unless kept or excluded.
+  const preferred = (options.preferred ?? []).map(lookup).filter((i) => !keep.has(i) && !excluded.has(i))
+  const isPreferred = new Uint8Array(count)
+  for (const i of preferred) isPreferred[i] = 1
+
+  // Search dimensions: objective talents, those a constraint reads, and the preferred filler whatever
+  // the screen made of it (OV3-1: screened as harmful, it would otherwise only get the points the
+  // objective talents' partial ranks leave, which is none), neither kept nor excluded.
   const dims = nodes
     .map((_, i) => i)
-    .filter((i) => (nodes[i].role === 'objective' || options.constrained?.has(nodes[i].t.id)) && !keep.has(i) && !excluded.has(i))
+    .filter((i) => (nodes[i].role === 'objective' || options.constrained?.has(nodes[i].t.id) || isPreferred[i]) && !keep.has(i) && !excluded.has(i))
   /**
    * A dimension leftover points may go to: not a harmful one, nor an objective one whose screened
    * effect is below zero (not harmful only because its interval reaches zero). Builds with and
@@ -227,10 +238,6 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   // Fillers: every other talent that may be taken, the ones that lower damage taken first, then the
   // spec's own tree, then the shallower tier, then code order.
   const preferTree = options.preferTree === undefined ? -1 : treeIndex(options.preferTree)
-  // The preferred filler (D30): after the fillable dimensions' partial ranks, before the fillers.
-  const preferred = (options.preferred ?? []).map(lookup).filter((i) => !keep.has(i) && !excluded.has(i))
-  const isPreferred = new Uint8Array(count)
-  for (const i of preferred) isPreferred[i] = 1
   const fillerOrder = nodes
     .map((_, i) => i)
     .filter((i) => !isDim[i] && !isPreferred[i] && !keep.has(i) && !excluded.has(i) && nodes[i].role !== 'harmful' && nodes[i].role !== 'objective')
@@ -241,7 +248,6 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     })
   const isFiller = new Uint8Array(count)
   for (const i of fillerOrder) isFiller[i] = 1
-  for (const i of preferred) if (!isDim[i]) isFiller[i] = 1
   // Leftover points: partial ranks of objective talents, the most score per point first, then the
   // preferred filler, then the dimensions only a constraint made (Toughness under the
   // effective-health floor: D30's "before Toughness"), then the fillers.

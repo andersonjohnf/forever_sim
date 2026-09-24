@@ -403,10 +403,11 @@ async function main() {
     }
     if (r.space) {
       const floor = Object.keys(r.space.floor).map((id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name)
-      // The dimensions: the objective talents, and those only a constraint made one (OV3-6).
+      // The dimensions: the objective talents, and those a constraint or the preferred filler made one (OV3-6).
       const dims = r.space.dimensions
-      const byConstraint = dims.filter((d) => r.space.constrained.includes(d.id)).map((d) => d.name)
-      const dimensions = `${dims.length} dimensions (${dims.length - byConstraint.length} objective${byConstraint.length ? ` + ${byConstraint.join(', ')}` : ''})`
+      const objectiveIds = new Set((r.screen?.verdicts ?? []).filter((v) => v.role === 'objective').map((v) => v.id))
+      const others = dims.filter((d) => !objectiveIds.has(d.id)).map((d) => d.name)
+      const dimensions = `${dims.length} dimensions (${dims.length - others.length} objective${others.length ? ` + ${others.join(', ')}` : ''})`
       console.log(`talent space: ${count(r.space.builds)} builds${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}; ${count(r.space.cores)} legal cores, ${count(r.space.dominated)} dominated`)
       const kept = Object.keys(keep).filter((name) => !floor.includes(name))
       if (floor.length) console.log(`  survival floor kept: ${floor.join(', ')}${kept.length ? `; and kept (--keep): ${kept.join(', ')}` : ''}`)

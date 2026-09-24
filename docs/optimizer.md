@@ -278,8 +278,9 @@ not every legal one, which would be astronomically many:
   for a bear), is never forced by the maximality rule below nor given leftover points: builds with
   and without it both race.
 - **So is a talent a constraint reads.** One that changes a sheet number a constraint reads
-  (Toughness's armor, Sacred Duty's health, under the effective-health floor) is a dimension too, whatever its role, so builds with and without it
-  both race. A harmful one (Heart of the Wild, when the floor doesn't keep it) is searched but
+  (Toughness's armor, Sacred Duty's health, under the effective-health floor) is a dimension too,
+  whatever its role, so builds with and without it both race. So is a warrior's or paladin's
+  preferred filler ([below](#the-preferred-filler)). A harmful one (Heart of the Wild, when the floor doesn't keep it) is searched but
   never forced by the maximality rule below, nor given leftover points.
 - **Leftover points go to partial ranks, the preferred filler, then fillers.** Points the core
   leaves go first to partial ranks of objective talents, where the sim measures them, the most
@@ -342,9 +343,13 @@ model (no rage from a dodged hit, no Reckoning charge or Shield Specialization m
 they're worth, the damage a tank doesn't take, isn't in the score. So it's preferred **in the
 fill order**, and only there: a build's leftover points go to it after the objective talents'
 partial ranks and before Toughness or any other filler ([above](#the-talent-space)), whatever the
-screen made of it (`preferred` in `talentSpace`). Where the screen makes it an objective talent,
-builds with and without it race as for any other; and a build with room for 5 more points and no
-Toughness keeps them for Anticipation rather than being dropped for want of Toughness (OV3-1).
+screen made of it (`preferred` in `talentSpace`). It's also a **dimension whatever its role**, so
+builds with it at 5/5 and without it both race: screened as harmful, it would otherwise get only
+the points the objective talents' partial ranks leave, which in a tank's space is none (the
+warrior's space on a 3,000-fight screen had no build with any Anticipation, OV3-1). It's a raise
+only when the screen finds it objective and not below zero. And a build with room for 5 more
+points and no Toughness keeps them for the fill order rather than being dropped for want of
+Toughness (OV3-1).
 
 **The race's leader is the answer**, whatever its Anticipation. An end-of-race rule that preferred a
 candidate level with the leader that had more Anticipation (within 0.5% of its score or inside its

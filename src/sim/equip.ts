@@ -61,7 +61,7 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
   },
   // docs/classes/rogue.md#73-weapons-and-gear: leather, daggers, swords, maces and fist weapons in
   // either hand, no two-handers or shields, and bows, crossbows, guns and thrown weapons [C]; and
-  // one-handed axes, which Forever trains (SkillLineAbility 196's class mask 79 has the rogue) [F].
+  // one-handed axes, which Forever trains (SkillLineAbility row 248, spell 196: class mask 79 has the rogue) [F].
   rogue: {
     armor: ['cloth', 'leather'],
     shield: false,

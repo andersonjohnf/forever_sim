@@ -143,3 +143,50 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
     expect(applyAplPreset(DEF, {}, 'nope')).toBeUndefined()
   })
 })
+
+describe('a tank’s presets: a named default, and a spec-wide Priority the presets set (decision D28)', () => {
+  // The priority is spec-wide and has no row: its value is the preset. C's default follows it.
+  const options: RotationOption[] = [
+    { kind: 'choice', id: 'priority', label: 'Priority', help: '', choices: ['def', 'bal', 'max'].map((value) => ({ value, label: value })), default: 'bal' },
+    toggle('a.on'),
+    { ...toggle('c.on', false), defaultWhen: [{ option: 'priority', is: 'def', default: true }] } as RotationOption,
+    toggle('potion.on'),
+  ]
+  const tank: AplDefinition = {
+    rows: [
+      { id: 'a', label: 'A', icon: '', enabledId: 'a.on', optionIds: [] },
+      { id: 'c', label: 'C', icon: '', enabledId: 'c.on', optionIds: [] },
+    ],
+    specWide: ['potion.on'],
+    presets: [
+      { id: 'defensive', label: 'Defensive', help: '', values: { priority: 'def' } },
+      { id: 'maxTps', label: 'Max TPS', help: '', values: { priority: 'max' } },
+    ],
+    defaultPreset: { label: 'Balanced', help: 'The default.' },
+  }
+  const active = (saved: Record<string, string | number | boolean>) => activeAplPreset(tank, options, saved, undefined, NO_TALENTS)
+
+  it('names the default preset', () => {
+    expect(aplPresets(tank).map((p) => [p.id, p.label])).toEqual([
+      [DEFAULT_APL_PRESET, 'Balanced'],
+      ['defensive', 'Defensive'],
+      ['maxTps', 'Max TPS'],
+    ])
+    expect(aplPresets(DEF)[0].label).toBe('Default')
+  })
+
+  it('tells presets apart by the priority, even where their rows resolve the same', () => {
+    expect(active({})).toBe(DEFAULT_APL_PRESET)
+    expect(active({ priority: 'def' })).toBe('defensive')
+    // Max TPS's rows resolve as the default's; its priority doesn't.
+    expect(active({ priority: 'max' })).toBe('maxTps')
+    expect(active({ priority: 'max', 'c.on': true })).toBe(CUSTOM_APL_PRESET)
+    // A setting only a spec-wide switch holds isn't the list's.
+    expect(active({ priority: 'def', 'potion.on': false })).toBe('defensive')
+  })
+
+  it('puts the priority back at its default when you pick the default, and keeps the other spec-wide settings', () => {
+    expect(applyAplPreset(tank, { priority: 'def', 'c.on': false, 'potion.on': false }, DEFAULT_APL_PRESET)).toEqual({ rotation: { 'potion.on': false }, rotationOrder: undefined })
+    expect(applyAplPreset(tank, { priority: 'max', 'a.on': false }, 'defensive')).toEqual({ rotation: { priority: 'def' }, rotationOrder: undefined })
+  })
+})

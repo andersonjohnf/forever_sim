@@ -101,12 +101,21 @@ export function aplRowOptionIds(def: AplDefinition): Set<string> {
 
 /** The spec's default and its named presets, the default first. */
 export function aplPresets(def: AplDefinition): AplPreset[] {
-  return [{ id: DEFAULT_APL_PRESET, label: 'Default', help: 'The spec’s defaults.', values: {} }, ...def.presets]
+  const { label, help } = def.defaultPreset ?? { label: 'Default', help: 'The spec’s defaults.' }
+  return [{ id: DEFAULT_APL_PRESET, label, help, values: {} }, ...def.presets]
+}
+
+/**
+ * The settings the presets set: the rows' and any spec-wide one a preset names (a tank's Priority,
+ * whose value is the preset). Picking a preset puts each at its value there, or at its default.
+ */
+function presetOptionIds(def: AplDefinition): Set<string> {
+  return new Set([...aplRowOptionIds(def), ...def.presets.flatMap((p) => Object.keys(p.values))])
 }
 
 /**
  * Which preset the list matches: the first whose order is the list's and whose settings resolve to
- * the list's for every row setting and every setting the preset names (a default can follow the
+ * the list's for every row setting and every setting a preset names (a default can follow the
  * talents or another setting, so values are compared as the sim uses them). CUSTOM_APL_PRESET
  * when none does.
  */
@@ -119,28 +128,28 @@ export function activeAplPreset(
 ): string {
   const current = normalizeAplOrder(def, order)
   const values = resolveRotationValues(options, saved, talents)
-  const rowIds = aplRowOptionIds(def)
+  const ids = [...presetOptionIds(def)]
   for (const preset of aplPresets(def)) {
     const presetOrder = normalizeAplOrder(def, preset.order)
     if (presetOrder.some((id, i) => id !== current[i])) continue
     const theirs = resolveRotationValues(options, presetSaved(def, saved, preset), talents)
-    const ids = [...rowIds, ...Object.keys(preset.values)]
     if (ids.every((id) => theirs[id] === values[id])) return preset.id
   }
   return CUSTOM_APL_PRESET
 }
 
-/** The saved settings with a preset picked: the spec-wide ones you set stay, unless the preset names them. */
+/** The saved settings with a preset picked: the spec-wide ones you set stay, unless a preset names them. */
 function presetSaved(def: AplDefinition, saved: Readonly<Record<string, RotationValue>>, preset: AplPreset): Record<string, RotationValue> {
-  const rowIds = aplRowOptionIds(def)
-  const kept = Object.fromEntries(Object.entries(saved).filter(([id]) => !rowIds.has(id)))
+  const presetIds = presetOptionIds(def)
+  const kept = Object.fromEntries(Object.entries(saved).filter(([id]) => !presetIds.has(id)))
   return { ...kept, ...preset.values }
 }
 
 /**
  * The saved settings and stored order with preset `id` picked: its order and its values for the
  * list's settings, the rest of the list's at their defaults; the spec-wide settings you set stay
- * (a potion's limit), unless the preset names them. Undefined for an unknown preset.
+ * (a potion's limit), unless a preset names them (a tank's Priority: picking the default puts it
+ * back at its default). Undefined for an unknown preset.
  */
 export function applyAplPreset(
   def: AplDefinition,

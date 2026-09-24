@@ -368,6 +368,11 @@ export interface AplDefinition {
   specWide: readonly string[]
   /** Named presets besides the default (id `default`, the spec's defaults). */
   presets: readonly AplPreset[]
+  /**
+   * The default preset's name and help, where the spec's defaults are a named rotation (a tank's
+   * Balanced, D28). Absent: "Default", the spec's defaults.
+   */
+  defaultPreset?: { label: string; help: string }
 }
 
 export interface SpecDefinition {

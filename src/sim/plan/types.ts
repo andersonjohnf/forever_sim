@@ -247,6 +247,16 @@ export interface SpellDef {
    */
   lowHealthPct?: number
   lowHealthBelowPct?: number
+  /**
+   * An item's spell with no class options (spell 1269334 has no SpellClassOptions row: EZ-Thro Dark
+   * Bomb, buffs doc §3.7): your class's talents and auras, which name your class's spells, don't reach
+   * it [?]. None of your school's hit, crit or damage (Elemental Precision, Critical Mass, Combustion,
+   * a demon's sacrifice), no per-spell crit (Winter's Chill) or free-cast crit, none of your spell
+   * procs (Ignite, Combustion's stacks, Master of Elements), and only the crit charges any crit ends.
+   * Your spell hit and crit, your all-damage multiplier and the boss's damage taken apply. Absent: a
+   * spell of your class's.
+   */
+  itemSpell?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {

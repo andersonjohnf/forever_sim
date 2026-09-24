@@ -293,6 +293,8 @@ export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
   threatMult: 1,
   threatBonus: 0,
   binary: true,
+  // No SpellClassOptions row: class-mask talents don't reach it (buffs doc §3.7) [?].
+  itemSpell: true,
 }
 
 /**

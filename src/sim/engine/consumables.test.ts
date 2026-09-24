@@ -164,6 +164,46 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
     expect(((100 - fail) / 100) * 450 * (1 + 0.5 * 0.05)).toBeCloseTo(359.87, 2)
   })
 
+  it('gets none of a Fire mage’s class talents: no Elemental Precision, Critical Mass, Combustion or Ignite (review CV-4) [?]', () => {
+    // The mage casts nothing but Combustion, which goes up at the pull; one crit would end it here,
+    // so any bomb crit that used its charge would show as Combustion going down.
+    const rotation = { ...rotationOff('mage-fire'), 'mage.fire.combustion.enabled': true }
+    const plan = buildPlan(config('mage-fire', ['ezThroDarkBomb'], { rotation })).plan
+    const keep = new Set([EZ_THRO_DARK_BOMB.id, 'combustion'])
+    plan.rotation = plan.rotation.filter((e) => keep.has(plan.abilities[e.ability].id))
+    expect(plan.rotation.length).toBe(2)
+    plan.prepull = { ...plan.prepull, casts: [] }
+    const combustion = plan.auras.findIndex((x) => x.id === 'combustion')
+    expect(combustion).toBeGreaterThanOrEqual(0)
+    plan.auras[combustion].critCharges = 1
+    // The talents are in the plan: Critical Mass's +6% Fire crit and Elemental Precision's Fire hit.
+    expect(plan.schools!.crit[SCHOOL.fire]).toBe(6)
+    expect(plan.schools!.hit![SCHOOL.fire]).toBeGreaterThan(0)
+    const row = plan.sources.findIndex((s) => s.id === EZ_THRO_DARK_BOMB.id)
+    const ignite = plan.sources.findIndex((s) => s.id === 'ignite')
+    expect(ignite).toBeGreaterThanOrEqual(0)
+    const sim = new Sim(plan)
+    const start = sim.inspect()
+    const fights = 3000
+    for (let i = 0; i < fights; i++) sim.runFight(i)
+    const count = (field: number) => sim.counters[row * FIELD_COUNT + field]
+    const casts = count(FIELD.casts)
+    expect(casts).toBe(3 * fights)
+    const share = (n: number, of: number, pct: number) => {
+      const p = pct / 100
+      expect(Math.abs(n / of - p), `${n}/${of} vs ${p}`).toBeLessThanOrEqual(4 * Math.sqrt((p * (1 - p)) / of))
+    }
+    // Your spell hit and crit only, not the Fire school's, nor Combustion's +10%.
+    share(count(FIELD.misses), casts, start.spellMiss + (100 - start.spellMiss) * (1 - start.resistFactor[SCHOOL.fire]))
+    const crits = count(FIELD.crits)
+    share(crits, casts - count(FIELD.misses), start.spellCrit)
+    expect(crits).toBeGreaterThan(500)
+    // Its crits feed no Ignite, and use none of Combustion's charges: it stays up all fight.
+    expect(sim.counters[ignite * FIELD_COUNT + FIELD.casts]).toBe(0)
+    const agg = aggregate(plan, 200)
+    expect(agg.auraUpMs[combustion]).toBe(200 * 180000)
+  })
+
   it('is used by every spec’s rotation, and its row counts in the results', () => {
     for (const spec of ['mage-fire', 'rogue-combat', 'druid-feral-bear', 'paladin-protection', 'hunter-marksmanship'] as const) {
       const bundle = buildPlan(config(spec, ['ezThroDarkBomb']))

@@ -312,10 +312,13 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 
-- [ ] **A1 APL core and the Rotation tab:** rotation rows as data with their own options, a stored
+- [x] **A1 APL core and the Rotation tab:** rotation rows as data with their own options, a stored
       order, the plan compiler following it, pinned rows, D28's rotations as named presets and
       "Custom"; the drag-and-drop list with keyboard and button moves, per-row switches, the
-      selected row's options (side panel on desktop, sheet on phones); Fury as the pilot spec
+      selected row's options (side panel on desktop, sheet on phones); Fury as the pilot spec.
+      Fury's plans are byte-identical at the default order (its golden run, and 400 random
+      settings compared against the engine before the list); presets are built but only A2's
+      tanks declare named ones
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
       default order

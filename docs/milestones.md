@@ -369,6 +369,17 @@ slice is worked:
 - **Arms in Berserker Stance doesn't wait for Recklessness before its potion;** the wait is
   unmeasured for it (warrior.md §6.2, FL4).
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **Prayer of Spirit and Arcane Brilliance are the paladin's only** (C2's review, RU3): a cat's
+  powershifting spends mana too, so they join the druid's presets when its specs ship
+  ([buffs doc §6.2](mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
+- **Retribution against Undead or Demons in long fights:** the re-tuned defaults trail the first
+  round's by 0.14–0.63% at 180 s with a 20% phase and at 300 s with 10–20%, where Exorcism from 40%
+  was ahead; 40% loses everywhere else, and a reserve tied to the execute phase lost too
+  ([paladin.md](classes/paladin.md#tuning-the-defaults-c2)). A threshold that follows the fight's
+  length needs D23's full process.
+- **Weakness Analyzer and a paladin's seal procs:** the engine doesn't let a seal's proc end
+  Weakness Analyzer's charge, since a triggered spell triggers nothing ([paladin.md
+  conventions](classes/paladin.md#conventions-used-below)); the results list it.
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).

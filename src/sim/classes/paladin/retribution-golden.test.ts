@@ -29,6 +29,10 @@ describe('golden run (fixed config and seed)', () => {
   // - C2's review (RU3, RL4): Prayer of Spirit and Arcane Brilliance join a paladin's Standard raid
   //   (buffs doc §6.2), +40 Spirit and +31 Intellect: 2,882 → 3,392 mana, DPS 622.56, TPS 365.78.
   //   The snapshot records the mana ledger too.
+  // - C2's review, re-tuned on that setup (RL1, D23; paladin.md "Tuning the defaults (C2)"):
+  //   Consecration from 60% (was 65%) and rank 1 from 15% (was 20%), +0.26% over 400,000 fights;
+  //   Exorcism back at 20%, which the default setup (no creature type) doesn't use. On this seed,
+  //   DPS 624.07 and TPS 367.10.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

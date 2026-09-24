@@ -24,6 +24,11 @@ const REGISTRY = {
     text: 'The rotation knows exactly when the execute phase starts and when the fight ends, and times its cooldowns and the Mighty Rage Potion to them, where a player has to judge both.',
     docRef: `${WAR}#52-fury-dual-wield`,
   },
+  // The paladin's: its early mana potion or rune line needs another to be ready before the end.
+  knownFightEnd: {
+    text: 'The rotation knows exactly when the fight ends, and drinks a mana potion or uses a rune early only while another will be ready before then, where a player has to judge it.',
+    docRef: `${PAL}#forever-priority-list-default`,
+  },
   reactionTime: {
     text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, rage arrives or a proc or dodge opens a window, with no reaction time or latency.',
     docRef: `${DT}#36-server-tick-and-spell-batching`,

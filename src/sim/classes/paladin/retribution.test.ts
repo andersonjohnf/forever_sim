@@ -184,6 +184,15 @@ describe('the [?] assumptions the rotation rests on (paladin.md#open-questions)'
     expect(buildPlan(config()).assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Mana Potion')
   })
 
+  it('list the fight’s end the early potion line relies on, in paladin words, only while an early line is in the list (RL2)', () => {
+    const known = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).assumptions.find((a) => a.id.startsWith('knownFight'))
+    expect(known()?.id).toBe('knownFightEnd')
+    expect(known()?.text).toMatch(/drinks a mana potion or uses a rune early only while another will be ready.*: with the default setup, judging it 10 to 20 s off costs up to 0\.\d+%\.$/)
+    expect(known()?.text).not.toMatch(/Mighty Rage Potion|execute phase/)
+    expect(known({ rotation: { [ID.manaPotionEarly]: 0 } })).toBeUndefined()
+    expect(known({ buffs: [] })).toBeUndefined()
+  })
+
   it('speak paladin: no rage, stances or forms in any of them, whatever the setup (reactionTimeMana)', () => {
     const d = defaultConfig(RET)
     const setups: SimConfig[] = [
@@ -338,6 +347,22 @@ describe('Exorcism against Undead and Demons (paladin.md row 6)', () => {
 })
 
 describe('Consecration by mana (paladin.md rows 7 and 8)', () => {
+  it('worked example 21: the default setup’s thresholds, in tenths of its 3,392 mana', () => {
+    const plan = planOf()
+    expect(plan.mana!.maxTenths).toBe(33920)
+    const line = (id: string) => plan.rotation.filter((e) => plan.abilities[e.ability].id === id).map((e) => e.conditions)
+    expect(line('consecration')).toEqual([[{ code: COND.minMana, a: 20352, b: 0 }]])
+    expect(line('consecrationRank1')).toEqual([[{ code: COND.minMana, a: 5088, b: 0 }]])
+    // The potion: early from 1,500 missing (18,920 tenths or less) while 2 minutes are left, then from 2,250 (11,420).
+    expect(line('majorManaPotion')).toEqual([
+      [
+        { code: COND.maxMana, a: 18920, b: 0 },
+        { code: COND.timeLeftAtLeast, a: 120000, b: 0 },
+      ],
+      [{ code: COND.maxMana, a: 11420, b: 0 }],
+    ])
+  })
+
   it('rank 5 only at or above its share of maximum mana, rank 1 at or above its own; one cooldown for both', () => {
     const rotation = { [ID.consecrationMana]: 70, [ID.consecrationRank1Mana]: 20 }
     const plan = planOf({ rotation })

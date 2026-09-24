@@ -113,6 +113,7 @@ export const ASSUMPTION_GROUP = {
   weaponmasterMace: 'class',
   rendOnHit: 'class',
   knownFightTimings: 'class',
+  knownFightEnd: 'class',
   // Damage taken, together: the rage a hit gives, then a DPS spec's hits themselves (Fight →
   // Advanced → "Damage you take", the one you set), then what they trigger.
   damageTakenRage: 'class',

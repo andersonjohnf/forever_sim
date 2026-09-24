@@ -4,10 +4,13 @@ export { ENGINES_PER_LANE, EngineCache, type FightRunner, type FightSamples, loc
 export {
   type Bound,
   type Constraint,
+  CRIT_IMMUNE,
+  CRUSH_IMMUNE,
   defaultConstraints,
   EHP_FLOOR,
   effectiveHealth,
   formatConstraint,
+  immunityTable,
   limits,
   meetsSheet,
   parseConstraint,
@@ -20,10 +23,28 @@ export {
   sheetValues,
   type SheetValues,
 } from './constraints'
-export { SURVIVAL_FLOOR } from './floor'
-export { defaultObjective, type Interval, lower, meanInterval, type ObjectiveId, OBJECTIVES, pairedInterval, scorer, upper, Z99 } from './objective'
+export { SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
+export {
+  defaultObjective,
+  ELIMINATION_TAIL,
+  eliminationZ,
+  type Interval,
+  lower,
+  meanInterval,
+  normalQuantile,
+  type ObjectiveId,
+  OBJECTIVES,
+  pairedInterval,
+  scorer,
+  tQuantile,
+  tTail,
+  upper,
+  Z99,
+} from './objective'
 export {
   applyCandidate,
+  type AssumptionChanges,
+  assumptionChanges,
   BUDGETS,
   type Budget,
   type BudgetId,
@@ -32,6 +53,8 @@ export {
   confirm,
   type Confirmation,
   firstRound,
+  fitBudget,
+  MIN_FIRST_ROUND,
   optimize,
   optimizeInTurns,
   type OptimizeOptions,

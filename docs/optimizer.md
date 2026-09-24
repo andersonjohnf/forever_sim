@@ -7,7 +7,8 @@ This doc owns its method: how candidates are compared, what it maximizes, which 
 keeps, how the talent space is built, and how a spec's defaults come from its results.
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
-constraints with effective health, and the command line (`npm run optimize`). Gear is O2, the
+constraints with effective health and crit and crush immunity, and the command line
+(`npm run optimize`), with the review's fixes ([review log](reviews/2026-09-24-optimizer-o1.md)). Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -38,12 +39,20 @@ budget:
 1. **Screen** the class's talents for this setup: which ones the sim can measure
    ([below](#which-talents-matter)). Only when talents are searched.
 2. **Build the candidates:** every sensible talent build under the constraints
-   ([below](#the-talent-space)), each with every rotation variant given. Candidate 0, the
-   **baseline**, is the setup itself: the spec's current default, unless the caller changed it.
-   A candidate that misses a sheet constraint (effective health, say) is left out here, before any
-   fight.
+   ([below](#the-talent-space)), each with the start's own rotation and with every rotation
+   variant given. Candidate 0, the **baseline**, is the setup itself: the spec's current default,
+   unless the caller changed it. Candidate 1 is the **start**, where the search begins, when it
+   isn't the baseline (a pass of a search [in turns](#talents-and-rotation-together) starts from
+   the last pass's winner). The start always races, so a search never ends worse than where it
+   began. Two candidates that make the same setup race once. A candidate that misses a sheet
+   constraint (effective health, say) is left out here, before any fight. A baseline or start
+   whose build doesn't keep the talent constraints (a tank's survival floor, a kept or excluded
+   talent, a tree's minimum) races as a **reference only**: it runs every round, so every change is
+   still paired with it, but it never leads or drops another, so the answer always keeps them (D30:
+   the default search always keeps the floor). The CLI says which constraints it breaks.
 3. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
-   or the budget runs out ([below](#racing)).
+   or the budget runs out ([below](#racing)). The budget and the first round are fitted to the
+   number of candidates first ([budgets](#budgets)).
 4. **Confirm** the winner against the baseline on a fresh seed (D23; the CLI's `--confirm`).
 
 The same inputs and seed give the same result, on any number of threads.
@@ -109,16 +118,38 @@ rely on.
 2. **First round only:** candidates with the same DPS and TPS on every fight are one candidate.
    The one with the least damage taken represents them (D30: what the sim can't value in the
    score is a tie-break), then the earlier one; the others are listed as its ties.
-3. **Constraints on results** drop a survivor whose 99% interval of a constrained metric lies
-   wholly outside its limit ([constraints](#constraints)).
-4. The **leader** is the survivor with the best mean score whose means meet every limit.
-5. A survivor whose paired interval against the leader lies wholly below zero at **99%** is
-   dropped. The stricter bar protects the true best: it's compared with the leader once a round,
-   and at 99% a round has at most a 0.5% chance of dropping it by bad luck.
+3. **Constraints on results** drop a survivor whose interval of a constrained metric (Student's t,
+   0.5% a side) lies wholly outside its limit ([constraints](#constraints)): the true best is
+   dropped by bad luck at most 0.5% a round a limit.
+4. The **leader** is the survivor with the best mean score whose means meet every limit. A
+   reference-only candidate ([the steps](#the-steps)) runs every round but is never a survivor.
+5. A survivor whose paired interval against the leader lies wholly below zero at the
+   **elimination bar** is dropped. The leader is the best of many noisy means, so it's usually one
+   that got lucky (the **winner's curse**): with thousands of survivors, the luckiest is several
+   standard errors up, and an ordinary 99% bar would knock the true best out far more often than
+   1% of the time (the review's probe: 3,000 candidates level and the best one standard error
+   ahead, over a first round of 61 fights: it dropped the best 21 times in 100). So the bar
+   is corrected for how many there are: z is Student's t quantile at an upper tail of
+   0.5% ÷ _k_, with _k_ the survivors compared with the leader that round (Bonferroni) and _n_ − 1
+   degrees of freedom for _n_ fights (`eliminationZ`, `src/sim/optimize/objective.ts`). With one
+   survivor against the leader and many fights it's the plain 99% bar, 2.576; 7,311 survivors over
+   61 fights give 5.37.
+
+   **What that guarantees:** in any one round, the chance that the true best (the candidate with
+   the highest true mean) is dropped is at most 0.5%, however many survivors there are, if each
+   paired difference's mean is normal with the spread its fights show. That's the union bound: the
+   true best is dropped only if some survivor beats it by the bar, and each of the _k_ has at most a
+   0.5% ÷ _k_ chance, since none truly beats it. Over a race of _r_ rounds the chance is at most
+   _r_ × 0.5% (the races so far run 1 to 7 rounds). The model is an approximation: a fight's score
+   difference isn't exactly normal, and Student's t covers only the spread being estimated from a
+   few fights. What the race doesn't guarantee is that the leader is the true best when it ends on
+   the budget; that's what the separation bar, the unseparated survivors and
+   [confirmation](#confirmation) are for.
 6. The race ends **separated** when the leader's paired 95% interval against every survivor lies
    above zero, D23's bar, or **budget** when the next round no longer fits: the last round then
    runs as many fights as the budget has left, the same for every survivor. A budget ending names
-   the survivors the leader isn't clear of and how close they are.
+   the survivors the leader isn't clear of, and the closest of them with its paired interval behind
+   the leader (`closest`).
 
 Everything is decided at a round's end over whole arrays, and each job's samples go to fixed
 positions, so neither the number of lanes nor the order jobs finish in changes anything.
@@ -132,7 +163,8 @@ a share (`src/sim/optimize/constraints.ts`).
 
 - **Sheet constraints** read the character sheet: `ehp`, `health`, `armor`, `stamina`, `defense`,
   `dodgePct`, `parryPct`, `blockPct`, `blockValue`, `critReductionPct`, `hitPct`, `critPct`,
-  `attackPower`. They need no fights, so a candidate that misses one is left out before the race.
+  `attackPower`, `bossCritPct` and `bossCrushPct` (below). They need no fights, so a candidate
+  that misses one is left out before the race.
 - **Result constraints** read a fight metric: `dps`, `tps` or `taken` (damage taken per second).
   They're judged with their intervals in the race (step 3 above).
 
@@ -143,8 +175,27 @@ Avoidance and block aren't in it: they lower average damage but don't survive a 
 search keeps **at least 90% of the reference's effective health** by default (`EHP_FLOOR`,
 `defaultConstraints`); the CLI's `--no-ehp-floor` drops it and `--require "ehp>=95%"` changes it.
 A talent search's reference is the baseline, the spec's default gear and build; a gear search (O2)
-passes the class's survival preset, the v1 tank gear. Every reported result shows its health,
-effective health and damage taken.
+passes the class's survival preset, the v1 tank gear.
+
+**Crit and crush immunity** (D30, user decision; both **off by default**) replace the damage-taken
+cap decided earlier the same day: a share of a pure-survival set's damage taken measures against a
+set no tank wears, so a tank's defaults have **no damage-taken cap** (`defaultConstraints` is the
+effective-health floor alone). What matters beyond effective health is whether the boss can crit
+or crush you, read from the same boss table the engine rolls and the Results show
+([combat-tables §8](mechanics/combat-tables.md#8-boss--player-tanks): `sheet.bossTable`, from
+`bossOutcomeShares`):
+
+- **Crit immune** (`--crit-immune`, `CRIT_IMMUNE`, `bossCritPct<=0`): the boss's crit chance
+  against you is 0, `5% + (315 − defense) × 0.04%` at or below zero: **440 defense**.
+- **Crush immune** (`--crush-immune`, `CRUSH_IMMUNE`, `bossCrushPct<=0`): your miss, dodge,
+  parry and block (each less 0.6% for the boss's 315 skill) fill the table before its crushing
+  blows: 102.4% on the sheet at 440 defense. A bear can't reach it without block. A tank whose
+  rotation keeps a block buff up (a Protection paladin's Holy Shield) is judged on the table with
+  it up, the Results' second table ([ux.md](ux.md#results)), since that's what most of the
+  fight's swings roll on (`immunityTable`); it's the paladin's classic way to be uncrushable.
+
+Shares under 1e-9 points (the table's rounding at 100%) count as none. Every reported result shows
+its health, effective health, damage taken, and the boss's crit and crush chances.
 
 Why it matters: survival costs a tank threat in Forever. Rage from a hit taken divides by max
 health, and an avoided hit gives none ([rage.md](mechanics/rage.md#rage-from-damage-taken)), so
@@ -152,10 +203,11 @@ TPS alone would build a glass cannon. The talent screen finds exactly that for t
 the Wild ([below](#which-talents-matter)).
 
 A talent that changes what a constraint reads is searched, whatever it does to the score
-([the talent space](#the-talent-space)): with the effective-health floor, Toughness is a search
-dimension, not a filler that only gets leftover points. A gap: a bear's Thick Hide armor isn't
-modelled ([druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it
-isn't in the bear's effective health.
+([the talent space](#the-talent-space)): with the effective-health floor, a talent that adds armor
+or health and isn't in the floor is a search dimension, not a filler that only gets leftover
+points; under crit immunity, so is one that adds defense. A bear's Thick Hide armor is modelled
+(BR6, [druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it's in
+the bear's effective health.
 
 ## Which talents matter
 
@@ -174,7 +226,9 @@ the setup's rotation and every rotation variant the search tries. Then:
    Wild is: its 20% Stamina costs rage from every hit.
 
 The screen also notes which of the sheet's numbers each talent changes (health, armor, effective
-health, …), from the plans alone, for the constraints.
+health, the boss's crit and crush chances, …), from the plans alone, for the constraints. Its runs
+go to the runner a few at a time (twice its lanes, as the race keeps), each only if the search
+hasn't been cancelled, so a cancel stops it within a run or two a lane.
 
 The contexts' builds aren't legal (the plan builder doesn't need them to be). The screen's
 effect, the change in score with the talent at max rank, divided by its ranks, is its **score per
@@ -185,7 +239,10 @@ point**, which orders where leftover points go (below).
 `talentSpace` (`src/sim/optimize/talents.ts`) builds every *sensible* build under the constraints,
 not every legal one, which would be astronomically many:
 
-- **Objective talents are the search.** Each is at 0 or its max rank in a build's **core**.
+- **Objective talents are the search.** Each is at 0 or its max rank in a build's **core**. One
+  whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
+  for a bear), is never forced by the maximality rule below nor given leftover points: builds with
+  and without it both race.
 - **So is a talent a constraint reads.** One that changes damage taken, under a limit on damage
   taken, or a sheet number a sheet constraint reads (Toughness's armor, Sacred Duty's health, under
   the effective-health floor) is a dimension too, whatever its role, so builds with and without it
@@ -202,12 +259,20 @@ not every legal one, which would be astronomically many:
   the core doesn't meet them, the least needed. A prerequisite that isn't objective comes with its
   talent (Concussion Blow with Shield Slam).
 - **Constraints:** a tree's minimum points (`--min-tree Protection=31`), talents kept at a rank
-  (`--keep`) and excluded (`--exclude`). A tank's **survival floor** is kept in every build
-  (`SURVIVAL_FLOOR`, `src/sim/optimize/floor.ts`), from its class doc:
+  (`--keep`) and excluded (`--exclude`). A tank's search spends **at least 31 points in its tank
+  tree** unless told otherwise (D30; `TANK_TREE`, `src/sim/optimize/floor.ts`): Protection for
+  the warrior and paladin, Feral Combat for the bear. `--min-tree Protection=0` drops it. A tank's
+  **survival floor** is kept in every build (`SURVIVAL_FLOOR`, the same file), from its class doc:
   [warrior §6.4](classes/warrior.md#64-survival-floor),
   [druid §7.6](classes/druid.md#76-survival-floor),
-  [paladin](classes/paladin.md#protection-survival-floor). `--no-floor` drops it. Harmful talents
-  are never taken unless kept or searched for a constraint.
+  [paladin](classes/paladin.md#protection-survival-floor). It holds the defensive cooldowns and,
+  by user decision (D30), a warrior's and a paladin's **Anticipation 5/5 and Deflection 5/5**:
+  the model says avoided hits cost a tank rage, mana and Reckoning procs, so a threat-first search
+  drops them, but tanks take them. Toughness is optional: the search decides its ranks (under the
+  effective-health floor it's a dimension). `--no-floor` drops the floor; `--keep` extends it for one search
+  (kept talents join it in every build); a spec's default floor changes in `SURVIVAL_FLOOR` and
+  its class doc together. Harmful talents are never taken unless kept or searched for a
+  constraint.
 - **Maximal builds only.** If another objective talent fits at max rank in the points a core
   leaves (they'd otherwise go to partial ranks and fillers), the build that takes it scores at
   least as well, since no objective talent lowers the score, so only that one is kept. The check
@@ -246,7 +311,10 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   variant too, so a talent that only a variant uses counts.
 - **In turns** (`--turns`, `optimizeInTurns`): the talents with the setup's rotation, then the
   variants with the winning build, then the talents again with the winning variant, until a pass
-  keeps its start. Each pass spends the whole budget. The baseline stays the setup itself, so
+  keeps its start. Each pass spends the whole budget. Every pass races its start, the last pass's
+  winner, beside the new candidates, so a rotation pass whose variants are all worse keeps the
+  talent pass's winner rather than falling back to the baseline; the answer never gets worse
+  from one pass to the next, up to the race's own error. The baseline stays the setup itself, so
   `balanced` is always relative to it.
 - **Rotation only** (`--search rotation`): the variants with the setup's talents.
 
@@ -262,8 +330,21 @@ fights come on top (20,000–27,000 for the four specs in the table above).
 | `thorough` | 24,000,000 | at most ~5 min | ~10 min |
 
 The first round runs 30% of the budget over the candidates, between 50 and 1,000 fights each
-(`firstRound`): the paladin's 24,313 candidates get 74 each on `standard`, the bear's 181 get
-1,000. A race usually stops long
+(`firstRound`): 20,000 candidates get 90 each on `standard`, the bear's 180 get 1,000.
+`fitBudget` fits a space too big for its budget rather than failing, and the CLI prints a note
+saying what it changed:
+
+| Candidates | What the first round does | `quick` | `standard` | `thorough` |
+| --- | --- | --- | --- | --- |
+| up to 30% of the budget ÷ 1,000 | 1,000 fights each | ≤ 450 | ≤ 1,800 | ≤ 7,200 |
+| up to 30% ÷ 50 | 30% of the budget, 50 to 1,000 each | ≤ 9,000 | ≤ 36,000 | ≤ 144,000 |
+| up to 90% ÷ 50 | 50 each, up to 90% of the budget | ≤ 27,000 | ≤ 108,000 | ≤ 432,000 |
+| up to 90% ÷ 20 | 90% of the budget, fewer than 50 each (down to 20): it drops fewer, and the race may end on the budget | ≤ 67,500 | ≤ 270,000 | ≤ 1,080,000 |
+| more | 20 each, and the budget grows to twice that first round | | | |
+
+So `quick` suits a space of up to about 9,000 candidates, `standard` 36,000 and `thorough`
+144,000; past three times that, pick the next budget or narrow the search (keep or exclude
+talents, fewer rotation variants). The tanks' default spaces are in [the talent space](#the-talent-space). A race usually stops long
 before its budget: most candidates are clearly worse after the first round. The speeds are this
 machine's under load (80,000 a second on 12–15 threads is about 6,000 fights a second a thread;
 the engine does 6,000–10,000 per core by spec).
@@ -276,6 +357,13 @@ again against the baseline on a **fresh master seed**, one the search never used
 interval is still above zero. The CLI runs the check twice, with D12's unmeasured ratings applied
 and ignored, and says when the winner clears under one and not the other: then it rests on an
 untested rating.
+
+It also names the **[?] assumptions** the winner's gain can flow through (`assumptionChanges`):
+the plan lists an assumption only when the setup relies on it
+([sim/plan/assumptions.ts](../src/sim/plan/assumptions.ts)), so the check lists those only the
+winner relies on (a place its gain can come from), those only the default relies on, and those
+both rely on. The sim can't switch most of them off to measure how much of the gain rests on
+each, so it names them; D12's ratings are the one it can switch.
 
 ## Defaults from the results
 
@@ -298,7 +386,8 @@ The CLI prints the screen, the space, each round, a table of standings and the r
 a JSON report under `.cache/optimize/`. A standing has:
 
 - the build and its changes from the default ("Shredding Attacks 0→3")
-- mean TPS, DPS, damage taken per second, health and effective health
+- mean TPS, DPS, damage taken per second, health, effective health, and the boss's crit and crush
+  chances against it
 - its paired change from the baseline in score, TPS, DPS and damage taken, each with its 95%
   interval, over the fights it ran
 - its fights, and its state: the leader, a survivor, or dropped in round _r_ (as clearly worse, or
@@ -309,9 +398,11 @@ leader, then the survivors, then the dropped by how long they lasted.
 
 ## Limits of the method
 
-- **Maximality assumes no objective talent lowers the score.** The screen calls a talent harmful
-  only when its interval is below zero everywhere it acts; one whose effect is near zero and
-  uncertain (Feral Swiftness for a bear) is treated as helpful and taken when it fits.
+- **Maximality assumes no raised talent lowers the score.** The screen calls a talent harmful
+  only when its interval is below zero everywhere it acts; one whose screened mean is below zero
+  but whose interval reaches it (Feral Swiftness for a bear) isn't raised by maximality, so builds
+  with and without it race. One whose mean is just above zero, though its true effect is
+  negative, is still raised when it fits.
 - **Maximality ignores result constraints.** Under a limit on damage taken, taking one more
   objective talent can push a build over the limit (Death Wish raises damage taken), yet the build
   without it is dropped as dominated. The builds that keep the constrained talents instead are
@@ -342,3 +433,13 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
 - **A toy race.** Twenty candidates at 1,000–1,019 DPS and one at 1,030, with noise they share
   each fight: the race finds the 1,030 one and separates it at 95%, the same with 1 lane or 7 and
   whatever order the jobs finish in.
+- **The winner's curse.** A thousand candidates level at 1,000 DPS and one at 1,000.1, over a
+  first round of 50 fights: in 20 races an uncorrected 99% bar drops the true best in the first
+  round at least once; the corrected bar, z = 4.92 (Student's t at 0.5% ÷ 999, 49 degrees of
+  freedom), never does.
+- **Fitting the budget.** `quick` (1,500,000) over 50,000 candidates: 50 fights each would be
+  2,500,000, so the first round runs 27 each (90% of the budget, rounded down); over 100,000, even
+  20 each doesn't fit, so the budget grows to 4,000,000.
+- **In turns.** From the bear's 8/43/0, the talent pass finds the build that's now the default;
+  holding Maul for 90 rage costs about 14 points on it, so the rotation pass keeps the talent
+  pass's winner with the setup's rotation.

@@ -1,18 +1,23 @@
 // The optimizer on the real engine, kept small enough for CI (docs/optimizer.md).
 import { describe, expect, it } from 'vitest'
 import { armorConstant, armorReduction } from '../core/formulas'
+import { decodeTalentCode } from '@/data/talents/types'
 import { defaultConfig, TALENT_DATA } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { PROFILES } from '../rules/profiles'
 import type { SimConfig } from '../types'
-import { defaultConstraints, effectiveHealth, formatConstraint, meetsSheet, parseConstraint, sheetValues } from './constraints'
+import { bossOutcomeShares } from '../core/attack-table'
+import { CRIT_IMMUNE, CRUSH_IMMUNE, defaultConstraints, effectiveHealth, formatConstraint, meetsSheet, parseConstraint, sheetValues } from './constraints'
 import { describeBuildChange } from './describe'
-import { localFightRunner } from './fights'
+import { type FightRunner, localFightRunner } from './fights'
 import { SURVIVAL_FLOOR } from './floor'
-import { applyCandidate, confirm, firstRound, optimize } from './optimize'
+import { applyCandidate, confirm, firstRound, fitBudget, MIN_FIRST_ROUND, optimize, optimizeInTurns } from './optimize'
 import { screenTalents } from './screen'
 
 const fixed = (config: SimConfig, seed = 1): SimConfig => ({ ...config, run: { mode: 'fixed', iterations: 0, seed } })
+/** The bear's 8/43/0 build before T3 made the optimizer's winner over it the default. */
+const OLD_BEAR = '050012-5523032120132210551-'
+const MAUL = 'druid.bear.maul.minRage'
 
 describe('screenTalents', () => {
   it('sorts the Protection warrior’s talents by what the sim measures', async () => {
@@ -27,6 +32,35 @@ describe('screenTalents', () => {
     for (const name of ['Shield Slam', 'Defiance', 'Cruelty', 'Focused Rage']) expect(role(name).role).toBe('objective')
     expect(role('Defiance').effect!.mean).toBeGreaterThan(0)
     expect(screen.roles.size).toBe(screen.verdicts.length)
+  })
+
+  it('keeps a few runs in flight, and a cancel stops it before the next run starts (O1-9)', async () => {
+    const config = fixed(defaultConfig('warrior-protection'))
+    let inFlight = 0
+    let most = 0
+    let started = 0
+    const lanes = 3
+    const zeros = (n: number) => ({ dps: new Float64Array(n), tps: new Float64Array(n), taken: new Float64Array(n) })
+    const runner: FightRunner = {
+      lanes,
+      run: async (_source, _from, count) => {
+        started++
+        most = Math.max(most, ++inFlight)
+        await new Promise((resolve) => setTimeout(resolve, 1))
+        inFlight--
+        return zeros(count)
+      },
+    }
+    const screen = await screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 4 })
+    expect(most).toBe(2 * lanes)
+    expect(started).toBe(screen.fights / 4)
+    // Cancelled after 5 runs: the runs already in flight finish, and no more start.
+    const controller = new AbortController()
+    started = 0
+    const run = screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 4, signal: controller.signal, onProgress: (done) => done === 5 && controller.abort() })
+    await expect(run).rejects.toThrow(/cancelled/)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(started).toBeLessThanOrEqual(5 + 2 * lanes)
   })
 })
 
@@ -81,12 +115,33 @@ describe('optimize', () => {
     for (const s of keepEhp.race.standings) expect(keepEhp.sheets[s.candidate].ehp).toBeGreaterThanOrEqual(keepEhp.reference.ehp)
   }, 60_000)
 
-  it('confirms a winner on a fresh seed against the baseline (D23)', async () => {
-    const candidate = { talents: '050022-5520032023132210551-', rotation: {} }
+  it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
+    // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).
+    const candidate = { talents: OLD_BEAR, rotation: {} }
     const check = await confirm({ config: bear, candidate, objective: 'balanced', seed: 99, fights: 300, runner: localFightRunner() })
     expect(check.fights).toBe(300)
     expect(check.vsBaseline.score.halfWidth).toBeGreaterThan(0)
     expect(check.clears).toBe(check.vsBaseline.score.mean - check.vsBaseline.score.halfWidth > 0)
+    // Every assumption either build relies on is in exactly one list.
+    const bundle = buildPlan(applyCandidate(bear, candidate))
+    const { winnerOnly, baselineOnly, shared } = check.assumptions
+    expect(new Set([...winnerOnly, ...shared].map((a) => a.id))).toEqual(new Set(bundle.assumptions.map((a) => a.id)))
+    expect(new Set([...baselineOnly, ...shared].map((a) => a.id))).toEqual(new Set(buildPlan(bear).assumptions.map((a) => a.id)))
+    expect(shared.length).toBeGreaterThan(0)
+  }, 60_000)
+
+  it('a tank’s talent search spends 31 points in its tank tree unless told otherwise (D30)', async () => {
+    const run = (minPoints?: Record<string, number>) =>
+      optimize({ config: bear, talents: { screenFights: 20, ...(minPoints ? { minPoints } : {}) }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    const byDefault = await run()
+    expect(byDefault.space!.minPoints).toEqual({ 'Feral Combat': 31 })
+    const feral = TALENT_DATA.druid.trees.findIndex((t) => t.id === 'Feral Combat')
+    const points = (code: string) => TALENT_DATA.druid.trees[feral].talents.reduce((n, t) => n + (decodeTalentCode(TALENT_DATA.druid, code)[t.id] ?? 0), 0)
+    for (const c of byDefault.candidates.slice(1)) expect(points(c.talents)).toBeGreaterThanOrEqual(31)
+    // An explicit minimum replaces it; 0 drops it.
+    const none = await run({ 'Feral Combat': 0 })
+    expect(none.space!.minPoints).toEqual({ 'Feral Combat': 0 })
+    expect(none.space!.builds).toBeGreaterThan(byDefault.space!.builds)
   }, 60_000)
 
   it('sizes the first round from the budget', () => {
@@ -95,6 +150,94 @@ describe('optimize', () => {
     expect(firstRound({ fights: 1_000 }, 7000)).toBe(50)
     expect(firstRound({ fights: 1_000, initialFights: 7 }, 7000)).toBe(7)
   })
+
+  it('fits a large space into its budget rather than failing: a smaller first round, then a larger budget, and says so (O1-9)', () => {
+    // quick over 7,000 candidates: 64 fights each, 30% of the budget, as firstRound says.
+    expect(fitBudget({ fights: 1_500_000 }, 7000)).toEqual({ fights: 1_500_000, initialFights: 64, notes: [] })
+    // quick over 27,000: 50 each is exactly 90% of the budget, still the usual first round.
+    expect(fitBudget({ fights: 1_500_000 }, 27_000)).toEqual({ fights: 1_500_000, initialFights: 50, notes: [] })
+    // quick over 50,000: 50 each would be 2.5M; the first round shrinks to 27 (90% of the budget).
+    const shrunk = fitBudget({ fights: 1_500_000 }, 50_000)
+    expect(shrunk.fights).toBe(1_500_000)
+    expect(shrunk.initialFights).toBe(27)
+    expect(shrunk.notes[0]).toMatch(/first round runs 27 fights each instead of 50/)
+    // quick over 100,000: even 20 each doesn't fit, so the budget grows to 20 each and as much again.
+    const grown = fitBudget({ fights: 1_500_000 }, 100_000)
+    expect(grown).toMatchObject({ fights: 2 * MIN_FIRST_ROUND * 100_000, initialFights: MIN_FIRST_ROUND })
+    expect(grown.notes[0]).toMatch(/the budget grew to 4,000,000/)
+  })
+
+  it('a baseline that breaks the talent constraints races as a reference, never as the answer (D30)', async () => {
+    // The default bear has Feral Swiftness 2; a search that keeps it at 1 can't answer with the default.
+    const report = await optimize({ config: bear, talents: { screenFights: 20, keep: { 'Feral Swiftness': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 3 })
+    expect(report.referenceOnly).toEqual({ 0: ['Feral Swiftness 2/1'] })
+    expect(report.race.leader).not.toBe(0)
+    expect(report.race.standings.find((st) => st.candidate === 0)?.state).toBe('reference')
+    // Keeping what the default has, it's an answer like any build.
+    const keeps = await optimize({ config: bear, talents: { screenFights: 20, keep: { 'Feral Swiftness': 2 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    expect(keeps.referenceOnly).toEqual({})
+  }, 60_000)
+
+  it('a rotation search races the start’s own rotation beside its variants, each setup once (O1-1)', async () => {
+    const start = { talents: bear.talents, rotation: { [MAUL]: 30 } }
+    const report = await optimize({
+      config: bear,
+      start,
+      rotations: [{ [MAUL]: 90 }, { [MAUL]: 30 }],
+      budget: { fights: 2_000, initialFights: 2 },
+      runner: localFightRunner(),
+    })
+    // The baseline, the start, and the one variant that isn't the start: the start's own isn't dropped.
+    expect(report.candidates).toEqual([{ talents: bear.talents, rotation: {} }, start, { talents: bear.talents, rotation: { [MAUL]: 90 } }])
+  }, 60_000)
+
+  it('searching talents and rotation together tries every build with the setup’s own rotation too (O1-1)', async () => {
+    const report = await optimize({
+      config: bear,
+      talents: { screenFights: 20 },
+      rotations: [{ [MAUL]: 90 }],
+      budget: { fights: 20_000, initialFights: 2 },
+      runner: localFightRunner(),
+      top: 1,
+    })
+    const builds = new Set(report.candidates.slice(1).map((c) => c.talents))
+    for (const talents of builds) {
+      const own = report.candidates.filter((c) => c.talents === talents && !(MAUL in c.rotation))
+      const variant = report.candidates.filter((c) => c.talents === talents && c.rotation[MAUL] === 90)
+      // The default's build with its own rotation is the baseline, candidate 0.
+      expect(own.length).toBe(1)
+      expect(variant.length).toBe(1)
+    }
+    expect(report.candidates.length).toBe(1 + 2 * builds.size - (builds.has(bear.talents) ? 1 : 0))
+  }, 60_000)
+
+  it('in turns, a rotation pass keeps the talent pass’s winner when every variant is worse (O1-1, the review’s bear repro)', async () => {
+    // From the bear's 8/43/0, the talent pass finds a far better build (+10 points, docs/classes/druid.md);
+    // Maul held for 90 rage costs about 14 points on every build. The rotation pass must keep the
+    // talent pass's winner, not fall back to the baseline because the variant lost to it.
+    const old = { ...bear, talents: OLD_BEAR }
+    const passes = await optimizeInTurns({
+      config: old,
+      talents: { screenFights: 40 },
+      rotations: [{ [MAUL]: 90 }],
+      budget: { fights: 60_000, initialFights: 100 },
+      runner: localFightRunner(),
+      top: 3,
+    })
+    const winners = passes.map((r) => r.candidates[r.race.leader])
+    expect(winners[0].talents).not.toBe(OLD_BEAR)
+    expect(passes.length).toBeGreaterThanOrEqual(2)
+    // The rotation pass raced its start (the talent pass's winner, with the setup's rotation) and kept it.
+    expect(passes[1].candidates).toContainEqual(winners[0])
+    expect(winners[1]).toEqual(winners[0])
+    // The final answer is never worse than any pass's winner, on the same fresh seed.
+    const check = (candidate: (typeof winners)[number]) => confirm({ config: old, candidate, objective: 'balanced', seed: 4242, fights: 400, runner: localFightRunner() })
+    const final = await check(winners[winners.length - 1])
+    for (const w of winners) {
+      const c = await check(w)
+      expect(final.vsBaseline.score.mean).toBeGreaterThanOrEqual(c.vsBaseline.score.mean - 1e-9)
+    }
+  }, 120_000)
 
   it('applies a candidate on top of the setup, at a fixed seed', () => {
     const c = applyCandidate(bear, { talents: '-5-', rotation: { x: 1 } }, 7)
@@ -132,6 +275,42 @@ describe('constraints', () => {
     expect(meetsSheet({ ...ref, ehp: ref.ehp * 0.91 }, ref, floor)).toBe(true)
     expect(meetsSheet({ ...ref, ehp: ref.ehp * 0.89 }, ref, floor)).toBe(false)
     expect(defaultConstraints('dps')).toEqual([])
+    // D30: the EHP floor is a tank's only default; no damage-taken cap, and immunity is off.
+    expect(floor).toEqual([{ on: 'sheet', stat: 'ehp', min: 0.9, relative: true }])
+    expect(floor.some((c) => c.on === 'result')).toBe(false)
+  })
+
+  it('reads the boss’s crit and crush chances from the table the engine and the Results use (D30)', () => {
+    for (const spec of ['warrior-protection', 'druid-feral-bear', 'paladin-protection'] as const) {
+      const bundle = buildPlan(fixed(defaultConfig(spec)))
+      const table = bundle.sheet.bossTableUp?.table ?? bundle.sheet.bossTable!
+      const values = sheetValues(bundle)
+      expect(values.bossCritPct).toBeCloseTo(table.crit, 12)
+      expect(values.bossCrushPct).toBeCloseTo(table.crush, 12)
+    }
+    // A DPS spec's boss doesn't swing at it: no crits or crushing blows.
+    const fury = sheetValues(buildPlan(fixed(defaultConfig('warrior-fury'))))
+    expect([fury.bossCritPct, fury.bossCrushPct]).toEqual([0, 0])
+    // combat-tables §8: 440 defense makes a level-63 boss's crit 0, and miss + dodge + parry + block
+    // of 102.4% on the sheet (each less 0.6% for the boss's 315 skill) pushes crushing blows off.
+    const at = (defense: number, dodge: number, parry: number, block: number) =>
+      bossOutcomeShares({ playerLevel: 60, bossLevel: 63, defense, dodge, parry, block, canCrush: true, front: true })
+    expect(at(440, 20, 20, 20).crit).toBe(0)
+    expect(at(439, 20, 20, 20).crit).toBeCloseTo(0.04, 10)
+    const uncrushable = at(440, 30, 25, 42.4) // miss 10% at 440 defense: 10 + 29.4 + 24.4 + 41.8 = 105.6 ≥ 100
+    expect(uncrushable.crush).toBe(0)
+    expect(at(300, 5, 5, 5).crush).toBe(15)
+  })
+
+  it('crit and crush immunity are sheet limits at zero, off by default', () => {
+    const ref = sheetValues(buildPlan(fixed(defaultConfig('warrior-protection'))))
+    expect(meetsSheet({ ...ref, bossCritPct: 0, bossCrushPct: 0 }, ref, [CRIT_IMMUNE, CRUSH_IMMUNE])).toBe(true)
+    expect(meetsSheet({ ...ref, bossCritPct: 0.04, bossCrushPct: 0 }, ref, [CRIT_IMMUNE])).toBe(false)
+    expect(meetsSheet({ ...ref, bossCritPct: 0, bossCrushPct: 1 }, ref, [CRUSH_IMMUNE])).toBe(false)
+    expect(formatConstraint(CRIT_IMMUNE)).toBe('bossCritPct<=0')
+    expect(parseConstraint('bossCrushPct<=0')).toEqual(CRUSH_IMMUNE)
+    expect(defaultConstraints('tank')).not.toContainEqual(CRIT_IMMUNE)
+    expect(defaultConstraints('tank')).not.toContainEqual(CRUSH_IMMUNE)
   })
 })
 

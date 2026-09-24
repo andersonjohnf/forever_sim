@@ -12,14 +12,14 @@ import { TALENT_DATA } from '../defaults'
 import { buildPlan } from '../plan/build'
 import type { Plan } from '../plan/types'
 import { SPEC_META } from '../specs'
-import type { RotationValue, SimConfig, SpecId } from '../types'
+import type { Assumption, RotationValue, SimConfig, SpecId } from '../types'
 import { type FightRunner, type PlanSource, planKey } from './fights'
 import { type Constraint, meetsSheet, type ResultConstraint, sheetValues, type SheetValues } from './constraints'
-import { SURVIVAL_FLOOR } from './floor'
+import { SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
 import { defaultObjective, type Interval, lower, type ObjectiveId } from './objective'
 import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
-import { type TalentConstraints, talentSpace, type TalentSpace } from './talents'
+import { brokenConstraints, type TalentConstraints, talentSpace, type TalentSpace } from './talents'
 
 /** A candidate: the base setup with these talents and these rotation settings on top of its own. */
 export interface Candidate {
@@ -66,6 +66,38 @@ export function firstRound(budget: Budget, candidates: number): number {
   return Math.max(50, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, candidates))))
 }
 
+/** The fewest first-round fights a candidate runs when a large space shrinks the first round (`fitBudget`). */
+export const MIN_FIRST_ROUND = 20
+
+/**
+ * The budget and first round a race of this many candidates runs (docs/optimizer.md#budgets). The
+ * first round is `firstRound`'s while it fits in 90% of the budget; past that it shrinks to fit, to no
+ * fewer than MIN_FIRST_ROUND fights; past that the budget grows to cover that first round and as much
+ * again. A search on a space too big for its budget still runs, and `notes` says what changed.
+ */
+export function fitBudget(budget: Budget, candidates: number): { fights: number; initialFights: number; notes: string[] } {
+  const n = Math.max(1, candidates)
+  const wanted = firstRound(budget, n)
+  const fmt = (x: number) => x.toLocaleString('en-US')
+  if (wanted * n <= 0.9 * budget.fights) return { fights: budget.fights, initialFights: wanted, notes: [] }
+  if (budget.initialFights !== undefined && wanted * n <= budget.fights) return { fights: budget.fights, initialFights: wanted, notes: [] }
+  const fit = Math.floor((0.9 * budget.fights) / n)
+  if (fit >= MIN_FIRST_ROUND)
+    return {
+      fights: budget.fights,
+      initialFights: fit,
+      notes: [`${fmt(n)} candidates are many for a budget of ${fmt(budget.fights)} fights: the first round runs ${fmt(fit)} fights each instead of ${fmt(wanted)}, so it drops fewer, and the race may end on the budget. A larger budget sharpens it.`],
+    }
+  const fights = 2 * MIN_FIRST_ROUND * n
+  return {
+    fights,
+    initialFights: MIN_FIRST_ROUND,
+    notes: [
+      `${fmt(n)} candidates don't fit a budget of ${fmt(budget.fights)} fights: the budget grew to ${fmt(fights)}, a first round of ${MIN_FIRST_ROUND} fights each and as much again. Narrow the search (keep or exclude talents, fewer rotation variants) or pick a larger budget.`,
+    ],
+  }
+}
+
 /** A talent search: the constraints, and how the space is built. */
 export interface TalentSearch extends TalentConstraints {
   /** Keep the spec's survival floor (./floor.ts; default: yes, for a tank). */
@@ -86,12 +118,16 @@ export interface OptimizeOptions {
   objective?: ObjectiveId
   /** Search talents (a talent search), or keep the setup's. */
   talents?: TalentSearch
-  /** Rotation settings to try, each on top of the start's; every build is tried with each. None: the start's rotation. */
+  /**
+   * Rotation settings to try, each on top of the start's; every build is tried with each, and with
+   * the start's own rotation too (a variant never has to beat the start to be kept out).
+   */
   rotations?: readonly Record<string, RotationValue>[]
   /**
    * Where the candidates start from: the talents they keep when talents aren't searched, and the
    * rotation settings every candidate has under its own (default: the setup's, no changes). The
-   * baseline stays the setup itself, so `balanced` is always relative to it (D30).
+   * start races too, so a search never ends worse than where it began. The baseline stays the setup
+   * itself, so `balanced` is always relative to it (D30).
    */
   start?: Candidate
   /** Rotation settings the talent screen also tries (default: `rotations`), so a talent only they use counts. */
@@ -116,23 +152,43 @@ export interface OptimizeOptions {
 
 export type OptimizeProgress =
   | { phase: 'screen'; done: number; total: number }
-  | { phase: 'space'; builds: number; candidates: number; excluded: number; screen?: TalentScreen; space?: OptimizeReport['space'] }
+  | {
+      phase: 'space'
+      builds: number
+      candidates: number
+      excluded: number
+      /** The race's budget and first round, fitted to the candidates, and what fitting them changed. */
+      budget: { fights: number; initialFights: number }
+      notes: string[]
+      referenceOnly: Record<number, string[]>
+      screen?: TalentScreen
+      space?: OptimizeReport['space']
+    }
   | ({ phase: 'race' } & RaceProgress)
 
 export interface OptimizeReport {
   spec: SpecId
   objective: ObjectiveId
   seed: number
+  /** The race's budget and first round, after fitting them to the candidates (`fitBudget`). */
+  budget: { fights: number; initialFights: number }
+  /** What the search changed to run at all, in words: a smaller first round, a larger budget. */
+  notes: string[]
   screen?: TalentScreen
   /**
    * The talent space (its builds counted, not listed), the floor it kept, and the talents that are
    * dimensions because a constraint reads what they change, by id.
    */
-  space?: Omit<TalentSpace, 'builds'> & { builds: number; floor: Record<string, number>; constrained: string[] }
+  space?: Omit<TalentSpace, 'builds'> & { builds: number; floor: Record<string, number>; constrained: string[]; minPoints?: Readonly<Record<string, number>> }
   /** Every candidate that raced, index 0 the baseline. */
   candidates: Candidate[]
   /** Candidates left out for missing a sheet constraint. */
   excluded: number
+  /**
+   * The baseline or start (by index) when its build doesn't keep the talent constraints, with how:
+   * it raced as a reference, never as the answer (`RaceOptions.referenceOnly`).
+   */
+  referenceOnly: Record<number, string[]>
   constraints: Constraint[]
   /** The reference's sheet values (relative sheet constraints are shares of them), and each reported candidate's, by index. */
   reference: SheetValues
@@ -175,12 +231,15 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const objective = options.objective ?? defaultObjective(meta.role)
   const seed = config.run.seed
   const start = options.start ?? { talents: config.talents, rotation: {} }
-  const rotations = options.rotations && options.rotations.length > 0 ? options.rotations : [{}]
+  // The start's own rotation is always a variant: a variant has to beat it to win (O1-1).
+  const rotations = [{}, ...(options.rotations ?? [])]
 
   const constraints = [...(options.constraints ?? [])]
   let screen: TalentScreen | undefined
   let space: OptimizeReport['space']
   let builds = [start.talents]
+  // The talent constraints the space keeps (by id), to tell whether the baseline and start keep them.
+  let talentConstraints: TalentConstraints | undefined
   if (options.talents) {
     const search = options.talents
     screen = await screenTalents({
@@ -197,12 +256,15 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const floor = Object.fromEntries(Object.entries(floorByName).map(([name, rank]) => [talentId(data, name), rank]))
     const keep = { ...floor, ...Object.fromEntries(Object.entries(search.keep ?? {}).map(([name, rank]) => [talentId(data, name), rank])) }
     const exclude = (search.exclude ?? []).map((name) => talentId(data, name))
+    // A tank's search spends 31 points in its tank tree unless told otherwise (D30).
+    const minPoints = search.minPoints ?? (TANK_TREE[spec] ? { [TANK_TREE[spec]!]: TANK_TREE_POINTS } : undefined)
     const maxRank = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t.maxRank]))
     const values = new Map(screen.verdicts.filter((v) => v.effect).map((v) => [v.id, v.effect!.mean / maxRank.get(v.id)!]))
     // A talent that changes what a constraint reads is searched, not a filler (./talents.ts).
     const reads = (v: TalentVerdict) =>
       constraints.some((c) => (c.on === 'sheet' ? v.sheetStats.includes(c.stat) : c.metric === 'taken' ? v.takenChanges : v.scoreChanges))
     const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
+    talentConstraints = { keep, exclude, ...(minPoints ? { minPoints } : {}) }
     const found = talentSpace({
       data,
       roles: screen.roles,
@@ -210,24 +272,30 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
       constrained,
       keep,
       exclude,
-      minPoints: search.minPoints,
+      minPoints,
       preferTree: search.preferTree ?? mainTree(data, start.talents),
       searchPartials: search.searchPartials,
       limit: search.limit,
     })
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
-    space = { ...rest, builds: list.length, floor, constrained: [...constrained] }
+    space = { ...rest, builds: list.length, floor, constrained: [...constrained], ...(minPoints ? { minPoints } : {}) }
   }
 
-  const candidates: Candidate[] = [{ talents: config.talents, rotation: {} }]
-  const same = (a: Candidate, b: Candidate) => a.talents === b.talents && sameRotation({ ...config.rotation, ...a.rotation }, { ...config.rotation, ...b.rotation })
-  for (const talents of builds)
-    for (const rotation of rotations) {
-      const candidate = { talents, rotation: { ...start.rotation, ...rotation } }
-      // The baseline already is the setup itself.
-      if (!same(candidate, candidates[0])) candidates.push(candidate)
-    }
+  // The baseline (the setup itself), the start (where this search begins: a pass of a search in
+  // turns starts from the last one's winner), then every build with every rotation variant. Each
+  // setup races once: two candidates that make the same config are one.
+  const candidates: Candidate[] = []
+  const seen = new Set<string>()
+  const add = (candidate: Candidate) => {
+    const key = candidateKey(config, candidate)
+    if (seen.has(key)) return
+    seen.add(key)
+    candidates.push(candidate)
+  }
+  add({ talents: config.talents, rotation: {} })
+  add(start)
+  for (const talents of builds) for (const rotation of rotations) add({ talents, rotation: { ...start.rotation, ...rotation } })
   // Sheet constraints: a candidate that misses one doesn't race (the baseline always does).
   const sheetOf = (c: Candidate) => sheetValues(buildPlan(applyCandidate(config, c)))
   const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : sheetOf(candidates[0])
@@ -237,18 +305,39 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     excluded = candidates.length - kept.length
     candidates.splice(0, candidates.length, ...kept)
   }
-  options.onProgress?.({ phase: 'space', builds: builds.length, candidates: candidates.length, excluded, ...(screen ? { screen } : {}), ...(space ? { space } : {}) })
+  // A baseline or start that doesn't keep the talent constraints (a tank's survival floor, say)
+  // races as a reference, never as an answer (D30: the default search always keeps the floor).
+  const broken: Record<number, string[]> = {}
+  if (talentConstraints)
+    for (let i = 0; i < Math.min(2, candidates.length); i++) {
+      const why = brokenConstraints(data, candidates[i].talents, talentConstraints)
+      if (why.length > 0) broken[i] = why
+    }
+  const planned = fitBudget(options.budget, candidates.length)
+  options.onProgress?.({
+    phase: 'space',
+    builds: builds.length,
+    candidates: candidates.length,
+    excluded,
+    budget: { fights: planned.fights, initialFights: planned.initialFights },
+    notes: planned.notes,
+    referenceOnly: broken,
+    ...(screen ? { screen } : {}),
+    ...(space ? { space } : {}),
+  })
 
   const sources: PlanSource[] = candidates.map((c) => ({ key: planKey(), plan: () => candidatePlan(config, c) }))
   // Build the baseline's plan now, so a setup that can't be simulated fails before any fights.
   sources[0].plan()
+  const fitted = planned
   const result = await race({
     sources,
     runner,
     objective,
-    budget: options.budget.fights,
-    initialFights: firstRound(options.budget, candidates.length),
+    budget: fitted.fights,
+    initialFights: fitted.initialFights,
     constraints: constraints.filter((c): c is ResultConstraint => c.on === 'result'),
+    referenceOnly: Object.keys(broken).map(Number),
     top: options.top,
     signal,
     onProgress: (p) => options.onProgress?.({ phase: 'race', ...p }),
@@ -257,10 +346,13 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     spec,
     objective,
     seed,
+    budget: { fights: fitted.fights, initialFights: fitted.initialFights },
+    notes: fitted.notes,
     ...(screen ? { screen } : {}),
     ...(space ? { space } : {}),
     candidates,
     excluded,
+    referenceOnly: broken,
     constraints,
     reference,
     // Every result shows its health, effective health and damage taken (D30).
@@ -278,6 +370,35 @@ export interface Confirmation {
   vsBaseline: { dps: Interval; tps: Interval; taken: Interval; score: Interval }
   /** D23's bar: the score's interval lies above zero. */
   clears: boolean
+  /** The [?] assumptions the winner's gain can flow through (`assumptionChanges`). */
+  assumptions: AssumptionChanges
+}
+
+/**
+ * The [?] assumptions (sim/plan/assumptions.ts) the winner relies on and the baseline doesn't, the
+ * other way round, and those both rely on. The plan lists an assumption only when the setup relies
+ * on it, so one only the winner has is a place its gain can come from. The sim can't switch most of
+ * them off to measure it, so this names them rather than measuring; D12's unmeasured ratings, the
+ * one it can switch, the CLI's --confirm runs both ways.
+ */
+export interface AssumptionChanges {
+  winnerOnly: Assumption[]
+  baselineOnly: Assumption[]
+  shared: Assumption[]
+}
+
+export function assumptionChanges(config: SimConfig, candidate: Candidate): AssumptionChanges {
+  const of = (c: Candidate) => buildPlan(applyCandidate(config, c)).assumptions
+  const base = of({ talents: config.talents, rotation: {} })
+  const winner = of(candidate)
+  const ids = (list: Assumption[]) => new Set(list.map((a) => a.id))
+  const baseIds = ids(base)
+  const winnerIds = ids(winner)
+  return {
+    winnerOnly: winner.filter((a) => !baseIds.has(a.id)),
+    baselineOnly: base.filter((a) => !winnerIds.has(a.id)),
+    shared: winner.filter((a) => baseIds.has(a.id)),
+  }
 }
 
 /**
@@ -300,7 +421,13 @@ export async function confirm(options: {
   ]
   const result = await race({ sources, runner: options.runner, objective: options.objective, budget: 2 * fights, initialFights: fights, top: 2, mergeTies: false, signal: options.signal })
   const winner = result.standings.find((s) => s.candidate === 1)!
-  return { seed, fights, vsBaseline: winner.vsBaseline, clears: lower(winner.vsBaseline.score) > 0 }
+  return { seed, fights, vsBaseline: winner.vsBaseline, clears: lower(winner.vsBaseline.score) > 0, assumptions: assumptionChanges(config, candidate) }
+}
+
+/** A candidate's identity: its talents and its whole rotation, on top of the setup's. */
+function candidateKey(config: SimConfig, c: Candidate): string {
+  const rotation = { ...config.rotation, ...c.rotation }
+  return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}`
 }
 
 function sameRotation(a: Record<string, RotationValue>, b: Record<string, RotationValue>): boolean {

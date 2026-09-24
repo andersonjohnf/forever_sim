@@ -16,9 +16,15 @@
 // the boss's level), the physical damage it takes to kill you. Avoidance and block aren't in it:
 // they lower average damage but don't survive a spike. A tank's search keeps at least 90% of the
 // reference's by default (`defaultConstraints`).
+//
+// **Crit and crush immunity** (D30, user decision; off by default): the boss's crit and crushing
+// blow chances against you, read from the same table the engine rolls and the Results show
+// (`sheet.bossTable`, combat-tables §8). Crit immune is `bossCritPct<=0` (440 defense against a
+// level-63 boss); crush immune is `bossCrushPct<=0` (miss + dodge + parry + block push crushing blows
+// off the table). There's no damage-taken cap: D30 replaced it with these.
 import { armorReduction } from '../core/formulas'
 import type { PlanBundle } from '../plan/types'
-import type { Role } from '../types'
+import type { BossOutcomes, Role } from '../types'
 import type { FightSamples } from './fights'
 
 /** The sheet's numbers a constraint can read: the character sheet's, and effective health (`ehp`). */
@@ -36,6 +42,8 @@ export const SHEET_STATS = [
   'hitPct',
   'critPct',
   'attackPower',
+  'bossCritPct',
+  'bossCrushPct',
 ] as const
 export type SheetStat = (typeof SHEET_STATS)[number]
 export type SheetValues = Record<SheetStat, number>
@@ -46,9 +54,21 @@ export function effectiveHealth(bundle: PlanBundle): number {
   return sheet.health / (1 - armorReduction(plan.armor, plan.fight.targetLevel, plan.profile))
 }
 
-/** A setup's sheet numbers, effective health included: no fights needed. */
+/**
+ * The boss's table against the sheet, for crit and crush immunity: with the block buff the rotation
+ * keeps up when it has one (a Protection paladin's Holy Shield; the Results' second table,
+ * docs/ux.md#results), since that's the table most of the fight's swings roll on; otherwise the
+ * table as the fight starts. Null for a spec the boss doesn't attack.
+ */
+export function immunityTable(bundle: PlanBundle): BossOutcomes | null {
+  return bundle.sheet.bossTableUp?.table ?? bundle.sheet.bossTable
+}
+
+/** A setup's sheet numbers, effective health and the boss's crit and crush chances included: no fights needed. */
 export function sheetValues(bundle: PlanBundle): SheetValues {
   const { sheet } = bundle
+  // A spec the boss doesn't attack takes no crits or crushing blows.
+  const table = immunityTable(bundle)
   return {
     ehp: effectiveHealth(bundle),
     health: sheet.health,
@@ -63,13 +83,27 @@ export function sheetValues(bundle: PlanBundle): SheetValues {
     hitPct: sheet.hitPct,
     critPct: sheet.critPct,
     attackPower: sheet.attackPower,
+    bossCritPct: share(table?.crit),
+    bossCrushPct: share(table?.crush),
   }
 }
+
+/** A share of the boss's table, with the rounding left by its truncation at 100% (1e-9 points) taken as none. */
+const share = (pct: number | undefined) => (pct === undefined || pct < 1e-9 ? 0 : pct)
+
+/** Crit immunity (D30, off by default): the boss's crit chance against you is 0. */
+export const CRIT_IMMUNE: SheetConstraint = { on: 'sheet', stat: 'bossCritPct', max: 0 }
+/** Crush immunity (D30, off by default): your avoidance and block push crushing blows off the boss's table. */
+export const CRUSH_IMMUNE: SheetConstraint = { on: 'sheet', stat: 'bossCrushPct', max: 0 }
 
 /** The share of the reference's effective health a tank keeps by default (D30, user decision). */
 export const EHP_FLOOR = 0.9
 
-/** The constraints a role's search has unless the player changes them: a tank keeps 90% of the reference's effective health. */
+/**
+ * The constraints a role's search has unless the player changes them: a tank keeps 90% of the
+ * reference's effective health. Crit and crush immunity are off by default, and there's no
+ * damage-taken cap (D30).
+ */
 export function defaultConstraints(role: Role): Constraint[] {
   return role === 'tank' ? [{ on: 'sheet', stat: 'ehp', min: EHP_FLOOR, relative: true }] : []
 }

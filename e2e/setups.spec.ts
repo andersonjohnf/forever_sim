@@ -302,7 +302,7 @@ for (const [label, device] of [
       await expect(toast(page, 'One saved setup couldn’t be read')).toBeVisible()
       await expect(sheet.getByRole('listitem')).toHaveCount(1)
       await sheet.getByRole('button', { name: 'Load Old arms' }).click()
-      await expect(toast(page, 'Loaded “Old arms”')).toContainText('It replaced your Arms Warrior setup, and you’re on Arms now. One part was out of date and is back to its default.')
+      await expect(toast(page, 'Loaded “Old arms”')).toContainText('It replaced your Arms Warrior setup, and you’re on Arms now. Rotation settings that don’t apply to this spec were reset.')
       await page.getByRole('tab', { name: 'Character', exact: true }).click()
       await expect(raceRadio(page, /Orc/)).toHaveAttribute('aria-checked', 'true')
     })

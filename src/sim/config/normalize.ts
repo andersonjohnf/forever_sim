@@ -10,7 +10,7 @@ import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
 import { BUFFS_BY_ID, type BuffSpec, TEMP_ENCHANT } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
-import { buffProvided, forSpecClass, presetBuffIds } from '../effects/presets'
+import { buffProvided, buffUnusedReason, forSpecClass, presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
@@ -387,8 +387,10 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
   const enabled: string[] = []
   for (const buff of selected) {
     const winner = buff.exclusiveGroup && winners.get(buff.exclusiveGroup)
-    if (winner && winner !== buff) r.add(`${buff.name} ${rivalReason(buff.exclusiveGroup as string)} ${winner.name}, so it was turned off.`)
-    else enabled.push(buff.id)
+    if (!winner || winner === buff) enabled.push(buff.id)
+    // One locked off for the spec anyway (an Enhancement shaman's stone, presets.ts buffUnusedReason)
+    // did nothing, so turning it off changes nothing to warn about.
+    else if (!buffUnusedReason(buff, spec)) r.add(`${buff.name} ${rivalReason(buff.exclusiveGroup as string)} ${winner.name}, so it was turned off.`)
   }
   return { raid, enabled }
 }

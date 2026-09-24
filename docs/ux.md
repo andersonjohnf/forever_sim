@@ -827,7 +827,12 @@ Every view handles these states:
   setup. It replaced your Arms Warrior setup, and you're on Arms now." A link for another spec
   keeps your setup for the spec you were on, as switching spec does. A code's import and a Load
   say the same (`replacedDescription` in `src/app/load-notice.ts`), and **Reset setup** says "Your
-  Fury Warrior setup is back to its defaults".
+  Fury Warrior setup is back to its defaults". When loading had to change something, the notice
+  then says what, in the repair's own words: "Rotation settings that don't apply to this spec were
+  reset.", "Greater Stoneshield Potion shares a cooldown with Mighty Rage Potion, so it was turned
+  off." Up to three changes are spelled out; past that, the first two and "3 other parts changed
+  too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
+  stone) did nothing, so it isn't mentioned.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A swipe
   sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
@@ -918,8 +923,8 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - **Load** replaces the current setup, switching to its spec if needed, with no prompt. Your
   setup for the spec you were on is kept, as switching spec does. The sheet closes, and a notice
   says "Loaded “Raid night”", whose setup it replaced and the spec it switched to ("It replaced
-  your Fury Warrior setup, and you're on Fury now."), and any parts that were out of date, as a
-  shared link's does.
+  your Fury Warrior setup, and you're on Fury now."), and what loading it changed, as a shared
+  link's does.
 - **Rename** edits the name in place. Enter or Rename keeps it; Escape or Cancel doesn't, and
   leaves the sheet open. Focus goes back to the row's Rename. A name another save has is
   refused, so a rename never replaces a save. Below 640 px the field takes the row's width, with

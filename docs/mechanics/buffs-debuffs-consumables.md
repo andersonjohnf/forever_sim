@@ -998,7 +998,8 @@ change different things (Mightfish Steak's attack power against Smoked Desert Du
 Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first. A
 stone or oil keeps the one a weapon would take, by its priority ([§3.6](#36-weapon-enhancements-temporary)). The
 note says why the other went: it "doesn't stack with", "takes the same weapon as" or "shares a
-cooldown with" the one kept.
+cooldown with" the one kept. One that's locked off for the spec anyway (an Enhancement shaman's
+stones, `buffUnusedReason`) did nothing, so it goes without a note.
 
 | Group key | Members | Tag |
 | --- | --- | --- |

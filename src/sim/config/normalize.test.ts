@@ -195,6 +195,19 @@ describe('normalizeConfig', () => {
     expect(config.buffs.enabled).toEqual(['majorManaPotion', 'demonicRune', 'ezThroDarkBomb'])
   })
 
+  // Review CR-3: a rival that's locked off for the spec anyway did nothing, so its going needs no note.
+  it('drops an Enhancement shaman’s second stone without a note: its imbue takes the weapon anyway', () => {
+    const enh = defaultConfig('shaman-enhancement')
+    const { config, warnings } = normalizeConfig({ ...enh, buffs: { raid: enh.buffs.raid, enabled: ['denseSharpeningStone', 'elementalSharpeningStone'] } })
+    expect(config.buffs.enabled).toEqual(['elementalSharpeningStone'])
+    expect(warnings).toEqual([])
+    // A warrior's two stones still say why one went.
+    const fury = defaultConfig('warrior-fury')
+    expect(normalizeConfig({ ...fury, buffs: { raid: fury.buffs.raid, enabled: ['denseSharpeningStone', 'elementalSharpeningStone'] } }).warnings).toEqual([
+      'Dense Sharpening Stone / Weightstone takes the same weapon as Elemental Sharpening Stone, so it was turned off.',
+    ])
+  })
+
   // RL4: the comparison reads each entry's Classic Era values in `classicEra` (catalogueEffects).
   it('compares exclusive rivals by the profile’s own values, Classic Era’s included', () => {
     const giants = BUFFS_BY_ID.get('elixirOfGreaterStrength')! // +25 Strength in both clients

@@ -718,7 +718,7 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s. No Charge; the warrior walks in, as in [wh-fury] | `fury.prepull.battleShout` (on; needs `fury.battleShout.enabled`), `fury.prepull.bloodrage` (on), `fury.prepull.charge` (off; adds 15 rage, +3 per Improved Charge rank, and needs a swap to Berserker Stance that keeps only 25) | yes |
 | 1 | Battle Shout | Buff missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout; see the notes | `fury.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 2 | Death Wish | On cooldown from the pull. If `alignToEnd` is on, the final use waits until 30 s are left, so it lasts until the fight ends, or until `beforeExecuteSec` before the execute phase starts, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the 30 s | `fury.deathWish.enabled` (on), `.alignToEnd` (on), `.beforeExecuteSec` (3; dimmed with Execute off) | yes |
-| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and Weakness Analyzer, the pool's one on-use trinket that helps a warrior's damage in Forever. Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
+| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman). Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute off, only the latter. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off), `.lastSec` (16) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
@@ -877,8 +877,9 @@ Notes:
   in the breakdown's casts.
 - **On-use trinkets** (row 3). A trinket the sim models is used with the same sync with Death
   Wish as the racial (the note above), with its own cooldown in place of the racial's; off the
-  GCD, both are used in the same moment as Death Wish. The pool's one warrior-relevant on-use
-  trinket is **Weakness Analyzer** (new in Forever): +5% crit (aura 290: attacks and spells) for 20 s or
+  GCD, both are used in the same moment as Death Wish. The sim models two on-use trinkets:
+  **Earthstrike** (+280 attack power for 20 s, modelled with the Enhancement shaman) and
+  **Weakness Analyzer** (new in Forever): +5% crit (aura 290: attacks and spells) for 20 s or
   until you deal a non-periodic crit, 90 s cooldown [F] [client] (ItemEffect, SpellEffect,
   SpellAuraOptions, 1.60.1.69913); an older foreverchanges tooltip said 2 min (Q31). The sim
   ends it on the first crit you deal, white or special, including the crit it helped make.

@@ -679,9 +679,9 @@ Mana Spring.
 | Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal, Enh | Pal, Enh |
 | Leader of the Pack or Moonkin Aura | — | — | DPS | DPS |
 | Windfury Totem | — | — | all but Enh (see below) | all but Enh |
-| Grace of Air Totem | Sha (your own) | — | Enh | Enh |
-| Strength of Earth Totem | Sha (your own) | — | all | all |
-| Mana Spring Totem | Sha (your own) | — | Pal, Enh | Pal, Enh |
+| Grace of Air Totem | Sha (your own) | Enh | Enh | Enh |
+| Strength of Earth Totem | Sha (your own) | Enh | all | all |
+| Mana Spring Totem | Sha (your own) | Enh | Pal, Enh | Pal, Enh |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
 | Faerie Fire | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |

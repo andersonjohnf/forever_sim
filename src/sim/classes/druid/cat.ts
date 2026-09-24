@@ -115,7 +115,7 @@ export const CAT_OPTIONS: RotationOption[] = [
     id: ID.items,
     group: 'Cooldowns and buffs',
     label: 'On-use items',
-    help: 'Use the Manual Crowd Pummeler (+50% attack speed for 30 s, 3 charges) and Weakness Analyzer on cooldown, if you wear them.',
+    help: 'Use the Manual Crowd Pummeler (+50% attack speed for 30 s, 3 charges), Weakness Analyzer and Earthstrike (+280 attack power for 20 s) on cooldown, if you wear them.',
     default: true,
   },
   {

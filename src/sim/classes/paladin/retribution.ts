@@ -106,7 +106,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     id: ID.trinkets,
     group: 'Cooldowns and buffs',
     label: 'On-use trinkets',
-    help: 'Use Weakness Analyzer on cooldown if you wear it: +5% crit and spell crit until your next crit, for up to 20 s. Other on-use trinkets aren’t simulated.',
+    help: 'Use Weakness Analyzer (+5% crit and spell crit until your next crit, for up to 20 s) and Earthstrike (+280 attack power for 20 s) on cooldown if you wear them. Other on-use trinkets aren’t simulated.',
     default: true,
   },
   {

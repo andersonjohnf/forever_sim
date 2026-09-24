@@ -891,7 +891,7 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | --- | --- | --- |
 | `berserk.enabled` | **on** | Berserk on cooldown (needs the talent) |
 | `racial.enabled` | **on** | Elune's Light on cooldown (Night Elf) |
-| `onUseItems.enabled` | **on** | The Manual Crowd Pummeler and Weakness Analyzer on cooldown, if worn |
+| `onUseItems.enabled` | **on** | The Manual Crowd Pummeler, Weakness Analyzer and Earthstrike on cooldown, if worn |
 | `tigersFury.enabled`, `tigersFury.maxEnergyLost` | **on**, **20** | Tiger's Fury once at most this much of its Energy would be lost at the cap. The doc's `tfMaxEnergy` = 100 − its Energy is the 0 of this setting; tuning prefers 20 (below) |
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on**, **12 s** ([C] [wh-rot] refresh window) | Keep your own Faerie Fire up (the Buffs tab's then adds nothing). The raid's Faerie Fire is assumed to be yours, so with this off the Buffs tab's is off by default too; turn it on there if another druid keeps it up (below) |
 | `shred.enabled` | **on** | Shred builds, from behind (the Fight tab's position) |
@@ -1059,7 +1059,7 @@ arrives, a cooldown or debuff runs out):
 | `berserk.enabled` | **on** | Needs the talent |
 | `enrage.prepull` | **on** | 12 rage at the pull; 16% less item armor for its first 8.5 s |
 | `enrage.inCombat`, `enrage.maxRage` | **on**, 70 | Tuned (below). Its armor loss ([F] [se-f] tooltip: −27%/−16% base armor) costs 0.14% more damage taken; 70 is the cap minus its 30 rage |
-| `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer, the on-use item the sim models |
+| `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer and Earthstrike, the on-use trinkets the sim models |
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; on with Max TPS too), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
 | `priority` | **Tank duties first** | Or Max TPS ([below](#max-tps-b4)), which moves the defaults marked "Max TPS" |
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |

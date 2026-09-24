@@ -200,7 +200,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.items,
     group: 'Cooldowns and buffs',
     label: 'On-use items',
-    help: 'Use Weakness Analyzer on cooldown if you wear it. Other on-use items, such as armor and health trinkets, aren’t simulated.',
+    help: 'Use Weakness Analyzer and Earthstrike on cooldown if you wear them. Other on-use items, such as armor and health trinkets, aren’t simulated.',
     default: true,
   },
   {

@@ -375,6 +375,8 @@ describe('catalogues and presets', () => {
     // Self only is what you cast on yourself: a paladin's Might, a druid's Mark of the Wild.
     expect(presetBuffs('self', 'paladin-retribution', FULL_RAID)).toEqual(['blessingOfMight'])
     expect(presetBuffs('self', 'druid-feral-cat', [])).toEqual(['markOfTheWild'])
+    // A bigger preset never has fewer of your own buffs: the shaman's totems are in its dungeon group too (SF1).
+    for (const id of presetBuffs('self', 'shaman-enhancement', [])) expect(presetBuffs('dungeon', 'shaman-enhancement', [])).toContain(id)
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).toEqual(expect.arrayContaining(['jujuPower', 'jujuMight', 'roids', 'armorShatter', 'elementalSharpeningStone']))
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).not.toContain('elixirOfGreaterStrength')
     expect(buffPresets.map((p) => p.id)).toEqual(['self', 'dungeon', 'raid', 'max'])

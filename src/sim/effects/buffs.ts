@@ -308,7 +308,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
     classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
-    presets: { raid: SHAMAN, max: SHAMAN },
+    presets: { dungeon: SHAMAN, raid: SHAMAN, max: SHAMAN },
   },
   {
     id: 'strengthOfEarth',
@@ -323,7 +323,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'str', value: 53 }],
     classicEra: { summary: '+77 Strength', effects: [{ kind: 'stat', stat: 'str', value: 77 }] },
-    presets: { raid: 'all', max: 'all' },
+    presets: { dungeon: SHAMAN, raid: 'all', max: 'all' },
   },
   {
     id: 'blessingOfSalvation',
@@ -380,7 +380,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
-    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { dungeon: SHAMAN, raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
 
   // --- Target debuffs (§4) -------------------------------------------------------------------

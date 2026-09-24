@@ -88,7 +88,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
-    A switch's whole row, with its help, is its label, as in Buffs.
+    A switch's whole row, with its help, is its label, as in Buffs. Switches for untested
+    mechanics live here, not on the Rotation tab, since they aren't rotation choices: a paladin's
+    also has **Judgement of the Crusader's bonus** (A share, the default, or All of it;
+    [paladin.md open question 5](classes/paladin.md#open-questions)), a segmented control whose
+    help says in plain words what each means. It's dimmed, with "Not used: Judgement of the
+    Crusader is off in Rotation.", while the rotation doesn't judge the Crusader.
   - The rule profile's help says what Classic Era changes and what it doesn't
     ([architecture, "Rules and stats"](architecture.md#rules-and-stats)), naming every
     exception: Classic's combat rules; its raid buff, debuff, consumable and enchant values; the
@@ -183,9 +188,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Composition switches: which classes are in the raid. These drive which raid buffs are
     available; buffs never depend on faction.
   - Grouped switches for raid buffs, target debuffs and consumables. A buff nobody in the raid
-    brings says so ("Needs a paladin in the raid") and is dimmed by colour, not opacity: its text
-    takes the muted text colour (AA), its icon turns gray, and its switch is off and disabled. You
-    count for a buff you cast on yourself: a druid's Gift of the Wild never needs another druid.
+    brings says so ("Needs a paladin in the raid"; for a paladin, "Needs another paladin in the
+    raid", since you're one) and is dimmed by colour, not opacity: its text takes the muted text
+    colour (AA), its icon turns gray, and its switch is off and disabled. You count for a buff you
+    cast on yourself: a druid's Gift of the Wild never needs another druid.
     One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage.").
@@ -197,10 +203,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.
   - World buffs don't exist here ([D8](decisions.md#d8-world-buffs-are-excluded-2026-09-22)).
-  - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire)
-    shows its switch on and locked, with a note saying the rotation keeps it up, so it's never
-    counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
-    way, and its note says the talents bring it.
+  - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire, a
+    paladin's own Blessing of Might) shows its switch on and locked, with a note saying the
+    rotation keeps it up, so it's never counted twice. One the talents bring (a druid's Leader of
+    the Pack) is on and locked the same way, and its note says the talents bring it.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
     Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority)). When the rotation drops one,
     its Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it
@@ -259,9 +265,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     room around it, so a row with a Reset is a little taller.
   - A setting that depends on a switch is dimmed while that switch is off, or can't apply
     itself (a potion's threshold while the potion isn't selected in Buffs), down the tree. A switch
-    that needs an execute phase (Execute, `needsExecutePhase`) can't apply while the Fight tab's
-    execute phase is 0%, so it's dimmed then too, with every setting that needs it, and its help
-    says it needs an execute phase under Fight. A dimmed setting is dimmed by colour, never
+    that needs an execute phase (Execute, Hammer of Wrath, `needsExecutePhase`) can't apply while
+    the Fight tab's execute phase is 0%, so it's dimmed then too, with every setting that needs it,
+    and its help says it needs an execute phase under Fight. One that needs a creature type
+    (Exorcism, `needsCreatureType`: Undead or Demon) is dimmed with its settings against anything
+    else, with "Not used: set Creature type to Undead or Demon in **Fight**": the link opens
+    Fight's Advanced with focus on the creature type. A dependent choice's selected option takes
+    the same neutral gray while it can't apply. A dimmed setting is dimmed by colour, never
     opacity: its label and inputs take the muted text colour, which is AA, and a switch that's on
     shows a neutral gray track rather than the primary colour. It stays usable.
   - A setting the rest of the setup leaves unused is dimmed, with a note under it saying why, in
@@ -272,6 +282,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     bleeding. Turn off … to use it anyway."). Its switch stays usable, since it takes effect once
     the setup lets it, and the settings under it aren't dimmed with it: one may be the way to use
     it.
+  - Numbers carry their unit in the field and in the hint: "60% mana" for a share of maximum
+    mana, "1,500 mana" (thousands grouped) for mana missing.
   - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
     with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens
@@ -386,11 +398,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   (crit, crushing, normal hit) on the right, and a screen reader hears them in the roll's order.
   Its heading names the list, so the list has no name of its own to read twice.
 - **Mana per fight** (paladins): the section after the breakdown, a ledger of the average fight,
-  one row per line with the numbers right-aligned: "At the pull 2,882", "Regenerated +2,314",
-  "Restored +6,150", "Spent −10,964" and "Left at the end 382" (the default setup; never below 0). Restored is left
-  out when nothing restores mana. A line under it says what the gains count: "Regenerated counts
-  Spirit and mana per 5 s; restored, Sanctified Judgement's returns and mana potions and runes."
-  It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
+  one row per line with the numbers right-aligned: "At the pull 3,392", "Regenerated +2,323",
+  one line for each thing that restored mana ("Sanctified Judgement +…", "Major Mana Potion +…",
+  "Demonic Rune +…", each only when it restored some), "Spent −…", then, under a rule, "Left at
+  the end" (never below 0). A line under it says what "Regenerated" counts: "Spirit and mana per
+  5 s." It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
   against; the potion's and rune's casts per fight are under Cooldowns and buffs.
 - **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
@@ -407,13 +419,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
   default. A proc the next ability spends (a cat's Clearcasting) is up only until then, so its
   uptime is tiny: the line under its name says how often it came, "6.3 a fight, each spent by
-  your next ability".
+  your next ability". A cast before the pull whose buff is gone by the pull (Seal of the Crusader,
+  judged at the pull) shows a dash for its uptime, with "Before the pull, for its judgement" under
+  its name.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
-  - A paladin's add its spell stats, each beside its melee or base counterpart: Spell damage
-    (its Holy spell damage, since every paladin spell is Holy, Champion of the Light's share of
-    Intellect included), Spell crit and Spell hit after Expertise; Intellect and Spirit after
-    Stamina; Mana and Mana per 5 s after Health. Each label fits on one line at 390 px.
+  - A paladin's add its spell stats, in two columns of counterparts, row by row: Attack power |
+    Spell damage (its Holy spell damage, since every paladin spell is Holy, Champion of the
+    Light's share of Intellect included), Crit | Spell crit, Hit | Spell hit, Weapon skill |
+    Expertise, Strength | Agility, Stamina | Intellect, Health | Mana, Spirit | Mana per 5 s, then
+    Haste | Armor. Each label fits on one line at 390 px.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
     defense above 300 or block value. A tank's add **Crit reduction (boss's crits)** after
     Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers

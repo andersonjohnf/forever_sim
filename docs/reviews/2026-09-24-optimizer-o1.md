@@ -193,8 +193,8 @@ e2e run or screenshots.
 
 ## Third verification (OV3) and step 6
 
-A fresh reviewer's third pass (probes in the O1 worktree's `.cache/probes/o1-verify3/`) found one
-medium and six more. Two rounds in a row had now found new problems in the same two mechanisms,
+A fresh reviewer's third pass (probes in the O1 worktree's `.cache/probes/o1-verify3/`) found two
+mediums and five lows. Two rounds in a row had now found new problems in the same two mechanisms,
 the end-of-race preferred-filler rule and result limits in the race, so under CLAUDE.md's step 6
 they were **cut rather than patched a third time** (user decision, D30 "Simplified after O1's
 third review round", `dcfc85e` on `main`). The branch was merged with `main` first (`daeb07f`: the
@@ -202,16 +202,16 @@ worker pool's new watchdog now also covers the optimizer's fight jobs, with a te
 
 | # | Severity | Origin | Finding | Disposition |
 | --- | --- | --- | --- | --- |
-| OV3-1 | medium | introduced (the preferred filler's fill order) | The maximality rule counted a dimension only a constraint made (Toughness, read by the effective-health floor) as a raise, so a core with 5 or more spare points and Toughness 0 was dropped before the points reached Anticipation; with `--screen-fights 3000`, where Anticipation screens as harmful, no build in the warrior's space had any Anticipation. | fixed, `3a250e5`: only objective dimensions are raises; a test with 5–9 spare points and Anticipation objective, none and harmful. That alone left the reproduction's space unchanged (1,101 builds, none with Anticipation): a harmful Anticipation was only a filler, and the objective talents' partial ranks take every spare point first. `678c2bc`: the preferred filler is a dimension whatever its role (a raise only when objective and not below zero), so builds with it at 5/5 and without it both race; that space is now 4,388 builds, 3,287 with Anticipation 5, and the answer is the same; a test on the modelled warrior tree |
-| OV3-2 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule (grouped with OV3-3 and OV3-5 in the lead's brief). | resolved by the cut, `12ff38e`: the rule is gone |
-| OV3-3 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule: it read a candidate dropped early over its own few fights (the probes' `antic.mjs`, `antic2.mjs`). | resolved by the cut, `12ff38e` |
-| OV3-4 | per the reviewer's report | introduced (OV2-1's hold) | Result limits in the race: with `taken<=104.5%` the warrior's race ran to its budget with the leader meeting the limit by its means alone (`war-taken.log`). | resolved by the cut, `53648f9`: the race takes no result limits; supersedes OV2-1 |
-| OV3-5 | per the reviewer's report | introduced (`preferFiller`) | The end-of-race preferred-filler rule. | resolved by the cut, `12ff38e` |
-| OV3-6 | low | introduced (CLI) | The space line said "24 objective talents" when one of them was Toughness, a constraint's dimension. | fixed, `53648f9` and `678c2bc`: "24 dimensions (23 objective + Toughness)", naming each one that isn't objective |
-| OV3-7 | low | introduced (CLI) | "(pts) behind" in the budget line. | fixed, `12ff38e`: "points behind" (or "DPS behind"); `--confirm`'s "the setup itself leads" stays, now that nothing is preferred to the leader; the `--search both` help line is re-aligned (`53648f9`) |
+| OV3-1 | medium | introduced by `65799755` (older maximality rule) | Maximality puts Toughness ahead of Anticipation: a constraint-only Toughness counted as a raise, so builds with 5+ leftover points and Toughness 0 were dropped before those points reached Anticipation; with `--screen-fights 3000` the warrior space had no Anticipation build. | fixed: `3a250e5b` (only objective dimensions are raises) + `678c2bc3` (the preferred filler is always a dimension) |
+| OV3-2 | medium | introduced | `preferFiller` judged candidates dropped in earlier rounds on their own few fights; c3823 (dropped at round 0, 2.27 ± 2.28 behind) would have been preferred. | cut with the rule (step 6, user decision): `12ff38e9` |
+| OV3-3 | low | introduced | The tolerance was 0.5% of a ~204 balanced score (~1.02 points), twice D12's item rule. | cut with the rule: `12ff38e9` |
+| OV3-4 | low (step-6 signal) | introduced by `f76aa2d7` (OV2-1) | A leader near a result limit switched off elimination: `taken<=104.5%` raced all 4,736 candidates to the budget. Second round of findings on result limits. | cut: result limits leave the race (step 6, user decision): `53648f99` |
+| OV3-5 | low | introduced | The preferred candidate needed only its means inside the limits, the leader its 95% intervals. | cut with the rule and result limits: `12ff38e9`, `53648f99` |
+| OV3-6 | low | pre-existing | CLI said "24 objective talents" for 24 dimensions. | fixed: `678c2bc3` ("24 dimensions (22 objective + Anticipation, Toughness)") |
+| OV3-7 | low | mixed | CLI nits: "(pts) behind"; `--confirm`'s "the setup itself leads" by preference; `--search both` header alignment. | fixed: `12ff38e9`, `53648f99` |
 
-The severities and full text of OV3-2 to OV3-5 are in the reviewer's report to the lead; this log
-records what the lead's brief said of them, and each is resolved by removing the code it was about.
+These are the third verifier's own rows. An earlier version of this log inferred OV3-2 to OV3-5
+from the lead's brief; the fourth verification's brief corrected them.
 
 **What was cut, and why.**
 
@@ -254,3 +254,40 @@ no requests); `scrape:check` matches.
 Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run` 85 passed; `npm
 test` 2,634 passed, with the two one-core benchmarks failing only under the machine's load (load
 average 36) and passing when rerun alone. No UI changed, so no e2e run or screenshots.
+
+## Fourth verification (OV4) and step 6 again
+
+A fresh reviewer's fourth pass (probes in the O1 worktree's `.cache/probes/o1-verify4/`:
+`twins.mjs`, `space.mjs`, `keeplist.mjs` and the logs) confirmed the OV3 cuts and found one medium
+and four lows. The medium was the third round in a row on the preferred filler (OV2's
+`preferFiller`, OV3-1's maximality, now its dimension), so under step 6 the rule was **narrowed to
+what D30 requires, not patched** (user decision, without asking): D30 fills Anticipation before
+Toughness, and nothing more.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| OV4-1 | medium | introduced by `678c2bc3` (the preferred filler as a dimension, OV3-1) | Toughness 5 beat Anticipation 5 when the threat talents were equal, against D30's fill order. Toughness is a dimension because the effective-health floor reads it, so the space held Toughness-5/Anticipation-0 twins of Anticipation-5/Toughness-0 builds; Toughness screens at zero and Anticipation below it, so the race preferred the Toughness twin. The repro (`--keep` every default talent but Anticipation and Toughness, `--exclude` the Arms and Fury talents the default lacks) answered `35-05-512501233301210531`: Anticipation 5→1, Toughness 1→5. | fixed (step 6), `e43e686d`: a dimension only a constraint made (neither objective nor the preferred filler: Toughness) takes core ranks only when the preferred filler is at max rank, or is kept or excluded (then there's none). Builds with both at 5/5 still cover the floor's need. The repro is a unit test (the space is the default alone, whatever the screen made of Anticipation; without the fix it holds the repro's twin), and the OV3-1 tests now expect no twin. The repro now answers the default, the setup itself, from a space of 1 build (was 2). D30's simplification paragraph records the rule in one sentence |
+| OV4-2 | low | introduced by `12ff38e9` (the cut left two rows stale) | `docs/classes/warrior.md` §6.4 and `docs/classes/paladin.md`'s floor still described the cut tolerance rule ("preferred wherever it costs little"). | fixed, `c5901300`: "first in the fill order: leftover points go to it before Toughness", and a build whose points gain more elsewhere may still drop it (D30) |
+| OV4-3 | low | pre-existing (O1's screen; the watchdog came with `daeb07f`) | The screen ran each plan's whole count as one pool job, with no upper bound on `--screen-fights`, so a long screen job could hit the pool's 60 s awake-time watchdog on a slow phone. | fixed, `01d0e262`: each plan's fights run in jobs of at most 250 (`SCREEN_JOB_FIGHTS`), as the race's do, into fixed positions of its samples. A test: a 3,000-fight screen hands the runner no job over 250, and a screen split into jobs of 7 gives the same verdicts as one run whole. The four demo screens' verdicts match the fourth verifier's exactly |
+| OV4-4 | low | introduced by `53648f99` (the cut of result limits) | optimizer.md's "With no leader, the standings have no comparison with one" and `Standing.vsLeader`'s "left out when there's no leader" described nothing: a candidate has a standing only if it raced, and then the race has a leader. | fixed, `3df3293f`: `vsLeader` is required, and the doc's sentence is gone |
+| OV4-5 | low | pre-existing | `fitBudget` was given `candidates.length`, which includes the baseline, so the CLI said "candidates: 4,736" and then "4,737 candidates are many". | fixed, `6df91603`: the note says "plans (the baseline included)", the right count since the baseline runs every round; the parameter, its doc comment and optimizer.md's Budgets say so; a test on the wording |
+
+### The numbers after this round
+
+The default searches (`quick`, seed 1, 8 threads, `--confirm` on seed 2654435770, 40,000 fights
+each; logs in this worktree's `.cache/probes/ov4/`). The screens' verdicts are identical to the
+fourth verifier's, so only the space changed:
+
+| Spec | Space before → after | Result | Confirmed vs the default |
+| --- | --- | --- | --- |
+| Protection warrior | 4,735 → **3,690** builds (3,691 candidates), 24 dimensions (23 objective + Toughness) | the same build, `35300003-05-502031033300210531` (Improved Rend 0→3, Deep Wounds 0→3, Improved Thunder Clap 0→3 for Anticipation 5→0, Toughness 1→0, Master of Defense 2→0, Vanguard 1→0); separated after 3 rounds, +4.67 in the race | **+4.43** (+4.35 to +4.50), unchanged; +4.64 with ratings ignored |
+| Protection warrior, `--screen-fights 3000` (Anticipation harmful) | 4,388 → **3,412** builds, 3,287 with Anticipation 5 (unchanged) | the same build; separated after 3 rounds, +4.75 in the race | (not run) |
+| Protection paladin | 8,918 → **6,833** builds and candidates | the same build, `050003-0530213321301511-50205` (Anticipation 5→2 among its changes); separated after 5 rounds (was round 0), +6.54 in the race | **+6.48** (+6.40 to +6.56), unchanged |
+| Feral bear | 129 builds, unchanged (no preferred filler) | the setup itself | nothing to confirm |
+| The OV4-1 repro | 2 → **1** build | the setup itself (was `35-05-512501233301210531`) | nothing to confirm |
+
+In every space, no build has Toughness above 0 with Anticipation below 5 (the verifier's
+`twins.mjs` and `space.mjs`, run on this branch against its reports: 0 twins).
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run` 87 passed; `npm
+test` 2,632 passed and 6 skipped. No UI changed, so no e2e run or screenshots.

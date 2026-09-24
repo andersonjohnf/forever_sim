@@ -3,7 +3,8 @@
 import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
-import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { activeAplPreset } from './classes/apl'
+import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
@@ -40,6 +41,17 @@ export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
 export { ammoKind, defaultConfig, FULL_RAID, hasThreatSet, matchSupplies, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'
 export { normalizeConfig } from './config/normalize'
+export {
+  aplPresets,
+  aplRowOptionIds,
+  applyAplPreset,
+  CUSTOM_APL_PRESET,
+  DEFAULT_APL_PRESET,
+  defaultAplOrder,
+  moveAplRow,
+  normalizeAplOrder,
+  storedAplOrder,
+} from './classes/apl'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
@@ -93,6 +105,7 @@ export const specs: SpecDefinition[] = SPEC_IDS.map((id) => ({
   rotationOptions: rotationOptions(id),
   rotationDefaults: rotationDefaultsNote(id),
   rotationFixed: fixedRotationRows(id),
+  ...(rotationApl(id) ? { rotationApl: rotationApl(id) } : {}),
 }))
 
 export function getSpec(id: SpecId): SpecDefinition {
@@ -115,6 +128,18 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
   return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+}
+
+/**
+ * Which of a priority-list spec's presets its rotation matches (decision D31): `default`, a named
+ * preset's id, or `custom` once you've changed its order or a row's setting away from every preset.
+ * Undefined for a spec still on switches.
+ */
+export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'>): string | undefined {
+  const apl = rotationApl(config.spec)
+  if (!apl) return undefined
+  const talents = talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents)
+  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents)
 }
 
 /**

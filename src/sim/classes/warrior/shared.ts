@@ -556,21 +556,31 @@ export function deathWishLines(b: RotationBuilder, v: Reader, ids: SharedIds, be
  * holding the racial for it as well measured worse (§5.2 notes). Without Death Wish (or the sync),
  * on cooldown.
  */
-export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, { dw, align }: { dw: number; align: boolean }): void {
-  const sync = dw >= 0 && v.on(ids.cdSync)
-  const dwDurationMs = DEATH_WISH.aura!.durationMs
-  const withDeathWish = (def: AbilityDef) => {
-    if (sync) {
-      b.add(def, [{ code: COND.abilityAuraUp, a: dw, b: 0 }])
-      b.add(def, [{ code: COND.cooldownAtLeast, a: dw, b: def.cooldownMs }])
-      if (align) b.add(def, [timeLeftAtMost(DEATH_WISH.cooldownMs), timeLeftAtLeast(dwDurationMs + def.cooldownMs)])
-    } else {
-      b.add(def, [])
-    }
+export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, dw: { dw: number; align: boolean }): void {
+  racialLines(b, v, ids, ctx, dw)
+  trinketLines(b, v, ids, ctx, dw)
+}
+
+/** `cooldownLines`' lines for one cooldown. */
+function withDeathWish(b: RotationBuilder, v: Reader, ids: SharedIds, { dw, align }: { dw: number; align: boolean }, def: AbilityDef): void {
+  if (dw >= 0 && v.on(ids.cdSync)) {
+    b.add(def, [{ code: COND.abilityAuraUp, a: dw, b: 0 }])
+    b.add(def, [{ code: COND.cooldownAtLeast, a: dw, b: def.cooldownMs }])
+    if (align) b.add(def, [timeLeftAtMost(DEATH_WISH.cooldownMs), timeLeftAtLeast(DEATH_WISH.aura!.durationMs + def.cooldownMs)])
+  } else {
+    b.add(def, [])
   }
+}
+
+/** The racial cooldown's lines of `cooldownLines`, on their own (a priority-list row, D31). */
+export function racialLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, dw: { dw: number; align: boolean }): void {
   const racial = RACIAL_COOLDOWNS[ctx.race]
-  if (racial && v.on(ids.racialEnabled)) withDeathWish(racial)
-  if (v.on(ids.trinketsEnabled)) for (const item of ctx.items) withDeathWish(onUseAbility(item))
+  if (racial && v.on(ids.racialEnabled)) withDeathWish(b, v, ids, dw, racial)
+}
+
+/** The on-use trinkets' lines of `cooldownLines`, on their own (a priority-list row, D31). */
+export function trinketLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, dw: { dw: number; align: boolean }): void {
+  if (v.on(ids.trinketsEnabled)) for (const item of ctx.items) withDeathWish(b, v, ids, dw, onUseAbility(item))
 }
 
 /**

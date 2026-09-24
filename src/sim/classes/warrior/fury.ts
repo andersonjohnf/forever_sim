@@ -4,19 +4,24 @@
 // the racial and on-use trinkets, Recklessness, Bloodrage), the execute phase (rows 6 and 7),
 // Bloodthirst, Whirlwind, the Overpower stance dance, Heroic Strike and Hamstring (rows 8–12),
 // Berserker Rage (row 13), Slam (row 15), the Mighty Rage Potion (row 16) and Juju Flurry (row 17).
-// Rows 12 and 15 are off by default; Sunder Armor (row 14) isn't simulated. Setting ids are
+// Rows 12 and 15 are off by default; Sunder Armor (row 14) isn't simulated. The rows are a priority
+// list you reorder (FURY_APL, decision D31), each with its own settings. Setting ids are
 // `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
 // Abilities are resolved with the build's talents (modifiers.ts) before their costs feed any
 // condition.
 import { toTenths } from '../../core/formulas'
 import { COND, type RotationCondition, STANCE } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
+import { compileAplRows } from '../apl'
 import {
   BERSERKER_RAGE,
+  BLOODRAGE,
   BLOODTHIRST,
+  DEATH_WISH,
   EXECUTE,
   executeBreakEvenAp,
   HAMSTRING,
+  HEROIC_STRIKE,
   OVERPOWER,
   overpowerWindowProcs,
   recklessness,
@@ -33,7 +38,6 @@ import {
   type ClassRotation,
   consumableLines,
   consumableOptions,
-  cooldownLines,
   cooldownOptions,
   deathWishLines,
   deathWishOptions,
@@ -48,6 +52,7 @@ import {
   potionFallbackMaxRage,
   prepullCasts,
   prepullOptions,
+  racialLines,
   rageOption,
   reader,
   recklessnessLine,
@@ -56,6 +61,7 @@ import {
   type RotationContext,
   seconds,
   sharedIds,
+  trinketLines,
   WARRIOR_MAX_RAGE,
 } from './shared'
 
@@ -67,6 +73,7 @@ const ID = {
   bzMaxRage: 'warrior.fury.berserkerRage.maxRage',
   exEnabled: 'warrior.fury.execute.enabled',
   exMinExtraRage: 'warrior.fury.execute.minExtraRage',
+  exBtEnabled: 'warrior.fury.execute.bloodthirst',
   exBtOverAp: 'warrior.fury.execute.btOverExecuteAp',
   exWhirlwind: 'warrior.fury.execute.whirlwindInExecute',
   exHeroicStrike: 'warrior.fury.execute.heroicStrikeInExecute',
@@ -178,6 +185,15 @@ export const FURY_OPTIONS: RotationOption[] = [
     'Execute phase',
   ),
   {
+    kind: 'toggle',
+    id: ID.exBtEnabled,
+    group: 'Execute phase',
+    label: 'Bloodthirst in the execute phase',
+    help: 'In the execute phase, keep using Bloodthirst at high attack power (“Bloodthirst over Execute from”). Needs Execute on, and an execute phase under Fight.',
+    default: true,
+    dependsOn: ID.exEnabled,
+  },
+  {
     kind: 'number',
     id: ID.exBtOverAp,
     group: 'Execute phase',
@@ -189,7 +205,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     max: 5000,
     step: 1,
     default: BT_OVER_EXECUTE_AP,
-    dependsOn: ID.exEnabled,
+    dependsOn: ID.exBtEnabled,
   },
   {
     kind: 'toggle',
@@ -322,18 +338,176 @@ export function furyMaintainedBuffs(values: Record<string, RotationValue>): stri
   return reader(FURY_OPTIONS, values).on(ID.bsEnabled) ? ['battleShout'] : []
 }
 
+
 /**
- * The Fury priority list from the settings (warrior.md §5.2). `talents` gates talent abilities
- * (Death Wish, Bloodthirst, Improved Berserker Rage) and resolves costs, Impale, Raging Blows and
- * the talented rage of Bloodrage, Berserker Rage and Charge; `auraIndex` resolves an aura id in
- * the plan (−1 if the setup has none); `context` gives the race (its racial cooldown), the
- * equipped on-use items, the selected consumables and whether there's an execute phase.
+ * Fury's rotation as a priority list (decision D31; warrior.md §5.2 "The priority list"): §5.2's
+ * rows 0–13 and 15 in its order, each with its switch and its own settings. Row 3 is two rows here,
+ * the racial and the trinkets, each with the sync with Death Wish they share; row 6, Bloodthirst in
+ * the execute phase, has a switch of its own. The pre-pull is pinned first. The consumables (rows 16
+ * and 17) are spec-wide, above the list, and always come after it (they're off the GCD).
+ */
+export const FURY_APL: AplDefinition = {
+  rows: [
+    {
+      id: 'prepull',
+      label: 'Before the pull',
+      icon: 'ability_warrior_charge',
+      optionIds: [ID.prepullShout, ID.prepullBloodrage, ID.prepullCharge],
+      summary: [
+        { option: ID.prepullShout, text: 'Battle Shout' },
+        { option: ID.prepullBloodrage, text: 'Bloodrage' },
+        { option: ID.prepullCharge, text: 'Charge' },
+      ],
+      help: 'What you do before the pull. It always comes first.',
+      pinned: true,
+    },
+    {
+      id: 'battleShout',
+      label: 'Battle Shout',
+      icon: 'ability_warrior_battleshout',
+      enabledId: ID.bsEnabled,
+      optionIds: [ID.bsRefresh],
+      summary: [{ option: ID.bsRefresh, text: 'again with {}' }],
+    },
+    {
+      id: 'deathWish',
+      label: 'Death Wish',
+      icon: DEATH_WISH.icon,
+      enabledId: ID.dwEnabled,
+      optionIds: [ID.dwAlign, ID.dwBeforeExecute],
+      summary: [
+        { option: ID.dwAlign, text: 'last one held' },
+        { option: ID.dwBeforeExecute, text: '{} before the execute phase' },
+      ],
+    },
+    {
+      id: 'racial',
+      label: 'Racial cooldown',
+      icon: 'racial_orc_berserkerstrength',
+      enabledId: ID.racialEnabled,
+      optionIds: [ID.cdSync],
+      summary: [{ option: ID.cdSync, text: 'with Death Wish' }],
+    },
+    {
+      id: 'trinkets',
+      label: 'On-use trinkets',
+      icon: 'inv_jewelry_talisman_01',
+      enabledId: ID.trinketsEnabled,
+      optionIds: [ID.cdSync],
+      summary: [{ option: ID.cdSync, text: 'with Death Wish' }],
+    },
+    {
+      id: 'recklessness',
+      label: 'Recklessness',
+      icon: 'ability_criticalstrike',
+      enabledId: ID.reckEnabled,
+      optionIds: [ID.reckBeforeExecute, ID.reckLastSec],
+      summary: [
+        { option: ID.reckBeforeExecute, text: '{} before the execute phase' },
+        { option: ID.reckLastSec, text: 'or in the last {}' },
+      ],
+    },
+    {
+      id: 'bloodrage',
+      label: 'Bloodrage',
+      icon: BLOODRAGE.icon,
+      enabledId: ID.brEnabled,
+      optionIds: [ID.brMaxRage],
+      summary: [{ option: ID.brMaxRage, text: 'up to {}' }],
+    },
+    {
+      id: 'executeBloodthirst',
+      label: 'Bloodthirst in the execute phase',
+      icon: BLOODTHIRST.icon,
+      enabledId: ID.exBtEnabled,
+      optionIds: [ID.exBtOverAp],
+      summary: [{ option: ID.exBtOverAp, text: 'from {}' }],
+    },
+    {
+      id: 'execute',
+      label: 'Execute',
+      icon: EXECUTE.icon,
+      enabledId: ID.exEnabled,
+      optionIds: [ID.exMinExtraRage],
+      summary: [{ text: 'execute phase' }, { option: ID.exMinExtraRage, text: '{} extra', hideWhen: 0 }],
+    },
+    { id: 'bloodthirst', label: 'Bloodthirst', icon: BLOODTHIRST.icon, enabledId: ID.btEnabled, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'whirlwind',
+      label: 'Whirlwind',
+      icon: WHIRLWIND.icon,
+      enabledId: ID.wwEnabled,
+      optionIds: [ID.wwReserve, ID.wwBtCdMin, ID.exWhirlwind],
+      summary: [
+        { option: ID.wwReserve, text: '{} reserve', hideWhen: 0 },
+        { option: ID.wwBtCdMin, text: 'Bloodthirst {} away' },
+        { option: ID.exWhirlwind, text: 'in the execute phase too' },
+      ],
+    },
+    {
+      id: 'overpower',
+      label: 'Overpower (stance dance)',
+      icon: OVERPOWER.icon,
+      enabledId: ID.opEnabled,
+      optionIds: [ID.opMaxRage],
+      summary: [{ option: ID.opMaxRage, text: 'up to {}' }],
+    },
+    {
+      id: 'heroicStrike',
+      label: 'Heroic Strike',
+      icon: HEROIC_STRIKE.icon,
+      enabledId: ID.hsEnabled,
+      optionIds: [ID.hsMinRage, ID.hsUnqueue, ID.hsUnqueueBelow, ID.exHeroicStrike],
+      summary: [
+        { option: ID.hsMinRage, text: 'from {}' },
+        { option: ID.hsUnqueueBelow, text: 'cancel below {}' },
+        { option: ID.exHeroicStrike, text: 'not in the execute phase', when: false },
+      ],
+    },
+    {
+      id: 'hamstring',
+      label: 'Hamstring filler',
+      icon: HAMSTRING.icon,
+      enabledId: ID.hamEnabled,
+      optionIds: [ID.hamMinRage, ID.hamFlurryDown],
+      summary: [
+        { option: ID.hamMinRage, text: 'from {}' },
+        { option: ID.hamFlurryDown, text: 'without Flurry' },
+      ],
+    },
+    {
+      id: 'berserkerRage',
+      label: 'Berserker Rage',
+      icon: BERSERKER_RAGE.icon,
+      enabledId: ID.bzEnabled,
+      optionIds: [ID.bzMaxRage],
+      summary: [{ option: ID.bzMaxRage, text: 'up to {}' }],
+    },
+    { id: 'slam', label: 'Slam', icon: SLAM.icon, enabledId: ID.slamEnabled, optionIds: [] },
+  ],
+  specWide: [ID.potionEnabled, ID.potionMaxRage, ID.jujuEnabled],
+  presets: [],
+}
+
+/**
+ * The Fury priority list from the settings (warrior.md §5.2), its rows in `order` (FURY_APL; absent:
+ * the default order). `talents` gates talent abilities (Death Wish, Bloodthirst, Improved Berserker
+ * Rage) and resolves costs, Impale, Raging Blows and the talented rage of Bloodrage, Berserker Rage
+ * and Charge; `auraIndex` resolves an aura id in the plan (−1 if the setup has none); `context`
+ * gives the race (its racial cooldown), the equipped on-use items, the selected consumables and
+ * whether there's an execute phase.
+ *
+ * A row's conditions are its own wherever it sits: Whirlwind still waits on Bloodthirst's cooldown,
+ * and the fillers stay GCD-safe for Bloodthirst and Whirlwind, if you move them above those. So
+ * rows refer to each other's abilities by definition (`b.ability`), which in the default order
+ * resolves to the index the earlier row gave it, as before the list.
  */
 export function furyRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<RotationContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(FURY_OPTIONS, values, talents)
@@ -344,66 +518,29 @@ export function furyRotation(
   /** The rows that follow the execute phase (Recklessness, the potion) need Execute and a phase. */
   const phase = execute && ctx.executePhase
   const useBt = talents.has('Bloodthirst') && v.on(ID.btEnabled)
+  /** Row 6: Bloodthirst in the execute phase, at AP ≥ btOverExecuteAp. */
+  const btExec = execute && useBt && v.on(ID.exBtEnabled)
+  const useWw = v.on(ID.wwEnabled)
   const btOverAp = v.num(ID.exBtOverAp)
   /** Lines that stop in the execute phase get this condition while Execute is on. */
   const outsideExecute = (keep: boolean): RotationCondition[] => (execute && !keep ? [NOT_IN_EXECUTE] : [])
-
-  // Rows 1–5, 13, 16 and 17 apply in both phases (§5.2 notes). Their GCD-safe and time
-  // conditions are checked by the engine, which wakes the rotation when a time-left condition
-  // becomes true.
-
-  // Row 1: Battle Shout (shared.ts).
-  const shout = battleShoutLine(b, v, ID, ctx)
-
-  // Row 2: Death Wish, and row 3: the racial and on-use trinkets synced with it (shared.ts).
-  cooldownLines(b, v, ID, ctx, deathWishLines(b, v, ID, phase ? seconds(v, ID.dwBeforeExecute) : undefined))
-
-  // Row 4: Recklessness once, beforeExecuteSec before the execute phase starts or at ≤ lastSec left,
-  // whichever comes first; by the clock alone without the phase or with Execute off (Berserker
-  // Stance only, Fury's base stance). When it comes by the clock, the potion follows it (row 16).
-  recklessnessLine(b, v, ID, ctx, 0, phase ? seconds(v, ID.reckBeforeExecute) : undefined)
-  const reck = v.on(ID.reckEnabled) ? b.ability(recklessness(ctx.profile)) : -1
-
-  // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
-  bloodrageLine(b, v, ID)
-
-  // Row 6: in the execute phase, Bloodthirst only at AP ≥ btOverExecuteAp (the engine checks its cost).
-  let bt = -1
-  if (execute && useBt) bt = b.add(BLOODTHIRST, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }])
-
-  // Row 7: Execute on every GCD at rage ≥ cost + minExtraRage (the engine allows it only in the phase).
-  if (execute) b.add(EXECUTE, [{ code: COND.minRage, a: cost(b.ability(EXECUTE)) + toTenths(v.num(ID.exMinExtraRage)), b: 0 }])
-
-  // Row 8: Bloodthirst on cooldown outside the execute phase.
-  if (useBt) bt = b.add(BLOODTHIRST, outsideExecute(false))
-
-  // Row 9: Whirlwind, rage ≥ cost + reserve, Bloodthirst cooldown ≥ btCdMinSec. In the execute
-  // phase (if allowed) the Bloodthirst wait applies only while row 6 uses Bloodthirst (AP ≥ btOverExecuteAp).
-  let ww = -1
-  if (v.on(ID.wwEnabled)) {
-    const minRage: RotationCondition = { code: COND.minRage, a: cost(b.ability(WHIRLWIND)) + toTenths(v.num(ID.wwReserve)), b: 0 }
-    const btWait: RotationCondition[] = bt >= 0 ? [{ code: COND.cooldownAtLeast, a: bt, b: Math.round(v.num(ID.wwBtCdMin) * 1000) }] : []
-    const inExecute = execute && v.on(ID.exWhirlwind)
-    if (inExecute && bt >= 0) {
-      ww = b.add(WHIRLWIND, [NOT_IN_EXECUTE, minRage, ...btWait])
-      b.add(WHIRLWIND, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, minRage, ...btWait])
-      b.add(WHIRLWIND, [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, minRage])
-    } else {
-      ww = b.add(WHIRLWIND, [...outsideExecute(inExecute), minRage, ...btWait])
-    }
-  }
+  /** Bloodthirst's and Whirlwind's indexes, −1 when they aren't used. */
+  const btIndex = () => (useBt ? b.ability(BLOODTHIRST) : -1)
+  const wwIndex = () => (useWw ? b.ability(WHIRLWIND) : -1)
 
   /**
    * Lines for an ability that must leave Bloodthirst and Whirlwind GCD-safe (rows 10 and 13), with
    * `tail` after the GCD-safe condition. In the execute phase it stays GCD-safe for what the phase
-   * uses, as Whirlwind's wait does (row 9): Bloodthirst only at AP ≥ btOverExecuteAp, Whirlwind only
-   * with whirlwindInExecute (§5.2 notes). Execute has no cooldown, so it isn't part of it.
+   * uses, as Whirlwind's wait does (row 9): Bloodthirst only at AP ≥ btOverExecuteAp (row 6),
+   * Whirlwind only with whirlwindInExecute (§5.2 notes). Execute has no cooldown, so it isn't part of it.
    */
   const safeInBothPhases = (tail: RotationCondition[]): RotationCondition[][] => {
+    const bt = btIndex()
+    const ww = wwIndex()
     if (!execute) return [[...gcdSafe(bit(bt) | bit(ww)), ...tail]]
-    const wwIn = v.on(ID.wwEnabled) && v.on(ID.exWhirlwind) ? bit(ww) : 0
+    const wwIn = useWw && v.on(ID.exWhirlwind) ? bit(ww) : 0
     const lines = [[NOT_IN_EXECUTE, ...gcdSafe(bit(bt) | bit(ww)), ...tail]]
-    if (bt >= 0) {
+    if (btExec) {
       lines.push(
         [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, ...gcdSafe(bit(bt) | wwIn), ...tail],
         [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, ...gcdSafe(wwIn), ...tail],
@@ -414,61 +551,116 @@ export function furyRotation(
     return lines
   }
 
-  // Row 10: the Overpower stance dance (on by default since M2.5b): while the window a dodge opened
-  // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (40 by default: the swap in
-  // keeps at most 25, and an Overpower sooner is worth the rest), swap to Battle Stance, Overpower,
-  // and swap back when the swap cooldown allows (§2.1, §2.8, §7). It
-  // applies in both phases, GCD-safe as row 13 is; in the execute phase it gets a GCD only while
-  // Execute waits for rage. The window's openers come with it.
-  if (v.on(ID.opEnabled)) {
-    for (const conditions of safeInBothPhases([maxRage(v.num(ID.opMaxRage))])) b.dance(OVERPOWER, STANCE.battle, conditions)
-    b.procs.push(...overpowerWindowProcs(talents))
-  }
+  // Rows 1–5, 13, 16 and 17 apply in both phases (§5.2 notes). Their GCD-safe and time
+  // conditions are checked by the engine, which wakes the rotation when a time-left condition
+  // becomes true.
+  /** Death Wish's index (−1 without it) and whether it's aligned, for the cooldowns synced with it (row 3). */
+  const deathWish = () => ({ dw: talents.has('Death Wish') && v.on(ID.dwEnabled) ? b.ability(DEATH_WISH) : -1, align: v.on(ID.dwAlign) })
+  compileAplRows(FURY_APL, order, {
+    // Row 1: Battle Shout (shared.ts).
+    battleShout: () => battleShoutLine(b, v, ID, ctx),
+    // Row 2: Death Wish (shared.ts).
+    deathWish: () => deathWishLines(b, v, ID, phase ? seconds(v, ID.dwBeforeExecute) : undefined),
+    // Row 3: the racial and on-use trinkets synced with Death Wish (shared.ts).
+    racial: () => racialLines(b, v, ID, ctx, deathWish()),
+    trinkets: () => trinketLines(b, v, ID, ctx, deathWish()),
+    // Row 4: Recklessness once, beforeExecuteSec before the execute phase starts or at ≤ lastSec
+    // left, whichever comes first; by the clock alone without the phase or with Execute off
+    // (Berserker Stance only, Fury's base stance). When it comes by the clock, the potion follows
+    // it (row 16).
+    recklessness: () => recklessnessLine(b, v, ID, ctx, 0, phase ? seconds(v, ID.reckBeforeExecute) : undefined),
+    // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
+    bloodrage: () => bloodrageLine(b, v, ID),
+    // Row 6: in the execute phase, Bloodthirst only at AP ≥ btOverExecuteAp (the engine checks its cost).
+    executeBloodthirst: () => {
+      if (btExec) b.add(BLOODTHIRST, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }])
+    },
+    // Row 7: Execute on every GCD at rage ≥ cost + minExtraRage (the engine allows it only in the phase).
+    execute: () => {
+      if (execute) b.add(EXECUTE, [{ code: COND.minRage, a: cost(b.ability(EXECUTE)) + toTenths(v.num(ID.exMinExtraRage)), b: 0 }])
+    },
+    // Row 8: Bloodthirst on cooldown outside the execute phase.
+    bloodthirst: () => {
+      if (useBt) b.add(BLOODTHIRST, outsideExecute(false))
+    },
+    // Row 9: Whirlwind, rage ≥ cost + reserve, Bloodthirst cooldown ≥ btCdMinSec. In the execute
+    // phase (if allowed) the Bloodthirst wait applies only while row 6 uses Bloodthirst (AP ≥ btOverExecuteAp).
+    whirlwind: () => {
+      if (!useWw) return
+      const bt = btIndex()
+      const minRage: RotationCondition = { code: COND.minRage, a: cost(b.ability(WHIRLWIND)) + toTenths(v.num(ID.wwReserve)), b: 0 }
+      const btWait: RotationCondition[] = bt >= 0 ? [{ code: COND.cooldownAtLeast, a: bt, b: Math.round(v.num(ID.wwBtCdMin) * 1000) }] : []
+      const inExecute = execute && v.on(ID.exWhirlwind)
+      if (inExecute && btExec) {
+        b.add(WHIRLWIND, [NOT_IN_EXECUTE, minRage, ...btWait])
+        b.add(WHIRLWIND, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, minRage, ...btWait])
+        b.add(WHIRLWIND, [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, minRage])
+      } else if (inExecute && bt >= 0) {
+        // Bloodthirst isn't used in the phase (row 6 off), so Whirlwind doesn't wait for it there.
+        b.add(WHIRLWIND, [NOT_IN_EXECUTE, minRage, ...btWait])
+        b.add(WHIRLWIND, [IN_EXECUTE, minRage])
+      } else {
+        b.add(WHIRLWIND, [...outsideExecute(inExecute), minRage, ...btWait])
+      }
+    },
+    // Row 10: the Overpower stance dance (on by default since M2.5b): while the window a dodge opened
+    // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (40 by default: the swap in
+    // keeps at most 25, and an Overpower sooner is worth the rest), swap to Battle Stance, Overpower,
+    // and swap back when the swap cooldown allows (§2.1, §2.8, §7). It applies in both phases,
+    // GCD-safe as row 13 is; in the execute phase it gets a GCD only while Execute waits for rage.
+    // The window's openers come with it.
+    overpower: () => {
+      if (!v.on(ID.opEnabled)) return
+      for (const conditions of safeInBothPhases([maxRage(v.num(ID.opMaxRage))])) b.dance(OVERPOWER, STANCE.battle, conditions)
+      b.procs.push(...overpowerWindowProcs(talents))
+    },
+    // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold (on
+    // by default). In both phases unless heroicStrikeInExecute is off.
+    heroicStrike: () => heroicStrikeLine(b, v, ID, outsideExecute(v.on(ID.exHeroicStrike))),
+    // Row 12: Hamstring filler, rage ≥ minRage, Bloodthirst and Whirlwind GCD-safe, optionally Flurry
+    // down; never in the execute phase, where the GCDs are Execute's.
+    hamstring: () => {
+      if (!v.on(ID.hamEnabled)) return
+      const conditions: RotationCondition[] = [...outsideExecute(false), { code: COND.minRage, a: toTenths(v.num(ID.hamMinRage)), b: 0 }]
+      conditions.push(...gcdSafe(bit(btIndex()) | bit(wwIndex())))
+      if (v.on(ID.hamFlurryDown)) conditions.push({ code: COND.auraDown, a: auraIndex('flurry'), b: 0 })
+      b.add(HAMSTRING, conditions)
+    },
+    // Row 13: Berserker Rage, only with Improved Berserker Rage (without it the sim has nothing for
+    // it to do): on cooldown at rage ≤ maxRage, GCD-safe for Bloodthirst and Whirlwind. In the
+    // execute phase it's GCD-safe for what the phase uses, as Whirlwind's wait is (row 9): Bloodthirst
+    // only at AP ≥ btOverExecuteAp, Whirlwind only with whirlwindInExecute. Execute has no cooldown,
+    // so it isn't part of it; Berserker Rage gets a GCD there only while Execute waits for rage.
+    berserkerRage: () => {
+      if (!talents.has('Improved Berserker Rage') || !v.on(ID.bzEnabled)) return
+      for (const conditions of safeInBothPhases([maxRage(v.num(ID.bzMaxRage))])) b.add(BERSERKER_RAGE, conditions)
+    },
+    // Row 15: Slam (off by default), a filler like Hamstring: Bloodthirst and Whirlwind GCD-safe, and
+    // never in the execute phase, where the GCDs are Execute's. Without Improved Slam its cast stops
+    // the swings and resets both timers (§3.1 "Slam"); the engine checks its cost.
+    slam: () => {
+      if (v.on(ID.slamEnabled)) b.add(SLAM, [...outsideExecute(false), ...gcdSafe(bit(btIndex()) | bit(wwIndex()))])
+    },
+  })
 
-  // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold (on
-  // by default). In both phases unless heroicStrikeInExecute is off.
-  heroicStrikeLine(b, v, ID, outsideExecute(v.on(ID.exHeroicStrike)))
-
-  // Row 12: Hamstring filler, rage ≥ minRage, Bloodthirst and Whirlwind GCD-safe, optionally Flurry
-  // down; never in the execute phase, where the GCDs are Execute's.
-  if (v.on(ID.hamEnabled)) {
-    const conditions: RotationCondition[] = [...outsideExecute(false), { code: COND.minRage, a: toTenths(v.num(ID.hamMinRage)), b: 0 }]
-    conditions.push(...gcdSafe(bit(bt) | bit(ww)))
-    if (v.on(ID.hamFlurryDown)) conditions.push({ code: COND.auraDown, a: auraIndex('flurry'), b: 0 })
-    b.add(HAMSTRING, conditions)
-  }
-
-  // Row 13: Berserker Rage, only with Improved Berserker Rage (without it the sim has nothing for
-  // it to do): on cooldown at rage ≤ maxRage, GCD-safe for Bloodthirst and Whirlwind. In the
-  // execute phase it's GCD-safe for what the phase uses, as Whirlwind's wait is (row 9): Bloodthirst
-  // only at AP ≥ btOverExecuteAp, Whirlwind only with whirlwindInExecute. Execute has no cooldown,
-  // so it isn't part of it; Berserker Rage gets a GCD there only while Execute waits for rage.
-  if (talents.has('Improved Berserker Rage') && v.on(ID.bzEnabled)) {
-    for (const conditions of safeInBothPhases([maxRage(v.num(ID.bzMaxRage))])) b.add(BERSERKER_RAGE, conditions)
-  }
-
-  // Row 15: Slam (off by default), a filler like Hamstring: Bloodthirst and Whirlwind GCD-safe, and
-  // never in the execute phase, where the GCDs are Execute's. Without Improved Slam its cast stops
-  // the swings and resets both timers (§3.1 "Slam"); the engine checks its cost.
-  if (v.on(ID.slamEnabled)) b.add(SLAM, [...outsideExecute(false), ...gcdSafe(bit(bt) | bit(ww))])
-
-  // Rows 16 and 17: the Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (shared.ts).
-  // With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage, or in the phase's
-  // last 2 s at ≤ the build's cap − 75 if it hasn't been; but when Recklessness came by its clock
-  // (the phase was still more than beforeExecuteSec away), it goes with Recklessness, as without a
-  // phase. Otherwise, in the last 20 s at ≤ that limit, once Recklessness has been used, so its rage
-  // joins Recklessness's crits (§5.2 notes). Juju Flurry on cooldown.
+  // Rows 16 and 17, after the list: the Mighty Rage Potion and Juju Flurry, when they're selected in
+  // Buffs (shared.ts). With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage,
+  // or in the phase's last 2 s at ≤ the build's cap − 75 if it hasn't been; but when Recklessness
+  // came by its clock (the phase was still more than beforeExecuteSec away), it goes with
+  // Recklessness, as without a phase. Otherwise, in the last 20 s at ≤ that limit, once
+  // Recklessness has been used, so its rage joins Recklessness's crits (§5.2 notes). Juju Flurry on
+  // cooldown.
   consumableLines(b, v, ID, ctx, {
     inPhase: phase,
     fallbackMaxRage: potionFallbackMaxRage(talents),
     lastChanceMs: POTION_LAST_CHANCE_MS,
-    after: reck,
+    after: v.on(ID.reckEnabled) ? b.ability(recklessness(ctx.profile)) : -1,
     afterLeadMs: seconds(v, ID.reckBeforeExecute),
   })
 
-  // Row 0: the pre-pull (shared.ts). Fury fights in Berserker Stance, so Charge's swap keeps at most
-  // 10 + 3 per Improved Tactical Mastery rank (§2.1, §2.3).
-  prepullCasts(b, v, ID, ctx, shout, true)
+  // Row 0: the pre-pull (shared.ts), built last so the abilities keep their indexes. Fury fights in
+  // Berserker Stance, so Charge's swap keeps at most 10 + 3 per Improved Tactical Mastery rank (§2.1, §2.3).
+  prepullCasts(b, v, ID, ctx, v.on(ID.bsEnabled), true)
 
   // What the timings above rest on (§5.2 notes, "The rotation knows the fight's timing").
   b.assumeKnownTimings(

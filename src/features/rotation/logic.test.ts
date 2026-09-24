@@ -131,6 +131,7 @@ describe('rotation rows', () => {
       'warrior.fury.recklessness.beforeExecuteSec',
       'warrior.fury.execute.enabled',
       'warrior.fury.execute.minExtraRage',
+      'warrior.fury.execute.bloodthirst',
       'warrior.fury.execute.btOverExecuteAp',
       'warrior.fury.execute.whirlwindInExecute',
       'warrior.fury.execute.heroicStrikeInExecute',

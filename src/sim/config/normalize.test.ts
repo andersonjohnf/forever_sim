@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Rng } from '../core/rng'
 import { defaultConfig } from '../defaults'
 import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
+import { defaultAplOrder, moveAplRow } from '../classes/apl'
+import { rotationApl } from '../classes/rotation'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { SPEC_IDS } from '../specs'
@@ -274,6 +276,48 @@ describe('normalizeConfig', () => {
     const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.nope': 3 } })
     expect(config.rotation).toEqual({})
     expect(warnings).toHaveLength(1)
+  })
+
+  describe('a priority list’s order (decision D31)', () => {
+    const d = defaultConfig('warrior-fury')
+    const def = rotationApl('warrior-fury')!
+    const order = moveAplRow(def, defaultAplOrder(def), 'whirlwind', 2)!
+
+    it('keeps a moved order, and a setup without one loads as before, with no order stored', () => {
+      const kept = normalizeConfig({ ...d, rotationOrder: order })
+      expect(kept.config.rotationOrder).toEqual(order)
+      expect(kept.warnings).toEqual([])
+      // Saved before priority lists: no order, the same config.
+      const old = normalizeConfig(d)
+      expect('rotationOrder' in old.config).toBe(false)
+      expect(JSON.stringify(old.config)).toBe(JSON.stringify(d))
+      // The default order isn't stored.
+      const same = normalizeConfig({ ...d, rotationOrder: defaultAplOrder(def) })
+      expect('rotationOrder' in same.config).toBe(false)
+      expect(same.warnings).toEqual([])
+    })
+
+    it('drops unknown rows with a warning, and puts missing ones back at their default place quietly', () => {
+      const unknown = normalizeConfig({ ...d, rotationOrder: ['nope', ...order, 7] })
+      expect(unknown.config.rotationOrder).toEqual(order)
+      expect(unknown.warnings).toEqual(['Abilities in the rotation’s priority order that this spec doesn’t have were dropped.'])
+      // A setup saved before a row existed (say Slam): it goes back after Berserker Rage.
+      const missing = normalizeConfig({ ...d, rotationOrder: order.filter((id) => id !== 'slam') })
+      expect(missing.config.rotationOrder).toEqual(order)
+      expect(missing.warnings).toEqual([])
+      // The pinned pre-pull stays first.
+      const pinned = normalizeConfig({ ...d, rotationOrder: [...order.slice(1), 'prepull'] })
+      expect(pinned.config.rotationOrder).toEqual(order)
+    })
+
+    it('resets an order it can’t read, and drops one for a spec without a list', () => {
+      const bad = normalizeConfig({ ...d, rotationOrder: 'whirlwind' })
+      expect('rotationOrder' in bad.config).toBe(false)
+      expect(bad.warnings).toEqual(['The rotation’s priority order couldn’t be read, so the default order was used.'])
+      const arms = normalizeConfig({ ...defaultConfig('warrior-arms'), rotationOrder: order })
+      expect('rotationOrder' in arms.config).toBe(false)
+      expect(arms.warnings).toEqual(['The rotation’s priority order doesn’t apply to this spec, so it was dropped.'])
+    })
   })
 
   it('carries a renamed rotation setting over to its new id (warrior.md §5.2 row 3)', () => {

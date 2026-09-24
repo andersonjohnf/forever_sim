@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { itemData } from '@/lib/items'
-import { buffCatalogue, defaultConfig, enchantCatalogue, getSpec, SPEC_IDS, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { buffCatalogue, defaultAplOrder, defaultConfig, enchantCatalogue, getSpec, moveAplRow, normalizeConfig, SPEC_IDS, type GearSlot, type SimConfig, type SpecId } from '@/sim'
 import { GEAR_SLOTS } from '@/sim/config/normalize'
 import { BrokenShareLinkError, MAX_LINK_CHARS, MAX_SETUP_BYTES, packSetup, readSharedSetup, unpackSetup } from './share'
 
@@ -27,6 +27,8 @@ function largestSetup(spec: SpecId): SimConfig {
     gear,
     buffs: { raid: [...d.buffs.raid], enabled: buffCatalogue.map((b) => b.id) },
     rotation,
+    // A priority list's order, every row named (decision D31).
+    ...(getSpec(spec).rotationApl ? { rotationOrder: getSpec(spec).rotationApl!.rows.map((r) => r.id).reverse() } : {}),
     fight: {
       ...d.fight,
       durationVariationPct: 12.345678901234,
@@ -48,6 +50,15 @@ describe('share links', () => {
   it('round-trips a setup', async () => {
     const config = defaultConfig('warrior-arms')
     expect(await unpackSetup(await packSetup(config))).toEqual(config)
+  })
+
+  it('round-trips a priority list’s order, which normalizing keeps (decision D31)', async () => {
+    const d = defaultConfig('warrior-fury')
+    const rotationOrder = moveAplRow(getSpec('warrior-fury').rotationApl!, defaultAplOrder(getSpec('warrior-fury').rotationApl!), 'whirlwind', 2)!
+    const config = { ...d, rotationOrder }
+    const unpacked = await unpackSetup(await packSetup(config))
+    expect(unpacked).toEqual(config)
+    expect(normalizeConfig(unpacked)).toEqual({ config, warnings: [] })
   })
 
   it('fits the largest real setup in half of each size cap', async () => {

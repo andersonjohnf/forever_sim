@@ -5,7 +5,7 @@
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
 import type { WeaponType } from '@/data/items/types'
 import { NO_PREPULL } from '../plan/types'
-import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
+import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
@@ -22,7 +22,7 @@ import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
 import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
-import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
+import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { WARLOCK_RACIALS } from './warlock/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
@@ -103,6 +103,15 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   // docs/classes/hunter.md §8: the three hunter specs share one list of settings.
   if (isHunterSpec(spec)) return hunterOptions(spec)
   return []
+}
+
+/**
+ * The spec's rotation as a priority list you reorder (decision D31), or undefined for a spec still
+ * on switches (M5.65 A2 moves the rest): Fury, the pilot.
+ */
+export function rotationApl(spec: SpecId): AplDefinition | undefined {
+  if (spec === 'warrior-fury') return FURY_APL
+  return undefined
 }
 
 /** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
@@ -290,8 +299,10 @@ export function classRotation(
   auraIndex: (id: string) => number,
   /** RotationContext, for the paladin its main-hand weapon (Seal of Righteousness scales with it), and for the druid what its rotation reads. */
   context: ClassRotationContext,
+  /** A priority-list spec's order of rows (`SimConfig.rotationOrder`, rotationApl); absent: its default. */
+  order?: readonly string[],
 ): ClassRotation {
-  if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
+  if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context, order)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)

@@ -721,7 +721,7 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman). Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute off, only the latter. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off), `.lastSec` (16) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
-| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
+| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.bloodthirst` (on; new with the priority list, below, so the row has its own switch), `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost + `minExtraRage`. Uses Execute on every GCD; Heroic Strike keeps queueing unless `heroicStrikeInExecute` is off | `fury.execute.enabled` (on), `.minExtraRage` (0), `.whirlwindInExecute` (off), `.heroicStrikeInExecute` (on) | yes |
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (0.5) | yes |
@@ -733,6 +733,20 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers. When on: Bloodthirst and Whirlwind are GCD-safe; outside the execute phase | `fury.slam.enabled` (off) | no |
 | 16 | Mighty Rage Potion (consumable, off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 2 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3); but when Recklessness (row 4) comes by its clock, the phase being too short for its `beforeExecuteSec`, with Recklessness at rage ≤ that cap minus 75. Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, once Recklessness has been used. Only when it's selected in Buffs; see the notes | `fury.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
 | 17 | Juju Flurry (consumable, off the GCD) | On cooldown from the pull. Only when it's selected in Buffs | `fury.jujuFlurry.enabled` (on) | with the consumable |
+
+**The priority list** ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
+These rows are a list you reorder on the Rotation tab (`FURY_APL` in `src/sim/classes/warrior/fury.ts`);
+the table's order is the default. Row 0 is pinned first. Row 3 is two rows, the racial and the
+on-use trinkets, which share "Racial and trinkets with Death Wish". Row 6 has its own switch,
+`fury.execute.bloodthirst`: off, Bloodthirst isn't used in the execute phase, so Whirlwind there
+doesn't wait for it and the Overpower dance and Berserker Rage there are GCD-safe for Whirlwind
+alone. Rows 16 and 17 are spec-wide settings above the list, and always come after it: they're
+off the GCD. **A row's conditions are its own and don't change when it moves.** Whirlwind still
+waits on Bloodthirst's cooldown, and rows 10, 12, 13 and 15 stay GCD-safe for Bloodthirst and
+Whirlwind, wherever they sit; only which usable row comes first changes. So "GCD-safe" (§5.1)
+names Bloodthirst and Whirlwind for Fury, whatever their place. In the default order the engine's
+priority list is the same, entry for entry and fight for fight, as before the list (the golden
+run, and 400 random settings' plans compared byte for byte in A1).
 
 Notes:
 

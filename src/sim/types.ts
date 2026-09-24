@@ -107,6 +107,12 @@ export interface SimConfig {
    * (`rotationValues`).
    */
   rotation: Record<string, RotationValue>
+  /**
+   * The order of a priority-list spec's rows (`AplDefinition`, decision D31), by row id, stored only
+   * while it differs from the spec's default order. Absent: the default order. normalizeConfig drops
+   * unknown ids, puts missing rows back at their default place and keeps pinned rows where they are.
+   */
+  rotationOrder?: string[]
   fight: FightConfig
   rules: {
     profile: RuleProfileId
@@ -290,6 +296,75 @@ export interface FixedRotationRow {
   value: string
 }
 
+/**
+ * A part of a priority-list row's one-line summary ("From 40 rage · cancel below 20 rage"), from
+ * one of its settings: `text` with `{}` replaced by the value as the Rotation tab writes it ("40
+ * rage"). A switch's part shows while the switch is on, or at `when`; a number's always, unless
+ * it's at `hideWhen`. A part without `option` is fixed text. A part whose setting can't apply
+ * (its switch is off) is left out.
+ */
+export interface AplSummaryPart {
+  option?: string
+  text: string
+  /** A switch's part shows at this value (default: on). */
+  when?: boolean
+  /** A number's part is left out at this value (Execute's extra rage at 0). */
+  hideWhen?: number
+}
+
+/**
+ * One row of a spec's action priority list (decision D31, docs/ux.md "Rotation"): an ability, or a
+ * few that go together (the pre-pull), with its own settings. Its settings are RotationOptions of
+ * the spec, by id, so the resolver, normalizeConfig and the changed marks work as for any setting.
+ */
+export interface AplRow {
+  /** Stable: saved setups and share links store the order by it. */
+  id: string
+  label: string
+  /** WoW icon name (docs/ux.md "Visual language"). */
+  icon: string
+  /** The switch that turns the row on and off; none for a row that's always there (the pre-pull). */
+  enabledId?: string
+  /** The row's own settings, shown when it's selected, in this order. A setting can sit in two rows. */
+  optionIds: readonly string[]
+  /** Its one-line summary on the list. */
+  summary?: readonly AplSummaryPart[]
+  /** One line on what the row does, for a row without a switch whose help would say it. */
+  help?: string
+  /**
+   * Its place is a rule, not a preference (the pre-pull and opener; D26's duties keep their timing
+   * rule wherever they sit): it can't be moved, and no row moves past it.
+   */
+  pinned?: boolean
+}
+
+/**
+ * A named rotation: an order and the values of the rows' settings (which rows are on, and their
+ * thresholds); settings it doesn't name are at their defaults. D28's tank rotations are presets.
+ */
+export interface AplPreset {
+  id: string
+  label: string
+  /** One line on what it is and when to pick it. */
+  help: string
+  /** Its order; absent: the default order. */
+  order?: readonly string[]
+  values: Readonly<Record<string, RotationValue>>
+}
+
+/** A spec's rotation as an action priority list (decision D31). */
+export interface AplDefinition {
+  /** The rows, in the default order. */
+  rows: readonly AplRow[]
+  /**
+   * Settings for the whole rotation, shown above the list rather than in a row: a stance, a pet, a
+   * tank's priority, the consumables.
+   */
+  specWide: readonly string[]
+  /** Named presets besides the default (id `default`, the spec's defaults). */
+  presets: readonly AplPreset[]
+}
+
 export interface SpecDefinition {
   id: SpecId
   classId: ClassId
@@ -307,6 +382,8 @@ export interface SpecDefinition {
   ownBuffs?: readonly string[]
   /** Rows the Rotation tab shows with no control, for what the spec always does. */
   rotationFixed: FixedRotationRow[]
+  /** The spec's rotation as a priority list you reorder (D31); absent for a spec still on switches. */
+  rotationApl?: AplDefinition
 }
 
 export type BuffCategory = 'raidBuff' | 'targetDebuff' | 'consumable'

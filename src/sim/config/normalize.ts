@@ -14,7 +14,8 @@ import { buffProvided, forSpecClass, presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
-import { renamedRotationOptions, rotationOptions } from '../classes/rotation'
+import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
+import { renamedRotationOptions, rotationApl, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
 
 const items = new Map<number, Item>((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
@@ -189,6 +190,7 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
   const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)
   const rotation = normalizeRotation(input.rotation, spec, r)
+  const rotationOrder = normalizeRotationOrder(input.rotationOrder, spec, r)
   const fight = normalizeFight(input.fight, d.fight, r)
 
   const runIn = isObj(input.run) ? input.run : {}
@@ -208,7 +210,12 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     seed,
   }
 
-  return { config: { version: 1, spec, race, talents, gear, buffs, rotation, fight, rules, run }, warnings: r.warnings }
+  // The order is stored only while it isn't the default (decision D31), so a setup without one is
+  // the same object, and gives the same results, as before priority lists.
+  return {
+    config: { version: 1, spec, race, talents, gear, buffs, rotation, ...(rotationOrder ? { rotationOrder } : {}), fight, rules, run },
+    warnings: r.warnings,
+  }
 }
 
 function normalizeGear(input: unknown, spec: SpecId, race: string, classId: ClassId, r: Repairs): SimConfig['gear'] {
@@ -400,6 +407,27 @@ function normalizeRotation(input: unknown, spec: SpecId, r: Repairs): SimConfig[
   }
   if (dropped) r.add('Rotation settings that don’t apply to this spec were reset.')
   return rotation
+}
+
+/**
+ * A priority-list spec's order of rows (decision D31): unknown ids dropped, missing rows back at
+ * their default place, pinned rows where they belong (normalizeAplOrder); absent while it's the
+ * default. A spec without a list has no order.
+ */
+function normalizeRotationOrder(input: unknown, spec: SpecId, r: Repairs): string[] | undefined {
+  if (input === undefined) return undefined
+  const apl = rotationApl(spec)
+  if (!Array.isArray(input)) {
+    r.add('The rotation’s priority order couldn’t be read, so the default order was used.')
+    return undefined
+  }
+  if (!apl) {
+    if (input.length > 0) r.add('The rotation’s priority order doesn’t apply to this spec, so it was dropped.')
+    return undefined
+  }
+  const known = new Set(apl.rows.map((row) => row.id))
+  if (input.some((id) => typeof id !== 'string' || !known.has(id))) r.add('Abilities in the rotation’s priority order that this spec doesn’t have were dropped.')
+  return storedAplOrder(apl, normalizeAplOrder(apl, input))
 }
 
 function normalizeFight(input: unknown, d: FightConfig, r: Repairs): FightConfig {

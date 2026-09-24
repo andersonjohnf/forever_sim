@@ -59,6 +59,35 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   if (firebolt && firebolt.castMs < FIREBOLT.castMs) ids.push('improvedImpCast')
   // Improved Shadow Bolt's text names the rank's Shadow Vulnerability: +4% a rank (warlock.md §4.1).
   const vulnerability = plan.auras.find((a) => a.id === 'shadowVulnerability')?.schoolTaken ?? 0
-  const detail: Partial<Record<AssumptionId, string>> = { improvedShadowBolt: String(vulnerability), improvedImpCast: String((firebolt?.castMs ?? 0) / 1000) }
+  const detail: Partial<Record<AssumptionId, string>> = {
+    improvedShadowBolt: String(vulnerability),
+    improvedImpCast: String((firebolt?.castMs ?? 0) / 1000),
+    ...(plan.pet ? demonDetails(plan.pet) : {}),
+  }
   return ids.map((id) => ({ id, detail: detail[id] }))
+}
+
+/**
+ * The demon's assumptions, worded for the demon out (warlock.md §11.2): its swing only for one that
+ * swings (the Succubus, the Felhunter), its spells' share and table only for one with a damage spell
+ * (the Imp, the Succubus), and Demonic Knowledge beside its spell damage when the build has it.
+ */
+function demonDetails(pet: NonNullable<Plan['pet']>): Partial<Record<AssumptionId, string>> {
+  const swings = pet.weapon !== null
+  const spells = pet.abilities.some((a) => a.kind === 'spell' && (a.max > 0 || a.spCoefficient > 0))
+  const stats = [`its attributes${pet.power ? ' and mana' : ''} at 60 are Classic Era’s as an emulator records them`]
+  if (swings) stats.push('its attack power 2 per Strength − 20 and its swing 37–55 every 2 s (a level-60 hunter pet’s reported rule and damage)')
+  const shares: string[] = []
+  if (swings) shares.push('10% of your attack power for its swings')
+  if (spells) shares.push(`10% of your spell damage for its spells${pet.spellDamage > 0 ? ', on top of Demonic Knowledge’s' : ''}`)
+  const as = swings && spells ? 'its crit and hit, melee and spells alike' : swings ? 'its melee crit and hit' : 'its spell crit and hit'
+  shares.push(`your spell crit and spell hit as ${as}${swings ? ' (on its swings a raid boss suppresses that crit, as crit from auras)' : ''}`)
+  const tables: string[] = []
+  if (spells) tables.push('its spells miss the boss 17% of the time less its hit, lose 6% to its resistance and crit for ×1.5')
+  if (swings) tables.push('its swings, from behind, miss, are dodged and glance as yours would, against the boss’s armor after the Buffs tab’s debuffs')
+  return {
+    demonStats: stats.join(', '),
+    demonInherits: `${shares.slice(0, -1).join(', ')}, and ${shares[shares.length - 1]}`,
+    demonTable: tables.join('; '),
+  }
 }

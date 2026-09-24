@@ -326,7 +326,28 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     // Improved Imp's cast time is the Imp's alone (Q19).
     expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpCast')
     const imp = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }))
-    expect(imp.assumptions.find((a) => a.id === 'improvedImpCast')!.text).toContain('its 2 s cast becomes 1 s')
+    expect(imp.assumptions.find((a) => a.id === 'improvedImpCast')!.text).toContain('time off Firebolt’s 2 s cast, so it’s 1 s.')
+  })
+
+  it('its demon’s assumptions name only what that demon has: the Imp no swing, the Felhunter no spell', () => {
+    const texts = (demon: string) => {
+      const bundle = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: demon, [DEMONOLOGY_IDS.sacrifice]: demon === 'imp' ? 'succubus' : 'imp' }))
+      const text = (id: string) => bundle.assumptions.find((a) => a.id === id)!.text
+      for (const a of bundle.assumptions) expect(a.text, a.id).not.toContain('{detail}')
+      return { stats: text('demonStats'), inherits: text('demonInherits'), table: text('demonTable') }
+    }
+    const imp = texts('imp')
+    expect(imp.stats).toBe('Your demon’s stats are placeholders: its attributes and mana at 60 are Classic Era’s as an emulator records them. Untested.')
+    expect(imp.inherits).toMatch(/^Your demon inherits 10% of your spell damage for its spells, on top of Demonic Knowledge’s, and your spell crit and spell hit as its spell crit and hit\. /)
+    expect(imp.table).not.toContain('swings')
+    const succubus = texts('succubus')
+    expect(succubus.stats).toContain('its swing 37–55 every 2 s')
+    expect(succubus.inherits).toMatch(/^Your demon inherits 10% of your attack power for its swings, 10% of your spell damage for its spells, on top of Demonic Knowledge’s, and your spell crit and spell hit as its crit and hit, melee and spells alike \(on its swings a raid boss suppresses that crit, as crit from auras\)\. /)
+    expect(succubus.table).toMatch(/its spells miss .*; its swings, from behind/)
+    const felhunter = texts('felhunter')
+    expect(felhunter.stats).toMatch(/^Your demon’s stats are placeholders: its attributes at 60 .*, its attack power 2 per Strength − 20/)
+    expect(felhunter.inherits).toMatch(/^Your demon inherits 10% of your attack power for its swings, and your spell crit and spell hit as its melee crit and hit /)
+    expect(felhunter.table).not.toContain('spells')
   })
 
   it('the demon’s crit and hit follow yours, and its spells never read your school auras', () => {

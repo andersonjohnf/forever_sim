@@ -843,19 +843,22 @@ const REGISTRY = {
     docRef: `${LOCK}#114-your-demons-passives`,
   },
   demonStats: {
-    text: 'Your demon’s stats are placeholders: its attributes and mana at 60 are Classic Era’s as an emulator records them, its attack power 2 per Strength − 20 and its swing 37–55 every 2 s (a level-60 hunter pet’s reported rule and damage). Untested.',
+    // docs/classes/warlock.md §11.2; the plan names what this demon has ({detail}): its mana, its swing.
+    text: 'Your demon’s stats are placeholders: {detail}. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
   demonInherits: {
-    text: 'Your demon inherits 10% of your attack power and of your spell damage, and has your spell crit and spell hit as its crit and hit, melee and spells alike, besides Demonic Knowledge’s spell damage. Forever’s pet scaling is server-side; this is the hunter’s pet’s reported share (10% of the hunter’s attack power and all its crit), read for a caster. Untested.',
+    // docs/classes/warlock.md §11.2; the plan names what this demon uses ({detail}): its swings, its spells.
+    text: 'Your demon inherits {detail}. Forever’s pet scaling is server-side; this is the hunter’s pet’s reported share (10% of the hunter’s attack power and all its crit), read for a caster. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
   improvedImpCast: {
-    text: 'Improved Imp’s third effect, a hidden −300/−700/−1,000 its tooltip doesn’t show, is taken as Firebolt’s cast time in ms, as the client’s tooltips read such effects: its 2 s cast becomes {detail} s. Untested.',
+    text: 'Improved Imp also carries an effect its tooltip doesn’t show (−0.3/−0.7/−1 s); the sim reads it as time off Firebolt’s 2 s cast, so it’s {detail} s. Untested.',
     docRef: `${LOCK}#117-open-questions`,
   },
   demonTable: {
-    text: 'Your demon rolls a player’s tables at its level: its spells miss the boss 17% of the time less its hit, lose 6% to its resistance and crit for ×1.5; its swings, from behind, miss, are dodged and glance as yours would, against the boss’s armor after the Buffs tab’s debuffs. Untested.',
+    // docs/classes/warlock.md §11.2; the plan names the tables this demon rolls ({detail}).
+    text: 'Your demon rolls a player’s tables at its level: {detail}. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
   demonMana: {

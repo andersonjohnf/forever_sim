@@ -1996,20 +1996,25 @@ seed 12345). The enchants stay the spec's
 ### 6.4 Survival floor
 
 Protection's talent search keeps these in every build ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24);
-[optimizer.md](../optimizer.md#the-talent-space)). Nearly every raid tank takes them for survival,
-and the sim can't value them: it never presses a defensive cooldown, and it never runs out of
-health. The optimizer's talent screen confirms that neither changes the plan
-([optimizer.md](../optimizer.md#which-talents-matter)). The list is kept short on purpose. A talent
-that changes TPS or DPS in the sim, such as Anticipation or Deflection through the rage from
-avoided hits, is left to the search, and so is Toughness, whose armor the sim measures in damage
-taken (the search prefers it where points are left over).
+[optimizer.md](../optimizer.md#the-talent-space); `SURVIVAL_FLOOR` in `src/sim/optimize/floor.ts`).
+Nearly every raid tank takes them for survival. The sim can't value the cooldowns: it never
+presses a defensive cooldown, and it never runs out of health, so the optimizer's talent screen
+finds that neither changes the plan ([optimizer.md](../optimizer.md#which-talents-matter)). It
+values the avoidance talents below what tanks give them: an avoided hit gives no rage, so the
+first searches dropped Anticipation and Deflection for threat. By user decision (D30, 2026-09-24)
+they're in the floor too: tanks take them. **Toughness is optional** (user decision): the search
+decides its ranks. Under the effective-health floor it's a search dimension, since its armor
+changes effective health ([optimizer.md](../optimizer.md#the-talent-space)). A player can still
+drop the floor (the CLI's `--no-floor`) or extend it for one search (`--keep`).
 
 | Talent (ranks) | Forever tooltip at max rank | Why it's in the floor |
 | --- | --- | --- |
 | Last Stand (1), needs Improved Bloodrage 2/2 | "When activated, this ability temporarily grants you 30% of your maximum health for 20 sec. After the effect expires, the health is lost." 3 min cooldown [F] [client](../data/client.md#talentsjson) (spell 12975, 1.60.1.69913) | A tank's emergency cooldown. Not simulated (§4.3). Its arrow brings Improved Bloodrage 2/2, which the sim does value |
 | Improved Shield Wall (2) | "Reduces the cooldown of your Shield Wall ability by 11.0 min." (the value is a mis-rendered millisecond count, [talents.md](../data/talents.md#caveats)) [F] [client](../data/client.md#talentsjson) (spell 12312) | A big cut to the warrior's strongest defensive cooldown. Not simulated (§4.3) |
+| Anticipation (5) | "Increases your Defense Skill by 20." [F] ([§4.3](#43-protection-18-talents)) | Defense: fewer crits and more misses, dodges, parries and blocks against the boss. The sim measures it, and an avoided hit costs rage; tanks take it (user decision) |
+| Deflection (5), Arms | "Increases your Parry chance by 5%." [F] ([§4.1](#41-arms-17-talents)) | Parry: the same trade as Anticipation, and five points in Arms (user decision) |
 
-The default build (§6.1) already has both. DPS specs have no floor.
+The default build (§6.1) already has all four. DPS specs have no floor.
 
 ## 7. Implementation notes
 

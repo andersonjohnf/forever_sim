@@ -920,16 +920,28 @@ review log):
 #### Protection survival floor
 
 Protection's talent search keeps these in every build ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24);
-[optimizer.md](../optimizer.md#the-talent-space)). Nearly every Protection paladin takes them for
-survival, and the sim can't value them in TPS or DPS. Retribution has no floor.
+[optimizer.md](../optimizer.md#the-talent-space); `SURVIVAL_FLOOR` in `src/sim/optimize/floor.ts`).
+Nearly every Protection paladin takes them for survival, and the sim can't value them in TPS or
+DPS, or values them below what tanks give them: an avoided hit gives no mana from Shield
+Specialization and no Reckoning charge, so the first searches dropped Anticipation and Deflection
+for threat. By user decision (D30, 2026-09-24) the avoidance talents are in the floor too: tanks
+take them. **Toughness is optional** (user decision): the search decides its ranks, and under the
+effective-health floor it's a search dimension, since its armor changes effective health
+([optimizer.md](../optimizer.md#the-talent-space)). A player can still drop the floor (the CLI's
+`--no-floor`) or extend it for one search (`--keep`). Retribution has no floor.
 
 | Talent (ranks) | Forever tooltip at max rank | Why it's in the floor |
 | --- | --- | --- |
 | Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." [F] [F 20468][f20468] | A flat cut to all damage taken. The sim measures it in damage taken only ([Protection tree](#protection-tree): no threat effect) |
 | Sacred Duty (2) | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." [F] [F 1224697][f1224697] | Health, and a cut to three defensive cooldowns the sim never presses. A paladin's health changes no fight number (it has no rage), so the screen finds no effect |
 | Templar's Bulwark (1) | "When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec." 5 min cooldown [F] [F 1311015][f1311015] | An emergency cooldown, not modelled by default. It's also Holy Shield's prerequisite |
+| Anticipation (5) | "Increases your Defense Skill by 20." [F] ([Protection tree](#protection-tree)) | Defense: fewer crits and more misses, dodges, parries and blocks against the boss. The sim measures it, and avoidance costs mana and Reckoning procs; tanks take it (user decision) |
+| Deflection (5), Retribution | "Increases your Parry chance by 5%." [F] ([Retribution tree](#retribution-tree)) | Parry: the same trade as Anticipation, and five points in Retribution (user decision) |
 
-The default build ([Protection defaults](#protection-defaults)) already has all three.
+The default build ([Protection defaults](#protection-defaults)) has all but Anticipation, which T2
+traded for Conviction: the optimizer's result (O4) replaces it with one that keeps the whole
+floor. Until then a search races the default as a reference only
+([optimizer.md](../optimizer.md#the-steps)), since it doesn't keep Anticipation 5.
 
 #### Tuning the defaults (C3)
 

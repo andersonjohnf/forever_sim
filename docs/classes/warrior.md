@@ -2020,7 +2020,7 @@ drop the floor (the CLI's `--no-floor`) or extend it for one search (`--keep`).
 
 | Preferred filler | Forever tooltip at max rank | Why it's preferred, not kept |
 | --- | --- | --- |
-| Anticipation (5) | "Increases your Defense Skill by 20." [F] ([§4.3](#43-protection-18-talents)) | Defense: fewer crits and more misses, dodges, parries and blocks against the boss. The sim measures what its avoided hits cost in rage and nothing of what they save, so it's preferred wherever it costs little, and a build that needs the points elsewhere can drop ranks (user decision, D30) |
+| Anticipation (5) | "Increases your Defense Skill by 20." [F] ([§4.3](#43-protection-18-talents)) | Defense: fewer crits and more misses, dodges, parries and blocks against the boss. The sim measures what its avoided hits cost in rage and nothing of what they save, so it's first in the fill order: leftover points go to it before Toughness ([optimizer](../optimizer.md#the-preferred-filler)). A build whose points gain more elsewhere may still drop it (user decision, D30) |
 
 The default build (§6.1) already has all three, and Anticipation 5/5. DPS specs have no floor.
 

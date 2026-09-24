@@ -3299,10 +3299,11 @@ export class Sim {
   }
 
   /**
-   * One tick of a stacking poison: its damage per stack × the stacks, the magic multiplier with an
-   * average partial resist and the auras' poison bonus (rogue.md §4.2 [?]); in `forever` a flagged tick
-   * may crit at spell crit, ×1.5, firing nothing. A tick that comes after its end finds it run out
-   * (its last partial period deals nothing).
+   * One tick of a stacking poison: its damage per stack × the stacks, the magic multiplier with its
+   * school's average partial resist and multipliers, as every spell's (docs/mechanics/spells.md §3,
+   * §9), and the auras' poison bonus (rogue.md §4.2 [?]); in `forever` a flagged tick may crit at
+   * spell crit with its school's, ×1.5, firing nothing. A tick that comes after its end finds it run
+   * out (its last partial period deals nothing).
    */
   private onStackingDotTick(slot: number): void {
     const p = this.sdProc[slot]
@@ -3311,10 +3312,10 @@ export class Sim {
       return
     }
     const row = this.pSource[p] * FIELD_COUNT
-    const resist = averageResist(this.bossLevelResist, this.plan.playerLevel)
-    let damage = this.pA[p] * this.dotStacks[slot] * (1 - resist) * this.magicMult
+    const school = this.pSchool[p]
+    let damage = this.pA[p] * this.dotStacks[slot] * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
     if (this.pPoison[p] === 1) damage *= this.poisonMult
-    if (this.pPeriodicCrit[p] === 1 && this.rngProc.roll100() < this.spellCritPct) {
+    if (this.pPeriodicCrit[p] === 1 && this.rngProc.roll100() < this.spellCritPct + this.schCrit[school]) {
       damage *= CRIT_MULTIPLIER.spell
       this.counters[row + FIELD.crits]++
     } else this.counters[row + FIELD.hits]++

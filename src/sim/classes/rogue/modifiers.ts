@@ -76,8 +76,13 @@ const CRIT_PER_RANK: readonly [string, number, string][] = [
 /** The combo-point builders, whose crits Seal Fate turns into a second point (rogue.md §5.1). */
 export const CP_BUILDERS: ReadonlySet<string> = new Set(['sinisterStrike', 'backstab', 'hemorrhage', 'ghostlyStrike', 'mutilate', 'ambush'])
 
-/** The finishers Relentless Strikes and Ruthlessness act on (14179's class mask; rogue.md §5.1). */
-export const FINISHERS: ReadonlySet<string> = new Set(['eviscerate', 'sliceAndDice', 'rupture', 'exposeArmor', 'kidneyShot'])
+/**
+ * The finishers Relentless Strikes and Ruthlessness act on (rogue.md §2.2, §5.1): 14179's class mask
+ * [4063232, 0, 67108864, 0] names Eviscerate, Slice and Dice, Rupture, Expose Armor, Kidney Shot and
+ * Venom (1310703: [0, 0, 67108864, 0]) [F]. Ruthlessness (14156) has no mask, only "finishing moves";
+ * Venom's Spell rows match Slice and Dice's, so it counts there too [?].
+ */
+export const FINISHERS: ReadonlySet<string> = new Set(['eviscerate', 'sliceAndDice', 'rupture', 'exposeArmor', 'kidneyShot', 'venom'])
 
 /** Seal Fate 20%, Ruthlessness 20%, Puncturing Wounds' Backstab point 15% per rank; Relentless Strikes 20% per point, 25 Energy [F] (rogue.md §5.1, §5.2). */
 export const SEAL_FATE_PER_RANK = 0.2

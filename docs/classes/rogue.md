@@ -145,6 +145,11 @@ SpellMisc, 1.60.1.69913). See [§4](#4-poisons).
 - **Ruthlessness** 3/3: a finisher that lands has a 60% chance to add a point afterwards [F].
 - **Relentless Strikes**: a finisher restores 25 Energy with a 20% chance per point spent
   (100% at 5) [F] [client] (14179 `EffectPointsPerResource` 20; 14181 25).
+- Both act on Eviscerate, Slice and Dice, Rupture, Expose Armor, Kidney Shot and **Venom**: 14179's
+  class mask `[4063232, 0, 67108864, 0]` names all six, Venom (1310703) by its `[0, 0, 67108864, 0]`
+  [F] [client] (SpellEffect, SpellClassOptions, 1.60.1.69913). Ruthlessness (14156) has no mask, only
+  "finishing moves" and a proc on melee and harmful abilities; Venom's Spell rows, costs and
+  categories match Slice and Dice's, so it counts for both [?].
 - **Puncturing Wounds** 3/3: a landed Backstab has a 45% chance of one more point [F].
 - **Improved Expose Armor** 2/2: a 5-point Expose Armor gives 2 back [F].
 - **Premeditation**: +2 points, a cast, no Stealth in Forever [F].
@@ -402,11 +407,12 @@ Sinister Strike builds), and **Venom** is a setting for the poisons, off by defa
 | 7 | Mutilate, or Sinister Strike without two daggers | Affordable | `rogue.assassination.mutilate.enabled` (on) |
 
 **First-pass search** (the default setup, seed 2701, 20,000 paired fights; 524.1 DPS):
-- Venom costs the combo points Eviscerate would spend: on at 3 points it's −55.9 (−10.7%), at 5
-  −47.0, at 1 −61.4. It adds about 26 DPS of poison damage (the poisons go from 67 to 93 DPS at
-  85% uptime) and takes about 67 from Eviscerate. So it's off by default. The default build still
-  takes it, so it's there to turn on; the tuning milestone may move that point, and Q11 asks
-  whether its dummy effect adds more.
+- Venom costs the combo points Eviscerate would spend: on at 3 points it's −25.9 (−26.2 to −25.5;
+  −4.9%), at 5 −22.7 (−4.3%), at 1 −29.5 (−5.6%), with Relentless Strikes' Energy and
+  Ruthlessness's point on each Venom (§2.2). It adds about 25 DPS of poison damage (the poisons go
+  from 67 to 92 DPS at 78% uptime) and takes about 51 from Eviscerate. So it's off by default. The
+  default build still takes it, so it's there to turn on; the tuning milestone may move that point,
+  and Q11 asks whether its dummy effect adds more.
 - Eviscerate at 4 against 5: +6.78 (+6.44 to +7.13); 3 is −5.9 against 4. Mutilate's 2 points (3
   with Seal Fate) make 5 from 4 an overflow.
 - Slice and Dice at 2 points: level with 1 (−0.08); 3 −1.99. Renewing at 0.5 s: level with 0 and

@@ -14,7 +14,7 @@ import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
 import { FIELD, Sim } from '../../engine/sim'
 import { alwaysLandNoCrit, counter, damages, expectMean, setAttackPower, timeline } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
-import { ACTION, COND, type Plan, TRIGGER_COUNT } from '../../plan/types'
+import { ACTION, type AbilityDef, COND, type Plan, TRIGGER_COUNT } from '../../plan/types'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import { FOREVER } from '../../rules/profiles'
 import type { SimConfig } from '../../types'
@@ -242,6 +242,42 @@ describe('talents against the client’s curves (rogue.md §5)', () => {
     // Cold Blood's crit only with the talent.
     expect(withRogueTalents(SINISTER_STRIKE, t).auraCrit).toBeUndefined()
     expect(withRogueTalents(SINISTER_STRIKE, ranks([['Cold Blood', 1]])).auraCrit).toEqual({ aura: 'coldBlood', pct: 100, consume: true })
+  })
+
+  it('Relentless Strikes and Ruthlessness act on every finisher 14179’s class mask names, Venom included (RG1)', () => {
+    const mask = effect(14179, 0).effectSpellClassMask!
+    const inMask = (id: number) => spell(id).classOptions!.spellClassMask!.some((word, i) => (word & mask[i]) !== 0)
+    const t = ranks([
+      ['Relentless Strikes', 1],
+      ['Ruthlessness', 3],
+    ])
+    const rows: [AbilityDef, number][] = [
+      [EVISCERATE, 31016],
+      [SLICE_AND_DICE, 6774],
+      [RUPTURE, 11275],
+      [EXPOSE_ARMOR, 11198],
+      [VENOM, 1310703],
+      [SINISTER_STRIKE, 11294],
+      [BACKSTAB, 25300],
+      [MUTILATE, 1241584],
+    ]
+    for (const [def, id] of rows) {
+      const resolved = withRogueTalents(def, t)
+      expect([def.id, resolved.finisherEnergyChancePerCp ?? 0]).toEqual([def.id, inMask(id) ? RELENTLESS_STRIKES_PER_CP : 0])
+      expect([def.id, resolved.finisherComboPointChance ?? 0]).toEqual([def.id, inMask(id) ? 3 * RUTHLESSNESS_PER_RANK : 0])
+    }
+    expect(inMask(1310703)).toBe(true)
+    // Ruthlessness has no mask of its own ("finishing moves"); Venom's first four attribute words,
+    // costs and categories are Slice and Dice's.
+    expect(spell(14156).effects[0].effectSpellClassMask ?? [0, 0, 0, 0]).toEqual([0, 0, 0, 0])
+    const finisherRows = (id: number) => [spell(id).misc!.attributes!.slice(0, 4), spell(id).power, spell(id).categories]
+    expect(finisherRows(1310703)).toEqual(finisherRows(6774))
+    // The Assassination build's Venom carries both.
+    const on = { ...defaultConfig('rogue-assassination') }
+    on.rotation = { ...on.rotation, 'rogue.assassination.venom.enabled': true }
+    const venom = buildPlan(on).plan.abilities.find((a) => a.id === 'venom')!
+    expect(venom.finisherEnergyChancePerCp).toBe(RELENTLESS_STRIKES_PER_CP)
+    expect(venom.finisherComboPointChance).toBeGreaterThan(0)
   })
 })
 

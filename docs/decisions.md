@@ -368,3 +368,32 @@ PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
   tank's preset leaves out another tank class's duties: a bear's or a paladin's raid has no
   warrior tank's Thunder Clap unless you add it.
 
+
+### D27: Land every DPS spec first, in a 90/10 mode; tune later (2026-09-24)
+User decision. Before multi-target (M6), the sim adds every other DPS spec in the game, and it
+lands them fast rather than perfect: a result within about ±5% ships, and a later tuning
+milestone brings every spec up to D23. The analysis behind it: the time went into the loop
+around each spec (review, fix, verify, rebase, re-verify), restarted by full D23 tuning after
+every change, by fixing every low finding, and by parallel tracks building the same engine
+pieces separately. So, for new specs until the tuning milestone:
+- **First-pass defaults.** The rotation starts from the Classic Era community priority adapted
+  to Forever's changes, with one quick search of its two or three biggest settings (about
+  20,000 fights, one seed). No robustness grids, fresh-seed confirmations or re-tunes after
+  fixes. The Rotation tab says the defaults are "the common priority" until the spec is tuned.
+  D23 still governs specs already tuned, and the tuning milestone.
+- **One combined review** per slice, logic and UX by one fresh reviewer, replacing the separate
+  logic and UX reviews of D20. High and medium findings are fixed; low findings go to the
+  milestones' known gaps with their reasons, unless fixing one is a one-line change. A
+  verification pass follows only when a fix changed engine logic; copy and doc fixes don't need
+  one.
+- **Shared engine first, then thin class slices.** A caster core (casts, channels, DoTs, spell
+  power, spell hit, crit and resists) and a ranged core (Auto Shot, ranged weapons, pets) are
+  built once; each class is then data, talents and a rotation.
+- **A merge queue with at most about four agents at once.** A branch rebases once, just before
+  its review, and merges as soon as it's green.
+- **Unchanged:** the sourcing rules (doctrine §2), no world buffs, determinism, green checks
+  (`npm run test:full`) before every push, D24's placeholders, and D25's push at every stable
+  state.
+- **Order** (user decision): melee and physical first (Rogue, Enhancement Shaman), then the
+  caster core with Mage, Warlock, Shadow Priest, Elemental Shaman and Balance Druid, then the
+  ranged core with Hunter.

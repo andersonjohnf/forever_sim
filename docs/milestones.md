@@ -65,7 +65,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
       dataset from the client; `-- --version=<build> --diff` diffs a new build against the
       committed data.
 
-## M2: Warrior DPS with the production UX 🚧
+## M2: Warrior DPS with the production UX ✅
 
 The production UX shell is built ([ux.md](ux.md)): spec switcher, Character, Talents, Gear
 with enchants, Buffs, Rotation, Fight, results, persistence and share links. The engine
@@ -106,7 +106,7 @@ work is in slices:
         warrior-arms becomes **available**.
   - Sweeping Strikes waits for multi-target support ([M6](#m6-multi-target-)); Deep Wounds and
     Weaponmaster are already simulated.
-- [ ] **M2.4 Results and review**, in slices:
+- [x] **M2.4 Results and review**, in slices:
   - [x] **M2.4a Results and rotation polish:**
     - show cooldown casts and aura uptimes in the results
     - split Rend's application avoidance from its ticks
@@ -248,6 +248,30 @@ placeholders, and M9 replaces them.
 - [ ] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
       default and a Max TPS priority (D26), tuned, and shipped
 
+## M5.5: Every other DPS spec (D27) 💤
+
+Every DPS spec in the game, before multi-target, landed in the 90/10 mode of
+[D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24):
+first-pass defaults within about ±5%, one combined review, shared engine cores before class
+slices. Melee and physical first (user decision, 2026-09-24). Each class slice: a class doc
+(Forever changes from the client, the Classic Era priority, open questions), its scraped data,
+talents and default build, abilities, rotation, defaults, e2e, shipped.
+- [ ] **R1 Rogue:** Combat, Assassination, Subtlety. Energy and combo points reuse the cat's;
+      poisons, Slice and Dice, Blade Flurry, Adrenaline Rush, dual wield
+- [ ] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
+      totems as raid buffs, mana
+- [ ] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,
+      crit and partial resists, the caster debuffs (Curse of the Elements, Shadow Weaving,
+      Scorch, Winter's Chill), mana with the five-second rule
+- [ ] **K2 Mage:** Fire, Frost, Arcane
+- [ ] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below)
+- [ ] **K4 Shadow Priest**
+- [ ] **K5 Elemental Shaman**
+- [ ] **K6 Balance Druid:** Moonkin Form
+- [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
+      attacks
+- [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
+
 ## M6: Multi-target 💤
 
 The engine fights one target today. The design is
@@ -323,6 +347,12 @@ stats are simulated by then, the tanks' included.
 
 - Compare against guild beta logs and target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified
+
+## M10: Tuning every spec 💤
+
+After the other milestones (user decision, 2026-09-24): every spec landed under D27's first-pass
+defaults is tuned to D23's full standard (paired 95% CIs, a fresh-seed confirmation, the
+robustness grid in the class doc), and its low findings in the known gaps are worked through.
 
 ## Known gaps and follow-ups
 

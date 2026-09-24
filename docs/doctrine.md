@@ -15,9 +15,10 @@ touches is finished work.
 | In scope | Out of scope (for now) |
 | --- | --- |
 | Level 60 characters vs a level 63 raid boss | Levelling, PvP |
-| Warrior: Arms, Fury (DPS) · Protection (TPS) | Every other class |
-| Druid: Feral cat (DPS) · Feral bear (TPS) | Balance (see [milestones](milestones.md#later)), Restoration |
-| Paladin: Retribution (DPS) · Protection (TPS) | Holy |
+| Warrior: Arms, Fury (DPS) · Protection (TPS) | Healers (Holy, Discipline, Restoration) |
+| Druid: Feral cat (DPS) · Feral bear (TPS) · Balance (DPS, [D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)) | |
+| Paladin: Retribution (DPS) · Protection (TPS) | |
+| Every other DPS spec ([D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)): Rogue, Hunter, Mage, Warlock, Shadow Priest, Elemental and Enhancement Shaman | |
 | Pre-raid gear: Rare, required level 55–60 or item level ≥ 58 ([D10](decisions.md#d10-pre-raid-pool--rare-required-level-5560-or-item-level--58-2026-09-22)), plus any known pre-raid BiS item ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22)) | Raid gear (easy to add later) |
 | Single target, with light multi-target options | Full encounter scripting |
 | Raid buffs, target debuffs, consumables, enchants | **World buffs**: not available in Forever raids (see below) |
@@ -186,7 +187,9 @@ player can execute (D23). The defaults are:
 - never world buffs (they don't exist in Forever raids, see §1)
 - the best-performing rotation we've found that a real player can execute. When we find a
   better one, it becomes the default, without asking first
-  ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23))
+  ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23)). Specs
+  added under [D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)
+  start from the common priority with a quick first-pass search, until the tuning milestone
 
 The default for each setting is documented in the class doc that owns it.
 
@@ -204,6 +207,9 @@ finding is fixed or waived with a written reason, and the log is committed as
   then.
 - **An area that draws new findings two rounds running** is simplified, not patched again
   ([D20](decisions.md#d20-review-new-work-in-full-verify-the-fixes-2026-09-23)).
+- **New specs until the tuning milestone** get one combined logic and UX review; high and
+  medium findings are fixed, lows go to the known gaps, and only engine fixes get a
+  verification pass ([D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)).
 
 The procedure and checklists are in
 [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and

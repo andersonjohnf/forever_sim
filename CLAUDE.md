@@ -1,6 +1,7 @@
 # forever_sim
 
-DPS/TPS simulator for level-60 Warriors, Feral Druids and Paladins in **WoW Forever**. It's a
+DPS/TPS simulator for level-60 characters in **WoW Forever**: every DPS spec, and the Warrior,
+Feral Druid and Paladin tanks. It's a
 static Vite + React + TypeScript + shadcn/ui app on GitHub Pages with no server.
 
 **The bar:** the best Forever sim we can build with the data we have, with a clean, modern UX
@@ -50,6 +51,13 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - Commits that only record the review (the log, the handoff) need no further pass.
 6. **Simplify rather than patch a third time.** If two rounds in a row find new problems in
    the same area, stop patching it and propose a simpler design to the user.
+7. **New specs land in a 90/10 mode until the tuning milestone (D27).** First-pass defaults
+   (the common priority plus one quick search; about ±5% is fine) replace D23's full tuning.
+   One fresh reviewer does a **combined logic and UX review** (steps 2 and 3 together). High
+   and medium findings are fixed; lows go to the milestones' known gaps unless the fix is one
+   line. Only a fix that changed engine logic gets a verification pass. Build shared engine
+   cores before class slices, run at most about four agents at once, and rebase a branch once,
+   just before its review.
 
 ## Git workflow
 

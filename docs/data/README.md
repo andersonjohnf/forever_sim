@@ -63,7 +63,7 @@ The item, talent, spell and race datasets start with:
   cache holds as "latest" (review finding L35; `scripts/scrape/lib/json.test.mjs` sorts under a
   Swedish and a Turkish locale). The committed data is always that regeneration: a change that
   moves it (a scraper, its curated inputs, or a doc the client scraper reads) commits the
-  regenerated files with it, and `npm test` checks it ([Checking the committed data](#checking-the-committed-data)).
+  regenerated files with it, and `npm run test:full` checks it ([Checking the committed data](#checking-the-committed-data)).
 - **Keep both sides.** Where the Forever and Classic Era clients differ, we store both. The
   engine uses Forever values; Classic ones are there for comparison and fallback.
 - **Storage contracts hold across builds.** Share links and saved setups store build codes
@@ -119,22 +119,35 @@ update the build number in any doc whose values moved, and re-check the doc clai
 The client scraper takes part of what it extracts from the docs (the buffs doc's tables and the
 spell ids the class and mechanics docs cite; [client.md § What the docs decide](client.md#what-the-docs-decide)),
 so a commit that edits a doc can leave `src/data` stale without touching it. Two guards catch
-that, in [`scripts/scrape/committed-data.test.mjs`](../../scripts/scrape/committed-data.test.mjs),
-part of `npm test`:
+that, both part of `npm run test:full`:
 
-- **Everywhere, CI included:** what the current docs decide agrees with `src/data/client`: the
+- **Everywhere, CI included:** [`scripts/scrape/committed-data.test.mjs`](../../scripts/scrape/committed-data.test.mjs),
+  in `npm test`, checks that what the current docs decide agrees with `src/data/client`: the
   buffs doc's consumables (with the doc's names and ids), its enchants and its buff spells, and
   every doc citation of a spell the data already carries. Every ID cell of the buffs doc must
   also parse.
-- **Where the raw client files are cached** (`.cache/client`, from `npm run scrape`; skipped
-  without it): `npm run scrape:check` regenerates every dataset and compares it byte for byte
-  with `src/data`. It passes `--check` to each scraper, which reads the cache alone (its fetcher
-  is offline: a file the cache lacks fails the run instead of being downloaded) and writes
-  nothing. It runs every step and names each file that differs.
+- **Where the raw client files are cached** (`.cache/client`, from `npm run scrape`):
+  `npm run scrape:check` regenerates every dataset and compares it byte for byte with
+  `src/data`. `test:full` runs it as its own step after the unit tests, with `--if-cached`, which
+  skips it (exit 0, with a line saying so) when the cache has no directory for the build the
+  committed data records, as in CI. It isn't a unit test because it runs the generators for
+  about 15 s, which would compete with the unit tests' timing checks for the CPU.
+
+  It passes `--check` to each scraper, which reads the cache alone (its fetcher is offline: a
+  file the cache lacks fails the run instead of being downloaded) and writes nothing to
+  `src/data` or the cache (not even the parsed-table copies the cache keeps). Each scraper
+  regenerates the build and WoWDBDefs commit its committed dataset records (its `meta`), not the
+  cache's "latest", so refreshing the cache for a new build doesn't fail the check of the data
+  committed for the old one; `--version=` or `--dbdefs=` choose another. The four dataset steps
+  leave their fresh generation in a temporary directory (`--fresh=`), and the client step reads
+  its inputs from there, so it checks what a full regeneration would write even when an earlier
+  dataset is stale. It runs every step and names each file that differs. `--check` can't be
+  combined with `--refresh`, `--diff`, `--fixtures` or `--claims`.
 
 ```sh
 npm run scrape:check                          # every dataset, from the cache: exits 1 if one is stale
-npm run scrape:client -- --check              # one scraper (each takes --check)
+npm run scrape:check -- --if-cached           # the same, or skip when the committed build isn't cached (test:full)
+npm run scrape:client -- --check              # one scraper (each takes --check; the client one reads the committed datasets)
 ```
 
 When either fails, regenerate (`npm run scrape`) and commit the data with the change that moved

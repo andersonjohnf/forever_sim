@@ -7,13 +7,14 @@
 // regeneration dropped their enchants (docs/data/client.md#what-the-docs-decide).
 //
 // Two guards:
-// - Without the cache (CI): what the current docs decide agrees with src/data/client: the buffs
-//   doc's consumables, enchants and buff spells, and the doc citations among the spells the
-//   data already carries (a citation of a spell it doesn't carry yet needs the client's spell
-//   names, so only the second guard sees it).
-// - With the raw client files cached (.cache/client, from `npm run scrape`): `npm run scrape:check`
-//   regenerates every dataset from the cache, without a request, and compares it byte for byte.
-import { spawnSync } from "node:child_process";
+// - This test, in `npm test`, without the cache (CI included): what the current docs decide agrees
+//   with src/data/client: the buffs doc's consumables, enchants and buff spells, and the doc
+//   citations among the spells the data already carries (a citation of a spell it doesn't carry
+//   yet needs the client's spell names, so only the second guard sees it).
+// - `npm run scrape:check`, its own step of `npm run test:full` after the unit tests (it skips
+//   when the cache lacks the committed build, as in CI): regenerates every dataset from the cached
+//   client files, without a request, and compares it byte for byte. It isn't a test here: it runs
+//   the generators for about 15 s and would compete with the unit tests' timing benchmarks.
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -56,15 +57,4 @@ describe("src/data/client agrees with what the docs decide (no cache needed)", (
     const cited = citingDocs(REPO_ROOT).flatMap((f) => [...docSpellMentions(read(f), name).keys()]);
     expect(withSource("docs")).toEqual(sorted(cited));
   });
-});
-
-const latest = path.join(REPO_ROOT, ".cache/client/builds/wow_classic_beta_latest.json");
-const cached = fs.existsSync(latest);
-
-describe("every dataset in src/data is a fresh generation from the cached client files", () => {
-  it.skipIf(!cached)("npm run scrape:check passes (no requests; skipped without .cache/client)", () => {
-    const run = spawnSync(process.execPath, [path.join(import.meta.dirname, "all.mjs"), "--check"], { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 1 << 26 });
-    const report = `${run.stdout}\n${run.stderr}`.split("\n").filter((l) => /^check:|--check|error|ERROR|isn't in the cache/.test(l));
-    expect(run.status, report.join("\n")).toBe(0);
-  }, 300_000);
 });

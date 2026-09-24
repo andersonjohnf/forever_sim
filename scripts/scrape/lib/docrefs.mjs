@@ -4,19 +4,41 @@
 // parseBuffsDoc(markdown) reads the tables of docs/mechanics/buffs-debuffs-consumables.md:
 //   §1 raid and party buffs      ID column = spell ids            ("25289", "17007 (aura 24932)")
 //   §2 world buffs               skipped (excluded by directive, D8)
-//   §3 consumables               ID column = item ids, "→" buff spell or enchant
+//   §3 consumables               ID column = item ids, then a chain of "→" steps: the item's
+//                                spell, "enchant N" and the enchant's own spell
 //                                ("13510 → 17626", "12662 / 20520 → 16666 / 27869",
-//                                 "18262 → enchant 2506")
+//                                 "18262 → enchant 2506", "20750 → 25121 → enchant 2627 → 25111";
+//                                 "13810 → 18124 → 18125" is the item's spell, then what it triggers)
 //   §4 target debuffs            ID column = spell ids, or "item 12798 → 16928"
 //   §5 enchants                  "IDs (spell / enchant)" = "20034 / 1900 → 20007";
 //                                "Item → enchant" = "11645 / … / 11649 → 1506–1510"
 // Removed talents ("talent (C: 12318)") and Classic-only ids ("(C: …)", "(Classic)") are
 // skipped. Every entry keeps the doc's name and section, so the scraper can report ids the
-// client lacks and doc mappings the client contradicts.
+// client lacks and doc mappings the client contradicts. A row's catalogue key ("Wizard Oil
+// (`wizardOil`)") isn't part of its name. An ID cell the parser can't read goes to `problems`,
+// and the scraper fails on it: a doc edit must never drop an id from the data without a word
+// (docs/data/client.md#what-the-docs-decide).
 //
 // docSpellMentions(markdown, spellName) finds spell ids cited anywhere in a doc whose
 // client spell name appears on the same line, before the id (name-verified, so stray
 // numbers such as armor values are not picked up).
+
+import fs from "node:fs";
+import path from "node:path";
+
+/** The doc whose tables name the buffs, consumables and enchants (parseBuffsDoc). */
+export const BUFFS_DOC = "docs/mechanics/buffs-debuffs-consumables.md";
+
+/** The docs whose spell citations join the interest set (docSpellMentions), repo-relative and sorted. */
+export function citingDocs(repoRoot) {
+  return [
+    ...fs.readdirSync(path.join(repoRoot, "docs/classes")).map((f) => `docs/classes/${f}`),
+    ...fs.readdirSync(path.join(repoRoot, "docs/mechanics")).map((f) => `docs/mechanics/${f}`),
+    "docs/open-questions.md",
+  ]
+    .filter((f) => f.endsWith(".md"))
+    .sort();
+}
 
 const clean = (s) =>
   s
@@ -39,6 +61,7 @@ function rowName(cell) {
   return cell
     .replace(/\*\*/g, "")
     .replace(/\*\([^)]*\)\*/g, "")
+    .replace(/\s*\(`\w+`\)/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -46,14 +69,16 @@ function rowName(cell) {
 /**
  * @returns {{
  *   buffSpells: Array<{spellId: number, name: string, section: string}>,
- *   consumables: Array<{itemId: number, name: string, section: string, spellIds: number[], enchantIds: number[]}>,
+ *   consumables: Array<{itemId: number, name: string, section: string, spellIds: number[], enchantIds: number[], enchantSpellIds: number[]}>,
  *   enchants: Array<{name: string, section: string, spellIds: number[], enchantIds: number[], itemIds: number[], procSpellIds: number[]}>,
+ *   problems: string[],
  * }}
  */
 export function parseBuffsDoc(markdown) {
   const buffSpells = [];
   const consumables = [];
   const enchants = [];
+  const problems = [];
   let section = "";
   let top = 0;
   let header = null;
@@ -92,21 +117,20 @@ export function parseBuffsDoc(markdown) {
       for (const id of ids(cell)) buffSpells.push({ spellId: id, name, section });
     } else if (top === 4) {
       const m = /^item (\d+) → (\d+)/.exec(cell);
-      if (m) consumables.push({ itemId: Number(m[1]), name, section, spellIds: [Number(m[2])], enchantIds: [] });
+      if (m) consumables.push({ itemId: Number(m[1]), name, section, spellIds: [Number(m[2])], enchantIds: [], enchantSpellIds: [] });
       else for (const id of ids(cell)) buffSpells.push({ spellId: id, name, section });
     } else if (top === 3) {
-      const [left, right = ""] = cell.split("→").map((s) => s.trim());
-      const itemIds = ids(left);
-      if (/^enchant\b/.test(right)) {
-        for (const itemId of itemIds) consumables.push({ itemId, name, section, spellIds: [], enchantIds: ids(right) });
-      } else {
-        const spellIds = ids(right);
-        itemIds.forEach((itemId, k) => {
-          // "A / B → C / D" pairs index-wise; "A / B → C" gives both items C.
-          const s = spellIds.length === itemIds.length ? [spellIds[k]] : spellIds;
-          consumables.push({ itemId, name, section, spellIds: s, enchantIds: [] });
-        });
+      const chain = consumableChain(cell);
+      if (typeof chain === "string") {
+        problems.push(`${section}, ${name}: ${chain} in "${cells[idCol]}"`);
+        continue;
       }
+      const { itemIds, spellIds, enchantIds, enchantSpellIds } = chain;
+      itemIds.forEach((itemId, k) => {
+        // "A / B → C / D" pairs index-wise; "A / B → C" gives both items C.
+        const s = spellIds.length === itemIds.length ? [spellIds[k]] : spellIds;
+        consumables.push({ itemId, name, section, spellIds: s, enchantIds, enchantSpellIds });
+      });
     } else if (top === 5) {
       if (idKind === "Item → enchant") {
         const [left, right = ""] = cell.split("→").map((s) => s.trim());
@@ -134,7 +158,30 @@ export function parseBuffsDoc(markdown) {
       }
     }
   }
-  return { buffSpells, consumables, enchants };
+  return { buffSpells, consumables, enchants, problems };
+}
+
+/**
+ * A §3 ID cell: "items → the item's spell(s) → … → enchant N → the enchant's spell(s)", each step
+ * after the items optional. The item's spell is the first step unless that step is the enchant;
+ * later spell steps before the enchant, or with no enchant, are spells it triggers, which the
+ * scraper's trigger closure reaches on its own. Returns the reason when the cell has another shape.
+ */
+function consumableChain(cell) {
+  const steps = cell.split("→").map((s) => s.trim());
+  const itemIds = ids(steps[0]);
+  if (itemIds.length === 0) return "no item id";
+  if (steps.slice(1).some((s) => ids(s).length === 0)) return "a step with no id";
+  const enchantSteps = steps.flatMap((s, k) => (k > 0 && /^enchant\b/.test(s) ? [k] : []));
+  if (enchantSteps.length > 1) return "more than one enchant";
+  if (steps.some((s, k) => !enchantSteps.includes(k) && /\benchant\b/.test(s))) return "an enchant that doesn't start its step";
+  const e = enchantSteps[0] ?? -1;
+  return {
+    itemIds,
+    spellIds: steps.length > 1 && e !== 1 ? ids(steps[1]) : [],
+    enchantIds: e > 0 ? ids(steps[e]) : [],
+    enchantSpellIds: e > 0 ? steps.slice(e + 1).flatMap(ids) : [],
+  };
 }
 
 // Explicit spell markers: "spell 12966", "spells 1310196", "[F 20128]", "proc 25713",

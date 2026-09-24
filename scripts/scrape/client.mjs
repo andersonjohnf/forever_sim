@@ -33,7 +33,7 @@ import { createFetcher } from "./lib/http.mjs";
 import { buildRecord, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib/spells.mjs";
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
-import { parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
+import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
 import { stableStringify } from "./lib/json.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -164,8 +164,8 @@ const spellBooks = Object.fromEntries(CLASSES.map((c) => [c, readJson(`src/data/
 const talentData = Object.fromEntries(CLASSES.map((c) => [c, readJson(`src/data/talents/${c}.json`)]));
 const raceData = readJson("src/data/races/races.json");
 const itemData = readJson("src/data/items/pre-bis.json");
-const buffsDocPath = "docs/mechanics/buffs-debuffs-consumables.md";
-const buffsDoc = parseBuffsDoc(fs.readFileSync(path.join(REPO_ROOT, buffsDocPath), "utf8"));
+const buffsDoc = parseBuffsDoc(fs.readFileSync(path.join(REPO_ROOT, BUFFS_DOC), "utf8"));
+for (const p of buffsDoc.problems) fail(`${BUFFS_DOC}: ${p}`);
 
 // ---------------------------------------------------------------------------
 // Interest set
@@ -314,14 +314,7 @@ for (const b of buffsDoc.buffSpells) want(b.spellId, "buffsDoc");
 
 // 7. Spells cited by id in the class and mechanics docs and the open questions (explicit
 //    "spell N"-style markers, or the spell's name earlier on the same line).
-const docFiles = [
-  ...fs.readdirSync(path.join(REPO_ROOT, "docs/classes")).map((f) => `docs/classes/${f}`),
-  ...fs.readdirSync(path.join(REPO_ROOT, "docs/mechanics")).map((f) => `docs/mechanics/${f}`),
-  "docs/open-questions.md",
-]
-  .filter((f) => f.endsWith(".md"))
-  .sort();
-for (const f of docFiles) {
+for (const f of citingDocs(REPO_ROOT)) {
   const found = docSpellMentions(fs.readFileSync(path.join(REPO_ROOT, f), "utf8"), (id) => spells.name(id));
   for (const id of found.keys()) want(id, "docs");
 }
@@ -418,6 +411,11 @@ for (const c of buffsDoc.consumables) {
   }
   for (const en of c.enchantIds) {
     if (!rec.appliesEnchantIds.includes(en)) rec.docMismatches.push(`doc says item ${c.itemId} → enchant ${en}; client: ${rec.appliesEnchantIds.join(", ") || "none"}`);
+    const row = t.SpellItemEnchantment.byId.get(en);
+    const enchantSpells = row ? row.Effect.flatMap((type, k) => (ENCHANT_SPELL_EFFECT_TYPES.has(type) ? [row.EffectArg[k]] : [])) : [];
+    for (const s of c.enchantSpellIds) {
+      if (!enchantSpells.includes(s)) rec.docMismatches.push(`doc says enchant ${en} → spell ${s}; client enchant spells: ${enchantSpells.join(", ") || "none"}`);
+    }
   }
   consumableRecords[c.itemId] = rec;
 }

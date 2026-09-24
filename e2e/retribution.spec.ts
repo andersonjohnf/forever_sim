@@ -75,10 +75,10 @@ test.describe('Retribution', () => {
     // Protection doesn't ship yet, so its build isn't offered (docs/ux.md "Talents").
     await expect(page.getByRole('option')).toHaveText(['Retribution (default)'])
     await page.keyboard.press('Escape')
-    // About names the paladin.
+    // About names the paladin, after the warriors and the druid.
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText('Covers Warriors: Fury and Arms · Paladins: Retribution.')).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury and Arms · Druids: .+ · Paladins: Retribution\.$/)).toBeVisible()
   })
 
   test('its Rotation tab: tuned defaults under the usual headings, the rune waiting for Buffs, and no warrior words', async ({ page }) => {

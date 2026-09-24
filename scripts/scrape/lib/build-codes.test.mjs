@@ -2,7 +2,8 @@
 // committed dataset, whether or not a stored code uses it (docs/data/talents.md#build-codes-verified).
 import { describe, expect, it } from "vitest";
 import warrior from "../../../src/data/talents/warrior.json";
-import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./build-codes.mjs";
+import frozen from "../../../src/data/talents/frozen.json";
+import { FROZEN_TALENT_FIELDS, codeOrder, codePositionChanges, decodeByName, describeRanks, frozenAsData, validate } from "./build-codes.mjs";
 
 const clone = () => JSON.parse(JSON.stringify(warrior));
 const talent = (data, name) => data.trees.flatMap((t) => t.talents).find((t) => t.name === name);
@@ -52,5 +53,16 @@ describe("decoding", () => {
 
   it("refuses a digit above a talent's max rank", () => {
     expect(() => decodeByName(warrior, "4")).toThrow(/Improved Heroic Strike: rank 4 > 3/);
+  });
+});
+
+describe("frozen orders (docs/data/talents.md#tree-versions)", () => {
+  it("decode a code written on 1.60.1.69913's trees as it was written, whatever today's trees hold", () => {
+    const paladin = frozenAsData(frozen.builds["1.60.1.69913"].classes.paladin);
+    const retribution = "250003-503-052052310012330321";
+    expect(describeRanks(paladin, retribution)[0]).toBe("Improved Holy Strike 2, Divine Strength 5, Improved Seals 3");
+    expect(decodeByName(paladin, retribution)["Retribution/Crusade"]).toBe(2);
+    expect(codeOrder(paladin).map((t) => t.length)).toEqual([18, 16, 18]);
+    expect(FROZEN_TALENT_FIELDS).toEqual(frozen.meta.talentFields);
   });
 });

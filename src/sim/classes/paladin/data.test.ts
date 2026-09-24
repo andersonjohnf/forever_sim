@@ -286,7 +286,6 @@ describe('paladin talents (paladin.md#talents)', () => {
       ['Shield Specialization', 2, 'by 20%, and gives your blocks a 66% chance to restore 6%'],
       ['Deflection', 5, 'by 5%'],
       ['Conviction', 5, 'by 5%'],
-      ['Crusade', 2, 'by 2%. Increased by an additional 2%'],
       ['Two-Handed Weapon Specialization', 3, 'by 9%'],
       ['Champion of the Light', 2, 'up to 66% of your Intellect'],
       ['Vengeance', 3, 'by 3% for 30 sec'],
@@ -295,7 +294,6 @@ describe('paladin talents (paladin.md#talents)', () => {
       ['Benediction', 5, 'by 10%'],
       ['Holy Conduit', 2, 'by 40%'],
       ['Improved Judgement', 2, 'by 2 sec'],
-      ['Improved Holy Strike', 2, 'by 2 sec'],
       ['Sanctified Judgement', 2, '66% chance to return 40%'],
       ['Sacred Arbiter', 1, 'by 10%'],
       ['Iron Creed', 5, 'Holy Strike ability 25%'],
@@ -309,10 +307,8 @@ describe('paladin talents (paladin.md#talents)', () => {
     expect(TALENT_EFFECTS['One-Handed Weapon Specialization'](2)).toEqual([{ kind: 'damage', pct: 7, physicalOnly: true, when: { twoHand: false } }])
     expect(TALENT_EFFECTS['Champion of the Light'](2)).toEqual([{ kind: 'stat', stat: 'spellDamagePerIntPct', value: 66 }])
     expect(TALENT_EFFECTS['Two-Handed Weapon Specialization'](3)[0]).toMatchObject({ pct: 9, physicalOnly: true })
-    expect(TALENT_EFFECTS.Crusade(2)).toEqual([
-      { kind: 'damage', pct: 2 },
-      { kind: 'damage', pct: 2, when: { creature: ['demon', 'undead'] } },
-    ])
+    // Crusade and Improved Holy Strike left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions).
+    expect(TALENT_EFFECTS.Crusade).toBeUndefined()
     expect(righteousFuryEffects(false, new Map([['Instrument of Law', 2]]))).toEqual([{ kind: 'threat', pct: -20 }])
     expect(righteousFuryEffects(true, new Map([['Improved Righteous Fury', 3]]))).toContainEqual({ kind: 'damageTaken', pct: -6 })
   })

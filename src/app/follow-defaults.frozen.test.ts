@@ -6,10 +6,10 @@ import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 // docs/architecture.md "Following the defaults": the migration reads a frozen snapshot, never
 // today's defaults, so a save holding ee171d2a's defaults keeps migrating after they change. Here
 // the Protection paladin's defaults change as the tank integration changed them (a new talent
-// build), and to a new helm. Fury's helm changes too, in its default and its pre-raid list alike: Fury
+// build, on 1.60.1.70009's trees), and to a new helm. Fury's helm changes too, in its default and its pre-raid list alike: Fury
 // has no FORMER_GEAR table, so its ee171d2a gear can only be recognised from the snapshot.
 
-const NEW_TALENTS = '240003-0530213321301551-502'
+const NEW_TALENTS = '50003-0530313321301551-502'
 const NEW_HEAD = { itemId: 16731, enchantId: 'arcanumFocus' }
 const NEW_FURY_HEAD = { itemId: 16731, enchantId: 'arcanumVoracityStrength' } // Helm of Valor, for Lionheart Helm
 
@@ -33,7 +33,10 @@ vi.mock('@/sim', async (importOriginal) => {
   }
 })
 
-/** A save of ee171d2a's untouched default for the spec and race: the snapshot's talents and gear. */
+/**
+ * A save of ee171d2a's untouched default for the spec and race, as it loads: the snapshot's talents
+ * and gear, in a setup of version 1, whose talents are on 1.60.1.69913's trees.
+ */
 async function ee171d2aSave(spec: SpecId, race: string): Promise<SimConfig> {
   const sim = await vi.importActual<typeof import('@/sim')>('@/sim')
   const frozen = LEGACY_DEFAULTS[spec]!
@@ -41,7 +44,7 @@ async function ee171d2aSave(spec: SpecId, race: string): Promise<SimConfig> {
   for (const [slot, [itemId, enchantId]] of Object.entries(frozen.sets[frozen.races[race][0]]) as [GearSlot, LegacyEntry][]) {
     gear[slot] = enchantId === undefined ? { itemId } : { itemId, enchantId }
   }
-  return normalizeConfig({ ...sim.defaultConfig(spec, race), talents: frozen.talents, gear }).config
+  return normalizeConfig({ ...sim.defaultConfig(spec, race), version: 1, talents: frozen.talents, gear }).config
 }
 
 /** ee171d2a's untouched Human Protection paladin, as a save from then loads: 0/38/13 and the threat set. */
@@ -54,7 +57,7 @@ describe('a save from before `following`, after the defaults change', () => {
     // The mock is in place: today's default differs from the save.
     expect(defaultConfig('paladin-protection').talents).toBe(NEW_TALENTS)
 
-    const follow = legacyFollowing(old)
+    const follow = legacyFollowing(old, LEGACY_DEFAULTS['paladin-protection']!.talents)
     expect(follow.talents).toBe(true)
     expect(follow.gear).toContain('head')
     expect(follow.gear).toEqual(GEAR_SLOTS)
@@ -69,7 +72,23 @@ describe('a save from before `following`, after the defaults change', () => {
 
   it('still leaves the player’s own talents alone', async () => {
     const old = { ...(await ee171d2aPaladin()), talents: '-0530513321301551-5021' }
-    expect(legacyFollowing(old).talents).toBe(false)
+    expect(legacyFollowing(old, old.talents).talents).toBe(false)
+    // Only the code as the save held it counts: loaded, today's trees write it another way.
+    expect(legacyFollowing(await ee171d2aPaladin(), undefined).talents).toBe(false)
+  })
+
+  it.each([
+    // Improved Holy Strike and Crusade are gone: by name, 16 points go, as the row under Crusade loses its gate.
+    ['paladin-retribution', '50003-503-05205231001'],
+    // Elemental Fury and Elemental Alacrity trade places: every point stays.
+    ['shaman-elemental', '5504301300103051-04-053250000001'],
+  ] as const)('moves ee171d2a’s %s talents, written on 1.60.1.69913’s trees, to today’s default', async (spec, mapped) => {
+    const race = LEGACY_DEFAULTS[spec]!.race
+    const old = await ee171d2aSave(spec, race)
+    expect(old.talents).toBe(mapped)
+    const follow = legacyFollowing(old, LEGACY_DEFAULTS[spec]!.talents)
+    expect(follow.talents).toBe(true)
+    expect(followDefaults(old, follow).config.talents).toBe(defaultConfig(spec).talents)
   })
 
   it('recognises a spec with no former-gear table (Fury) from the snapshot alone', async () => {
@@ -79,7 +98,7 @@ describe('a save from before `following`, after the defaults change', () => {
     expect(defaultConfig('warrior-fury', 'horde-orc').gear.head).toEqual(NEW_FURY_HEAD)
     expect(preRaidListGear('warrior-fury', 'horde-orc').head).toEqual(NEW_FURY_HEAD)
 
-    const follow = legacyFollowing(old)
+    const follow = legacyFollowing(old, LEGACY_DEFAULTS['warrior-fury']!.talents)
     expect(follow.talents).toBe(true)
     expect(follow.gear).toEqual(GEAR_SLOTS)
 

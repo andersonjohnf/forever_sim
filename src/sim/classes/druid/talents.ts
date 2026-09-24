@@ -48,14 +48,15 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
   ],
   // Feral 4·3: +50% of level as attack power per rank in the animal forms, +90 at 3/3 (§2.2)
   'Predatory Strikes': (r) => [{ kind: 'stat', stat: 'ap', value: 0.5 * PLAYER_LEVEL * r, when: ANIMAL }],
-  // Feral 4·4: 50% per rank to gain 5 rage on any crit in Bear or Dire Bear Form (16959: energize
-  // 50; §4.8, rage.md#bear-druid-rage). Its combo-point part is on the builders (modifiers.ts).
-  'Primal Fury': (r) => [
+  // Feral 4·4, Blood Frenzy (Primal Fury until 1.60.1.70009, docs/data/talents.md#tree-versions): 50%
+  // per rank to gain 5 rage on any crit in Bear or Dire Bear Form (16959: energize 50; §4.8,
+  // rage.md#bear-druid-rage). Its combo-point part is on the builders (modifiers.ts).
+  'Blood Frenzy': (r) => [
     {
       kind: 'proc',
       proc: {
         id: 'primalFury',
-        name: 'Primal Fury',
+        name: 'Blood Frenzy',
         icon: 'ability_racial_cannibalize',
         trigger: 'meleeCrit',
         from: 'any',

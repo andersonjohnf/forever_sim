@@ -126,7 +126,8 @@ export function withDruidTalents(def: AbilityDef, talents: TalentRanks): Ability
   if (def.dotApCoefficientPerComboPoint) resolved.dotApCoefficientPerComboPoint = def.dotApCoefficientPerComboPoint * periodic
   if (def.damagePerComboPoint) resolved.damagePerComboPoint = def.damagePerComboPoint * hit
   if (def.apCoefficientPerComboPoint) resolved.apCoefficientPerComboPoint = def.apCoefficientPerComboPoint * hit
-  const primalFury = rank(talents, 'Primal Fury')
+  // Blood Frenzy, Primal Fury until 1.60.1.70009 (docs/data/talents.md#tree-versions).
+  const primalFury = rank(talents, 'Blood Frenzy')
   if (CP_BUILDERS.has(def.id) && primalFury > 0) resolved.critComboPointChance = Math.min(1, PRIMAL_FURY_CP_CHANCE_PER_RANK * primalFury)
   return resolved
 }

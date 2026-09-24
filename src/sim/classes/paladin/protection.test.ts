@@ -731,7 +731,7 @@ describe('Iron Creed’s damage taken (paladin.md#protection-tree)', () => {
     const uptime = sim.auraUpMs[aura] / ms
     expect(uptime).toBeGreaterThan(0.3)
     expect(uptime).toBeLessThan(0.6)
-    const without = protectionRotation({}, new Map([['Improved Holy Strike', 2]]), () => -1, { hasShield: true, maxMana: 2000 })
+    const without = protectionRotation({}, new Map([['Divine Strength', 2]]), () => -1, { hasShield: true, maxMana: 2000 })
     expect(without.abilities.find((a) => a.id === 'holyStrike')!.aura).toBeNull()
   })
 })

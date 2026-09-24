@@ -2,10 +2,10 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scrapedAt": "2026-09-24T22:47:41Z",
     "scraper": "scripts/scrape/talents-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -1541,7 +1541,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["A powerful kick that deals 100% melee weapon damage."]
+            "forever": ["A powerful kick that deals 100% melee weapon damage and increases movement speed by 30% for 3 sec."]
           },
           "spellId": 1317257,
           "tier": 4,

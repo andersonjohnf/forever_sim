@@ -88,8 +88,11 @@ export interface FightConfig {
 }
 
 export interface SimConfig {
-  /** Bump on breaking changes; normalizeConfig migrates or rejects old versions. */
-  version: 1
+  /**
+   * Bump on breaking changes; normalizeConfig migrates or rejects old versions. 2 since 1.60.1.70009's
+   * talent trees: version 1's talent code is on 1.60.1.69913's trees (docs/data/talents.md#tree-versions).
+   */
+  version: 2
   spec: SpecId
   /** A race id from src/data/races/races.json, legal for the spec's class in Forever. */
   race: string

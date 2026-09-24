@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
-import { decodeTalentCode } from '@/data/talents/types'
+import frozenJson from '@/data/talents/frozen.json'
+import { decodeFrozenCode, frozenBuildProblems, type FrozenTalentOrders } from '@/data/talents/types'
 import { itemsById } from '@/lib/items'
 import { GEAR_SLOTS, SPEC_IDS, SPEC_META, TALENT_DATA, type SpecId } from '@/sim'
 import { ENCHANTS_BY_ID } from '@/sim/effects/enchants'
@@ -11,6 +12,7 @@ import { LEGACY_COMMIT, LEGACY_DEFAULTS } from './legacy-defaults'
 // defaults"): its shape, so a bad regeneration or a hand edit shows up here.
 
 const races = (raceJson as unknown as RaceData).races
+const FROZEN = frozenJson as unknown as FrozenTalentOrders
 
 describe('the frozen defaults (src/app/legacy-defaults.ts)', () => {
   it('is ee171d2a’s, the last build deployed before saves said what follows the defaults', () => {
@@ -49,10 +51,13 @@ describe('the frozen defaults (src/app/legacy-defaults.ts)', () => {
     }
   })
 
-  it('holds each spec’s default talent build then, one that decodes within the class’s points', () => {
+  it('holds each spec’s default talent build then, one that decodes within the class’s points on 1.60.1.69913’s trees', () => {
     for (const [spec, frozen] of Object.entries(LEGACY_DEFAULTS) as [SpecId, (typeof LEGACY_DEFAULTS)[SpecId]][]) {
       const data = TALENT_DATA[SPEC_META[spec].classId]
-      const ranks = decodeTalentCode(data, frozen!.talents)
+      // The snapshot's codes are on the trees of its day (docs/data/talents.md#tree-versions).
+      const trees = FROZEN.builds['1.60.1.69913'].classes[data.class]
+      const ranks = decodeFrozenCode(trees, frozen!.talents)
+      expect(frozenBuildProblems(trees, ranks, data.rules), spec).toEqual([])
       const spent = Object.values(ranks).reduce((sum, r) => sum + r, 0)
       // Not always all 51: Balance's popular 41/5/0 spends 46 (druid.md).
       expect(spent, spec).toBeGreaterThan(40)

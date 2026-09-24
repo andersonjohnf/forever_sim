@@ -21,6 +21,14 @@ const SLIMMERS: [RegExp, (data: Json) => Json][] = [
     }),
   ],
   [
+    // The frozen code orders (docs/data/talents.md#tree-versions): the app reads only the trees. First,
+    // as the class files' pattern below matches it too.
+    /\/src\/data\/talents\/frozen\.json$/,
+    (data) => ({
+      builds: Object.fromEntries(Object.entries(data.builds as Record<string, Json>).map(([build, b]) => [build, { classes: b.classes }])),
+    }),
+  ],
+  [
     /\/src\/data\/talents\/\w+\.json$/,
     (data) => ({
       ...data,

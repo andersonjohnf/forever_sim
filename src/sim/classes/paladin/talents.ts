@@ -14,7 +14,6 @@ import {
   CONSECRATION_RANK1,
   EXORCISM_ABILITY,
   HAMMER_OF_WRATH_ABILITY,
-  HOLY_STRIKE_ABILITY,
   JUDGEMENT_CATEGORY,
   JUDGEMENT_OF,
   manaCostOf,
@@ -133,11 +132,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   // melee-class seal procs, judgements and Holy Strike)
   Deflection: (r) => [{ kind: 'stat', stat: 'parry', value: r }],
   Conviction: (r) => [{ kind: 'stat', stat: 'crit', value: r }],
-  // Retribution: +1% all damage per rank, and +1% more against Demons and Undead (a separate aura, 168)
-  Crusade: (r) => [
-    { kind: 'damage', pct: r },
-    { kind: 'damage', pct: r, when: { creature: ['demon', 'undead'] } },
-  ],
+  // Crusade (Retribution) left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions).
   // Retribution: +3% Physical damage per rank with a two-hander (school mask 1: not Holy)
   'Two-Handed Weapon Specialization': (r) => [{ kind: 'damage', pct: 3 * r, physicalOnly: true, when: { twoHand: true } }],
   // Retribution: 33 / 66 / 100% of Intellect as spell damage
@@ -240,8 +235,9 @@ export const HOLY_CONDUIT: ReadonlySet<string> = new Set([
  *   stops swings or holds Judgement; its GCD stays 1 s)
  * - Benediction −2% per rank on instant abilities and Holy Conduit −20% per rank on its four, added
  *   together [?] (OQ 19), then rounded down (paladin.md#mana-model: SoC 189, Consecration 508)
- * - Improved Judgement −1 s per rank on Judgement; Improved Holy Strike −1 s per rank; Purifying
- *   Power −17% / −33% on Exorcism's cooldown
+ * - Improved Judgement −1 s per rank on Judgement; Purifying Power −17% / −33% on Exorcism's
+ *   cooldown (Improved Holy Strike, −1 s per rank on Holy Strike, left the trees in 1.60.1.70009:
+ *   docs/data/talents.md#tree-versions)
  * - Sanctified Judgement: a judgement returns 20% per rank of its seal's base cost when it lands,
  *   at a 33 / 66 / 100% chance (paladin.md#judgement; base cost [?], OQ 12)
  */
@@ -270,7 +266,6 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
       out.manaReturnChance = [0, 0.33, 0.66, 1][sanctified]
     }
   }
-  if (def.id === HOLY_STRIKE_ABILITY.id) out.cooldownMs = def.cooldownMs - 1000 * rank(talents, 'Improved Holy Strike')
   if (def.id === EXORCISM_ABILITY.id) out.cooldownMs = Math.round(def.cooldownMs * (1 - [0, 0.17, 0.33][rank(talents, 'Purifying Power')]))
   return out
 }

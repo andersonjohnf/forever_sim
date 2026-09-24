@@ -1674,7 +1674,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const rendAndTear = abilities.find((a) => a.bleedingTargetPct)?.bleedingTargetPct
     if (rendAndTear && bear) notes.addText('rendAndTear', BEAR_TEXT.rendAndTear({ pct: rendAndTear, othersBleed, lacerate: uses.lacerate }))
     else if (rendAndTear) notes.add('rendAndTear')
-    if (setup.form === 'cat' && has('berserk') && setup.talents.has('Primal Fury')) notes.add('berserkCrits')
+    if (setup.form === 'cat' && has('berserk') && setup.talents.has('Blood Frenzy')) notes.add('berserkCrits')
     if ((setup.form === 'cat' || bear) && (auras.some((a) => a.haste) || derived.hasteMult > 1)) notes.add('formHaste')
     if (bear) {
       if (uses.swipe) notes.add('bearTwoRolls')

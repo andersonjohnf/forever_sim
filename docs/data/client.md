@@ -665,6 +665,23 @@ Primal Fury matched by position). The claim check (`--claims`) now reads 115 mat
 potions (now attack power) and Righteous Fury (+60%). The engine's constants still carry the
 1.60.1.69913 values, so the tests that check them against this data fail until each is adopted.
 
+The talent trees then took 1.60.1.70009 (2026-09-24, 0 requests: `npm run scrape:talents --
+--version=1.60.1.70009 --accept-code-changes`, then this scraper), once the app read codes from both
+trees ([talents.md § Tree versions](talents.md#tree-versions)): 1.60.1.69913's code order stays,
+frozen, in `src/data/talents/frozen.json`, a setup's `version` says which trees its code is on, and
+a version-1 code is mapped onto the new trees by talent name, its points in a removed talent
+refunded. The refused scrape's list held: Improved Holy Strike (Holy) and Crusade (Retribution)
+removed, Mangle and Primal Fury renamed Primal Bite and Blood Frenzy in their cells, Elemental Fury
+and Elemental Alacrity trading places. Two of its readings were off: Unyielding Faith was already 2
+ranks and Elemental Alacrity already 3 (the old codes read as illegal only because every later
+position had shifted), and no warrior talent moved: Bastion and Focused Rage keep their cells. The
+defaults moved with the trees (the Retribution and Protection paladin and Elemental defaults;
+[paladin.md](../classes/paladin.md#retribution-defaults), [shaman.md](../classes/shaman.md#elemental-defaults)).
+So `talents.json` now maps every talent of the new trees, all 466 by name (none by position), and
+every dataset here is one build again. `spells.json` gained no spell and lost none (Improved Holy Strike's
+and Crusade's spells stay, as paladin.md cites them): 7 racial spells whose doc citations had
+landed since the last run took their `docs` source.
+
 ### What the docs decide
 
 Part of the interest set comes from the docs rather than from the other datasets, so **a doc

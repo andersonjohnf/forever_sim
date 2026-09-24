@@ -10,7 +10,7 @@
 import { factionOf, factionTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { GEAR_SLOTS, SPEC_META, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { GEAR_SLOTS, refundNotice, SPEC_META, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentRefund } from '@/sim'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
@@ -35,7 +35,9 @@ export function readFollowing(input: unknown): Partial<Record<SpecId, Following>
  * `following`) holds each spec's default talents, and for every race its default gear and v1's pick.
  * These tables add what came before it, from git history: the talent builds each spec's default
  * was, and the items the interim tank sets (INTERIM_GEAR) put in each slot, in any version, for either
- * faction. A save from then with one of these in a slot counts it as the default's.
+ * faction. A save from then with one of these in a slot counts it as the default's. Every talent code
+ * here, and the snapshot's, is on 1.60.1.69913's trees, as the saves from then are (setup version 1):
+ * a save's code is compared as it was written, before loading maps it onto today's trees.
  */
 const FORMER_TALENTS: Partial<Record<SpecId, readonly string[]>> = {
   // warrior.md §6.1: 5/5/36, until P2's review (scripts/scrape/stored-builds.json)
@@ -126,13 +128,27 @@ function frozenGear(spec: SpecId, race: string): SimConfig['gear'][] {
 }
 
 /**
+ * The talent code a saved setup holds as it was written, when it's on 1.60.1.69913's trees (setup
+ * version 1, or none), as the frozen tables' codes are; undefined otherwise. Loading maps such a code
+ * onto today's trees (docs/data/talents.md#tree-versions), so the comparison with the frozen codes
+ * reads it before that.
+ */
+export function writtenV1Talents(saved: unknown): string | undefined {
+  if (typeof saved !== 'object' || saved === null) return undefined
+  const { version, talents } = saved as { version?: unknown; talents?: unknown }
+  return (version === undefined || version === 1) && typeof talents === 'string' ? talents : undefined
+}
+
+/**
  * The parts of a setup saved before saves said what follows the defaults that held a default then,
  * by the frozen tables alone, never today's defaults: a slot with the snapshot's default, its v1
  * pick or a former interim item (with one of the slot's frozen enchants, or none where the former
  * default had none), for the setup's race or the class's default race, or a race change's twin of
  * one of those; and a talent build that was the spec's default. Everything else is the player's.
+ * `writtenTalents` is the talent code as the save held it (writtenV1Talents): the frozen codes are on
+ * 1.60.1.69913's trees, and `config`, loaded, has it on today's.
  */
-export function legacyFollowing(config: SimConfig): Following {
+export function legacyFollowing(config: SimConfig, writtenTalents: string | undefined): Following {
   const { spec, race } = config
   const { classId } = SPEC_META[spec]
   const faction = factionOf(race)
@@ -154,35 +170,48 @@ export function legacyFollowing(config: SimConfig): Following {
     if (FORMER_UNENCHANTED[spec]?.includes(slot)) enchants.add(undefined)
     return ids.has(entry.itemId) && enchants.has(entry.enchantId)
   })
-  const talents = config.talents === frozen?.talents || (FORMER_TALENTS[spec] ?? []).includes(config.talents)
+  const talents = writtenTalents !== undefined && (writtenTalents === frozen?.talents || (FORMER_TALENTS[spec] ?? []).includes(writtenTalents))
   return { gear, talents }
 }
 
-/** What a load changed to newer defaults, for one spec. */
+/**
+ * What a load changed for one spec: parts moved to newer defaults, and the points the player's own
+ * talent build lost on the game's new talent trees (`refunds`; docs/data/talents.md#tree-versions).
+ */
 export interface DefaultsUpdate {
   spec: SpecId
   gear: boolean
   talents: boolean
+  refunds?: readonly TalentRefund[]
 }
 
 const specName = (spec: SpecId) => `${SPEC_META[spec].name} ${SPEC_META[spec].className}`
 
+/** Specs by name: one, two, or the first and a count. */
+function whoseOf(specs: readonly SpecId[]): string {
+  const names = specs.map(specName)
+  return names.length === 1 ? names[0] : names.length === 2 ? `${names[0]} and ${names[1]}` : `${names[0]} and ${names.length - 1} other specs`
+}
+
 /**
  * The notice after a load moved parts of the setup to newer defaults, the current spec first:
- * "Updated to the new default gear and talents for Protection Paladin". Null when nothing moved.
+ * "Updated to the new default gear and talents for Protection Paladin". A player's own build that
+ * lost points on the game's new talent trees says so after it, or on its own: "Talent points
+ * refunded for Retribution Paladin", "The game’s new talent trees refunded 4 of your Retribution
+ * Paladin talent points: …". Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
   const ordered = [...updates].sort((a, b) => Number(b.spec === current) - Number(a.spec === current))
-  const gear = ordered.some((u) => u.gear)
-  const talents = ordered.some((u) => u.talents)
+  const moved = ordered.filter((u) => u.gear || u.talents)
+  const refunded = ordered.filter((u) => u.refunds && u.refunds.length > 0)
+  const refunds = refunded.map((u) => refundNotice(u.refunds!, specName(u.spec)))
+  if (moved.length === 0) return { title: `Talent points refunded for ${whoseOf(refunded.map((u) => u.spec))}`, description: refunds.join(' ') }
+  const gear = moved.some((u) => u.gear)
+  const talents = moved.some((u) => u.talents)
   const what = gear && talents ? 'gear and talents' : gear ? 'gear' : 'talents'
-  const names = ordered.map((u) => specName(u.spec))
-  const whose =
-    names.length === 1
-      ? names[0]
-      : names.length === 2
-        ? `${names[0]} and ${names[1]}`
-        : `${names[0]} and ${names.length - 1} other specs`
-  return { title: `Updated to the new default ${what} for ${whose}`, description: 'Gear and talents you changed yourself are kept.' }
+  return {
+    title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
+    description: ['Gear and talents you changed yourself are kept.', ...refunds].join(' '),
+  }
 }

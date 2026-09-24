@@ -34,9 +34,55 @@ describe('normalizeConfig', () => {
   })
 
   it('resets a config from a newer version, keeping its spec', () => {
-    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 2 })
+    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 3 })
     expect(config).toEqual(defaultConfig('warrior-arms'))
     expect(warnings).toHaveLength(1)
+  })
+
+  describe('talent codes on older trees (docs/data/talents.md#tree-versions)', () => {
+    it('reads version 1 (or none) as 1.60.1.69913’s trees: the talents by name, with what was refunded said', () => {
+      // Retribution's default then: Improved Holy Strike and Crusade are gone, and the 20-point row
+      // below Crusade loses its gate, and with it the talents under it.
+      const { config, warnings, talentRefunds } = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' })
+      expect(config.version).toBe(2)
+      expect(config.talents).toBe('50003-503-05205231001')
+      expect(talentRefunds?.map((t) => t.name)).toEqual(['Improved Holy Strike', 'Crusade', 'Two-Handed Weapon Specialization', 'Vengeance', 'Champion of the Light', 'Instrument of Law', 'Twist of Light'])
+      expect(warnings).toEqual([
+        'The game’s new talent trees refunded 16 of your talent points: 2 in Improved Holy Strike (removed from the game), 2 in Crusade (removed from the game), 3 in Two-Handed Weapon Specialization (needs 20 points in Retribution above it), 3 in Vengeance (needs 20 points in Retribution above it), 3 in Champion of the Light (needs 25 points in Retribution above it), 2 in Instrument of Law (needs 25 points in Retribution above it) and 1 in Twist of Light (needs 30 points in Retribution above it).',
+      ])
+      // No version is version 1.
+      expect(normalizeConfig({ spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }).config.talents).toBe('50003-503-05205231001')
+    })
+
+    it('says nothing when a version-1 build keeps every point, and writes it on today’s trees', () => {
+      const { config, warnings, talentRefunds } = normalizeConfig({ version: 1, spec: 'shaman-elemental', talents: '5504301500103031-04-053250000001' })
+      expect(config.talents).toBe(defaultConfig('shaman-elemental').talents)
+      expect(warnings).toEqual([])
+      expect(talentRefunds).toBeUndefined()
+      // A tree no build moved: the same code, in canonical form.
+      expect(normalizeConfig({ version: 1, spec: 'warrior-fury', talents: '30305013002-050530035150010051' }).config.talents).toBe('30305013002-050530035150010051-')
+    })
+
+    it('reads version 2 on today’s trees: the same digits can be another build, or none', () => {
+      // 2-4530513321301551-502 is Improved Holy Strike 2 on 69913's trees and Divine Strength 2 on today's.
+      const v1 = normalizeConfig({ version: 1, spec: 'paladin-protection', talents: '2-4530513321301551-502' })
+      const v2 = normalizeConfig({ version: 2, spec: 'paladin-protection', talents: '2-4530513321301551-502' })
+      expect(v1.config.talents).toBe('-4530513321301551-502')
+      expect(v2.config.talents).toBe('2-4530513321301551-502')
+      expect(v2.warnings).toEqual([])
+      // 69913's Elemental default is illegal on today's trees (Elemental Alacrity has 3 ranks there).
+      const illegal = normalizeConfig({ version: 2, spec: 'shaman-elemental', talents: '5504301500103031-04-053250000001' })
+      expect(illegal.config.talents).toBe(defaultConfig('shaman-elemental').talents)
+      expect(illegal.warnings).toEqual(['The talent build wasn’t valid, so the default build was used.'])
+    })
+
+    it('refuses a version-1 code that wasn’t legal on 69913’s trees, as before', () => {
+      // Lava Burst (tier 7) with 28 points above it: illegal then, so not "refunded" now.
+      const { config, warnings, talentRefunds } = normalizeConfig({ version: 1, spec: 'shaman-elemental', talents: '5505301500103001' })
+      expect(config.talents).toBe(defaultConfig('shaman-elemental').talents)
+      expect(warnings).toEqual(['The talent build wasn’t valid, so the default build was used.'])
+      expect(talentRefunds).toBeUndefined()
+    })
   })
 
   it('repairs an illegal race for the class', () => {

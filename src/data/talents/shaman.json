@@ -2,10 +2,10 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scrapedAt": "2026-09-24T22:47:41Z",
     "scraper": "scripts/scrape/talents-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -306,30 +306,30 @@
         {
           "changeKind": "modified",
           "classic": {
-            "col": 1,
-            "matchStatus": "same_name",
-            "maxRank": 1,
-            "name": "Elemental Fury",
-            "prerequisite": null,
-            "tier": 4,
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "Lightning Mastery",
+            "prerequisite": "Call of Thunder",
+            "tier": 5,
             "tree": "Elemental"
           },
-          "classicSpellId": 16089,
+          "classicSpellId": 16578,
           "col": 2,
-          "icon": "spell_fire_volcano",
-          "id": "shaman-elemental-elemental-fury",
+          "icon": "spell_lightning_lightningbolt01",
+          "id": "shaman-elemental-elemental-alacrity",
           "inForeverTree": true,
-          "maxRank": 5,
-          "name": "Elemental Fury",
+          "maxRank": 3,
+          "name": "Elemental Alacrity",
           "order": 7,
           "passive": true,
           "prerequisite": null,
-          "previousName": null,
+          "previousName": "Lightning Mastery",
           "ranks": {
-            "classic": ["Increases the critical strike damage bonus of your Searing, Magma, and Fire Nova Totems and your Fire, Frost, and Nature spells by 100%."],
-            "forever": ["Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 20%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 40%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 60%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 80%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 100%."]
+            "classic": ["Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.2 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.4 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.6 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.8 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 1 sec."],
+            "forever": ["Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.17 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.33 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.50 sec."]
           },
-          "spellId": 16089,
+          "spellId": 16578,
           "tier": 2,
           "tooltip": null,
           "tree": "Elemental"
@@ -417,8 +417,8 @@
           "order": 10,
           "passive": true,
           "prerequisite": {
-            "rank": 5,
-            "talentId": "shaman-elemental-elemental-fury"
+            "rank": 3,
+            "talentId": "shaman-elemental-elemental-alacrity"
           },
           "previousName": null,
           "ranks": {
@@ -510,33 +510,33 @@
         {
           "changeKind": "modified",
           "classic": {
-            "col": 2,
-            "matchStatus": "same_spell",
-            "maxRank": 5,
-            "name": "Lightning Mastery",
-            "prerequisite": "Call of Thunder",
-            "tier": 5,
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Elemental Fury",
+            "prerequisite": null,
+            "tier": 4,
             "tree": "Elemental"
           },
-          "classicSpellId": 16578,
+          "classicSpellId": 16089,
           "col": 2,
-          "icon": "spell_lightning_lightningbolt01",
-          "id": "shaman-elemental-elemental-alacrity",
+          "icon": "spell_fire_volcano",
+          "id": "shaman-elemental-elemental-fury",
           "inForeverTree": true,
-          "maxRank": 3,
-          "name": "Elemental Alacrity",
+          "maxRank": 5,
+          "name": "Elemental Fury",
           "order": 14,
           "passive": true,
           "prerequisite": {
             "rank": 1,
             "talentId": "shaman-elemental-call-of-thunder"
           },
-          "previousName": "Lightning Mastery",
+          "previousName": null,
           "ranks": {
-            "classic": ["Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.2 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.4 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.6 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.8 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 1 sec."],
-            "forever": ["Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.17 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.33 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.50 sec."]
+            "classic": ["Increases the critical strike damage bonus of your Searing, Magma, and Fire Nova Totems and your Fire, Frost, and Nature spells by 100%."],
+            "forever": ["Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 20%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 40%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 60%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 80%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 100%."]
           },
-          "spellId": 16578,
+          "spellId": 16089,
           "tier": 5,
           "tooltip": null,
           "tree": "Elemental"
@@ -560,7 +560,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["You hurl molten lava at the target, dealing 106 to 134 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."]
+            "forever": ["You hurl molten lava at the target, dealing 150 to 192 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."]
           },
           "spellId": 408490,
           "tier": 6,
@@ -1098,7 +1098,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["Increases your melee attack speed and spell casting speed by 30% for 25 sec."]
+            "forever": ["Increases your attack speed by 30% for 25 sec."]
           },
           "spellId": 425336,
           "tier": 6,

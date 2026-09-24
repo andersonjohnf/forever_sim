@@ -9,17 +9,25 @@ import type { RulesProfile } from '../../rules/profiles'
 
 const DOC = 'docs/classes/druid.md'
 
-/** A druid's forms in `Plan.forms` order (the caster form first). */
-export const DRUID_FORMS: readonly DruidForm[] = ['caster', 'cat', 'bear']
+/**
+ * A druid's forms in `Plan.forms` order (the caster form first). Moonkin Form is last, and a plan has
+ * it only when it fights in it (the Balance druid, §11.1), so a feral's forms keep their indices.
+ */
+export const DRUID_FORMS: readonly DruidForm[] = ['caster', 'cat', 'bear', 'moonkin']
 
 /** Index of each form in `Plan.forms` for a druid. */
-export const FORM_INDEX: Record<DruidForm, number> = { caster: 0, cat: 1, bear: 2 }
+export const FORM_INDEX: Record<DruidForm, number> = { caster: 0, cat: 1, bear: 2, moonkin: 3 }
 
 /** A form's bit in an ability's or a proc's `forms` mask. */
 export const formBit = (...forms: DruidForm[]) => forms.reduce((mask, f) => mask | (1 << FORM_INDEX[f]), 0)
 
-export const FORM_NAME: Record<DruidForm, string> = { caster: 'Caster form', cat: 'Cat Form', bear: 'Dire Bear Form' }
-export const FORM_ICON: Record<DruidForm, string> = { caster: 'spell_nature_regeneration', cat: 'ability_druid_catform', bear: 'ability_racial_bearform' }
+export const FORM_NAME: Record<DruidForm, string> = { caster: 'Caster form', cat: 'Cat Form', bear: 'Dire Bear Form', moonkin: 'Moonkin Form' }
+export const FORM_ICON: Record<DruidForm, string> = {
+  caster: 'spell_nature_regeneration',
+  cat: 'ability_druid_catform',
+  bear: 'ability_racial_bearform',
+  moonkin: 'spell_nature_forceofnature',
+}
 
 /**
  * Swing time of the form's attacks, `SpellShapeshiftForm.CombatRoundTime`: cat 1000 ms, Bear and

@@ -113,7 +113,9 @@ const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 't
  * those whose every spec is a caster (the mage since K2, docs/classes/mage.md; the warlock since
  * K3, docs/classes/warlock.md; the priest, whose one spec in scope is Shadow, since K4,
  * docs/classes/priest.md): the mana and spell damage entries go to them by class. A class with a
- * melee spec too (the druid's Feral specs beside Balance) gets those per spec instead.
+ * melee spec too (the druid's Feral specs beside Balance) gets those per spec instead: each mana and
+ * spell damage entry carries `forCasterSpecs`, so every caster spec has it whatever its class
+ * (docs/classes/druid.md §11.6).
  */
 export const CASTER_SPECS: readonly SpecId[] = SPEC_IDS.filter((s) => SPEC_META[s].caster === true)
 export const CASTER_CLASSES: readonly ClassId[] = [...new Set(CASTER_SPECS.map((s) => SPEC_META[s].classId))].filter((c) =>
@@ -324,6 +326,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'priest',
     // Spirit regenerates mana, which the paladin and the shaman spend in combat.
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 27681 #0 (Divine Spirit 27841 the same): aura 29, misc 4 (Spirit), 40; Classic Era's 39 + 1.
     effects: [{ kind: 'stat', stat: 'spi', value: 40 }],
@@ -339,6 +342,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'mage',
     // Intellect is mana, spell crit and (Champion of the Light) spell damage: the paladin's alone.
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 23028 #0 (Arcane Intellect 10157 the same): aura 29, misc 3 (Intellect), 31; Classic Era's 30 + 1.
     effects: [{ kind: 'stat', stat: 'int', value: 31 }],
@@ -468,6 +472,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '+40 mana every 5 s',
     providedBy: 'paladin',
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
     effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
@@ -484,6 +489,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'shaman',
     selfCast: true,
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
@@ -758,6 +764,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Elixirs',
     summary: '+35 spell damage',
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#32-elixirs`,
     // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
@@ -815,6 +822,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '+150 spell damage',
     exclusiveGroup: 'flask',
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#31-flasks`,
     // 17628 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 150 }],
@@ -1121,6 +1129,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
     presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
@@ -1134,6 +1143,7 @@ export const BUFFS: BuffSpec[] = [
     // A Dark Rune is the same, on the same cooldown, so one entry stands for both.
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
     forClasses: MANA_CLASSES,
+    forCasterSpecs: true,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
     presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },

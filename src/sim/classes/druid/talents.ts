@@ -9,6 +9,7 @@
 import { PLAYER_LEVEL } from '../../core/attack-table'
 import type { Effect } from '../../effects/types'
 import type { RulesProfile } from '../../rules/profiles'
+import { ECLIPSE, NATURES_GRACE } from './balance-abilities'
 
 const DOC = 'docs/classes/druid.md'
 const ANIMAL = { form: ['cat', 'bear'] } as const
@@ -89,4 +90,11 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
   Naturalist: (r) => [{ kind: 'damage', pct: r }],
   // Restoration: +5% Spirit per rank (character-stats.md#other-stat-changing-talents-and-spells)
   'Living Spirit': (r) => [{ kind: 'mult', stat: 'spi', pct: 5 * r }],
+  // Balance 6·2: +2% Arcane and Nature damage per rank (16896: aura 79, school mask 72) [F] (§11.3)
+  Moonfury: (r) => [{ kind: 'schoolDamage', schools: ['arcane', 'nature'], pct: 2 * r }],
+  // Balance 5·2: a non-periodic spell crit gives +10% casting speed and a 10% shorter GCD for 3 s (§11.3)
+  "Nature's Grace": () => [{ kind: 'proc', proc: NATURES_GRACE }],
+  // Balance 5·3: a landed Wrath gives 2 charges that shorten Starfire's cast (§11.3); the cut per rank
+  // is on Starfire (balance-abilities.ts withBalanceTalents), and without a Wrath the proc is left out.
+  Eclipse: () => [{ kind: 'proc', proc: ECLIPSE }],
 }

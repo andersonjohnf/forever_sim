@@ -855,6 +855,31 @@ const REGISTRY = {
     text: 'Shadowfiend isn’t simulated: it’s a pet, which the sim can’t model yet, so its mana (5% of yours each hit, for 15 s every 5 minutes) is left out.',
     docRef: `${PRIEST}#5-mana`,
   },
+  // The Balance druid's (docs/classes/druid.md §11.8): its spells, their DoTs and procs, then its mana.
+  balanceSpells: {
+    text: 'Your spells roll the spell table against a level-63 boss with a level-based resistance of 24 (an average partial resist of 6%; Insect Swarm, whose −2% hit makes it binary, is resisted whole instead). Wrath lands the moment its cast does. The Forever spell values are the client’s rows, not yet checked in game, and your talents’ cuts to a spell’s mana multiply and round down.',
+    docRef: `${DRUID}#118-open-questions`,
+  },
+  balanceDotCrits: {
+    text: 'Moonfire’s and Insect Swarm’s ticks can crit, as their client flag says, at the spell crit they landed with, and Vengeance doubles those crits too. Untested in Forever.',
+    docRef: `${DRUID}#112-spells`,
+  },
+  balanceNaturesGrace: {
+    text: 'Each non-periodic spell crit gives Nature’s Grace for 3 s: +10% casting speed and a 1.35 s global cooldown for your Balance spells, which a cast gets if it starts inside them. Untested.',
+    docRef: `${DRUID}#113-talents-and-procs`,
+  },
+  balanceEclipse: {
+    text: 'Each Wrath that lands gives 2 Eclipse charges (at most 4, for 15 s from the last Wrath), and each Starfire you start with one uses it and casts 0.5 s faster, before casting speed. Only the tooltip says so: the client’s effects are server-side.',
+    docRef: `${DRUID}#113-talents-and-procs`,
+  },
+  balanceOmenOfClarity: {
+    text: 'Omen of Clarity procs from your landed spells 2 times a minute of casting, twice that in Moonkin Form (a 3 s Starfire’s chance is 20%), at most once every 5 s; Clearcasting makes your next Starfire, Moonfire or Insect Swarm free, not Wrath. The doubling and the 5 s are client data; the rate is the melee one, which only another sim gives.',
+    docRef: `${DRUID}#113-talents-and-procs`,
+  },
+  manaRegenBalance: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, five times that and all of it while casting in Innervate’s 20 s, and your mp5 always. You’re in Moonkin Form at the pull.',
+    docRef: `${DRUID}#114-mana`,
+  },
 } satisfies Record<string, { text: string; docRef: string }>
 
 export type AssumptionId = keyof typeof REGISTRY

@@ -71,6 +71,17 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     // Its duties (D26; druid.md §6.3): the rotation keeps them on the boss.
     ownBuffs: ['faerieFire', 'demoralizingRoar'],
   },
+  // docs/classes/druid.md §11: the caster sheet (spell damage by school); its Moonkin Aura comes with
+  // the talent (classes/druid/setup.ts), as the cat's Leader of the Pack does.
+  'druid-balance': {
+    id: 'druid-balance',
+    classId: 'druid',
+    className: 'Druid',
+    name: 'Balance',
+    role: 'dps',
+    icon: 'spell_nature_starfall',
+    caster: true,
+  },
   'paladin-retribution': {
     id: 'paladin-retribution',
     classId: 'paladin',

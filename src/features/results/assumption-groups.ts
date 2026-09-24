@@ -190,6 +190,13 @@ export const ASSUMPTION_GROUP = {
   mageArcaneMissiles: 'class',
   magePresenceOfMind: 'class',
   manaRegenMage: 'class',
+  // The Balance druid's (docs/classes/druid.md §11.8): its spells and procs, then its mana.
+  balanceSpells: 'class',
+  balanceDotCrits: 'class',
+  balanceNaturesGrace: 'class',
+  balanceEclipse: 'class',
+  balanceOmenOfClarity: 'class',
+  manaRegenBalance: 'class',
   foreverWhiteRage: 'class',
   foreverOffHandRage: 'class',
   onNextSwingRage: 'class',

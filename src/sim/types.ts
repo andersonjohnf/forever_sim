@@ -331,6 +331,12 @@ export interface BuffDefinition {
    * the plan skip it for the others.
    */
   forSpecs?: 'melee' | 'caster'
+  /**
+   * Also for every caster spec (SpecMeta.caster), whatever its class: the mana and spell damage
+   * entries, which a druid's Balance spec needs and its Feral specs don't (docs/classes/druid.md
+   * §11.6; docs/mechanics/spells.md §12).
+   */
+  forCasterSpecs?: boolean
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /**

@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the default Balance druid’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "insectSwarm",
+      10710833.07686465,
+      12073,
+      64059,
+      13559,
+      941,
+    ],
+    [
+      "moonfire",
+      3377002.9175832816,
+      10671,
+      7627,
+      2835,
+      209,
+    ],
+    [
+      "moonfireDot",
+      10013296.927136812,
+      10462,
+      37732,
+      14277,
+      0,
+    ],
+    [
+      "starfire",
+      42254485.49432742,
+      40147,
+      32455,
+      6880,
+      812,
+    ],
+    [
+      "wrath",
+      10219935.425427705,
+      27216,
+      22107,
+      4583,
+      526,
+    ],
+  ],
+  "assumptions": [
+    "reactionTimeMage",
+    "gcdHaste",
+    "ratingsInCombat",
+    "baseStatPlaceholders",
+    "classicItems",
+    "unmodelledProcs",
+    "onUseConsumables",
+    "balanceSpells",
+    "balanceDotCrits",
+    "balanceNaturesGrace",
+    "balanceEclipse",
+    "balanceOmenOfClarity",
+    "manaRegenBalance",
+  ],
+  "dps": {
+    "ci95": 1.34317717413468,
+    "mean": 426.56425650635003,
+    "stdev": 21.67131235531838,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 5134,
+    "regeneratedPerFight": 5217.9197,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3598.3256,
+      },
+    ],
+    "restoredPerFight": 3598.3256,
+    "spentPerFight": 13648.636,
+  },
+}
+`;

@@ -24,12 +24,15 @@ const PALADIN_ONLY = [
 const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
 /** And the casters': the mage, the first (docs/classes/mage.md), the warlock (docs/classes/warlock.md) and the priest (docs/classes/priest.md; docs/mechanics/spells.md §12). */
 const CASTERS_TOO = SHAMAN_TOO
+/** And every caster spec's, whatever its class (`forCasterSpecs`): the Balance druid's (docs/classes/druid.md §11.6). */
+const CASTER_TOO = SHAMAN_TOO
 
 describe('class-only catalogue entries', () => {
-  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, the warlock since K3, the Shadow Priest since K4 and the Elemental shaman since K5, so no warrior, druid, paladin, Enhancement shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
+  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, the warlock since K3, the Shadow Priest since K4, the Elemental shaman since K5 and the Balance druid since K6, so no warrior, feral druid, paladin, Enhancement shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
     expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([
+      // The druid isn't a caster class: its Feral specs aren't casters (docs/classes/druid.md §11.6).
       ['mage', 'warlock', 'priest'],
-      ['shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'],
+      ['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'],
     ])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
     // And the Elixir of Shadow Power, a caster's by kind and the warlock's and the priest's by class.
@@ -74,12 +77,19 @@ describe('class-only catalogue entries', () => {
       for (const preset of ['dungeon', 'raid', 'max'] as const) {
         const ids = presetBuffIds(preset, spec, FULL_RAID)
         const classId = SPEC_META[spec].classId
-        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(CASTER_CLASSES.includes(classId) && CASTERS_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
+        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(CASTER_CLASSES.includes(classId) && CASTERS_TOO.includes(id)) && !(SPEC_META[spec].caster === true && CASTER_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
       }
     }
     expect(forSpecClass({ forClasses: ['paladin'] }, 'warrior-fury')).toBe(false)
     expect(forSpecClass({ forClasses: ['paladin'] }, 'paladin-protection')).toBe(true)
     expect(forSpecClass({}, 'druid-feral-cat')).toBe(true)
+    // docs/classes/druid.md §11.6: a druid's mana and spell entries are the Balance spec's, never a feral's.
+    expect(forSpecClass({ forClasses: ['paladin'], forCasterSpecs: true }, 'druid-balance')).toBe(true)
+    expect(forSpecClass({ forClasses: ['paladin'], forCasterSpecs: true }, 'druid-feral-cat')).toBe(false)
+    expect(presetBuffIds('raid', 'druid-balance', FULL_RAID)).toEqual(
+      expect.arrayContaining(['arcaneBrilliance', 'blessingOfWisdom', 'greaterArcaneElixir', 'majorManaPotion', 'moonkinAura', 'curseOfTheElements']),
+    )
+    expect(presetBuffIds('raid', 'druid-feral-cat', FULL_RAID)).not.toContain('arcaneBrilliance')
   })
 
   it('follow the paladin presets (buffs doc §6.2 “Pal”, §6.3)', () => {

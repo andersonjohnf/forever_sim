@@ -8,6 +8,7 @@ import { NO_PREPULL } from '../plan/types'
 import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
+import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import {
@@ -85,6 +86,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
   if (spec === 'druid-feral-bear') return BEAR_OPTIONS
+  if (spec === 'druid-balance') return BALANCE_OPTIONS
   if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
   if (spec === 'shaman-elemental') return ELEMENTAL_OPTIONS
   if (spec === 'rogue-combat') return COMBAT_OPTIONS
@@ -143,6 +145,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // docs/classes/warlock.md §6.3: the same for the warlock.
   if (spec === 'warlock-destruction' || spec === 'warlock-affliction') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   if (spec === 'priest-shadow') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  // docs/classes/druid.md §11.5: landed under D27's first-pass defaults (K6).
+  if (spec === 'druid-balance') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -165,6 +169,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'warrior-protection': 'warrior.protection.racial.enabled',
   'druid-feral-cat': 'druid.cat.racial.enabled',
   'druid-feral-bear': 'druid.bear.racial.enabled',
+  'druid-balance': 'druid.balance.racial.enabled',
   'shaman-enhancement': 'shaman.enhancement.racial.enabled',
   'shaman-elemental': 'shaman.elemental.racial.enabled',
   'rogue-combat': 'rogue.combat.racial.enabled',
@@ -187,7 +192,7 @@ export interface UnusedSetup {
   raceName: string
   othersBleed: boolean
   buffGroups: ReadonlySet<string>
-  /** Talent ranks by name: the warlock's Demonic Sacrifice and Incinerate settings need their talents. Absent: none. */
+  /** Talent ranks by name: the warlock's Demonic Sacrifice and Incinerate settings need their talents, and the Balance filler Eclipse overrides. Absent: none. */
   talents?: ReadonlyMap<string, number>
 }
 
@@ -223,6 +228,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'warlock-affliction') Object.assign(out, afflictionUnusedSettings(values, setup.talents ?? new Map()))
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
+  if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
   return out
 }
 
@@ -239,6 +245,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   // docs/classes/paladin.md "Priority": a Protection paladin's own Devotion Aura.
   if (spec === 'paladin-protection') return paladinProtectionMaintainedBuffs(values)
   if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
+  if (spec === 'druid-balance') return balanceMaintainedBuffs(values)
   if (spec === 'rogue-combat') return combatMaintainedBuffs(values)
   if (spec === 'rogue-assassination') return assassinationMaintainedBuffs(values)
   if (spec === 'rogue-subtlety') return subtletyMaintainedBuffs(values)
@@ -274,6 +281,8 @@ export function classRotation(
   // docs/classes/paladin.md "Protection: model and rotation".
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
+  // docs/classes/druid.md §11.5.
+  if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Elemental priority".

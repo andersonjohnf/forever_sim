@@ -15,6 +15,7 @@ import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/pr
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
+import { balanceAssumptions } from '../classes/druid/balance'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
@@ -369,8 +370,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
   // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
   // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
-  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage' || classId === 'warlock' || classId === 'priest'
-  const usesRage = classId === 'warrior' || classId === 'druid'
+  const usesMana = classId === 'paladin' || classId === 'shaman' || meta.caster === true
+  const usesRage = classId === 'warrior' || (classId === 'druid' && !meta.caster)
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
   // other stats and effects still apply (druid.md §2.1, §8 "Form swap"). Its per-hand bonuses
@@ -523,10 +524,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
    * entry that fills it (Expose Armor's `armor-major`, Demoralizing Shout's `ap-reduction`).
    */
   const filledGroups = buffGroupFillers(config.buffs.enabled, config.buffs.raid, config.spec, [...maintained, ...(setup.replacesBuffs ?? [])])
+  // A buff the talents bring takes its exclusive group too: a Balance druid's own Moonkin Aura leaves a
+  // Leader of the Pack out, as the game's "exclusive with" does (docs/classes/druid.md §11.1).
+  const talentGroups = new Set((setup.replacesBuffs ?? []).flatMap((id) => BUFFS_BY_ID.get(id)?.exclusiveGroup ?? []))
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
+    if (buff.exclusiveGroup !== undefined && talentGroups.has(buff.exclusiveGroup)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -603,8 +608,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
   }
   // docs/mechanics/spells.md §12: a caster spec (a mage, a warlock, an Elemental shaman, a Shadow
-  // Priest) casts from range and never swings its weapon (above), whose stats still count: nothing
-  // melee applies to it.
+  // Priest, a Balance druid) casts from range and never swings its weapon (above), whose stats still
+  // count: nothing melee applies to it.
   const melee = !meta.caster
   const mh = weapons[HAND.main]
   const sheet: CharacterSheet = {
@@ -729,6 +734,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.critChargeSchools?.length ? { critChargeSchools: schoolMask(spec.critChargeSchools) } : {}),
       ...(spec.refreshKeepsCharges ? { refreshKeepsCharges: true } : {}),
       ...(spec.mods.manaCostPct ? { manaCostPct: spec.mods.manaCostPct } : {}),
+      // The Balance druid's Nature's Grace (docs/classes/druid.md §11.3), only when set.
+      ...(spec.mods.gcdPct ? { gcdPct: spec.mods.gcdPct } : {}),
     })
     return auras.length - 1
   }
@@ -796,6 +803,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.amount = auraIndex(action.aura, spec.from === 'weapon' && origin !== null ? `${action.aura.id}.${origin}` : action.aura.id, spec.icon)
         // Its own duration for this aura (the Overpower window: 6 s from Bloodthrill, warrior.md §2.8); 0 = the aura's.
         proc.b = action.durationMs ?? 0
+        // Stacks it adds at once (Eclipse's 2 charges, docs/classes/druid.md §11.3), only when more than one.
+        if ((action.stacks ?? 1) > 1) proc.a = action.stacks!
         break
       case 'rage':
         proc.action = ACTION.rage
@@ -971,6 +980,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       instantAuraId: ______,
       needsAuraId: _______,
       consumesDotOf: ________,
+      chargeAuraId: _________,
       ...a
     } = def
     const source = sourceIndex(a.id, a.name, a.icon)
@@ -1052,6 +1062,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (aura >= 0) abilities[i].instantAura = aura
     }
   })
+  // docs/classes/druid.md §11.3: the aura whose charges shorten an ability's cast (Eclipse's Starfire),
+  // when a proc puts it up.
+  classRot.abilities.forEach((def, i) => {
+    if (!def.chargeAuraId) return
+    const aura = auras.findIndex((x) => x.id === def.chargeAuraId)
+    if (aura >= 0) abilities[i].chargeAura = aura
+    else delete abilities[i].chargeCastMs
+  })
   for (const { spell, boost } of spellBoosts) {
     const aura = auras.findIndex((x) => x.id === boost.aura)
     // docs/classes/warlock.md §3: Incinerate's boost reads Immolate's marker and keeps it up; so does Lava
@@ -1113,6 +1131,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procs.some((p) => p.id === SHAMAN_WINDFURY_WEAPON) && procs.some((p) => p.id === 'windfury')) {
     procs = procs.filter((p) => p.id !== 'windfury')
     notes.add('windfuryWeaponTotem')
+  }
+  // docs/classes/druid.md §11.3: a proc's rate per minute of casting reads each spell's cast time, its
+  // ability's, at least the GCD; only a plan with such a proc has them.
+  if (procs.some((p) => (p.ppmCast ?? 0) > 0)) {
+    for (const a of abilities) {
+      for (const s of [a.spell, a.tickSpell]) if (s !== undefined && s >= 0) spells[s].procCastMs = Math.max(a.gcdMs, a.castMs)
+    }
   }
   const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
   procs.forEach((p, i) => triggers[p.trigger].push(i))
@@ -1211,7 +1236,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     abilities,
     rotation: neverUsable.size > 0 ? classRot.rotation.filter((e) => !neverUsable.has(e.ability)) : classRot.rotation,
     prepull: classRot.prepull,
-    ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras) : {}),
+    ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras, block.mp5) : {}),
     ...(spells.length > 0 ? { spells } : {}),
     // docs/classes/paladin.md#mana-model: its mana, from the sheet's maximum and Spirit.
     ...(classId === 'paladin' ? { mana: paladinManaPlan(derived, block.mp5, setup.talents) } : {}),
@@ -1255,7 +1280,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
                 ? 'reactionTimeMage'
                 : classId === 'warlock'
                   ? 'reactionTimeWarlock'
-                  : 'reactionTime',
+                  : meta.caster
+                    ? 'reactionTimeMage'
+                    : 'reactionTime',
     )
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : classId === 'rogue' ? 'gcdHasteRogue' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
@@ -1275,7 +1302,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  // A caster's spells need no weapon (docs/classes/mage.md, warlock.md, priest.md), and it swings none: no note.
+  // A caster's spells need no weapon (docs/classes/mage.md, warlock.md, priest.md; the Balance druid's, druid.md §11.1), and it swings none: no note.
   if (!mh && !meta.caster) {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
@@ -1504,6 +1531,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of warlockAssumptions(plan)) notes.add(id)
   // docs/classes/priest.md#9-open-questions: what the priest's spells, talents and mana rely on.
   for (const id of priestAssumptions(plan, setup.talents)) notes.add(id)
+  // docs/classes/druid.md §11.8: what the Balance druid's spells, procs and mana rely on.
+  for (const id of balanceAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -1777,14 +1806,16 @@ function druidForms(
     }
   }
   if (main?.form) main.plan.flatDamage = 0
-  const forms = DRUID_FORMS.map((f): FormPlan => {
+  // Moonkin Form only in a plan that fights in it (docs/classes/druid.md §11.1), so a feral's forms keep theirs.
+  const forms = DRUID_FORMS.filter((f) => f !== 'moonkin' || start === 'moonkin').map((f): FormPlan => {
     const fc: Collected = { ...c, block: new StatBlock().copyFrom(shared), procs: [], periodicRage: [], onUse: [], tempEnchants: [] }
     for (const e of bound) {
       if (!e.when?.form?.includes(f)) continue
       if (!FORM_EFFECT_KINDS.has(e.kind)) throw new Error(`A form effect a shapeshift can't switch: ${e.kind}`)
       applyEffect(fc, e, null, [null, null])
     }
-    const mainHand = f === start ? (main?.plan ?? null) : f === 'caster' ? caster : formWeapon(f, bonuses, profile, bossLevel)
+    // A moonkin casts and never swings (§11.1).
+    const mainHand = f === 'moonkin' ? null : f === start ? (main?.plan ?? null) : f === 'caster' ? caster : formWeapon(f, bonuses, profile, bossLevel)
     return { id: f, name: FORM_NAME[f], stats: fc.block, mainHand, threatMult: fc.threatMult, rage: f === 'bear' }
   })
   // The starting form's block is the plan's own (one object), so a change to `plan.stats` is its too.
@@ -1825,7 +1856,7 @@ function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | nu
       const w = weapons[h]
       // docs/mechanics/damage-and-timing.md#51-ppm-formula: PPM × base weapon speed / 60
       chance[h] = w ? ppmChance(spec.chance.ppm, w.plan.speedSec) : 0
-    } else {
+    } else if ('pct' in spec.chance) {
       chance[h] = spec.chance.pct / 100
     }
   }
@@ -1835,6 +1866,8 @@ function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | nu
     trigger,
     chance,
     ...('ppm' in spec.chance ? { ppm: spec.chance.ppm } : {}),
+    // docs/classes/druid.md §11.3: a rate per minute of casting (Omen of Clarity's spells [?]).
+    ...('ppmCast' in spec.chance ? { ppmCast: spec.chance.ppmCast } : {}),
     hands,
     icdMs: spec.icdMs ?? 0,
     action: 0,

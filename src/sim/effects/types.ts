@@ -122,8 +122,8 @@ export interface Condition {
   form?: readonly DruidForm[]
 }
 
-/** A druid's forms at level 60 (bear is Dire Bear Form; docs/classes/druid.md §2.1). */
-export type DruidForm = 'caster' | 'cat' | 'bear'
+/** A druid's forms at level 60 (bear is Dire Bear Form; docs/classes/druid.md §2.1; Moonkin Form, §11.1). */
+export type DruidForm = 'caster' | 'cat' | 'bear' | 'moonkin'
 
 export type Effect = (
   | { kind: 'stat'; stat: FlatStat; value: number }
@@ -318,6 +318,11 @@ export interface AuraSpec {
     castingRegen?: number
     /** The mana cost of your abilities %, per stack, while it's up (Arcane Power's +30%, docs/classes/mage.md#arcane-power). */
     manaCostPct?: number
+    /**
+     * The global cooldown % shorter while it's up, for the abilities marked `gcdCut` (Nature's Grace's
+     * −10%, docs/classes/druid.md §11.3; plan/types.ts AuraPlan).
+     */
+    gcdPct?: number
   }
 }
 
@@ -361,8 +366,10 @@ export type ProcAction =
   /**
    * Puts the aura on the player; `durationMs` overrides its duration for this proc (the Overpower
    * window: 5 s from a dodge, 6 s from Bloodthrill, warrior.md §2.8). A refresh never shortens it.
+   * `stacks`: how many stacks each proc adds (Eclipse's 2 charges a Wrath, docs/classes/druid.md
+   * §11.3); absent, 1.
    */
-  | { kind: 'aura'; aura: AuraSpec; durationMs?: number }
+  | { kind: 'aura'; aura: AuraSpec; durationMs?: number; stacks?: number }
   /** Magic damage on the spell table with an average partial resist (combat-tables §9). */
   | { kind: 'spellDamage'; school: 'fire' | 'frost' | 'shadow' | 'nature' | 'arcane' | 'holy'; min: number; max: number }
   /** Rage from a spell effect (an energize: it makes threat, threat.md). */
@@ -408,7 +415,13 @@ export interface ProcSpec {
   from: 'weapon' | 'mainHand' | 'offHand' | 'any'
   /** Only attacks made with these weapon types (Weaponmaster swords). */
   weapons?: WeaponType[]
-  chance: { ppm: number } | { pct: number }
+  /**
+   * Its chance: a flat %, procs per minute from the weapon's speed (damage-and-timing §5.1), or, on
+   * the spell triggers, procs per minute of casting (`ppmCast`): each landed spell's chance is the
+   * rate × its ability's cast time (at least the 1.5 s GCD) / 60 (Omen of Clarity's spells [?],
+   * docs/classes/druid.md §11.3).
+   */
+  chance: { ppm: number } | { pct: number } | { ppmCast: number }
   icdMs?: number
   action: ProcAction
   /**

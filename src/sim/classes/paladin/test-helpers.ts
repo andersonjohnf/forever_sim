@@ -163,7 +163,7 @@ export function addPlanSpell(plan: Plan, def: SpellDef): number {
  */
 export function addProcSpec(plan: Plan, spec: ProcSpec): number {
   const trigger = TRIGGER[spec.trigger]
-  const chance = 'ppm' in spec.chance ? (spec.chance.ppm * plan.weapons[0]!.speedSec) / 60 : spec.chance.pct / 100
+  const chance = 'ppm' in spec.chance ? (spec.chance.ppm * plan.weapons[0]!.speedSec) / 60 : 'pct' in spec.chance ? spec.chance.pct / 100 : 0
   let action: number
   let amount: number
   let source = -1

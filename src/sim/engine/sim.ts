@@ -483,6 +483,18 @@ export class Sim {
   private readonly aSpellDamagePct: Float64Array
   /** Casting speed shortens its cast time (§4). */
   private readonly abCastHasted: Uint8Array
+  // The Balance druid's (docs/classes/druid.md §11.3): Nature's Grace's GCD cut, Eclipse's charges, and
+  // Omen of Clarity's rate per minute of casting.
+  /** The auras' `gcdPct`, and the product of (1 − it) over the active ones; the abilities it shortens. */
+  private readonly aGcdPct: Float64Array
+  private gcdMult = 1
+  private readonly abGcdCut: Uint8Array
+  /** The aura whose stacks shorten its cast (−1: none), by how many ms a stack. */
+  private readonly abChargeAura: Int32Array
+  private readonly abChargeCastMs: Float64Array
+  /** A spell proc's rate per minute of casting (0: its chance), and each row's cast time for it, ms. */
+  private readonly pPpmCast: Float64Array
+  private readonly srcProcCastMs: Float64Array
   /** `channel`: ticks after which it's cut off (0: all of them; §6). */
   private readonly abChannelTicks: Int32Array
   /** A spell proc's schools (a mask, 0: any) and the one spell row that fires it (−1: any; §10). */
@@ -1123,13 +1135,17 @@ export class Sim {
     // docs/mechanics/spells.md §10: a spell proc's schools and spell.
     this.pSchools = Int32Array.from(procs, (p) => p.schools ?? 0)
     this.pFromSource = Int32Array.from(procs, (p) => p.fromSource ?? -1)
+    // docs/classes/druid.md §11.3: a rate per minute of casting reads the spell's row's cast time.
+    this.pPpmCast = Float64Array.from(procs, (p) => p.ppmCast ?? 0)
+    this.srcProcCastMs = new Float64Array(plan.sources.length)
+    for (const x of plan.spells ?? []) if (x.procCastMs !== undefined) this.srcProcCastMs[x.source] = x.procCastMs
     this.triggerLists = []
     this.gatedLists = []
     for (let t = 0; t < TRIGGER_COUNT; t++) {
       const list = plan.triggers[t] ?? []
       // A proc that needs an aura or a form (druid.md §2.8), or names a spell's schools or row
       // (docs/mechanics/spells.md §10), is gated; the rest roll with no check.
-      const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0 || this.pSchools[p] !== 0 || this.pFromSource[p] >= 0
+      const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0 || this.pSchools[p] !== 0 || this.pFromSource[p] >= 0 || this.pPpmCast[p] > 0
       this.triggerLists.push(Int32Array.from(list.filter((p) => !gated(p))))
       this.gatedLists.push(Int32Array.from(list.filter(gated)))
     }
@@ -1243,8 +1259,9 @@ export class Sim {
     this.aCastHaste = Float64Array.from(auras, (a) => a.castHaste ?? 0)
     this.aSpiritRegen = Float64Array.from(auras, (a) => a.spiritRegen ?? 0)
     this.aCastingRegen = Float64Array.from(auras, (a) => a.castingRegen ?? 0)
+    this.aGcdPct = Float64Array.from(auras, (a) => a.gcdPct ?? 0)
     this.aSchool = Uint8Array.from(auras, (a) =>
-      (a.schoolMask && (a.schoolDamage || a.schoolTaken || a.schoolCrit)) || a.castHaste || a.spiritRegen || a.castingRegen ? 1 : 0,
+      (a.schoolMask && (a.schoolDamage || a.schoolTaken || a.schoolCrit)) || a.castHaste || a.spiritRegen || a.castingRegen || a.gcdPct ? 1 : 0,
     )
     // docs/classes/mage.md#combustion, #arcane-power: crit charges by school, charges a refresh keeps, mana cost.
     this.aCritChargeSchools = Int32Array.from(auras, (a) => a.critChargeSchools ?? 0)
@@ -1546,6 +1563,9 @@ export class Sim {
     this.abEndsCd = Int32Array.from(abilities, (a) => a.endsCooldownOf ?? -1)
     // docs/mechanics/spells.md §4, §6: casting speed, and a channel's cut-off.
     this.abCastHasted = Uint8Array.from(abilities, (a) => (a.castHasted ? 1 : 0))
+    this.abGcdCut = Uint8Array.from(abilities, (a) => (a.gcdCut ? 1 : 0))
+    this.abChargeAura = Int32Array.from(abilities, (a) => a.chargeAura ?? -1)
+    this.abChargeCastMs = Float64Array.from(abilities, (a) => a.chargeCastMs ?? 0)
     this.abChannelTicks = Int32Array.from(abilities, (a) => a.channelTicks ?? 0)
     const prepull = plan.prepull
     this.preAbility = Int32Array.from(prepull.casts.map((c) => c.ability))
@@ -2053,6 +2073,7 @@ export class Sim {
     this.igGen++
     this.manaCostMult = 1
     this.castCostTenths = 0
+    this.gcdMult = 1
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -2619,6 +2640,12 @@ export class Sim {
         if (this.abStackCost[a] !== 0) stackCost = this.costOf(a)
         castMs *= this.stackCut(a, this.abStackCast[a])
       }
+      // docs/classes/druid.md §11.3: a charge (Eclipse's) cuts the cast before casting speed, and goes now.
+      const charge = this.abChargeAura[a]
+      if (charge >= 0 && this.auraActive[charge]) {
+        castMs = Math.max(0, castMs - this.abChargeCastMs[a])
+        this.dropStack(charge)
+      }
       if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
       if (stack >= 0 && this.auraActive[stack]) this.removeAura(stack)
     }
@@ -2631,7 +2658,7 @@ export class Sim {
     }
     if (stackCost >= 0) this.payStackCost(stackCost)
     else this.payCost(a)
-    const gcd = this.abGcd[a]
+    const gcd = this.gcdOf(a)
     if (gcd > 0) {
       this.gcdEnd = this.now + gcd
       this.q.push(this.gcdEnd, EV_ACT, 0, 0)
@@ -2673,6 +2700,27 @@ export class Sim {
     if (this.exCount > 0) this.drainExtraAttacks()
   }
 
+  /**
+   * An ability's GCD now: its own, cut by the active auras' `gcdPct` if it's marked `gcdCut` (Nature's
+   * Grace, docs/classes/druid.md §11.3), to a whole ms.
+   */
+  private gcdOf(a: number): number {
+    const gcd = this.abGcd[a]
+    return this.gcdMult !== 1 && this.abGcdCut[a] === 1 ? Math.round(gcd * this.gcdMult) : gcd
+  }
+
+  /** Takes one stack off aura a, and the aura with its last (Eclipse's charges, docs/classes/druid.md §11.3). */
+  private dropStack(a: number): void {
+    const stacks = this.auraStacks[a]
+    if (stacks <= 1) {
+      this.removeAura(a)
+      return
+    }
+    if (this.aMaxStacks[a] > 1) this.countStacks(a, stacks)
+    this.auraStacks[a] = stacks - 1
+    this.auraChanged(a, -1)
+  }
+
   /** An attack's strikes: the main hand's, and the off hand's if it has one (Raging Blows' Whirlwind, warrior.md §3.1) [?]. */
   private strike(a: number): void {
     this.chainMask = 0
@@ -2694,7 +2742,7 @@ export class Sim {
    */
   private startCast(a: number, castMs: number): void {
     const now = this.now
-    this.castGcdEnd = now + this.abGcd[a]
+    this.castGcdEnd = now + this.gcdOf(a)
     this.gcdEnd = Infinity
     this.q.push(now + castMs, EV_CAST_END, a, 0)
     if (this.abCastHolds[a]) this.castHolding = true
@@ -3148,7 +3196,8 @@ export class Sim {
       const schools = this.pSchools[p]
       if (schools !== 0 && (schools & (1 << this.procSchool)) === 0) continue
       if (this.pFromSource[p] >= 0 && this.pFromSource[p] !== this.procSource) continue
-      let chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      // docs/classes/druid.md §11.3: a rate per minute of casting, from the landed spell's cast time.
+      let chance = this.pPpmCast[p] > 0 ? (this.pPpmCast[p] * this.srcProcCastMs[this.procSource]) / 60000 : this.pChance[2 * p + (hand > 0 ? hand : 0)]
       // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
       if (this.pPoison[p] === 1) chance += this.poisonChance
       if (chance < 1 && this.rngProc.next() >= chance) continue
@@ -3177,6 +3226,8 @@ export class Sim {
         const a = this.pAmount[p]
         if (this.aKeepsEnd[a]) this.extendAura(a, this.now + (this.pB[p] > 0 ? this.pB[p] : this.aDuration[a]))
         else this.applyAura(a)
+        // docs/classes/druid.md §11.3: a proc that adds more than one stack (Eclipse's 2 charges).
+        for (let k = this.pA[p]; k > 1; k--) this.applyAura(a)
         return
       }
       case ACTION.rage:
@@ -3377,6 +3428,7 @@ export class Sim {
     let haste = 1
     let regen = 1
     let casting = 0
+    let gcd = 1
     for (let i = 0; i < this.auraActive.length; i++) {
       if (!this.auraActive[i] || !this.aSchool[i]) continue
       const stacks = this.auraStacks[i]
@@ -3390,7 +3442,9 @@ export class Sim {
       haste *= 1 + (this.aCastHaste[i] * stacks) / 100
       regen *= 1 + (this.aSpiritRegen[i] * stacks) / 100
       casting += (this.aCastingRegen[i] * stacks) / 100
+      if (this.aGcdPct[i] !== 0) gcd *= 1 - (this.aGcdPct[i] * stacks) / 100
     }
+    this.gcdMult = gcd
     this.castHasteAura = haste
     this.castHasteMult = this.castHasteStat * haste
     this.dynSpiritRegen = regen

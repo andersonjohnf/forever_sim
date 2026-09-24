@@ -47,7 +47,8 @@ export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from '
  * Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c,
  * Protection, the first tank, from P2, the Feral cat from B2, Retribution from C2, the Protection
  * paladin from C3, the Feral bear from B4, the Enhancement shaman from S1, the three rogues from R1, the
- * three mages from K2, the Destruction and Affliction warlocks from K3, and the Elemental shaman from K5.
+ * three mages from K2, the Destruction and Affliction warlocks from K3, the Elemental shaman from K5, the
+ * Shadow Priest from K4, and the Balance druid from K6.
  */
 const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'warrior-fury',
@@ -72,6 +73,8 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'warlock-affliction',
   // docs/classes/priest.md: landed under D27's first-pass defaults (K4).
   'priest-shadow',
+  // docs/classes/druid.md §11: landed under D27's first-pass defaults (K6).
+  'druid-balance',
 ])
 
 /**
@@ -175,6 +178,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     ...(b.selfCast ? { selfCast: true } : {}),
     ...(b.forClasses ? { forClasses: b.forClasses } : {}),
     ...(b.forSpecs ? { forSpecs: b.forSpecs } : {}),
+    ...(b.forCasterSpecs ? { forCasterSpecs: true } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
     ...(onBossMeleeOnly(b) ? { bossMelee: true as const } : {}),
     docRef: b.docRef,

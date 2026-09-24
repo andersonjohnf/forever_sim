@@ -10,12 +10,14 @@ import { type Audience, BUFFS, BUFFS_BY_ID, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
 
 /**
- * Whether the entry does anything for the spec: for its class (`forClasses`; absent, every class) and
- * its kind, melee or caster (`forSpecs`, SpecMeta.caster; absent, every spec). The Buffs tab lists
- * only these, and presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries").
+ * Whether the entry does anything for the spec: for its class (`forClasses`; absent, every class), or
+ * for any caster spec when it's a caster's entry (`forCasterSpecs`: the druid's Balance spec gets the
+ * mana and spell entries its Feral specs don't, docs/classes/druid.md §11.6); and for its kind, melee
+ * or caster (`forSpecs`, SpecMeta.caster; absent, every spec). The Buffs tab lists only these, and
+ * presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries").
  */
-export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forSpecs'>, spec: SpecId): boolean =>
-  (!buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)) &&
+export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forCasterSpecs' | 'forSpecs'>, spec: SpecId): boolean =>
+  (!buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId) || (buff.forCasterSpecs === true && SPEC_META[spec].caster === true)) &&
   (!buff.forSpecs || (buff.forSpecs === 'caster') === (SPEC_META[spec].caster === true))
 
 function reaches(audience: Audience, spec: SpecId): boolean {

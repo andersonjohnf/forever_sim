@@ -74,7 +74,7 @@ describe('melee and caster entries (forSpecs)', () => {
   it('are these, and the caster specs are those whose SpecMeta sets caster', () => {
     expect(BUFFS.filter((b) => b.forSpecs === 'melee').map((b) => b.id)).toEqual(MELEE)
     expect(CASTER_SPECS).toEqual(casters)
-    expect(casters).toEqual(['shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'])
+    expect(casters).toEqual(['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'])
   })
 
   it('mark as melee exactly the entries whose Forever effects change only attacks, and Classic Era’s nothing a spell reads', () => {
@@ -125,6 +125,10 @@ describe('melee and caster entries (forSpecs)', () => {
     ])
   })
 
+  it('give a Balance druid’s Standard raid the casters’ raid buffs: its own Moonkin Aura, and no Leader of the Pack (docs/classes/druid.md §11.6)', () => {
+    expect(presetBuffIds('raid', 'druid-balance', FULL_RAID)).toEqual(presetBuffIds('raid', 'mage-fire', FULL_RAID))
+  })
+
   it('are turned off in a saved setup of the other kind, with a note, and do nothing in its plan', () => {
     const fire = defaultConfig('mage-fire')
     const saved = { ...fire, buffs: { ...fire.buffs, enabled: [...fire.buffs.enabled, 'battleShout', 'sunderArmor', 'elixirOfGreaterStrength'] } }
@@ -145,6 +149,7 @@ describe('melee and caster entries (forSpecs)', () => {
   it('leave every melee and tank spec’s Buffs list as it was: only the caster core’s entries are hidden from them', () => {
     const hidden = (spec: SpecId) => BUFFS.filter((b) => !forSpecClass(b, spec) && !(b.forClasses && !b.forClasses.includes(SPEC_META[spec].classId))).map((b) => b.id)
     for (const spec of melee) expect(hidden(spec), spec).toEqual(['moonkinAura', 'powerInfusion', 'curseOfTheElements'])
-    for (const spec of casters) expect(hidden(spec), spec).toEqual(MELEE.filter((id) => id !== 'mightyRagePotion'))
+    // The Mighty Rage Potion is a warrior's and a druid's: a Balance druid's class could drink it.
+    for (const spec of casters) expect(hidden(spec), spec).toEqual(SPEC_META[spec].classId === 'druid' ? MELEE : MELEE.filter((id) => id !== 'mightyRagePotion'))
   })
 })

@@ -66,7 +66,7 @@ function digest(effects: Effect[]): Line[] {
         break
       case 'proc': {
         const { id, chance, action } = e.proc
-        lines.push('pct' in chance ? [`${id} chance %`, chance.pct] : [`${id} ppm`, chance.ppm])
+        lines.push('pct' in chance ? [`${id} chance %`, chance.pct] : 'ppm' in chance ? [`${id} ppm`, chance.ppm] : [`${id} ppm of casting`, chance.ppmCast])
         if (action.kind === 'extraAttacks') lines.push([`${id} bonusAp`, action.bonusAp ?? 0])
         else if (action.kind === 'aura') for (const [mod, v] of Object.entries(action.aura.mods)) lines.push([`${id} ${mod}`, v])
         else if (action.kind === 'spellDamage') lines.push([`${id} ${action.school}`, action.min], ...(action.max !== action.min ? [[`${id} ${action.school} max`, action.max] as Line] : []))

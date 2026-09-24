@@ -41,6 +41,7 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'warrior-protection': '35-05-552101233301210531', // Protection 8/5/38 (docs/classes/warrior.md §6.1)
   'druid-feral-cat': '050022-5520002123032213051-05', // popular Feral (docs/classes/druid.md)
   'druid-feral-bear': '050012-5523032120132210551-', // documented bear preset (docs/classes/druid.md)
+  'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
@@ -87,6 +88,8 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     { name: 'Feral cat (default)', code: DEFAULT_TALENTS['druid-feral-cat'] },
     // docs/classes/druid.md#71-talents: Bear 8/43/0
     { name: 'Feral bear (default)', code: DEFAULT_TALENTS['druid-feral-bear'] },
+    // docs/classes/druid.md#116-defaults: Balance 41/5/0
+    { name: 'Balance (default)', code: DEFAULT_TALENTS['druid-balance'] },
   ],
   paladin: [
     // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
@@ -265,6 +268,8 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   },
   'druid-feral-cat': FERAL_ENCHANTS,
   'druid-feral-bear': { ...FERAL_ENCHANTS, hands: 'gloveThreat' },
+  // docs/classes/druid.md §11.6: Greater Stats on the chest, the one caster enchant the catalogue has.
+  'druid-balance': { chest: 'chestGreaterStats' },
   // §6.4 Retribution: the warrior DPS column with a two-hander (no off hand).
   'paladin-retribution': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
   // §6.4 Prot paladin: Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat

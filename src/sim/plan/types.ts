@@ -226,6 +226,11 @@ export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | '
    * rotation conditions can read it (the ability's `aura`; docs/mechanics/spells.md §7). Absent or −1: none.
    */
   dotAura?: number
+  /**
+   * The cast time a proc's rate per minute of casting reads for it (`ProcPlan.ppmCast`): its ability's
+   * cast time, at least the GCD (docs/classes/druid.md §11.3). Set only on a plan with such a proc.
+   */
+  procCastMs?: number
 }
 
 /**
@@ -394,6 +399,11 @@ export interface AuraPlan {
   refreshKeepsCharges?: boolean
   /** The mana cost of mana abilities %, per stack, multiplicative (Arcane Power's +30%). */
   manaCostPct?: number
+  /**
+   * The global cooldown % shorter while it's up, for the abilities marked `gcdCut`, multiplied across
+   * auras: Nature's Grace's −10% (docs/classes/druid.md §11.3). Absent = 0.
+   */
+  gcdPct?: number
 }
 
 export interface ProcPlan {
@@ -446,6 +456,12 @@ export interface ProcPlan {
    */
   schools?: number
   fromSource?: number
+  /**
+   * On the spell triggers: its rate per minute of casting, instead of `chance`: each landed spell's
+   * chance is this × its ability's cast time (`SpellPlan.procCastMs`, at least the GCD) / 60,000 (Omen
+   * of Clarity's spells [?], docs/classes/druid.md §11.3). Absent or 0: `chance`.
+   */
+  ppmCast?: number
 }
 
 export interface SourcePlan {
@@ -838,6 +854,16 @@ export interface AbilityPlan {
   consumeChance?: number
   /** Its mana and power gains make no threat (Life Tap, Demonic Sacrifice's Fel Energy; warlock.md §3). Absent: they make an energize's. */
   noThreat?: boolean
+  // --- What the Balance druid brought (docs/classes/druid.md §11). All optional: absent, a row behaves
+  // as before. ---
+  /** The auras' `gcdPct` shortens its GCD (Nature's Grace's class mask: the Balance spells, §11.3). */
+  gcdCut?: boolean
+  /**
+   * While this plan aura has a stack, its cast time is `chargeCastMs` shorter, before casting speed,
+   * and using it takes one stack off (Eclipse's charges on Starfire, §11.3 [?]). Absent or −1: none.
+   */
+  chargeAura?: number
+  chargeCastMs?: number
 }
 
 /**
@@ -867,6 +893,7 @@ export type AbilityDef = Omit<
   | 'needsAura'
   | 'consumesDot'
   | 'consumeChance'
+  | 'chargeAura'
 > & {
   /** The id of the aura that makes its cast instant (Presence of Mind, docs/classes/mage.md): resolved into `instantAura`, left out if no ability or proc puts it up. */
   instantAuraId?: string
@@ -906,6 +933,8 @@ export type AbilityDef = Omit<
   costStacks?: { aura: string; tenthsPerStack: number }
   /** The aura a landed hit puts up with `chance` (Cutthroat's Ambush window, rogue.md §5.3); the plan adds it to its auras. */
   opensWindow?: { aura: AuraSpec; chance: number }
+  /** The aura, by id, whose stacks shorten its cast (Eclipse, docs/classes/druid.md §11.3): resolved into `chargeAura`, and dropped as `auraCrit`. */
+  chargeAuraId?: string
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
@@ -1255,7 +1284,7 @@ export interface IgnitePlan {
 
 /** One druid form (druid.md §2.1, §2.2, §2.3): everything a shapeshift swaps in. */
 export interface FormPlan {
-  id: 'caster' | 'cat' | 'bear'
+  id: 'caster' | 'cat' | 'bear' | 'moonkin'
   name: string
   /** The stat block in the form: the shared one plus the form's own effects and form-bound talents. */
   stats: StatBlock

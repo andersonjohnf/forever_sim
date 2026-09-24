@@ -187,7 +187,7 @@ export class Sim {
    * pool it pays from in tenths: rage, a druid's Energy, or a druid's or paladin's mana); for an
    * ability with a cast time, when the cast starts.
    */
-  castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
+  castTrace: ((ability: number, time: number, poolTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
   damageTrace: ((source: number, damage: number) => void) | null = null
   /** Test hook: every stance swap in a fight (the STANCE bit swapped to, time, rage before and after, in tenths). */
@@ -406,6 +406,9 @@ export class Sim {
   private readonly abTickSpell: Int32Array
   private readonly abManaReturn: Float64Array
   private readonly abManaReturnChance: Float64Array
+  /** `cast` abilities: mana at once in tenths, plus a random 0…spread (a mana potion or rune). */
+  private readonly abManaGain: Float64Array
+  private readonly abManaSpread: Int32Array
   /** The next ability of the same cooldown category, in a ring (itself when it has none). */
   private readonly abCatNext: Int32Array
   /** The pre-pull casts (ability, time < 0) and the opener's rage (warrior.md §5.2 row 0). */
@@ -976,6 +979,8 @@ export class Sim {
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
     this.abManaReturn = Float64Array.from(abilities, (a) => a.manaReturnTenths ?? 0)
     this.abManaReturnChance = Float64Array.from(abilities, (a) => a.manaReturnChance ?? 0)
+    this.abManaGain = Float64Array.from(abilities, (a) => a.manaTenths ?? 0)
+    this.abManaSpread = Int32Array.from(abilities, (a) => a.manaSpreadTenths ?? 0)
     this.abCatNext = ring(abilities.map((a) => a.category))
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
@@ -1934,7 +1939,9 @@ export class Sim {
         case COND.minMana:
           if (this.mana < a) return false
           break
-
+        case COND.maxMana:
+          if (this.mana > a) return false
+          break
       }
     }
     return true
@@ -2071,6 +2078,9 @@ export class Sim {
     const aura = this.abAura[a]
     if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
     this.gainPower(this.abRes[a], this.castRageTenths(a), source)
+    // A mana potion or rune (buffs-debuffs-consumables.md §3.5): its mana at once, capped.
+    const spread = this.abManaSpread[a]
+    if (this.abManaGain[a] > 0) this.gainMana(this.abManaGain[a] + (spread > 0 ? Math.floor(this.rngProc.next() * (spread + 1)) : 0), source)
     if (this.abManaReturn[a] > 0) this.returnMana(a)
     this.startTicks(a)
   }

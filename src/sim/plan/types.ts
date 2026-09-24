@@ -448,6 +448,14 @@ export interface AbilityPlan {
   manaReturnTenths?: number
   manaReturnChance?: number
   /**
+   * `cast`: mana in tenths at once, `manaTenths` plus a uniform whole number of tenths from 0 to
+   * `manaSpreadTenths`, drawn from the proc stream (Major Mana Potion: 13,500 + 0…9,000,
+   * buffs-debuffs-consumables.md §3.5). Capped at the maximum; 0.5 threat per mana on its row.
+   * Absent: none.
+   */
+  manaTenths?: number
+  manaSpreadTenths?: number
+  /**
    * A cooldown category: using any ability of a category starts the cooldown it was used with on
    * all of them (Holy Strike and Hammer of the Righteous, paladin.md#other-abilities; the
    * judgements of each seal). Absent for none.
@@ -575,14 +583,19 @@ export const COND = {
   /** combo points ≥ a (druid.md §2.5, §6.2) */
   minComboPoints: 16,
   /**
-   * the aura that ability a puts on the player is down; for a bleed, or an attack that bleeds, its
-   * bleed is off the target (Rake waits while your Rip bleeds, druid.md §6.2)
+   * the aura that ability a puts up is down: a buff on the player, or a debuff it keeps on the
+   * target (a judgement's); for a bleed, or an attack that bleeds, its bleed is off the target (Rake
+   * waits while your Rip bleeds, druid.md §6.2). Checked on each walk, so a line may have several,
+   * unlike `abilityAuraRefresh`'s one window per line: Seal of the Crusader and Judgement of the
+   * Crusader in the Retribution opener (paladin.md#forever-priority-list-default rows 0–2).
    */
   abilityAuraDown: 17,
   /** mana ≥ a, in tenths (paladin.md "mana% ≥ x" settings, as mana at the plan's maximum) */
   minMana: 18,
-  // 19 is reserved for `maxMana`; 20 is Warrior Protection's, 21–24 the bear's, 25–28 the
-  // Protection paladin's: tracks that merge separately.
+  /** mana ≤ a, in tenths: a mana potion or rune waits until its most mana fits (paladin.md#forever-priority-list-default) */
+  maxMana: 19,
+  // 20 is Warrior Protection's, 21–24 the bear's, 25–28 the Protection paladin's: tracks that
+  // merge separately.
   /**
    * the execute phase starts in more than a ms: `executeWithin`'s opposite, always true in a fight
    * without one (Fury's potion with a Recklessness that came by its clock, warrior.md §5.2 row 16).

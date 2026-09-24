@@ -186,6 +186,9 @@ export interface OnUseSpec {
    * druid.md §7.3); absent or 0: no limit.
    */
   charges?: number
+  /** Mana at once, the same way (a mana potion or rune; buffs doc §3.5). Absent: none. */
+  manaTenths?: number
+  manaSpreadTenths?: number
 }
 
 /** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */

@@ -432,9 +432,10 @@ export interface BuffDefinition {
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /**
-   * It acts only on the boss's melee swings (Demoralizing Shout and Roar, Thunder Clap), which only
-   * a tank takes: for the other specs it changes nothing, and the Buffs tab says so. Set by the
-   * catalogue from its effects.
+   * It acts only on the boss's melee swings (Demoralizing Shout and Roar, Thunder Clap, Thorns), or
+   * adds only armor, which only those swings meet (Devotion Aura, Elixir of Greater Defense, Greater
+   * Stoneshield Potion); only a tank takes them: for the other specs it changes nothing, and the
+   * Buffs tab says so. Set by the catalogue from its effects.
    */
   bossMelee?: true
   /** Owning doc section, e.g. "docs/mechanics/buffs-debuffs-consumables.md#…". */

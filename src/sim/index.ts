@@ -12,7 +12,7 @@ import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
-import { catalogueEffects, catalogueSummary } from './effects/types'
+import { catalogueEffects, catalogueSummary, type OnUseSpec } from './effects/types'
 import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
@@ -207,14 +207,29 @@ function perProfile<T>(build: (profile: RuleProfileId) => T): Record<RuleProfile
 
 /**
  * Its effects act only on the boss's melee swings: an attack-power debuff or a slow (encounter.md §5),
- * or a proc of the swings that land on you (a damage shield: Thorns).
+ * a proc of the swings that land on you (a damage shield: Thorns), or armor, which only those swings
+ * meet (Elixir of Greater Defense, Greater Stoneshield Potion's aura): a DPS spec's damage taken
+ * isn't mitigated by armor (encounter.md §4; buffs doc §3.5).
  */
 const onBossMeleeOnly = (b: (typeof BUFFS)[number]) => {
   const effects = catalogueEffects(b, PROFILES.forever)
   return (
     effects.length > 0 &&
-    effects.every((e) => e.kind === 'bossAp' || e.kind === 'bossSlow' || (e.kind === 'proc' && e.proc.trigger === 'meleeTaken'))
+    effects.every(
+      (e) =>
+        e.kind === 'bossAp' ||
+        e.kind === 'bossSlow' ||
+        (e.kind === 'proc' && e.proc.trigger === 'meleeTaken') ||
+        (e.kind === 'stat' && (e.stat === 'bonusArmor' || e.stat === 'itemArmor')) ||
+        (e.kind === 'onUse' && e.use !== undefined && armorOnlyUse(e.use)),
+    )
   )
+}
+
+/** An on-use whose only effect is an aura of armor (Greater Stoneshield Potion): no damage, rage or mana. */
+const armorOnlyUse = (u: OnUseSpec): boolean => {
+  const mods = u.aura ? Object.entries(u.aura.mods).filter(([, v]) => v !== undefined && v !== 0) : []
+  return !u.spell && !u.rageTenths && !u.rageSpreadTenths && !u.manaTenths && !u.manaSpreadTenths && mods.length > 0 && mods.every(([k]) => k === 'armor')
 }
 
 const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>

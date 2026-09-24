@@ -426,7 +426,10 @@ health ([combat-tables §8](combat-tables.md#8-boss--player-tanks); worked examp
 damage taken reads the hit before armor in `forever`, so there it changes no rage; the `classic` rage
 model reads the health lost, so there it lowers rage ([rage](rage.md#rage-from-damage-taken)). For a
 DPS spec it changes nothing: the damage it takes isn't mitigated by armor
-([encounter](encounter.md#4-targets-and-position)).
+([encounter](encounter.md#4-targets-and-position)). So for a DPS spec the Buffs tab says, after its
+summary, that only the tank takes the boss's swings, as it does for Elixir of Greater Defense, Devotion
+Aura and the Boss damage debuffs (`bossMelee`; [ux](../ux.md#sections)): turning it on still turns off the
+spec's own potion (a Fire mage's Major Mana Potion: 513 → 446 DPS at its defaults) for no gain.
 
 ### 3.6 Weapon enhancements (temporary)
 

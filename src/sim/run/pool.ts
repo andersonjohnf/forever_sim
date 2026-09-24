@@ -80,12 +80,21 @@ export class WorkerPool {
           const least = Math.min(...this.slots.map((s) => s.busy))
           const slot = this.slots.find((s) => s.busy === least && s.engines.has(source.key)) ?? this.slots.find((s) => s.busy === least)!
           const known = slot.engines.has(source.key)
+          // Build the plan before any bookkeeping: if it throws, the job fails with the mirror and
+          // the worker's load as they were.
+          let plan: Plan | undefined
+          try {
+            if (!known) plan = source.plan()
+          } catch (error) {
+            reject(error instanceof Error ? error : new Error(String(error)))
+            return
+          }
           if (known) slot.engines.get(source.key)
           else slot.engines.set(source.key, true)
           const jobId = this.nextJob++
           slot.busy++
           this.jobs.set(jobId, { slot, resolve: resolve as (result: never) => void, reject })
-          this.post(slot, { type: 'fights', jobId, key: source.key, ...(known ? {} : { plan: source.plan() }), from, count })
+          this.post(slot, { type: 'fights', jobId, key: source.key, ...(plan ? { plan } : {}), from, count })
         }),
     }
   }

@@ -517,6 +517,13 @@ Top Gear and the retail optimizers do:
 
   All are settings in the Optimizer screen (O3), and every result shows its boss crit and crush
   chances beside its health, effective health and damage taken.
+- **Items whose value rests on an unmeasured rating** (expertise and haste under D12): a preset
+  takes the best item under the default rules, where D12 applies, since dropping them would model
+  a stat the client lists as zero (D29). But if an item with no unmeasured rating is within
+  0.5% of TPS (or DPS), or inside the paired 95% interval, that item is taken instead. The bear's
+  Earthstrike (−0.04%) passes; the warrior's Adaptive Combat Assistant (−3.9%) and Stalwart
+  Watcher's Signet (−1.5%) stay. The Optimizer applies the same rule, and every result says when
+  its gain depends on one.
 - **What stays as it was.** The model: what the sim can't measure (damage taken, a talent's
   utility) is a constraint or a tie-break, never a guess. Every value that affects the result
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat

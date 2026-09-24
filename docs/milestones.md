@@ -422,6 +422,12 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
+- **The warrior's interim gear** (T4 review): Adaptive Combat Assistant's use (a 450 absorb every
+  90 s, 90–110 Nature damage when it breaks) isn't simulated, about +1.7 TPS (0.15%) and −5 damage
+  taken a second (T4R-3); the greedy EHP search never revisits a swap, so Dal'Rend's Sacred Charge
+  could return for +1.3 TPS at 90.5% EHP (T4R-2, waived: it keeps an EHP margin, and O4 replaces
+  the set); gear cards show "+20 Expertise" with no percentage and no D12 flag, though the results'
+  assumptions list it (T4R-8).
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),

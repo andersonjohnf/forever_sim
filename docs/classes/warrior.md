@@ -1876,7 +1876,7 @@ numbers settle only the preset's question.
 | --- | --- | --- | --- | --- |
 | Fury | **Human**, with a sword in either hand (+2% crit on all attacks, Q15) | **Orc**, with axes (+1% crit, Blood Fury +10% AP) | Slowest good one-hander in the main hand and a one-hander in the off hand, from [pre-bis items](../data/items.md) | Night Elf (Elune's Light), Troll (Berserking) and Tauren (+1% hit) are close alternatives. **Weapon skill racials no longer exist** ([§2.9](#29-racials-for-warriors)) |
 | Arms | **Human**, with a two-handed sword (+2% crit and Weaponmaster extra attacks) | **Orc**, with a two-handed axe (+1% racial and +5% Weaponmaster crit) | Slowest good two-hander (3.5–3.8 s) | Maces and staves (15% armor ignored) are worth simulating (Q9) |
-| Protection | **Human** (sword) | **Orc** (axe; Blood Fury helps threat) | One-hander and shield. The shield is required for Defiance, Bastion, Shield Slam and Shield Block | Tauren (+1% hit, +5% health) and Dwarf (Stoneform) are defensive alternatives |
+| Protection | **Human** (sword) | **Orc** (Blood Fury helps threat; the interim set's sword, Krol Blade, forgoes Axe Specialization, whose best axe, Frostbite, is only +0.14% TPS, [§6.3](#63-protection-gear-interim-measured-m56-t4)) | One-hander and shield. The shield is required for Defiance, Bastion, Shield Slam and Shield Block | Tauren (+1% hit, +5% health) and Dwarf (Stoneform) are defensive alternatives |
 
 **Consumables tier.** The default is the "standard" preset from
 [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md), which owns the item
@@ -1948,7 +1948,7 @@ with the talents and gear.
 | Head | Lionheart Helm (12640) | Feet | Knight-Lieutenant's Plate Greaves (23287; Horde: Blood Guard's, 22858) |
 | Neck | Pendant of Celerity (22340) | Rings | Don Julio's Band (19325), Stalwart Watcher's Signet (275971) |
 | Shoulder | Darksoul Shoulders (19695) | Trinkets | Adaptive Combat Assistant (272437), Hand of Justice (11815) |
-| Back | Earthweave Cloak (21187) | Main hand | Krol Blade (2244), a sword for Human's Sword Specialization |
+| Back | Earthweave Cloak (21187) | Main hand | Krol Blade (2244), a sword for Human's Sword Specialization; Horde wears it too (the best axe is +0.14% for an Orc) |
 | Chest | Knight-Captain's Plate Hauberk (23300; Horde: Legionnaire's, 22872) | Shield | Dreadguard's Protector (18756) |
 | Wrist | Vambraces of the Sadist (13400) | Ranged | Satyr's Bow (18323), the list's |
 | Hands | Death Grips (18722) | | |

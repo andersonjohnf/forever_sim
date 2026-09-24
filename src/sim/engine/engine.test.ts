@@ -562,7 +562,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Julio's Band, Krol Blade and Knight-Lieutenant's Plate Greaves for the effective-health floor
   //   (warrior.md §6.3; 91.5% of v1's). Talents and rotation are unchanged. Adaptive Combat
   //   Assistant's and Stalwart Watcher's Signet's 30 expertise rating (D12) cut the boss's parries
-  //   (the rows' parried column: main hand 5,828 → 2,634, Sunder Armor 4,075 → 3,269), and more
+  //   (Sunder Armor's parried 4,075 → 3,269; the main hand's per-swing parry rate 16.5% → 13.5%, its
+  //   count falling further, 5,828 → 2,634, with Krol Blade's slower 2.8 s swing), and more
   //   Strength, crit and hit raise every hit's threat: Sunder Armor 27.74 M → 31.28 M, Shield Slam
   //   16.64 M → 18.96 M, Revenge 13.87 M → 15.87 M, Heroic Strike 10.29 M → 13.50 M, Windfury 4.81 M
   //   → 7.03 M. TPS 978.76 → 1,123.32, DPS 302.44 → 356.89. Fury, Arms and the cat are unchanged.

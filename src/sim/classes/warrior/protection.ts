@@ -131,7 +131,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 16% more TPS and 40% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.',
+    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 14% more TPS and 40% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },

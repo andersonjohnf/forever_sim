@@ -503,10 +503,17 @@ Top Gear and the retail optimizers do:
   effective health of the class's survival preset, and the player can change the share.
   Avoidance and block aren't in it: they lower average damage but don't survive a spike.
   Every result shows its health, effective health and damage taken.
-- **A tank's damage taken is capped too** (user decision): at most 10% more damage per second than
-  the class's survival preset, by default. The first talent searches traded avoidance (Deflection,
-  Anticipation) for rage and threat, which the EHP floor allows since avoidance isn't in it. Both
-  limits are settings in the app's optimizer screen (O3).
+- **No damage-taken cap; immunity switches instead** (user decision, replacing a +10% cap decided
+  the same day). A percentage over a pure-survival gear set measures against a set no tank wears,
+  since tanks have never geared purely for defense. What matters beyond effective health is
+  whether the boss can crit or crush you, so the Optimizer's tank constraints are:
+  - the effective-health floor above (on by default)
+  - **crit immune:** the boss's crit chance against you is 0 (off by default)
+  - **crush immune:** your miss, dodge, parry and block chances push crushing blows off the
+    boss's table (off by default; a bear can't reach it without block)
+
+  All are settings in the Optimizer screen (O3), and every result shows its boss crit and crush
+  chances beside its health, effective health and damage taken.
 - **What stays as it was.** The model: what the sim can't measure (damage taken, a talent's
   utility) is a constraint or a tie-break, never a guess. Every value that affects the result
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat

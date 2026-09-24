@@ -155,11 +155,18 @@ describe('paladin', () => {
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2, Retribution since C2 and the Protection paladin since C3 (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2, Retribution since C2, the Protection paladin since C3 and the Feral bear since B4 (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'paladin-retribution', 'paladin-protection'])
-    // The bear is still unfinished, so the switcher doesn't offer it.
-    expect(getSpec('druid-feral-bear').available).toBe(false)
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual([
+      'warrior-fury',
+      'warrior-arms',
+      'warrior-protection',
+      'druid-feral-cat',
+      'druid-feral-bear',
+      'paladin-retribution',
+      'paladin-protection',
+    ])
+    expect(getSpec('druid-feral-bear').role).toBe('tank')
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })

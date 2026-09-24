@@ -28,8 +28,8 @@ export function appSentence(offered: readonly SpecDefinition[] = visibleSpecs())
 
 /**
  * The specs it offers, from the switcher, one class at a time so the list stays readable as specs
- * ship: "Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins: Retribution
- * and Protection." today, and "… · Druids: Feral (Cat) and Feral (Bear) · …" as more do.
+ * ship: "Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) ·
+ * Paladins: Retribution and Protection." today.
  */
 export function coverageSentence(offered: readonly SpecDefinition[] = visibleSpecs()): string {
   // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }. A name never

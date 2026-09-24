@@ -7,8 +7,8 @@ as well as your desktop.
 It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 **https://andersonjohnf.github.io/forever_sim/**
 
-> **Status:** Fury and Arms Warriors so far. The tank specs (Warrior Protection, Feral Bear and
-> Paladin Protection), Feral Cat and Retribution are being built in parallel: see
+> **Status:** Fury, Arms and Protection Warriors, Feral Cat and Feral Bear Druids, and Retribution
+> and Protection Paladins so far. The other DPS specs are next: see
 > [docs/milestones.md](docs/milestones.md).
 
 ## What it will do

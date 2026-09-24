@@ -1,6 +1,13 @@
 import { describe, expect, test, vi } from 'vitest'
 import { defaultConfig, normalizeConfig, type SimConfig } from '@/sim'
 
+// Every spec ships (B4), so the spec "the sim doesn't cover yet" is made one here: the Feral bear,
+// hidden as an unfinished spec is (src/app/specs.ts isVisibleSpec).
+vi.mock('./specs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./specs')>()
+  return { ...actual, isVisibleSpec: (spec: Parameters<typeof actual.isVisibleSpec>[0]) => spec !== 'druid-feral-bear' && actual.isVisibleSpec(spec) }
+})
+
 // The spec list reads the setup store, which persists to localStorage: Node has none, so a Map
 // stands in for it before the modules load.
 const memory = new Map<string, string>()

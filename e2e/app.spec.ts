@@ -28,12 +28,13 @@ test.describe('setup', () => {
     await expect(warriors.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
     // Protection, the first tank, since P2; its role reads "Tank" on the item's second line.
     await expect(warriors.getByRole('menuitem', { name: /Protection/ })).toContainText('Tank')
-    await expect(page.getByRole('group', { name: 'Druid' }).getByRole('menuitem')).toHaveText([/^Feral \(Cat\)/])
+    // The Feral cat since B2, and the bear, a tank, since B4, under the Druid heading.
+    await expect(page.getByRole('group', { name: 'Druid' }).getByRole('menuitem')).toHaveText([/^Feral \(Cat\)\s*DPS$/, /^Feral \(Bear\)\s*Tank$/])
     // Retribution since C2 and the Protection paladin, a tank, since C3, under the Paladin heading.
     const paladins = page.getByRole('group', { name: 'Paladin' })
     await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
     await expect(paladins.getByRole('menuitem')).toHaveText([/^Retribution\s*DPS$/, /^Protection\s*Tank$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(6)
+    await expect(page.getByRole('menuitem')).toHaveCount(7)
     await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/])
   })
 
@@ -47,11 +48,13 @@ test.describe('setup', () => {
     await expect(page.getByRole('button', { name: /Spec: Arms Warrior/ })).toBeVisible()
   })
 
+  // Every spec in the sim ships (B4), so a spec it doesn't offer is one it doesn't know: a newer
+  // version's, say.
   test('a saved setup for a spec the sim doesn’t offer opens Fury instead', async ({ page }) => {
     await page.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return
       sessionStorage.setItem('seeded', '1')
-      const state = { config: { version: 1, spec: 'druid-feral-bear' }, bySpec: {}, section: 'rotation' }
+      const state = { config: { version: 1, spec: 'mage-fire' }, bySpec: {}, section: 'rotation' }
       localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
     })
     await page.goto('./')
@@ -157,7 +160,8 @@ test.describe('sharing', () => {
     await page.goto('./')
     // The share format (src/app/share.ts): deflate-raw JSON, base64url, in #s=.
     const hash = await page.evaluate(async () => {
-      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'druid-feral-bear' }))
+      // Every spec in the sim ships (B4): a spec it doesn't offer is one it doesn't know.
+      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'mage-fire' }))
       const packed = new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())
       let binary = ''
       for (const b of packed) binary += String.fromCharCode(b)
@@ -166,7 +170,7 @@ test.describe('sharing', () => {
     // A fresh load of the link (e2e/shell-sharing.spec.ts covers one pasted into an open tab).
     await page.goto('about:blank')
     await page.goto(`./${hash}`)
-    await expect(page.getByText('That link is for a Feral (Bear) Druid')).toBeVisible()
+    await expect(page.getByText('That link is for a spec this sim doesn’t know')).toBeVisible()
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
     expect(new URL(page.url()).hash).toBe('')
   })

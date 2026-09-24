@@ -260,10 +260,10 @@ test.describe('tank results', () => {
     await expect(results.getByText('Crit reduction')).toHaveCount(0)
   })
 
-  test('a link to a tank the app doesn’t offer yet is still refused', async ({ page }) => {
+  test('a link to the Feral bear, the last tank to ship (B4), loads it', async ({ page }) => {
     await page.goto(shareLink('druid-feral-bear'))
-    await expect(page.getByText('That link is for a Feral (Bear) Druid')).toBeVisible()
-    await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
+    await expect(page.getByText('Loaded a shared setup')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Spec: Feral \(Bear\) Druid/ })).toBeVisible()
   })
 })
 

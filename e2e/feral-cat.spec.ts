@@ -26,8 +26,8 @@ test.describe('Feral cat', () => {
     await page.getByRole('button', { name: /^Spec: / }).click()
     const cat = page.getByRole('menuitem', { name: /Feral \(Cat\)/ })
     await expect(cat).toContainText('DPS')
-    // No bear until it ships (docs/ux.md principle 8).
-    await expect(page.getByRole('menuitem', { name: /Feral \(Bear\)/ })).toHaveCount(0)
+    // The bear beside it, a tank (B4).
+    await expect(page.getByRole('menuitem', { name: /Feral \(Bear\)/ })).toContainText('Tank')
     await cat.click()
     await expect(page.getByRole('button', { name: CAT })).toBeVisible()
 
@@ -41,8 +41,8 @@ test.describe('Feral cat', () => {
     await expect(presets).toHaveText('Feral cat (default)')
     await expect(page.getByText('9 / 37 / 5')).toBeVisible()
     await presets.click()
-    // The cat's documented build, and no bear build until the bear ships.
-    await expect(page.getByRole('option')).toHaveText(['Feral cat (default)'])
+    // Both druid builds, the bear's since it shipped (B4); only the cat's is marked "(default)" here.
+    await expect(page.getByRole('option')).toHaveText(['Feral cat (default)', 'Feral bear default'])
   })
 
   test('its Rotation tab says its defaults are tuned and why it never powershifts', async ({ page }) => {

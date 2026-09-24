@@ -276,7 +276,7 @@ describe('the saved list', () => {
 
   test('a save for a spec the app doesn’t offer, or from a newer app, is kept but not shown', () => {
     const list = [
-      stored('bear', 'Tank', stamp(3), { version: 1, spec: 'druid-feral-bear' }),
+      stored('arcane', 'Tank', stamp(3), { version: 1, spec: 'mage-arcane' }),
       stored('newer', 'Newer', stamp(2), { version: 2, spec: 'warrior-fury' }),
       stored('unknown', 'Unknown', stamp(1), { version: 1, spec: 'mage-fire' }),
       stored('fury', 'Fury', stamp(4)),
@@ -362,7 +362,7 @@ describe('importing a file’s setups', () => {
   })
 
   test('a save the list doesn’t show is kept as it is, and its name doesn’t count', () => {
-    const tank = stored('bear', 'Raid night', stamp(1), { version: 1, spec: 'druid-feral-bear' })
+    const tank = stored('arcane', 'Raid night', stamp(1), { version: 1, spec: 'mage-arcane' })
     const result = importSetups([stored('a', 'Raid night', stamp(20))], [tank], null, NOW, nextId)
     expect(result.added).toEqual([tank])
     expect(names(listSetups(result.setups))).toEqual(['Raid night'])
@@ -557,7 +557,7 @@ describe('browser storage', () => {
   })
 
   test('saves it doesn’t show are kept through changes', () => {
-    const tank = stored('bear', 'Tank', stamp(1), { version: 1, spec: 'druid-feral-bear' })
+    const tank = stored('arcane', 'Tank', stamp(1), { version: 1, spec: 'mage-arcane' })
     memory.set(SAVED_SETUPS_KEY, serializeSavedSetups([tank]))
     saveToStorage('Fury', fresh('warrior-fury'))
     expect(kept().setups).toContainEqual(tank)

@@ -1,5 +1,5 @@
 // Seeing and testing a spec before it ships. The switcher offers only finished specs (docs/ux.md
-// principle 8), so `?preview=druid-feral-bear` in the page's URL adds that spec to the ones the
+// principle 8), so `?preview=<spec id>` in the page's URL adds that spec to the ones the
 // app offers, but only in a dev build or in a browser driven by automation: the e2e suite and
 // `npm run snap`, whose Chromium reports `navigator.webdriver`. A visitor's browser doesn't, so
 // the deployed app ignores the parameter, and the e2e suite still tests the exact bundle that's

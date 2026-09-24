@@ -257,8 +257,9 @@ for (const [label, device] of [
       await seed(page, [
         entry('beta', 'Beta', { version: 1, spec: 'warrior-arms' }, 5),
         entry('alpha', 'Alpha', { version: 1, spec: 'warrior-fury' }, 10),
-        // For a spec the sim doesn't offer yet, and one that can't be read (no name).
-        entry('bear', 'Bear', { version: 1, spec: 'druid-feral-bear' }, 15),
+        // For a spec the sim doesn't offer (every spec it knows ships, so one it doesn't know), and
+        // one that can't be read (no name).
+        entry('tank', 'Tank', { version: 1, spec: 'mage-fire' }, 15),
         { id: 'broken', savedAt: new Date().toISOString(), config: { version: 1, spec: 'warrior-fury' } },
       ])
       await page.goto('./')

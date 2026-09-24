@@ -117,9 +117,10 @@ describe('setup store', () => {
     )
     // The no-saves wording is the Setups sheet's.
     expect(description()).toContain(storageMessage('full', 'save', false).replace(/^.*but not with saved setups\. /, ''))
-    // Only saves the list shows count: one for a spec the sim doesn't offer can't be deleted there.
+    // Only saves the list shows count: one for a spec the sim doesn't offer (every spec it knows
+    // ships, so one it doesn't know) can't be deleted there.
     const save = (spec: string) => ({ id: spec, name: spec, savedAt: '2026-09-23T10:00:00.000Z', config: { ...fresh('warrior-fury'), spec } })
-    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [save('druid-feral-bear')] }))
+    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [save('mage-arcane')] }))
     fillUp('horde-orc')
     expect(description()).toMatch(/but not with saved setups/)
     memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [save('warrior-arms')] }))

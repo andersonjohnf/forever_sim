@@ -28,7 +28,7 @@ When a design decision isn't covered here, make it, then add it here.
 8. **Only finished specs ship.** A spec appears in the spec picker only when its sim and UI
    are complete. Nothing is visibly "coming soon". To see and test one before it ships, a dev
    build, or a browser under automation (the e2e tests, `npm run snap`), offers it too when the
-   URL names it: `?preview=druid-feral-bear` (`src/app/preview-specs.ts`). A visitor's browser
+   URL names it: `?preview=<spec id>` (`src/app/preview-specs.ts`). A visitor's browser
    ignores the parameter.
 
 ## Layout
@@ -109,8 +109,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
-    grows as specs ship (principle 8): a druid sees the Feral cat's build but no bear build
-    until the bear ships, and a paladin sees Retribution's and Protection's. The spec
+    grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
+    paladin sees Retribution's and Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented

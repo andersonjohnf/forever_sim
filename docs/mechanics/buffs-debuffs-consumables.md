@@ -644,9 +644,10 @@ blessing whoever casts it, so it counts once.
 specs only (the effect does nothing for the others) · `all` = every spec.
 
 Spirit and Intellect are mana, and among the classes in scope only the paladin spends mana in a
-rotation the sim ships: a warrior has none, and the druid's powershifting mana waits for its
-specs to ship (then Prayer of Spirit and Arcane Brilliance join the cat's presets too, see
-[milestones](../milestones.md)). So they're `Pal`, like Blessing of Wisdom and Mana Spring.
+rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat
+never powershifts, since in Forever Furor keeps its Energy through a shift, so a shift gains
+nothing ([druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisdom and Mana Spring.
 
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
 | --- | --- | --- | --- | --- |
@@ -904,11 +905,14 @@ fight.
 An entry that does nothing for some classes carries the classes it's for (`forClasses` in
 `src/sim/effects/buffs.ts`). So far these are the paladin's: Prayer of Spirit, Arcane
 Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir of Holy Power,
-Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same). Warriors and druids in feral forms spend rage or energy,
-not mana, and deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only
-classes Forever lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab doesn't list such an
-entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
-the plan ignores it. The druid's own entries arrive with the druid specs.
+Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same).
+Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
+[druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
+deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever
+lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab doesn't list such
+an entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
+the plan ignores it. The Feral cat brought no entries of its own: what does nothing in Cat Form
+(a weapon stone's damage) is listed for a druid, locked off with the reason (`buffUnusedReason`).
 
 ### Classic Era values
 

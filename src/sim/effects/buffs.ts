@@ -1,8 +1,9 @@
 // The buff catalogue: raid buffs, target debuffs and consumables
 // (docs/mechanics/buffs-debuffs-consumables.md). Entries that do something for one class only
 // (mana and spell damage: the paladin's) say so in `forClasses`: the Buffs tab lists them for that
-// class, and presets and the plan skip them for the others. Druid-only entries arrive with those
-// specs. World buffs never exist here (decision D8).
+// class, and presets and the plan skip them for the others. What a druid's form makes useless is
+// listed and locked off instead (presets.ts `buffUnusedReason`). World buffs never exist here
+// (decision D8).
 //
 // Each entry is a UI-facing BuffDefinition plus its effects and the presets that include it
 // (buffs doc §6.2 and §6.3). Values are Forever's. An entry whose Classic Era value differs

@@ -261,9 +261,12 @@ the setup's rotation and every rotation variant the search tries. Then:
    Wild is: its 20% Stamina costs rage from every hit.
 
 The screen also notes which of the sheet's numbers each talent changes (health, armor, effective
-health, the boss's crit and crush chances, …), from the plans alone, for the constraints. Its runs
-go to the runner a few at a time (twice its lanes, as the race keeps), each only if the search
-hasn't been cancelled, so a cancel stops it within a run or two a lane.
+health, the boss's crit and crush chances, …), from the plans alone, for the constraints. Each
+plan's fights go to the runner in jobs of at most 250, as the race's do (`SCREEN_JOB_FIGHTS`), so no
+job outlasts the pool's awake-time watchdog on a slow phone however large `--screen-fights` is
+(OV4-3); a fight's numbers depend only on its plan and index, so the split changes nothing. A few
+jobs are in flight at a time (twice its lanes, as the race keeps), each started only if the search
+hasn't been cancelled, so a cancel stops it within a job or two a lane.
 
 The contexts' builds aren't legal (the plan builder doesn't need them to be). The screen's
 effect, the change in score with the talent at max rank, divided by its ranks, is its **score per

@@ -12,7 +12,7 @@ import { describeBuildChange } from './describe'
 import { type FightRunner, localFightRunner } from './fights'
 import { SURVIVAL_FLOOR } from './floor'
 import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate } from './optimize'
-import { screenTalents } from './screen'
+import { SCREEN_JOB_FIGHTS, screenTalents } from './screen'
 import { brokenConstraints } from './talents'
 
 const fixed = (config: SimConfig, seed = 1): SimConfig => ({ ...config, run: { mode: 'fixed', iterations: 0, seed } })
@@ -62,6 +62,29 @@ describe('screenTalents', () => {
     await expect(run).rejects.toThrow(/cancelled/)
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(started).toBeLessThanOrEqual(5 + 2 * lanes)
+  })
+
+  it('runs each plan’s fights in jobs of at most 250, with the same verdicts however they’re split (OV4-3)', async () => {
+    const config = fixed(defaultConfig('warrior-protection'))
+    // A long screen (3,000 fights a plan) never hands the runner more than 250 at once.
+    const counts: number[] = []
+    const zeros = (n: number) => ({ dps: new Float64Array(n), tps: new Float64Array(n), taken: new Float64Array(n) })
+    const runner: FightRunner = {
+      lanes: 2,
+      run: async (_source, from, count) => {
+        expect(from % SCREEN_JOB_FIGHTS).toBe(0)
+        counts.push(count)
+        return zeros(count)
+      },
+    }
+    const long = await screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 3000 })
+    expect(Math.max(...counts)).toBe(SCREEN_JOB_FIGHTS)
+    expect(counts.reduce((a, b) => a + b, 0)).toBe(long.fights)
+    // Split into jobs of 7 fights or run whole, the screen's verdicts are the same.
+    const whole = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), objective: 'balanced', fights: 20, jobFights: 1000 })
+    const split = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), objective: 'balanced', fights: 20, jobFights: 7 })
+    expect(split.verdicts).toEqual(whole.verdicts)
+    expect(split.fights).toBe(whole.fights)
   })
 })
 

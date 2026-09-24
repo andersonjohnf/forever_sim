@@ -168,6 +168,7 @@ export interface Excluded {
 }
 
 export type OptimizeProgress =
+  /** The screen's jobs done and planned (each plan's fights run in jobs of at most SCREEN_JOB_FIGHTS). */
   | { phase: 'screen'; done: number; total: number }
   | {
       phase: 'space'

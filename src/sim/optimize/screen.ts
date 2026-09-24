@@ -32,6 +32,8 @@ export interface ScreenOptions {
   objective: ObjectiveId
   /** Fights per plan (default 400). */
   fights?: number
+  /** Fights per job handed to the runner (default SCREEN_JOB_FIGHTS). */
+  jobFights?: number
   /** Rotation settings to screen under besides the setup's own (a search's rotation variants). */
   rotations?: readonly Record<string, RotationValue>[]
   signal?: AbortSignal
@@ -59,30 +61,24 @@ export interface TalentScreen {
   fights: number
 }
 
-/** Runs one plan's fights once, however many talents share it. */
-class SampleCache {
-  private readonly bySource = new Map<string, { source: PlanSource; samples?: Promise<FightSamples> }>()
-  private readonly runner: FightRunner
-  private readonly fights: number
-  constructor(runner: FightRunner, fights: number) {
-    this.runner = runner
-    this.fights = fights
-  }
-  fightsRun = 0
+/**
+ * Fights per job handed to the runner, as the race's (./race.ts): a plan's fights run as several
+ * jobs, so no job outlasts the pool's awake-time watchdog on a slow phone, however many fights the
+ * screen runs (OV4-3). A fight's numbers depend only on its plan and index, so the split changes
+ * nothing.
+ */
+export const SCREEN_JOB_FIGHTS = 250
 
+/** Each distinct plan once, however many talents share it, under its own plan key. */
+class PlanSources {
+  private readonly byText = new Map<string, PlanSource>()
   source(plan: Plan): string {
     const text = JSON.stringify(plan)
-    if (!this.bySource.has(text)) this.bySource.set(text, { source: { key: planKey(), plan: () => plan } })
+    if (!this.byText.has(text)) this.byText.set(text, { key: planKey(), plan: () => plan })
     return text
   }
-
-  samples(text: string): Promise<FightSamples> {
-    const entry = this.bySource.get(text)!
-    if (!entry.samples) {
-      entry.samples = this.runner.run(entry.source, 0, this.fights)
-      this.fightsRun += this.fights
-    }
-    return entry.samples
+  get(text: string): PlanSource {
+    return this.byText.get(text)!
   }
 }
 
@@ -94,10 +90,10 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
   const allMax = Object.fromEntries(talents.map((t) => [t.id, t.maxRank]))
   const rotations = [config.rotation, ...(options.rotations ?? []).map((r) => ({ ...config.rotation, ...r }))]
   const contexts = rotations.flatMap((rotation) => [own, allMax].map((ranks) => ({ ranks, rotation })))
-  const cache = new SampleCache(options.runner, fights)
+  const plans = new PlanSources()
   const planFor = (ranks: Record<string, number>, rotation: Record<string, RotationValue>) => {
     const bundle = buildPlan({ ...config, talents: encodeTalentCode(data, ranks), rotation })
-    return { text: cache.source(bundle.plan), sheet: sheetValues(bundle) }
+    return { text: plans.source(bundle.plan), sheet: sheetValues(bundle) }
   }
 
   // Each talent's plan pairs, off and on, per context, and the sheet stats that differ.
@@ -110,9 +106,16 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
   )
   const differing = pairs.flat().filter((p) => p.off !== p.on)
   const texts = [...new Set(differing.flatMap((p) => [p.off, p.on]))]
+  // Each plan's fights, in jobs of at most `jobFights`, into fixed positions of its samples.
+  const jobFights = Math.max(1, Math.floor(options.jobFights ?? SCREEN_JOB_FIGHTS))
   const results = new Map<string, FightSamples>()
-  // A few runs in flight at a time (twice the runner's lanes, as the race keeps), each started only
-  // if the search hasn't been cancelled, so a cancel stops the screen within a run or two a lane.
+  const jobs: { text: string; from: number; count: number }[] = []
+  for (const text of texts) {
+    results.set(text, { dps: new Float64Array(fights), tps: new Float64Array(fights), taken: new Float64Array(fights) })
+    for (let from = 0; from < fights; from += jobFights) jobs.push({ text, from, count: Math.min(jobFights, fights - from) })
+  }
+  // A few jobs in flight at a time (twice the runner's lanes, as the race keeps), each started only
+  // if the search hasn't been cancelled, so a cancel stops the screen within a job or two a lane.
   await new Promise<void>((resolve, reject) => {
     let next = 0
     let done = 0
@@ -128,22 +131,25 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
     signal?.addEventListener('abort', onAbort, { once: true })
     const pump = () => {
       if (failed) return
-      if (done === texts.length) {
+      if (done === jobs.length) {
         signal?.removeEventListener('abort', onAbort)
         resolve()
         return
       }
-      while (inFlight < Math.max(1, options.runner.lanes * 2) && next < texts.length) {
+      while (inFlight < Math.max(1, options.runner.lanes * 2) && next < jobs.length) {
         if (signal?.aborted) return fail(abortError())
-        const text = texts[next++]
+        const job = jobs[next++]
         inFlight++
-        cache.samples(text).then(
+        options.runner.run(plans.get(job.text), job.from, job.count).then(
           (s) => {
             inFlight--
             if (failed) return
-            results.set(text, s)
+            const into = results.get(job.text)!
+            into.dps.set(s.dps, job.from)
+            into.tps.set(s.tps, job.from)
+            into.taken.set(s.taken, job.from)
             done++
-            options.onProgress?.(done, texts.length)
+            options.onProgress?.(done, jobs.length)
             pump()
           },
           (error) => {
@@ -192,7 +198,7 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
         : 'objective'
     return { id: t.id, name: t.name, role, planChanges, scoreChanges, takenChanges, sheetStats, ...(effects.length ? { effect: effects[0] } : {}) }
   })
-  return { verdicts, roles: new Map(verdicts.map((v) => [v.id, v.role])), fights: cache.fightsRun }
+  return { verdicts, roles: new Map(verdicts.map((v) => [v.id, v.role])), fights: texts.length * fights }
 }
 
 function abortError(): Error {

@@ -31,9 +31,10 @@ function segments(def: AplDefinition): Map<string, number> {
 
 /**
  * The order to use for a stored one (untrusted): unknown ids, repeats and anything that isn't a
- * string are dropped; a row it doesn't name goes back at its default place, just after the row
- * that precedes it by default (or first in its stretch); pinned rows stay at their default places,
- * and no row crosses one. Absent or empty: the default order.
+ * string are dropped; a row it doesn't name goes just after the nearest row before it by default
+ * that the order names (or first in its stretch), and past any rows right after that one that also
+ * come before it by default, so it lands after them and before what follows it; pinned rows stay
+ * at their default places, and no row crosses one. Absent or empty: the default order.
  */
 export function normalizeAplOrder(def: AplDefinition, stored: readonly unknown[] | undefined): string[] {
   const fallback = defaultAplOrder(def)
@@ -55,12 +56,14 @@ export function normalizeAplOrder(def: AplDefinition, stored: readonly unknown[]
     const defaults = def.rows.filter((r) => !r.pinned && segmentOf.get(r.id) === s).map((r) => r.id)
     defaults.forEach((id, i) => {
       if (list.includes(id)) return
-      // After the nearest row before it by default that's in the list, or first.
-      const before = defaults
-        .slice(0, i)
-        .reverse()
-        .find((d) => list.includes(d))
-      list.splice(before === undefined ? 0 : list.indexOf(before) + 1, 0, id)
+      // After the nearest row before it by default that's in the list, or first; then past the
+      // rows just after that which come before it by default too (["whirlwind", "bloodthirst"]
+      // puts Overpower after Bloodthirst, not between them).
+      const earlier = defaults.slice(0, i)
+      const before = earlier.findLast((d) => list.includes(d))
+      let at = before === undefined ? 0 : list.indexOf(before) + 1
+      while (at < list.length && earlier.includes(list[at])) at++
+      list.splice(at, 0, id)
     })
     out.push(...list)
   }

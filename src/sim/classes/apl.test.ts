@@ -68,6 +68,17 @@ describe('the priority list’s order (decision D31)', () => {
     expect(normalizeAplOrder(DEF, ['c'])).toEqual(['opener', 'a', 'b', 'duty', 'c', 'd'])
   })
 
+  it('puts a missing row after the rows just after its predecessor that come before it by default too', () => {
+    const rows = ['p', 'q', 'r', 's', 't'].map((id) => ({ id, label: id, icon: '', optionIds: [] }))
+    const def: AplDefinition = { rows, specWide: [], presets: [] }
+    // A hand-written ["r", "q"]: S and T follow Q, not R, since Q comes before them by default.
+    expect(normalizeAplOrder(def, ['r', 'q'])).toEqual(['p', 'r', 'q', 's', 't'])
+    // A new row S, with R moved first: after R, then past P and Q, so at its default place.
+    expect(normalizeAplOrder(def, ['r', 'p', 'q', 't'])).toEqual(['r', 'p', 'q', 's', 't'])
+    // With R moved last, S follows it there.
+    expect(normalizeAplOrder(def, ['p', 'q', 't', 'r'])).toEqual(['p', 'q', 't', 'r', 's'])
+  })
+
   it('keeps pinned rows where they belong, and no row crosses one', () => {
     // A stored order that moves the pinned rows, or a row past one, gets them back.
     expect(normalizeAplOrder(DEF, ['duty', 'c', 'opener', 'a', 'b', 'd'])).toEqual(['opener', 'a', 'b', 'duty', 'c', 'd'])

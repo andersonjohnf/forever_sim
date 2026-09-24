@@ -104,8 +104,16 @@ A spec is data plus small ability modules, never its own loop.
     settings, keeping the spec-wide ones you set.
   - **The order** is `SimConfig.rotationOrder`, row ids, stored only while it differs from the
     default. `normalizeAplOrder` (`sim/classes/apl.ts`) reads any stored order. It drops unknown
-    ids, puts a row the order doesn't name just after the row that precedes it by default, and
-    keeps pinned rows fixed. A setup saved before the list, or before a row existed, loads with
+    ids, and keeps pinned rows fixed. A row the order doesn't name goes just after the nearest
+    row before it by default that the order does name (wherever that row now sits), or first in
+    its stretch, then past any rows right after that one that come before it by default too. So
+    it lands between its default neighbours where they're still together, and a hand-written
+    `["whirlwind", "bloodthirst"]` puts Overpower and the rest after Bloodthirst, not between
+    the two. The app always stores a complete order (`storedAplOrder`), so the rule only places
+    a row added in a later version, or one missing from an order edited by hand. Once rows are
+    reordered, a row's default neighbours needn't be together: a row added after Hamstring
+    follows Hamstring and the rows after it that come before the new row by default (with
+    Hamstring moved to the top, that's its default place; with Hamstring moved last, it's last). A setup saved before the list, or before a row existed, loads with
     the default place for what it doesn't name, and `normalizeConfig` leaves a setup without an
     order byte-identical.
   - **The compiler** is the spec's rotation function, which `classRotation` passes the order.

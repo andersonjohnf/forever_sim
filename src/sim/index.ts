@@ -56,6 +56,8 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'druid-feral-bear',
   'paladin-retribution',
   'paladin-protection',
+  // docs/classes/shaman.md: landed under D27's first-pass defaults (S1).
+  'shaman-enhancement',
 ])
 
 /**

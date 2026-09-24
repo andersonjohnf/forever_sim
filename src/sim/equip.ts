@@ -48,9 +48,20 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: 'Idol',
     dualWield: false,
   },
+  // docs/classes/shaman.md#races-and-weapons: mail at 40 and shields [C]; Forever trains two-handed
+  // axes and maces without Classic's talent [F] (its talent and spell are gone from the client).
+  shaman: {
+    armor: ['cloth', 'leather', 'mail'],
+    shield: true,
+    oneHand: ['axe', 'mace', 'dagger', 'fist'],
+    twoHand: ['axe', 'mace', 'staff'],
+    ranged: [],
+    relic: 'Totem',
+    dualWield: false,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {

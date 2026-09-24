@@ -9,6 +9,7 @@ import type { RulesProfile } from '../rules/profiles'
 import type { ClassId, SpecId } from '../types'
 import { druidSetup } from './druid/setup'
 import { paladinEffects } from './paladin/setup'
+import { shamanEffects } from './shaman/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -62,6 +63,8 @@ export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, p
   if (classId === 'druid') return { ...druidSetup(spec, talents, profile), stance: null, talents, simulated: true }
   // docs/classes/paladin.md: talents, Righteous Fury and mana; no stances.
   if (classId === 'paladin') return { effects: paladinEffects(spec, talents), stance: null, talents, simulated: true }
+  // docs/classes/shaman.md: talents and mana; no stances or forms.
+  if (classId === 'shaman') return { effects: shamanEffects(talents), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

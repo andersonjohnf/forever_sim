@@ -20,11 +20,13 @@ const PALADIN_ONLY = [
   'majorManaPotion',
   'demonicRune',
 ]
+/** The mana and all-schools spell damage entries are the shaman's too (docs/classes/shaman.md); Holy Power isn't. */
+const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
 
 describe('class-only catalogue entries', () => {
-  it('are the paladin’s mana and spell damage entries, and the Mighty Rage Potion (warriors and druids only)', () => {
+  it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, and the Mighty Rage Potion (warriors and druids only)', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
-    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(['paladin'])
+    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman'] : ['paladin'])
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([['mightyRagePotion', ['warrior', 'druid']]])
     expect(presetBuffIds('max', 'paladin-retribution', FULL_RAID)).not.toContain('mightyRagePotion')
   })
@@ -33,7 +35,8 @@ describe('class-only catalogue entries', () => {
     for (const spec of SPEC_IDS) {
       for (const preset of ['dungeon', 'raid', 'max'] as const) {
         const ids = presetBuffIds(preset, spec, FULL_RAID)
-        for (const id of PALADIN_ONLY) if (SPEC_META[spec].classId !== 'paladin') expect(ids, `${spec} ${preset}`).not.toContain(id)
+        const classId = SPEC_META[spec].classId
+        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
       }
     }
     expect(forSpecClass({ forClasses: ['paladin'] }, 'warrior-fury')).toBe(false)

@@ -16,6 +16,8 @@ export const forSpecClass = (buff: { forClasses?: readonly string[] }, spec: Spe
 function reaches(audience: Audience, spec: SpecId): boolean {
   if (audience === 'all') return true
   if (audience === 'dps' || audience === 'tank') return SPEC_META[spec].role === audience
+  // Every spec but these (Windfury Totem: not the Enhancement shaman, docs/classes/shaman.md#totems).
+  if ('not' in audience) return !audience.not.includes(spec)
   return audience.includes(spec)
 }
 
@@ -38,6 +40,10 @@ const FORM_NAME: Partial<Record<SpecId, string>> = { 'druid-feral-cat': 'Cat For
  * out. An Elemental Sharpening Stone's crit still applies.
  */
 export function buffUnusedReason(buff: BuffSpec, spec: SpecId): string | undefined {
+  // docs/classes/shaman.md#weapon-imbues: a shaman's weapon imbue is its main hand's temporary
+  // enchant, so a stone or oil has no weapon to go on.
+  if (SPEC_META[spec].classId === 'shaman' && catalogueEffects(buff, FOREVER).some((e) => e.kind === 'tempEnchant'))
+    return 'Not used: your weapon imbue is your main hand’s temporary enchant'
   const form = FORM_NAME[spec]
   if (!form) return undefined
   const effects = catalogueEffects(buff, FOREVER)

@@ -142,13 +142,22 @@ export interface SpellDef {
    * paladin.md#other-abilities [?]). Absent: it can crit.
    */
   cannotCrit?: boolean
+  /**
+   * More damage while an aura (by id) is up, which the spell uses up when it lands: Stormstrike's
+   * +20% to the shaman's next Lightning Bolt or Earth Shock (docs/classes/shaman.md#stormstrike).
+   * Absent: none.
+   */
+  boost?: { aura: string; pct: number }
 }
 
-export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense'> {
+export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost'> {
   school: number
   defense: number
   /** Breakdown row. */
   source: number
+  /** `SpellDef.boost` resolved: the plan aura it's boosted by and uses up, and the % (shaman.md#stormstrike). Absent: none. */
+  boostAura?: number
+  boostPct?: number
 }
 
 export interface WeaponPlan {
@@ -187,6 +196,12 @@ export interface AuraPlan {
   durationMs: number
   maxStacks: number
   whiteSwingCharges: number
+  /**
+   * At most one white-swing charge used per this many ms (the shaman's Flurry, 16257:
+   * `ProcCategoryRecovery` 500, so a Windfury Weapon's extra attacks use one between them;
+   * docs/classes/shaman.md#flurry). Absent or 0: every white swing uses one.
+   */
+  whiteSwingChargeIcdMs?: number
   str: number
   agi: number
   ap: number
@@ -572,6 +587,18 @@ export interface AbilityPlan {
    * cooldown already running keeps running [?]. Absent or −1: none.
    */
   noCooldownAura?: number
+  // --- The shaman's (docs/classes/shaman.md). All optional: absent, a row behaves as before. ---
+  /**
+   * A plan aura whose stacks each cut this ability's cast time and cost by `stackCastPct` and
+   * `stackCostPct` %, and which using it spends: Maelstrom Weapon on Lightning Bolt, 20% a stack at
+   * 5/5, so 5 stacks make it instant and free (shaman.md#maelstrom-weapon). The cut is read when the
+   * ability is used, and the stacks go then [?].
+   */
+  stackAura?: number
+  stackCastPct?: number
+  stackCostPct?: number
+  /** A plan aura put on the player when it's used, beside its own `aura` (Improved Stormstrike's regeneration, shaman.md). */
+  selfAura?: number
 }
 
 /**
@@ -600,6 +627,13 @@ export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' |
    * and dropped the same way.
    */
   noCooldownWhile?: string
+  /**
+   * The aura (by id) whose stacks cut its cast time and cost (Maelstrom Weapon, shaman.md): the plan
+   * resolves it into `stackAura`, and leaves it out if no proc puts that aura up.
+   */
+  stackAuraId?: string
+  /** An aura it puts on the player when used (Improved Stormstrike's, shaman.md): the plan adds it to its auras as `selfAura`. */
+  selfAuraSpec?: AuraSpec
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
@@ -692,6 +726,13 @@ export const COND = {
    * false, so no wake-up.
    */
   executeNotWithin: 29,
+  // 30–33 are the Rogue's: tracks that merge separately.
+  /**
+   * plan aura a is up with at least b stacks: Lightning Bolt waits for 5 Maelstrom Weapon stacks, so
+   * it's instant and free (docs/classes/shaman.md#enhancement-priority). Checked on each walk; a
+   * stack gained is a decision point, as every aura change is.
+   */
+  auraStacksAtLeast: 34,
 } as const
 
 export interface RotationCondition {
@@ -942,6 +983,13 @@ export interface ManaPlan {
   mp5TickTenths?: number
   /** Share of the Spirit regeneration that continues inside the five-second rule (Reverence); absent: 0. */
   inFsrShare?: number
+  /**
+   * A plan aura that, while up, lets this share of the Spirit regeneration continue inside the rule,
+   * if it's more than `inFsrShare` (Improved Stormstrike's 50% for 15 s, docs/classes/shaman.md).
+   * Absent: none.
+   */
+  inFsrShareAura?: number
+  inFsrShareAuraShare?: number
 }
 
 /**

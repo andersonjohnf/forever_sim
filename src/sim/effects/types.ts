@@ -20,6 +20,8 @@ export type FlatStat =
   | 'ap'
   /** Attack power per point of Agility (Cat Form's aura 598: 1, docs/classes/druid.md §2.2). */
   | 'apPerAgi'
+  /** Attack power per point of Intellect (Mental Dexterity's aura 598: 1 at 3/3, docs/classes/shaman.md#talents). */
+  | 'apPerInt'
   | 'crit'
   | 'critRating'
   | 'hit'
@@ -199,6 +201,8 @@ export interface AuraSpec {
   maxStacks?: number
   /** Charges consumed by white swings (Flurry: 3); the aura drops when they run out. */
   whiteSwingCharges?: number
+  /** At most one of those charges used per this many ms (the shaman's Flurry: 500; plan/types.ts AuraPlan). */
+  whiteSwingChargeIcdMs?: number
   /** Charges consumed by crits dealt, white or special (Weakness Analyzer: 1); the aura drops when they run out. */
   critCharges?: number
   /** Charges consumed by the player's blocks (Holy Shield 4, Redoubt 5); the aura drops when they run out. */

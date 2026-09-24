@@ -18,6 +18,7 @@ const TITLES: Record<string, string> = {
   'docs/classes/warrior.md': 'Warrior',
   'docs/classes/druid.md': 'Druid',
   'docs/classes/paladin.md': 'Paladin',
+  'docs/classes/shaman.md': 'Shaman',
   'docs/decisions.md': 'Decisions',
   'docs/milestones.md': 'Milestones',
   'docs/open-questions.md': 'Open questions',

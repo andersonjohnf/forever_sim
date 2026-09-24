@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {
@@ -34,6 +34,7 @@ export const ASSUMPTION_GROUP = {
   // Your gear and consumables: items, enchants, consumables and the ratings on your gear.
   noWeapon: 'gear',
   noWeaponSpells: 'gear',
+  noWeaponShaman: 'gear',
   noWeaponSomeUsed: 'gear',
   weaponlessAttacks: 'gear',
   classicItems: 'gear',
@@ -110,6 +111,16 @@ export const ASSUMPTION_GROUP = {
   improvedSealOfFury: 'class',
   hammerOfWrathCast: 'class',
   manaRegen: 'class',
+  // The shaman's (docs/classes/shaman.md#open-questions): the proc rates and imbue first.
+  maelstromWeapon: 'class',
+  windfuryWeapon: 'class',
+  windfuryWeaponTotem: 'class',
+  shamanFlurry: 'class',
+  stormstrikeBoost: 'class',
+  lightningBoltCast: 'class',
+  shamanSpellDamage: 'class',
+  shamanTotems: 'class',
+  manaRegenShaman: 'class',
   foreverWhiteRage: 'class',
   foreverOffHandRage: 'class',
   onNextSwingRage: 'class',
@@ -154,6 +165,7 @@ export const ASSUMPTION_GROUP = {
   reactionTime: 'combat',
   reactionTimeEnergy: 'combat',
   reactionTimeMana: 'combat',
+  reactionTimeShaman: 'combat',
   negativeArmor: 'combat',
   offHandFirstSwing: 'combat',
   hasteNextSwing: 'combat',

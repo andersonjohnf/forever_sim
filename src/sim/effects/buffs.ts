@@ -15,8 +15,12 @@ import type { ClassicEraValues, EffectList, OnUseSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
 
-/** Who a preset gives an entry to (buffs doc §6.2: `DPS`, `Tank`, `all`; §6.3 lists specs). */
-export type Audience = 'all' | 'dps' | 'tank' | readonly SpecId[]
+/**
+ * Who a preset gives an entry to (buffs doc §6.2: `DPS`, `Tank`, `all`; §6.3 lists specs), or every
+ * spec but some (`not`: Windfury Totem for all but the Enhancement shaman, whose Windfury Weapon
+ * disables it, docs/classes/shaman.md#totems).
+ */
+export type Audience = 'all' | 'dps' | 'tank' | readonly SpecId[] | { not: readonly SpecId[] }
 
 export interface BuffSpec extends BuffDefinition {
   effects: EffectList
@@ -33,6 +37,10 @@ const RETRIBUTION: SpecId[] = ['paladin-retribution']
 const PROTECTION_PALADIN: SpecId[] = ['paladin-protection']
 /** Mana and spell damage do something for the paladin only among the classes in scope. */
 const PALADIN_ONLY: readonly ClassId[] = ['paladin']
+/** The Enhancement shaman (docs/classes/shaman.md#defaults): mana and Nature and Frost spell damage matter to it too. */
+const SHAMAN: SpecId[] = ['shaman-enhancement']
+/** The classes that spend mana in their rotations: the paladin and the shaman (buffs doc, class-only entries). */
+const MANA_USERS: readonly ClassId[] = ['paladin', 'shaman']
 /**
  * A tank's duties are in no preset (buffs doc §6.2; D26's amendment): a warrior tank's Thunder Clap
  * and Demoralizing Shout, a Protection warrior's own (SpecMeta.ownBuffs), so a bear's or a Protection
@@ -213,12 +221,12 @@ export const BUFFS: BuffSpec[] = [
     group: 'Stats',
     summary: '+40 Spirit',
     providedBy: 'priest',
-    // Spirit regenerates mana, which only the paladin spends in combat among the classes in scope.
-    forClasses: PALADIN_ONLY,
+    // Spirit regenerates mana, which the paladin and the shaman spend in combat.
+    forClasses: MANA_USERS,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 27681 #0 (Divine Spirit 27841 the same): aura 29, misc 4 (Spirit), 40; Classic Era's 39 + 1.
     effects: [{ kind: 'stat', stat: 'spi', value: 40 }],
-    presets: { raid: PALADINS, max: PALADINS },
+    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'arcaneBrilliance',
@@ -229,11 +237,11 @@ export const BUFFS: BuffSpec[] = [
     summary: '+31 Intellect',
     providedBy: 'mage',
     // Intellect is mana, spell crit and (Champion of the Light) spell damage: the paladin's alone.
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 23028 #0 (Arcane Intellect 10157 the same): aura 29, misc 3 (Intellect), 31; Classic Era's 30 + 1.
     effects: [{ kind: 'stat', stat: 'int', value: 31 }],
-    presets: { raid: PALADINS, max: PALADINS },
+    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'leaderOfThePack',
@@ -282,7 +290,9 @@ export const BUFFS: BuffSpec[] = [
       },
     ],
     classicEra: { summary: '20% chance on a main-hand hit for an extra attack with +315 attack power; replaces a main-hand stone' },
-    presets: { raid: 'all', max: 'all' },
+    // Not for the Enhancement shaman: its Windfury Weapon disables the totem's benefit for it, so its
+    // own air totem is Grace of Air (docs/classes/shaman.md#totems).
+    presets: { raid: { not: SHAMAN }, max: { not: SHAMAN } },
   },
   {
     id: 'graceOfAir',
@@ -292,11 +302,13 @@ export const BUFFS: BuffSpec[] = [
     group: 'Shaman totems',
     summary: '+89 Agility',
     providedBy: 'shaman',
+    // A shaman drops its own totems: one air, one earth and one water (docs/classes/shaman.md#totems).
+    selfCast: true,
     exclusiveGroup: 'totem:air',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
     classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
-    presets: {},
+    presets: { raid: SHAMAN, max: SHAMAN },
   },
   {
     id: 'strengthOfEarth',
@@ -306,6 +318,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Shaman totems',
     summary: '+53 Strength',
     providedBy: 'shaman',
+    selfCast: true,
     exclusiveGroup: 'totem:earth',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'str', value: 53 }],
@@ -347,12 +360,12 @@ export const BUFFS: BuffSpec[] = [
     group: 'Mana',
     summary: '+40 mana every 5 s',
     providedBy: 'paladin',
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
     effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
     classicEra: { summary: '+33 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
-    presets: { raid: PALADINS, max: PALADINS },
+    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'manaSpringTotem',
@@ -362,11 +375,12 @@ export const BUFFS: BuffSpec[] = [
     group: 'Mana',
     summary: '+10 mana every 2 s',
     providedBy: 'shaman',
-    forClasses: PALADIN_ONLY,
+    selfCast: true,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
-    presets: { raid: PALADINS, max: PALADINS },
+    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
 
   // --- Target debuffs (§4) -------------------------------------------------------------------
@@ -506,8 +520,8 @@ export const BUFFS: BuffSpec[] = [
       ],
     },
     presets: {
-      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'],
-      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'],
+      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
+      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
     },
   },
   {
@@ -520,7 +534,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'elixir:strength',
     docRef: `${DOC}#32-elixirs`,
     effects: [{ kind: 'stat', stat: 'str', value: 25 }],
-    presets: { raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'] },
+    presets: { raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
   },
   {
     id: 'jujuPower',
@@ -532,7 +546,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'elixir:strength',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'str', value: 30 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'] },
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
   },
   {
     id: 'elixirOfGreaterDefense',
@@ -564,11 +578,11 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Elixirs',
     summary: '+35 spell damage',
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#32-elixirs`,
     // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
-    presets: { raid: RETRIBUTION, max: PALADINS },
+    presets: { raid: RETRIBUTION, max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'elixirOfHolyPower',
@@ -605,11 +619,11 @@ export const BUFFS: BuffSpec[] = [
     group: 'Flasks',
     summary: '+150 spell damage',
     exclusiveGroup: 'flask',
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#31-flasks`,
     // 17628 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 150 }],
-    presets: { max: PALADINS },
+    presets: { max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'flaskOfNaturalAccuracy',
@@ -695,7 +709,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'buff:ap-drink',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'] },
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
   },
   {
     id: 'roids',
@@ -707,7 +721,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'blasted-lands',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'str', value: 25 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution'] },
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
   },
   {
     id: 'groundScorpokAssay',
@@ -743,9 +757,9 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#34-food`,
     effects: [{ kind: 'stat', stat: 'str', value: 20 }],
     presets: {
-      dungeon: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution'],
-      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution'],
-      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution'],
+      dungeon: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
+      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
+      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
     },
   },
   {
@@ -843,10 +857,10 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Potions and bombs',
     summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
-    presets: { raid: PALADINS, max: PALADINS },
+    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'demonicRune',
@@ -856,10 +870,10 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // A Dark Rune is the same, on the same cooldown, so one entry stands for both.
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
-    forClasses: PALADIN_ONLY,
+    forClasses: MANA_USERS,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
-    presets: { max: PALADINS },
+    presets: { max: [...PALADINS, ...SHAMAN] },
   },
   {
     id: 'jujuFlurry',
@@ -871,7 +885,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry', use: JUJU_FLURRY }],
     // Retribution uses it on cooldown too: more swings, more Seal of Command procs (buffs doc §6.3).
-    presets: { max: [...WARRIOR_DPS, ...RETRIBUTION] },
+    presets: { max: [...WARRIOR_DPS, ...RETRIBUTION, ...SHAMAN] },
   },
   {
     id: 'ezThroDarkBomb',

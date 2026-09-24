@@ -29,6 +29,9 @@ export interface ItemEffects {
  */
 const ITEM_EFFECT_SPECS: Record<number, readonly SpecId[]> = {
   23198: ['druid-feral-bear'],
+  // Totem of Rebirth (22345, spell 27797): "Reduces the Mana cost of Riptide by 5%", a healer's spell
+  // (docs/classes/shaman.md#defaults): nothing for a damage spec.
+  22345: [],
 }
 
 /** Whether an item's equip effects can do anything for this spec (ITEM_EFFECT_SPECS). */
@@ -135,6 +138,29 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   // Fury reads it (docs/classes/druid.md §3.6); the bear's Enrage part comes with the bear rotation.
   8345: {
     source: 'Forever client: spell 17768 (1.60.1.69913); the cat rotation’s Tiger’s Fury adds its Energy',
+    effects: [],
+  },
+  // Earthstrike (item 21180): "Use: Increases your melee and ranged attack power by 280. Effect lasts
+  // for 20 sec. (2 Min Cooldown)": 25891, aura 99 (+280) for 20000 ms, no GCD, the item's 2 min
+  // (docs/classes/shaman.md#defaults, its pre-raid BiS trinket).
+  21180: {
+    source: 'Forever client: spell 25891 (1.60.1.69913) and the item’s tooltip cooldown',
+    effects: [],
+    use: {
+      id: 'earthstrike',
+      name: 'Earthstrike',
+      icon: 'spell_nature_abolishmagic',
+      cooldownMs: 120000,
+      gcdMs: 0,
+      aura: { id: 'earthstrike', name: 'Earthstrike', durationMs: 20000, mods: { ap: 280 } },
+      rageTenths: 0,
+      rageSpreadTenths: 0,
+    },
+  },
+  // Totem of Rage (item 22395): "Equip: Increases the damage of your Shock spells by 2%." (27859). Nothing
+  // on its own: the shaman's shocks read it (docs/classes/shaman.md#shocks-and-lightning-bolt).
+  22395: {
+    source: 'Forever client: spell 27859 (1.60.1.69913); the shaman rotation’s shocks add its 2%',
     effects: [],
   },
   // Flurry Axe: "Grants 1 extra attack on your next swing"; 1.8 PPM [C].

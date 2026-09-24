@@ -69,6 +69,23 @@ const PALADIN_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-undead': { str: 104, agi: 63, sta: 101, int: 68, spi: 80 },
 }
 
+/**
+ * Shaman base attributes at level 60, [?] placeholders (D24 rule 2; docs/classes/shaman.md#base-stats,
+ * character-stats.md OQ-1). Origin: the mangos emulator's 1.12 rows for Orc, Tauren and Troll
+ * shamans (https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql),
+ * not evidence; they are the class row Str 85, Agi 55, Sta 95, Int 90, Spi 100 plus the [C] race
+ * offsets, and wowsims/classic's `base_stats.go` has the same rows. Classic Era had no Dwarf shaman:
+ * its row is the class row plus the [C] Dwarf offset (+2/−4/+3/−1/−1), so a placeholder too. The
+ * Windshaper Skyborne row is the class row, with neutral offsets (Skyborne's are unknown, OQ-1).
+ */
+const SHAMAN_ROWS: Readonly<Record<string, Attributes>> = {
+  'horde-orc': { str: 88, agi: 52, sta: 97, int: 87, spi: 103 },
+  'horde-tauren': { str: 90, agi: 50, sta: 97, int: 85, spi: 102 },
+  'horde-troll': { str: 86, agi: 57, sta: 96, int: 86, spi: 101 },
+  'horde-skyborne-windshaper': { str: 85, agi: 55, sta: 95, int: 90, spi: 100 },
+  'alliance-dwarf': { str: 87, agi: 51, sta: 98, int: 89, spi: 99 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -154,6 +171,26 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     // docs/mechanics/character-stats.md#other-base-values-at-level-60: 1244 [F]
     baseMana: 1244,
   },
+  shaman: {
+    // Unmeasured (docs/classes/shaman.md#base-stats): the attribute rows, attack power, crit, spell
+    // crit, dodge and health are D24 placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // docs/classes/shaman.md#base-stats: PlayerExpectedStat.CritPerAgility 0.000508, 19.69 Agility per 1% [F]
+    critPerAgi: 0.0508,
+    // PlayerExpectedStat.SpellCritPerIntellect 0.000169, 59.17 Intellect per 1% [F]
+    spellCritPerInt: 0.0169,
+    baseSpellCrit: null,
+    baseDodge: null,
+    // A shaman parries only with Spirit Weapons, a talent (docs/classes/shaman.md#base-stats);
+    // shields block from the base 5% [?] (character-stats OQ-5).
+    baseParry: 0,
+    baseBlock: 5,
+    baseHealth: null,
+    // docs/classes/shaman.md#base-stats: PlayerExpectedStat.BaseMana and basemp.txt, 1520 [F]
+    baseMana: 1520,
+  },
 }
 
 /**
@@ -201,6 +238,12 @@ export interface BasePlaceholders {
  * The paladin's attribute rows are PALADIN_ROWS above. Its base melee crit, spell crit and dodge
  * have the druid's origins (the melee crit via wowsims/classic only), and the same caveat: not
  * evidence.
+ *
+ * The shaman's (docs/classes/shaman.md#base-stats) are SHAMAN_ROWS above, base health 1,280 (the
+ * emulator's class table, as for the others), base attack power 60 × 2 − 20 = 100 (wowsims/classic),
+ * base melee crit and dodge 1.7% (RatingBuster and wowsims/classic agree), and base spell crit 2.3%
+ * (wowsims/classic; RatingBuster's table reads −0.7%, so the sources conflict): all "[?] placeholder
+ * (D24); origin: …, not evidence".
  */
 export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
   warrior: { baseHealth: 1689 },
@@ -228,5 +271,17 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseSpellCrit: 1.8,
     /** Base dodge before Agility, % (OQ-5): under ±0.3% of bear TPS. */
     baseDodge: 0.9,
+  },
+  shaman: {
+    attributes: SHAMAN_ROWS,
+    /** Attack power before Strength: 60 × 2 − 20 (origin wowsims/classic). */
+    baseAp: 100,
+    baseHealth: 1280,
+    /** Base melee crit before Agility, % (origin RatingBuster and wowsims/classic, which agree). */
+    baseCrit: 1.7,
+    /** Base spell crit before Intellect, % (origin wowsims/classic; RatingBuster's −0.7 conflicts). */
+    baseSpellCrit: 2.3,
+    /** Base dodge before Agility, %: matters only to a tank. */
+    baseDodge: 1.7,
   },
 }

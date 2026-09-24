@@ -83,6 +83,16 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     // Its duty, Devotion Aura, which Tank duties first keeps up and Max TPS drops (paladin.md "Priority", D26).
     ownBuffs: ['devotionAura'],
   },
+  // docs/classes/shaman.md: its own totems are the Buffs tab's (their `selfCast`), as a paladin's
+  // Blessing of Might is, so it has no `ownBuffs`.
+  'shaman-enhancement': {
+    id: 'shaman-enhancement',
+    classId: 'shaman',
+    className: 'Shaman',
+    name: 'Enhancement',
+    role: 'dps',
+    icon: 'spell_nature_lightningshield',
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -92,4 +102,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   warrior: '#C69B6D',
   druid: '#FF7C0A',
   paladin: '#F48CBA',
+  shaman: '#0070DD',
 }

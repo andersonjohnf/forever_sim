@@ -33,6 +33,8 @@ export class StatBlock {
   baseAp = 0
   apPerStr = 2
   apPerAgi = 0
+  /** Mental Dexterity (docs/classes/shaman.md#talents): attack power per point of Intellect. */
+  apPerInt = 0
   ap = 0
   apMult = 1
 
@@ -181,7 +183,7 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
 
   // Step 4: conversions.
   out.attackPower = floorStat(
-    (b.baseAp + b.apPerStr * out.strength + b.apPerAgi * out.agility + b.ap) * b.apMult,
+    (b.baseAp + b.apPerStr * out.strength + b.apPerAgi * out.agility + b.apPerInt * out.intellect + b.ap) * b.apMult,
   )
   const ratingCrit = b.critRating / r.crit
   out.auraCrit = b.crit + ratingCrit

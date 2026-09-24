@@ -13,6 +13,7 @@ import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid
 import { druidPlan } from '../classes/druid/plan'
 import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/protection'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
+import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanManaPlan } from '../classes/shaman/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -322,7 +323,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
   // The paladin uses mana, not rage (paladin.md#mana-model): it has no rage pool. Its hits give
   // none either (`rageFromHits`), so no rage assumption applies to it.
-  const usesRage = classId !== 'paladin'
+  // The shaman spends mana too (docs/classes/shaman.md#mana): no rage pool either.
+  const usesMana = classId === 'paladin' || classId === 'shaman'
+  const usesRage = !usesMana
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
   // other stats and effects still apply (druid.md §2.1, §8 "Form swap"). Its per-hand bonuses
@@ -530,6 +533,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     : undefined
 
   // --- Derived stats and the sheet -------------------------------------------------------------
+  // docs/classes/shaman.md#spell-damage: the shaman's spells are Nature and Frost, so Holy-only spell
+  // damage does nothing for it; its "SP" is all-schools spell damage plus Mental Quickness's share.
+  if (classId === 'shaman') block.holySpellDamage = 0
   const deriveOptions = { profile, applyUnmeasured, level: PLAYER_LEVEL }
   const derived = deriveStats(block, deriveOptions, new DerivedStats())
   // The sheet counts the buffs the rotation keeps up (flat stats only: Battle Shout's AP).
@@ -581,9 +587,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     placeholders,
     // docs/classes/paladin.md#mana-model, #conventions-used-below: the paladin's spell stats, as the
     // engine starts the fight with them (Holy spell damage with Champion of the Light's share).
-    ...(classId === 'paladin'
-      ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } }
-      : {}),
+    // The shaman's the same way: its spell damage for Nature and Frost (docs/classes/shaman.md#spell-damage).
+    ...(usesMana ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } } : {}),
   }
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
@@ -643,14 +648,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   const spells: SpellPlan[] = []
   /** The plan spell for `def` (paladin.md#conventions-used-below), added on first use with its breakdown row. */
+  /** Spells boosted by an aura (Stormstrike's, shaman.md), resolved once every ability's aura is in. */
+  const spellBoosts: { spell: number; boost: NonNullable<SpellDef['boost']> }[] = []
   const spellIndex = (def: SpellDef) => {
     const source = sourceIndex(def.id, def.name, def.icon)
     const i = spells.findIndex((x) => x.source === source)
     if (i >= 0) return i
-    const { name: _, icon: __, school, defense, ...rest } = def
+    const { name: _, icon: __, school, defense, boost, ...rest } = def
     spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source })
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
     if (def.cannotCrit && (defense === 'none' || (def.alwaysHit && def.noActiveDefense))) sources[source].certain = true
+    if (boost) spellBoosts.push({ spell: spells.length - 1, boost })
     return spells.length - 1
   }
   let procs: ProcPlan[] = []
@@ -791,7 +799,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, selfAuraSpec, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
@@ -819,6 +827,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spellDef ? { spell: spellIndex(spellDef) } : {}),
       ...(tickSpellDef ? { tickSpell: spellIndex(tickSpellDef) } : {}),
       ...(dotSource !== undefined ? { dotSource } : {}),
+      // docs/classes/shaman.md: an aura it puts on the player when used (Improved Stormstrike's).
+      ...(selfAuraSpec ? { selfAura: auraIndex(selfAuraSpec, selfAuraSpec.id, a.icon) } : {}),
     }
   })
   // Crit an aura gives some abilities (Berserk's, druid.md §3.7), and the aura that suspends an
@@ -838,6 +848,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // aura (Bloodthrill: your Rend on the target) is rolled only while it's up, and left out if the plan
   // has no such aura (no Rend in the rotation).
   for (const spec of classRot.procs) addProc(spec, null)
+  // docs/classes/shaman.md: an ability whose cast time and cost an aura's stacks cut (Lightning Bolt and
+  // Maelstrom Weapon), and a spell an aura boosts (Stormstrike's), once every proc's and ability's aura
+  // is in; without that aura there's nothing to cut or boost.
+  classRot.abilities.forEach((def, i) => {
+    if (!def.stackAuraId) return
+    const aura = auras.findIndex((x) => x.id === def.stackAuraId)
+    if (aura >= 0) abilities[i].stackAura = aura
+  })
+  for (const { spell, boost } of spellBoosts) {
+    const aura = auras.findIndex((x) => x.id === boost.aura)
+    if (aura >= 0) Object.assign(spells[spell], { boostAura: aura, boostPct: boost.pct })
+  }
   // A druid's proc bound to forms rolls only in them: always if it holds in every form the fight can
   // be in (the starting one and those its shapeshifts enter), and left out if in none (druid.md §2.8).
   const reachable = forms
@@ -860,6 +882,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
     return [resolved]
   })
+  // docs/classes/shaman.md#totems: "When applied to main hand, [Windfury Weapon] disables any benefit you
+  // personally receive from Windfury Totem" [F] (16362's tooltip), so a shaman's own imbue leaves the totem out.
+  if (procs.some((p) => p.id === SHAMAN_WINDFURY_WEAPON) && procs.some((p) => p.id === 'windfury')) {
+    procs = procs.filter((p) => p.id !== 'windfury')
+    notes.add('windfuryWeaponTotem')
+  }
   const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
   procs.forEach((p, i) => triggers[p.trigger].push(i))
   // A debuff the rotation keeps on the boss is the aura named after its Buffs entry (Protection's
@@ -926,7 +954,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       // A DPS paladin has nothing that reacts to a hit (no rage, no on-hit procs), so the Fight tab
       // leaves "Damage you take" out and a saved value goes unused (docs/ux.md "Fight").
       damageTakenPerHit:
-        !tank && classId !== 'paladin' && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
+        !tank && !usesMana && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
       damageTakenIntervalMs: DPS_DAMAGE_INTERVAL_MS,
       ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
@@ -961,6 +989,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'paladin' ? { mana: paladinManaPlan(derived, block.mp5, setup.talents) } : {}),
     // paladin.md#protection-tree: Swift Judgement's free next Judgement is the free-cast aura.
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
+    // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
+    ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5, auras) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
   }
 
@@ -970,7 +1000,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A cat's rotation waits on Energy and Clearcasting, and its GCD is 1 s (druid.md §2.4, §2.6); a
   // paladin's on mana.
   const energy = abilities.some((a) => a.resource === 'energy')
-  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : 'reactionTime')
+  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : 'reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
   // Maul's swing in `bearRage` (druid.md §4.1).
@@ -984,7 +1014,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // What the rotation's settings rest on without an ability that shows it (Arms' Heroic Strike off):
   // a warrior's rest on its swings, so only with a main hand. A paladin's rotation acts without one
   // too (Consecration, the mana potion), so its assumptions stand either way (knownFightEnd).
-  if (mh || classId === 'paladin') for (const { id, detail } of classRot.assumes ?? []) notes.add(id, detail)
+  if (mh || usesMana) for (const { id, detail } of classRot.assumes ?? []) notes.add(id, detail)
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
@@ -995,7 +1025,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const shieldAttacks = hasShield ? abilities.filter((a) => a.shieldOnly === true && a.kind !== 'cast') : []
     const weaponless = abilities.filter((a) => a.kind === 'spellTable' || shieldAttacks.includes(a))
     // A paladin's spells need no weapon either: its note says what's left out (seal procs, Holy Strike).
-    notes.add(classId === 'paladin' ? 'noWeaponSpells' : weaponless.length > 0 ? 'noWeaponSomeUsed' : 'noWeapon')
+    notes.add(classId === 'paladin' ? 'noWeaponSpells' : classId === 'shaman' ? 'noWeaponShaman' : weaponless.length > 0 ? 'noWeaponSomeUsed' : 'noWeapon')
     if (weaponless.length > 0) {
       const names = (list: readonly { name: string }[]) =>
         list.length > 1 ? `${list.slice(0, -1).map((a) => a.name).join(', ')} and ${list.at(-1)!.name}` : list[0].name
@@ -1145,7 +1175,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (windows.has('revengeWindow')) notes.add('revengeWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
-  // A paladin's cast (Hammer of Wrath) has its own note (paladinAssumptions).
+  // A paladin's cast (Hammer of Wrath) has its own note (paladinAssumptions), as the shaman's Lightning
+  // Bolt does (`lightningBoltCast`, shaman.md).
   if (classId === 'warrior' && abilities.some((a) => a.castMs > 0)) notes.add('slamCast')
   if (abilities.some((a) => a.twoHandOnly) && weapons[HAND.main]?.plan.twoHand) notes.add('spearingStrike')
   // A warrior's Rend (a rage bleed); a druid's bleeds are in `catBleeds`.
@@ -1205,6 +1236,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.
   for (const id of paladinAssumptions(plan)) notes.add(id)
   for (const id of protectionAssumptions(plan)) notes.add(id)
+  // docs/classes/shaman.md#open-questions: what the shaman's procs, spells and mana rely on.
+  for (const id of shamanAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }

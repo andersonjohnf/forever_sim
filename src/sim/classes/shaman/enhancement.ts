@@ -1,0 +1,316 @@
+// The Enhancement priority list and its settings (docs/classes/shaman.md "Enhancement priority").
+//
+// The weapon imbue (Windfury Weapon, or Rockbiter Weapon put on before the pull), the racial cooldown,
+// Rage of the Farseer, on-use trinkets and Juju Flurry off the GCD on cooldown, then Stormstrike on
+// cooldown, Lightning Bolt at 5 Maelstrom Weapon stacks (instant and free), a shock at or above a mana
+// threshold, and the mana potion and rune when they fit. Its totems are the Buffs tab's (their
+// `selfCast`). Setting ids are `shaman.enhancement.<ability>.<param>`; mana thresholds are
+// percentages of maximum mana. Abilities are resolved with the build's talents (talents.ts) before
+// their costs or spells feed anything. The defaults are the common priority with a first-pass search
+// (decision D27; shaman.md "First-pass defaults").
+import type { OnUseSpec, ProcSpec } from '../../effects/types'
+import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
+import type { RotationOption, RotationValue } from '../../types'
+import type { PaladinContext } from '../paladin/setup'
+import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
+import {
+  EARTH_SHOCK,
+  FROST_SHOCK,
+  LIGHTNING_BOLT,
+  MAELSTROM_AURA,
+  RAGE_OF_THE_FARSEER,
+  ROCKBITER_AP,
+  rockbiterWeapon,
+  SHAMAN,
+  STORMSTRIKE,
+  WINDFURY_WEAPON_AP,
+  windfuryWeaponProc,
+} from './abilities'
+import { ELEMENTAL_WEAPONS_ROCKBITER, ELEMENTAL_WEAPONS_WINDFURY, rank, type TalentRanks, withTalents } from './talents'
+
+const S = 'shaman.enhancement'
+const ID = {
+  imbue: `${S}.imbue`,
+  racial: `${S}.racial.enabled`,
+  farseer: `${S}.rageOfTheFarseer.enabled`,
+  trinkets: `${S}.trinkets.enabled`,
+  juju: `${S}.jujuFlurry.enabled`,
+  stormstrike: `${S}.stormstrike.enabled`,
+  bolt: `${S}.lightningBolt.enabled`,
+  boltStacks: `${S}.lightningBolt.minStacks`,
+  shock: `${S}.shock.spell`,
+  shockMana: `${S}.shock.minManaPct`,
+  manaPotion: `${S}.manaPotion.enabled`,
+  manaPotionMissing: `${S}.manaPotion.missingMana`,
+  rune: `${S}.rune.enabled`,
+  runeMissing: `${S}.rune.missingMana`,
+}
+export const ENHANCEMENT_IDS = ID
+
+/** Buff catalogue ids of the consumables the rotation uses (effects/buffs.ts). */
+export const MANA_POTION = 'majorManaPotion'
+export const MANA_RUNE = 'demonicRune'
+export const JUJU_FLURRY = 'jujuFlurry'
+
+/** Totem of Rage (22395): "Increases the damage of your Shock spells by 2%" (27859) [F] [client] (SpellEffect, 1.60.1.69913). */
+export const TOTEM_OF_RAGE = 22395
+export const TOTEM_OF_RAGE_PCT = 2
+
+/**
+ * Defaults from shaman.md's "Enhancement priority", in priority order: the Classic Era common
+ * priority adapted to Forever, with the first-pass search of decision D27 (shaman.md "First-pass
+ * defaults").
+ */
+export const ENHANCEMENT_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.imbue,
+    group: 'Cooldowns and buffs',
+    label: 'Weapon imbue',
+    help: 'Windfury Weapon: each hit has a 20% chance, at most every 1.5 s, of 2 extra attacks with more attack power. Rockbiter Weapon: +653 attack power all fight. Either takes your main hand’s temporary enchant, and Windfury Weapon turns off Windfury Totem for you.',
+    choices: [
+      { value: 'windfury', label: 'Windfury' },
+      { value: 'rockbiter', label: 'Rockbiter' },
+    ],
+    default: 'windfury',
+  },
+  {
+    kind: 'toggle',
+    id: ID.racial,
+    group: 'Cooldowns and buffs',
+    label: 'Racial cooldown',
+    help: 'Use Blood Fury (Orc: +10% attack power for 15 s) or Berserking (Troll: +10% attack speed for 10 s) on cooldown from the pull.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.farseer,
+    group: 'Cooldowns and buffs',
+    label: 'Rage of the Farseer',
+    help: 'Use it on cooldown from the pull: +30% attack speed for 25 s, every 3 minutes. It’s off the global cooldown.',
+    default: true,
+    requires: { talent: 'Rage of the Farseer' },
+  },
+  {
+    kind: 'toggle',
+    id: ID.trinkets,
+    group: 'Cooldowns and buffs',
+    label: 'On-use trinkets',
+    help: 'Use Earthstrike on cooldown if you wear it: +280 attack power for 20 s. Other on-use trinkets aren’t simulated.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.juju,
+    group: 'Cooldowns and buffs',
+    label: 'Juju Flurry',
+    help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute.',
+    default: true,
+    requiresBuff: JUJU_FLURRY,
+  },
+  {
+    kind: 'toggle',
+    id: ID.stormstrike,
+    group: 'Core abilities',
+    label: 'Stormstrike',
+    help: 'Use Stormstrike whenever it’s ready: a normalized swing for 125 mana every 8 s, and your next Lightning Bolt or Earth Shock within 12 s deals 20% more.',
+    default: true,
+    requires: { talent: 'Stormstrike' },
+  },
+  {
+    kind: 'toggle',
+    id: ID.bolt,
+    group: 'Core abilities',
+    label: 'Lightning Bolt',
+    help: 'Cast Lightning Bolt once you have enough Maelstrom Weapon stacks. At 5 it’s instant and free; with fewer it has a cast time, which pauses your swings.',
+    default: true,
+    requires: { talent: 'Maelstrom Weapon' },
+  },
+  {
+    kind: 'number',
+    id: ID.boltStacks,
+    group: 'Core abilities',
+    label: 'Lightning Bolt at',
+    help: 'Wait for at least this many Maelstrom Weapon stacks. Each cuts its cast time and cost by 20%.',
+    unit: 'stacks',
+    min: 1,
+    max: 5,
+    step: 1,
+    default: 5,
+    dependsOn: ID.bolt,
+  },
+  {
+    kind: 'choice',
+    id: ID.shock,
+    group: 'Core abilities',
+    label: 'Shock',
+    help: 'Earth Shock: Nature damage that Stormstrike and Concussion boost. Frost Shock: a little less Frost damage that neither boosts. The shocks share one cooldown.',
+    choices: [
+      { value: 'earth', label: 'Earth Shock' },
+      { value: 'frost', label: 'Frost Shock' },
+      { value: 'none', label: 'None' },
+    ],
+    default: 'earth',
+  },
+  {
+    kind: 'number',
+    id: ID.shockMana,
+    group: 'Core abilities',
+    label: 'Shock from',
+    help: 'Shock whenever it’s ready, but only at or above this much of your maximum mana, so Stormstrike always has its mana.',
+    unit: '% mana',
+    min: 0,
+    max: 100,
+    step: 5,
+    default: 20,
+  },
+  {
+    kind: 'toggle',
+    id: ID.manaPotion,
+    group: 'Consumables',
+    label: 'Major Mana Potion',
+    help: 'Drink one every 2 minutes once you’re missing enough mana (under Advanced) that all it can restore, up to 2,250, fits.',
+    default: true,
+    requiresBuff: MANA_POTION,
+  },
+  {
+    kind: 'number',
+    id: ID.manaPotionMissing,
+    group: 'Consumables',
+    label: 'Major Mana Potion when missing',
+    help: 'Drink it when you’re missing at least this much mana. 2,250 is the most it restores.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 2250,
+    dependsOn: ID.manaPotion,
+  },
+  {
+    kind: 'toggle',
+    id: ID.rune,
+    group: 'Consumables',
+    label: 'Demonic Rune',
+    help: 'Use one every 2 minutes, apart from the potion’s cooldown, once all it can restore (up to 1,500 mana) fits.',
+    default: true,
+    requiresBuff: MANA_RUNE,
+  },
+  {
+    kind: 'number',
+    id: ID.runeMissing,
+    group: 'Consumables',
+    label: 'Demonic Rune when missing',
+    help: 'Use it when you’re missing at least this much mana. 1,500 is the most it restores.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 1500,
+    dependsOn: ID.rune,
+  },
+]
+
+/** An on-use item or consumable as a shaman `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
+const consumable = (use: OnUseSpec): AbilityDef => ({
+  ...SHAMAN,
+  id: use.id,
+  name: use.name,
+  icon: use.icon,
+  kind: 'cast',
+  cooldownMs: use.cooldownMs,
+  gcdMs: use.gcdMs,
+  aura: use.aura,
+  manaTenths: use.manaTenths ?? 0,
+  manaSpreadTenths: use.manaSpreadTenths ?? 0,
+})
+
+/** The imbue goes on before the pull (it lasts an hour): Rockbiter's buff is up from the pull (shaman.md#weapon-imbues). */
+export const PREPULL_IMBUE_MS = -3000
+
+/**
+ * The Enhancement priority list from the settings (shaman.md "Enhancement priority"). `context` gives
+ * the maximum mana (the mana thresholds are shares of it), the race (its racial cooldown), the equipped
+ * items (Totem of Rage, on-use trinkets) and the selected consumables.
+ */
+export function enhancementRotation(
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  auraIndex: (id: string) => number,
+  context: Partial<PaladinContext & { equipped: ReadonlySet<number> }> = {},
+): ClassRotation {
+  const ctx = { ...NO_CONTEXT, ...context }
+  const v = reader(ENHANCEMENT_OPTIONS, values, talents)
+  const shockBonus = ctx.equipped?.has(TOTEM_OF_RAGE) ? TOTEM_OF_RAGE_PCT : 0
+  const abilities: AbilityDef[] = []
+  const rotation: RotationEntry[] = []
+  const procs: ProcSpec[] = []
+  const index = (def: AbilityDef): number => {
+    const i = abilities.findIndex((a) => a.id === def.id)
+    if (i >= 0) return i
+    abilities.push(withTalents(def, talents, shockBonus))
+    return abilities.length - 1
+  }
+  const add = (def: AbilityDef, conditions: RotationCondition[] = []) => {
+    const a = index(def)
+    rotation.push({ ability: a, conditions, unqueueBelowTenths: 0 })
+    return a
+  }
+  const maxManaTenths = 10 * (ctx.maxMana ?? 0)
+  const prepull: ClassRotation['prepull'] = { ...NO_PREPULL, casts: [] }
+
+  // The imbue (shaman.md#weapon-imbues): Windfury Weapon's procs, or Rockbiter Weapon's buff from before
+  // the pull. Elemental Weapons raises either's attack power.
+  const weapons = rank(talents, 'Elemental Weapons')
+  if (v.str(ID.imbue) === 'rockbiter') {
+    const ap = ROCKBITER_AP * (1 + (ELEMENTAL_WEAPONS_ROCKBITER[weapons] ?? 20) / 100)
+    prepull.casts.push({ ability: index(rockbiterWeapon(ap)), atMs: PREPULL_IMBUE_MS })
+  } else {
+    procs.push(windfuryWeaponProc(WINDFURY_WEAPON_AP * (1 + (ELEMENTAL_WEAPONS_WINDFURY[weapons] ?? 40) / 100)))
+  }
+
+  // Off the GCD, on cooldown from the pull: the racial cooldown, Rage of the Farseer, on-use trinkets
+  // and Juju Flurry. Nothing in the list is worth saving them for (shaman.md "Enhancement priority").
+  const racial = RACIAL_COOLDOWNS[ctx.race]
+  if (racial && v.on(ID.racial) && racial.id !== 'elunesLight') add(racial)
+  if (v.on(ID.farseer) && rank(talents, 'Rage of the Farseer') > 0) add(RAGE_OF_THE_FARSEER)
+  const pressed: string[] = ctx.items.map((i) => i.id)
+  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+  const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
+  if (juju) {
+    pressed.push(JUJU_FLURRY)
+    if (v.on(ID.juju)) add(consumable(juju))
+  }
+
+  // Stormstrike on cooldown.
+  if (v.on(ID.stormstrike) && rank(talents, 'Stormstrike') > 0) add(STORMSTRIKE)
+
+  // Lightning Bolt at x Maelstrom Weapon stacks (5: instant and free), which Maelstrom Weapon's procs give.
+  if (v.on(ID.bolt) && rank(talents, 'Maelstrom Weapon') > 0) {
+    const bolt = index(LIGHTNING_BOLT)
+    const stacks = Math.max(1, Math.min(5, Math.round(v.num(ID.boltStacks))))
+    // The talent's proc puts the stacks up (talents.ts), so its aura is in the plan already.
+    const aura = auraIndex(MAELSTROM_AURA.id)
+    if (aura >= 0) rotation.push({ ability: bolt, conditions: [{ code: COND.auraStacksAtLeast, a: aura, b: stacks }], unqueueBelowTenths: 0 })
+  }
+
+  // The shock on cooldown, at mana ≥ x%.
+  const shock = v.str(ID.shock)
+  if (shock !== 'none') {
+    const pct = v.num(ID.shockMana)
+    add(shock === 'frost' ? FROST_SHOCK : EARTH_SHOCK, pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : [])
+  }
+
+  // The mana potion and rune (off the GCD), when selected in Buffs: once the most they restore fits.
+  for (const [id, setting, missing] of [
+    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
+    [MANA_RUNE, ID.rune, ID.runeMissing],
+  ] as const) {
+    const use = ctx.consumables.find((c) => c.id === id)
+    if (!use) continue
+    pressed.push(id)
+    if (v.on(setting)) add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
+  }
+
+  return { abilities, rotation, prepull, onUse: pressed, procs }
+}

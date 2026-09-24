@@ -16,6 +16,7 @@ import {
   protectionRotation as paladinProtectionRotation,
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
+import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
@@ -63,6 +64,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
   if (spec === 'druid-feral-bear') return BEAR_OPTIONS
+  if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
   return []
 }
 
@@ -94,6 +96,10 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
+  // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
+  if (spec === 'shaman-enhancement') {
+    return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
+  }
   return undefined
 }
 
@@ -116,6 +122,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'warrior-protection': 'warrior.protection.racial.enabled',
   'druid-feral-cat': 'druid.cat.racial.enabled',
   'druid-feral-bear': 'druid.bear.racial.enabled',
+  'shaman-enhancement': 'shaman.enhancement.racial.enabled',
 }
 
 /**
@@ -192,5 +199,7 @@ export function classRotation(
   // docs/classes/paladin.md "Protection: model and rotation".
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
+  // docs/classes/shaman.md "Enhancement priority".
+  if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

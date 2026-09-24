@@ -14,6 +14,7 @@ const ENC = 'docs/mechanics/encounter.md'
 const WAR = 'docs/classes/warrior.md'
 const DRUID = 'docs/classes/druid.md'
 const PAL = 'docs/classes/paladin.md'
+const SHAM = 'docs/classes/shaman.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -527,6 +528,51 @@ const REGISTRY = {
     // warrior.md §7; the plan names the abilities, and which roll the special-attack table ({detail}).
     text: 'Still used, since {detail}.',
     docRef: `${WAR}#7-implementation-notes`,
+  },
+  // --- The shaman's (docs/classes/shaman.md#open-questions). ---
+  reactionTimeShaman: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cooldown or the global cooldown ends, a Maelstrom Weapon stack arrives or you have the mana, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
+  noWeaponShaman: {
+    text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is anything that needs them, such as Stormstrike, your weapon imbue and Maelstrom Weapon; your shocks are.',
+    docRef: `${SHAM}#weapon-imbues`,
+  },
+  windfuryWeaponTotem: {
+    text: 'Windfury Totem is left out: Windfury Weapon on your main hand disables its benefit for you, as the Forever tooltip says.',
+    docRef: `${SHAM}#totems`,
+  },
+  manaRegenShaman: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, half of it for 15 s after a Stormstrike with Improved Stormstrike, and your mp5 always. Your weapon imbue is on before the pull.',
+    docRef: `${SHAM}#mana`,
+  },
+  windfuryWeapon: {
+    text: 'Windfury Weapon’s 2 extra attacks both get its attack power, and its proc waits 1.5 s between procs, as the client says; its extra attacks can’t proc it again.',
+    docRef: `${SHAM}#weapon-imbues`,
+  },
+  maelstromWeapon: {
+    text: 'Maelstrom Weapon stacks on 50% of your landed melee hits, white, special and extra attacks: the rate is server-side and untested, read from a value the talent carries.',
+    docRef: `${SHAM}#maelstrom-weapon`,
+  },
+  shamanFlurry: {
+    text: 'Flurry loses at most one charge every 0.5 s, as the client says, so Windfury Weapon’s extra attacks use one between them; a crit refreshes it to 3.',
+    docRef: `${SHAM}#flurry`,
+  },
+  stormstrikeBoost: {
+    text: 'Stormstrike’s +20% goes to your next Lightning Bolt or Earth Shock that lands, which uses it up; a miss keeps it.',
+    docRef: `${SHAM}#stormstrike`,
+  },
+  lightningBoltCast: {
+    text: 'A Lightning Bolt with a cast time stops your swings, which start again from full when it completes, as Slam does.',
+    docRef: `${SHAM}#shocks-and-lightning-bolt`,
+  },
+  shamanSpellDamage: {
+    text: 'Your spells use your all-schools spell damage and Mental Quickness’s share of Intellect; Nature- or Frost-only spell damage on gear isn’t counted yet. They roll the spell table with an average partial resist.',
+    docRef: `${SHAM}#spell-damage`,
+  },
+  shamanTotems: {
+    text: 'Your own totems (Strength of Earth, Grace of Air, Mana Spring; see Buffs) are up all fight, dropped before the pull.',
+    docRef: `${SHAM}#totems`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

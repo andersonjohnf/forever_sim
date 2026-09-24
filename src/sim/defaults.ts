@@ -6,6 +6,7 @@ import type { Item, ItemData, PreRaidBisSlot } from '@/data/items/types'
 import type { ClassSlug } from '@/data/races/types'
 import druidTalents from '@/data/talents/druid.json'
 import paladinTalents from '@/data/talents/paladin.json'
+import shamanTalents from '@/data/talents/shaman.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
@@ -19,6 +20,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   warrior: warriorTalents as unknown as TalentData,
   druid: druidTalents as unknown as TalentData,
   paladin: paladinTalents as unknown as TalentData,
+  shaman: shamanTalents as unknown as TalentData,
 }
 
 /**
@@ -33,6 +35,7 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050012-5523032120132210551-', // documented bear preset (docs/classes/druid.md)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
+  'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
 }
 
 export interface TalentPreset {
@@ -70,6 +73,10 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/paladin.md#protection-defaults: Holy 2 / Prot 42 / Ret 7
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
   ],
+  shaman: [
+    // docs/classes/shaman.md#talents: Elemental 8 / Enhancement 33 / Restoration 10
+    { name: 'Enhancement (default)', code: DEFAULT_TALENTS['shaman-enhancement'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -82,6 +89,7 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   warrior: 'alliance-human',
   druid: 'horde-tauren',
   paladin: 'alliance-human',
+  shaman: 'horde-orc',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -167,6 +175,9 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   'paladin-retribution': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
   // §6.4 Prot paladin: Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat
   // gloves, Greater Agility boots and Greater Stamina shield.
+  // §6.4 Enhancement shaman (docs/classes/shaman.md#defaults): the Retribution column; the main hand
+  // is imbued and enchanted with Crusader.
+  'shaman-enhancement': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
   'paladin-protection': {
     back: 'cloakSuperiorDefense',
     chest: 'chestGreaterStats',
@@ -180,9 +191,10 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 /**
  * Specs whose default weapon is the two-hander even when the lists also rank a one-hander: a
  * feral's weapon damage does nothing in form, and the two-hander's enchant is the bigger one
- * (docs/classes/druid.md §7.3).
+ * (docs/classes/druid.md §7.3); an Enhancement shaman's Windfury Weapon and Stormstrike favour a
+ * slow two-hander (docs/classes/shaman.md#defaults).
  */
-const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-feral-bear'])
+const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-feral-bear', 'shaman-enhancement'])
 
 /**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item

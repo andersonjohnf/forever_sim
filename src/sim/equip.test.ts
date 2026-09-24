@@ -193,7 +193,8 @@ describe('faction-bound items (docs/data/items.md#equipping-rules)', () => {
     expect(placed.filter((i) => !twin(i)).map((i) => i.id)).toEqual(EXCEPTIONS)
     for (const id of EXCEPTIONS) expect(itemFaction(byId(id))).toBeNull()
     const twinned = placed.filter((i) => !EXCEPTIONS.includes(i.id))
-    expect(twinned).toHaveLength(16)
+    // 18 since S1: the Enhancement shaman's Outrider's and Sentinel's Chain Leggings.
+    expect(twinned).toHaveLength(18)
     for (const item of twinned) {
       expect(itemFaction(item), item.name).toBe(byPrefix(item.name))
       expect(placed, `${item.name}'s twin`).toContain(twin(item))

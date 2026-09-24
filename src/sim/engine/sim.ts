@@ -357,6 +357,29 @@ export class Sim {
   private readonly auraTakenCharges: Int32Array
   /** Each taken-charged aura's `auraGen` as a hit that costs health lands, before its procs (`onDamageTaken`). */
   private readonly takenChargeGen: Int32Array
+  /**
+   * At most one white-swing charge used per this many ms (the shaman's Flurry, 500: docs/classes/shaman.md#flurry),
+   * and when each aura's next one can go; 0 for every other aura, which loses one per white swing.
+   */
+  private readonly aChargeIcd: Float64Array
+  private readonly auraChargeReadyAt: Float64Array
+  /** The plan aura a spell is boosted by and uses up when it lands (−1: none), and by how much %: Stormstrike's (shaman.md). */
+  private readonly splBoostAura: Int32Array
+  private readonly splBoostPct: Float64Array
+  /**
+   * The shaman's (docs/classes/shaman.md): the aura whose stacks cut an ability's cast time and cost
+   * by these % each and which using it spends (Maelstrom Weapon on Lightning Bolt; −1: none), and an
+   * aura it puts on the player when used (Improved Stormstrike's; −1: none).
+   */
+  private readonly abStackAura: Int32Array
+  private readonly abStackCast: Float64Array
+  private readonly abStackCost: Float64Array
+  private readonly abSelfAura: Int32Array
+  /** The cost (tenths) a cast in progress was cut to by its stacks, which it pays when it completes; −1: none. */
+  private stackCastCost = -1
+  /** An aura that lets a share of spirit regeneration continue inside the five-second rule while up (Improved Stormstrike's), or −1. */
+  private readonly manaFsrAura: number
+  private readonly manaFsrAuraShare: number
 
   // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
   private readonly splSource: Int32Array
@@ -979,8 +1002,12 @@ export class Sim {
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
     this.auraTakenCharges = new Int32Array(na)
     this.takenChargeGen = new Int32Array(this.takenChargeAuras.length)
+    this.aChargeIcd = Float64Array.from(auras, (a) => a.whiteSwingChargeIcdMs ?? 0)
+    this.auraChargeReadyAt = new Float64Array(na)
 
     const spells = plan.spells ?? []
+    this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
+    this.splBoostPct = Float64Array.from(spells, (x) => x.boostPct ?? 0)
     this.splSource = Int32Array.from(spells, (x) => x.source)
     this.splSchool = Int32Array.from(spells, (x) => x.school)
     this.splDefense = Int32Array.from(spells, (x) => x.defense)
@@ -1086,6 +1113,10 @@ export class Sim {
     this.abManaGain = Float64Array.from(abilities, (a) => a.manaTenths ?? 0)
     this.abManaSpread = Int32Array.from(abilities, (a) => a.manaSpreadTenths ?? 0)
     this.abCatNext = ring(abilities.map((a) => a.category))
+    this.abStackAura = Int32Array.from(abilities, (a) => a.stackAura ?? -1)
+    this.abStackCast = Float64Array.from(abilities, (a) => a.stackCastPct ?? 0)
+    this.abStackCost = Float64Array.from(abilities, (a) => a.stackCostPct ?? 0)
+    this.abSelfAura = Int32Array.from(abilities, (a) => a.selfAura ?? -1)
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
       // docs/classes/druid.md §2.4–§2.8: the pool it pays from, its forms, combo points and Clearcasting.
@@ -1341,6 +1372,9 @@ export class Sim {
     // paladin.md#mana-model: mp5 per tick, and Reverence's share of spirit regeneration inside the rule.
     this.manaMp5 = plan.mana?.mp5TickTenths ?? 0
     this.manaInFsrShare = plan.mana?.inFsrShare ?? 0
+    // docs/classes/shaman.md: Improved Stormstrike's share while its aura is up.
+    this.manaFsrAura = plan.mana?.inFsrShareAura ?? -1
+    this.manaFsrAuraShare = plan.mana?.inFsrShareAuraShare ?? 0
     this.hasPowerTick = plan.energy !== undefined || plan.mana !== undefined
     this.hasMaxEnergy = this.condCode.includes(COND.maxEnergy)
     // Hits give rage in a form whose power is rage, and for a class with a rage pool: a warrior, not a
@@ -1585,6 +1619,8 @@ export class Sim {
       this.auraCritCharges[i] = 0
       this.auraGen[i]++
     }
+    this.auraChargeReadyAt.fill(0)
+    this.stackCastCost = -1
     for (let i = 0; i < this.bleedTicksLeft.length; i++) {
       this.bleedTicksLeft[i] = 0
       this.bleedGen[i]++
@@ -1821,7 +1857,13 @@ export class Sim {
     const charged = this.chargeAuras
     for (let i = 0; i < charged.length; i++) {
       const a = charged[i]
-      if (this.auraActive[a] && --this.auraCharges[a] <= 0) this.removeAura(a)
+      if (!this.auraActive[a]) continue
+      // docs/classes/shaman.md#flurry: the shaman's Flurry loses at most one charge per 500 ms.
+      if (this.aChargeIcd[a] > 0) {
+        if (this.auraChargeReadyAt[a] > this.now) continue
+        this.auraChargeReadyAt[a] = this.now + this.aChargeIcd[a]
+      }
+      if (--this.auraCharges[a] <= 0) this.removeAura(a)
     }
 
     const c = this.counters
@@ -2099,6 +2141,10 @@ export class Sim {
           if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
           break
         }
+        // docs/classes/shaman.md#enhancement-priority: Lightning Bolt at 5 Maelstrom Weapon stacks.
+        case COND.auraStacksAtLeast:
+          if (!this.auraActive[a] || this.auraStacks[a] < b) return false
+          break
       }
     }
     return true
@@ -2115,11 +2161,24 @@ export class Sim {
     // warrior.md §2.8: using a reactive ability closes its window, whether or not it lands.
     const w = this.abWindow[a]
     if (w >= 0 && this.auraActive[w]) this.removeAura(w)
-    if (this.abCastMs[a] > 0) {
-      this.startCast(a)
+    // docs/classes/shaman.md#maelstrom-weapon: its stacks cut the cast time and cost, and go now.
+    let castMs = this.abCastMs[a]
+    let stackCost = -1
+    const stack = this.abStackAura[a]
+    if (stack >= 0) {
+      stackCost = this.costOf(a)
+      castMs *= this.stackCut(a, this.abStackCast[a])
+      if (this.auraActive[stack]) this.removeAura(stack)
+    }
+    // Improved Stormstrike's regeneration comes when it's used, whether or not it lands (shaman.md).
+    if (this.abSelfAura[a] >= 0) this.applyAura(this.abSelfAura[a])
+    if (castMs > 0) {
+      this.stackCastCost = stackCost
+      this.startCast(a, castMs)
       return
     }
-    this.payCost(a)
+    if (stackCost >= 0) this.payStackCost(stackCost)
+    else this.payCost(a)
     const gcd = this.abGcd[a]
     if (gcd > 0) {
       this.gcdEnd = this.now + gcd
@@ -2169,11 +2228,11 @@ export class Sim {
    * (damage-and-timing §3.3 and its implementation notes). The cost, cooldown and strike wait for
    * the cast to complete.
    */
-  private startCast(a: number): void {
+  private startCast(a: number, castMs: number = this.abCastMs[a]): void {
     const now = this.now
     this.castGcdEnd = now + this.abGcd[a]
     this.gcdEnd = Infinity
-    this.q.push(now + this.abCastMs[a], EV_CAST_END, a, 0)
+    this.q.push(now + castMs, EV_CAST_END, a, 0)
     if (this.abCastHolds[a]) this.castHolding = true
     if (this.abCastStopsSwings[a]) {
       this.swingGen[HAND.main]++
@@ -2194,8 +2253,12 @@ export class Sim {
     this.gcdEnd = this.castGcdEnd
     if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     this.actPending = this.hasRotation
-    if (this.affordable(a)) {
-      this.payCost(a)
+    // A cast whose stacks cut its cost pays that cut cost now (shaman.md#maelstrom-weapon).
+    const stackCost = this.stackCastCost
+    this.stackCastCost = -1
+    if (stackCost >= 0 ? this.mana >= stackCost : this.affordable(a)) {
+      if (stackCost >= 0) this.payStackCost(stackCost)
+      else this.payCost(a)
       const cd = this.abCd[a]
       if (!this.countUse(a) && cd > 0) {
         this.abReadyAt[a] = now + cd
@@ -2975,6 +3038,12 @@ export class Sim {
     } else {
       damage *= this.magicMult * (1 - averageResist(this.bossLevelResist, this.plan.playerLevel))
     }
+    // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up.
+    const boost = this.splBoostAura[s]
+    if (boost >= 0 && this.auraActive[boost]) {
+      damage *= 1 + this.splBoostPct[s] / 100
+      this.removeAura(boost)
+    }
     if (crit) {
       damage *= this.splCritMult[s]
       c[row + FIELD.crits]++
@@ -3014,7 +3083,31 @@ export class Sim {
     if (forms !== 0 && (forms & (1 << this.form)) === 0) return false
     if (this.abFinisher[a] === 1 && this.comboPoints === 0) return false
     if (this.abFree[a] === 1 && this.auraActive[this.freeAura]) return true
-    return this.pool(this.abRes[a]) >= this.abCost[a]
+    return this.pool(this.abRes[a]) >= (this.abStackAura[a] >= 0 ? this.costOf(a) : this.abCost[a])
+  }
+
+  /**
+   * The factor its stacks cut an ability's cast time or cost to: 1 − stacks × pct / 100, at least 0
+   * (Maelstrom Weapon: 20% a stack, so 5 stacks make Lightning Bolt instant and free; shaman.md).
+   */
+  private stackCut(a: number, pct: number): number {
+    const aura = this.abStackAura[a]
+    const stacks = this.auraActive[aura] ? this.auraStacks[aura] : 0
+    return Math.max(0, 1 - (stacks * pct) / 100)
+  }
+
+  /** An ability's cost now, in tenths: its stacks' cut, rounded down to whole mana (shaman.md#maelstrom-weapon) [?]. */
+  private costOf(a: number): number {
+    return 10 * Math.floor((this.abCost[a] * this.stackCut(a, this.abStackCost[a])) / 10 + 1e-9)
+  }
+
+  /** Pays a cost its stacks cut (a mana ability, shaman.md#maelstrom-weapon): spending any mana starts the five-second rule. */
+  private payStackCost(cost: number): void {
+    this.lastPaid = cost
+    if (cost <= 0) return
+    this.mana -= cost
+    this.totalManaSpentTenths += cost
+    this.manaSpentAt = this.now
   }
 
   /** The pool of a resource, in tenths. */
@@ -3151,7 +3244,10 @@ export class Sim {
     if (this.energyMax > 0) this.gainEnergy(this.energyTick, -1)
     if (this.manaMax > 0) {
       const outside = this.now - this.manaSpentAt >= this.fiveSecondRuleMs
-      const tenths = this.manaMp5 + (outside ? this.manaRegen : this.manaRegen * this.manaInFsrShare)
+      // docs/classes/shaman.md: Improved Stormstrike's share while its aura is up, if it's more.
+      const aura = this.manaFsrAura
+      const share = aura >= 0 && this.auraActive[aura] ? Math.max(this.manaInFsrShare, this.manaFsrAuraShare) : this.manaInFsrShare
+      const tenths = this.manaMp5 + (outside ? this.manaRegen : this.manaRegen * share)
       if (this.manaTrace !== null) this.manaTrace(this.now, tenths)
       const before = this.mana
       this.gainMana(tenths, -1)

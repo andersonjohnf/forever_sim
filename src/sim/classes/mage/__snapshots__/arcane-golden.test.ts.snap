@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "ignite",
+      175368.23267814057,
+      211,
+      408,
+      0,
+      0,
+      0,
+      0,
+    ],
+    [
+      "pyroblast",
+      1793773.4040311126,
+      1434,
+      1027,
+      211,
+      196,
+      0,
+      0,
+    ],
+    [
+      "pyroblastDot",
+      640832.5294817825,
+      1238,
+      4237,
+      0,
+      0,
+      0,
+      0,
+    ],
+    [
+      "arcaneMissiles",
+      69698016.8382764,
+      35796,
+      125824,
+      36391,
+      13901,
+      0,
+      0,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.0101992035976788,
+    "mean": 402.18803561231005,
+    "stdev": 16.298923852962993,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 5688,
+    "regeneratedPerFight": 8752.365800000001,
+    "restored": [
+      {
+        "id": "masterOfElements",
+        "name": "Master of Elements",
+        "perFight": 27.852,
+      },
+      {
+        "id": "manaRuby",
+        "name": "Mana Ruby",
+        "perFight": 1102.9843999999998,
+      },
+      {
+        "id": "manaCitrine",
+        "name": "Mana Citrine",
+        "perFight": 847.6784,
+      },
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 2698.0545,
+      },
+    ],
+    "restoredPerFight": 4676.5693,
+    "spentPerFight": 15932.8155,
+  },
+  "tps": {
+    "ci95": 0.7253098459447308,
+    "mean": 294.5448985153514,
+    "stdev": 11.702414639366134,
+  },
+}
+`;

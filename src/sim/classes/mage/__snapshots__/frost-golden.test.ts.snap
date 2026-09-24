@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Frost mage’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "frostbolt",
+      73643024.76406333,
+      72328,
+      50447,
+      14548,
+      7333,
+      0,
+      0,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.4447708363985692,
+    "mean": 409.745006164092,
+    "stdev": 23.310461702581414,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 5253,
+    "regeneratedPerFight": 8714.7442,
+    "restored": [
+      {
+        "id": "manaRuby",
+        "name": "Mana Ruby",
+        "perFight": 1101.873,
+      },
+      {
+        "id": "manaCitrine",
+        "name": "Mana Citrine",
+        "perFight": 849.4365,
+      },
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 2184.5294,
+      },
+    ],
+    "restoredPerFight": 4135.8389,
+    "spentPerFight": 16236,
+  },
+  "tps": {
+    "ci95": 1.0243736357152662,
+    "mean": 298.3015477739347,
+    "stdev": 16.527619330964537,
+  },
+}
+`;

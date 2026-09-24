@@ -2606,7 +2606,10 @@ export class Sim {
       this.countUse(a)
       this.abReadyAt[a] = Infinity
       if (this.abCatNext[a] !== a) this.shareCooldown(a)
-    } else if (!this.countUse(a) && cd > 0) {
+    } else if (this.countUse(a)) {
+      // docs/classes/mage.md#mana: its last use still holds its category (a mana gem's 2 min).
+      if (cd > 0 && this.abCatNext[a] !== a) this.holdCategory(a, this.now + cd)
+    } else if (cd > 0) {
       this.abReadyAt[a] = this.now + cd
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
       if (this.abCatNext[a] !== a) this.shareCooldown(a)
@@ -2683,7 +2686,9 @@ export class Sim {
       if (stackCost >= 0) this.payStackCost(stackCost)
       else this.payCost(a)
       const cd = this.abCd[a]
-      if (!this.countUse(a) && cd > 0) {
+      if (this.countUse(a)) {
+        if (cd > 0 && this.abCatNext[a] !== a) this.holdCategory(a, now + cd)
+      } else if (cd > 0) {
         this.abReadyAt[a] = now + cd
         this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
         if (this.abCatNext[a] !== a) this.shareCooldown(a)
@@ -2699,6 +2704,16 @@ export class Sim {
       if (this.dualWield) this.scheduleSwing(HAND.off, now + this.swingMs[HAND.off])
     }
     if (this.exCount > 0) this.drainExtraAttacks()
+  }
+
+  /**
+   * The rest of ability a's category waits until `until`: a one-use ability's last use, which is
+   * never ready again itself, still starts its category's cooldown (a Mana Ruby holds the Mana
+   * Citrine and the Demonic Rune for 2 min, docs/classes/mage.md#mana).
+   */
+  private holdCategory(a: number, until: number): void {
+    for (let b = this.abCatNext[a]; b !== a; b = this.abCatNext[b]) if (this.abReadyAt[b] < until) this.abReadyAt[b] = until
+    this.q.push(until, EV_ACT, 0, 0)
   }
 
   /**

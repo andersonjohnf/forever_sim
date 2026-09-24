@@ -46,7 +46,7 @@ const range = (base: number, variance: number, perLevel = 0, spellLevel = 60, ma
 
 /**
  * Fireball r12 (25306) [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913): 483 base points, variance
- * 0.2419, so 424.58–541.42 at 60 (Classic Era 596–760), coefficient 1.0; its DoT 15 every 2 s for 8 s
+ * 0.24188791, so 424.58–541.42 at 60 (Classic Era 596–760), coefficient 1.0; its DoT 15 every 2 s for 8 s
  * (4 ticks, Classic Era 19), coefficient 0. Its DoT has no periodic-crit flag.
  */
 export const FIREBALL_SPELL: SpellDef = {
@@ -55,7 +55,7 @@ export const FIREBALL_SPELL: SpellDef = {
   name: 'Fireball',
   icon: 'spell_fire_flamebolt',
   school: 'fire',
-  ...range(483, 0.2419),
+  ...range(483, 0.24188791),
   spCoefficient: 1,
   dotTicks: 4,
   dotTickMs: 2000,
@@ -63,30 +63,30 @@ export const FIREBALL_SPELL: SpellDef = {
   dotSpCoefficient: 0,
 }
 
-/** Scorch r7 (10207): 178 base points, variance 0.1654, +1.7 a level from 58 to 62, so 166.68–196.12 at 60 (Classic Era 237–279), coefficient 0.429 [F] [client]. */
+/** Scorch r7 (10207): 178 base points, variance 0.16535433, +1.7 a level from 58 to 62, so 166.68–196.12 at 60 (Classic Era 237–279), coefficient 0.429 [F] [client]. */
 export const SCORCH_SPELL: SpellDef = {
   ...SPELL,
   id: 'scorch',
   name: 'Scorch',
   icon: 'spell_fire_soulburn',
   school: 'fire',
-  ...range(178, 0.1654, 1.7, 58, 62),
+  ...range(178, 0.16535433, 1.7, 58, 62),
   spCoefficient: 0.429,
 }
 
-/** Fire Blast r7 (10199): 438 base points, variance 0.166, +3 a level from 54 to 59, so 416.65–489.35 at 60 (Classic Era 446–524), coefficient 0.429 [F] [client]. */
+/** Fire Blast r7 (10199): 438 base points, variance 0.16595745, +3 a level from 54 to 59, so 416.66–489.34 at 60 (Classic Era 446–524), coefficient 0.429 [F] [client]. */
 export const FIRE_BLAST_SPELL: SpellDef = {
   ...SPELL,
   id: 'fireBlast',
   name: 'Fire Blast',
   icon: 'spell_fire_fireball',
   school: 'fire',
-  ...range(438, 0.166, 3, 54, 59),
+  ...range(438, 0.16595745, 3, 54, 59),
   spCoefficient: 0.429,
 }
 
 /**
- * Pyroblast r8 (18809): 583 base points, variance 0.2167, so 519.83–646.17 at 60 (Classic Era 716–890),
+ * Pyroblast r8 (18809): 583 base points, variance 0.21668743, so 519.84–646.16 at 60 (Classic Era 716–890),
  * coefficient 1.0; its DoT 53 every 3 s for 12 s (4 ticks, Classic Era 67), coefficient 0.15 a tick [F] [client].
  */
 export const PYROBLAST_SPELL: SpellDef = {
@@ -95,7 +95,7 @@ export const PYROBLAST_SPELL: SpellDef = {
   name: 'Pyroblast',
   icon: 'spell_fire_fireball02',
   school: 'fire',
-  ...range(583, 0.2167),
+  ...range(583, 0.21668743),
   spCoefficient: 1,
   dotTicks: 4,
   dotTickMs: 3000,
@@ -106,7 +106,7 @@ export const PYROBLAST_SPELL: SpellDef = {
 // --- Frost (mage.md#frost-spells) --------------------------------------------------------------------
 
 /**
- * Frostbolt r11 (25304): 475 base points, variance 0.0748, so 457.24–492.76 at 60 (Classic Era 515–555),
+ * Frostbolt r11 (25304): 475 base points, variance 0.07476635, so 457.24–492.76 at 60 (Classic Era 515–555),
  * coefficient 0.814; its slow makes it binary: resisted whole or not at all (docs/mechanics/spells.md §3) [F] [client].
  */
 export const FROSTBOLT_SPELL: SpellDef = {
@@ -115,7 +115,7 @@ export const FROSTBOLT_SPELL: SpellDef = {
   name: 'Frostbolt',
   icon: 'spell_frost_frostbolt02',
   school: 'frost',
-  ...range(475, 0.0748),
+  ...range(475, 0.07476635),
   spCoefficient: 0.814,
   binary: true,
 }
@@ -137,14 +137,14 @@ export const ARCANE_MISSILE_SPELL: SpellDef = {
   spCoefficient: 0.286,
 }
 
-/** Arcane Blast r5 (1239700), Forever's: 394 base points, variance 0.151, so 364.25–423.75 at 60, coefficient 0.714 [F] [client]. */
+/** Arcane Blast r5 (1239700), Forever's: 394 base points, variance 0.15102041, so 364.25–423.75 at 60, coefficient 0.714 [F] [client]. */
 export const ARCANE_BLAST_SPELL: SpellDef = {
   ...SPELL,
   id: 'arcaneBlast',
   name: 'Arcane Blast',
   icon: 'spell_arcane_blast',
   school: 'arcane',
-  ...range(394, 0.151),
+  ...range(394, 0.15102041),
   spCoefficient: 0.714,
 }
 

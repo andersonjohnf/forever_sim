@@ -1,0 +1,117 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Fire mage’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "ignite",
+      10957469.581790844,
+      15979,
+      26582,
+      0,
+      0,
+      0,
+      0,
+    ],
+    [
+      "scorch",
+      7701662.97533416,
+      13919,
+      8744,
+      4733,
+      442,
+      0,
+      0,
+    ],
+    [
+      "pyroblast",
+      16578950.746984024,
+      10824,
+      8093,
+      2426,
+      305,
+      0,
+      0,
+    ],
+    [
+      "pyroblastDot",
+      5632844.061998431,
+      10519,
+      34219,
+      0,
+      0,
+      0,
+      0,
+    ],
+    [
+      "fireBlast",
+      19168668.039477013,
+      19805,
+      14315,
+      4947,
+      543,
+      0,
+      0,
+    ],
+    [
+      "fireball",
+      30346629.887412567,
+      22519,
+      17953,
+      3873,
+      693,
+      0,
+      0,
+    ],
+    [
+      "fireballDot",
+      1035613.0700027206,
+      21826,
+      50860,
+      0,
+      0,
+      0,
+      0,
+    ],
+  ],
+  "dps": {
+    "ci95": 2.110639066331607,
+    "mean": 509.10294494775934,
+    "stdev": 34.05382354362689,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 5223,
+    "regeneratedPerFight": 9282.5714,
+    "restored": [
+      {
+        "id": "masterOfElements",
+        "name": "Master of Elements",
+        "perFight": 1511.7032,
+      },
+      {
+        "id": "manaRuby",
+        "name": "Mana Ruby",
+        "perFight": 1101.4812,
+      },
+      {
+        "id": "manaCitrine",
+        "name": "Mana Citrine",
+        "perFight": 851.6476,
+      },
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3547.4889,
+      },
+    ],
+    "restoredPerFight": 7012.320900000001,
+    "spentPerFight": 20706.25,
+  },
+  "tps": {
+    "ci95": 1.53777422754526,
+    "mean": 375.92107790133684,
+    "stdev": 24.811012470161455,
+  },
+}
+`;

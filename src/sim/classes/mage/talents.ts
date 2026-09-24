@@ -8,7 +8,7 @@
 import { spellCritMultiplier } from '../../core/formulas'
 import type { AuraSpec, Effect, ProcSpec } from '../../effects/types'
 import { type AbilityDef, schoolMask, type SpellDef } from '../../plan/types'
-import { FIRE_BLAST, FIREBALL, FROSTBOLT, PRESENCE_OF_MIND_AURA, PYROBLAST } from './abilities'
+import { COMBUSTION_AURA, FIRE_BLAST, FIREBALL, FROSTBOLT, PRESENCE_OF_MIND_AURA, PYROBLAST } from './abilities'
 
 const DOC = 'docs/classes/mage.md'
 
@@ -132,6 +132,19 @@ export const TALENT_EFFECTS: Record<string, (r: number) => Effect[]> = {
       proc: spellProc('masterOfElements', 'Master of Elements', 'spell_fire_masterofelements', 'spellCrit', {
         schools: ['fire', 'frost'],
         action: { kind: 'manaOfCost', pct: 10 * r },
+      }),
+    },
+  ],
+  // 11129 → 28682: while Combustion is up, each Fire spell that hits adds a stack of +10% Fire crit (up
+  // to 10), after its own crit roll; the refresh keeps its charges (abilities.ts COMBUSTION_AURA).
+  Combustion: () => [
+    {
+      kind: 'proc',
+      proc: spellProc('combustion.stack', 'Combustion', 'spell_fire_sealoffire', 'spellLanded', {
+        schools: ['fire'],
+        requiresAura: COMBUSTION_AURA.id,
+        action: { kind: 'aura', aura: COMBUSTION_AURA },
+        docRef: `${DOC}#combustion`,
       }),
     },
   ],

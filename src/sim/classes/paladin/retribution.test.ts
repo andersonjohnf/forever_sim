@@ -249,6 +249,17 @@ describe('the [?] assumptions the rotation rests on (paladin.md#open-questions)'
     expect(known({ buffs: [] })).toBeUndefined()
   })
 
+  it('list the fight’s end without a main hand too, since the potion line still acts then (RV4)', () => {
+    const { mainHand: _, ...unarmed } = config().gear
+    const assumptions = buildPlan({ ...config(), gear: unarmed }).assumptions
+    expect(assumptions.map((a) => a.id)).toContain('noWeaponSpells')
+    expect(assumptions.map((a) => a.id)).toContain('knownFightEnd')
+    // The rotation still drinks the potion early, which is what rests on it.
+    const plan = buildPlan({ ...config(), gear: unarmed }).plan
+    const early = plan.rotation.find((e) => plan.abilities[e.ability].id === 'majorManaPotion' && e.conditions.some((c) => c.code === COND.timeLeftAtLeast))
+    expect(early).toBeDefined()
+  })
+
   it('speak paladin: no rage, stances or forms in any of them, whatever the setup (reactionTimeMana)', () => {
     const d = defaultConfig(RET)
     const setups: SimConfig[] = [

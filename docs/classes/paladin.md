@@ -552,7 +552,8 @@ gets, under Character → Advanced (`rules.jotcBonus`). Tuning leaves it at the 
 
 The fight's end is known exactly: the early potion line's "another will be ready" needs it, where a
 player has to judge it. The results list it (`knownFightEnd`) with what misjudging it costs
-([Tuning the defaults](#tuning-the-defaults-c2)).
+([Tuning the defaults](#tuning-the-defaults-c2)), whenever an early line is in the list, with or
+without a main-hand weapon: the potion line acts either way.
 
 Notes:
 

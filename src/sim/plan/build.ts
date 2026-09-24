@@ -294,6 +294,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   weapons[HAND.main] = makeWeapon(HAND.main, mhItem)
   if (!twoHand) weapons[HAND.off] = makeWeapon(HAND.off, ohItem)
+  // The weapon types in hand, a caster's too: a weapon racial's crit holds while one is equipped,
+  // spells included, whether or not it swings (racials.ts; mage.md "Races": Sword Specialization).
+  const heldTypes = weapons.map((w) => w?.type ?? null)
   // A caster fights from range with its spells (docs/mechanics/spells.md §12): it doesn't swing its
   // weapon, whose stats still count, and its weapon's procs and enchants' procs never fire.
   if (meta.caster) {
@@ -412,7 +415,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (when.stance !== undefined && when.stance !== stance) return false
     if (when.creature && !when.creature.includes(fight.creatureType)) return false
     // A weapon of one of these types in either hand (warrior.md §2.7, §2.9, Q15).
-    if (when.weapons && !weapons.some((w) => w !== null && when.weapons!.includes(w.type))) return false
+    if (when.weapons && !heldTypes.some((t) => t !== null && when.weapons!.includes(t))) return false
     if (when.zones && !when.zones.includes(fight.zone)) {
       c.zoneGatedUnmet = true
       return false

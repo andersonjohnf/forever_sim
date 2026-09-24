@@ -473,6 +473,16 @@ describe('talents, racials and stances', () => {
     expect(bundle('alliance-human', axes).assumptions.map((a) => a.id)).not.toContain('racialWeaponCrit')
   })
 
+  it('gives a caster its weapon racial’s crit, spells too, for the weapon it holds and never swings (mage.md "Races")', () => {
+    // The Shadow Priest's default main hand is Scepter of the Unholy, a mace: a Dwarf's Mace Specialization holds.
+    const d = defaultConfig('priest-shadow')
+    const plan = (race: string) => buildPlan({ ...d, race }).plan
+    const [dwarf, gnome] = [plan('alliance-dwarf'), plan('alliance-gnome')] // the Gnome has no weapon racial
+    expect(dwarf.weapons).toEqual([null, null])
+    expect(dwarf.stats.spellCrit - gnome.stats.spellCrit).toBeCloseTo(1, 9)
+    expect(dwarf.stats.crit - gnome.stats.crit).toBeCloseTo(1, 9)
+  })
+
   // TL2: 12700's own tooltip reads "…with Axes and Polearms", and tooltips beat derived values (doctrine §2).
   it('gives Weaponmaster’s axe and polearm crit to that weapon’s attacks only, and not to spells, as its tooltip reads (warrior.md §2.7) [?] (Q15)', () => {
     const arms = defaultConfig('warrior-arms')

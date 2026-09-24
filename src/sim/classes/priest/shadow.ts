@@ -12,7 +12,7 @@ import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { FixedRotationRow, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
 import {
   DARK_SACRIFICE,
@@ -21,7 +21,6 @@ import {
   INNER_FOCUS,
   MIND_BLAST,
   MIND_FLAY,
-  PRIEST_BERSERKING,
   SHADOW_WORD_PAIN,
   STARSHARDS,
   VAMPIRIC_EMBRACE,
@@ -303,8 +302,8 @@ export function shadowRotation(
 
   // Off the GCD, on cooldown from the pull: the racial cooldown, on-use trinkets and a raid priest's
   // Power Infusion. Nothing in the list is worth saving them for (priest.md §6).
-  const racial = ctx.race === 'horde-troll' ? PRIEST_BERSERKING : RACIAL_COOLDOWNS[ctx.race]
-  if (racial && v.on(ID.racial) && racial.id !== 'bloodFury') add(racial)
+  const racial = CASTER_RACIALS[ctx.race]
+  if (racial && v.on(ID.racial)) add(racial)
   const pressed: string[] = ctx.items.map((i) => i.id)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION)

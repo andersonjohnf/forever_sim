@@ -662,8 +662,8 @@ const REGISTRY = {
     docRef: `${SHAM}#elemental-defaults`,
   },
   bloodFurySpellPower: {
-    text: 'Blood Fury’s +10% spell power is 10% of your sheet’s Nature spell damage, fixed at the pull.',
-    docRef: `${SHAM}#elemental-defaults`,
+    text: 'Blood Fury’s +10% spell power multiplies your spell damage of every school while it’s up, buffs and trinkets included, unrounded.',
+    docRef: `${LOCK}#72-race`,
   },
   // --- The rogue's (docs/classes/rogue.md §9) ---
   energyTicksRogue: {

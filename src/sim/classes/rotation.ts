@@ -24,7 +24,6 @@ import { SPEC_META } from '../specs'
 import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
-import { WARLOCK_RACIALS } from './warlock/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
@@ -62,8 +61,6 @@ export interface ClassRotationContext extends PaladinContext {
   weaponTypes?: readonly [WeaponType | null, WeaponType | null]
   /** The sheet's Spirit at the pull: the warlock's Life Tap reads it (docs/classes/warlock.md §3.3). Absent: 0. */
   spirit?: number
-  /** The sheet's Nature spell damage: Blood Fury's +10% spell power for an Elemental shaman (shaman.md "Elemental priority"). */
-  spellDamage?: number
 }
 
 /**
@@ -229,19 +226,12 @@ export interface UnusedSetup {
 export function unusedSettings(spec: SpecId, values: Record<string, RotationValue>, setup: UnusedSetup): Record<string, string> {
   const out: Record<string, string> = {}
   const racial = RACIAL_SETTING[spec]
-  // The warlock's racial cooldowns are its own caster versions (warlock.md §7.2): Orc and Troll.
-  const warlock = SPEC_META[spec].classId === 'warlock'
-  if (racial && !(warlock ? WARLOCK_RACIALS[setup.race] : RACIAL_COOLDOWNS[setup.race])) {
+  // Every class's racial cooldowns are for the same races (a caster's are caster-racials.ts's).
+  if (racial && !RACIAL_COOLDOWNS[setup.race]) {
     out[racial] =
       setup.race === 'alliance-gnome'
         ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
         : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
-  } else if (racial && SPEC_META[spec].classId === 'mage' && setup.race !== 'horde-troll') {
-    // docs/classes/mage.md#races: only Berserking's casting speed is simulated for a mage; Blood Fury's spell power (aura 317) isn't yet.
-    out[racial] =
-      setup.race === 'horde-orc'
-        ? 'Not used: Blood Fury’s spell power isn’t simulated for a mage yet.'
-        : `Not used: ${setup.raceName}’s racial cooldown does nothing for your spells.`
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))

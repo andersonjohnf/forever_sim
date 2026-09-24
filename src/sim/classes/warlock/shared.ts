@@ -26,8 +26,8 @@ import {
   shadowAndFlameProcs,
   SHADOWBURN,
   SIPHON_LIFE,
-  WARLOCK_RACIALS,
 } from './abilities'
+import { CASTER_RACIALS } from '../caster-racials'
 import { rank, type TalentRanks, withTalents } from './talents'
 import {
   DECIMATION_BELOW_PCT,
@@ -425,7 +425,7 @@ export function warlockRotation(
   }
 
   // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion.
-  const racial = WARLOCK_RACIALS[ctx.race]
+  const racial = CASTER_RACIALS[ctx.race]
   if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.trinkets)) for (const item of ctx.items) if (CASTER_TRINKETS.has(item.id)) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION)

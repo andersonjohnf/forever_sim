@@ -9,7 +9,6 @@
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import type { AuraSpec } from '../../effects/types'
 import { type AbilityDef, CASTER_ROW, type SpellDef } from '../../plan/types'
-import { BERSERKING } from '../warrior/abilities'
 import { atLevel60, spread } from '../paladin/spells'
 
 /** Base mana at level 60 [F] (PlayerExpectedStat.BaseMana, 1.60.1.69913; docs/mechanics/spells.md §8). */
@@ -300,14 +299,4 @@ export const DARK_SACRIFICE: AbilityDef = {
   rageTicks: 5,
   rageTickMs: 3000,
   aura: { id: 'darkSacrifice', name: 'Dark Sacrifice', durationMs: 15000, mods: {} },
-}
-
-/**
- * Berserking (20554) for a caster: Forever's is a flat +10% casting and attack speed for 10 s (auras
- * 65 and 319), a 3 min cooldown, off the GCD [F] [client] (SpellEffect, 1.60.1.69913;
- * docs/mechanics/spells.md §4). The warrior's row carries only its attack speed.
- */
-export const PRIEST_BERSERKING: AbilityDef = {
-  ...BERSERKING,
-  aura: { id: 'berserking', name: 'Berserking', durationMs: 10000, mods: { haste: 10, castHaste: 10 } },
 }

@@ -352,7 +352,8 @@ crit and 20 Agility per 1% crit are [F] (PlayerExpectedStat).
   another spell's DoT when it lands (`consumesDot`, `consumeChance`: Conflagrate and Shadow and
   Flame), gains that make no threat (`noThreat`: Life Tap, Fel Energy), a spell damage % aura
   (`spellDamagePct`: Blood Fury) and a maximum-mana % (`StatBlock.manaMult`: Fel Vitality, Expansive
-  Mind).
+  Mind). The warlock's Blood Fury and Berserking are every caster's (`src/sim/classes/caster-racials.ts`:
+  the mage, priest, warlock and shaman press the same definitions).
 - **Shadow Trance** is Maelstrom Weapon's mechanism: an aura whose one stack cuts Shadow Bolt's cast
   by 100% and is spent when it's used.
 - **Demonic Sacrifice** is a pre-pull cast whose aura lasts 2 h; the Voidwalker's is ticks of mana.

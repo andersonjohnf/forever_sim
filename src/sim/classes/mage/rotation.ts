@@ -7,7 +7,7 @@ import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { RotationOption, RotationValue, SpecId } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
   ARCANE_MISSILES,
@@ -77,7 +77,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.racial,
         group: COOLDOWNS,
         label: 'Racial cooldown',
-        help: 'Use Berserking (Troll: +10% casting speed for 10 s) on cooldown from the pull. Other races’ cooldowns do nothing for your spells.',
+        help: 'Use Berserking (Troll: +10% casting speed for 10 s) or Blood Fury (Orc: +10% spell power for 15 s) on cooldown from the pull.',
         default: true,
       },
       {
@@ -326,17 +326,6 @@ const consumable = (use: OnUseSpec, rest: Partial<AbilityDef> = {}): AbilityDef 
 })
 
 /**
- * Berserking for a caster (20554) [F] [client] (SpellEffect auras 65 and 319, 1.60.1.69913): Forever's
- * is +10% casting and attack speed for 10 s (docs/mechanics/spells.md §4); the warrior's row carries
- * the attack speed only.
- */
-function casterRacial(race: string): AbilityDef | undefined {
-  const racial = RACIAL_COOLDOWNS[race]
-  if (!racial || racial.id !== 'berserking' || !racial.aura) return undefined
-  return { ...racial, aura: { ...racial.aura, mods: { ...racial.aura.mods, castHaste: 10 } } }
-}
-
-/**
  * A mage priority list from the settings (mage.md "Fire priority", "Frost priority", "Arcane
  * priority"). `context` gives the maximum mana (the thresholds are shares of it), the race, the
  * equipped on-use items and the selected consumables.
@@ -374,7 +363,7 @@ export function mageRotation(
   if (spec === 'fire' && v.on(ID.combustion) && has('Combustion')) add(COMBUSTION)
   if (spec === 'arcane' && v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
   if (spec !== 'fire' && v.on(ID.presenceOfMind) && has('Presence of Mind')) add(PRESENCE_OF_MIND)
-  const racial = casterRacial(ctx.race)
+  const racial = CASTER_RACIALS[ctx.race]
   if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const pi = ctx.consumables.find((c) => c.id === POWER_INFUSION)

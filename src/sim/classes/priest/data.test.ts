@@ -19,11 +19,11 @@ import {
   MIND_BLAST,
   MIND_FLAY,
   PRIEST_BASE_MANA,
-  PRIEST_BERSERKING,
   SHADOW_WORD_PAIN,
   STARSHARDS,
   VAMPIRIC_EMBRACE,
 } from './abilities'
+import { BERSERKING_CASTER } from '../caster-racials'
 import { MEDITATION_SHARE, SHADOW_WEAVING_AURA, SHADOWFORM_COST_PCT, SHADOWFORM_CRIT_BONUS_PCT, SHADOWFORM_DAMAGE_PCT, TALENT_EFFECTS, withTalents } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -157,7 +157,7 @@ describe('the priest’s spells against the client (priest.md §3)', () => {
       [65, 10],
       [319, 10],
     ]))
-    expect(PRIEST_BERSERKING.aura!.mods).toEqual({ haste: 10, castHaste: 10 })
+    expect(BERSERKING_CASTER.aura!.mods).toEqual({ haste: 10, castHaste: 10 })
   })
 })
 

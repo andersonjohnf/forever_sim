@@ -12,7 +12,7 @@ import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
   EARTH_SHOCK,
@@ -279,8 +279,9 @@ export function enhancementRotation(
 
   // Off the GCD, on cooldown from the pull: the racial cooldown, Rage of the Farseer, on-use trinkets
   // and Juju Flurry. Nothing in the list is worth saving them for (shaman.md "Enhancement priority").
-  const racial = RACIAL_COOLDOWNS[ctx.race]
-  if (racial && v.on(ID.racial) && racial.id !== 'elunesLight') add(racial)
+  // The shaman's are the casters' (caster-racials.ts): Berserking's casting speed and Blood Fury's spell power too.
+  const racial = CASTER_RACIALS[ctx.race]
+  if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.farseer) && rank(talents, 'Rage of the Farseer') > 0) add(RAGE_OF_THE_FARSEER)
   const pressed: string[] = ctx.items.map((i) => i.id)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))

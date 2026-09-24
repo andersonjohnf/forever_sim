@@ -13,11 +13,9 @@ import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { FixedRotationRow, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
-  casterBerserking,
-  casterBloodFury,
   CHAIN_LIGHTNING,
   EARTH_SHOCK,
   ELEMENTAL_CLEARCASTING,
@@ -267,20 +265,17 @@ const consumable = (use: OnUseSpec): AbilityDef => ({
   manaSpreadTenths: use.manaSpreadTenths ?? 0,
 })
 
-/** Blood Fury's +10% spell power, as a share of the sheet's spell damage (abilities.ts casterBloodFury) [?]. */
-export const BLOOD_FURY_SPELL_PCT = 10
 
 /**
  * The Elemental priority list from the settings (shaman.md "Elemental priority"). `context` gives the
  * maximum mana (the mana thresholds are shares of it), the race (its racial cooldown), the equipped
- * items (the relics, on-use trinkets), the selected consumables and the sheet's Nature spell damage
- * (Blood Fury's share).
+ * items (the relics, on-use trinkets) and the selected consumables.
  */
 export function elementalRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
-  context: Partial<PaladinContext & { equipped: ReadonlySet<number>; spellDamage: number }> = {},
+  context: Partial<PaladinContext & { equipped: ReadonlySet<number> }> = {},
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(ELEMENTAL_OPTIONS, values, talents)
@@ -306,12 +301,8 @@ export function elementalRotation(
 
   // Off the GCD, on cooldown from the pull: the racial cooldown (the caster's: Berserking's casting
   // speed, Blood Fury's spell power) and on-use trinkets.
-  const racial = RACIAL_COOLDOWNS[ctx.race]
-  if (racial && v.on(ID.racial)) {
-    if (racial.id === 'berserking') add(casterBerserking(racial))
-    else if (racial.id === 'bloodFury') add(casterBloodFury(racial, Math.floor(((ctx.spellDamage ?? 0) * BLOOD_FURY_SPELL_PCT) / 100)))
-    else if (racial.id !== 'elunesLight') add(racial)
-  }
+  const racial = CASTER_RACIALS[ctx.race]
+  if (racial && v.on(ID.racial)) add(racial)
   const pressed: string[] = ctx.items.map((i) => i.id)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION_ID)

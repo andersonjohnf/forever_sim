@@ -1035,7 +1035,6 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         front: fight.position === 'front',
         weaponTypes: [weapons[HAND.main]?.type ?? null, weapons[HAND.off]?.type ?? null],
         maxMana: block.hasMana ? derived.mana : 0,
-        spellDamage: derived.natureSpellDamage,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
@@ -1527,6 +1526,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
   if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
+  // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
+  if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
   // docs/mechanics/ranged-and-pets.md §1: ammo the ranged weapon doesn't fire (arrows in a gun) adds nothing.
   if (meta.ranged && ammoItem && !ammoFired) notes.add('ammoNotFired', ammoItem.name)

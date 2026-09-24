@@ -57,7 +57,7 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Race | Faction | Mage in Classic | Mage in Forever | What matters to the sim |
 | --- | --- | --- | --- | --- |
 | Troll | Horde | yes | yes | **Berserking** (20554): +10% casting and attack speed for 10 s, 3 min (auras 65, 319, 140) [F]; the default race |
-| Orc | Horde | no | **yes (new)** | Blood Fury (20572): +10% attack power, and a third effect (aura 317) that [shaman.md](shaman.md#spell-damage) reads as +10% spell power; not simulated for a mage (a known gap), so the Rotation tab marks the racial setting unused |
+| Orc | Horde | no | **yes (new)** | **Blood Fury** (20572): +10% attack power and **+10% spell power** (aura 317) for 15 s, 2 min [F]: the casters' shared definition, a live multiplier on your spell damage while it's up ([warlock.md §7.2](warlock.md#72-race)). Simulated since issue #10; on the defaults (seed 12345, 20,000 fights) an Orc now measures level with or above a Troll: Fire 520.23 vs 515.72, Frost 411.11 vs 410.81, Arcane 405.13 vs 402.32 (± 0.2–0.5). The default race stays Troll until the tuning milestone looks at it |
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
 | Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; Eureka! isn't simulated |
@@ -175,6 +175,7 @@ travel time isn't simulated ([spells OQ-S13](../mechanics/spells.md#open-questio
 | Ice Barrier r4 (13033) | an 819-point absorb for 60 s (811 + 4 a level from 58) | 480 mana, 30 s, on the GCD | [F] [client] |
 | Mana Ruby (item 8008 → 10058), Mana Citrine (8007 → 10057) | 1,000–1,200 and 775–925 mana | once each a fight, 2 min (category 1153), off the GCD | [F] [client] (SpellEffect, ItemEffect) |
 | Berserking (20554, Troll) | +10% casting speed for 10 s | 3 min, off the GCD | [F] [client] |
+| Blood Fury (20572, Orc) | +10% spell power for 15 s (a multiplier on spell damage) | 2 min, off the GCD | [F] [client] |
 
 ---
 
@@ -484,7 +485,7 @@ the prefix below), in the Rotation tab's groups. A mana threshold is a share of 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 1 | Combustion, off the GCD | `combustion.enabled`, with the talent; ready | on |
-| 2 | Berserking (Troll), off the GCD | `racial.enabled`; on cooldown | on |
+| 2 | Berserking (Troll) or Blood Fury (Orc), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
 | 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
 | 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |
@@ -571,7 +572,7 @@ Setting ids are `mage.arcane.<x>`.
 | Fire talents | **`230225-23550000130133051-005`** (Arcane 14 / Fire 32 / Frost 5): Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5; Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Pyroblast 1, Improved Scorch 3, Hot Streak 1, Master of Elements 3, Critical Mass 3, Fire Power 5, Combustion 1; Elemental Precision 5 | Wowhead's Classic "Combustion Fire 17/31/3" (`230025030002-5052000123033151-003`, [talents][wh-talents]) [C], adapted: Hot Streak (new), and Elemental Precision's five ranks of hit (it had three of resist chance). The Arcane side stops at 14 points, short of Arcane Meditation (tier 4) |
 | Frost talents | **`230225200100301--055510033002000105`** (21 / 0 / 30): Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Resilience 2, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1; Improved Frostbolt 5, Elemental Precision 5, Ice Shards 5, Permafrost 1, Piercing Ice 3, Frost Channeling 3, Arctic Reach 2, Cold Snap 1, Winter's Chill 5 | Wowhead's Classic "Arcane Power Frost 31/0/20" (`2300450310031531--053500030013`) and "Winter's Chill Frost 19/0/32" (`230045200003--05350013122301051`) [C]. Winter's Chill is your own crit in Forever, and it and Arcane Power (31 Arcane points) don't fit in one build, so the default is the Winter's Chill shape with Presence of Mind and Arcane Meditation |
 | Arcane talents | **`050225003100301531-2355001010003-`** (31 / 20 / 0): Arcane Focus 5, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Impact 3, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1, Arcane Mind 5, Arcane Instability 3, Arcane Power 1; Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Burning Soul 1, Pyroblast 1, Master of Elements 3 | AP Frost's 31 Arcane points (with Forever's Arcane Impact and Arcane Mind, now Arcane crit) and a Fire side for Presence of Mind's Pyroblast. Wake of Fire, Incineration, Improved Fireball and Burning Soul do nothing in its rotation: they're the way to Pyroblast (tier 3) and Master of Elements (tier 4) |
-| Race | **Troll** (Horde) | Berserking's +10% casting speed is the one racial cooldown the sim uses for a caster ([Races](#races)) |
+| Race | **Troll** (Horde) | Berserking's +10% casting speed; an Orc's Blood Fury (+10% spell power for 15 s every 2 min) is the other racial cooldown for a mage, and measures as much or more since it's simulated ([Races](#races)) |
 | Gear | Fire: Icy Veins' Classic mage pre-raid list; Frost and Arcane: Wowhead's ([Races and gear](#races-and-gear)) | [pre-raid BiS](../data/items.md#pre-raid-bis-lists) [C] |
 | Enchants | **Greater Stats on the chest** only | the enchant catalogue has no caster enchants yet (a known gap: spell damage on the weapon, head, legs, gloves and shoulders) |
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): the caster core's **Curse of the Elements**, Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring Totem, Moonkin Aura (the casters' party crit aura). Nothing that changes only attacks (Battle Shout, Windfury Totem, Sunder Armor, …): those are the melee's, not listed for a mage ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)). **Power Infusion off** (another priest's cooldown; an option). **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |

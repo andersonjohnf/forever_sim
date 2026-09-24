@@ -25,6 +25,10 @@ describe('golden run (fixed config and seed)', () => {
   //   Weapon stacks, Earth Shock from 10% mana, the Major Mana Potion at 2,250 missing; Flurry's
   //   500 ms charge rule carried into the plan (it was dropped before this snapshot). On this seed's
   //   1,000 fights, DPS 556.06 and TPS 394.92 (Blessing of Salvation’s −30%); 3,925 mana, 9,771 spent a fight.
+  // - Caster racials (issue #10): the shaman's Blood Fury is the casters' (caster-racials.ts), its
+  //   +10% spell power a live multiplier, so Earth Shock and Lightning Bolt get it too (the warrior's
+  //   had attack power only): DPS 556.06 → 556.16, TPS 394.92 → 394.99 (20,000 fights: 555.84 →
+  //   555.94, ± 0.63).
   it('keeps the default Enhancement shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-enhancement'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

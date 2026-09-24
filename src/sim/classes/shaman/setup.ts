@@ -99,7 +99,6 @@ function elementalAssumptions(plan: Plan): AssumptionId[] {
   if ([...procs].some((id) => id.startsWith('lightningOverload'))) ids.push('lightningOverload')
   if (abilities.has('manaTideTotem')) ids.push('manaTideTotem')
   if (abilities.has('lightningBoltRank4')) ids.push('lightningBoltDownrank')
-  if (abilities.has('bloodFury')) ids.push('bloodFurySpellPower')
   ids.push('elementalTotems')
   return ids
 }

@@ -27,7 +27,10 @@
 //                        Every step runs, and the run fails if any file differs
 //                        (docs/data/README.md#checking-the-committed-data).
 //   --if-cached          with --check (npm run test:full): skip, and exit 0, when the cache has no
-//                        directory for a build the committed data records (CI has no cache)
+//                        directory for the Forever build or WoWDBDefs commit the committed data
+//                        records, or for the Classic Era baseline (CI has no cache). Without it, a
+//                        check with one of them absent stops (exit 1) and says it isn't in the cache,
+//                        rather than reporting the committed data as stale
 //
 // A new build that changes a build-code position, a stored build code or a race's classes stops
 // step 2 or 3; run that generator on its own with --accept-code-changes or --accept-race-changes
@@ -44,6 +47,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { recordedSource } from "./lib/output.mjs";
+import { CLASSIC_BASELINE, dbdefsProblems } from "./lib/wago.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -64,7 +68,11 @@ for (const arg of process.argv.slice(2)) {
   else if (arg === "--diff" || /^--against=.+$/.test(arg)) datasetSteps.push(arg);
   else usage(`Unknown argument: ${arg}`);
 }
-for (const arg of everyStep) if (arg.startsWith("--version=")) version = arg.slice("--version=".length);
+let dbdefs = null;
+for (const arg of everyStep) {
+  if (arg.startsWith("--version=")) version = arg.slice("--version=".length);
+  if (arg.startsWith("--dbdefs=")) dbdefs = arg.slice("--dbdefs=".length);
+}
 if (check && datasetSteps.length) usage(`--check can't be combined with ${datasetSteps.join(" ")}`);
 if (ifCached && !check) usage("--if-cached needs --check");
 function usage(msg) {
@@ -72,12 +80,30 @@ function usage(msg) {
   process.exit(2);
 }
 
-if (ifCached) {
-  const builds = new Set(version ? [version] : RECORDED.map((f) => recordedSource(path.join(REPO_ROOT, f)).version).filter(Boolean));
-  const absent = [...builds].filter((b) => !fs.existsSync(path.join(CACHE_DIR, b)));
+for (const problem of dbdefsProblems({ dbdefs })) usage(problem);
+
+// What a check reads from the cache: the Forever build and WoWDBDefs commit the committed data
+// records (or --version/--dbdefs), and the Classic Era baseline. One that's absent means there's
+// nothing to check against, which is said as such rather than as stale data: --if-cached skips
+// (CI has no cache), and a plain --check stops before any generator runs.
+if (check) {
+  const recorded = RECORDED.map((f) => recordedSource(path.join(REPO_ROOT, f)));
+  const builds = new Set(version ? [version] : recorded.map((r) => r.version).filter(Boolean));
+  const shas = new Set(dbdefs ? [dbdefs] : recorded.map((r) => r.dbdefs).filter(Boolean));
+  const needed = [
+    ...[...builds].map((b) => [`the Forever build ${b}`, path.join(CACHE_DIR, b)]),
+    [`the Classic Era baseline ${CLASSIC_BASELINE}`, path.join(CACHE_DIR, CLASSIC_BASELINE)],
+    ...[...shas].map((s) => [`the WoWDBDefs commit ${s.slice(0, 12)}`, path.join(CACHE_DIR, "github", "wowdbdefs", s)]),
+  ];
+  const absent = needed.filter(([, dir]) => !fs.existsSync(dir)).map(([what]) => what);
   if (absent.length) {
-    console.log(`scrape:check skipped: .cache/client has no files for build ${absent.join(", ")} (npm run scrape fills it; CI has no cache).`);
-    process.exit(0);
+    const said = `${absent.join(", ")} ${absent.length === 1 ? "isn't" : "aren't"} in the cache (.cache/client; npm run scrape fills it)`;
+    if (ifCached) {
+      console.log(`scrape:check skipped: ${said}. CI has no cache.`);
+      process.exit(0);
+    }
+    console.error(`--check can't run: ${said}. The committed data wasn't compared, so this says nothing about whether it's stale.`);
+    process.exit(1);
   }
 }
 const fresh = check ? fs.mkdtempSync(path.join(os.tmpdir(), "forever-sim-check-")) : null;

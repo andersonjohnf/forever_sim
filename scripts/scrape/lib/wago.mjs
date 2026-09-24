@@ -37,9 +37,23 @@ export function assertBuildVersion(version) {
 
 /** A WoWDBDefs commit: a full 40-hex-digit SHA, which also names cache directories. */
 export function assertCommitSha(sha) {
-  if (typeof sha !== "string" || !/^[0-9a-f]{40}$/.test(sha)) throw new Error(`Not a WoWDBDefs commit SHA: ${JSON.stringify(sha)}`);
+  if (!isCommitSha(sha)) throw new Error(`Not a WoWDBDefs commit SHA: ${JSON.stringify(sha)}`);
   return sha;
 }
+
+const isCommitSha = (sha) => typeof sha === "string" && /^[0-9a-f]{40}$/.test(sha);
+
+/** A generator's usage error for a `--dbdefs` that isn't a full commit SHA, before anything runs (exit 2, not a stack trace). */
+export function dbdefsProblems(opts) {
+  return opts.dbdefs && !isCommitSha(opts.dbdefs) ? [`--dbdefs=${opts.dbdefs} isn't a WoWDBDefs commit SHA (40 lowercase hex digits)`] : [];
+}
+
+/**
+ * The Classic Era build every generator reads as its baseline unless `--baseline` says otherwise
+ * (items, spells, talents and races compare with it; the client scraper reads ItemDamageAmmo and
+ * CreatureFamily from it). all.mjs --check --if-cached needs its directory in the cache.
+ */
+export const CLASSIC_BASELINE = "1.15.9.69722";
 
 /**
  * `readOnly`: don't write the parsed-table and game-table copies (<version>/tables, <version>/gametables)

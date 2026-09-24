@@ -32,7 +32,7 @@ import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stat
 import { compareText, stableStringify } from "./lib/json.mjs";
 import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
-import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 
 // ---------------------------------------------------------------------------
 // Filter: edit these to widen the dataset (e.g. QUALITIES = [3, 4] for epics).
@@ -111,7 +111,7 @@ const SCRAPER = "scripts/scrape/items-client.mjs";
 const FIXTURE_FILE = "scripts/scrape/lib/__fixtures__/item-stats.json";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
-const DEFAULT_BASELINE = "1.15.9.69722";
+const DEFAULT_BASELINE = CLASSIC_BASELINE;
 
 const opts = { write: false, diff: false, fixtures: false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
@@ -122,7 +122,7 @@ for (const arg of process.argv.slice(2)) {
   else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const problem of [...checkConflicts(opts), ...dbdefsProblems(opts)]) usage(problem);
 if (!opts.fixtures || opts.diff) opts.write = true;
 function usage(msg) {
   console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--against=<git ref>] [--fixtures] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);

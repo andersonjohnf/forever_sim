@@ -124,13 +124,17 @@ that, both part of `npm run test:full`:
 - **Everywhere, CI included:** [`scripts/scrape/committed-data.test.mjs`](../../scripts/scrape/committed-data.test.mjs),
   in `npm test`, checks that what the current docs decide agrees with `src/data/client`: the
   buffs doc's consumables (with the doc's names and ids), its enchants and its buff spells, and
-  every doc citation of a spell the data already carries. Every ID cell of the buffs doc must
+  every doc citation of a spell the data already carries; and that the data records no
+  disagreement between the doc's item → spell → enchant chains and the client (`docMismatches`). Every ID cell of the buffs doc must
   also parse.
 - **Where the raw client files are cached** (`.cache/client`, from `npm run scrape`):
   `npm run scrape:check` regenerates every dataset and compares it byte for byte with
   `src/data`. `test:full` runs it as its own step after the unit tests, with `--if-cached`, which
-  skips it (exit 0, with a line saying so) when the cache has no directory for the build the
-  committed data records, as in CI. It isn't a unit test because it runs the generators for
+  skips it (exit 0, with a line saying so) when the cache has no directory for the Forever build
+  or the WoWDBDefs commit the committed data records, or for the Classic Era baseline
+  (1.15.9.69722), as in CI. Without `--if-cached`, a check with one of them absent stops before
+  any generator runs (exit 1) and says which isn't in the cache, so a missing cache never reads
+  as stale data. It isn't a unit test because it runs the generators for
   about 15 s, which would compete with the unit tests' timing checks for the CPU.
 
   It passes `--check` to each scraper, which reads the cache alone (its fetcher is offline: a
@@ -142,11 +146,14 @@ that, both part of `npm run test:full`:
   leave their fresh generation in a temporary directory (`--fresh=`), and the client step reads
   its inputs from there, so it checks what a full regeneration would write even when an earlier
   dataset is stale. It runs every step and names each file that differs. `--check` can't be
-  combined with `--refresh`, `--diff`, `--fixtures` or `--claims`.
+  combined with `--refresh`, `--diff`, `--fixtures` or `--claims`, and a `--dbdefs=` that isn't
+  a full 40-digit commit SHA is a usage error (exit 2). The client step also prints each
+  disagreement between a buffs-doc chain and the client as a warning, beside recording it in
+  `items.json` or `enchants.json`; the first guard asserts those lists are empty.
 
 ```sh
 npm run scrape:check                          # every dataset, from the cache: exits 1 if one is stale
-npm run scrape:check -- --if-cached           # the same, or skip when the committed build isn't cached (test:full)
+npm run scrape:check -- --if-cached           # the same, or skip when what it reads isn't cached (test:full)
 npm run scrape:client -- --check              # one scraper (each takes --check; the client one reads the committed datasets)
 ```
 

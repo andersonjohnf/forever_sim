@@ -286,11 +286,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
-      one-line summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
+      short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
       or can't apply (no execute phase, a talent the build lacks, a race without a racial), is
-      dimmed by colour and its icon turns gray. A row whose note says it isn't used shows the
-      note in place of the summary ("Not used: needs the Improved Berserker Rage talent."). A
+      dimmed by colour and its icon turns gray. A row that's on but can't do anything shows why
+      in place of the summary, in full: its note ("Not used: needs the Improved Berserker Rage
+      talent."), "Not used: needs an execute phase (Fight tab)." without one, or "Not used:
+      Bloodthirst is off." when a switch it depends on is off. Neither is ever cut short: a
+      long one wraps. A row that stops in the execute phase says so ("On cooldown · not in the
+      execute phase"), and a filler that waits for the core abilities says that too ("while
+      Bloodthirst and Whirlwind cool down"). A
       row with a changed setting has a dot after its name, and a screen reader hears "Changed."
       in its description.
     - **Selecting a row** (its icon, name and summary are one button) opens its settings: its
@@ -299,7 +304,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Reset when changed, a dependent setting under its parent). There's no Advanced there: the
       row's settings are already one level down. From 1024 px they sit in a panel beside the
       list, which stays in view as you scroll, and the selected row has a bar in the primary
-      colour on its leading edge. Until you select one the panel says to. Below 1024 px they
+      colour on its leading edge. Until you select one the panel says to. Selecting a row moves
+      focus to the panel's heading, as the sheet's title takes it; **Back to list** above it, or
+      Escape anywhere in the panel, returns focus to the row. The panel reaches down to 1rem
+      above the window's bottom; settings taller than that scroll inside it, with a fade on
+      each edge that has more past it. Its switch is named "Use Battle Shout", so it isn't a
+      second switch with the row's name. Below 1024 px they
       open in a bottom sheet, titled with the ability and its place, and closing it returns
       focus to the row.
     - **Moving a row.** Drag its handle, or focus the handle and press Space, move with the Up
@@ -318,8 +328,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
       the order isn't the default) puts the rows back in the default order and nothing else,
       and moves focus to the picker.
-    - A row's conditions are its own and move with it: moving Whirlwind above Bloodthirst
-      changes which comes first when both are ready, not what either waits for.
+    - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
+      lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
+      Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and
+      Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
     Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution

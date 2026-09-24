@@ -98,12 +98,12 @@ test.describe('a Reset’s hit area (TU7)', () => {
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     // Fury's priority list: Slam's settings, beside the list, hold its switch row.
     await page.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Slam', exact: true }).click()
-    const slam = page.getByRole('complementary', { name: 'Slam settings' }).getByRole('switch', { name: 'Slam', exact: true })
+    const slam = page.getByRole('complementary', { name: 'Slam settings' }).getByRole('switch', { name: 'Use Slam', exact: true })
     await slam.click()
     const reset = page.getByRole('button', { name: 'Reset Slam, default off' })
     const area = await hitArea(reset)
     expect(area.bottom - area.top).toBeGreaterThanOrEqual(44)
-    const row = (await page.locator('label').filter({ has: page.getByRole('switch', { name: 'Slam', exact: true }) }).boundingBox())!
+    const row = (await page.locator('label').filter({ has: page.getByRole('switch', { name: 'Use Slam', exact: true }) }).boundingBox())!
     expect(area.top).toBeGreaterThanOrEqual(row.y + row.height)
     // The row's last pixel still flips the switch.
     await page.mouse.click((area.left + area.right) / 2, row.y + row.height - 1)

@@ -17,8 +17,8 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ArrowDown, ArrowUp, ChevronRight, GripVertical, Lock, RotateCcw } from 'lucide-react'
-import { type ReactNode, useId, useRef, useState } from 'react'
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronRight, GripVertical, Lock, RotateCcw } from 'lucide-react'
+import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { announce } from '@/app/announce'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
@@ -45,7 +45,7 @@ import {
   storedAplOrder,
 } from '@/sim'
 import { INACTIVE_SWITCH, type RowContext } from './ids'
-import { aplRowChanged, aplRowSummary, withRotationOrder } from './logic'
+import { aplRowChanged, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
 /** Element ids of a list row's parts. */
@@ -57,6 +57,37 @@ const listIds = (id: string) => ({
   changed: `apl-${id}-changed`,
   handle: `apl-${id}-handle`,
 })
+
+/** The desktop panel's heading, which takes focus when a row is selected. */
+const PANEL_HEADING_ID = 'apl-settings-heading'
+
+/** Which edges of the desktop panel have more of its settings past them (it scrolls when it's taller than the window). */
+type Fade = 'none' | 'top' | 'bottom' | 'both'
+
+/** Tracks a vertical scroller's position, so its edge fades show only where there's more to scroll to. */
+function useVerticalFade(ref: RefObject<HTMLElement | null>, key: unknown): Fade {
+  const [fade, setFade] = useState<Fade>('none')
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => {
+      const top = el.scrollTop > 1
+      const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 1
+      setFade(top && bottom ? 'both' : top ? 'top' : bottom ? 'bottom' : 'none')
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    // The window's height, and the settings' own (a note appears, a web font arrives), move the ends.
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    for (const child of el.children) observer.observe(child)
+    return () => {
+      el.removeEventListener('scroll', update)
+      observer.disconnect()
+    }
+  }, [ref, key])
+  return fade
+}
 
 /** Drags move rows up and down only. */
 const vertical: Modifier = ({ transform }) => ({ ...transform, x: 0 })
@@ -70,7 +101,19 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
   const [selected, setSelected] = useState<string | null>(null)
   const selectedRow = selected === null ? undefined : byId.get(selected)
   const presetRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  const fade = useVerticalFade(panelRef, selected)
   const helpId = useId()
+  /** Selecting a row on desktop moves focus to its settings' heading, as the phone's sheet does (docs/ux.md "Rotation"). */
+  const select = (id: string) => {
+    if (!desktop) return setSelected(id)
+    flushSync(() => setSelected(id))
+    document.getElementById(PANEL_HEADING_ID)?.focus()
+  }
+  /** Back from the desktop panel to the selected row on the list. */
+  const backToRow = () => {
+    if (selected !== null) document.getElementById(listIds(selected).select)?.focus()
+  }
 
   const position = (id: string) => order.indexOf(id) + 1
   const where = (id: string) => `position ${position(id)} of ${order.length}`
@@ -130,6 +173,7 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
       canMove={(delta) => moveAplRow(apl, order, row.id, order.indexOf(row.id) + delta) !== null}
       onMove={(delta) => move(row.id, order.indexOf(row.id) + delta)}
       inSheet={inSheet}
+      onBack={backToRow}
     />
   )
 
@@ -198,7 +242,7 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
                     selected={selected === row.id}
                     desktop={desktop}
                     sortable={sortable}
-                    onSelect={() => setSelected(row.id)}
+                    onSelect={() => select(row.id)}
                   />
                 )}
               />
@@ -206,12 +250,21 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
           </ol>
         </DndContext>
         {desktop && (
-          // Keyed by the row, so another row's settings start at their top. Short enough to stay
-          // whole beside the list's last rows, above the footer.
+          // Keyed by the row, so another row's settings start at their top. It reaches down to 1rem
+          // above the window's bottom; taller settings scroll inside it, and a fade marks each edge
+          // with more past it, as the tabs' does (docs/ux.md "Rotation"). Focus scrolls clear of
+          // the fades. Escape goes back to the row on the list.
           <aside
             key={selected ?? 'none'}
+            ref={panelRef}
             aria-label={selectedRow ? `${selectedRow.label} settings` : 'Ability settings'}
-            className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] max-h-[calc(100svh-var(--sticky-top,7rem)-12rem)] overflow-y-auto"
+            data-fade={fade}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape' || e.defaultPrevented || selected === null) return
+              e.preventDefault()
+              backToRow()
+            }}
+            className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] scroll-py-12 overflow-y-auto data-[fade=both]:[mask-image:linear-gradient(to_bottom,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)] data-[fade=bottom]:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] data-[fade=top]:[mask-image:linear-gradient(to_top,black_calc(100%-2.5rem),transparent)]"
           >
             {selectedRow ? (
               settings(selectedRow, false)
@@ -275,9 +328,7 @@ function ListRow({
   const locked = state?.missingBuff !== undefined || state?.unmet !== undefined
   const off = state !== undefined && !state.on
   const dim = off || state?.inactive === true
-  // What the row's settings say with links (Buffs, Talents, Gear), said here in words.
-  const unmet = state?.unmet && [state.unmet.talent !== undefined && `the ${state.unmet.talent} talent`, state.unmet.shield && 'a shield'].filter(Boolean).join(' and ')
-  const note = state?.notUsed ?? (state?.missingBuff ? `Not used: turn on ${state.missingBuff.name} in Buffs first.` : unmet ? `Not used: needs ${unmet}.` : undefined)
+  const note = aplRowNote(row, ctx.rows)
   const summary = note ?? aplRowSummary(row, options, ctx.rows)
   const changed = aplRowChanged(row, ctx.rows)
   // Its name is its label; that it's changed, and its summary, are its description.
@@ -343,7 +394,8 @@ function ListRow({
             )}
           </span>
           {summary && (
-            <span id={ids.summary} className="line-clamp-2 text-xs text-muted-foreground">
+            // Never cut short: it wraps as it needs to (a filler's runs to four lines at 1024 px).
+            <span id={ids.summary} className="text-xs text-muted-foreground">
               {summary}
             </span>
           )}
@@ -380,6 +432,7 @@ function RowSettings({
   canMove,
   onMove,
   inSheet,
+  onBack,
 }: {
   row: AplRow
   options: readonly RotationOption[]
@@ -389,6 +442,8 @@ function RowSettings({
   canMove: (delta: -1 | 1) => boolean
   onMove: (delta: -1 | 1) => boolean
   inSheet: boolean
+  /** Back to the row on the list, from the desktop panel. */
+  onBack: () => void
 }) {
   const upRef = useRef<HTMLButtonElement>(null)
   const downRef = useRef<HTMLButtonElement>(null)
@@ -405,10 +460,18 @@ function RowSettings({
   return (
     <div className={cn('flex flex-col gap-3', inSheet && 'p-4')}>
       {!inSheet && (
+        // Back to the list first, so Shift+Tab from the heading reaches it.
+        <Button variant="ghost" className="-ml-2 h-11 self-start text-muted-foreground" onClick={onBack}>
+          <ArrowLeft /> Back to list
+        </Button>
+      )}
+      {!inSheet && (
         <div className="flex items-center gap-3">
           <WowIcon icon={row.icon} size="md" />
           <div className="flex min-w-0 flex-col">
-            <h4 className="text-sm font-medium">{row.label}</h4>
+            <h4 id={PANEL_HEADING_ID} tabIndex={-1} className="text-sm font-medium outline-none">
+              {row.label}
+            </h4>
             <p id={placeId} className="text-xs text-muted-foreground">
               {place}
             </p>
@@ -431,7 +494,8 @@ function RowSettings({
         </div>
       )}
       {row.help && <p className="text-sm text-muted-foreground">{row.help}</p>}
-      {own.length > 0 && <OptionList options={own} ctx={ctx} stacked />}
+      {/* Its switch is named "Use …", so it isn't a second switch with the list row's name. */}
+      {own.length > 0 && <OptionList options={own} ctx={ctx} stacked rowSwitch={row.enabledId} />}
     </div>
   )
 }

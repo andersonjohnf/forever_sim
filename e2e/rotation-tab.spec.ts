@@ -36,14 +36,19 @@ test.describe('rotation tab', () => {
   test('a row’s settings that depend on its switch sit under it and dim while it’s off', async ({ page }) => {
     await openRotation(page)
     let panel = await openRow(page, 'Death Wish')
-    const deathWish = panel.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Death Wish', exact: true }) })
+    const deathWish = panel.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Use Death Wish', exact: true }) })
     const align = 'Save the last Death Wish for the execute phase or the end'
     await expect(deathWish.getByRole('switch', { name: align, exact: true })).toBeVisible()
     await expect(inactiveRow(page, align)).toHaveCount(0)
-    await panel.getByRole('switch', { name: 'Death Wish', exact: true }).click()
+    // The trinkets' sync with Death Wish, in the trinkets' row, starts undimmed…
+    panel = await openRow(page, 'On-use trinkets')
+    await expect(panel.getByRole('switch', { name: 'Racial and trinkets with Death Wish', exact: true })).toBeVisible()
+    await expect(inactiveRow(page, 'Racial and trinkets with Death Wish')).toHaveCount(0)
+    // …and dims with Death Wish off. The row's switch in its settings is "Use Death Wish".
+    panel = await openRow(page, 'Death Wish')
+    await panel.getByRole('switch', { name: 'Use Death Wish', exact: true }).click()
     await expect(priorityList(page).getByRole('switch', { name: 'Death Wish', exact: true })).not.toBeChecked()
     await expect(inactiveRow(page, align)).toHaveCount(1)
-    // The trinkets' sync with Death Wish, in the trinkets' row, dims with it.
     panel = await openRow(page, 'On-use trinkets')
     await expect(inactiveRow(page, 'Racial and trinkets with Death Wish')).toHaveCount(1)
 
@@ -58,9 +63,11 @@ test.describe('rotation tab', () => {
     await openRotation(page)
     // Fury's default race is Human. The row says so on the list, and its settings with the switch.
     await expect(priorityList(page).locator('[data-apl-row="racial"]')).toContainText('Not used: Human has no racial cooldown that adds damage.')
-    const racial = (await openRow(page, 'Racial cooldown')).getByRole('switch', { name: 'Racial cooldown', exact: true })
+    const racial = (await openRow(page, 'Racial cooldown')).getByRole('switch', { name: 'Use Racial cooldown', exact: true })
     await expect(racial).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
-    await expect(inactiveRow(page, 'Racial cooldown')).toHaveCount(2)
+    // Its row on the list, and its switch row beside it.
+    await expect(inactiveRow(page, 'Racial cooldown')).toHaveCount(1)
+    await expect(inactiveRow(page, 'Use Racial cooldown')).toHaveCount(1)
     await expect(racial).toBeEnabled()
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: 'Orc', exact: true }).click()
@@ -68,6 +75,7 @@ test.describe('rotation tab', () => {
     await openRow(page, 'Racial cooldown')
     await expect(racial).not.toHaveAccessibleDescription(/Not used/)
     await expect(inactiveRow(page, 'Racial cooldown')).toHaveCount(0)
+    await expect(inactiveRow(page, 'Use Racial cooldown')).toHaveCount(0)
   })
 
   test('timings before the execute phase and the potion’s limit dim while Execute, in another row, is off', async ({ page }) => {
@@ -102,14 +110,18 @@ test.describe('rotation tab', () => {
     await tab.getByRole('region', { name: 'Consumables' }).getByRole('button', { name: /^Advanced settings for Consumables/ }).click()
     const list = priorityList(page)
     // The rows that need the phase are dimmed on the list, though still on.
-    for (const row of ['execute', 'executeBloodthirst']) await expect(list.locator(`[data-apl-row="${row}"]`)).toHaveAttribute('data-inactive')
+    for (const row of ['execute', 'executeBloodthirst']) {
+      await expect(list.locator(`[data-apl-row="${row}"]`)).toHaveAttribute('data-inactive')
+      await expect(list.locator(`[data-apl-row="${row}"]`)).toContainText('Not used: needs an execute phase (Fight tab).')
+    }
     await expect(list.locator('[data-apl-row="bloodthirst"]')).not.toHaveAttribute('data-inactive')
-    const execute = (await openRow(page, 'Execute')).getByRole('switch', { name: 'Execute', exact: true })
+    const execute = (await openRow(page, 'Execute')).getByRole('switch', { name: 'Use Execute', exact: true })
     // Still on, and still usable, but dimmed, with its help saying why.
     await expect(execute).toBeChecked()
     await expect(execute).toHaveAccessibleDescription(/Needs an execute phase under Fight\.$/)
     // Its row on the list, and its switch row beside it.
-    await expect(inactiveRow(page, 'Execute')).toHaveCount(2)
+    await expect(inactiveRow(page, 'Execute')).toHaveCount(1)
+    await expect(inactiveRow(page, 'Use Execute')).toHaveCount(1)
     const inactiveInput = (name: string) => page.locator('[data-inactive]').filter({ has: page.getByRole('textbox', { name, exact: true }) })
     await expect(inactiveInput('Execute: wait for extra rage')).toHaveCount(1)
     await openRow(page, 'Whirlwind')
@@ -147,7 +159,7 @@ test.describe('rotation tab', () => {
   test('a changed setting shows its default and resets on its own', async ({ page }) => {
     await openRotation(page)
     const tab = await openRow(page, 'Slam')
-    const slam = tab.getByRole('switch', { name: 'Slam', exact: true })
+    const slam = tab.getByRole('switch', { name: 'Use Slam', exact: true })
     await expect(slam).not.toBeChecked()
     await expect(tab.getByText('Default: off')).toHaveCount(0)
     await slam.click()
@@ -297,9 +309,10 @@ for (const [width, phone] of [
  * Every number field with a unit on the page: its value fits in its box and its unit sits after it,
  * never over it (CU1: "com5o points", "100Energy").
  */
-async function unitsClear(page: Page, atLeast: number) {
-  const fields = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('[data-slot="input-group"]')]
+/** Every visible number field's value and unit fit, apart (inside `scope`, a CSS selector, when given); returns how many. */
+async function unitsClear(page: Page, atLeast: number, scope = ':root') {
+  const fields = await page.evaluate((scope) =>
+    [...document.querySelectorAll<HTMLElement>(`${scope} [data-slot="input-group"]`)]
       .filter((g) => g.offsetParent !== null)
       .map((group) => {
         const input = group.querySelector('input')!
@@ -308,9 +321,10 @@ async function unitsClear(page: Page, atLeast: number) {
         const u = unit.getBoundingClientRect()
         return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: u.left >= i.right - 1, unitFits: unit.scrollWidth <= unit.clientWidth }
       }),
-  )
+  scope)
   expect(fields.length).toBeGreaterThanOrEqual(atLeast)
   for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true, unitFits: true })
+  return fields.length
 }
 
 for (const width of [1280, 390]) {
@@ -321,20 +335,26 @@ for (const width of [1280, 390]) {
       const tab = await openRotation(page)
       for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
       await unitsClear(page, 1)
-      // Fury's rows' settings: beside the list, or in a sheet on a phone.
-      for (const row of ['Heroic Strike', 'Whirlwind', 'Bloodthirst in the execute phase', 'Recklessness', 'Battle Shout']) {
-        await priorityList(page).getByRole('button', { name: row, exact: true }).click()
-        if (row === 'Heroic Strike') {
+      // Every Fury row's settings, beside the list or in a sheet on a phone; eleven rows have numbers.
+      const scope = width < 1024 ? '[role="dialog"]' : 'aside[aria-label$=" settings"]'
+      const withNumbers: string[] = []
+      for (const id of await page.locator('[data-apl-row]').evaluateAll((rows) => rows.map((r) => r.getAttribute('data-apl-row')!))) {
+        const select = page.locator(`#apl-${id}-select`)
+        const name = await page.locator(`#apl-${id}-label`).innerText()
+        await select.click()
+        await expect(width < 1024 ? page.getByRole('dialog', { name }) : page.getByRole('complementary', { name: `${name} settings` })).toBeVisible()
+        if (id === 'heroicStrike') {
           await page.getByRole('textbox', { name: 'Heroic Strike from', exact: true }).fill('100')
           await page.getByRole('textbox', { name: 'Heroic Strike from', exact: true }).press('Enter')
           await expect(page.getByRole('textbox', { name: 'Heroic Strike from', exact: true })).toHaveValue('100')
         }
-        await unitsClear(page, 1)
+        if ((await unitsClear(page, 0, scope)) > 0) withNumbers.push(name)
         if (width < 1024) {
           await page.getByRole('button', { name: 'Close', exact: true }).click()
           await expect(page.getByRole('dialog')).toHaveCount(0)
         }
       }
+      expect(withNumbers).toEqual(['Battle Shout', 'Death Wish', 'Recklessness', 'Bloodrage', 'Bloodthirst in the execute phase', 'Execute', 'Whirlwind', 'Overpower (stance dance)', 'Heroic Strike', 'Hamstring filler', 'Berserker Rage'])
 
       await page.getByRole('button', { name: /^Spec: / }).click()
       await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()

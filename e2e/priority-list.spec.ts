@@ -174,8 +174,17 @@ for (const width of [1280, 390]) {
       await expect(hamstring).toContainText('Off')
       await expect(hamstring).toHaveAttribute('data-inactive')
       await list.getByRole('switch', { name: 'Hamstring filler', exact: true }).click()
-      await expect(hamstring).toContainText('From 60 rage')
+      await expect(hamstring).toContainText('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
       await expect(hamstring).not.toHaveAttribute('data-inactive')
+      // With Bloodthirst off, Bloodthirst in the execute phase can't do anything, and says why.
+      const executeBt = list.locator('[data-apl-row="executeBloodthirst"]')
+      await expect(executeBt).not.toHaveAttribute('data-inactive')
+      await list.getByRole('switch', { name: 'Bloodthirst', exact: true }).click()
+      await expect(executeBt).toHaveAttribute('data-inactive')
+      await expect(executeBt).toContainText('Not used: Bloodthirst is off.')
+      await expect(list.getByRole('switch', { name: 'Bloodthirst in the execute phase', exact: true })).toBeChecked()
+      await list.getByRole('switch', { name: 'Bloodthirst', exact: true }).click()
+      await expect(executeBt).toContainText('From 2,220 AP')
       await expect(preset(page)).toHaveText('Custom')
 
       const settings = await openRow(page, list, 'Heroic Strike')
@@ -201,6 +210,69 @@ for (const width of [1280, 390]) {
     })
   })
 }
+
+test.describe('the desktop panel', () => {
+  test.use({ viewport: { width: 1280, height: 800 } })
+
+  test('from the keyboard alone: selecting a row moves focus to its settings, and Back to list or Escape returns it', async ({ page }) => {
+    await openRotation(page)
+    const heading = page.locator('#apl-settings-heading')
+    const row = page.locator('#apl-whirlwind-select')
+    // From Whirlwind's handle, Tab reaches the row's button; Enter selects it.
+    await page.getByRole('button', { name: /^Move Whirlwind/ }).focus()
+    await page.keyboard.press('Tab')
+    await expect(row).toBeFocused()
+    await page.keyboard.press('Enter')
+    const panel = page.getByRole('complementary', { name: 'Whirlwind settings' })
+    await expect(heading).toBeFocused()
+    await expect(heading).toHaveText('Whirlwind')
+    // The panel's controls come next, not the rest of the list.
+    await page.keyboard.press('Tab')
+    await expect(panel.getByRole('button', { name: 'Move up', exact: true })).toBeFocused()
+    // Back to list sits just before the heading, and returns focus to the row.
+    await page.keyboard.press('Shift+Tab')
+    await expect(panel.getByRole('button', { name: 'Back to list', exact: true })).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(row).toBeFocused()
+    // Escape from a setting in the panel does too, and the row stays selected.
+    await page.keyboard.press('Enter')
+    await expect(heading).toBeFocused()
+    await panel.getByRole('textbox', { name: 'Whirlwind rage reserve', exact: true }).focus()
+    await page.keyboard.press('Escape')
+    await expect(row).toBeFocused()
+    await expect(page.locator('[data-apl-row="whirlwind"]')).toHaveAttribute('data-selected')
+    // The panel's switch has a name of its own, so it isn't a second "Whirlwind" switch.
+    await expect(panel.getByRole('switch', { name: 'Use Whirlwind', exact: true })).toBeChecked()
+    await expect(page.getByRole('switch', { name: 'Whirlwind', exact: true })).toHaveCount(1)
+  })
+
+  for (const { width, height } of [
+    { width: 1024, height: 600 },
+    { width: 1280, height: 800 },
+    { width: 1440, height: 900 },
+  ]) {
+    test(`reaches the window's bottom at ${width}×${height}, and marks settings that scroll`, async ({ page }) => {
+      await page.setViewportSize({ width, height })
+      const list = await openRotation(page)
+      await list.getByRole('button', { name: 'Heroic Strike', exact: true }).click()
+      const panel = page.getByRole('complementary', { name: 'Heroic Strike settings' })
+      // Scrolled so the list's top is past the sticky tabs: the panel sticks under them.
+      await list.evaluate((el) => window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - 40))
+      const box = (await panel.boundingBox())!
+      // Within the window, and either whole or marked where more scrolls.
+      expect(box.y + box.height).toBeLessThanOrEqual(height)
+      const scrolls = await panel.evaluate((el) => el.scrollHeight > el.clientHeight + 1)
+      await expect(panel).toHaveAttribute('data-fade', scrolls ? 'bottom' : 'none')
+      if (scrolls) {
+        // It uses the height it has: from under the sticky tabs to 1rem above the window's bottom.
+        const stickyTop = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')))
+        expect(box.height).toBeGreaterThanOrEqual(height - stickyTop - 32 - 1)
+        await panel.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+        await expect(panel).toHaveAttribute('data-fade', 'top')
+      }
+    })
+  }
+})
 
 test.describe('a run and a share link', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })

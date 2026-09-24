@@ -30,12 +30,18 @@ export function OptionList({
   fixed = [],
   ctx,
   stacked = false,
+  rowSwitch,
 }: {
   options: RotationOption[]
   all?: RotationOption[]
   fixed?: FixedRotationRow[]
   ctx: RowContext
   stacked?: boolean
+  /**
+   * A priority-list row's switch, in its settings: named "Use Battle Shout" rather than by its
+   * label, so it isn't a second switch with the list row's name beside it (docs/ux.md "Rotation").
+   */
+  rowSwitch?: string
 }) {
   const ids = new Set(all.map((o) => o.id))
   const childrenOf = (id: string) => options.filter((o) => o.dependsOn === id)
@@ -46,7 +52,7 @@ export function OptionList({
       <ul className="mb-2 ml-4 flex flex-col border-l">
         {children.map((child) => (
           <li key={child.id}>
-            <OptionRow option={child} ctx={ctx} nested stacked={stacked} />
+            <OptionRow option={child} ctx={ctx} nested stacked={stacked} rowSwitch={rowSwitch} />
             {renderChildren(child.id)}
           </li>
         ))}
@@ -64,7 +70,7 @@ export function OptionList({
         .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
         .map((option) => (
           <li key={option.id}>
-            <OptionRow option={option} ctx={ctx} stacked={stacked} />
+            <OptionRow option={option} ctx={ctx} stacked={stacked} rowSwitch={rowSwitch} />
             {renderChildren(option.id)}
           </li>
         ))}
@@ -95,10 +101,22 @@ function FixedRow({ row }: { row: FixedRotationRow }) {
   )
 }
 
-function OptionRow({ option, ctx, nested = false, stacked = false }: { option: RotationOption; ctx: RowContext; nested?: boolean; stacked?: boolean }) {
+function OptionRow({
+  option,
+  ctx,
+  nested = false,
+  stacked = false,
+  rowSwitch,
+}: {
+  option: RotationOption
+  ctx: RowContext
+  nested?: boolean
+  stacked?: boolean
+  rowSwitch?: string
+}) {
   const row = ctx.rows.get(option.id)!
   const pad = nested ? 'px-4 py-3' : 'p-4'
-  if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} />
+  if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} name={option.id === rowSwitch ? `Use ${option.label}` : undefined} />
   const ids = rowIds(option.id)
   return (
     <div
@@ -179,7 +197,20 @@ const NOTE_LINK = cn('rounded-sm font-medium text-foreground underline underline
  * with a note saying why; a switch that needs another creature type is dimmed, with a note that
  * links to Fight. The notes sit outside the label, since they have buttons.
  */
-function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
+function ToggleRow({
+  option,
+  row,
+  ctx,
+  nested,
+  name,
+}: {
+  option: Extract<RotationOption, { kind: 'toggle' }>
+  row: RowState
+  ctx: RowContext
+  nested: boolean
+  /** Its accessible name, when not its label (a priority-list row's switch: "Use Battle Shout"). */
+  name?: string
+}) {
   const setSection = useSetup((s) => s.setSection)
   const ids = rowIds(option.id)
   const locked = row.missingBuff !== undefined || row.unmet !== undefined
@@ -208,7 +239,7 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           checked={row.on}
           disabled={locked}
           className={cn(row.inactive && INACTIVE_SWITCH)}
-          aria-labelledby={ids.label}
+          {...(name === undefined ? { 'aria-labelledby': ids.label } : { 'aria-label': name })}
           aria-describedby={[ids.help, locked && ids.missing, row.notUsed && ids.notUsed, row.needsCreature && ids.creature, row.changed && ids.default].filter(Boolean).join(' ')}
           onCheckedChange={(on) => ctx.set(option.id, on)}
         />

@@ -87,7 +87,73 @@ fix round's worktree).
 
 | id | sev | origin | finding | disposition |
 | --- | --- | --- | --- | --- |
-| QC-1 | low | CV-5 | The swing-window throw stalls when a melee spec's GCD is always busy (a bear waited up to 151.6 s; 2.69 throws in 180 s), which also hides the bomb's cost. The second round of findings on the throw's timing. | step 6: the swing window is cut; see the next section |
+| QC-1 | low | CV-5 | The swing-window throw stalls when a melee spec's GCD is always busy (a bear waited up to 151.6 s; 2.69 throws in 180 s), which also hides the bomb's cost. The second round of findings on the throw's timing. | step 6: the swing window is cut; see the next section (`e149be84`) |
 | QC-2 | low | LC-0 | client.md didn't name §3.7's rules table among the tables with no ids. | fixed by the lead |
-| QC-3 | low | CV-5 | §6.3's ±1.4 DPS intervals are the 5,000-fight runs', not the 2,000-fight headline's (±2.0–2.2). | rewritten with QC-1's change |
+| QC-3 | low | CV-5 | §6.3's ±1.4 DPS intervals are the 5,000-fight runs', not the 2,000-fight headline's (±2.0–2.2). | fixed with QC-1's change in `e149be84`: §6.3 quotes each 2,000-fight run's own interval |
 | QC-4 | low | LC-4 | ux.md promised a wrapped Gear line never ends on "fills" or "replaces"; only the counts are joined. | fixed by the lead: "never splits a count from that word" |
+
+## Step 6: the throw's timing simplified
+
+Two rounds in a row found new problems in when a melee spec throws EZ-Thro Dark Bomb (CV-5, then
+QC-1), so per CLAUDE.md step 6 the mechanism was cut rather than patched a third time (`e149be84`).
+
+- **Cut:** condition 35's swing window (`mainSwingWithin`, `THROW_AFTER_SWING_MS` = 200 ms). A
+  melee spec no longer waits for a swing before each throw, and each main-hand swing is no longer a
+  decision point.
+- **Kept, narrowed:** CV-5's point that the throw mustn't cancel the pull's first swing. Condition
+  35 is now `mainHandSwung`, "the main hand has swung this fight": the first throw waits for the
+  first main-hand swing (white or an on-next-swing ability's), and only that swing walks the list.
+- **Now:** every spec throws the bomb on cooldown, as the casters already did. Later throws ignore
+  the swing timer, so a throw mid-swing also loses the part of the swing already run: the melee
+  cost shown is an **upper bound** [?], and a player who throws right after a swing loses less.
+  Buffs §3.7's rule row, §6.3, open question 21, warrior.md, architecture.md and the milestones
+  say so; the results' `explosiveThrow` assumption does too.
+- **Tests:** consumables.test.ts drops the 200 ms window's checks and asserts that a Fury warrior,
+  a bear and an Enhancement shaman each throw 3 times in 20 fixed 180 s fights: not before the
+  first main-hand swing and within a GCD of it, then every 61 s give or take a GCD (the 60 s
+  cooldown from the 1 s cast's end), with no swing of either hand during a throw; five specs (a
+  mage, a rogue, a bear, a Protection paladin, a hunter) throw exactly 60 times in 20 fights. With
+  the bomb off every spec's default is byte-identical: no golden changed.
+
+Throws per fight (fights 0–199 of each spec's default setup and seed, plus the bomb; a bear threw 2.69 before):
+
+| Spec | Fixed 180 s | ±10% length | First throw | Gaps |
+| --- | --- | --- | --- | --- |
+| Fury | 3 | 3.29 | 0 s, 1.5 s in some varied-length fights | 61.0–62.5 s |
+| Arms | 3 | 3.30 | 1.5 s | 61.0–62.1 s |
+| Protection warrior | 3 | 3.28 | 1.5 s | 61.0–62.5 s |
+| Feral bear | 3 | 3.31 | 1.5 s | 61.0–62.4 s |
+| Feral cat | 3 | 3.35 | 1.0 s | 61.0–62.0 s |
+| Combat rogue | 3 | 3.35 | 1.0 s | 61.0–62.0 s |
+| Enhancement | 3 | 3.32 | 1.5 s | 61.0–62.5 s |
+
+The first swing is at 0 s; the first throw follows it at once when the GCD is free, else as the pull's first GCD ends. Every
+other spec throws 3 times in a fixed 180 s fight too; the casters and hunters, which have no
+condition, are unchanged (Fire mage 623.8 → 627.7, Marksmanship 550.2 → 555.1, Demonology 642.7 →
+639.8, as before).
+
+The bomb's effect at Max consumables (seed 12345, 2,000 fights, each run's 95% interval; with the
+default ±10% fight length, so about 3.3 throws a fight):
+
+| Spec | Max | Max + bomb | Change | Throws a fight |
+| --- | --- | --- | --- | --- |
+| Fury (DPS) | 814.5 ± 2.0 | 799.3 ± 2.1 | −1.87% | 3.30 |
+| Arms (DPS) | 728.7 ± 2.2 | 708.7 ± 2.3 | −2.75% | 3.30 |
+| Protection warrior (TPS) | 1,293.2 ± 2.4 | 1,275.3 ± 2.4 | −1.38% | 3.31 |
+| Feral bear (TPS) | 1,191.5 ± 3.7 | 1,166.5 ± 3.6 | −2.10% | 3.31 |
+| Feral cat (DPS) | 637.3 ± 1.0 | 632.3 ± 1.0 | −0.78% | 3.35 |
+| Combat rogue (DPS) | 664.5 ± 1.4 | 656.5 ± 1.4 | −1.19% | 3.34 |
+| Enhancement (DPS) | 646.6 ± 2.3 | 631.9 ± 2.2 | −2.28% | 3.31 |
+| Assassination (DPS) | 594.2 ± 1.1 | 592.3 ± 1.1 | −0.31% | 3.35 |
+| Subtlety (DPS) | 569.2 ± 1.0 | 566.5 ± 1.0 | −0.47% | 3.34 |
+| Retribution (DPS) | 760.8 ± 2.1 | 749.8 ± 2.0 | −1.44% | 3.34 |
+| Protection paladin (TPS) | 962.4 ± 1.6 | 941.5 ± 1.6 | −2.17% | 3.34 |
+
+The tanks' Max TPS moved since the second fix round's table (Protection warrior 1,189.2, bear
+1,152.3, Protection paladin 948.2) with the tank work merged since; the Max column above is today's
+`main`, measured in the same run as its bomb column.
+
+**Presets (D29):** none takes the bomb. As the sim times it, every melee spec and every tank loses,
+beyond its interval; the cat's and Retribution's small gains under the swing window (+0.28%,
++0.24%, the latter −0.07% on a second seed) are gone, and timed to the swings the warriors still
+lost (Fury −1.07%, Arms −0.56%). The casters' and hunters' known gap (its 15 yd range) is unchanged.

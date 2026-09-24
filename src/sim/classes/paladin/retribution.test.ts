@@ -138,6 +138,51 @@ describe('on-use trinkets and Juju Flurry (RU2)', () => {
     expect(off.assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Weakness Analyzer')
   })
 
+  it('ends Weakness Analyzer’s +5% on a Seal of Command proc’s crit, which carries NOT_A_PROC, as on a white hit’s (RV1)', () => {
+    // White swings and Seal of Command alone, with no crit of your own against a level-60 target:
+    // every crit comes from the trinket, used once in a 60 s fight (90 s cooldown), and one crit ends it.
+    const sealOnly = {
+      [ID.crusader]: false,
+      [ID.judgement]: false,
+      [ID.holyStrike]: false,
+      [ID.exorcism]: false,
+      [ID.consecration]: false,
+      [ID.consecrationRank1]: false,
+      [ID.hammerOfWrath]: false,
+      [ID.manaPotion]: false,
+    }
+    /** Crits per fight over 400 fights: [white, Seal of Command's proc]. */
+    const critsPerFight = (trinkets: boolean) => {
+      const c = config({ rotation: { ...sealOnly, [ID.trinkets]: trinkets }, fight: { durationSec: 60, durationVariationPct: 0 } })
+      const plan = buildPlan({ ...c, gear: { ...c.gear, trinket2: { itemId: 272438 } } }).plan
+      plan.fight.targetLevel = 60
+      plan.stats.crit -= new Sim(plan).inspect().crit[0]
+      expect(new Sim(plan).inspect().crit[0]).toBeCloseTo(0, 9)
+      const sim = new Sim(plan)
+      const rows = ['mainHand', 'sealOfCommandProc'].map((id) => plan.sources.findIndex((s) => s.id === id))
+      expect(rows.every((r) => r >= 0)).toBe(true)
+      const out: [number, number][] = []
+      for (let i = 0; i < 400; i++) {
+        const before = rows.map((r) => sim.counters[r * FIELD_COUNT + FIELD.crits])
+        sim.runFight(i)
+        out.push(rows.map((r, k) => sim.counters[r * FIELD_COUNT + FIELD.crits] - before[k]) as [number, number])
+      }
+      return out
+    }
+    expect(critsPerFight(false).every(([white, proc]) => white === 0 && proc === 0)).toBe(true)
+    const on = critsPerFight(true)
+    // Never a second crit after the first, whichever it was.
+    expect(on.every(([white, proc]) => white + proc <= 1)).toBe(true)
+    // The proc's crit did end it, in a good share of the fights (about 7 procs a minute beside
+    // about 17 swings, over the trinket's up to 20 s).
+    const byProc = on.filter(([, proc]) => proc === 1).length
+    expect(byProc).toBeGreaterThan(10)
+    expect(on.filter(([white]) => white === 1).length).toBeGreaterThan(byProc)
+    // The result says so: Seal of Command's proc ends it, Seal of Righteousness's doesn't.
+    const note = withAnalyzer().assumptions.find((a) => a.id === 'weaknessAnalyzerPaladin')!.text
+    expect(note).toMatch(/: a white hit, Seal of Command’s proc, a judgement, Holy Strike, Exorcism or Hammer of Wrath; not Seal of Righteousness’s or Seal of Fury’s proc or a Consecration tick\./)
+  })
+
   it('uses Juju Flurry every minute from the pull when it’s selected in Buffs, and not otherwise', () => {
     const plan = planOf({ buffs: [...defaultConfig(RET).buffs.enabled, 'jujuFlurry'] })
     const uses = times(casts(plan).casts, 'jujuFlurry')

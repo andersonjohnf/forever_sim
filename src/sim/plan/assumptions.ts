@@ -263,9 +263,10 @@ const REGISTRY = {
     text: 'Weakness Analyzer’s +5% crit ends on your next crit, white or special, and it’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
     docRef: `${WAR}#9-open-questions`,
   },
-  // The same for the paladin, whose seal procs and Consecration ticks can crit too.
+  // The same for the paladin, whose seal procs and Consecration ticks can crit too: a triggered
+  // spell ends it only with NOT_A_PROC, as Seal of Command's proc has (paladin.md#conventions-used-below).
   weaknessAnalyzerPaladin: {
-    text: 'Weakness Analyzer’s +5% crit and spell crit ends on your next crit: a white hit, a judgement, Holy Strike, Exorcism or Hammer of Wrath, but not a seal’s proc or a Consecration tick. It’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
+    text: 'Weakness Analyzer’s +5% crit and spell crit ends on your next crit: a white hit, Seal of Command’s proc, a judgement, Holy Strike, Exorcism or Hammer of Wrath; not Seal of Righteousness’s or Seal of Fury’s proc or a Consecration tick. It’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
     docRef: `${PAL}#conventions-used-below`,
   },
   overpowerWindow: {

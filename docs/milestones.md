@@ -377,9 +377,6 @@ slice is worked:
   was ahead; 40% loses everywhere else, and a reserve tied to the execute phase lost too
   ([paladin.md](classes/paladin.md#tuning-the-defaults-c2)). A threshold that follows the fight's
   length needs D23's full process.
-- **Weakness Analyzer and a paladin's seal procs:** the engine doesn't let a seal's proc end
-  Weakness Analyzer's charge, since a triggered spell triggers nothing ([paladin.md
-  conventions](classes/paladin.md#conventions-used-below)); the results list it.
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).

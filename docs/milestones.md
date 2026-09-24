@@ -237,7 +237,7 @@ placeholders, and M9 replaces them.
 - [ ] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
 - [ ] **B4 Bear:** the Max TPS rotation (D26), and shipped
 
-## M5: Paladin 🚧
+## M5: Paladin ✅
 
 - [x] **C1 paladin foundation:** spells and the Holy school, seals, Judgement, Consecration,
       Righteous Fury, talents, and mana on the druid's model
@@ -245,8 +245,9 @@ placeholders, and M9 replaces them.
 - [x] **C2 Retribution DPS:** its rotation, mana potions and runes, trinkets and Juju Flurry,
       +1.3% over the doc's first priority under D23, a mana ledger, and shipped
       ([review](reviews/2026-09-23-retribution.md))
-- [ ] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
+- [x] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
       default and a Max TPS priority (D26), tuned, and shipped
+      ([review](reviews/2026-09-24-paladin-protection.md))
 
 ## M5.5: Every other DPS spec (D27) 💤
 
@@ -429,6 +430,8 @@ slice is worked:
 - **Two flat-damage-range fields:** `flatDamageRange` (0 to a range, Ferocious Bite) and
   Protection's `flatSpread` (± around the client's base) do similar jobs; merging them waits for a
   slice that can re-snapshot both.
+- **The spec switcher's separators** sit inside each labelled class group from the second class
+  on, so a screen reader reads them as part of that group (CF1).
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

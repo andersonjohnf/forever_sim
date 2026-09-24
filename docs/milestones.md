@@ -227,7 +227,9 @@ placeholders, and M9 replaces them.
 - [x] **B1 druid foundation:** forms, Energy, combo points, mana and the power tick, shifting and
       Furor, Omen of Clarity, form weapons and attack power, bear armor, talents
       ([review](reviews/2026-09-23-druid-foundation.md)). No druid spec is offered yet.
-- [ ] **B2 Cat DPS:** its rotation (powershifting, bleeds, finishers), tuned under D23, and shipped
+- [x] **B2 Cat DPS:** its rotation (bleeds, finishers, Faerie Fire; no powershifting in Forever),
+      +3.7% over the doc's first priority under D23, and shipped
+      ([review](reviews/2026-09-23-feral-cat.md))
 - [ ] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
 - [ ] **B4 Bear:** the Max TPS rotation (D26), and shipped
 
@@ -370,6 +372,9 @@ slice is worked:
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).
+- **A run on one spec shows its progress over another spec's result:** start a Fury run, switch to
+  Arms, and Arms's result dims with Fury's "Simulating…" (CV2 in
+  [the cat's review](reviews/2026-09-23-feral-cat.md)). Show progress only for the run's own spec.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

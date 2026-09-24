@@ -285,6 +285,11 @@ where it acts, and its point estimate loses no more than 0.1% of DPS (TPS for ta
 other cell. The grid is 30, 45, 60, 90, 180 and 300 s fights, each with a 0, 10 and 20% execute
 phase. Added 2026-09-23, from the Fury tuning review (FL2, FV2).
 
+**Which setup** (user decision, 2026-09-23): the default is the best rotation for the default
+setup, a 3-minute fight with a 20% execute phase. It needn't also hold at other fight lengths.
+The class doc records how the defaults do from 30 s to 5 min, and a setting's help says when
+another value suits shorter fights better, so a user with a different fight can change it.
+
 Talent builds and gear stay "what a typical raider runs"
 ([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations: choices that belong to the
 encounter or the raid aren't rotation defaults even when they clear the bar. Charge needs you out

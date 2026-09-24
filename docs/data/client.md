@@ -601,7 +601,7 @@ npm run scrape:client -- --version=<build>        # a specific build (e.g. the n
 npm run scrape:client -- --refresh                # re-ask for the latest build and re-download
 npm run scrape:client -- --claims                 # also re-check the doc claims (Classic Era 1.15.9.69722)
 npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit
-npm run scrape:client -- --check                  # compare with src/data/client, from the cache, writing nothing
+npm run scrape:client -- --check                  # compare with src/data/client, from the cache, writing nothing (README § Checking)
 git diff --stat src/data/client
 ```
 
@@ -665,10 +665,11 @@ ID column (`ID`, `IDs`, `IDs (spell / enchant)` or `Item → enchant`), apart fr
 buffs, which have no ids.
 
 So a commit that edits one of these docs regenerates the data in the same commit
-(`npm run scrape:client`, zero requests from a warm cache). `npm test` checks it
-([README § Checking the committed data](README.md#checking-the-committed-data)): without the
-cache it compares what the docs decide with the committed files, and with the cache it
-regenerates every dataset and compares byte for byte (`npm run scrape:check`).
+(`npm run scrape:client`, zero requests from a warm cache). `npm run test:full` checks it
+([README § Checking the committed data](README.md#checking-the-committed-data)): `npm test`
+compares what the docs decide with the committed files without the cache, and, where the cache
+holds the committed build, `npm run scrape:check` regenerates every dataset and compares byte for
+byte.
 
 ## Phase 2 notes: what this client ships
 

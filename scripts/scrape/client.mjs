@@ -3,6 +3,7 @@
 //
 //   node scripts/scrape/client.mjs [--refresh] [--version=<build>] [--product=<product>]
 //                                  [--dbdefs=<sha>] [--out=<dir>] [--claims[=<baseline build>]]
+//   node scripts/scrape/client.mjs --check [--fresh=<dir>] [--version=<build>] [--dbdefs=<sha>] [--out=<dir>]
 //
 // Source: raw client files from the wago.tools API (https://wago.tools/apis), the only
 // endpoints used being /api/builds/<product>/latest, /api/files?version=…&format=json and
@@ -21,7 +22,11 @@
 //                    armor-mitigation and PlayerExpectedStat tables
 //
 // --check compares the five files with the ones in --out (default src/data/client) instead of
-// writing them, from the cache alone, and exits non-zero if one differs (lib/output.mjs).
+// writing them, from the cache alone, writing nothing to src/data or the cache, and exits non-zero
+// if one differs. It regenerates the build and WoWDBDefs commit the committed spells.json records
+// unless --version/--dbdefs say otherwise. With --fresh=<dir> (all.mjs --check), it reads the four
+// datasets it builds on from <dir>, where the earlier steps left their fresh generation, when they
+// are there (lib/output.mjs).
 //
 // --claims[=<build>] also checks the wago.tools values the docs marked for human
 // confirmation against the raw files (Classic Era comparisons read <build>, default
@@ -38,7 +43,7 @@ import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
 import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
 import { stableStringify } from "./lib/json.mjs";
-import { checkConflicts, createOutput } from "./lib/output.mjs";
+import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -51,7 +56,7 @@ const DEFAULT_BASELINE = "1.15.9.69722";
 // Arguments
 // ---------------------------------------------------------------------------
 
-const opts = { refresh: false, check: false, version: null, product: DEFAULT_PRODUCT, dbdefs: null, out: "src/data/client", claims: null };
+const opts = { refresh: false, check: false, fresh: null, version: null, product: DEFAULT_PRODUCT, dbdefs: null, out: "src/data/client", claims: null };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
@@ -63,11 +68,12 @@ for (const arg of process.argv.slice(2)) {
   else if (key === "dbdefs" && value) opts.dbdefs = value;
   else if (key === "out" && value) opts.out = value;
   else if (key === "claims") opts.claims = value || DEFAULT_BASELINE;
+  else if (key === "fresh" && value) opts.fresh = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (opts.check) for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--refresh] [--check] [--version=<build>] [--product=<product>] [--dbdefs=<sha>] [--out=<dir>] [--claims[=<build>]]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--product=<product>] [--dbdefs=<sha>] [--out=<dir>] [--claims[=<build>]]`);
   process.exit(2);
 }
 const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
@@ -79,7 +85,6 @@ const errors = [];
 const warnings = [];
 const fail = (msg) => errors.push(msg);
 const warn = (msg) => warnings.push(msg);
-const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(REPO_ROOT, rel), "utf8"));
 const byNumber = (a, b) => a - b;
 
 // ---------------------------------------------------------------------------
@@ -87,15 +92,17 @@ const byNumber = (a, b) => a - b;
 // ---------------------------------------------------------------------------
 
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
-const latest = await latestBuild(fetcher, opts.product);
-const version = opts.version ?? latest.version;
-if (opts.version && opts.version !== latest.version) {
+// --check regenerates the build the committed data records, not the cache's latest (lib/output.mjs).
+const recorded = opts.check ? recordedSource(path.join(outDir, "spells.json")) : {};
+const latest = opts.check && (opts.version ?? recorded.version) ? null : await latestBuild(fetcher, opts.product);
+const version = opts.version ?? recorded.version ?? latest.version;
+if (!opts.check && opts.version && opts.version !== latest.version) {
   warn(`--version=${opts.version} is not the latest ${opts.product} build (${latest.version})`);
 }
-const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 /** The build's creation time on wago.tools, from its build list (lib/wago.mjs buildRecord). */
 const buildCreatedAt = (await buildRecord(fetcher, opts.product, version))?.created_at ?? null;
-const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version, dbdefsSha });
+const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version, dbdefsSha, readOnly: opts.check });
 
 const TABLES = [
   ...new Set([
@@ -138,7 +145,7 @@ const DOC_TABLES = [
   { build: DEFAULT_BASELINE, tables: ["ItemDamageAmmo", "CreatureFamily"] },
 ];
 for (const { build, tables } of DOC_TABLES) {
-  const docSource = build === version ? source : createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  const docSource = build === version ? source : createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   for (const name of tables) {
     try {
       const table = await docSource.table(name);
@@ -170,10 +177,15 @@ const spells = createSpellIndex(t);
 // Inputs: scraped datasets and the buffs doc
 // ---------------------------------------------------------------------------
 
-const spellBooks = Object.fromEntries(CLASSES.map((c) => [c, readJson(`src/data/spells/${c}.json`)]));
-const talentData = Object.fromEntries(CLASSES.map((c) => [c, readJson(`src/data/talents/${c}.json`)]));
-const raceData = readJson("src/data/races/races.json");
-const itemData = readJson("src/data/items/pre-bis.json");
+/** A dataset this one builds on: under all.mjs --check, its fresh generation (--fresh) when there is one. */
+function readInput(rel) {
+  const fresh = opts.fresh && path.join(opts.fresh, rel);
+  return JSON.parse(fs.readFileSync(fresh && fs.existsSync(fresh) ? fresh : path.join(REPO_ROOT, rel), "utf8"));
+}
+const spellBooks = Object.fromEntries(CLASSES.map((c) => [c, readInput(`src/data/spells/${c}.json`)]));
+const talentData = Object.fromEntries(CLASSES.map((c) => [c, readInput(`src/data/talents/${c}.json`)]));
+const raceData = readInput("src/data/races/races.json");
+const itemData = readInput("src/data/items/pre-bis.json");
 const buffsDoc = parseBuffsDoc(fs.readFileSync(path.join(REPO_ROOT, BUFFS_DOC), "utf8"));
 for (const p of buffsDoc.problems) fail(`${BUFFS_DOC}: ${p}`);
 

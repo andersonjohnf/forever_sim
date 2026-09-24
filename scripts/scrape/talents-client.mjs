@@ -12,8 +12,11 @@
 //   --diff     then diff the written trees against the committed ones, talent by talent; report
 //              in .cache/client/<build>/talents-diff.md (+ .json) and talents-changes.md
 //   --against  the git ref whose dataset is "committed" (default HEAD)
-//   --check    from the cache alone, compare the trees with the files in src/data and write
-//              nothing; exits non-zero if one differs (lib/output.mjs)
+//   --check    from the cache alone, compare the trees with the files in src/data, writing nothing
+//              to src/data or the cache; exits non-zero if one differs. It regenerates the build
+//              and WoWDBDefs commit the committed data records unless --version/--dbdefs
+//              say otherwise; --fresh=<dir> also keeps the fresh generation under <dir>
+//              (all.mjs --check; lib/output.mjs)
 //
 // Every run also checks build-code compatibility. Share links and saved setups store build
 // codes, so every position of the code (tree, then talent in tier/column order) must hold the
@@ -34,7 +37,7 @@ import path from "node:path";
 import { describeRef, readCommitted } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
-import { checkConflicts, createOutput } from "./lib/output.mjs";
+import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASSIC_TREE_TABLES,
@@ -88,15 +91,15 @@ for (const arg of process.argv.slice(2)) {
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
   if (["diff", "accept-code-changes", "skip-committed-check", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
+  else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (opts.check) for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--check] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
-const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check, fresh: opts.fresh });
 
 const errors = [];
 const warnings = [];
@@ -108,14 +111,15 @@ const warn = (msg) => warnings.push(msg);
 // ---------------------------------------------------------------------------
 
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
-const latest = await latestBuild(fetcher, PRODUCT);
-const version = opts.version ?? latest.version;
+// --check regenerates the build the committed data records, not the cache's latest (lib/output.mjs).
+const recorded = opts.check ? recordedSource(path.join(REPO_ROOT, OUT_DIR, "warrior.json")) : {};
+const version = opts.version ?? recorded.version ?? (await latestBuild(fetcher, PRODUCT)).version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
 const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
-const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 
 async function load(build, names) {
-  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   const tables = {};
   const used = new Map(); // table → FileDataID
   for (const name of [...new Set(names)]) {

@@ -64,17 +64,6 @@ export const DEMON_STATS = {
  * reported for a level-60 hunter pet (ranged-and-pets.md §6), ±20% [?] (warlock.md Q14).
  */
 export const DEMON_WEAPON = { min: 36.64, max: 54.96, speedSec: 2 } as const
-/**
- * What your demon inherits from you (warlock.md §11.2, Q15), D29's closest-analog default [?]. The
- * Forever client's "Warlock Pet Scaling" (416189) carries attack power (aura 99), spell damage (13, every
- * magic school), melee and spell hit (54, 55) and crit (52, 57), with every amount 0: they're set
- * server-side. Its only allowed analog is the hunter's pet, which Forever testers report inherits 10% of
- * the hunter's attack power and all of its crit (ranged-and-pets.md §6). So the demon takes 10% of your
- * attack power and of your spell damage in its spell's school, and your spell crit and spell hit as its
- * own crit and hit, melee and spells alike (the same aura carries hit beside crit). Its spell crits
- * deal ×1.5 (ranged-and-pets.md §7) [?].
- */
-export const DEMON_INHERITS = { apFromOwnerAp: 0.1, spellDamageFromOwner: 0.1, critFromOwnerSpellCrit: 1, hitFromOwnerSpellHit: 1 } as const
 
 /**
  * Firebolt r7 (11763), the Imp's: 44 Fire, variance 0.11363637, +0.6 a level from 58, so 42.70–47.70
@@ -129,8 +118,8 @@ const petSpell = (
  * Your demon as a pet (warlock.md §11.2, §11.4): its placeholder stats and melee, its spell, its mana,
  * and what your talents give it: Unholy Power and Soul Link on all its damage, Improved Imp on
  * Firebolt, Improved Sayaad on Lash of Pain, Master Demonologist's school on its spells, Demonic
- * Knowledge's spell damage and Fel Vitality's mana; and its shares of your stats (`DEMON_INHERITS`)
- * [?]. Null for 'none'.
+ * Knowledge's spell damage and Fel Vitality's mana. What it inherits of your stats is every pet's rule
+ * (ranged-and-pets.md §6, `PET_INHERITANCE`) [?]. Null for 'none'.
  */
 export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
   if (demon === 'none') return null
@@ -147,10 +136,9 @@ export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
       baseAgi: stats.agi,
       // 2 attack power a Strength − 20, the hunter pet's reported rule (ranged-and-pets.md §6) [?].
       baseAp: -20,
-      // Its crit and hit are yours (DEMON_INHERITS), none of its own.
+      // Its crit and hit are what it inherits of yours (plan/pet.ts PET_INHERITANCE), none of its own.
       spellDamage: demonicKnowledge(talents),
     },
-    ...DEMON_INHERITS,
     damageMult,
     glances: true,
     front: false,

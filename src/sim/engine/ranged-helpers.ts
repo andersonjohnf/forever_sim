@@ -127,7 +127,7 @@ export function addCast(plan: Plan, aura: number, cooldownMs = 600000): number {
   return plan.abilities.length - 1
 }
 
-/** A pet with a 2.0-speed swing rolling exactly 50, 280 attack power, no crit, never missing, from behind, no power, no abilities. */
+/** A pet with a 2.0-speed swing rolling exactly 50, 280 attack power, no crit, never missing, from behind, inheriting nothing, no power, no abilities. */
 export function withPet(plan: Plan, patch: Partial<PetPlan> = {}): Plan {
   plan.sources.push({ id: 'petMelee', name: 'Auto attack', icon: 'x', pet: 'Cat' })
   plan.pet = {
@@ -144,13 +144,7 @@ export function withPet(plan: Plan, patch: Partial<PetPlan> = {}): Plan {
     spellDamage: 0,
     spellCrit: 0,
     spellHit: 100,
-    apFromOwnerAp: 0,
-    apFromOwnerRap: 0,
-    apFromOwnerHigherAp: 0,
-    spellDamageFromOwner: 0,
-    critFromOwnerSpellCrit: 0,
-    hitFromOwnerSpellHit: 0,
-    critFromOwnerCrit: 0,
+    inherit: { attackPower: 0, spellDamage: 0, crit: 0, hit: 0 },
     damageMult: 1,
     hasteMult: 1,
     critMultiplier: 2,

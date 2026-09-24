@@ -9,7 +9,7 @@ import { CRIT_MULTIPLIER } from '../core/formulas'
 import type { AuraSpec, Effect } from '../effects/types'
 import type { RulesProfile } from '../rules/profiles'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
-import { type PetAbilityPlan, type PetPlan, type PetPowerPlan, type RotationCondition, SCHOOL, type SourcePlan } from './types'
+import { type PetAbilityPlan, type PetInheritance, type PetPlan, type PetPowerPlan, type RotationCondition, SCHOOL, type SourcePlan } from './types'
 
 /** One of the pet's abilities before the plan gives it a row and its aura an index (§7). */
 export type PetAbilityDef = Omit<PetAbilityPlan, 'source' | 'aura' | 'school'> & {
@@ -37,17 +37,6 @@ export interface PetDef {
   stats: Partial<Pick<StatBlock, 'baseStr' | 'baseAgi' | 'baseAp' | 'apPerStr' | 'apPerAgi' | 'baseCrit' | 'critPerAgi' | 'hit' | 'spellDamage' | 'baseSpellCrit' | 'spellHit'>>
   /** All its damage %, as a product: its family's, happiness's, your talents' (§6). 1: none. */
   damageMult: number
-  /** Shares of your stats it gets, read as they change (§6): 0 in Classic Era [C]; Forever's are server-side [?]. */
-  apFromOwnerAp?: number
-  apFromOwnerRap?: number
-  /** A share of the higher of your attack power and ranged attack power (§6: the hunter's pet) [?]. */
-  apFromOwnerHigherAp?: number
-  spellDamageFromOwner?: number
-  /** Shares of your spell crit and spell hit it adds to its own crit and hit, melee and spells alike [?] (§6: a warlock's demon). */
-  critFromOwnerSpellCrit?: number
-  hitFromOwnerSpellHit?: number
-  /** A share of your higher sheet crit, melee or ranged, it adds to its own crit [?] (§6: the hunter's pet). */
-  critFromOwnerCrit?: number
   /** Its white swings can glance against a higher-level boss, as a player's do [?] (§6). */
   glances: boolean
   /** It attacks from in front of the boss (parried and blocked) rather than from behind [?] (§6). */
@@ -57,6 +46,44 @@ export interface PetDef {
   abilities: PetAbilityDef[]
   /** Its priority list: indices into `abilities`, each with its conditions (§7, §11). */
   rotation: { ability: number; conditions: RotationCondition[] }[]
+}
+
+/**
+ * What every pet inherits from you (docs/mechanics/ranged-and-pets.md §6: the one rule, the hunter's
+ * pet and the warlock's demon alike) [?]. Classic Era's pets inherit nothing [C]; Forever's client ships
+ * "Hunter Pet Scaling" (415429) and "Warlock Pet Scaling" (416189) with slots for attack power, spell
+ * damage, hit and crit, every amount 0 (they're set server-side). Forever testers report a pet takes 10%
+ * of your attack power and all of your crit; the sim reads that for every slot (D29): **10% of the
+ * higher of your attack power and ranged attack power**, **10% of your spell damage in its spell's
+ * school**, **your crit** (the higher of your melee and ranged crit on its swings and specials, your
+ * spell crit on its spells) and **your hit** (the same split). The crit arrives through the aura (#13,
+ * aura 52), so its physical attacks count it as aura crit (combat-tables §4.4); its spells, as yours,
+ * don't. The guild's test replaces it (OQ-6).
+ */
+export const PET_INHERITANCE: Readonly<PetInheritance> = { attackPower: 0.1, spellDamage: 0.1, crit: 1, hit: 1 }
+
+/**
+ * The `petInheritance` assumption's detail (§6.1), worded for the pet: its physical attacks' shares
+ * only for a pet that swings or has a melee special, its spells' only for one with a damage spell; the
+ * higher of melee and ranged only for an owner with a ranged weapon; and the aura-crit suppression
+ * only where it applies, on the physical attacks.
+ */
+export function petInheritanceDetail(pet: PetPlan, ownerHasRanged: boolean): string {
+  const specials = pet.abilities.some((a) => a.kind === 'melee')
+  const physical = pet.weapon !== null || specials
+  const spells = pet.abilities.some((a) => a.kind === 'spell' && (a.max > 0 || a.spCoefficient > 0))
+  const parts: string[] = []
+  if (physical) {
+    const on = pet.weapon !== null ? (specials ? 'its swings and specials' : 'its swings') : 'its specials'
+    parts.push(
+      ownerHasRanged
+        ? `10% of your higher attack power and all of your higher crit and hit, melee or ranged, for ${on}`
+        : `10% of your attack power and all of your melee crit and hit for ${on}`,
+    )
+  }
+  if (spells) parts.push(`10% of your spell damage${pet.spellDamage > 0 ? ' (on top of its own)' : ''} and all of your spell crit and hit for its spells`)
+  const suppression = physical ? '. It counts the inherited crit as crit from auras, so against a raid boss its physical attacks lose 1.8% of that crit, as yours do' : ''
+  return parts.join('; ') + suppression
 }
 
 /**
@@ -107,7 +134,7 @@ export function petPlan(
   const d = deriveStats(block, { profile, applyUnmeasured: false, level: def.level }, new DerivedStats())
   // Its all-schools spell damage (docs/mechanics/spells.md §5): the pipeline derives it only inside each
   // school's total (all schools + that school's own line), so take one school's and drop its own line.
-  // The engine adds a share of yours in the spell's school (PetPlan.spellDamageFromOwner).
+  // The engine adds a share of yours in the spell's school (PET_INHERITANCE).
   const allSchoolsSpellDamage = d.holySpellDamage - block.holySpellDamage
   const skill = 5 * def.level
   const [glanceLow, glanceHigh] = def.glances ? glanceRange(profile, bossLevel, skill) : [1, 1]
@@ -134,13 +161,7 @@ export function petPlan(
     spellDamage: allSchoolsSpellDamage,
     spellCrit: d.spellCrit,
     spellHit: d.spellHit,
-    apFromOwnerAp: def.apFromOwnerAp ?? 0,
-    apFromOwnerRap: def.apFromOwnerRap ?? 0,
-    spellDamageFromOwner: def.spellDamageFromOwner ?? 0,
-    apFromOwnerHigherAp: def.apFromOwnerHigherAp ?? 0,
-    critFromOwnerSpellCrit: def.critFromOwnerSpellCrit ?? 0,
-    hitFromOwnerSpellHit: def.hitFromOwnerSpellHit ?? 0,
-    critFromOwnerCrit: def.critFromOwnerCrit ?? 0,
+    inherit: { ...PET_INHERITANCE },
     damageMult,
     hasteMult: d.hasteMult,
     critMultiplier: CRIT_MULTIPLIER.melee,

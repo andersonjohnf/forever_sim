@@ -167,19 +167,21 @@ Wolf**, whose +20% needs no pet out. Its numbers aren't in either client (the co
 for a cat and ×1.25 for Happy [C]. Focus: 100 at most [F], 5 a second [?] (the core's OQ-5), +20%
 with Bestial Discipline.
 
-**What it inherits** [?] (the core's §6 and OQ-6). Classic Era's pets inherit none of their owner's
-stats [C], but Forever's client ships "Hunter Pet Scaling" (415429) with slots for attack power (aura
-99), spell damage, resistances, hit (54, 55) and crit (52, 57), every amount 0: they're server-side
-[F] [client] (SpellEffect, 1.60.1.69913). Forever testers report the pet inherits **10% of the hunter's
-higher attack power and all of its crit** ([fh-changes](https://github.com/classic-hunter/forever-hunter/wiki/Forever-Beta-Changes)), and by D29 that report is the default: the
-cat adds 10% of the higher of your attack power and ranged attack power (your ranged, in every default)
-and your higher sheet crit, melee or ranged, to its own (WE-H9). The crit arrives through the aura, so
-against a level-63 boss it's aura crit and the cat's attacks lose 1.8% of it, as a player's do
-(combat-tables §4.4). The report names no hit, so the cat takes none of yours (OQ-H7). Your Hunter's
-Mark raises your ranged attack power in the sim, so the cat inherits 7 of its 71; in game the mark is
-on the boss and may not reach the sheet the aura reads, which is under 0.1% of the default's damage.
-Against inheriting nothing, the inheritance is +12.9% on Beast Mastery (485.3 → 547.7) and +8.1% on
-Survival (420.9 → 454.8), 20,000 fights on seed 2701; Marksmanship fights without a pet.
+**What it inherits** [?] is every pet's rule, stated once in the core
+([ranged-and-pets §6.1](../mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)): 10% of the
+higher of your attack power and ranged attack power (your ranged, in every default), and your higher
+crit and hit, melee or ranged, added to its own (WE-H9). Against a level-63 boss its attacks lose 1.8%
+of that crit, as yours do. Your Hunter's Mark raises your ranged attack power in the sim, so the cat
+inherits 7 of its 71; in game the mark is on the boss and may not reach the sheet the aura reads,
+which is **about 0.2%** of the default's damage (0.22% on Beast Mastery, 0.15% on Survival). Against
+inheriting nothing, the inheritance is +14.8% on Beast Mastery (485.3 → 557.1) and +9.9% on Survival
+(420.9 → 462.4), 20,000 fights on seed 2701; the hit share is 1.7% of each. Marksmanship fights
+without a pet.
+
+**Battle Shout on the cat** is Classic Era's rule (the core's §8): it reaches pets in the party [C].
+The same Forever testers' page says pets can no longer receive external buffs [?], and if Forever
+blocks it, the cat loses its 139 attack power: **−24.6 DPS (−4.4%) on Beast Mastery** (557.1 → 532.6),
+which still leads Marksmanship's 501.0 (OQ-H7, the core's OQ-8).
 
 | Ability | Numbers | Tag |
 | --- | --- | --- |
@@ -288,7 +290,7 @@ cooldown (Aimed or Multi), waiting for Auto Shot, Arcane Shot, and Sniper Shot (
 Mana decides it: Arcane Shot and Sniper Shot cost more mana than the damage they add while the
 hunter runs dry; Beast Mastery, whose pet did a fifth of its damage, keeps Arcane Shot and takes the
 cheaper Multi-Shot. The Rotation tab says these are the common priority, not tuned. Since the search,
-the pet inherits your attack power and crit (§6): Beast Mastery's pet now does about a third of its
+the pet inherits your attack power, crit and hit (§6): Beast Mastery's pet now does about a third of its
 damage and Survival's a fifth, and the optimizer (D30) retakes these choices.
 
 ## 9. Implementation notes
@@ -335,12 +337,13 @@ Rapid Fire, a 3.3 s weapon shoots every 3300 / (1.15 × 1.40 × 1.30) = **1,577 
 **WE-H7: the Beast Mastery cat.** Its damage multiplier: 1.10 × 1.25 × 1.15 (Unleashed Fury 5/5) ×
 1.02 (Focused Fire 2/2) = **1.612875**; Focus 5 × 1.20 = **6 a second** with Bestial Discipline 2/2.
 
-**WE-H9: what the Beast Mastery cat inherits.** The default Beast Mastery setup at the pull: 1,155
-attack power, 1,524 ranged attack power, 23.20% ranged crit; the cat's own 252 attack power + Battle
-Shout's 139 = 391, and 5% + Ferocity's 10% crit. Its attack power 391 + 0.1 × 1,524 = **543.4**; its
-crit 15 + 23.20 = **38.20%**; against a level-63 boss its specials crit 38.20 − 0.6 (its skill of 300)
-− 1.8 (aura crit) = **35.80%**. With 1,000 more melee attack power (2,155), the melee side is the
-higher: 391 + 215.5 = **606.5**.
+**WE-H9: what the Beast Mastery cat inherits** ([ranged-and-pets §6.1](../mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)).
+The default Beast Mastery setup at the pull: 1,155 attack power, 1,524 ranged attack power, 23.20%
+crit and 6% hit, melee and ranged alike; the cat's own 252 attack power + Battle Shout's 139 = 391,
+5% + Ferocity's 10% crit, and no hit. Its attack power 391 + 0.1 × 1,524 = **543.4**; its crit 15 +
+23.20 = **38.20%**; against a level-63 boss its specials crit 38.20 − 0.6 (its skill of 300) − 1.8
+(aura crit) = **35.80%**, and its swings and specials miss 8 − 6 = **2%**. With 1,000 more melee attack
+power (2,155), the melee side is the higher: 391 + 215.5 = **606.5**.
 
 **WE-H8: Rapid Fire with Rapid Killing 2/2**: 300 − 120 = **180 s**; Improved Arcane Shot 5/5: 6 − 1.5
 = **4.5 s**.
@@ -376,9 +379,10 @@ Discovery rows. Does Forever teach them? Test: the trainer and spellbook in game
 ### OQ-H7: the pet
 Its base numbers, inheritance, Focus rate, table and buffs are the core's OQ-5 to OQ-8. With Lone Wolf
 the Marksmanship default doesn't depend on them; Beast Mastery's pet is about a third of its damage,
-Survival's a fifth. Its inheritance (§6) is the testers' report: without it Beast Mastery loses 11%
-and Survival 7.5%. Its scaling aura's hit slots (54, 55) have no report; your ranged hit on it would
-add about 1.7% to both.
+Survival's a fifth. Its inheritance is the core's one rule (§6.1): without it Beast Mastery loses 13%
+and Survival 9%. Battle Shout on it is worth 24.6 DPS (4.4%) on Beast Mastery, and Forever testers
+report pets can't receive external buffs (§6; the core's OQ-8). Test: the pet's sheet with and without
+Battle Shout, and with two owner gear sets.
 
 ## Sources
 

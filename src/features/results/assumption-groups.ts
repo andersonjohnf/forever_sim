@@ -140,7 +140,6 @@ export const ASSUMPTION_GROUP = {
   warlockTalentStacking: 'class',
   // The Demonology warlock's (docs/classes/warlock.md §11.7): the demon's placeholders first.
   demonStats: 'class',
-  demonInherits: 'class',
   improvedImpCast: 'class',
   demonTable: 'combat',
   demonOut: 'class',

@@ -41,7 +41,7 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   if (spells.some((s) => (s.dotTicks ?? 0) > 0)) ids.push(plan.profile.combat.periodicCrits ? 'casterDotCrits' : 'casterDots')
   if (has('lifeTap')) ids.push('lifeTap')
   // docs/classes/warlock.md §11.7: Demonology's demon replaces the "no pet" ones.
-  if (plan.pet) ids.push('demonOut', 'demonStats', 'demonInherits', 'demonTable', ...(plan.pet.power ? (['demonMana'] as const) : []))
+  if (plan.pet) ids.push('demonOut', 'demonStats', 'demonTable', ...(plan.pet.power ? (['demonMana'] as const) : []))
   else if (has('demonicSacrifice')) ids.push('demonicSacrifice')
   else if (plan.spec !== 'warlock-demonology') ids.push('warlockNoPet')
   if (has('masterDemonologist')) ids.push('masterDemonologist')
@@ -69,25 +69,19 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
 
 /**
  * The demon's assumptions, worded for the demon out (warlock.md §11.2): its swing only for one that
- * swings (the Succubus, the Felhunter), its spells' share and table only for one with a damage spell
- * (the Imp, the Succubus), and Demonic Knowledge beside its spell damage when the build has it.
+ * swings (the Succubus, the Felhunter), its spells' table only for one with a damage spell (the Imp,
+ * the Succubus). What it inherits is every pet's `petInheritance` (plan/pet.ts).
  */
 function demonDetails(pet: NonNullable<Plan['pet']>): Partial<Record<AssumptionId, string>> {
   const swings = pet.weapon !== null
   const spells = pet.abilities.some((a) => a.kind === 'spell' && (a.max > 0 || a.spCoefficient > 0))
   const stats = [`its attributes${pet.power ? ' and mana' : ''} at 60 are Classic Era’s as an emulator records them`]
   if (swings) stats.push('its attack power 2 per Strength − 20 and its swing 37–55 every 2 s (a level-60 hunter pet’s reported rule and damage)')
-  const shares: string[] = []
-  if (swings) shares.push('10% of your attack power for its swings')
-  if (spells) shares.push(`10% of your spell damage for its spells${pet.spellDamage > 0 ? ', on top of Demonic Knowledge’s' : ''}`)
-  const as = swings && spells ? 'its crit and hit, melee and spells alike' : swings ? 'its melee crit and hit' : 'its spell crit and hit'
-  shares.push(`your spell crit and spell hit as ${as}${swings ? ' (on its swings a raid boss suppresses that crit, as crit from auras)' : ''}`)
   const tables: string[] = []
   if (spells) tables.push('its spells miss the boss 17% of the time less its hit, lose 6% to its resistance and crit for ×1.5')
   if (swings) tables.push('its swings, from behind, miss, are dodged and glance as yours would, against the boss’s armor after the Buffs tab’s debuffs')
   return {
     demonStats: stats.join(', '),
-    demonInherits: `${shares.slice(0, -1).join(', ')}, and ${shares[shares.length - 1]}`,
     demonTable: tables.join('; '),
   }
 }

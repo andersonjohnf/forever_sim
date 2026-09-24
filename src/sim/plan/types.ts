@@ -1469,6 +1469,18 @@ export interface PetAbilityPlan {
   source: number
 }
 
+/** The shares of your stats a pet inherits (docs/mechanics/ranged-and-pets.md §6) [?]. */
+export interface PetInheritance {
+  /** Of the higher of your attack power and ranged attack power. */
+  attackPower: number
+  /** Of your spell damage in its spell's school. */
+  spellDamage: number
+  /** Of your crit: the higher of melee and ranged on its physical attacks, your spell crit on its spells. */
+  crit: number
+  /** Of your hit: the higher of melee and ranged on its physical attacks, your spell hit on its spells. */
+  hit: number
+}
+
 /**
  * The pet (docs/mechanics/ranged-and-pets.md §6–§10): its stats as the plan builder derived them,
  * its melee, its abilities and its power. Owner auras reach it through their pet mods
@@ -1497,17 +1509,13 @@ export interface PetPlan {
   spellDamage: number
   spellCrit: number
   spellHit: number
-  /** Shares of your stats it gets, read whenever they change (§6): 0 in Classic Era [C]. */
-  apFromOwnerAp: number
-  apFromOwnerRap: number
-  /** A share of the higher of your attack power and ranged attack power (§6; the hunter's pet) [?]. */
-  apFromOwnerHigherAp: number
-  spellDamageFromOwner: number
-  /** Shares of your spell crit and spell hit it adds to its own, melee and spells alike (§6; a warlock's demon) [?]. */
-  critFromOwnerSpellCrit: number
-  hitFromOwnerSpellHit: number
-  /** A share of your higher sheet crit, melee or ranged, it adds to its own crit (§6; the hunter's pet) [?]. */
-  critFromOwnerCrit: number
+  /**
+   * What it inherits from you, read whenever your stats change (§6, the one rule for every pet) [?]:
+   * shares of your higher attack power (melee or ranged), of your spell damage in its spell's school,
+   * of your crit (your higher melee or ranged crit on its swings and specials, your spell crit on its
+   * spells) and of your hit (the same split). `PET_INHERITANCE` in plan/pet.ts; 0 inherits nothing.
+   */
+  inherit: PetInheritance
   /** All its damage %, as a product: its family's, happiness's, your talents' (§6). */
   damageMult: number
   /** Static attack speed, a product (1: none). */

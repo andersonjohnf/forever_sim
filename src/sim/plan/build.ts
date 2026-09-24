@@ -37,7 +37,7 @@ import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
 import { Assumptions, BEAR_TEXT } from './assumptions'
-import { PET_BUFFS, petPlan } from './pet'
+import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
   type AbilityPlan,
@@ -1664,6 +1664,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of balanceAssumptions(plan)) notes.add(id)
   // docs/classes/hunter.md#11-open-questions: what the hunter's shots, pet, talents and mana rely on.
   for (const id of hunterAssumptions(plan, setup.talents)) notes.add(id)
+  // docs/mechanics/ranged-and-pets.md §6.1: what every pet inherits, worded for this one.
+  if (plan.pet) notes.add('petInheritance', petInheritanceDetail(plan.pet, plan.ranged !== undefined))
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }

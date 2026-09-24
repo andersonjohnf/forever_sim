@@ -847,11 +847,6 @@ const REGISTRY = {
     text: 'Your demon’s stats are placeholders: {detail}. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
-  demonInherits: {
-    // docs/classes/warlock.md §11.2; the plan names what this demon uses ({detail}): its swings, its spells.
-    text: 'Your demon inherits {detail}. Forever’s pet scaling is server-side; this is the hunter’s pet’s reported share (10% of the hunter’s attack power and all its crit), read for a caster. Untested.',
-    docRef: `${LOCK}#112-your-demon`,
-  },
   improvedImpCast: {
     text: 'Improved Imp also carries an effect its tooltip doesn’t show (−0.3/−0.7/−1 s); the sim reads it as time off Firebolt’s 2 s cast, so it’s {detail} s. Untested.',
     docRef: `${LOCK}#117-open-questions`,
@@ -989,8 +984,10 @@ const REGISTRY = {
     docRef: `${RANGED}#oq-6-pet-stats-and-inheritance`,
   },
   petInheritance: {
-    text: 'Your pet inherits 10% of your attack power or ranged attack power, whichever is higher, and all of your crit, as Forever testers report (the amounts are server-side). The crit counts as crit from auras, which a raid boss suppresses. It gets none of your hit, which the report doesn’t mention. Untested.',
-    docRef: `${HUNTER}#6-pets`,
+    // docs/mechanics/ranged-and-pets.md §6.1, every pet's one rule; the plan names what this pet uses
+    // ({detail}: plan/pet.ts petInheritanceDetail).
+    text: 'Your pet inherits {detail}. Forever’s pet scaling is server-side: this is Forever testers’ report for hunters’ pets (10% of the hunter’s attack power and all its crit), read for every stat and every pet. Untested.',
+    docRef: `${RANGED}#61-what-a-pet-inherits-from-you`,
   },
   focusRegen: {
     text: 'Your pet gains 5 Focus a second (6 with Bestial Discipline), as Classic Era players measured; Forever testers report 10. Untested.',

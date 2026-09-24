@@ -469,7 +469,9 @@ Master Demonologist cuts only physical damage taken, so it isn't offered to keep
 
 Neither client holds a demon's stats, nor how much of yours it inherits
 ([ranged-and-pets §6](../mechanics/ranged-and-pets.md#6-pets-stats-and-white-swings), OQ-6). The sim
-uses, all [?], each a D29 default (closest allowed analog, never zero because it's unknown):
+uses, all [?], each a D29 default (closest allowed analog, never zero because it's unknown), and what
+it inherits is every pet's one rule
+([ranged-and-pets §6.1](../mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)):
 
 | | Imp | Succubus | Felhunter |
 | --- | --- | --- | --- |
@@ -478,7 +480,8 @@ uses, all [?], each a D29 default (closest allowed analog, never zero because it
 | Attack power | — | 2 × Strength − 20 = **240**, + 10% of yours | 240, + 10% of yours |
 | Swing | — | 36.64–54.96 every 2.0 s | the same |
 | Spell damage | Demonic Knowledge's (§11.4) + 10% of yours in its spell's school | the same | — |
-| Crit and hit, melee and spell | your spell crit and spell hit | the same | the same |
+| Crit and hit on its swings | — | your melee crit and hit | the same |
+| Crit and hit on its spells | your spell crit and spell hit | the same | — |
 | Mana regeneration | 8 + Spirit / 4 every 2 s, casting or not: 57.25 | 32.5 | — |
 
 - The attributes and mana are the mangoszero database's `pet_levelstats` rows (Imp 416, Succubus
@@ -489,27 +492,20 @@ uses, all [?], each a D29 default (closest allowed analog, never zero because it
   − 20; 22.9 damage a second), the swing ±20% [?] (Q14). They're another creature's, so D24's rule
   for emulator attributes doesn't cover them; D29 does: a demon's melee exists, and the hunter's pet is
   the closest allowed analog.
-- **Inheritance** [?] (Q15). Classic Era's demons inherited nothing, but Forever's client ships
-  "Warlock Pet Scaling" (416189), an aura on the demon with slots for your attack power (aura 99),
-  spell damage (13, every magic school), resistances (22), melee and spell hit (54, 55), crit (52, 57),
-  Intellect (29), health (34), mana regeneration (85) and healing (135), every amount 0 in the client:
-  they're set server-side [F] [client] (SpellEffect, 1.60.1.69913). By D29 a slot known to exist gets
-  the closest allowed analog, never zero. The only one is the hunter's pet, whose aura (415429) has the
-  same damage slots and which Forever testers report inherits **10% of the hunter's attack power and
-  all of its crit** (ranged-and-pets §6). Read for a caster, the demon takes **10% of your attack
-  power** (138 in the default setup: the Succubus +13.8), **10% of your spell damage** in its spell's
-  school (the default Imp: 386 Fire, +38.6; the Succubus: 486 Shadow, +48.6), and **your spell crit and
-  spell hit** as its crit and hit, melee and spells alike (11.73% and 4% in the default), none of its own; the aura carries hit beside crit, so hit takes crit's
-  reading. The crit arrives through the aura (#13, aura 52), so its swings count it as aura crit and
-  lose 1.8% of it against a level-63 boss, as a player's do (combat-tables §4.4); its spells, as
-  yours, don't. Demonic Knowledge's spell damage is its own besides. Health, resistances and healing reach
-  no DPS number; Intellect and mana regeneration reach only the demon's mana, which Demonic Energies
-  refills in the default, so they're left out with no analog to size them (Q15). Against inheriting
-  nothing (with the 5% crit of its own the sim first gave it), the default gains +7.7% (493.9 →
-  531.9) and the Succubus build +1.7% (492.8 → 501.3).
+- **Inheritance** [?] (Q15) is the core's rule for every pet (§6.1), not the warlock's own. Forever's
+  "Warlock Pet Scaling" (416189) has the same damage slots as the hunter's pet's aura: attack power
+  (aura 99), spell damage (13, every magic school), melee and spell hit (54, 55) and crit (52, 57),
+  every amount 0 in the client [F] [client] (SpellEffect, 1.60.1.69913). In the default setup the
+  Succubus takes **+13.8 attack power** (10% of your 138), **+48.6 spell damage** on Lash of Pain (10%
+  of your 486 Shadow; the Imp: +38.6 of 386 Fire), your **9.65% melee crit and 2% hit** on its swings
+  and your **11.73% spell crit and 4% spell hit** on its spells, none of its own. Against a level-63
+  boss its swings lose 1.8% of that crit, as yours do; its spells don't. Demonic Knowledge's spell
+  damage is its own besides. Its Intellect, mana regeneration, health, resistance and healing slots
+  aren't modelled (§6.1; Q15). Against inheriting nothing (with the 5% crit of its own the sim first
+  gave it), the default gains +7.7% (493.9 → 531.9) and the Succubus build +1.4% (492.8 → 499.5).
 - Its tables are a player's at its level (ranged-and-pets §6, §7): its spells miss a level-63 boss
-  17% of the time less its hit (13% with your 4%), lose 6% to its resistance and crit for ×1.5; its swings, from behind,
-  miss, are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
+  17% of the time less its spell hit (13% with your 4%), lose 6% to its resistance and crit for ×1.5;
+  its swings, from behind, miss (6% with your 2% melee hit on a special), are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
   a caster whose demon swings (`SpecMeta.petMelee`), so its Buffs tab keeps the melee's armor debuffs
   on the boss ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
   With the Imp (the default) or no demon out, nothing of yours meets the boss's armor, so the tab
@@ -605,16 +601,18 @@ So the first pass chose the **Succubus out and the Imp sacrificed**, Immolate on
 of Doom, Life Tap at 10%, and Soul Fire off: with every buff on Shadow, a Shadow Bolt (+6% below 35%)
 out-damages a 2.4 s Soul Fire, which only Soul Link raises.
 
-**After the review (DM4, Q19) and its verification (DV3),** with the demon's inheritance (§11.2), its
-inherited crit counted as aura crit, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701:
+**After the review (DM4, Q19) and its verifications (DV3; the third round's one inheritance rule for
+every pet),** with the demon's inheritance (§11.2), its inherited crit counted as aura crit on its
+swings, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701, on the first pass's talents
+(Improved Shadow Bolt 3/5, Improved Sayaad 3/3):
 
 | Demon kept out, demon sacrificed | DPS |
 | --- | --- |
 | **Imp, Succubus, Soul Fire on** (the default) | **531.9** ±0.3 |
 | Imp, Succubus, Soul Fire off | 519.8 |
 | Imp, Voidwalker / with Soul Fire | 504.0 / 509.9 |
-| Succubus, Imp (the first pass's) / with Soul Fire | 501.3 / 497.7 |
-| Felhunter, Imp | 452.6 |
+| Succubus, Imp (the first pass's) / with Soul Fire | 499.5 / 495.9 |
+| Felhunter, Imp | 450.8 |
 | None, Imp (Classic Era's warlock, with Demonology's talents) | 373.1 |
 | Imp, Succubus, Soul Fire on, **without Q19's reading** (Firebolt's 2 s cast) | 474.3 |
 | Imp, Succubus, Soul Fire off, without Q19's reading | 462.2 |
@@ -651,13 +649,14 @@ Each with its estimated effect on Demonology's DPS.
   default Imp doesn't swing, and its attributes only fill its mana, which Demonic Energies keeps full:
   nothing on the default. The Succubus's swings are about 8% of the Succubus build's damage; ±30% on
   them is ±2% there. Test: the pet's sheet and 200 swings on a target dummy.
-- **Q15 Inheritance** (§11.2): the sim's default is the hunter's pet's reported share read for a
-  caster, 10% of your attack power and spell damage and all your spell crit and hit. Against inheriting
-  nothing, it's +7.7% on the default and +1.7% on the Succubus build; each 10% more of your spell damage
-  is about +5.6% on the default (the Imp's Firebolt is a quarter of its damage) and +0.6% with the
-  Succubus. Intellect and mana regeneration (416189's aura 29 and 85) aren't
-  modelled: they only fill the demon's mana, which Demonic Energies 2/2 keeps full. Test: the demon's
-  sheet (attack power, spell damage, crit, hit) with two gear sets.
+- **Q15 Inheritance** (§11.2): every pet's one rule (ranged-and-pets §6.1), the hunter's pet's
+  reported share read for every slot: 10% of your attack power and spell damage, your melee crit and
+  hit on its swings, your spell crit and hit on its spells. Against inheriting nothing, it's +7.7% on
+  the default and +1.4% on the Succubus build; each 10% more of your spell damage is about +5.6% on
+  the default (the Imp's Firebolt is a quarter of its damage) and +0.6% with the Succubus. Intellect
+  and mana regeneration (416189's aura 29 and 85) aren't modelled: they only fill the demon's mana,
+  which Demonic Energies 2/2 keeps full. Test: the demon's sheet (attack power, spell damage, crit,
+  hit) with two gear sets.
 - **Q16 The demon's mana regeneration** (8 + Spirit / 4, casting or not): with Demonic Energies 2/2
   nothing changes; without it the Imp would run dry, sooner with Q19's 1 s Firebolt, and then cast at
   its regeneration's rate. Test: the Imp's
@@ -711,11 +710,12 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    × the Imp's Master Demonologist 1.10 × Soul Link 1.03 = **×1.30295** on your Fire spells; with the
    Succubus out and the Imp sacrificed, Burning Shadow × Master Demonologist × Soul Link, the same
    **×1.30295** on your Shadow spells.
-8. **What the Succubus inherits, out with the Imp sacrificed** (§11.2): attack power 240 + 0.1 × 138 = **253.8**;
-   Lash of Pain's spell damage 60 + 0.1 × 486 (426 Shadow + your Demonic Knowledge's 60) = **108.6**,
-   so `(50 + 0.429 × 108.6) × 1.3 × 1.1 × 1.133` = **156.49**; its crit is your **11.73%**, and its
-   spells miss 17 − 4 = **13%**. Against the boss its swings' special table crits 11.73 − 0.6 (its
-   skill of 300) − 1.8 (aura crit) = **9.33%**.
+8. **What the Succubus inherits, out with the Imp sacrificed** (§11.2; ranged-and-pets §6.1): attack
+   power 240 + 0.1 × 138 = **253.8**; on its swings your **9.65%** melee crit and 2% hit (the gear's
+   hit rating), so against the boss its special table crits 9.65 − 0.6 (its skill of 300) − 1.8 (aura
+   crit) = **7.25%** and misses 8 − 2 = **6%**. Lash of Pain's spell damage 60 + 0.1 × 486 (426 Shadow
+   + your Demonic Knowledge's 60) = **108.6**, so `(50 + 0.429 × 108.6) × 1.3 × 1.1 × 1.133` =
+   **156.49**; it crits at your spell crit, **11.73%**, and misses 17 − 4 = **13%**.
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
 
 ---

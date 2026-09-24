@@ -1110,13 +1110,11 @@ export class Sim {
   private readonly petBaseSp: number
   private readonly petSpellCrit: number
   private readonly petSpellHit: number
-  private readonly petApFromAp: number
-  private readonly petApFromRap: number
-  private readonly petApFromHigher: number
-  private readonly petSpFromOwner: number
-  private readonly petCritFromOwner: number
-  private readonly petHitFromOwner: number
-  private readonly petCritFromOwnerCrit: number
+  /** Its shares of your stats (§6: PetPlan.inherit). */
+  private readonly petInhAp: number
+  private readonly petInhSp: number
+  private readonly petInhCrit: number
+  private readonly petInhHit: number
   private readonly petStaticDamage: number
   private readonly petStaticHaste: number
   private readonly petCritMult: number
@@ -1980,13 +1978,10 @@ export class Sim {
     this.petBaseSp = pet?.spellDamage ?? 0
     this.petSpellCrit = pet?.spellCrit ?? 0
     this.petSpellHit = pet?.spellHit ?? 0
-    this.petApFromAp = pet?.apFromOwnerAp ?? 0
-    this.petApFromRap = pet?.apFromOwnerRap ?? 0
-    this.petApFromHigher = pet?.apFromOwnerHigherAp ?? 0
-    this.petSpFromOwner = pet?.spellDamageFromOwner ?? 0
-    this.petCritFromOwner = pet?.critFromOwnerSpellCrit ?? 0
-    this.petHitFromOwner = pet?.hitFromOwnerSpellHit ?? 0
-    this.petCritFromOwnerCrit = pet?.critFromOwnerCrit ?? 0
+    this.petInhAp = pet?.inherit.attackPower ?? 0
+    this.petInhSp = pet?.inherit.spellDamage ?? 0
+    this.petInhCrit = pet?.inherit.crit ?? 0
+    this.petInhHit = pet?.inherit.hit ?? 0
     this.petStaticDamage = pet?.damageMult ?? 1
     this.petStaticHaste = pet?.hasteMult ?? 1
     this.petCritMult = pet?.critMultiplier ?? CRIT_MULTIPLIER.melee
@@ -4622,26 +4617,27 @@ export class Sim {
 
   /**
    * The pet's numbers against the current stats and auras (§6, §8): attack power (its own, the
-   * auras' and its shares of yours), crit and hit (its own and its shares of your crit, spell crit and
-   * spell hit, melee and spells alike), damage and attack speed; its white and special tables
-   * against the boss at its level and skill (combat-tables §2–§4, from behind or the front, glancing
-   * only if it glances), where the crit it inherits counts as aura crit for the +3 suppression (§4.4:
-   * it arrives through an aura, 416189's or 415429's #52); its spell miss (combat-tables §9); and the
-   * boss's armor, less your debuffs on it, at its level.
+   * auras' and its share of yours), crit and hit (its own and what it inherits of yours: your higher
+   * melee or ranged crit and hit on its physical attacks, your spell crit and hit on its spells; §6's
+   * one rule for every pet), damage and attack speed; its white and special tables against the boss at
+   * its level and skill (combat-tables §2–§4, from behind or the front, glancing only if it glances),
+   * where the crit it inherits counts as aura crit for the +3 suppression (§4.4: it arrives through an
+   * aura, 415429's or 416189's #52; its spells, as yours, take none); its spell miss (combat-tables §9);
+   * and the boss's armor, less your debuffs on it, at its level.
    */
   private recomputePet(): void {
     const plan = this.plan
     const f = plan.fight
-    const higherAp = this.hasRanged ? Math.max(this.ap, this.rap) : this.ap
-    this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petApFromAp * this.ap + this.petApFromRap * this.rap + this.petApFromHigher * higherAp)
-    // Its shares of your spell crit and spell hit (§6: a warlock's demon, warlock.md §11.2), and of your
-    // higher sheet crit, melee or ranged (§6: the hunter's pet, hunter.md §6) [?].
+    // What it inherits of yours (docs/mechanics/ranged-and-pets.md §6, PET_INHERITANCE) [?].
     const d = this.derived
+    const higherAp = this.hasRanged ? Math.max(this.ap, this.rap) : this.ap
     const higherCrit = this.hasRanged ? Math.max(d.crit, d.crit + this.rCritBonus) : d.crit
-    const ownerCrit = this.petCritFromOwner * d.spellCrit + this.petCritFromOwnerCrit * higherCrit
-    const ownerHit = this.petHitFromOwner * d.spellHit
-    this.petCritPct = this.petBaseCrit + ownerCrit + this.dynPetCrit
-    this.petSpellCritNow = this.petSpellCrit + ownerCrit
+    const higherHit = this.hasRanged ? Math.max(d.hit, d.hit + this.rHitBonus) : d.hit
+    const physCrit = this.petInhCrit * higherCrit
+    const physHit = this.petInhHit * higherHit
+    this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petInhAp * higherAp)
+    this.petCritPct = this.petBaseCrit + physCrit + this.dynPetCrit
+    this.petSpellCritNow = this.petSpellCrit + this.petInhCrit * d.spellCrit
     this.petDamageMult = this.petStaticDamage * this.petAuraDamage
     if (this.petHasWeapon) this.petSwingMs = swingMs(this.petWSpeedSec, this.petStaticHaste * this.petAuraHaste)
     const inputs = this.meleeIn
@@ -4649,9 +4645,9 @@ export class Sim {
     inputs.attackerLevel = this.petLevel
     inputs.targetLevel = f.targetLevel
     inputs.skill = this.petSkill
-    inputs.hit = this.petHit + ownerHit
+    inputs.hit = this.petHit + physHit
     inputs.sheetCrit = this.petCritPct
-    inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit + ownerCrit
+    inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit + physCrit
     inputs.expertise = 0
     inputs.front = this.petFront
     inputs.canDodge = f.bossCanDodge
@@ -4663,7 +4659,7 @@ export class Sim {
     meleeChances(plan.profile, inputs, false, false, ch)
     thresholds(specialSlices(ch, 0, this.slices), this.petThrSpecial)
     this.petSpecCrit = ch.crit
-    this.petSpellMissPct = spellMiss(plan.profile, this.petLevel, f.targetLevel, this.petSpellHit + ownerHit)
+    this.petSpellMissPct = spellMiss(plan.profile, this.petLevel, f.targetLevel, this.petSpellHit + this.petInhHit * d.spellHit)
     this.petArmorFactor = 1 - armorReduction(f.targetArmor - this.dynTargetArmor, this.petLevel, plan.profile)
   }
 
@@ -4864,7 +4860,7 @@ export class Sim {
         c[row + FIELD.misses]++
         return
       }
-      const sp = this.petBaseSp + this.petSpFromOwner * this.spSchool[school]
+      const sp = this.petBaseSp + this.petInhSp * this.spSchool[school]
       damage = (damage + this.pabSpCoef[a] * sp) * this.petDamageMult * this.schTaken[school] * this.resistFactor[school]
       crit = rng.roll100() < this.petSpellCritNow + this.pabBonusCrit[a]
     }

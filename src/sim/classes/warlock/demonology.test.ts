@@ -12,6 +12,7 @@ import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
 import { addCast, addPlanAura } from '../../engine/ranged-helpers'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
+import { PET_INHERITANCE } from '../../plan/pet'
 import { COND, type Plan, SCHOOL } from '../../plan/types'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import type { SimConfig } from '../../types'
@@ -21,7 +22,6 @@ import { lifeTap } from './abilities'
 import { DEMONOLOGY_IDS } from './demonology'
 import {
   DEMO_CURVE,
-  DEMON_INHERITS,
   DEMON_STATS,
   DEMON_WEAPON,
   demonicKnowledge,
@@ -152,24 +152,42 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
   })
 
-  it('8. What the Succubus inherits: 253.8 attack power, 108.6 spell damage, your 11.73% crit (9.33% on its swings vs the boss), 13% spell miss; Lash of Pain 156.49', () => {
+  it('8. What the Succubus inherits: 253.8 attack power; your 9.65% melee crit (7.25% on its swings vs the boss) and 2% melee hit on its swings; 108.6 spell damage, your 11.73% spell crit and 13% spell miss on Lash of Pain, 156.49', () => {
     const { plan } = buildPlan(fixed(SUCCUBUS))
-    expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, ...DEMON_INHERITS })
+    expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, inherit: PET_INHERITANCE })
     const sim = new Sim(plan)
     sim.runFight(0)
-    const s = sim as unknown as { ap: number; derived: { spellCrit: number; spellHit: number }; spSchool: Float64Array; petAp: number; petCritPct: number; petSpellCritNow: number; petSpecCrit: number; petSpellMissPct: number }
+    const s = sim as unknown as {
+      ap: number
+      derived: { crit: number; hit: number; spellCrit: number; spellHit: number }
+      spSchool: Float64Array
+      petAp: number
+      petCritPct: number
+      petSpellCritNow: number
+      petSpecCrit: number
+      petThrSpecial: Float64Array
+      petSpellMissPct: number
+    }
+    // 10% of your 138 attack power (you've no ranged weapon: ranged-and-pets.md §6).
     expect(s.ap).toBe(138)
     expect(s.petAp).toBeCloseTo(253.8, 9)
+    // Its swings: your melee crit and hit.
+    expect(s.derived.crit).toBeCloseTo(9.65, 9)
+    expect(s.petCritPct).toBeCloseTo(9.65, 9)
+    // − 0.6 for its skill of 300, − 1.8 as aura crit (combat-tables §4.4) = 7.25%.
+    expect(s.petSpecCrit).toBeCloseTo(7.25, 9)
+    // A special's miss against a level-63 boss: 8% − your 2% melee hit = 6%.
+    expect(s.derived.hit).toBe(2)
+    expect(s.petThrSpecial[0]).toBeCloseTo(6, 9)
+    // Its spells: your spell crit and spell hit, without the suppression.
     expect(s.derived.spellCrit).toBeCloseTo(11.7325, 9)
-    expect([s.petCritPct, s.petSpellCritNow]).toEqual([s.derived.spellCrit, s.derived.spellCrit])
-    // Its swings: − 0.6 for its skill of 300, − 1.8 as aura crit (combat-tables §4.4) = 9.33%.
-    expect(s.petSpecCrit).toBeCloseTo(9.3325, 9)
+    expect(s.petSpellCritNow).toBeCloseTo(11.7325, 9)
     expect(s.derived.spellHit).toBe(4)
     expect(s.petSpellMissPct).toBe(13)
     // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 486 Shadow (426 + your own 60).
     expect(s.spSchool[SCHOOL.shadow]).toBe(486)
     const lash = plan.pet!.abilities[0]
-    const sp = plan.pet!.spellDamage + DEMON_INHERITS.spellDamageFromOwner * s.spSchool[SCHOOL.shadow]
+    const sp = plan.pet!.spellDamage + PET_INHERITANCE.spellDamage * s.spSchool[SCHOOL.shadow]
     expect(sp).toBeCloseTo(108.6, 9)
     expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(156.493, 3)
   })
@@ -321,7 +339,7 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(plan.fight.targetArmor).toBeLessThan(1000)
     const result = toResult(buildPlan(fixed(SUCCUBUS)), runFights(plan, 100), 0)
     expect(result.abilities.filter((a) => a.pet).map((a) => a.name)).toEqual(['Auto attack', 'Lash of Pain'])
-    expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonInherits', 'demonTable', 'demonMana', 'masterDemonologist']))
+    expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'petInheritance', 'demonTable', 'demonMana', 'masterDemonologist']))
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
     // Improved Imp's cast time is the Imp's alone (Q19).
     expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpCast')
@@ -334,19 +352,20 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
       const bundle = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: demon, [DEMONOLOGY_IDS.sacrifice]: demon === 'imp' ? 'succubus' : 'imp' }))
       const text = (id: string) => bundle.assumptions.find((a) => a.id === id)!.text
       for (const a of bundle.assumptions) expect(a.text, a.id).not.toContain('{detail}')
-      return { stats: text('demonStats'), inherits: text('demonInherits'), table: text('demonTable') }
+      return { stats: text('demonStats'), inherits: text('petInheritance'), table: text('demonTable') }
     }
     const imp = texts('imp')
     expect(imp.stats).toBe('Your demon’s stats are placeholders: its attributes and mana at 60 are Classic Era’s as an emulator records them. Untested.')
-    expect(imp.inherits).toMatch(/^Your demon inherits 10% of your spell damage for its spells, on top of Demonic Knowledge’s, and your spell crit and spell hit as its spell crit and hit\. /)
+    expect(imp.inherits).toMatch(/^Your pet inherits 10% of your spell damage \(on top of its own\) and all of your spell crit and hit for its spells\. Forever’s pet scaling/)
     expect(imp.table).not.toContain('swings')
     const succubus = texts('succubus')
     expect(succubus.stats).toContain('its swing 37–55 every 2 s')
-    expect(succubus.inherits).toMatch(/^Your demon inherits 10% of your attack power for its swings, 10% of your spell damage for its spells, on top of Demonic Knowledge’s, and your spell crit and spell hit as its crit and hit, melee and spells alike \(on its swings a raid boss suppresses that crit, as crit from auras\)\. /)
+    expect(succubus.inherits).toMatch(/^Your pet inherits 10% of your attack power and all of your melee crit and hit for its swings; 10% of your spell damage \(on top of its own\) and all of your spell crit and hit for its spells\. It counts the inherited crit as crit from auras, so against a raid boss its physical attacks lose 1\.8% of that crit, as yours do\. /)
     expect(succubus.table).toMatch(/its spells miss .*; its swings, from behind/)
     const felhunter = texts('felhunter')
     expect(felhunter.stats).toMatch(/^Your demon’s stats are placeholders: its attributes at 60 .*, its attack power 2 per Strength − 20/)
-    expect(felhunter.inherits).toMatch(/^Your demon inherits 10% of your attack power for its swings, and your spell crit and spell hit as its melee crit and hit /)
+    expect(felhunter.inherits).toMatch(/^Your pet inherits 10% of your attack power and all of your melee crit and hit for its swings\. It counts the inherited crit as crit from auras/)
+    expect(felhunter.inherits).not.toContain('spell')
     expect(felhunter.table).not.toContain('spells')
   })
 
@@ -355,7 +374,7 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     const agg = (p: Plan) => runFights(p, 300)
     const base = agg(plan)
     // No inherited crit or hit: fewer crits and more misses on both of the Succubus's rows.
-    const own: Plan = { ...plan, pet: { ...plan.pet!, critFromOwnerSpellCrit: 0, hitFromOwnerSpellHit: 0 } }
+    const own: Plan = { ...plan, pet: { ...plan.pet!, inherit: { ...plan.pet!.inherit, crit: 0, hit: 0 } } }
     const lone = agg(own)
     for (const id of ['succubus.melee', 'succubus.lashOfPain']) {
       expect(perFight(own, lone, id, 'crits'), id).toBe(0)
@@ -371,17 +390,17 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(perFight(bare, without, 'shadowBolt', 'damage')).toBeLessThan(perFight(plan, base, 'shadowBolt', 'damage'))
   })
 
-  it('the demon’s crit follows your spell crit as it changes mid-fight, and its swings take the aura-crit suppression', () => {
+  it('the demon’s crit follows yours as it changes mid-fight: melee on its swings, with the aura-crit suppression, spell on its spells', () => {
     const { plan } = buildPlan(fixed(SUCCUBUS))
-    // A +10% spell crit aura on you for 5 s every 20 s, cast first on the list.
-    const aura = addPlanAura(plan, 'testSpellCrit', 5000, { spellCrit: 10 })
+    // +10% spell crit and +5% melee crit on you for 5 s every 20 s, cast first on the list.
+    const aura = addPlanAura(plan, 'testCrit', 5000, { spellCrit: 10, crit: 5 })
     const cast = addCast(plan, aura, 20000)
     plan.rotation = [{ ability: cast, conditions: [], unqueueBelowTenths: 0 }, ...plan.rotation]
     const sim = new Sim(plan)
-    const s = sim as unknown as { derived: { spellCrit: number }; auraActive: Uint8Array | boolean[]; petCritPct: number; petSpellCritNow: number; petSpecCrit: number }
+    const s = sim as unknown as { derived: { crit: number; spellCrit: number }; auraActive: Uint8Array | boolean[]; petCritPct: number; petSpellCritNow: number; petSpecCrit: number }
     const seen = { on: new Set<string>(), off: new Set<string>() }
     sim.damageTrace = () => {
-      const key = [s.derived.spellCrit, s.petCritPct, s.petSpellCritNow, s.petSpecCrit].map((x) => x.toFixed(6)).join(' ')
+      const key = [s.derived.crit, s.derived.spellCrit, s.petCritPct, s.petSpellCritNow, s.petSpecCrit].map((x) => x.toFixed(6)).join(' ')
       seen[s.auraActive[aura] ? 'on' : 'off'].add(key)
     }
     sim.runFight(0)
@@ -390,16 +409,18 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     const on = parse(seen.on)
     expect(off.length).toBe(1)
     expect(on.length).toBe(1)
-    const [[mine, crit, spellCrit, special]] = off
-    // Off: your 11.73% is its crit, melee and spells alike; its specials lose 0.6 (skill 300) and 1.8 (aura crit).
-    expect(mine).toBeCloseTo(11.7325, 9)
-    expect([crit, spellCrit]).toEqual([mine, mine])
-    expect(special).toBeCloseTo(mine - 0.6 - 1.8, 6)
-    // On: +10 on you and on it.
-    expect(on[0][0]).toBeCloseTo(mine + 10, 6)
-    expect(on[0][1]).toBeCloseTo(mine + 10, 6)
-    expect(on[0][2]).toBeCloseTo(mine + 10, 6)
-    expect(on[0][3]).toBeCloseTo(mine + 10 - 0.6 - 1.8, 6)
+    const [[melee, spell, crit, spellCrit, special]] = off
+    // Off: your 9.65% melee crit on its swings, your 11.73% spell crit on its spells; its specials lose
+    // 0.6 (skill 300) and 1.8 (aura crit).
+    expect([melee, spell]).toEqual([9.65, 11.7325])
+    expect([crit, spellCrit]).toEqual([melee, spell])
+    expect(special).toBeCloseTo(melee - 0.6 - 1.8, 6)
+    // On: +5 melee and +10 spell on you, and on it the same way.
+    expect(on[0][0]).toBeCloseTo(melee + 5, 6)
+    expect(on[0][1]).toBeCloseTo(spell + 10, 6)
+    expect(on[0][2]).toBeCloseTo(melee + 5, 6)
+    expect(on[0][3]).toBeCloseTo(spell + 10, 6)
+    expect(on[0][4]).toBeCloseTo(melee + 5 - 0.6 - 1.8, 6)
   })
 
   it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +20% at 5/5', () => {

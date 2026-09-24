@@ -419,7 +419,7 @@ describe('the pet (§6–§10)', () => {
   })
 
   it('an aura’s pet attack power and crit add to its own; its shares of your stats follow them (§6)', () => {
-    const plan = withPet(rangedPlan(), { apFromOwnerRap: 0.1 })
+    const plan = withPet(rangedPlan(), { inherit: { attackPower: 0.1, spellDamage: 0, crit: 0, hit: 0 } })
     plan.stats.rap = 1000
     expect(new Sim(plan).inspect().petAttackPower).toBe(280 + 100)
   })

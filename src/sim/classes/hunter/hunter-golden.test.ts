@@ -28,6 +28,9 @@ describe('golden runs (fixed config and seed)', () => {
   // - H3 verification (DV1, D29): the cat inherits 10% of your higher attack power and your higher
   //   sheet crit, which its table counts as aura crit (hunter.md §6): Beast Mastery 485.61 → 548.62
   //   (+13.0%), Survival 420.95 → 454.87 (+8.1%); Marksmanship (Lone Wolf, no pet) unchanged.
+  // - H3's third round (the user's one inheritance rule for every pet, ranged-and-pets.md §6.1): the
+  //   cat inherits your higher hit too, melee or ranged: Beast Mastery 548.62 → 557.81 (+1.7%),
+  //   Survival 454.87 → 462.47 (+1.7%); Marksmanship unchanged.
   for (const spec of SPECS) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

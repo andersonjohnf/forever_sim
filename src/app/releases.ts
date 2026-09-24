@@ -23,6 +23,58 @@ export interface Release {
 /** Every release, newest first. */
 export const RELEASES: readonly Release[] = [
   {
+    id: '2026-09-24.4',
+    time: '2026-09-24T23:08:55Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'Pick a rotation style: Defensive, Balanced (the new default) or Max TPS, and reorder the priority list on the Rotation tab.',
+          'Protection Warrior Balanced: Shield Block and 5 Sunders kept, no Thunder Clap or Demoralizing Shout, about +10% TPS for about 21% more damage taken.',
+          'Protection Paladin uses our lead theorycrafter’s talents: +1% TPS.',
+          'Feral Bear Max TPS Mauls from 14 rage.',
+        ],
+      },
+      {
+        label: 'Casters',
+        items: [
+          'Frost and Arcane Mages wear Mindfang: about +8%.',
+          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power.',
+        ],
+      },
+      {
+        label: 'Races',
+        items: ['Gnome Eureka! for every class (+0.3 to 2.2%), and Expansive Mind for mages, priests and rogues.'],
+      },
+      {
+        label: 'Consumables',
+        items: [
+          'One stone or oil per weapon; potions, runes and explosives share cooldowns.',
+          'Greater Stoneshield and the EZ-Thro Dark Bomb are simulated; the bomb costs melee a little, so no preset uses it.',
+          'Casters’ Max consumables include Brilliant Wizard Oil.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'Gear and talents you never changed follow new defaults; your own changes are kept.',
+          'An Equip pre-raid best in slot button on the Gear tab.',
+          'Fight details show each ability’s casts, swings, procs or ticks a fight and its average hit.',
+          'What’s new, and a Release history in the menu.',
+        ],
+      },
+      {
+        label: 'Fixes',
+        items: [
+          'Arms Whirlwind no longer stalls after Recklessness.',
+          'Switching spec cancels a running sim.',
+          'Long sims survive switching apps on your phone.',
+          'Share links work with the tracking bits chat apps add.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-09-24.3',
     time: '2026-09-24T18:46:19Z',
     groups: [

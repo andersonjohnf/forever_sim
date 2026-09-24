@@ -5,7 +5,8 @@
 // or with Move up and Move down in its settings. Pinned rows (the pre-pull) show a lock and don't
 // move, and nothing moves past them. Above the list, the preset picker ("Custom" once you've
 // edited it) and Reset order; a spec with named rotations (D28's tanks) has its picker at the top
-// of the tab instead (`AplPresetPicker`), with what the chosen one plays.
+// of the tab instead (`AplPresetPicker`), with a line on what the chosen one plays and an info
+// button with every preset's full help.
 import {
   closestCenter,
   DndContext,
@@ -18,7 +19,7 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ArrowDown, ArrowLeft, ArrowUp, ChevronRight, GripVertical, Lock, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronRight, GripVertical, Info, Lock, RotateCcw } from 'lucide-react'
 import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { announce } from '@/app/announce'
@@ -28,6 +29,7 @@ import { useSetup } from '@/app/setup-store'
 import { SelectContent } from '@/components/select-content'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { WowIcon } from '@/components/wow-icon'
@@ -138,14 +140,17 @@ function PresetSelect({ apl, triggerRef, id, describedBy }: { apl: AplDefinition
 
 /**
  * A spec's named rotations (D28: Defensive, Balanced and Max TPS), first on the tab as a tank's
- * priority choice always was: the picker, and one line on the chosen one, what it keeps and gives
- * up, with its measured numbers; "Custom" says the list matches none (docs/ux.md "Rotation").
+ * priority choice always was: the picker, its info button, and under them one short line on the
+ * chosen one (what it keeps and gives up, three lines at most on a phone), or that the list is
+ * Custom. The info lists every preset with its full help and measured numbers, so they can be
+ * compared before picking (docs/ux.md "Rotation").
  */
 export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
   const { preset, presets } = useAplPresets(apl)
   const helpId = useId()
-  const help =
-    preset === CUSTOM_APL_PRESET ? 'Custom: you’ve changed the priority list from every preset. Pick one to start again from it.' : presets.find((p) => p.id === preset)?.help
+  const infoTitleId = useId()
+  const current = presets.find((p) => p.id === preset)
+  const line = preset === CUSTOM_APL_PRESET ? 'Custom: you’ve changed the list from every preset. Pick one to start again from it.' : (current?.summary ?? current?.help)
   return (
     <section aria-labelledby="apl-preset-heading" className="flex flex-col gap-2">
       <div className="flex min-h-11 items-center">
@@ -154,12 +159,35 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
         </h3>
       </div>
       {/* In a row, so the trigger's flex-1 is its width, not its height. */}
-      <div className="flex">
-        <PresetSelect apl={apl} id={APL_PRESET_TRIGGER_ID} describedBy={help ? helpId : undefined} />
+      <div className="flex items-center gap-1">
+        <PresetSelect apl={apl} id={APL_PRESET_TRIGGER_ID} describedBy={line ? helpId : undefined} />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-11 shrink-0" aria-label="About the presets">
+              <Info aria-hidden />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" aria-labelledby={infoTitleId} className="flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-3 text-sm">
+            <p id={infoTitleId} className="font-medium">
+              The presets
+            </p>
+            <dl className="flex flex-col gap-3">
+              {presets.map((p) => (
+                <div key={p.id} className="flex flex-col gap-1">
+                  <dt className="font-medium">
+                    {p.label}
+                    {p.id === DEFAULT_APL_PRESET && ' (default)'}
+                  </dt>
+                  <dd className="text-muted-foreground">{p.help}</dd>
+                </div>
+              ))}
+            </dl>
+          </PopoverContent>
+        </Popover>
       </div>
-      {help && (
+      {line && (
         <p id={helpId} className="text-sm text-muted-foreground">
-          {help}
+          {line}
         </p>
       )}
     </section>

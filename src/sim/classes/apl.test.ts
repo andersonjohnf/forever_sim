@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { AplDefinition, RotationOption } from '../types'
+import { SPEC_META } from '../specs'
+import type { AplDefinition, RotationOption, SpecId } from '../types'
 import {
   activeAplPreset,
   aplPresets,
@@ -12,6 +13,7 @@ import {
   normalizeAplOrder,
   storedAplOrder,
 } from './apl'
+import { rotationApl } from './rotation'
 
 // The priority list's core (decision D31; docs/architecture.md "Rotation as a priority list"): a
 // made-up spec with a pinned opener, a pinned duty in the middle, a spec-wide stance and a preset.
@@ -184,5 +186,31 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
     // Picking one sets it, and picking the default puts it back to its default; the potion stays.
     expect(applyAplPreset(TANK, { priority: 'safe', 'b.on': false, potion: 50 }, 'max')).toEqual({ rotation: { potion: 50, priority: 'max' }, rotationOrder: undefined })
     expect(applyAplPreset(TANK, { priority: 'max', potion: 50 }, DEFAULT_APL_PRESET)).toEqual({ rotation: { potion: 50 }, rotationOrder: undefined })
+  })
+})
+
+describe('every spec’s presets (decision D28, docs/ux.md "Rotation")', () => {
+  const specs = (Object.keys(SPEC_META) as SpecId[]).flatMap((spec) => {
+    const apl = rotationApl(spec)
+    return apl ? [[spec, apl] as const] : []
+  })
+
+  it('name the default with the `default` id, with no values or order, and keep the line under the picker short', () => {
+    // The three tanks have named rotations; Fury has none, only "Default".
+    expect(specs.filter(([, apl]) => apl.presets.length > 0).map(([spec]) => spec).sort()).toEqual(['druid-feral-bear', 'paladin-protection', 'warrior-protection'])
+    expect(aplPresets(rotationApl('warrior-fury')!).map((p) => p.label)).toEqual(['Default'])
+    for (const [spec, apl] of specs) {
+      if (apl.presets.length === 0) continue
+      // A spec with named rotations (the tanks) names and places its default itself.
+      const own = apl.presets.find((p) => p.id === DEFAULT_APL_PRESET)
+      expect(own, spec).toBeDefined()
+      expect([own!.values, own!.order], spec).toEqual([{}, undefined])
+      for (const p of apl.presets) {
+        // Three lines at most at 390 px (about 45 characters a line in the tab's small text).
+        expect(p.summary, `${spec} ${p.id}`).toBeDefined()
+        expect(p.summary!.length, `${spec} ${p.id}`).toBeLessThanOrEqual(125)
+        expect(p.help.length, `${spec} ${p.id}`).toBeGreaterThan(p.summary!.length)
+      }
+    }
   })
 })

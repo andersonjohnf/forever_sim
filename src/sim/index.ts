@@ -150,7 +150,7 @@ export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * tab's Demoralizing Shout takes its place. The Buffs tab is read as the plan reads it.
  */
 export function unusedRotationSettings(
-  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'> & Partial<Pick<SimConfig, 'gear'>>,
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'> & Partial<Pick<SimConfig, 'gear' | 'rotationOrder'>>,
 ): Record<string, string> {
   const values = rotationValues(config)
   return unusedSettings(config.spec, values, {
@@ -161,6 +161,8 @@ export function unusedRotationSettings(
     talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
     // A Protection paladin's Hammer of the Righteous needs the weapon for it (paladin.md row 5b).
     ...(config.gear ? { mainHand: mainHandWeapon(config.gear) } : {}),
+    // Which of two rows sharing a cooldown sits higher (D31): the paladin's Holy Strike and Hammer of the Righteous.
+    ...(config.rotationOrder ? { order: config.rotationOrder } : {}),
   })
 }
 

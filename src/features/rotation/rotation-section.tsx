@@ -38,9 +38,9 @@ export function RotationSection() {
   // (docs/ux.md "Rotation").
   // A setting the rest of the setup leaves unused says why: the race's, or the raid's (docs/ux.md "Rotation").
   const rows = useMemo(() => {
-    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs }, gear })
+    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs }, gear, rotationOrder })
     return rotationRows({ spec: meta.id, talents, rotation, gear, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
-  }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid])
+  }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid, rotationOrder])
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),

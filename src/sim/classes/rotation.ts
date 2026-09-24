@@ -109,7 +109,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 
 /**
  * The spec's rotation as a priority list you reorder (decision D31), or undefined for a spec still
- * on switches (M5.65 A2 moves the rest): Fury, the pilot, and the Feral bear.
+ * on switches (M5.65 A2 moves the rest): Fury, the pilot, and the three tanks, whose D28 rotations are its presets.
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
@@ -135,28 +135,23 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
  * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, Protection paladins since
- * C3), the common priority until then. A tank's priority choice, first on the tab, names its duties
- * (D26). The bear's says which of its presets are tuned: Defensive since B3, Balanced and Max TPS a
- * first pass (D27, D28). None for a spec without rotation settings. The cat's also says why there's
- * no powershifting, which a Classic Era feral would look for (druid.md §2.8).
+ * C3), the common priority until then. A tank's says which of its presets (D28) are tuned and which
+ * are a first pass (D27): the warrior's and the bear's Balanced, and the bear's Max TPS since T5's
+ * Maul threshold; a paladin's Balanced plays as its Defensive. None for a spec without rotation
+ * settings. The cat's also says why there's no powershifting, which a Classic Era feral would look
+ * for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS are tuned.
   if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, is a first quick search and isn’t tuned yet.'
-  if (
-    spec === 'warrior-arms' ||
-    spec === 'warrior-fury' ||
-    spec === 'paladin-retribution'
-  ) {
-    return 'The defaults are tuned for the default setup.'
-  }
-  // D28, D27: Balanced, the default, is Defensive's tuned list with a first quick search on top.
-  if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, has a first quick search on top of them.'
+  if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'paladin-retribution') return 'The defaults are tuned for the default setup.'
+  // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it's Defensive's tuned list.
+  if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.'
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
-  // docs/classes/druid.md §6.3 "Balanced": D28's default, a first pass (D27) around Defensive's tuned settings.
-  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced and Max TPS drop the roar from it, with a first quick search.'
+  // docs/classes/druid.md §6.3 "Balanced", "Max TPS": D28's default and Max TPS's Maul, a first pass (D27) around Defensive's tuned settings.
+  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced, the default, and Max TPS are a first quick search on top of it.'
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
@@ -228,6 +223,8 @@ export interface UnusedSetup {
   talents?: ReadonlyMap<string, number>
   /** The main hand, whether it's a two-hander and its type, or null for none: a Protection paladin's Hammer of the Righteous needs a one-handed axe, mace or sword. Absent: not known. */
   mainHand?: { twoHand: boolean; type?: WeaponType } | null
+  /** The stored priority-list order (D31): which of two rows sharing a cooldown sits higher (a Protection paladin's Hammer of the Righteous and Holy Strike). Absent: the default order. */
+  order?: readonly string[]
 }
 
 /**
@@ -264,8 +261,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
-  // docs/classes/paladin.md row 5b: Hammer of the Righteous in Holy Strike's place, with the weapon for it.
-  if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand))
+  // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
+  if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
   // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
   if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
   return out

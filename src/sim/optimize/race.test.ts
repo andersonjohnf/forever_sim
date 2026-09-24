@@ -1,11 +1,11 @@
-// The racing on a toy objective with a known best (docs/optimizer.md#racing): fake fights whose
+// The racing on a toy goal with a known best (docs/optimizer.md#racing): fake fights whose
 // DPS is the candidate's true mean, plus noise every candidate shares on a fight (common random
 // numbers), plus a little of its own.
 import { describe, expect, it } from 'vitest'
 import { Rng } from '../core/rng'
 import type { Plan } from '../plan/types'
 import type { FightRunner, FightSamples, PlanSource } from './fights'
-import { eliminationZ, normalQuantile, pairedInterval, tQuantile, tTail, Z99 } from './objective'
+import { defaultGoal, eliminationZ, normalQuantile, pairedInterval, scoredGoal, scoreReads, scorer, tieBreaker, tQuantile, tTail, Z99 } from './objective'
 import { race, type RaceOptions } from './race'
 
 /** A candidate's fight: its mean, the fight's shared swing, its own noise; TPS and damage taken likewise. */
@@ -57,7 +57,7 @@ const sources = (n: number): PlanSource[] => Array.from({ length: n }, (_, key) 
 const options = (toys: Toy[], extra: Partial<RaceOptions> = {}): RaceOptions => ({
   sources: sources(toys.length),
   runner: toyRunner(toys),
-  objective: 'dps',
+  goal: 'dps',
   budget: 400_000,
   initialFights: 100,
   jobFights: 50,
@@ -217,6 +217,48 @@ describe('race', () => {
     expect(result.rounds[0].ran).toBe(2)
   })
 
+  it('Defense: the least damage taken leads, and a positive score is less damage taken (D30, the goals)', async () => {
+    // The best DPS and TPS takes the most damage; the Defense goal ranks by damage taken alone.
+    const toys: Toy[] = [{ dps: 1000, taken: 500 }, { dps: 1050, taken: 480 }, { dps: 1000, taken: 450 }, { dps: 1030, taken: 470 }]
+    const result = await race(options(toys, { goal: 'defense' }))
+    expect(result.leader).toBe(2)
+    expect(result.status).toBe('separated')
+    const lead = result.standings[0]
+    expect(lead.candidate).toBe(2)
+    // Its score is minus the damage taken: 50 less a second is +50, the leader's mean the highest.
+    expect(lead.vsBaseline.taken.mean).toBeLessThan(0)
+    expect(lead.vsBaseline.score.mean).toBeCloseTo(-lead.vsBaseline.taken.mean, 9)
+    expect(lead.vsBaseline.score.mean - lead.vsBaseline.score.halfWidth).toBeGreaterThan(0)
+    expect(lead.mean.score).toBeCloseTo(-lead.mean.taken, 9)
+    for (const st of result.standings.slice(1)) expect(st.mean.taken).toBeGreaterThan(lead.mean.taken)
+    // The same toys under DPS lead with the most DPS instead.
+    expect((await race(options(toys, { goal: 'dps' }))).leader).toBe(1)
+  })
+
+  it('Defense merges candidates with the same damage taken on every fight, and TPS breaks the tie (D30)', async () => {
+    // Candidates 1 to 3 take the same damage on every fight; their TPS differs.
+    const runner = toyRunner([{ dps: 1000, taken: 500 }, { dps: 1000, taken: 450 }])
+    const tieRunner: FightRunner = {
+      lanes: 2,
+      run: async (source, from, count) => {
+        const s = await runner.run({ ...source, key: Math.min(source.key, 1) }, from, count)
+        return { ...s, tps: s.tps.map((x) => x + [0, 0, 30, -30][source.key]) }
+      },
+    }
+    const result = await race({ ...options([]), goal: 'defense', sources: sources(4), runner: tieRunner })
+    expect(result.leader).toBe(2)
+    expect(result.standings[0].ties.sort()).toEqual([1, 3])
+    expect(result.status).toBe('separated')
+  })
+
+  it('TPS: the most TPS leads, whatever the DPS (D30, the goals)', async () => {
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, tps: 1000 }, { dps: 1000, tps: 1040 }, { dps: 1010 }]
+    const result = await race(options(toys, { goal: 'tps' }))
+    expect(result.leader).toBe(2)
+    expect(result.status).toBe('separated')
+    expect(result.standings[0].vsBaseline.score.mean).toBeCloseTo(result.standings[0].vsBaseline.tps.mean, 9)
+  })
+
   it('rejects a budget that does not cover the first round', async () => {
     await expect(race(options(field, { budget: 1000 }))).rejects.toThrow(/doesn't cover a first round/)
   })
@@ -225,6 +267,34 @@ describe('race', () => {
     const controller = new AbortController()
     const run = race(options(field, { signal: controller.signal, onProgress: (p) => p.jobsDone > 3 && controller.abort() }))
     await expect(run).rejects.toThrow(/cancelled/)
+  })
+})
+
+describe('goals', () => {
+  it('each goal’s score is higher when better: Defense is minus the damage taken (D30)', () => {
+    const base = { dps: 400, tps: 800 }
+    expect(scorer('dps', base)(410, 900, 500)).toBe(410)
+    expect(scorer('tps', base)(410, 900, 500)).toBe(900)
+    expect(scorer('defense', base)(410, 900, 500)).toBe(-500)
+    expect(scorer('defense', base)(410, 900, 450)).toBeGreaterThan(scorer('defense', base)(410, 900, 500))
+    // Worked example: +38.3 TPS on 687.4 (+5.57%) and +16.3 DPS on 359.9 (+4.53%) is +10.1 points.
+    const balanced = scorer('balanced', { dps: 359.9, tps: 687.4 })
+    expect(balanced(359.9 + 16.3, 687.4 + 38.3, 0) - balanced(359.9, 687.4, 0)).toBeCloseTo(10.1, 1)
+    // The tie-break: the least damage taken, or for Defense the most TPS; and what the score reads.
+    expect(tieBreaker('balanced')(0, 900, 500)).toBe(-500)
+    expect(tieBreaker('defense')(0, 900, 500)).toBe(900)
+    expect(scoreReads('defense')).toEqual(['taken'])
+    expect(scoreReads('balanced')).toEqual(['dps', 'tps'])
+  })
+
+  it('a tank defaults to Balanced and a DPS spec to DPS; Balanced for a DPS spec scores DPS, and Defense is a tank’s', () => {
+    expect(defaultGoal('tank')).toBe('balanced')
+    expect(defaultGoal('dps')).toBe('dps')
+    expect(scoredGoal('balanced', 'tank')).toBe('balanced')
+    expect(scoredGoal('balanced', 'dps')).toBe('dps')
+    expect(scoredGoal('defense', 'tank')).toBe('defense')
+    expect(scoredGoal('tps', 'dps')).toBe('tps')
+    expect(() => scoredGoal('defense', 'dps')).toThrow(/Defense goal is for a tank/)
   })
 })
 

@@ -1,4 +1,5 @@
-// Which talents the sim can measure, for one setup (docs/optimizer.md#which-talents-matter, D30).
+// Which talents the sim can measure, for one setup and goal (docs/optimizer.md#which-talents-matter,
+// D30). Every talent is judged the same way, by what it measurably does, never by its name.
 //
 // A talent is taken off (rank 0) and put on (max rank) in a few contexts: the setup's own build,
 // and a build with every talent at max (so a talent that only acts with another one, Improved
@@ -6,11 +7,13 @@
 // rotation variants the search tries. Then:
 // 1. If the plan is the same with and without it in every context, it changes nothing: the engine
 //    is a function of the plan alone. No fights are needed. (`none`)
-// 2. Otherwise both plans run the same fights (common random numbers). If DPS and TPS are equal on
-//    every fight in every context, it's `survival` when damage taken differs and `none` when not.
-// 3. If DPS or TPS differs, it's `objective`, unless its paired change in score is below zero with
-//    95% confidence in every context where it acts: then it's `harmful` (more health means less
-//    rage from each hit taken, so Heart of the Wild costs a bear threat).
+// 2. Otherwise both plans run the same fights (common random numbers). If the numbers the goal's
+//    score reads (`scoreReads`: DPS and TPS, or damage taken for Defense) are equal on every fight
+//    in every context, it's `tie-break` when the goal's tie-break differs (damage taken, or TPS for
+//    Defense) and `none` when not.
+// 3. Otherwise it's `objective`, unless its paired change in score is below zero with 95%
+//    confidence in every context where it acts: then it's `harmful` (more health means less rage
+//    from each hit taken, so Heart of the Wild costs a bear threat).
 // It also notes which of the sheet's numbers the talent changes (health, armor, effective health,
 // …), from the plans alone: a constraint that reads one makes the talent a search dimension
 // (./talents.ts). The contexts' builds aren't legal ones (the plan builder doesn't need them to
@@ -21,7 +24,7 @@ import type { Plan } from '../plan/types'
 import type { RotationValue, SimConfig } from '../types'
 import { SHEET_STATS, type SheetStat, sheetValues, type SheetValues } from './constraints'
 import { type FightRunner, type FightSamples, type PlanSource, planKey } from './fights'
-import { type Interval, meanInterval, type ObjectiveId, pairedInterval, scorer, upper } from './objective'
+import { type Goal, type Interval, meanInterval, pairedInterval, scoreReads, scorer, tieBreaker, upper } from './objective'
 import type { TalentRole } from './talents'
 
 export interface ScreenOptions {
@@ -29,7 +32,8 @@ export interface ScreenOptions {
   config: SimConfig
   data: TalentData
   runner: FightRunner
-  objective: ObjectiveId
+  /** The goal the score reads (`scoredGoal`). */
+  goal: Goal
   /** Fights per plan (default 400). */
   fights?: number
   /** Fights per job handed to the runner (default SCREEN_JOB_FIGHTS). */
@@ -44,14 +48,23 @@ export interface TalentVerdict {
   id: string
   name: string
   role: TalentRole
-  /** Whether its plan changed in some context, and whether DPS or TPS, or damage taken, changed on some fight. */
+  /**
+   * Whether its plan changed in some context, whether a number the goal's score reads changed on
+   * some fight, and whether the goal's tie-break did (damage taken; TPS for Defense).
+   */
   planChanges: boolean
   scoreChanges: boolean
-  takenChanges: boolean
+  tieChanges: boolean
   /** The sheet's numbers it changes in some context (health, armor, effective health, …). */
   sheetStats: SheetStat[]
   /** Its paired change in score, max rank against none, in the first context where it acts (95%). */
   effect?: Interval
+  /**
+   * Its paired change in the tie-break (higher is better: less damage taken, or more TPS for
+   * Defense), max rank against none, in the first context where the tie-break changes (95%): the
+   * order a `tie-break` talent takes spare points in (./talents.ts).
+   */
+  tieEffect?: Interval
 }
 
 export interface TalentScreen {
@@ -83,7 +96,9 @@ class PlanSources {
 }
 
 export async function screenTalents(options: ScreenOptions): Promise<TalentScreen> {
-  const { config, data, objective, signal } = options
+  const { config, data, goal, signal } = options
+  const reads = scoreReads(goal)
+  const tie = tieBreaker(goal)
   const fights = options.fights ?? 400
   const talents = talentsInCodeOrder(data).flat()
   const own = decodeRanks(data, config.talents)
@@ -165,8 +180,9 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
   const verdicts: TalentVerdict[] = talents.map((t, ti) => {
     let planChanges = false
     let scoreChanges = false
-    let takenChanges = false
+    let tieChanges = false
     const effects: Interval[] = []
+    let tieEffect: Interval | undefined
     const sheetStats = SHEET_STATS.filter((stat) => pairs[ti].some((p) => p.sheet.includes(stat)))
     for (const { off, on } of pairs[ti]) {
       if (off === on) continue
@@ -174,31 +190,47 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
       const a = results.get(on)!
       const b = results.get(off)!
       let differs = false
-      for (let k = 0; k < fights; k++) {
-        if (a.dps[k] !== b.dps[k] || a.tps[k] !== b.tps[k]) differs = true
-        if (a.taken[k] !== b.taken[k]) takenChanges = true
+      let tieDiffers = false
+      for (let k = 0; k < fights && !(differs && tieDiffers); k++) {
+        for (const m of reads) if (a[m][k] !== b[m][k]) differs = true
+        if (tie(a.dps[k], a.tps[k], a.taken[k]) !== tie(b.dps[k], b.tps[k], b.taken[k])) tieDiffers = true
+      }
+      if (tieDiffers) {
+        tieChanges = true
+        tieEffect ??= pairedInterval(perFight(a, tie, fights), perFight(b, tie, fights), fights)
       }
       if (!differs) continue
       scoreChanges = true
-      const score = scorer(objective, { dps: meanInterval(b.dps, fights).mean, tps: meanInterval(b.tps, fights).mean })
-      const sa = new Float64Array(fights)
-      const sb = new Float64Array(fights)
-      for (let k = 0; k < fights; k++) {
-        sa[k] = score(a.dps[k], a.tps[k])
-        sb[k] = score(b.dps[k], b.tps[k])
-      }
-      effects.push(pairedInterval(sa, sb, fights))
+      const score = scorer(goal, { dps: meanInterval(b.dps, fights).mean, tps: meanInterval(b.tps, fights).mean })
+      effects.push(pairedInterval(perFight(a, score, fights), perFight(b, score, fights), fights))
     }
     const role: TalentRole = !scoreChanges
-      ? takenChanges
-        ? 'survival'
+      ? tieChanges
+        ? 'tie-break'
         : 'none'
       : effects.every((e) => upper(e) < 0)
         ? 'harmful'
         : 'objective'
-    return { id: t.id, name: t.name, role, planChanges, scoreChanges, takenChanges, sheetStats, ...(effects.length ? { effect: effects[0] } : {}) }
+    return {
+      id: t.id,
+      name: t.name,
+      role,
+      planChanges,
+      scoreChanges,
+      tieChanges,
+      sheetStats,
+      ...(effects.length ? { effect: effects[0] } : {}),
+      ...(tieEffect ? { tieEffect } : {}),
+    }
   })
   return { verdicts, roles: new Map(verdicts.map((v) => [v.id, v.role])), fights: texts.length * fights }
+}
+
+/** A score of each fight's DPS, TPS and damage taken. */
+function perFight(s: FightSamples, score: (dps: number, tps: number, taken: number) => number, n: number): Float64Array {
+  const out = new Float64Array(n)
+  for (let k = 0; k < n; k++) out[k] = score(s.dps[k], s.tps[k], s.taken[k])
+  return out
 }
 
 function abortError(): Error {

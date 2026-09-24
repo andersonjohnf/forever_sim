@@ -1,6 +1,8 @@
-// The optimizer: finds the best talents and rotation settings for a setup (decision D30;
-// docs/optimizer.md). The steps:
-// 1. Screen the class's talents for this setup (./screen.ts), if talents are searched.
+// The optimizer: finds the best talents and rotation settings for a setup and a goal (decision
+// D30; docs/optimizer.md). The player picks the goal: Defense, DPS, TPS or Balanced (./objective.ts).
+// No talent is kept, dropped or ordered by its name (D30, user decision after O1's fifth review
+// round): every talent is judged by what the screen measures it doing for the goal. The steps:
+// 1. Screen the class's talents for this setup and goal (./screen.ts), if talents are searched.
 // 2. Build the candidates: every sensible talent build under the constraints (./talents.ts), each
 //    with every rotation variant given, and the setup and the start themselves. Every candidate
 //    must meet every constraint, talent and sheet alike, before the race; the race takes no limits
@@ -8,8 +10,7 @@
 // 3. Race them on common random numbers (./race.ts) within the budget, beside the baseline, the
 //    setup as it is: the measuring stick every candidate is paired with, never an answer. If no
 //    candidate meets the constraints, there's no answer, and the report says which ones block.
-// 4. The answer is the race's leader. A tank's preferred filler (Anticipation, D30) is only where
-//    the talent space puts leftover points, before Toughness and the other fillers.
+// 4. The answer is the race's leader, the best by the goal.
 // 5. Optionally confirm the answer against the baseline on a fresh seed (D23).
 // Everything runs through a FightRunner, so the same code runs on this thread, in the app's worker
 // pool and in Node's worker threads, with the same result for the same inputs and seed.
@@ -21,8 +22,7 @@ import { SPEC_META } from '../specs'
 import type { Assumption, RotationValue, SimConfig, SpecId } from '../types'
 import { type FightRunner, type PlanSource, planKey } from './fights'
 import { type Constraint, constraintName, limits, meetsSheet, sheetValues, type SheetValues } from './constraints'
-import { PREFERRED_FILLER, SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
-import { defaultObjective, type Interval, lower, type ObjectiveId } from './objective'
+import { defaultGoal, type Goal, type Interval, lower, scoredGoal } from './objective'
 import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
 import { brokenConstraints, type TalentConstraints, talentSpace, type TalentSpace } from './talents'
@@ -66,10 +66,13 @@ export const BUDGETS: Record<BudgetId, Budget> = {
   thorough: { fights: 24_000_000 },
 }
 
-/** The first round's fights: 30% of the budget spread over the candidates, between 50 and 1,000. */
-export function firstRound(budget: Budget, candidates: number): number {
+/**
+ * The first round's fights: 30% of the budget spread over the plans that run it (the candidates and
+ * the baseline, as `fitBudget` counts them), between 50 and 1,000 each.
+ */
+export function firstRound(budget: Budget, plans: number): number {
   if (budget.initialFights !== undefined) return budget.initialFights
-  return Math.max(50, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, candidates))))
+  return Math.max(50, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, plans))))
 }
 
 /** The fewest first-round fights a candidate runs when a large space shrinks the first round (`fitBudget`). */
@@ -105,10 +108,20 @@ export function fitBudget(budget: Budget, plans: number): { fights: number; init
   }
 }
 
+/**
+ * A tank's own tree, by id, where its talent search spends at least TANK_TREE_POINTS unless told
+ * otherwise (D30: "a minimum in a tree, for example 31 points in Protection"): the tree whose
+ * 31-point talent makes the spec a tank. It's a rule on a tree's points, not on any talent.
+ */
+export const TANK_TREE: Partial<Record<SpecId, string>> = {
+  'warrior-protection': 'Protection',
+  'druid-feral-bear': 'Feral Combat',
+  'paladin-protection': 'Protection',
+}
+export const TANK_TREE_POINTS = 31
+
 /** A talent search: the constraints, and how the space is built. */
 export interface TalentSearch extends TalentConstraints {
-  /** Keep the spec's survival floor (./floor.ts; default: yes, for a tank). */
-  floor?: boolean
   /** The tree whose fillers come first (default: the one the setup's build spends most in). */
   preferTree?: string
   /** Fights per plan in the screen (default 400). */
@@ -126,11 +139,11 @@ export interface TalentSearch extends TalentConstraints {
 export interface OptimizeOptions {
   /** The setup. Its `run.seed` is the master seed every candidate's fights use. */
   config: SimConfig
-  /** Default: the spec's (D30): DPS for DPS specs, balanced for tanks. */
-  objective?: ObjectiveId
+  /** What to optimize for (D30, the player's pick). Default: the spec's, DPS for DPS specs, Balanced for tanks. */
+  goal?: Goal
   /**
    * Search talents (a talent search), or keep the setup's. With it, every candidate is held to its
-   * talent constraints (the survival floor, kept and excluded talents, the trees' minimums).
+   * talent constraints (kept and excluded talents, the trees' minimums).
    */
   talents?: TalentSearch
   /**
@@ -188,7 +201,10 @@ export type OptimizeProgress =
 
 export interface OptimizeReport {
   spec: SpecId
-  objective: ObjectiveId
+  /** The goal the player picked. */
+  goal: Goal
+  /** The goal the score read: the player's, but Balanced for a DPS spec is DPS (`scoredGoal`). */
+  scoredGoal: Goal
   seed: number
   /** The race's budget and first round, after fitting them to the candidates (`fitBudget`). */
   budget: { fights: number; initialFights: number }
@@ -196,16 +212,13 @@ export interface OptimizeReport {
   notes: string[]
   screen?: TalentScreen
   /**
-   * The talent space (its builds counted, not listed), the floor it kept, and the talents that are
-   * dimensions because a constraint reads what they change, by id.
+   * The talent space (its builds counted, not listed), and the talents that are dimensions because a
+   * constraint reads what they change, by id.
    */
   space?: Omit<TalentSpace, 'builds'> & {
     builds: number
-    floor: Record<string, number>
     constrained: string[]
     minPoints?: Readonly<Record<string, number>>
-    /** The preferred filler's id (D30), first in the fill order, when the spec has one the search neither keeps nor excludes. */
-    preferred?: string
   }
   /**
    * Index 0 is the baseline, the setup as it is: the measuring stick every candidate is paired with,
@@ -214,7 +227,7 @@ export interface OptimizeReport {
    */
   candidates: Candidate[]
   excluded: Excluded
-  /** The constraints the setup itself fails, in words ("Anticipation 0/5", "crit immune"): it can't be the answer. */
+  /** The constraints the setup itself fails, in words ("Ferocity taken", "crit immune"): it can't be the answer. */
   setupFails: string[]
   constraints: Constraint[]
   /** The reference's sheet values (relative sheet constraints are shares of them), and each reported candidate's, by index. */
@@ -260,23 +273,21 @@ function mainTree(data: TalentData, code: string): string {
 }
 
 /**
- * A talent search's constraints, by id: the survival floor (a tank's, unless `floor` is false) with
- * the kept talents on top, the excluded ones, and the trees' minimums: a tank's 31 in its tank tree
- * (D30), with the search's own minimums merged over it (a tree given replaces its default; 0 drops it).
+ * A talent search's constraints, by id: the player's kept and excluded talents, and the trees'
+ * minimums: a tank's 31 in its tank tree (D30), with the search's own minimums merged over it (a tree
+ * given replaces its default; 0 drops it). No talent is kept or excluded by default (D30).
  */
-export function talentConstraintsOf(spec: SpecId, search: TalentSearch): { constraints: TalentConstraints; floor: Record<string, number> } {
+export function talentConstraintsOf(spec: SpecId, search: TalentSearch): TalentConstraints {
   const meta = SPEC_META[spec]
   const data = TALENT_DATA[meta.classId]
-  const floorByName = (search.floor ?? meta.role === 'tank') ? (SURVIVAL_FLOOR[spec] ?? {}) : {}
-  const floor = Object.fromEntries(Object.entries(floorByName).map(([name, rank]) => [talentId(data, name), rank]))
-  const keep = { ...floor, ...Object.fromEntries(Object.entries(search.keep ?? {}).map(([name, rank]) => [talentId(data, name), rank])) }
+  const keep = Object.fromEntries(Object.entries(search.keep ?? {}).map(([name, rank]) => [talentId(data, name), rank]))
   const exclude = (search.exclude ?? []).map((name) => talentId(data, name))
   const tankTree = TANK_TREE[spec]
   const minPoints = {
     ...(tankTree ? { [tankTree]: TANK_TREE_POINTS } : {}),
     ...Object.fromEntries(Object.entries(search.minPoints ?? {}).map(([tree, points]) => [treeId(data, tree), points])),
   }
-  return { floor, constraints: { keep, exclude, ...(Object.keys(minPoints).length ? { minPoints } : {}) } }
+  return { keep, exclude, ...(Object.keys(minPoints).length ? { minPoints } : {}) }
 }
 
 /** The setup as it is, as a candidate. */
@@ -291,7 +302,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const spec = config.spec
   const meta = SPEC_META[spec]
   const data = TALENT_DATA[meta.classId]
-  const objective = options.objective ?? defaultObjective(meta.role)
+  const goal = options.goal ?? defaultGoal(meta.role)
+  // What the score reads: Balanced for a DPS spec is DPS, and Defense is a tank's (it throws otherwise).
+  const scored = scoredGoal(goal, meta.role)
   const seed = config.run.seed
   const start = options.start ?? setupCandidate(config)
   // The start's own rotation is always a variant: a variant has to beat it to win (O1-1).
@@ -300,9 +313,6 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const constraints = [...(options.constraints ?? [])]
   const search = options.talents
   const talentRules = search ? talentConstraintsOf(spec, search) : undefined
-  // A tank's preferred filler (D30): first for leftover points.
-  const fillerName = PREFERRED_FILLER[spec]
-  const fillerId = fillerName ? talentId(data, fillerName) : undefined
   let screen: TalentScreen | undefined
   let space: OptimizeReport['space']
   let builds = [start.talents]
@@ -311,42 +321,35 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
       config: applyCandidate(config, start),
       data,
       runner,
-      objective,
+      goal: scored,
       fights: search.screenFights,
       rotations: options.screenRotations ?? options.rotations,
       signal,
       onProgress: (done, total) => options.onProgress?.({ phase: 'screen', done, total }),
     })
-    const { keep = {}, exclude = [], minPoints } = talentRules.constraints
+    const { keep = {}, exclude = [], minPoints } = talentRules
     const maxRank = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t.maxRank]))
     const values = new Map(screen.verdicts.filter((v) => v.effect).map((v) => [v.id, v.effect!.mean / maxRank.get(v.id)!]))
+    const tieValues = new Map(screen.verdicts.filter((v) => v.tieEffect).map((v) => [v.id, v.tieEffect!.mean / maxRank.get(v.id)!]))
     // A talent that changes what a constraint reads is searched, not a filler (./talents.ts).
     const reads = (v: TalentVerdict) => constraints.some((c) => v.sheetStats.includes(c.stat))
     const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
-    const preferred = fillerId !== undefined && !(fillerId in keep) && !exclude.includes(fillerId) ? fillerId : undefined
     const found = talentSpace({
       data,
       roles: screen.roles,
       values,
+      tieValues,
       constrained,
       keep,
       exclude,
       minPoints,
-      ...(preferred ? { preferred: [preferred] } : {}),
       preferTree: search.preferTree ?? mainTree(data, start.talents),
       searchPartials: search.searchPartials,
       limit: search.limit,
     })
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
-    space = {
-      ...rest,
-      builds: list.length,
-      floor: talentRules.floor,
-      constrained: [...constrained],
-      ...(minPoints ? { minPoints } : {}),
-      ...(preferred ? { preferred } : {}),
-    }
+    space = { ...rest, builds: list.length, constrained: [...constrained], ...(minPoints ? { minPoints } : {}) }
   }
 
   // The candidates: the setup itself (if it's valid and best, it wins like any candidate), the start
@@ -370,7 +373,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const baselineSheet = sheetOf(baseline)
   const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : baselineSheet
   const sheetRules = constraints
-  const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules.constraints) : [])
+  const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules) : [])
   const keepsTalents = pool.filter((c) => talentFails(c).length === 0)
   const sheets = sheetRules.length > 0 ? keepsTalents.map(sheetOf) : []
   const valid = keepsTalents.filter((_, i) => sheetRules.length === 0 || meetsSheet(sheets[i], reference, sheetRules))
@@ -401,7 +404,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // The setup's copy is the baseline's own plan: it takes the baseline's samples (OV2-5).
     copies: candidates.flatMap((c, i) => (i > 0 && isSetup(config, c) ? [i] : [])),
     runner,
-    objective,
+    goal: scored,
     budget: planned.fights,
     initialFights: planned.initialFights,
     top: options.top,
@@ -411,10 +414,11 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
 
   // With a candidate there's always a leader: only a constraint that leaves every one out blocks.
   const blocked =
-    valid.length === 0 ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules: talentRules?.constraints, data }) : []
+    valid.length === 0 ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules, data }) : []
   return {
     spec,
-    objective,
+    goal,
+    scoredGoal: scored,
     seed,
     budget: { fights: planned.fights, initialFights: planned.initialFights },
     notes: planned.notes,
@@ -437,19 +441,15 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
 /** A number for a message: two decimals below 100, whole above. */
 const show = (x: number) => (Math.abs(x) < 100 ? x.toFixed(2) : Math.round(x).toLocaleString('en-US'))
 
-/**
- * The talent constraints in words, for a search whose space is empty: the survival floor, the kept
- * talents beyond it, the excluded ones and the trees' minimums.
- */
-function describeTalentRules(data: TalentData, rules: TalentConstraints, floor: Record<string, number>): string {
+/** The talent constraints in words, for a search whose space is empty: the kept talents, the excluded ones and the trees' minimums. */
+function describeTalentRules(data: TalentData, rules: TalentConstraints): string {
   const name = (id: string) =>
     talentsInCodeOrder(data)
       .flat()
       .find((t) => t.id === id)?.name ?? id
   const ranked = (entries: [string, number][]) => entries.map(([id, rank]) => `${name(id)} ${rank}`).join(', ')
-  const kept = Object.entries(rules.keep ?? {}).filter(([id, rank]) => floor[id] !== rank)
+  const kept = Object.entries(rules.keep ?? {})
   const parts = [
-    ...(Object.keys(floor).length ? [`the survival floor (${ranked(Object.entries(floor))})`] : []),
     ...(kept.length ? [`kept talents (${ranked(kept)})`] : []),
     ...(rules.exclude?.length ? [`excluded talents (${rules.exclude.map(name).join(', ')})`] : []),
     ...Object.entries(rules.minPoints ?? {})
@@ -481,9 +481,9 @@ export function whyNoneBefore(from: {
   if (keepsTalents.length === 0) {
     // No legal build fits them all (OV2-3): the setup's and the start's failures aren't the reason.
     if (space && space.builds === 0 && talentRules)
-      return [`talents: no legal ${from.data.rules.maxPoints}-point build fits the talent constraints together: ${describeTalentRules(from.data, talentRules, space.floor)}`]
+      return [`talents: no legal ${from.data.rules.maxPoints}-point build fits the talent constraints together: ${describeTalentRules(from.data, talentRules)}`]
     const fails = [...new Set(pool.flatMap(talentFails))]
-    return [`talents: no candidate keeps the talent constraints (the survival floor, kept and excluded talents, the trees' minimums): ${fails.join(', ')}`]
+    return [`talents: no candidate keeps the talent constraints (kept and excluded talents, the trees' minimums): ${fails.join(', ')}`]
   }
   const lines: string[] = []
   for (const c of sheetRules) {
@@ -547,7 +547,8 @@ export function assumptionChanges(config: SimConfig, candidate: Candidate): Assu
 export async function confirm(options: {
   config: SimConfig
   candidate: Candidate
-  objective: ObjectiveId
+  /** The goal the score reads (`OptimizeReport.scoredGoal`). */
+  goal: Goal
   seed: number
   fights: number
   runner: FightRunner
@@ -558,7 +559,7 @@ export async function confirm(options: {
     { key: planKey(), plan: () => candidatePlan(config, setupCandidate(config), seed) },
     { key: planKey(), plan: () => candidatePlan(config, candidate, seed) },
   ]
-  const result = await race({ sources, runner: options.runner, objective: options.objective, budget: 2 * fights, initialFights: fights, top: 2, mergeTies: false, signal: options.signal })
+  const result = await race({ sources, runner: options.runner, goal: options.goal, budget: 2 * fights, initialFights: fights, top: 2, mergeTies: false, signal: options.signal })
   const winner = result.standings.find((s) => s.candidate === 1)!
   return { seed, fights, vsBaseline: winner.vsBaseline, clears: lower(winner.vsBaseline.score) > 0, assumptions: assumptionChanges(config, candidate) }
 }

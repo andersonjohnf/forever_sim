@@ -2011,13 +2011,13 @@ than the default, and with Max TPS, which doesn't use Thunder Clap, 22.64 less (
 hold them (`scripts/scrape/stored-builds.json`). Builds aren't tuned by the sim (D23), so these
 numbers settle only the preset's question.
 
-**D30's survival floor** (user decisions, 2026-09-24): no default or search drops **Last Stand**,
-**Improved Shield Wall 2/2** (the big cuts to defensive cooldowns) or **Deflection 5/5** (+5%
-parry: an avoided hit costs a warrior rage, so a threat-first search would drop it, but tanks take
-it). **Anticipation isn't in the floor** (user decision, after the paladin theorycrafter's build
-measured +1.0% TPS with Anticipation 2/5): it's the **preferred filler**, where a build's points
-left after its threat talents go before Toughness or other weaker talents. The default keeps
-Anticipation 5/5. **Toughness is optional.** A unit test holds the floor (`defaults.test.ts`).
+**No talent is kept by its name** ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24), user decision after O1's fifth review round): the
+optimizer has no survival floor and no preferred filler, so a search keeps Last Stand, Improved
+Shield Wall, Deflection, Anticipation or Toughness only when the player keeps them (`--keep`) or
+the goal measures them worth their points. A player who wants survival first picks the **Defense**
+goal or sets a sheet constraint ([optimizer.md](../optimizer.md#goals)). The default build (Last
+Stand, Improved Shield Wall 2/2, Deflection 5/5, Anticipation 5/5) stands until the optimizer's
+result replaces it (O4).
 
 ### 6.2 Race, weapons and consumables
 
@@ -2127,37 +2127,6 @@ factions. The table is before a raid druid's Thorns joined every tank's Standard
 and nothing else moves; the paladin gained the same Thorns and its fix round's talents (823.6 TPS,
 seed 12345). The enchants stay the spec's
 ([buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
-### 6.4 Survival floor
-
-Protection's talent search keeps these in every build ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24);
-[optimizer.md](../optimizer.md#the-talent-space); `SURVIVAL_FLOOR` in `src/sim/optimize/floor.ts`).
-Nearly every raid tank takes them for survival. The sim can't value the cooldowns: it never
-presses a defensive cooldown, and it never runs out of health, so the optimizer's talent screen
-finds that neither changes the plan ([optimizer.md](../optimizer.md#which-talents-matter)). It
-values the avoidance talents below what tanks give them: an avoided hit gives no rage, so the
-first searches dropped Anticipation and Deflection for threat. By user decision (D30, 2026-09-24)
-Deflection is in the floor too: tanks take it. **Anticipation isn't in the floor but is the
-preferred filler** (user decision, D30): a build's leftover points go to it before Toughness or
-any other filler. That fill order is all it is: the search's leader is the answer, even one that
-drops Anticipation when its gain is clear (user decision, D30: the Deep Wounds build, +4.4 points)
-([optimizer.md](../optimizer.md#the-preferred-filler); `PREFERRED_FILLER`, the same file).
-**Toughness is optional** (user decision): the search
-decides its ranks. Under the effective-health floor it's a search dimension, since its armor
-changes effective health ([optimizer.md](../optimizer.md#the-talent-space)). A player can still
-drop the floor (the CLI's `--no-floor`) or extend it for one search (`--keep`).
-
-| Talent (ranks) | Forever tooltip at max rank | Why it's in the floor |
-| --- | --- | --- |
-| Last Stand (1), needs Improved Bloodrage 2/2 | "When activated, this ability temporarily grants you 30% of your maximum health for 20 sec. After the effect expires, the health is lost." 3 min cooldown [F] [client](../data/client.md#talentsjson) (spell 12975, 1.60.1.69913) | A tank's emergency cooldown. Not simulated (§4.3). Its arrow brings Improved Bloodrage 2/2, which the sim does value |
-| Improved Shield Wall (2) | "Reduces the cooldown of your Shield Wall ability by 11.0 min." (the value is a mis-rendered millisecond count, [talents.md](../data/talents.md#caveats)) [F] [client](../data/client.md#talentsjson) (spell 12312) | A big cut to the warrior's strongest defensive cooldown. Not simulated (§4.3) |
-| Deflection (5), Arms | "Increases your Parry chance by 5%." [F] ([§4.1](#41-arms-17-talents)) | Parry: fewer hits land, and the sim measures it, but an avoided hit costs rage; tanks take it, and it's five points in Arms (user decision) |
-
-| Preferred filler | Forever tooltip at max rank | Why it's preferred, not kept |
-| --- | --- | --- |
-| Anticipation (5) | "Increases your Defense Skill by 20." [F] ([§4.3](#43-protection-18-talents)) | Defense: fewer crits and more misses, dodges, parries and blocks against the boss. The sim measures what its avoided hits cost in rage and nothing of what they save, so it's first in the fill order: leftover points go to it before Toughness ([optimizer](../optimizer.md#the-preferred-filler)). A build whose points gain more elsewhere may still drop it (user decision, D30) |
-
-The default build (§6.1) already has all three, and Anticipation 5/5. DPS specs have no floor.
-
 ## 7. Implementation notes
 
 - **Where rank values come from.** Read talent ranks from `src/data/talents/warrior.json`.

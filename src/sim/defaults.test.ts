@@ -3,7 +3,7 @@ import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
-import { decodeTalentCode, talentsInCodeOrder, validateTalentBuild } from '@/data/talents/types'
+import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
 import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
 import { canUse, fitsFaction, uniqueConflicts } from './equip'
@@ -64,25 +64,6 @@ describe.each(SPEC_IDS)('default setup for %s', (spec) => {
     for (const [a, b] of [['finger1', 'finger2'], ['trinket1', 'trinket2']] as const) {
       if (gear[a] && gear[b]) expect(gear[a].itemId, `${a}/${b}`).not.toBe(gear[b].itemId)
     }
-  })
-})
-
-describe('the tanks keep D30\'s survival floor in their default talents', () => {
-  // docs/decisions.md D30: Deflection 5/5 for a warrior and a paladin (Anticipation the preferred
-  // filler, not required; Toughness optional), Feral Swiftness 2/2 for a bear, besides each class's
-  // cooldown talents.
-  const ranks = (spec: SpecId) => {
-    const data = TALENT_DATA[SPEC_META[spec].classId]
-    const ranks = decodeTalentCode(data, defaultConfig(spec).talents)
-    return new Map(talentsInCodeOrder(data).flat().map((t) => [t.name, ranks[t.id] ?? 0]))
-  }
-  it.each([
-    ['warrior-protection', { Deflection: 5, 'Last Stand': 1, 'Improved Shield Wall': 2 }],
-    ['paladin-protection', { Deflection: 5, 'Improved Righteous Fury': 3, 'Sacred Duty': 2, "Templar's Bulwark": 1, 'Holy Shield': 1 }],
-    ['druid-feral-bear', { 'Feral Swiftness': 2, 'Thick Hide': 3, 'Heart of the Wild': 5 }],
-  ] as const)('%s', (spec, floor) => {
-    const got = ranks(spec as SpecId)
-    for (const [name, rank] of Object.entries(floor)) expect([name, got.get(name) ?? 0]).toEqual([name, rank])
   })
 })
 

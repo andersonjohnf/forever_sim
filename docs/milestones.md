@@ -369,23 +369,21 @@ The sim finds the best talents, gear and rotation for a setup, within constraint
 sets. Each spec's defaults are then its results.
 - [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
-      enumerator (tree rules, required talents, the minimum points in a tree, the class's
-      survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`). Also constraints on the sheet, with effective health
-      and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's `fightRunner` for
-      O3 ([optimizer.md](optimizer.md)). After its review
+      enumerator (tree rules, kept and excluded talents, the minimum points in a tree), rotation
+      settings as candidates, and a CLI (`npm run optimize`). Also constraints on the sheet, with
+      effective health and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's
+      `fightRunner` for O3 ([optimizer.md](optimizer.md)). After its review
       ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination
       bar corrects for the winner's curse, crit and crush immunity (off by default, no
-      damage-taken cap), the floor's Deflection with Anticipation as the preferred filler (user
-      decisions, D30), a tank's 31
-      points in its tree by default, and budgets that fit a large space. After its verification:
-      the setup is only ever the baseline, never an answer; every candidate meets every
-      constraint, or the search says which block (user decision, simpler design); the bear's
-      floor gains Feral Swiftness 2/2 (user decision). After its second verification: empty spaces
-      and blocked searches say why, and the setup's copy costs no fights. After its third
-      (step 6, D30): the preferred filler is only the fill order, the leader is the answer, the
-      race takes no result limits, only objective talents count as raises, and the preferred
-      filler is a dimension whatever the screen made of it
+      damage-taken cap), a tank's 31 points in its tree by default, and budgets that fit a large
+      space. After its verifications: the setup is only ever the baseline, never an answer; every
+      candidate meets every constraint, or the search says which block (user decision, simpler
+      design); empty spaces and blocked searches say why, and the setup's copy costs no fights;
+      the leader is the answer, and the race takes no result limits (step 6, D30). After its
+      fifth round (user decision, D30): **the player picks the goal**, Defense, DPS, TPS or
+      Balanced (`--goal`; tanks Balanced, DPS specs DPS by default), and **no talent-specific
+      rules**: the survival floor and the preferred filler are gone, and every talent is judged
+      by what the screen measures it doing for the goal
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable

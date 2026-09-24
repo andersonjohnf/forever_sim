@@ -2,38 +2,34 @@
 //
 // A build spends 51 points under the tree rules (docs/data/talents.md: 5 points a tier, counted in
 // the lower tiers of the same tree; an arrow's talent needs its prerequisite at max rank). The
-// optimizer doesn't try every legal build, which would be astronomically many. It tries every
-// *sensible* one:
-// - Only **objective** talents, those that change DPS or TPS in the sim (./screen.ts), are search
-//   dimensions. Every other talent is a **filler**: it can't change the score, so builds that
-//   differ only in fillers are ties. Fillers take the points the objective talents leave, in a
-//   fixed preference order (`fillerOrder`): the ones that lower damage taken first (D30: what the
-//   sim can't value is a tie-break), then the rest.
+// optimizer doesn't try every legal build, which would be astronomically many, but every build that
+// could win: builds that differ only where the goal can't tell them apart are one build. Every
+// talent is treated alike, by what the screen measured it doing for the goal (./screen.ts), never by
+// its name (D30, user decision after O1's fifth review round: no talent-specific rules).
+// - **Objective** talents, those that change the goal's score, are search dimensions. Every other
+//   talent is a **filler**: it can't change the score, so builds that differ only in fillers are
+//   ties. Fillers take the points the objective talents leave, in the order of what they measurably
+//   do for the goal's tie-break (`byTieBreak`: the ones that help it most a point first, those
+//   with no effect next, those that hurt it last), then by tree and tier.
 // - An objective talent is at 0 or its max rank in a build's core. Points the cores leave over go
 //   first to partial ranks of objective talents, where the sim can measure them, in the order of the
-//   score per point the screen measured (./screen.ts), and only then to fillers. So a partial rank
-//   is where the leftover points do the most, not a dimension of its own (`searchPartials` makes it
-//   one, for a small space). A tank's **preferred filler** (D30: Anticipation, ./floor.ts) comes
-//   between the two: after the partial ranks, before the fillers, whatever the screen made of it.
-//   It's also a dimension whatever its role, so builds with it at max rank and without it both race
-//   (OV3-1), though it's a raise only when the screen finds it objective and not below zero.
+//   score per point the screen measured, and only then to fillers. So a partial rank is where the
+//   leftover points do the most, not a dimension of its own (`searchPartials` makes it one, for a
+//   small space).
 // - A talent that changes what a sheet constraint reads (health, armor, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): under the effective-health
-//   floor, a build that keeps Toughness is one to try, not a tie. One only a constraint made
-//   (neither objective nor the preferred filler) takes core ranks only in a build whose preferred
-//   filler is at max rank (OV4-1): D30 fills Anticipation before Toughness.
-// - Kept talents (the class's survival floor, and the player's) sit at their rank in every build;
-//   excluded and **harmful** talents (those that lower the score, ./screen.ts) are never taken, but
-//   for the preferred filler. A
-//   prerequisite comes with its talent, as a filler if it's not objective itself.
-// - A build must be **maximal**: if another objective talent fits at max rank in the points the
-//   core leaves over (they'd otherwise go to partial ranks and fillers), the build that takes it
-//   scores at least as well, since no objective talent lowers the score, so only that one is kept.
-//   Only an objective dimension can be a raise: one a constraint alone made a dimension (Toughness
-//   under the effective-health floor) has no screened value, so the build without it may score
-//   better, and its points go to the fill order (the preferred filler first) instead (OV3-1). Nor
-//   is an objective one whose screened effect is below zero, though not clearly (Feral Swiftness
-//   for a bear): both builds race.
+//   floor, a build with Toughness and one without both race. It reads the character sheet, not the
+//   talent's name.
+// - Kept talents (the player's) sit at their rank in every build; excluded and **harmful** talents
+//   (those that lower the score wherever they act, measured) are never taken unless a constraint
+//   reads them. A prerequisite comes with its talent, as a filler if it's not objective itself.
+// - A build must be **maximal**, the one pruning rule, and an objective one: if another objective
+//   talent that the screen didn't measure below zero fits at max rank in the points the core leaves
+//   over (they'd otherwise go to partial ranks and fillers, which the goal can't tell from spare
+//   points), the build that takes it scores at least as well, so only that one is kept. A dimension a
+//   constraint alone made has no screened value, and an objective one whose screened effect is below
+//   zero, though not clearly (Feral Swiftness for a bear), might lower the score: builds with and
+//   without either race.
 //   The trees are enumerated one at a time and combined by their points, since the tree rules
 //   never reach across trees: only the 51-point total does.
 // Every build is checked with the app's own validator (validateTalentBuild) and encoded with its
@@ -49,18 +45,19 @@ import {
 } from '@/data/talents/types'
 
 /**
- * What a talent does in the sim, for one setup (./screen.ts):
- * - `objective`: it changes DPS or TPS: a search dimension
- * - `survival`: it changes only damage taken: a filler, preferred
+ * What a talent does in the sim, for one setup and goal (./screen.ts):
+ * - `objective`: it changes the goal's score (DPS or TPS; damage taken for Defense): a search dimension
+ * - `tie-break`: it changes only the goal's tie-break (damage taken; TPS for Defense): a filler,
+ *   ordered by how much it helps the tie-break
  * - `none`: it changes nothing the sim measures (utility, PvP, an ability the rotation doesn't use)
- * - `harmful`: it lowers the score wherever it acts: never taken unless kept
+ * - `harmful`: it lowers the score wherever it acts: never taken unless kept or a constraint reads it
  */
-export type TalentRole = 'objective' | 'survival' | 'none' | 'harmful'
+export type TalentRole = 'objective' | 'tie-break' | 'none' | 'harmful'
 
 export interface TalentConstraints {
   /** Least points per tree, by tree id ("Protection"): D30's "31 points in Protection". */
   minPoints?: Readonly<Record<string, number>>
-  /** Talents in every build at exactly this rank, by talent id: the class's survival floor and the player's picks. */
+  /** Talents in every build at exactly this rank, by talent id: the player's picks. */
   keep?: Readonly<Record<string, number>>
   /** Talents never taken, by talent id. */
   exclude?: readonly string[]
@@ -79,19 +76,16 @@ export interface TalentSpaceOptions extends TalentConstraints {
    */
   values?: ReadonlyMap<string, number>
   /**
+   * Tie-break per point of each talent, by id (the screen's measured `tieEffect` ÷ its ranks; higher
+   * is better): the order fillers take leftover points in. Those above zero come first, the most a
+   * point first; then those with none measured; then those below zero.
+   */
+  tieValues?: ReadonlyMap<string, number>
+  /**
    * Talents, by id, that change what a constraint reads: search dimensions whatever their role (a
-   * harmful one is never taken to fill leftover points, nor counted as a raise). One that isn't
-   * objective takes core ranks only in a build whose preferred filler is at max rank (OV4-1).
+   * harmful one is never taken to fill leftover points, nor counted as a raise).
    */
   constrained?: ReadonlySet<string>
-  /**
-   * The preferred filler, by id (D30; PREFERRED_FILLER in ./floor.ts): leftover points go to it
-   * after the objective talents' partial ranks and before every other filler, whatever the screen
-   * made of it (harmful, or a dimension whose effect is below zero). It's a dimension too, whatever
-   * its role, so builds with and without it at max rank both race (OV3-1). Kept or excluded, it's
-   * left alone.
-   */
-  preferred?: readonly string[]
   /** Search partial ranks too, one per build, instead of only filling leftover points with them (a far larger space). */
   searchPartials?: boolean
   /** Stop after this many builds (the space is reported as larger). Default 200,000. */
@@ -119,7 +113,7 @@ export interface TalentSpace {
   /** Legal cores before the maximality rule, and those it dropped. */
   cores: number
   dominated: number
-  /** Where leftover points go, in order, by id: objective talents by score per point, then fillers. */
+  /** Where leftover points go, in order, by id: objective talents by score per point, then the rest by their tie-break. */
   fillOrder: string[]
 }
 
@@ -211,17 +205,10 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     }
   }
 
-  // The preferred filler (D30), unless kept or excluded.
-  const preferred = (options.preferred ?? []).map(lookup).filter((i) => !keep.has(i) && !excluded.has(i))
-  const isPreferred = new Uint8Array(count)
-  for (const i of preferred) isPreferred[i] = 1
-
-  // Search dimensions: objective talents, those a constraint reads, and the preferred filler whatever
-  // the screen made of it (OV3-1: screened as harmful, it would otherwise only get the points the
-  // objective talents' partial ranks leave, which is none), neither kept nor excluded.
+  // Search dimensions: objective talents, and those a constraint reads, neither kept nor excluded.
   const dims = nodes
     .map((_, i) => i)
-    .filter((i) => (nodes[i].role === 'objective' || options.constrained?.has(nodes[i].t.id) || isPreferred[i]) && !keep.has(i) && !excluded.has(i))
+    .filter((i) => (nodes[i].role === 'objective' || options.constrained?.has(nodes[i].t.id)) && !keep.has(i) && !excluded.has(i))
   /**
    * A dimension leftover points may go to: not a harmful one, nor an objective one whose screened
    * effect is below zero (not harmful only because its interval reaches zero). Builds with and
@@ -231,43 +218,38 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   /**
    * A dimension whose max rank the maximality rule forces when it fits: an objective one that's
    * fillable. A dimension only a constraint made (Toughness under the effective-health floor) has
-   * no screened value, so it never is (OV3-1): the build without it, whose points go to the
-   * preferred filler, races too.
+   * no screened value, so it never is: builds with and without it race.
    */
   const raisable = (i: number) => nodes[i].role === 'objective' && fillable(i)
   const isDim = new Uint8Array(count)
   for (const i of dims) isDim[i] = 1
-  /**
-   * The dimensions only a constraint made (Toughness under the effective-health floor): neither
-   * objective nor the preferred filler. They take core ranks only in a build whose preferred filler
-   * is at max rank (OV4-1, step 6): D30 fills Anticipation before Toughness, so a Toughness-5,
-   * Anticipation-0 twin of an Anticipation-5, Toughness-0 build isn't one to race. Builds with both
-   * at max still cover the constraint's need. With no preferred filler (the bear, or Anticipation
-   * kept or excluded) they're dimensions like any other.
-   */
-  const constraintOnly = dims.filter((i) => nodes[i].role !== 'objective' && !isPreferred[i])
 
-  // Fillers: every other talent that may be taken, the ones that lower damage taken first, then the
-  // spec's own tree, then the shallower tier, then code order.
+  /**
+   * Where a talent that can't change the score takes leftover points, by its measured tie-break
+   * (D30: what the score leaves out is a tie-break): those that help it first, the most a point
+   * first; then those that don't change it; then those that hurt it. Then the spec's own tree, the
+   * shallower tier, and code order.
+   */
   const preferTree = options.preferTree === undefined ? -1 : treeIndex(options.preferTree)
+  const tieValue = (i: number) => options.tieValues?.get(nodes[i].t.id) ?? 0
+  const byTieBreak = (a: number, b: number) => {
+    const group = (i: number) => (tieValue(i) > 0 ? 0 : tieValue(i) < 0 ? 2 : 1)
+    const tree = (i: number) => (nodes[i].tree === preferTree ? 0 : 1)
+    return group(a) - group(b) || tieValue(b) - tieValue(a) || tree(a) - tree(b) || nodes[a].tier - nodes[b].tier || a - b
+  }
+  // Fillers: every other talent that may be taken.
   const fillerOrder = nodes
     .map((_, i) => i)
-    .filter((i) => !isDim[i] && !isPreferred[i] && !keep.has(i) && !excluded.has(i) && nodes[i].role !== 'harmful' && nodes[i].role !== 'objective')
-    .sort((a, b) => {
-      const rank = (i: number) => (nodes[i].role === 'survival' ? 0 : 1)
-      const tree = (i: number) => (nodes[i].tree === preferTree ? 0 : 1)
-      return rank(a) - rank(b) || tree(a) - tree(b) || nodes[a].tier - nodes[b].tier || a - b
-    })
+    .filter((i) => !isDim[i] && !keep.has(i) && !excluded.has(i) && nodes[i].role !== 'harmful' && nodes[i].role !== 'objective')
   const isFiller = new Uint8Array(count)
   for (const i of fillerOrder) isFiller[i] = 1
-  // Leftover points: partial ranks of objective talents, the most score per point first, then the
-  // preferred filler, then the dimensions only a constraint made (Toughness under the
-  // effective-health floor: D30's "before Toughness"), then the fillers.
+  // Leftover points: partial ranks of objective talents, the most score per point first; then the
+  // dimensions a constraint made and the fillers together, by their tie-break.
   const value = (i: number) => options.values?.get(nodes[i].t.id) ?? -Infinity
-  const partials = dims.filter((i) => fillable(i) && !isPreferred[i]).sort((a, b) => value(b) - value(a) || a - b)
-  const objectivePartials = partials.filter((i) => nodes[i].role === 'objective')
-  const constraintPartials = partials.filter((i) => nodes[i].role !== 'objective')
-  const fillOrder = [...objectivePartials, ...preferred, ...constraintPartials, ...fillerOrder]
+  const partials = dims.filter(fillable)
+  const objectivePartials = partials.filter((i) => nodes[i].role === 'objective').sort((a, b) => value(b) - value(a) || a - b)
+  const rest = [...partials.filter((i) => nodes[i].role !== 'objective'), ...fillerOrder].sort(byTieBreak)
+  const fillOrder = [...objectivePartials, ...rest]
   const searchPartials = options.searchPartials ?? false
 
   const treeCount = data.trees.length
@@ -339,8 +321,6 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     /** The fewest extra points a raise of one of its objective talents costs, any raise; and one that makes no new partial rank. */
     raiseAny: number
     raiseKeepingPartials: number
-    /** Whether its core (before the gates' fillers) gives a constraint-only dimension ranks. */
-    constraintOnly: boolean
   }
 
   const treeCores: TreeCore[][] = []
@@ -383,7 +363,7 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
         dominated++
         return
       }
-      list.push({ ranks, used, partial: partial >= 0, raiseAny, raiseKeepingPartials, constraintOnly: constraintOnly.some((i) => core[i] > 0) })
+      list.push({ ranks, used, partial: partial >= 0, raiseAny, raiseKeepingPartials })
     }
     const visit = (d: number, spent: number, partial: number) => {
       if (d === dims.length) return leaf(partial)
@@ -430,8 +410,6 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     }
     const ranks = new Int8Array(count)
     for (const c of chosen) for (let i = 0; i < count; i++) ranks[i] += c.ranks[i]
-    // A constraint-only dimension's core ranks need the preferred filler at max rank first (OV4-1).
-    if (chosen.some((c) => c.constraintOnly) && preferred.some((p) => ranks[p] < nodes[p].max)) return
     // The rest of the points, by preference, a point at a time (a point can open a deeper filler's gate).
     for (let left = slack; left > 0; left--) {
       const f = fillOrder.find((i) => canFill(ranks, i))

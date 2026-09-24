@@ -3,17 +3,19 @@
 The sim finds the best talents (and rotation settings) for a setup itself, rather than assuming
 them, as Raidbots' Top Gear does for gear
 ([D30](decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)).
-This doc owns its method: how candidates are compared, what it maximizes, which constraints it
-keeps, how the talent space is built, and how a spec's defaults come from its results.
+The player tells it what to optimize for, [Defense, DPS, TPS or Balanced](#goals), and it takes
+the best by that goal, measured. This doc owns its method: how candidates are compared, what each
+goal scores, which constraints it keeps, how the talent space is built, and how a spec's defaults
+come from its results.
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
-constraints with effective health and crit and crush immunity, and the command line
-(`npm run optimize`), with the review's and the verifications' fixes
+the four goals, constraints with effective health and crit and crush immunity, and the command
+line (`npm run optimize`), with the review's and the verifications' fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
-answer (user decision); Anticipation is the warrior's and paladin's preferred filler, first in the
-fill order, rather than a floor talent (user decision, D30); the leader is the answer, and the race
-takes no result limits (step 6 of the review, D30); Toughness, a dimension only for the
-effective-health floor, takes ranks only after the preferred filler is full (step 6 again). Gear is O2, the
+answer (user decision); the leader is the answer, and the race takes no result limits (step 6 of
+the review, D30). **No talent-specific rules** (user decision after the fifth review round, D30):
+there's no survival floor and no preferred filler, and no talent is kept, dropped or ordered by its
+name; every talent is judged by what the screen measures it doing for the goal. Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -22,7 +24,7 @@ code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 
 1. [The steps](#the-steps)
 2. [Fights and runners](#fights-and-runners)
-3. [The objective](#the-objective)
+3. [Goals](#goals)
 4. [The statistics](#the-statistics)
 5. [Racing](#racing)
 6. [Constraints](#constraints)
@@ -38,27 +40,25 @@ code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 
 ## The steps
 
-`optimize()` (`src/sim/optimize/optimize.ts`) takes a setup, what to search, the constraints and a
-budget:
+`optimize()` (`src/sim/optimize/optimize.ts`) takes a setup, a [goal](#goals), what to search,
+the constraints and a budget:
 
-1. **Screen** the class's talents for this setup: which ones the sim can measure
+1. **Screen** the class's talents for this setup and goal: which ones the sim can measure
    ([below](#which-talents-matter)). Only when talents are searched.
 2. **Build the candidates:** every sensible talent build under the constraints
    ([below](#the-talent-space)), each with the start's own rotation and with every rotation
    variant given, and beside them the setup itself and the **start**, where the search begins (a
    pass of a search [in turns](#talents-and-rotation-together) starts from the last pass's
    winner). Two candidates that make the same setup race once.
-3. **Hold every candidate to every constraint**, the same way for each: the talent constraints (a
-   tank's survival floor, kept and excluded talents, the trees' minimums), checked on its build;
+3. **Hold every candidate to every constraint**, the same way for each: the talent constraints
+   (kept and excluded talents, the trees' minimums), checked on its build;
    and the sheet constraints (effective health, crit and crush immunity), checked on its character
    sheet before any fight. A candidate that breaks one is left out. The race takes no limits on
    fight results ([constraints](#constraints)).
 4. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
    or the budget runs out ([below](#racing)), beside the **baseline**. The budget and the first
    round are fitted to the number of candidates first ([budgets](#budgets)).
-5. **Answer** with the race's leader (`race.leader`), the best mean. A warrior's or paladin's
-   **preferred filler**, Anticipation, is only where the talent space puts leftover points
-   ([below](#the-preferred-filler)); nothing prefers it once the race has run.
+5. **Answer** with the race's leader (`race.leader`), the best mean by the goal.
 6. **Confirm** the answer against the baseline on a fresh seed (D23; the CLI's `--confirm`).
 
 **The baseline is only a measuring stick** (user decision). It's the setup as it is (the spec's
@@ -75,11 +75,10 @@ the report's leader is null and `blocked` names what blocks, a line a constraint
 closest one's value ("crit immune: no candidate reaches the defense it needs on this gear; the
 closest has 330 defense, leaving the boss 4.40% crit", the paladin's default gear); sheet
 constraints each met but never together say so. When no legal build fits the talent
-constraints at all (the space is empty), it says so and lists them together: the survival floor,
-the kept and excluded talents and the trees' minimums ("no legal 51-point build fits the talent
-constraints together: the survival floor (Heart of the Wild 5, Thick Hide 3, Feral Swiftness 2);
-kept talents (Moonkin Form 1); at least 31 points in Feral Combat"). The baseline still runs its
-first round, so the report has its numbers.
+constraints at all (the space is empty), it says so and lists them together: the kept and
+excluded talents and the trees' minimums ("no legal 51-point build fits the talent constraints
+together: kept talents (Moonkin Form 1); at least 31 points in Feral Combat"). The baseline still
+runs its first round, so the report has its numbers.
 
 The same inputs and seed give the same result, on any number of threads.
 
@@ -108,19 +107,42 @@ same operations in the same order), so a plan (about 17 KB) is sent only to a wo
 it. A plan costs about 0.3 ms to build and an engine about 0.5 ms, so thousands of candidates are
 cheap to set up.
 
-## The objective
+## Goals
 
-| Metric | Maximizes | Default for |
-| --- | --- | --- |
-| `dps` | DPS | DPS specs (D30) |
-| `tps` | TPS | (on request) |
-| `balanced` | 100 × (TPS ÷ TPS₀ + DPS ÷ DPS₀) | tanks (D30) |
+The player picks what to optimize for (D30, user decision after O1's fifth review round:
+"optimize for defense, DPS, TPS, or a balanced approach ... and find the best outcome
+objectively"). Every goal's score is **higher when better** (`scorer`, `src/sim/optimize/objective.ts`),
+so the race's leader, its drops, its separation and the confirmation's bar read the same way for
+each; Defense's score is minus the damage taken, so a positive change is less damage taken.
 
-`balanced` is D30's "TPS and DPS as equals: the sum of each one's change relative to the spec's
-current default", with TPS₀ and DPS₀ the baseline's means. The baseline scores about 200, and a
-difference of 1 is one percentage point: +3% TPS and −1% DPS is +2 points. TPS₀ and DPS₀ are the
-baseline's means over the fights run so far, the same for every candidate in a round, and taken as
-constants in the intervals. It's D28's Balanced aim too.
+| Goal | Scores | Ties broken by | Default for |
+| --- | --- | --- | --- |
+| `defense` | − damage taken per second (the least) | the most TPS | (on request; tanks only) |
+| `dps` | DPS | the least damage taken | DPS specs (D30) |
+| `tps` | TPS | the least damage taken | (on request) |
+| `balanced` | 100 × (TPS ÷ TPS₀ + DPS ÷ DPS₀) | the least damage taken | tanks (D30) |
+
+- **Defense** minimizes the damage taken per second the sim measures: the health lost to the
+  boss's hits, after armor, avoidance, block and every modelled cut, averaged over the fight (the
+  tank results' damage taken, [encounter.md §5](mechanics/encounter.md)). TPS breaks a tie. It's a
+  tank's goal: the boss attacks only a tank, so a DPS spec takes no damage, and the optimizer
+  refuses it for one (`scoredGoal`). What the sim can't measure isn't in it: a defensive cooldown
+  the rotation never presses (Last Stand, Shield Wall) changes nothing measured, so Defense is
+  indifferent to it, as every goal is.
+- **DPS** and **TPS** maximize that metric; the least damage taken breaks a tie.
+- **Balanced** is D30's "TPS and DPS as equals: the sum of each one's change relative to the spec's
+  current default", with TPS₀ and DPS₀ the baseline's means. The baseline scores about 200, and a
+  difference of 1 is one percentage point: +3% TPS and −1% DPS is +2 points. TPS₀ and DPS₀ are the
+  baseline's means over the fights run so far, the same for every candidate in a round, and taken
+  as constants in the intervals. It's D28's Balanced aim too. **For a DPS spec, Balanced is DPS
+  alone** (`scoredGoal`): its threat is its damage times a fixed factor, so weighing both would
+  count DPS twice. The report keeps the goal the player picked (`goal`) beside the one it scored
+  (`scoredGoal`).
+
+**Defaults:** a tank's goal is Balanced, a DPS spec's DPS (`defaultGoal`). The CLI's `--goal`
+picks another. The goal decides what the screen measures too
+([below](#which-talents-matter)): a talent that changes only damage taken is a tie-break for
+Balanced, and objective for Defense.
 
 ## The statistics
 
@@ -144,11 +166,13 @@ rely on.
    and never leads, drops another or is dropped. The setup's copy (`copies`: the baseline's own
    plan, racing as a candidate) runs no fights: it takes the baseline's, which are the fights it
    would have run, so it costs the budget nothing and stays paired with every candidate.
-2. **First round only:** candidates with the same DPS and TPS on every fight are one candidate.
-   The one with the least damage taken represents them (D30: what the sim can't value in the
-   score is a tie-break), then the earlier one; the others are listed as its ties.
-3. The **leader** is the survivor with the best mean score (the least damage taken breaks an
-   exact tie, then the earlier candidate). Every survivor met every constraint before the race, so
+2. **First round only:** candidates the goal can't tell apart on any fight are one candidate: the
+   same DPS and TPS on every fight, or for Defense the same damage taken (`scoreReads`). The one
+   with the best tie-break represents them (D30: what the score leaves out is a tie-break; the
+   least damage taken, or for Defense the most TPS), then the earlier one; the others are listed as
+   its ties.
+3. The **leader** is the survivor with the best mean score (the goal's tie-break breaks an exact
+   tie, then the earlier candidate). Every survivor met every constraint before the race, so
    any may lead: the race takes no limits on fight results. With no candidate at all, the race
    ends with no answer (`none`).
 4. A survivor whose paired interval against the leader lies wholly below zero at the
@@ -235,30 +259,36 @@ its health, effective health, damage taken, and the boss's crit and crush chance
 Why it matters: survival costs a tank threat in Forever. Rage from a hit taken divides by max
 health, and an avoided hit gives none ([rage.md](mechanics/rage.md#rage-from-damage-taken)), so
 TPS alone would build a glass cannon. The talent screen finds exactly that for the bear's Heart of
-the Wild ([below](#which-talents-matter)).
+the Wild ([below](#which-talents-matter)). A player who wants survival first picks the
+[Defense goal](#goals); the sheet constraints keep a floor under the others.
 
 A talent that changes what a constraint reads is searched, whatever it does to the score
 ([the talent space](#the-talent-space)): with the effective-health floor, a talent that adds armor
-or health and isn't in the floor is a search dimension, not a filler that only gets leftover
-points; under crit immunity, so is one that adds defense. A bear's Thick Hide armor is modelled
-(BR6, [druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it's in
-the bear's effective health.
+or health is a search dimension, not a filler that only gets leftover points; under crit
+immunity, so is one that adds defense. That reads the character sheet, never the talent's name. A
+bear's Thick Hide armor is modelled (BR6,
+[druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it's in the
+bear's effective health.
 
 ## Which talents matter
 
-`screenTalents` (`src/sim/optimize/screen.ts`) takes each talent off (rank 0) and on (max rank)
-in a few contexts: the setup's own build, and a build with every talent at max, so a talent that
+`screenTalents` (`src/sim/optimize/screen.ts`) judges every talent the same way, by what it
+measurably does for the goal, never by its name. It takes each talent off (rank 0) and on (max
+rank) in a few contexts: the setup's own build, and a build with every talent at max, so a talent that
 acts only with another one shows up (Improved Revenge with Revenge, Berserk with Mangle); each with
 the setup's rotation and every rotation variant the search tries. Then:
 
 1. If the plan is the same with and without it in every context, it changes nothing: the engine is
    a function of the plan alone. No fights are needed. It's **none**.
-2. Otherwise the two plans run the same 400 fights. If DPS and TPS are equal on every fight in
-   every context, it's **survival** when damage taken differs (Toughness: armor from items lowers
-   damage taken, but Forever's rage from a hit reads it before armor) and **none** when not.
-3. If DPS or TPS differs, it's **objective**, unless its paired change in score is below zero with
-   95% confidence in every context where it acts: then it's **harmful**. The bear's Heart of the
-   Wild is: its 20% Stamina costs rage from every hit.
+2. Otherwise the two plans run the same 400 fights. If the numbers the goal's score reads (DPS and
+   TPS; damage taken for Defense) are equal on every fight in every context, it's **tie-break**
+   when the goal's tie-break differs and **none** when not. For Balanced, Toughness is a tie-break
+   talent (armor from items lowers damage taken, but Forever's rage from a hit reads it before
+   armor); for Defense it's objective, and Defiance, which changes threat but not damage taken, is
+   a tie-break talent.
+3. Otherwise it's **objective**, unless its paired change in score is below zero with 95%
+   confidence in every context where it acts: then it's **harmful**. For Balanced the bear's Heart
+   of the Wild is: its 20% Stamina costs rage from every hit.
 
 The screen also notes which of the sheet's numbers each talent changes (health, armor, effective
 health, the boss's crit and crush chances, …), from the plans alone, for the constraints. Each
@@ -270,12 +300,18 @@ hasn't been cancelled, so a cancel stops it within a job or two a lane.
 
 The contexts' builds aren't legal (the plan builder doesn't need them to be). The screen's
 effect, the change in score with the talent at max rank, divided by its ranks, is its **score per
-point**, which orders where leftover points go (below).
+point**, which orders where leftover points go among the objective talents (below). Its
+tie-break effect (`tieEffect`: less damage taken, or more TPS for Defense, at max rank), divided
+by its ranks, orders the rest.
 
 ## The talent space
 
 `talentSpace` (`src/sim/optimize/talents.ts`) builds every *sensible* build under the constraints,
-not every legal one, which would be astronomically many:
+not every legal one, which would be astronomically many: every legal build that could win, with all
+51 points spent, where builds the goal can't tell apart count once. **Every talent is treated
+alike** (D30, user decision after O1's fifth review round): what the screen measured it doing for
+the goal decides its part, never its name. There's no survival floor, no preferred filler and no
+talent kept by default.
 
 - **Objective talents are the search.** Each is at 0 or its max rank in a build's **core**. One
   whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
@@ -283,53 +319,37 @@ not every legal one, which would be astronomically many:
   and without it both race.
 - **So is a talent a constraint reads.** One that changes a sheet number a constraint reads
   (Toughness's armor, Sacred Duty's health, under the effective-health floor) is a dimension too,
-  whatever its role, so builds with and without it both race. One only a constraint made (neither
-  objective nor the preferred filler: Toughness) takes ranks in a build's core only when the
-  preferred filler is at max rank there, or there's none (kept, excluded, or the bear)
-  ([below](#the-preferred-filler)). So is a warrior's or paladin's
-  preferred filler ([below](#the-preferred-filler)). A harmful one (Heart of the Wild, when the floor doesn't keep it) is searched but
-  never forced by the maximality rule below, nor given leftover points.
-- **Leftover points go to partial ranks, the preferred filler, then fillers.** Points the core
-  leaves go first to partial ranks of objective talents, where the sim measures them, the most
-  score per point first; then to a warrior's or paladin's **preferred filler**, Anticipation
-  ([below](#the-preferred-filler)), whatever the screen made of it; then to partial ranks of the
-  dimensions only a constraint made (Toughness under the effective-health floor); and then to
-  **fillers**, the talents that can't change the score: survival ones first (a tie-break on damage
-  taken), then the rest; the spec's own tree first, then the shallower tier, then code order. So a
-  partial rank goes where the leftover points do the most, and D30's "points a build has left after
-  its threat talents go to Anticipation before Toughness or other weaker talents" holds. `--partials`
-  (`searchPartials`) searches partial ranks instead, one per build, a far larger space.
+  whatever its role, so builds with and without it both race. It has no screened value, so it's
+  never forced by the maximality rule. A harmful one (Heart of the Wild, for Balanced) is searched
+  but never given leftover points.
+- **Leftover points go to partial ranks, then by the tie-break.** Points the core leaves go first
+  to partial ranks of objective talents, where the sim measures them, the most score per point
+  first; then to the talents that can't change the score (tie-break and no-effect talents, and
+  the partial ranks of a dimension only a constraint made), in the order of their measured
+  tie-break (`byTieBreak`): those that help it first, the most a point first; then those with no
+  effect; then those that hurt it. Then the spec's own tree, the shallower tier, and code order.
+  So for Balanced, a talent that lowers damage taken takes spare points before one that does
+  nothing, and for Defense one that adds threat does. `--partials` (`searchPartials`) searches
+  partial ranks instead, one per build, a far larger space.
 - **Tier gates and arrows** (5 points a tier in the lower tiers of the same tree; an arrow's
   prerequisite at max rank, [talents.md](data/talents.md#tier-gates)) are met with fillers where
   the core doesn't meet them, the least needed. A prerequisite that isn't objective comes with its
   talent (Concussion Blow with Shield Slam).
 - **Constraints:** a tree's minimum points (`--min-tree Protection=31`), talents kept at a rank
-  (`--keep`) and excluded (`--exclude`). A tank's search spends **at least 31 points in its tank
-  tree** unless told otherwise (D30; `TANK_TREE`, `src/sim/optimize/floor.ts`): Protection for
-  the warrior and paladin, Feral Combat for the bear. `--min-tree` merges with it: a minimum for
-  the tank tree replaces its 31 (`--min-tree Protection=0` drops it), and one for another tree
-  joins it. A tank's
-  **survival floor** is kept in every build (`SURVIVAL_FLOOR`, the same file), from its class doc:
-  [warrior §6.4](classes/warrior.md#64-survival-floor),
-  [druid §7.6](classes/druid.md#76-survival-floor),
-  [paladin](classes/paladin.md#protection-survival-floor). It holds the defensive cooldowns and,
-  by user decision (D30), the avoidance talents: a warrior's and a paladin's **Deflection 5/5**,
-  and a bear's **Feral Swiftness 2/2**: the model says avoided hits cost a tank rage, mana and
-  Reckoning procs, so a threat-first search drops them, but tanks take them. **Anticipation is not
-  in the floor** (user decision, D30): it's the warrior's and paladin's **preferred filler**
-  ([below](#the-preferred-filler)). Toughness is optional: the search decides its ranks (under the
-  effective-health floor it's a dimension, beside a full Anticipation). `--no-floor` drops the floor; `--keep` extends it for
-  one search (kept talents join it in every build: `--keep Anticipation` holds it at 5/5); a
-  spec's default floor changes in `SURVIVAL_FLOOR` and its class doc together. Harmful talents are
-  never taken unless kept, searched for a constraint, or the preferred filler.
-- **Maximal builds only.** If another objective talent fits at max rank in the points a core
-  leaves (they'd otherwise go to partial ranks and fillers), the build that takes it scores at
-  least as well, since no objective talent lowers the score, so only that one is kept. Only an
-  objective dimension is a raise: one only a constraint made (Toughness under the effective-health
-  floor) has no screened value, so a build without it may score better, and a core that leaves
-  room for it keeps its points for the fill order (Anticipation first) instead of being dropped
-  (OV3-1); it takes core ranks only beside a full preferred filler (OV4-1). The check is one talent at a time: a build that could only do better by swapping one
-  talent for another stays, and the race decides.
+  (`--keep`) and excluded (`--exclude`); none by default but the tank tree's minimum. A tank's
+  search spends **at least 31 points in its tank tree** unless told otherwise (D30; `TANK_TREE`,
+  `src/sim/optimize/optimize.ts`): Protection for the warrior and paladin, Feral Combat for the
+  bear. It's a rule on a tree's points, not on any talent. `--min-tree` merges with it: a minimum
+  for the tank tree replaces its 31 (`--min-tree Protection=0` drops it), and one for another tree
+  joins it. Harmful talents are never taken unless kept or searched for a constraint.
+- **Maximal builds only**, the one pruning rule, and an objective one. A point in a filler is, to
+  the goal, a spare point: it can't change the score. So if another objective talent that the
+  screen didn't measure below zero fits at max rank in the points a core leaves, the build that
+  takes it scores at least as well as the one that spends them on fillers, and only that one is
+  kept. A dimension only a constraint made has no screened value, so it's never a raise, and a
+  core that leaves room for it keeps its points for the fill order instead of being dropped. The
+  check is one talent at a time: a build that could only do better by swapping one talent for
+  another stays, and the race decides.
 - **One tree at a time.** Tier gates and arrows never cross trees; only the 51-point total does.
   So each tree's cores are enumerated alone, each with the least points it can be legal in and the
   fewest extra points any one more objective talent would cost, and cores are combined across trees
@@ -339,67 +359,41 @@ not every legal one, which would be astronomically many:
 Every build is checked with the app's own `validateTalentBuild`, encoded with `encodeTalentCode`,
 and must decode back to the same ranks.
 
-### The preferred filler
+**What changed with the talent rules' removal** (D30's superseding paragraph). Until then a tank's
+search kept a **survival floor** in every build (the defensive cooldowns, Deflection 5/5, the bear's
+Heart of the Wild, Thick Hide and Feral Swiftness), and a warrior's or paladin's leftover points
+went to a **preferred filler**, Anticipation, before Toughness; after the fourth verification a
+dimension only the effective-health floor made (Toughness) took ranks only beside a full
+Anticipation (OV4-1). That narrowing left out feasible builds with Toughness and less Anticipation
+(OV5-1). All three are gone: those talents race like any other, and a player who wants survival
+first picks the Defense goal or sets a sheet constraint.
 
-**Anticipation is a warrior's and a paladin's preferred filler** (user decision, D30, after the
-guild's lead theorycrafter's Protection paladin build, `240003-0530213321301551-502`, took
-Anticipation 2/5 and measured +1.0% TPS over the floor-bound default; `PREFERRED_FILLER` in
-`src/sim/optimize/floor.ts`). It left the survival floor, so a build may take fewer than 5 ranks,
-but tanks take it, and the sim sees only half of what it does: its avoided hits cost threat in the
-model (no rage from a dodged hit, no Reckoning charge or Shield Specialization mana), and what
-they're worth, the damage a tank doesn't take, isn't in the score. So it's preferred **in the
-fill order**, and only there: a build's leftover points go to it after the objective talents'
-partial ranks and before Toughness or any other filler ([above](#the-talent-space)), whatever the
-screen made of it (`preferred` in `talentSpace`). It's also a **dimension whatever its role**, so
-builds with it at 5/5 and without it both race: screened as harmful, it would otherwise get only
-the points the objective talents' partial ranks leave, which in a tank's space is none (the
-warrior's space on a 3,000-fight screen had no build with any Anticipation, OV3-1). It's a raise
-only when the screen finds it objective and not below zero. And a build with room for 5 more
-points and no Toughness keeps them for the fill order rather than being dropped for want of
-Toughness (OV3-1).
+The spaces at the default setups (tanks with 31 points in their tree and the effective-health
+floor, which makes a talent that changes health or armor a dimension), by goal, from the screens of
+2026-09-24 (`quick`, seed 1; the kept talents aren't dimensions, and there are none by default).
+The goal changes the space: for Defense a talent that only adds threat is a filler, and for TPS
+one the screen measures lowering threat (the warrior's Shield Slam, on this setup) is never taken.
 
-**Toughness only after Anticipation** (step 6 of O1's review, after its third round on the
-preferred filler; D30). Toughness is a dimension only because the effective-health floor reads its
-armor, and it takes ranks in a build's core only when Anticipation is at 5/5 there (or is kept or
-excluded, when there's no preferred filler). Otherwise the space held a Toughness-5,
-Anticipation-0 twin of each Anticipation-5, Toughness-0 build, and since Toughness screens at zero
-and Anticipation below it, the race took the Toughness twin: the fourth verification's repro, every
-default talent kept but those two, answered `35-05-512501233301210531` (Anticipation 5→1,
-Toughness 1→5) against D30's fill order. Builds with Anticipation 5/5 and Toughness 5/5 still cover
-what the effective-health floor needs, and a build without Anticipation takes Toughness only from
-its leftover points, after Anticipation.
-
-**The race's leader is the answer**, whatever its Anticipation. An end-of-race rule that preferred a
-candidate level with the leader that had more Anticipation (within 0.5% of its score or inside its
-paired interval) was cut at step 6 of O1's review, after two rounds in a row found new problems in
-it (D30, "Simplified after O1's third review round"). An answer that drops Anticipation entirely
-when the gain is clear is acceptable (user decision: the warrior's Deep Wounds build, +4.4 points).
-`--exclude Anticipation` searches without it, and `--keep Anticipation` holds it at 5/5 as the
-floor used to. The bear has no preferred filler: its avoidance, Feral Swiftness, is in its floor.
-
-The spaces at the default setups (tanks with 31 points in their tree, their survival floor, the
-preferred filler, and the effective-health floor, which makes Toughness a dimension, beside a full
-Anticipation), from the screens of 2026-09-24 with D30's preferred filler (the
-defaults of that day's T3 and T4 gear; the kept talents aren't dimensions; Anticipation is one of
-the warrior's and paladin's objective ones). The candidates are the builds and the setup itself
-when it keeps the constraints (the warrior's default isn't among its space's builds; the bear's
-and the paladin's are), and each race runs the baseline beside them:
-
-| Spec | Dimensions | Builds | Candidates | Legal tree cores | Dominated |
+| Spec | Goal | Dimensions | Builds | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- | --- |
-| `warrior-protection` | 23 objective + Toughness | 3,690 | 3,691 | 3,184 | 6,758 |
-| `druid-feral-bear` | 17 objective | 129 | 129 | 1,314 | 1,080 |
-| `paladin-protection` | 27 objective + Toughness | 6,833 | 6,833 | 2,752 | 3,585 |
-| `warrior-fury` (no constraints) | 20 objective | 288 | | 1,636 | 1,507 |
+| `warrior-protection` | Balanced | 23 objective + Toughness | 2,087 | 3,224 | 5,075 |
+| `warrior-protection` | TPS | 22 objective + Toughness | 700 | 1,688 | 2,055 |
+| `warrior-protection` | Defense | 17 objective (Toughness among them) | 222 | 416 | 381 |
+| `paladin-protection` | Balanced | 29 objective + Toughness, Sacred Duty | 23,841 | 5,504 | 7,706 |
+| `paladin-protection` | Defense | 23 objective + Sacred Duty | 15,135 | 2,416 | 2,442 |
+| `druid-feral-bear` | Balanced | 18 objective + Heart of the Wild, Thick Hide | 303 | 10,386 | 9,789 |
+| `warrior-fury` (no constraints) | DPS | 20 objective | 288 | 1,636 | 1,507 |
 
-So on `quick` the warrior's space runs 121 fights each in the first round, the paladin's 65 and the
-bear's and Fury's 1,000. Before Toughness waited for a full Anticipation (OV4-1) the warrior's space
-was 4,735 builds (4,388 on a 3,000-fight screen, now 3,412) and the paladin's 8,918. With
-Anticipation 5/5 in the floor (before D30's preferred filler) the warrior's space was 3,544 builds
-and the paladin's 10,805; before Feral Swiftness joined the bear's
-floor, its space was 199 builds (200 candidates with the setup). Enumerating takes about a second.
-Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's space was
-17,644 builds and took eight minutes to list; the paladin's passed 50,000.
+So on `quick` the warrior's Balanced space runs 215 fights each in the first round, the paladin's
+50 (its 23,841 plans fit 50 each in 90% of the budget; `standard` suits it better) and the bear's
+and Fury's 1,000. With the survival floor and the preferred filler (before D30's superseding
+paragraph) the warrior's space was 3,690 builds, the paladin's 6,833 and the bear's 129: the floor
+kept Deflection, the cooldowns and the bear's Heart of the Wild, Thick Hide and Feral Swiftness out
+of the search, and without it more builds are legal and different.
+
+Enumerating takes about a second. Before the tree-by-tree combination and the leftover-point rule,
+the Protection warrior's space was 17,644 builds and took eight minutes to list; the paladin's
+passed 50,000.
 
 ## Talents and rotation together
 
@@ -420,9 +414,8 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   relative to it.
 - **Rotation only** (`--search rotation`): the variants with the setup's talents. No talent is
   searched, so there are no talent constraints; sheet constraints still hold. The CLI
-  refuses the talent flags with it (`--keep`, `--exclude`, `--min-tree`, `--no-floor`,
-  `--partials`) rather than drop them: search talents too (`--search both` or `--turns`) to use
-  them.
+  refuses the talent flags with it (`--keep`, `--exclude`, `--min-tree`, `--partials`) rather
+  than drop them: search talents too (`--search both` or `--turns`) to use them.
 
 In turns, the CLI prints each pass's header (`=== pass 2: rotation ===`) before its space and
 rounds.
@@ -440,13 +433,13 @@ again (a third of a rotation search with one variant).
 | `standard` | 6,000,000 | at most ~75 s | ~2.5 min |
 | `thorough` | 24,000,000 | at most ~5 min | ~10 min |
 
-The first round runs 30% of the budget over the candidates, between 50 and 1,000 fights each
-(`firstRound`): 20,000 candidates get 90 each on `standard`, the bear's 129 get 1,000.
-`fitBudget` fits a space too big for its budget rather than failing, and the CLI prints a note
-saying what it changed. It counts plans, the baseline included, since the baseline runs every round
-too; the note says so, beside the CLI's count of candidates, which leaves it out (OV4-5):
+The first round runs 30% of the budget over the plans that run it, between 50 and 1,000 fights
+each (`firstRound`): 20,000 plans get 90 each on `standard`, 129 get 1,000. `fitBudget` fits a
+space too big for its budget rather than failing, and the CLI prints a note saying what it
+changed. Both count plans, the baseline included, since the baseline runs every round too; the
+note says so, beside the CLI's count of candidates, which leaves it out (OV4-5, OV5-2):
 
-| Candidates | What the first round does | `quick` | `standard` | `thorough` |
+| Plans (the candidates and the baseline) | What the first round does | `quick` | `standard` | `thorough` |
 | --- | --- | --- | --- | --- |
 | up to 30% of the budget ÷ 1,000 | 1,000 fights each | ≤ 450 | ≤ 1,800 | ≤ 7,200 |
 | up to 30% ÷ 50 | 30% of the budget, 50 to 1,000 each | ≤ 9,000 | ≤ 36,000 | ≤ 144,000 |
@@ -454,7 +447,7 @@ too; the note says so, beside the CLI's count of candidates, which leaves it out
 | up to 90% ÷ 20 | 90% of the budget, fewer than 50 each (down to 20): it drops fewer, and the race may end on the budget | ≤ 67,500 | ≤ 270,000 | ≤ 1,080,000 |
 | more | 20 each, and the budget grows to twice that first round | | | |
 
-So `quick` suits a space of up to about 9,000 candidates, `standard` 36,000 and `thorough`
+So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough`
 144,000; past three times that, pick the next budget or narrow the search (keep or exclude
 talents, fewer rotation variants). The tanks' default spaces are in [the talent space](#the-talent-space). A race usually stops long
 before its budget: most candidates are clearly worse after the first round. The speeds are this
@@ -482,9 +475,10 @@ each, so it names them; D12's ratings are the one it can switch.
 D30 makes a spec's defaults the optimizer's results under its default constraints, confirmed on a
 fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 
-1. Run the search at the default setup with the spec's default constraints: a tank with 31 points
-   in its tree, its survival floor and the effective-health floor; a DPS spec with none. Use the
-   `thorough` budget. When the setup itself leads, as a candidate, the default stands.
+1. Run the search at the default setup with the spec's default goal and constraints: a tank's
+   Balanced, with 31 points in its tree and the effective-health floor; a DPS spec's DPS, with
+   none. Use the `thorough` budget. When the setup itself leads, as a candidate, the default
+   stands.
 2. A result that ends on the budget isn't a winner yet: run again with more budget, or, when the
    survivors are within the noise of each other, take the leader and say so.
 3. Confirm the leader on a fresh seed with `--confirm`. It replaces the default only if it clears
@@ -494,15 +488,17 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 
 ## Reading the results
 
-The CLI prints the screen, the space, each round, a table of standings and the result, and writes
-a JSON report under `.cache/optimize/`. A standing has:
+The CLI prints the goal, the screen, the space, each round, a table of standings and the result,
+and writes a JSON report under `.cache/optimize/` (its `setup.goal` the player's pick, and
+`scoredGoal` what the score read). A standing has:
 
 - the build and its changes from the default ("Shredding Attacks 0→3"), or "the setup itself"
   for the copy of the setup that raced as a candidate
 - mean TPS, DPS, damage taken per second, health, effective health, and the boss's crit and crush
   chances against it
-- its paired change from the baseline in score, TPS, DPS and damage taken, each with its 95%
-  interval, over the fights it ran
+- its paired change from the baseline in score (in the goal's units: points for Balanced, DPS or
+  TPS, and for Defense the damage taken a second saved), TPS, DPS and damage taken, each with its
+  95% interval, over the fights it ran
 - its fights, and its state: the leader, a survivor, or dropped in round _r_ as clearly worse,
   with the candidates tied with it
 
@@ -521,9 +517,12 @@ compares the leader, the answer, with the default.
   with and without it race. One whose mean is just above zero, though its true effect is
   negative, is still raised when it fits.
 - **Maximality counts only objective talents.** A dimension only a constraint made (Toughness
-  under the effective-health floor) is never forced: the build without it keeps its points for
-  the fill order, Anticipation first (OV3-1), and the build with it races too when Anticipation is
-  at 5/5 in it (OV4-1).
+  under the effective-health floor, for Balanced) is never forced: the builds with and without it
+  both race.
+- **Defense measures only what the sim models.** A cooldown the rotation never presses, or a
+  talent whose effect the engine doesn't model, changes no measured damage taken, so Defense is
+  indifferent to it: the goal is the least damage taken the sim measures, not every survival
+  talent a tank might take.
 - **The screen's sign and score per point come from a few contexts**, 400 fights each. A talent
   that helps only in a build far from both contexts can be misjudged; `--screen-fights` raises the
   fights.
@@ -540,9 +539,17 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   stops 10,000 ÷ 15,755 = 63.47% of a hit, and 8,000 health is 8,000 ÷ 0.36528 = 21,901 effective
   health.
 - **The balanced score.** +38.3 TPS on 687.4 (+5.57%) and +16.3 DPS on 359.9 (+4.53%) is +10.1
-  points.
-- **The first round.** `quick` (1,500,000 fights) over 7,000 candidates: 30% of the budget is
-  450,000, 64 fights each. Over 10 candidates it's capped at 1,000.
+  points (`race.test.ts`).
+- **The goals.** Four candidates at 1,000–1,050 DPS: under DPS the one at 1,050 leads; under
+  Defense the one taking 450 a second leads, though it has the least DPS, its score +50 against
+  the baseline's 500; candidates with the same damage taken on every fight are one for Defense,
+  and the most TPS represents them; a tank's default goal is Balanced and a DPS spec's DPS,
+  Balanced for a DPS spec scores DPS, and Defense is refused for one (`race.test.ts`). The
+  Protection warrior for Defense: Toughness is objective (for Balanced a tie-break), Defiance a
+  tie-break, and the answer takes less damage than the default, confirmed on a fresh seed
+  (`optimize.test.ts`).
+- **The first round.** `quick` (1,500,000 fights) over 7,000 plans: 30% of the budget is
+  450,000, 64 fights each. Over 10 plans it's capped at 1,000.
 - **Capstones.** With only Mortal Strike, Bloodthirst and Shield Slam objective, every build has
   exactly one of them: two need 62 points, and a build with none has the points for one.
 - **A toy race.** Twenty candidates at 1,000–1,019 DPS and one at 1,030, with noise they share
@@ -552,7 +559,7 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   first round of 50 fights: in 20 races an uncorrected 99% bar drops the true best in the first
   round at least once; the corrected bar, z = 4.92 (Student's t at 0.5% ÷ 999, 49 degrees of
   freedom), never does.
-- **Fitting the budget.** `quick` (1,500,000) over 50,000 candidates: 50 fights each would be
+- **Fitting the budget.** `quick` (1,500,000) over 50,000 plans: 50 fights each would be
   2,500,000, so the first round runs 27 each (90% of the budget, rounded down); over 100,000, even
   20 each doesn't fit, so the budget grows to 4,000,000.
 - **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
@@ -561,23 +568,21 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   before the review's fix).
 - **Every pass holds the constraints.** The bear in turns with Ferocity excluded and Maul held for
   90 rage: no pass answers with the default, which takes Ferocity (`optimize.test.ts`, OV-1).
-- **No setup.** The Protection paladin under crit immunity on its default gear: the builds with
-  Anticipation 5/5 reach 330 defense at best (the boss's crit 4.40%), so no candidate races and the
+- **No setup.** The Protection paladin under crit immunity on its default gear: no build reaches
+  440 defense (the closest leaves the boss a crit chance above zero), so no candidate races and the
   report says crit immunity blocks it (OV-2).
 - **The setup wins as a candidate.** The bear with one rotation variant, Maul held for 90 rage:
   its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to,
   and it runs no fights of its own (OV2-5).
-- **The preferred filler.** Shield Slam's 31 points in Protection leave 20, and Anticipation takes
-  5 of them before Toughness, whether the screen calls it harmful, survival or no effect. A
-  Protection build kept whole at 34 points with 5 to 9 left over: the only build is Anticipation 5
-  and the rest to Toughness, whether the screen calls Anticipation objective, no effect or harmful
-  (OV3-1, OV4-1; `talents.test.ts`).
-- **Toughness only after Anticipation.** The default Protection warrior with every talent kept but
-  Anticipation and Toughness, and the Arms and Fury talents it lacks excluded: the space is the
-  default alone, `35-05-552101233301210531`, never its Toughness twin `35-05-512501233301210531`,
-  whatever the screen made of Anticipation (OV4-1; `talents.test.ts`).
+- **The fill order by tie-break.** Shield Slam's 31 points in Protection leave 20; with
+  Anticipation's tie-break at 0.5 a point, Toughness's at 0.2 and Deflection's at −0.3, Anticipation
+  and Toughness take 5 each, the no-effect talents the rest, and Deflection none. With the values
+  swapped, Toughness comes first: no talent is preferred by name (`talents.test.ts`).
+- **The builds the narrowing lost.** The default Protection warrior with every talent kept but
+  Anticipation and Toughness: both the default (Anticipation 5, Toughness 1) and its twin
+  (Anticipation 0, Toughness 5) race, where OV4-1's rule left only the default (OV5-1;
+  `talents.test.ts`).
 - **No result limits.** The best DPS takes 20% more damage than the rest: it leads all the same,
   and `taken<=102%` is refused as a fight result (`race.test.ts`, `optimize.test.ts`).
 - **Nothing fits the talent constraints.** The bear keeping Moonkin Form: no legal 51-point build
-  holds it, the floor and 31 points in Feral Combat together, and the report lists all three
-  (OV2-3).
+  holds it and 31 points in Feral Combat together, and the report lists both (OV2-3).

@@ -1,19 +1,33 @@
-// What the optimizer maximizes, and the paired statistics it compares candidates with
-// (docs/optimizer.md#the-objective and #the-statistics; decisions D18, D23, D30).
+// What the optimizer optimizes for, and the paired statistics it compares candidates with
+// (docs/optimizer.md#goals and #the-statistics; decisions D18, D23, D30).
 import { Z95 } from '../core/welford'
 import type { Role } from '../types'
 
 /**
- * `dps` and `tps` maximize that one metric. `balanced` weighs TPS and DPS as equals (D18, D30):
- * the sum of each one's change relative to the baseline, the spec's current default.
+ * What the player tells the optimizer to optimize for (D30, user decision after O1's fifth review
+ * round; docs/optimizer.md#goals):
+ * - `defense`: the least damage taken a second, as the sim measures it; the most TPS breaks a tie
+ * - `dps`, `tps`: the most of that metric; the least damage taken breaks a tie
+ * - `balanced`: TPS and DPS as equals (D18, D30), the sum of each one's change relative to the
+ *   baseline, the spec's current default; for a DPS spec, DPS alone (`scoredGoal`)
  */
-export type ObjectiveId = 'dps' | 'tps' | 'balanced'
+export type Goal = 'defense' | 'dps' | 'tps' | 'balanced'
 
-export const OBJECTIVES: readonly ObjectiveId[] = ['dps', 'tps', 'balanced']
+export const GOALS: readonly Goal[] = ['defense', 'dps', 'tps', 'balanced']
 
-/** D30: a DPS spec maximizes DPS; a tank maximizes TPS and DPS as equals. */
-export function defaultObjective(role: Role): ObjectiveId {
+/** D30: a DPS spec optimizes for DPS; a tank for the balanced approach. */
+export function defaultGoal(role: Role): Goal {
   return role === 'tank' ? 'balanced' : 'dps'
+}
+
+/**
+ * The goal a search scores: the player's, except that `balanced` for a DPS spec is DPS alone
+ * (docs/optimizer.md#goals). `defense` is a tank's: the boss attacks only a tank, so a DPS spec
+ * takes no damage and there's nothing to rank.
+ */
+export function scoredGoal(goal: Goal, role: Role): Goal {
+  if (goal === 'defense' && role !== 'tank') throw new Error('The Defense goal is for a tank: the boss attacks only a tank, so a DPS spec takes no damage to lower')
+  return goal === 'balanced' && role !== 'tank' ? 'dps' : goal
 }
 
 /** The baseline's mean TPS and DPS, which `balanced` scores relative to. */
@@ -22,18 +36,43 @@ export interface BaselineMeans {
   tps: number
 }
 
+/** A fight's score from its DPS, TPS and damage taken a second: higher is better, whatever the goal. */
+export type Score = (dps: number, tps: number, taken: number) => number
+
 /**
- * A fight's score. `balanced` is 100 × (TPS ÷ TPS₀ + DPS ÷ DPS₀), so the baseline scores about
- * 200 and a difference of 1 is one percentage point of TPS or of DPS: +3 TPS% and −1 DPS% is +2
- * (D30, "the sum of each one's change relative to the spec's current default"). A baseline mean of
- * zero (a DPS spec's TPS can't be, but a setup with no damage could) contributes nothing.
+ * A fight's score, higher is better. `balanced` is 100 × (TPS ÷ TPS₀ + DPS ÷ DPS₀), so the baseline
+ * scores about 200 and a difference of 1 is one percentage point of TPS or of DPS: +3 TPS% and −1
+ * DPS% is +2 (D30, "the sum of each one's change relative to the spec's current default"). A
+ * baseline mean of zero (a DPS spec's TPS can't be, but a setup with no damage could) contributes
+ * nothing. `defense` is minus the damage taken a second, so less damage taken is a higher score and
+ * every comparison (the leader, the drops, the separation and confirmation bars) reads the same way
+ * for every goal.
  */
-export function scorer(objective: ObjectiveId, base: BaselineMeans): (dps: number, tps: number) => number {
-  if (objective === 'dps') return (dps) => dps
-  if (objective === 'tps') return (_dps, tps) => tps
+export function scorer(goal: Goal, base: BaselineMeans): Score {
+  if (goal === 'defense') return (_dps, _tps, taken) => -taken
+  if (goal === 'dps') return (dps) => dps
+  if (goal === 'tps') return (_dps, tps) => tps
   const kd = base.dps > 0 ? 100 / base.dps : 0
   const kt = base.tps > 0 ? 100 / base.tps : 0
   return (dps, tps) => kt * tps + kd * dps
+}
+
+/**
+ * What breaks a tie in score, higher is better (D30: what the score leaves out is a tie-break): the
+ * most TPS for `defense`, the least damage taken for the others.
+ */
+export function tieBreaker(goal: Goal): Score {
+  return goal === 'defense' ? (_dps, tps) => tps : (_dps, _tps, taken) => -taken
+}
+
+/**
+ * The per-fight numbers the goal's score reads. Two candidates equal on these on every fight are the
+ * same to it: the race merges them, and the screen calls a talent that changes none of them a
+ * tie-break talent or one with no effect. DPS and TPS for `dps`, `tps` and `balanced` (as the race
+ * has always merged); damage taken for `defense`.
+ */
+export function scoreReads(goal: Goal): readonly ('dps' | 'tps' | 'taken')[] {
+  return goal === 'defense' ? ['taken'] : ['dps', 'tps']
 }
 
 /** A mean and the half-width of its confidence interval. */

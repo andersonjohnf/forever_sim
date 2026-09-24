@@ -1,16 +1,19 @@
-// The optimizer: the best talents (and rotation settings) for a setup, found by the sim itself
-// (decision D30; docs/optimizer.md). It screens the class's talents for what the sim can measure,
-// builds every sensible build under the constraints, and races them on common random numbers:
-// every candidate runs the same fights, and each round drops those clearly worse than the leader,
-// until the leader is clear of every survivor at 95% (D23's bar) or the budget runs out.
+// The optimizer: the best talents (and rotation settings) for a setup and a goal, found by the sim
+// itself (decision D30; docs/optimizer.md). You pick the goal: Defense, DPS, TPS or Balanced. It
+// screens the class's talents for what the sim can measure for that goal, builds every sensible
+// build under the constraints (no talent is kept or ordered by its name), and races them on common
+// random numbers: every candidate runs the same fights, and each round drops those clearly worse
+// than the leader, until the leader is clear of every survivor at 95% (D23's bar) or the budget runs
+// out.
 //
 // The engine is bundled from the current src/ as rotation.mjs does (lib.mjs), and the fights run on
 // worker threads; the result doesn't depend on how many.
 //
 //   npm run optimize -- --spec warrior-protection
+//   npm run optimize -- --spec warrior-protection --goal defense
 //   npm run optimize -- --spec druid-feral-bear --budget thorough --confirm
 //   npm run optimize -- --spec paladin-protection --require "health>=100%" --crush-immune
-//   npm run optimize -- --spec warrior-fury --metric dps --keep "Precision"
+//   npm run optimize -- --spec warrior-fury --goal dps --keep "Precision"
 //   npm run optimize -- --spec warrior-arms --search rotation --sweep heroicStrike.minRage=40:70:10
 //   npm run optimize -- --spec druid-feral-bear --search both --sweep maul.minRage=10:40:10
 //   npm run optimize -- --spec druid-feral-bear --turns --sweep maul.minRage=10:40:10
@@ -37,13 +40,9 @@
 //   --min-tree <tree>=<n> at least n points in that tree (repeatable): "Protection=31". A tank's default is
 //                         31 in its tank tree, which a minimum for another tree joins; "--min-tree
 //                         Protection=0" drops it
-//   --keep <talent>[=r]   in every build at rank r (default: its max); repeatable, or comma-separated. Kept
-//                         talents extend the survival floor for this search
+//   --keep <talent>[=r]   in every build at rank r (default: its max); repeatable, or comma-separated.
+//                         No talent is kept by default (D30)
 //   --exclude <talent>    never taken; repeatable, or comma-separated
-//   --no-floor            drop the spec's survival floor (a tank's; docs/classes/*.md "Survival floor"). A
-//                         warrior's or paladin's preferred filler, Anticipation, isn't in it: leftover points go
-//                         to it first, before Toughness and the other fillers (D30); --exclude it to search
-//                         without it, --keep it to hold it at 5/5
 //   --partials            search partial ranks too, one per build (a far larger space)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
@@ -61,8 +60,11 @@
 //                         table; a Protection paladin's with Holy Shield up); off by default
 //
 // The search:
-//   --metric dps|tps|balanced   what to maximize (default: D30's, dps for DPS specs, balanced for tanks:
-//                         the sum of the TPS and DPS changes relative to the setup's own)
+//   --goal defense|dps|tps|balanced   what to optimize for (docs/optimizer.md#goals; default: dps for DPS
+//                         specs, balanced for tanks). defense: the least damage taken a second, TPS breaking a
+//                         tie (a tank's only); dps, tps: the most of it, the least damage taken breaking a tie;
+//                         balanced: the sum of the TPS and DPS changes relative to the setup's own (DPS alone
+//                         for a DPS spec)
 //   --budget quick|standard|thorough|<fights>   fights for the whole race (default standard: 1.5M, 6M, 24M).
 //                         A space too big for it runs a smaller first round, or a larger budget, and says so
 //   --first <n>           fights each candidate runs in the first round (default: 30% of the budget, 50 to 1,000)
@@ -184,6 +186,8 @@ const pct = (x, digits = 2) => `${fmt(x, digits)}%`
 const chance = (x) => `${x.toFixed(2)}%`
 const ci = (i, digits = 2) => `${fmt(i.mean, digits)} (${fmt(i.mean - i.halfWidth, digits)} to ${fmt(i.mean + i.halfWidth, digits)})`
 const count = (n) => n.toLocaleString('en-US')
+/** A count and its noun, singular for one (OV5-4): "1 build", "3,690 builds". */
+const plural = (n, noun) => `${count(n)} ${noun}${n === 1 ? '' : 's'}`
 
 async function main() {
   const { values: args } = parseArgs({
@@ -196,7 +200,6 @@ async function main() {
       'min-tree': { type: 'string', multiple: true, default: [] },
       keep: { type: 'string', multiple: true, default: [] },
       exclude: { type: 'string', multiple: true, default: [] },
-      'no-floor': { type: 'boolean', default: false },
       'no-ehp-floor': { type: 'boolean', default: false },
       'crit-immune': { type: 'boolean', default: false },
       'crush-immune': { type: 'boolean', default: false },
@@ -204,7 +207,7 @@ async function main() {
       partials: { type: 'boolean', default: false },
       'screen-fights': { type: 'string', default: '400' },
       require: { type: 'string', multiple: true, default: [] },
-      metric: { type: 'string' },
+      goal: { type: 'string' },
       budget: { type: 'string', default: 'standard' },
       first: { type: 'string' },
       seed: { type: 'string', default: '1' },
@@ -249,7 +252,7 @@ async function main() {
   const searchTalents = args.turns || args.search !== 'rotation'
   // A rotation-only search keeps the setup's talents with no talent constraints: say so, rather than drop the flags (OV2-2).
   if (!searchTalents) {
-    const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['no-floor', 'partials'].filter((f) => args[f]))
+    const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['partials'].filter((f) => args[f]))
     if (given.length) throw new Error(`--search rotation keeps the setup's talents, with no talent constraints: drop ${given.map((f) => `--${f}`).join(', ')}, or search talents too (--search both or --turns)`)
   }
   if ((args.turns || args.search !== 'talents') && rotations.length === 0) throw new Error('Searching the rotation needs variants: --sweep or --rotation')
@@ -320,8 +323,13 @@ async function main() {
     if (problems.length > 0) throw new Error(`--talents ${args.talents}: ${problems[0]}`)
   }
 
-  const objective = args.metric ?? engine.defaultObjective(meta.role)
-  if (!engine.OBJECTIVES.includes(objective)) throw new Error(`--metric must be one of ${engine.OBJECTIVES.join(', ')}, got "${objective}"`)
+  const goal = args.goal ?? engine.defaultGoal(meta.role)
+  if (!engine.GOALS.includes(goal)) throw new Error(`--goal must be one of ${engine.GOALS.join(', ')}, got "${goal}"`)
+  // Balanced for a DPS spec is DPS alone; Defense is a tank's (it throws for a DPS spec, saying why).
+  const scored = engine.scoredGoal(goal, meta.role)
+  // The score's units. Defense's score is minus the damage taken a second: a positive change is less damage taken.
+  const unit = { balanced: ' (pts)', defense: ' (less taken/s)', dps: '', tps: '' }[scored]
+  const units = { balanced: ' points', defense: ' less damage taken a second', dps: ' DPS', tps: ' TPS' }[scored]
   const budget = engine.BUDGETS[args.budget] ?? { fights: flagNumber('budget', args.budget, { min: 100, whole: true }) }
   if (args.first !== undefined) budget.initialFights = flagNumber('first', args.first, { min: 2, whole: true })
 
@@ -341,8 +349,14 @@ async function main() {
     ].join('; '),
   )
   console.log(`baseline: ${args.talents === undefined ? 'the defaults' : 'the defaults with --talents'}, talents ${config.talents}`)
+  const goalText = {
+    defense: 'Defense (the least damage taken a second; the most TPS breaks a tie)',
+    dps: 'DPS (the least damage taken breaks a tie)',
+    tps: 'TPS (the least damage taken breaks a tie)',
+    balanced: 'Balanced (Δ TPS % + Δ DPS %, relative to the baseline; the least damage taken breaks a tie)',
+  }
   console.log(
-    `objective: ${objective === 'balanced' ? 'balanced (Δ TPS % + Δ DPS %, relative to the baseline)' : objective.toUpperCase()}; budget ${args.budget} (${count(budget.fights)} fights)` +
+    `goal: ${goal === scored ? goalText[goal] : `${goal}, which for a DPS spec is ${goalText[scored]}`}; budget ${args.budget} (${count(budget.fights)} fights)` +
       (constraints.length ? `; constraints ${constraints.map(engine.formatConstraint).join(', ')}` : ''),
   )
 
@@ -351,10 +365,10 @@ async function main() {
   let lastRound = -1
   // In turns, a pass's header prints on its first progress event, before its space and rounds (OV2-6).
   let pendingPass = args.turns ? 0 : null
-  const talents = searchTalents ? { ...(Object.keys(minPoints).length ? { minPoints } : {}), keep, exclude, floor: !args['no-floor'], searchPartials: args.partials, screenFights: flagNumber('screen-fights', args['screen-fights'], { min: 10, whole: true }) } : undefined
+  const talents = searchTalents ? { ...(Object.keys(minPoints).length ? { minPoints } : {}), keep, exclude, searchPartials: args.partials, screenFights: flagNumber('screen-fights', args['screen-fights'], { min: 10, whole: true }) } : undefined
   const common = {
     config,
-    objective,
+    goal,
     constraints,
     budget,
     runner,
@@ -366,12 +380,12 @@ async function main() {
       }
       if (p.phase === 'space') {
         describeSpace(p)
-        console.log(`candidates: ${count(p.candidates)}, each paired with the baseline; first round ${count(p.budget.initialFights)} fights each${p.budget.fights !== budget.fights ? `, budget ${count(p.budget.fights)} fights` : ''}`)
+        console.log(`${plural(p.candidates, 'candidate')}, each paired with the baseline; first round ${plural(p.budget.initialFights, 'fight')} each${p.budget.fights !== budget.fights ? `, budget ${plural(p.budget.fights, 'fight')}` : ''}`)
         for (const note of p.notes) console.log(`  note: ${note}`)
       }
       if (p.phase === 'race' && p.jobsDone === p.jobs && p.round !== lastRound) {
         lastRound = p.round
-        process.stdout.write(`  round ${p.round}: ${count(p.survivors)} survivors, ${count(p.fightsPerCandidate)} fights each, ${count(p.spent)} of ${count(p.budget)} fights\n`)
+        process.stdout.write(`  round ${p.round}: ${plural(p.survivors, 'survivor')}, ${plural(p.fightsPerCandidate, 'fight')} each, ${count(p.spent)} of ${plural(p.budget, 'fight')}\n`)
       }
     },
   }
@@ -395,33 +409,35 @@ async function main() {
   function describeSpace(r) {
     if (r.screen) {
       const by = (role) => r.screen.verdicts.filter((v) => v.role === role)
-      console.log(`\ntalent screen (${count(r.screen.fights)} fights): ${by('objective').length} objective, ${by('survival').length} survival only, ${by('none').length} no effect, ${by('harmful').length} harmful`)
+      const tieName = scored === 'defense' ? 'TPS' : 'damage taken'
+      console.log(
+        `\ntalent screen for ${scored} (${plural(r.screen.fights, 'fight')}): ${by('objective').length} objective, ${by('tie-break').length} tie-break only (${tieName}), ${by('none').length} no effect, ${by('harmful').length} harmful`,
+      )
       const effect = (v) => (v.effect ? ` ${fmt(v.effect.mean)}` : '')
-      console.log(`  objective: ${by('objective').map((v) => `${v.name}${effect(v)}`).join(', ')}`)
-      if (by('harmful').length) console.log(`  harmful (never taken unless kept): ${by('harmful').map((v) => `${v.name}${effect(v)}`).join(', ')}`)
-      if (by('survival').length) console.log(`  survival only (fillers first): ${by('survival').map((v) => v.name).join(', ')}`)
+      const tieEffect = (v) => (v.tieEffect ? ` ${fmt(v.tieEffect.mean)}` : '')
+      console.log(`  objective (score change at max rank${scored === 'defense' ? ': less damage taken a second' : ''}): ${by('objective').map((v) => `${v.name}${effect(v)}`).join(', ')}`)
+      if (by('harmful').length) console.log(`  harmful (never taken unless kept or a constraint reads it): ${by('harmful').map((v) => `${v.name}${effect(v)}`).join(', ')}`)
+      if (by('tie-break').length)
+        console.log(`  tie-break only (fillers, those that help the tie-break most first; ${scored === 'defense' ? 'more TPS' : 'less damage taken a second'}): ${by('tie-break').map((v) => `${v.name}${tieEffect(v)}`).join(', ')}`)
     }
     if (r.space) {
-      const floor = Object.keys(r.space.floor).map((id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name)
-      // The dimensions: the objective talents, and those a constraint or the preferred filler made one (OV3-6).
+      // The dimensions: the objective talents, and those a constraint made one (OV3-6).
       const dims = r.space.dimensions
       const objectiveIds = new Set((r.screen?.verdicts ?? []).filter((v) => v.role === 'objective').map((v) => v.id))
       const others = dims.filter((d) => !objectiveIds.has(d.id)).map((d) => d.name)
       const dimensions = `${dims.length} dimensions (${dims.length - others.length} objective${others.length ? ` + ${others.join(', ')}` : ''})`
-      console.log(`talent space: ${count(r.space.builds)} builds${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}; ${count(r.space.cores)} legal cores, ${count(r.space.dominated)} dominated`)
-      const kept = Object.keys(keep).filter((name) => !floor.includes(name))
-      if (floor.length) console.log(`  survival floor kept: ${floor.join(', ')}${kept.length ? `; and kept (--keep): ${kept.join(', ')}` : ''}`)
-      else if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
+      console.log(
+        `talent space: ${plural(r.space.builds, 'build')}${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}; ${plural(r.space.cores, 'legal core')}, ${count(r.space.dominated)} dominated`,
+      )
+      const kept = Object.keys(keep)
+      if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
-      if (r.space.preferred)
-        console.log(`  preferred filler (D30): ${name(r.space.preferred)}, first for leftover points, before Toughness and the other fillers`)
       if (r.space.constrained.length) console.log(`  searched for the constraints (they change what a limit reads): ${r.space.constrained.map(name).join(', ')}`)
       if (r.space.minPoints && Object.values(r.space.minPoints).some((n) => n > 0))
         console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}${t in minPoints ? '' : " (the tank's default)"}`).join(', ')}`)
     }
-    const some = (n) => (n === 1 ? '1 candidate' : `${count(n)} candidates`)
-    if (r.excluded.talents) console.log(`  left out for a talent constraint: ${some(r.excluded.talents)}`)
-    if (r.excluded.sheet) console.log(`  left out for a sheet constraint: ${some(r.excluded.sheet)}`)
+    if (r.excluded.talents) console.log(`  left out for a talent constraint: ${plural(r.excluded.talents, 'candidate')}`)
+    if (r.excluded.sheet) console.log(`  left out for a sheet constraint: ${plural(r.excluded.sheet, 'candidate')}`)
     if (r.setupFails.length) console.log(`  the setup itself fails ${r.setupFails.join(', ')}: it's the baseline every candidate is measured against, never an answer`)
   }
   function printStandings(r) {
@@ -433,8 +449,6 @@ async function main() {
       const rot = Object.entries(cand.rotation).map(([id, v]) => `${id.startsWith(spec.prefix) ? id.slice(spec.prefix.length) : id}=${v}`)
       return [...changes, ...rot].join(', ')
     }
-    const unit = objective === 'balanced' ? ' (pts)' : ''
-    const units = objective === 'balanced' ? ' points' : ` ${objective.toUpperCase()}`
     console.log('')
     if (race.standings.length === 0) console.log('no candidate raced')
     else {
@@ -456,7 +470,7 @@ async function main() {
     const bs = r.sheets[0]
     console.log(`baseline: TPS ${race.baseline.tps.toFixed(1)}, DPS ${race.baseline.dps.toFixed(1)}${tank ? `, taken ${race.baseline.taken.toFixed(1)}/s, health ${Math.round(bs.health)}, EHP ${Math.round(bs.ehp)}, boss crit ${chance(bs.bossCritPct)}, crush ${chance(bs.bossCrushPct)}` : ''} over ${count(race.baseline.fights)} fights`)
     const seconds = r.ms / 1000
-    const speed = `${count(r.fights)} fights in ${seconds.toFixed(1)} s on ${threads} threads: ${count(Math.round(r.fights / seconds))} fights a second`
+    const speed = `${plural(r.fights, 'fight')} in ${seconds.toFixed(1)} s on ${plural(threads, 'thread')}: ${count(Math.round(r.fights / seconds))} fights a second`
     if (race.leader === null) {
       console.log('result: no setup meets these constraints:')
       for (const line of r.blocked) console.log(`  - ${line}`)
@@ -465,8 +479,8 @@ async function main() {
     }
     console.log(
       race.status === 'separated'
-        ? `result: the leader clears every other candidate at 95% (D23's bar) after ${race.rounds.length} rounds`
-        : `result: the budget ran out after ${race.rounds.length} rounds with ${count(race.unseparated.length)} candidates the leader isn't clear of at 95%` +
+        ? `result: the leader clears every other candidate at 95% (D23's bar) after ${plural(race.rounds.length, 'round')}`
+        : `result: the budget ran out after ${plural(race.rounds.length, 'round')} with ${plural(race.unseparated.length, 'candidate')} the leader isn't clear of at 95%` +
             (race.closest ? `; the closest (\`${r.candidates[race.closest.candidate].talents}\`: ${describe(race.closest.candidate)}) is ${ci(race.closest.vsLeader)}${units} behind (95% CI)` : ''),
     )
     const leader = race.standings.find((s) => s.candidate === race.leader)
@@ -491,12 +505,12 @@ async function main() {
     const fresh = (seed + 0x9e3779b9) >>> 0
     const runner2 = threadRunner(engine, bundle, threads)
     try {
-      const main = await engine.confirm({ config, candidate: winner, objective, seed: fresh, fights: confirmFights, runner: runner2 })
+      const main = await engine.confirm({ config, candidate: winner, goal: scored, seed: fresh, fights: confirmFights, runner: runner2 })
       const flipped = { ...config, rules: { ...config.rules, unmeasuredRatings: config.rules.unmeasuredRatings === 'apply' ? 'ignore' : 'apply' } }
-      const other = await engine.confirm({ config: flipped, candidate: winner, objective, seed: fresh, fights: confirmFights, runner: runner2 })
+      const other = await engine.confirm({ config: flipped, candidate: winner, goal: scored, seed: fresh, fights: confirmFights, runner: runner2 })
       confirmation = { main, ratingsFlipped: { ...other, unmeasuredRatings: flipped.rules.unmeasuredRatings } }
-      console.log(`\nconfirmation on fresh seed ${fresh}, ${count(confirmFights)} fights each, winner vs the default:`)
-      console.log(`  score ${ci(main.vsBaseline.score)}, TPS ${ci(main.vsBaseline.tps, 1)}, DPS ${ci(main.vsBaseline.dps, 1)}, taken ${ci(main.vsBaseline.taken, 1)}: ${main.clears ? 'clears D23’s bar' : 'does NOT clear D23’s bar'}`)
+      console.log(`\nconfirmation on fresh seed ${fresh}, ${plural(confirmFights, 'fight')} each, winner vs the default:`)
+      console.log(`  score ${ci(main.vsBaseline.score)}${units}, TPS ${ci(main.vsBaseline.tps, 1)}, DPS ${ci(main.vsBaseline.dps, 1)}, taken ${ci(main.vsBaseline.taken, 1)}: ${main.clears ? 'clears D23’s bar' : 'does NOT clear D23’s bar'}`)
       console.log(`  with unmeasured ratings ${flipped.rules.unmeasuredRatings}: score ${ci(other.vsBaseline.score)}: ${other.clears ? 'clears' : 'does not clear'}${main.clears !== other.clears ? ' (the winner depends on the unmeasured ratings, D12)' : ''}`)
       // The [?] assumptions the gain can flow through: the sim can't switch them off, so it names them.
       const a = main.assumptions
@@ -519,7 +533,7 @@ async function main() {
   })
   writeFileSync(
     path,
-    JSON.stringify({ setup: { spec: specId, seed, objective, budget, args, config }, passes: reports.map(annotate), winner, confirmation, seconds: (performance.now() - started) / 1000 }, null, 1),
+    JSON.stringify({ setup: { spec: specId, seed, goal, scoredGoal: scored, budget, args, config }, passes: reports.map(annotate), winner, confirmation, seconds: (performance.now() - started) / 1000 }, null, 1),
   )
   console.log(`\nreport: ${relative(process.cwd(), path)}`)
 }

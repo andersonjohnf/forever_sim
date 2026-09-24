@@ -28,7 +28,7 @@
 // to fixed positions, and every decision is made at a round's end over whole arrays. The same
 // candidates, seed and budget give the same race.
 import type { FightRunner, FightSamples, PlanSource } from './fights'
-import { type BaselineMeans, eliminationZ as bonferroniZ, type Interval, lower, meanInterval, type ObjectiveId, pairedInterval, scorer } from './objective'
+import { type BaselineMeans, eliminationZ as bonferroniZ, type Goal, type Interval, lower, meanInterval, pairedInterval, type Score, scoreReads, scorer, tieBreaker } from './objective'
 import { Z95 } from '../core/welford'
 
 export interface RaceOptions {
@@ -43,7 +43,8 @@ export interface RaceOptions {
    */
   copies?: readonly number[]
   runner: FightRunner
-  objective: ObjectiveId
+  /** The goal a score reads (`scoredGoal`): higher scores are better for every goal, `defense`'s included. */
+  goal: Goal
   /** The most fights the race may run, all candidates' and the baseline's together. */
   budget: number
   /** Fights each candidate runs in the first round (at least 2). */
@@ -59,7 +60,7 @@ export interface RaceOptions {
   eliminationZ?: number
   /** Standings to report (default 10). */
   top?: number
-  /** Merge candidates with the same DPS and TPS on every first-round fight (default yes). */
+  /** Merge candidates the goal can't tell apart on every first-round fight (`scoreReads`; default yes). */
   mergeTies?: boolean
   signal?: AbortSignal
   onProgress?: (progress: RaceProgress) => void
@@ -87,14 +88,14 @@ export interface Standing {
   /** Fights it ran (its intervals are over these, paired with the baseline's first as many). */
   fights: number
   mean: { dps: number; tps: number; taken: number; score: number }
-  /** Candidate − baseline, fight by fight, with 95% intervals; `score` in the objective's units. */
+  /** Candidate − baseline, fight by fight, with 95% intervals; `score` in the goal's units (`defense`'s is minus damage taken). */
   vsBaseline: { dps: Interval; tps: Interval; taken: Interval; score: Interval }
   /** Leader − candidate in score, 95%, over the candidate's fights (zero for the leader). */
   vsLeader: Interval
   state: 'leader' | 'survivor' | 'dropped'
   /** The round it was dropped in, as clearly worse than the leader. */
   droppedInRound?: number
-  /** Candidates with the same DPS and TPS as this one on every fight of the first round, merged into it. */
+  /** Candidates with the same numbers as this one on every fight of the first round (those the goal reads), merged into it. */
   ties: number[]
 }
 
@@ -159,21 +160,23 @@ function abortError(): Error {
   return new DOMException('The optimizer was cancelled.', 'AbortError')
 }
 
-/** Same DPS and TPS on each of the first n fights. */
-function sameFights(a: Samples, b: Samples, n: number): boolean {
-  for (let k = 0; k < n; k++) if (a.dps[k] !== b.dps[k] || a.tps[k] !== b.tps[k]) return false
+type Metric = ReturnType<typeof scoreReads>[number]
+
+/** The same `metrics` (those the goal reads) on each of the first n fights. */
+function sameFights(a: Samples, b: Samples, n: number, metrics: readonly Metric[]): boolean {
+  for (const m of metrics) for (let k = 0; k < n; k++) if (a[m][k] !== b[m][k]) return false
   return true
 }
 
-/** A cheap digest of the first n fights' DPS and TPS, to find exact ties without comparing every pair. */
-function digest(s: Samples, n: number): string {
-  let h1 = 0
-  let h2 = 0
-  for (let k = 0; k < n; k++) {
-    h1 = (h1 * 31 + s.dps[k] * 1e6) % 2147483647
-    h2 = (h2 * 37 + s.tps[k] * 1e6) % 2147483647
-  }
-  return `${h1}:${h2}`
+/** A cheap digest of the first n fights' `metrics`, to find exact ties without comparing every pair. */
+function digest(s: Samples, n: number, metrics: readonly Metric[]): string {
+  return metrics
+    .map((m, j) => {
+      let h = 0
+      for (let k = 0; k < n; k++) h = (h * (31 + 6 * j) + s[m][k] * 1e6) % 2147483647
+      return h
+    })
+    .join(':')
 }
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : 0)
@@ -201,13 +204,17 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
   let leader: number | null = null
 
   const baselineMeans = (m: number): BaselineMeans => ({ dps: meanInterval(samples[0].dps, m).mean, tps: meanInterval(samples[0].tps, m).mean })
-  const scoresOf = (c: number, score: (dps: number, tps: number) => number, m: number) => {
+  const scoresOf = (c: number, score: Score, m: number) => {
     const s = samples[c]
     const out = new Float64Array(m)
-    for (let k = 0; k < m; k++) out[k] = score(s.dps[k], s.tps[k])
+    for (let k = 0; k < m; k++) out[k] = score(s.dps[k], s.tps[k], s.taken[k])
     return out
   }
   const takenMean = (c: number, m: number) => meanInterval(samples[c].taken, m).mean
+  // What breaks a tie in score, higher is better: less damage taken, or for `defense` more TPS (D30).
+  const tie = tieBreaker(options.goal)
+  const tieMean = (c: number, m: number) => meanInterval(scoresOf(c, tie, m), m).mean
+  const reads = scoreReads(options.goal)
 
   for (let round = 0; ; round++) {
     if (signal?.aborted) throw abortError()
@@ -282,12 +289,12 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
     n = target
     for (const c of running) samples[c].n = n
 
-    // --- Merge exact ties (first round only): the same DPS and TPS on every fight ---
+    // --- Merge exact ties (first round only): the same numbers the goal reads on every fight ---
     let merged = 0
     if (round === 0 && options.mergeTies !== false) {
       const groups = new Map<string, number[]>()
       for (const c of survivors) {
-        const key = digest(samples[c], n)
+        const key = digest(samples[c], n, reads)
         const group = groups.get(key)
         if (group) group.push(c)
         else groups.set(key, [c])
@@ -297,13 +304,13 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
         // Split a digest group into classes of truly identical candidates.
         const classes: number[][] = []
         for (const c of group) {
-          const home = classes.find((cls) => sameFights(samples[cls[0]], samples[c], n))
+          const home = classes.find((cls) => sameFights(samples[cls[0]], samples[c], n, reads))
           if (home) home.push(c)
           else classes.push([c])
         }
         for (const cls of classes) {
-          // D30: damage taken breaks a tie; then the earlier candidate.
-          const best = cls.reduce((a, b) => (takenMean(b, n) < takenMean(a, n) ? b : a))
+          // D30: the goal's tie-break decides (the least damage taken; for defense the most TPS), then the earlier candidate.
+          const best = cls.reduce((a, b) => (tieMean(b, n) > tieMean(a, n) ? b : a))
           keep.add(best)
           const others = cls.filter((c) => c !== best)
           if (others.length > 0) ties.set(best, others)
@@ -314,7 +321,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
     }
 
     // --- Leader, drops, and the stopping bar ---
-    const score = scorer(options.objective, baselineMeans(n))
+    const score = scorer(options.goal, baselineMeans(n))
     const scores = new Map(survivors.map((c) => [c, scoresOf(c, score, n)]))
     const mean = (c: number) => {
       const s = scores.get(c)!
@@ -330,7 +337,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
     const lead = survivors.reduce((a, b) => {
       const d = means.get(b)! - means.get(a)!
       if (d !== 0) return d > 0 ? b : a
-      return takenMean(b, n) < takenMean(a, n) ? b : a
+      return tieMean(b, n) > tieMean(a, n) ? b : a
     })
     leader = lead
     // The winner's curse: the leader is the best of many noisy means, so each comparison's bar is
@@ -358,7 +365,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
 
   // --- Standings, over each candidate's own fights, in the final baseline's units ---
   const base = baselineMeans(n)
-  const score = scorer(options.objective, base)
+  const score = scorer(options.goal, base)
   // A candidate has a standing only if it raced, and then the race has a leader.
   const lead = leader === null ? null : scoresOf(leader, score, n)
   const standing = (c: number): Standing => {

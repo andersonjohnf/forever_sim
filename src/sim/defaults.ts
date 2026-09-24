@@ -47,9 +47,8 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
-  // docs/classes/paladin.md#protection-defaults: 9/35/7, the guild's lead theorycrafter's build (2026-09-24), which
-  // keeps the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Deflection 5;
-  // Anticipation the preferred filler, Toughness optional, D30); the optimizer (O4) replaces it.
+  // docs/classes/paladin.md#protection-defaults: 9/35/7, the guild's lead theorycrafter's build (2026-09-24);
+  // the optimizer's result (O4) replaces it (D30).
   'paladin-protection': '240003-0530213321301551-502',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults

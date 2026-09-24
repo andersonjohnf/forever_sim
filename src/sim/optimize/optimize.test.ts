@@ -10,7 +10,6 @@ import { bossOutcomeShares } from '../core/attack-table'
 import { CRIT_IMMUNE, CRUSH_IMMUNE, defaultConstraints, effectiveHealth, formatConstraint, meetsSheet, parseConstraint, sheetValues } from './constraints'
 import { describeBuildChange } from './describe'
 import { type FightRunner, localFightRunner } from './fights'
-import { SURVIVAL_FLOOR } from './floor'
 import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate } from './optimize'
 import { SCREEN_JOB_FIGHTS, screenTalents } from './screen'
 import { brokenConstraints } from './talents'
@@ -23,13 +22,15 @@ const MAUL = 'druid.bear.maul.minRage'
 describe('screenTalents', () => {
   it('sorts the Protection warrior’s talents by what the sim measures', async () => {
     const config = fixed(defaultConfig('warrior-protection'))
-    const screen = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), objective: 'balanced', fights: 40 })
+    const screen = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), goal: 'balanced', fights: 40 })
     const role = (name: string) => screen.verdicts.find((v) => v.name === name)!
     // A talent the engine never reads leaves the plan alone: no fights needed to know.
     expect(role('Improved Hamstring')).toMatchObject({ role: 'none', planChanges: false })
     expect(role('Improved Shield Wall')).toMatchObject({ role: 'none', planChanges: false })
     // Toughness changes armor from items: damage taken, not threat (Forever's rage from hits is before mitigation).
-    expect(role('Toughness')).toMatchObject({ role: 'survival', planChanges: true, scoreChanges: false, takenChanges: true })
+    expect(role('Toughness')).toMatchObject({ role: 'tie-break', planChanges: true, scoreChanges: false, tieChanges: true })
+    // Less damage taken is a better tie-break, higher: Toughness's is above zero.
+    expect(role('Toughness').tieEffect!.mean).toBeGreaterThan(0)
     for (const name of ['Shield Slam', 'Defiance', 'Cruelty', 'Focused Rage']) expect(role(name).role).toBe('objective')
     expect(role('Defiance').effect!.mean).toBeGreaterThan(0)
     expect(screen.roles.size).toBe(screen.verdicts.length)
@@ -52,13 +53,13 @@ describe('screenTalents', () => {
         return zeros(count)
       },
     }
-    const screen = await screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 4 })
+    const screen = await screenTalents({ config, data: TALENT_DATA.warrior, runner, goal: 'balanced', fights: 4 })
     expect(most).toBe(2 * lanes)
     expect(started).toBe(screen.fights / 4)
     // Cancelled after 5 runs: the runs already in flight finish, and no more start.
     const controller = new AbortController()
     started = 0
-    const run = screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 4, signal: controller.signal, onProgress: (done) => done === 5 && controller.abort() })
+    const run = screenTalents({ config, data: TALENT_DATA.warrior, runner, goal: 'balanced', fights: 4, signal: controller.signal, onProgress: (done) => done === 5 && controller.abort() })
     await expect(run).rejects.toThrow(/cancelled/)
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(started).toBeLessThanOrEqual(5 + 2 * lanes)
@@ -77,15 +78,15 @@ describe('screenTalents', () => {
         return zeros(count)
       },
     }
-    const long = await screenTalents({ config, data: TALENT_DATA.warrior, runner, objective: 'balanced', fights: 3000 })
+    const long = await screenTalents({ config, data: TALENT_DATA.warrior, runner, goal: 'balanced', fights: 3000 })
     expect(Math.max(...counts)).toBe(SCREEN_JOB_FIGHTS)
     expect(counts.reduce((a, b) => a + b, 0)).toBe(long.fights)
     // Split into jobs of 7 fights or run whole, the screen's verdicts are the same.
-    const whole = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), objective: 'balanced', fights: 20, jobFights: 1000 })
-    const split = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), objective: 'balanced', fights: 20, jobFights: 7 })
+    const whole = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), goal: 'balanced', fights: 20, jobFights: 1000 })
+    const split = await screenTalents({ config, data: TALENT_DATA.warrior, runner: localFightRunner(), goal: 'balanced', fights: 20, jobFights: 7 })
     expect(split.verdicts).toEqual(whole.verdicts)
     expect(split.fights).toBe(whole.fights)
-  })
+  }, 60_000)
 })
 
 describe('optimize', () => {
@@ -100,15 +101,13 @@ describe('optimize', () => {
     const run = (capacity: number) =>
       optimize({ config: bear, talents: search, budget: { fights: 40_000, initialFights: 40 }, runner: localFightRunner(capacity), top: 5 })
     const a = await run(48)
-    expect(a.objective).toBe('balanced')
+    // A tank's default goal is Balanced (D30).
+    expect(a.goal).toBe('balanced')
+    expect(a.scoredGoal).toBe('balanced')
     expect(a.space!.builds).toBeGreaterThan(10)
     expect(a.candidates[0].talents).toBe(bear.talents)
-    // The survival floor is kept in every build (D30).
-    const floor = Object.keys(SURVIVAL_FLOOR['druid-feral-bear']!)
-    for (const c of a.candidates.slice(1)) {
-      const changes = describeBuildChange(TALENT_DATA.druid, bear.talents, c.talents)
-      for (const name of floor) expect(changes.some((x) => x.startsWith(`${name} `) && x.endsWith('→0'))).toBe(false)
-    }
+    // No talent is kept by name (D30): the space keeps only the tree's minimum.
+    expect(a.space).not.toHaveProperty('floor')
     expect(a.race.spent).toBeLessThanOrEqual(40_000)
     // Every reported result has its health and effective health (D30).
     for (const s of a.race.standings) expect(a.sheets[s.candidate].ehp).toBeGreaterThan(a.sheets[s.candidate].health)
@@ -121,17 +120,17 @@ describe('optimize', () => {
   it('searches the talents a constraint reads, and leaves out builds below the limit before any fight', async () => {
     const keepEhp = await optimize({
       config: bear,
-      talents: { ...search, floor: false },
+      talents: search,
       constraints: [{ stat: 'ehp', min: 1, relative: true }],
       budget: { fights: 20_000, initialFights: 20 },
       runner: localFightRunner(),
     })
-    // Without the floor Heart of the Wild is harmful (health costs a bear rage), but it changes
-    // effective health, which the limit reads, so it's searched rather than never taken.
+    // Heart of the Wild changes effective health, which the limit reads, so it's a dimension whatever
+    // the screen made of it: searched by what it changes on the sheet, not by its name.
     const hotw = keepEhp.screen!.verdicts.find((v) => v.name === 'Heart of the Wild')!
-    expect(hotw.role).toBe('harmful')
     expect(hotw.sheetStats).toContain('ehp')
-    expect(keepEhp.space!.constrained).toContain(hotw.id)
+    expect(keepEhp.space!.dimensions.map((d) => d.id)).toContain(hotw.id)
+    if (hotw.role !== 'objective') expect(keepEhp.space!.constrained).toContain(hotw.id)
     // Every build without it has less health than the default, so only builds with it race.
     expect(keepEhp.excluded.sheet).toBeGreaterThan(0)
     expect(keepEhp.candidates.length).toBeGreaterThan(1)
@@ -142,7 +141,7 @@ describe('optimize', () => {
   it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
     // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).
     const candidate = { talents: OLD_BEAR, rotation: {} }
-    const check = await confirm({ config: bear, candidate, objective: 'balanced', seed: 99, fights: 300, runner: localFightRunner() })
+    const check = await confirm({ config: bear, candidate, goal: 'balanced', seed: 99, fights: 300, runner: localFightRunner() })
     expect(check.fights).toBe(300)
     expect(check.vsBaseline.score.halfWidth).toBeGreaterThan(0)
     expect(check.clears).toBe(check.vsBaseline.score.mean - check.vsBaseline.score.halfWidth > 0)
@@ -240,19 +239,19 @@ describe('optimize', () => {
     expect(report.race.standings).toEqual([])
     expect(report.blocked).toHaveLength(1)
     expect(report.blocked[0]).toMatch(/^crit immune: no candidate reaches the defense it needs on this gear; the closest has \d+ defense, leaving the boss \d+\.\d\d% crit$/)
-    // The default keeps the floor (Anticipation left it for the preferred filler, D30) but breaks crit immunity itself.
+    // The default breaks crit immunity itself.
     expect(report.setupFails).toEqual(['crit immune'])
     expect(report.race.leader).toBeNull()
     expect(report.excluded.sheet).toBeGreaterThan(1000)
   }, 120_000)
 
   it('with no legal build fitting the talent constraints, it says so and lists them together (OV2-3)', async () => {
-    // Moonkin Form kept, beside the bear's floor and 31 in Feral Combat: no 51-point build fits.
+    // Moonkin Form kept (Balance's 31-point talent), beside 31 in Feral Combat: no 51-point build fits.
     const report = await optimize({ config: bear, talents: { screenFights: 10, keep: { 'Moonkin Form': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner() })
     expect(report.space!.builds).toBe(0)
     expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual([
-      'talents: no legal 51-point build fits the talent constraints together: the survival floor (Heart of the Wild 5, Thick Hide 3, Feral Swiftness 2); kept talents (Moonkin Form 1); at least 31 points in Feral Combat',
+      'talents: no legal 51-point build fits the talent constraints together: kept talents (Moonkin Form 1); at least 31 points in Feral Combat',
     ])
   }, 60_000)
 
@@ -266,7 +265,7 @@ describe('optimize', () => {
       runner: localFightRunner(),
     })
     expect(report.candidates).toEqual([setupCandidate(bear)])
-    expect(report.blocked).toEqual(["talents: no candidate keeps the talent constraints (the survival floor, kept and excluded talents, the trees' minimums): Ferocity taken"])
+    expect(report.blocked).toEqual(["talents: no candidate keeps the talent constraints (kept and excluded talents, the trees' minimums): Ferocity taken"])
   }, 60_000)
 
   it('names sheet constraints each met but never together (OV2-8)', async () => {
@@ -290,21 +289,60 @@ describe('optimize', () => {
     expect(report.blocked).toEqual([`no candidate meets armor>=${Math.max(...armor)} and armor<=${Math.min(...armor)} together, though each alone is met`])
   }, 120_000)
 
-  it('answers with the leader; the preferred filler is only the fill order, before Toughness (D30, step 6)', async () => {
+  it('answers with the leader, and keeps no talent by its name: the space is the screen’s alone (D30)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))
     const report = await optimize({ config: warrior, talents: { screenFights: 20 }, budget: { fights: 60_000, initialFights: 40 }, runner: localFightRunner(), top: 3 })
-    const talent = (name: string) => TALENT_DATA.warrior.trees.flatMap((t) => t.talents).find((t) => t.name === name)!.id
-    const anticipation = talent('Anticipation')
-    expect(report.space!.preferred).toBe(anticipation)
-    expect(report.space!.floor).not.toHaveProperty(anticipation)
-    const order = report.space!.fillOrder
-    expect(order).toContain(anticipation)
-    expect(order.indexOf(anticipation)).toBeLessThan(order.indexOf(talent('Toughness')))
+    // No talent is kept, and every dimension is an objective talent or one a constraint reads.
+    expect(report.space).not.toHaveProperty('floor')
+    expect(report.space).not.toHaveProperty('preferred')
+    const roles = new Map(report.screen!.verdicts.map((v) => [v.id, v]))
+    for (const d of report.space!.dimensions) expect(roles.get(d.id)!.role === 'objective' || report.space!.constrained.includes(d.id), d.name).toBe(true)
     // The answer is the leader, first in the standings.
     expect(report.race.leader).not.toBeNull()
     expect(report.race.standings[0].candidate).toBe(report.race.leader)
     expect(report.race.standings[0].state).toBe('leader')
   }, 120_000)
+
+  it('Defense: the screen reads damage taken, and the answer takes less of it than the default (D30, the goals)', async () => {
+    const warrior = fixed(defaultConfig('warrior-protection'))
+    const report = await optimize({ config: warrior, goal: 'defense', talents: { screenFights: 40 }, budget: { fights: 200_000, initialFights: 100 }, runner: localFightRunner(), top: 3 })
+    expect(report.goal).toBe('defense')
+    expect(report.scoredGoal).toBe('defense')
+    const verdict = (name: string) => report.screen!.verdicts.find((v) => v.name === name)!
+    // Toughness's armor lowers damage taken: for Defense it's objective, and its effect (minus the
+    // damage taken) is above zero. For Balanced it was a tie-break only (the screen's test above).
+    expect(verdict('Toughness').role).toBe('objective')
+    expect(verdict('Toughness').effect!.mean).toBeGreaterThan(0)
+    // Defiance changes threat but not damage taken: for Defense, TPS breaks a tie, so it's a tie-break talent.
+    expect(verdict('Defiance').role).toBe('tie-break')
+    expect(verdict('Defiance').tieEffect!.mean).toBeGreaterThan(0)
+    // The leader takes less damage than the default, and its score is minus its damage taken.
+    const lead = report.race.standings[0]
+    expect(lead.candidate).toBe(report.race.leader)
+    expect(lead.vsBaseline.taken.mean).toBeLessThan(0)
+    expect(lead.vsBaseline.score.mean).toBeCloseTo(-lead.vsBaseline.taken.mean, 9)
+    expect(describeBuildChange(TALENT_DATA.warrior, warrior.talents, report.candidates[lead.candidate].talents)).toContain('Toughness 1→5')
+    // Confirmed on a fresh seed, less damage taken clears the bar: the sign is the goal's.
+    const check = await confirm({ config: warrior, candidate: report.candidates[lead.candidate], goal: 'defense', seed: 77, fights: 400, runner: localFightRunner() })
+    expect(check.vsBaseline.score.mean).toBeCloseTo(-check.vsBaseline.taken.mean, 9)
+    expect(check.clears).toBe(check.vsBaseline.taken.mean + check.vsBaseline.taken.halfWidth < 0)
+  }, 240_000)
+
+  it('Defense is a tank’s goal, and Balanced for a DPS spec scores DPS (D30, the goals)', async () => {
+    const fury = fixed(defaultConfig('warrior-fury'))
+    await expect(optimize({ config: fury, goal: 'defense', rotations: [], budget: { fights: 1_000, initialFights: 10 }, runner: localFightRunner() })).rejects.toThrow(/Defense goal is for a tank/)
+    const report = await optimize({ config: fury, goal: 'balanced', budget: { fights: 1_000, initialFights: 10 }, runner: localFightRunner() })
+    expect(report.goal).toBe('balanced')
+    expect(report.scoredGoal).toBe('dps')
+  }, 60_000)
+
+  it('TPS: the answer has at least the default’s TPS (D30, the goals)', async () => {
+    const report = await optimize({ config: bear, goal: 'tps', talents: search, budget: { fights: 40_000, initialFights: 100 }, runner: localFightRunner(), top: 3 })
+    expect(report.scoredGoal).toBe('tps')
+    const lead = report.race.standings[0]
+    expect(lead.vsBaseline.score).toEqual(lead.vsBaseline.tps)
+    expect(lead.mean.score).toBeCloseTo(lead.mean.tps, 9)
+  }, 60_000)
 
   it('a rotation search races the start’s own rotation beside its variants, each setup once (O1-1)', async () => {
     const start = { talents: bear.talents, rotation: { [MAUL]: 30 } }
@@ -363,7 +401,7 @@ describe('optimize', () => {
     expect(passes[1].candidates).toContainEqual(winners[0])
     expect(winners[1]).toEqual(winners[0])
     // The final answer is never worse than any pass's winner, on the same fresh seed.
-    const check = (candidate: (typeof winners)[number]) => confirm({ config: old, candidate, objective: 'balanced', seed: 4242, fights: 400, runner: localFightRunner() })
+    const check = (candidate: (typeof winners)[number]) => confirm({ config: old, candidate, goal: 'balanced', seed: 4242, fights: 400, runner: localFightRunner() })
     const final = await check(winners[winners.length - 1])
     for (const w of winners) {
       const c = await check(w)

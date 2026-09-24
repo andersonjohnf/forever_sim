@@ -64,7 +64,8 @@ describe('talentSpace', () => {
   it('keeps kept talents with their prerequisites, never takes excluded or harmful ones', () => {
     const space = talentSpace({
       data: warrior,
-      roles: roles(['Cruelty', 'Unbridled Wrath', 'Shield Slam', 'Bastion'], { Toughness: 'harmful', Deflection: 'survival' }),
+      roles: roles(['Cruelty', 'Unbridled Wrath', 'Shield Slam', 'Bastion'], { Toughness: 'harmful', Deflection: 'tie-break' }),
+      tieValues: new Map([[id('Deflection'), 0.4]]),
       keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 },
       exclude: [id('Unbridled Wrath')],
       minPoints: { Protection: 31 },
@@ -78,7 +79,7 @@ describe('talentSpace', () => {
       expect(rank(code, 'Toughness')).toBe(0)
     }
     expectLegal(space.builds.map((b) => b.code))
-    // Survival-only talents are the first fillers.
+    // A talent that helps the goal's tie-break is a first filler.
     expect(space.fillOrder.indexOf(id('Deflection'))).toBeLessThan(space.fillOrder.indexOf(id('Booming Voice')))
   })
 
@@ -111,9 +112,9 @@ describe('talentSpace', () => {
     const objective = MODELLED.filter((n) => n !== 'Toughness')
     const withFive = (space: ReturnType<typeof talentSpace>) => space.builds.filter((b) => rank(b.code, 'Toughness') === 5).length
     // As a filler, Toughness gets only leftover points.
-    const filler = talentSpace({ ...base, roles: roles(objective, { Toughness: 'survival' }) })
+    const filler = talentSpace({ ...base, roles: roles(objective, { Toughness: 'tie-break' }) })
     // Read by a constraint (armor, effective health), it's a dimension: builds with it and without.
-    const searched = talentSpace({ ...base, roles: roles(objective, { Toughness: 'survival' }), constrained: new Set([id('Toughness')]) })
+    const searched = talentSpace({ ...base, roles: roles(objective, { Toughness: 'tie-break' }), constrained: new Set([id('Toughness')]) })
     expect(new Set(searched.builds.map((b) => rank(b.code, 'Toughness')))).toContain(0)
     expect(withFive(searched)).toBeGreaterThan(withFive(filler))
     expect(searched.dimensions.map((d) => d.name)).toContain('Toughness')
@@ -136,109 +137,52 @@ describe('talentSpace', () => {
     expectLegal(negative.builds.map((b) => b.code))
   })
 
-  it('gives leftover points to the preferred filler after the partial ranks and before the fillers, whatever its role (D30)', () => {
-    // Shield Slam's 31 points in Protection, and 20 left over: Anticipation takes 5 of them before
-    // Toughness, a survival filler, even screened as harmful or as a dimension below zero.
-    const base = { data: warrior, minPoints: { Protection: 31 }, preferTree: 'Protection' }
-    const anticipation = [id('Anticipation')]
-    const plain = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival', Anticipation: 'harmful' }) })
-    expect(plain.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([0])
-    for (const role of ['harmful', 'survival', 'none'] as const) {
-      const space = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival', Anticipation: role }), preferred: anticipation })
-      expect(space.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([5])
-      expect(space.fillOrder.indexOf(id('Anticipation'))).toBeLessThan(space.fillOrder.indexOf(id('Toughness')))
-      expectLegal(space.builds.map((b) => b.code))
-    }
-    // As a dimension screened below zero, builds with and without it race, and leftover points go to it.
-    const dim = talentSpace({ ...base, roles: roles(['Shield Slam', 'Anticipation'], { Toughness: 'survival' }), values: new Map([[id('Anticipation'), -0.05]]), preferred: anticipation })
-    expect(new Set(dim.builds.map((b) => rank(b.code, 'Anticipation')))).toEqual(new Set([5]))
-    expect(dim.fillOrder.slice(0, 2)).toEqual([id('Shield Slam'), id('Anticipation')])
-    // After an objective talent's partial ranks: Arms at 47 leaves 4 points in Fury's first tier and
-    // Protection's; Cruelty's partial ranks come first.
-    const arms = talentSpace({ data: warrior, roles: roles(['Cruelty']), values: new Map([[id('Cruelty'), 1]]), minPoints: { Arms: 47 }, preferred: anticipation })
-    expect(arms.builds.map((b) => [rank(b.code, 'Cruelty'), rank(b.code, 'Anticipation')])).toEqual([[4, 0]])
-    // Before Toughness even when a constraint makes Toughness a dimension (the effective-health floor).
-    const floor = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), constrained: new Set([id('Toughness')]), preferred: anticipation })
-    expect(floor.fillOrder.indexOf(id('Anticipation'))).toBeLessThan(floor.fillOrder.indexOf(id('Toughness')))
-    expect(new Set(floor.builds.map((b) => rank(b.code, 'Anticipation')))).toEqual(new Set([5]))
-    expect(new Set(floor.builds.map((b) => rank(b.code, 'Toughness')))).toContain(5)
-    // Kept or excluded, it's left alone.
-    const kept = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), keep: { [id('Anticipation')]: 2 }, preferred: anticipation })
-    expect(kept.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([2])
-    const out = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), exclude: anticipation, preferred: anticipation })
-    expect(out.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([0])
+  it('orders the fillers by their measured tie-break: those that help it first, the most a point first; those that hurt it last (D30)', () => {
+    // Shield Slam's 31 points in Protection leave 20. Three tie-break talents with measured values
+    // (for Balanced, less damage taken a second a point): whichever helps most takes points first,
+    // whatever its name, and the one that hurts the tie-break comes after every talent with none.
+    const base = { data: warrior, roles: roles(['Shield Slam'], { Toughness: 'tie-break', Anticipation: 'tie-break', Deflection: 'tie-break' }), minPoints: { Protection: 31 }, preferTree: 'Protection' }
+    const order = (space: ReturnType<typeof talentSpace>, names: string[]) => names.map((n) => space.fillOrder.indexOf(id(n)))
+    const anticipationFirst = talentSpace({ ...base, tieValues: new Map([[id('Anticipation'), 0.5], [id('Toughness'), 0.2], [id('Deflection'), -0.3]]) })
+    const [a, t, bloodrage, d] = order(anticipationFirst, ['Anticipation', 'Toughness', 'Improved Bloodrage', 'Deflection'])
+    expect(a).toBeLessThan(t)
+    expect(t).toBeLessThan(bloodrage)
+    expect(bloodrage).toBeLessThan(d)
+    expect(anticipationFirst.builds).toHaveLength(1)
+    const code = anticipationFirst.builds[0].code
+    expect([rank(code, 'Anticipation'), rank(code, 'Toughness'), rank(code, 'Deflection')]).toEqual([5, 5, 0])
+    expectLegal([code])
+    // The same talents with the values swapped: Toughness first. No talent is preferred by name.
+    const toughnessFirst = talentSpace({ ...base, tieValues: new Map([[id('Anticipation'), 0.2], [id('Toughness'), 0.5], [id('Deflection'), -0.3]]) })
+    const [a2, t2] = order(toughnessFirst, ['Anticipation', 'Toughness'])
+    expect(t2).toBeLessThan(a2)
   })
 
-  it('keeps a build with the preferred filler and no Toughness when 5–9 points are left over, whatever the filler’s role (OV3-1, OV4-1)', () => {
-    // A Protection build kept whole (34 points with its prerequisites), and Arms filled to its
-    // minimum: 51 − 34 − arms points are left over. Toughness is a dimension only because the
-    // effective-health floor reads it, so it has no screened value and isn't a raise: the build
-    // without it keeps its spare points for Anticipation, which takes 5 of them before Toughness
-    // takes the rest (the fill order). Toughness takes core ranks only beside Anticipation 5, which
-    // doesn't fit in 9 points, so that's the only build (OV4-1).
-    const protection = {
-      'Shield Specialization': 5, 'Improved Thunder Clap': 3, 'Last Stand': 1, 'Master of Defense': 2, 'Improved Revenge': 3, Defiance: 3,
-      'Improved Sunder Armor': 3, 'Improved Shield Wall': 2, Bastion: 5, 'Focused Rage': 3, 'Shield Slam': 1,
-    }
-    const keep = Object.fromEntries(Object.entries({ ...protection, Deflection: 5 }).map(([n, r]) => [id(n), r]))
-    for (const left of [5, 6, 7, 8, 9]) {
-      for (const role of ['objective', 'none', 'harmful'] as const) {
-        const space = talentSpace({
-          data: warrior,
-          roles: roles([], { Toughness: 'survival', Anticipation: role }),
-          keep,
-          minPoints: { Protection: 31, Arms: 51 - 34 - left },
-          constrained: new Set([id('Toughness')]),
-          preferred: [id('Anticipation')],
-          preferTree: 'Protection',
-        })
-        expectLegal(space.builds.map((b) => b.code))
-        const pairs = space.builds.map((b) => [rank(b.code, 'Anticipation'), rank(b.code, 'Toughness')])
-        expect(pairs, `${left} left over, Anticipation ${role}`).toEqual([[5, left - 5]])
-      }
-    }
-  })
-
-  it('races builds with the preferred filler at max rank even when screened harmful, beside the objective talents’ partial ranks (OV3-1, OV4-1)', () => {
-    // The warrior's modelled talents objective, Anticipation harmful: the objective talents' partial
-    // ranks take every leftover point, so as a filler alone it would never get one. As a dimension,
-    // builds with it and without it race, and Toughness (for the effective-health floor) beside
-    // Anticipation 5, never in its place (OV4-1).
-    const base = {
-      data: warrior,
-      roles: roles(MODELLED.filter((n) => n !== 'Anticipation'), { Toughness: 'survival', Anticipation: 'harmful' }),
-      keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2, [id('Deflection')]: 5 },
-      minPoints: { Protection: 31 },
-      constrained: new Set([id('Toughness')]),
-      preferTree: 'Protection',
-    }
-    const kinds = (space: ReturnType<typeof talentSpace>) => new Set(space.builds.map((b) => `A${rank(b.code, 'Anticipation')}/T${rank(b.code, 'Toughness')}`))
-    expect(kinds(talentSpace(base))).not.toContain('A5/T0')
-    const space = talentSpace({ ...base, preferred: [id('Anticipation')] })
-    expect(space.dimensions.map((d) => d.name)).toContain('Anticipation')
-    for (const kind of ['A5/T0', 'A5/T5', 'A0/T0']) expect(kinds(space)).toContain(kind)
-    for (const b of space.builds) if (rank(b.code, 'Toughness') > 0) expect(rank(b.code, 'Anticipation'), b.code).toBe(5)
-    expectLegal(space.builds.slice(0, 200).map((b) => b.code))
-  })
-
-  it('never races a Toughness-over-Anticipation twin: Toughness takes core ranks only beside Anticipation 5 (OV4-1)', () => {
+  it('treats every talent alike: the Toughness-over-Anticipation builds the preferred filler cut race again (OV5-1)', () => {
     // The fourth verification's repro: the default Protection warrior with every talent kept but
     // Anticipation and Toughness, and the Arms and Fury talents it lacks excluded. Toughness is a
-    // dimension only for the effective-health floor, and screens at zero, Anticipation below it, so
-    // a Toughness-5, Anticipation-1 twin of the default won the race. D30 fills Anticipation first:
-    // the space is the default alone, whatever the screen made of Anticipation.
+    // dimension for the effective-health floor, and Anticipation an objective talent whose screened
+    // effect is below zero (so not a raise). With no talent-specific rule, both builds race: the
+    // default (Anticipation 5, Toughness 1) and its twin (Anticipation 0, Toughness 5), which the
+    // preferred filler's narrowing (OV4-1) had left out; the race, not a name, decides.
     const DEFAULT = '35-05-552101233301210531'
     const ranks = decodeTalentCode(warrior, DEFAULT)
     const keep = Object.fromEntries(Object.entries(ranks).filter(([t]) => t !== id('Anticipation') && t !== id('Toughness')))
     const exclude = ['Unbridled Wrath', 'Improved Charge', 'Improved Thunder Clap', 'Boundless Rage', 'Anger Management', 'Deep Wounds', 'Impale', 'Weaponmaster', 'Enrage', 'Flurry', 'Precision', 'Improved Rend'].map((n) => id(n))
-    const base = { data: warrior, keep, exclude, minPoints: { Protection: 31 }, constrained: new Set([id('Toughness')]), preferred: [id('Anticipation')], preferTree: 'Protection' }
-    for (const [role, value] of [['objective', -0.067], ['objective', 0.08], ['harmful', undefined], ['none', undefined]] as const) {
-      const space = talentSpace({ ...base, roles: roles([], { Toughness: 'survival', Anticipation: role }), values: new Map(value === undefined ? [] : [[id('Anticipation'), value]]) })
-      expect(space.builds.map((b) => b.code), `Anticipation ${role} ${value ?? ''}`).toEqual([DEFAULT])
-    }
-    // With Anticipation kept or excluded, Toughness is a dimension like any other.
-    const out = talentSpace({ ...base, exclude: [...exclude, id('Anticipation')], roles: roles([], { Toughness: 'survival' }) })
-    expect(new Set(out.builds.map((b) => rank(b.code, 'Toughness')))).toContain(5)
+    const space = talentSpace({
+      data: warrior,
+      keep,
+      exclude,
+      minPoints: { Protection: 31 },
+      constrained: new Set([id('Toughness')]),
+      roles: roles(['Anticipation'], { Toughness: 'tie-break' }),
+      values: new Map([[id('Anticipation'), -0.067]]),
+      preferTree: 'Protection',
+    })
+    expectLegal(space.builds.map((b) => b.code))
+    const kinds = new Set(space.builds.map((b) => `A${rank(b.code, 'Anticipation')}/T${rank(b.code, 'Toughness')}`))
+    expect(space.builds.map((b) => b.code)).toContain(DEFAULT)
+    expect(kinds).toContain('A0/T5')
   })
 
   it('rejects contradictory constraints', () => {
@@ -259,14 +203,14 @@ describe('talentSpace', () => {
   it('counts the Protection space on the real tree, and every build is legal', () => {
     const space = talentSpace({
       data: warrior,
-      roles: roles(MODELLED, { Toughness: 'survival' }),
+      roles: roles(MODELLED, { Toughness: 'tie-break' }),
       keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 },
       minPoints: { Protection: 31 },
       preferTree: 'Protection',
     })
     expect(space.builds.length).toBe(COUNT_PROTECTION)
     expectLegal(space.builds.map((b) => b.code))
-    // Every build keeps the floor and the minimum; one with Shield Slam has its arrow.
+    // Every build keeps the kept talents and the minimum; one with Shield Slam has its arrow.
     for (const { code } of space.builds) {
       expect(rank(code, 'Last Stand') + rank(code, 'Improved Shield Wall')).toBe(3)
       if (rank(code, 'Shield Slam')) expect(rank(code, 'Concussion Blow')).toBe(1)

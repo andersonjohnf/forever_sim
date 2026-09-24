@@ -19,7 +19,7 @@ export function readFollowing(input: unknown): Partial<Record<SpecId, Following>
   const out: Partial<Record<SpecId, Following>> = {}
   if (typeof input !== 'object' || input === null || Array.isArray(input)) return out
   for (const [spec, value] of Object.entries(input as Record<string, unknown>)) {
-    if (!(spec in SPEC_META) || typeof value !== 'object' || value === null) continue
+    if (!Object.hasOwn(SPEC_META, spec) || typeof value !== 'object' || value === null) continue
     const { gear, talents } = value as { gear?: unknown; talents?: unknown }
     if (!Array.isArray(gear) || typeof talents !== 'boolean') continue
     out[spec as SpecId] = { gear: GEAR_SLOTS.filter((slot) => gear.includes(slot)), talents }

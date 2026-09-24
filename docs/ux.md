@@ -103,7 +103,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
     and paladins) swap for First Sergeant's Plate Bracers (warriors). The swap happens out of
     sight, on the Gear tab, so a notice names the new items. An item with no twin stays, and the
-    notice says so.
+    notice says so. A slot still holding the spec's default takes the new race's default instead
+    ([architecture, "Following the defaults"](architecture.md#following-the-defaults)), so an
+    untouched set stays the default set: a Horde paladin gets the Horde threat set's own pieces,
+    and the notice says where they're from ("Swapped 4 items for Horde gear": "Premier Scaled
+    Shoulders, …, from the Horde threat set.").
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -811,6 +815,13 @@ Every view handles these states:
   than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`). It says what makes
   room as the Setups sheet does: deleting saved setups, or with none shown, that the storage is
   full of something else and clearing the site's data makes room.
+- **What you never changed follows the defaults.** A gear slot or talent build that still holds
+  the spec's default when the setup is saved takes the newer default on the next visit; what you
+  changed stays yours ([architecture, "Following the defaults"](architecture.md#following-the-defaults)).
+  A visit that moved anything says so once, naming the spec, the current one first: "Updated to
+  the new default gear and talents for Protection Paladin", "Anything you changed yourself is
+  kept." (two specs are both named; more read "Protection Warrior and 2 other specs"). The next
+  visit says nothing. Share links, codes and saved setups are deliberate, so they're never moved.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -829,7 +840,8 @@ Every view handles these states:
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
-    (on the Gear tab), and a setup saved, loaded, deleted or imported ([Setups](#setups)). A
+    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, and a
+    setup saved, loaded, deleted or imported ([Setups](#setups)). A
     change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
     readers still hear it ([Accessibility](#accessibility)). Setups' **Copy setup code** and
     **Download all setups** say what they did in a line under their buttons instead, since a

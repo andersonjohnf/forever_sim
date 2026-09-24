@@ -74,6 +74,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'hunter-survival': '-00505515-55005003124000005',
 }
 
+/** The spec's default talent build (DEFAULT_TALENTS). */
+export const defaultTalents = (spec: SpecId): string => DEFAULT_TALENTS[spec]
+
 /** docs/classes/hunter.md#71-talents: Marksmanship 10/41/0 without Lone Wolf, fighting with its cat. */
 const HUNTER_MARKSMANSHIP_PET = '5023-1053552501503051-'
 

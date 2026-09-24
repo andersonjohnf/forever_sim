@@ -23,7 +23,7 @@ const fresh = (spec: SimConfig['spec'], race?: string): SimConfig => {
   const config = normalizeConfig(defaultConfig(spec)).config
   return race ? { ...config, race } : config
 }
-const LINK = 'https://andersonjohnf.github.io/forever_sim/#s='
+const LINK = 'https://sim.decades.gg/#s='
 
 // docs/ux.md#setups: Import takes a setup code, or a share link, which is anything with #s=….
 describe('finding the code in what was pasted', () => {

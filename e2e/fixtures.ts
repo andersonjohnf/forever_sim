@@ -8,7 +8,7 @@ const PIXEL = Buffer.from(
 
 /**
  * Every test fails if the page logs a console error, throws, or gets an HTTP error for any
- * request (e.g. an asset missing the /forever_sim/ base path).
+ * request (e.g. an asset missing the base path).
  */
 export const test = base.extend<{ pageProblems: string[] }>({
   pageProblems: [

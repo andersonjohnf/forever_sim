@@ -108,7 +108,7 @@ test.describe('Share button', () => {
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const link = await page.evaluate(() => (window as unknown as { copied: Promise<string>[] }).copied[0])
-    expect(link).toContain('/forever_sim/#s=')
+    expect(link).toContain('/#s=')
   })
 
   test('says so when the browser refuses the clipboard', async ({ page }) => {

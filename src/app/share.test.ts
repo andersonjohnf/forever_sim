@@ -80,23 +80,23 @@ describe('share links', () => {
   it('clears the link from the URL before decoding it, so a bad one can’t fail again on reload', async () => {
     const replaceState = vi.fn()
     vi.stubGlobal('history', { replaceState })
-    vi.stubGlobal('location', { hash: `#s=${'A'.repeat(MAX_LINK_CHARS + 1)}`, pathname: '/forever_sim/', search: '?x=1' })
+    vi.stubGlobal('location', { hash: `#s=${'A'.repeat(MAX_LINK_CHARS + 1)}`, pathname: '/', search: '?x=1' })
     const reading = readSharedSetup()
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/forever_sim/?x=1')
+    expect(replaceState).toHaveBeenCalledWith(null, '', '/?x=1')
     await expect(reading).rejects.toBeInstanceOf(BrokenShareLinkError)
   })
 
   it('leaves a URL without a link alone', async () => {
     const replaceState = vi.fn()
     vi.stubGlobal('history', { replaceState })
-    vi.stubGlobal('location', { hash: '#other', pathname: '/forever_sim/', search: '' })
+    vi.stubGlobal('location', { hash: '#other', pathname: '/', search: '' })
     expect(await readSharedSetup()).toBeUndefined()
     expect(replaceState).not.toHaveBeenCalled()
   })
 
   it('reads a link whose JSON is null as null, not as no link', async () => {
     vi.stubGlobal('history', { replaceState: vi.fn() })
-    vi.stubGlobal('location', { hash: `#s=${await packSetup(null as unknown as SimConfig)}`, pathname: '/forever_sim/', search: '' })
+    vi.stubGlobal('location', { hash: `#s=${await packSetup(null as unknown as SimConfig)}`, pathname: '/', search: '' })
     expect(await readSharedSetup()).toBeNull()
   })
 })

@@ -70,8 +70,9 @@ function slimData(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Served from https://andersonjohnf.github.io/forever_sim/ on GitHub Pages.
-  base: '/forever_sim/',
+  // Served from the root of https://sim.decades.gg/, GitHub Pages' custom domain. The old
+  // https://andersonjohnf.github.io/forever_sim/ redirects there, keeping a link's #s= setup.
+  base: '/',
   // No SPA fallback: like GitHub Pages, unknown paths 404 instead of serving index.html, so
   // dev, preview and e2e runs surface missing assets. Use hash routing if routing is needed.
   appType: 'mpa',

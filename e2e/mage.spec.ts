@@ -234,7 +234,7 @@ test.describe('Mage', () => {
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const url = await page.evaluate(() => navigator.clipboard.readText())
-    expect(url).toContain('/forever_sim/#s=')
+    expect(url).toContain('/#s=')
 
     // A fresh browser that has only ever seen the Fury warrior.
     const other = await (await context.browser()!.newContext()).newPage()

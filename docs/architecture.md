@@ -7,9 +7,10 @@ simulation runs in the visitor's browser.
 
 - **Build:** Vite 8, React 19, TypeScript 6, Tailwind CSS v4, shadcn/ui (Radix base, Nova
   preset, Lucide icons), oxlint, Vitest.
-- **Hosting:** GitHub Pages at `https://andersonjohnf.github.io/forever_sim/`, deployed by
-  `.github/workflows/deploy.yml` on every push to `main`. The Vite `base` is
-  `/forever_sim/`. Use `import.meta.env.BASE_URL` for runtime asset URLs. If routing is ever
+- **Hosting:** GitHub Pages on the custom domain `https://sim.decades.gg/` (a CNAME to
+  `andersonjohnf.github.io`), deployed by `.github/workflows/deploy.yml` on every push to
+  `main`. The old `https://andersonjohnf.github.io/forever_sim/` redirects there, keeping a
+  shared link's `#s=` setup. The Vite `base` is `/`. Use `import.meta.env.BASE_URL` for runtime asset URLs. If routing is ever
   needed, use hash routing, because Pages can't rewrite deep links.
 
 ## Layout
@@ -463,7 +464,7 @@ A spec is data plus small ability modules, never its own loop.
 - **Data integrity:** schema and count checks over `src/data` (e.g. no unrendered `$` tooltip
   variables, expected spell and talent counts).
 - **End to end:** Playwright drives headless Chromium against the production build, served
-  by `vite preview` under `/forever_sim/`, exactly as deployed (`e2e/`, `npm run test:e2e`). A
+  by `vite preview` at the root, exactly as deployed (`e2e/`, `npm run test:e2e`). A
   shared fixture fails any test with a console error, an uncaught exception, or an HTTP error.
   Vite runs with `appType: 'mpa'`, so missing assets 404 as they would on GitHub Pages instead
   of falling back to `index.html`. For quick visual checks, `npm run snap` screenshots a page

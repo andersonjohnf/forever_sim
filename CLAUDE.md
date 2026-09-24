@@ -103,7 +103,7 @@ npm run dev | build | preview
 npm run lint          # oxlint
 npm run typecheck     # tsc -b
 npm test              # vitest run (unit + data-integrity tests in src/)
-npm run test:e2e      # Playwright, headless Chromium, against the production build under /forever_sim/
+npm run test:e2e      # Playwright, headless Chromium, against the production build, served at / as deployed
 npm run test:smoke    # the smoke suite the deploy runs: vitest.smoke.config.ts + e2e tagged @smoke
 npm run test:full     # lint, typecheck, every unit and e2e test: before every push
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
@@ -145,8 +145,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
 - **UI** uses shadcn/ui: `npx shadcn@latest add <component>`. Avoid hand-editing
   `src/components/ui/*`. `cn` comes from the `cn` npm package (shadcn's official
   clsx + tailwind-merge replacement), not a typo.
-- **GitHub Pages:** the Vite `base` is `/forever_sim/`. Use `import.meta.env.BASE_URL` for
-  runtime asset URLs and hash routing if routing is ever needed.
+- **GitHub Pages** on the custom domain https://sim.decades.gg/: the Vite `base` is `/`. Use
+  `import.meta.env.BASE_URL` for runtime asset URLs and hash routing if routing is ever needed.
 - **Scrapers** (`scripts/scrape/`) fetch only client files from the wago.tools API and table
   definitions from WoWDBDefs on GitHub, sequentially with delays. They cache under
   `.cache/client/` and regenerate byte-identical data from the cache with zero requests. Zero

@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test'
 // dev or preview server you may already have running; E2E_PORT overrides it so two checkouts
 // (e.g. a git worktree) can run e2e at the same time.
 const PORT = Number(process.env.E2E_PORT ?? 4179)
-const BASE_PATH = '/forever_sim/'
+const BASE_PATH = '/'
 
 export default defineConfig({
   testDir: './e2e',

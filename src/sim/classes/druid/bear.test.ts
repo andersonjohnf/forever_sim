@@ -372,9 +372,9 @@ describe('the default bear’s plan', () => {
     // The Buffs tab's Faerie Fire is left out: the boss's static armor keeps Sunder Armor and Curse
     // of Recklessness only (3,731 − 2,250 − 505).
     expect(plan.fight.targetArmor).toBe(976)
-    // Its preset takes the attack-power group with the bear's own roar, so no Demoralizing Shout.
-    expect(defaultConfig('druid-feral-bear').buffs.enabled).toContain('demoralizingRoar')
-    expect(defaultConfig('druid-feral-bear').buffs.enabled).not.toContain('demoralizingShout')
+    // Its duties are its own, in no preset, and its preset has no warrior tank's Demoralizing Shout
+    // (D26's amendment, BU3).
+    for (const id of ['demoralizingRoar', 'faerieFire', 'demoralizingShout']) expect(defaultConfig('druid-feral-bear').buffs.enabled).not.toContain(id)
     expect(plan.fight.bossSwing!.minDamage).toBe(4500)
   })
 

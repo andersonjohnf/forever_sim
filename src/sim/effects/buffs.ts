@@ -34,9 +34,9 @@ const PROTECTION_PALADIN: SpecId[] = ['paladin-protection']
 /** Mana and spell damage do something for the paladin only among the classes in scope. */
 const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 /**
- * A warrior tank's Thunder Clap and Demoralizing Shout are in no preset (buffs doc §6.2; D26's
- * amendment): a Protection warrior's are its own duties (SpecMeta.ownBuffs), and a bear's or a
- * Protection paladin's raid has no warrior tank's unless you add them in Buffs.
+ * A tank's duties are in no preset (buffs doc §6.2; D26's amendment): a warrior tank's Thunder Clap
+ * and Demoralizing Shout, a Protection warrior's own (SpecMeta.ownBuffs), so a bear's or a Protection
+ * paladin's raid has none unless you add them in Buffs; and a bear's Demoralizing Roar, its own.
  */
 const NOT_IN_PRESETS: BuffSpec['presets'] = {}
 /**
@@ -437,8 +437,8 @@ export const BUFFS: BuffSpec[] = [
     classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
     presets: { max: 'all' },
   },
-  // A Feral bear keeps its own Demoralizing Roar up (docs/classes/druid.md §6.3), so its presets take
-  // the `ap-reduction` group with it: it comes first, and no other spec's preset reaches it.
+  // A Feral bear's duty (docs/classes/druid.md §6.3), which it keeps up itself (SpecMeta.ownBuffs), so
+  // no preset has it; turned on here, it's another druid's.
   {
     id: 'demoralizingRoar',
     name: 'Demoralizing Roar',
@@ -451,7 +451,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#42-other-debuffs`,
     effects: (p) => [{ kind: 'bossAp', value: -p.values.demoralizingRoarAp }],
     classicEra: { summary: '−138 boss attack power' },
-    presets: { raid: ['druid-feral-bear'], max: ['druid-feral-bear'] },
+    presets: NOT_IN_PRESETS,
   },
   {
     id: 'demoralizingShout',

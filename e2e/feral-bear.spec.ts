@@ -40,6 +40,26 @@ test.describe('Feral bear (preview)', () => {
     await expect(page.getByText('−204 boss attack power. You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
   })
 
+  test('with its roar off, the Buffs tab’s is off and unlocked, for another druid’s; without another druid it needs one (BU3, BU14)', async ({ page }) => {
+    await page.goto(BEAR)
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('switch', { name: 'Demoralizing Roar', exact: true }).click()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+    // A duty is the bear's own, in no preset: off by default once its rotation drops it.
+    await expect(roar).not.toBeChecked()
+    await expect(roar).toBeEnabled()
+    await expect(roar).toHaveAccessibleDescription(/You’re not keeping it up \(see Rotation\); turn this on if another druid does\./)
+    // No other druid in the raid: the roar needs one, and your own Mark of the Wild (Gift of the Wild) is still yours.
+    await buffs.getByRole('button', { name: 'Druid', exact: true }).click()
+    await expect(roar).toBeDisabled()
+    await expect(roar).toHaveAccessibleDescription('Needs another druid in the raid')
+    const mark = buffs.getByRole('switch', { name: 'Gift of the Wild', exact: true })
+    await expect(mark).toBeChecked()
+    await expect(mark).toBeEnabled()
+  })
+
   test('says why Lacerate does nothing while it waits for no other bleeds in a raid with warriors, as the cat’s Rake does (BU4)', async ({ page }) => {
     await page.goto(BEAR)
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()

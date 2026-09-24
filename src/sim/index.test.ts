@@ -337,13 +337,14 @@ describe('catalogues and presets', () => {
     }
   })
 
-  it('leaves a warrior tank’s Thunder Clap out of a bear’s presets: it keeps its own roar instead (D26)', () => {
-    for (const preset of ['raid', 'max'] as const) {
+  it('leaves a warrior tank’s Thunder Clap and Demoralizing Shout out of a bear’s presets, and its own duties out of every preset (D26, BU3)', () => {
+    for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) {
       const bear = presetBuffs(preset, 'druid-feral-bear', FULL_RAID)
-      expect(bear).not.toContain('thunderClap')
-      expect(bear).toContain('demoralizingRoar')
-      expect(bear).not.toContain('demoralizingShout')
+      for (const id of ['thunderClap', 'demoralizingShout', 'demoralizingRoar', 'faerieFire']) expect(bear, `${preset} ${id}`).not.toContain(id)
+      // The roar is a duty only a bear keeps: no spec's preset has it.
+      for (const spec of SPEC_IDS) expect(presetBuffs(preset, spec, FULL_RAID), `${preset} ${spec}`).not.toContain('demoralizingRoar')
     }
+    expect(getSpec('druid-feral-bear').ownBuffs).toEqual(['faerieFire', 'demoralizingRoar'])
   })
 
   it('follows composition, not faction', () => {

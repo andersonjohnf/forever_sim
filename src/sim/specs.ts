@@ -62,6 +62,8 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     name: 'Feral (Bear)',
     role: 'tank',
     icon: 'ability_racial_bearform',
+    // Its duties (D26; druid.md §6.3): the rotation keeps them on the boss.
+    ownBuffs: ['faerieFire', 'demoralizingRoar'],
   },
   'paladin-retribution': {
     id: 'paladin-retribution',

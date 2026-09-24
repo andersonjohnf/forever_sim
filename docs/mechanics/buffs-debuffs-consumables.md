@@ -641,7 +641,9 @@ Demoralizing Shout are its own the way a cat's Faerie Fire is, its duties
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
 the presets leave their toggles off, its rotation keeps them up, and a rotation that drops them
 (Max TPS) leaves the boss without them unless you turn a toggle on for another warrior's
-([warrior §5.4](../classes/warrior.md#54-protection-tps)).
+([warrior §5.4](../classes/warrior.md#54-protection-tps)). A Feral bear's Faerie Fire and
+Demoralizing Roar are its own the same way ([druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)),
+and its raid has a warrior tank's Thunder Clap and Demoralizing Shout only if you turn them on.
 
 ### 6.2 Buffs and debuffs by preset
 
@@ -675,27 +677,29 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Mana Spring Totem | — | — | Pal | Pal |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
-| Faerie Fire | — | — | all (not the Feral cat's: see below) | all (the same) |
+| Faerie Fire | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness | — | — | all | all |
 | Curse of the Elements | — | — | Pal | Pal |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) | — | — | — | all |
 | Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
-| Demoralizing Roar | — | — | Feral bear, in place of Demoralizing Shout (self-applied: [druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)) | Feral bear |
+| Demoralizing Roar | — | — | — (the Feral bear's own duty: see below) | — |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
 | Camp buffs ([§1.3](#13-camp-buffs-new-forever-system)) | — | off (option: fill in for a missing class) | off (option) | off (option) |
 | World buffs | **never** | **never** | **never** | **never** |
 
 A buff a spec keeps up itself by default is that spec's own, and no preset adds it for the spec:
 the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-priority)), and a
-Protection warrior's Thunder Clap and Demoralizing Shout, and a Protection paladin's Devotion Aura,
-their duties ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23);
-[paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps)).
+tank's duties: a Protection warrior's Thunder Clap and Demoralizing Shout, a Protection paladin's
+Devotion Aura, and the Feral bear's Faerie Fire and Demoralizing Roar
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23);
+[paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps);
+[druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)).
 Its rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
 another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs"). Thunder Clap and
 Demoralizing Shout are in no preset for any spec: they're a warrior tank's, so a bear's or a
 Protection paladin's raid has them only if you add them there, as another warrior's (D26's
-amendment).
+amendment). The roar is a duty only a bear keeps, so it's in no preset either.
 
 Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
 (see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.

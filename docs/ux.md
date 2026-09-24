@@ -215,9 +215,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     locked, and its note says so instead: "Expose Armor takes its place on the boss, since only
     one applies; yours still makes its threat (untested)." The result lists the same assumption.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
-    Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a Protection warrior's Thunder
-    Clap and Demoralizing Shout, and a Protection paladin's Devotion Aura, their duties under
-    [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
+    Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a tank's duties under
+    [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
+    a Protection warrior's Thunder Clap and Demoralizing Shout, a Protection paladin's Devotion
+    Aura, and a bear's Faerie Fire and Demoralizing Roar, [druid §6.3](classes/druid.md#63-forever-bear-priority-tps)),
     so no preset turns them on. When the rotation drops one (a Protection warrior's Max TPS drops
     both of its own, a paladin's its Devotion Aura), its Buffs switch is off by default and
     unlocked, and its note says so: "You're not keeping it up (see Rotation); turn this on if

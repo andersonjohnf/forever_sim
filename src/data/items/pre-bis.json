@@ -4,16 +4,16 @@
     "classicProduct": "wow_classic_era",
     "counts": {
       "byTab": {
-        "changed": 357,
-        "missing": 753,
+        "changed": 365,
+        "missing": 761,
         "new": 328,
-        "unchanged": 214
+        "unchanged": 224
       },
-      "items": 1652,
+      "items": 1678,
       "sets": 102,
       "statsFrom": {
-        "classic": 753,
-        "forever": 899
+        "classic": 761,
+        "forever": 917
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 540
+      "rendered": 543
     },
     "fallbackEffects": {
-      "effectsFromForever": 111,
-      "items": 505,
-      "spells": 629,
-      "spellsFromForever": 629
+      "effectsFromForever": 112,
+      "items": 513,
+      "spells": 639,
+      "spellsFromForever": 639
     },
     "filter": {
       "equippableOnly": true,
@@ -149,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 72,
+      "addedByList": 98,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 210,
-      "listedItems": 210,
+      "inPool": 291,
+      "listedItems": 291,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -171,6 +171,36 @@
             "snapshot": "2021-05-18",
             "title": "Feral Druid DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-feral-druid-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "mage-arcane": {
+          "name": "Arcane Mage",
+          "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-15",
+            "title": "Classic Mage Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "mage-fire": {
+          "name": "Fire Mage",
+          "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear gets the Alliance counterpart at the same rank. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear",
+            "snapshot": "2021-02-15",
+            "title": "Mage DPS Pre-Raid Gear - WoW Classic - Icy Veins",
+            "url": "https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear"
+          }
+        },
+        "mage-frost": {
+          "name": "Frost Mage",
+          "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth gets the Alliance counterpart at the same rank. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-15",
+            "title": "Classic Mage Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear"
           }
         },
         "paladin-protection": {
@@ -3095,7 +3125,13 @@
       "name": "Crimson Felt Hat",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14798 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -3839,6 +3875,74 @@
       "armorType": "cloth",
       "binding": "BoP",
       "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 75,
+          "intellect": 25,
+          "spellCrit": 1,
+          "spellPower": 11,
+          "spirit": 14,
+          "stamina": 16
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["head"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_crown_02",
+      "id": 22065,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Cloth",
+      "name": "Sorcerer's Crown",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 20873,
+      "setId": "517",
+      "slot": "head",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 75,
+        "critRating": 14,
+        "intellect": 25,
+        "spellPower": 11,
+        "spirit": 14,
+        "stamina": 16
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
       "classic": null,
       "classicName": null,
       "equipSlots": ["head"],
@@ -3897,7 +4001,23 @@
       "name": "Spellweaver's Turban",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 18053, 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -4768,7 +4888,23 @@
       "name": "Champion's Silk Cowl",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -5273,7 +5409,23 @@
       "name": "Lieutenant Commander's Silk Cowl",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -6863,7 +7015,18 @@
       "name": "Star of Mystaria",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -8131,6 +8294,65 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
+      "icon": "inv_jewelry_necklace_16",
+      "id": 19426,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Orb of the Darkmoon",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 25000,
+      "setId": null,
+      "slot": "neck",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "spellPower": 22,
+        "spirit": 8,
+        "stamina": 11
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["neck"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
       "icon": "inv_jewelry_necklace_14",
       "id": 19491,
       "itemClass": "Armor",
@@ -9145,6 +9367,64 @@
     },
     {
       "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["neck"],
+      "flavor": "Arcane crystals are best utilized for the purposes of a mage.",
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_gem_topaz_01",
+      "id": 20037,
+      "itemClass": "Armor",
+      "itemLevel": 52,
+      "itemSubclass": "Miscellaneous",
+      "name": "Arcane Crystal Pendant",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9345 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": null,
+      "setId": null,
+      "slot": "neck",
+      "source": null,
+      "statSpellIds": [9345],
+      "stats": {
+        "intellect": 6,
+        "spellPower": 16
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
       "binding": "BoE",
       "classes": null,
       "classic": null,
@@ -9434,7 +9714,13 @@
       "name": "Nacreous Shell Necklace",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9415 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -9849,6 +10135,61 @@
       "statSpellIds": [],
       "stats": {
         "armor": 113
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["shoulder"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_shoulder_02",
+      "id": 11782,
+      "itemClass": "Armor",
+      "itemLevel": 57,
+      "itemSubclass": "Cloth",
+      "name": "Boreal Mantle",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 13831 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 12720,
+      "setId": null,
+      "slot": "shoulder",
+      "source": null,
+      "statSpellIds": [13831],
+      "stats": {
+        "armor": 61,
+        "frostSpellDamage": 29,
+        "intellect": 8,
+        "stamina": 5
       },
       "statsFrom": "classic",
       "tab": "missing",
@@ -12700,7 +13041,23 @@
       "name": "Burial Shawl",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14799 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -13587,7 +13944,13 @@
       "name": "Abyssal Cloth Amice",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -13969,7 +14332,18 @@
       "name": "Sorcerer's Mantle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -14925,7 +15299,13 @@
       "name": "Champion's Silk Mantle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -15431,7 +15811,13 @@
       "name": "Lieutenant Commander's Silk Mantle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -17196,7 +17582,13 @@
       "name": "Mageflame Cloak",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9298 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -17863,6 +18255,64 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_misc_cape_18",
+      "id": 18350,
+      "itemClass": "Armor",
+      "itemLevel": 61,
+      "itemSubclass": "Cloth",
+      "name": "Amplifying Cloak",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 56,
+      "requirements": [],
+      "sellPrice": 13063,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [9346],
+      "stats": {
+        "armor": 39,
+        "spellPower": 18
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_misc_cape_14",
       "id": 18382,
       "itemClass": "Armor",
@@ -18128,7 +18578,18 @@
       "name": "Heliotrope Cloak",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18384 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -18923,7 +19384,13 @@
       "name": "Crystalline Threaded Cape",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14799 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -20719,6 +21186,81 @@
     {
       "armorType": "cloth",
       "binding": "BoP",
+      "classes": ["Mage"],
+      "classic": {
+        "stats": {
+          "armor": 96,
+          "intellect": 12,
+          "spellCrit": 1,
+          "spellPower": 40
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_cloth_38",
+      "id": 14152,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Cloth",
+      "name": "Robe of the Archmage",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 57,
+      "requirements": [],
+      "sellPrice": 28815,
+      "setId": null,
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 96,
+        "critRating": 14,
+        "intellect": 12,
+        "spellPower": 40
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [
+        {
+          "cooldownSec": 300,
+          "raw": "Use: Restores 375 to 625 mana. (5 Min Cooldown)",
+          "spellId": 18385
+        }
+      ],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
       "classes": null,
       "classic": null,
       "classicName": null,
@@ -20734,7 +21276,18 @@
       "name": "Freezing Lich Robes",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 17902 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -23068,7 +23621,13 @@
       "name": "Bloodvine Vest",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -23485,7 +24044,13 @@
       "name": "Earthpower Vest",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -23570,6 +24135,74 @@
         "armor": 185,
         "hitRating": 20,
         "stamina": 15
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 93,
+          "intellect": 25,
+          "spellPenetration": 20,
+          "spellPower": 16,
+          "spirit": 9,
+          "stamina": 14
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_cloth_25",
+      "id": 22069,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Cloth",
+      "name": "Sorcerer's Robes",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 26269,
+      "setId": "517",
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 93,
+        "intellect": 25,
+        "spellPenetration": 5,
+        "spellPower": 16,
+        "spirit": 9,
+        "stamina": 14
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -28498,7 +29131,23 @@
       "name": "Sublime Wristguards",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9417 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -28975,6 +29624,67 @@
       "weaponType": null
     },
     {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["wrist"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_bracer_13",
+      "id": 19595,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Cloth",
+      "name": "Dryad's Wrist Bindings",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 17509,
+      "setId": null,
+      "slot": "wrist",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 44,
+        "intellect": 8,
+        "spellPower": 22,
+        "spirit": 7,
+        "stamina": 8
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
       "armorType": "leather",
       "binding": "BoE",
       "classes": null,
@@ -29288,6 +29998,75 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 42,
+          "spellHit": 1,
+          "spellPower": 27,
+          "stamina": 7
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["wrist"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_bracer_12",
+      "id": 21186,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Cloth",
+      "name": "Rockfury Bracers",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 14533,
+      "setId": null,
+      "slot": "wrist",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 42,
+        "hitRating": 10,
+        "spellPower": 27,
+        "stamina": 7
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -32042,7 +32821,18 @@
       "name": "Hands of Power",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18049 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -32247,6 +33037,60 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_05",
+      "id": 13870,
+      "itemClass": "Armor",
+      "itemLevel": 53,
+      "itemSubclass": "Cloth",
+      "name": "Frostweave Gloves",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 47,
+      "requirements": [],
+      "sellPrice": 5471,
+      "setId": null,
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 43,
+        "frostSpellDamage": 21,
+        "intellect": 6
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -34600,7 +35444,13 @@
       "name": "Inferno Gloves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -35617,7 +36467,13 @@
       "name": "Sandworm Skin Gloves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -35786,6 +36642,59 @@
       },
       "statsFrom": "forever",
       "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_24",
+      "id": 21318,
+      "itemClass": "Armor",
+      "itemLevel": 58,
+      "itemSubclass": "Cloth",
+      "name": "Earth Warder's Gloves",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 7444,
+      "setId": null,
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 47,
+        "spellPower": 22
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -36721,7 +37630,13 @@
           "spellId": 23037
         }
       ],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -37475,7 +38390,13 @@
           "spellId": 23037
         }
       ],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -39320,6 +40241,67 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_belt_29",
+      "id": 11662,
+      "itemClass": "Armor",
+      "itemLevel": 54,
+      "itemSubclass": "Cloth",
+      "name": "Ban'thok Sash",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9417 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 49,
+      "requirements": [],
+      "sellPrice": 7462,
+      "setId": null,
+      "slot": "waist",
+      "source": null,
+      "statSpellIds": [9417, 23727],
+      "stats": {
+        "armor": 43,
+        "intellect": 11,
+        "spellHit": 1,
+        "spellPower": 12,
+        "stamina": 10
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["waist"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_belt_11",
       "id": 11807,
       "itemClass": "Armor",
@@ -39920,7 +40902,23 @@
       "name": "Clutch of Andros",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -41960,7 +42958,18 @@
       "name": "Thuzadin Sash",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9416 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -42936,7 +43945,13 @@
       "name": "Highlander's Cloth Girdle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -43065,7 +44080,13 @@
       "name": "Defiler's Cloth Girdle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -47098,7 +48119,18 @@
       "name": "Skyshroud Leggings",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18052 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -47293,6 +48325,60 @@
       },
       "statsFrom": "classic",
       "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["legs"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_pants_08",
+      "id": 13871,
+      "itemClass": "Armor",
+      "itemLevel": 56,
+      "itemSubclass": "Cloth",
+      "name": "Frostweave Pants",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 51,
+      "requirements": [],
+      "sellPrice": 13436,
+      "setId": null,
+      "slot": "legs",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 63,
+        "frostSpellDamage": 26,
+        "spirit": 12
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -49674,6 +50760,56 @@
       "armorType": "cloth",
       "binding": "BoE",
       "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["legs"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_pants_06",
+      "id": 19165,
+      "itemClass": "Armor",
+      "itemLevel": 70,
+      "itemSubclass": "Cloth",
+      "name": "Flarecore Leggings",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 45006,
+      "setId": null,
+      "slot": "legs",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 94,
+        "fireResistance": 16,
+        "spellPower": 43,
+        "stamina": 21
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
       "classic": {
         "stats": {
           "armor": 80,
@@ -49697,7 +50833,13 @@
       "name": "Bloodvine Leggings",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -52143,7 +53285,23 @@
       "name": "Legionnaire's Silk Legguards",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -52703,7 +53861,23 @@
       "name": "Knight-Captain's Silk Legguards",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -54193,7 +55367,23 @@
       "name": "Omnicast Boots",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15714 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -54715,7 +55905,13 @@
       "name": "Fire Striders",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 13830 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -56766,7 +57962,18 @@
       "name": "Dragonrider Boots",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -57466,7 +58673,13 @@
       "name": "Bloodvine Boots",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -59914,7 +61127,18 @@
       "name": "Blood Guard's Silk Walkers",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -60385,7 +61609,18 @@
       "name": "Knight-Lieutenant's Silk Walkers",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -62165,6 +63400,64 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_jewelry_ring_07",
+      "id": 942,
+      "itemClass": "Armor",
+      "itemLevel": 52,
+      "itemSubclass": "Miscellaneous",
+      "name": "Freezing Band",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 9308, 18799 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Equip: When struck in combat has a 1% chance of inflicting 50 Frost damage to the attacker and freezing them for 5 sec.",
+          "spellId": 18799
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 47,
+      "requirements": [],
+      "sellPrice": 4500,
+      "setId": null,
+      "slot": "finger",
+      "source": null,
+      "statSpellIds": [9308],
+      "stats": {
+        "frostResistance": 10,
+        "frostSpellDamage": 21
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["finger"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_jewelry_ring_05",
       "id": 2246,
       "itemClass": "Armor",
@@ -62375,7 +63668,18 @@
       "name": "Songstone of Ironforge",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -62466,7 +63770,18 @@
       "name": "Eye of Orgrimmar",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -62552,7 +63867,13 @@
       "name": "Flaming Band",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 17866 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -64800,6 +66121,56 @@
       "armorType": null,
       "binding": "BoP",
       "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["finger"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_jewelry_ring_40",
+      "id": 21190,
+      "itemClass": "Armor",
+      "itemLevel": 66,
+      "itemSubclass": "Miscellaneous",
+      "name": "Wrath of Cenarius",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Equip: Gives a chance when your harmful spells land to increase the damage of your spells and effects by 132 for 10 sec.",
+          "spellId": 25906
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 188888,
+      "setId": null,
+      "slot": "finger",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
       "classic": {
         "stats": {
           "attackPower": 30,
@@ -65049,7 +66420,23 @@
       "name": "Rune Band of Wizardry",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9345 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -65092,7 +66479,23 @@
       "name": "Don Mauricio's Band of Domination",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 9416, 18384 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -66523,7 +67926,23 @@
       "name": "Burst of Knowledge",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 9417, 15646 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -66579,7 +67998,23 @@
           "spellId": 1301707
         }
       ],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -67036,7 +68471,23 @@
       "name": "Eye of the Beast",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 1318956, 1287840, 1318846 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -69059,7 +70510,13 @@
       "name": "Draconic Infused Emblem",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 1318931 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [
         {
           "raw": "Equip: Chance on harmful spellcast to increase your spell damage and healing by up to 35 for 10 sec. This spell damage increase is doubled against Dragonkin.",
@@ -69377,6 +70834,67 @@
       "weapon": null,
       "weaponSkill": null,
       "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_staff_13",
+      "id": 873,
+      "itemClass": "Weapon",
+      "itemLevel": 40,
+      "itemSubclass": "Staff",
+      "name": "Staff of Jordan",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18049 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 35,
+      "requirements": [],
+      "sellPrice": 21770,
+      "setId": null,
+      "slot": "twoHand",
+      "source": null,
+      "statSpellIds": [18049],
+      "stats": {
+        "intellect": 11,
+        "spellPower": 26,
+        "spirit": 11
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 40.4,
+        "max": 180,
+        "min": 119,
+        "school": "Physical",
+        "skill": "Staves",
+        "speed": 3.7
+      },
+      "weaponSkill": null,
+      "weaponType": "staff"
     },
     {
       "armorType": null,
@@ -71359,7 +72877,18 @@
       "name": "Rod of the Ogre Magi",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 18384, 14047 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -72176,6 +73705,88 @@
     },
     {
       "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 100,
+          "intellect": 10,
+          "spellCrit": 2,
+          "spellPower": 41,
+          "stamina": 19
+        },
+        "weapon": {
+          "dps": 61.5,
+          "max": 262,
+          "min": 156,
+          "school": "Physical",
+          "skill": "Staves",
+          "speed": 3.4
+        },
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_wand_04",
+      "id": 20069,
+      "itemClass": "Weapon",
+      "itemLevel": 65,
+      "itemSubclass": "Staff",
+      "name": "Ironbark Staff",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The League of Arathor",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The League of Arathor - Exalted"
+        }
+      ],
+      "sellPrice": 110199,
+      "setId": null,
+      "slot": "twoHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "bonusArmor": 100,
+        "critRating": 28,
+        "intellect": 10,
+        "spellPower": 94,
+        "stamina": 19
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 43.1,
+        "max": 176,
+        "min": 117,
+        "school": "Physical",
+        "skill": "Staves",
+        "speed": 3.4
+      },
+      "weaponSkill": null,
+      "weaponType": "staff"
+    },
+    {
+      "armorType": null,
       "binding": "BoE",
       "classes": null,
       "classic": null,
@@ -72646,7 +74257,13 @@
       "name": "Lord Valthalak's Staff of Command",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 14798, 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "twoHand",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -72862,7 +74479,13 @@
       "name": "Staff of Balzaphon",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 13881, 18384 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -74495,6 +76118,171 @@
       "armorType": null,
       "binding": "BoP",
       "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 40,
+          "spellCrit": 1,
+          "spellPower": 30,
+          "stamina": 8
+        },
+        "weapon": {
+          "dps": 47.4,
+          "max": 105,
+          "min": 56,
+          "school": "Physical",
+          "skill": "Daggers",
+          "speed": 1.7
+        },
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_sword_13",
+      "id": 20070,
+      "itemClass": "Weapon",
+      "itemLevel": 65,
+      "itemSubclass": "Dagger",
+      "name": "Sageclaw",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The League of Arathor",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The League of Arathor - Exalted"
+        }
+      ],
+      "sellPrice": 88472,
+      "setId": null,
+      "slot": "mainHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "bonusArmor": 40,
+        "critRating": 14,
+        "spellPower": 94,
+        "stamina": 8
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 28.8,
+        "max": 64,
+        "min": 34,
+        "school": "Physical",
+        "skill": "Daggers",
+        "speed": 1.7
+      },
+      "weaponSkill": null,
+      "weaponType": "dagger"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 40,
+          "spellCrit": 1,
+          "spellPower": 30,
+          "stamina": 8
+        },
+        "weapon": {
+          "dps": 47.4,
+          "max": 105,
+          "min": 56,
+          "school": "Physical",
+          "skill": "Daggers",
+          "speed": 1.7
+        },
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_sword_13",
+      "id": 20214,
+      "itemClass": "Weapon",
+      "itemLevel": 65,
+      "itemSubclass": "Dagger",
+      "name": "Mindfang",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The Defilers",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The Defilers - Exalted"
+        }
+      ],
+      "sellPrice": 85653,
+      "setId": null,
+      "slot": "mainHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "bonusArmor": 40,
+        "critRating": 14,
+        "spellPower": 94,
+        "stamina": 8
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 28.8,
+        "max": 64,
+        "min": 34,
+        "school": "Physical",
+        "skill": "Daggers",
+        "speed": 1.7
+      },
+      "weaponSkill": null,
+      "weaponType": "dagger"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
       "classic": null,
       "classicName": null,
       "equipSlots": ["mainHand"],
@@ -74609,7 +76397,13 @@
       "name": "Dark Whisper Blade",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14254 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -76283,7 +78077,23 @@
       "name": "Witchblade",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9343 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -79648,6 +81458,63 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_misc_orb_03",
+      "id": 10796,
+      "itemClass": "Armor",
+      "itemLevel": 54,
+      "itemSubclass": "Miscellaneous",
+      "name": "Drakestone",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9397 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 49,
+      "requirements": [],
+      "sellPrice": 8982,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [9397],
+      "stats": {
+        "spellPower": 7
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_mace_13",
       "id": 11928,
       "itemClass": "Armor",
@@ -80185,6 +82052,164 @@
       "classicName": null,
       "equipSlots": ["offHand"],
       "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_book_11",
+      "id": 19310,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Tome of the Ice Lord",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 125000,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "frostSpellDamage": 34,
+        "intellect": 9
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_book_09",
+      "id": 19311,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Tome of Fiery Arcana",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 125000,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "fireSpellDamage": 40
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "spellPower": 33
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_branch_01",
+      "id": 19315,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Therazane's Touch",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 125000,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "spellPower": 31
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
       "foreverData": false,
       "foreverSource": null,
       "icon": "inv_misc_bone_dwarfskull_01",
@@ -80325,7 +82350,13 @@
       "name": "Scepter of Interminable Focus",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 9415, 23727, 18384 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -80500,6 +82531,120 @@
       },
       "weaponSkill": null,
       "weaponType": "gun"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": ["Mage"],
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_wand_05",
+      "id": 7514,
+      "itemClass": "Weapon",
+      "itemLevel": 40,
+      "itemSubclass": "Wand",
+      "name": "Icefury Wand",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "mage-arcane"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 9842,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "frostSpellDamage": 9,
+        "intellect": 3
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 37.2,
+        "max": 78,
+        "min": 41,
+        "school": "Frost",
+        "skill": "Wands",
+        "speed": 1.6
+      },
+      "weaponSkill": null,
+      "weaponType": "wand"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_staff_13",
+      "id": 11748,
+      "itemClass": "Weapon",
+      "itemLevel": 53,
+      "itemSubclass": "Wand",
+      "name": "Pyric Caduceus",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9400 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "mage-fire"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 48,
+      "requirements": [],
+      "sellPrice": 25083,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [9400],
+      "stats": {
+        "fireSpellDamage": 13
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 52.5,
+        "max": 123,
+        "min": 66,
+        "school": "Fire",
+        "skill": "Wands",
+        "speed": 1.8
+      },
+      "weaponSkill": null,
+      "weaponType": "wand"
     },
     {
       "armorType": null,
@@ -80892,7 +83037,23 @@
       "name": "Bonecreeper Stylus",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9416 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -81647,7 +83808,18 @@
       "name": "Wand of Biting Cold",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "mage-frost"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "mage-arcane"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -82249,7 +84421,13 @@
       "name": "Ritssyn's Wand of Bad Mojo",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9416 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "mage-fire"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,

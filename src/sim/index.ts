@@ -61,6 +61,10 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'rogue-combat',
   'rogue-assassination',
   'rogue-subtlety',
+  // docs/classes/mage.md: landed under D27's first-pass defaults (K2).
+  'mage-fire',
+  'mage-frost',
+  'mage-arcane',
 ])
 
 /**

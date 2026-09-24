@@ -265,7 +265,7 @@ function frostOptions(): RotationOption[] {
     {
       kind: 'toggle',
       id: ID.iceBarrier,
-      group: CORE,
+      group: COOLDOWNS,
       label: 'Ice Barrier',
       help: 'Keep Ice Barrier up (480 mana, every 30 s). The sim deals no damage to you, so its shield only costs you a global cooldown and mana here; in a raid it stops pushback.',
       default: false,

@@ -4931,10 +4931,10 @@
     "consumablesWithEffects": 88,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1652,
-    "withEffects": 242,
-    "withItemRow": 1652,
-    "withItemSparseRow": 899
+    "items": 1678,
+    "withEffects": 245,
+    "withItemRow": 1678,
+    "withItemSparseRow": 917
   },
   "items": {
     "868": {
@@ -4972,6 +4972,45 @@
         "inventoryType": 13,
         "material": 1,
         "sheatheType": 3,
+        "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "873": {
+      "effects": [],
+      "id": 873,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135150,
+        "inventoryType": 17,
+        "material": 2,
+        "sheatheType": 2,
+        "subclassId": 10
+      },
+      "itemSparse": null
+    },
+    "942": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 97156,
+          "legacySlotIndex": 1,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 18799,
+          "triggerType": 1
+        }
+      ],
+      "id": 942,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133349,
+        "inventoryType": 11,
+        "material": 3,
+        "sheatheType": 0,
         "subclassId": 0
       },
       "itemSparse": null
@@ -5218,6 +5257,41 @@
       },
       "itemSparse": null
     },
+    "7514": {
+      "effects": [],
+      "id": 7514,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135467,
+        "inventoryType": 26,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 19
+      },
+      "itemSparse": {
+        "allowableClass": 128,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 4,
+        "display": "Icefury Wand",
+        "dmgVariance": 0.6,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 26,
+        "itemDelay": 1600,
+        "itemLevel": 40,
+        "itemRange": 100,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 3,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 87, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4286, 12857, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "8345": {
       "effects": [
         {
@@ -5318,6 +5392,19 @@
       },
       "itemSparse": null
     },
+    "10796": {
+      "effects": [],
+      "id": 10796,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134335,
+        "inventoryType": 23,
+        "material": 3,
+        "sheatheType": 7,
+        "subclassId": 0
+      },
+      "itemSparse": null
+    },
     "11604": {
       "effects": [],
       "id": 11604,
@@ -5352,6 +5439,19 @@
         "statModifierBonusStat": [7, 50, 51, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [3529, 58824, 5588, 0, 0, 0, 0, 0, 0, 0]
       }
+    },
+    "11662": {
+      "effects": [],
+      "id": 11662,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132518,
+        "inventoryType": 6,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
     },
     "11669": {
       "effects": [
@@ -5444,6 +5544,19 @@
       },
       "itemSparse": null
     },
+    "11748": {
+      "effects": [],
+      "id": 11748,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135150,
+        "inventoryType": 26,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 19
+      },
+      "itemSparse": null
+    },
     "11755": {
       "effects": [],
       "id": 11755,
@@ -5454,6 +5567,19 @@
         "material": 3,
         "sheatheType": 0,
         "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "11782": {
+      "effects": [],
+      "id": 11782,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135033,
+        "inventoryType": 3,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
       },
       "itemSparse": null
     },
@@ -9677,6 +9803,76 @@
       },
       "itemSparse": null
     },
+    "13870": {
+      "effects": [],
+      "id": 13870,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132939,
+        "inventoryType": 10,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Frostweave Gloves",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 53,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 47,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 87, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3529, 12353, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "13871": {
+      "effects": [],
+      "id": 13871,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134588,
+        "inventoryType": 7,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Frostweave Pants",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 7,
+        "itemDelay": 0,
+        "itemLevel": 56,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 51,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [6, 87, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5000, 10833, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "13938": {
       "effects": [],
       "id": 13938,
@@ -10458,6 +10654,54 @@
         "sheatheType": 0,
         "statModifierBonusStat": [41, 42, 7, 6, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [14167, 4722, 3611, 4167, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "14152": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": 0,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 300000,
+          "id": 99905,
+          "legacySlotIndex": 2,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 18385,
+          "triggerType": 0
+        }
+      ],
+      "id": 14152,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132679,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": 31360,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Robe of the Archmage",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 20,
+        "itemDelay": 0,
+        "itemLevel": 62,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 57,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 45, 32, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2667, 8889, 3111, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "14340": {
@@ -18667,6 +18911,19 @@
       },
       "itemSparse": null
     },
+    "18350": {
+      "effects": [],
+      "id": 18350,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133770,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
+    },
     "18354": {
       "effects": [
         {
@@ -23163,6 +23420,146 @@
         "statPercentEditor": [1316, 1316, 1316, 1316, 11579, 3684, 0, 0, 0, 0]
       }
     },
+    "19165": {
+      "effects": [],
+      "id": 19165,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134586,
+        "inventoryType": 7,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Flarecore Leggings",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 7,
+        "itemDelay": 0,
+        "itemLevel": 70,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 51, 45, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4286, 3265, 8776, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19310": {
+      "effects": [],
+      "id": 19310,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133743,
+        "inventoryType": 23,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Tome of the Ice Lord",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 87, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3333, 12593, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19311": {
+      "effects": [],
+      "id": 19311,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133741,
+        "inventoryType": 23,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Tome of Fiery Arcana",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [85, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [14815, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19315": {
+      "effects": [],
+      "id": 19315,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133749,
+        "inventoryType": 23,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Therazane's Touch",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 45, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 11666, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "19323": {
       "effects": [
         {
@@ -23292,6 +23689,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 32, 31, 38, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4074, 5185, 3704, 5926, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19426": {
+      "effects": [],
+      "id": 19426,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133303,
+        "inventoryType": 2,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Orb of the Darkmoon",
+        "dmgVariance": 0,
+        "flags": [0, 24576, 0, 0, 0],
+        "inventoryType": 2,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 6, 45, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4074, 2963, 8148, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "19491": {
@@ -24132,6 +24564,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 6, 7, 41, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [3636, 5909, 3636, 8182, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19595": {
+      "effects": [],
+      "id": 19595,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132612,
+        "inventoryType": 9,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Dryad's Wrist Bindings",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 9,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 6, 7, 45, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2963, 2593, 2963, 8148, 0, 0, 0, 0, 0, 0]
       }
     },
     "19599": {
@@ -25851,6 +26318,19 @@
         "statPercentEditor": [5405, 3784, 2432, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "20037": {
+      "effects": [],
+      "id": 20037,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134135,
+        "inventoryType": 2,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": null
+    },
     "20041": {
       "effects": [],
       "id": 20041,
@@ -26500,6 +26980,76 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 3, 38, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4074, 1852, 12593, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20069": {
+      "effects": [],
+      "id": 20069,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135466,
+        "inventoryType": 17,
+        "material": 2,
+        "sheatheType": 2,
+        "subclassId": 10
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Ironbark Staff",
+        "dmgVariance": 0.4,
+        "flags": [32768, 24580, 0, 0, 768],
+        "inventoryType": 17,
+        "itemDelay": 3400,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 2,
+        "statModifierBonusStat": [5, 7, 32, 50, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2128, 4043, 5957, 21276, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20070": {
+      "effects": [],
+      "id": 20070,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135311,
+        "inventoryType": 21,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 15
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Sageclaw",
+        "dmgVariance": 0.6,
+        "flags": [32768, 24580, 0, 0, 768],
+        "inventoryType": 21,
+        "itemDelay": 1700,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 1,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 3,
+        "statModifierBonusStat": [7, -1, 32, 50, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4000, 0, 7000, 20000, 0, 0, 0, 0, 0, 0]
       }
     },
     "20071": {
@@ -27260,6 +27810,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [4, 7, 3, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [7931, 3793, 2414, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20214": {
+      "effects": [],
+      "id": 20214,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135311,
+        "inventoryType": 21,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 15
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Mindfang",
+        "dmgVariance": 0.6,
+        "flags": [32768, 24580, 0, 0, 768],
+        "inventoryType": 21,
+        "itemDelay": 1700,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 1,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 3,
+        "statModifierBonusStat": [7, -1, 32, 50, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4000, 0, 7000, 20000, 0, 0, 0, 0, 0, 0]
       }
     },
     "20215": {
@@ -29292,6 +29877,41 @@
         "statPercentEditor": [5946, 3784, 6757, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "21186": {
+      "effects": [],
+      "id": 21186,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132611,
+        "inventoryType": 9,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": 1535,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Rockfury Bracers",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 9,
+        "itemDelay": 0,
+        "itemLevel": 62,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 45, 31, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2800, 10800, 4000, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "21187": {
       "effects": [],
       "id": 21187,
@@ -29362,6 +29982,54 @@
         "statPercentEditor": [3200, 1600, 4000, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "21190": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 103507,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 25906,
+          "triggerType": 1
+        }
+      ],
+      "id": 21190,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133382,
+        "inventoryType": 11,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Wrath of Cenarius",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 11,
+        "itemDelay": 0,
+        "itemLevel": 66,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "21278": {
       "effects": [],
       "id": 21278,
@@ -29395,6 +30063,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [32, 31, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5185, 3704, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "21318": {
+      "effects": [],
+      "id": 21318,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132958,
+        "inventoryType": 10,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Earth Warder's Gloves",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 58,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [45, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [11579, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "21455": {
@@ -30631,6 +31334,41 @@
         "statPercentEditor": [5714, 2381, 3810, 3810, 0, 0, 0, 0, 0, 0]
       }
     },
+    "22065": {
+      "effects": [],
+      "id": 22065,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132768,
+        "inventoryType": 1,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Sorcerer's Crown",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 1,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 517,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 6, 7, 45, 32, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5682, 3182, 3636, 2500, 3182, 0, 0, 0, 0, 0]
+      }
+    },
     "22067": {
       "effects": [],
       "id": 22067,
@@ -30699,6 +31437,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 6, 7, 45, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [6071, 2500, 3929, 3214, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22069": {
+      "effects": [],
+      "id": 22069,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132666,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Sorcerer's Robes",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 20,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 517,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 6, 7, 45, 47, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5682, 2045, 3182, 3636, 1136, 0, 0, 0, 0, 0]
       }
     },
     "22070": {

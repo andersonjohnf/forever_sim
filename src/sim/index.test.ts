@@ -155,7 +155,7 @@ describe('paladin', () => {
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2, Retribution since C2, the Protection paladin since C3, the Feral bear since B4, Enhancement since S1 and the three rogues since R1 (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2, Retribution since C2, the Protection paladin since C3, the Feral bear since B4, Enhancement since S1, the three rogues since R1 and the three mages since K2 (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
     expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual([
       'warrior-fury',
@@ -169,10 +169,13 @@ describe('specs', () => {
       'rogue-combat',
       'rogue-assassination',
       'rogue-subtlety',
+      'mage-fire',
+      'mage-frost',
+      'mage-arcane',
     ])
     expect(getSpec('druid-feral-bear').role).toBe('tank')
     expect(getSpec('warrior-protection').role).toBe('tank')
-    expect(() => getSpec('mage-fire' as never)).toThrow()
+    expect(() => getSpec('warlock-affliction' as never)).toThrow()
   })
 })
 

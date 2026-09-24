@@ -1737,6 +1737,1775 @@
       ],
       "traitTreeId": 1089
     },
+    "mage": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Arcane"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Fire"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Frost"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Wand Specialization",
+          "col": 0,
+          "id": "mage-arcane-wand-specialization",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Wand Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83116,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [13, 25]
+            }
+          ],
+          "rankSpellIds": [6057, 6057],
+          "spellId": 6057,
+          "tier": 0,
+          "traitDefinitionId": 135345,
+          "traitNodeEntryId": 130544,
+          "traitNodeId": 105815,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Arcane Focus",
+          "col": 1,
+          "id": "mage-arcane-arcane-focus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Arcane Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83115,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [11222, 11222, 11222, 11222, 11222],
+          "spellId": 11222,
+          "tier": 0,
+          "traitDefinitionId": 135344,
+          "traitNodeEntryId": 130543,
+          "traitNodeId": 105814,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Channeling",
+          "col": 2,
+          "id": "mage-arcane-improved-channeling",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Channeling",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83114,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 85472,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [14, 28, 42, 56, 70]
+            }
+          ],
+          "rankSpellIds": [11237, 11237, 11237, 11237, 11237],
+          "spellId": 11237,
+          "tier": 0,
+          "traitDefinitionId": 135343,
+          "traitNodeEntryId": 130542,
+          "traitNodeId": 105813,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Arcane Subtlety",
+          "col": 0,
+          "id": "mage-arcane-arcane-subtlety",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Arcane Subtlety",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83113,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-15, -30]
+            },
+            {
+              "curveId": 83112,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-8, -15]
+            }
+          ],
+          "rankSpellIds": [11210, 11210],
+          "spellId": 11210,
+          "tier": 1,
+          "traitDefinitionId": 135342,
+          "traitNodeEntryId": 130541,
+          "traitNodeId": 105812,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Magic Absorption",
+          "col": 1,
+          "id": "mage-arcane-magic-absorption",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Magic Absorption",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83111,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            },
+            {
+              "curveId": 83110,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [29441, 29441],
+          "spellId": 29441,
+          "tier": 1,
+          "traitDefinitionId": 135341,
+          "traitNodeEntryId": 130540,
+          "traitNodeId": 105811,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Arcane Concentration",
+          "col": 2,
+          "id": "mage-arcane-arcane-concentration",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Arcane Concentration",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83109,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [11213, 11213, 11213, 11213, 11213],
+          "spellId": 11213,
+          "tier": 1,
+          "traitDefinitionId": 135340,
+          "traitNodeEntryId": 130539,
+          "traitNodeId": 105810,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Arcane Resilience",
+          "col": 3,
+          "id": "mage-arcane-arcane-resilience",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Arcane Resilience",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83108,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [28574, 28574],
+          "spellId": 28574,
+          "tier": 1,
+          "traitDefinitionId": 135339,
+          "traitNodeEntryId": 130538,
+          "traitNodeId": 105809,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Arcane Geometry",
+          "col": 0,
+          "id": "mage-arcane-arcane-geometry",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Arcane Geometry",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83107,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6]
+            }
+          ],
+          "rankSpellIds": [11247, 11247],
+          "spellId": 11247,
+          "tier": 2,
+          "traitDefinitionId": 135338,
+          "traitNodeEntryId": 130537,
+          "traitNodeId": 105808,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Arcane Impact",
+          "col": 1,
+          "id": "mage-arcane-arcane-impact",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Arcane Impact",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83105,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [11242, 11242, 11242],
+          "spellId": 11242,
+          "tier": 2,
+          "traitDefinitionId": 135337,
+          "traitNodeEntryId": 130536,
+          "traitNodeId": 105807,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Arcane Blast",
+          "col": 3,
+          "id": "mage-arcane-arcane-blast",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Arcane Blast",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [400574],
+          "spellId": 400574,
+          "tier": 2,
+          "traitDefinitionId": 135336,
+          "traitNodeEntryId": 130535,
+          "traitNodeId": 105806,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Arcane Shielding",
+          "col": 0,
+          "id": "mage-arcane-arcane-shielding",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Arcane Shielding",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83104,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-17, -33]
+            },
+            {
+              "curveId": 83103,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [11252, 11252],
+          "spellId": 11252,
+          "tier": 3,
+          "traitDefinitionId": 135335,
+          "traitNodeEntryId": 130534,
+          "traitNodeId": 105805,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Counterspell",
+          "col": 1,
+          "id": "mage-arcane-improved-counterspell",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Counterspell",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83102,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2000, 4000]
+            }
+          ],
+          "rankSpellIds": [11255, 11255],
+          "spellId": 11255,
+          "tier": 3,
+          "traitDefinitionId": 135334,
+          "traitNodeEntryId": 130533,
+          "traitNodeId": 105804,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105810],
+            "prerequisiteTalentIds": ["mage-arcane-arcane-concentration"],
+            "tier": 3
+          },
+          "clientName": "Arcane Meditation",
+          "col": 2,
+          "id": "mage-arcane-arcane-meditation",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Arcane Meditation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83101,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [17, 33, 50]
+            }
+          ],
+          "rankSpellIds": [18462, 18462, 18462],
+          "spellId": 18462,
+          "tier": 3,
+          "traitDefinitionId": 135333,
+          "traitNodeEntryId": 130532,
+          "traitNodeId": 105803,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Missile Barrage",
+          "col": 3,
+          "id": "mage-arcane-missile-barrage",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Missile Barrage",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [400588],
+          "spellId": 400588,
+          "tier": 3,
+          "traitDefinitionId": 135332,
+          "traitNodeEntryId": 130531,
+          "traitNodeId": 105802,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Presence of Mind",
+          "col": 1,
+          "id": "mage-arcane-presence-of-mind",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Presence of Mind",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12043],
+          "spellId": 12043,
+          "tier": 4,
+          "traitDefinitionId": 135331,
+          "traitNodeEntryId": 130530,
+          "traitNodeId": 105801,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Arcane Mind",
+          "col": 2,
+          "id": "mage-arcane-arcane-mind",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Arcane Mind",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83100,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 83099,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [11232, 11232, 11232, 11232, 11232],
+          "spellId": 11232,
+          "tier": 4,
+          "traitDefinitionId": 135330,
+          "traitNodeEntryId": 130529,
+          "traitNodeId": 105800,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Arcane Instability",
+          "col": 2,
+          "id": "mage-arcane-arcane-instability",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Arcane Instability",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83098,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            },
+            {
+              "curveId": 83097,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            },
+            {
+              "curveId": 87508,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [15058, 15058, 15058],
+          "spellId": 15058,
+          "tier": 5,
+          "traitDefinitionId": 135329,
+          "traitNodeEntryId": 130528,
+          "traitNodeId": 105799,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105801],
+            "prerequisiteTalentIds": ["mage-arcane-presence-of-mind"],
+            "tier": 6
+          },
+          "clientName": "Arcane Power",
+          "col": 1,
+          "id": "mage-arcane-arcane-power",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Arcane Power",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12042],
+          "spellId": 12042,
+          "tier": 6,
+          "traitDefinitionId": 135328,
+          "traitNodeEntryId": 130527,
+          "traitNodeId": 105798,
+          "tree": "Arcane",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Wake of Fire",
+          "col": 0,
+          "id": "mage-fire-wake-of-fire",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Wake of Fire",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83096,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-1000, -2000]
+            },
+            {
+              "curveId": 111697,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [11078, 11078],
+          "spellId": 11078,
+          "tier": 0,
+          "traitDefinitionId": 135327,
+          "traitNodeEntryId": 130526,
+          "traitNodeId": 105797,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Incineration",
+          "col": 1,
+          "id": "mage-fire-incineration",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Incineration",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83095,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [18459, 18459, 18459],
+          "spellId": 18459,
+          "tier": 0,
+          "traitDefinitionId": 135326,
+          "traitNodeEntryId": 130525,
+          "traitNodeId": 105796,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Fireball",
+          "col": 2,
+          "id": "mage-fire-improved-fireball",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Fireball",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83094,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            }
+          ],
+          "rankSpellIds": [11069, 11069, 11069, 11069, 11069],
+          "spellId": 11069,
+          "tier": 0,
+          "traitDefinitionId": 135325,
+          "traitNodeEntryId": 130524,
+          "traitNodeId": 105795,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Ignite",
+          "col": 0,
+          "id": "mage-fire-ignite",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ignite",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83093,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 16, 24, 32, 40]
+            }
+          ],
+          "rankSpellIds": [11119, 11119, 11119, 11119, 11119],
+          "spellId": 11119,
+          "tier": 1,
+          "traitDefinitionId": 135324,
+          "traitNodeEntryId": 130523,
+          "traitNodeId": 105794,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Flame Throwing",
+          "col": 1,
+          "id": "mage-fire-flame-throwing",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Flame Throwing",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83092,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6]
+            }
+          ],
+          "rankSpellIds": [11100, 11100],
+          "spellId": 11100,
+          "tier": 1,
+          "traitDefinitionId": 135323,
+          "traitNodeEntryId": 130522,
+          "traitNodeId": 105793,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Impact",
+          "col": 2,
+          "id": "mage-fire-impact",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Impact",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83091,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [11103, 11103, 11103],
+          "spellId": 11103,
+          "tier": 1,
+          "traitDefinitionId": 135322,
+          "traitNodeEntryId": 130521,
+          "traitNodeId": 105792,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Burning Soul",
+          "col": 0,
+          "id": "mage-fire-burning-soul",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Burning Soul",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83089,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            },
+            {
+              "curveId": 83088,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [11083, 11083, 11083],
+          "spellId": 11083,
+          "tier": 2,
+          "traitDefinitionId": 135319,
+          "traitNodeEntryId": 130518,
+          "traitNodeId": 105789,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Flamestrike",
+          "col": 1,
+          "id": "mage-fire-improved-flamestrike",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Flamestrike",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83090,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [11108, 11108, 11108],
+          "spellId": 11108,
+          "tier": 2,
+          "traitDefinitionId": 135321,
+          "traitNodeEntryId": 130520,
+          "traitNodeId": 105791,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Pyroblast",
+          "col": 2,
+          "id": "mage-fire-pyroblast",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Pyroblast",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [11366],
+          "spellId": 11366,
+          "tier": 2,
+          "traitDefinitionId": 135320,
+          "traitNodeEntryId": 130519,
+          "traitNodeId": 105790,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Scorch",
+          "col": 0,
+          "id": "mage-fire-improved-scorch",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Scorch",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83087,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [11095, 11095, 11095],
+          "spellId": 11095,
+          "tier": 3,
+          "traitDefinitionId": 135318,
+          "traitNodeEntryId": 130517,
+          "traitNodeId": 105788,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Fire Ward",
+          "col": 1,
+          "id": "mage-fire-improved-fire-ward",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Fire Ward",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83085,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [11094, 11094],
+          "spellId": 11094,
+          "tier": 3,
+          "traitDefinitionId": 135317,
+          "traitNodeEntryId": 130516,
+          "traitNodeId": 105787,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105790],
+            "prerequisiteTalentIds": ["mage-fire-pyroblast"],
+            "tier": 3
+          },
+          "clientName": "Hot Streak",
+          "col": 2,
+          "id": "mage-fire-hot-streak",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Hot Streak",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [400624],
+          "spellId": 400624,
+          "tier": 3,
+          "traitDefinitionId": 135316,
+          "traitNodeEntryId": 130515,
+          "traitNodeId": 105786,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Master of Elements",
+          "col": 3,
+          "id": "mage-fire-master-of-elements",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Master of Elements",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83084,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [29074, 29074, 29074],
+          "spellId": 29074,
+          "tier": 3,
+          "traitDefinitionId": 135315,
+          "traitNodeEntryId": 130514,
+          "traitNodeId": 105785,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Critical Mass",
+          "col": 1,
+          "id": "mage-fire-critical-mass",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Critical Mass",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83083,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [11115, 11115, 11115],
+          "spellId": 11115,
+          "tier": 4,
+          "traitDefinitionId": 135314,
+          "traitNodeEntryId": 130513,
+          "traitNodeId": 105784,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Blast Wave",
+          "col": 2,
+          "id": "mage-fire-blast-wave",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Blast Wave",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [11113],
+          "spellId": 11113,
+          "tier": 4,
+          "traitDefinitionId": 135313,
+          "traitNodeEntryId": 130512,
+          "traitNodeId": 105783,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Fire Power",
+          "col": 2,
+          "id": "mage-fire-fire-power",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Fire Power",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83082,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 109309,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [11124, 11124, 11124, 11124, 11124],
+          "spellId": 11124,
+          "tier": 5,
+          "traitDefinitionId": 135312,
+          "traitNodeEntryId": 130511,
+          "traitNodeId": 105782,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105784],
+            "prerequisiteTalentIds": ["mage-fire-critical-mass"],
+            "tier": 6
+          },
+          "clientName": "Combustion",
+          "col": 1,
+          "id": "mage-fire-combustion",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Combustion",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [11129],
+          "spellId": 11129,
+          "tier": 6,
+          "traitDefinitionId": 135311,
+          "traitNodeEntryId": 130510,
+          "traitNodeId": 105781,
+          "tree": "Fire",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Frost Warding",
+          "col": 0,
+          "id": "mage-frost-frost-warding",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Frost Warding",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83081,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30]
+            },
+            {
+              "curveId": 83080,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [11189, 11189],
+          "spellId": 11189,
+          "tier": 0,
+          "traitDefinitionId": 135310,
+          "traitNodeEntryId": 130509,
+          "traitNodeId": 105780,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Frostbolt",
+          "col": 1,
+          "id": "mage-frost-improved-frostbolt",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Frostbolt",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83079,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            }
+          ],
+          "rankSpellIds": [11070, 11070, 11070, 11070, 11070],
+          "spellId": 11070,
+          "tier": 0,
+          "traitDefinitionId": 135309,
+          "traitNodeEntryId": 130508,
+          "traitNodeId": 105779,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Elemental Precision",
+          "col": 2,
+          "id": "mage-frost-elemental-precision",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Elemental Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83078,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [29438, 29438, 29438, 29438, 29438],
+          "spellId": 29438,
+          "tier": 0,
+          "traitDefinitionId": 135308,
+          "traitNodeEntryId": 130507,
+          "traitNodeId": 105778,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Ice Shards",
+          "col": 0,
+          "id": "mage-frost-ice-shards",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ice Shards",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83077,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [11207, 11207, 11207, 11207, 11207],
+          "spellId": 11207,
+          "tier": 1,
+          "traitDefinitionId": 135307,
+          "traitNodeEntryId": 130506,
+          "traitNodeId": 105777,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Permafrost",
+          "col": 1,
+          "id": "mage-frost-permafrost",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Permafrost",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83076,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [11, 22, 33]
+            },
+            {
+              "curveId": 83075,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-3, -7, -10]
+            }
+          ],
+          "rankSpellIds": [11175, 11175, 11175],
+          "spellId": 11175,
+          "tier": 1,
+          "traitDefinitionId": 135306,
+          "traitNodeEntryId": 130505,
+          "traitNodeId": 105776,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Frost Nova",
+          "col": 2,
+          "id": "mage-frost-improved-frost-nova",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Frost Nova",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83074,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2000, -4000]
+            }
+          ],
+          "rankSpellIds": [11165, 11165],
+          "spellId": 11165,
+          "tier": 1,
+          "traitDefinitionId": 135305,
+          "traitNodeEntryId": 130504,
+          "traitNodeId": 105775,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Frostbite",
+          "col": 3,
+          "id": "mage-frost-frostbite",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Frostbite",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83073,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [11071, 11071, 11071],
+          "spellId": 11071,
+          "tier": 1,
+          "traitDefinitionId": 135304,
+          "traitNodeEntryId": 130503,
+          "traitNodeId": 105774,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Piercing Ice",
+          "col": 0,
+          "id": "mage-frost-piercing-ice",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Piercing Ice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83072,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [11151, 11151, 11151],
+          "spellId": 11151,
+          "tier": 2,
+          "traitDefinitionId": 135303,
+          "traitNodeEntryId": 130502,
+          "traitNodeId": 105773,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Frost Channeling",
+          "col": 1,
+          "id": "mage-frost-frost-channeling",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Frost Channeling",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110791,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            },
+            {
+              "curveId": 110790,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [11160, 11160, 11160],
+          "spellId": 11160,
+          "tier": 2,
+          "traitDefinitionId": 135302,
+          "traitNodeEntryId": 130501,
+          "traitNodeId": 105772,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Ice Lance",
+          "col": 2,
+          "id": "mage-frost-ice-lance",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Ice Lance",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1312002],
+          "spellId": 1312002,
+          "tier": 2,
+          "traitDefinitionId": 135297,
+          "traitNodeEntryId": 130496,
+          "traitNodeId": 105767,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Blizzard",
+          "col": 3,
+          "id": "mage-frost-improved-blizzard",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Blizzard",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83071,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-15, -25, -40]
+            }
+          ],
+          "rankSpellIds": [11185, 11185, 11185],
+          "spellId": 11185,
+          "tier": 2,
+          "traitDefinitionId": 135301,
+          "traitNodeEntryId": 130500,
+          "traitNodeId": 105771,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Arctic Reach",
+          "col": 0,
+          "id": "mage-frost-arctic-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Arctic Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83070,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 87540,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [16757, 16757],
+          "spellId": 16757,
+          "tier": 3,
+          "traitDefinitionId": 135300,
+          "traitNodeEntryId": 130499,
+          "traitNodeId": 105770,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Ice Block",
+          "col": 1,
+          "id": "mage-frost-ice-block",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Ice Block",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83069,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5]
+            },
+            {
+              "curveId": 83068,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-10]
+            }
+          ],
+          "rankSpellIds": [11958],
+          "spellId": 11958,
+          "tier": 3,
+          "traitDefinitionId": 135299,
+          "traitNodeEntryId": 130498,
+          "traitNodeId": 105769,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Shatter",
+          "col": 3,
+          "id": "mage-frost-shatter",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Shatter",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83067,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [17, 33, 50]
+            }
+          ],
+          "rankSpellIds": [11170, 11170, 11170],
+          "spellId": 11170,
+          "tier": 3,
+          "traitDefinitionId": 135298,
+          "traitNodeEntryId": 130497,
+          "traitNodeId": 105768,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Cone of Cold",
+          "col": 0,
+          "id": "mage-frost-improved-cone-of-cold",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Cone of Cold",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83066,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [12, 23, 35]
+            }
+          ],
+          "rankSpellIds": [11190, 11190, 11190],
+          "spellId": 11190,
+          "tier": 4,
+          "traitDefinitionId": 135295,
+          "traitNodeEntryId": 130494,
+          "traitNodeId": 105765,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Cold Snap",
+          "col": 1,
+          "id": "mage-frost-cold-snap",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Cold Snap",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12472],
+          "spellId": 12472,
+          "tier": 4,
+          "traitDefinitionId": 135296,
+          "traitNodeEntryId": 130495,
+          "traitNodeId": 105766,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105767],
+            "prerequisiteTalentIds": ["mage-frost-ice-lance"],
+            "tier": 4
+          },
+          "clientName": "Fingers of Frost",
+          "col": 2,
+          "id": "mage-frost-fingers-of-frost",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Fingers of Frost",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83065,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [400647, 400647],
+          "spellId": 400647,
+          "tier": 4,
+          "traitDefinitionId": 135294,
+          "traitNodeEntryId": 130493,
+          "traitNodeId": 105764,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Winter's Chill",
+          "col": 2,
+          "id": "mage-frost-winters-chill",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Winter's Chill",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83064,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 83063,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [11180, 11180, 11180, 11180, 11180],
+          "spellId": 11180,
+          "tier": 5,
+          "traitDefinitionId": 135293,
+          "traitNodeEntryId": 130492,
+          "traitNodeId": 105763,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105766],
+            "prerequisiteTalentIds": ["mage-frost-cold-snap"],
+            "tier": 6
+          },
+          "clientName": "Ice Barrier",
+          "col": 1,
+          "id": "mage-frost-ice-barrier",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Ice Barrier",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [11426],
+          "spellId": 11426,
+          "tier": 6,
+          "traitDefinitionId": 135292,
+          "traitNodeEntryId": 130491,
+          "traitNodeId": 105762,
+          "tree": "Frost",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1112
+    },
     "paladin": {
       "tabs": [
         {
@@ -8503,10 +10272,10 @@
     }
   },
   "counts": {
-    "byName": 259,
+    "byName": 313,
     "byPosition": 0,
-    "mapped": 259,
-    "talents": 259,
+    "mapped": 313,
+    "talents": 313,
     "unmapped": 0
   },
   "unmapped": []

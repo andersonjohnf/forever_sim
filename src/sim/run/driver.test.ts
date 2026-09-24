@@ -190,5 +190,6 @@ describe('determinism for tank runs (decisions D15, D18)', () => {
     expect(again).toEqual(three)
     expect(withinTarget(one, 'tps') && withinTarget(one, 'dps')).toBe(true)
     expect(one.fights % CHUNK_SIZE).toBe(0)
-  })
+    // Three full adaptive runs: a few seconds here, past vitest's 5 s default on a 4-core CI runner.
+  }, 60_000)
 })

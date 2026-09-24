@@ -75,20 +75,16 @@ export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, st
 }
 
 /**
- * Buff catalogue ids the spec's rotation keeps up itself with these settings: the plan leaves
- * their static Buffs effects out, so each counts once (Battle Shout, warrior.md §5.2 and §5.3 row 1;
- * Protection's Sunder Armor, Thunder Clap and Demoralizing Shout on the boss, §5.4).
- */
-/**
  * A raid with warriors keeps the boss bleeding all fight from their Deep Wounds [?]: Rend and Tear,
  * and the cat's "only when nothing else bleeds" settings, read it (druid.md §5.1, §6.2, Q9).
  */
 export const othersKeepBleeding = (raid: readonly string[]) => raid.includes('warrior')
 
-/** Each spec's racial cooldown setting (warrior.md §5.2 row 3, druid.md §6.2 row 2). */
+/** Each spec's racial cooldown setting (warrior.md §5.2 row 3, §5.4 row 3, druid.md §6.2 row 2). */
 export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'warrior-fury': 'warrior.fury.racial.enabled',
   'warrior-arms': 'warrior.arms.racial.enabled',
+  'warrior-protection': 'warrior.protection.racial.enabled',
   'druid-feral-cat': 'druid.cat.racial.enabled',
 }
 
@@ -118,6 +114,11 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   return out
 }
 
+/**
+ * Buff catalogue ids the spec's rotation keeps up itself with these settings: the plan leaves
+ * their static Buffs effects out, so each counts once (Battle Shout, warrior.md §5.2 and §5.3 row 1;
+ * Protection's Sunder Armor, Thunder Clap and Demoralizing Shout on the boss, §5.4).
+ */
 export function maintainedBuffs(spec: SpecId, values: Record<string, RotationValue>): string[] {
   if (spec === 'warrior-fury') return furyMaintainedBuffs(values)
   if (spec === 'warrior-arms') return armsMaintainedBuffs(values)

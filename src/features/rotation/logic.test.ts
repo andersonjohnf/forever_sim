@@ -23,6 +23,10 @@ describe('rotation rows', () => {
     // The way to use it stays active.
     expect(r.get('druid.cat.rake.onlyWithoutBleeds')).toMatchObject({ inactive: false })
     expect(r.get('druid.cat.rake.onlyWithoutBleeds')?.notUsed).toBeUndefined()
+    // Every spec's racial says so: the default Protection warrior is a Human, an Orc's Blood Fury is used.
+    const prot = defaultConfig('warrior-protection')
+    expect(unusedRotationSettings(prot)).toEqual({ 'warrior.protection.racial.enabled': 'Not used: Human has no racial cooldown that adds damage.' })
+    expect(unusedRotationSettings({ ...prot, race: 'horde-orc' })).toEqual({})
   })
 
   it('marks nothing changed by default, and shows each value as its default', () => {

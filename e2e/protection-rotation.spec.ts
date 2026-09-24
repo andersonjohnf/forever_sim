@@ -36,6 +36,8 @@ test.describe('Protection rotation', () => {
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
     await expect(tab.getByRole('region', { name: 'Core abilities' }).getByRole('switch', { name: 'Execute', exact: true })).not.toBeChecked()
     for (const name of DUTIES) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    // The default Protection warrior is a Human, whose racial cooldown isn't used, as for every spec.
+    await expect(tab.getByRole('switch', { name: 'Racial cooldown', exact: true })).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
   })
 
   test('Max TPS turns the duties off by default, and a switch you set stays set until Reset', async ({ page }) => {

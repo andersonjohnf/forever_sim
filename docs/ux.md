@@ -280,7 +280,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
+    A spec on the list (Fury first, then the Protection warrior; the rest follow in M5.65 A2) shows its rotation as the
     abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
     priority, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
@@ -318,11 +318,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       settings move it one place and say where it went; one that reaches the end disables
       itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
       position 11").
-    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
+    - **Pinned rows** (the pre-pull, and a tank's D26 duties: the Protection warrior's Shield
+      Block, Thunder Clap and Demoralizing Shout) show a lock where the handle would
       be, have no Move up or down, and no row can be dragged past them. The settings of a
-      pinned row say "Fixed at position 1 of 16".
+      pinned row say "Fixed at position 1 of 16", and a duty's help says why its place is fixed.
     - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
-      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+      ones; for a tank, just D28's Defensive, Balanced and Max TPS (above). Once you move a row or change one
       of the list's settings away from every preset it reads "Custom". Picking a preset sets
       its order and its values for the list's settings and puts the rest of the list's settings
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
@@ -334,7 +335,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1 (its Defensive and Max TPS: Balanced, its default since T5, says it's a first quick search), Retribution
     since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
     also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says no more: its priority choice,
@@ -358,6 +359,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     there for another player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
     help says "Off by default with Max TPS", and a value you set yourself stays set.
+    - **On a priority list** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24);
+      the Protection warrior since A2), the choice is the list's preset picker
+      (`AplDefinition.presetChoice`): **Defensive** (the old "Tank duties first"), **Balanced**
+      (the default) and **Max TPS**, with no separate Default, since Balanced is it. It isn't shown
+      again above the list. Its help sits under the picker, as the picker's description: each
+      preset in a sentence or two, with what it measures against Defensive in the default setup
+      (TPS, DPS and damage taken), when to pick Max TPS, and the Buffs tab's versions. Picking one
+      puts the list's settings at that preset's defaults; editing the list after reads "Custom".
   - A setting that depends on another under the same heading sits under it, indented on a
     rule (Heroic Strike's rage threshold under Heroic Strike, "Save the last Death Wish for
     the end" under Death Wish). A dependent switch works the same way as a dependent number

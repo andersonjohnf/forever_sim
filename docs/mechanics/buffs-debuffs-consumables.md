@@ -676,8 +676,9 @@ player they never need another shaman in the party
 Windfury Weapon disables its benefit, so its air totem is Grace of Air. A Protection warrior's Thunder Clap and
 Demoralizing Shout are its own the way a cat's Faerie Fire is, its duties
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-the presets leave their toggles off, its rotation keeps them up, and a rotation that drops them
-(Max TPS) leaves the boss without them unless you turn a toggle on for another warrior's
+the presets leave their toggles off, its Defensive rotation keeps them up, and a rotation that
+drops them (Balanced, the default since [D28](../decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24),
+and Max TPS) leaves the boss without them unless you turn a toggle on for another warrior's
 ([warrior §5.4](../classes/warrior.md#54-protection-tps)). A Feral bear's Faerie Fire and
 Demoralizing Roar are its own the same way ([druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)),
 and its raid has a warrior tank's Thunder Clap and Demoralizing Shout only if you turn them on.

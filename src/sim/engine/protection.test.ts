@@ -27,6 +27,8 @@ import { addAbility, addProc, at, counter, damages, expectMean, from, line, rage
 
 /** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
+/** Defensive, the duties first (D28): the default before Balanced. */
+const DEFENSIVE: SimConfig['rotation'] = { 'warrior.protection.priority': 'duties' }
 
 /**
  * The default Protection warrior (Defensive Stance, Krol Blade and Dreadguard's Protector) with no
@@ -144,7 +146,8 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
   })
 
   it('without a main-hand weapon, uses Shield Slam, Shield Block, Thunder Clap and Demoralizing Shout, which need none, and nothing that does (§7, PL7)', () => {
-    const d = defaultConfig('warrior-protection')
+    // Defensive, which uses all four (Balanced, the default, drops the two spells, D28).
+    const d = { ...defaultConfig('warrior-protection'), rotation: DEFENSIVE }
     const run = (gear: SimConfig['gear'], patch: Partial<SimConfig> = {}) => {
       const { plan, assumptions } = buildPlan({ ...d, gear, run: { ...d.run, seed: 7 }, ...patch })
       const sim = new Sim(plan)
@@ -164,7 +167,7 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
     // Its damage per landed hit is the armed warrior's, (655 + block value) × the modifiers × armor,
     // compared with no Sunder Armor on the boss, since there's none without a weapon.
     const armed = run(d.gear, {
-      rotation: { 'warrior.protection.sunder.enabled': false, 'warrior.protection.sunderFiller.enabled': false },
+      rotation: { ...DEFENSIVE, 'warrior.protection.sunder.enabled': false, 'warrior.protection.sunderFiller.enabled': false },
       buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((b) => b !== 'sunderArmor') },
     })
     const perHit = (r: typeof armed) => {
@@ -471,8 +474,8 @@ describe('Thunder Clap and Demoralizing Shout on the boss (encounter WE-4, WE-5;
   })
 })
 
-describe('the default Protection warrior (warrior.md §5.4)', () => {
-  const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 1000, seed: 21 } })
+describe('the Defensive Protection warrior (warrior.md §5.4)', () => {
+  const bundle = buildPlan({ ...defaultConfig('warrior-protection'), rotation: DEFENSIVE, run: { mode: 'fixed', iterations: 1000, seed: 21 } })
   const plan = bundle.plan
   const sim = new Sim(plan)
   const agg = runFights(plan, 1000, sim)
@@ -529,7 +532,7 @@ describe('the default Protection warrior (warrior.md §5.4)', () => {
     expect(outcomes.crit).toBeLessThan(1)
     // Without it, the table's own shares: about 11% blocked, 15% crushing blows, 3.7% crits.
     const d = defaultConfig('warrior-protection')
-    const off = buildPlan({ ...d, rotation: { 'warrior.protection.shieldBlock.enabled': false }, run: { mode: 'fixed', iterations: 1000, seed: 21 } })
+    const off = buildPlan({ ...d, rotation: { ...DEFENSIVE, 'warrior.protection.shieldBlock.enabled': false }, run: { mode: 'fixed', iterations: 1000, seed: 21 } })
     const without = toResult(off, runFights(off.plan, 1000), 0).tank!.outcomes
     expect(without.block).toBeGreaterThan(9)
     expect(without.block).toBeLessThan(13)
@@ -552,34 +555,68 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
   const config = (rotation: SimConfig['rotation']): SimConfig => ({ ...defaultConfig('warrior-protection'), rotation, run: { mode: 'fixed', iterations: 2000, seed: 33 } })
 
   it('leaves the Buffs tab’s Thunder Clap and Demoralizing Shout off, as the tank’s own, until you turn them on there for another player (D26)', () => {
-    const duties = buildPlan(config({})).plan
+    const duties = buildPlan(config(DEFENSIVE)).plan
     const max = buildPlan(config(MAX)).plan
     // Nobody else's in the Standard raid preset: the boss starts unslowed, at full attack power.
     for (const plan of [duties, max]) expect([plan.fight.bossSwing!.slow, plan.fight.bossSwing!.minDamage]).toEqual([0, 4500])
     // Turned on in Buffs, another warrior's count with Max TPS: its Thunder Clap slows the boss 20%,
     // and its Demoralizing Shout takes 204 × 2.0 / 14 off each swing, from the pull (WE-4, WE-5).
-    // Under tank duties first your own replace them, so they change nothing.
+    // Under Defensive your own replace them, so they change nothing.
     const others = (rotation: SimConfig['rotation']) => {
       const c = config(rotation)
       return buildPlan({ ...c, buffs: { ...c.buffs, enabled: [...c.buffs.enabled, 'thunderClap', 'demoralizingShout'] } }).plan
     }
     expect(others(MAX).fight.bossSwing!.slow).toBeCloseTo(0.2, 12)
     expect(others(MAX).fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 * 2) / 14, 9)
-    expect([others({}).fight.bossSwing!.slow, others({}).fight.bossSwing!.minDamage]).toEqual([0, 4500])
+    expect([others(DEFENSIVE).fight.bossSwing!.slow, others(DEFENSIVE).fight.bossSwing!.minDamage]).toEqual([0, 4500])
     // Its rows: no Shield Block, Thunder Clap or Demoralizing Shout; Shield Slam stays (D26).
     const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
     for (const id of ['shieldBlock', 'thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
     expect(used.has('shieldSlam')).toBe(true)
   })
 
-  it('makes more threat and more damage than the default, on the same fights', () => {
-    const duties = runFights(buildPlan(config({})).plan, 2000)
+  it('makes more threat and more damage than Defensive, on the same fights', () => {
+    const duties = runFights(buildPlan(config(DEFENSIVE)).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +15% TPS and +8.5% DPS in the default setup, with nobody's Thunder Clap or
+    // §5.4 "Max TPS": about +14% TPS and +7% DPS in the default setup, with nobody's Thunder Clap or
     // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
-    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.13)
-    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.17)
-    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.06)
-    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.11)
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.12)
+    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.16)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.05)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.09)
+  })
+})
+
+describe('Balanced in the engine (warrior.md §5.4 "Balanced", D28)', () => {
+  const config = (rotation: SimConfig['rotation']): SimConfig => ({ ...defaultConfig('warrior-protection'), rotation, run: { mode: 'fixed', iterations: 2000, seed: 34 } })
+  const bundle = buildPlan(config({}))
+  const sim = new Sim(bundle.plan)
+  const balanced = runFights(bundle.plan, 2000, sim)
+  const result = toResult(bundle, balanced, 0)
+
+  it('keeps Shield Block and Sunder Armor’s 5 stacks up, and casts no Thunder Clap, Demoralizing Shout or filler', () => {
+    const casts = (id: string) => {
+      const a = bundle.plan.abilities.find((x) => x.id === id)
+      return a === undefined ? 0 : counter(sim, a.source, FIELD.casts)
+    }
+    expect(casts('thunderClap')).toBe(0)
+    expect(casts('demoralizingShout')).toBe(0)
+    expect(casts('shieldBlock')).toBeGreaterThan(0)
+    // Its blocks as Defensive's: about 66% of the swings.
+    expect(result.tank!.outcomes.block).toBeGreaterThan(60)
+    // The stacks are up nearly all fight, from a handful of Sunders: no filler.
+    expect(result.cooldowns.find((a) => a.id === 'sunderArmor')!.uptimePct!).toBeGreaterThan(95)
+    expect(casts('sunderArmor') / 2000).toBeLessThan(15)
+    // The boss unslowed and at full attack power: nobody's Thunder Clap or Demoralizing Shout.
+    expect([bundle.plan.fight.bossSwing!.slow, bundle.plan.fight.bossSwing!.minDamage]).toEqual([0, 4500])
+  })
+
+  it('makes less threat and more damage than Defensive, and takes more (§5.4 "Balanced")', () => {
+    const duties = runFights(buildPlan(config(DEFENSIVE)).plan, 2000)
+    // About −11% TPS and +5% DPS in the default setup, with about 19% more damage taken.
+    expect(balanced.tps.mean / duties.tps.mean).toBeGreaterThan(0.87)
+    expect(balanced.tps.mean / duties.tps.mean).toBeLessThan(0.91)
+    expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.03)
+    expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.07)
   })
 })

@@ -7,6 +7,7 @@ import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousand
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
+const rowsOf = rows
 
 describe('rotation rows', () => {
   const fury = defaultConfig('warrior-fury')
@@ -190,6 +191,8 @@ describe('rotation rows', () => {
   it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {
     const prot = defaultConfig('warrior-protection')
     const P = 'warrior.protection'
+    // Defensive, whose filler the wait belongs to (Balanced, the default, has no filler, D28).
+    const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}) => rowsOf(config, { [`${P}.priority`]: 'duties', ...rotation })
     const on = rows(prot)
     for (const id of [`${P}.shieldBlock.enabled`, `${P}.shieldSlam.enabled`]) {
       expect(on.get(id)?.on, id).toBe(true)

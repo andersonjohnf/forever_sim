@@ -307,6 +307,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       still come from the optimizer
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
+  - [x] Warrior: Balanced keeps Shield Block and Sunder Armor's 5 stacks (the duty rule's 1.5 s),
+        drops Thunder Clap, Demoralizing Shout and the filler, Heroic Strike from 40; first pass
+        (D27): −10.89% TPS, +5.03% DPS and +19% damage taken against Defensive
+        ([warrior.md §5.4 "Balanced"](classes/warrior.md#balanced-t5)); with A2's list
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
@@ -322,6 +326,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
       default order
+  - [x] Protection warrior: fourteen rows, the pre-pull and the duties pinned, the Priority
+        choice as the preset picker (Defensive, Balanced, Max TPS; `presetChoice`); Defensive's
+        and Max TPS's plans byte-identical to before the list (200 random setups each, and the
+        old golden kept as Defensive's); the golden moves to Balanced, the new default (T5)
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

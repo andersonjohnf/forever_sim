@@ -56,7 +56,8 @@ is cached under `.cache/client/` (git-ignored) and is never downloaded again unl
 
 The fetch layer also follows redirects itself, at most five, and checks every hop against the
 same rules (https, the allowed hosts and wago.tools paths), so a redirect can't carry a request
-anywhere else. A build version names cache directories and goes into request URLs, so the
+anywhere else; each hop is a request like any other, spaced 1.1 s from the last and logged. A
+build version names cache directories and goes into request URLs, so the
 scrapers refuse one that isn't four dot-separated numbers (`1.60.1.69913`), whether it came
 from `--version` or from wago.tools' answer; a WoWDBDefs commit must be a full 40-digit SHA;
 and no cache key may leave `.cache/client/`.

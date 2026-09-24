@@ -52,13 +52,23 @@ export function assertAllowed(url) {
 
 /**
  * GET `url`, following redirects by hand so each hop's URL passes assertAllowed: fetch's own
- * redirect handling would go wherever a Location header points.
+ * redirect handling would go wherever a Location header points. `onRequest(hopUrl)` runs before
+ * every hop's request (the fetcher spaces them there) and `onResponse(hopUrl, status)` after it,
+ * with status 0 when the request itself failed, so every request made is spaced and logged.
  */
-export async function fetchAllowed(url, init = {}, fetchImpl = fetch) {
+export async function fetchAllowed(url, init = {}, fetchImpl = fetch, { onRequest, onResponse } = {}) {
   let current = url;
   for (let hops = 0; ; hops++) {
     assertAllowed(current);
-    const res = await fetchImpl(current, { ...init, redirect: "manual" });
+    await onRequest?.(current);
+    let res;
+    try {
+      res = await fetchImpl(current, { ...init, redirect: "manual" });
+    } catch (e) {
+      onResponse?.(current, 0);
+      throw e;
+    }
+    onResponse?.(current, res.status);
     if (res.status < 300 || res.status >= 400 || res.status === 304) return res;
     const location = res.headers.get("location");
     if (!location) return res;
@@ -75,11 +85,25 @@ export function cachePath(cacheDir, cacheKey) {
   return file;
 }
 
-export function createFetcher({ cacheDir, refresh = false, log = console.log }) {
+export function createFetcher({ cacheDir, refresh = false, log = console.log, fetchImpl = fetch }) {
   let lastRequestAt = 0;
   let requests = 0;
   let cacheHits = 0;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  // Every request, redirect hops included, waits out the gap and is logged.
+  const hooks = {
+    async onRequest() {
+      const wait = lastRequestAt + MIN_GAP_MS - Date.now();
+      if (wait > 0) await sleep(wait);
+      requests++;
+    },
+    onResponse(hopUrl, status) {
+      lastRequestAt = Date.now();
+      fs.mkdirSync(cacheDir, { recursive: true });
+      fs.appendFileSync(path.join(cacheDir, "requests.jsonl"), `${JSON.stringify({ at: new Date().toISOString(), url: hopUrl, status })}\n`);
+      if (status >= 300 && status < 400) log(`GET ${hopUrl} -> ${status} (redirect)`);
+    },
+  };
 
   /**
    * GET `url`, caching the body at `<cacheDir>/<cacheKey>`. Returns a Buffer.
@@ -102,24 +126,15 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log }) 
       }
     }
     for (let attempt = 0; ; attempt++) {
-      const wait = lastRequestAt + MIN_GAP_MS - Date.now();
-      if (wait > 0) await sleep(wait);
-      requests++;
       let res;
       let error;
       try {
-        res = await fetchAllowed(url, { headers: { "user-agent": USER_AGENT } });
+        res = await fetchAllowed(url, { headers: { "user-agent": USER_AGENT } }, fetchImpl, hooks);
       } catch (e) {
         if (e instanceof RefusedError) throw e;
         error = e;
       }
-      lastRequestAt = Date.now();
       const status = error ? 0 : res.status;
-      fs.mkdirSync(cacheDir, { recursive: true });
-      fs.appendFileSync(
-        path.join(cacheDir, "requests.jsonl"),
-        `${JSON.stringify({ at: new Date().toISOString(), url, status })}\n`,
-      );
       const retryable = error || status === 429 || status >= 500;
       if (retryable && attempt < RETRY_DELAYS_MS.length) {
         log(`GET ${url} -> ${error ? error.message : `HTTP ${status}`}; retrying in ${RETRY_DELAYS_MS[attempt] / 1000}s`);

@@ -1,8 +1,10 @@
 // The fetch layer's rules (docs/data/client.md#requests): only https, the allowed hosts and
 // wago.tools' documented API, on every redirect hop too, and cache keys inside the cache.
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { RefusedError, assertAllowed, cachePath, fetchAllowed } from "./http.mjs";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { RefusedError, assertAllowed, cachePath, createFetcher, fetchAllowed } from "./http.mjs";
 import { assertBuildVersion, assertCommitSha } from "./wago.mjs";
 
 /** A fetch that answers from a table of URL → [status, location?], recording what it was asked. */
@@ -57,6 +59,55 @@ describe("fetchAllowed", () => {
     const { impl, asked } = fakeFetch({ "https://wago.tools/api/builds": [302, "https://wago.tools/api/builds"] });
     await expect(fetchAllowed("https://wago.tools/api/builds", {}, impl)).rejects.toThrow(/more than 5 redirects/);
     expect(asked).toHaveLength(6);
+  });
+});
+
+describe("createFetcher", () => {
+  const dirs = [];
+  afterEach(() => {
+    vi.useRealTimers();
+    for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  /** A fetcher over a fresh cache directory and `fakeFetch(routes)`, recording when each request went out. */
+  function fetcher(routes) {
+    const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "forever-sim-http-"));
+    dirs.push(cacheDir);
+    const { impl, asked } = fakeFetch(routes);
+    const at = [];
+    const timed = (url, init) => {
+      at.push(Date.now());
+      return impl(url, init);
+    };
+    const logged = () =>
+      fs
+        .readFileSync(path.join(cacheDir, "requests.jsonl"), "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line))
+        .map(({ url, status }) => `${status} ${url}`);
+    return { get: createFetcher({ cacheDir, log: () => {}, fetchImpl: timed }).get, asked, at, logged };
+  }
+
+  it("spaces and logs every redirect hop as its own request", async () => {
+    vi.useFakeTimers();
+    const f = fetcher({
+      "https://api.github.com/repos/a/b": [301, "/repositories/1"],
+      "https://api.github.com/repositories/1": [302, "https://raw.githubusercontent.com/a/b/c"],
+      "https://raw.githubusercontent.com/a/b/c": [200],
+    });
+    const body = f.get("https://api.github.com/repos/a/b", "x/b.json");
+    await vi.runAllTimersAsync();
+    expect((await body).toString()).toBe("ok");
+    expect(f.asked).toHaveLength(3);
+    for (let i = 1; i < f.at.length; i++) expect(f.at[i] - f.at[i - 1]).toBeGreaterThanOrEqual(1100);
+    expect(f.logged()).toEqual(["301 https://api.github.com/repos/a/b", "302 https://api.github.com/repositories/1", "200 https://raw.githubusercontent.com/a/b/c"]);
+  });
+
+  it("logs the request already made when the next hop is refused", async () => {
+    const f = fetcher({ "https://wago.tools/api/builds": [302, "https://evil.example/x"] });
+    await expect(f.get("https://wago.tools/api/builds", "builds.json")).rejects.toThrow(RefusedError);
+    expect(f.logged()).toEqual(["302 https://wago.tools/api/builds"]);
   });
 });
 

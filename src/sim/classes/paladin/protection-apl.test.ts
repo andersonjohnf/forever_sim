@@ -10,7 +10,7 @@ import { rotationPreset } from '../../index'
 import { buildPlan } from '../../plan/build'
 import { COND } from '../../plan/types'
 import { activeAplPreset, aplPresets, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow } from '../apl'
-import { fingerprint } from '../warrior/fury-apl-cases'
+import { fingerprint, planJson } from '../warrior/fury-apl-cases'
 import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, protectionRotation } from './protection'
 import { protectionCases } from './protection-apl-cases'
 
@@ -72,7 +72,7 @@ describe('Protection paladin’s priority list (D31)', () => {
     // rules at random, the priority always set to one of the two rotations there were. The snapshot
     // is of the plans before the priority list (A2), taken on that code: a change to it is a change
     // to what Defensive or Max TPS plays.
-    const hashes = protectionCases(200).map((config) => fingerprint(JSON.stringify(buildPlan(config).plan)))
+    const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()
   })

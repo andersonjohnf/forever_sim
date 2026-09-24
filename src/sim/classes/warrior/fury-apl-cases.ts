@@ -67,6 +67,15 @@ export function furyCases(options: readonly RotationOption[], count: number, see
   return out
 }
 
+/**
+ * A plan as JSON for a snapshot, without the fields that only label its results rows (a source's
+ * `consumable` and `landing`, docs/ux.md#results "Breakdown"): they change no fight, so the
+ * priority lists' "the plan they had before the list" snapshots don't move with them.
+ */
+export function planJson(plan: unknown): string {
+  return JSON.stringify(plan, (key, value) => (key === 'consumable' || key === 'landing' ? undefined : value))
+}
+
 /** A 53-bit hash of a string (cyrb53), as 14 hex digits: a short fingerprint of a plan for a snapshot. */
 export function fingerprint(text: string): string {
   let h1 = 0xdeadbeef

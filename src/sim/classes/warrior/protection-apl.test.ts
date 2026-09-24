@@ -11,6 +11,7 @@ import { buildPlan } from '../../plan/build'
 import { COND } from '../../plan/types'
 import type { SimConfig } from '../../types'
 import { activeAplPreset, aplPresets, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
+import { planJson } from './fury-apl-cases'
 import { fingerprint, protectionCases } from './protection-apl-cases'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionRotation } from './protection'
 
@@ -47,14 +48,14 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       const hashes = CASES.map(({ values, talents, context }) => {
         const none = protectionRotation(withPriority(values, priority), talents, noAura, context)
         expect(protectionRotation(withPriority(values, priority), talents, noAura, context, defaultAplOrder(PROTECTION_APL))).toEqual(none)
-        return fingerprint(JSON.stringify(none))
+        return fingerprint(planJson(none))
       })
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()
     })
 
     it(`gives 200 random whole setups the plan they had before the list: ${name}`, () => {
-      const hashes = CASES.map((c) => fingerprint(JSON.stringify(buildPlan(configOf(c, priority)).plan)))
+      const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()
     })

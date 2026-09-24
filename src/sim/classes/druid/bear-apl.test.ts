@@ -11,6 +11,7 @@ import { rotationPreset } from '../../index'
 import { buildPlan } from '../../plan/build'
 import { activeAplPreset, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { BEAR_APL, BEAR_IDS, BEAR_OPTIONS, BEAR_PRIORITY, bearRotation } from './bear'
+import { planJson } from '../warrior/fury-apl-cases'
 import { bearCases, fingerprint } from './bear-apl-cases'
 
 const TALENTS = talentRanksByName(TALENT_DATA.druid, defaultConfig('druid-feral-bear').talents)
@@ -51,7 +52,7 @@ describe('the Feral bear’s priority list (D31)', () => {
         rotationOrder: defaultAplOrder(BEAR_APL),
       }).plan,
     )
-    const hashes = plans.map((plan) => fingerprint(JSON.stringify(plan)))
+    const hashes = plans.map((plan) => fingerprint(planJson(plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     // They cover the roar on and off, and a rotation each.
     const roars = plans.filter((p) => p.abilities.some((a) => a.id === 'demoralizingRoar')).length
@@ -63,7 +64,7 @@ describe('the Feral bear’s priority list (D31)', () => {
 
   it('plays Defensive and Max TPS picked from the preset menu as the old defaults and Max TPS', () => {
     const [before, maxBefore] = bearCases(BEAR_OPTIONS, 2)
-    const fp = (config: typeof before) => fingerprint(JSON.stringify(buildPlan(config).plan))
+    const fp = (config: typeof before) => fingerprint(planJson(buildPlan(config).plan))
     const pick = (id: string, saved = {}) => {
       const picked = applyAplPreset(BEAR_APL, saved, id)!
       return { ...before, rotation: picked.rotation, ...(picked.rotationOrder ? { rotationOrder: picked.rotationOrder } : {}) }
@@ -75,7 +76,7 @@ describe('the Feral bear’s priority list (D31)', () => {
     const balanced = buildPlan(pick(DEFAULT_APL_PRESET)).plan
     expect(balanced.abilities.some((a) => a.id === 'demoralizingRoar')).toBe(false)
     expect(balanced.abilities.some((a) => a.id === 'faerieFire')).toBe(true)
-    expect(fingerprint(JSON.stringify(balanced))).toBe(fp(defaultConfig('druid-feral-bear')))
+    expect(fingerprint(planJson(balanced))).toBe(fp(defaultConfig('druid-feral-bear')))
   })
 
   it('loads what a setup stored as its preset (D28): the old default as Balanced, “duties” as Defensive', () => {

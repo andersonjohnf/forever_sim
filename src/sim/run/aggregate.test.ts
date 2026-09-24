@@ -167,7 +167,7 @@ describe('what each breakdown row counts (AbilityResult.unit, docs/ux.md#results
     // Rend, a bleed the rotation casts, counts its applications.
     ['warrior-arms', { mainHand: 'swings', rend: 'applications', mortalStrike: 'casts', slam: 'casts', deepWounds: 'procs', weaponmaster: 'procs' }],
     // Bloodrage is cast and the potion used; the talents' rage rows count nothing.
-    ['warrior-protection', { mainHand: 'swings', shieldSlam: 'casts', revenge: 'casts', sunderArmor: 'casts', demoralizingShout: 'casts', bloodrage: 'casts', mightyRagePotion: 'uses', thorns: 'procs', shieldSpecialization: null, masterOfDefense: null }],
+    ['warrior-protection', { mainHand: 'swings', shieldSlam: 'casts', revenge: 'casts', sunderArmor: 'casts', bloodrage: 'casts', mightyRagePotion: 'uses', thorns: 'procs', shieldSpecialization: null, masterOfDefense: null }],
     ['druid-feral-cat', { mainHand: 'swings', shred: 'casts', rip: 'applications', ferociousBite: 'casts', windfury: 'procs' }],
     // A form's Auto attack swings; Lacerate's bleed counts the applications its hits make; Faerie
     // Fire and Enrage are cast, the potion used.

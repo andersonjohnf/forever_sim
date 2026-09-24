@@ -38,8 +38,10 @@ test.describe('setup', () => {
     await expect(page.getByRole('group', { name: 'Shaman' }).getByRole('menuitem')).toHaveText([/^Enhancement\s*DPS$/])
     // The three rogues since R1, under their class's heading.
     await expect(page.getByRole('group', { name: 'Rogue' }).getByRole('menuitem')).toHaveText([/^Combat\s*DPS$/, /^Assassination\s*DPS$/, /^Subtlety\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(11)
-    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/])
+    // Fire, Frost and Arcane since K2, under the Mage heading.
+    await expect(page.getByRole('group', { name: 'Mage' }).getByRole('menuitem')).toHaveText([/^Fire\s*DPS$/, /^Frost\s*DPS$/, /^Arcane\s*DPS$/])
+    await expect(page.getByRole('menuitem')).toHaveCount(14)
+    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/])
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {
@@ -58,7 +60,7 @@ test.describe('setup', () => {
     await page.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return
       sessionStorage.setItem('seeded', '1')
-      const state = { config: { version: 1, spec: 'mage-fire' }, bySpec: {}, section: 'rotation' }
+      const state = { config: { version: 1, spec: 'deathknight-frost' }, bySpec: {}, section: 'rotation' }
       localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
     })
     await page.goto('./')
@@ -165,7 +167,7 @@ test.describe('sharing', () => {
     // The share format (src/app/share.ts): deflate-raw JSON, base64url, in #s=.
     const hash = await page.evaluate(async () => {
       // Every spec in the sim ships (B4): a spec it doesn't offer is one it doesn't know.
-      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'mage-fire' }))
+      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'deathknight-frost' }))
       const packed = new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())
       let binary = ''
       for (const b of packed) binary += String.fromCharCode(b)

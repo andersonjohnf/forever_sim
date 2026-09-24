@@ -184,7 +184,7 @@ for (const [label, device] of [
       await field.fill(await codeFor(page, { version: 2, spec: 'warrior-arms', race: 'horde-orc' }))
       await field.press('Enter')
       await expect(sheet.getByRole('alert')).toHaveText('That code is from a newer version of Forever Sim. Reload this page to update it, then try again.')
-      await field.fill(await codeFor(page, { version: 1, spec: 'mage-fire', race: 'horde-orc', talents: '' }))
+      await field.fill(await codeFor(page, { version: 1, spec: 'deathknight-frost', race: 'horde-orc', talents: '' }))
       await field.press('Enter')
       await expect(sheet.getByRole('alert')).toHaveText('That code is for a spec this sim doesn’t know.')
       await field.fill(`#s=${await codeFor(page, {})}`)
@@ -259,7 +259,7 @@ for (const [label, device] of [
         entry('alpha', 'Alpha', { version: 1, spec: 'warrior-fury' }, 10),
         // For a spec the sim doesn't offer (every spec it knows ships, so one it doesn't know), and
         // one that can't be read (no name).
-        entry('tank', 'Tank', { version: 1, spec: 'mage-fire' }, 15),
+        entry('tank', 'Tank', { version: 1, spec: 'deathknight-frost' }, 15),
         { id: 'broken', savedAt: new Date().toISOString(), config: { version: 1, spec: 'warrior-fury' } },
       ])
       await page.goto('./')

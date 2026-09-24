@@ -25,7 +25,7 @@ const REFUSED: [string, unknown, string, RegExp][] = [
     'That link is from a newer version of Forever Sim',
     /Reload this page to update it, then open the link again\. Your own setup is unchanged\./,
   ],
-  ['an unknown spec', { version: 1, spec: 'mage-fire' }, 'That link is for a spec this sim doesn’t know', /your own setup is unchanged\./],
+  ['an unknown spec', { version: 1, spec: 'deathknight-frost' }, 'That link is for a spec this sim doesn’t know', /your own setup is unchanged\./],
 ]
 
 test.describe('share links that aren’t a usable setup', () => {

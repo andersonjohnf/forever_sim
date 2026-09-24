@@ -50,10 +50,10 @@ test.describe('Combat rogue', () => {
     // Every rogue build; only this spec's reads "(default)".
     await expect(page.getByRole('option')).toHaveText(['Combat (default)', 'Assassination default', 'Subtlety default'])
     await page.keyboard.press('Escape')
-    // About names the rogue, after the paladin.
+    // About names the rogue, after the shaman (and before the mage, since K2).
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/ · Rogues: Combat, Assassination and Subtlety\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/ · Rogues: Combat, Assassination and Subtlety( · .+)?\.$/)).toBeVisible()
   })
 
   test('its Rotation tab says its defaults are the common priority', async ({ page }) => {

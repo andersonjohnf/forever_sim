@@ -1476,14 +1476,15 @@ a value you set yourself still wins.
 
 - The duties come first in the priority, before any threat ability on the global cooldown: Shield
   Block (row 1, off the global cooldown), then Thunder Clap and Demoralizing Shout (rows 5 and 6).
-- A duty that has a cooldown is used when it's ready: Shield Block, from its 10 rage.
-- A debuff is refreshed as soon as a miss could still be tried again before it falls off: from its
-  own cooldown, or from one global cooldown if it has none. So Thunder Clap is refreshed with 6 s
+- A duty that isn't a debuff on the boss is used when it's ready: Shield Block, from its 10 rage.
+- A debuff, with or without a cooldown, is refreshed as soon as a missed cast could still be tried
+  again before it falls off: from its own cooldown, or from one global cooldown if it has none. So Thunder Clap is refreshed with 6 s
   left, its cooldown, and Demoralizing Shout, which has no cooldown, with 1.5 s left.
 
 The refresh times stay settings under Advanced, whose help says what the rule is, so you can
 change them; the search tunes only the threat abilities around the duties. Against the tuned
-timing the rule replaced, it costs about 2.2% of TPS and saves 2.9% of damage taken
+timing the rule replaced, it costs about 2.2% of TPS and 3.3% of DPS, and saves 2.9% of damage
+taken
 ([Tuning the defaults](#tuning-the-defaults-p1)).
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |

@@ -104,7 +104,7 @@ const TC_REFRESH_SEC = THUNDER_CLAP.cooldownMs / 1000
 const DS_REFRESH_SEC = GCD_MS / 1000
 /** The refresh help's second sentence: where the default comes from, the duty rule (warrior.md §5.4). */
 const DUTY_RULE = (sec: number, why: string) =>
-  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.`
+  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.`
 
 /** A debuff's refresh input, in seconds left (rows 5, 6 and 10); `why` says where its default comes from. */
 const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why = ''): RotationOption => ({

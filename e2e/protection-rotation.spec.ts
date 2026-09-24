@@ -52,7 +52,7 @@ test.describe('Protection rotation', () => {
     await core.getByRole('button', { name: 'Advanced settings for Core abilities' }).click()
     // Refreshed as soon as a miss could still be tried again before it falls off: Thunder Clap from
     // its 6 s cooldown, Demoralizing Shout, which has none, from one 1.5 s global cooldown.
-    const rule = 'follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.'
+    const rule = 'follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.'
     const thunderClap = core.getByRole('textbox', { name: 'Thunder Clap again with' })
     await expect(thunderClap).toHaveValue('6')
     await expect(thunderClap).toHaveAccessibleDescription(new RegExp(`The default, 6 s \\(its cooldown\\), ${rule}$`))

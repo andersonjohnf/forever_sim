@@ -271,7 +271,7 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below). Built on its
   branch, awaiting review ([warlock.md](classes/warlock.md)). ([review](reviews/2026-09-24-warlock.md))
 - [ ] **K4 Shadow Priest**
-- [ ] **K5 Elemental Shaman**
+- [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
 - [ ] **K6 Balance Druid:** Moonkin Form
 - [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks
@@ -470,6 +470,12 @@ slice is worked:
   with Windfury Totem (+3.6%, untried by the first pass); the imbue help's +653 AP against 783.6
   with Elemental Weapons; derived Dwarf and Skyborne base rows; the inferred 16361 link;
   source-tag drift when the client data is regenerated from the cache.
+- **The Elemental's review lows** ([its log](reviews/2026-09-24-elemental-shaman.md)): Mana Tide and
+  Mana Spring share the water totem slot; Totemic Focus should make Mana Tide cost 45; two notes
+  repeat that casting speed doesn't shorten the GCD; a stale comment range; Totem of the Storm's
+  card shows no stats.
+- **Caster enchants and consumables** (weapon spell power, Arcanum of Focus, Brilliant Wizard Oil,
+  Nightfin Soup) are partly missing from the catalogue, roughly +12% for a caster.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

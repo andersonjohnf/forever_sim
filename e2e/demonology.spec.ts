@@ -42,10 +42,10 @@ const choice = (tab: Locator, setting: string, value: string) => tab.getByRole('
 async function expectDemonologyResult(results: Locator) {
   await expect(results.getByRole('group', { name: 'DPS' })).toContainText(VALUE_WITH_CI)
   const breakdown = results.getByRole('region', { name: 'Damage by ability' })
-  for (const name of ['Shadow Bolt', 'Corruption', 'Bane of Doom', 'Immolate']) await expect(breakdown.getByText(name, { exact: true })).toBeVisible()
-  // Its demon's rows name it (docs/mechanics/ranged-and-pets.md §10).
-  await expect(breakdown.getByText('Auto attack · Succubus', { exact: true })).toBeVisible()
-  await expect(breakdown.getByText('Lash of Pain · Succubus', { exact: true })).toBeVisible()
+  for (const name of ['Shadow Bolt', 'Corruption', 'Bane of Doom', 'Immolate', 'Soul Fire']) await expect(breakdown.getByText(name, { exact: true })).toBeVisible()
+  // Its demon's rows name it (docs/mechanics/ranged-and-pets.md §10): the default Imp's Firebolt.
+  await expect(breakdown.getByText('Firebolt · Imp', { exact: true })).toBeVisible()
+  await expect(breakdown.getByText(/· Succubus$/)).toHaveCount(0)
   await openDetails(results, /^Cooldowns and buffs/)
   const cooldowns = results.getByRole('table')
   for (const name of ['Demonic Sacrifice', 'Soul Link', 'Master Demonologist', 'Demonic Knowledge', 'Life Tap']) {
@@ -74,19 +74,18 @@ test.describe('Demonology warlock', () => {
     await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction, Affliction and Demonology( · .+)?\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: the Succubus kept out, the Imp sacrificed, and why a sacrifice can do nothing', async ({ page }) => {
+  test('its Rotation tab: the Imp kept out, the Succubus sacrificed, and why a sacrifice can do nothing', async ({ page }) => {
     await switchToDemonology(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Consumables'])
-    await expect(choice(tab, 'Demonic Sacrifice', 'Imp')).toBeChecked()
-    await expect(choice(tab, 'Demon', 'Succubus')).toBeChecked()
+    await expect(choice(tab, 'Demonic Sacrifice', 'Succubus')).toBeChecked()
+    await expect(choice(tab, 'Demon', 'Imp')).toBeChecked()
     await expect(choice(tab, 'Bane', 'Doom')).toBeChecked()
-    for (const name of ['Curse of the Elements', 'Immolate', 'Corruption', 'Racial cooldown']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
-    await expect(tab.getByRole('switch', { name: 'Soul Fire below 35%', exact: true })).not.toBeChecked()
+    for (const name of ['Curse of the Elements', 'Immolate', 'Corruption', 'Racial cooldown', 'Soul Fire below 35%']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab).not.toContainText(OTHER_CLASS)
     // Summoning the demon you sacrificed cancels its buff.
-    await choice(tab, 'Demon', 'Imp').click()
+    await choice(tab, 'Demon', 'Succubus').click()
     await expect(tab.getByText('Not used: summoning the demon you sacrificed cancels its buff.')).toBeVisible()
     // The Buffs tab keeps the boss's armor debuffs for the demon's swings (ranged-and-pets.md §8).
     const buffs = await openTab(page, 'Buffs')
@@ -102,17 +101,18 @@ test.describe('Demonology warlock', () => {
     await expectDemonologyResult(results)
   })
 
-  test('with the Imp out, its Firebolt is on its own row', async ({ page }) => {
+  test('with the Succubus out, its swings and Lash of Pain are on their own rows', async ({ page }) => {
     await switchToDemonology(page)
     const tab = await openTab(page, 'Rotation')
-    await choice(tab, 'Demonic Sacrifice', 'Succubus').click()
-    await choice(tab, 'Demon', 'Imp').click()
+    await choice(tab, 'Demonic Sacrifice', 'Imp').click()
+    await choice(tab, 'Demon', 'Succubus').click()
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate' }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     const breakdown = results.getByRole('region', { name: 'Damage by ability' })
-    await expect(breakdown.getByText('Firebolt · Imp', { exact: true })).toBeVisible()
-    await expect(breakdown.getByText(/· Succubus$/)).toHaveCount(0)
+    await expect(breakdown.getByText('Auto attack · Succubus', { exact: true })).toBeVisible()
+    await expect(breakdown.getByText('Lash of Pain · Succubus', { exact: true })).toBeVisible()
+    await expect(breakdown.getByText(/· Imp$/)).toHaveCount(0)
   })
 })
 
@@ -122,8 +122,8 @@ test.describe('Demonology share link', () => {
   test('carries the demon and the sacrifice to a fresh page load', async ({ page }) => {
     await switchToDemonology(page)
     const rotation = await openTab(page, 'Rotation')
-    await choice(rotation, 'Demonic Sacrifice', 'Succubus').click()
-    await choice(rotation, 'Demon', 'Imp').click()
+    await choice(rotation, 'Demonic Sacrifice', 'Imp').click()
+    await choice(rotation, 'Demon', 'Succubus').click()
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const link = await page.evaluate(() => navigator.clipboard.readText())
@@ -135,8 +135,8 @@ test.describe('Demonology share link', () => {
     await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })).toBeVisible()
     await expect(page.getByRole('button', { name: DEMONOLOGY })).toBeVisible()
     const back = await openTab(page, 'Rotation')
-    await expect(choice(back, 'Demon', 'Imp')).toBeChecked()
-    await expect(choice(back, 'Demonic Sacrifice', 'Succubus')).toBeChecked()
+    await expect(choice(back, 'Demon', 'Succubus')).toBeChecked()
+    await expect(choice(back, 'Demonic Sacrifice', 'Imp')).toBeChecked()
   })
 })
 

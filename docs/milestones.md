@@ -571,6 +571,10 @@ slice is worked:
     is per spec; the note needs the setup's demon. Low: the default Succubus swings.
   - **"Voidwalker" touches its button's borders at 390 px** in the Demonic Sacrifice choice (DM9,
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
+  - **The default Imp build rests on Q19** [?] (DV2, D30): it's the sim's best found build, 6% ahead
+    of the Succubus only through Improved Imp's hidden effect read as Firebolt's cast time. The
+    optimizer (O4) confirms it on a fresh seed, and the guild's Firebolt test settles Q19. Its talents
+    weren't re-tuned for the Imp: Improved Sayaad's 3 points do nothing with it, O4's talent search's.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

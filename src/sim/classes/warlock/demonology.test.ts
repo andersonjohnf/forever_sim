@@ -127,7 +127,7 @@ describe('worked examples (warlock.md §11.8)', () => {
   })
 
   it('3. The Succubus’s swing: 240 attack power, 90.74 on average before armor, glancing and crits', () => {
-    const { plan } = buildPlan(fixed())
+    const { plan } = buildPlan(fixed(SUCCUBUS))
     expect(plan.pet!.ap).toBe(240)
     const avg = ((DEMON_WEAPON.min + DEMON_WEAPON.max) / 2 + (plan.pet!.ap / 14) * DEMON_WEAPON.speedSec) * plan.pet!.damageMult
     expect(avg).toBeCloseTo(90.737, 3)
@@ -153,7 +153,7 @@ describe('worked examples (warlock.md §11.8)', () => {
   })
 
   it('8. What the Succubus inherits: 253.8 attack power, 108.6 spell damage, your 11.73% crit (9.33% on its swings vs the boss), 13% spell miss; Lash of Pain 156.49', () => {
-    const { plan } = buildPlan(fixed())
+    const { plan } = buildPlan(fixed(SUCCUBUS))
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, ...DEMON_INHERITS })
     const sim = new Sim(plan)
     sim.runFight(0)
@@ -179,11 +179,17 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(demonPet('imp', ranks([]))!.abilities[0].castMs).toBe(FIREBOLT.castMs)
   })
 
-  it('7. Shadow in the default: ×1.30295 from Burning Shadow, Master Demonologist and Soul Link', () => {
-    const { plan } = buildPlan(fixed())
-    const shadow = ['burningShadow', 'masterDemonologist', 'soulLink'].map((id) => plan.auras.find((a) => a.id === id)!)
-    for (const a of shadow) expect(a.schoolMask! & (1 << SCHOOL.shadow), a.id).not.toBe(0)
-    expect(shadow.reduce((m, a) => m * (1 + a.schoolDamage! / 100), 1)).toBeCloseTo(1.30295, 10)
+  it('7. Fire in the default, Shadow with the Succubus out: ×1.30295 from the sacrifice, Master Demonologist and Soul Link', () => {
+    const cases = [
+      [fixed(), SCHOOL.fire, 'touchOfFire'],
+      [fixed(SUCCUBUS), SCHOOL.shadow, 'burningShadow'],
+    ] as const
+    for (const [config, school, sacrifice] of cases) {
+      const { plan } = buildPlan(config)
+      const auras = [sacrifice, 'masterDemonologist', 'soulLink'].map((id) => plan.auras.find((a) => a.id === id)!)
+      for (const a of auras) expect(a.schoolMask! & (1 << school), `${sacrifice} ${a.id}`).not.toBe(0)
+      expect(auras.reduce((m, a) => m * (1 + a.schoolDamage! / 100), 1)).toBeCloseTo(1.30295, 10)
+    }
   })
 })
 
@@ -204,8 +210,17 @@ const perFight = (plan: Plan, agg: Aggregate, id: string, field: keyof typeof FI
 const prepull = (plan: Plan) => plan.prepull.casts.map((c) => [plan.abilities[c.ability].id, c.atMs])
 
 describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => {
-  it('keeps the Succubus out with the Imp sacrificed (Demonic Pact), its passives up before the pull', () => {
+  it('defaults to the Imp out with the Succubus sacrificed and Soul Fire below 35% (§11.6)', () => {
     const { plan } = buildPlan(fixed())
+    expect(plan.pet).toMatchObject({ id: 'imp', weapon: null })
+    expect(plan.pet!.abilities.map((a) => [a.id, a.castMs])).toEqual([['firebolt', 1000]])
+    expect(plan.auras.find((a) => a.id === 'touchOfFire')).toBeDefined()
+    expect(plan.abilities.some((a) => a.id === 'soulFire')).toBe(true)
+    expect(prepull(plan).map(([id]) => id)).toEqual(['demonicSacrifice', 'soulLink', 'masterDemonologist', 'demonicKnowledge'])
+  })
+
+  it('keeps the Succubus out with the Imp sacrificed (Demonic Pact), its passives up before the pull', () => {
+    const { plan } = buildPlan(fixed(SUCCUBUS))
     expect(prepull(plan)).toEqual([
       ['demonicSacrifice', -3000],
       ['soulLink', -2000],
@@ -302,9 +317,9 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
   })
 
   it('its Standard raid keeps the boss’s armor debuffs for the Succubus’s swings', () => {
-    const { plan } = buildPlan(fixed())
+    const { plan } = buildPlan(fixed(SUCCUBUS))
     expect(plan.fight.targetArmor).toBeLessThan(1000)
-    const result = toResult(buildPlan(fixed()), runFights(plan, 100), 0)
+    const result = toResult(buildPlan(fixed(SUCCUBUS)), runFights(plan, 100), 0)
     expect(result.abilities.filter((a) => a.pet).map((a) => a.name)).toEqual(['Auto attack', 'Lash of Pain'])
     expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonInherits', 'demonTable', 'demonMana', 'masterDemonologist']))
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
@@ -315,7 +330,7 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
   })
 
   it('the demon’s crit and hit follow yours, and its spells never read your school auras', () => {
-    const { plan } = buildPlan(fixed())
+    const { plan } = buildPlan(fixed(SUCCUBUS))
     const agg = (p: Plan) => runFights(p, 300)
     const base = agg(plan)
     // No inherited crit or hit: fewer crits and more misses on both of the Succubus's rows.
@@ -389,6 +404,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   and hit (§11.2, D29): 491.39 → 500.64 here (+1.9%); 492.8 → 502.0 over 20,000 fights.
   // - H3 verification (DV3): the crit the demon inherits is aura crit, so its swings lose 1.8% of it
   //   against the boss (combat-tables §4.4): 500.64 → 499.89 here; 502.0 → 501.3 over 20,000 fights.
+  // - H3 verification (DV2, D30): the default is the sim's best found build, the Imp out with the
+  //   Succubus sacrificed and Soul Fire below 35% (§11.6): 499.89 → 530.79 here; 531.9 over 20,000 fights.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

@@ -62,7 +62,7 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   // docs/classes/warlock.md#71-talents: Destruction 7/11/33 (Fire, Demonic Sacrifice), Affliction 35/11/5
   'warlock-destruction': '25-0050203001-0050355103101351',
   'warlock-affliction': '2555002003520105-0050203001-005',
-  // docs/classes/warlock.md#116-defaults: Demonology 0/32/19, Demonic Pact with the Succubus out and the Imp sacrificed, Ruin
+  // docs/classes/warlock.md#116-defaults: Demonology 0/32/19, Demonic Pact with the Imp out and the Succubus sacrificed, Ruin
   'warlock-demonology': '-0325003231120001351-0350305003',
   // docs/classes/priest.md#71-talents: Shadow 20/0/31, Shadowform with Twin Disciplines, Inner Focus and Meditation
   'priest-shadow': '025300031303--500320501201312051',

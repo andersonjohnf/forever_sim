@@ -174,17 +174,19 @@ as a cast that restores mana (`AbilityPlan.manaTenths`), Innervate as an aura (`
 
 **Multipliers.** A spell's damage is `(base + coefficient × SP) × its own × your magic ×
 your school's × the boss's damage taken of its school × (1 − avgResist)` [C]. Your school's is the
-product of your school-wide buffs (Power Infusion's +20%, Forever's Shadow Weaving); the boss's is
-the product of its debuffs (Curse of the Elements' +10%). For Holy, Judgement of the Crusader's
-flat bonus comes before the boss's damage taken [?] ([OQ-S12](#open-questions)). A class's
-talents that name its spells (Fire Power, Shadow Mastery) are the spell's own multiplier, set by
-the class slice.
+product of your school-wide buffs (Power Infusion's +20%); the boss's is the product of its debuffs
+(Curse of the Elements' +10%, and Forever's Improved Scorch and Shadow Weaving, which count only
+the caster's own damage). A DoT snapshots your side as it lands and reads the boss's at each tick
+([§7](#7-dots)), so a debuff stack that a DoT's own landing adds counts from its first tick. For
+Holy, Judgement of the Crusader's flat bonus comes before the boss's damage taken [?]
+([OQ-S12](#open-questions)). A class's talents that name its spells (Fire Power, Shadow Mastery)
+are the spell's own multiplier, set by the class slice.
 
 | Name | Forever | Classic Era | In the sim | Tag |
 | --- | --- | --- | --- | --- |
 | **Curse of the Elements** r4 (1311680, new at 50) | **+10% damage taken from every magic school, Holy included**, −75 resistance to them; 5 min; one curse per warlock | r3 (11722): Fire and Frost only | Buffs entry, the casters' ([§12](#12-what-a-class-slice-uses)); its −75 changes nothing on a boss ([§3](#3-resistances)) | [F] [C] [client] (SpellEffect, both builds) |
 | **Curse of Shadow** | **gone** (folded into Curse of the Elements; r2 17937 isn't in the client) | r2: Shadow and Arcane +10%, −75 | not in the catalogue | [F] [client] (SpellName, 1.60.1.69913) |
-| **Shadow Weaving** (15258) | the priest's **own buff**: +2% Shadow damage you deal a stack, 5 stacks, 15 s, from each Shadow spell | a debuff on the boss: +3% Shadow taken a stack, 5 stacks, 15 s, 20–100% chance by rank | K4's, as an aura on the priest (`schoolDamage`) | [F] tooltip; [C] [client] (SpellEffect, both builds) |
+| **Shadow Weaving** (15257 → 15258) | a **debuff on the boss that counts only the priest's own damage**: "Taking 2% increased Shadow damage from the caster" a stack (aura 270 on the enemy, ImplicitTarget 6, as Improved Scorch's), 5 stacks, 15 s; 100% chance from each of the priest's Shadow damage spells. The talent's tooltip words it as "the Shadow damage you deal" | a debuff on the boss for everyone: +3% Shadow taken a stack (aura 87), 5 stacks, 15 s, 20–100% chance by rank | K4's, as an aura the priest keeps on the boss (`schoolTaken`), read at each hit and tick; no Buffs entry (another priest's stacks don't count for you) | [F] [client] (SpellEffect, Spell, SpellAuraOptions, 1.60.1.69913); [C] [client] (SpellEffect, 1.15.9.69722) |
 | **Improved Scorch** (11095 → 22959) | **the mage's own**: "+3% Fire damage **from the Mage**" a stack, 5 stacks, 30 s; 100% chance from Scorch | Fire Vulnerability on the boss for everyone, 33/66/100% by rank | K2's, as an aura the mage keeps (`schoolTaken`) | [F] tooltip; [C] ([R1][r1-const]) |
 | **Winter's Chill** (11180 → 12579) | **the mage's own**: +2% crit a stack for "your Ice Lance and Frostbolt", 5 stacks, 15 s | +2% Frost crit a stack for anyone's Frost spells, 20–100% by rank | K2's (`schoolCrit`) | [F] tooltip; [C]; the talent's chance [?] ([OQ-S9](#open-questions)) |
 | **Improved Shadow Bolt** (Shadow Vulnerability 17794) | the Forever row has no charges; the ranks are Forever talents | +20% Shadow taken, 4 charges, 12 s (17800) | K3's | [F] [C] [client] |
@@ -234,9 +236,11 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
   `castHasted`, `resource: 'mana'`, `costTenths`, and an `aura` that marks its DoT on the boss;
   `kind: 'channel'` with its `spell` (a DoT channel) or `tickSpell`, `rageTicks`, `rageTickMs` (a
   triggering channel), and `channelTicks` to cut it off; `kind: 'cast'` for a cooldown's buff.
-- **Auras** (`AuraSpec.mods`): `schoolMask` with `schoolDamage` (your damage), `schoolTaken` (the
-  boss's damage taken, a debuff you keep up) and `schoolCrit`; `spellDamage`; `castHaste`; and the
-  mana hooks `spiritRegen` and `castingRegen`.
+- **Auras** (`AuraSpec.mods`): `schoolMask` with `schoolDamage` (your damage, which a DoT
+  snapshots), `schoolTaken` (the boss's damage taken, read at each hit and tick: a debuff you keep
+  up, including one that counts only your damage, Improved Scorch's and Shadow Weaving's, since
+  the sim deals no one else's) and `schoolCrit`; `spellDamage`; `castHaste`; and the mana hooks
+  `spiritRegen` and `castingRegen`. A channel's `aura` is up while it channels (Evocation).
 - **Static effects** (`Effect`): `schoolDamage`, `schoolTaken`, `schoolCrit`, `targetResistance`,
   `castHaste`, and the stats `fireSpellDamage` … `arcaneSpellDamage`, `spellPen`.
 - **Procs** (`ProcSpec`): the `spellLanded` and `spellTick` triggers, `schools`, `fromSpell`.
@@ -280,8 +284,10 @@ What the Forever client changes for casters, read from its tables against Classi
   Moonfire), rounded to whole points. These are the raw client rows; the class slices confirm them against the rendered tooltips, which win where they differ
   ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable), [OQ-S8](#open-questions)).
 - **Raid debuffs made personal:** Improved Scorch's Fire Vulnerability and Winter's Chill are the
-  mage's own, Shadow Weaving a buff on the priest; Curse of the Elements covers every magic
-  school, Holy included, and Curse of Shadow is gone ([§9](#9-caster-raid-buffs-and-debuffs)).
+  mage's own, and Shadow Weaving the priest's: Fire Vulnerability and Shadow Weaving stay debuffs
+  on the boss but count only their caster's damage, and Winter's Chill raises only the mage's
+  crit. Curse of the Elements covers every magic school, Holy included, and Curse of Shadow is
+  gone ([§9](#9-caster-raid-buffs-and-debuffs)).
 - **Moonkin Aura** is all crit (Classic Era spell crit). **Mage Armor** keeps 50% of regeneration
   while casting (30%). **Berserking** is a flat +10% casting and attack speed for 10 s (10–30% by
   health). The gloves' **Minor Haste** adds casting speed.

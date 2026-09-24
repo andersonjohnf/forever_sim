@@ -519,6 +519,18 @@ describe('school auras and spell procs (docs/mechanics/spells.md §9, §10, §11
     expect(hits.slice(0, 8)).toEqual([1000 * 1.2 * f, 1000 * 1.2 * 1.03 * f, 1000 * 1.06 * f, 1000 * 1.09 * f, 1000 * 1.12 * f, 1000 * 1.15 * f, 1000 * 1.15 * f, 1000 * 1.15 * f].map(round))
   })
 
+  it('counts a stack of a debuff that counts only your damage from the first tick of the DoT that adds it (Shadow Weaving, `schoolTaken`)', () => {
+    const plan = casterPlan(10000)
+    const dot = addSpell(plan, { school: SCHOOL.shadow, dotTicks: 1, dotTickMs: 3000, dotTickDamage: 100 })
+    const weaving = addAura(plan, { id: 'weaving', name: 'Shadow Weaving', durationMs: 15000, maxStacks: 5, mods: {} })
+    Object.assign(plan.auras[weaving], { schoolMask: schoolMask(['shadow']), schoolTaken: 10 })
+    addProc(plan, { trigger: TRIGGER.spellLanded, chance: [1, 1], hands: 0, action: ACTION.aura, amount: weaving, b: 0, schools: schoolMask(['shadow']) })
+    line(plan, addCaster(plan, dot, { cooldownMs: 60000 }))
+    // The DoT lands, then its stack: its one tick reads the boss's side then, 100 × 1.1 × 0.94.
+    expect(damages(plan, plan.spells![dot].source, 1).map(round)).toEqual([round(100 * 1.1 * (1 - RESIST))])
+    expect(round(100 * 1.1 * (1 - RESIST))).toBe(103.4)
+  })
+
   it('keeps a spell trigger’s school and row for its later procs when an earlier one casts a spell of its own', () => {
     const plan = casterPlan(3000)
     const shadow = addSpell(plan, { school: SCHOOL.shadow, min: 1, max: 1 })

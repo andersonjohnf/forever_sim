@@ -338,9 +338,11 @@ export interface AuraPlan {
   // --- The caster core (docs/mechanics/spells.md §5, §8, §9). All optional, absent = 0. ---
   /**
    * The spell schools (a `schoolBit` mask) its school mods cover, per stack: your damage with them
-   * % (Power Infusion's +20, Shadow Weaving's self-buff), the boss's damage taken from them % (a
-   * debuff you keep up: Fire Vulnerability), and your spell crit with them % (Winter's Chill). The
-   * damage and taken % multiply, the crit adds.
+   * % (Power Infusion's +20), snapshotted by a DoT as it lands; the boss's damage taken from them %,
+   * read at each hit and each DoT tick (a debuff you keep up: Curse of the Elements, or Forever's
+   * Fire Vulnerability and Shadow Weaving, which count only your damage, the only damage the sim
+   * deals); and your spell crit with them % (Winter's Chill). The damage and taken % multiply
+   * across auras, and add across one aura's stacks; the crit adds (docs/mechanics/spells.md §9).
    */
   schoolMask?: number
   schoolDamage?: number

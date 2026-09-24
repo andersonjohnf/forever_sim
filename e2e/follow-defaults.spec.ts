@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // docs/architecture.md "Following the defaults"; docs/ux.md "Persistence and sharing" and "Gear".
 
@@ -34,18 +35,23 @@ const OLD_PALADIN = {
   },
 }
 
+/** Seeds the automatic save with OLD_PALADIN, once per test (a reload keeps what the app saved). */
+async function seedOldPaladin(page: Page) {
+  await page.addInitScript((config) => {
+    if (sessionStorage.getItem('seeded')) return
+    sessionStorage.setItem('seeded', '1')
+    localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'gear' }, version: 1 }))
+  }, OLD_PALADIN)
+}
+
 test.describe('a returning visitor’s untouched gear and talents follow the defaults', () => {
   test('an old save gets the new threat set and talents, keeps the player’s own head, and says so once', async ({ page }) => {
-    await page.addInitScript((config) => {
-      if (sessionStorage.getItem('seeded')) return
-      sessionStorage.setItem('seeded', '1')
-      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'gear' }, version: 1 }))
-    }, OLD_PALADIN)
+    await seedOldPaladin(page)
     await page.goto('./')
 
     const notice = toasts(page).filter({ hasText: 'Updated to the new default gear and talents for Protection Paladin' })
     await expect(notice).toHaveCount(1)
-    await expect(notice).toContainText('Anything you changed yourself is kept.')
+    await expect(notice).toContainText('Gear and talents you changed yourself are kept.')
 
     const gear = page.getByRole('tabpanel', { name: 'Gear' })
     await expect(gear.getByRole('button', { name: "Shoulders: Lieutenant Commander's Lamellar Shoulders" })).toBeVisible()
@@ -63,6 +69,29 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
     await expect(toasts(page)).toHaveCount(0)
+  })
+})
+
+test.describe('a share link and the defaults notice (docs/ux.md "Persistence and sharing")', () => {
+  test('a link that replaces the moved spec leaves it out, so no notice contradicts the link', async ({ page }) => {
+    await page.goto('about:blank')
+    const hash = await linkFor(page, { version: 1, spec: 'paladin-protection', talents: '2-4530513321301551-502' })
+    await seedOldPaladin(page)
+    await page.goto(`./${hash}`)
+    await expect(toasts(page).filter({ hasText: 'Loaded a shared setup' })).toHaveCount(1)
+    await expect(toasts(page).filter({ hasText: /Updated to the new default/ })).toHaveCount(0)
+    // The link's own talents, as it carries them: 2/42/7.
+    await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/2\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
+  })
+
+  test('a link for another spec leaves the notice for the spec that moved', async ({ page }) => {
+    await page.goto('about:blank')
+    const hash = await linkFor(page, { version: 1, spec: 'warrior-arms' })
+    await seedOldPaladin(page)
+    await page.goto(`./${hash}`)
+    await expect(toasts(page).filter({ hasText: 'Loaded a shared setup' })).toHaveCount(1)
+    await expect(toasts(page).filter({ hasText: 'Updated to the new default gear and talents for Protection Paladin' })).toHaveCount(1)
   })
 })
 

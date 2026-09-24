@@ -828,9 +828,15 @@ Every view handles these states:
   the spec's default when the setup is saved takes the newer default on the next visit; what you
   changed stays yours ([architecture, "Following the defaults"](architecture.md#following-the-defaults)).
   A visit that moved anything says so once, naming the spec, the current one first: "Updated to
-  the new default gear and talents for Protection Paladin", "Anything you changed yourself is
-  kept." (two specs are both named; more read "Protection Warrior and 2 other specs"). The next
-  visit says nothing. Share links, codes and saved setups are deliberate, so they're never moved.
+  the new default gear and talents for Protection Paladin", "Gear and talents you changed yourself
+  are kept." (two specs are both named; more read "Protection Warrior and 2 other specs"). The next
+  visit says nothing, even when the save couldn't be written and the visit makes the same move
+  again. A share link the page opens with leaves its own spec out of the notice, since the link's
+  setup replaces that spec's; with nothing else moved, there's no notice. A default item that can't
+  go in beside one of your own (a Unique rule, or a two-hander with your off hand) leaves its slot as
+  it was, still following the default, and the next visit tries again. Share links, codes and
+  saved setups are loaded exactly as they are; after that, anything in them that is the default
+  follows it.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser

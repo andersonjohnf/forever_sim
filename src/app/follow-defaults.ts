@@ -184,5 +184,5 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
       : names.length === 2
         ? `${names[0]} and ${names[1]}`
         : `${names[0]} and ${names.length - 1} other specs`
-  return { title: `Updated to the new default ${what} for ${whose}`, description: 'Anything you changed yourself is kept.' }
+  return { title: `Updated to the new default ${what} for ${whose}`, description: 'Gear and talents you changed yourself are kept.' }
 }

@@ -62,10 +62,15 @@ export function following(config: SimConfig): Following {
 
 /**
  * The setup with the parts that follow the defaults set to the spec's current defaults for its race,
- * normalized, and whether that changed its gear or talents (when neither, the setup itself). A default item that can't go in beside the
- * player's own (a Unique rule, or a two-hander with their off hand) leaves that slot as it was.
+ * normalized, and whether that changed its gear or talents (when neither, the setup itself). A
+ * default item that can't go in beside the player's own (a Unique rule, or a two-hander with their
+ * off hand) leaves that slot as it was, and `blocked` lists it: it still follows the default, so the
+ * next load tries again (setup-store.ts keeps it in the save's `following` until the player changes it).
  */
-export function followDefaults(config: SimConfig, follow: Following): { config: SimConfig; gear: boolean; talents: boolean } {
+export function followDefaults(
+  config: SimConfig,
+  follow: Following,
+): { config: SimConfig; gear: boolean; talents: boolean; blocked: GearSlot[] } {
   const defaults = defaultGearFor(config.spec, config.race)
   const followed = new Set(follow.gear)
   const gear: SimConfig['gear'] = {}
@@ -79,16 +84,18 @@ export function followDefaults(config: SimConfig, follow: Following): { config: 
   // The player's own slots first: a default never displaces them.
   for (const slot of GEAR_SLOTS) if (!followed.has(slot)) put(slot, config.gear[slot])
   const ownMainHand = followed.has('mainHand') ? undefined : worn.mainHand
+  const blocked: GearSlot[] = []
   for (const slot of GEAR_SLOTS) {
     if (!followed.has(slot)) continue
     const next = defaults[slot]
     const item = next && itemsById.get(next.itemId)
     if (!next || !item) continue
-    const blocked =
+    const isBlocked =
       uniqueConflicts(worn, slot, item).length > 0 ||
       (slot === 'offHand' && ownMainHand !== undefined && isTwoHand(ownMainHand)) ||
       (slot === 'mainHand' && isTwoHand(item) && !followed.has('offHand') && worn.offHand !== undefined)
-    put(slot, blocked ? config.gear[slot] : next)
+    if (isBlocked) blocked.push(slot)
+    put(slot, isBlocked ? config.gear[slot] : next)
   }
   // A hunter's own ranged weapon keeps the ammo, and the quiver or pouch, it fires (hunter.md §7.3).
   if (!followed.has('ranged') && (followed.has('ammo') || followed.has('quiver'))) {
@@ -99,5 +106,5 @@ export function followDefaults(config: SimConfig, follow: Following): { config: 
   const next = normalizeConfig({ ...config, gear, talents }).config
   const moved = { gear: GEAR_SLOTS.some((slot) => !sameEntry(next.gear[slot], config.gear[slot])), talents: next.talents !== config.talents }
   // Nothing moved: the same setup, so it saves and shares exactly as before.
-  return { config: moved.gear || moved.talents ? next : config, ...moved }
+  return { config: moved.gear || moved.talents ? next : config, ...moved, blocked }
 }

@@ -1,22 +1,24 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { defaultGearFor } from '@/features/gear/default-set'
+import { defaultGearFor, slotsOffDefault } from '@/features/gear/default-set'
 import { defaultConfig, defaultTalents, normalizeConfig, preRaidListGear, type SimConfig, type SpecId } from '@/sim'
 
 // The store persists to localStorage, which Node doesn't have: a Map stands in for it, and a test
 // can fill it up.
 const memory = new Map<string, string>()
 let full = false
+/** The longest value storage still has room for: a nearly full storage refuses the big save, not a small key. */
+let roomFor = Infinity
 vi.stubGlobal('localStorage', {
   getItem: (key: string) => memory.get(key) ?? null,
   setItem: (key: string, value: string) => {
-    if (full) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+    if (full || value.length > roomFor) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
     memory.set(key, value)
   },
   removeItem: (key: string) => void memory.delete(key),
 })
 const notices = vi.hoisted(() => ({ error: vi.fn() }))
 vi.mock('sonner', () => ({ toast: notices }))
-const { takeDefaultsUpdates, useSetup } = await import('./setup-store')
+const { DEFAULTS_NOTICE_KEY, takeDefaultsUpdates, useSetup } = await import('./setup-store')
 const { packSetup } = await import('./share')
 const { SAVED_SETUPS_KEY, storageMessage } = await import('./saved-setups')
 
@@ -213,5 +215,75 @@ describe('the automatic save follows the defaults', () => {
     takeDefaultsUpdates()
     await load()
     expect(takeDefaultsUpdates()).toEqual([])
+  })
+
+  test('a slot a Unique rule kept from its default still follows it, and takes it once the rule allows', async () => {
+    // The player wears today's default first trinket in the second slot; the first held v1's pick.
+    const d = normalizeConfig(defaultConfig('warrior-protection')).config
+    const v1Trinket = v1('warrior-protection').gear.trinket1
+    const config = { ...d, gear: { ...d.gear, trinket1: v1Trinket, trinket2: d.gear.trinket1 } }
+    seed({ config, bySpec: {}, section: 'gear' })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.gear.trinket1).toEqual(v1Trinket)
+    // Blocked, not the player's: the save still has it following the default.
+    expect(saved().following['warrior-protection'].gear).toContain('trinket1')
+    expect(saved().following['warrior-protection'].gear).not.toContain('trinket2')
+    // A reload tries again, still blocked, and keeps it following.
+    await load()
+    store().update((c) => ({ ...c }))
+    expect(saved().following['warrior-protection'].gear).toContain('trinket1')
+    // The player takes the trinket out of the second slot: the next load puts the default in the first.
+    store().update((c) => ({ ...c, gear: { ...c.gear, trinket2: d.gear.trinket2 } }))
+    await load()
+    expect(store().config.gear.trinket1).toEqual(d.gear.trinket1)
+    expect(slotsOffDefault(store().config)).toEqual([])
+  })
+
+  test('a blocked slot the player changes is theirs', async () => {
+    const d = normalizeConfig(defaultConfig('warrior-protection')).config
+    const config = { ...d, gear: { ...d.gear, trinket1: v1('warrior-protection').gear.trinket1, trinket2: d.gear.trinket1 } }
+    seed({ config, bySpec: {}, section: 'gear' })
+    await load()
+    const own = { itemId: 11810 }
+    store().update((c) => ({ ...c, gear: { ...c.gear, trinket1: own } }))
+    expect(saved().following['warrior-protection'].gear).not.toContain('trinket1')
+  })
+
+  test('with the save failing for want of room, the same move is announced once, not every visit', async () => {
+    const paladin = v1('paladin-protection', '2-4530513321301551-502')
+    memory.delete(DEFAULTS_NOTICE_KEY)
+    seed({ config: paladin, bySpec: {}, section: 'gear' })
+    roomFor = 100
+    try {
+      takeDefaultsUpdates()
+      await load()
+      expect(takeDefaultsUpdates()).toEqual([{ spec: 'paladin-protection', gear: true, talents: true }])
+      // The save failed: the old one is still there, so the next visit makes the same move, quietly.
+      expect(saved().following).toBeUndefined()
+      await load()
+      expect(store().config.talents).toBe(defaultTalents('paladin-protection'))
+      expect(takeDefaultsUpdates()).toEqual([])
+      // A move to another setup is news.
+      seed({ config: { ...paladin, gear: { ...paladin.gear, head: HELM_OF_VALOR } }, bySpec: {}, section: 'gear' })
+      await load()
+      expect(takeDefaultsUpdates()).toEqual([{ spec: 'paladin-protection', gear: true, talents: true }])
+    } finally {
+      roomFor = Infinity
+    }
+  })
+
+  test('storage that can’t keep the notice’s key still announces', async () => {
+    seed({ config: v1('paladin-protection', '2-4530513321301551-502'), bySpec: {}, section: 'gear' })
+    memory.delete(DEFAULTS_NOTICE_KEY)
+    full = true
+    try {
+      await load()
+      expect(takeDefaultsUpdates()).toHaveLength(1)
+      await load()
+      expect(takeDefaultsUpdates()).toHaveLength(1)
+    } finally {
+      full = false
+    }
   })
 })

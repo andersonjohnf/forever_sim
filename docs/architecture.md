@@ -78,9 +78,15 @@ talent build, and what they changed stays theirs.
 - **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
   The player's own slots go in first: a default item that would break a Unique rule with one of
   them, or a default two-hander beside their own off hand, leaves its slot as it was, and a
-  hunter's own ranged weapon keeps ammo it fires. A spec whose setup this moved gets a notice
+  hunter's own ranged weapon keeps ammo it fires. Such a **blocked slot still follows**: the store
+  remembers what it held (`blockedSlots` in `setup-store.ts`) and the save keeps it in `following`
+  while it holds that, so the next load tries again; a change to the slot, or a replaced setup,
+  makes it the player's. A spec whose setup this moved gets a notice
   ([ux.md](ux.md#persistence-and-sharing)), and the load saves at once (hydration itself doesn't),
-  so the next load finds nothing to move and says nothing.
+  so the next load finds nothing to move and says nothing. The notice also records a digest of the
+  move in its own small key, `forever-sim:defaults-notice`, so when that save can't be written (full
+  storage) and every visit makes the same move again, it's still said once. A share link the page
+  opens with leaves its spec out of the notice (`useDefaultsNotice` reads the link before it loads).
 - **A race change is the same move**: slots that held the old race's default take the new race's
   (`changeRace` in `src/features/character/faction-gear.ts`), so a Horde paladin gets its own threat
   set pieces rather than keeping Alliance-only ones; the player's own items swap for their faction
@@ -101,10 +107,10 @@ talent build, and what they changed stays theirs.
   default had none: the Protection paladin's head, legs and weapon), for the setup's race or the
   class's default race, or a race change's faction twin of one. The talent build follows if it's one
   of those builds. Saves now say what follows, so later default changes need nothing added here.
-- **Share links, setup codes and saved setups are deliberate** and keep exactly what they carry:
-  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. Once one is
-  loaded, the autosave treats it as any setup: its slots that happen to hold today's defaults follow
-  them from then on, and the rest are the player's.
+- **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
+  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
+  the autosave treats one as any setup: its slots that happen to hold today's defaults follow them
+  from then on, and the rest are the player's.
 
 ## Engine design (M1)
 

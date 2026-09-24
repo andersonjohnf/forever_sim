@@ -82,6 +82,14 @@ export function hasSharedSetup(): boolean {
 }
 
 /**
+ * The raw (unvalidated) setup in the current URL's link, leaving the link in place: for a look at it
+ * before readSharedSetup loads it. Undefined without one; rejects if it's corrupt or too large.
+ */
+export function peekSharedSetup(): Promise<unknown> | undefined {
+  return hasSharedSetup() ? unpackSetup(location.hash.slice(PREFIX.length)) : undefined
+}
+
+/**
  * The raw (unvalidated) setup in the current URL, or undefined if there's no link (JSON never
  * gives undefined, so a link whose JSON is `null` reads as null, to be refused as not a setup).
  * Throws if it's corrupt or too large. The link leaves the URL before it's decoded, so one that

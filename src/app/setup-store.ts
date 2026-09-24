@@ -5,7 +5,8 @@
 import { toast } from 'sonner'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
-import { defaultConfig, normalizeConfig, type SimConfig, type SpecId } from '@/sim'
+import { sameEntry } from '@/features/gear/default-set'
+import { defaultConfig, GEAR_SLOTS, normalizeConfig, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
 import { followDefaults, following, legacyFollowing, readFollowing, type DefaultsUpdate, type Following } from './follow-defaults'
 import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
@@ -57,6 +58,52 @@ export function takeDefaultsUpdates(): DefaultsUpdate[] {
   const updates = loadUpdates
   loadUpdates = []
   return updates
+}
+
+/**
+ * The slots the last load couldn't move to their default (a Unique rule or a two-hander, in
+ * followDefaults), per spec, with what each held then. They still follow the default while they hold
+ * that, so the save keeps them in `following` and the next load tries again; a change to one makes it
+ * the player's, and a replaced setup (a link, a saved setup, Reset) drops its spec's.
+ */
+let blockedSlots: Partial<Record<SpecId, Partial<Record<GearSlot, EquippedItem | undefined>>>> = {}
+
+/** The parts of a setup that follow the defaults: those holding them, and the slots a load couldn't move yet. */
+function followingOf(config: SimConfig): Following {
+  const follow = following(config)
+  const blocked = blockedSlots[config.spec] ?? {}
+  const held = (slot: GearSlot) => Object.hasOwn(blocked, slot) && sameEntry(config.gear[slot], blocked[slot])
+  return { ...follow, gear: GEAR_SLOTS.filter((slot) => follow.gear.includes(slot) || held(slot)) }
+}
+
+/**
+ * The localStorage key that remembers the last defaults notice, apart from the automatic save: when
+ * that save can't be written (full storage), every visit makes the same move again, and this keeps it
+ * from saying so every time.
+ */
+export const DEFAULTS_NOTICE_KEY = 'forever-sim:defaults-notice'
+
+/** A short digest of what a load moved to: the moved specs' talents and gear (FNV-1a, 32 bits). */
+function digest(moved: readonly SimConfig[]): string {
+  const text = JSON.stringify(moved.map((c) => [c.spec, c.talents, GEAR_SLOTS.map((slot) => c.gear[slot] ?? null)]))
+  let hash = 0x811c9dc5
+  for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 0x01000193)
+  return (hash >>> 0).toString(16)
+}
+
+/**
+ * Whether a load's move is news: not the same move the last notice announced. Records it, so the
+ * next load that makes the same move says nothing. Storage that can't be read or written is news.
+ */
+function isNewMove(moved: readonly SimConfig[]): boolean {
+  const value = digest(moved)
+  try {
+    if (localStorage.getItem(DEFAULTS_NOTICE_KEY) === value) return false
+    localStorage.setItem(DEFAULTS_NOTICE_KEY, value)
+  } catch {
+    // Blocked or full: announce, as without this key.
+  }
+  return true
 }
 
 /** Whether the notice that the automatic save failed is up, or was, since the last save that worked. */
@@ -116,6 +163,8 @@ export const useSetup = create<SetupState>()(
       reset: () => get().replace(fresh(get().config.spec)),
       replace: (config) => {
         const { config: previous, bySpec } = get()
+        // A deliberate setup: what it holds is what follows, not the slots a load couldn't move.
+        delete blockedSlots[config.spec]
         set({ config, bySpec: config.spec === previous.spec ? bySpec : { ...bySpec, [previous.spec]: previous } })
       },
     }),
@@ -125,23 +174,31 @@ export const useSetup = create<SetupState>()(
       storage: createJSONStorage(() => autoSaveStorage),
       partialize: ({ config, bySpec, section }): SavedSetup => {
         const follows: SavedSetup['following'] = {}
-        for (const other of Object.values(bySpec)) if (other) follows[other.spec] = following(other)
+        for (const other of Object.values(bySpec)) if (other) follows[other.spec] = followingOf(other)
         // The current spec's entry in bySpec is stale: its own setup says what follows.
-        follows[config.spec] = following(config)
+        follows[config.spec] = followingOf(config)
         return { config, bySpec, section, following: follows }
       },
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<Record<keyof SavedSetup, unknown>>
         const follows = readFollowing(saved.following)
         const updates: DefaultsUpdate[] = []
+        const moves: SimConfig[] = []
         let migrated = false
+        blockedSlots = {}
         // A saved setup, normalized, with the parts the player never changed on today's defaults.
         const load = (raw: unknown): SimConfig => {
           const normalized = normalizeConfig(raw).config
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
           const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized))
-          if (moved.gear || moved.talents) updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents })
+          if (moved.gear || moved.talents) {
+            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents })
+            moves.push(moved.config)
+          }
+          if (moved.blocked.length > 0) {
+            blockedSlots[normalized.spec] = Object.fromEntries(moved.blocked.map((slot) => [slot, moved.config.gear[slot]]))
+          }
           return moved.config
         }
         // The last spec used, if the app still offers it (docs/ux.md principles 1 and 8); a setup
@@ -156,7 +213,9 @@ export const useSetup = create<SetupState>()(
           bySpec[config.spec] = config
           config = bySpec[defaultSpec()] ?? fresh(defaultSpec())
         }
-        loadUpdates = updates.filter((u) => isVisibleSpec(u.spec))
+        const visible = updates.filter((u) => isVisibleSpec(u.spec))
+        // Said once per move, even if the save below fails and the next visit makes it again.
+        loadUpdates = visible.length > 0 && isNewMove(moves) ? visible : []
         // Hydration doesn't save. A load that moved anything, or read a save from before `following`,
         // saves at once (once the store exists), so the next load finds nothing to move and says nothing.
         if (updates.length > 0 || migrated) queueMicrotask(() => useSetup.setState({}))

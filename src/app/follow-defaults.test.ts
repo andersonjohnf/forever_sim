@@ -22,7 +22,7 @@ describe('following the defaults', () => {
   it('follows every part of an untouched setup, and nothing moves', () => {
     const config = setup('warrior-fury')
     expect(following(config)).toEqual({ gear: GEAR_SLOTS, talents: true })
-    expect(followDefaults(config, following(config))).toEqual({ config, gear: false, talents: false })
+    expect(followDefaults(config, following(config))).toEqual({ config, gear: false, talents: false, blocked: [] })
   })
 
   it('leaves out the slots and talents the player set', () => {
@@ -127,8 +127,9 @@ describe('a save from before `following` (the migration)', () => {
     const v1 = v1Gear('warrior-protection')
     const moved = migrate({ ...d, gear: { ...d.gear, trinket1: v1.trinket1, trinket2: d.gear.trinket1 } })
     expect(moved.config.gear.trinket2).toEqual(d.gear.trinket1)
-    // Its own slot can't take the same unique item, so it keeps what it had.
+    // Its own slot can't take the same unique item, so it keeps what it had, and still follows the default.
     expect(moved.config.gear.trinket1).toEqual(v1.trinket1)
+    expect(moved.blocked).toEqual(['trinket1'])
   })
 })
 
@@ -160,7 +161,7 @@ describe('the notice', () => {
   it('names the spec and what moved, the current spec first', () => {
     expect(defaultsUpdateNotice([{ spec: PROT_PALADIN, gear: true, talents: true }], PROT_PALADIN)).toEqual({
       title: 'Updated to the new default gear and talents for Protection Paladin',
-      description: 'Anything you changed yourself is kept.',
+      description: 'Gear and talents you changed yourself are kept.',
     })
     const two = [
       { spec: 'warrior-protection' as const, gear: true, talents: false },

@@ -502,7 +502,7 @@ it inherits is every pet's one rule
   boss its swings lose 1.8% of that crit, as yours do; its spells don't. Demonic Knowledge's spell
   damage is its own besides. Its Intellect, mana regeneration, health, resistance and healing slots
   aren't modelled (§6.1; Q15). Against inheriting nothing (with the 5% crit of its own the sim first
-  gave it), the default gains +7.7% (493.9 → 531.9) and the Succubus build +1.4% (492.8 → 499.5).
+  gave it), the default gains +7.7% (496.2 → 534.2) and the Succubus build +1.3% (495.8 → 502.2).
 - Its tables are a player's at its level (ranged-and-pets §6, §7): its spells miss a level-63 boss
   17% of the time less its spell hit (13% with your 4%), lose 6% to its resistance and crit for ×1.5;
   its swings, from behind, miss (6% with your 2% melee hit on a special), are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
@@ -525,8 +525,8 @@ it inherits is every pet's one rule
   off Recently Bandaged [F] [client] (SpellEffect, Spell, 1.60.1.69913); and its thirds (−0.3, −0.7,
   −1.0 s) are Demonic Knowledge's 33/67/100% pattern. Firebolt is the Imp's
   only timed spell a DPS result reads. With a 1 s GCD, a 1 s Firebolt is cast back to back, so the Imp
-  is limited by its mana: +12.1% on the default (474.3 → 531.9, the Imp out with Soul Fire), +12.5%
-  without Soul Fire (462.2 → 519.8), nothing with the Succubus out.
+  is limited by its mana: +12.1% on the default (476.6 → 534.2, the Imp out with Soul Fire), +12.4%
+  without Soul Fire (465.0 → 522.7), nothing with the Succubus out.
 - **Unholy Power** and **Soul Link** multiply all your demon's damage; **Improved Imp** Firebolt;
   **Improved Sayaad** Lash of Pain; **Master Demonologist** the demon's spells of its school (the Imp's
   Firebolt, the Succubus's Lash of Pain, not its swings). Different talents multiply (Q10).
@@ -602,39 +602,43 @@ of Doom, Life Tap at 10%, and Soul Fire off: with every buff on Shadow, a Shadow
 out-damages a 2.4 s Soul Fire, which only Soul Link raises.
 
 **After the review (DM4, Q19) and its verifications (DV3; the third round's one inheritance rule for
-every pet),** with the demon's inheritance (§11.2), its inherited crit counted as aura crit on its
-swings, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701, on the first pass's talents
-(Improved Shadow Bolt 3/5, Improved Sayaad 3/3):
+every pet, and DV2-4's talent point),** with the demon's inheritance (§11.2), its inherited crit
+counted as aura crit on its swings, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701,
+on the default talents below:
 
 | Demon kept out, demon sacrificed | DPS |
 | --- | --- |
-| **Imp, Succubus, Soul Fire on** (the default) | **531.9** ±0.3 |
-| Imp, Succubus, Soul Fire off | 519.8 |
-| Imp, Voidwalker / with Soul Fire | 504.0 / 509.9 |
-| Succubus, Imp (the first pass's) / with Soul Fire | 499.5 / 495.9 |
-| Felhunter, Imp | 450.8 |
-| None, Imp (Classic Era's warlock, with Demonology's talents) | 373.1 |
-| Imp, Succubus, Soul Fire on, **without Q19's reading** (Firebolt's 2 s cast) | 474.3 |
-| Imp, Succubus, Soul Fire off, without Q19's reading | 462.2 |
+| **Imp, Succubus, Soul Fire on** (the default) | **534.2** ±0.4 |
+| Imp, Succubus, Soul Fire off | 522.7 |
+| Imp, Voidwalker / with Soul Fire | 507.3 / 512.7 |
+| Succubus, Imp (the first pass's) / with Soul Fire | 502.2 / 497.9 |
+| Felhunter, Imp | 454.1 |
+| None, Imp (Classic Era's warlock, with Demonology's talents) | 376.0 |
+| Imp, Succubus, Soul Fire on, **without Q19's reading** (Firebolt's 2 s cast) | 476.6 |
+| Imp, Succubus, Soul Fire off, without Q19's reading | 465.0 |
 
 So Demonology defaults to the sim's best found build (D30): the **Imp out and the Succubus
 sacrificed**, with Soul Fire below 35%, Immolate, Corruption and Bane of Doom, and Life Tap at 10%.
-Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.3%. The default is **+19%** on
-Destruction's default (447.6, §6.3), the build Classic Era's warlocks raided with, and +43% on the
-same talents with no demon out (373.1).
+Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.2%. The default is **+19%** on
+Destruction's default (447.6, §6.3), the build Classic Era's warlocks raided with, and +42% on the
+same talents with no demon out (376.0).
 
 **Its lead rests on Q19 [?].** The Imp leads the Succubus by 6% only through the sim's reading of
-Improved Imp's hidden effect as Firebolt's cast time: without it the default deals 474.3, 5% below the
+Improved Imp's hidden effect as Firebolt's cast time: without it the default deals 476.6, 5% below the
 Succubus build. The optimizer (D30, O4) confirms the build on a fresh seed, and the guild's test of
 Q19 settles the reading; if it fails, the default goes back to the Succubus.
 
-**Talents: Demonology 0/32/19** (`-0325003231120001351-0350305003`): Improved Imp 3, Demonic Embrace 2,
-Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice, Master
+**Talents: Demonology 0/32/19** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
+Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice, Master
 Summoner 1, Decimation 2, Soul Link, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact; Improved
-Shadow Bolt 3, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Both Improved Imp and Improved Sayaad,
-so either demon is full strength; Demonic Embrace and Master Summoner only fill the tiers. With the
-Imp out, Improved Sayaad's 3 points do nothing (Lash of Pain is the Succubus's): the build isn't
-re-tuned here, and the optimizer's talent search (O4) takes them up.
+Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Demonic Pact needs 30 points in the
+tiers above it and the build has 31 there, so one point can leave them: with the Imp out, Improved
+Sayaad's 3rd point did nothing (Lash of Pain is the Succubus's), and Improved Shadow Bolt 4/5 (+16%
+Shadow Vulnerability) takes it, **+0.4%** (531.9 → 534.2; the first pass's 3/5 and 3/3 are
+`-0325003231120001351-0350305003`). The Succubus build gains from the same point too (499.5 → 502.2).
+The other Demonology points add no DPS in the sim (Demonic Embrace, Master Summoner; Demonic Brand is
+Q21's, not cast), so they only fill the tiers, and the optimizer's talent search (O4) takes up the
+rest.
 
 **Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, the same pre-raid list,
 the caster enchants, the Standard raid's elixirs and mana potion. The Talents tab has the build as a
@@ -652,7 +656,7 @@ Each with its estimated effect on Demonology's DPS.
 - **Q15 Inheritance** (§11.2): every pet's one rule (ranged-and-pets §6.1), the hunter's pet's
   reported share read for every slot: 10% of your attack power and spell damage, your melee crit and
   hit on its swings, your spell crit and hit on its spells. Against inheriting nothing, it's +7.7% on
-  the default and +1.4% on the Succubus build; each 10% more of your spell damage is about +5.6% on
+  the default and +1.3% on the Succubus build; each 10% more of your spell damage is about +5.6% on
   the default (the Imp's Firebolt is a quarter of its damage) and +0.6% with the Succubus. Intellect
   and mana regeneration (416189's aura 29 and 85) aren't modelled: they only fill the demon's mana,
   which Demonic Energies 2/2 keeps full. Test: the demon's sheet (attack power, spell damage, crit,
@@ -669,8 +673,8 @@ Each with its estimated effect on Demonology's DPS.
   If "up to" means less on some condition (the demon's health, or its distance), the default loses up
   to about 15% (60 spell damage on you and the Imp; 7% with the Succubus).
 - **Q19 Improved Imp's #2** (−300/−700/−1000, a dummy): the sim takes it as Firebolt's cast time
-  (§11.3), 1 s at 3/3, so the Imp casts about 1.7 times as often: +12.1% on the default (474.3 →
-  531.9), and it's why the default keeps the Imp out, 6% ahead of the Succubus (§11.6). If it's
+  (§11.3), 1 s at 3/3, so the Imp casts about 1.7 times as often: +12.1% on the default (476.6 →
+  534.2), and it's why the default keeps the Imp out, 6% ahead of the Succubus (§11.6). If it's
   something else, the default loses that and falls 5% below the Succubus build, which it doesn't
   touch, and the default goes back to the Succubus. The optimizer (O4) confirms the build. Test:
   Firebolt's cast bar with Improved Imp 0/3 and 3/3.
@@ -698,7 +702,8 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    Knowledge 3/3 (60), Improved Imp 3/3 and the Imp's Master Demonologist 5/5:
    `(45.2 + 0.571 × 60) × 1.3 × 1.1 = 113.63`; with Unholy Power 5/5 and Soul Link, × 1.1 × 1.03 =
    **128.74**, before the boss's resist and Curse of the Elements.
-2. **Lash of Pain.** `(50 + 0.429 × 60) × 1.3 × 1.1 = 108.31`, × 1.133 = **122.71**.
+2. **Lash of Pain,** with the default's Improved Sayaad 2/3: `(50 + 0.429 × 60) × 1.2 × 1.1 = 99.98`,
+   × 1.133 = **113.27**.
 3. **The Succubus's swing.** 2 × 130 − 20 = 240 attack power: `(45.8 + 240 / 14 × 2) × 1.133` =
    **90.74** on average before armor, glancing and crits.
 4. **Demonic Knowledge.** 60 × 33 / 67 / 100% = 19.8 / 40.2 / 60 → **19 / 40 / 60**.
@@ -714,8 +719,8 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    power 240 + 0.1 × 138 = **253.8**; on its swings your **9.65%** melee crit and 2% hit (the gear's
    hit rating), so against the boss its special table crits 9.65 − 0.6 (its skill of 300) − 1.8 (aura
    crit) = **7.25%** and misses 8 − 2 = **6%**. Lash of Pain's spell damage 60 + 0.1 × 486 (426 Shadow
-   + your Demonic Knowledge's 60) = **108.6**, so `(50 + 0.429 × 108.6) × 1.3 × 1.1 × 1.133` =
-   **156.49**; it crits at your spell crit, **11.73%**, and misses 17 − 4 = **13%**.
+   + your Demonic Knowledge's 60) = **108.6**, so `(50 + 0.429 × 108.6) × 1.2 × 1.1 × 1.133` =
+   **144.46**; it crits at your spell crit, **11.73%**, and misses 17 − 4 = **13%**.
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
 
 ---

@@ -569,14 +569,18 @@ slice is worked:
 - **The Demonology warlock's first-pass gaps** (H3, [warlock.md §11.7](classes/warlock.md#117-open-questions);
   [its review](reviews/2026-09-24-demonology.md)):
   - **The demon's spells take your Shadow Vulnerability** (DM2), whose aura 270 is damage taken from
-    you alone: Lash of Pain gets +12% for about a quarter of the fight, +0.3 DPS (0.06%). It needs an
-    aura flag for "from the caster only" that pet damage skips, with its test (DM12's last).
+    you alone: with the Succubus out, Lash of Pain gets +16% (Improved Shadow Bolt 4/5) for about a
+    quarter of the fight, about +0.4 DPS (under 0.1%); the default Imp's Firebolt is Fire and takes
+    none of it. It needs an aura flag for "from the caster only" that pet damage skips, with its test
+    (DM12's last).
   - **"Voidwalker" touches its button's borders at 390 px** in the Demonic Sacrifice choice (DM9,
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
   - **The default Imp build rests on Q19** [?] (DV2, D30): it's the sim's best found build, 6% ahead
     of the Succubus only through Improved Imp's hidden effect read as Firebolt's cast time. The
-    optimizer (O4) confirms it on a fresh seed, and the guild's Firebolt test settles Q19. Its talents
-    weren't re-tuned for the Imp: Improved Sayaad's 3 points do nothing with it, O4's talent search's.
+    optimizer (O4) confirms it on a fresh seed, and the guild's Firebolt test settles Q19. Demonic Pact
+    leaves one point free in its tree, which went from Improved Sayaad to Improved Shadow Bolt 4/5
+    (DV2-4, +0.4%); Improved Sayaad's other 2 points still do nothing with the Imp, for O4's talent
+    search.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

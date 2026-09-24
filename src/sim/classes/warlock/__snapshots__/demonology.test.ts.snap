@@ -26,7 +26,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "corruption",
       null,
-      10345901.203317693,
+      10437911.93626595,
       10547,
       45711,
       6090,
@@ -36,7 +36,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "baneOfDoom",
       null,
-      8116960.263836165,
+      8183382.7240228895,
       2184,
       1677,
       189,
@@ -46,7 +46,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "baneOfAgony",
       null,
-      2461163.7338884855,
+      2475461.6027737386,
       2467,
       16627,
       2240,
@@ -66,7 +66,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "shadowBolt",
       null,
-      29264569.477345284,
+      29503532.846854046,
       35840,
       27631,
       3629,
@@ -132,9 +132,9 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     ],
   ],
   "dps": {
-    "ci95": 1.5355406859323149,
-    "mean": 530.7901078752262,
-    "stdev": 24.77497569192785,
+    "ci95": 1.5856409825924798,
+    "mean": 533.0833824611625,
+    "stdev": 25.583312223343384,
   },
   "mana": {
     "max": 6518,

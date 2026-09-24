@@ -43,6 +43,8 @@ const effect = (id: number, index: number) => spell(id).effects.find((e) => e.ef
 const manaCost = (id: number) => (spell(id).power ?? [])[0]?.manaCost ?? 0
 const curve = (name: string, index = 0) => clientTalents.find((t) => t.name === name)!.rankEffects.find((r) => r.effectIndex === index)!.values
 const DEMONOLOGY = talentRanksByName(TALENT_DATA.warlock, defaultConfig('warlock-demonology').talents)
+/** The first pass's talents (warlock.md §11.6): the default's with Improved Sayaad 3/3 and Improved Shadow Bolt 3/5. */
+const FIRST_PASS_TALENTS = '-0325003231120001351-0350305003'
 const ranks = (entries: [string, number][]) => new Map(entries)
 
 describe('rows against the Forever client (warlock.md §11.1)', () => {
@@ -118,12 +120,12 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(avg * imp.damageMult).toBeCloseTo(128.7403, 3)
   })
 
-  it('2. Lash of Pain: 108.31, and 122.71 with Unholy Power and Soul Link', () => {
+  it('2. Lash of Pain: 99.98 with Improved Sayaad 2/3, and 113.27 with Unholy Power and Soul Link', () => {
     const succubus = demonPet('succubus', DEMONOLOGY)!
     const lash = succubus.abilities[0]
     const avg = lash.min + lash.spCoefficient * succubus.stats.spellDamage!
-    expect(avg).toBeCloseTo(108.3082, 4)
-    expect(avg * succubus.damageMult).toBeCloseTo(122.713, 3)
+    expect(avg).toBeCloseTo(99.9768, 4)
+    expect(avg * succubus.damageMult).toBeCloseTo(113.274, 3)
   })
 
   it('3. The Succubus’s swing: 240 attack power, 90.74 on average before armor, glancing and crits', () => {
@@ -152,7 +154,7 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
   })
 
-  it('8. What the Succubus inherits: 253.8 attack power; your 9.65% melee crit (7.25% on its swings vs the boss) and 2% melee hit on its swings; 108.6 spell damage, your 11.73% spell crit and 13% spell miss on Lash of Pain, 156.49', () => {
+  it('8. What the Succubus inherits: 253.8 attack power; your 9.65% melee crit (7.25% on its swings vs the boss) and 2% melee hit on its swings; 108.6 spell damage, your 11.73% spell crit and 13% spell miss on Lash of Pain, 144.46', () => {
     const { plan } = buildPlan(fixed(SUCCUBUS))
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, inherit: PET_INHERITANCE })
     const sim = new Sim(plan)
@@ -189,7 +191,7 @@ describe('worked examples (warlock.md §11.8)', () => {
     const lash = plan.pet!.abilities[0]
     const sp = plan.pet!.spellDamage + PET_INHERITANCE.spellDamage * s.spSchool[SCHOOL.shadow]
     expect(sp).toBeCloseTo(108.6, 9)
-    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(156.493, 3)
+    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(144.455, 3)
   })
 
   it('9. Improved Imp’s hidden effect as Firebolt’s cast time: 1.7 / 1.3 / 1 s', () => {
@@ -423,15 +425,16 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(on[0][4]).toBeCloseTo(melee + 5 - 0.6 - 1.8, 6)
   })
 
-  it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +20% at 5/5', () => {
+  it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +16% at 4/5 (the default), +20% at 5/5', () => {
     const text = (talents?: string) => {
       const bundle = buildPlan(fixed({}, talents ? { talents } : {}))
       return bundle.assumptions.find((a) => a.id === 'improvedShadowBolt')!.text
     }
-    expect(text()).toContain('+12% Shadow damage taken from you (4% a rank)')
+    expect(text()).toContain('+16% Shadow damage taken from you (4% a rank)')
     expect(text()).not.toContain('{detail}')
+    expect(text(FIRST_PASS_TALENTS)).toContain('+12% Shadow damage taken from you (4% a rank)')
     // Improved Shadow Bolt 5/5 for two of Agonizing Flames' points.
-    const talents = defaultConfig('warlock-demonology').talents.replace(/-0350305003$/, '-0550305001')
+    const talents = FIRST_PASS_TALENTS.replace(/-0350305003$/, '-0550305001')
     expect(talentRanksByName(TALENT_DATA.warlock, talents).get('Improved Shadow Bolt')).toBe(5)
     expect(text(talents)).toContain('+20% Shadow damage taken from you')
   })
@@ -448,6 +451,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   against the boss (combat-tables §4.4): 500.64 → 499.89 here; 502.0 → 501.3 over 20,000 fights.
   // - H3 verification (DV2, D30): the default is the sim's best found build, the Imp out with the
   //   Succubus sacrificed and Soul Fire below 35% (§11.6): 499.89 → 530.79 here; 531.9 over 20,000 fights.
+  // - H3's third round (DV2-4, D30): Improved Sayaad's one freeable point to Improved Shadow Bolt 4/5
+  //   (`-0325003221120001351-0450305003`): 530.79 → 533.08 here; 531.92 → 534.22 over 20,000 fights.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

@@ -9,6 +9,8 @@ import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { OnUseSpec } from '../../effects/types'
 import { talentRanksByName } from '..'
 import { resolveRotationValues } from '../options'
+import { buildPlan } from '../../plan/build'
+import { rotationPreset, rotationValues } from '../..'
 import {
   DEMORALIZING_SHOUT,
   demoralizingShout,
@@ -24,6 +26,7 @@ import {
 } from './abilities'
 import { IMPROVED_REVENGE_PCT_PER_RANK, withTalents } from './modifiers'
 import { PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
+import { maxRageOf } from './shared'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const RAGE = 1
@@ -322,6 +325,73 @@ describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
       [{ code: COND.minRage, a: 600, b: 0 }],
     ])
     expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 840, b: 0 }])
+  })
+
+  describe('its thresholds are shares of the rage bar: the filler from 60%, Heroic Strike from 84% (§5.4 "Balanced", D28)', () => {
+    const BOUNDLESS = new Map([...TALENTS, ['Boundless Rage', 3]])
+    const thresholds = (r: Rot) => ({
+      filler: linesOf(r, 'sunderArmor')[2].conditions,
+      hs: linesOf(r, 'heroicStrike')[0].conditions,
+    })
+    const minRages = (filler: number, hs: number) => ({
+      filler: [{ code: COND.minRage, a: filler * 10, b: 0 }],
+      hs: [{ code: COND.minRage, a: hs * 10, b: 0 }],
+    })
+
+    it('reads the max rage the plan has: 100, a Gnome’s 105, Boundless Rage 3/3’s 130, both 136.5', () => {
+      for (const [race, talents, max] of [
+        ['alliance-human', TALENTS, 100],
+        ['alliance-gnome', TALENTS, 105],
+        ['alliance-human', BOUNDLESS, 130],
+        ['alliance-gnome', BOUNDLESS, 136.5],
+      ] as const) {
+        expect(maxRageOf(talents, race), `${race} ${talents.get('Boundless Rage') ?? 0}`).toBe(max)
+      }
+      // The plan's own max rage: the default talents, and a build with Boundless Rage 3/3.
+      const boundless = '05-05050003-552101233301210031'
+      expect(talentRanksByName(TALENT_DATA.warrior, boundless).get('Boundless Rage')).toBe(3)
+      for (const [race, talents, max] of [
+        ['alliance-human', undefined, 100],
+        ['alliance-gnome', undefined, 105],
+        ['alliance-human', boundless, 130],
+        ['alliance-gnome', boundless, 136.5],
+      ] as const) {
+        const d = defaultConfig('warrior-protection')
+        const config = { ...d, race, talents: talents ?? d.talents }
+        expect(buildPlan(config).plan.rage.maxTenths / 10).toBe(max)
+        expect(maxRageOf(talentRanksByName(TALENT_DATA.warrior, config.talents), race)).toBe(max)
+      }
+    })
+
+    it('at 100 max rage, plays exactly as the absolute 60 and 84 did', () => {
+      const r = protectionRotation({}, TALENTS, noAura, { race: 'alliance-human' })
+      expect(r).toEqual(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, TALENTS, noAura, { race: 'alliance-human' }))
+      expect(thresholds(r)).toEqual(minRages(60, 84))
+    })
+
+    it('a Gnome’s 105 max rage: the filler from 63, Heroic Strike from 88', () => {
+      expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS, { maxRage: 105 })).toMatchObject({ [ID.fillerMinRage]: 63, [ID.hsMinRage]: 88 })
+      expect(thresholds(protectionRotation({}, TALENTS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(63, 88))
+    })
+
+    it('Boundless Rage 3/3’s 130: the filler from 78, Heroic Strike from 109; with a Gnome’s 136.5, 82 and 115', () => {
+      expect(thresholds(protectionRotation({}, BOUNDLESS, noAura, { race: 'alliance-human' }))).toEqual(minRages(78, 109))
+      expect(thresholds(protectionRotation({}, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(82, 115))
+    })
+
+    it('only Balanced’s defaults scale: a value you set, and Defensive’s and Max TPS’s, stay in rage points', () => {
+      expect(thresholds(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(60, 84))
+      expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.fillerMinRage]: 9, [ID.hsMinRage]: 76 })
+      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 45 })
+    })
+
+    it('the Rotation tab reads the same values as the sim, and a Gnome at the defaults is still on Balanced', () => {
+      const gnome = { ...defaultConfig('warrior-protection'), race: 'alliance-gnome' }
+      expect(rotationValues(gnome)).toMatchObject({ [ID.fillerMinRage]: 63, [ID.hsMinRage]: 88 })
+      expect(rotationPreset(gnome)).toBe('default')
+      // The Human's 60, saved by hand on a Gnome, is a changed setting: Custom.
+      expect(rotationPreset({ ...gnome, rotation: { [ID.fillerMinRage]: 60 } })).toBe('custom')
+    })
   })
 })
 

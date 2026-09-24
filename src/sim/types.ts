@@ -189,7 +189,15 @@ export interface RotationRequirement {
  * The first entry that matches wins; with none, the option's `default` applies. A switch's is on or
  * off; a number's is a number (Protection's Max TPS moves Heroic Strike's threshold, §5.4).
  */
-export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & { default: V }
+export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & {
+  default: V
+  /**
+   * A number's `default` is a share of the build's rage bar, in %, not rage points: it resolves to
+   * that share of the max rage (100, raised by Boundless Rage and a Gnome's Expansive Mind), to the
+   * nearest point. Protection's Balanced thresholds (warrior.md §5.4 "Balanced", D28).
+   */
+  pctOfMaxRage?: true
+}
 
 /**
  * The heading a rotation setting sits under on the Rotation tab (docs/ux.md "Rotation"). The tab

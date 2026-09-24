@@ -8,7 +8,8 @@
 // (row 13, off by default). The rows are a priority list you reorder (PROTECTION_APL, decision D31),
 // each with its own settings, and the Priority choice is its three presets, Defensive, Balanced (the
 // default) and Max TPS (D28). Setting ids are `warrior.protection.<ability>.<param>` and every rage
-// threshold is in absolute rage points (§5.1). Abilities are resolved with the build's talents
+// threshold is in absolute rage points (§5.1); Balanced's defaults for two of them are shares of the
+// build's rage bar, resolved to points (§5.4 "Balanced"). Abilities are resolved with the build's talents
 // (modifiers.ts) before their costs feed any condition. The lines apply in both phases: only Execute
 // is the execute phase's.
 import { GCD_MS, toTenths } from '../../core/formulas'
@@ -47,6 +48,7 @@ import {
   heroicStrikeOptions,
   JUJU_FLURRY,
   maxRage,
+  maxRageOf,
   minRage,
   NO_CONTEXT,
   onUseIds,
@@ -96,8 +98,8 @@ const PROT_MAX_RAGE = 100
  * The priority choice's values, the list's three presets (warrior.md §5.4 "Priority", decisions D26
  * and D28): Defensive keeps the tank's duties (Shield Block, Thunder Clap, Demoralizing Shout) and is
  * tuned on threat; Balanced, the default, keeps Shield Block and Sunder Armor's five stacks, drops
- * Thunder Clap, Demoralizing Shout and the Sunder Armor filler, and is tuned on threat and damage
- * together; Max TPS drops the duties for threat, and keeps the rest, Shield Slam included. Defensive's
+ * Thunder Clap and Demoralizing Shout, uses the Sunder Armor filler only from 60% of the rage bar,
+ * and is tuned on threat and damage together; Max TPS drops the duties for threat, and keeps the rest, Shield Slam included. Defensive's
  * stored value is still `duties`, the old default's, so a setup that chose it loads as Defensive (D28).
  */
 export const PROTECTION_PRIORITY = { defensive: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
@@ -105,14 +107,19 @@ const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 const BALANCED = { option: ID.priority, is: PROTECTION_PRIORITY.balanced } as const
 /** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where Defensive's is 76. */
 const MAX_TPS_HS_MIN_RAGE = 45
-/** Balanced's Heroic Strike threshold (§5.4 "Balanced"), a first pass (D27). */
-const BALANCED_HS_MIN_RAGE = 84
 /**
- * Balanced's Sunder Armor filler threshold (§5.4 "Balanced"; user decision, D28): the filler only
- * above 60% rage, 60 of the default build's 100 (no Boundless Rage). Rage thresholds are absolute
- * (§5.1), so a build with Boundless Rage keeps 60.
+ * Balanced's Sunder Armor filler threshold, a share of the rage bar in % (§5.4 "Balanced"; user
+ * decision, D28: the filler only above 60% rage). It resolves against the build's max rage
+ * (`maxRageOf`, to the nearest point, from it): 60 of the default build's 100, 63 of a Gnome's 105,
+ * 78 of Boundless Rage 3/3's 130.
  */
-const BALANCED_FILLER_MIN_RAGE = 60
+const BALANCED_FILLER_PCT = 60
+/**
+ * Balanced's Heroic Strike threshold, a share of the rage bar in % the same way (§5.4 "Balanced"), a
+ * first pass (D27): 84 of 100, 109 of 130. Scaled with the filler's, so a bigger bar keeps the
+ * filler and Heroic Strike in the same order they are at 100.
+ */
+const BALANCED_HS_PCT = 84
 
 /**
  * The tank duties' refresh rule (warrior.md §5.4, decision D26's amendment): a debuff is refreshed as
@@ -152,12 +159,11 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
 const DEFENSIVE_HELP =
   'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 1,133 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
-const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout, Sunder filler from 60 rage: +10% TPS, +6% DPS vs Defensive.'
-const BALANCED_HELP =
-  'The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from 60 rage, 60% of your bar, and Heroic Strike from 84. Against Defensive in the default setup: 9.5% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +10% TPS, +6% DPS, 21% more damage taken than Defensive.'
+const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: 9.5% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
 const MAX_TPS_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout dropped for threat: +14% TPS, 41% more damage taken than Defensive.'
 const MAX_TPS_HELP =
-  'Drops Shield Block, Thunder Clap and Demoralizing Shout for threat, and keeps Shield Slam. Against Defensive in the default setup: 13.9% more TPS, 6.9% more DPS and 41% more damage taken. Pick it when another tank or the raid covers your survival.'
+  'Drops Shield Block, Thunder Clap and Demoralizing Shout for threat, and keeps Shield Slam. Against Defensive in the default setup: 13.9% more TPS, 6.9% more DPS and 41% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
@@ -287,8 +293,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     ...rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 9 with the default talents.', 9, ID.fillerEnabled, 'Fillers'),
-    help: `Use it only at or above this much rage. It costs 9 with the default talents. With Balanced it’s ${BALANCED_FILLER_MIN_RAGE} by default, 60% of your 100 rage, so the filler spends only rage you have to spare.`,
-    defaultWhen: [{ ...BALANCED, default: BALANCED_FILLER_MIN_RAGE }],
+    help: `Use it only at or above this much rage. It costs 9 with the default talents. With Balanced it’s ${BALANCED_FILLER_PCT}% of your max rage by default (${BALANCED_FILLER_PCT} of 100, ${Math.round(1.3 * BALANCED_FILLER_PCT)} with Boundless Rage 3/3), so the filler spends only rage you have to spare.`,
+    defaultWhen: [{ ...BALANCED, default: BALANCED_FILLER_PCT, pctOfMaxRage: true }],
   },
   {
     kind: 'toggle',
@@ -312,9 +318,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     o.id === ID.hsMinRage && o.kind === 'number'
       ? {
           ...o,
-          help: `Queue it at or above this much rage. With Balanced it’s ${BALANCED_HS_MIN_RAGE} by default, and with Max TPS ${MAX_TPS_HS_MIN_RAGE}: with fewer abilities to pay for, there’s more rage to spend.`,
+          help: `Queue it at or above this much rage. With Balanced it’s ${BALANCED_HS_PCT}% of your max rage by default (${BALANCED_HS_PCT} of 100), and with Max TPS ${MAX_TPS_HS_MIN_RAGE}: with fewer abilities to pay for, there’s more rage to spend.`,
           defaultWhen: [
-            { ...BALANCED, default: BALANCED_HS_MIN_RAGE },
+            { ...BALANCED, default: BALANCED_HS_PCT, pctOfMaxRage: true },
             { ...MAX_TPS, default: MAX_TPS_HS_MIN_RAGE },
           ],
         }
@@ -522,7 +528,8 @@ export function protectionRotation(
   order?: readonly string[],
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
-  const v = reader(PROTECTION_OPTIONS, values, talents)
+  // Balanced's thresholds are shares of the plan's rage bar (§5.4 "Balanced"): race and talents.
+  const v = reader(PROTECTION_OPTIONS, values, talents, { maxRage: maxRageOf(talents, ctx.race) })
   const b = new RotationBuilder(talents)
 
   const tcDef = thunderClap(ctx.profile)

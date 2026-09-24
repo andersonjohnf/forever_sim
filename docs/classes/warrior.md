@@ -1496,8 +1496,9 @@ puts the list's settings at that preset's defaults and keeps the consumables' se
   defaults are this choice's, tuned on TPS.
 - **Balanced** (`balanced`, the default) keeps Shield Block, used when it's ready, and Sunder
   Armor's 5 stacks, refreshed by the duty rule (1.5 s left, one global cooldown); it drops Thunder
-  Clap and Demoralizing Shout, uses the Sunder Armor filler only from 60 rage (60% of the default
-  build's 100; user decision), and queues Heroic Strike from 84 ([Balanced](#balanced-t5) below).
+  Clap and Demoralizing Shout, uses the Sunder Armor filler only from 60% of the build's max rage
+  (60 of the default build's 100; user decision), and queues Heroic Strike from 84% of it (84)
+  ([Balanced](#balanced-t5) below).
   A setup saved with the old default and no Priority of its own gets Balanced, as with any changed
   default.
 - **Max TPS** (`maxTps`) drops the duties and nothing else (rows 1, 5 and 6 are off by default),
@@ -1518,8 +1519,8 @@ a value you set yourself still wins.
 | `thunderClap.enabled` | on | off | off |
 | `demoShout.enabled` | on | off | off |
 | `sunder.refreshBelowSec` | 3 | 1.5 (the duty rule) | 3 |
-| `sunderFiller.minRage` | 9 (its cost) | 60 | 9 |
-| `heroicStrike.minRage` | 76 | 84 | 45 |
+| `sunderFiller.minRage` | 9 (its cost) | 60% of max rage: 60 | 9 |
+| `heroicStrike.minRage` | 76 | 84% of max rage: 84 | 45 |
 
 **The duty rule.** The duties' timing follows one fixed rule, and the search never tunes it
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s amendment):
@@ -1550,8 +1551,8 @@ taken
 | 8 | Revenge | Its window is open ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | `warrior.protection.revenge.enabled` (on) | yes |
 | 9 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 10 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3; 1.5 with Balanced, the duty rule) | yes |
-| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (9: its cost; 60 with Balanced, 60% of the 100 cap), `.waitForShieldSlam` (off) | yes |
-| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; 84 with Balanced, 45 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam GCD-safe (without Shield Slam the setting changes nothing, and the Rotation tab dims it). It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (9: its cost; with Balanced 60% of the max rage, 60 at the default build's 100), `.waitForShieldSlam` (off) | yes |
+| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (76; with Balanced 84% of the max rage, 84 at 100; 45 with Max TPS), `.anyRageLastSec` (12), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 13 | Execute | Execute phase only: a dance to Battle Stance and back, which loses Defensive Stance's threat. The swap keeps at most 10 rage, +3 per Improved Tactical Mastery rank, and that must pay Execute's cost (12), so the default build can never use it | `warrior.protection.execute.enabled` (off) | no |
 
 Notes:
@@ -1886,10 +1887,21 @@ raid's armor debuff, and drops the debuffs that only lower the boss's damage:
   cooldown.
 - **Dropped:** Thunder Clap and Demoralizing Shout (rows 5 and 6).
 - **The Sunder Armor filler only above 60% rage** (row 11; user decision, 2026-09-24, amending
-  D28's "not used as a filler"): its threshold is 60 rage, 60% of the default build's 100 (no
-  Boundless Rage). Thresholds are absolute rage ([§5.1](#51-conventions-for-rotation-settings)), so
-  a build with Boundless Rage keeps 60 unless you change it. The filler row's summary reads "From
-  60 rage", and its setting's help says it's 60% of the bar.
+  D28's "not used as a filler"): its default is 60% of the build's max rage, as the plan has it
+  ([§2.3](#23-rage-warrior-specific): 100 + Boundless Rage, × a Gnome's 1.05), to the nearest
+  point: 60 of the default build's 100, 63 of a Gnome's 105, 78 of Boundless Rage 3/3's 130, 82 of
+  a Gnome's 136.5 with it. The setting itself is in rage points, as every threshold is
+  ([§5.1](#51-conventions-for-rotation-settings)): only Balanced's default is a share, and a value
+  you set stays as you set it. The filler row's summary shows the points ("From 60 rage"), and the
+  setting's help says the default is 60% of your max rage. It fires at or above the threshold, so at
+  100 it plays exactly as the absolute 60 did (a unit test pins it, and the golden didn't move).
+- **Heroic Strike's threshold scales the same way,** from 84% of the max rage: 84 of 100, 88 of a
+  Gnome's 105, 109 of 130, 115 of 136.5. Scaling the filler alone costs a bigger bar TPS: with
+  Boundless Rage 3/3 (`05-05050003-552101233301210031`, seed 31101, 60,000 paired fights), the
+  filler from 78 with Heroic Strike still from 84 was **−6.17% TPS** against both scaled (Heroic
+  Strike takes the rage before the filler can), while both scaled are level with the absolute 60
+  and 84 (+0.09% TPS, 1,177.26 against 1,176.15; −2.02 DPS). A Gnome's 63 and 88 are level with 60
+  and 84 too (−0.10% TPS, 1,230.30 against 1,231.56).
 - **Tuned** on the balanced objective, ΔTPS% + ΔDPS% against Defensive
   ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)),
   a first pass ([D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)):

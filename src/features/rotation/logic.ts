@@ -67,13 +67,13 @@ export const isAdvanced = (option: RotationOption) => option.kind === 'number'
  * rest of the setup leaves unused, with why (`unusedRotationSettings`).
  */
 export function rotationRows(
-  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'gear'> & { fight: Pick<SimConfig['fight'], 'executePct'> & Partial<Pick<SimConfig['fight'], 'creatureType'>> },
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'gear'> & Partial<Pick<SimConfig, 'race'>> & { fight: Pick<SimConfig['fight'], 'executePct'> & Partial<Pick<SimConfig['fight'], 'creatureType'>> },
   options: readonly RotationOption[],
   enabledBuffs: readonly string[],
   unused: Readonly<Record<string, string>> = {},
 ): Map<string, RowState> {
-  const { spec, talents, rotation } = config
-  const values = rotationValues({ spec, talents, rotation })
+  const { spec, talents, rotation, race } = config
+  const values = rotationValues({ spec, talents, rotation, race })
   const byId = new Map(options.map((o) => [o.id, o]))
   const missing = (option: RotationOption | undefined) => {
     if (option?.kind !== 'toggle' || option.requiresBuff === undefined || enabledBuffs.includes(option.requiresBuff)) return undefined
@@ -117,7 +117,7 @@ export function rotationRows(
   const rows = new Map<string, RowState>()
   for (const option of options) {
     const { [option.id]: saved, ...others } = rotation
-    const def = saved === undefined ? values[option.id] : rotationValues({ spec, talents, rotation: others })[option.id]
+    const def = saved === undefined ? values[option.id] : rotationValues({ spec, talents, rotation: others, race })[option.id]
     const missingBuff = missing(option)
     const notUsed = unused[option.id]
     const needsCreature = wrongCreature(option)

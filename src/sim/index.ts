@@ -4,7 +4,7 @@ import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
 import { activeAplPreset } from './classes/apl'
-import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, rotationSetup, unusedSettings } from './classes/rotation'
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
@@ -123,11 +123,14 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 /**
  * Every rotation setting's value for a setup: the saved one, or the option's default for this
  * setup, which can follow the build's talents or another setting (Arms: Rend with Bloodthrill,
- * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3). The plan uses the same values.
+ * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3), or the race and talents' max rage
+ * (Protection's Balanced thresholds, §5.4; without `race`, a race that doesn't change it). The plan
+ * uses the same values.
  */
-export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
+export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & Partial<Pick<SimConfig, 'race'>>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
-  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+  const talents = talentRanksByName(TALENT_DATA[classId], config.talents)
+  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**
@@ -135,11 +138,13 @@ export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * preset's id, or `custom` once you've changed its order or a row's setting away from every preset.
  * Undefined for a spec still on switches.
  */
-export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'>): string | undefined {
+export function rotationPreset(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'> & Partial<Pick<SimConfig, 'race'>>,
+): string | undefined {
   const apl = rotationApl(config.spec)
   if (!apl) return undefined
   const talents = talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents)
-  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents)
+  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**

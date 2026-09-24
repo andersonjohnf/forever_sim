@@ -37,7 +37,8 @@ import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demo
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
-import type { ClassRotation } from './warrior/shared'
+import { type ClassRotation, maxRageOf } from './warrior/shared'
+import type { RotationSetup } from './options'
 import type { Stance } from './warrior/talents'
 
 export type { ClassRotation, RotationContext } from './warrior/shared'
@@ -105,6 +106,14 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   // docs/classes/hunter.md §8: the three hunter specs share one list of settings.
   if (isHunterSpec(spec)) return hunterOptions(spec)
   return []
+}
+
+/**
+ * What a spec's defaults can follow besides the talents and the settings (options.ts): a warrior's
+ * max rage, which Protection's Balanced thresholds are shares of (warrior.md §5.4 "Balanced").
+ */
+export function rotationSetup(spec: SpecId, talents: TalentRanks, race: string | undefined): RotationSetup {
+  return SPEC_META[spec].classId === 'warrior' ? { maxRage: maxRageOf(talents, race ?? '') } : {}
 }
 
 /**

@@ -416,7 +416,9 @@ Balanced. Each tank spec's Priority choice offers three rotations:
   and tunes the rest for DPS:
   - a warrior uses Shield Block when it's ready and keeps Sunder Armor at 5 stacks, refreshed
     by D26's duty rule, and uses it as a filler only above 60% rage (user decision, 2026-09-24,
-    replacing "not used as a filler"); it drops Thunder Clap and Demoralizing Shout
+    replacing "not used as a filler"): 60% of the warrior's max rage, which race and talents set
+    (60 of the default 100, 78 with Boundless Rage 3/3), with Heroic Strike's threshold scaled the
+    same way (84%); it drops Thunder Clap and Demoralizing Shout
   - a bear keeps Faerie Fire and drops Demoralizing Roar
   - a paladin keeps Devotion Aura and Holy Shield, and Holy Strike too, whose Iron Creed cuts
     damage taken by 10% (user decision: that's active mitigation Balanced keeps), so a paladin's

@@ -69,7 +69,7 @@ test.describe('Protection rotation', () => {
     await expect(preset(page)).toHaveText('Balanced (default)')
     // The short line under it says what Balanced keeps and drops, with a number or two.
     await expect(preset(page)).toHaveAccessibleDescription(
-      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout, Sunder filler from 60 rage: +10% TPS, +6% DPS vs Defensive.',
+      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +10% TPS, +6% DPS, 21% more damage taken than Defensive.',
     )
     await preset(page).click()
     await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
@@ -102,6 +102,21 @@ test.describe('Protection rotation', () => {
     // The default Protection warrior is a Human, whose racial cooldown isn't used, as for every spec.
     await expect(row(page, 'racial')).toContainText('Not used: Human has no racial cooldown that adds damage.')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  })
+
+  test('Balanced’s filler and Heroic Strike follow the rage bar: a Gnome’s 105 max rage, from 63 and 88, still Balanced and unmarked', async ({ page }) => {
+    await openProtectionRotation(page)
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Gnome', exact: true }).click()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    await expect(preset(page)).toHaveText('Balanced (default)')
+    await expect(row(page, 'sunderFiller')).toContainText('From 63 rage')
+    await expect(row(page, 'heroicStrike')).toContainText('From 88 rage')
+    const panel = await openRow(page, 'Sunder Armor filler')
+    const input = panel.getByRole('textbox', { name: 'Sunder Armor filler from', exact: true })
+    await expect(input).toHaveValue('63')
+    await expect(input).not.toHaveAccessibleDescription(/Changed/)
+    await expect(panel).toContainText('With Balanced it’s 60% of your max rage by default')
   })
 
   test('Defensive and Max TPS move the rows’ defaults, unmarked; editing the list reads Custom; a preset puts it back', async ({ page }) => {

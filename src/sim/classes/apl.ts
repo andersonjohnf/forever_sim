@@ -8,7 +8,7 @@
 // place for what it doesn't name. The spec's compiler emits each row's lines in that order
 // (`compileAplRows`), so the engine's priority list is the tab's.
 import type { AplDefinition, AplPreset, RotationOption, RotationValue } from '../types'
-import { resolveRotationValues } from './options'
+import { type RotationSetup, resolveRotationValues } from './options'
 
 /** The preset that's the spec's defaults: the default order, every setting at its default. */
 export const DEFAULT_APL_PRESET = 'default'
@@ -128,14 +128,15 @@ export function activeAplPreset(
   saved: Readonly<Record<string, RotationValue>>,
   order: readonly string[] | undefined,
   talents: ReadonlyMap<string, number>,
+  setup: RotationSetup = {},
 ): string {
   const current = normalizeAplOrder(def, order)
-  const values = resolveRotationValues(options, saved, talents)
+  const values = resolveRotationValues(options, saved, talents, setup)
   const ids = [...presetOptionIds(def)]
   for (const preset of aplPresets(def)) {
     const presetOrder = normalizeAplOrder(def, preset.order)
     if (presetOrder.some((id, i) => id !== current[i])) continue
-    const theirs = resolveRotationValues(options, presetSaved(def, saved, preset), talents)
+    const theirs = resolveRotationValues(options, presetSaved(def, saved, preset), talents, setup)
     if (ids.every((id) => theirs[id] === values[id])) return preset.id
   }
   return CUSTOM_APL_PRESET

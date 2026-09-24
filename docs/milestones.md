@@ -273,9 +273,9 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **K4 Shadow Priest** ([review](reviews/2026-09-24-shadow-priest.md))
 - [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
 - [x] **K6 Balance Druid:** Moonkin Form ([review](reviews/2026-09-24-balance-druid.md))
-- [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
+- [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks. Built on its branch, awaiting review
-      ([ranged-and-pets.md](mechanics/ranged-and-pets.md))
+      ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
 
 ## M6: Multi-target 💤

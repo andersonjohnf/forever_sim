@@ -76,7 +76,7 @@ describe('golden run (fixed config and seed)', () => {
   //   judgement and 90 mana), damage taken 899 → 898.
   // - T3R-2 (buffs doc §1.2, §6.2): a raid druid's Thorns on the main tank is in every tank's raid
   //   preset, as Devotion Aura. TPS 809.18 → 818.32, DPS 433.62 → 442.58; damage taken unchanged.
-  // - T2's fix round, the survival floor (D30, user): talents -0530513321301551-50215 (0/37/13), the
+  // - T2's fix round, the survival floor (D30, user): talents -0530513321301551-50215 (0/38/13), the
   //   best measured build that keeps Anticipation 5, Deflection 5, Improved Righteous Fury 3, Sacred
   //   Duty 2, Templar's Bulwark and Holy Shield: Anticipation 5 and Holy Conduit 1 for Toughness 4 and
   //   Improved Holy Strike 2 (paladin.md "Protection defaults"). TPS 818.32 → 821.34, DPS 442.58 →

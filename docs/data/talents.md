@@ -208,7 +208,7 @@ every tree, talent and max rank, position by position.
 | Druid | `5532220115501351-05-` | Balance (druid.md) | 41/5/0 | yes | yes |
 | Druid | `05302001-05-5050035103113251` | Restoration (the old site's popular build) | 11/5/35 | yes | yes |
 | Paladin | `250003-503-052052310012330321` | Retribution default ([paladin.md](../classes/paladin.md#retribution-defaults)) | 10/8/33 | yes | yes |
-| Paladin | `-0530513321301551-50215` | Protection default, interim (T2's fix round; [paladin.md](../classes/paladin.md#protection-defaults)) | 0/37/13 | yes | yes |
+| Paladin | `-0530513321301551-50215` | Protection default, interim (T2's fix round; [paladin.md](../classes/paladin.md#protection-defaults)) | 0/38/13 | yes | yes |
 | Paladin | `2-4530013321301551-50205` | The former Protection default (T2), kept for saved setups | 2/37/12 | yes | yes |
 | Paladin | `2-4530513321301551-502` | Protection, the popular build (v1's default) | 2/42/7 | yes | yes |
 | Paladin | `005320213225131051-5032-05` | Holy (paladin.md) | 36/10/5 | yes | yes |

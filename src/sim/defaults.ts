@@ -111,7 +111,7 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   paladin: [
     // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
     { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
-    // docs/classes/paladin.md#protection-defaults: Holy 0 / Prot 37 / Ret 13, interim (T2's fix round)
+    // docs/classes/paladin.md#protection-defaults: Holy 0 / Prot 38 / Ret 13, interim (T2's fix round)
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
     // docs/classes/paladin.md#protection-defaults: the popular Forever build, v1's default, Holy 2 / Prot 42 / Ret 7
     { name: 'Protection popular build', code: '2-4530513321301551-502' },

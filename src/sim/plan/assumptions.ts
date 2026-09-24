@@ -634,6 +634,14 @@ const REGISTRY = {
     text: 'Cold Blood is used up by the next Sinister Strike, Backstab, Eviscerate or Mutilate that lands; one that misses keeps it. Untested.',
     docRef: `${ROGUE}#38-cold-blood-14177`,
   },
+  mutilate: {
+    text: 'Mutilate’s off-hand strike deals off-hand damage at the off-hand multiplier, each strike rolls its own hit and crit, and only the main hand’s crit gives Seal Fate’s extra point. Untested.',
+    docRef: `${ROGUE}#311-mutilate-r4-1241584`,
+  },
+  venom: {
+    text: 'Venom does nothing beyond its three effects on your poisons: the client’s fourth, a dummy on the target, is taken to add nothing. Untested.',
+    docRef: `${ROGUE}#43-poison-talents`,
+  },
 } satisfies Record<string, { text: string; docRef: string }>
 
 export type AssumptionId = keyof typeof REGISTRY

@@ -83,6 +83,8 @@ export const ASSUMPTION_GROUP = {
   hackAndSlash: 'class',
   sliceAndDiceHaste: 'class',
   coldBlood: 'class',
+  mutilate: 'class',
+  venom: 'class',
   deadlyPoisonTicks: 'class',
   rogueArmorPen: 'class',
   poisons: 'gear',

@@ -44,7 +44,12 @@ describe('the plan’s code tables', () => {
 
   it('the Protection paladin adds no condition or trigger, and one proc action: manaFlat 7 (Improved Seal of Fury)', () => {
     expect(ACTION.manaFlat).toBe(7)
-    expect(Math.max(...Object.values(ACTION))).toBe(7)
+  })
+
+  it('the rogue’s codes (R1): maxComboPoints takes 30, the first of its 30–33, and ACTION 8, after manaFlat, is Deadly Poison’s stackingDot', () => {
+    expect(COND.maxComboPoints).toBe(30)
+    expect(ACTION.stackingDot).toBe(8)
+    expect(Math.max(...Object.values(ACTION))).toBe(8)
   })
 
   it('the shaman’s auraStacksAtLeast (Lightning Bolt at 5 Maelstrom Weapon stacks) takes 34: 30–33 are the Rogue track’s', () => {

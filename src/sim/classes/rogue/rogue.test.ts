@@ -29,14 +29,17 @@ import {
   EVISCERATE,
   EXPOSE_ARMOR,
   EXPOSE_ARMOR_PER_CP,
+  MUTILATE,
   ROGUE_GCD_MS,
   RUPTURE,
   SINISTER_STRIKE,
   SLICE_AND_DICE,
   SLICE_AND_DICE_HASTE,
   THISTLE_TEA,
+  VENOM,
   VIGOR_TENTHS_PER_RANK,
 } from './abilities'
+import { assassinationMaintainedBuffs, assassinationRotation } from './assassination'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './combat'
 import {
   IMPROVED_SLICE_AND_DICE_PER_RANK,
@@ -58,6 +61,7 @@ const effect = (id: number, index: number) => spell(id).effects.find((e) => e.ef
 const energyCost = (id: number) => (spell(id).power ?? []).find((p) => p.powerType === 3)?.manaCost ?? 0
 const curve = (name: string, index = 0) => clientTalents.find((t) => t.name === name)!.rankEffects.find((r) => r.effectIndex === index)!.values
 const COMBAT = talentRanksByName(TALENT_DATA.rogue, defaultConfig('rogue-combat').talents)
+const ASSASSINATION = talentRanksByName(TALENT_DATA.rogue, defaultConfig('rogue-assassination').talents)
 const ranks = (entries: [string, number][]) => new Map(entries)
 
 describe('rows against the Forever client (rogue.md §3)', () => {
@@ -120,6 +124,29 @@ describe('rows against the Forever client (rogue.md §3)', () => {
     expect(THISTLE_TEA.rageTenths).toBe(10 * effect(9512, 0).effectBasePointsF!)
     const tea = consumables['7676'].effects[0]
     expect([tea.spellId, tea.coolDownMSec]).toEqual([9512, THISTLE_TEA.cooldownMs])
+  })
+
+  it('Mutilate and Venom: costs, strikes, points, the poisoned bonus and Venom’s times and mods', () => {
+    // 1241584: energize 2 points, a strike per hand (1241586, 1241590), +20% against the poisoned.
+    expect(MUTILATE.costTenths).toBe(10 * energyCost(1241584))
+    expect(MUTILATE.comboPoints).toBe(effect(1241584, 0).effectBasePointsF)
+    expect([effect(1241584, 1).effectTriggerSpell, effect(1241584, 2).effectTriggerSpell]).toEqual([1241586, 1241590])
+    expect(MUTILATE.poisonedTargetPct).toBe(effect(1241584, 3).effectBasePointsF)
+    for (const id of [1241586, 1241590]) {
+      expect(effect(id, 0).effect).toBe(121) // NORMALIZED_WEAPON_DMG
+      expect(MUTILATE.flatDamage).toBe(effect(id, 0).effectBasePointsF)
+      expect(MUTILATE.weaponPercent).toBe(effect(id, 1).effectBasePointsF! / 100)
+    }
+    expect([MUTILATE.normalized, MUTILATE.offHand]).toEqual([true, true])
+    expect(VENOM.costTenths).toBe(10 * energyCost(1310703))
+    expect(VENOM.finisher).toBe(true)
+    expect(VENOM.aura!.durationMs).toBe(spell(1310703).duration!.duration)
+    expect(VENOM.auraMsPerComboPoint).toBe(spell(1310703).duration!.durationPerResource)
+    // Aura 108 (percent modifier) 30 on the poisons' damage and their ticks; 107 (flat) 10 on their chance.
+    expect([effect(1310703, 1).effectAura, effect(1310703, 2).effectAura, effect(1310703, 3).effectAura]).toEqual([108, 108, 107])
+    expect(VENOM.aura!.mods.poisonDamage).toBe(effect(1310703, 1).effectBasePointsF)
+    expect(VENOM.aura!.mods.poisonDamage).toBe(effect(1310703, 2).effectBasePointsF)
+    expect(VENOM.aura!.mods.poisonChance).toBe(effect(1310703, 3).effectBasePointsF)
   })
 
   it('the poisons: Instant Poison VI’s 20% for 76–100, Deadly Poison V’s 30% for 23 a stack, 5 stacks, every 3 s for 12 s', () => {
@@ -418,6 +445,64 @@ describe('the Combat priority list (rogue.md §6.1)', () => {
   })
 })
 
+describe('the Assassination priority list (rogue.md §6.2)', () => {
+  const context = { race: 'alliance-human', items: [], consumables: [THISTLE_TEA] }
+  const ids = (rot: ReturnType<typeof assassinationRotation>) => rot.rotation.map((e) => rot.abilities[e.ability].id)
+
+  it('by default: Thistle Tea, Slice and Dice, Cold Blood at 5 points, Eviscerate at 4, Mutilate', () => {
+    const rot = assassinationRotation({}, ASSASSINATION, { ...context, weaponTypes: ['dagger', 'dagger'] })
+    expect(ids(rot)).toEqual(['thistleTea', 'sliceAndDice', 'coldBlood', 'eviscerate', 'mutilate'])
+    expect(rot.rotation[2].conditions).toEqual([
+      { code: COND.minComboPoints, a: 5, b: 0 },
+      { code: COND.minEnergy, a: 350, b: 0 },
+    ])
+    expect(rot.rotation[3].conditions).toEqual([{ code: COND.minComboPoints, a: 4, b: 0 }])
+    expect(assassinationMaintainedBuffs({})).toEqual([])
+  })
+
+  it('keeps Venom up after Slice and Dice when it’s on, and builds with Sinister Strike without two daggers', () => {
+    const on = assassinationRotation({ 'rogue.assassination.venom.enabled': true }, ASSASSINATION, { ...context, weaponTypes: ['dagger', 'dagger'] })
+    expect(ids(on)).toEqual(['thistleTea', 'sliceAndDice', 'venom', 'coldBlood', 'eviscerate', 'mutilate'])
+    expect(on.rotation[2].conditions).toEqual([
+      { code: COND.abilityAuraRefresh, a: 2, b: 0 },
+      { code: COND.minComboPoints, a: 3, b: 0 },
+    ])
+    for (const weaponTypes of [['sword', 'dagger'], ['dagger', 'sword'], ['dagger', null]] as const) {
+      expect(ids(assassinationRotation({}, ASSASSINATION, { ...context, weaponTypes })).at(-1)).toBe('sinisterStrike')
+    }
+    // Without the talents: no Cold Blood, Venom or Mutilate.
+    expect(ids(assassinationRotation({ 'rogue.assassination.venom.enabled': true }, ranks([['Malice', 5]]), context))).toEqual(['thistleTea', 'sliceAndDice', 'eviscerate', 'sinisterStrike'])
+  })
+
+  it('the default setup has two daggers, so it builds with Mutilate: both hands strike, 20% harder with Deadly Poison on the boss', () => {
+    const config = defaultConfig('rogue-assassination')
+    const perHit = (enabled: string[]) => {
+      const bundle = buildPlan({ ...config, buffs: { ...config.buffs, enabled } })
+      const sim = new Sim(bundle.plan)
+      for (let i = 0; i < 300; i++) sim.runFight(i)
+      const main = row(bundle.plan, 'mutilate')
+      const off = row(bundle.plan, 'mutilateOffHand')
+      expect(main).toBeGreaterThanOrEqual(0)
+      expect(counter(sim, main, FIELD.casts)).toBe(counter(sim, off, FIELD.casts))
+      return counter(sim, main, FIELD.damage) / (counter(sim, main, FIELD.hits) + counter(sim, main, FIELD.crits))
+    }
+    const withDeadly = perHit(config.buffs.enabled)
+    const without = perHit(config.buffs.enabled.filter((b) => !b.startsWith('deadlyPoison')))
+    // Deadly Poison is on the boss from its first application to the end: nearly all of the fight.
+    expect(withDeadly / without).toBeGreaterThan(1.15)
+    expect(withDeadly / without).toBeLessThan(1.21)
+  })
+
+  it('Venom raises the poisons’ damage by 30% and their chance by 10 points while it’s up', () => {
+    const config = defaultConfig('rogue-assassination')
+    const plan = buildPlan({ ...config, rotation: { 'rogue.assassination.venom.enabled': true } }).plan
+    const aura = plan.auras.find((a) => a.id === 'venom')!
+    expect([aura.poisonDamage, aura.poisonChance]).toEqual([30, 10])
+    const agg = runFights(plan, 250)
+    expect(agg.auraUpMs[plan.auras.indexOf(aura)] / agg.durationMs).toBeGreaterThan(0.7)
+  })
+})
+
 function runFights(plan: Plan, fights: number): Aggregate {
   const sim = new Sim(plan)
   let agg = emptyAggregate(plan.sources.length, plan.auras.length)
@@ -430,6 +515,19 @@ describe('golden run (fixed config and seed)', () => {
   // - R1: the default Combat rogue (rogue.md §6.1, §7): swords, Deadly Poison V on the main hand and
   //   Instant Poison VI on the off hand, Slice and Dice at 2 points, Eviscerate at 5, Blade Flurry and
   //   Adrenaline Rush on cooldown, Thistle Tea at 10 Energy; 580.3 DPS over 20,000 fights on seed 2701.
+  // - R1: the default Assassination rogue (rogue.md §6.2, §7): daggers, the same poisons, Mutilate,
+  //   Slice and Dice at 2 points, Cold Blood at 5, Eviscerate at 4, Venom off; 524.1 DPS over 20,000
+  //   fights on seed 2701.
+  it('keeps the default Assassination rogue’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('rogue-assassination'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const result = toResult(bundle, runFights(bundle.plan, 1000), 0)
+    expect({
+      dps: result.dps,
+      durationSec: result.durationSec,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.casts, a.hits, a.crits, a.misses, a.dodges, a.glances]),
+    }).toMatchSnapshot()
+  })
+
   it('keeps the default Combat rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-combat'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

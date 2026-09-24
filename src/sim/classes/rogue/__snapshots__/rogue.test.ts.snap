@@ -1,5 +1,108 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`golden run (fixed config and seed) > keeps the default Assassination rogue’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "mainHand",
+      26304338.799756356,
+      130883,
+      8268,
+      36991,
+      24824,
+      8563,
+      52237,
+    ],
+    [
+      "offHand",
+      13576212.310137719,
+      176891,
+      11034,
+      50032,
+      33502,
+      11579,
+      70744,
+    ],
+    [
+      "handOfJustice",
+      629011.6683423221,
+      3099,
+      201,
+      888,
+      586,
+      191,
+      1233,
+    ],
+    [
+      "windfury",
+      6318156.92225373,
+      27810,
+      1786,
+      7867,
+      5298,
+      1729,
+      11130,
+    ],
+    [
+      "deadlyPoison",
+      7520919.131999045,
+      63981,
+      51316,
+      6353,
+      7779,
+      0,
+      0,
+    ],
+    [
+      "instantPoison",
+      4495100.232407923,
+      48723,
+      38233,
+      4692,
+      5798,
+      0,
+      0,
+    ],
+    [
+      "eviscerate",
+      17816646.040054582,
+      11938,
+      7238,
+      3969,
+      0,
+      731,
+      0,
+    ],
+    [
+      "mutilate",
+      12111860.342333555,
+      30591,
+      15330,
+      13249,
+      0,
+      2012,
+      0,
+    ],
+    [
+      "mutilateOffHand",
+      5697510.648308025,
+      30591,
+      15420,
+      13161,
+      0,
+      2010,
+      0,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.3813351317920437,
+    "mean": 525.7733325546991,
+    "stdev": 22.28696681636629,
+  },
+  "durationSec": 179.690222,
+}
+`;
+
 exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s result unchanged 1`] = `
 {
   "abilities": [

@@ -86,6 +86,31 @@ export const BACKSTAB: AbilityDef = {
   auraCrit: COLD_BLOOD_CRIT,
 }
 
+/**
+ * Mutilate rank 4 (spells.json 1241584, the strikes 1241586 and 1241590): 60 Energy, GCD 1000, both
+ * weapons: `NORMALIZED_WEAPON_DMG` +67 and `WEAPON_PERCENT_DAMAGE` 75 each, so 0.75 × (normalized
+ * weapon damage + 67), the flat inside the percentage as its tooltip computes it (${$m1*$m2/100});
+ * +2 combo points; +20% against a target with your lasting poison on it (dummy 20) [F]. Each hand
+ * rolls its own strike, and only the main hand's lands the points and rolls Seal Fate [?] (rogue.md
+ * §3.11, Q7). It needs daggers.
+ */
+export const MUTILATE: AbilityDef = {
+  id: 'mutilate',
+  name: 'Mutilate',
+  icon: 'ability_rogue_deadlybrew',
+  kind: 'weaponStrike',
+  ...ROGUE_ATTACK,
+  offHand: true,
+  costTenths: 600,
+  weaponPercent: 0.75,
+  normalized: true,
+  flatDamage: 67,
+  refundShare: BUILDER_REFUND,
+  comboPoints: 2,
+  poisonedTargetPct: 20,
+  auraCrit: COLD_BLOOD_CRIT,
+}
+
 // --- Finishers (rogue.md §3.3–§3.6) -----------------------------------------------------------------
 
 /**
@@ -173,6 +198,24 @@ export const EXPOSE_ARMOR: AbilityDef = {
   costTenths: 250,
   finisher: true,
   aura: { id: 'exposeArmor', name: 'Expose Armor', durationMs: 30000, mods: { targetArmor: 5 * EXPOSE_ARMOR_PER_CP } },
+}
+
+/**
+ * Venom (spells.json 1310703, the talent): 25 Energy and every combo point, GCD 1000; for 6 s + 3 s
+ * per point (`SpellDuration` 6000, `DurationPerResource` 3000), poisons deal 30% more (aura 108, the
+ * poisons' class masks) and apply 10 points more often (aura 107, misc 18) [F]. No roll (rogue.md §4.3).
+ */
+export const VENOM: AbilityDef = {
+  id: 'venom',
+  name: 'Venom',
+  icon: 'inv_sword_31',
+  kind: 'cast',
+  ...ROGUE_ATTACK,
+  threatMult: 0,
+  costTenths: 250,
+  finisher: true,
+  aura: { id: 'venom', name: 'Venom', durationMs: 6000, mods: { poisonDamage: 30, poisonChance: 10 } },
+  auraMsPerComboPoint: 3000,
 }
 
 // --- Cooldowns (rogue.md §3.7, §3.8) ------------------------------------------------------------------

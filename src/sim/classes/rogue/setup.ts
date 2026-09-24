@@ -37,5 +37,7 @@ export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number
   if ((talents.get('Hack and Slash') ?? 0) > 0 && plan.weapons.some((w) => w !== null)) ids.push('hackAndSlash')
   if (has('sliceAndDice') && plan.auras.filter((a) => a.haste).length > 1) ids.push('sliceAndDiceHaste')
   if (has('coldBlood')) ids.push('coldBlood')
+  if (has('mutilate')) ids.push('mutilate')
+  if (has('venom')) ids.push('venom')
   return ids
 }

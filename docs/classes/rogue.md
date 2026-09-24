@@ -237,7 +237,8 @@ to the target for 15 s. Ghostly Strike: 125% of `W` (180% with a main-hand dagge
 
 Two strikes, one per hand: `0.75 × (W_norm + 67)` each (1241586, 1241590), 60 Energy, 2 CP, +20%
 against a target with your lasting poison on it (Deadly Poison) [F] [client]. It needs daggers.
-The sim rolls each hand on its own table, and only the main hand's crit rolls Seal Fate [?] (Q7).
+The sim rolls each hand on its own table, the off hand's strike at the off-hand multiplier (§2.4),
+and only the main hand's crit rolls Seal Fate [?] (Q7).
 
 ### 3.12 Not simulated
 
@@ -274,6 +275,7 @@ Era).
 - **Improved Poisons** 5/5: +10 points of apply chance (Instant 30%, Deadly 40%) [F].
 - **Vile Poisons** 5/5: +20% poison damage [F].
 - **Venom** (finisher): +30% poison damage and +10 points of apply chance for (6 + 3 × CP) s [F].
+  Its first effect, a dummy on the target, is taken to add nothing [?] (Q11).
 - **Malice**: +5% crit, poisons included [F].
 
 ### 4.4 Which poison where
@@ -356,12 +358,34 @@ Points … If you are Energy starved, consider Thistle Tea."
 - Before that search, with Instant Poison on both weapons, the same settings gained +3.2 DPS over
   the first draft (1 point, 2 s, 10).
 
-### 6.2 Assassination
+### 6.2 Assassination (shipped)
 
 The Classic Era Seal Fate Daggers priority [wh-rot] (Slice and Dice at 2, then 5 points; Cold
 Blood before a 5-point Eviscerate; Thistle Tea), adapted to Forever: **Mutilate** is the builder
-(it needs daggers and gains 20% against the Deadly-poisoned boss), and **Venom** is kept up at its
-points for the poisons. Its rotation is the next slice's (§8, "What's left").
+(it needs a dagger in each hand and gains 20% against the Deadly-poisoned boss; without daggers,
+Sinister Strike builds), and **Venom** is a setting for the poisons, off by default (below).
+
+| # | Action | Condition (defaults) | Setting ids (default) |
+| --- | --- | --- | --- |
+| 1 | Racial, on-use trinkets, Thistle Tea, Juju Flurry (off the GCD) | As Combat's 1–3 | `rogue.assassination.racial.enabled` (on), `.onUseItems.enabled` (on), `.thistleTea.enabled` (on), `.thistleTea.maxEnergy` (10), `.jujuFlurry.enabled` (on) |
+| 2 | Slice and Dice | Down, or ≤ 0.5 s left; at ≥ 2 CP | `rogue.assassination.sliceAndDice.enabled` (on), `.minComboPoints` (2), `.refreshBelowSec` (0.5) |
+| 3 | Venom | Down, or ≤ its setting left; at ≥ 3 CP | `rogue.assassination.venom.enabled` (**off**), `.minComboPoints` (3), `.refreshBelowSec` (0) |
+| 4 | Expose Armor | Down, at 5 CP | `rogue.assassination.exposeArmor.enabled` (off) |
+| 5 | Cold Blood (off the GCD) | At 5 CP with Eviscerate's Energy | `rogue.assassination.coldBlood.enabled` (on) |
+| 6 | Eviscerate | At ≥ 4 CP | `rogue.assassination.eviscerate.enabled` (on), `.minComboPoints` (4) |
+| 7 | Mutilate, or Sinister Strike without two daggers | Affordable | `rogue.assassination.mutilate.enabled` (on) |
+
+**First-pass search** (the default setup, seed 2701, 20,000 paired fights; 524.1 DPS):
+- Venom costs the combo points Eviscerate would spend: on at 3 points it's −55.9 (−10.7%), at 5
+  −47.0, at 1 −61.4. It adds about 26 DPS of poison damage (the poisons go from 67 to 93 DPS at
+  85% uptime) and takes about 67 from Eviscerate. So it's off by default. The default build still
+  takes it, so it's there to turn on; the tuning milestone may move that point, and Q11 asks
+  whether its dummy effect adds more.
+- Eviscerate at 4 against 5: +6.78 (+6.44 to +7.13); 3 is −5.9 against 4. Mutilate's 2 points (3
+  with Seal Fate) make 5 from 4 an overflow.
+- Slice and Dice at 2 points: level with 1 (−0.08); 3 −1.99. Renewing at 0.5 s: level with 0 and
+  1 s; 2 s −0.73. Thistle Tea at 10: level with 5 (+0.44) and 20.
+- Mutilate is worth +53.7 over Sinister Strike, Cold Blood +5.3.
 
 ### 6.3 Subtlety
 
@@ -432,8 +456,10 @@ placeholder except the client's slopes:
 
 `src/sim/classes/rogue/` holds the rows (`abilities.ts`), the passive talents as effects
 (`talents.ts`), the talents that modify abilities (`modifiers.ts`, `withRogueTalents`), Energy and
-the assumptions (`setup.ts`), the shared lines and settings (`shared.ts`) and the Combat list
-(`combat.ts`). The engine gained, additively (every other spec byte-identical):
+the assumptions (`setup.ts`), the shared lines and settings (`shared.ts`), and the Combat and
+Assassination lists (`combat.ts`, `assassination.ts`). The rotation's context carries both weapons'
+types, so Mutilate is used only with two daggers. The engine gained, additively (every other spec
+byte-identical):
 
 - An aura's `energyRegen` (Adrenaline Rush multiplies each power tick's Energy).
 - `auraMsPerComboPoint` and `dotTicksPerComboPoint`: a `cast` finisher's buff (Slice and Dice) and a
@@ -448,9 +474,9 @@ the assumptions (`setup.ts`), the shared lines and settings (`shared.ts`) and th
   Poison): one stack count on the boss per poison, whichever weapon applies it.
 - COND 30 `maxComboPoints`; ACTION 7 `stackingDot`.
 
-**What's left** for Assassination and Subtlety: their rotations (Mutilate's two strikes and Venom;
-Hemorrhage's Rupture debuff, Ghostly Strike's and Hemorrhage's dagger shares, Quietus below 35%,
-Cutthroat's Ambush window and Thousand Cuts' Energy), their e2e flows and goldens.
+**What's left** for Subtlety: its rotation (Hemorrhage's Rupture debuff, Ghostly Strike's and
+Hemorrhage's dagger shares, Premeditation, Quietus below 35%, Cutthroat's Ambush window and
+Thousand Cuts' Energy), its e2e flows and golden.
 
 ---
 
@@ -496,6 +522,9 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 - **Q10 Base values.** §7.6's placeholders (OQ-1 in character-stats); the rogue's crit per point is
   about 1.7% of Combat DPS, so a 0–1% base crit error is over D24's 1%: measure it first (a naked
   sheet: crit − Agi × 0.0345).
+- **Q11 Venom's dummy.** Venom's effect 0 is a dummy (effect 3) on the enemy target, with a bonus
+  coefficient of 1; the tooltip names only the poisons' +30% and +10%. If it does damage or more,
+  Venom may be worth keeping up (§6.2). Test: a 5-point Venom on a dummy, the combat log.
 
 ---
 

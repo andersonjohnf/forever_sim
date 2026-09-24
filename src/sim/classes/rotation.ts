@@ -3,6 +3,7 @@
 // The rotation section of the UI renders the options generically; the plan builder turns the
 // config's values (or the options' defaults for the setup, classes/options.ts) into the spec's
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
+import type { WeaponType } from '@/data/items/types'
 import { NO_PREPULL } from '../plan/types'
 import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
@@ -21,6 +22,7 @@ import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation }
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
+import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -41,6 +43,12 @@ export interface ClassRotationContext extends PaladinContext {
    * Shout there takes `ap-reduction`, so the bear's own roar isn't used (druid.md §6.3). Absent: none.
    */
   buffGroups?: ReadonlySet<string>
+  /**
+   * The weapon types in [main hand, off hand], or null for an empty hand: the rogue's Backstab and
+   * Mutilate need daggers, and Hemorrhage and Ghostly Strike hit harder with one (rogue.md §3).
+   * Absent: not known (a test's context).
+   */
+  weaponTypes?: readonly [WeaponType | null, WeaponType | null]
 }
 
 /**
@@ -67,6 +75,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'druid-feral-bear') return BEAR_OPTIONS
   if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
   if (spec === 'rogue-combat') return COMBAT_OPTIONS
+  if (spec === 'rogue-assassination') return ASSASSINATION_OPTIONS
   return []
 }
 
@@ -103,7 +112,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
   }
   // Decision D27: specs landed before the tuning milestone start from the common priority.
-  if (spec === 'rogue-combat') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  if (spec === 'rogue-combat' || spec === 'rogue-assassination') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -128,6 +137,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'druid-feral-bear': 'druid.bear.racial.enabled',
   'shaman-enhancement': 'shaman.enhancement.racial.enabled',
   'rogue-combat': 'rogue.combat.racial.enabled',
+  'rogue-assassination': 'rogue.assassination.racial.enabled',
 }
 
 /**
@@ -176,6 +186,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'paladin-protection') return paladinProtectionMaintainedBuffs(values)
   if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
   if (spec === 'rogue-combat') return combatMaintainedBuffs(values)
+  if (spec === 'rogue-assassination') return assassinationMaintainedBuffs(values)
   return []
 }
 
@@ -209,5 +220,6 @@ export function classRotation(
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
   // docs/classes/rogue.md §6.
   if (spec === 'rogue-combat') return combatRotation(values, talents, context)
+  if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

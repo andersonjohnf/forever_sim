@@ -36,9 +36,9 @@ test.describe('setup', () => {
     await expect(paladins.getByRole('menuitem')).toHaveText([/^Retribution\s*DPS$/, /^Protection\s*Tank$/])
     // Enhancement since S1, under the Shaman heading.
     await expect(page.getByRole('group', { name: 'Shaman' }).getByRole('menuitem')).toHaveText([/^Enhancement\s*DPS$/])
-    // The Combat rogue since R1, under its class's heading.
-    await expect(page.getByRole('group', { name: 'Rogue' }).getByRole('menuitem')).toHaveText([/^Combat\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(9)
+    // The Combat and Assassination rogues since R1, under their class's heading.
+    await expect(page.getByRole('group', { name: 'Rogue' }).getByRole('menuitem')).toHaveText([/^Combat\s*DPS$/, /^Assassination\s*DPS$/])
+    await expect(page.getByRole('menuitem')).toHaveCount(10)
     await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/])
   })
 

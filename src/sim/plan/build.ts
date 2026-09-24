@@ -813,6 +813,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         equipped: new Set([...equipped.values()].map((i) => i.id)),
         othersBleed,
         front: fight.position === 'front',
+        weaponTypes: [weapons[HAND.main]?.type ?? null, weapons[HAND.off]?.type ?? null],
         maxMana: block.hasMana ? derived.mana : 0,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
         buffGroups: new Set(filledGroups.keys()),
@@ -1066,7 +1067,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (mh || usesMana) for (const { id, detail } of classRot.assumes ?? []) notes.add(id, detail)
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
-  if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
+  // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
+  if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   if (!mh) {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's

@@ -400,6 +400,8 @@ from Spirit. Mana regeneration matters for paladins (seals, judgements, Consecra
 
 - Spirit regen per 2-second tick, outside the five-second rule: paladin and druid
   `15 + Spirit / 5`. **[C]** [calculator][wt-basestats]. That's (7.5 + Spirit/10) mana per second.
+  The casters' ([spells §8](spells.md#8-mana)): mage and priest `13 + Spirit / 4`, warlock
+  `8 + Spirit / 4`, shaman (and hunter) `15 + Spirit / 5` **[C]** ([mana guide][wt-mana]'s table).
 - **Five-second rule:** after a spell that costs mana finishes, Spirit-based regen stops for 5 s. A
   free cast (Clearcasting) doesn't start the timer. **[C]** [mana guide][wt-mana]
 - **Mp5** from gear and buffs always ticks, inside the five-second rule too:

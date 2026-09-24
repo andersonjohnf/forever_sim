@@ -41,8 +41,17 @@ export const TRIGGER = {
   whiteResolved: 12,
   /** A spell crit on the magic or ranged table (combat-tables §9): Vengeance (paladin.md#retribution-tree). */
   spellCrit: 13,
+  // 14–19 are left to the parallel tracks (rogue, shaman). The caster core's (docs/mechanics/spells.md §10):
+  /**
+   * A plan spell of the magic or `none` class landed on the target (a direct hit, a DoT's
+   * application, a channel's start): Shadow Weaving, Winter's Chill, Improved Scorch. A proc can
+   * name the schools (`ProcPlan.schools`) or the one spell (`ProcPlan.fromSource`) that fire it.
+   */
+  spellLanded: 20,
+  /** A spell DoT ticked (docs/mechanics/spells.md §7): Nightfall's Shadow Trance. The same filters. */
+  spellTick: 21,
 } as const
-export const TRIGGER_COUNT = 14
+export const TRIGGER_COUNT = 22
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -154,6 +163,26 @@ export interface SpellDef {
    * Absent: none.
    */
   boost?: { aura: string; pct: number }
+  // --- The caster core (docs/mechanics/spells.md). All optional: absent, a spell behaves as before. ---
+  /**
+   * A binary spell (docs/mechanics/spells.md §3): one with an effect besides damage (a slow, a debuff)
+   * is resisted whole, at its school's average resistance, rolled with its hit, and a landed one
+   * takes no partial resist. Absent: a pure damage spell, partially resisted on average.
+   */
+  binary?: boolean
+  /**
+   * A periodic part (docs/mechanics/spells.md §7): when the spell lands, `dotTicks` ticks of
+   * `dotTickDamage` + `dotSpCoefficient` × the school's spell damage, one every `dotTickMs` from
+   * then. A spell with no direct part (`min`, `max`, `spCoefficient` and `weaponPercent` all 0) is a
+   * pure DoT: it rolls its hit and no crit when it lands. Reapplying restarts it (a tick due that
+   * very moment lands first). `dotCanCrit` is the spell's periodic-crit flag (SpellMisc
+   * Attributes[8] 0x200): its ticks crit only in a profile whose periodic effects can.
+   */
+  dotTicks?: number
+  dotTickMs?: number
+  dotTickDamage?: number
+  dotSpCoefficient?: number
+  dotCanCrit?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost'> {
@@ -164,6 +193,47 @@ export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | '
   /** `SpellDef.boost` resolved: the plan aura it's boosted by and uses up, and the % (shaman.md#stormstrike). Absent: none. */
   boostAura?: number
   boostPct?: number
+  /**
+   * Its DoT's breakdown row, when it has a direct part too (Fireball's, Immolate's: "<name> (DoT)");
+   * absent: its own row (a pure DoT: Corruption).
+   */
+  dotSource?: number
+  /**
+   * The plan aura that marks its DoT on the target, up from an application until the last tick, so
+   * rotation conditions can read it (the ability's `aura`; docs/mechanics/spells.md §7). Absent or −1: none.
+   */
+  dotAura?: number
+}
+
+/**
+ * A school's code in a bit mask (docs/mechanics/spells.md §9): bit `SCHOOL[s]`. The magic schools
+ * are every school but physical; Curse of the Elements' "Magic" is all of them, Holy included.
+ */
+export const schoolBit = (school: keyof typeof SCHOOL) => 1 << SCHOOL[school]
+/** The mask of these schools (docs/mechanics/spells.md §9). */
+export const schoolMask = (schools: readonly (keyof typeof SCHOOL)[]) => schools.reduce((m, s) => m | schoolBit(s), 0)
+export const MAGIC_SCHOOLS = ['fire', 'frost', 'shadow', 'nature', 'arcane', 'holy'] as const
+export type MagicSchool = (typeof MAGIC_SCHOOLS)[number]
+export const SCHOOL_COUNT = 7
+
+/**
+ * What the plan knows about each spell school, indexed by `SCHOOL` code (docs/mechanics/spells.md
+ * §5, §9): absent on a plan where every school is plain (all 1, 1, 0 and the boss's level-based
+ * resistance), which is every plan without a caster's effects.
+ */
+export interface SchoolPlan {
+  /** The caster's own damage multiplier per school: talents and static buffs (Power Infusion's is an aura). */
+  damage: number[]
+  /** The boss's damage-taken multiplier per school: the Buffs tab's debuffs (Curse of the Elements). */
+  taken: number[]
+  /** Spell crit %, added, per school: talents (Critical Mass's Fire crit). */
+  crit: number[]
+  /**
+   * The boss's resistance per school, as the average-resist formula reads it (combat-tables §9): its
+   * level-based resistance, plus its own (0) less the debuffs' reductions, not below 0, less your
+   * spell penetration; below 0 only in a profile that allows it (docs/mechanics/spells.md §3).
+   */
+  resistance: number[]
 }
 
 export interface WeaponPlan {
@@ -264,6 +334,27 @@ export interface AuraPlan {
   poisonChance?: number
   /** Your bleeds' ticks deal this % more while it's up, read at each tick (Hemorrhage's +15% Rupture, rogue.md §3.9); absent = 0. */
   bleedDamage?: number
+  // --- The caster core (docs/mechanics/spells.md §5, §8, §9). All optional, absent = 0. ---
+  /**
+   * The spell schools (a `schoolBit` mask) its school mods cover, per stack: your damage with them
+   * % (Power Infusion's +20, Shadow Weaving's self-buff), the boss's damage taken from them % (a
+   * debuff you keep up: Fire Vulnerability), and your spell crit with them % (Winter's Chill). The
+   * damage and taken % multiply, the crit adds.
+   */
+  schoolMask?: number
+  schoolDamage?: number
+  schoolTaken?: number
+  schoolCrit?: number
+  /** Casting speed %, multiplicative, for the abilities whose cast time haste shortens (`castHasted`). */
+  castHaste?: number
+  /** Spell damage, all schools, per stack (a trinket's: Talisman of Ephemeral Power; docs/mechanics/spells.md §5). */
+  spellDamage?: number
+  /**
+   * Mana hooks for the class slices (docs/mechanics/spells.md §8): Spirit regeneration % more
+   * (Innervate), and the % of it that goes on inside the five-second rule, added to the plan's share.
+   */
+  spiritRegen?: number
+  castingRegen?: number
 }
 
 export interface ProcPlan {
@@ -309,6 +400,13 @@ export interface ProcPlan {
   /** `stackingDot`: how long it lasts after its last application, ms, and whether its ticks may crit (the spell's flag, in a profile whose periodic effects crit). */
   durationMs?: number
   periodicCanCrit?: boolean
+  /**
+   * On the spell triggers (`spellLanded`, `spellCrit`, `spellTick`): only spells of these schools (a
+   * `schoolBit` mask; Shadow Weaving's Shadow), or only the spell on this breakdown row (Improved
+   * Scorch's Scorch). Absent or 0 / −1: any (docs/mechanics/spells.md §10).
+   */
+  schools?: number
+  fromSource?: number
 }
 
 export interface SourcePlan {
@@ -365,11 +463,16 @@ export interface AbilityPlan {
    * Shout): roll 1 over the spell table's miss (combat-tables §9), so it can't be dodged, parried or
    * blocked, and a miss refunds as a melee special's; roll 2 for crit at the main hand's special crit,
    * × its own crit multiplier (warrior.md §7 "Spell-table abilities" [?]). Its damage and threat are
-   * its own fields, as a special's, and one that deals none never crits.
+   * its own fields, as a special's, and one that deals none never crits;
+   * `channel` (the caster core, docs/mechanics/spells.md §6): pays, starts its GCD and cooldown, and
+   * holds the GCD (and with `castHoldsOffGcd` everything else) while it channels. Its `spell`, if
+   * any, is cast at the start: a miss ends the channel there, and its periodic part is the channel's
+   * ticks (Mind Flay, Drain Soul). Otherwise its `tickSpell` is cast every `rageTickMs`, `rageTicks`
+   * times (Arcane Missiles). `channelTicks` cuts it off after that many ticks.
    * A `weaponStrike`, `meleeSpell` or `spellTable` with an `aura` puts it on the target when it lands
    * (Sunder Armor's stacks, Thunder Clap's slow, Demoralizing Shout's attack power; warrior.md §7).
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift' | 'spell' | 'spellTable'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift' | 'spell' | 'spellTable' | 'channel'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
@@ -660,6 +763,14 @@ export interface AbilityPlan {
   /** A landed hit puts this plan aura up with this chance (Cutthroat's Ambush window on Backstab, rogue.md §5.3), or −1. */
   opensAura?: number
   opensAuraChance?: number
+  // --- The caster core (docs/mechanics/spells.md §4, §6). All optional: absent, a row behaves as before. ---
+  /**
+   * Casting speed shortens its cast time: `castMs` ÷ the casting-speed multiplier, rounded to a
+   * whole ms (docs/mechanics/spells.md §4). Absent: its cast time is fixed (Slam, Hammer of Wrath).
+   */
+  castHasted?: boolean
+  /** `channel`: it's cut off after this many ticks (docs/mechanics/spells.md §6); absent or 0: all of them. */
+  channelTicks?: number
 }
 
 /**
@@ -807,6 +918,9 @@ export const COND = {
   // 30–33 are the rogue's (docs/classes/rogue.md §8).
   /** combo points ≤ a (Premeditation waits for room for its 2, rogue.md §6) */
   maxComboPoints: 30,
+  // 35–37 are free for the parallel tracks; 38–41 the caster core's (docs/mechanics/spells.md §11).
+  /** aura a is up: a proc's buff a caster spends (Clearcasting, Shadow Trance), or any plan aura */
+  auraUp: 38,
 } as const
 
 export interface RotationCondition {
@@ -997,6 +1111,11 @@ export interface Plan {
   holyMult?: number
   /** Multiplier on Holy threat, static: Righteous Fury ×1.9 (paladin.md#threat-paladin-specific). */
   holyThreatMult?: number
+  /**
+   * The spell schools' multipliers, crit and the boss's resistance (docs/mechanics/spells.md §5, §9);
+   * absent when every school is plain.
+   */
+  schools?: SchoolPlan
 }
 
 /** One druid form (druid.md §2.1, §2.2, §2.3): everything a shapeshift swaps in. */
@@ -1057,14 +1176,40 @@ export interface ManaPlan {
   mp5TickTenths?: number
   /** Share of the Spirit regeneration that continues inside the five-second rule (Reverence); absent: 0. */
   inFsrShare?: number
-  /**
-   * A plan aura that, while up, lets this share of the Spirit regeneration continue inside the rule,
-   * if it's more than `inFsrShare` (Improved Stormstrike's 50% for 15 s, docs/classes/shaman.md).
-   * Absent: none.
-   */
-  inFsrShareAura?: number
-  inFsrShareAuraShare?: number
 }
+
+/**
+ * The fields a caster's `spell` or `channel` ability (an `AbilityDef`) has that it doesn't use,
+ * beyond its id, name, icon, kind, costs and timings (docs/mechanics/spells.md §12): the class
+ * slices build their rows from this.
+ */
+export const CASTER_ROW = {
+  twoHandOnly: false,
+  unavoidable: false,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: 1.5,
+  refundShare: 0,
+  threatMult: 0,
+  threatBonus: 0,
+  dotTickDamage: 0,
+  dotTicks: 0,
+  dotTickMs: 0,
+  periodicCanCrit: false,
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+  rageTickTenths: 0,
+  rageTicks: 0,
+  rageTickMs: 0,
+  usesPerFight: 0,
+  castStopsSwings: false,
+} as const
 
 /**
  * The player-global power tick (druid.md §2.4; character-stats.md#spirit-and-mana-regeneration):

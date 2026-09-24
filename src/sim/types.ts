@@ -483,7 +483,18 @@ export interface CharacterSheet {
    * spell damage (Champion of the Light's share of Intellect included), spell crit and spell hit in
    * %, and mana per 5 s. Absent for other classes.
    */
-  spell?: { holyDamage: number; critPct: number; hitPct: number; mp5: number }
+  spell?: {
+    holyDamage: number
+    critPct: number
+    hitPct: number
+    mp5: number
+    /**
+     * A caster's (SpecMeta.caster; docs/mechanics/spells.md §5, §4, §3): spell damage per school
+     * (all-schools spell damage plus the school's own lines), casting speed in %, and spell
+     * penetration. Absent for the paladin, whose spells are Holy.
+     */
+    caster?: { schoolDamage: Record<'arcane' | 'fire' | 'frost' | 'holy' | 'nature' | 'shadow', number>; castSpeedPct: number; spellPen: number }
+  }
   /**
    * A tank whose rotation keeps a block buff up (a Protection paladin's Holy Shield): the boss's
    * table with it up, the buff's name and plan aura id (its uptime is in the result's cooldowns), and

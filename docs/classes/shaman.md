@@ -259,8 +259,8 @@ by up to 30% of your Intellect") [F] [client] (SpellEffect 30812, CurvePoint).
 
 - Holy-only spell damage does nothing for a shaman: the plan zeroes it.
 - **Nature-only and Frost-only spell damage on gear isn't counted yet** [?]: the caster core (K1)
-  brings spell damage per school. No item in the default gear has any
-  ([open question 9](#open-questions)).
+  has spell damage per school, and the shaman takes it up with Elemental (K5); until then its plan
+  zeroes those lines. No item in the default gear has any ([open question 9](#open-questions)).
 - Orc Blood Fury's +10% spell power isn't simulated [?] ([open question 13](#open-questions)).
 - The sheet's "spell damage" shows this number (the default setup: 53, from 179 Intellect).
 
@@ -558,8 +558,8 @@ The class is data and rotation in `src/sim/classes/shaman/` (`abilities.ts`, `ta
 - **Flurry** is an aura with 3 white-swing charges and `whiteSwingChargeIcdMs` 500: a white swing
   uses a charge only when 500 ms have passed since the last one it used.
 - **Improved Stormstrike** is a second aura Stormstrike puts on the player when used (`selfAura`),
-  and the mana plan names it (`inFsrShareAura`): while it's up, 50% of the spirit regeneration
-  continues inside the five-second rule.
+  and it carries the caster core's mana hook (`castingRegen` 50, [spells.md §8](../mechanics/spells.md#8-mana)):
+  while it's up, 50% of the spirit regeneration continues inside the five-second rule.
 - **Mental Dexterity** is attack power per point of Intellect (`apPerInt`); **Mental Quickness** the
   paladin's spell damage from Intellect (`spellDamagePerIntPct`).
 - **Elemental Devastation** is a `spellCrit` proc; the shocks are `spell` rows in one cooldown
@@ -678,7 +678,8 @@ the default setup's DPS unless stated.
    −0.7% instead of 2.3% is −0.49%; the attributes under ±0.5%.
 8. **Earth Shock's extra threat**: whether it still carries the extra threat Classic Era shaman
    tanks relied on is unknown, and none is simulated. *Test:* a threat meter on a single Earth Shock. *Effect:* none on DPS; TPS only.
-9. **Nature-only and Frost-only spell damage on gear** isn't counted until K1. *Effect:* none on the
+9. **Nature-only and Frost-only spell damage on gear** isn't counted until K5 takes up the caster
+   core's per-school spell damage. *Effect:* none on the
    default gear, which has none; an item's line would be worth what all-schools spell damage is (50
    SP ≈ +1.0%).
 10. **Rockbiter Weapon's value** in Forever: 653 AP from 16313's rows (554 + 16.5 a level). *Test:*

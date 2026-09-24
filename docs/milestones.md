@@ -421,6 +421,22 @@ slice is worked:
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).
+- **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
+  - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
+    them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every
+    Holy hit, so a few percent of Retribution's DPS where a raid has a second warlock; the entry
+    is ready (`curseOfTheElements`), and giving it to the paladin is one line and a golden update.
+  - **Nightfall's Spell Vulnerability isn't a Buffs entry:** its proc rate is server-side, and a
+    static entry needs an uptime (spells.md OQ-S10).
+  - **The caster entries go to classes, not specs:** a druid's Feral specs would get Balance's
+    caster entries if the druid were added to `CASTER_CLASSES`; K6 gates them per spec.
+  - **The Enhancement shaman is on the core, with two switches off (K5 turns them on):** rebased
+    onto S1, the engine has one cast time (Maelstrom Weapon's cut, then casting speed), one regen
+    share inside the five-second rule (Improved Stormstrike is a `castingRegen` aura) and one
+    Intellect share of spell damage (Mental Quickness adds to every school). So its numbers don't
+    move before Elemental, its Lightning Bolt isn't `castHasted` (Rage of the Farseer doesn't
+    shorten a cast bolt, [shaman.md](classes/shaman.md#open-questions) OQ 5) and its Nature-only
+    and Frost-only spell damage lines are zeroed (OQ 9). K5 turns both on, with a golden update.
 - **A run on one spec shows its progress over another spec's result:** start a Fury run, switch to
   Arms, and Arms's result dims with Fury's "Simulating…" (CV2 in
   [the cat's review](reviews/2026-09-23-feral-cat.md)). Show progress only for the run's own spec.

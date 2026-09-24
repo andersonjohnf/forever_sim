@@ -18,6 +18,12 @@ export interface SpecMeta {
    * keeps it up (docs/ux.md "Buffs"). Another tank's Buffs tab says whose duty it is.
    */
   ownBuffs?: readonly string[]
+  /**
+   * A spec that deals its damage with spells (the caster core, docs/mechanics/spells.md): its
+   * character sheet shows spell damage by school, casting speed and spell penetration. The caster
+   * class slices (K2–K6) set it.
+   */
+  caster?: boolean
 }
 
 export const SPEC_META: Record<SpecId, SpecMeta> = {

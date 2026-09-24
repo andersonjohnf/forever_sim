@@ -297,7 +297,13 @@ export const maelstromProc = (): ProcSpec => ({
 /**
  * Improved Stormstrike's regeneration (1223031 → 1238931) [F] [client] (SpellEffect, SpellDuration,
  * 1.60.1.69913): 50% of your mana regeneration continues while casting (aura 134) for 15 s after a
- * Stormstrike, at a 50% chance per talent rank (100% at 2/2).
+ * Stormstrike, at a 50% chance per talent rank (100% at 2/2). The caster core's mana hook carries it
+ * (`castingRegen`, docs/mechanics/spells.md §8).
  */
-export const IMPROVED_STORMSTRIKE_AURA: AuraSpec = { id: 'improvedStormstrike', name: 'Improved Stormstrike', durationMs: 15000, mods: {} }
 export const IMPROVED_STORMSTRIKE_SHARE = 0.5
+export const IMPROVED_STORMSTRIKE_AURA: AuraSpec = {
+  id: 'improvedStormstrike',
+  name: 'Improved Stormstrike',
+  durationMs: 15000,
+  mods: { castingRegen: 100 * IMPROVED_STORMSTRIKE_SHARE },
+}

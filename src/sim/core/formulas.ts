@@ -87,6 +87,23 @@ export const NORMALIZED_SPEED = { oneHand: 2.4, dagger: 1.7, twoHand: 3.3 } as c
 /** Crit multipliers (§2.5): melee and ranged ×2, spells ×1.5, crushing ×1.5. */
 export const CRIT_MULTIPLIER = { melee: 2, spell: 1.5, creature: 2, crushing: 1.5 } as const
 
+/**
+ * A spell's crit multiplier with talents that raise its crit *bonus* by `bonusPct` % (Ice Shards,
+ * Ruin, Vengeance, Elemental Fury: +100% at full rank makes ×2): 1 + 0.5 × (1 + bonusPct/100)
+ * (docs/mechanics/spells.md §2) [C].
+ */
+export const spellCritMultiplier = (bonusPct = 0) => 1 + (CRIT_MULTIPLIER.spell - 1) * (1 + bonusPct / 100)
+
+/**
+ * The cast-time rule for a direct spell's spell damage coefficient (docs/mechanics/spells.md §5): the
+ * cast time over 3.5 s, the time at least 1.5 s (instants count as 1.5 s) and at most 3.5 s [C]. The
+ * client's `EffectBonusCoefficient` is the authority where it has one; this is the fallback.
+ */
+export const castTimeCoefficient = (castMs: number) => Math.min(3500, Math.max(1500, castMs)) / 3500
+
+/** A hasted cast time in whole ms: the base ÷ the casting-speed multiplier, rounded (docs/mechanics/spells.md §4) [C]. */
+export const hastedCastMs = (castMs: number, castHasteMult: number) => Math.round(castMs / castHasteMult)
+
 // ---------------------------------------------------------------------------------------------
 // Timing: docs/mechanics/damage-and-timing.md#3-swing-timers
 // ---------------------------------------------------------------------------------------------
@@ -141,10 +158,26 @@ export function furorCatEnergyTenths(rank: number, energyLeftTenths: number, out
 export const FIVE_SECOND_RULE_MS = 5000
 
 /**
- * Spirit regeneration per 2 s power tick outside the five-second rule, in tenths of mana:
- * `15 + Spirit / 5` for paladins and druids [C], rounded down to a tenth [?].
+ * Spirit regeneration per 2 s tick outside the five-second rule, per class: `base + Spirit / per`
+ * (character-stats.md#spirit-and-mana-regeneration; docs/mechanics/spells.md §8). Paladins, druids,
+ * shamans and hunters 15 + Spirit/5; mages and priests 13 + Spirit/4; warlocks 8 + Spirit/4 [C].
  */
-export const spiritRegenTickTenths = (spirit: number) => Math.floor((15 + spirit / 5) * 10 + 1e-9)
+export const SPIRIT_REGEN = {
+  paladin: { base: 15, per: 5 },
+  druid: { base: 15, per: 5 },
+  shaman: { base: 15, per: 5 },
+  hunter: { base: 15, per: 5 },
+  mage: { base: 13, per: 4 },
+  priest: { base: 13, per: 4 },
+  warlock: { base: 8, per: 4 },
+} as const
+
+/**
+ * Spirit regeneration per 2 s power tick outside the five-second rule, in tenths of mana, for a
+ * class (`SPIRIT_REGEN`; paladins and druids by default): rounded down to a tenth [?].
+ */
+export const spiritRegenTickTenths = (spirit: number, klass: keyof typeof SPIRIT_REGEN = 'paladin') =>
+  Math.floor((SPIRIT_REGEN[klass].base + spirit / SPIRIT_REGEN[klass].per) * 10 + 1e-9)
 
 /** Mana per 5 s from gear and buffs, per power tick of `tickMs`, in tenths: mp5 × tick / 5 s [C]; it ticks inside the five-second rule too. */
 export const mp5TickTenths = (mp5: number, tickMs: number) => (10 * mp5 * tickMs) / 5000

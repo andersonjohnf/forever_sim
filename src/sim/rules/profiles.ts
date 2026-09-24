@@ -66,6 +66,11 @@ export interface RulesProfile {
      * effects can critically strike"; Classic Era: never). docs/mechanics/damage-and-timing.md#4-dots-and-bleeds
      */
     periodicCrits: boolean
+    /**
+     * Spell penetration can take a boss's resistance below 0, which raises the damage it takes
+     * (`forever`: the "Spell Vulnerability" tooltip) or not (`classicEra`): docs/mechanics/spells.md §3.
+     */
+    negativeResistance: boolean
   }
   armor: {
     /** Armor below 0 increases damage (`forever`) or is floored at 0 (docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration). */
@@ -179,6 +184,8 @@ export const FOREVER: RulesProfile = {
     expertise: true,
     // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds (the flag is client data; ticks critting in combat is [?])
     periodicCrits: true,
+    // docs/mechanics/spells.md#3-resistances: the SPELL_PENETRATION_TOOLTIP [F]; in combat [?]
+    negativeResistance: true,
   },
   // docs/mechanics/damage-and-timing.md#1-armor
   armor: { allowNegative: true, cap: 0.75 },
@@ -249,6 +256,7 @@ export const CLASSIC_ERA: RulesProfile = {
     spellMissFloor: 1,
     expertise: false,
     periodicCrits: false,
+    negativeResistance: false,
   },
   armor: { allowNegative: false, cap: 0.75 },
   // Forever items still carry the old stats as ratings; they convert at the displayed ratios.

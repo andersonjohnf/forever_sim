@@ -42,6 +42,9 @@ import {
   type PlanBundle,
   type ProcPlan,
   SCHOOL,
+  SCHOOL_COUNT,
+  type SchoolPlan,
+  schoolMask,
   DEFENSE,
   type SourcePlan,
   type SpellDef,
@@ -106,6 +109,13 @@ const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   spellDamage: 'spellDamage',
   holySpellDamage: 'holySpellDamage',
   mp5: 'mp5',
+  // The caster core (docs/mechanics/spells.md §3, §5): each school's own spell damage, and spell penetration.
+  fireSpellDamage: 'fireSpellDamage',
+  frostSpellDamage: 'frostSpellDamage',
+  shadowSpellDamage: 'shadowSpellDamage',
+  natureSpellDamage: 'natureSpellDamage',
+  arcaneSpellDamage: 'arcaneSpellDamage',
+  spellPenetration: 'spellPen',
 }
 
 /** "+X spell damage against <type>" item stats (encounter.md#6-creature-type-biome-and-zone-forever). */
@@ -188,7 +198,20 @@ interface Collected {
   /** Selected on-use consumables; `use` when a rotation can press it (effects/types.ts). */
   onUse: { id: string; name: string; use?: OnUseSpec }[]
   zoneGatedUnmet: boolean
+  /**
+   * The schools' static numbers by SCHOOL code (docs/mechanics/spells.md §3, §5, §9): your damage
+   * and the boss's damage taken (products), your crit (a sum) and the debuffs' resistance change.
+   */
+  schools: { damage: number[]; taken: number[]; crit: number[]; resistance: number[] }
 }
+
+/** Every school plain: ×1, ×1, +0, +0 (docs/mechanics/spells.md §9). */
+const plainSchools = (): Collected['schools'] => ({
+  damage: Array<number>(SCHOOL_COUNT).fill(1),
+  taken: Array<number>(SCHOOL_COUNT).fill(1),
+  crit: Array<number>(SCHOOL_COUNT).fill(0),
+  resistance: Array<number>(SCHOOL_COUNT).fill(0),
+})
 
 /**
  * The set an item counts toward: its `setId`, if that set lists the item (docs/data/items.md#equipping-rules).
@@ -368,6 +391,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     periodicRage: [],
     onUse: [],
     zoneGatedUnmet: false,
+    schools: plainSchools(),
   }
   const holds = (when: Condition | undefined, stance = setup.stance): boolean => {
     if (!when) return true
@@ -550,9 +574,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     : undefined
 
   // --- Derived stats and the sheet -------------------------------------------------------------
-  // docs/classes/shaman.md#spell-damage: the shaman's spells are Nature and Frost, so Holy-only spell
-  // damage does nothing for it; its "SP" is all-schools spell damage plus Mental Quickness's share.
-  if (classId === 'shaman') block.holySpellDamage = 0
+  // docs/classes/shaman.md#spell-damage: the shaman's "SP" is all-schools spell damage plus Mental
+  // Quickness's share. Holy-only spell damage does nothing for it, and its Nature-only and Frost-only
+  // lines aren't counted until Elemental (K5) takes up the caster core's per-school spell damage.
+  if (classId === 'shaman') {
+    block.holySpellDamage = 0
+    block.natureSpellDamage = 0
+    block.frostSpellDamage = 0
+  }
   const deriveOptions = { profile, applyUnmeasured, level: PLAYER_LEVEL }
   const derived = deriveStats(block, deriveOptions, new DerivedStats())
   // The sheet counts the buffs the rotation keeps up (flat stats only: Battle Shout's AP).
@@ -605,7 +634,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // docs/classes/paladin.md#mana-model, #conventions-used-below: the paladin's spell stats, as the
     // engine starts the fight with them (Holy spell damage with Champion of the Light's share).
     // The shaman's the same way: its spell damage for Nature and Frost (docs/classes/shaman.md#spell-damage).
-    ...(usesMana ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } } : {}),
+    ...(usesMana && !meta.caster
+      ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } }
+      : {}),
+    // docs/mechanics/spells.md §3–§5: a caster's spell stats, by school.
+    ...(meta.caster ? { spell: casterSheet(shown, block) } : {}),
   }
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
@@ -667,6 +700,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.poisonDamage ? { poisonDamage: spec.mods.poisonDamage } : {}),
       ...(spec.mods.poisonChance ? { poisonChance: spec.mods.poisonChance } : {}),
       ...(spec.mods.bleedDamage ? { bleedDamage: spec.mods.bleedDamage } : {}),
+      // The caster core's (docs/mechanics/spells.md §4, §5, §8, §9), only when set.
+      ...(spec.mods.schoolMask ? { schoolMask: spec.mods.schoolMask } : {}),
+      ...(spec.mods.schoolDamage ? { schoolDamage: spec.mods.schoolDamage } : {}),
+      ...(spec.mods.schoolTaken ? { schoolTaken: spec.mods.schoolTaken } : {}),
+      ...(spec.mods.schoolCrit ? { schoolCrit: spec.mods.schoolCrit } : {}),
+      ...(spec.mods.castHaste ? { castHaste: spec.mods.castHaste } : {}),
+      ...(spec.mods.spellDamage ? { spellDamage: spec.mods.spellDamage } : {}),
+      ...(spec.mods.spiritRegen ? { spiritRegen: spec.mods.spiritRegen } : {}),
+      ...(spec.mods.castingRegen ? { castingRegen: spec.mods.castingRegen } : {}),
     })
     return auras.length - 1
   }
@@ -679,7 +721,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const i = spells.findIndex((x) => x.source === source)
     if (i >= 0) return i
     const { name: _, icon: __, school, defense, boost, ...rest } = def
-    spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source })
+    // docs/mechanics/spells.md §7: a spell with a DoT. A pure DoT's row counts its applications and
+    // ticks, as a bleed's does; a hybrid's ticks get a row of their own, "<name> (DoT)", after its hit.
+    let dotSource: number | undefined
+    if ((def.dotTicks ?? 0) > 0) {
+      const ticksCanCrit = def.dotCanCrit === true && profile.combat.periodicCrits
+      const direct = def.min > 0 || def.max > 0 || def.spCoefficient > 0 || def.weaponPercent > 0
+      if (direct) {
+        dotSource = sourceIndex(`${def.id}Dot`, `${def.name} (DoT)`, def.icon)
+        sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
+      } else sources[source].bleed = { ticksCanCrit, avoidable: defense === 'magic' && !def.alwaysHit }
+    }
+    spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source, ...(dotSource !== undefined ? { dotSource } : {}) })
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
     if (def.cannotCrit && (defense === 'none' || (def.alwaysHit && def.noActiveDefense))) sources[source].certain = true
     if (boost) spellBoosts.push({ spell: spells.length - 1, boost })
@@ -690,6 +743,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const procNeeds: (string | undefined)[] = []
   /** The druid forms each proc is bound to (Primal Fury's rage: bear), resolved once the reachable forms are known. */
   const procForms: (readonly DruidForm[] | undefined)[] = []
+  /** The spell id each spell proc names (Improved Scorch's Scorch), resolved once every spell is in (docs/mechanics/spells.md §10). */
+  const procSpells: (string | undefined)[] = []
   const chainBits = new Map<string, number>()
   const addProc = (spec: ProcSpec, origin: 0 | 1 | null) => {
     const proc = resolveProc(spec, origin, weapons)
@@ -782,9 +837,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
     // What its breakdown row counts a fight: Reckoning's extra attacks, Holy Shield's blocks.
     if (spec.counts && proc.source >= 0) sources[proc.source].counts = spec.counts
+    // docs/mechanics/spells.md §10: a spell proc's schools.
+    if (spec.schools && spec.schools.length > 0) proc.schools = schoolMask(spec.schools)
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
     procForms.push(spec.forms)
+    procSpells.push(spec.fromSpell)
   }
   for (const { spec, origin } of c.procs) addProc(spec, origin)
   // A weapon's own proc aura (Crusader's Holy Strength) is one per hand; with both, each names its hand.
@@ -881,6 +939,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(opensWindow ? { opensAura: auraIndex(opensWindow.aura, opensWindow.aura.id, a.icon), opensAuraChance: opensWindow.chance } : {}),
     }
   })
+  // docs/mechanics/spells.md §7: a caster's DoT is marked on the boss by the aura of the ability
+  // that casts it (its `aura`), which rotation conditions read.
+  for (const a of abilities) {
+    if (a.aura < 0) continue
+    for (const s of [a.spell, a.tickSpell]) {
+      if (s !== undefined && s >= 0 && (spells[s].dotTicks ?? 0) > 0) spells[s].dotAura = a.aura
+    }
+  }
   // Crit an aura gives some abilities (Berserk's, druid.md §3.7), and the aura that suspends an
   // ability's cooldown (Berserk's Mangle, §4.6), once every ability's aura is in; without an ability
   // that puts it up, there's none.
@@ -930,6 +996,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (aura < 0) return []
       resolved = { ...resolved, requiresAura: aura }
     }
+    // docs/mechanics/spells.md §10: a proc that names a spell the plan doesn't cast is left out.
+    const fromSpell = procSpells[i]
+    if (fromSpell !== undefined) {
+      const row = sources.findIndex((x) => x.id === fromSpell)
+      if (row < 0 || !spells.some((x) => x.source === row)) return []
+      resolved = { ...resolved, fromSource: row }
+    }
     const bound = procForms[i]
     if (bound && forms) {
       const mask = bound.reduce((m, f) => m | (1 << FORM_INDEX[f]), 0)
@@ -966,6 +1039,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
 
   // --- Fight ------------------------------------------------------------------------------------
+  const schools = schoolPlan(c.schools, block.spellPen, fight.bossLevel, profile)
   const front = fight.position === 'front'
   const targetArmor = fight.bossArmor - c.targetArmor
   const bossSwingBase = fight.boss.swingSpeedSec
@@ -1046,10 +1120,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // paladin.md#protection-tree: Swift Judgement's free next Judgement is the free-cast aura.
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
-    ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5, auras) } : {}),
+    ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5) } : {}),
     // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
     ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
+    // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
+    ...(schools ? { schools } : {}),
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -1393,7 +1469,69 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
     case 'onUse':
       c.onUse.push({ id: e.id, name: e.name, use: e.use })
       return
+    // The caster core (docs/mechanics/spells.md §3, §4, §5, §9).
+    case 'schoolDamage':
+      for (const school of e.schools) c.schools.damage[SCHOOL[school]] *= 1 + e.pct / 100
+      return
+    case 'schoolTaken':
+      for (const school of e.schools) c.schools.taken[SCHOOL[school]] *= 1 + e.pct / 100
+      return
+    case 'schoolCrit':
+      for (const school of e.schools) c.schools.crit[SCHOOL[school]] += e.pct
+      return
+    case 'targetResistance':
+      for (const school of e.schools) c.schools.resistance[SCHOOL[school]] += e.value
+      return
+    case 'castHaste':
+      b.castHaste *= 1 + e.pct / 100
+      return
   }
+}
+
+/**
+ * A caster's spell block on the character sheet (docs/mechanics/spells.md §3–§5; docs/ux.md#results):
+ * spell damage by school, crit, hit, mana per 5 s, casting speed and spell penetration.
+ */
+export function casterSheet(d: DerivedStats, block: StatBlock): NonNullable<CharacterSheet['spell']> {
+  return {
+    holyDamage: d.holySpellDamage,
+    critPct: d.spellCrit,
+    hitPct: d.spellHit,
+    mp5: block.mp5,
+    caster: {
+      schoolDamage: {
+        arcane: d.arcaneSpellDamage,
+        fire: d.fireSpellDamage,
+        frost: d.frostSpellDamage,
+        holy: d.holySpellDamage,
+        nature: d.natureSpellDamage,
+        shadow: d.shadowSpellDamage,
+      },
+      castSpeedPct: (d.castHasteMult - 1) * 100,
+      spellPen: block.spellPen,
+    },
+  }
+}
+
+/**
+ * The plan's school numbers (docs/mechanics/spells.md §3, §9; plan/types.ts SchoolPlan), or none
+ * when every school is plain and nothing penetrates: the boss's resistance per school is its
+ * level-based resistance, plus its own (0) changed by the debuffs, never below 0, less your spell
+ * penetration; below 0 only where the profile allows it. Holy and physical have none.
+ */
+export function schoolPlan(schools: Collected['schools'], spellPen: number, bossLevel: number, profile: RulesProfile): SchoolPlan | undefined {
+  const plain = plainSchools()
+  const same = (a: number[], b: number[]) => a.every((x, i) => x === b[i])
+  if (spellPen === 0 && same(schools.damage, plain.damage) && same(schools.taken, plain.taken) && same(schools.crit, plain.crit) && same(schools.resistance, plain.resistance)) {
+    return undefined
+  }
+  const level = levelResistance(bossLevel, PLAYER_LEVEL)
+  const resistance = schools.resistance.map((change, k) => {
+    if (k === SCHOOL.holy || k === SCHOOL.physical) return 0
+    const r = level + Math.max(0, change) - spellPen
+    return profile.combat.negativeResistance ? r : Math.max(0, r)
+  })
+  return { damage: [...schools.damage], taken: [...schools.taken], crit: [...schools.crit], resistance }
 }
 
 /**

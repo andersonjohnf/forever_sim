@@ -6,7 +6,7 @@
 // multipliers, target modifiers, and aura/proc definitions the engine runs. Nothing here is
 // class-specific, so a new spec adds data, not engine branches.
 import type { WeaponType } from '@/data/items/types'
-import type { SpellDef } from '../plan/types'
+import type { MagicSchool, SpellDef } from '../plan/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { CreatureType, FightConfig } from '../types'
 
@@ -52,6 +52,13 @@ export type FlatStat =
   | 'spellDamagePerIntPct'
   /** Mana per 5 s (character-stats.md#spirit-and-mana-regeneration). */
   | 'mp5'
+  /** The other schools' own spell damage, and spell penetration (docs/mechanics/spells.md §3, §5). */
+  | 'fireSpellDamage'
+  | 'frostSpellDamage'
+  | 'shadowSpellDamage'
+  | 'natureSpellDamage'
+  | 'arcaneSpellDamage'
+  | 'spellPen'
 
 /** Stats that % modifiers multiply (character-stats.md#derived-stat-pipeline, step 3 and 4). */
 export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue'
@@ -180,6 +187,17 @@ export type Effect = (
    * spec whose rotation doesn't press it, it's listed as not simulated.
    */
   | { kind: 'onUse'; id: string; name: string; use?: OnUseSpec }
+  // The caster core (docs/mechanics/spells.md §3, §4, §5, §9): static school effects.
+  /** Your damage with these schools %, multiplicative (a talent's Fire Power; the caster's own). */
+  | { kind: 'schoolDamage'; schools: readonly MagicSchool[]; pct: number }
+  /** The boss's damage taken from these schools %, multiplicative (Curse of the Elements' +10%). */
+  | { kind: 'schoolTaken'; schools: readonly MagicSchool[]; pct: number }
+  /** Spell crit % with these schools, added (Critical Mass's Fire crit). */
+  | { kind: 'schoolCrit'; schools: readonly MagicSchool[]; pct: number }
+  /** The boss's resistance to these schools, added (Curse of the Elements' −75; its own is 0). */
+  | { kind: 'targetResistance'; schools: readonly MagicSchool[]; value: number }
+  /** Casting speed %, multiplicative (docs/mechanics/spells.md §4). */
+  | { kind: 'castHaste'; pct: number }
 ) & { when?: Condition }
 
 /**
@@ -271,6 +289,21 @@ export interface AuraSpec {
     poisonChance?: number
     /** Your bleeds' ticks deal this % more, read at each tick (Hemorrhage's +15% Rupture, docs/classes/rogue.md §3.9). */
     bleedDamage?: number
+    /**
+     * The caster core's (docs/mechanics/spells.md §5, §8, §9; plan/types.ts AuraPlan): the schools
+     * its school mods cover (a `schoolMask` of plan/types.ts), your damage with them %, the boss's
+     * damage taken from them %, and your spell crit with them %, per stack; casting speed %; and
+     * the mana hooks, Spirit regen % and the % of it that goes on while casting.
+     */
+    schoolMask?: number
+    schoolDamage?: number
+    schoolTaken?: number
+    schoolCrit?: number
+    castHaste?: number
+    /** Spell damage, all schools, per stack (docs/mechanics/spells.md §5). */
+    spellDamage?: number
+    spiritRegen?: number
+    castingRegen?: number
   }
 }
 
@@ -303,6 +336,10 @@ export type ProcTrigger =
   | 'whiteResolved'
   /** A crit on the spell table (magic or ranged spells, combat-tables §9). */
   | 'spellCrit'
+  /** A spell landed on the target: a hit, a DoT's application, a channel's start (docs/mechanics/spells.md §10). */
+  | 'spellLanded'
+  /** A spell DoT ticked (docs/mechanics/spells.md §7). */
+  | 'spellTick'
 
 export type ProcAction =
   /** Extra main-hand swings, immediately (damage-and-timing §5.4); `bonusAp` applies to them only. */
@@ -364,6 +401,13 @@ export interface ProcSpec {
   counts?: 'blocks' | 'extraAttacks'
   /** A rogue's poison: the talents' and auras' poison chance and damage apply (docs/classes/rogue.md §4). */
   poison?: boolean
+  /**
+   * On the spell triggers: only spells of these schools fire it (Shadow Weaving: Shadow), or only
+   * the plan spell with this id (Improved Scorch: Scorch); docs/mechanics/spells.md §10. A spell id
+   * the plan doesn't have leaves the proc out.
+   */
+  schools?: readonly MagicSchool[]
+  fromSpell?: string
   /** Doc section that owns the numbers. */
   docRef: string
 }

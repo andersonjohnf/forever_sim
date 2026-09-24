@@ -621,7 +621,12 @@ covers the generic table.
   resistance − spell penetration, plus the target's level-based resistance. The formula is
   [F] (`ExpectedSpellResistance`, [stats Lua][ui-stats]) and [C].
 - Level-based resistance for a +3 boss: **24** (8 per level) [?]. That's WarriorSim's
-  default target resistance for Classic ([WarriorSim][ws-repo]); other sources say ~15. In these
+  default target resistance for Classic ([WarriorSim][ws-repo]); other sources say ~15. A Classic
+  Era fire-mage sim's partial-resist table for a level-63 boss averages 5.90%, which 24 gives
+  within 0.1% ([spells §3](spells.md#3-resistances)).
+- **Casters** ([spells §3](spells.md#3-resistances)): a binary spell's resist is rolled with its
+  hit, whole; a pure damage spell's DoT ticks are partially resisted too; resistance debuffs can't
+  take a boss below its own 0; each school has its own resistance. In these
   specs it affects nature, fire and shadow procs (item procs), and the bear's Faerie Fire, a
   binary Nature spell: at 24 the boss resists 0.75 × 24 ÷ 300 = 6% of the ones that would land
   ([druid §4.5](../classes/druid.md#45-other-bear-abilities)). Demoralizing Roar is Physical, so

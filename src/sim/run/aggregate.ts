@@ -100,6 +100,15 @@ const uptimePct = (agg: Aggregate, a: number) => (agg.durationMs > 0 ? (100 * ag
  * own, `dotSource`). A cast whose buff the next ability uses at once (Swift Judgement's free
  * Judgement, the plan's free-cast aura) has no uptime to show.
  */
+/**
+ * The ability that marks the caster DoT on breakdown row `row` (docs/mechanics/spells.md §7): the one
+ * whose aura is a plan spell's DoT marker, that spell's DoT row being `row`.
+ */
+function dotMarker(plan: Plan, row: number) {
+  const spell = plan.spells?.find((s) => (s.dotAura ?? -1) >= 0 && (s.dotSource ?? s.source) === row)
+  return spell ? plan.abilities.find((a) => a.aura === spell.dotAura) : undefined
+}
+
 export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const c = agg.counters
   const rows: CooldownResult[] = []
@@ -108,8 +117,10 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   /** The attack that puts each debuff on the boss, by aura index: its casts go on the debuff's row. */
   const appliedBy = new Map<number, number>()
   for (const [index, ability] of plan.abilities.entries()) {
-    // An attack that also bleeds (Rake, Lacerate) has its bleed's marker too (druid.md §3.3, §4.3).
+    // An attack that also bleeds (Rake, Lacerate) has its bleed's marker too (druid.md §3.3, §4.3),
+    // and so does a caster's DoT (docs/mechanics/spells.md §7).
     if ((ability.kind === 'bleed' || ability.dotSource !== undefined) && ability.aura >= 0) shown.add(ability.aura)
+    else if (ability.aura >= 0 && plan.spells?.some((s) => s.dotAura === ability.aura)) shown.add(ability.aura)
     else if ((ability.kind === 'weaponStrike' || ability.kind === 'meleeSpell' || ability.kind === 'spellTable') && ability.aura >= 0) {
       appliedBy.set(ability.aura, ability.source)
     }
@@ -238,9 +249,20 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
       // The marker aura is up from an application until its last tick: Rend's, on its own row, or
       // Rake's and Lacerate's, whose ticks have a row of their own (`dotSource`); a stacking one's
       // (Lacerate's) with its average stacks.
-      const marker = plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i))
+      const marker =
+        plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i)) ??
+        // A caster's DoT (docs/mechanics/spells.md §7): its marker is the ability's aura, on the DoT's row.
+        dotMarker(plan, i)
       // A bleed with a hit of its own (Rake, Lacerate) names that hit's row, which the breakdown puts it after.
-      const hit = marker && marker.kind !== 'bleed' ? { hitId: plan.sources[marker.source].id } : {}
+      // A caster's pure DoT (Corruption) is its ability's own row: no other hit to name. A hybrid's
+      // DoT (Fireball's) names its spell's hit, marker or not (docs/mechanics/spells.md §7).
+      const hybrid = plan.spells?.find((s) => s.dotSource === i)
+      const hit =
+        marker && marker.kind !== 'bleed' && marker.source !== i
+          ? { hitId: plan.sources[marker.source].id }
+          : hybrid
+            ? { hitId: plan.sources[hybrid.source].id }
+            : {}
       const stacking = marker !== undefined && plan.auras[marker.aura].maxStacks > 1 && agg.auraUpMs[marker.aura] > 0
       result.bleed = {
         ...source.bleed,

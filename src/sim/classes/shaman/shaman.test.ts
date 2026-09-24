@@ -367,8 +367,9 @@ describe('worked example 8: Elemental Devastation', () => {
 describe('worked example 9: mana ticks and the five-second rule', () => {
   it('the default setup: 3,925 mana, Spirit 168 → 15 + 168 / 5 = 48.6 a tick, mp5 65 → 26 a tick', () => {
     const plan = buildPlan(defaultConfig(ENH)).plan
-    expect(plan.mana).toMatchObject({ maxTenths: 39250, regenTickTenths: 486, mp5TickTenths: 260, fiveSecondRuleMs: 5000, inFsrShareAuraShare: 0.5 })
-    expect(plan.auras[plan.mana!.inFsrShareAura!].id).toBe('improvedStormstrike')
+    expect(plan.mana).toMatchObject({ maxTenths: 39250, regenTickTenths: 486, mp5TickTenths: 260, fiveSecondRuleMs: 5000 })
+    // Improved Stormstrike's 50% inside the rule is its aura's mana hook (docs/mechanics/spells.md §8).
+    expect(plan.auras.find((a) => a.id === 'improvedStormstrike')?.castingRegen).toBe(50)
   })
 
   /** Every mana tick of a fight with Stormstrike every 8 s, and the last Stormstrike before each. */

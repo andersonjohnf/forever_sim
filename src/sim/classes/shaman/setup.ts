@@ -4,9 +4,9 @@
 import { FIVE_SECOND_RULE_MS, mp5TickTenths, spiritRegenTickTenths } from '../../core/formulas'
 import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
-import { type AuraPlan, COND, type ManaPlan, type Plan, POWER_TICK_MS } from '../../plan/types'
+import { COND, type ManaPlan, type Plan, POWER_TICK_MS } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
-import { IMPROVED_STORMSTRIKE_AURA, IMPROVED_STORMSTRIKE_SHARE, WINDFURY_WEAPON_ID } from './abilities'
+import { WINDFURY_WEAPON_ID } from './abilities'
 import { TALENT_EFFECTS, type TalentRanks } from './talents'
 
 /** The Windfury Weapon proc's id, for the plan's rule that it leaves Windfury Totem out (build.ts). */
@@ -26,16 +26,15 @@ export function shamanEffects(talents: TalentRanks): Effect[] {
  * The shaman's mana, in tenths (shaman.md#mana; character-stats.md#spirit-and-mana-regeneration): the
  * engine's one mana model, as the paladin's (paladin.md#mana-model): the sheet's maximum, spirit
  * regeneration `15 + Spirit / 5` a tick outside the five-second rule, and mp5 every tick. Improved
- * Stormstrike's aura lets half the spirit regeneration continue inside the rule while it's up.
+ * Stormstrike's aura lets half the spirit regeneration continue inside the rule while it's up: its own
+ * `castingRegen` (abilities.ts IMPROVED_STORMSTRIKE_AURA), the caster core's mana hook.
  */
-export function shamanManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, mp5: number, auras: readonly AuraPlan[]): ManaPlan {
-  const improved = auras.findIndex((a) => a.id === IMPROVED_STORMSTRIKE_AURA.id)
+export function shamanManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, mp5: number): ManaPlan {
   return {
     maxTenths: 10 * derived.mana,
     regenTickTenths: spiritRegenTickTenths(derived.spirit),
     fiveSecondRuleMs: FIVE_SECOND_RULE_MS,
     mp5TickTenths: mp5TickTenths(mp5, POWER_TICK_MS),
-    ...(improved >= 0 ? { inFsrShareAura: improved, inFsrShareAuraShare: IMPROVED_STORMSTRIKE_SHARE } : {}),
   }
 }
 

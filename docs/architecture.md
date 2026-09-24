@@ -138,7 +138,7 @@ A spec is data plus small ability modules, never its own loop.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks
   (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
   Management), a cast's ticks (Bloodrage's rage, Consecration's spell), the power tick (Energy
-  and mana: druids and paladins),
+  and mana: druids and paladins), a spell DoT's tick and a channel's end (the caster core),
   stand-in incoming hits for DPS specs, "the rotation may act" events when a GCD, an ability's
   cooldown or the stance swap cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
   the start of the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
@@ -213,6 +213,32 @@ A spec is data plus small ability modules, never its own loop.
   multiplier (Impale), not at spell crit; a miss refunds 80% of the rage, as a special's does; a
   landed one puts its debuff on the boss; and one that deals no damage never rolls for a crit. A
   `spell` ability rolls nothing itself and hands its `SpellDef` to the one resolver above.
+- **The caster core** ([spells.md](mechanics/spells.md), slice K1; no caster spec yet) extends that
+  resolver rather than adding a second path, and every addition is an optional field a plan
+  without it never reads, so every warrior, druid and paladin result is unchanged, bit for bit:
+  - **Schools:** spell damage per school (all-schools plus the school's own lines), and per
+    `SCHOOL` code your damage multiplier, the boss's damage taken, your crit and the boss's
+    resistance (`Plan.schools`, absent when plain; auras' `schoolMask` mods on top, recomputed only
+    when such an aura changes). The resistance is static: the level-based part plus the boss's
+    own less the debuffs, not below 0, less spell penetration (`schoolPlan`). Item procs read
+    their school's numbers too.
+  - **Resists:** a pure damage spell loses its school's average resist; a `binary` spell is
+    resisted whole in its hit roll (`miss + (1 − miss) × resist`) and never partially.
+  - **DoTs:** a `SpellDef` with `dotTicks` lands a DoT (one slot per plan spell) that snapshots
+    your side (spell damage, multipliers, crit) and reads the boss's (damage taken, resist) at
+    each tick; a tick can crit only with the periodic-crit flag in `forever`. A pure DoT rolls no
+    crit as it lands; a hybrid's DoT has its own breakdown row. The ability's aura marks it on the
+    boss, so the refresh conditions read it, and the results show its uptime on its row.
+  - **Casts and channels:** casting speed (the stats' `castHasteMult` × the auras') divides the
+    cast time of abilities marked `castHasted`. A `channel` ability pays at its start, holds the
+    GCD, and ticks its `tickSpell` (Arcane Missiles) or its `spell`'s DoT (Mind Flay, one hit roll
+    at the start); `channelTicks` cuts it off, and its end delivers a tick due that moment first.
+  - **Procs and conditions:** triggers `spellLanded` (20) and `spellTick` (21), filtered by the
+    proc's `schools` or one spell (`fromSource`) in the gated lists; condition `auraUp` (38).
+  - **Mana hooks** for the class slices: auras' `spiritRegen` and `castingRegen`, and each class's
+    Spirit regeneration (`SPIRIT_REGEN`). The caster buffs and debuffs (Curse of the Elements,
+    Moonkin Aura, Power Infusion) are class-only entries for `CASTER_CLASSES`, empty until the first
+    caster spec ships; a caster spec's sheet shows spell damage by school (`SpecMeta.caster`).
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,
@@ -258,9 +284,9 @@ A spec is data plus small ability modules, never its own loop.
   cast starts no five-second rule), and a second aura it puts on the player when used (`selfAura`:
   Improved Stormstrike's). Condition 34, `auraStacksAtLeast`, waits for an aura's stacks. An aura's
   white-swing charges can be used at most once per so many ms (`whiteSwingChargeIcdMs`: Flurry's
-  500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and the mana plan can
-  name an aura that lets a share of spirit regeneration continue inside the five-second rule while
-  it's up (`inFsrShareAura`: Improved Stormstrike's 50%).
+  500). Attack power can come from Intellect (`apPerInt`: Mental Dexterity), and an aura can let a share
+  of spirit regeneration continue inside the five-second rule while it's up (the caster core's
+  `castingRegen`: Improved Stormstrike's 50%).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the
@@ -277,7 +303,12 @@ A spec is data plus small ability modules, never its own loop.
   measurable: medians of five runs each, back to back, 9,428 against 9,449 (Fury) and 14,998
   against 15,026 (Arms). The first release's review fixes (F1a: internal cooldowns on Hand of
   Justice and Windfury, the chain mask, the allocation-free re-derive) left them where they
-  were: medians of five, 9,649 (Fury) and 15,253 (Arms), against 9,490 and 14,992 before.
+  were: medians of five, 9,649 (Fury) and 15,253 (Arms), against 9,490 and 14,992 before. The
+  caster core (K1) costs them 0–3%, about the noise of the busy machine it was measured on
+  (medians of five, alternating with main's): Fury 7,164, 7,236, 7,140 and 7,146 against 7,265,
+  7,259, 7,225 and 7,335; Arms 13,543, 13,553, 13,334 and 13,593 against 13,625, 13,716, 13,410
+  and 13,933; Retribution, whose spells take its extra reads, 8,624, 8,841, 8,832 and 8,657
+  against 8,865, 8,968, 8,847 and 8,925.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next

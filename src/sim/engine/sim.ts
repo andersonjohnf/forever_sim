@@ -22,7 +22,11 @@
 // aura (Enrage). For the rogue it adds Energy regeneration from an aura, finishers that time a buff
 // or a bleed by their combo points, the combo point and Energy talents around finishers, an aura a
 // strike uses up, and poisons: their apply chance and damage from auras, and a stacking poison on
-// the target (docs/classes/rogue.md §8). A plan without them never enters those paths.
+// the target (docs/classes/rogue.md §8). For the caster core (docs/mechanics/spells.md) it adds
+// binary and partial resists per school, spell damage by school, school multipliers on the caster
+// and the boss, spell DoTs that snapshot at application, channels that can be cut off, casting
+// speed, spell procs filtered by school, and the mana hooks the class slices build on. A plan
+// without them never enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -41,6 +45,7 @@ import {
   CRIT_MULTIPLIER,
   executePhaseStart,
   furorCatEnergyTenths,
+  hastedCastMs,
   parryHasteRemaining,
   ppmChance,
   rageConversion,
@@ -49,7 +54,7 @@ import {
 } from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
-import { ACTION, COND, DEFENSE, HAND, POWER_TICK_MS, SCHOOL, TRIGGER, TRIGGER_COUNT, type Plan, type WeaponPlan } from '../plan/types'
+import { ACTION, COND, DEFENSE, HAND, POWER_TICK_MS, SCHOOL, SCHOOL_COUNT, TRIGGER, TRIGGER_COUNT, type Plan, type WeaponPlan } from '../plan/types'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 
 /** Event kinds. */
@@ -74,6 +79,10 @@ const EV_DOT_TICK = 12
 const EV_POWER_TICK = 13
 /** A stacking poison's tick (Deadly Poison; data = its slot; docs/classes/rogue.md §4.2). */
 const EV_STACKING_DOT_TICK = 14
+/** A spell DoT's tick (docs/mechanics/spells.md §7; data = plan spell index). */
+const EV_SPELL_DOT_TICK = 15
+/** A channel ends, run out or cut off (docs/mechanics/spells.md §6; data = ability index). */
+const EV_CHANNEL_END = 16
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -84,6 +93,7 @@ const KIND_BLEED = 4
 const KIND_SHIFT = 5
 const KIND_SPELL = 6
 const KIND_SPELL_TABLE = 7
+const KIND_CHANNEL = 8
 const KIND_CODE = {
   weaponStrike: KIND_STRIKE,
   meleeSpell: KIND_MELEE_SPELL,
@@ -93,6 +103,7 @@ const KIND_CODE = {
   shift: KIND_SHIFT,
   spell: KIND_SPELL,
   spellTable: KIND_SPELL_TABLE,
+  channel: KIND_CHANNEL,
 } as const
 
 /** The pool an ability pays from (AbilityPlan.resource). */
@@ -390,9 +401,6 @@ export class Sim {
   private readonly abSelfAura: Int32Array
   /** The cost (tenths) a cast in progress was cut to by its stacks, which it pays when it completes; −1: none. */
   private stackCastCost = -1
-  /** An aura that lets a share of spirit regeneration continue inside the five-second rule while up (Improved Stormstrike's), or −1. */
-  private readonly manaFsrAura: number
-  private readonly manaFsrAuraShare: number
   /** Energy regeneration %, and the poisons' damage % and apply chance in points, per aura (the rogue's; rogue.md §3.7, §4.4). */
   private readonly aEnergyRegen: Float64Array
   private readonly aPoisonDamage: Float64Array
@@ -420,6 +428,62 @@ export class Sim {
   private readonly splThreatBonus: Float64Array
   /** Rolls no crit on any table (Holy Shield's block damage, Retribution Aura's; paladin.md [?]). */
   private readonly splNoCrit: Uint8Array
+
+  // The caster core (docs/mechanics/spells.md), flattened. A plan without caster spells, school
+  // effects or channels has every spell plain here (no DoT, not binary, a direct part), every
+  // school at 1, 1 and 0, and no channel, so none of this changes what it does.
+  /** Resisted whole at its school's resistance, with its hit, and never partially (§3). */
+  private readonly splBinary: Uint8Array
+  /** It has a direct part; one without is a pure DoT, which rolls no crit when it lands (§7). */
+  private readonly splHasDirect: Uint8Array
+  /** Its DoT (§7): ticks, period, damage and coefficient per tick, whether a tick can crit (in this profile), its row and marker. */
+  private readonly splDotTicks: Int32Array
+  private readonly splDotTickMs: Float64Array
+  private readonly splDotTick: Float64Array
+  private readonly splDotCoef: Float64Array
+  private readonly splDotCanCrit: Uint8Array
+  private readonly splDotSource: Int32Array
+  private readonly splDotAura: Int32Array
+  /** Each spell DoT on the target: ticks to come, generation, next tick, and the snapshot's damage and crit % (−1: can't crit). */
+  private readonly spDotTicksLeft: Int32Array
+  private readonly spDotGen: Int32Array
+  private readonly spDotNextAt: Float64Array
+  private readonly spDotDamage: Float64Array
+  private readonly spDotCrit: Float64Array
+  /** Per SCHOOL code (§5, §9): the plan's static caster multiplier, boss damage taken and crit, and 1 − the boss's average resist. */
+  private readonly schStaticDamage = new Float64Array(SCHOOL_COUNT).fill(1)
+  private readonly schStaticTaken = new Float64Array(SCHOOL_COUNT).fill(1)
+  private readonly schStaticCrit = new Float64Array(SCHOOL_COUNT)
+  private readonly resistFactor = new Float64Array(SCHOOL_COUNT).fill(1)
+  /** The boss's average resist per school as a binary spell's chance to be resisted whole, not below 0 (§3). */
+  private readonly resistChance = new Float64Array(SCHOOL_COUNT)
+  /** The same with the active auras' school mods: what a spell reads now. */
+  private readonly schDamage = new Float64Array(SCHOOL_COUNT).fill(1)
+  private readonly schTaken = new Float64Array(SCHOOL_COUNT).fill(1)
+  private readonly schCrit = new Float64Array(SCHOOL_COUNT)
+  /** Spell damage per school, from the derived stats (Holy's with Champion of the Light's share; physical none). */
+  private readonly spSchool = new Float64Array(SCHOOL_COUNT)
+  /** An aura's school mods (§5, §9), casting speed (§4) and mana hooks (§8); `aSchool` marks the auras with any. */
+  private readonly aSchoolMask: Int32Array
+  private readonly aSchoolDamage: Float64Array
+  private readonly aSchoolTaken: Float64Array
+  private readonly aSchoolCrit: Float64Array
+  private readonly aCastHaste: Float64Array
+  private readonly aSpiritRegen: Float64Array
+  private readonly aCastingRegen: Float64Array
+  private readonly aSchool: Uint8Array
+  /** Spell damage, all schools, per stack (§5): a stat, so it re-derives the stats. */
+  private readonly aSpellDamage: Float64Array
+  /** Casting speed shortens its cast time (§4). */
+  private readonly abCastHasted: Uint8Array
+  /** `channel`: ticks after which it's cut off (0: all of them; §6). */
+  private readonly abChannelTicks: Int32Array
+  /** A spell proc's schools (a mask, 0: any) and the one spell row that fires it (−1: any; §10). */
+  private readonly pSchools: Int32Array
+  private readonly pFromSource: Int32Array
+  /** Some proc listens for landed spells, or for spell DoT ticks (§10). */
+  private readonly hasSpellLanded: boolean
+  private readonly hasSpellTick: boolean
 
   // Abilities and the rotation, flattened.
   private readonly abKind: Int32Array
@@ -811,6 +875,8 @@ export class Sim {
   private dynApMult = 1
   private dynCrit = 0
   private dynSpellCrit = 0
+  /** Spell damage from the active auras (docs/mechanics/spells.md §5). */
+  private dynSpellDamage = 0
   private auraHasteMult = 1
   /** Defensive aura deltas (combat-tables §8) and the product of damage-taken aura mods. */
   private dynDodge = 0
@@ -853,6 +919,19 @@ export class Sim {
   private spellCritPct = 0
   /** Holy spell damage (paladin.md#conventions-used-below "SP"). */
   private sp = 0
+  /** Casting speed: the derived stats' and the product of the auras' (docs/mechanics/spells.md §4). */
+  private castHasteStat = 1
+  private castHasteAura = 1
+  private castHasteMult = 1
+  /** The mana hooks' Spirit regen multiplier and extra share inside the five-second rule (§8). */
+  private dynSpiritRegen = 1
+  private dynCastingRegen = 0
+  /** The school and row of the spell whose triggers are firing, for school-filtered procs (§10). */
+  private procSchool = 0
+  private procSource = -1
+  /** The ability channeling now, or −1 (§6), and the generation of its end event. */
+  private channeling = -1
+  private channelGen = 0
 
   // Scratch for recomputeStats, so re-deriving the tables allocates nothing (architecture.md).
   private readonly meleeIn: MeleeInputs = {
@@ -986,12 +1065,16 @@ export class Sim {
     this.bleedNextAt = new Float64Array(bleeds)
     this.bleedProc = new Int32Array(bleeds)
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
+    // docs/mechanics/spells.md §10: a spell proc's schools and spell.
+    this.pSchools = Int32Array.from(procs, (p) => p.schools ?? 0)
+    this.pFromSource = Int32Array.from(procs, (p) => p.fromSource ?? -1)
     this.triggerLists = []
     this.gatedLists = []
     for (let t = 0; t < TRIGGER_COUNT; t++) {
       const list = plan.triggers[t] ?? []
-      // A proc that needs an aura or a form (druid.md §2.8) is gated; the rest roll with no check.
-      const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0
+      // A proc that needs an aura or a form (druid.md §2.8), or names a spell's schools or row
+      // (docs/mechanics/spells.md §10), is gated; the rest roll with no check.
+      const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0 || this.pSchools[p] !== 0 || this.pFromSource[p] >= 0
       this.triggerLists.push(Int32Array.from(list.filter((p) => !gated(p))))
       this.gatedLists.push(Int32Array.from(list.filter(gated)))
     }
@@ -1037,6 +1120,8 @@ export class Sim {
     this.auraApplications = new Float64Array(na)
     this.auraStackSince = new Float64Array(na)
     this.auraStackMs = new Float64Array(na)
+    // docs/mechanics/spells.md §5: an aura's spell damage, a stat like the others.
+    this.aSpellDamage = Float64Array.from(auras, (a) => a.spellDamage ?? 0)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
     const blockChargeAuras: number[] = []
@@ -1068,7 +1153,7 @@ export class Sim {
       const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i] || this.aItemArmorPct[i]
       // A debuff's armor (Faerie Fire, druid.md §3.8; Sunder Armor, warrior.md §7) re-derives the
       // armor factor with the stats.
-      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] ? 1 : 0
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] || this.aSpellDamage[i] ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
       if (a.critCharges > 0) critChargeAuras.push(i)
@@ -1093,6 +1178,17 @@ export class Sim {
     this.aPoisonDamage = Float64Array.from(auras, (a) => a.poisonDamage ?? 0)
     this.aPoisonChance = Float64Array.from(auras, (a) => a.poisonChance ?? 0)
     this.aBleedDamage = Float64Array.from(auras, (a) => a.bleedDamage ?? 0)
+    // docs/mechanics/spells.md §4, §5, §8, §9: school mods, casting speed and the mana hooks.
+    this.aSchoolMask = Int32Array.from(auras, (a) => a.schoolMask ?? 0)
+    this.aSchoolDamage = Float64Array.from(auras, (a) => a.schoolDamage ?? 0)
+    this.aSchoolTaken = Float64Array.from(auras, (a) => a.schoolTaken ?? 0)
+    this.aSchoolCrit = Float64Array.from(auras, (a) => a.schoolCrit ?? 0)
+    this.aCastHaste = Float64Array.from(auras, (a) => a.castHaste ?? 0)
+    this.aSpiritRegen = Float64Array.from(auras, (a) => a.spiritRegen ?? 0)
+    this.aCastingRegen = Float64Array.from(auras, (a) => a.castingRegen ?? 0)
+    this.aSchool = Uint8Array.from(auras, (a) =>
+      (a.schoolMask && (a.schoolDamage || a.schoolTaken || a.schoolCrit)) || a.castHaste || a.spiritRegen || a.castingRegen ? 1 : 0,
+    )
 
     const spells = plan.spells ?? []
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
@@ -1117,6 +1213,37 @@ export class Sim {
     this.splNoCrit = Uint8Array.from(spells, (x) => (x.cannotCrit ? 1 : 0))
     this.staticHolyMult = plan.holyMult ?? 1
     this.holyThreatMult = plan.holyThreatMult ?? 1
+    // docs/mechanics/spells.md §3, §7: binary spells and DoTs. A tick crits only with the spell's
+    // flag, in a profile whose periodic effects can (damage-and-timing §4).
+    this.splBinary = Uint8Array.from(spells, (x) => (x.binary ? 1 : 0))
+    this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
+    this.splDotTicks = Int32Array.from(spells, (x) => x.dotTicks ?? 0)
+    this.splDotTickMs = Float64Array.from(spells, (x) => x.dotTickMs ?? 0)
+    this.splDotTick = Float64Array.from(spells, (x) => x.dotTickDamage ?? 0)
+    this.splDotCoef = Float64Array.from(spells, (x) => x.dotSpCoefficient ?? 0)
+    this.splDotCanCrit = Uint8Array.from(spells, (x) => (x.dotCanCrit && plan.profile.combat.periodicCrits ? 1 : 0))
+    this.splDotSource = Int32Array.from(spells, (x) => x.dotSource ?? x.source)
+    this.splDotAura = Int32Array.from(spells, (x) => x.dotAura ?? -1)
+    this.spDotTicksLeft = new Int32Array(spells.length)
+    this.spDotGen = new Int32Array(spells.length)
+    this.spDotNextAt = new Float64Array(spells.length)
+    this.spDotDamage = new Float64Array(spells.length)
+    this.spDotCrit = new Float64Array(spells.length)
+    // docs/mechanics/spells.md §5, §9 and combat-tables §9: the schools' static multipliers and crit,
+    // and 1 − the boss's average resist per school. Holy and physical have no resistance; without a
+    // school plan every other school has the boss's level-based resistance.
+    const schools = plan.schools
+    for (let k = 0; k < SCHOOL_COUNT; k++) {
+      if (schools) {
+        this.schStaticDamage[k] = schools.damage[k]
+        this.schStaticTaken[k] = schools.taken[k]
+        this.schStaticCrit[k] = schools.crit[k]
+      }
+      const resistible = k !== SCHOOL.holy && k !== SCHOOL.physical
+      const resist = resistible ? averageResist(schools ? schools.resistance[k] : this.bossLevelResist, plan.playerLevel) : 0
+      this.resistFactor[k] = resistible ? 1 - resist : 1
+      this.resistChance[k] = Math.max(0, resist)
+    }
 
     const abilities = plan.abilities
     const nb = abilities.length
@@ -1270,7 +1397,9 @@ export class Sim {
       // needs a shield instead (Shield Slam; Shield Block is a cast). Those need a shield (§3.1, §3.2).
       const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
       const needsWeapon =
-        a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift' && a.kind !== 'spellTable' && a.shieldOnly !== true
+        a.kind === 'spell'
+          ? weaponSpell
+          : a.kind !== 'cast' && a.kind !== 'shift' && a.kind !== 'spellTable' && a.kind !== 'channel' && a.shieldOnly !== true
       // druid.md §3.1: Shred needs you behind the target, so from the front it's never used.
       this.abNeverReady[i] =
         (a.twoHandOnly && !this.wTwoHand[HAND.main]) ||
@@ -1323,6 +1452,9 @@ export class Sim {
       this.abUsesPerFight[i] = a.usesPerFight
     }
     this.abEndsCd = Int32Array.from(abilities, (a) => a.endsCooldownOf ?? -1)
+    // docs/mechanics/spells.md §4, §6: casting speed, and a channel's cut-off.
+    this.abCastHasted = Uint8Array.from(abilities, (a) => (a.castHasted ? 1 : 0))
+    this.abChannelTicks = Int32Array.from(abilities, (a) => a.channelTicks ?? 0)
     const prepull = plan.prepull
     this.preAbility = Int32Array.from(prepull.casts.map((c) => c.ability))
     this.preAt = Float64Array.from(prepull.casts.map((c) => c.atMs))
@@ -1462,6 +1594,8 @@ export class Sim {
       abilities.some((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast')) ||
       spells.some((x) => x.defense === DEFENSE.melee || x.defense === DEFENSE.ranged)
     this.hasWhiteResolved = (plan.triggers[TRIGGER.whiteResolved] ?? []).length > 0
+    this.hasSpellLanded = (plan.triggers[TRIGGER.spellLanded] ?? []).length > 0
+    this.hasSpellTick = (plan.triggers[TRIGGER.spellTick] ?? []).length > 0
     // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
     const shift = plan.shapeshift
     this.startForm = plan.forms && plan.form !== undefined ? plan.form : -1
@@ -1482,8 +1616,6 @@ export class Sim {
     this.manaMp5 = plan.mana?.mp5TickTenths ?? 0
     this.manaInFsrShare = plan.mana?.inFsrShare ?? 0
     // docs/classes/shaman.md: Improved Stormstrike's share while its aura is up.
-    this.manaFsrAura = plan.mana?.inFsrShareAura ?? -1
-    this.manaFsrAuraShare = plan.mana?.inFsrShareAuraShare ?? 0
     this.hasPowerTick = plan.energy !== undefined || plan.mana !== undefined
     this.hasMaxEnergy = this.condCode.includes(COND.maxEnergy)
     // Hits give rage in a form whose power is rage, and for a class with a rage pool: a warrior, not a
@@ -1651,6 +1783,12 @@ export class Sim {
         case EV_STACKING_DOT_TICK:
           if (q.gen === this.sdGen[data]) this.onStackingDotTick(data)
           break
+        case EV_SPELL_DOT_TICK:
+          if (q.gen === this.spDotGen[data]) this.spellDotTick(data)
+          break
+        case EV_CHANNEL_END:
+          if (q.gen === this.channelGen && this.channeling === data) this.endChannel(data)
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -1698,6 +1836,13 @@ export class Sim {
       spellMiss: this.spellMissPct,
       spellCrit: this.spellCritPct,
       holyMult: this.magicMult * this.holyMult,
+      // docs/mechanics/spells.md: spell damage and the multipliers per school, and casting speed.
+      schoolSpellDamage: Array.from(this.spSchool),
+      schoolDamage: Array.from(this.schDamage),
+      schoolTaken: Array.from(this.schTaken),
+      schoolCrit: Array.from(this.schCrit),
+      resistFactor: Array.from(this.resistFactor),
+      castHaste: this.castHasteMult,
     }
   }
 
@@ -1753,6 +1898,7 @@ export class Sim {
     this.dynApMult = 1
     this.dynCrit = 0
     this.dynSpellCrit = 0
+    this.dynSpellDamage = 0
     this.auraHasteMult = 1
     this.resetDefense()
     this.exHead = 0
@@ -1785,6 +1931,17 @@ export class Sim {
     this.rotOffList = this.offGcdNormal
     this.holyTaken = 0
     this.auraTakenCharges.fill(0)
+    // docs/mechanics/spells.md: no spell DoTs, no channel, and the schools' static numbers.
+    this.spDotTicksLeft.fill(0)
+    for (let i = 0; i < this.spDotGen.length; i++) this.spDotGen[i]++
+    this.channeling = -1
+    this.channelGen++
+    this.schDamage.set(this.schStaticDamage)
+    this.schTaken.set(this.schStaticTaken)
+    this.schCrit.set(this.schStaticCrit)
+    this.castHasteAura = 1
+    this.dynSpiritRegen = 1
+    this.dynCastingRegen = 0
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -1851,6 +2008,8 @@ export class Sim {
     // all-crit auras' spell crit (character-stats.md#derived-stat-pipeline, step 4).
     s.crit = base.crit + this.dynCrit + this.stanceCrit
     s.spellCrit = base.spellCrit + this.dynSpellCrit + this.stanceSpellCrit
+    // docs/mechanics/spells.md §5: the auras' spell damage (a trinket's).
+    s.spellDamage = base.spellDamage + this.dynSpellDamage
     this.defensiveScratch(s, base)
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
@@ -1858,6 +2017,16 @@ export class Sim {
     this.spellMissPct = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit)
     this.spellCritPct = d.spellCrit
     this.sp = d.holySpellDamage
+    // docs/mechanics/spells.md §4, §5: spell damage by school, and casting speed.
+    const sp = this.spSchool
+    sp[SCHOOL.fire] = d.fireSpellDamage
+    sp[SCHOOL.frost] = d.frostSpellDamage
+    sp[SCHOOL.shadow] = d.shadowSpellDamage
+    sp[SCHOOL.nature] = d.natureSpellDamage
+    sp[SCHOOL.arcane] = d.arcaneSpellDamage
+    sp[SCHOOL.holy] = d.holySpellDamage
+    this.castHasteStat = d.castHasteMult
+    this.castHasteMult = this.castHasteStat * this.castHasteAura
     const f = plan.fight
     const inputs = this.meleeIn
     const ch = this.chances
@@ -2275,6 +2444,10 @@ export class Sim {
         case COND.maxMana:
           if (this.mana > a) return false
           break
+        // docs/mechanics/spells.md §11: a plan aura is up (Clearcasting, Shadow Trance).
+        case COND.auraUp:
+          if (!this.auraActive[a]) return false
+          break
         case COND.abilityAuraStacksBelow: {
           // warrior.md §5.4 row 10: Sunder Armor's stacks below 5; druid.md §6.3: Lacerate's (down counts as none).
           const aura = this.abAura[a]
@@ -2302,14 +2475,17 @@ export class Sim {
     const w = this.abWindow[a]
     if (w >= 0 && this.auraActive[w]) this.removeAura(w)
     // docs/classes/shaman.md#maelstrom-weapon: its stacks cut the cast time and cost, and go now.
+    // docs/mechanics/spells.md §4: then casting speed divides a hasted cast's time, to a whole ms. The
+    // one cast time the engine uses: the stacks' cut and the casting speed, both read now.
     let castMs = this.abCastMs[a]
     let stackCost = -1
     const stack = this.abStackAura[a]
     if (stack >= 0) {
       stackCost = this.costOf(a)
       castMs *= this.stackCut(a, this.abStackCast[a])
-      if (this.auraActive[stack]) this.removeAura(stack)
     }
+    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+    if (stack >= 0 && this.auraActive[stack]) this.removeAura(stack)
     // Improved Stormstrike's regeneration comes when it's used, whether or not it lands (shaman.md).
     if (this.abSelfAura[a] >= 0) this.applyAura(this.abSelfAura[a])
     if (castMs > 0) {
@@ -2345,6 +2521,10 @@ export class Sim {
       this.shift(a)
       return
     }
+    if (this.abKind[a] === KIND_CHANNEL) {
+      this.channel(a)
+      return
+    }
     this.strike(a)
     if (this.exCount > 0) this.drainExtraAttacks()
   }
@@ -2368,7 +2548,7 @@ export class Sim {
    * (damage-and-timing §3.3 and its implementation notes). The cost, cooldown and strike wait for
    * the cast to complete.
    */
-  private startCast(a: number, castMs: number = this.abCastMs[a]): void {
+  private startCast(a: number, castMs: number): void {
     const now = this.now
     this.castGcdEnd = now + this.abGcd[a]
     this.gcdEnd = Infinity
@@ -2795,6 +2975,10 @@ export class Sim {
       if (this.procReadyAt[p] > this.now || (need >= 0 && !this.auraActive[need]) || (this.pChainBit[p] & this.chainMask) !== 0) continue
       // druid.md §2.8: a proc bound to forms (Primal Fury's rage: bear) rolls only in them.
       if (forms !== 0 && (forms & (1 << this.form)) === 0) continue
+      // docs/mechanics/spells.md §10: a spell proc rolls only for its schools, or its one spell.
+      const schools = this.pSchools[p]
+      if (schools !== 0 && (schools & (1 << this.procSchool)) === 0) continue
+      if (this.pFromSource[p] >= 0 && this.pFromSource[p] !== this.procSource) continue
       let chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
       if (this.pPoison[p] === 1) chance += this.poisonChance
@@ -2942,6 +3126,7 @@ export class Sim {
       this.dynAp += this.aAp[a] * deltaStacks
       this.dynCrit += this.aCrit[a] * deltaStacks
       this.dynSpellCrit += this.aSpellCrit[a] * deltaStacks
+      this.dynSpellDamage += this.aSpellDamage[a] * deltaStacks
       this.defensiveDelta(a, deltaStacks)
       this.dynTargetArmor += this.aTargetArmor[a] * deltaStacks
       if (this.aApPct[a]) {
@@ -2957,6 +3142,39 @@ export class Sim {
     if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a] || this.aBleedDamage[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
     if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
+    if (this.aSchool[a]) this.recomputeSchools()
+  }
+
+  /**
+   * The schools' numbers with the active auras' school mods (docs/mechanics/spells.md §5, §9):
+   * damage and damage taken multiply, crit adds, per stack; and casting speed (§4) and the mana hooks
+   * (§8). Recomputed from the active auras, so no drift.
+   */
+  private recomputeSchools(): void {
+    this.schDamage.set(this.schStaticDamage)
+    this.schTaken.set(this.schStaticTaken)
+    this.schCrit.set(this.schStaticCrit)
+    let haste = 1
+    let regen = 1
+    let casting = 0
+    for (let i = 0; i < this.auraActive.length; i++) {
+      if (!this.auraActive[i] || !this.aSchool[i]) continue
+      const stacks = this.auraStacks[i]
+      const mask = this.aSchoolMask[i]
+      for (let k = 0; mask !== 0 && k < SCHOOL_COUNT; k++) {
+        if ((mask & (1 << k)) === 0) continue
+        this.schDamage[k] *= 1 + (this.aSchoolDamage[i] * stacks) / 100
+        this.schTaken[k] *= 1 + (this.aSchoolTaken[i] * stacks) / 100
+        this.schCrit[k] += this.aSchoolCrit[i] * stacks
+      }
+      haste *= 1 + (this.aCastHaste[i] * stacks) / 100
+      regen *= 1 + (this.aSpiritRegen[i] * stacks) / 100
+      casting += (this.aCastingRegen[i] * stacks) / 100
+    }
+    this.castHasteAura = haste
+    this.castHasteMult = this.castHasteStat * haste
+    this.dynSpiritRegen = regen
+    this.dynCastingRegen = casting
   }
 
   /**
@@ -2972,12 +3190,12 @@ export class Sim {
       c[row + FIELD.misses]++
       return
     }
-    const holy = this.pSchool[p] === SCHOOL.holy
-    const resist = holy ? 0 : averageResist(this.bossLevelResist, this.plan.playerLevel)
-    let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * (1 - resist) * this.magicMult
+    // docs/mechanics/spells.md §3, §9: its school's average resist (Holy has none) and multipliers, and crit.
+    const school = this.pSchool[p]
+    let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
     // A rogue's poison: the auras' damage bonus (Venom, rogue.md §4.4).
     if (this.pPoison[p] === 1) damage *= this.poisonMult
-    const crit = this.rngProc.roll100() < this.spellCritPct
+    const crit = this.rngProc.roll100() < this.spellCritPct + this.schCrit[school]
     if (crit) {
       damage *= CRIT_MULTIPLIER.spell
       c[row + FIELD.crits]++
@@ -3159,9 +3377,10 @@ export class Sim {
     const s = this.abSpell[a]
     const landed = s < 0 || this.castSpell(s, false)
     if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
-    // paladin.md#protection-tree: a landed Holy Strike puts Iron Creed's buff up.
+    // paladin.md#protection-tree: a landed Holy Strike puts Iron Creed's buff up. A caster's DoT
+    // marker (docs/mechanics/spells.md §7) is its DoT's, which put it up as it landed.
     const aura = this.abAura[a]
-    if (landed && aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
+    if (landed && aura >= 0 && (s < 0 || this.splDotAura[s] !== aura)) this.putAura(aura, this.now + this.aDuration[aura])
     this.startTicks(a)
   }
 
@@ -3235,11 +3454,24 @@ export class Sim {
         }
       }
     } else {
-      if (defense === DEFENSE.magic && !alwaysHit && this.rngTable.roll100() < this.spellMissPct) {
-        c[row + FIELD.misses]++
-        return false
+      // docs/mechanics/spells.md §2, §3: a binary spell is also resisted whole, in the same roll as
+      // its hit, at its school's average resist: miss + (1 − miss) × resist.
+      if (defense === DEFENSE.magic && !alwaysHit) {
+        const miss = this.spellMissPct
+        const threshold = this.splBinary[s] === 1 ? miss + (100 - miss) * this.resistChance[this.splSchool[s]] : miss
+        if (this.rngTable.roll100() < threshold) {
+          c[row + FIELD.misses]++
+          return false
+        }
       }
-      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s]
+      // docs/mechanics/spells.md §7: a pure DoT deals nothing as it lands and rolls no crit: its ticks start.
+      if (this.splHasDirect[s] === 0) {
+        this.applySpellDot(s)
+        if (this.hasSpellLanded && this.splTriggersProcs[s] === 1) this.spellProcs(TRIGGER.spellLanded, s)
+        return true
+      }
+      // §5: spell crit, the spell's own and its school's (Winter's Chill, Critical Mass).
+      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]]
     }
 
     let base: number
@@ -3253,16 +3485,19 @@ export class Sim {
     } else {
       base = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
     }
-    let damage = (base + this.splSpCoef[s] * this.sp) * this.splDamageMult[s]
+    // docs/mechanics/spells.md §5: the school's spell damage (Holy's is the paladin's "SP").
     const school = this.splSchool[s]
+    let damage = (base + this.splSpCoef[s] * this.spSchool[school]) * this.splDamageMult[s]
     const holy = school === SCHOOL.holy
     if (holy) {
-      // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: the target's flat bonus × the spell's share
-      damage = damage * this.magicMult * this.holyMult + this.holyTaken * this.splTakenScale[s]
+      // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: the target's flat bonus × the spell's share.
+      // docs/mechanics/spells.md §9: the school's multipliers, the boss's damage taken last (Curse of the Elements) [?].
+      damage = (damage * this.magicMult * this.holyMult * this.schDamage[school] + this.holyTaken * this.splTakenScale[s]) * this.schTaken[school]
     } else if (school === SCHOOL.physical) {
       damage *= this.physMult * this.armorFactor[HAND.main]
     } else {
-      damage *= this.magicMult * (1 - averageResist(this.bossLevelResist, this.plan.playerLevel))
+      // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless binary.
+      damage *= this.magicMult * this.schDamage[school] * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
     }
     // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up.
     const boost = this.splBoostAura[s]
@@ -3281,16 +3516,140 @@ export class Sim {
     }
     const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(source, damage, threat)
+    // docs/mechanics/spells.md §7: a hybrid's DoT starts as its direct part lands (Fireball, Immolate).
+    if (this.splDotTicks[s] > 0) this.applySpellDot(s)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
     if (this.splTriggersProcs[s] === 0) return true
     if (defense === DEFENSE.melee) {
       this.fireProcs(TRIGGER.meleeLanded, HAND.main)
       if (crit) this.onCrit(HAND.main)
-    } else if (crit) {
-      this.fireProcs(TRIGGER.spellCrit, -1)
-      this.useCritCharges()
+    } else {
+      // docs/mechanics/spells.md §10: a landed spell's procs, then its crit's (their schools filter them).
+      if (this.hasSpellLanded && defense !== DEFENSE.ranged) this.spellProcs(TRIGGER.spellLanded, s)
+      if (crit) {
+        this.procSchool = school
+        this.procSource = source
+        this.fireProcs(TRIGGER.spellCrit, -1)
+        this.useCritCharges()
+      }
     }
     return true
+  }
+
+  /** Fires a spell trigger for plan spell s: its school and row filter the procs that name them (docs/mechanics/spells.md §10). */
+  private spellProcs(trigger: number, s: number): void {
+    this.procSchool = this.splSchool[s]
+    this.procSource = this.splSource[s]
+    this.fireProcs(trigger, -1)
+  }
+
+  /**
+   * Plan spell s's DoT lands (docs/mechanics/spells.md §7): a tick due this very moment lands first,
+   * then it restarts, the partial tick in progress lost. Each tick snapshots, now, the spell's base
+   * plus its coefficient × the school's spell damage, × the spell's own, your magic and your
+   * school's multipliers, and the crit chance (a tick crits only with the spell's flag, in a profile
+   * whose periodic effects can). The boss's side (damage taken, the resist) is read at each tick.
+   * Its marker aura is up until the last tick; on a hybrid's own DoT row an application counts as a cast.
+   */
+  private applySpellDot(s: number): void {
+    const now = this.now
+    if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
+    const school = this.splSchool[s]
+    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDamageMult[s] * this.magicMult * this.schDamage[school]
+    if (school === SCHOOL.holy) snapshot *= this.holyMult
+    this.spDotDamage[s] = snapshot
+    this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] : -1
+    this.spDotTicksLeft[s] = this.splDotTicks[s]
+    this.spDotNextAt[s] = now + this.splDotTickMs[s]
+    this.q.push(this.spDotNextAt[s], EV_SPELL_DOT_TICK, s, ++this.spDotGen[s])
+    const dotRow = this.splDotSource[s]
+    if (dotRow !== this.splSource[s]) this.counters[dotRow * FIELD_COUNT + FIELD.casts]++
+    const marker = this.splDotAura[s]
+    if (marker >= 0) this.startAura(marker, now + this.splDotTicks[s] * this.splDotTickMs[s])
+  }
+
+  /**
+   * One tick of a spell DoT (docs/mechanics/spells.md §7): its snapshot × the boss's damage taken of
+   * its school now, and its average partial resist unless it's binary; never a miss; a crit at the
+   * snapshot's chance × the spell's crit multiplier. It fires the `spellTick` procs, and no others.
+   */
+  private spellDotTick(s: number): void {
+    const school = this.splSchool[s]
+    const row = this.splDotSource[s] * FIELD_COUNT
+    let damage = this.spDotDamage[s] * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
+    const chance = this.spDotCrit[s]
+    if (chance > 0 && this.rngTable.roll100() < chance) {
+      damage *= this.splCritMult[s]
+      this.counters[row + FIELD.crits]++
+    } else {
+      this.counters[row + FIELD.hits]++
+    }
+    if (this.trace !== null) this.trace(this.splDotSource[s], -1, this.now)
+    const threat = damage * this.splThreatMult[s] * (school === SCHOOL.holy ? this.holyThreatMult : 1) * this.threatMult
+    this.addDamage(this.splDotSource[s], damage, threat)
+    if (--this.spDotTicksLeft[s] > 0) {
+      this.spDotNextAt[s] = this.now + this.splDotTickMs[s]
+      this.q.push(this.spDotNextAt[s], EV_SPELL_DOT_TICK, s, this.spDotGen[s])
+    }
+    if (this.hasSpellTick) this.spellProcs(TRIGGER.spellTick, s)
+  }
+
+  /** Ends plan spell s's DoT now, its remaining ticks and its marker (a channel cut off; docs/mechanics/spells.md §6). */
+  private cancelSpellDot(s: number): void {
+    if (this.spDotTicksLeft[s] === 0) return
+    this.spDotTicksLeft[s] = 0
+    this.spDotGen[s]++
+    const marker = this.splDotAura[s]
+    if (marker >= 0 && this.auraActive[marker]) this.removeAura(marker)
+  }
+
+  /**
+   * A channel starts (docs/mechanics/spells.md §6), paid for, its GCD and cooldown started: its row
+   * counts the cast. Its `spell`, if any, is cast now: a miss ends the channel at once (the GCD runs
+   * on), and its DoT is the channel's ticks (Mind Flay). Otherwise its `tickSpell` ticks from now
+   * (Arcane Missiles). It holds the GCD until it ends, and everything else with `castHoldsOffGcd`,
+   * after `channelTicks` ticks when it's cut off, or all of them.
+   */
+  private channel(a: number): void {
+    const now = this.now
+    this.counters[this.abSource[a] * FIELD_COUNT + FIELD.casts]++
+    const s = this.abSpell[a]
+    let ticks = this.abTicks[a]
+    let tickMs = this.abTickMs[a]
+    if (s >= 0) {
+      if (!this.castSpell(s, false)) return
+      ticks = this.splDotTicks[s]
+      tickMs = this.splDotTickMs[s]
+    } else this.startTicks(a)
+    const cut = this.abChannelTicks[a]
+    const n = cut > 0 && cut < ticks ? cut : ticks
+    this.channeling = a
+    this.castGcdEnd = this.gcdEnd
+    this.gcdEnd = Infinity
+    if (this.abCastHolds[a]) this.castHolding = true
+    this.q.push(now + n * tickMs, EV_CHANNEL_END, a, ++this.channelGen)
+  }
+
+  /**
+   * A channel ends (docs/mechanics/spells.md §6): a tick due this very moment lands first, and the
+   * ticks it cut off are lost; the GCD ends when it would have on its own, and the rotation walks.
+   */
+  private endChannel(a: number): void {
+    const now = this.now
+    const s = this.abSpell[a]
+    if (s >= 0) {
+      if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
+      this.cancelSpellDot(s)
+    } else {
+      if (this.abTicksLeft[a] > 0 && this.abTickAt[a] === now) this.castTick(a)
+      this.abTicksLeft[a] = 0
+      this.abTickGen[a]++
+    }
+    this.channeling = -1
+    this.castHolding = false
+    this.gcdEnd = this.castGcdEnd
+    if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
+    this.actPending = this.hasRotation
   }
 
   // ------------------------------------------------------------------------------------------
@@ -3501,10 +3860,12 @@ export class Sim {
     if (this.energyMax > 0) this.gainEnergy(this.energyRegenMult === 1 ? this.energyTick : Math.round(this.energyTick * this.energyRegenMult), -1)
     if (this.manaMax > 0) {
       const outside = this.now - this.manaSpentAt >= this.fiveSecondRuleMs
-      // docs/classes/shaman.md: Improved Stormstrike's share while its aura is up, if it's more.
-      const aura = this.manaFsrAura
-      const share = aura >= 0 && this.auraActive[aura] ? Math.max(this.manaInFsrShare, this.manaFsrAuraShare) : this.manaInFsrShare
-      const tenths = this.manaMp5 + (outside ? this.manaRegen : this.manaRegen * share)
+      // docs/mechanics/spells.md §8: the mana hooks' Spirit regen multiplier (Innervate) and their
+      // share inside the rule (Improved Stormstrike's, shaman.md), added to the plan's (at most all
+      // of it). Without them, ×1 and +0.
+      const regen = this.manaRegen * this.dynSpiritRegen
+      const share = this.dynCastingRegen === 0 ? this.manaInFsrShare : Math.min(1, this.manaInFsrShare + this.dynCastingRegen)
+      const tenths = this.manaMp5 + (outside ? regen : regen * share)
       if (this.manaTrace !== null) this.manaTrace(this.now, tenths)
       const before = this.mana
       this.gainMana(tenths, -1)

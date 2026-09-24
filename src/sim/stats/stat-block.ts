@@ -97,6 +97,15 @@ export class StatBlock {
   spellDamage = 0
   holySpellDamage = 0
   spellDamagePerIntPct = 0
+  // The other schools' own spell damage lines (docs/mechanics/spells.md §5), each added to the
+  // all-schools one; spell penetration, and casting speed, a product like `haste` (§3, §4).
+  fireSpellDamage = 0
+  frostSpellDamage = 0
+  shadowSpellDamage = 0
+  natureSpellDamage = 0
+  arcaneSpellDamage = 0
+  spellPen = 0
+  castHaste = 1
 
   // Pools.
   baseHealth = 0
@@ -154,6 +163,17 @@ export class DerivedStats {
    * spell damage and Champion of the Light's share of Intellect.
    */
   holySpellDamage = 0
+  /** Each other school's spell damage: all-schools spell damage plus its own (docs/mechanics/spells.md §5). */
+  fireSpellDamage = 0
+  frostSpellDamage = 0
+  shadowSpellDamage = 0
+  natureSpellDamage = 0
+  arcaneSpellDamage = 0
+  /**
+   * Casting speed as a multiplier: Π(1 + casting speed) × (1 + haste rating's %), which divides the
+   * cast time of the spells it hastens (docs/mechanics/spells.md §4). 1 without any.
+   */
+  castHasteMult = 1
 }
 
 export interface DeriveOptions {
@@ -215,8 +235,18 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)
   out.mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0
-  // docs/classes/paladin.md#retribution-tree (Champion of the Light: "up to 100% of your
-  // Intellect"; the floor is [?]) and #conventions-used-below (SP = all schools plus Holy).
-  out.holySpellDamage = b.spellDamage + b.holySpellDamage + floorStat((out.intellect * b.spellDamagePerIntPct) / 100)
+  // docs/mechanics/spells.md §5: each school's own line adds to the all-schools one, and so does a
+  // talent's share of Intellect: the paladin's Champion of the Light ("up to 100% of your Intellect";
+  // the floor is [?], paladin.md#retribution-tree, #conventions-used-below: SP = all schools plus
+  // Holy) and the shaman's Mental Quickness (30%, shaman.md#spell-damage).
+  const allSchools = b.spellDamage + floorStat((out.intellect * b.spellDamagePerIntPct) / 100)
+  out.holySpellDamage = allSchools + b.holySpellDamage
+  out.fireSpellDamage = allSchools + b.fireSpellDamage
+  out.frostSpellDamage = allSchools + b.frostSpellDamage
+  out.shadowSpellDamage = allSchools + b.shadowSpellDamage
+  out.natureSpellDamage = allSchools + b.natureSpellDamage
+  out.arcaneSpellDamage = allSchools + b.arcaneSpellDamage
+  // docs/mechanics/spells.md §4: casting speed, with haste rating's % where it applies (D12) [?].
+  out.castHasteMult = b.castHaste * (1 + out.hasteRatingPct / 100)
   return out
 }

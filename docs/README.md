@@ -37,6 +37,7 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [mechanics/character-stats.md](mechanics/character-stats.md) | Base stats, racials, stat conversions, the derived-stat pipeline |
 | [mechanics/rage.md](mechanics/rage.md) | Rage generation and spending (warrior, bear) |
 | [mechanics/threat.md](mechanics/threat.md) | Threat modifiers and per-ability threat |
+| [mechanics/spells.md](mechanics/spells.md) | The caster core: spell hit, crit and resists, spell power and coefficients, cast times, channels, DoTs, mana, the caster buffs and debuffs |
 | [mechanics/buffs-debuffs-consumables.md](mechanics/buffs-debuffs-consumables.md) | Raid buffs, target debuffs, consumables, enchants, default presets (world buffs are excluded) |
 
 ## Classes

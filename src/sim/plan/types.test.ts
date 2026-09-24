@@ -30,7 +30,6 @@ describe('the plan’s code tables', () => {
     expect([COND.minMana, COND.maxMana]).toEqual([18, 19])
     // After the tank core's boss-swing triggers (8–11): the seals' swing trigger and Vengeance's spell crits.
     expect([TRIGGER.dodge, TRIGGER.parry, TRIGGER.meleeTaken, TRIGGER.critTaken, TRIGGER.whiteResolved, TRIGGER.spellCrit]).toEqual([8, 9, 10, 11, 12, 13])
-    expect(TRIGGER_COUNT).toBe(14)
     expect([ACTION.spell, ACTION.mana]).toEqual([5, 6])
   })
 
@@ -56,5 +55,11 @@ describe('the plan’s code tables', () => {
     expect(COND.auraStacksAtLeast).toBe(34)
     // No other condition sits in the Rogue's range yet, whichever track merges first.
     for (const [key, code] of Object.entries(COND)) if (code >= 30 && code <= 33) expect(key).not.toBe('auraStacksAtLeast')
+  })
+
+  it('the caster core’s codes (docs/mechanics/spells.md §10, §11): triggers spellLanded 20 and spellTick 21, past the 14–19 the other tracks hold, and condition auraUp 38', () => {
+    expect([TRIGGER.spellLanded, TRIGGER.spellTick]).toEqual([20, 21])
+    expect(TRIGGER_COUNT).toBe(22)
+    expect(COND.auraUp).toBe(38)
   })
 })

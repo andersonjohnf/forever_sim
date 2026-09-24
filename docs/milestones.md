@@ -250,7 +250,7 @@ placeholders, and M9 replaces them.
       default and a Max TPS priority (D26), tuned, and shipped
       ([review](reviews/2026-09-24-paladin-protection.md))
 
-## M5.5: Every other DPS spec (D27) 💤
+## M5.5: Every other DPS spec (D27) 🚧
 
 Every DPS spec in the game, before multi-target, landed in the 90/10 mode of
 [D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24):
@@ -260,8 +260,8 @@ slices. Melee and physical first (user decision, 2026-09-24). Each class slice: 
 talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [ ] **R1 Rogue:** Combat, Assassination, Subtlety. Energy and combo points reuse the cat's;
       poisons, Slice and Dice, Blade Flurry, Adrenaline Rush, dual wield
-- [ ] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
-      totems as raid buffs, mana
+- [x] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
+      totems as its own buffs, mana ([review](reviews/2026-09-24-enhancement-shaman.md))
 - [ ] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,
       crit and partial resists, the caster debuffs (Curse of the Elements, Shadow Weaving,
       Scorch, Winter's Chill), mana with the five-second rule
@@ -437,6 +437,10 @@ slice is worked:
   the white-threat note ("stance or form"); Max TPS results naming "your" roar when it's off; the
   bear's swings table listing 0% parry and block; Enrage's damage-taken figure (0.16% vs 0.14%);
   setup-store tests for a known but hidden spec.
+- **The shaman's review lows** ([its log](reviews/2026-09-24-enhancement-shaman.md)): Rockbiter
+  with Windfury Totem (+3.6%, untried by the first pass); the imbue help's +653 AP against 783.6
+  with Elemental Weapons; derived Dwarf and Skyborne base rows; the inferred 16361 link;
+  source-tag drift when the client data is regenerated from the cache.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

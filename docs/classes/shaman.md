@@ -666,7 +666,7 @@ shaman onto the caster core ([Enhancement on the core](#enhancement-on-the-core)
 5. **The priority**: Flame Shock kept up for Lava Burst, Lava Burst, Chain Lightning with
    Clearcasting, and Lightning Bolt rank 10 above a mana threshold and rank 4 below it
    ([Elemental priority](#elemental-priority)).
-6. **No melee**: a caster's plan has no weapon; melee temporary enchants are locked off
+6. **No melee**: a caster's plan has no weapon, and the melee's Buffs entries (`forSpecs: 'melee'`) leave it
    ([spells.md §12](../mechanics/spells.md#12-what-a-class-slice-uses)).
 
 ### Elemental: WoW Forever deviations
@@ -852,8 +852,8 @@ Lightning Bolt as an always-on filler row.
 | Relic | **Totem of the Storm** (23199): "Increases damage done by Chain Lightning and Lightning Bolt by up to 33" (28857, aura 112: a server-side class script) | read as 33 spell damage for those spells, so +23.56 to Lightning Bolt (× 0.714) and +18.84 to Chain Lightning [?] |
 | Enchants | Greater Stats on the chest. The caster enchants (Spell Power on the weapon, Arcanum of Focus, Zandalar Signet of Mojo) aren't in the sim's enchant catalogue yet | [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec) |
 | Totems | Mana Spring (your own); the raid's others don't help a caster | [Totems](#totems) |
-| Buffs | the Standard raid preset: Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Blessing of Kings, Curse of the Elements (a warlock's; the casters' entry), Leader of the Pack (Forever's is all crit, so it fills Moonkin Aura's slot). No Windfury Totem (you never swing). **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | [buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset) |
-| Consumables | Standard raid: Greater Arcane Elixir, Major Mana Potion. Max adds Flask of Supreme Power and Demonic Rune. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet. Stones and poisons are locked off: you never swing | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
+| Buffs | the Standard raid preset: Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Blessing of Kings, Curse of the Elements (a warlock's; the casters' entry), Leader of the Pack (Forever's is all crit, so it fills Moonkin Aura's slot). No Windfury Totem, stones or other melee entries: you never swing, so the Buffs tab doesn't list them. **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | [buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset) |
+| Consumables | Standard raid: Greater Arcane Elixir, Major Mana Potion. Max adds Flask of Supreme Power and Demonic Rune. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
 | Rotation | [the priority list](#forever-priority-list-default-1) with its first-pass defaults | [Elemental first-pass defaults](#elemental-first-pass-defaults) |
 
 ### Elemental first-pass defaults

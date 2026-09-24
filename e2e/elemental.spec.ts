@@ -127,18 +127,12 @@ test.describe('Elemental shaman', () => {
     await expectDefaultRotation(await openTab(page, 'Rotation'))
   })
 
-  test('its Buffs tab: the casters’ debuff on, and weapon stones locked off since it never swings', async ({ page }) => {
+  test('its Buffs tab: the casters’ debuff on, and no weapon stones or Windfury Totem since it never swings', async ({ page }) => {
     await switchToElemental(page)
     const buffs = await openTab(page, 'Buffs')
     await expect(buffs.getByRole('switch', { name: 'Curse of the Elements' })).toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Mana Spring Totem' })).toBeChecked()
-    for (const name of ['Dense Sharpening Stone / Weightstone', 'Elemental Sharpening Stone']) {
-      const stone = buffs.getByRole('switch', { name })
-      await expect(stone).not.toBeChecked()
-      await expect(stone).toBeDisabled()
-      await expect(stone).toHaveAccessibleDescription(/Not used: you cast from range and never swing your weapon\./)
-    }
-    await expect(buffs.getByRole('switch', { name: 'Windfury Totem' })).not.toBeChecked()
+    for (const name of ['Dense Sharpening Stone / Weightstone', 'Elemental Sharpening Stone', 'Windfury Totem']) await expect(buffs.getByRole('switch', { name })).toHaveCount(0)
   })
 
   test('a run reads as an Elemental shaman’s: its spells, the downrank and mana', async ({ page }) => {

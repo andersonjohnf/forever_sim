@@ -759,7 +759,7 @@ their stacking group is verified; the UI offers them as options.
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
-| Elemental shaman | — | Greater Arcane Elixir; Major Mana Potion. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet; stones are locked off: a caster never swings ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
+| Elemental shaman | — | Greater Arcane Elixir; Major Mana Potion. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet; no stones: a caster never swings, and the melee entries leave its Buffs tab ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
 | Warlock (both) | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
@@ -768,9 +768,8 @@ their stacking group is verified; the UI offers them as options.
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
 temporary enchant, so stones and oils are locked off for an Enhancement shaman with that reason
-(`buffUnusedReason`; [shaman](../classes/shaman.md#weapon-imbues)). A caster (the Elemental shaman)
-never swings, so a stone's or a poison's is locked off for it too: "Not used: you cast from range
-and never swing your weapon". Hyjal flasks are added automatically
+(`buffUnusedReason`; [shaman](../classes/shaman.md#weapon-imbues)); an Elemental shaman, a caster,
+doesn't see the stones at all (`forSpecs: 'melee'`). Hyjal flasks are added automatically
 only when the encounter is in Mount Hyjal, Hyjal Summit or the Barrow Deeps.
 
 ### 6.4 Enchant defaults by spec

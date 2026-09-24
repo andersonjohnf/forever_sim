@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
-import { buffUnusedReason, presetBuffIds } from '../../effects/presets'
+import { buffUnusedReason, forSpecClass, presetBuffIds } from '../../effects/presets'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { expectMean } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
@@ -315,9 +315,8 @@ describe('the Elemental shaman’s buffs (buffs doc §6.2, §6.3)', () => {
     expect(presetBuffIds('dungeon', ELE, FULL_RAID)).toContain('manaSpringTotem')
   })
 
-  it('locks off stones: it never swings; the Enhancement shaman’s reason stays its imbue', () => {
-    expect(buffUnusedReason(BUFFS_BY_ID.get('denseSharpeningStone')!, ELE)).toBe('Not used: you cast from range and never swing your weapon')
-    expect(buffUnusedReason(BUFFS_BY_ID.get('elementalSharpeningStone')!, ELE)).toBe('Not used: you cast from range and never swing your weapon')
+  it('leaves the melee entries out (stones, Windfury Totem): it never swings; the Enhancement shaman’s stones stay locked by its imbue', () => {
+    for (const id of ['denseSharpeningStone', 'elementalSharpeningStone', 'windfuryTotem']) expect(forSpecClass(BUFFS_BY_ID.get(id)!, ELE), id).toBe(false)
     expect(buffUnusedReason(BUFFS_BY_ID.get('denseSharpeningStone')!, 'shaman-enhancement')).toBe('Not used: your weapon imbue is your main hand’s temporary enchant')
   })
 

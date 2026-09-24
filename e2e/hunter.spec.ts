@@ -192,4 +192,40 @@ test.describe('Hunters on a phone', () => {
     await expectHunterResult(sheet)
     await noSideScroll(page)
   })
+
+  test('the Ammo picker lists what the gun fires first and dims arrows with the reason; a bow swaps in arrows and a quiver', async ({ page }) => {
+    // docs/classes/hunter.md#73-gear, docs/ux.md "Gear". A row's flag badges can sit mid-row, so tap its icon.
+    const onIcon = { position: { x: 24, y: 24 } }
+    await switchTo(page, /Marksmanship/, MM)
+    const gear = await openTab(page, 'Gear')
+    await gear.getByRole('button', { name: 'Ammo: Thorium Shells' }).click(onIcon)
+    const picker = page.getByRole('dialog', { name: 'Choose ammo' })
+    // Each row's item button comes first; a Classic stats badge is a button after it.
+    const rows = picker.getByRole('list', { name: 'Items' }).getByRole('listitem')
+    const item = (i: number) => rows.nth(i).getByRole('button').first()
+    // Leave this slot empty, the 7 bullets, then the 5 arrows (item level order within each).
+    await expect(rows).toHaveCount(13)
+    await expect(item(1)).toHaveAccessibleName(/^Swiftstrike Shot\. Bullet/)
+    for (let i = 1; i <= 7; i++) await expect(item(i)).toHaveAccessibleName(/\. Bullet · /)
+    await expect(item(8)).toHaveAccessibleName(/^Swiftfeather Arrow\. .*For bows and crossbows: your gun fires bullets$/)
+    for (let i = 8; i <= 12; i++) await expect(rows.nth(i)).toContainText('For bows and crossbows: your gun fires bullets')
+    await noSideScroll(page, 'no horizontal page scroll with the picker open')
+    await picker.getByRole('button', { name: 'Close' }).click()
+
+    await gear.getByRole('button', { name: /^Ranged: / }).click(onIcon)
+    const ranged = page.getByRole('dialog', { name: 'Choose ranged' })
+    await ranged.getByLabel('Search items').fill('riphook')
+    await ranged.getByRole('button', { name: /^Riphook/ }).click(onIcon)
+    await expect(ranged).toBeHidden()
+    await expect(gear.getByRole('button', { name: 'Ammo: Thorium Headed Arrow' })).toBeVisible()
+    await expect(gear.getByRole('button', { name: 'Quiver: Harpy Hide Quiver' })).toBeVisible()
+
+    // Bullets can still be picked with a bow: they add nothing, and the slot says why.
+    await gear.getByRole('button', { name: 'Ammo: Thorium Headed Arrow' }).click(onIcon)
+    await picker.getByRole('button', { name: /^Swiftstrike Shot\./ }).click(onIcon)
+    await expect(picker).toBeHidden()
+    await expect(gear.getByRole('button', { name: 'Ammo: Swiftstrike Shot' })).toHaveAccessibleDescription(/For guns: your bow fires arrows$/)
+    await expect(gear.getByText('For guns: your bow fires arrows', { exact: true })).toBeVisible()
+    await noSideScroll(page)
+  })
 })

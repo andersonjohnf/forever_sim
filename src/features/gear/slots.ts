@@ -1,5 +1,5 @@
 import type { Item, PreRaidBisSlot, WeaponType } from '@/data/items/types'
-import type { ClassId, GearSlot, SpecId } from '@/sim'
+import { ammoKind, type ClassId, type GearSlot, type SpecId } from '@/sim'
 import { usesSupplies } from '@/sim/equip'
 
 export const SLOT_LABEL: Record<GearSlot, string> = {
@@ -130,4 +130,18 @@ export function itemDetails(item: Item, extra?: string | null): string {
     .filter((part): part is string => Boolean(part))
     .map((part) => part.replaceAll(' ', ' '))
     .join(' · ')
+}
+
+/**
+ * Why ammo does nothing with the equipped ranged weapon, e.g. "For bows and crossbows: your gun fires
+ * bullets" (docs/mechanics/ranged-and-pets.md §1: arrows for bows and crossbows, bullets for guns, none
+ * for a thrown weapon). Null for ammo the weapon fires, for other items, and with no ranged weapon.
+ */
+export function ammoNote(item: Item, ranged: Item | undefined): string | null {
+  if (!item.ammo || !ranged?.weaponType) return null
+  const kind = ammoKind(ranged)
+  if (kind === item.ammo.projectile) return null
+  const forWhat = item.ammo.projectile === 'arrow' ? 'For bows and crossbows' : 'For guns'
+  const noun = WEAPON_NOUN[ranged.weaponType]
+  return kind ? `${forWhat}: your ${noun} fires ${kind}s` : `${forWhat}: a ${noun} fires no ammo`
 }

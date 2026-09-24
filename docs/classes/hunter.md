@@ -202,7 +202,11 @@ spec; `scripts/scrape/pre-raid-bis.json`): Dwarven Hand Cannon, Dal'Rend's pair,
 Boots and the rest. The guide lists no ammo or quiver, so the defaults take the best the pool has
 outside raids for what the weapon fires: **Thorium Shells** or **Thorium Headed Arrows** (17.715 damage
 per second, crafted) and the 15% **Gnoll Skin Bandolier** or **Harpy Hide Quiver** (required level 55)
-[F] ([items.md](../data/items.md#ammo-and-quivers)).
+[F] ([items.md](../data/items.md#ammo-and-quivers)). Picking a ranged weapon that fires the other kind
+swaps the ammo for that default, and the quiver or pouch for the other kind's with the same haste
+(`matchSupplies`); a thrown weapon fires none and keeps both. The Gear tab dims ammo the weapon doesn't
+fire, in its slot and in the picker, where it sorts last: "For bows and crossbows: your gun fires
+bullets" ([ux.md](../ux.md), "Gear").
 
 ### 7.4 Enchants and consumables
 The rogue's Agility column without weapon enchants (the melee weapons never swing): Agility arcanums,

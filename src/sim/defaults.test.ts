@@ -4,7 +4,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
-import { defaultConfig, TALENT_DATA } from './defaults'
+import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, TALENT_DATA } from './defaults'
 import { fitsFaction, uniqueConflicts } from './equip'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type { GearSlot, SpecId } from './types'
@@ -87,5 +87,54 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
   it('opens with the default race’s gear', () => {
     expect(defaultConfig('warrior-fury')).toEqual(defaultConfig('warrior-fury', 'alliance-human'))
     expect(defaultConfig('druid-feral-cat')).toEqual(defaultConfig('druid-feral-cat', 'horde-tauren'))
+  })
+})
+
+describe('matchSupplies (docs/classes/hunter.md#73-gear)', () => {
+  const pool = (itemJson as unknown as ItemData).items
+  const item = (id: number) => pool.find((i) => i.id === id)!
+  const gun = item(2099) // Dwarven Hand Cannon
+  const bow = item(12653) // Riphook
+  const crossbow = item(19107) // Bloodseeker
+  const thrown = item(13173) // Flightblade Throwing Axe
+
+  it('knows what each ranged weapon fires', () => {
+    expect([gun, bow, crossbow, thrown, undefined].map(ammoKind)).toEqual(['bullet', 'arrow', 'arrow', null, null])
+  })
+
+  it('swaps arrows and a quiver for bullets and a pouch when a gun replaces a bow, as defaultGear picks', () => {
+    const gear = { ranged: { itemId: bow.id }, ammo: { itemId: 274387 }, quiver: { itemId: DEFAULT_SUPPLIES.quiver } }
+    expect(matchSupplies(gear, gun)).toEqual({
+      ranged: { itemId: bow.id },
+      ammo: { itemId: DEFAULT_SUPPLIES.bullets },
+      quiver: { itemId: DEFAULT_SUPPLIES.pouch },
+    })
+    expect(matchSupplies({ ammo: { itemId: DEFAULT_SUPPLIES.bullets }, quiver: { itemId: DEFAULT_SUPPLIES.pouch } }, crossbow)).toEqual({
+      ammo: { itemId: DEFAULT_SUPPLIES.arrows },
+      quiver: { itemId: DEFAULT_SUPPLIES.quiver },
+    })
+  })
+
+  it('keeps the quiver’s haste: a 13% quiver becomes the 13% pouch', () => {
+    // Quickdraw Quiver 8217 and Thick Leather Ammo Pouch 8218, both 13% (ranged-and-pets.md §1).
+    expect(matchSupplies({ quiver: { itemId: 8217 } }, gun)).toEqual({ quiver: { itemId: 8218 } })
+    expect(matchSupplies({ quiver: { itemId: 2663 } }, bow)).toEqual({ quiver: { itemId: 2662 } })
+    // Ancient Sinew Wrapped Lamina (15%) has one 15% pouch, Gnoll Skin Bandolier.
+    expect(matchSupplies({ quiver: { itemId: 18714 } }, gun)).toEqual({ quiver: { itemId: DEFAULT_SUPPLIES.pouch } })
+  })
+
+  it('leaves supplies the weapon uses, and a thrown weapon’s, alone', () => {
+    const gear = { ammo: { itemId: 274387 }, quiver: { itemId: 18714 } }
+    expect(matchSupplies(gear, bow)).toBe(gear)
+    expect(matchSupplies(gear, thrown)).toBe(gear)
+    expect(matchSupplies(gear, null)).toBe(gear)
+    expect(matchSupplies({}, gun)).toEqual({})
+  })
+
+  it('gives every hunter spec ammo its default ranged weapon fires', () => {
+    for (const spec of SPEC_IDS.filter((s) => SPEC_META[s].classId === 'hunter')) {
+      const gear = defaultConfig(spec).gear
+      expect(matchSupplies(gear, item(gear.ranged!.itemId))).toBe(gear)
+    }
   })
 })

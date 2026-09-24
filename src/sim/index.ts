@@ -37,7 +37,7 @@ import type {
 
 export * from './types'
 export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
-export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
+export { ammoKind, defaultConfig, FULL_RAID, matchSupplies, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'
 export { normalizeConfig } from './config/normalize'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).

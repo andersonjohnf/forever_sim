@@ -91,9 +91,9 @@ export function ItemSummary({
   bis?: number | null
   /** An extra muted line, e.g. the slot name, or the item's type and level. */
   meta?: string | null
-  /** Why the item can't be picked; stays at full contrast when the rest is dimmed. */
+  /** Why the item can't be picked, or does nothing here; stays at full contrast when the rest is dimmed. */
   note?: ReactNode
-  /** Fades the icon, name and stats (an item the picker can't equip here). */
+  /** Fades the icon, name and stats (an item the picker can't equip here, or ammo the ranged weapon doesn't fire). */
   dimmed?: boolean
   className?: string
 }) {

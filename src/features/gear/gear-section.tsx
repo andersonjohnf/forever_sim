@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal } from 'lucide-react'
+import { ChevronRight, Info, MoreHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
@@ -11,13 +11,13 @@ import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { defaultConfig, isTwoHand, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
+import { defaultConfig, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
-import { bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
+import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
 function wornItems(gear: SimConfig['gear']): Partial<Record<GearSlot, Item>> {
@@ -43,7 +43,18 @@ function equip(config: SimConfig, slot: GearSlot, item: Item | null): SimConfig 
   const keep = enchantId && enchantsFor(slot, item, config.rules.profile).some((e) => e.id === enchantId)
   gear[slot] = keep ? { itemId: item.id, enchantId } : { itemId: item.id }
   if (slot === 'mainHand' && isTwoHand(item)) delete gear.offHand
+  // A new ranged weapon takes ammo it fires, and the quiver or pouch that holds it (hunter.md §7.3).
+  if (slot === 'ranged') return { ...config, gear: matchSupplies(gear, item) }
   return { ...config, gear }
+}
+
+/** What a ranged pick swapped in the ammo and quiver slots, for screen readers: the rows change in view. */
+function suppliesSwapped(before: SimConfig['gear'], after: SimConfig['gear']): string | null {
+  const swapped = (['ammo', 'quiver'] as const)
+    .filter((slot) => after[slot] && before[slot]?.itemId !== after[slot]?.itemId)
+    .map((slot) => itemsById.get(after[slot]!.itemId)?.name)
+    .filter(Boolean)
+  return swapped.length ? `Swapped in ${swapped.join(' and ')} to match the ranged weapon.` : null
 }
 
 export function GearSection() {
@@ -56,6 +67,7 @@ export function GearSection() {
 
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
+  const ranged = config.gear.ranged ? itemsById.get(config.gear.ranged.itemId) : undefined
 
   // No visible notice for these: the slots change in front of you. Screen readers hear them
   // (src/app/announce.ts).
@@ -103,6 +115,8 @@ export function GearSection() {
               const item = equipped ? itemsById.get(equipped.itemId) : undefined
               const lockedByTwoHand = slot === 'offHand' && twoHanded
               const bis = item ? bisRank(item, config.spec, slot) : null
+              // Ammo the ranged weapon doesn't fire adds nothing: dimmed, with the reason, as in the picker.
+              const unused = item ? ammoNote(item, ranged) : null
               return (
                 <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
                   {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
@@ -131,12 +145,25 @@ export function GearSection() {
                     >
                       {item && (
                         <span id={`slot-${slot}-description`} className="sr-only">
-                          {itemDescription(item, { bis, spec: meta.id })}
+                          {itemDescription(item, { bis, spec: meta.id, note: unused })}
                         </span>
                       )}
                     </button>
                     {item ? (
-                      <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} />
+                      <ItemSummary
+                        item={item}
+                        bis={bis}
+                        meta={SLOT_LABEL[slot]}
+                        dimmed={Boolean(unused)}
+                        note={
+                          unused && (
+                            <>
+                              <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+                              {unused}
+                            </>
+                          )
+                        }
+                      />
                     ) : (
                       <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
                         <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
@@ -187,7 +214,11 @@ export function GearSection() {
           equippedId={config.gear[picking]?.itemId ?? null}
           worn={wornItems(config.gear)}
           onPick={(item) => {
+            const before = config.gear
+            const after = equip(config, picking, item).gear
             update((c) => equip(c, picking, item))
+            const swapped = picking === 'ranged' ? suppliesSwapped(before, after) : null
+            if (swapped) announce(swapped)
             setPicking(null)
           }}
           returnTo={() => slotButtons.current.get(picking)}

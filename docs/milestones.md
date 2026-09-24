@@ -480,8 +480,7 @@ slice is worked:
   sheet, the pets' labelled rows).
 - **The hunter's first-pass gaps** (H2, [hunter.md](classes/hunter.md#11-open-questions)):
   - **No scope** in the enchant catalogue (Sniper Scope's +7 damage, Biznicks 247x128 Accurascope's
-    +3% hit), and no mismatch warning in the Gear tab for ammo the weapon doesn't fire (the result's
-    assumptions say so).
+    +3% hit).
   - **Melee weaving and Summon Hawk** aren't simulated, and the pet is a cat only (no Wolf's Furious
     Howl or other families); Multi-Shot's extra targets wait for M6.
   - **The Survival tree leans to melee in Forever** (Mongoose Bite, Lacerate, Predator's Edge,

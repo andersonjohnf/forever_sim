@@ -16,6 +16,7 @@ import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
 import { fitsFaction, uniqueConflicts, usesSupplies } from './equip'
+import { firesAmmo } from './plan/ranged'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
 
@@ -346,6 +347,49 @@ const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-f
 export const DEFAULT_SUPPLIES = { arrows: 18042, bullets: 15997, quiver: 19319, pouch: 19320 } as const
 
 /**
+ * The ammo a ranged weapon fires (docs/mechanics/ranged-and-pets.md §1): arrows from bows and
+ * crossbows, bullets from guns; none from a thrown weapon, or from no weapon.
+ */
+export function ammoKind(ranged: Item | null | undefined): 'arrow' | 'bullet' | null {
+  const type = ranged?.weaponType
+  if (!type) return null
+  return firesAmmo(type, 'arrow') ? 'arrow' : firesAmmo(type, 'bullet') ? 'bullet' : null
+}
+
+/** What a quiver or ammo pouch holds: a quiver arrows, an ammo pouch bullets (ranged-and-pets.md §1). */
+const holds = (item: Item) => (item.itemSubclass === 'Ammo Pouch' ? 'bullet' : 'arrow')
+
+/**
+ * The gear after its ranged weapon changed to `ranged` (a hunter's; docs/classes/hunter.md#73-gear):
+ * ammo the new weapon can't fire becomes the default ammo it can, as `defaultGear` picks; a quiver
+ * or ammo pouch of the other kind becomes the one of this kind with the same ranged attack speed
+ * (the default when there's a choice), so the setup's haste doesn't change. A thrown weapon fires
+ * no ammo and leaves both alone. Returns the same object when nothing changes.
+ */
+export function matchSupplies(
+  gear: Partial<Record<GearSlot, EquippedItem>>,
+  ranged: Item | null | undefined,
+): Partial<Record<GearSlot, EquippedItem>> {
+  const kind = ammoKind(ranged)
+  if (!kind) return gear
+  const byId = (id: number | undefined) => (id === undefined ? undefined : items.find((i) => i.id === id))
+  let next = gear
+  const ammo = byId(gear.ammo?.itemId)
+  if (ammo?.ammo && ammo.ammo.projectile !== kind) {
+    next = { ...next, ammo: { itemId: kind === 'arrow' ? DEFAULT_SUPPLIES.arrows : DEFAULT_SUPPLIES.bullets } }
+  }
+  const quiver = byId(gear.quiver?.itemId)
+  if (quiver && quiver.slot === 'quiver' && holds(quiver) !== kind) {
+    const preferred = kind === 'arrow' ? DEFAULT_SUPPLIES.quiver : DEFAULT_SUPPLIES.pouch
+    const haste = quiver.stats.rangedAttackSpeed
+    const twins = items.filter((i) => i.slot === 'quiver' && holds(i) === kind && i.stats.rangedAttackSpeed === haste)
+    const twin = twins.find((i) => i.id === preferred) ?? twins[0]
+    next = { ...next, quiver: { itemId: twin?.id ?? preferred } }
+  }
+  return next
+}
+
+/**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item
  * that the race's faction can wear and that breaks no Unique or Unique-Equipped rule with the
  * slots filled before it (docs/data/items.md#equipping-rules). So faction twins listed at the same
@@ -384,7 +428,7 @@ export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].cl
   // docs/classes/hunter.md#73-gear: the ammo the ranged weapon fires and the quiver or ammo pouch that
   // holds it, the best the pool has outside raids (the guide lists neither).
   if (usesSupplies(SPEC_META[spec].classId)) {
-    const gun = worn.ranged?.weaponType === 'gun'
+    const gun = ammoKind(worn.ranged) === 'bullet'
     for (const [slot, id] of [
       ['ammo', gun ? DEFAULT_SUPPLIES.bullets : DEFAULT_SUPPLIES.arrows],
       ['quiver', gun ? DEFAULT_SUPPLIES.pouch : DEFAULT_SUPPLIES.quiver],

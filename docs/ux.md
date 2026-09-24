@@ -157,6 +157,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line
       at full contrast says why, e.g. "Unique-Equipped (Undermine Trinkets): you're wearing
       Weakness Analyzer in trinket 2." It stays focusable, so the reason is read out.
+    - A hunter's ammo that the ranged weapon doesn't fire is dimmed and listed after the ammo it
+      does, with the reason at full contrast: "For bows and crossbows: your gun fires bullets".
+      It can still be picked (it adds nothing), and its slot row shows the same line. Picking a
+      ranged weapon that fires the other kind swaps the ammo, and the quiver or pouch, to match
+      ([hunter.md §7.3](classes/hunter.md#73-gear)); screen readers hear what was swapped in.
   - Badges, on slot rows and picker rows alike:
     - the BiS rank;
     - **Classic stats** for items with no Forever data yet;

@@ -1,4 +1,4 @@
-import { Ban, Check, Search, X } from 'lucide-react'
+import { Ban, Check, Info, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
 import { useSheetFocus } from '@/app/sheet-focus'
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
-import { bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
+import { ammoNote, bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
 type Filter = 'bis' | 'all'
 type Sort = 'bis' | 'itemLevel' | 'name'
@@ -112,7 +112,8 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: 'name', label: 'Name' },
 ]
 
-type Candidate = { item: Item; bis: number | null; text: string }
+/** `unused`: why the item does nothing here (ammo the ranged weapon doesn't fire); it sorts last. */
+type Candidate = { item: Item; bis: number | null; text: string; unused: string | null }
 
 const byName = (a: Candidate, b: Candidate) => a.item.name.localeCompare(b.item.name)
 const byItemLevel = (a: Candidate, b: Candidate) => b.item.itemLevel - a.item.itemLevel || byName(a, b)
@@ -136,8 +137,9 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
           item,
           bis: bisRank(item, spec, slot),
           text: `${item.name} ${itemKind(item) ?? ''} ${summarizeItem(item)}`.toLowerCase(),
+          unused: ammoNote(item, worn.ranged),
         })),
-    [classId, slot, spec, race, equippedId],
+    [classId, slot, spec, race, equippedId, worn.ranged],
   )
   const hasBis = candidates.some((c) => c.bis)
   const [filter, setFilter] = useState<Filter>(hasBis ? 'bis' : 'all')
@@ -148,7 +150,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
   const searching = words.length > 0
   const shown = candidates
     .filter((c) => (searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w)))
-    .sort(COMPARE[sort])
+    .sort((a, b) => Number(Boolean(a.unused)) - Number(Boolean(b.unused)) || COMPARE[sort](a, b))
   const clearSearch = () => {
     setQuery('')
     searchRef.current?.focus()
@@ -232,9 +234,11 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
             </button>
           </li>
         )}
-        {shown.map(({ item, bis }) => {
+        {shown.map(({ item, bis, unused }) => {
           const equipped = item.id === equippedId
           const { moves, blocked } = uniqueState(worn, slot, item)
+          // A blocked item can't be picked; an unused one can, but does nothing with this weapon.
+          const note = blocked ?? unused
           const details = itemDetails(item, moves)
           return (
             <li key={item.id}>
@@ -260,7 +264,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                   )}
                 >
                   <span className="sr-only">
-                    {item.name}. {itemDescription(item, { bis, meta: details, note: blocked, spec })}
+                    {item.name}. {itemDescription(item, { bis, meta: details, note, spec })}
                     {equipped && '. Equipped'}
                   </span>
                 </button>
@@ -268,12 +272,12 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                   item={item}
                   bis={bis}
                   meta={details}
-                  dimmed={Boolean(blocked)}
+                  dimmed={Boolean(note)}
                   note={
-                    blocked && (
+                    note && (
                       <>
-                        <Ban className="mt-px size-3.5 shrink-0" aria-hidden />
-                        {blocked}
+                        {blocked ? <Ban className="mt-px size-3.5 shrink-0" aria-hidden /> : <Info className="mt-px size-3.5 shrink-0" aria-hidden />}
+                        {note}
                       </>
                     )
                   }

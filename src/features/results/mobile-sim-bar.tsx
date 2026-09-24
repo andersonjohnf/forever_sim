@@ -52,16 +52,17 @@ export function MobileSimBar() {
               {error !== null ? <BarError message={error} /> : <Headline compact />}
             </span>
             {/* A labelled pill, not a bare chevron: people missed the chevron and took the headline for
-                the whole result. Below 360 px there's room only for its outline and chevron. */}
+                the whole result. Below 360 px there's room only for its outline and chevron
+                (max-[360px] is width < 360). */}
             {canOpen && (
-              <span className="flex h-9 shrink-0 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-sm font-medium shadow-xs max-[359px]:px-2">
-                <span className="max-[359px]:hidden">Details</span>
+              <span className="flex h-9 shrink-0 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-sm font-medium shadow-xs max-[360px]:px-2">
+                <span className="max-[360px]:hidden">Details</span>
                 <ChevronUp className="size-4 text-muted-foreground" aria-hidden />
               </span>
             )}
           </button>
-          {/* Below 430 px the button drops its icon, so the headline has room beside Details. */}
-          <SimulateButton className="px-5 max-[429px]:px-4" iconClassName="max-[429px]:hidden" />
+          {/* No icon in the bar, so the headline has room beside Details at every width. */}
+          <SimulateButton className="px-4" iconClassName="hidden" />
         </div>
       </div>
       <Drawer open={open} onOpenChange={setOpen}>
@@ -95,7 +96,7 @@ function BarError({ message }: { message: string }) {
     <span className="flex min-w-0 flex-col">
       <span className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-destructive">
         <TriangleAlert className="size-4 shrink-0" aria-hidden />
-        Couldn’t simulate
+        Failed
       </span>
       <span className="truncate text-xs text-muted-foreground">{message}</span>
     </span>

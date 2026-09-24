@@ -118,10 +118,10 @@ function MetricBlock({ row, badge, className, children }: { row: MetricRow; badg
 }
 
 /**
- * Below 430 px the phone bar has the Details button beside the headline, so the headline keeps
- * only the value and the change's arrow; the results sheet shows the ± and the change's amount.
+ * The phone bar's headline is the value and the change's arrow, at every width: the Details
+ * button sits beside it, and the results sheet shows the ± and the change's amount
+ * (docs/ux.md#layout). One rule, so nothing depends on how wide the phone is.
  */
-const BAR_NARROW_HIDDEN = 'max-[429px]:hidden'
 
 /** DPS specs: one metric, its ± and change on the value's line. */
 function SingleHeadline({ row, compact, dimmed, badge }: { row: MetricRow; compact: boolean; dimmed: boolean; badge: ReactNode }) {
@@ -137,17 +137,17 @@ function SingleHeadline({ row, compact, dimmed, badge }: { row: MetricRow; compa
     <MetricBlock row={row} badge={badge}>
       <span data-dimmed={dimmed} className={cn('flex flex-wrap items-baseline gap-x-2', DIM_ROOT)}>
         <span className={cn('font-semibold tracking-tight tabular-nums', size)}>{formatOne(row.value.mean)}</span>
-        <span className={cn('text-sm text-muted-foreground tabular-nums', compact && BAR_NARROW_HIDDEN)}>± {formatOne(row.value.ci95)}</span>
-        <Delta value={row.value.mean} previous={row.previous} className="text-sm" amountClassName={compact ? BAR_NARROW_HIDDEN : undefined} />
+        {!compact && <span className="text-sm text-muted-foreground tabular-nums">± {formatOne(row.value.ci95)}</span>}
+        <Delta value={row.value.mean} previous={row.previous} className="text-sm" amountClassName={compact ? 'hidden' : undefined} />
       </span>
     </MetricBlock>
   )
 }
 
 /**
- * Tanks: TPS and DPS as equals (decision D18). Stacked rows fit the phone's bottom bar (below 430 px
- * wide, beside the Details button, it keeps only the values and the changes' arrows; the results
- * sheet still shows the ± and the amounts); the panel sets them side by side.
+ * Tanks: TPS and DPS as equals (decision D18). Stacked rows fit the phone's bottom bar (beside the
+ * Details button it keeps only the values and the changes' arrows; the results sheet shows the ±
+ * and the amounts); the panel sets them side by side.
  */
 function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; compact: boolean; dimmed: boolean; badge: ReactNode }) {
   if (compact) {
@@ -156,7 +156,7 @@ function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; com
         {badge && <span className="text-xs font-medium">{badge}</span>}
         <div
           data-dimmed={dimmed}
-          className={cn('grid min-w-0 grid-cols-[auto_auto_auto_1fr] items-baseline gap-x-1.5 max-[429px]:grid-cols-[auto_auto_1fr]', DIM_ROOT)}
+          className={cn('grid min-w-0 grid-cols-[auto_auto_1fr] items-baseline gap-x-1.5', DIM_ROOT)}
         >
           {rows.map((row) => (
             <Fragment key={row.key}>
@@ -164,8 +164,7 @@ function TankHeadline({ rows, compact, dimmed, badge }: { rows: MetricRow[]; com
               <span className={cn('text-lg leading-6 font-semibold tracking-tight tabular-nums', !row.value && 'text-muted-foreground')}>
                 {row.value ? formatOne(row.value.mean) : '—'}
               </span>
-              <span className="text-xs text-muted-foreground tabular-nums max-[429px]:hidden">{row.value && `± ${formatOne(row.value.ci95)}`}</span>
-              <span className="text-xs">{row.value && <Delta value={row.value.mean} previous={row.previous} amountClassName={BAR_NARROW_HIDDEN} />}</span>
+              <span className="text-xs">{row.value && <Delta value={row.value.mean} previous={row.previous} amountClassName="hidden" />}</span>
             </Fragment>
           ))}
         </div>

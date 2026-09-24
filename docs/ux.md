@@ -36,7 +36,7 @@ When a design decision isn't covered here, make it, then add it here.
 | Width | Layout |
 | --- | --- |
 | **≥ 1024 px** | A header, then two columns. **Left:** the setup, as section tabs. **Right:** a sticky results panel with the Simulate button. |
-| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. Below 360 px only the button's outline and chevron fit. Below 430 px the ± and the change's amount move to the sheet, leaving the value and the change's arrow. The button's outline takes `--input`, like any outline button. |
+| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
@@ -426,10 +426,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **Tank specs** headline TPS and DPS as equals
     ([D18](decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): side by side
     in the results panel, TPS first, each with its own ± CI and its own change from the
-    previous run. The phone's bottom bar stacks them in two rows next to the Simulate button;
-    below 430 px wide, beside the Details button, it leaves out the ± values and the changes'
-    amounts (the arrows stay), which the results sheet still shows. A DPS spec's bar does the
-    same below 430 px.
+    previous run. The phone's bottom bar stacks them in two rows next to the Details and Simulate
+    buttons, showing only the values and the changes' arrows; the results sheet shows the ±
+    values and the amounts. A DPS spec's bar does the same.
 - **Damage taken** (tank specs, [encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)):
   the first section under the headline card, above the breakdown, since it has no headline of
   its own (`src/features/results/tank-results.tsx`). It stays short, so the breakdown is still near
@@ -655,8 +654,8 @@ Every view handles these states:
   - A setup the engine refuses (a Skyborne warrior or hunter) is titled "This setup can't be simulated",
     and its message says what to change, so no retry advice follows it. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec.
-  - On a phone the bottom bar shows the failure itself: a warning icon, "Couldn't simulate"
-    and the start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
+  - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
+    start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
     too (on desktop the panel's alert does).
   - A failure belongs to the setup that failed, as a result does. It shows, in the panel,

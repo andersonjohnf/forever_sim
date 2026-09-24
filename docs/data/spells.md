@@ -327,6 +327,13 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
 - **Classic Era rules are data rules.** The Season of Discovery id limit and the cut-content
   exclusion keep SoD spells and never-trained rows out of the Classic baseline; a spell that
   slipped through would show up as a Classic-only spell in `missing` or as an odd Classic rank.
+- **The priest's tokens.** Power Word: Shield's "$w1" is its absorb's points, read as `$s1`;
+  Mind Soothe's "$v" is the spell's highest target level (`SpellTargetRestrictions.MaxTargetLevel`);
+  Prayer of Mending's "$bh" is the reader's bonus healing, 0 as Victory Rush's attack power is, and
+  "$bc" its first effect's bonus coefficient. Contingency Plan (Forever, five ranks) reads a second
+  effect of its shield and its heal ("$1277463s2", "$1277456o2") that neither has, so those two
+  phrases are left out while the client lacks them: "they will gain a shield and begin healing over
+  15 sec" (`MISSING_EFFECT_PHRASES` in `lib/spell-text.mjs`).
 - Size: about 0.98 MB of JSON across the three files, most of it tooltip text on both sides.
 
 ## Re-running

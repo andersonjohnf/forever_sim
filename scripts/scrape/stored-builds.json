@@ -205,5 +205,15 @@
         "Bane 5"
       ]
     }
+  },
+  "priest": {
+    "025300031303--500320501201312051": {
+      "note": "Shadow default (20/0/31), priest.md §7.1",
+      "ranks": [
+        "Wand Specialization 2, Twin Disciplines 5, Silent Resolve 3, Mental Agility 3, Inner Focus 1, Meditation 3, Mental Strength 3",
+        "",
+        "Shadow Focus 5, Shadow Affinity 3, Improved Shadow Word: Pain 2, Improved Mind Blast 5, Mind Flay 1, Improved Mind Flay 2, Vampiric Embrace 1, Shadow Weaving 3, Silence 1, Devouring Contagion 2, Darkness 5, Shadowform 1"
+      ]
+    }
   }
 }

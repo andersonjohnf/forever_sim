@@ -352,3 +352,54 @@ describe("per-level points", () => {
     expect(render(9452)).toBe("Gives your damaging melee attacks a chance to reduce the target's Attack Power by 200, and increase your Attack Power by 3% for 30 sec.");
   });
 });
+
+// The priest's tokens (docs/data/spells.md#caveats; Forever 1.60.1.69913 rows, trimmed).
+describe("the priest's tooltips", () => {
+  const priest = createSpellTextContext(
+    {
+      Spell: [
+        { ID: 10900, Description_lang: "Draws on the soul of the party member to shield them, absorbing $w1 damage." },
+        { ID: 453, Description_lang: "Only affects Humanoid targets level $v or lower." },
+        { ID: 401859, Description_lang: "Heals them for ${($m1+($bh*$bc))*$<mult>} the next time they take damage." },
+        {
+          ID: 1277462,
+          Description_lang: "They will gain a shield absorbing $1277463s2 damage and begin healing for $1277456o2 Health over $1277456d.",
+        },
+        { ID: 1277463, Description_lang: "" },
+        { ID: 1277456, Description_lang: "" },
+      ],
+      SpellName: [],
+      SpellEffect: [
+        fx(10900, 0, 749, { EffectRealPointsPerLevel: 3.9 }),
+        fx(453, 0, -10),
+        fx(401859, 0, 172, { EffectBonusCoefficient: 0.429 }),
+        fx(1277463, 0, 155),
+        fx(1277456, 0, 25, { EffectAuraPeriod: 3000 }),
+      ],
+      SpellMisc: [{ SpellID: 1277456, DifficultyID: 0, DurationIndex: 8 }],
+      SpellDuration: [{ ID: 8, Duration: 15000 }],
+      SpellTargetRestrictions: [{ SpellID: 453, DifficultyID: 0, MaxTargets: 0, MaxTargetLevel: 40 }],
+      SpellDescriptionVariables: [{ ID: 1, Variables: "$mult=1" }],
+      SpellXDescriptionVariables: [{ SpellID: 401859, SpellDescriptionVariablesID: 1 }],
+      SpellLevels: [{ SpellID: 10900, DifficultyID: 0, BaseLevel: 54, SpellLevel: 54, MaxLevel: 59 }],
+    },
+    { stats: { BH: 0 } },
+  );
+  const render = (id) => renderSpellText(priest, id, { wholeExpressions: true });
+
+  it("read $w1 as an absorb's points, grown to level 60 as $s1 is: 749 + 3.9 × 5 = 768.5", () => {
+    expect(render(10900).text).toBe("Draws on the soul of the party member to shield them, absorbing 768 damage.");
+  });
+
+  it("read $v as the highest target level", () => {
+    expect(render(453).text).toBe("Only affects Humanoid targets level 40 or lower.");
+  });
+
+  it("read $bh as the reader's bonus healing (0) and $bc as the first effect's coefficient", () => {
+    expect(render(401859)).toMatchObject({ text: "Heals them for 172 the next time they take damage.", unrendered: [] });
+  });
+
+  it("leave out Contingency Plan's phrases whose token reads an effect its spell lacks", () => {
+    expect(render(1277462)).toMatchObject({ text: "They will gain a shield and begin healing over 15 sec.", unrendered: [] });
+  });
+});

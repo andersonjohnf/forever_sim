@@ -15,6 +15,7 @@ import shamanSpellJson from './spells/shaman.json'
 import rogueSpellJson from './spells/rogue.json'
 import mageSpellJson from './spells/mage.json'
 import warlockSpellJson from './spells/warlock.json'
+import priestSpellJson from './spells/priest.json'
 import type { SpellBook } from './spells/types'
 import warriorSpellJson from './spells/warrior.json'
 import druidTalentJson from './talents/druid.json'
@@ -23,6 +24,7 @@ import shamanTalentJson from './talents/shaman.json'
 import rogueTalentJson from './talents/rogue.json'
 import mageTalentJson from './talents/mage.json'
 import warlockTalentJson from './talents/warlock.json'
+import priestTalentJson from './talents/priest.json'
 import {
   decodeTalentCode,
   encodeTalentCode,
@@ -42,6 +44,7 @@ const spellBooks = {
   rogue: rogueSpellJson as unknown as SpellBook,
   mage: mageSpellJson as unknown as SpellBook,
   warlock: warlockSpellJson as unknown as SpellBook,
+  priest: priestSpellJson as unknown as SpellBook,
 }
 const talentData = {
   warrior: warriorTalentJson as unknown as TalentData,
@@ -51,6 +54,7 @@ const talentData = {
   rogue: rogueTalentJson as unknown as TalentData,
   mage: mageTalentJson as unknown as TalentData,
   warlock: warlockTalentJson as unknown as TalentData,
+  priest: priestTalentJson as unknown as TalentData,
 }
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
@@ -77,7 +81,7 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
 // (a profession-like category), so its book has none (docs/classes/rogue.md#1-wow-forever-changes).
 // The warlock's 22 are Curse of Agony, Curse of Shadow and Curse of Doom (Forever's Banes replace
 // two, docs/classes/warlock.md#1-wow-forever-changes), Dark Pact, and the conjured stones and mounts.
-const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1], warlock: [55, 22] } as const
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1], warlock: [55, 22], priest: [56, 0] } as const
 
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   const all = book.spells.flatMap((s) => s.ranks)
@@ -122,7 +126,9 @@ describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   it('lists every active Forever talent as a talent spell of its tree', () => {
     const active = talentData[cls as keyof typeof talentData].trees.flatMap((t) => t.talents.filter((x) => !x.passive).map((x) => [x.name, t.name]))
     // The shaman's spellbook tab (its skill line) is "Elemental Combat"; its talent tree, "Elemental".
-    const tree = (tab: string) => (cls === 'shaman' && tab === 'Elemental Combat' ? 'Elemental' : tab)
+    // The priest's Shadow talents that are spells sit in its "Shadow Magic" tab (Mind Flay, Vampiric
+    // Embrace) or a tab of their own named "Shadow" (Shadowform, Silence); its talent tree, "Shadow".
+    const tree = (tab: string) => (cls === 'shaman' && tab === 'Elemental Combat' ? 'Elemental' : cls === 'priest' && tab === 'Shadow Magic' ? 'Shadow' : tab)
     const talentSpells = book.spells.filter((s) => s.isTalent).map((s) => [s.name, tree(s.tab)])
     expect(talentSpells.sort()).toEqual(active.sort())
     for (const s of book.spells.filter((x) => x.isTalent)) expect(s.status, s.name).toBe('talent')
@@ -172,6 +178,11 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Elemental: 'Convection 5, Concussion 5, Elemental Warding 3, Reverberation 5, Call of Flame 3, Elemental Devastation 3, Elemental Focus 1, Elemental Fury 5, Improved Fire Nova 2, Eye of the Storm 3, Call of Thunder 1, Elemental Reach 2, Lightning Overload 3, Earthbound 1, Elemental Alacrity 3, Lava Burst 1',
     Enhancement: "Earth's Grasp 2, Thundering Strikes 5, Ancestral Knowledge 5, Guardian Totems 2, Mental Dexterity 3, Improved Ghost Wolf 2, Improved Lightning Shield 3, Elemental Weapons 3, Shamanistic Focus 1, Anticipation 3, Toughness 5, Flurry 5, Stormstrike 1, Spirit Weapons 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
     Restoration: "Improved Healing Wave 5, Totemic Focus 5, Mindfulness 3, Natural Grace 3, Tidal Focus 5, Improved Reincarnation 2, Ancestral Healing 3, Healing Focus 3, Water Shield 1, Tidal Mastery 5, Restorative Totems 5, Mana Tide Totem 1, Healing Way 3, Nature's Swiftness 1, Purification 5, Riptide 1",
+  },
+  priest: {
+    Discipline: 'Power in Light 5, Wand Specialization 2, Twin Disciplines 5, Silent Resolve 3, Holy Precision 3, Improved Power Word: Shield 3, Martyrdom 2, Mental Agility 3, Inner Focus 1, Meditation 3, Improved Inner Fire 3, Mental Strength 5, Soul Warding 1, Improved Mana Burn 2, Penance 1, Renewed Hope 5, Divine Aegis 3, Power Infusion 1',
+    Holy: 'Twilight Focus 3, Improved Renew 3, Holy Specialization 5, Spell Warding 5, Divine Fury 5, Holy Nova 1, Blessed Recovery 3, Inspiration 3, Holy Reach 2, Improved Healing 3, Searing Light 2, Binding Heal 1, Litany of Light 2, Spirit of Redemption 1, Spiritual Guidance 5, Spiritual Healing 3, Prayer of Mending 1',
+    Shadow: 'Shadow Focus 5, Blackout 5, Spirit Tap 5, Shadow Affinity 3, Improved Shadow Word: Pain 2, Shadow Reach 2, Improved Mind Blast 5, Improved Psychic Scream 2, Mind Flay 1, Improved Mind Flay 2, Improved Fade 2, Vampiric Embrace 1, Shadow Weaving 3, Silence 1, Devouring Contagion 2, Early Demise 2, Darkness 5, Shadowform 1',
   },
   rogue: {
     Assassination: 'Improved Gouge 3, Remorseless Attacks 2, Malice 5, Ruthlessness 3, Murder 2, Improved Slice and Dice 3, Relentless Strikes 1, Improved Expose Armor 2, Lethality 5, Vile Poisons 5, Cold Blood 1, Improved Poisons 5, Vigor 2, Mutilate 1, Improved Kidney Shot 2, Seal Fate 5, Venom 1',
@@ -263,7 +274,7 @@ describe('talent presets and defaults', () => {
       const { classId } = SPEC_META[spec]
       expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
     }
-    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock'] as const) {
+    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest'] as const) {
       const presets = talentPresets(classId)
       expect(presets.length, classId).toBeGreaterThan(0)
       expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
@@ -284,7 +295,7 @@ const NAME_USES = [/\btalents\.(?:has|get)\(\s*(['"])(.+?)\1/g, /\brank\(\s*tale
 describe('talent names the engine keys on', () => {
   const uses: { file: string; cls: keyof typeof talentData | null; name: string }[] = []
   for (const [file, source] of Object.entries(SIM_SOURCES)) {
-    const cls = (/\/classes\/(warrior|druid|paladin|shaman|rogue|mage|warlock)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
+    const cls = (/\/classes\/(warrior|druid|paladin|shaman|rogue|mage|warlock|priest)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
     for (const re of NAME_USES) for (const m of source.matchAll(re)) uses.push({ file, cls, name: m[2] })
   }
   for (const name of Object.keys(TALENT_EFFECTS)) uses.push({ file: '../sim/classes/warrior/talents.ts (TALENT_EFFECTS)', cls: 'warrior', name })
@@ -297,7 +308,7 @@ describe('talent names the engine keys on', () => {
   it('exist in the talent data', () => {
     const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
     const missing = uses.filter((u) =>
-      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock'] as const).some((c) => namesOf(c).has(u.name)),
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest'] as const).some((c) => namesOf(c).has(u.name)),
     )
     expect(missing).toEqual([])
   })
@@ -395,7 +406,7 @@ describe('races', () => {
   })
 
   it('offers every simulated class to at least one race per faction', () => {
-    for (const cls of ['warrior', 'druid', 'paladin', 'shaman', 'mage']) {
+    for (const cls of ['warrior', 'druid', 'paladin', 'shaman', 'mage', 'priest']) {
       const factions = new Set(
         races.races.filter((r) => r.classes.forever.includes(cls as never)).map((r) => r.faction),
       )

@@ -11,6 +11,7 @@
 //   $d        duration ("15 sec", "2 min"; "until cancelled" when the duration is −1)
 //   $a1       radius in yards
 //   $h        proc chance                                $n   proc charges
+//   $w1       an absorb's points, as $s1                 $v   highest target level
 //   $u        max stacks    $x1 chain targets    $i max targets    $r range
 //   $q1 misc value         $e1 amplitude        $b1 points per resource
 //   $f1       chain amplitude (EffectChainAmplitude; Execute's "$*10;F1" rage-to-damage factor)
@@ -23,6 +24,7 @@
 //   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
 //   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats`
 //   $SPI $SPS $SPFI        (Spirit, Shadow and Fire spell power: the warlock's Life Tap, Demonic Brand)
+//   $bh $bc                bonus healing (a `stats` value, BH) and the first effect's bonus coefficient, inside ${…}
 // Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
 // Effect points are read at level 60: an effect with EffectRealPointsPerLevel adds that much per
 // level above the spell's SpellLevels.SpellLevel, up to its MaxLevel (scalingLevels below;
@@ -57,6 +59,28 @@ export const SPELL_TEXT_TABLES = [
  * 1.60.1.69913 nor the Classic Era 1.15.9.69722 client, so the text reads "disarms the target."
  */
 const SERVER_ONLY_PHRASES = new Map([[14251, [{ phrase: " for $19718d", missingSpellId: 19718 }]]]);
+/**
+ * Phrases whose token reads an effect its spell doesn't have, left out while the spell has none.
+ * The priest's Contingency Plan (Forever, five ranks) "gain a shield absorbing $1277463s2 damage and
+ * begin healing for $1277456o2 Health": the shield and the heal each have one effect, so the text
+ * reads "gain a shield and begin healing over 15 sec" (docs/data/spells.md#caveats).
+ */
+const CONTINGENCY_PLAN = [
+  [1277462, 1277463, 1277456],
+  [1277634, 1277464, 1277457],
+  [1277638, 1277465, 1277458],
+  [1277639, 1277467, 1277459],
+  [1277640, 1277466, 1277460],
+];
+const MISSING_EFFECT_PHRASES = new Map(
+  CONTINGENCY_PLAN.map(([id, shield, heal]) => [
+    id,
+    [
+      { phrase: ` absorbing $${shield}s2 damage`, spellId: shield, effectIndex: 1 },
+      { phrase: ` for $${heal}o2 Health`, spellId: heal, effectIndex: 1 },
+    ],
+  ]),
+);
 
 /** Player level used for `$PL` and per-level effect points (the sim is level 60). */
 export const PLAYER_LEVEL = 60;
@@ -207,6 +231,9 @@ function variableValue(ctx, spellId, letter, index) {
   switch (letter) {
     case "s":
     case "S":
+    // $w: an absorb's amount, its effect points as $s (Power Word: Shield's "absorbing $w1 damage").
+    case "w":
+    case "W":
     case "m":
     case "M": {
       const r = effectRange(e, levels);
@@ -258,6 +285,10 @@ function variableValue(ctx, spellId, letter, index) {
     case "i":
     case "I":
       return one(ctx.targets.get(spellId)?.MaxTargets ?? null);
+    // $v: the highest target level (Mind Soothe's "Humanoid targets level $v or lower").
+    case "v":
+    case "V":
+      return one(ctx.targets.get(spellId)?.MaxTargetLevel || null);
     case "r":
     case "R": {
       const index2 = ctx.misc.get(spellId)?.RangeIndex;
@@ -277,9 +308,9 @@ function variableValue(ctx, spellId, letter, index) {
 // ---------------------------------------------------------------------------
 
 /** `$<spell id?><variable><index?>`, e.g. $s1, $17669s1, $d, $21970d1, $proccooldown, $s5. */
-const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfF])([1-9]?)/;
+const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfFvVwW])([1-9]?)/;
 /** `$/1000;s1`, `$*2;17669s1`: a scale, then the token without its `$`. */
-const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfF])([1-9]?)/;
+const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfFvVwW])([1-9]?)/;
 
 /**
  * Render a spell's description. Returns { text, unrendered, assumed } where `unrendered` lists
@@ -300,6 +331,7 @@ export function renderSpellText(ctx, spellId, { field = "Description_lang", dept
   let raw = ctx.spell.get(spellId)?.[field] ?? "";
   // A phrase whose token names a spell neither client has a row for is left out while it has none.
   for (const fix of SERVER_ONLY_PHRASES.get(spellId) ?? []) if (!ctx.spell.has(fix.missingSpellId)) raw = raw.replace(fix.phrase, "");
+  for (const fix of MISSING_EFFECT_PHRASES.get(spellId) ?? []) if (!ctx.effects.get(fix.spellId)?.has(fix.effectIndex)) raw = raw.replace(fix.phrase, "");
   const unrendered = [];
   const state = { lastNumber: null, conditions, paragraphs, lines, wholeExpressions, assumed: [] };
   const text = renderString(ctx, spellId, raw, unrendered, state, depth);
@@ -670,6 +702,16 @@ export function evaluate(ctx, spellId, expr, depth = 0, conditions = null) {
     if (pl) {
       tokens.push({ type: "num", value: PLAYER_LEVEL });
       i += pl[0].length;
+      continue;
+    }
+    // $bh is the reader's bonus healing, a player stat as $SPH is; $bc is the spell's first
+    // effect's EffectBonusCoefficient (Prayer of Mending, 401859: "${($m1+($bh*$bc))*$<mult>}").
+    const bonus = /^\$(bh|bc)\b/.exec(rest);
+    if (bonus) {
+      const v = bonus[1] === "bh" ? ctx.stats?.BH : ctx.effects.get(spellId)?.get(0)?.EffectBonusCoefficient;
+      if (v === undefined) return null;
+      tokens.push({ type: "num", value: v });
+      i += bonus[0].length;
       continue;
     }
     const stat = /^\$(AP|RAP|SP|SPH|SPI|SPS|SPFI)\b/.exec(rest);

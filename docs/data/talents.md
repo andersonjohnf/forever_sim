@@ -285,6 +285,15 @@ currency 3820 in the nodes of group G". In all three classes:
 - Druid Balance tier 3 (Improved Entangling Roots, Nature's Splendor) also carries an empty
   `TraitCond` (50974: no currency, no amount); it is ignored.
 
+### Retired nodes
+
+The priest's tree (Trait tree 1114) keeps an old copy of Holy Specialization: node 105865, parked
+32 rows below the tree (`PosY` 21300) under the Shadow tab's columns, with no gate of its own; node
+110855 teaches the same talent (spell 14889) at Holy's tier 1. The reader leaves out a node more than
+11 rows below its tree's top whose talent another node of the tree teaches, and drops it from the
+tier gates' counts too (its only group is Prayer of Mending's whole-tree gate). A far node that
+copies nothing is a problem, and the run stops. No other class has one.
+
 ## From foreverchanges to the client
 
 *History: the one-time switch in M1.5d, kept as its record.* The last foreverchanges dataset

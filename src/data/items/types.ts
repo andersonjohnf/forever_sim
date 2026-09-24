@@ -301,7 +301,8 @@ export type PreRaidBisSpec =
   | "mage-frost"
   | "mage-arcane"
   | "warlock-destruction"
-  | "warlock-affliction";
+  | "warlock-affliction"
+  | "priest-shadow";
 
 /** Slot keys used by the pre-raid BiS lists: paperdoll slots, plus `twoHand` and `relic`. */
 export type PreRaidBisSlot =

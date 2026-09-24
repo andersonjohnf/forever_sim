@@ -19,6 +19,11 @@
 import { renderSpellText, formatDuration } from "./spell-text.mjs";
 
 export const GRID = 600;
+/**
+ * Rows below a tree's top beyond which a node is parked, not placed: every class tree spans 7
+ * rows (0–6), so 11 is well clear of any real tier. See readForeverTree's retired copies.
+ */
+const RETIRED_BELOW_TIERS = 11;
 
 /** Forever tables this module reads (plus lib/spell-text.mjs SPELL_TEXT_TABLES). */
 export const FOREVER_TREE_TABLES = [
@@ -50,9 +55,9 @@ export const FOREVER_TREE_TABLES = [
 export const CLASSIC_TREE_TABLES = ["Talent", "TalentTab", "ChrClasses"];
 
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5, priest: 6 };
 /** ChrClasses.Name_lang of each class slug. */
-const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock" };
+const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock", priest: "Priest" };
 /**
  * Tabs whose nodes leave a whole edge column empty, so the node positions alone can't tell the
  * left edge, with the edge that places them. The warlock's Destruction (1.60.1.69913) has no talent
@@ -160,7 +165,23 @@ export function readForeverTree(t, cls) {
   const currency = { id: currencies[0]?.ID ?? null, max: currencies[0]?.SourcedMax ?? null };
 
   // Nodes with a definition, placed on the grid.
-  const nodes = (nodesOfTree.get(traitTreeId) ?? []).filter((n) => nodeEntries(n.ID).length);
+  let nodes = (nodesOfTree.get(traitTreeId) ?? []).filter((n) => nodeEntries(n.ID).length);
+  // A retired copy (the priest's old Holy Specialization, node 105865): a node parked far below the
+  // tree (more than RETIRED_BELOW_TIERS rows under its top) whose talent another node of the tree
+  // teaches. The client keeps it with no gate of its own; it's left out, and so are the tier gates'
+  // counts of it (docs/data/talents.md#retired-nodes). A far node that's no copy is a problem.
+  const nodeTop = Math.min(...nodes.map((n) => n.PosY));
+  const spellOfNode = (n) => nodeEntries(n.ID)[0]?.def.SpellID;
+  const retired = new Set();
+  for (const n of nodes) {
+    if ((n.PosY - nodeTop) / GRID <= RETIRED_BELOW_TIERS) continue;
+    const copyOf = nodes.find((o) => o.ID !== n.ID && (o.PosY - nodeTop) / GRID <= RETIRED_BELOW_TIERS && spellOfNode(o) === spellOfNode(n));
+    if (copyOf) {
+      retired.add(n.ID);
+      notes.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) sits ${Math.round((n.PosY - nodeTop) / GRID)} rows below the tree and copies node ${copyOf.ID}: a retired copy (left out)`);
+    } else problems.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) sits ${Math.round((n.PosY - nodeTop) / GRID)} rows below the tree`);
+  }
+  nodes = nodes.filter((n) => !retired.has(n.ID));
   for (const n of nodes) if (nodeEntries(n.ID).length > 1) problems.push(`${cls}: node ${n.ID} has ${nodeEntries(n.ID).length} entries (a choice node)`);
   const xs = [...new Set(nodes.map((n) => n.PosX))].sort((a, b) => a - b);
   const clusters = [];
@@ -253,7 +274,12 @@ export function readForeverTree(t, cls) {
         problems.push(`${cls} ${name}: TraitCond ${c.ID} isn't a points-spent gate: ${JSON.stringify(c)}`);
         continue;
       }
-      gates.push({ condId: c.ID, spent: c.SpentAmountRequired, groupId: c.TraitNodeGroupID, nodeIds: (nodesOfGroup.get(c.TraitNodeGroupID) ?? []).map((x) => x.TraitNodeID) });
+      gates.push({
+        condId: c.ID,
+        spent: c.SpentAmountRequired,
+        groupId: c.TraitNodeGroupID,
+        nodeIds: (nodesOfGroup.get(c.TraitNodeGroupID) ?? []).map((x) => x.TraitNodeID).filter((id) => !retired.has(id)),
+      });
     }
     const rankEffects = (pointsByDef.get(d.ID) ?? [])
       .slice()

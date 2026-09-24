@@ -1320,6 +1320,10 @@
       "classic": ["alliance-human", "alliance-dwarf"],
       "forever": ["horde-undead", "alliance-human", "alliance-dwarf"]
     },
+    "priest": {
+      "classic": ["horde-undead", "horde-troll", "alliance-human", "alliance-dwarf", "alliance-night-elf"],
+      "forever": ["horde-undead", "horde-troll", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome"]
+    },
     "rogue": {
       "classic": ["horde-orc", "horde-undead", "horde-troll", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome"],
       "forever": ["horde-orc", "horde-undead", "horde-troll", "horde-skyborne-windshaper", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome", "alliance-skyborne-high-order"]

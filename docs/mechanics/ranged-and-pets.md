@@ -21,8 +21,8 @@ until the guild measures them ([Open questions](#open-questions)).
 
 Status: researched 2026-09-24 · Forever client builds 1.60.1.69977 (1.60.1.69913 where that build has
 the table) · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified ·
-engine: the ranged and pet core (slice H1, [Implementation notes](#implementation-notes)); no spec
-uses it yet: the Hunter (H2) and the Demonology Warlock come next
+engine: the ranged and pet core (slice H1, [Implementation notes](#implementation-notes)); the Hunter
+(H2, [hunter.md](../classes/hunter.md)) uses it, and the Demonology Warlock comes next
 
 ---
 

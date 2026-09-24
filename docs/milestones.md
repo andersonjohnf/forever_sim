@@ -441,6 +441,18 @@ slice is worked:
   recast, well under 0.1% of DPS.
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
+- **The Fire mage still does slightly best at exactly ×1.000 casting speed** (engine-issues
+  verification EV-4): at 600 s (Human, unlimited mana, 4,000 fights) ×1.000 gives 570.55 ±0.46,
+  ×1.0005 569.28 ±0.44 and ×1.002 569.69 ±0.44, 1–1.3 DPS (≤0.3%) the verifier also saw. It isn't
+  idle: the waits a hair above ×1.000 total 61 ms a fight (39 for Pyroblast's tick, 22 for Fire
+  Blast), and the casts take the same time. At ×1.000 the mage casts about one more spell a fight
+  (+0.9 Scorch, +0.26 Fire Blast); Scorch goes one Fireball early there, because COND 44 counts a
+  Scorch landing the same millisecond Fire Vulnerability ends as too late, which it is (the expiry
+  wins that tie): counting it in time costs ×1.000 3.5 DPS (567.09). Whether the rest is a real
+  edge of the exact 1.5 s grid (a player with no casting speed lines up the same, less their
+  latency) or a tie still broken in the mage's favour wasn't settled in the time given. The
+  default Fire mage is at ×1.000 outside Berserking, so its headline may read up to 0.3% high
+  against a hair more casting speed: well inside D27's first-pass tolerance.
 - **Pre-push check lows** (PV-1..PV-3, tank quick-fix log): README's "report" → "reports"; the release
   stamp's second line opens on its separator at 390 px; a test that every `INTERIM_GEAR` id is
   wearable by its class.

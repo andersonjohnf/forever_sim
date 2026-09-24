@@ -18,10 +18,12 @@
 // reference's by default (`defaultConstraints`).
 //
 // **Crit and crush immunity** (D30, user decision; off by default): the boss's crit and crushing
-// blow chances against you, read from the same table the engine rolls and the Results show
+// blow chances against you, read from the same tables the engine rolls and the Results show
 // (`sheet.bossTable`, combat-tables §8). Crit immune is `bossCritPct<=0` (440 defense against a
-// level-63 boss); crush immune is `bossCrushPct<=0` (miss + dodge + parry + block push crushing blows
-// off the table). There's no damage-taken cap: D30 replaced it with these.
+// level-63 boss), on the table without any block buff: defense alone decides it. Crush immune is
+// `bossCrushPct<=0` (miss + dodge + parry + block push crushing blows off the table), on the table
+// with the rotation's block buff up when it keeps one (`sheet.bossTableUp`, a Protection paladin's
+// Holy Shield). There's no damage-taken cap: D30 replaced it with these.
 import { armorReduction } from '../core/formulas'
 import type { PlanBundle } from '../plan/types'
 import type { BossOutcomes, Role } from '../types'
@@ -55,20 +57,23 @@ export function effectiveHealth(bundle: PlanBundle): number {
 }
 
 /**
- * The boss's table against the sheet, for crit and crush immunity: with the block buff the rotation
- * keeps up when it has one (a Protection paladin's Holy Shield; the Results' second table,
- * docs/ux.md#results), since that's the table most of the fight's swings roll on; otherwise the
- * table as the fight starts. Null for a spec the boss doesn't attack.
+ * The boss's tables against the sheet, for crit and crush immunity (null for a spec the boss doesn't
+ * attack). Crit reads the table as the fight starts, with no block buff: a block buff doesn't move
+ * crit, which only defense pushes off, and a crit immunity that held only while Holy Shield is up
+ * wouldn't be one. Crush reads the table with the block buff the rotation keeps up when it has one (a
+ * Protection paladin's Holy Shield; the Results' second table, docs/ux.md#results), since that's the
+ * table most of the fight's swings roll on, and the paladin's classic way to be uncrushable.
  */
-export function immunityTable(bundle: PlanBundle): BossOutcomes | null {
-  return bundle.sheet.bossTableUp?.table ?? bundle.sheet.bossTable
+export function immunityTables(bundle: PlanBundle): { crit: BossOutcomes | null; crush: BossOutcomes | null } {
+  const { sheet } = bundle
+  return { crit: sheet.bossTable, crush: sheet.bossTableUp?.table ?? sheet.bossTable }
 }
 
 /** A setup's sheet numbers, effective health and the boss's crit and crush chances included: no fights needed. */
 export function sheetValues(bundle: PlanBundle): SheetValues {
   const { sheet } = bundle
   // A spec the boss doesn't attack takes no crits or crushing blows.
-  const table = immunityTable(bundle)
+  const tables = immunityTables(bundle)
   return {
     ehp: effectiveHealth(bundle),
     health: sheet.health,
@@ -83,8 +88,8 @@ export function sheetValues(bundle: PlanBundle): SheetValues {
     hitPct: sheet.hitPct,
     critPct: sheet.critPct,
     attackPower: sheet.attackPower,
-    bossCritPct: share(table?.crit),
-    bossCrushPct: share(table?.crush),
+    bossCritPct: share(tables.crit?.crit),
+    bossCrushPct: share(tables.crush?.crush),
   }
 }
 
@@ -153,6 +158,13 @@ export function parseConstraint(text: string): Constraint {
   if ((RESULT_METRICS as readonly string[]).includes(name)) return { on: 'result', metric: name as ResultMetric, ...bound }
   if ((SHEET_STATS as readonly string[]).includes(name)) return { on: 'sheet', stat: name as SheetStat, ...bound }
   throw new Error(`"${name}" isn't a sheet stat (${SHEET_STATS.join(', ')}) or a result metric (${RESULT_METRICS.join(', ')})`)
+}
+
+/** A constraint's name in words: "crit immune", "crush immune", or its command-line form. */
+export function constraintName(c: Constraint): string {
+  if (c.on === 'sheet' && c.stat === 'bossCritPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crit immune'
+  if (c.on === 'sheet' && c.stat === 'bossCrushPct' && c.max === 0 && c.min === undefined && !c.relative) return 'crush immune'
+  return formatConstraint(c)
 }
 
 /** A constraint in its command-line form. */

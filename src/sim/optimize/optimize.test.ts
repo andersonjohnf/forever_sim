@@ -280,14 +280,22 @@ describe('constraints', () => {
     expect(floor.some((c) => c.on === 'result')).toBe(false)
   })
 
-  it('reads the boss’s crit and crush chances from the table the engine and the Results use (D30)', () => {
+  it('reads the boss’s crit and crush chances from the tables the engine and the Results use (D30)', () => {
     for (const spec of ['warrior-protection', 'druid-feral-bear', 'paladin-protection'] as const) {
       const bundle = buildPlan(fixed(defaultConfig(spec)))
-      const table = bundle.sheet.bossTableUp?.table ?? bundle.sheet.bossTable!
       const values = sheetValues(bundle)
-      expect(values.bossCritPct).toBeCloseTo(table.crit, 12)
-      expect(values.bossCrushPct).toBeCloseTo(table.crush, 12)
+      // Crit from the table with no block buff; crush with the rotation's block buff up (OV-4).
+      expect(values.bossCritPct).toBeCloseTo(bundle.sheet.bossTable!.crit, 12)
+      expect(values.bossCrushPct).toBeCloseTo((bundle.sheet.bossTableUp?.table ?? bundle.sheet.bossTable!).crush, 12)
     }
+    // The paladin keeps Holy Shield up: its crush reads that table, its crit doesn't. A table with
+    // Holy Shield up that pushed crits off too wouldn't make the paladin crit immune.
+    const paladin = buildPlan(fixed(defaultConfig('paladin-protection')))
+    const up = paladin.sheet.bossTableUp!
+    const pushed = { ...paladin, sheet: { ...paladin.sheet, bossTableUp: { ...up, table: { ...up.table, crit: 0, crush: 0 } } } }
+    expect(sheetValues(pushed).bossCritPct).toBeCloseTo(paladin.sheet.bossTable!.crit, 12)
+    expect(paladin.sheet.bossTable!.crit).toBeGreaterThan(0)
+    expect(sheetValues(pushed).bossCrushPct).toBe(0)
     // A DPS spec's boss doesn't swing at it: no crits or crushing blows.
     const fury = sheetValues(buildPlan(fixed(defaultConfig('warrior-fury'))))
     expect([fury.bossCritPct, fury.bossCrushPct]).toEqual([0, 0])

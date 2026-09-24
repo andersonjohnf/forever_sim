@@ -3429,6 +3429,1640 @@
       ],
       "traitTreeId": 1100
     },
+    "shaman": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Elemental"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Enhancement"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Restoration"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Convection",
+          "col": 1,
+          "id": "shaman-elemental-convection",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Convection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85214,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [16039, 16039, 16039, 16039, 16039],
+          "spellId": 16039,
+          "tier": 0,
+          "traitDefinitionId": 134234,
+          "traitNodeEntryId": 129433,
+          "traitNodeId": 104773,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Concussion",
+          "col": 2,
+          "id": "shaman-elemental-concussion",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Concussion",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85215,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [16035, 16035, 16035, 16035, 16035],
+          "spellId": 16035,
+          "tier": 0,
+          "traitDefinitionId": 134233,
+          "traitNodeEntryId": 129432,
+          "traitNodeId": 104772,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Elemental Warding",
+          "col": 0,
+          "id": "shaman-elemental-elemental-warding",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Elemental Warding",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85216,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -7, -10]
+            }
+          ],
+          "rankSpellIds": [28996, 28996, 28996],
+          "spellId": 28996,
+          "tier": 1,
+          "traitDefinitionId": 134232,
+          "traitNodeEntryId": 129431,
+          "traitNodeId": 104771,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Reverberation",
+          "col": 1,
+          "id": "shaman-elemental-reverberation",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Reverberation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85220,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-200, -400, -600, -800, -1000]
+            }
+          ],
+          "rankSpellIds": [16040, 16040, 16040, 16040, 16040],
+          "spellId": 16040,
+          "tier": 1,
+          "traitDefinitionId": 134228,
+          "traitNodeEntryId": 129427,
+          "traitNodeId": 104767,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Call of Flame",
+          "col": 2,
+          "id": "shaman-elemental-call-of-flame",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Call of Flame",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85218,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            },
+            {
+              "curveId": 85217,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [16038, 16038, 16038],
+          "spellId": 16038,
+          "tier": 1,
+          "traitDefinitionId": 134231,
+          "traitNodeEntryId": 129430,
+          "traitNodeId": 104770,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Elemental Devastation",
+          "col": 3,
+          "id": "shaman-elemental-elemental-devastation",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Elemental Devastation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85219,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9]
+            }
+          ],
+          "rankSpellIds": [30160, 30160, 30160],
+          "spellId": 30160,
+          "tier": 1,
+          "traitDefinitionId": 134230,
+          "traitNodeEntryId": 129429,
+          "traitNodeId": 104769,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Elemental Focus",
+          "col": 1,
+          "id": "shaman-elemental-elemental-focus",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Elemental Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16164],
+          "spellId": 16164,
+          "tier": 2,
+          "traitDefinitionId": 134229,
+          "traitNodeEntryId": 129428,
+          "traitNodeId": 104768,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Elemental Fury",
+          "col": 2,
+          "id": "shaman-elemental-elemental-fury",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Elemental Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85221,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [16089, 16089, 16089, 16089, 16089],
+          "spellId": 16089,
+          "tier": 2,
+          "traitDefinitionId": 134227,
+          "traitNodeEntryId": 129426,
+          "traitNodeId": 104766,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Fire Nova",
+          "col": 0,
+          "id": "shaman-elemental-improved-fire-nova",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Fire Nova",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85223,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 85222,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2000, -4000]
+            }
+          ],
+          "rankSpellIds": [16086, 16086],
+          "spellId": 16086,
+          "tier": 3,
+          "traitDefinitionId": 134225,
+          "traitNodeEntryId": 129424,
+          "traitNodeId": 104764,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Eye of the Storm",
+          "col": 1,
+          "id": "shaman-elemental-eye-of-the-storm",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Eye of the Storm",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85224,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            }
+          ],
+          "rankSpellIds": [29062, 29062, 29062],
+          "spellId": 29062,
+          "tier": 3,
+          "traitDefinitionId": 134224,
+          "traitNodeEntryId": 129423,
+          "traitNodeId": 104763,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104766],
+            "prerequisiteTalentIds": ["shaman-elemental-elemental-fury"],
+            "tier": 3
+          },
+          "clientName": "Call of Thunder",
+          "col": 2,
+          "id": "shaman-elemental-call-of-thunder",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Call of Thunder",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16120],
+          "spellId": 16120,
+          "tier": 3,
+          "traitDefinitionId": 134223,
+          "traitNodeEntryId": 129422,
+          "traitNodeId": 104762,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Elemental Reach",
+          "col": 0,
+          "id": "shaman-elemental-elemental-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Elemental Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85226,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6]
+            },
+            {
+              "curveId": 85225,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [8, 15]
+            }
+          ],
+          "rankSpellIds": [28999, 28999],
+          "spellId": 28999,
+          "tier": 4,
+          "traitDefinitionId": 134222,
+          "traitNodeEntryId": 129421,
+          "traitNodeId": 104761,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Lightning Overload",
+          "col": 1,
+          "id": "shaman-elemental-lightning-overload",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Lightning Overload",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85227,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [408438, 408438, 408438],
+          "spellId": 408438,
+          "tier": 4,
+          "traitDefinitionId": 134220,
+          "traitNodeEntryId": 129419,
+          "traitNodeId": 104759,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Earthbound",
+          "col": 3,
+          "id": "shaman-elemental-earthbound",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Earthbound",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1222988],
+          "spellId": 1222988,
+          "tier": 4,
+          "traitDefinitionId": 134221,
+          "traitNodeEntryId": 129420,
+          "traitNodeId": 104760,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104762],
+            "prerequisiteTalentIds": ["shaman-elemental-call-of-thunder"],
+            "tier": 5
+          },
+          "clientName": "Elemental Alacrity",
+          "col": 2,
+          "id": "shaman-elemental-elemental-alacrity",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Elemental Alacrity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85228,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-170, -330, -500]
+            }
+          ],
+          "rankSpellIds": [16578, 16578, 16578],
+          "spellId": 16578,
+          "tier": 5,
+          "traitDefinitionId": 134226,
+          "traitNodeEntryId": 129425,
+          "traitNodeId": 104765,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104759],
+            "prerequisiteTalentIds": ["shaman-elemental-lightning-overload"],
+            "tier": 6
+          },
+          "clientName": "Lava Burst",
+          "col": 1,
+          "id": "shaman-elemental-lava-burst",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Lava Burst",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [408490],
+          "spellId": 408490,
+          "tier": 6,
+          "traitDefinitionId": 134219,
+          "traitNodeEntryId": 129418,
+          "traitNodeId": 104758,
+          "tree": "Elemental",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Earth's Grasp",
+          "col": 0,
+          "id": "shaman-enhancement-earths-grasp",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Earth's Grasp",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85265,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50]
+            },
+            {
+              "curveId": 85264,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [16043, 16043],
+          "spellId": 16043,
+          "tier": 0,
+          "traitDefinitionId": 134218,
+          "traitNodeEntryId": 129417,
+          "traitNodeId": 104757,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Thundering Strikes",
+          "col": 1,
+          "id": "shaman-enhancement-thundering-strikes",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Thundering Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85275,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [16255, 16255, 16255, 16255, 16255],
+          "spellId": 16255,
+          "tier": 0,
+          "traitDefinitionId": 134214,
+          "traitNodeEntryId": 129413,
+          "traitNodeId": 104753,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Ancestral Knowledge",
+          "col": 2,
+          "id": "shaman-enhancement-ancestral-knowledge",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ancestral Knowledge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85266,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [17485, 17485, 17485, 17485, 17485],
+          "spellId": 17485,
+          "tier": 0,
+          "traitDefinitionId": 134217,
+          "traitNodeEntryId": 129416,
+          "traitNodeId": 104756,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Guardian Totems",
+          "col": 0,
+          "id": "shaman-enhancement-guardian-totems",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Guardian Totems",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85274,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 85273,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-1000, -2000]
+            }
+          ],
+          "rankSpellIds": [16258, 16258],
+          "spellId": 16258,
+          "tier": 1,
+          "traitDefinitionId": 134215,
+          "traitNodeEntryId": 129414,
+          "traitNodeId": 104754,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Mental Dexterity",
+          "col": 1,
+          "id": "shaman-enhancement-mental-dexterity",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Mental Dexterity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85272,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [415140, 415140, 415140],
+          "spellId": 415140,
+          "tier": 1,
+          "traitDefinitionId": 134216,
+          "traitNodeEntryId": 129415,
+          "traitNodeId": 104755,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Ghost Wolf",
+          "col": 2,
+          "id": "shaman-enhancement-improved-ghost-wolf",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Ghost Wolf",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85293,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-1000, -3000]
+            }
+          ],
+          "rankSpellIds": [16262, 16262],
+          "spellId": 16262,
+          "tier": 1,
+          "traitDefinitionId": 134213,
+          "traitNodeEntryId": 129412,
+          "traitNodeId": 104752,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Lightning Shield",
+          "col": 3,
+          "id": "shaman-enhancement-improved-lightning-shield",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Lightning Shield",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85295,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [16261, 16261, 16261],
+          "spellId": 16261,
+          "tier": 1,
+          "traitDefinitionId": 134212,
+          "traitNodeEntryId": 129411,
+          "traitNodeId": 104751,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Elemental Weapons",
+          "col": 0,
+          "id": "shaman-enhancement-elemental-weapons",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Elemental Weapons",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85298,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [7, 13, 20]
+            },
+            {
+              "curveId": 85297,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            },
+            {
+              "curveId": 85296,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [13, 27, 40]
+            }
+          ],
+          "rankSpellIds": [16266, 16266, 16266],
+          "spellId": 16266,
+          "tier": 2,
+          "traitDefinitionId": 134211,
+          "traitNodeEntryId": 129410,
+          "traitNodeId": 104750,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Shamanistic Focus",
+          "col": 2,
+          "id": "shaman-enhancement-shamanistic-focus",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Shamanistic Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1223030],
+          "spellId": 1223030,
+          "tier": 2,
+          "traitDefinitionId": 134210,
+          "traitNodeEntryId": 129409,
+          "traitNodeId": 104749,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Anticipation",
+          "col": 3,
+          "id": "shaman-enhancement-anticipation",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Anticipation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85299,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [16254, 16254, 16254],
+          "spellId": 16254,
+          "tier": 2,
+          "traitDefinitionId": 134209,
+          "traitNodeEntryId": 129408,
+          "traitNodeId": 104748,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Toughness",
+          "col": 0,
+          "id": "shaman-enhancement-toughness",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Toughness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85301,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [16252, 16252, 16252, 16252, 16252],
+          "spellId": 16252,
+          "tier": 3,
+          "traitDefinitionId": 134207,
+          "traitNodeEntryId": 129406,
+          "traitNodeId": 104746,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104755],
+            "prerequisiteTalentIds": ["shaman-enhancement-mental-dexterity"],
+            "tier": 3
+          },
+          "clientName": "Flurry",
+          "col": 1,
+          "id": "shaman-enhancement-flurry",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Flurry",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85300,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            }
+          ],
+          "rankSpellIds": [16256, 16256, 16256, 16256, 16256],
+          "spellId": 16256,
+          "tier": 3,
+          "traitDefinitionId": 134208,
+          "traitNodeEntryId": 129407,
+          "traitNodeId": 104747,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Stormstrike",
+          "col": 2,
+          "id": "shaman-enhancement-stormstrike",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Stormstrike",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [17364],
+          "spellId": 17364,
+          "tier": 3,
+          "traitDefinitionId": 134204,
+          "traitNodeEntryId": 129403,
+          "traitNodeId": 104743,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Spirit Weapons",
+          "col": 0,
+          "id": "shaman-enhancement-spirit-weapons",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Spirit Weapons",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16268],
+          "spellId": 16268,
+          "tier": 4,
+          "traitDefinitionId": 134206,
+          "traitNodeEntryId": 129405,
+          "traitNodeId": 104745,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Mental Quickness",
+          "col": 1,
+          "id": "shaman-enhancement-mental-quickness",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Mental Quickness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85303,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30]
+            },
+            {
+              "curveId": 85302,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [15, 30]
+            },
+            {
+              "curveId": 87358,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [30812, 30812],
+          "spellId": 30812,
+          "tier": 4,
+          "traitDefinitionId": 134205,
+          "traitNodeEntryId": 129404,
+          "traitNodeId": 104744,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104743],
+            "prerequisiteTalentIds": ["shaman-enhancement-stormstrike"],
+            "tier": 4
+          },
+          "clientName": "Improved Stormstrike",
+          "col": 2,
+          "id": "shaman-enhancement-improved-stormstrike",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Stormstrike",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85305,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            },
+            {
+              "curveId": 85304,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [1223031, 1223031],
+          "spellId": 1223031,
+          "tier": 4,
+          "traitDefinitionId": 134203,
+          "traitNodeEntryId": 129402,
+          "traitNodeId": 104742,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Maelstrom Weapon",
+          "col": 2,
+          "id": "shaman-enhancement-maelstrom-weapon",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Maelstrom Weapon",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85306,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-4, -8, -12, -16, -20]
+            }
+          ],
+          "rankSpellIds": [408498, 408498, 408498, 408498, 408498],
+          "spellId": 408498,
+          "tier": 5,
+          "traitDefinitionId": 134202,
+          "traitNodeEntryId": 129401,
+          "traitNodeId": 104741,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104744],
+            "prerequisiteTalentIds": ["shaman-enhancement-mental-quickness"],
+            "tier": 6
+          },
+          "clientName": "Rage of the Farseer",
+          "col": 1,
+          "id": "shaman-enhancement-rage-of-the-farseer",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Rage of the Farseer",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [425336],
+          "spellId": 425336,
+          "tier": 6,
+          "traitDefinitionId": 134201,
+          "traitNodeEntryId": 129400,
+          "traitNodeId": 104740,
+          "tree": "Enhancement",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Healing Wave",
+          "col": 1,
+          "id": "shaman-restoration-improved-healing-wave",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Healing Wave",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85307,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            }
+          ],
+          "rankSpellIds": [16182, 16182, 16182, 16182, 16182],
+          "spellId": 16182,
+          "tier": 0,
+          "traitDefinitionId": 134200,
+          "traitNodeEntryId": 129399,
+          "traitNodeId": 104739,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Totemic Focus",
+          "col": 2,
+          "id": "shaman-restoration-totemic-focus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Totemic Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85321,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5, -10, -15, -20, -25]
+            }
+          ],
+          "rankSpellIds": [16173, 16173, 16173, 16173, 16173],
+          "spellId": 16173,
+          "tier": 0,
+          "traitDefinitionId": 134190,
+          "traitNodeEntryId": 129389,
+          "traitNodeId": 104729,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Mindfulness",
+          "col": 0,
+          "id": "shaman-restoration-mindfulness",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Mindfulness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85316,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [17, 33, 50]
+            }
+          ],
+          "rankSpellIds": [1223033, 1223033, 1223033],
+          "spellId": 1223033,
+          "tier": 1,
+          "traitDefinitionId": 134195,
+          "traitNodeEntryId": 129394,
+          "traitNodeId": 104734,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Natural Grace",
+          "col": 1,
+          "id": "shaman-restoration-natural-grace",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Natural Grace",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85314,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            }
+          ],
+          "rankSpellIds": [29187, 29187, 29187],
+          "spellId": 29187,
+          "tier": 1,
+          "traitDefinitionId": 134197,
+          "traitNodeEntryId": 129396,
+          "traitNodeId": 104736,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Tidal Focus",
+          "col": 2,
+          "id": "shaman-restoration-tidal-focus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Tidal Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85315,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-1, -2, -3, -4, -5]
+            },
+            {
+              "curveId": 109096,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 109095,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [16179, 16179, 16179, 16179, 16179],
+          "spellId": 16179,
+          "tier": 1,
+          "traitDefinitionId": 134196,
+          "traitNodeEntryId": 129395,
+          "traitNodeId": 104735,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Reincarnation",
+          "col": 3,
+          "id": "shaman-restoration-improved-reincarnation",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Reincarnation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85311,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-600000, -1200000]
+            },
+            {
+              "curveId": 85310,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4]
+            },
+            {
+              "curveId": 85309,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [16184, 16184],
+          "spellId": 16184,
+          "tier": 1,
+          "traitDefinitionId": 134198,
+          "traitNodeEntryId": 129397,
+          "traitNodeId": 104737,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Ancestral Healing",
+          "col": 0,
+          "id": "shaman-restoration-ancestral-healing",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Ancestral Healing",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85318,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 17, 25]
+            }
+          ],
+          "rankSpellIds": [16176, 16176, 16176],
+          "spellId": 16176,
+          "tier": 2,
+          "traitDefinitionId": 134192,
+          "traitNodeEntryId": 129391,
+          "traitNodeId": 104731,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Healing Focus",
+          "col": 1,
+          "id": "shaman-restoration-healing-focus",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Healing Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85317,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            }
+          ],
+          "rankSpellIds": [16181, 16181, 16181],
+          "spellId": 16181,
+          "tier": 2,
+          "traitDefinitionId": 134194,
+          "traitNodeEntryId": 129393,
+          "traitNodeId": 104733,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Water Shield",
+          "col": 2,
+          "id": "shaman-restoration-water-shield",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Water Shield",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [408510],
+          "spellId": 408510,
+          "tier": 2,
+          "traitDefinitionId": 134193,
+          "traitNodeEntryId": 129392,
+          "traitNodeId": 104732,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Tidal Mastery",
+          "col": 0,
+          "id": "shaman-restoration-tidal-mastery",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Tidal Mastery",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85308,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [16194, 16194, 16194, 16194, 16194],
+          "spellId": 16194,
+          "tier": 3,
+          "traitDefinitionId": 134199,
+          "traitNodeEntryId": 129398,
+          "traitNodeId": 104738,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Restorative Totems",
+          "col": 1,
+          "id": "shaman-restoration-restorative-totems",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Restorative Totems",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85320,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            },
+            {
+              "curveId": 85319,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [16187, 16187, 16187, 16187, 16187],
+          "spellId": 16187,
+          "tier": 3,
+          "traitDefinitionId": 134191,
+          "traitNodeEntryId": 129390,
+          "traitNodeId": 104730,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Mana Tide Totem",
+          "col": 2,
+          "id": "shaman-restoration-mana-tide-totem",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Mana Tide Totem",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16190],
+          "spellId": 16190,
+          "tier": 3,
+          "traitDefinitionId": 134189,
+          "traitNodeEntryId": 129388,
+          "traitNodeId": 104728,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Healing Way",
+          "col": 1,
+          "id": "shaman-restoration-healing-way",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Healing Way",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85322,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 17, 25]
+            }
+          ],
+          "rankSpellIds": [29206, 29206, 29206],
+          "spellId": 29206,
+          "tier": 4,
+          "traitDefinitionId": 134188,
+          "traitNodeEntryId": 129387,
+          "traitNodeId": 104727,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Nature's Swiftness",
+          "col": 2,
+          "id": "shaman-restoration-natures-swiftness",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Nature's Swiftness",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16188],
+          "spellId": 16188,
+          "tier": 4,
+          "traitDefinitionId": 134187,
+          "traitNodeEntryId": 129386,
+          "traitNodeId": 104726,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Purification",
+          "col": 2,
+          "id": "shaman-restoration-purification",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Purification",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85323,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 87379,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [16178, 16178, 16178, 16178, 16178],
+          "spellId": 16178,
+          "tier": 5,
+          "traitDefinitionId": 134186,
+          "traitNodeEntryId": 129385,
+          "traitNodeId": 104725,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104727],
+            "prerequisiteTalentIds": ["shaman-restoration-healing-way"],
+            "tier": 6
+          },
+          "clientName": "Riptide",
+          "col": 1,
+          "id": "shaman-restoration-riptide",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Riptide",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [408521],
+          "spellId": 408521,
+          "tier": 6,
+          "traitDefinitionId": 134185,
+          "traitNodeEntryId": 129384,
+          "traitNodeId": 104724,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1082
+    },
     "warrior": {
       "tabs": [
         {
@@ -5132,10 +6766,10 @@
     }
   },
   "counts": {
-    "byName": 156,
+    "byName": 206,
     "byPosition": 0,
-    "mapped": 156,
-    "talents": 156,
+    "mapped": 206,
+    "talents": 206,
     "unmapped": 0
   },
   "unmapped": []

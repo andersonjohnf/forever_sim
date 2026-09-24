@@ -405,6 +405,7 @@
         "TraitTreeXTraitCurrency": 4524218
       }
     },
+    "unresolvedTokens": [],
     "wowDbDefs": {
       "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
       "repository": "https://github.com/wowdev/WoWDBDefs"

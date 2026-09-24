@@ -44,7 +44,7 @@ import {
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/spells-client.mjs";
@@ -65,6 +65,22 @@ const TOOLTIP_STATS = { AP: 0 };
  * "ability_druid_mangle.tga") that never shipped; the Forever client dropped its row.
  */
 const CLASSIC_CUT_CONTENT = new Map([[22570, "cut content: no trainer teaches it"]]);
+/**
+ * Why a Forever tooltip token the client files can't resolve doesn't fail the run: `$z` is the
+ * player's home location (Astral Recall), which only the game knows, and a token that reads a spell
+ * the build doesn't have can't be read from the files at all (Windfury Totem's "within $10611a1
+ * yards" reads the radius of the Classic enchant spell 10611, which Forever removed:
+ * docs/mechanics/buffs-debuffs-consumables.md#windfury-totem). Such tokens are listed in the book's
+ * `meta.unresolvedTokens` (docs/data/spells.md); any other unrendered Forever token fails the run.
+ * `$z` reads HOME in the text; a token that reads a missing spell renders as nothing.
+ */
+const HOME = "your home location";
+function unresolvable(token) {
+  if (token === "$z") return `the player's home location, which only the game knows: the text reads "${HOME}"`;
+  const ref = /^\$(\d+)[a-zA-Z]\d*$/.exec(token);
+  if (ref && !forever.tables.SpellName.byId.has(Number(ref[1]))) return `reads spell ${ref[1]}, which the build doesn't have`;
+  return null;
+}
 
 const opts = { diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
@@ -208,6 +224,8 @@ function buildClass(cls, iconName) {
   const rank = (ctx, row, side, spell) => {
     const r = rankFields(ctx, row.spellId, { level: row.level });
     for (const u of r.unrendered) report.unrendered.push({ side, spell, spellId: row.spellId, token: u });
+    // `$z`, the home location only the game knows, reads HOME (unresolvable above).
+    if (r.rank.text && r.unrendered.includes("$z")) r.rank.text = r.rank.text.replaceAll("$z", HOME);
     return r.rank;
   };
 
@@ -276,7 +294,13 @@ function buildClass(cls, iconName) {
     if (!s.ranks.some((p) => p.forever)) fail(`${cls} ${s.name}: no Forever rank`);
     for (const p of s.ranks) if (p.forever && !p.forever.text) fail(`${cls} ${s.name} ${p.forever.spellId}: no Forever tooltip`);
   }
-  for (const u of report.unrendered.filter((x) => x.side === "Forever")) fail(`${cls} ${u.spell} ${u.spellId}: ${u.token} not rendered`);
+  report.unresolvedTokens = [];
+  for (const u of report.unrendered.filter((x) => x.side === "Forever")) {
+    const why = unresolvable(u.token);
+    if (why) report.unresolvedTokens.push({ spellId: u.spellId, token: u.token, why });
+    else fail(`${cls} ${u.spell} ${u.spellId}: ${u.token} not rendered`);
+  }
+  report.unresolvedTokens.sort((a, b) => a.spellId - b.spellId || compareText(a.token, b.token));
   if (tabs.reduce((n, t) => n + t.spellCount, 0) !== spells.length) fail(`${cls}: a spell sits outside the tabs`);
 
   return { data: { meta: null, class: cls, counts, tabs, spells, missing }, report };
@@ -322,6 +346,7 @@ async function write() {
       tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
       wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
       noClientData: b.report.noClientData,
+      unresolvedTokens: b.report.unresolvedTokens,
     };
   }
   printSummary(built);

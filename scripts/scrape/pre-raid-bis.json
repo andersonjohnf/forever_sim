@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "Hand-curated input for scripts/scrape/items-client.mjs: Classic Era pre-raid best-in-slot lists for the seven",
+    "Hand-curated input for scripts/scrape/items-client.mjs: Classic Era pre-raid best-in-slot lists for the eight",
     "simulated specs. Every item listed here joins src/data/items/pre-bis.json whatever its quality or level",
     "(it must still be equippable and pass the Season of Discovery id guard), and pool items get",
     "preRaidBis: [{ spec, slot, rank }]. Curated 2026-09-22 (user request: 'If there are some pre-raid BIS",
@@ -2214,6 +2214,348 @@
             "name": "Argent Defender",
             "rank": 3,
             "notes": "Quest"
+          }
+        ]
+      }
+    },
+    "shaman-enhancement": {
+      "name": "Enhancement Shaman (two-hander)",
+      "source": {
+        "title": "Classic Enhancement Shaman Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-15"
+      },
+      "note": "The guide's One-Handed row is the main hand; it lists no shield, so there is no off-hand row. Its Horde honor and battleground mail gets its Alliance counterpart at the same rank, as the other lists do (Classic Era had no Alliance shamans, so some counterparts are the hunter's chain). Its rank-3 gloves, Shadow Panther Hide Gloves (a Zul'Gurub drop), are left out as a raid drop, so Voone's Vice Grips move up.",
+      "slots": {
+        "head": [
+          {
+            "id": 13359,
+            "name": "Crown of Tyranny",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Balnazzar)"
+          },
+          {
+            "id": 12587,
+            "name": "Eye of Rend",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 20134,
+            "name": "Skyfury Helm",
+            "rank": 3,
+            "notes": "Quest - The Darkreaver Menace"
+          }
+        ],
+        "neck": [
+          {
+            "id": 19491,
+            "name": "Amulet of the Darkmoon",
+            "rank": 1,
+            "notes": "Quest - Darkmoon Faire tickets"
+          },
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 20680,
+            "name": "Abyssal Mail Pauldrons",
+            "rank": 1,
+            "notes": "Silithus summoned boss (Prince Skaldrenox)"
+          },
+          {
+            "id": 20203,
+            "name": "Defiler's Mail Pauldrons",
+            "rank": 2,
+            "notes": "PvP - Arathi Basin Exalted; Horde version"
+          },
+          {
+            "id": 20056,
+            "name": "Highlander's Mail Pauldrons",
+            "rank": 2,
+            "notes": "PvP - Arathi Basin Exalted; Alliance counterpart of Defiler's Mail Pauldrons"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "back": [
+          {
+            "id": 20068,
+            "name": "Deathguard's Cloak",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Baron Rivendare)"
+          },
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 2,
+            "notes": "Dungeon"
+          },
+          {
+            "id": 20691,
+            "name": "Windshear Cape",
+            "rank": 3,
+            "notes": "Silithus summoned boss (High Marshal Whirlaxis)"
+          }
+        ],
+        "chest": [
+          {
+            "id": 11726,
+            "name": "Savage Gladiator Chain",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 15050,
+            "name": "Black Dragonscale Breastplate",
+            "rank": 2,
+            "notes": "Crafted - Leatherworking (300, Dragonscale)"
+          },
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 19587,
+            "name": "Forest Stalker's Bracers",
+            "rank": 1,
+            "notes": "PvP - Warsong Gulch Exalted"
+          },
+          {
+            "id": 20684,
+            "name": "Abyssal Mail Armguards",
+            "rank": 2,
+            "notes": "Silithus summoned boss (Lord Skwol)"
+          },
+          {
+            "id": 18375,
+            "name": "Bracers of the Eclipse",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West"
+          }
+        ],
+        "hands": [
+          {
+            "id": 19157,
+            "name": "Chromatic Gauntlets",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (300, Dragonscale)"
+          },
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 2,
+            "notes": "Crafted - Leatherworking (290, Tribal)"
+          },
+          {
+            "id": 13963,
+            "name": "Voone's Vice Grips",
+            "rank": 3,
+            "notes": "Quest - Warlord's Command"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 14614,
+            "name": "Bloodmail Belt",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 20150,
+            "name": "Defiler's Chain Girdle",
+            "rank": 3,
+            "notes": "PvP - Arathi Basin Honored; Horde version"
+          },
+          {
+            "id": 20043,
+            "name": "Highlander's Chain Girdle",
+            "rank": 3,
+            "notes": "PvP - Arathi Basin Honored; Alliance counterpart of Defiler's Chain Girdle"
+          }
+        ],
+        "legs": [
+          {
+            "id": 22673,
+            "name": "Outrider's Chain Leggings",
+            "rank": 1,
+            "notes": "PvP - Warsong Gulch Exalted; Horde version"
+          },
+          {
+            "id": 22748,
+            "name": "Sentinel's Chain Leggings",
+            "rank": 1,
+            "notes": "PvP - Warsong Gulch Exalted; Alliance counterpart of Outrider's Chain Leggings"
+          },
+          {
+            "id": 20668,
+            "name": "Abyssal Mail Legguards",
+            "rank": 2,
+            "notes": "Silithus summoned boss (The Duke of Fathoms)"
+          },
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 3,
+            "notes": "Crafted - Leatherworking (300, Tribal)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 14616,
+            "name": "Bloodmail Boots",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13967,
+            "name": "Windreaver Greaves",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 22857,
+            "name": "Blood Guard's Mail Greaves",
+            "rank": 3,
+            "notes": "PvP - Rank 7 (Blood Guard); Horde version"
+          },
+          {
+            "id": 23278,
+            "name": "Knight-Lieutenant's Chain Greaves",
+            "rank": 3,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant); Alliance counterpart of Blood Guard's Mail Greaves"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 21182,
+            "name": "Band of Earthen Might",
+            "rank": 2,
+            "notes": "Quest - Veteran's Battlegear"
+          },
+          {
+            "id": 21189,
+            "name": "Might of Cenarius",
+            "rank": 3,
+            "notes": "Quest - Stalwart's Battlegear"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 4,
+            "notes": "Dungeon - Dire Maul North (tribute)"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 21180,
+            "name": "Earthstrike",
+            "rank": 1,
+            "notes": "Quest - Champion's Battlegear"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest - For The Horde!"
+          },
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest - Job Opening: Guard Captain of Revantusk Village"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 12798,
+            "name": "Annihilator",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300, Axesmith)"
+          },
+          {
+            "id": 12590,
+            "name": "Felstriker",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 19103,
+            "name": "Frostbite",
+            "rank": 3,
+            "notes": "PvP - Alterac Valley Revered"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 19323,
+            "name": "The Unstoppable Force",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 20696,
+            "name": "Crystal Spiked Maul",
+            "rank": 2,
+            "notes": "Silithus - Sack of Spoils"
+          },
+          {
+            "id": 18538,
+            "name": "Treant's Bane",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul North (tribute)"
+          }
+        ],
+        "relic": [
+          {
+            "id": 22395,
+            "name": "Totem of Rage",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths (Magmus)"
+          },
+          {
+            "id": 22345,
+            "name": "Totem of Rebirth",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul East (Isalien)"
           }
         ]
       }

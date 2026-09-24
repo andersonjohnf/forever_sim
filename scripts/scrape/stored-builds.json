@@ -117,5 +117,15 @@
         "Benediction 5"
       ]
     }
+  },
+  "shaman": {
+    "050003-055030031005102251-05005": {
+      "note": "Enhancement default (8/33/10), shaman.md#talents",
+      "ranks": [
+        "Concussion 5, Elemental Devastation 3",
+        "Thundering Strikes 5, Ancestral Knowledge 5, Mental Dexterity 3, Elemental Weapons 3, Shamanistic Focus 1, Flurry 5, Stormstrike 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
+        "Totemic Focus 5, Tidal Focus 5"
+      ]
+    }
   }
 }

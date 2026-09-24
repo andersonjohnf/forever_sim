@@ -4763,10 +4763,10 @@
     "consumablesWithEffects": 85,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1629,
-    "withEffects": 236,
-    "withItemRow": 1629,
-    "withItemSparseRow": 884
+    "items": 1643,
+    "withEffects": 239,
+    "withItemRow": 1643,
+    "withItemSparseRow": 894
   },
   "items": {
     "868": {
@@ -6026,6 +6026,32 @@
         "material": 7,
         "sheatheType": 0,
         "subclassId": 1
+      },
+      "itemSparse": null
+    },
+    "12590": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 99558,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 16551,
+          "triggerType": 2
+        }
+      ],
+      "id": 12590,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135661,
+        "inventoryType": 13,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 15
       },
       "itemSparse": null
     },
@@ -22869,6 +22895,41 @@
         "statPercentEditor": [4375, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "19157": {
+      "effects": [],
+      "id": 19157,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132956,
+        "inventoryType": 10,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Chromatic Gauntlets",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 70,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [51, 55, 52, 54, 38, 32, -1, -1, -1, -1],
+        "statPercentEditor": [1316, 1316, 1316, 1316, 11579, 3684, 0, 0, 0, 0]
+      }
+    },
     "19323": {
       "effects": [
         {
@@ -22950,6 +23011,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 32, 31, 38, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4074, 5185, 3704, 5926, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19491": {
+      "effects": [],
+      "id": 19491,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133301,
+        "inventoryType": 2,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Amulet of the Darkmoon",
+        "dmgVariance": 0,
+        "flags": [0, 24576, 0, 0, 0],
+        "inventoryType": 2,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, 4, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7037, 3704, 3704, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "19510": {
@@ -23650,6 +23746,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [4, 5, 6, 7, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4545, 2727, 4091, 4545, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19587": {
+      "effects": [],
+      "id": 19587,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132611,
+        "inventoryType": 9,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Forest Stalker's Bracers",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 9,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 4, 7, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7037, 4074, 2963, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "19592": {
@@ -26020,6 +26151,76 @@
         "statPercentEditor": [5926, 2963, 37037, 4444, 0, 0, 0, 0, 0, 0]
       }
     },
+    "20056": {
+      "effects": [],
+      "id": 20056,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135050,
+        "inventoryType": 3,
+        "material": 6,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Highlander's Mail Pauldrons",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 3,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 470,
+        "material": 6,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [4, 7, 3, 5, 43, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3056, 5000, 2778, 4722, 1111, 0, 0, 0, 0, 0]
+      }
+    },
+    "20068": {
+      "effects": [],
+      "id": 20068,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133754,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Deathguard's Cloak",
+        "dmgVariance": 0.2,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 16,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 3, 38, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4074, 1852, 12593, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "20071": {
       "effects": [
         {
@@ -26115,6 +26316,19 @@
         "statModifierBonusStat": [7, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4444, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
+    },
+    "20134": {
+      "effects": [],
+      "id": 20134,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133159,
+        "inventoryType": 1,
+        "material": 5,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": null
     },
     "20150": {
       "effects": [],
@@ -26612,6 +26826,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 3, 5, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5926, 5556, 2963, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20203": {
+      "effects": [],
+      "id": 20203,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135050,
+        "inventoryType": 3,
+        "material": 6,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Defiler's Mail Pauldrons",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 3,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 484,
+        "material": 6,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [4, 7, 3, 5, 43, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3056, 5000, 2778, 4722, 1111, 0, 0, 0, 0, 0]
       }
     },
     "20204": {
@@ -27761,6 +28010,19 @@
       },
       "itemSparse": null
     },
+    "20691": {
+      "effects": [],
+      "id": 20691,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133772,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
+    },
     "20695": {
       "effects": [],
       "id": 20695,
@@ -28583,6 +28845,54 @@
         "statPercentEditor": [4000, 7000, 1500, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "21180": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": 20000,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 120000,
+          "id": 102457,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 1141,
+          "spellId": 25891,
+          "triggerType": 0
+        }
+      ],
+      "id": 21180,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 136006,
+        "inventoryType": 12,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Earthstrike",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 12,
+        "itemDelay": 0,
+        "itemLevel": 66,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "21181": {
       "effects": [
         {
@@ -28734,6 +29044,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [3, 31, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [7500, 5000, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "21189": {
+      "effects": [],
+      "id": 21189,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133383,
+        "inventoryType": 11,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Might of Cenarius",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 11,
+        "itemDelay": 0,
+        "itemLevel": 62,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 83, 31, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3200, 1600, 4000, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "21278": {
@@ -31622,6 +31967,32 @@
       },
       "itemSparse": null
     },
+    "22395": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 102980,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 27859,
+          "triggerType": 1
+        }
+      ],
+      "id": 22395,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134919,
+        "inventoryType": 28,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 9
+      },
+      "itemSparse": null
+    },
     "22398": {
       "effects": [
         {
@@ -31863,6 +32234,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 55, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [2727, 9091, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22673": {
+      "effects": [],
+      "id": 22673,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134583,
+        "inventoryType": 7,
+        "material": 5,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Outrider's Chain Leggings",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 7,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 5,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, 32, 31, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7447, 3191, 2979, 2128, 0, 0, 0, 0, 0, 0]
       }
     },
     "22680": {
@@ -32177,6 +32583,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 55, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4545, 8636, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22748": {
+      "effects": [],
+      "id": 22748,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134583,
+        "inventoryType": 7,
+        "material": 5,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Sentinel's Chain Leggings",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 7,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 5,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [3, 7, 32, 31, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [7447, 3191, 2979, 2128, 0, 0, 0, 0, 0, 0]
       }
     },
     "22756": {

@@ -11,10 +11,12 @@ import raceJson from './races/races.json'
 import type { RaceData } from './races/types'
 import druidSpellJson from './spells/druid.json'
 import paladinSpellJson from './spells/paladin.json'
+import shamanSpellJson from './spells/shaman.json'
 import type { SpellBook } from './spells/types'
 import warriorSpellJson from './spells/warrior.json'
 import druidTalentJson from './talents/druid.json'
 import paladinTalentJson from './talents/paladin.json'
+import shamanTalentJson from './talents/shaman.json'
 import {
   decodeTalentCode,
   encodeTalentCode,
@@ -30,11 +32,13 @@ const spellBooks = {
   warrior: warriorSpellJson as unknown as SpellBook,
   druid: druidSpellJson as unknown as SpellBook,
   paladin: paladinSpellJson as unknown as SpellBook,
+  shaman: shamanSpellJson as unknown as SpellBook,
 }
 const talentData = {
   warrior: warriorTalentJson as unknown as TalentData,
   druid: druidTalentJson as unknown as TalentData,
   paladin: paladinTalentJson as unknown as TalentData,
+  shaman: shamanTalentJson as unknown as TalentData,
 }
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
@@ -57,7 +61,7 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
 
 // The client spellbooks (docs/data/spells.md). Counts pin this build's books: a new build that
 // adds or drops a spell fails here on purpose, so the change gets looked at and documented.
-const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3] } as const
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5] } as const
 
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   const all = book.spells.flatMap((s) => s.ranks)
@@ -101,7 +105,9 @@ describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
 
   it('lists every active Forever talent as a talent spell of its tree', () => {
     const active = talentData[cls as keyof typeof talentData].trees.flatMap((t) => t.talents.filter((x) => !x.passive).map((x) => [x.name, t.name]))
-    const talentSpells = book.spells.filter((s) => s.isTalent).map((s) => [s.name, s.tab])
+    // The shaman's spellbook tab (its skill line) is "Elemental Combat"; its talent tree, "Elemental".
+    const tree = (tab: string) => (cls === 'shaman' && tab === 'Elemental Combat' ? 'Elemental' : tab)
+    const talentSpells = book.spells.filter((s) => s.isTalent).map((s) => [s.name, tree(s.tab)])
     expect(talentSpells.sort()).toEqual(active.sort())
     for (const s of book.spells.filter((x) => x.isTalent)) expect(s.status, s.name).toBe('talent')
   })
@@ -145,6 +151,11 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Holy: "Improved Holy Strike 2, Divine Strength 5, Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Improved Seals 3, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Consecrated Ground 2, Holy Power 5, Light's Vigil 1",
     Protection: "Toughness 5, Redoubt 5, Precision 3, Guardian's Favor 2, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Improved Hammer of Justice 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
     Retribution: 'Deflection 5, Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Pursuit of Justice 2, Eye for an Eye 2, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Repentance 1, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
+  },
+  shaman: {
+    Elemental: 'Convection 5, Concussion 5, Elemental Warding 3, Reverberation 5, Call of Flame 3, Elemental Devastation 3, Elemental Focus 1, Elemental Fury 5, Improved Fire Nova 2, Eye of the Storm 3, Call of Thunder 1, Elemental Reach 2, Lightning Overload 3, Earthbound 1, Elemental Alacrity 3, Lava Burst 1',
+    Enhancement: "Earth's Grasp 2, Thundering Strikes 5, Ancestral Knowledge 5, Guardian Totems 2, Mental Dexterity 3, Improved Ghost Wolf 2, Improved Lightning Shield 3, Elemental Weapons 3, Shamanistic Focus 1, Anticipation 3, Toughness 5, Flurry 5, Stormstrike 1, Spirit Weapons 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
+    Restoration: "Improved Healing Wave 5, Totemic Focus 5, Mindfulness 3, Natural Grace 3, Tidal Focus 5, Improved Reincarnation 2, Ancestral Healing 3, Healing Focus 3, Water Shield 1, Tidal Mastery 5, Restorative Totems 5, Mana Tide Totem 1, Healing Way 3, Nature's Swiftness 1, Purification 5, Riptide 1",
   },
 }
 
@@ -221,7 +232,7 @@ describe('talent presets and defaults', () => {
       const { classId } = SPEC_META[spec]
       expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
     }
-    for (const classId of ['warrior', 'druid', 'paladin'] as const) {
+    for (const classId of ['warrior', 'druid', 'paladin', 'shaman'] as const) {
       const presets = talentPresets(classId)
       expect(presets.length, classId).toBeGreaterThan(0)
       expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
@@ -242,7 +253,7 @@ const NAME_USES = [/\btalents\.(?:has|get)\(\s*(['"])(.+?)\1/g, /\brank\(\s*tale
 describe('talent names the engine keys on', () => {
   const uses: { file: string; cls: keyof typeof talentData | null; name: string }[] = []
   for (const [file, source] of Object.entries(SIM_SOURCES)) {
-    const cls = (/\/classes\/(warrior|druid|paladin)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
+    const cls = (/\/classes\/(warrior|druid|paladin|shaman)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
     for (const re of NAME_USES) for (const m of source.matchAll(re)) uses.push({ file, cls, name: m[2] })
   }
   for (const name of Object.keys(TALENT_EFFECTS)) uses.push({ file: '../sim/classes/warrior/talents.ts (TALENT_EFFECTS)', cls: 'warrior', name })
@@ -255,7 +266,7 @@ describe('talent names the engine keys on', () => {
   it('exist in the talent data', () => {
     const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
     const missing = uses.filter((u) =>
-      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin'] as const).some((c) => namesOf(c).has(u.name)),
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman'] as const).some((c) => namesOf(c).has(u.name)),
     )
     expect(missing).toEqual([])
   })
@@ -302,6 +313,8 @@ describe('races', () => {
     expect(races.simClassAvailability.paladin.forever).toEqual(['horde-undead', 'alliance-human', 'alliance-dwarf'])
     expect(races.simClassAvailability.druid.forever).toEqual(['horde-tauren', 'horde-skyborne-windshaper', 'alliance-night-elf', 'alliance-skyborne-high-order'])
     expect(races.simClassAvailability.warrior.forever).toEqual(RACE_IDS)
+    // docs/classes/shaman.md#races: Dwarf shamans are new in Forever; the client has no Undead shaman.
+    expect(races.simClassAvailability.shaman.forever).toEqual(['horde-orc', 'horde-tauren', 'horde-troll', 'horde-skyborne-windshaper', 'alliance-dwarf'])
     for (const r of races.races) {
       expect(r.classes.addedInForever, r.id).toEqual(r.classes.forever.filter((c) => !r.classes.classic?.includes(c)))
       expect(r.newInForever, r.id).toBe(r.classes.classic === null)
@@ -349,7 +362,7 @@ describe('races', () => {
   })
 
   it('offers every simulated class to at least one race per faction', () => {
-    for (const cls of ['warrior', 'druid', 'paladin']) {
+    for (const cls of ['warrior', 'druid', 'paladin', 'shaman']) {
       const factions = new Set(
         races.races.filter((r) => r.classes.forever.includes(cls as never)).map((r) => r.faction),
       )

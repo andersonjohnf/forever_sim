@@ -7,7 +7,7 @@
 //   import type { SpellBook } from "@/data/spells/types";
 //   const warrior = warriorJson as SpellBook;
 
-export type SpellClass = "warrior" | "druid" | "paladin";
+export type SpellClass = "warrior" | "druid" | "paladin" | "shaman";
 export type SpellResource = "rage" | "energy" | "mana" | "health";
 
 /**
@@ -56,6 +56,12 @@ export interface SpellBookMeta {
    * (docs/data/spells.md#trainer-rows-with-no-client-data). Sorted by spell id.
    */
   noClientData: NoClientDataRow[];
+  /**
+   * Forever tooltip tokens the client files can't resolve, which don't fail the run: `$z` (the home
+   * location only the game knows, which the text calls "your home location") and a token that
+   * reads a spell the build doesn't have, which renders as nothing (docs/data/spells.md#caveats).
+   */
+  unresolvedTokens: { spellId: number; token: string; why: string }[];
 }
 
 export interface NoClientDataRow {

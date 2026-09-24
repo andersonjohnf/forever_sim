@@ -4,16 +4,16 @@
     "classicProduct": "wow_classic_era",
     "counts": {
       "byTab": {
-        "changed": 346,
-        "missing": 745,
+        "changed": 352,
+        "missing": 749,
         "new": 328,
-        "unchanged": 210
+        "unchanged": 214
       },
-      "items": 1629,
+      "items": 1643,
       "sets": 102,
       "statsFrom": {
-        "classic": 745,
-        "forever": 884
+        "classic": 749,
+        "forever": 894
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 534
+      "rendered": 537
     },
     "fallbackEffects": {
-      "effectsFromForever": 108,
-      "items": 500,
-      "spells": 623,
-      "spellsFromForever": 623
+      "effectsFromForever": 110,
+      "items": 503,
+      "spells": 627,
+      "spellsFromForever": 627
     },
     "filter": {
       "equippableOnly": true,
@@ -149,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 49,
+      "addedByList": 63,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 158,
-      "listedItems": 158,
+      "inPool": 187,
+      "listedItems": 187,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -191,6 +191,16 @@
             "snapshot": "2021-05-17",
             "title": "Paladin DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "shaman-enhancement": {
+          "name": "Enhancement Shaman (two-hander)",
+          "note": "The guide's One-Handed row is the main hand; it lists no shield, so there is no off-hand row. Its Horde honor and battleground mail gets its Alliance counterpart at the same rank, as the other lists do (Classic Era had no Alliance shamans, so some counterparts are the hunter's chain). Its rank-3 gloves, Shadow Panther Hide Gloves (a Zul'Gurub drop), are left out as a raid drop, so Voone's Vice Grips move up.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-15",
+            "title": "Classic Enhancement Shaman Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 6",
+            "url": "https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear"
           }
         },
         "warrior-arms": {
@@ -522,6 +532,11 @@
           "rank": 2,
           "slot": "head",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -1036,7 +1051,13 @@
       "name": "Crown of Tyranny",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 14049, 7597 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -3346,6 +3367,58 @@
       },
       "statsFrom": "forever",
       "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["head"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_helmet_57",
+      "id": 20134,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Mail",
+      "name": "Skyfury Helm",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 18382, 7597 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 32440,
+      "setId": null,
+      "slot": "head",
+      "source": null,
+      "statSpellIds": [7597, 18382],
+      "stats": {
+        "armor": 324,
+        "crit": 1,
+        "spellCrit": 2,
+        "spirit": 12,
+        "stamina": 14,
+        "strength": 13
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -6551,6 +6624,11 @@
           "rank": 2,
           "slot": "neck",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -7022,6 +7100,11 @@
           "rank": 1,
           "slot": "neck",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -7851,6 +7934,55 @@
         "intellect": 10,
         "mp5": 4,
         "stamina": 10
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["neck"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_jewelry_necklace_14",
+      "id": 19491,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Amulet of the Darkmoon",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 25000,
+      "setId": null,
+      "slot": "neck",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 19,
+        "stamina": 10,
+        "strength": 10
       },
       "statsFrom": "forever",
       "tab": "unchanged",
@@ -9798,6 +9930,11 @@
           "rank": 1,
           "slot": "shoulder",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -12998,6 +13135,146 @@
       "armorType": "mail",
       "binding": "BoP",
       "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 10,
+          "armor": 312,
+          "intellect": 17,
+          "mp5": 4,
+          "stamina": 18,
+          "strength": 11
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["shoulder"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_shoulder_19",
+      "id": 20056,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Mail",
+      "name": "Highlander's Mail Pauldrons",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The League of Arathor",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The League of Arathor - Exalted"
+        }
+      ],
+      "sellPrice": 37009,
+      "setId": "470",
+      "slot": "shoulder",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 10,
+        "armor": 312,
+        "intellect": 17,
+        "mp5": 4,
+        "stamina": 18,
+        "strength": 11
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 10,
+          "armor": 312,
+          "intellect": 17,
+          "mp5": 4,
+          "stamina": 18,
+          "strength": 11
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["shoulder"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_shoulder_19",
+      "id": 20203,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Mail",
+      "name": "Defiler's Mail Pauldrons",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The Defilers",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The Defilers - Exalted"
+        }
+      ],
+      "sellPrice": 39985,
+      "setId": "484",
+      "slot": "shoulder",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 10,
+        "armor": 312,
+        "intellect": 17,
+        "mp5": 4,
+        "stamina": 18,
+        "strength": 11
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoP",
+      "classes": null,
       "classic": null,
       "classicName": null,
       "equipSlots": ["shoulder"],
@@ -13012,7 +13289,13 @@
       "name": "Abyssal Mail Pauldrons",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15464 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -16811,6 +17094,11 @@
           "rank": 1,
           "slot": "back",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -18153,6 +18441,63 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
+      "icon": "inv_misc_cape_02",
+      "id": 20068,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Cloth",
+      "name": "Deathguard's Cloak",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The Defilers",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The Defilers - Exalted"
+        }
+      ],
+      "sellPrice": 26353,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 5,
+        "armor": 50,
+        "attackPower": 34,
+        "stamina": 11
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
       "icon": "inv_misc_cape_13",
       "id": 20218,
       "itemClass": "Armor",
@@ -18233,6 +18578,57 @@
       },
       "statsFrom": "forever",
       "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_cape_20",
+      "id": 20691,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Cloth",
+      "name": "Windshear Cape",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 24289,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 15,
+        "armor": 50,
+        "intellect": 7,
+        "stamina": 14,
+        "strength": 8
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -19047,6 +19443,11 @@
           "rank": 1,
           "slot": "chest",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -20302,6 +20703,11 @@
           "rank": 3,
           "slot": "chest",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -20408,7 +20814,13 @@
       "name": "Black Dragonscale Breastplate",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -27195,6 +27607,11 @@
           "rank": 2,
           "slot": "wrist",
           "spec": "druid-feral-cat"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -28066,6 +28483,56 @@
     },
     {
       "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["wrist"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_bracer_12",
+      "id": 19587,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Leather",
+      "name": "Forest Stalker's Bracers",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 20183,
+      "setId": null,
+      "slot": "wrist",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 19,
+        "armor": 86,
+        "stamina": 8,
+        "strength": 11
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
       "binding": "BoE",
       "classes": null,
       "classic": {
@@ -28274,7 +28741,13 @@
       "name": "Abyssal Mail Armguards",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -31406,6 +31879,11 @@
           "rank": 3,
           "slot": "hands",
           "spec": "warrior-protection"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -31724,6 +32202,11 @@
           "rank": 1,
           "slot": "hands",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -34024,6 +34507,72 @@
         "armor": 398,
         "stamina": 9,
         "strength": 21
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoE",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 279,
+          "attackPower": 44,
+          "crit": 1,
+          "fireResistance": 5,
+          "frostResistance": 5,
+          "natureResistance": 5,
+          "shadowResistance": 5,
+          "spellCrit": 1
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_22",
+      "id": 19157,
+      "itemClass": "Armor",
+      "itemLevel": 70,
+      "itemSubclass": "Mail",
+      "name": "Chromatic Gauntlets",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 31943,
+      "setId": null,
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 279,
+        "attackPower": 44,
+        "critRating": 14,
+        "fireResistance": 5,
+        "frostResistance": 5,
+        "natureResistance": 5,
+        "shadowResistance": 5
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -38522,6 +39071,11 @@
           "rank": 2,
           "slot": "waist",
           "spec": "druid-feral-bear"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -39002,7 +39556,13 @@
       "name": "Bloodmail Belt",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -41537,7 +42097,13 @@
       "name": "Highlander's Chain Girdle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -41842,7 +42408,13 @@
       "name": "Defiler's Chain Girdle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -46670,6 +47242,11 @@
           "rank": 1,
           "slot": "legs",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -49040,7 +49617,13 @@
       "name": "Abyssal Mail Legguards",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7597 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -50323,6 +50906,67 @@
       "classes": null,
       "classic": {
         "stats": {
+          "agility": 35,
+          "armor": 364,
+          "crit": 1,
+          "hit": 1,
+          "stamina": 15
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["legs"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_pants_03",
+      "id": 22673,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Mail",
+      "name": "Outrider's Chain Leggings",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 50092,
+      "setId": null,
+      "slot": "legs",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 35,
+        "armor": 364,
+        "critRating": 14,
+        "hitRating": 10,
+        "stamina": 15
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
           "agility": 20,
           "armor": 339,
           "crit": 1,
@@ -50362,6 +51006,67 @@
         "critRating": 14,
         "intellect": 10,
         "stamina": 16
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "mail",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "agility": 35,
+          "armor": 364,
+          "crit": 1,
+          "hit": 1,
+          "stamina": 15
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["legs"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_pants_03",
+      "id": 22748,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Mail",
+      "name": "Sentinel's Chain Leggings",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 48441,
+      "setId": null,
+      "slot": "legs",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 35,
+        "armor": 364,
+        "critRating": 14,
+        "hitRating": 10,
+        "stamina": 15
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -53622,6 +54327,11 @@
           "rank": 2,
           "slot": "feet",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -53779,6 +54489,11 @@
           "rank": 1,
           "slot": "feet",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -58262,7 +58977,13 @@
           "spellId": 22801
         }
       ],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -58541,7 +59262,13 @@
       "name": "Knight-Lieutenant's Chain Greaves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -62086,6 +62813,11 @@
           "rank": 2,
           "slot": "finger",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -62491,6 +63223,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -63156,7 +63893,13 @@
       "name": "Band of Earthen Might",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -63171,6 +63914,63 @@
         "critRating": 14,
         "hitRating": 10,
         "strength": 6
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "hit": 1,
+          "stamina": 8,
+          "weaponDamage": 4
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["finger"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_jewelry_ring_41",
+      "id": 21189,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Miscellaneous",
+      "name": "Might of Cenarius",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 188888,
+      "setId": null,
+      "slot": "finger",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "hitRating": 10,
+        "stamina": 8,
+        "weaponDamage": 4
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -64794,6 +65594,11 @@
           "rank": 1,
           "slot": "trinket",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [
@@ -65279,6 +66084,11 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -66828,6 +67638,11 @@
           "rank": 4,
           "slot": "trinket",
           "spec": "druid-feral-bear"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [],
@@ -67158,6 +67973,57 @@
           "cooldownSec": 180,
           "raw": "Use: Absorbs 554 to 678 physical damage. Lasts 15 sec. (3 Min Cooldown)",
           "spellId": 23991
+        }
+      ],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["trinket"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "spell_nature_abolishmagic",
+      "id": 21180,
+      "itemClass": "Armor",
+      "itemLevel": 66,
+      "itemSubclass": "Miscellaneous",
+      "name": "Earthstrike",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 21612,
+      "setId": null,
+      "slot": "trinket",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [
+        {
+          "cooldownSec": 120,
+          "raw": "Use: Increases your melee and ranged attack power by 280. Effect lasts for 20 sec. (2 Min Cooldown)",
+          "spellId": 25891
         }
       ],
       "weapon": null,
@@ -69674,6 +70540,11 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "warrior-arms"
+        },
+        {
+          "rank": 3,
+          "slot": "twoHand",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [
@@ -70088,6 +70959,11 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "shaman-enhancement"
         }
       ],
       "procs": [
@@ -70638,7 +71514,13 @@
       "name": "Crystal Spiked Maul",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7598 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -73529,6 +74411,63 @@
     },
     {
       "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand", "offHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_weapon_shortblade_25",
+      "id": 12590,
+      "itemClass": "Weapon",
+      "itemLevel": 63,
+      "itemSubclass": "Dagger",
+      "name": "Felstriker",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 16551 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Chance on hit: All attacks are guaranteed to land and will be critical strikes for the next 3 sec.",
+          "spellId": 16551
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 58,
+      "requirements": [],
+      "sellPrice": 75624,
+      "setId": null,
+      "slot": "oneHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 45.6,
+        "max": 101,
+        "min": 54,
+        "school": "Physical",
+        "skill": "Daggers",
+        "speed": 1.7
+      },
+      "weaponSkill": null,
+      "weaponType": "dagger"
+    },
+    {
+      "armorType": null,
       "binding": "BoE",
       "classes": null,
       "classic": {
@@ -73749,7 +74688,13 @@
       "name": "Annihilator",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [
         {
           "raw": "Chance on hit: Reduces an enemy's armor by 165. Stacks up to 3 times.",
@@ -75272,7 +76217,13 @@
       "name": "Frostbite",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -80274,13 +81225,69 @@
           "spellId": 27797
         }
       ],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "relic",
+          "spec": "shaman-enhancement"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
       "reqLevel": 57,
       "requirements": [],
       "sellPrice": 15680,
+      "setId": null,
+      "slot": "relic",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_relics_totemofrage",
+      "id": 22395,
+      "itemClass": "Armor",
+      "itemLevel": 57,
+      "itemSubclass": "Totem",
+      "name": "Totem of Rage",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 27859 read from the Forever client."],
+      "otherEquip": [
+        {
+          "raw": "Equip: Increases the damage of your Shock spells by 2%.",
+          "spellId": 27859
+        }
+      ],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "relic",
+          "spec": "shaman-enhancement"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 12973,
       "setId": null,
       "slot": "relic",
       "source": null,

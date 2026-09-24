@@ -1,0 +1,1613 @@
+{
+  "meta": {
+    "classicBuild": "1.15.9.69722",
+    "classicProduct": "wow_classic_era",
+    "foreverBuild": "1.60.1.69913",
+    "foreverBuildDate": "2026-09-18",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scraper": "scripts/scrape/talents-client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "classic": {
+        "ChrClasses": 1361031,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "Talent": 1369062,
+        "TalentTab": 2178102
+      },
+      "forever": {
+        "ChrClasses": 1361031,
+        "CurvePoint": 892586,
+        "ItemSubClass": 1261604,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellCastTimes": 1134089,
+        "SpellClassOptions": 979663,
+        "SpellCooldowns": 1139924,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellEquippedItems": 1140011,
+        "SpellLevels": 1140079,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellPower": 982806,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "TalentTab": 2178102,
+        "TraitCond": 4543085,
+        "TraitCurrency": 4524216,
+        "TraitDefinition": 4420327,
+        "TraitDefinitionEffectPoints": 4536895,
+        "TraitEdge": 4420308,
+        "TraitNode": 4420297,
+        "TraitNodeEntry": 4420298,
+        "TraitNodeGroupXTraitCond": 4543090,
+        "TraitNodeGroupXTraitNode": 4420302,
+        "TraitNodeXTraitCond": 4543092,
+        "TraitNodeXTraitNodeEntry": 4420304,
+        "TraitTree": 4420305,
+        "TraitTreeXTraitCurrency": 4524218
+      }
+    },
+    "traitCurrencyId": 3820,
+    "traitTreeId": 1082,
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "class": "shaman",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.",
+  "rules": {
+    "maxCol": 3,
+    "maxPoints": 51,
+    "maxTier": 6,
+    "pointsPerTier": 5
+  },
+  "trees": [
+    {
+      "clientTreeId": "261",
+      "icon": "spell_nature_lightning",
+      "id": "Elemental",
+      "index": 0,
+      "name": "Elemental",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Convection",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16039,
+          "col": 1,
+          "icon": "spell_nature_wispsplode",
+          "id": "shaman-elemental-convection",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Convection",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the mana cost of your Shock, Lightning Bolt and Chain Lightning spells by 2%.", "Reduces the mana cost of your Shock, Lightning Bolt and Chain Lightning spells by 4%.", "Reduces the mana cost of your Shock, Lightning Bolt and Chain Lightning spells by 6%.", "Reduces the mana cost of your Shock, Lightning Bolt and Chain Lightning spells by 8%.", "Reduces the mana cost of your Shock, Lightning Bolt and Chain Lightning spells by 10%."],
+            "forever": ["Reduces the mana cost of your Shock, Lightning Bolt, Lava Burst, and Chain Lightning spells by 2%.", "Reduces the mana cost of your Shock, Lightning Bolt, Lava Burst, and Chain Lightning spells by 4%.", "Reduces the mana cost of your Shock, Lightning Bolt, Lava Burst, and Chain Lightning spells by 6%.", "Reduces the mana cost of your Shock, Lightning Bolt, Lava Burst, and Chain Lightning spells by 8%.", "Reduces the mana cost of your Shock, Lightning Bolt, Lava Burst, and Chain Lightning spells by 10%."]
+          },
+          "spellId": 16039,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Concussion",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16035,
+          "col": 2,
+          "icon": "spell_nature_earthshock",
+          "id": "shaman-elemental-concussion",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Concussion",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Lightning Bolt, Chain Lightning and Shock spells by 1%.", "Increases the damage done by your Lightning Bolt, Chain Lightning and Shock spells by 2%.", "Increases the damage done by your Lightning Bolt, Chain Lightning and Shock spells by 3%.", "Increases the damage done by your Lightning Bolt, Chain Lightning and Shock spells by 4%.", "Increases the damage done by your Lightning Bolt, Chain Lightning and Shock spells by 5%."],
+            "forever": ["Increases the damage done by your Lightning Bolt, Chain Lightning, and Earth Shock spells by 1%.", "Increases the damage done by your Lightning Bolt, Chain Lightning, and Earth Shock spells by 2%.", "Increases the damage done by your Lightning Bolt, Chain Lightning, and Earth Shock spells by 3%.", "Increases the damage done by your Lightning Bolt, Chain Lightning, and Earth Shock spells by 4%.", "Increases the damage done by your Lightning Bolt, Chain Lightning, and Earth Shock spells by 5%."]
+          },
+          "spellId": 16035,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Elemental Warding",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 28996,
+          "col": 0,
+          "icon": "spell_nature_spiritarmor",
+          "id": "shaman-elemental-elemental-warding",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Elemental Warding",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces damage taken from Fire, Frost and Nature effects by 4%.", "Reduces damage taken from Fire, Frost and Nature effects by 7%.", "Reduces damage taken from Fire, Frost and Nature effects by 10%."],
+            "forever": ["Reduces damage taken from Fire, Frost, and Nature effects by 3%.", "Reduces damage taken from Fire, Frost, and Nature effects by 7%.", "Reduces damage taken from Fire, Frost, and Nature effects by 10%."]
+          },
+          "spellId": 28996,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Reverberation",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16040,
+          "col": 1,
+          "icon": "spell_frost_frostward",
+          "id": "shaman-elemental-reverberation",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Reverberation",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Shock spells by 0.2 sec.", "Reduces the cooldown of your Shock spells by 0.4 sec.", "Reduces the cooldown of your Shock spells by 0.6 sec.", "Reduces the cooldown of your Shock spells by 0.8 sec.", "Reduces the cooldown of your Shock spells by 1 sec."],
+            "forever": ["Reduces the cooldown of your Shock spells by 0.2 sec.", "Reduces the cooldown of your Shock spells by 0.4 sec.", "Reduces the cooldown of your Shock spells by 0.6 sec.", "Reduces the cooldown of your Shock spells by 0.8 sec.", "Reduces the cooldown of your Shock spells by 1.0 sec."]
+          },
+          "spellId": 16040,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Call of Flame",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16038,
+          "col": 2,
+          "icon": "spell_fire_immolation",
+          "id": "shaman-elemental-call-of-flame",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Call of Flame",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Fire Totems by 5%.", "Increases the damage done by your Fire Totems by 10%.", "Increases the damage done by your Fire Totems by 15%."],
+            "forever": ["Increases the damage done by your Fire Totems and by your Flame Shock, Fire Nova, and Lava Burst spells by 5%.", "Increases the damage done by your Fire Totems and by your Flame Shock, Fire Nova, and Lava Burst spells by 10%.", "Increases the damage done by your Fire Totems and by your Flame Shock, Fire Nova, and Lava Burst spells by 15%."]
+          },
+          "spellId": 16038,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Elemental Devastation",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 30160,
+          "col": 3,
+          "icon": "spell_fire_elementaldevastation",
+          "id": "shaman-elemental-elemental-devastation",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Elemental Devastation",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your offensive spell crits will increase your chance to get a critical strike with melee attacks by 3% for 10 sec.", "Your offensive spell crits will increase your chance to get a critical strike with melee attacks by 6% for 10 sec.", "Your offensive spell crits will increase your chance to get a critical strike with melee attacks by 9% for 10 sec."],
+            "forever": ["Your offensive spell critical strikes will increase your chance to get a critical strike with melee attacks by 3% for 10 sec.", "Your offensive spell critical strikes will increase your chance to get a critical strike with melee attacks by 6% for 10 sec.", "Your offensive spell critical strikes will increase your chance to get a critical strike with melee attacks by 9% for 10 sec."]
+          },
+          "spellId": 30160,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Elemental Focus",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16164,
+          "col": 1,
+          "icon": "spell_shadow_manaburn",
+          "id": "shaman-elemental-elemental-focus",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Elemental Focus",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 10% chance to enter a Clearcasting state after casting any Fire, Frost, or Nature damage spell. The Clearcasting state reduces the mana cost of your next damage spell by 100%."],
+            "forever": ["Gives you a 10% chance to enter a Clearcasting state after casting any Fire, Frost, or Nature damage spell. The Clearcasting state reduces the mana cost of your next damage spell by 100%."]
+          },
+          "spellId": 16164,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Elemental Fury",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16089,
+          "col": 2,
+          "icon": "spell_fire_volcano",
+          "id": "shaman-elemental-elemental-fury",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Elemental Fury",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike damage bonus of your Searing, Magma, and Fire Nova Totems and your Fire, Frost, and Nature spells by 100%."],
+            "forever": ["Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 20%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 40%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 60%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 80%.", "Increases the critical strike damage bonus of your Searing and Magma Totems and your Fire, Frost, and Nature spells by 100%."]
+          },
+          "spellId": 16089,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_spell",
+            "maxRank": 2,
+            "name": "Improved Fire Totems",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16086,
+          "col": 0,
+          "icon": "spell_fire_sealoffire",
+          "id": "shaman-elemental-improved-fire-nova",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Fire Nova",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Fire Totems",
+          "ranks": {
+            "classic": ["Reduces the delay before your Fire Nova Totem activates by 1 sec. and decreases the threat generated by your Magma Totem by 25%.", "Reduces the delay before your Fire Nova Totem activates by 2 sec. and decreases the threat generated by your Magma Totem by 50%."],
+            "forever": ["Increases the damage done by your Fire Nova spell by 10% and reduces its cooldown by 2 sec.", "Increases the damage done by your Fire Nova spell by 20% and reduces its cooldown by 4 sec."]
+          },
+          "spellId": 16086,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Eye of the Storm",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 29062,
+          "col": 1,
+          "icon": "spell_nature_eyeofthestorm",
+          "id": "shaman-elemental-eye-of-the-storm",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Eye of the Storm",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 33% chance to gain the Focused Casting effect that lasts for 6 sec after being the victim of a melee or ranged critical strike. The Focused Casting effect prevents you from losing casting time when taking damage.", "Gives you a 66% chance to gain the Focused Casting effect that lasts for 6 sec after being the victim of a melee or ranged critical strike. The Focused Casting effect prevents you from losing casting time when taking damage.", "Gives you a 100% chance to gain the Focused Casting effect that lasts for 6 sec after being the victim of a melee or ranged critical strike. The Focused Casting effect prevents you from losing casting time when taking damage."],
+            "forever": ["Reduces the pushback suffered from damaging attacks while casting Lightning Bolt, Chain Lightning, and Lava Burst by 23%.", "Reduces the pushback suffered from damaging attacks while casting Lightning Bolt, Chain Lightning, and Lava Burst by 47%.", "Reduces the pushback suffered from damaging attacks while casting Lightning Bolt, Chain Lightning, and Lava Burst by 70%."]
+          },
+          "spellId": 29062,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Call of Thunder",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16041,
+          "col": 2,
+          "icon": "spell_nature_callstorm",
+          "id": "shaman-elemental-call-of-thunder",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Call of Thunder",
+          "order": 10,
+          "passive": true,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "shaman-elemental-elemental-fury"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by an additional 1%.", "Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by an additional 2%.", "Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by an additional 3%.", "Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by an additional 4%.", "Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by an additional 6%."],
+            "forever": ["Increases the critical strike chance of your Lightning Bolt and Chain Lightning spells by 3%."]
+          },
+          "spellId": 16120,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_spell",
+            "maxRank": 2,
+            "name": "Storm Reach",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 28999,
+          "col": 0,
+          "icon": "spell_nature_stormreach",
+          "id": "shaman-elemental-elemental-reach",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Elemental Reach",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Storm Reach",
+          "ranks": {
+            "classic": ["Increases the range of your Lightning Bolt and Chain Lightning spells by 3 yards.", "Increases the range of your Lightning Bolt and Chain Lightning spells by 6 yards."],
+            "forever": ["Increases the range of your Lightning Bolt, Chain Lightning, Fire Nova, and Lava Burst spells by 3 yards, and increases the range of your Flame Shock spell by 8 yards.", "Increases the range of your Lightning Bolt, Chain Lightning, Fire Nova, and Lava Burst spells by 6 yards, and increases the range of your Flame Shock spell by 15 yards."]
+          },
+          "spellId": 28999,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_nature_lightningoverload",
+          "id": "shaman-elemental-lightning-overload",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Lightning Overload",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Gives your Lightning Bolt and Chain Lightning spells a 3% chance to cast a second, similar spell on the same target at no additional cost that causes half damage and no threat.", "Gives your Lightning Bolt and Chain Lightning spells a 7% chance to cast a second, similar spell on the same target at no additional cost that causes half damage and no threat.", "Gives your Lightning Bolt and Chain Lightning spells a 10% chance to cast a second, similar spell on the same target at no additional cost that causes half damage and no threat."]
+          },
+          "spellId": 408438,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "spell_nature_stranglevines",
+          "id": "shaman-elemental-earthbound",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Earthbound",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Your Earthbind Totem Immobilizes nearby targets for 5 sec when cast."]
+          },
+          "spellId": 1222988,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "Lightning Mastery",
+            "prerequisite": "Call of Thunder",
+            "tier": 5,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16578,
+          "col": 2,
+          "icon": "spell_lightning_lightningbolt01",
+          "id": "shaman-elemental-elemental-alacrity",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Elemental Alacrity",
+          "order": 14,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "shaman-elemental-call-of-thunder"
+          },
+          "previousName": "Lightning Mastery",
+          "ranks": {
+            "classic": ["Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.2 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.4 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.6 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 0.8 sec.", "Reduces the cast time of your Lightning Bolt and Chain Lightning spells by 1 sec."],
+            "forever": ["Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.17 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.33 sec.", "Reduces the cast time of your Lightning Bolt, Chain Lightning, and Lava Burst spells by 0.50 sec."]
+          },
+          "spellId": 16578,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Elemental"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_shaman_lavaburst",
+          "id": "shaman-elemental-lava-burst",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Lava Burst",
+          "order": 15,
+          "passive": false,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "shaman-elemental-lightning-overload"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["You hurl molten lava at the target, dealing 106 to 134 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."]
+          },
+          "spellId": 408490,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "2.5 sec cast",
+            "cooldown": "10 sec cooldown",
+            "range": "30 yd range",
+            "resourceCost": "165 Mana"
+          },
+          "tree": "Elemental"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "263",
+      "icon": "spell_nature_lightningshield",
+      "id": "Enhancement",
+      "index": 1,
+      "name": "Enhancement",
+      "talents": [
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Earth's Grasp",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Elemental"
+          },
+          "classicSpellId": 16043,
+          "col": 0,
+          "icon": "spell_nature_stoneclawtotem",
+          "id": "shaman-enhancement-earths-grasp",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Earth's Grasp",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the health of your Stoneclaw Totem by 25% and the radius of your Earthbind Totem by 10%.", "Increases the health of your Stoneclaw Totem by 50% and the radius of your Earthbind Totem by 20%."],
+            "forever": ["Increases the health of your Stoneclaw Totem by 25% and the radius of your Earthbind Totem by 10%.", "Increases the health of your Stoneclaw Totem by 50% and the radius of your Earthbind Totem by 20%."]
+          },
+          "spellId": 16043,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Thundering Strikes",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16255,
+          "col": 1,
+          "icon": "ability_thunderbolt",
+          "id": "shaman-enhancement-thundering-strikes",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Thundering Strikes",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Improves your chance to get a critical strike with your weapon attacks by 1%.", "Improves your chance to get a critical strike with your weapon attacks by 2%.", "Improves your chance to get a critical strike with your weapon attacks by 3%.", "Improves your chance to get a critical strike with your weapon attacks by 4%.", "Improves your chance to get a critical strike with your weapon attacks by 5%."],
+            "forever": ["Improves your chance to get a critical strike with all spells and attacks by 1%.", "Improves your chance to get a critical strike with all spells and attacks by 2%.", "Improves your chance to get a critical strike with all spells and attacks by 3%.", "Improves your chance to get a critical strike with all spells and attacks by 4%.", "Improves your chance to get a critical strike with all spells and attacks by 5%."]
+          },
+          "spellId": 16255,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Ancestral Knowledge",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 17485,
+          "col": 2,
+          "icon": "spell_shadow_grimward",
+          "id": "shaman-enhancement-ancestral-knowledge",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Ancestral Knowledge",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your maximum Mana by 1%.", "Increases your maximum Mana by 2%.", "Increases your maximum Mana by 3%.", "Increases your maximum Mana by 4%.", "Increases your maximum Mana by 5%."],
+            "forever": ["Increases your Intellect by 2%.", "Increases your Intellect by 4%.", "Increases your Intellect by 6%.", "Increases your Intellect by 8%.", "Increases your Intellect by 10%."]
+          },
+          "spellId": 17485,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Guardian Totems",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16258,
+          "col": 0,
+          "icon": "spell_nature_stoneskintotem",
+          "id": "shaman-enhancement-guardian-totems",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Guardian Totems",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the amount of damage reduced by your Stoneskin Totem and Windwall Totem by 10% and reduces the cooldown of your Grounding Totem by 1 sec.", "Increases the amount of damage reduced by your Stoneskin Totem and Windwall Totem by 20% and reduces the cooldown of your Grounding Totem by 2 sec."],
+            "forever": ["Increases the amount of damage reduced by your Stoneskin Totem and Windwall Totem by 10% and reduces the cooldown of your Grounding Totem by 1 sec.", "Increases the amount of damage reduced by your Stoneskin Totem and Windwall Totem by 20% and reduces the cooldown of your Grounding Totem by 2 sec."]
+          },
+          "spellId": 16258,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_nature_mentalquickness",
+          "id": "shaman-enhancement-mental-dexterity",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Mental Dexterity",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your Attack Power by an amount equal to 33% of your Intellect.", "Increases your Attack Power by an amount equal to 67% of your Intellect.", "Increases your Attack Power by an amount equal to 100% of your Intellect."]
+          },
+          "spellId": 415140,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Ghost Wolf",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16262,
+          "col": 2,
+          "icon": "spell_nature_spiritwolf",
+          "id": "shaman-enhancement-improved-ghost-wolf",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Ghost Wolf",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cast time of your Ghost Wolf spell by 1 sec.", "Reduces the cast time of your Ghost Wolf spell by 2 sec."],
+            "forever": ["Reduces the cast time of your Ghost Wolf spell by 1.0 sec, and Ghost Wolf may be used indoors.", "Reduces the cast time of your Ghost Wolf spell by 3.0 sec, and Ghost Wolf may be used indoors."]
+          },
+          "spellId": 16262,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Lightning Shield",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16261,
+          "col": 3,
+          "icon": "spell_nature_lightningshield",
+          "id": "shaman-enhancement-improved-lightning-shield",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Lightning Shield",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your Lightning Shield orbs by 5%.", "Increases the damage done by your Lightning Shield orbs by 10%.", "Increases the damage done by your Lightning Shield orbs by 15%."],
+            "forever": ["Increases the damage done by your Lightning Shield orbs by 5%.", "Increases the damage done by your Lightning Shield orbs by 10%.", "Increases the damage done by your Lightning Shield orbs by 15%."]
+          },
+          "spellId": 16261,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Elemental Weapons",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16266,
+          "col": 0,
+          "icon": "spell_fire_flametounge",
+          "id": "shaman-enhancement-elemental-weapons",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Elemental Weapons",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the melee attack power bonus of your Rockbiter Weapon by 7%, your Windfury Weapon effect by 13% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 5%.", "Increases the melee attack power bonus of your Rockbiter Weapon by 14%, your Windfury Weapon effect by 27% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 10%.", "Increases the melee attack power bonus of your Rockbiter Weapon by 20%, your Windfury Weapon effect by 40% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 15%."],
+            "forever": ["Increases the melee attack power bonus of your Rockbiter Weapon by 7%, your Windfury Weapon effect by 13% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 5%.", "Increases the melee attack power bonus of your Rockbiter Weapon by 13%, your Windfury Weapon effect by 27% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 10%.", "Increases the melee attack power bonus of your Rockbiter Weapon by 20%, your Windfury Weapon effect by 40% and increases the damage caused by your Flametongue Weapon and Frostbrand Weapon by 15%."]
+          },
+          "spellId": 16266,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_nature_elementalabsorption",
+          "id": "shaman-enhancement-shamanistic-focus",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Shamanistic Focus",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the mana cost of your Shock and Lightning Shield spells by 45%."]
+          },
+          "spellId": 1223030,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Anticipation",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16254,
+          "col": 3,
+          "icon": "spell_nature_mirrorimage",
+          "id": "shaman-enhancement-anticipation",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Anticipation",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to dodge by an additional 1%.", "Increases your chance to dodge by an additional 2%.", "Increases your chance to dodge by an additional 3%.", "Increases your chance to dodge by an additional 4%.", "Increases your chance to dodge by an additional 5%."],
+            "forever": ["Increases your chance to dodge by an additional 2%.", "Increases your chance to dodge by an additional 4%.", "Increases your chance to dodge by an additional 6%."]
+          },
+          "spellId": 16254,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Toughness",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16252,
+          "col": 0,
+          "icon": "spell_holy_devotion",
+          "id": "shaman-enhancement-toughness",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Toughness",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your armor value from items by 2%.", "Increases your armor value from items by 4%.", "Increases your armor value from items by 6%.", "Increases your armor value from items by 8%.", "Increases your armor value from items by 10%."],
+            "forever": ["Increases your Stamina by 2%.", "Increases your Stamina by 4%.", "Increases your Stamina by 6%.", "Increases your Stamina by 8%.", "Increases your Stamina by 10%."]
+          },
+          "spellId": 16252,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Flurry",
+            "prerequisite": "Thundering Strikes",
+            "tier": 3,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16256,
+          "col": 1,
+          "icon": "ability_ghoulfrenzy",
+          "id": "shaman-enhancement-flurry",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Flurry",
+          "order": 11,
+          "passive": true,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "shaman-enhancement-mental-dexterity"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your attack speed by 10% for your next 3 swings after dealing a critical strike.", "Increases your attack speed by 15% for your next 3 swings after dealing a critical strike.", "Increases your attack speed by 20% for your next 3 swings after dealing a critical strike.", "Increases your attack speed by 25% for your next 3 swings after dealing a critical strike.", "Increases your attack speed by 30% for your next 3 swings after dealing a critical strike."],
+            "forever": ["Increases your attack speed by 5% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 10% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 15% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 20% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 25% for your next 3 swings after dealing a melee critical strike."]
+          },
+          "spellId": 16256,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Stormstrike",
+            "prerequisite": "Elemental Weapons",
+            "tier": 6,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 17364,
+          "col": 2,
+          "icon": "ability_shaman_stormstrike",
+          "id": "shaman-enhancement-stormstrike",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Stormstrike",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you an extra attack. In addition, the next 2 sources of Nature damage dealt to the target are increased by 20%. Lasts 12 sec."],
+            "forever": ["Instantly strike for normal weapon damage and increase the damage you deal to the target with your next Lightning Bolt, Chain Lightning, or Earth Shock spell by 20% for 12 sec."]
+          },
+          "spellId": 17364,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "8 sec cooldown",
+            "range": "Melee range",
+            "resourceCost": "125 Mana"
+          },
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 1,
+            "name": "Parry",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Enhancement"
+          },
+          "classicSpellId": 16268,
+          "col": 0,
+          "icon": "ability_parry",
+          "id": "shaman-enhancement-spirit-weapons",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Spirit Weapons",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Parry",
+          "ranks": {
+            "classic": ["Gives a chance to parry enemy melee attacks."],
+            "forever": ["Gives a chance to parry enemy melee attacks, reduces all threat generated by your attacks by 30% while Rockbiter Weapon is not active, and increases all threat generated by 30% while Rockbiter Weapon is active."]
+          },
+          "spellId": 16268,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_nature_sleep",
+          "id": "shaman-enhancement-mental-quickness",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Mental Quickness",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your spell damage and healing by up to 15% of your Intellect.", "Increases your spell damage and healing by up to 30% of your Intellect."]
+          },
+          "spellId": 30812,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_shaman_improvedstormstrike",
+          "id": "shaman-enhancement-improved-stormstrike",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Stormstrike",
+          "order": 15,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "shaman-enhancement-stormstrike"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["When you Stormstrike, you have a 50% chance to gain 50% mana regeneration while casting spells for 15 sec, and Stormstrike's cooldown has a 50% chance to reset each time you Dodge or Parry.", "When you Stormstrike, you have a 100% chance to gain 50% mana regeneration while casting spells for 15 sec, and Stormstrike's cooldown has a 100% chance to reset each time you Dodge or Parry."]
+          },
+          "spellId": 1223031,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_shaman_maelstromweapon",
+          "id": "shaman-enhancement-maelstrom-weapon",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Maelstrom Weapon",
+          "order": 16,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["When you deal damage with a melee attack, you have a chance to reduce the cast time and Mana cost of your next Lightning Bolt spell by 4%. Stacks up to 5 times. Lasts 30 sec.", "When you deal damage with a melee attack, you have a chance to reduce the cast time and Mana cost of your next Lightning Bolt spell by 8%. Stacks up to 5 times. Lasts 30 sec.", "When you deal damage with a melee attack, you have a chance to reduce the cast time and Mana cost of your next Lightning Bolt spell by 12%. Stacks up to 5 times. Lasts 30 sec.", "When you deal damage with a melee attack, you have a chance to reduce the cast time and Mana cost of your next Lightning Bolt spell by 16%. Stacks up to 5 times. Lasts 30 sec.", "When you deal damage with a melee attack, you have a chance to reduce the cast time and Mana cost of your next Lightning Bolt spell by 20%. Stacks up to 5 times. Lasts 30 sec."]
+          },
+          "spellId": 408498,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Enhancement"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_nature_bloodlust",
+          "id": "shaman-enhancement-rage-of-the-farseer",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Rage of the Farseer",
+          "order": 17,
+          "passive": false,
+          "prerequisite": {
+            "rank": 2,
+            "talentId": "shaman-enhancement-mental-quickness"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your melee attack speed and spell casting speed by 30% for 25 sec."]
+          },
+          "spellId": 425336,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Enhancement"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "262",
+      "icon": "spell_nature_magicimmunity",
+      "id": "Restoration",
+      "index": 2,
+      "name": "Restoration",
+      "talents": [
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Improved Healing Wave",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16182,
+          "col": 1,
+          "icon": "spell_nature_magicimmunity",
+          "id": "shaman-restoration-improved-healing-wave",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Healing Wave",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the casting time of your Healing Wave spell by 0.1 sec.", "Reduces the casting time of your Healing Wave spell by 0.2 sec.", "Reduces the casting time of your Healing Wave spell by 0.3 sec.", "Reduces the casting time of your Healing Wave spell by 0.4 sec.", "Reduces the casting time of your Healing Wave spell by 0.5 sec."],
+            "forever": ["Reduces the casting time of your Healing Wave spell by 0.1 sec.", "Reduces the casting time of your Healing Wave spell by 0.2 sec.", "Reduces the casting time of your Healing Wave spell by 0.3 sec.", "Reduces the casting time of your Healing Wave spell by 0.4 sec.", "Reduces the casting time of your Healing Wave spell by 0.5 sec."]
+          },
+          "spellId": 16182,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Totemic Focus",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16173,
+          "col": 2,
+          "icon": "spell_nature_moonglow",
+          "id": "shaman-restoration-totemic-focus",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Totemic Focus",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Mana cost of your totems by 5%.", "Reduces the Mana cost of your totems by 10%.", "Reduces the Mana cost of your totems by 15%.", "Reduces the Mana cost of your totems by 20%.", "Reduces the Mana cost of your totems by 25%."],
+            "forever": ["Reduces the Mana cost of your totems and any spells that summon or move them by 5%.", "Reduces the Mana cost of your totems and any spells that summon or move them by 10%.", "Reduces the Mana cost of your totems and any spells that summon or move them by 15%.", "Reduces the Mana cost of your totems and any spells that summon or move them by 20%.", "Reduces the Mana cost of your totems and any spells that summon or move them by 25%."]
+          },
+          "spellId": 16173,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "spell_nature_sleep",
+          "id": "shaman-restoration-mindfulness",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Mindfulness",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Allows 17% of your Mana regeneration to continue while casting.", "Allows 33% of your Mana regeneration to continue while casting.", "Allows 50% of your Mana regeneration to continue while casting."]
+          },
+          "spellId": 1223033,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_spell",
+            "maxRank": 3,
+            "name": "Healing Grace",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 29187,
+          "col": 1,
+          "icon": "spell_nature_healingtouch",
+          "id": "shaman-restoration-natural-grace",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Natural Grace",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Healing Grace",
+          "ranks": {
+            "classic": ["Reduces the threat generated by your healing spells by 5%.", "Reduces the threat generated by your healing spells by 10%.", "Reduces the threat generated by your healing spells by 15%."],
+            "forever": ["Reduces the threat generated by your spells by 5%.", "Reduces the threat generated by your spells by 10%.", "Reduces the threat generated by your spells by 15%."]
+          },
+          "spellId": 29187,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Tidal Focus",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16179,
+          "col": 2,
+          "icon": "spell_frost_manarecharge",
+          "id": "shaman-restoration-tidal-focus",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Tidal Focus",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Mana cost of your healing spells by 1%.", "Reduces the Mana cost of your healing spells by 2%.", "Reduces the Mana cost of your healing spells by 3%.", "Reduces the Mana cost of your healing spells by 4%.", "Reduces the Mana cost of your healing spells by 5%."],
+            "forever": ["Reduces the Mana cost of your healing spells by 1% and improves your chance to hit by 1%.", "Reduces the Mana cost of your healing spells by 2% and improves your chance to hit by 2%.", "Reduces the Mana cost of your healing spells by 3% and improves your chance to hit by 3%.", "Reduces the Mana cost of your healing spells by 4% and improves your chance to hit by 4%.", "Reduces the Mana cost of your healing spells by 5% and improves your chance to hit by 5%."]
+          },
+          "spellId": 16179,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Reincarnation",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16184,
+          "col": 3,
+          "icon": "spell_nature_reincarnation",
+          "id": "shaman-restoration-improved-reincarnation",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Reincarnation",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Reincarnation spell by 10 min and increases the amount of health and mana you reincarnate with by an additional 10%.", "Reduces the cooldown of your Reincarnation spell by 20 min and increases the amount of health and mana you reincarnate with by an additional 20%."],
+            "forever": ["Reduces the cooldown of your Reincarnation spell by 10 min, increases your maximum health by 2%, and increases the amount of health and Mana you reincarnate with by an additional 10%.", "Reduces the cooldown of your Reincarnation spell by 20 min, increases your maximum health by 4%, and increases the amount of health and Mana you reincarnate with by an additional 20%."]
+          },
+          "spellId": 16184,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Ancestral Healing",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16176,
+          "col": 0,
+          "icon": "spell_nature_undyingstrength",
+          "id": "shaman-restoration-ancestral-healing",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Ancestral Healing",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your target's armor value by 8% for 15 sec after getting a critical effect from one of your healing spells.", "Increases your target's armor value by 16% for 15 sec after getting a critical effect from one of your healing spells.", "Increases your target's armor value by 25% for 15 sec after getting a critical effect from one of your healing spells."],
+            "forever": ["Increases your target's armor value by 8% for 15 sec after getting a critical effect from one of your healing spells.", "Increases your target's armor value by 17% for 15 sec after getting a critical effect from one of your healing spells.", "Increases your target's armor value by 25% for 15 sec after getting a critical effect from one of your healing spells."]
+          },
+          "spellId": 16176,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Healing Focus",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16181,
+          "col": 1,
+          "icon": "spell_nature_healingwavelesser",
+          "id": "shaman-restoration-healing-focus",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Healing Focus",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 14% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 28% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 42% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 56% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 70% chance to avoid interruption caused by damage while casting any healing spell."],
+            "forever": ["Gives you a 23% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 47% chance to avoid interruption caused by damage while casting any healing spell.", "Gives you a 70% chance to avoid interruption caused by damage while casting any healing spell."]
+          },
+          "spellId": 16181,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_shaman_watershield",
+          "id": "shaman-restoration-water-shield",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Water Shield",
+          "order": 8,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["The caster is surrounded by 3 globes of water. When a spell, melee, or ranged attack hits the caster or when one of the caster's healing spells gets a critical result, 2% of maximum mana is restored to the caster, expending one water globe. Only one globe will activate every few seconds. Lasts 10 min.\nOnly one Elemental Shield can be active on the Shaman at any one time."]
+          },
+          "spellId": 408510,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "15 sec cooldown"
+          },
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Tidal Mastery",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16194,
+          "col": 0,
+          "icon": "spell_nature_tranquility",
+          "id": "shaman-restoration-tidal-mastery",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Tidal Mastery",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical effect chance of your healing and lightning spells by 1%.", "Increases the critical effect chance of your healing and lightning spells by 2%.", "Increases the critical effect chance of your healing and lightning spells by 3%.", "Increases the critical effect chance of your healing and lightning spells by 4%.", "Increases the critical effect chance of your healing and lightning spells by 5%."],
+            "forever": ["Increases the critical effect chance of your healing spells by 1%.", "Increases the critical effect chance of your healing spells by 2%.", "Increases the critical effect chance of your healing spells by 3%.", "Increases the critical effect chance of your healing spells by 4%.", "Increases the critical effect chance of your healing spells by 5%."]
+          },
+          "spellId": 16194,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Restorative Totems",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16187,
+          "col": 1,
+          "icon": "spell_nature_manaregentotem",
+          "id": "shaman-restoration-restorative-totems",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Restorative Totems",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the effect of your Mana Spring and Healing Stream Totems by 5%.", "Increases the effect of your Mana Spring and Healing Stream Totems by 10%.", "Increases the effect of your Mana Spring and Healing Stream Totems by 15%.", "Increases the effect of your Mana Spring and Healing Stream Totems by 20%.", "Increases the effect of your Mana Spring and Healing Stream Totems by 25%."],
+            "forever": ["Increases the effect of your Mana Spring Totem by 5% and increases the effect of your Healing Stream Totem by 10%.", "Increases the effect of your Mana Spring Totem by 10% and increases the effect of your Healing Stream Totem by 20%.", "Increases the effect of your Mana Spring Totem by 15% and increases the effect of your Healing Stream Totem by 30%.", "Increases the effect of your Mana Spring Totem by 20% and increases the effect of your Healing Stream Totem by 40%.", "Increases the effect of your Mana Spring Totem by 25% and increases the effect of your Healing Stream Totem by 50%."]
+          },
+          "spellId": 16187,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Mana Tide Totem",
+            "prerequisite": "Restorative Totems",
+            "tier": 6,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16190,
+          "col": 2,
+          "icon": "spell_frost_summonwaterelemental",
+          "id": "shaman-restoration-mana-tide-totem",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Mana Tide Totem",
+          "order": 11,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Summons a Mana Tide Totem with 5 health at the feet of the caster for 12 sec that restores 170 mana every 3 seconds to group members within 20 yards."],
+            "forever": ["Summons a Mana Tide Totem with 5 health at the feet of the caster for 12 sec that restores 88 mana every 3 seconds to group members within 30 yards."]
+          },
+          "spellId": 16190,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "5 min cooldown",
+            "resourceCost": "10 Mana"
+          },
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Healing Way",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 29206,
+          "col": 1,
+          "icon": "spell_nature_healingway",
+          "id": "shaman-restoration-healing-way",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Healing Way",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your Healing Wave spells have a 33% chance to increase the effect of subsequent Healing Wave spells on that target by 6% for 15 sec. This effect will stack up to 3 times.", "Your Healing Wave spells have a 66% chance to increase the effect of subsequent Healing Wave spells on that target by 6% for 15 sec. This effect will stack up to 3 times.", "Your Healing Wave spells have a 100% chance to increase the effect of subsequent Healing Wave spells on that target by 6% for 15 sec. This effect will stack up to 3 times."],
+            "forever": ["Increases the amount healed by your Healing Wave spell by 8%.", "Increases the amount healed by your Healing Wave spell by 17%.", "Increases the amount healed by your Healing Wave spell by 25%."]
+          },
+          "spellId": 29206,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Nature's Swiftness",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16188,
+          "col": 2,
+          "icon": "spell_nature_ravenform",
+          "id": "shaman-restoration-natures-swiftness",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Nature's Swiftness",
+          "order": 13,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, your next Nature spell with a casting time less than 10 sec. becomes an instant cast spell."],
+            "forever": ["When activated, your next Nature spell with a casting time less than 10 sec. becomes an instant cast spell."]
+          },
+          "spellId": 16188,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Purification",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Restoration"
+          },
+          "classicSpellId": 16178,
+          "col": 2,
+          "icon": "spell_frost_wizardmark",
+          "id": "shaman-restoration-purification",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Purification",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the effectiveness of your healing spells by 2%.", "Increases the effectiveness of your healing spells by 4%.", "Increases the effectiveness of your healing spells by 6%.", "Increases the effectiveness of your healing spells by 8%.", "Increases the effectiveness of your healing spells by 10%."],
+            "forever": ["Increases the effectiveness of your healing spells by 2%.", "Increases the effectiveness of your healing spells by 4%.", "Increases the effectiveness of your healing spells by 6%.", "Increases the effectiveness of your healing spells by 8%.", "Increases the effectiveness of your healing spells by 10%."]
+          },
+          "spellId": 16178,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Restoration"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_nature_riptide",
+          "id": "shaman-restoration-riptide",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Riptide",
+          "order": 15,
+          "passive": false,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "shaman-restoration-healing-way"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Heals a friendly target for 485 to 533, an additional 445 over 15 sec, and increases the effectiveness of your Chain Heal casts directly on that target by 25%."]
+          },
+          "spellId": 408521,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown",
+            "range": "40 yd range",
+            "resourceCost": "245 Mana"
+          },
+          "tree": "Restoration"
+        }
+      ]
+    }
+  ]
+}

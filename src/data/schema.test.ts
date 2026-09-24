@@ -129,6 +129,7 @@ const BOOK_META = {
   tables: true,
   wowDbDefs: true,
   noClientData: true,
+  unresolvedTokens: true,
 } satisfies Shape<SpellBookMeta>
 const NO_CLIENT_DATA = { spellId: true, skillLine: true, acquireMethod: true, supersedes: true, encrypted: true, classic: true } satisfies Shape<NoClientDataRow>
 const SPELL = {

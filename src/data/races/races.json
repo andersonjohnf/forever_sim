@@ -1316,6 +1316,10 @@
       "classic": ["alliance-human", "alliance-dwarf"],
       "forever": ["horde-undead", "alliance-human", "alliance-dwarf"]
     },
+    "shaman": {
+      "classic": ["horde-orc", "horde-tauren", "horde-troll"],
+      "forever": ["horde-orc", "horde-tauren", "horde-troll", "horde-skyborne-windshaper", "alliance-dwarf"]
+    },
     "warrior": {
       "classic": ["horde-orc", "horde-undead", "horde-tauren", "horde-troll", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome"],
       "forever": ["horde-orc", "horde-undead", "horde-tauren", "horde-troll", "horde-skyborne-windshaper", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome", "alliance-skyborne-high-order"]

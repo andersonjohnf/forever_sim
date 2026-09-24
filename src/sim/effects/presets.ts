@@ -9,9 +9,14 @@ import { FOREVER } from '../rules/profiles'
 import { type Audience, BUFFS, BUFFS_BY_ID, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
 
-/** Whether the entry does anything for the spec's class (`forClasses`; absent, every class). */
-export const forSpecClass = (buff: { forClasses?: readonly string[] }, spec: SpecId): boolean =>
-  !buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)
+/**
+ * Whether the entry does anything for the spec: for its class (`forClasses`; absent, every class) and
+ * its kind, melee or caster (`forSpecs`, SpecMeta.caster; absent, every spec). The Buffs tab lists
+ * only these, and presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries").
+ */
+export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forSpecs'>, spec: SpecId): boolean =>
+  (!buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)) &&
+  (!buff.forSpecs || (buff.forSpecs === 'caster') === (SPEC_META[spec].caster === true))
 
 function reaches(audience: Audience, spec: SpecId): boolean {
   if (audience === 'all') return true

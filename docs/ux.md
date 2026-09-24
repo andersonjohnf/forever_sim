@@ -199,10 +199,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage.").
-  - Only what does something for your class is listed at all: mana and spell damage entries
-    (Blessing of Wisdom, mana potions, spell damage elixirs) show for paladins only
+  - Only what does something for your class and spec is listed at all: mana and spell damage
+    entries (Blessing of Wisdom, mana potions, spell damage elixirs) show for the classes that
+    spend mana (the paladin, the shaman, the mage), and what changes only attacks (attack power,
+    Strength and Agility, weapon stones, Windfury Totem, the boss's armor) never shows for a caster,
+    nor the casters' own (Moonkin Aura, Curse of the Elements, Power Infusion) for anyone else
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
-    can use but your spec can't (the weapon stones in a form) is listed, locked off, as above.
+    can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
+    as above. The Boss damage debuffs below are listed for every DPS spec, casters too.
   - The **Boss damage** debuffs act on the boss's swings, which only a tank takes. For a DPS spec
     each says so after its summary ("Only the tank takes the boss's swings, so it changes nothing
     for you."), and its switch stays usable. The two attack-power debuffs, of which only one

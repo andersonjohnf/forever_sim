@@ -662,9 +662,17 @@ and its raid has a warrior tank's Thunder Clap and Demoralizing Shout only if yo
 
 `DPS` = Arms, Fury, Cat, Ret, Enhancement, the rogues and the mages · `Tank` = Prot warrior, Bear,
 Prot paladin · `Pal` = paladin specs only (the effect does nothing for the others) · `Enh` = the
-Enhancement shaman · `Mage` = the Fire, Frost and Arcane mages (the casters, `CASTER_SPECS`) ·
+Enhancement shaman · `Mage` = the Fire, Frost and Arcane mages (the casters: `CASTER_SPECS`, the specs whose
+`SpecMeta.caster` is set) ·
 `all` = every spec · `Pal (your own)`, `Druid (your own)`, `Sha (your own)` = that class's buff it
 casts on itself (`selfCast`), which Self only brings.
+An entry marked † changes only attacks: attack power, Strength or Agility, the melee's party crit
+aura, a weapon's attacks, or the boss's armor, which only physical damage feels (Expose Armor too,
+in no preset). It's the melee's
+(`forSpecs: 'melee'` in `src/sim/effects/buffs.ts`), so there `all` and `DPS` mean every spec but the
+casters (`SpecMeta.caster`), and a caster's Buffs tab doesn't list it at all
+([Class-only entries](#class-only-entries)). The melee and tank specs' presets are the same with or
+without the mark.
 Devotion Aura stays `Tank` though it's a paladin tank's duty, because unlike Thunder Clap and
 Demoralizing Shout, which only a warrior tank applies, any paladin in the raid runs an aura, so a
 warrior's or bear's raid has Devotion Aura when a paladin is in it and D26's rule that a tank's
@@ -679,27 +687,27 @@ Mana Spring.
 
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
 | --- | --- | --- | --- | --- |
-| Battle Shout | — | all | all | all |
-| Blessing of Might | Pal (your own) | DPS | all | all |
+| Battle Shout † | — | all | all | all |
+| Blessing of Might † | Pal (your own) | DPS | all | all |
 | Blessing of Kings | — | Tank | all | all |
 | Blessing of Salvation | — | — | DPS | DPS |
 | Blessing of Wisdom | — | — | Pal, Enh, Mage | Pal, Enh, Mage |
 | Mark / Gift of the Wild | Druid (your own) | all | all | all |
 | Power Word / Prayer of Fortitude | — | all | all | all |
 | Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal, Enh, Mage | Pal, Enh, Mage |
-| Leader of the Pack or Moonkin Aura | — | — | DPS (Moonkin Aura: Mage; see below) | the same |
-| Windfury Totem | — | — | all but Enh (see below) | all but Enh |
-| Grace of Air Totem | Sha (your own) | Enh | Enh | Enh |
-| Strength of Earth Totem | Sha (your own) | Enh | all | all |
+| Leader of the Pack † or Moonkin Aura | — | — | DPS (Moonkin Aura: Mage instead; see below) | the same |
+| Windfury Totem † | — | — | all but Enh (see below) | all but Enh |
+| Grace of Air Totem † | Sha (your own) | Enh | Enh | Enh |
+| Strength of Earth Totem † | Sha (your own) | Enh | all | all |
 | Mana Spring Totem | Sha (your own) | Enh | Pal, Enh, Mage | Pal, Enh, Mage |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
-| Sunder Armor ×5 | — | DPS | all | all |
-| Faerie Fire | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
-| Curse of Recklessness | — | — | all | all |
+| Sunder Armor ×5 † | — | DPS | all | all |
+| Faerie Fire † | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
+| Curse of Recklessness † | — | — | all | all |
 | Curse of the Elements | — | — | Mage; Pal once it reaches the paladin ([spells OQ-S12](spells.md#open-questions)) | the same |
 | Power Infusion | — | — | — (an option for a Mage) | — |
 | Judgement of Wisdom | — | — | Pal | Pal |
-| Armor Shatter ×3 (Annihilator) | — | — | — | all |
+| Armor Shatter ×3 (Annihilator) † | — | — | — | all |
 | Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
 | Demoralizing Roar | — | — | — (the Feral bear's own duty: see below) | — |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
@@ -725,10 +733,11 @@ totem is Grace of Air. If you turn Windfury Totem on while Windfury Weapon is th
 leaves the totem's proc out and the results say so; with Rockbiter Weapon it applies
 ([shaman](../classes/shaman.md#totems)).
 
-A mage's presets reach both party crit auras, Leader of the Pack (`DPS`) and Moonkin Aura (`Mage`),
-and the first of an exclusive group wins, so a mage gets Leader of the Pack. In `forever` both are
-+3% crit with spells and attacks, so the mage's numbers are the same; in `classicEra` Leader of the
-Pack is melee crit only, so a mage there gets none. Power Infusion is another priest's cooldown, so
+The party crit aura is Leader of the Pack for the melee and Moonkin Aura for the casters, one per
+party (`party-crit-aura`): a mage's presets and Buffs tab have Moonkin Aura only, and a melee
+spec's Leader of the Pack only. In `forever` both are +3% crit with spells and attacks, so which one
+a spec is given changes nothing there; in `classicEra` Leader of the Pack is melee crit only and
+Moonkin Aura spell crit only, so each goes to the specs it helps. Power Infusion is another priest's cooldown, so
 no preset has it; turned on, a mage's rotation takes it whenever it's ready
 ([mage](../classes/mage.md#defaults)).
 
@@ -969,22 +978,41 @@ Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir
 Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same).
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
-([shaman](../classes/shaman.md#spell-damage)).
-The caster core ([spells §9, §12](spells.md#9-caster-raid-buffs-and-debuffs)) adds Moonkin Aura,
-Power Infusion and Curse of the Elements for the caster classes, and gives them the mana and spell
-damage entries above (all but Elixir of Holy Power) too, through `CASTER_CLASSES` and
-`CASTER_SPECS` in `src/sim/effects/buffs.ts`. The mage is the first caster
-([mage](../classes/mage.md#defaults)), so no warrior, druid, paladin, shaman or rogue setup has any
-of them.
+([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
+every spec is a caster, the mage since K2) get them too, all but Elixir of Holy Power.
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever
-lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab doesn't list such
-an entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
-the plan ignores it. The Feral cat brought no entries of its own: what does nothing in Cat Form
-(a weapon stone's damage) is listed for a druid, locked off with the reason (`buffUnusedReason`).
-The Enhancement shaman's stones and oils are the same: listed, and locked off because its weapon
-imbue is its main hand's temporary enchant.
+lets drink it ([§3.5](#35-potions-and-runes)).
+
+An entry for one kind of spec carries it (`forSpecs`), and a spec is a caster when its `SpecMeta`
+sets `caster` (the mage's three since K2, [spells §12](spells.md#12-what-a-class-slice-uses)):
+
+- **The melee's** (`forSpecs: 'melee'`): what changes only attacks, so a caster's spells never
+  feel it. Attack power (Battle Shout, Blessing of Might, Winterfall Firewater, Juju Might,
+  Mightfish Steak), Strength and Agility (Strength of Earth and Grace of Air Totems, Elixir of
+  Greater Strength, Juju Power, R.O.I.D.S., Ground Scorpok Assay, Smoked Desert Dumplings, Flank au
+  Poivre), attacks and weapons (Windfury Totem, Juju Flurry, the Dense and Elemental Sharpening
+  Stones, the Mighty Rage Potion), the boss's armor (Sunder Armor, Expose Armor, Faerie Fire, Curse
+  of Recklessness, Armor Shatter), and Leader of the Pack, the melee's party crit aura as Moonkin
+  Aura is the casters' ([§6.2](#62-buffs-and-debuffs-by-preset)). `effects/spec-kind.test.ts` checks
+  each entry's effects against the mark, so a new entry that changes only attacks can't go unmarked.
+  An entry whose Forever item reaches spells too stays for everyone: Elixir of the Mongoose, Grilled
+  Squid and Flask of Natural Aggression give all crit (aura 290) in Forever, spell crit included, so
+  a caster sees them. The debuffs on the boss's swings (Demoralizing Shout and Roar, Thunder Clap)
+  aren't marked: they're a tank's, and every DPS spec, a caster too, sees them with the note that
+  they change nothing for it ([ux.md](../ux.md) "Buffs").
+- **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
+  Moonkin Aura, Power Infusion and Curse of the Elements.
+
+A class slice opts its specs in by setting `SpecMeta.caster`: nothing else. For a class, or a
+kind of spec, an entry isn't for, the Buffs tab doesn't list it, no preset selects it,
+`normalizeConfig` turns it off in a saved setup with a note ("Battle Shout does nothing for a
+caster, so it was turned off."), and the plan ignores it. The melee and tank specs' presets and
+results are the same with or without the marks. The Feral cat brought no entries of its own: what
+does nothing in Cat Form (a weapon stone's damage) is listed for a druid, locked off with the
+reason (`buffUnusedReason`). The Enhancement shaman's stones and oils are the same: listed, and
+locked off because its weapon imbue is its main hand's temporary enchant.
 
 ### Classic Era values
 

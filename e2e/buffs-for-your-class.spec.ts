@@ -1,7 +1,8 @@
 import { expect, test } from './fixtures.ts'
 
-// docs/ux.md "Buffs": only what does something for your class is listed. Mana and spell damage are
-// the paladin's (buffs doc "Class-only entries"), so a warrior never sees them.
+// docs/ux.md "Buffs": only what does something for your class and spec is listed. Mana and spell
+// damage are the classes' that spend mana, and what changes only attacks is the melee's (buffs doc
+// "Class-only entries"), so a warrior never sees the one and a mage never sees the other.
 
 const PALADIN_ONLY = [
   'Prayer of Spirit',
@@ -36,4 +37,54 @@ test('the Boss damage debuffs say they change nothing for a DPS spec, and the ro
   await expect(buffs.getByRole('switch', { name: 'Demoralizing Roar' })).toHaveAccessibleDescription(`−204 boss attack power (instead of Demoralizing Shout). ${note}`)
   await expect(buffs.getByRole('switch', { name: 'Demoralizing Shout' })).toHaveAccessibleDescription(`−204 boss attack power (instead of Demoralizing Roar). ${note}`)
   await expect(buffs.getByRole('switch', { name: 'Thunder Clap' })).toHaveAccessibleDescription(`Boss attacks 20% slower. ${note}`)
+})
+
+/** The melee's entries (`forSpecs: 'melee'`) a caster never sees: attack power, the boss's armor, weapon enchants. */
+const MELEE_ONLY = [
+  'Battle Shout',
+  'Blessing of Might',
+  'Leader of the Pack',
+  'Windfury Totem',
+  'Grace of Air Totem',
+  'Strength of Earth Totem',
+  'Sunder Armor ×5',
+  'Expose Armor',
+  'Faerie Fire',
+  'Curse of Recklessness',
+  'Annihilator ×3',
+  'Elixir of Greater Strength',
+  'Juju Power',
+  'Winterfall Firewater',
+  'Juju Might',
+  'R.O.I.D.S.',
+  'Ground Scorpok Assay',
+  'Smoked Desert Dumplings',
+  'Mightfish Steak',
+  'Flank au Poivre',
+  'Dense Sharpening Stone / Weightstone',
+  'Elemental Sharpening Stone',
+  'Juju Flurry',
+]
+
+test('a mage’s Buffs tab lists nothing that changes only attacks, in any preset, and a warrior’s no caster entries', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+  await expect(buffs.getByRole('radio', { name: 'Standard raid (default)' })).toBeChecked()
+  for (const preset of ['Self only', 'Dungeon group', 'Standard raid (default)', 'Max consumables']) {
+    await buffs.getByRole('radio', { name: preset }).click()
+    for (const name of MELEE_ONLY) await expect(buffs.getByRole('switch', { name, exact: true }), `${preset}: ${name}`).toHaveCount(0)
+  }
+  // Its own: the casters' crit aura and curse, on; and Mongoose, whose Forever crit is spell crit too.
+  await buffs.getByRole('radio', { name: 'Standard raid (default)' }).click()
+  await expect(buffs.getByRole('switch', { name: 'Moonkin Aura' })).toBeChecked()
+  await expect(buffs.getByRole('switch', { name: 'Curse of the Elements' })).toBeChecked()
+  await expect(buffs.getByRole('switch', { name: 'Elixir of the Mongoose' })).toBeEnabled()
+
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('group', { name: 'Warrior' }).getByRole('menuitem', { name: /^Fury/ }).click()
+  await expect(buffs.getByRole('switch', { name: 'Battle Shout' })).toBeVisible()
+  for (const name of ['Moonkin Aura', 'Power Infusion', 'Curse of the Elements']) await expect(buffs.getByRole('switch', { name, exact: true })).toHaveCount(0)
 })

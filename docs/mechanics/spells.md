@@ -198,9 +198,8 @@ are the spell's own multiplier, set by the class slice.
 | **Arcane Brilliance**, **Prayer of Spirit**, **Blessing of Wisdom**, **Mana Spring Totem** | [buffs §1.1, §1.2](buffs-debuffs-consumables.md#1-raid-and-party-buffs) | | the paladin's and the casters' | [F] |
 | **Totem of Wrath**, **Wrath of Air Totem** | **not in the Forever client** | not in Classic Era | none | [F] [client] (SpellName, 1.60.1.69913) |
 
-The casters' Buffs entries are class-only ([buffs "Class-only entries"](buffs-debuffs-consumables.md#class-only-entries)):
-until a caster class ships, no warrior, druid or paladin gets them, in a preset, a saved setup or
-a plan.
+The casters' Buffs entries are the caster specs' only (`forSpecs: 'caster'`; [buffs "Class-only entries"](buffs-debuffs-consumables.md#class-only-entries)):
+no warrior, druid, paladin, shaman or rogue gets them, in a preset, a saved setup or a plan.
 
 ## 10. Spell procs
 
@@ -255,9 +254,14 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
   ticks already share. A DoT channel's ticks are its spell's `SpellDef.dotTicks` and `dotTickMs`.
   An ability's own `dotTicks`, `dotTickMs` and `dotTickDamage` are a **bleed's** (Rend, Rake): a
   caster ability never sets them, and a channel ignores them.
-- **Buffs**: add the class to `CASTER_CLASSES` and its specs to `CASTER_SPECS` in
-  `sim/effects/buffs.ts`, and set `SpecMeta.caster` for the sheet's spell block. A class whose
-  other specs cast no spells (the druid) needs its entries gated per spec instead.
+- **Buffs**: set `SpecMeta.caster` on the class's specs, which also gives the sheet its spell
+  block. `CASTER_SPECS` and `CASTER_CLASSES` in `sim/effects/buffs.ts` follow it: the specs get the
+  casters' entries (`forSpecs: 'caster'`) and lose the melee's (`forSpecs: 'melee'`: attack power,
+  Strength, Agility, weapon enchants, the boss's armor) in their presets, Buffs tab, saved setups
+  and plan ([buffs "Class-only entries"](buffs-debuffs-consumables.md#class-only-entries)). The
+  mana and spell damage entries go by class (`forClasses`), to a class whose every spec is a caster;
+  a class with a melee spec too (the druid's Feral specs beside Balance) needs those gated per spec
+  instead.
 
 ---
 

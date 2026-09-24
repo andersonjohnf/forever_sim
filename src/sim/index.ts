@@ -166,6 +166,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     ...(b.providedBy ? { providedBy: b.providedBy } : {}),
     ...(b.selfCast ? { selfCast: true } : {}),
     ...(b.forClasses ? { forClasses: b.forClasses } : {}),
+    ...(b.forSpecs ? { forSpecs: b.forSpecs } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
     ...(onBossMeleeOnly(b) ? { bossMelee: true as const } : {}),
     docRef: b.docRef,
@@ -193,7 +194,7 @@ export const buffPresets: BuffPreset[] = [
   { id: 'max', name: 'Max consumables', description: 'Raid buffs and every consumable that helps.' },
 ]
 
-export { buffProvided, unusedBuffs } from './effects/presets'
+export { buffProvided, forSpecClass, unusedBuffs } from './effects/presets'
 
 /** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */
 export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassSlug[]): string[] {

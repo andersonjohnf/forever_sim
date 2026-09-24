@@ -322,6 +322,15 @@ export interface BuffDefinition {
    * The Buffs tab lists it only for them, and presets and the plan skip it for the others.
    */
   forClasses?: readonly ClassId[]
+  /**
+   * The kind of spec it's for (buffs doc "Class-only entries"; docs/ux.md "Buffs"): `melee`, an
+   * entry that changes only attacks (attack power, Strength, Agility, a weapon's temporary enchant,
+   * the boss's armor), which a caster spec (SpecMeta.caster) never sees; `caster`, the caster core's
+   * (Moonkin Aura, Power Infusion, Curse of the Elements), which only a caster spec sees. Absent,
+   * every spec. Like `forClasses`, the Buffs tab lists it only for them, and presets, saved setups and
+   * the plan skip it for the others.
+   */
+  forSpecs?: 'melee' | 'caster'
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /**

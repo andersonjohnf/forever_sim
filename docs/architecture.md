@@ -238,8 +238,9 @@ A spec is data plus small ability modules, never its own loop.
     proc's `schools` or one spell (`fromSource`) in the gated lists; condition `auraUp` (38).
   - **Mana hooks** for the class slices: auras' `spiritRegen` and `castingRegen`, and each class's
     Spirit regeneration (`SPIRIT_REGEN`). The caster buffs and debuffs (Curse of the Elements,
-    Moonkin Aura, Power Infusion) are class-only entries for `CASTER_CLASSES` (the mage since K2); a
-    caster spec's sheet shows spell damage by school (`SpecMeta.caster`).
+    Moonkin Aura, Power Infusion) are the caster specs' entries (`forSpecs: 'caster'`), and what
+    changes only attacks is the melee's (`forSpecs: 'melee'`); `SpecMeta.caster` makes a spec a
+    caster (the mage's since K2), and its sheet shows spell damage by school.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,

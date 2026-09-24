@@ -329,7 +329,10 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
     }
     if (selected.includes(buff)) continue
     if (!forSpecClass(buff, spec)) {
-      r.add(`${buff.name} does nothing for a ${SPEC_META[spec].className.toLowerCase()}, so it was turned off.`)
+      // For the class (`forClasses`), or for the kind of spec (`forSpecs`: a caster's Battle Shout).
+      const forClass = !buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)
+      if (forClass && buff.forSpecs === 'caster') r.add(`${buff.name} is for casters only, so it was turned off.`)
+      else r.add(`${buff.name} does nothing for ${forClass ? 'a caster' : `a ${SPEC_META[spec].className.toLowerCase()}`}, so it was turned off.`)
       continue
     }
     if (!buffProvided(buff, raid, spec)) {

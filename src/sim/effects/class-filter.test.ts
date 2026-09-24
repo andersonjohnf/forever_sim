@@ -29,6 +29,7 @@ describe('class-only catalogue entries', () => {
   it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, so no warrior, druid, paladin, shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
     expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([['mage'], ['mage-fire', 'mage-frost', 'mage-arcane']])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
+    expect(BUFFS.filter((b) => b.forSpecs === 'caster').map((b) => b.id)).toEqual(caster)
     for (const spec of SPEC_IDS) {
       if (SPEC_META[spec].classId === 'mage') continue
       for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(false)
@@ -42,9 +43,6 @@ describe('class-only catalogue entries', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
     for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage'] : ['paladin'])
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
-      ['moonkinAura', CASTER_CLASSES],
-      ['powerInfusion', CASTER_CLASSES],
-      ['curseOfTheElements', CASTER_CLASSES],
       ['instantPoisonMainHand', ['rogue']],
       ['deadlyPoisonMainHand', ['rogue']],
       ['instantPoisonOffHand', ['rogue']],

@@ -19,6 +19,7 @@ import {
   defaultConfig,
   unusedRotationSettings,
   FULL_RAID,
+  forSpecClass,
   getSpec,
   presetBuffs,
   rotationValues,
@@ -55,12 +56,10 @@ export function BuffsSection() {
   const rotation = useSetup((s) => s.config.rotation)
   const talents = useSetup((s) => s.config.talents)
   // Summaries in the setup's rule profile: Classic Era's numbers where they differ. Only what does
-  // something for your class: mana and spell damage are the paladin's (docs/ux.md "Buffs").
+  // something for your class and spec: mana and spell damage for the classes that spend mana, attack
+  // power and the boss's armor for the melee, the caster core's for the casters (docs/ux.md "Buffs").
   const profile = useSetup((s) => s.config.rules.profile)
-  const buffCatalogue = useMemo(
-    () => buffCatalogueFor(profile).filter((b) => !b.forClasses || b.forClasses.includes(meta.classId)),
-    [profile, meta.classId],
-  )
+  const buffCatalogue = useMemo(() => buffCatalogueFor(profile).filter((b) => forSpecClass(b, meta.id)), [profile, meta.id])
   const update = useSetup((s) => s.update)
   const setBuffs = (patch: Partial<typeof buffs>) => update((c) => ({ ...c, buffs: { ...c.buffs, ...patch } }))
   // Buffs the rotation keeps up itself (your own Battle Shout, warrior.md §5.2 row 1): the switch

@@ -1,9 +1,10 @@
 // The buff catalogue: raid buffs, target debuffs and consumables
-// (docs/mechanics/buffs-debuffs-consumables.md). Entries that do something for one class only
-// (mana and spell damage: the paladin's) say so in `forClasses`: the Buffs tab lists them for that
-// class, and presets and the plan skip them for the others. What a druid's form makes useless is
-// listed and locked off instead (presets.ts `buffUnusedReason`). World buffs never exist here
-// (decision D8).
+// (docs/mechanics/buffs-debuffs-consumables.md). Entries that do something for some classes only
+// (mana and spell damage) say so in `forClasses`, and entries for one kind of spec (attack power and
+// the boss's armor for the melee, the caster core's for the casters) in `forSpecs`: the Buffs tab
+// lists them only for those, and presets, saved setups and the plan skip them for the others. What a
+// druid's form makes useless is listed and locked off instead (presets.ts `buffUnusedReason`). World
+// buffs never exist here (decision D8).
 //
 // Each entry is a UI-facing BuffDefinition plus its effects and the presets that include it
 // (buffs doc §6.2 and §6.3). Values are Forever's. An entry whose Classic Era value differs
@@ -13,6 +14,7 @@
 import type { BuffDefinition, BuffPreset, ClassId, SpecId } from '../types'
 import { THISTLE_TEA } from '../classes/rogue/abilities'
 import { MAGIC_SCHOOLS, schoolMask } from '../plan/types'
+import { SPEC_IDS, SPEC_META } from '../specs'
 import type { ClassicEraValues, Effect, EffectList, OnUseSpec, ProcSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
@@ -94,14 +96,19 @@ const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false)
 /** A poison on one hand: a temporary enchant that beats a stone there, with its proc (docs/classes/rogue.md §4). */
 const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 'tempEnchant', id: `${proc.id}.${hand}`, priority: 10, hand, proc }]
 /**
- * The caster classes and specs, as the caster class slices (K2–K6) land them (docs/mechanics/spells.md
- * §12): the entries for mana and spell damage, and the caster buffs and debuffs below, are theirs
- * too. The mage since K2 (docs/classes/mage.md); no warrior, druid, paladin or shaman setup changes: a
- * class slice adds its class here and its specs to CASTER_SPECS. A class whose other specs cast no
- * spells (the druid's Feral specs beside Balance) needs its entries gated per spec instead.
+ * The caster specs: every spec whose SpecMeta sets `caster` (docs/mechanics/spells.md §12). A class
+ * slice opts its specs in there, and that one flag does it all: the `forSpecs: 'melee'` entries
+ * below (attack power, Strength and Agility, weapon enchants, the boss's armor) leave the spec's
+ * presets, Buffs tab, saved setups and plan; the `forSpecs: 'caster'` ones (Moonkin Aura, Power
+ * Infusion, Curse of the Elements) come in (buffs doc "Class-only entries"). The caster classes are
+ * those whose every spec is a caster (the mage since K2, docs/classes/mage.md): the mana and spell
+ * damage entries go to them by class. A class with a melee spec too (the druid's Feral specs beside
+ * Balance) gets those per spec instead.
  */
-export const CASTER_CLASSES: readonly ClassId[] = ['mage']
-export const CASTER_SPECS: readonly SpecId[] = ['mage-fire', 'mage-frost', 'mage-arcane']
+export const CASTER_SPECS: readonly SpecId[] = SPEC_IDS.filter((s) => SPEC_META[s].caster === true)
+export const CASTER_CLASSES: readonly ClassId[] = [...new Set(CASTER_SPECS.map((s) => SPEC_META[s].classId))].filter((c) =>
+  SPEC_IDS.every((s) => SPEC_META[s].classId !== c || SPEC_META[s].caster === true),
+)
 /** The classes that spend mana on spells: the paladin, the shaman and the casters (once each: K5 adds the shaman here too). */
 const MANA_CLASSES: readonly ClassId[] = [...new Set([...MANA_USERS, ...CASTER_CLASSES])]
 /** `Pal` in the presets (§6.2), the Enhancement shaman, and the casters. */
@@ -218,6 +225,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Attack power',
     summary: '+139 attack power',
     providedBy: 'warrior',
+    forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'ap', value: 139 }],
     classicEra: { summary: '+232 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 232 }] },
@@ -234,6 +242,7 @@ export const BUFFS: BuffSpec[] = [
     // A paladin blesses itself with Might, so for one the raid needs no other; its other blessings
     // are another paladin's (one blessing per paladin on a player; buffs doc §6.1).
     selfCast: true,
+    forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'ap', value: 133 }],
     classicEra: { summary: '+185 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 185 }] },
@@ -334,6 +343,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '+3% crit (feral druid in your party)',
     providedBy: 'druid',
     exclusiveGroup: 'party-crit-aura',
+    forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 24932: all crit (aura 290), so spells too; Classic Era's is aura 52, melee and ranged only.
     effects: [
@@ -341,7 +351,8 @@ export const BUFFS: BuffSpec[] = [
       { kind: 'stat', stat: 'spellCrit', value: 3 },
     ],
     classicEra: { summary: '+3% melee crit (feral druid in your party)', effects: [{ kind: 'stat', stat: 'crit', value: 3 }] },
-    // Not the casters': Moonkin Aura, its rival, is theirs (docs/classes/mage.md#defaults), and in `classicEra` this is melee crit only.
+    // Not the casters': Moonkin Aura, its rival, is theirs (docs/classes/mage.md#defaults), and in
+    // `classicEra` this is melee crit only. So it's the melee's party crit aura, as Moonkin Aura is the casters'.
     presets: { raid: MELEE_DPS, max: MELEE_DPS },
   },
   {
@@ -353,6 +364,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '20% chance on a main-hand hit for an extra attack with +246 attack power',
     providedBy: 'shaman',
     exclusiveGroup: 'totem:air',
+    forSpecs: 'melee',
     docRef: `${DOC}#windfury-totem`,
     effects: (p) => [
       {
@@ -388,6 +400,7 @@ export const BUFFS: BuffSpec[] = [
     // A shaman drops its own totems: one air, one earth and one water (docs/classes/shaman.md#totems).
     selfCast: true,
     exclusiveGroup: 'totem:air',
+    forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
     classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
@@ -403,6 +416,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'shaman',
     selfCast: true,
     exclusiveGroup: 'totem:earth',
+    forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'str', value: 53 }],
     classicEra: { summary: '+77 Strength', effects: [{ kind: 'stat', stat: 'str', value: 77 }] },
@@ -476,7 +490,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '+3% crit (moonkin druid in your party)',
     providedBy: 'druid',
     exclusiveGroup: 'party-crit-aura',
-    forClasses: CASTER_CLASSES,
+    forSpecs: 'caster',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 24907 #0: party aura 290 (all crit) 3 [F]; Classic Era's is aura 57, spell crit only [C]
     // [client] (SpellEffect, 1.60.1.69913 and 1.15.9.69722).
@@ -495,13 +509,15 @@ export const BUFFS: BuffSpec[] = [
     group: 'Spell damage',
     summary: '+20% spell damage for 15 s, every 3 min (a priest’s)',
     providedBy: 'priest',
-    forClasses: CASTER_CLASSES,
+    forSpecs: 'caster',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'onUse', id: 'powerInfusion', name: 'Power Infusion', use: POWER_INFUSION }],
     presets: {},
   },
 
   // --- Target debuffs (§4) -------------------------------------------------------------------
+  // The boss's armor slows only attacks, so the armor debuffs are the melee's (`forSpecs`): a caster's
+  // Buffs tab doesn't list them.
   {
     id: 'sunderArmor',
     name: 'Sunder Armor ×5',
@@ -511,6 +527,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '−2,250 armor',
     providedBy: 'warrior',
     exclusiveGroup: 'armor-major',
+    forSpecs: 'melee',
     docRef: `${DOC}#41-armor-reduction`,
     effects: [{ kind: 'targetArmor', value: 2250 }],
     presets: { dungeon: 'dps', raid: 'all', max: 'all' },
@@ -524,6 +541,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '−2,250 armor (instead of Sunder Armor)',
     providedBy: 'rogue',
     exclusiveGroup: 'armor-major',
+    forSpecs: 'melee',
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [{ kind: 'targetArmor', value: p.values.exposeArmor }],
     classicEra: { summary: '−1,700 armor (instead of Sunder Armor)' },
@@ -537,6 +555,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Armor',
     summary: '−505 armor',
     providedBy: 'druid',
+    forSpecs: 'melee',
     docRef: `${DOC}#41-armor-reduction`,
     effects: [{ kind: 'targetArmor', value: 505 }],
     presets: { raid: 'all', max: 'all' },
@@ -549,6 +568,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Armor',
     summary: '−505 armor',
     providedBy: 'warlock',
+    forSpecs: 'melee',
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [
       { kind: 'targetArmor', value: p.values.curseOfRecklessnessArmor },
@@ -564,6 +584,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'targetDebuff',
     group: 'Armor',
     summary: '−495 armor (Armor Shatter from a raid member’s Annihilator)',
+    forSpecs: 'melee',
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [{ kind: 'targetArmor', value: 3 * p.values.armorShatterPerStack }],
     classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
@@ -578,7 +599,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Spell damage',
     summary: '+10% magic damage taken, −75 magic resistance',
     providedBy: 'warlock',
-    forClasses: CASTER_CLASSES,
+    forSpecs: 'caster',
     docRef: `${DOC}#42-other-debuffs`,
     // 1311680 (rank 4, new at 50) #0 aura 22 −75, #1 aura 87 +10, both misc 126: every magic school,
     // Holy included [F]; Classic Era's rank 3 (11722) is Fire and Frost only (misc 20) [C]
@@ -678,6 +699,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Elixirs',
     summary: '+25 Strength',
     exclusiveGroup: 'elixir:strength',
+    forSpecs: 'melee',
     docRef: `${DOC}#32-elixirs`,
     effects: [{ kind: 'stat', stat: 'str', value: 25 }],
     presets: { raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
@@ -690,6 +712,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Elixirs',
     summary: '+30 Strength',
     exclusiveGroup: 'elixir:strength',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'str', value: 30 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES] },
@@ -841,6 +864,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Other buffs',
     summary: '+35 attack power',
     exclusiveGroup: 'buff:ap-drink',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'ap', value: 35 }],
     presets: { raid: WARRIOR_DPS },
@@ -853,6 +877,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Other buffs',
     summary: '+40 attack power',
     exclusiveGroup: 'buff:ap-drink',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES] },
@@ -865,6 +890,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Other buffs',
     summary: '+25 Strength',
     exclusiveGroup: 'blasted-lands',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'str', value: 25 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
@@ -877,6 +903,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Other buffs',
     summary: '+25 Agility',
     exclusiveGroup: 'blasted-lands',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'agi', value: 25 }],
     presets: { max: ['druid-feral-cat', ...ROGUES] },
@@ -900,6 +927,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Food',
     summary: '+20 Strength',
     exclusiveGroup: 'food',
+    forSpecs: 'melee',
     docRef: `${DOC}#34-food`,
     effects: [{ kind: 'stat', stat: 'str', value: 20 }],
     presets: {
@@ -916,6 +944,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Food',
     summary: '+40 attack power',
     exclusiveGroup: 'food',
+    forSpecs: 'melee',
     docRef: `${DOC}#34-food`,
     effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
     classicEra: { summary: '+10 Stamina', effects: [{ kind: 'stat', stat: 'sta', value: 10 }] },
@@ -946,6 +975,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Food',
     summary: '+20 Agility',
     exclusiveGroup: 'food',
+    forSpecs: 'melee',
     docRef: `${DOC}#34-food`,
     // New in Forever (item 250069, Well Fed +20 Agility), so both profiles use it; the feral cat's food (buffs doc §6.3).
     effects: [{ kind: 'stat', stat: 'agi', value: 20 }],
@@ -958,6 +988,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Weapon',
     summary: '+8 weapon damage on each weapon',
+    forSpecs: 'melee',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: [{ kind: 'tempEnchant', id: 'denseStone', priority: 1, weaponDamage: 8 }],
     presets: {
@@ -973,6 +1004,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Weapon',
     summary: '+2% crit for each weapon it’s on (replaces the dense stone there)',
+    forSpecs: 'melee',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
     effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
@@ -1047,6 +1079,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation)',
     // Forever lets warriors and druids drink it (buffs doc §3.5), no one else.
     forClasses: ['warrior', 'druid'],
+    forSpecs: 'melee',
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {
@@ -1099,6 +1132,7 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Potions and bombs',
     summary: '+3% attack speed for 20 s, every minute',
+    forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry', use: JUJU_FLURRY }],
     // Retribution uses it on cooldown too: more swings, more Seal of Command procs (buffs doc §6.3).

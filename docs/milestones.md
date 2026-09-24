@@ -429,8 +429,10 @@ slice is worked:
     is ready (`curseOfTheElements`), and giving it to the paladin is one line and a golden update.
   - **Nightfall's Spell Vulnerability isn't a Buffs entry:** its proc rate is server-side, and a
     static entry needs an uptime (spells.md OQ-S10).
-  - **The caster entries go to classes, not specs:** a druid's Feral specs would get Balance's
-    caster entries if the druid were added to `CASTER_CLASSES`; K6 gates them per spec.
+  - **The mana and spell damage entries go to classes, not specs:** the caster core's own entries
+    and the melee's go by spec (`forSpecs`, `SpecMeta.caster`), but Arcane Brilliance, Blessing
+    of Wisdom, the mana potions and the spell damage elixirs are `forClasses`, so the druid's Feral
+    specs would get Balance's if the druid were a mana class; K6 gates them per spec.
   - **The Enhancement shaman is on the core, with two switches off (K5 turns them on):** rebased
     onto S1, the engine has one cast time (Maelstrom Weapon's cut, then casting speed), one regen
     share inside the five-second rule (Improved Stormstrike is a `castingRegen` aura) and one

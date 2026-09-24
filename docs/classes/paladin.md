@@ -734,6 +734,8 @@ and Reckoning extra attacks (25% together, ×1), Seal of Fury's procs and Judgem
 each), Hammer of Wrath in the execute phase (7%), the mana Improved Seal of Fury and Shield
 Specialization return (7%, 0.5 a mana), Holy Strike (6%, ×2.375), Consecration (3%, held back
 for mana). Retribution Aura adds 5% with Max TPS; Exorcism counts only against Undead and Demons.
+Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
+fixed row, always on, and the results list it up all fight.
 
 ### Classic Era approach (baseline)
 
@@ -755,7 +757,7 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
-| 0 | Righteous Fury | up all fight, cast before the pull (the plan's ×1.9 Holy threat) | on (forced, no setting) |
+| 0 | Righteous Fury | up all fight, cast 4.5 s before the pull, a global cooldown before the aura (free; the plan's ×1.9 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
 | 0b | Aura: Devotion Aura, or Retribution Aura instead (`devotionAura.enabled`) | 3 s before the pull, a global cooldown before the seal (free); it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
 | 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free), then missing or with at most `seal.refreshBelowSec` (2 s) left | Fury |
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
@@ -969,12 +971,15 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
 - **Consecration's ranks share one cooldown**, as every rank of a spell does [C]: rank 5 and rank 1
   are one category.
 - **Protection** (`protection.ts`, [Protection: model and rotation](#protection-model-and-rotation)):
+  - **Righteous Fury** is a `cast` 4.5 s before the pull, whose buff has no mods: its ×1.9 Holy
+    threat is the plan's for the whole fight, and the buff lets the results list it up all fight.
+    The Rotation tab shows it as a fixed row with no switch (`fixedRotationRows`).
   - **Holy Shield** is a `cast` whose buff has +20% block and 4 block charges, the tank core's
     `blockCharges` ([combat-tables §8](../mechanics/combat-tables.md#8-boss--player-tanks)): each
     block uses one after its procs, so the 4th block still deals the damage. The damage is a proc on
     the block trigger while the buff is up, casting a spell that always lands and can't crit
     (`cannotCrit`, which rolls no crit on any table), with its 20% threat in the spell's threat
-    multiplier.
+    multiplier. The results show the boss's table with it up too (`bossTableUp`), with its uptime.
   - **Hammer of Wrath's cast** stops the swing timers (`castStopsSwings`, Slam's rule) and holds
     every other line until it ends (`castHoldsOffGcd`): the walk stops when the cast starts and
     starts again at its end, so an off-GCD Judgement that comes ready during it waits. An extra
@@ -990,7 +995,8 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
     while Seal of Fury is up. A hit that costs health uses it up (`takenCharges`), after the
     damage-taken procs, one of which is **Improved Seal of Fury**'s mana: a flat 60 raised by the
     boss's level (`manaFlat`, 87 against level 63). As with block charges, only an absorb up before
-    the hit's procs pays; one they put up keeps its charge.
+    the hit's procs pays; one they put up keeps its charge. A breakdown row counts the mana its
+    effects gave (Improved Seal of Fury, Shield Specialization), which the results show a fight.
   - **Swift Judgement**'s `endsCooldownOf` never readies an ability that can't be used again (one
     used up, or needing a weapon the setup lacks, ready at Infinity).
   - **Reckoning** is two procs on the boss's swings, 8% a rank on a block and 20% a rank on a crit

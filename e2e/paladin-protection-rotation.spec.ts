@@ -32,6 +32,19 @@ test.describe('Protection paladin rotation', () => {
     }
     await expect(tab.getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).not.toBeChecked()
 
+    // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
+    const buffs = tab.getByRole('region', { name: 'Cooldowns and buffs' })
+    await expect(buffs.getByRole('listitem').first()).toContainText(/^Righteous Fury.*×1\.9 threat from your Holy damage.*Always on$/)
+    await expect(buffs.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
+    // Exorcism against a boss that isn't Undead or a Demon: dimmed, and it says why.
+    const exorcism = tab.getByRole('switch', { name: 'Exorcism', exact: true })
+    await expect(exorcism).toHaveAccessibleDescription(/Not used: this target isn’t Undead or a Demon\. Set its creature type under Fight → Advanced\./)
+    await expect(tab.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Exorcism', exact: true }) })).toHaveCount(1)
+    // Mana thresholds read "% mana".
+    const fillers = tab.getByRole('region', { name: 'Fillers' })
+    await fillers.getByRole('button', { name: /^Advanced settings for Fillers/ }).click()
+    await expect(fillers.getByText('% mana').first()).toBeVisible()
+
     // The Buffs tab's Devotion Aura is yours: on and locked.
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
     const devotion = page.getByRole('switch', { name: 'Devotion Aura', exact: true })
@@ -61,5 +74,48 @@ test.describe('Protection paladin rotation', () => {
     await page.getByRole('button', { name: /^(Simulate|Run again)$/ }).first().click()
     await expect(page.getByRole('button', { name: 'Run again' }).first()).toBeVisible({ timeout: 30_000 })
     await expect(page.getByText('Retribution Aura', { exact: true }).first()).toBeVisible()
+  })
+
+  test('with tank duties again, a Devotion Aura you turned on in Buffs leaves the preset as it was', async ({ page }) => {
+    const tab = await openRotation(page)
+    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
+    await priority.getByRole('radio', { name: 'Max TPS' }).click()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const preset = page.getByRole('radiogroup', { name: 'Preset' })
+    await expect(preset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
+    // Another paladin's Devotion Aura: a choice of your own, so the preset no longer matches.
+    await page.getByRole('switch', { name: 'Devotion Aura', exact: true }).click()
+    await expect(page.getByText('Custom selection.')).toBeVisible()
+    // Back to tank duties: it's yours again, on whatever the preset says, so the preset matches.
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    await priority.getByRole('radio', { name: 'Tank duties first' }).click()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await expect(preset.getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
+    await expect(page.getByText('Custom selection.')).toHaveCount(0)
+  })
+
+  test('a run shows Righteous Fury up all fight, Holy Shield’s blocks, the mana rows’ mana, and the boss’s table with Holy Shield up', async ({ page }) => {
+    await openRotation(page)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    const breakdown = results.getByRole('region', { name: 'Threat by ability' })
+    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
+    await expect(row('Holy Shield')).toContainText(/\d+\.\d blocks a fight$/)
+    await expect(row('Holy Shield')).not.toContainText('crit')
+    await expect(row('Reckoning')).toContainText(/\d+\.\d extra attacks a fight · \d+\.\d% crit/)
+    await expect(row('Improved Seal of Fury')).toContainText(/from [\d,]+ mana a fight$/)
+    await expect(row('Shield Specialization')).toContainText(/from [\d,]+ mana a fight$/)
+
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    const table = results.getByRole('table')
+    await expect(table.getByRole('row', { name: /^Righteous Fury 100\.0% 1\.0$/ })).toBeVisible()
+    await expect(table.getByRole('row', { name: /^Swift Judgement none \d+\.\d$/ })).toBeVisible()
+    await expect(table.getByRole('row', { name: /^Iron Creed \d+\.\d% none$/ })).toBeVisible()
+
+    await results.getByRole('button', { name: 'Character sheet' }).click()
+    const boss = results.getByRole('region', { name: 'Boss’s attack table' })
+    await expect(boss).toContainText(/Its chances on each swing at you with Holy Shield up, from the stats above and its 20\.0% more block\. Your rotation kept it up \d+\.\d% of the fight\./)
+    await expect(boss).not.toContainText('a little')
   })
 })

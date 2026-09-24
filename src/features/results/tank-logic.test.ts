@@ -165,7 +165,7 @@ describe('bossSkillPenalty', () => {
 
 describe('bossTableIntro', () => {
   const chances = 'Its chances on each swing at you as the fight starts, from the stats above.'
-  const landed = 'The swings that landed can differ a little, by chance and as cooldowns and procs change your stats in the fight.'
+  const landed = 'The swings that landed can differ, by chance and as cooldowns and procs change your stats in the fight.'
 
   it('says why its dodge, parry and block are lower than the sheet’s, and why the swings that landed differ (TU1)', () => {
     expect(bossTableIntro(63, ['dodge', 'parry', 'block'])).toBe(
@@ -178,6 +178,15 @@ describe('bossTableIntro', () => {
     expect(bossTableIntro(60, ['dodge', 'parry', 'block'])).toBe(`${chances} ${landed}`)
     expect(bossTableIntro(63, [])).toBe(`${chances} ${landed}`)
     expect(bossTableIntro(null, ['dodge', 'parry', 'block'])).toBe(`${chances} ${landed}`)
+  })
+
+  it('with the block buff the rotation keeps up (Holy Shield), says the table has it up, and for how much of the fight (QU2)', () => {
+    const up = { name: 'Holy Shield', blockPct: 20, uptimePct: 95.93 }
+    const skill = 'Its 315 weapon skill takes 0.6 points off your dodge, parry and block.'
+    expect(bossTableIntro(63, ['dodge', 'parry', 'block'], up)).toBe(
+      `Its chances on each swing at you with Holy Shield up, from the stats above and its 20.0% more block. Your rotation kept it up 95.9% of the fight. ${skill} ${landed}`,
+    )
+    expect(bossTableIntro(63, ['dodge', 'parry', 'block'], { ...up, uptimePct: null })).toContain('Your rotation keeps Holy Shield up most of the fight.')
   })
 })
 

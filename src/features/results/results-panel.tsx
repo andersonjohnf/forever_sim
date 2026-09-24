@@ -438,17 +438,27 @@ function Breakdown({ result }: { result: SimResult }) {
   )
 }
 
+/** What a row's count a fight reads as (`AbilityResult.counts`). */
+const COUNT_NOUN = { blocks: 'blocks', extraAttacks: 'extra attacks' } as const
+
 /**
  * A breakdown row's outcomes (docs/ux.md#results): crit, avoided and glancing shares of its
- * attempts. A bleed's row counts applications and ticks apart: crits from its ticks, avoidance
- * from its applications, and then, on a line of its own, its uptime on the boss. One that can do
- * neither (Deep Wounds) gives its ticks per fight.
+ * attempts, left out for a row that can neither crit nor be avoided (Holy Shield's damage). A row
+ * that counts something gives it per fight (Holy Shield's blocks, Reckoning's extra attacks), and a
+ * row whose threat is mana it gave you, that mana (Shield Specialization). A bleed's row counts
+ * applications and ticks apart: crits from its ticks, avoidance from its applications, and then, on
+ * a line of its own, its uptime on the boss. One that can do neither (Deep Wounds) gives its ticks
+ * per fight.
  */
 function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][number]; fights: number }) {
   const avoided = a.misses + a.dodges + a.parries
   const parts: string[] = []
   let uptime: string | null = null
-  if (a.bleed) {
+  if (a.counts && fights > 0) parts.push(`${formatOne(a.casts / fights)} ${COUNT_NOUN[a.counts]} a fight`)
+  if (a.damage === 0 && a.mana && fights > 0) parts.push(`from ${formatInt(a.mana / fights)} mana a fight`)
+  if (a.certain) {
+    // Always lands, never crits: nothing to share out.
+  } else if (a.bleed) {
     const ticks = a.hits + a.crits
     if (a.bleed.ticksCanCrit && ticks > 0) parts.push(`${formatPct((100 * a.crits) / ticks)} tick crit`)
     if (a.bleed.avoidable && a.casts > 0) parts.push(`${formatPct((100 * avoided) / a.casts)} of applications avoided`)
@@ -456,10 +466,12 @@ function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][numb
     if (a.bleed.uptimePct !== null) uptime = `${formatPct(a.bleed.uptimePct)} uptime on the boss`
   } else {
     const attempts = a.hits + a.crits + a.glances + a.blocks + avoided
-    if (attempts === 0) return null
-    parts.push(`${formatPct((100 * a.crits) / attempts)} crit`, `${formatPct((100 * avoided) / attempts)} avoided`)
-    if (a.glances > 0) parts.push(`${formatPct((100 * a.glances) / attempts)} glancing`)
+    if (attempts > 0) {
+      parts.push(`${formatPct((100 * a.crits) / attempts)} crit`, `${formatPct((100 * avoided) / attempts)} avoided`)
+      if (a.glances > 0) parts.push(`${formatPct((100 * a.glances) / attempts)} glancing`)
+    }
   }
+  if (parts.length === 0 && uptime === null) return null
   return (
     <span className="flex flex-col text-xs text-muted-foreground tabular-nums">
       {parts.length > 0 && <span>{parts.join(' · ')}</span>}
@@ -609,7 +621,23 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
           )
         })}
       </dl>
-      {bossTable && <BossTable table={bossTable} avoidance={avoidanceOf(s)} fight={runConfig?.fight ?? null} />}
+      {bossTable && (
+        <BossTable
+          // With the block buff the rotation keeps up (Holy Shield), the table as it is most of the fight.
+          table={s.bossTableUp?.table ?? bossTable}
+          avoidance={avoidanceOf(s)}
+          fight={runConfig?.fight ?? null}
+          up={
+            s.bossTableUp
+              ? {
+                  name: s.bossTableUp.name,
+                  blockPct: s.bossTableUp.blockPct,
+                  uptimePct: result.cooldowns.find((c) => c.id === s.bossTableUp!.auraId)?.uptimePct ?? null,
+                }
+              : null
+          }
+        />
+      )}
       {unknown.length > 0 && (
         <p className="text-xs text-muted-foreground">
           Not known for Forever yet, so left out: {unknown.join(', ')}.

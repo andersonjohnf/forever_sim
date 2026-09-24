@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import type { BossOutcomes, FightConfig, TankResult } from '@/sim'
 import { Delta } from './delta'
 import { DIM_FILL } from './dim'
-import { type Avoidance, BOSS_OUTCOMES, bossTableIntro, crushingState, crushingText, damageTakenText } from './tank-logic'
+import { type Avoidance, type BlockBuffUp, BOSS_OUTCOMES, bossTableIntro, crushingState, crushingText, damageTakenText } from './tank-logic'
 
 /**
  * Seven outcomes in two columns, filled down: miss, dodge, parry and block on the left, then
@@ -81,10 +81,21 @@ export function SwingOutcomes({ tank }: { tank: TankResult }) {
 
 /**
  * The character sheet's view of the boss (docs/ux.md#results): its chances against your stats as
- * the fight starts, and whether it can land crushing blows on you. `avoidance` is what the sheet
- * above it shows you have, for the lines that name it.
+ * the fight starts, or with the block buff your rotation keeps up (`up`: Holy Shield), and whether
+ * it can land crushing blows on you. `avoidance` is what the sheet above it shows you have, for the
+ * lines that name it.
  */
-export function BossTable({ table, avoidance, fight }: { table: BossOutcomes; avoidance: readonly Avoidance[]; fight: FightConfig | null }) {
+export function BossTable({
+  table,
+  avoidance,
+  fight,
+  up = null,
+}: {
+  table: BossOutcomes
+  avoidance: readonly Avoidance[]
+  fight: FightConfig | null
+  up?: BlockBuffUp | null
+}) {
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
@@ -92,7 +103,7 @@ export function BossTable({ table, avoidance, fight }: { table: BossOutcomes; av
         <h4 id={headingId} className="text-sm font-medium">
           Boss’s attack table
         </h4>
-        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance)}</p>
+        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance, up)}</p>
       </div>
       <dl className={cn(OUTCOME_GRID, 'gap-y-1.5')}>
         {BOSS_OUTCOMES.map(([key, label]) => (

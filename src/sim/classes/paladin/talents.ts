@@ -124,6 +124,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
           from: 'any',
           chance: { pct: pct * r },
           action: { kind: 'extraAttacks', count: 1 },
+          counts: 'extraAttacks',
           docRef: `${DOC}#protection-tree`,
         },
       }),

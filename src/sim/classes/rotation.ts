@@ -4,11 +4,12 @@
 // config's values (or the options' defaults for the setup, classes/options.ts) into the spec's
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
 import { NO_PREPULL } from '../plan/types'
-import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
+import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import {
+  PROTECTION_FIXED_ROWS,
   PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS,
   protectionMaintainedBuffs as paladinProtectionMaintainedBuffs,
   protectionRotation as paladinProtectionRotation,
@@ -55,6 +56,12 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'druid-feral-cat') return CAT_OPTIONS
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
+  return []
+}
+
+/** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
+export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
+  if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
   return []
 }
 

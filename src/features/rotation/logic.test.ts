@@ -233,3 +233,37 @@ describe('rotation rows', () => {
     expect([groupsThousands({ ...number, unit: '', max: 5000 }), groupsThousands({ ...number, unit: '%' })]).toEqual([true, false])
   })
 })
+
+describe('a Protection paladin’s settings the setup can’t use (docs/ux.md "Rotation")', () => {
+  const prot = defaultConfig('paladin-protection')
+  const rowsOf = (config: SimConfig) => rotationRows(config, getSpec(config.spec).rotationOptions, config.buffs.enabled, unusedRotationSettings(config))
+
+  it('dims Exorcism without an Undead or Demon target, and the threshold under it, as Retribution’s', () => {
+    const r = rowsOf(prot)
+    expect(r.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: true, on: true, needsCreature: ['undead', 'demon'] })
+    expect(r.get('paladin.protection.exorcism.minManaPct')!.inactive).toBe(true)
+    // Nothing else in the default setup but rank 1's threshold, whose switch is off.
+    expect([...r].filter(([, row]) => row.inactive).map(([id]) => id)).toEqual([
+      'paladin.protection.exorcism.enabled',
+      'paladin.protection.exorcism.minManaPct',
+      'paladin.protection.consecrationRank1.minManaPct',
+    ])
+    const u = rowsOf({ ...prot, fight: { ...prot.fight, creatureType: 'undead' } })
+    expect(u.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: false })
+    expect(u.get('paladin.protection.exorcism.enabled')!.needsCreature).toBeUndefined()
+  })
+
+  it('locks Holy Shield off without its talent and a shield, and Swift Judgement without its talent, as Protection’s Shield Slam', () => {
+    const r = rowsOf({ ...prot, gear: { ...prot.gear, offHand: undefined }, talents: '' })
+    expect(r.get('paladin.protection.holyShield.enabled')).toMatchObject({ value: true, on: false, unmet: { talent: 'Holy Shield', shield: true } })
+    expect(r.get('paladin.protection.swiftJudgement.enabled')).toMatchObject({ value: true, on: false, unmet: { talent: 'Swift Judgement' } })
+    // The threshold under Swift Judgement changes nothing then.
+    expect(r.get('paladin.protection.swiftJudgement.minCooldownSec')?.inactive).toBe(true)
+    // With them, neither is locked.
+    const d = rowsOf(prot)
+    for (const id of ['paladin.protection.holyShield.enabled', 'paladin.protection.swiftJudgement.enabled']) {
+      expect(d.get(id)).toMatchObject({ on: true })
+      expect(d.get(id)?.unmet, id).toBeUndefined()
+    }
+  })
+})

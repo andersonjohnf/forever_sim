@@ -15,7 +15,7 @@
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
 import type { AssumptionId } from '../../plan/assumptions'
-import type { RotationOption, RotationValue } from '../../types'
+import type { FixedRotationRow, RotationOption, RotationValue } from '../../types'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -28,6 +28,7 @@ import {
   SEAL_OF_FURY,
   SEAL_OF_RIGHTEOUSNESS,
 } from './abilities'
+import { EXORCISM_TARGETS } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
 import { type TalentRanks, withTalents } from './talents'
 
@@ -68,8 +69,6 @@ const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
  */
 const PROT_SEAL_REFRESH_SEC = 2
 
-/** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
-const EXORCISM_TARGETS: readonly string[] = ['undead', 'demon']
 
 // --- Abilities, spells and procs (paladin.md#other-abilities, #protection-tree) -----------------
 
@@ -142,6 +141,7 @@ export const HOLY_SHIELD_PROC: ProcSpec = {
   chance: { pct: 100 },
   action: { kind: 'spell', spell: HOLY_SHIELD_DAMAGE },
   requiresAura: HOLY_SHIELD_AURA.id,
+  counts: 'blocks',
   docRef: `${DOC}#other-abilities`,
 }
 
@@ -224,8 +224,11 @@ export const PALADIN_AURA_GROUP = 'paladinAura'
 /** An aura lasts until you cancel it: longer than any fight (the Fight tab's longest is 15 min ± 10%). */
 const AURA_DURATION_MS = 60 * 60 * 1000
 
-/** Put up 3 s before the pull, a global cooldown before the seal (paladin.md "Forever priority list", row 0). */
+/** Put up 3 s before the pull, a global cooldown before the seal (paladin.md "Forever priority list", row 0b). */
 export const PREPULL_AURA_MS = -3000
+
+/** Righteous Fury goes up a global cooldown before the aura (paladin.md "Forever priority list", row 0). */
+export const PREPULL_RIGHTEOUS_FURY_MS = -4500
 
 /** A paladin aura as a `cast` the rotation puts up before the pull: no GCD cost at the pull, no mana. */
 const paladinAura = (id: string, name: string, icon: string, mods: AuraSpec['mods']): AbilityDef => ({
@@ -243,6 +246,21 @@ const paladinAura = (id: string, name: string, icon: string, mods: AuraSpec['mod
  * rotation keeps it up while its setting is on, and the Buffs tab's switch shows it as yours.
  */
 export const DEVOTION_AURA = paladinAura('devotionAura', 'Devotion Aura', 'spell_holy_devotionaura', { armor: 735 })
+
+/**
+ * Righteous Fury (25780, paladin.md#threat-paladin-specific): +90% threat from Holy damage, 30 min [F].
+ * Its threat is the plan's for the whole fight (`righteousFuryEffects`, setup.ts); this cast before
+ * the pull only puts up its buff, with no mods, so the results list it up all fight. Free there, as
+ * every cast before the pull is.
+ */
+export const RIGHTEOUS_FURY: AbilityDef = {
+  ...PALADIN,
+  id: 'righteousFury',
+  name: 'Righteous Fury',
+  icon: 'spell_holy_sealoffury',
+  kind: 'cast',
+  aura: { id: 'righteousFury', name: 'Righteous Fury', durationMs: AURA_DURATION_MS, mods: {} },
+}
 
 /** Retribution Aura r5 (10301), in place of Devotion Aura: its damage is `RETRIBUTION_AURA_PROC`. */
 export const RETRIBUTION_AURA = paladinAura('retributionAura', 'Retribution Aura', 'spell_holy_auraoflight', {})
@@ -297,7 +315,7 @@ const manaOption = (id: string, label: string, help: string, def: number, depend
   label,
   group,
   help,
-  unit: '%',
+  unit: '% mana',
   min: 0,
   max: 100,
   step: 5,
@@ -315,7 +333,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead, for its threat: the boss takes 30 Holy damage each time it hits you. That’s about 5% more TPS and DPS in the default setup, and 5% more damage taken. Devotion Aura is then off in the Buffs tab; turn it on there if another paladin in your group keeps it up.',
+    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, for about 5% more TPS and 5% more damage taken in the default setup. Pick it when threat is short and your healers can take the damage, or when another paladin in your group keeps Devotion Aura up. It turns Devotion Aura off by default, here and in the Buffs tab.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -329,6 +347,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     label: 'Holy Shield',
     help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. Needs the talent and a shield. 240 mana.',
     default: true,
+    requires: { talent: 'Holy Shield', shield: true },
   },
   {
     kind: 'toggle',
@@ -345,7 +364,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.seal,
     group: 'Core abilities',
     label: 'Seal',
-    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks, and its judgement taunts. Seal of Righteousness adds 85% of 18.8 × your weapon’s speed with a one-hander, so it wins only with a slow one.',
+    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks. With a shield, each also shields you from a little damage, and when a hit uses that up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds Holy damage that grows with your weapon’s speed instead; it does better only with a two-hander, and so without a shield.',
     choices: [
       { value: 'fury', label: 'Fury' },
       { value: 'righteousness', label: 'Righteousness' },
@@ -380,6 +399,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     help: 'Use Swift Judgement while Judgement is cooling down, then judge again for free: one more Judgement a minute. Needs the talent. It’s off the global cooldown.',
     default: true,
     dependsOn: ID.judgement,
+    requires: { talent: 'Swift Judgement' },
   },
   {
     kind: 'number',
@@ -409,20 +429,21 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     label: 'Exorcism',
     help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
     default: true,
+    needsCreatureType: EXORCISM_TARGETS,
   },
-  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana. It costs 345.', 0, ID.exorcism, 'Core abilities'),
+  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this share of your maximum mana. It costs 345.', 0, ID.exorcism, 'Core abilities'),
   {
     kind: 'toggle',
     id: ID.consecration,
     group: 'Fillers',
     label: 'Consecration',
-    help: 'Put down Consecration (rank 5, 565 mana) when you have the mana: 8 ticks of Holy damage over 8 s.',
+    help: 'Put down Consecration (rank 5, 565 mana): 8 ticks of Holy damage over 8 s. By default only from 90% mana, so at the pull and seldom after: the mana does more for Holy Shield, your seal and Hammer of Wrath.',
     default: true,
   },
   manaOption(
     ID.consecrationMana,
     'Consecration from',
-    'Use rank 5 only at or above this much of your maximum mana. At 90, it goes down at the pull and seldom after: the mana is worth more to Holy Shield and your seal.',
+    'Use rank 5 only at or above this share of your maximum mana. 90 is tuned for 3-minute fights with a 20% execute phase, where Hammer of Wrath spends the mana better at the end. For fights of 90 s or less, or without an execute phase, 40 to 60 does better, by up to 7% of TPS.',
     90,
     ID.consecration,
     'Fillers',
@@ -432,10 +453,10 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.consecrationRank1,
     group: 'Fillers',
     label: 'Consecration (Rank 1)',
-    help: 'Below that, put down rank 1 (135 mana). Every rank has the full spell damage bonus, so with enough spell damage it’s the most threat for the mana.',
+    help: 'Below rank 5’s mana threshold, put down rank 1 (135 mana). Every rank has the full spell damage bonus, so with enough spell damage it’s the most threat for the mana.',
     default: false,
   },
-  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this much of your maximum mana.', 10, ID.consecrationRank1, 'Fillers'),
+  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this share of your maximum mana.', 10, ID.consecrationRank1, 'Fillers'),
   {
     kind: 'toggle',
     id: ID.hammerOfWrath,
@@ -444,7 +465,21 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: 425 mana, and a 1 s cast that stops your auto attacks and holds Judgement until it ends.',
     default: true,
   },
-  manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
+  manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this share of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
+]
+
+/**
+ * What a Protection paladin always does (paladin.md "Forever priority list (default)", row 0): its
+ * Righteous Fury, up all fight, with no setting.
+ */
+export const PROTECTION_FIXED_ROWS: FixedRotationRow[] = [
+  {
+    id: `${P}.righteousFury`,
+    label: 'Righteous Fury',
+    group: 'Cooldowns and buffs',
+    help: 'Up all fight, cast before the pull: ×1.9 threat from your Holy damage. A Protection paladin never tanks without it.',
+    value: 'Always on',
+  },
 ]
 
 /**
@@ -543,8 +578,9 @@ export function protectionRotation(
   // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
   if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
 
-  // The aura, up from 3 s before the pull, a GCD before the seal: Devotion Aura, or Retribution
-  // Aura and its damage on the boss's swings. It needs no line.
+  // Righteous Fury, then the aura, from 4.5 and 3 s before the pull, a GCD apart and before the
+  // seal: Devotion Aura, or Retribution Aura and its damage on the boss's swings. They need no line.
+  const fury = index(RIGHTEOUS_FURY)
   const aura = index(v.on(ID.devotionAura) ? DEVOTION_AURA : RETRIBUTION_AURA)
   if (!v.on(ID.devotionAura)) procs.push(RETRIBUTION_AURA_PROC)
 
@@ -553,6 +589,7 @@ export function protectionRotation(
     rotation,
     prepull: {
       casts: [
+        { ability: fury, atMs: PREPULL_RIGHTEOUS_FURY_MS },
         { ability: aura, atMs: PREPULL_AURA_MS },
         { ability: seal, atMs: PREPULL_SEAL_MS },
       ],

@@ -14,7 +14,7 @@ import { FULL_RAID } from '../../defaults'
 import { CHUNK_SIZE } from '../../engine/chunk'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import { maintainedBuffs } from '../rotation'
-import { rotationGroups } from '../../index'
+import { rotationGroups, unmetRequirements, unusedRotationSettings } from '../../index'
 import type { SimConfig } from '../../types'
 import { resolveRotationValues } from '../options'
 import { talentRanksByName } from '..'
@@ -142,9 +142,11 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
     expect(maintainedBuffs(PROT, MAX_TPS)).toEqual([])
     const duties = buildPlan(d)
     const max = buildPlan({ ...d, rotation: MAX_TPS })
-    // The aura is a cast before the pull, a GCD before the seal: Devotion Aura's +735 armor, or Retribution Aura.
-    const aura = (b: typeof duties) => b.plan.abilities[b.plan.prepull.casts[0].ability]
-    expect(duties.plan.prepull.casts.map((c) => c.atMs)).toEqual([-3000, -1500])
+    // Righteous Fury, then the aura, are casts before the pull, a GCD apart and before the seal:
+    // Devotion Aura's +735 armor, or Retribution Aura.
+    const aura = (b: typeof duties) => b.plan.abilities[b.plan.prepull.casts[1].ability]
+    expect(duties.plan.prepull.casts.map((c) => c.atMs)).toEqual([-4500, -3000, -1500])
+    expect(duties.plan.abilities[duties.plan.prepull.casts[0].ability].id).toBe('righteousFury')
     expect(aura(duties).id).toBe('devotionAura')
     expect(duties.plan.auras[aura(duties).aura]).toMatchObject({ armor: 735, group: 'paladinAura' })
     expect(aura(max).id).toBe('retributionAura')
@@ -182,12 +184,16 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'hammerOfWrath'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
-    // Devotion Aura 3 s before the pull, then the seal.
+    // Righteous Fury 4.5 s before the pull, Devotion Aura at 3 s, then the seal.
+    const fury = r.abilities.findIndex((a) => a.id === 'righteousFury')
     const devotion = r.abilities.findIndex((a) => a.id === 'devotionAura')
     expect(r.prepull.casts).toEqual([
+      { ability: fury, atMs: -4500 },
       { ability: devotion, atMs: -3000 },
       { ability: 0, atMs: -1500 },
     ])
+    // Righteous Fury's buff has no mods: its ×1.9 Holy threat is the plan's all fight.
+    expect(r.abilities[fury].aura).toMatchObject({ id: 'righteousFury', mods: {} })
     const lines = Object.fromEntries(r.rotation.map((e) => [r.abilities[e.ability].id, e.conditions]))
     const shield = r.abilities.findIndex((a) => a.id === 'holyShield')
     expect(lines.sealOfFury).toEqual([{ code: COND.abilityAuraRefresh, a: 0, b: 2000 }])
@@ -739,6 +745,17 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
     expect(plan.sources.some((s) => s.id === 'holyStrike') ? field(sim, plan, 'holyStrike', FIELD.casts) : 0).toBe(0)
   })
 
+  it('Holy Shield is the first global cooldown at the pull, after Righteous Fury, the aura and the seal before it (D26)', () => {
+    const plan = protPlan()
+    const sim = new Sim(plan)
+    const first: string[] = []
+    sim.castTrace = (a, t) => {
+      if (t >= 0 && plan.abilities[a].gcdMs > 0 && first.length < 2) first.push(`${plan.abilities[a].id}@${t}`)
+    }
+    sim.runFight(0)
+    expect(first).toEqual(['holyShield@0', 'holyStrike@1500'])
+  })
+
   it('Hammer of Wrath’s cast has its own note, not Slam’s; Retribution’s instant one has none', () => {
     const notes = (spec: 'paladin-protection' | 'paladin-retribution' | 'warrior-arms') => buildPlan(defaultConfig(spec)).assumptions.map((a) => a.id)
     expect(notes('paladin-protection')).toContain('hammerOfWrathCast')
@@ -746,6 +763,62 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
     expect(notes('paladin-retribution')).not.toContain('hammerOfWrathCast')
     expect(notes('paladin-retribution')).not.toContain('slamCast')
     expect(notes('warrior-arms')).toContain('slamCast')
+  })
+})
+
+describe('the results’ rows (docs/ux.md#results)', () => {
+  it('Holy Shield’s damage counts blocks and shows no crit or avoided; Reckoning counts extra attacks; the mana rows their mana; Swift Judgement no uptime', () => {
+    const bundle = buildPlan(defaultConfig(PROT))
+    const result = toResult(bundle, runFights(bundle.plan, 200), 0)
+    const row = (id: string) => result.abilities.find((a) => a.id === id)!
+    expect(row('holyShieldProc')).toMatchObject({ certain: true, counts: 'blocks' })
+    expect(row('holyShieldProc').casts).toBe(row('holyShieldProc').hits)
+    expect(row('reckoning')).toMatchObject({ counts: 'extraAttacks' })
+    expect(row('reckoning').certain).toBeUndefined()
+    for (const id of ['improvedSealOfFury', 'shieldSpecialization']) {
+      // 0.5 threat a mana (threat.md).
+      expect(row(id).mana! * 0.5, id).toBeCloseTo(row(id).threat, 6)
+      expect(row(id).damage).toBe(0)
+    }
+    expect(row('mainHand').mana).toBeUndefined()
+    const cd = (id: string) => result.cooldowns.find((c) => c.id === id)!
+    expect(cd('swiftJudgement').uptimePct).toBeNull()
+    expect(cd('swiftJudgement').castsPerFight).toBeGreaterThan(3)
+    expect(cd('righteousFury')).toMatchObject({ uptimePct: 100, castsPerFight: 1 })
+    expect(cd('ironCreed').uptimePct).toBeGreaterThan(30)
+    // Max TPS: Retribution Aura's damage always lands and never crits.
+    const max = buildPlan({ ...defaultConfig(PROT), rotation: MAX_TPS })
+    expect(max.plan.sources.find((s) => s.id === 'retributionAuraDamage')).toMatchObject({ certain: true })
+  })
+
+  it('the boss’s table with Holy Shield up: 20% more block, from the same sheet', () => {
+    const { sheet } = buildPlan(defaultConfig(PROT))
+    expect(sheet.bossTableUp).toMatchObject({ name: 'Holy Shield', auraId: 'holyShield', blockPct: 20 })
+    const [start, up] = [sheet.bossTable!, sheet.bossTableUp!.table]
+    expect(up.block - start.block).toBeCloseTo(20, 9)
+    expect(up.miss).toBe(start.miss)
+    // The 20 points come off the bottom of the table: normal hits (and crushing blows past them).
+    expect(start.hit + start.crush - (up.hit + up.crush)).toBeCloseTo(20, 9)
+    expect(buildPlan({ ...defaultConfig(PROT), rotation: { [ID.holyShield]: false } }).sheet.bossTableUp).toBeUndefined()
+    expect(buildPlan({ ...defaultConfig(PROT), gear: { mainHand: defaultConfig(PROT).gear.mainHand } }).sheet.bossTableUp).toBeUndefined()
+    expect(buildPlan(defaultConfig('warrior-arms')).sheet.bossTableUp).toBeUndefined()
+  })
+})
+
+describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', () => {
+  it('Holy Shield its talent and a shield, Swift Judgement its talent (main’s `requires`); Exorcism its target', () => {
+    const d = defaultConfig(PROT)
+    const option = (id: string) => PROTECTION_OPTIONS.find((o) => o.id === id)
+    expect(option(ID.holyShield)).toMatchObject({ requires: { talent: 'Holy Shield', shield: true } })
+    expect(option(ID.swiftJudgement)).toMatchObject({ requires: { talent: 'Swift Judgement' } })
+    const holyShield = { talent: 'Holy Shield', shield: true }
+    expect(unmetRequirements(d, holyShield)).toEqual({})
+    expect(unmetRequirements({ ...d, gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ shield: true })
+    expect(unmetRequirements({ ...d, talents: '', gear: { mainHand: d.gear.mainHand } }, holyShield)).toEqual({ talent: 'Holy Shield', shield: true })
+    expect(unmetRequirements({ ...d, talents: '' }, { talent: 'Swift Judgement' })).toEqual({ talent: 'Swift Judgement' })
+    // Nothing else is unused in the default setup; Exorcism's target is its option's.
+    expect(unusedRotationSettings(d)).toEqual({})
+    expect(option(ID.exorcism)).toMatchObject({ needsCreatureType: ['undead', 'demon'] })
   })
 })
 

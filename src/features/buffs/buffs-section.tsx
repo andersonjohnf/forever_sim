@@ -80,7 +80,10 @@ export function BuffsSection() {
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
   const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])
 
-  const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
+  // A preset matches on what you choose here: a buff your rotation keeps up shows on whatever the
+  // preset says, so it's left out of both sides (your own Devotion Aura, D26).
+  const chosen = (ids: string[]) => ids.filter((id) => !maintained.has(id))
+  const activePreset = buffPresets.find((p) => sameSet(chosen(presetBuffs(p.id, meta.id, buffs.raid)), chosen(buffs.enabled)))?.id
   // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
   const defaultPreset = useMemo(
     () => buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, FULL_RAID), defaultConfig(meta.id).buffs.enabled))?.id,

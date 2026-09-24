@@ -15,7 +15,7 @@ import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
+import { type FixedRotationRow, getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
 import { formatSetting, groupsThousands, isAdvanced, rotationRows, type RowState } from './logic'
 
 /** What every row needs: its state, and setting or resetting a value. */
@@ -84,7 +84,10 @@ export function RotationSection() {
   // The few settings without a heading (Arms' stance) come first, then each heading's settings in
   // the spec's priority order (docs/ux.md "Rotation").
   const ungrouped = options.filter((o) => o.group === undefined)
-  const groups = rotationGroups.map((group) => ({ group, options: options.filter((o) => o.group === group) })).filter((g) => g.options.length > 0)
+  const fixedRows = getSpec(meta.id).rotationFixed
+  const groups = rotationGroups
+    .map((group) => ({ group, options: options.filter((o) => o.group === group), fixed: fixedRows.filter((f) => f.group === group) }))
+    .filter((g) => g.options.length > 0 || g.fixed.length > 0)
   // No visible notice: the settings change in front of you, and screen readers hear it
   // (src/app/announce.ts). The button disables itself, so focus moves on to the first setting, the
   // next control after it, rather than falling to the page (docs/ux.md#accessibility).
@@ -114,9 +117,9 @@ export function RotationSection() {
       ) : (
         <>
           {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} />}
-          {groups.map(({ group, options: grouped }) => (
+          {groups.map(({ group, options: grouped, fixed }) => (
             // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
-            <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} ctx={ctx} />
+            <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} fixed={fixed} ctx={ctx} />
           ))}
         </>
       )}
@@ -130,7 +133,7 @@ export function RotationSection() {
  * itself when one of them differs from its default, and its button counts them (docs/ux.md
  * principle 2 and "Rotation").
  */
-function GroupSection({ group, options, ctx }: { group: RotationGroup; options: RotationOption[]; ctx: RowContext }) {
+function GroupSection({ group, options, fixed, ctx }: { group: RotationGroup; options: RotationOption[]; fixed: FixedRotationRow[]; ctx: RowContext }) {
   const advanced = options.filter(isAdvanced)
   const changed = advanced.filter((o) => ctx.rows.get(o.id)?.changed).length
   const [open, setOpen] = useState(changed > 0)
@@ -161,7 +164,7 @@ function GroupSection({ group, options, ctx }: { group: RotationGroup; options: 
           </Button>
         )}
       </div>
-      <OptionList options={shown} all={options} ctx={ctx} />
+      <OptionList options={shown} all={options} fixed={fixed} ctx={ctx} />
     </section>
   )
 }
@@ -169,9 +172,20 @@ function GroupSection({ group, options, ctx }: { group: RotationGroup; options: 
 /**
  * Settings in a card. A setting that depends on another under the same heading sits under it,
  * indented on a rule (docs/ux.md "Rotation"). `all` is every setting under the heading, shown or
- * not, so a hidden parent's children don't come up to the top level.
+ * not, so a hidden parent's children don't come up to the top level. `fixed` rows, what the spec
+ * always does, come first, with no control.
  */
-function OptionList({ options, all = options, ctx }: { options: RotationOption[]; all?: RotationOption[]; ctx: RowContext }) {
+function OptionList({
+  options,
+  all = options,
+  fixed = [],
+  ctx,
+}: {
+  options: RotationOption[]
+  all?: RotationOption[]
+  fixed?: FixedRotationRow[]
+  ctx: RowContext
+}) {
   const ids = new Set(all.map((o) => o.id))
   const childrenOf = (id: string) => options.filter((o) => o.dependsOn === id)
   const renderChildren = (id: string) => {
@@ -190,6 +204,11 @@ function OptionList({ options, all = options, ctx }: { options: RotationOption[]
   }
   return (
     <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
+      {fixed.map((row) => (
+        <li key={row.id}>
+          <FixedRow row={row} />
+        </li>
+      ))}
       {options
         .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
         .map((option) => (
@@ -199,6 +218,29 @@ function OptionList({ options, all = options, ctx }: { options: RotationOption[]
           </li>
         ))}
     </ul>
+  )
+}
+
+/**
+ * Something the spec always does (a Protection paladin's Righteous Fury): a row like a switch's,
+ * with what it is in place of the switch, which there's no point offering.
+ */
+function FixedRow({ row }: { row: FixedRotationRow }) {
+  const ids = rowIds(row.id)
+  return (
+    <div className="flex min-h-14 items-center gap-4 p-4">
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span id={ids.label} className="text-sm font-medium">
+          {row.label}
+        </span>
+        <span id={ids.help} className="text-xs text-muted-foreground">
+          {row.help}
+        </span>
+      </span>
+      <span id={ids.control} className="shrink-0 text-sm text-muted-foreground">
+        {row.value}
+      </span>
+    </div>
   )
 }
 

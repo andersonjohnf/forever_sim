@@ -645,6 +645,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (i >= 0) return i
     const { name: _, icon: __, school, defense, ...rest } = def
     spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source })
+    // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
+    if (def.cannotCrit && (defense === 'none' || (def.alwaysHit && def.noActiveDefense))) sources[source].certain = true
     return spells.length - 1
   }
   let procs: ProcPlan[] = []
@@ -720,6 +722,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         break
       }
     }
+    // What its breakdown row counts a fight: Reckoning's extra attacks, Holy Shield's blocks.
+    if (spec.counts && proc.source >= 0) sources[proc.source].counts = spec.counts
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
     procForms.push(spec.forms)
@@ -760,6 +764,27 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
   // cooldowns; Rend), and the encounter's creature type picks the weapon share (Spearing Strike).
   // A reactive ability's window is an aura too (the Overpower window, warrior.md §2.8, §7).
+  // docs/ux.md#results: a Protection paladin whose rotation keeps Holy Shield up, most of the fight,
+  // sees the boss's table with it up too (paladin.md "Protection: model and rotation").
+  const blockBuff = tank && sheet.bossTable ? classRot.abilities.find((a) => a.id === 'holyShield' && (a.aura?.mods.block ?? 0) > 0) : undefined
+  if (blockBuff?.aura) {
+    const blockPct = blockBuff.aura.mods.block!
+    sheet.bossTableUp = {
+      name: blockBuff.name,
+      auraId: blockBuff.aura.id,
+      blockPct,
+      table: bossOutcomeShares({
+        playerLevel: PLAYER_LEVEL,
+        bossLevel: fight.bossLevel,
+        defense: shown.defense,
+        dodge: shown.dodge,
+        parry: shown.parry,
+        block: shown.block + blockPct,
+        canCrush: fight.boss.canCrush,
+        front: true,
+      }),
+    }
+  }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
     const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)

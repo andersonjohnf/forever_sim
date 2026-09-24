@@ -110,17 +110,35 @@ export function bossSkillPenalty(bossLevel: number): { skill: number; points: nu
 }
 
 /**
- * The line under the boss's table's heading: what it is, why its dodge, parry and block are lower
- * than the sheet's above it, and why the swings that landed differ a little. Without the fight
- * (null) it leaves out the boss's skill.
+ * A block buff the rotation keeps up (a Protection paladin's Holy Shield): the table shows it up.
+ * `uptimePct` is how much of the fight it was up, from the result; null if it can't be read.
  */
-export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avoidance[]): string {
-  const lines = ['Its chances on each swing at you as the fight starts, from the stats above.']
+export interface BlockBuffUp {
+  name: string
+  blockPct: number
+  uptimePct: number | null
+}
+
+/**
+ * The line under the boss's table's heading: what it is (with the rotation's block buff up, if it
+ * keeps one: how much it adds and how long it was up), why its dodge, parry and block are lower
+ * than the sheet's above it, and why the swings that landed differ. Without the fight (null) it
+ * leaves out the boss's skill.
+ */
+export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avoidance[], up: BlockBuffUp | null = null): string {
+  const lines = up
+    ? [
+        `Its chances on each swing at you with ${up.name} up, from the stats above and its ${formatPct(up.blockPct)} more block.`,
+        up.uptimePct === null
+          ? `Your rotation keeps ${up.name} up most of the fight.`
+          : `Your rotation kept it up ${formatPct(up.uptimePct)} of the fight.`,
+      ]
+    : ['Its chances on each swing at you as the fight starts, from the stats above.']
   const penalty = bossLevel === null ? null : bossSkillPenalty(bossLevel)
   if (penalty && penalty.points > 0 && avoidance.length > 0) {
     lines.push(`Its ${penalty.skill} weapon skill takes ${formatOne(penalty.points)} points off your ${list(avoidance, 'and')}.`)
   }
-  lines.push('The swings that landed can differ a little, by chance and as cooldowns and procs change your stats in the fight.')
+  lines.push('The swings that landed can differ, by chance and as cooldowns and procs change your stats in the fight.')
   return lines.join(' ')
 }
 

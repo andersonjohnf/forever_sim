@@ -312,13 +312,18 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Buffs with focus on that consumable's switch, so Space turns it on. Turning it on in Buffs
     brings back its setting.
   - A switch that needs a talent or a shield works the same way (`RotationOption.requires`:
-    Protection's Shield Block needs a shield, Shield Slam the Shield Slam talent and a shield).
+    Protection's Shield Block needs a shield, Shield Slam the Shield Slam talent and a shield; a
+    Protection paladin's Holy Shield its talent and a shield, Swift Judgement its talent).
     Without it the switch shows off and locked, and the row says what's missing, with a link to
     where it's fixed: "Not used: needs the Shield Slam talent (Talents) and a shield (Gear)." The
     Gear link opens Gear with focus on the off hand (the main hand while a two-hander locks it),
     the Talents link on the talent trees. The settings that need it are dimmed with it, including
     one under another switch that needs it too (`alsoDependsOn` on a switch: "Sunder Armor filler
     waits for Shield Slam" while Shield Slam is off or can't be used).
+  - Something the spec always does, with nothing to choose, is a row with no control, first under
+    its heading: its name, one line of help, and what it is where the switch would be ("Righteous
+    Fury", "Always on"; `SpecDefinition.rotationFixed`).
+  - A threshold's unit says what it's a share of: "% mana" for a paladin's mana thresholds.
 - **Fight.**
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
@@ -417,6 +422,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
     out of the breakdown. They're under **Cooldowns and buffs**.
+  - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows
+    no crit or avoided shares. A row that counts something shows it a fight: "35.6 blocks a
+    fight" (Holy Shield's damage), "14.8 extra attacks a fight" (Reckoning). A row whose threat
+    is the mana it gave you says how much: "from 4,397 mana a fight" (Improved Seal of Fury,
+    Shield Specialization).
   - **Tank specs** get a **Threat / Damage** switch above it. Threat is the default, and the
     choice is remembered for the browser session. The heading, the order, the share bars and
     the per-second values follow the chosen metric. Abilities that add nothing to it are left
@@ -446,7 +456,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   visible header is just "Casts" (its full name is for screen readers), and a caption above the
   table says what both columns count, so names like "Holy Strength (main hand)" keep one line
   at 390 px. A dash, read out as "none", marks a value that doesn't apply: a cast with no buff
-  (Bloodrage) has no uptime, and a proc buff has no casts. A weapon proc on both hands names its
+  (Bloodrage) has no uptime, nor one whose buff the next ability uses at once (Swift Judgement's
+  free Judgement), and a proc buff has no casts. A weapon proc on both hands names its
   hand: "Holy Strength (main hand)". A buff that only triggers when you're hit (Enrage) shows a
   dash, not 0.0%, when a DPS run took no damage, with "Needs damage taken (Fight → Advanced)"
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
@@ -474,7 +485,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     why its numbers aren't the sheet's: "Its 315 weapon skill takes 0.6 points off your dodge,
     parry and block." (0.04 a point of the boss's skill above 300, naming only the avoidance you
     have: a bear's reads "your dodge"; none for a level 60 boss), and "The swings that landed can
-    differ a little, by chance and as cooldowns and procs change your stats in the fight."
+    differ, by chance and as cooldowns and procs change your stats in the fight." A tank whose
+    rotation keeps a block buff up most of the fight (a Protection paladin's Holy Shield) sees the
+    table with it up, as it is most of the time, and the line says so with the buff's uptime:
+    "Its chances on each swing at you with Holy Shield up, from the stats above and its 20.0% more
+    block. Your rotation kept it up 95.9% of the fight." The crushing line reads that table.
   - A line under the table says whether the boss can crush you. With crushing blows on the
     table, how many more points of avoidance would push them off, which is the crushing and hit
     slices together, since crushing blows come before hits: "Another 55.4 points of miss, dodge,

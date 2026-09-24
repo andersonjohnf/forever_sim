@@ -191,7 +191,7 @@ test.describe('tank results', () => {
     await expect(table).toContainText(
       'Its chances on each swing at you as the fight starts, from the stats above. ' +
         'Its 315 weapon skill takes 0.6 points off your dodge, parry and block. ' +
-        'The swings that landed can differ a little, by chance and as cooldowns and procs change your stats in the fight.',
+        'The swings that landed can differ, by chance and as cooldowns and procs change your stats in the fight.',
     )
     const rows = await outcomes(table.locator('dl > div'))
     expect(rows.map(([label]) => label)).toEqual(OUTCOMES)

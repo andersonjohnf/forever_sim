@@ -266,6 +266,20 @@ export type RotationOption =
       dependsOn?: string
     }
 
+/**
+ * A row the Rotation tab shows under a heading with no control: something the spec always does
+ * (a Protection paladin's Righteous Fury, docs/ux.md "Rotation"). It comes first under its heading.
+ */
+export interface FixedRotationRow {
+  id: string
+  label: string
+  group: RotationGroup
+  /** One line of help, as a setting's. */
+  help: string
+  /** What it shows where a setting's control would be: "Always on". */
+  value: string
+}
+
 export interface SpecDefinition {
   id: SpecId
   classId: ClassId
@@ -281,6 +295,8 @@ export interface SpecDefinition {
   rotationDefaults?: string
   /** Buffs the Buffs tab assumes are the spec's own, kept up by its rotation (SpecMeta.ownBuffs). */
   ownBuffs?: readonly string[]
+  /** Rows the Rotation tab shows with no control, for what the spec always does. */
+  rotationFixed: FixedRotationRow[]
 }
 
 export type BuffCategory = 'raidBuff' | 'targetDebuff' | 'consumable'
@@ -359,6 +375,12 @@ export interface AbilityResult {
    * and its hits and crits count ticks (docs/ux.md#results). Absent for every other row.
    */
   bleed?: BleedResult
+  /** It can neither crit nor be avoided (Holy Shield's damage), so the row shows no such shares. */
+  certain?: true
+  /** What its casts count, shown a fight on its row: blocks (Holy Shield's damage) or extra attacks (Reckoning). */
+  counts?: 'blocks' | 'extraAttacks'
+  /** Mana its effects gave, over every fight (Shield Specialization, Improved Seal of Fury); absent for none. */
+  mana?: number
 }
 
 export interface BleedResult {
@@ -443,6 +465,12 @@ export interface CharacterSheet {
    * %, and mana per 5 s. Absent for other classes.
    */
   spell?: { holyDamage: number; critPct: number; hitPct: number; mp5: number }
+  /**
+   * A tank whose rotation keeps a block buff up (a Protection paladin's Holy Shield): the boss's
+   * table with it up, the buff's name and plan aura id (its uptime is in the result's cooldowns), and
+   * the block it adds (docs/ux.md#results). Absent otherwise.
+   */
+  bossTableUp?: { name: string; auraId: string; blockPct: number; table: BossOutcomes }
   /**
    * Base values not known yet for this race and class (e.g. "base attributes"), left out of the
    * numbers above (docs/mechanics/character-stats.md#open-questions). Empty when complete.

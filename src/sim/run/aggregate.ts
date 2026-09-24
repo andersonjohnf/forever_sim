@@ -89,7 +89,9 @@ const uptimePct = (agg: Aggregate, a: number) => (agg.durationMs > 0 ? (100 * ag
  * such as Flurry, Enrage and Holy Strength, reactive windows such as Overpower's, and the debuffs a
  * rotation keeps on the boss), with its uptime. A debuff an attack puts on the boss (Sunder Armor,
  * Thunder Clap, Demoralizing Shout; warrior.md §5.4) shows that attack's casts per fight too. A
- * bleed's marker is on the target, so its uptime goes on the bleed's breakdown row instead.
+ * bleed's marker is on the target, so its uptime goes on the bleed's breakdown row instead. A cast
+ * whose buff the next ability uses at once (Swift Judgement's free Judgement, the plan's free-cast
+ * aura) has no uptime to show.
  */
 export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const c = agg.counters
@@ -107,7 +109,9 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
     // A druid's shapeshift is listed like a cast: its casts per fight, no buff (druid.md §2.8).
     if (ability.kind !== 'cast' && ability.kind !== 'shift') continue
     if (ability.aura >= 0) shown.add(ability.aura)
-    const uptime = ability.aura >= 0 ? uptimePct(agg, ability.aura) : null
+    // A cast whose buff the next ability uses at once (Swift Judgement's free Judgement, the plan's
+    // free-cast aura) has no uptime to show.
+    const uptime = ability.aura >= 0 && ability.aura !== plan.freeCastAura ? uptimePct(agg, ability.aura) : null
     rows.push({
       id: ability.id,
       name: ability.name,
@@ -213,6 +217,11 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
       glances: c[row + FIELD.glances],
       blocks: c[row + FIELD.blocks],
     }
+    if (source.certain) result.certain = true
+    if (source.counts) result.counts = source.counts
+    // Mana its effects gave (Shield Specialization, Improved Seal of Fury), the ledger's per-row count.
+    const mana = agg.manaBySource[i] ?? 0
+    if (mana > 0) result.mana = mana / 10
     if (source.bleed) {
       // Rend's marker aura is up from an application until its last tick; Rake's is on its bleed's row.
       const marker = plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i))

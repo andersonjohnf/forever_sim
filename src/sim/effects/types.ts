@@ -325,6 +325,8 @@ export interface ProcSpec {
    * the forms the fight can be in: always rolled if it holds in all of them, left out if in none.
    */
   forms?: readonly DruidForm[]
+  /** What each of its procs is, for its breakdown row's count a fight: an extra attack (Reckoning), a block (Holy Shield's damage). */
+  counts?: 'blocks' | 'extraAttacks'
   /** Doc section that owns the numbers. */
   docRef: string
 }

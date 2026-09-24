@@ -281,6 +281,13 @@ export interface SourcePlan {
    * its hits and crits count ticks. Whether the ticks can crit and an application can be avoided.
    */
   bleed?: { ticksCanCrit: boolean; avoidable: boolean }
+  /**
+   * It can neither crit nor be avoided (Holy Shield's block damage, Retribution Aura's: they always
+   * land and never crit, paladin.md#other-abilities), so its breakdown row shows no such shares.
+   */
+  certain?: true
+  /** What its casts count, for its breakdown row: the blocks that dealt it (Holy Shield), or extra attacks (Reckoning). */
+  counts?: 'blocks' | 'extraAttacks'
 }
 
 /**

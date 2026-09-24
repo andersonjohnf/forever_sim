@@ -2776,6 +2776,9 @@ export class Sim {
    * capped, and 5 threat per rage gained, on the ability's row (rage.md, threat.md).
    */
   private cast(a: number): void {
+    // docs/classes/priest.md#35-inner-focus-14751: a free-cast charge a `cast` spends gives its crit
+    // to nothing, as a spell's or a channel's does once its spell resolves.
+    this.freeCrit = 0
     const source = this.abSource[a]
     this.counters[source * FIELD_COUNT + FIELD.casts]++
     // A spell on the target rolls spell hit first; a miss applies nothing (Faerie Fire, druid.md §3.8).

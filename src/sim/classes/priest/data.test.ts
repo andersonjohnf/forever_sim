@@ -198,8 +198,10 @@ describe('Shadowform and the talents against the client (priest.md §3.6, §4)',
     expect(curve('Devouring Contagion')).toEqual([-25, -50])
     // Twin Disciplines #1 (spell mod 22, periodic) selects Shadow Word: Pain and Devouring Plague, not Mind Flay.
     expect([selects(1225132, 1, SWP), selects(1225132, 1, DP), selects(1225132, 1, MF)]).toEqual([true, true, false])
-    // Mental Agility covers Shadow Word: Pain and Devouring Plague, not Mind Blast or Mind Flay.
-    expect([SWP, DP, MB, MF].map((id) => selects(14520, 0, id))).toEqual([true, true, false, false])
+    // Mental Agility covers Shadow Word: Pain, Devouring Plague and Vampiric Embrace, not Mind Blast,
+    // Mind Flay or Starshards; so Starshards keeps its full cost with it.
+    expect([SWP, DP, 15286, MB, MF, 19305].map((id) => selects(14520, 0, id))).toEqual([true, true, true, false, false, false])
+    expect(mana(withTalents(STARSHARDS, ranks({ 'Mental Agility': 3 })))).toBe(mana(STARSHARDS))
     const t = ranks({ 'Shadow Focus': 5, 'Improved Shadow Word: Pain': 2, 'Improved Mind Blast': 5, 'Improved Mind Flay': 2, 'Twin Disciplines': 5, 'Mental Agility': 3, 'Devouring Contagion': 2 })
     expect(withTalents(SHADOW_WORD_PAIN, t).spellDef).toMatchObject({ dotTicks: 8, damageMult: 1.05 })
     expect(withTalents(SHADOW_WORD_PAIN, t).aura!.durationMs).toBe(24000)

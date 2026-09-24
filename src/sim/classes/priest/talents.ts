@@ -6,7 +6,7 @@
 import { spellCritMultiplier } from '../../core/formulas'
 import type { AuraSpec, Effect, ProcSpec } from '../../effects/types'
 import { type AbilityDef, schoolMask, type SpellDef } from '../../plan/types'
-import { DEVOURING_PLAGUE, MIND_BLAST, MIND_FLAY, SHADOW_WORD_PAIN, STARSHARDS, VAMPIRIC_EMBRACE } from './abilities'
+import { DEVOURING_PLAGUE, MIND_BLAST, MIND_FLAY, SHADOW_WORD_PAIN, VAMPIRIC_EMBRACE } from './abilities'
 
 const DOC = 'docs/classes/priest.md'
 
@@ -96,9 +96,12 @@ export function withSpellTalents(spell: SpellDef, talents: TalentRanks): SpellDe
   return out
 }
 
-/** Mental Agility (14520): −3 / −7 / −10% mana on the instant spells it names (spell mod 14) [F]. */
+/**
+ * Mental Agility (14520): −3 / −7 / −10% mana on the instant spells it names (spell mod 14) [F]. Its
+ * class mask doesn't cover Starshards (19305), the Night Elf's channel, so that one costs full mana.
+ */
 const MENTAL_AGILITY = [0, 3, 7, 10]
-const MENTAL_AGILITY_SPELLS = new Set([SHADOW_WORD_PAIN.id, DEVOURING_PLAGUE.id, VAMPIRIC_EMBRACE.id, STARSHARDS.id])
+const MENTAL_AGILITY_SPELLS = new Set([SHADOW_WORD_PAIN.id, DEVOURING_PLAGUE.id, VAMPIRIC_EMBRACE.id])
 
 /**
  * The build's changes to an ability row (priest.md §4): Improved Mind Blast's −0.5 s a rank to Mind

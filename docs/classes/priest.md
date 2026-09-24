@@ -168,7 +168,7 @@ Rank values are the Forever client's curves (`TraitDefinitionEffectPoints`, tale
 | Darkness (15259) | 5 | +10% Shadow damage (aura 79) | `schoolDamage`, multiplied with Shadowform's |
 | Shadowform (15473) | 1 | [§3.6](#36-shadowform-15473) | always on |
 | Twin Disciplines (1225132) | 5 | +5% periodic damage of Shadow Word: Pain and Devouring Plague (its effect 1, spell mod 22) | their own multiplier ×1.05; its effect 0 names no spell the sim casts |
-| Mental Agility (14520) | 3 | −10% cost of Shadow Word: Pain, Devouring Plague, Vampiric Embrace, Starshards (and Smite, Holy Fire) | cost cut, added to Devouring Contagion's [?] |
+| Mental Agility (14520) | 3 | −10% cost of Shadow Word: Pain, Devouring Plague, Vampiric Embrace (and Smite, Holy Fire); its class mask doesn't cover Starshards (19305) | cost cut, added to Devouring Contagion's [?] |
 | Inner Focus (14751) | 1 | [§3.5](#35-inner-focus-14751) | before Mind Blast |
 | Meditation (14521) | 3 | 50% of regeneration while casting (aura 134) | the mana plan's share inside the five-second rule |
 | Mental Strength (18551) | 5 | +15% Intellect (aura 137) | an Intellect multiplier |
@@ -193,8 +193,8 @@ Meditation's 17/33/50% of it inside the rule [F], and mp5 always. What restores 
   pet; the sim can't model pets until the pet core (H1), so it's left out and listed in the result's
   assumptions (`shadowfiendNotSimulated`) and the milestones' known gaps.
 
-In the default setup the priest spends about 10,600 mana a fight and ends it with little left: its
-Major Mana Potion is used about once.
+In the default setup the priest spends about 10,600 mana a fight and still ends it with about 2,300
+of its 5,506: its Major Mana Potion is used about once.
 
 ## 6. Rotation
 

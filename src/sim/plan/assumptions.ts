@@ -418,7 +418,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-command-soc`,
   },
   sealOfRighteousness: {
-    text: 'Seal of Righteousness deals 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander) plus 0.1 × spell damage on each landed auto attack; the formula is untested in Forever.',
+    text: 'Seal of Righteousness deals 35 Holy plus 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander), as Seal of Fury’s is read, plus 0.1 × spell damage on each landed auto attack; the formula is untested in Forever.',
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {

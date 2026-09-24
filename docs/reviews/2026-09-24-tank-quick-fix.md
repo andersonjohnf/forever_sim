@@ -88,3 +88,22 @@ paladin's Gear tab at 1280 px light and 390 px dark with its menu open.
 ## Verdict
 
 Awaiting the verification pass (D25), scoped to the fix commits.
+
+## Verification pass (the fix round, 303f6a79..6f500e1b)
+
+Three mediums the fix round introduced (TV-1 to TV-3) and five lows, all fixed or logged by the
+lead before the push. The rest checked out: the floor-compliant talents, both seals read alike,
+Thorns in every tank's raid preset (warrior golden 1,132.88, paladin 821.34), Gear tab copy,
+the Swift Judgement tests, and the three tanks' plausibility (warrior 1.38× the paladin).
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| TV-1 | medium | introduced (T2R-2) | The Horde paladin's "Horde" boots, Premier Chevalier Sabatons (272718), are in item set 2086, "Lieutenant Commander's Vindication": Alliance's. Their Horde twin is Premier Scaled Sabatons (274226, set 2084, "Champion's Vindication"). | fixed: the Horde picks are the Champion's Vindication pieces; B76 records the set-name evidence |
+| TV-2 | medium | introduced (T2R-2) | The Horde search missed the Premier set's 2-piece bonus (+23 spell damage); an all-plate set (Premier Scaled Shoulders and Sabatons, Plate of the Shaman King, Legionnaire's Plate Leggings) measures 798.0 TPS at 90.8% against 787.2, and paladin.md's "best of about 9,800" was wrong. | fixed: that all-plate set; the mail variant (799.8) isn't what a paladin wears, and the Premier Scaled Gauntlets (813.0) can't go to Horde alone while B76 holds, so the Optimizer (O2) takes it. paladin.md and the milestones corrected |
+| TV-3 | medium | introduced (T2R-1) | The results' Seal of Righteousness assumption left out the flat 35. | fixed: "35 Holy plus 1.2 × 18.8 × …, as Seal of Fury's is read" |
+| TV-4 | low | introduced | The Seal help said about 5% less threat with a one-hander; it's 3.9% on the current defaults. | fixed: "about 4%"; paladin.md's bullet dated to T2's talents |
+| TV-5 | low | introduced | The interim-talent table was measured before Thorns. | fixed: its lead-in says so; the ranking doesn't change |
+| TV-6 | low | introduced | defaults.ts listed Toughness in the floor. | fixed: "Toughness optional" |
+| TV-7 | low | introduced | No test pinned D30's talent floor in the tank defaults. | fixed: a defaults test per tank |
+| TV-8 | low | introduced | c5db3beb's message says 0/37/13; the build is 0/38/13 (corrected in 131e00ec). | waived: history stays as it is; recorded here |
+

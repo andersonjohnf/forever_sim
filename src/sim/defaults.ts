@@ -48,8 +48,8 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   // docs/classes/paladin.md#protection-defaults: interim, measured (T2's fix round): the best build found that keeps
-  // the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Anticipation,
-  // Deflection and Toughness, D30); the optimizer (O4) replaces it.
+  // the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Anticipation 5,
+  // Deflection 5; Toughness optional, D30); the optimizer (O4) replaces it.
   'paladin-protection': '-0530513321301551-50215',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
@@ -360,7 +360,7 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
     neck: [19426], // Orb of the Darkmoon
     // The Lamellar PvP pieces are Alliance's, with no Horde twin: a Horde paladin takes the second item,
     // the best Horde set for threat within the effective-health floor (T2R-2; paladin.md "Protection defaults").
-    shoulder: [23277, 19695], // Lieutenant Commander's Lamellar Shoulders; Horde: Darksoul Shoulders
+    shoulder: [23277, 274233], // Lieutenant Commander's Lamellar Shoulders; Horde: Premier Scaled Shoulders
     back: [20697], // Crystalline Threaded Cape
     chest: [23272, 13168], // Knight-Captain's Lamellar Breastplate; Horde: Plate of the Shaman King
     wrist: [12936], // Battleborn Armbraces
@@ -368,8 +368,8 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
     // 89.4% of v1's; paladin.md "Protection defaults").
     hands: [14622],
     waist: [22086], // Soulforge Belt
-    legs: [23273, 22673], // Knight-Captain's Lamellar Leggings; Horde: Outrider's Chain Leggings
-    feet: [23275, 272718], // Knight-Lieutenant's Lamellar Sabatons; Horde: Premier Chevalier Sabatons
+    legs: [23273, 22873], // Knight-Captain's Lamellar Leggings; Horde: Legionnaire's Plate Leggings
+    feet: [23275, 274226], // Knight-Lieutenant's Lamellar Sabatons; Horde: Premier Scaled Sabatons (Champion's Vindication)
     finger1: [20682], // Elemental Focus Band
     finger2: [19325], // Don Julio's Band
     trinket1: [272438], // Weakness Analyzer

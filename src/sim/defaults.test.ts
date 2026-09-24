@@ -3,7 +3,7 @@ import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
-import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
+import { decodeTalentCode, talentsInCodeOrder, validateTalentBuild } from '@/data/talents/types'
 import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
 import { fitsFaction, uniqueConflicts } from './equip'
@@ -66,6 +66,24 @@ describe.each(SPEC_IDS)('default setup for %s', (spec) => {
   })
 })
 
+describe('the tanks keep D30\'s survival floor in their default talents', () => {
+  // docs/decisions.md D30: Anticipation 5/5 and Deflection 5/5 for a warrior and a paladin (Toughness
+  // optional), Feral Swiftness 2/2 for a bear, besides each class's cooldown talents.
+  const ranks = (spec: SpecId) => {
+    const data = TALENT_DATA[SPEC_META[spec].classId]
+    const ranks = decodeTalentCode(data, defaultConfig(spec).talents)
+    return new Map(talentsInCodeOrder(data).flat().map((t) => [t.name, ranks[t.id] ?? 0]))
+  }
+  it.each([
+    ['warrior-protection', { Anticipation: 5, Deflection: 5, 'Last Stand': 1, 'Improved Shield Wall': 2 }],
+    ['paladin-protection', { Anticipation: 5, Deflection: 5, 'Improved Righteous Fury': 3, 'Sacred Duty': 2, "Templar's Bulwark": 1, 'Holy Shield': 1 }],
+    ['druid-feral-bear', { 'Feral Swiftness': 2, 'Thick Hide': 3, 'Heart of the Wild': 5 }],
+  ] as const)('%s', (spec, floor) => {
+    const got = ranks(spec as SpecId)
+    for (const [name, rank] of Object.entries(floor)) expect([name, got.get(name) ?? 0]).toEqual([name, rank])
+  })
+})
+
 describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
   const ids = (spec: SpecId, race: string, slots: GearSlot[]) => slots.map((s) => defaultConfig(spec, race).gear[s]?.itemId)
 
@@ -121,7 +139,7 @@ describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
   })
   it('gives a Horde paladin the Horde picks where the Lamellar pieces are Alliance’s', () => {
     const { shoulder, chest, legs, feet } = defaultConfig('paladin-protection', 'horde-undead').gear
-    expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([19695, 13168, 22673, 272718])
+    expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([274233, 13168, 22873, 274226])
     const ally = defaultConfig('paladin-protection', 'alliance-human').gear
     expect([ally.shoulder, ally.chest, ally.legs, ally.feet].map((e) => e?.itemId)).toEqual([23277, 23272, 23273, 23275])
   })

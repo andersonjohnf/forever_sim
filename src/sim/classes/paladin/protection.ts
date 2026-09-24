@@ -398,7 +398,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.seal,
     group: 'Core abilities',
     label: 'Seal',
-    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks, plus more the slower your weapon (untested: 21.6 more with a 1.5 s one-hander). With a shield, each also shields you from a little damage, and when a hit uses that up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds the same 35 and more by weapon speed (untested: 24 with a 1.5 s one-hander), but no shield or mana, so it makes about 5% less threat with a one-hander; it does better only with a two-hander, and so without a shield.',
+    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks, plus more the slower your weapon (untested: 21.6 more with a 1.5 s one-hander). With a shield, each also shields you from a little damage, and when a hit uses that up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds the same 35 and more by weapon speed (untested: 24 with a 1.5 s one-hander), but no shield or mana, so it makes about 4% less threat with a one-hander; it does better only with a two-hander, and so without a shield.',
     choices: [
       { value: 'fury', label: 'Fury' },
       { value: 'righteousness', label: 'Righteousness' },

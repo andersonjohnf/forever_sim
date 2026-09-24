@@ -1310,7 +1310,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes** [?]: an item new in Forever whose row carries no reputation, rank or race
   requirement suits both factions: the "Premier" PvP pieces and Sentinel's Libram (272434), whose
   name is an Alliance Warsong Gulch prefix but which has no Horde twin. Classic Era's Warsong
-  Gulch and Alterac Valley rewards go by their names [C].
+  Gulch and Alterac Valley rewards go by their names [C]. **Evidence against it:** every Premier
+  family comes as a pair of item sets whose names carry a faction's rank-10 title, e.g. Premier
+  Chevalier's set 2086 "Lieutenant Commander's Vindication" (Alliance) and Premier Scaled's 2084
+  "Champion's Vindication" (Horde), identical in stats and bonuses [F] (ItemSet, 1.60.1.69913). So
+  each Premier piece is probably its set's faction's; the defaults already pick by set name for the
+  Horde paladin (tank quick-fix verification TV-1), and teaching the item's faction to read its set
+  name is a follow-up.
 - **Test:** find who sells or drops Sentinel's Libram and the Premier pieces, on each faction (a
   vendor's list or a loot table is enough).
 - **Samples:** one look per item family.

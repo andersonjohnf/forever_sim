@@ -197,7 +197,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.maulEnabled,
     group: 'Core abilities',
     label: 'Maul',
-    help: 'Queue Maul on your next swing: your weapon damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5, at 1.75 threat per damage. The swing it replaces gives no rage.',
+    help: 'Queue Maul on your next swing: your Dire Bear Form attack’s damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5, at 1.75 threat per damage. The swing it replaces gives no rage.',
     default: true,
   },
   rageOption(
@@ -213,7 +213,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.mangleEnabled,
     group: 'Core abilities',
     label: 'Mangle',
-    help: 'Use Mangle whenever it’s ready: your weapon damage plus 77, every 6 s, for 15 rage with Ferocity 5/5. Needs the Mangle talent.',
+    help: 'Use Mangle whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5. Needs the Mangle talent.',
     default: true,
   },
   {
@@ -221,7 +221,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateEnabled,
     group: 'Core abilities',
     label: 'Lacerate',
-    help: `Build Lacerate to ${LACERATE_MAX_STACKS} stacks on the boss and keep them up: a bleed of 15 every 3 s per stack for 15 s, for 15 rage. Each one also hits for 10% of your weapon damage per stack already there, and restarts the bleed.`,
+    help: `Build Lacerate to ${LACERATE_MAX_STACKS} stacks on the boss and keep them up: a bleed of 15 every 3 s per stack for 15 s, for 15 rage. Each one also hits for 10% of your Dire Bear Form attack’s damage per stack already there, and restarts the bleed.`,
     default: true,
   },
   {

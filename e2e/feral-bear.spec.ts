@@ -28,7 +28,7 @@ test.describe('Feral bear (preview)', () => {
     await page.goto(BEAR)
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByText('The defaults are tuned for the default setup.')).toBeVisible()
+    await expect(tab.getByText(/The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, and within them are tuned for threat in the default setup\./)).toBeVisible()
     for (const name of ['Demoralizing Roar', 'Faerie Fire', 'Maul', 'Mangle', 'Lacerate']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab.getByRole('switch', { name: 'Enrage in combat', exact: true })).toBeChecked()
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()

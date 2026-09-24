@@ -240,7 +240,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
     since C2), "the common priority" for a spec until then. The cat's also says there's no
     powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-    since a Classic Era feral would look for it.
+    since a Classic Era feral would look for it. The bear's names the duties its default keeps and
+    says it's tuned for threat around them
+    ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
+    "The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, and within them
+    are tuned for threat in the default setup."
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -248,7 +252,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (`RotationOption.group`). The few settings that shape the rest (Arms' stance, a tank's
     priority) have no heading and come first. A heading holds at least two settings: a spec
     with only one for a phase files it under another heading, its help naming the phase
-    (Protection's Execute, under Core abilities).
+    (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
+    Cooldowns and buffs).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
     a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion

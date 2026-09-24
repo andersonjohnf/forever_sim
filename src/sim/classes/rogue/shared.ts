@@ -85,7 +85,7 @@ export const cooldownOptions = (ids: RogueIds): RotationOption[] => [
     id: ids.items,
     group: 'Cooldowns and buffs',
     label: 'On-use items',
-    help: 'Use the on-use trinkets you wear that the sim models on cooldown (Weakness Analyzer, the Manual Crowd Pummeler).',
+    help: 'Use the on-use trinkets you wear that the sim models on cooldown, such as Weakness Analyzer.',
     default: true,
   },
 ]

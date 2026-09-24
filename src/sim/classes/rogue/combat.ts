@@ -58,7 +58,7 @@ export const COMBAT_OPTIONS: RotationOption[] = [
     default: true,
     requires: { talent: 'Adrenaline Rush' },
   },
-  ...sliceAndDiceOptions(ID, 1, 2),
+  ...sliceAndDiceOptions(ID, 2, 0.5),
   exposeArmorOption(ID),
   {
     kind: 'toggle',

@@ -37,8 +37,8 @@
   "counts": {
     "bySource": {
       "buffsDoc": 47,
-      "consumable": 78,
-      "docs": 335,
+      "consumable": 81,
+      "docs": 355,
       "enchant": 125,
       "item": 413,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1749,
-    "spells": 1882
+    "seeds": 1756,
+    "spells": 1887
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -929,6 +929,13 @@
       "flags": 0,
       "maxCharges": 0,
       "name": "Item - Drink",
+      "typeMask": 0
+    },
+    "60": {
+      "chargeRecoveryTime": 0,
+      "flags": 0,
+      "maxCharges": 0,
+      "name": "Invulnerability (Temp)",
       "typeMask": 0
     },
     "65": {
@@ -14291,7 +14298,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "6778": {
       "castTime": {
@@ -23260,6 +23267,38 @@
       },
       "sources": ["spellbook"]
     },
+    "9512": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "category": 60,
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 13
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 60000
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 100,
+          "effectIndex": 0,
+          "effectMiscValue": [3, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9512,
+      "misc": {
+        "attributes": [671088640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Restore Energy",
+      "sources": ["consumable", "docs"]
+    },
     "9634": {
       "auraOptions": {
         "procChance": 101
@@ -31111,7 +31150,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11279": {
       "categories": {
@@ -31693,7 +31732,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11297": {
       "auraOptions": {
@@ -32107,6 +32146,87 @@
       },
       "name": "Greater Agility",
       "sources": ["consumable", "docs"]
+    },
+    "11337": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 4
+      },
+      "classOptions": {
+        "spellClassMask": [8192, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 88,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0],
+          "variance": 0.2769231
+        }
+      ],
+      "id": 11337,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 136, 0, 1073741824, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 132273
+      },
+      "name": "Instant Poison VI",
+      "nameSubtext": "Rank 6",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "11340": {
+      "auraOptions": {
+        "procChance": 20
+      },
+      "castTime": {
+        "base": 3000,
+        "minimum": 3000
+      },
+      "classOptions": {
+        "spellClassMask": [8192, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "effects": [
+        {
+          "effect": 360,
+          "effectBasePointsF": 1800,
+          "effectIndex": 0,
+          "effectMiscValue": [625, 0]
+        },
+        {
+          "effect": 3,
+          "effectBasePointsF": 175,
+          "effectIndex": 1
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 2,
+        "equippedItemSubclass": 173555
+      },
+      "id": 11340,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [65552, 32, 8192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132273
+      },
+      "name": "Instant Poison VI",
+      "nameSubtext": "Rank 6",
+      "sources": ["consumable", "docs"],
+      "targetRestrictions": {
+        "targets": 16
+      }
     },
     "11348": {
       "categories": {
@@ -36183,7 +36303,7 @@
           "powerType": 3
         }
       ],
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "13754": {
       "auraOptions": {
@@ -36537,7 +36657,7 @@
           "powerType": 3
         }
       ],
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "13881": {
       "auraOptions": {
@@ -38029,7 +38149,7 @@
         "spellIconFileDataId": 135988
       },
       "name": "Cold Blood",
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "14179": {
       "classOptions": {
@@ -38124,7 +38244,7 @@
       "range": {
         "rangeMax": [20, 20]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "14185": {
       "categories": {
@@ -38413,7 +38533,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "14325": {
       "auraOptions": {
@@ -41789,7 +41909,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "16513": {
       "classOptions": {
@@ -63235,7 +63355,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25302": {
       "categories": {
@@ -63285,6 +63405,100 @@
         "rangeMax": [5, 5]
       },
       "sources": ["spellbook"]
+    },
+    "25349": {
+      "auraOptions": {
+        "cumulativeAura": 5,
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 4
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "duration": {
+        "duration": 12000,
+        "maxDuration": 12000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 3,
+          "effectAuraPeriod": 3000,
+          "effectBasePointsF": 23,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 25349,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 131208, 0, 1073741952, 0, 0, 0, 0, 512, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 132290
+      },
+      "name": "Deadly Poison V",
+      "nameSubtext": "Rank 5",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "25351": {
+      "auraOptions": {
+        "procChance": 30
+      },
+      "castTime": {
+        "base": 3000,
+        "minimum": 3000
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "effects": [
+        {
+          "effect": 360,
+          "effectBasePointsF": 1800,
+          "effectIndex": 0,
+          "effectMiscValue": [2630, 0]
+        },
+        {
+          "effect": 3,
+          "effectIndex": 1
+        },
+        {
+          "effect": 3,
+          "effectBasePointsF": 180,
+          "effectIndex": 2
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 2,
+        "equippedItemSubclass": 173555
+      },
+      "id": 25351,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [65552, 131104, 8192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132290
+      },
+      "name": "Deadly Poison V",
+      "nameSubtext": "Rank 5",
+      "sources": ["consumable", "docs"],
+      "targetRestrictions": {
+        "targets": 16
+      }
     },
     "25357": {
       "castTime": {
@@ -66504,7 +66718,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "31018": {
       "categories": {
@@ -70994,7 +71208,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1241585": {
       "categories": {
@@ -71088,7 +71302,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1241588": {
       "categories": {
@@ -71182,7 +71396,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1248394": {
       "categories": {
@@ -77732,7 +77946,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "1310705": {
       "categories": {

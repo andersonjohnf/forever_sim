@@ -215,8 +215,11 @@ export interface ClientSpell {
   misc?: SpellMisc
   /** SpellCastTimes row of misc's castingTimeIndex, ms. */
   castTime?: { base?: number; minimum?: number }
-  /** SpellDuration row of misc's durationIndex, ms (−1 = until cancelled). */
-  duration?: { duration?: number; maxDuration?: number }
+  /**
+   * SpellDuration row of misc's durationIndex, ms (−1 = until cancelled); `durationPerResource` is
+   * the time added per combo point (Slice and Dice, Rupture).
+   */
+  duration?: { duration?: number; maxDuration?: number; durationPerResource?: number }
   /** SpellRange row of misc's rangeIndex: [hostile, friendly] yards. */
   range?: { rangeMin?: number[]; rangeMax?: number[]; flags?: number }
   effects: SpellEffect[]

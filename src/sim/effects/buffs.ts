@@ -894,7 +894,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('main', INSTANT_POISON),
     classicEra: { summary: '20% of main-hand hits: 112–148 Nature damage', effects: poisonOn('main', INSTANT_POISON_CLASSIC_ERA) },
-    presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
+    presets: {},
   },
   {
     id: 'deadlyPoisonMainHand',
@@ -908,7 +908,8 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('main', DEADLY_POISON),
     classicEra: { summary: '30% of main-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('main', DEADLY_POISON_CLASSIC_ERA) },
-    presets: {},
+    // Deadly on the main hand, Instant on the off hand: the rogue's best pair in the first-pass search (docs/classes/rogue.md §4.5).
+    presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
   },
   {
     id: 'instantPoisonOffHand',
@@ -922,7 +923,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('off', INSTANT_POISON),
     classicEra: { summary: '20% of off-hand hits: 112–148 Nature damage', effects: poisonOn('off', INSTANT_POISON_CLASSIC_ERA) },
-    presets: { dungeon: ROGUES, raid: ['rogue-combat', 'rogue-subtlety'], max: ['rogue-combat', 'rogue-subtlety'] },
+    presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
   },
   {
     id: 'deadlyPoisonOffHand',
@@ -936,7 +937,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('off', DEADLY_POISON),
     classicEra: { summary: '30% of off-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('off', DEADLY_POISON_CLASSIC_ERA) },
-    presets: { raid: ['rogue-assassination'], max: ['rogue-assassination'] },
+    presets: {},
   },
   {
     id: 'mightyRagePotion',

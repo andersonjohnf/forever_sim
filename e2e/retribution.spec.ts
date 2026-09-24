@@ -75,7 +75,7 @@ test.describe('Retribution', () => {
     // Protection's build since C3, read plainly: only this spec's is "(default)" (docs/ux.md "Talents").
     await expect(page.getByRole('option')).toHaveText(['Retribution (default)', 'Protection default'])
     await page.keyboard.press('Escape')
-    // About names the paladin, after the warriors and the druid.
+    // About names the paladin, after the warriors and the druid (and before the rogue, since R1).
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
     await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury, Arms and Protection · Druids: .+ · Paladins: Retribution and Protection( · .+)?\.$/)).toBeVisible()

@@ -187,6 +187,62 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "7676": {
+      "appliesEnchantIds": [],
+      "doc": {
+        "enchantIds": [],
+        "name": "Thistle Tea",
+        "section": "3.5 Potions and runes",
+        "spellIds": [9512]
+      },
+      "docMismatches": [],
+      "effects": [
+        {
+          "categoryCoolDownMSec": 120000,
+          "charges": -1,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 300000,
+          "id": 98288,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 1153,
+          "spellId": 9512,
+          "triggerType": 0
+        }
+      ],
+      "id": 7676,
+      "item": {
+        "classId": 0,
+        "iconFileDataId": 132819,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 5
+      },
+      "itemSparse": {
+        "allowableClass": 1032,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Thistle Tea",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 0,
+        "itemDelay": 0,
+        "itemLevel": 15,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 5,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "8410": {
       "appliesEnchantIds": [],
       "doc": {
@@ -460,6 +516,62 @@
         "maxCount": 1,
         "overallQualityId": 1,
         "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "8928": {
+      "appliesEnchantIds": [],
+      "doc": {
+        "enchantIds": [],
+        "name": "Instant Poison VI",
+        "section": "3.6 Weapon enhancements (temporary)",
+        "spellIds": [11340]
+      },
+      "docMismatches": [],
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": -1,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 0,
+          "id": 98648,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 11340,
+          "triggerType": 0
+        }
+      ],
+      "id": 8928,
+      "item": {
+        "classId": 0,
+        "iconFileDataId": 132273,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 8
+      },
+      "itemSparse": {
+        "allowableClass": 8,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Instant Poison VI",
+        "dmgVariance": 0,
+        "flags": [64, 28676, 0, 0, 0],
+        "inventoryType": 0,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
         "sheatheType": 0,
@@ -2909,6 +3021,62 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "20844": {
+      "appliesEnchantIds": [],
+      "doc": {
+        "enchantIds": [],
+        "name": "Deadly Poison V",
+        "section": "3.6 Weapon enhancements (temporary)",
+        "spellIds": [25351]
+      },
+      "docMismatches": [],
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": -1,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 0,
+          "id": 102389,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 25351,
+          "triggerType": 0
+        }
+      ],
+      "id": 20844,
+      "item": {
+        "classId": 0,
+        "iconFileDataId": 132290,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 8
+      },
+      "itemSparse": {
+        "allowableClass": 8,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Deadly Poison V",
+        "dmgVariance": 0,
+        "flags": [64, 28676, 0, 0, 0],
+        "inventoryType": 0,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "21023": {
       "appliesEnchantIds": [],
       "doc": {
@@ -4759,8 +4927,8 @@
     }
   },
   "counts": {
-    "consumables": 85,
-    "consumablesWithEffects": 85,
+    "consumables": 88,
+    "consumablesWithEffects": 88,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
     "items": 1652,

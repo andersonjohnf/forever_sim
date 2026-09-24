@@ -384,6 +384,7 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Free Action Potion | 5634 → 6615 | Immunity to stun and movement impairment for 30 s | 2 min, potion | Potion | Same (no DPS effect) | [F] | [fc-items] |
 | Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | Tooltip: **+40 / +28 / +20 Attack Power** for 30 s. Client aura: +40/28/20 flat **physical damage done** (aura 13, school mask 1). No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] tooltip, category · [?] AP vs flat damage | [fc/250943](https://foreverchanges.pro/item/250943) · [client] (SpellEffect, SpellCategories, 1.60.1.69913) |
 | Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
+| Thistle Tea | 7676 → 9512 | +100 Energy | Its own 5 min, and the rune category's 2 min (1153) | Shares the runes' category | Rogues, and **druids in Forever** (AllowableClass 1032; C: rogues) | [F] | [client] (ItemEffect, ItemSparse, SpellEffect, 1.60.1.69913) |
 
 ### 3.6 Weapon enhancements (temporary)
 
@@ -416,6 +417,12 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 | Wizard Oil | 20750 → enchant 2627 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above | Enchanting | [F] | [fc/20750](https://foreverchanges.pro/item/20750) |
 | Brilliant Wizard Oil | 20749 → enchant 2628 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [fc/20749](https://foreverchanges.pro/item/20749) |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
+| Instant Poison VI | 8928 → 11340 | Enchant 625: each hit of its weapon has a 20% chance of 76–100 Nature damage (spell 11337; C: 112–148); 175 charges | 30 min | One poison per weapon, in place of a stone there; rogues only | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellItemEnchantment, 1.60.1.69913); [rogue §4.1](../classes/rogue.md#41-instant-poison-vi) |
+| Deadly Poison V | 20844 → 25351 | Enchant 2630: each hit of its weapon has a 30% chance of a stack of 23 Nature damage every 3 s for 12 s, 5 stacks (spell 25349; C: 34); 180 charges | 30 min | As above | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellAuraOptions, SpellItemEnchantment, 1.60.1.69913); [rogue §4.2](../classes/rogue.md#42-deadly-poison-v) |
+
+**Poisons** are the rogue's temporary weapon enchants: one per weapon, chosen per hand in the Buffs
+tab, and each takes the place of a stone on its weapon. Their procs, talents and the choice of
+which goes where are the rogue's ([rogue §4](../classes/rogue.md#4-poisons)).
 
 ### 3.7 Engineering and explosives
 
@@ -731,6 +738,7 @@ their stacking group is verified; the UI offers them as options.
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
+| Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
@@ -967,9 +975,10 @@ from Forever's. They were read from the Classic Era client **1.15.9.69722** on 2
 every Forever value was checked against **1.60.1.69913** at the same time [client]. In the
 tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
-to its `SpellItemEnchantment`, and an enchant to its equip spell. All **107** entries were
-compared (51 buffs, debuffs and consumables; 56 enchants): **27 differ**, **18 are new in
-Forever**, and the other **62** are the same in both clients. Two of the 27 differ only in the
+to its `SpellItemEnchantment`, and an enchant to its equip spell. All **112** entries were
+compared (56 buffs, debuffs and consumables, the rogue's four poisons and Thistle Tea among them;
+56 enchants): **31 differ**, **18 are new in Forever**, and the other **63** are the same in both
+clients. Two of the 27 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -1058,6 +1067,9 @@ melee and ranged crit (aura 52) in Classic Era.
 | Major Mana Potion (`majorManaPotion`) | 1350–2250 mana | same | 13444 → 17531 #0: 1349 + 1d901 | [C] |
 | Demonic Rune (`demonicRune`; a Dark Rune is the same) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |
 | Juju Flurry (`jujuFlurry`) | +3% attack speed for 20 s | same | 12450 → 16322 #0: 2 + 1; 20 s | [C] |
+| Instant Poison VI (`instantPoisonMainHand`, `instantPoisonOffHand`) | 20%: 76–100 Nature | **112–148** | 8928 → 11340 → enchant 625: 20%, proc 11337 #0: 111 + 1d37 | [C] |
+| Deadly Poison V (`deadlyPoisonMainHand`, `deadlyPoisonOffHand`) | 30%: 23 a stack every 3 s, 5 stacks; ticks may crit | **34** a tick; no periodic-crit flag | 20844 → 25351 → enchant 2630: 30%, proc 25349 #0: 33 + 1, `CumulativeAura` 5 | [C] |
+| Thistle Tea (`thistleTea`) | +100 Energy | same | 7676 → 9512 #0: 99 + 1 | [C] |
 | EZ-Thro Dark Bomb (`ezThroDarkBomb`) | not simulated | none: new in Forever (260817) | — | [F] |
 | Greater Stoneshield Potion (`greaterStoneshieldPotion`) | not simulated (+2000 armor) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
 

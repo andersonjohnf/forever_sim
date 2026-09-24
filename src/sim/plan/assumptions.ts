@@ -830,7 +830,7 @@ const REGISTRY = {
     docRef: `${LOCK}#42-affliction`,
   },
   improvedShadowBolt: {
-    text: 'Improved Shadow Bolt’s Shadow Vulnerability is your own: +20% Shadow damage taken from you for 12 s after a Shadow Bolt crit, DoT ticks included, with no charges, as Forever’s client has it. Untested.',
+    text: 'Improved Shadow Bolt’s Shadow Vulnerability is your own: +{detail}% Shadow damage taken from you (4% a rank) for 12 s after a Shadow Bolt crit, DoT ticks included, with no charges, as Forever’s client has it. Untested.',
     docRef: `${LOCK}#41-destruction`,
   },
   baneOfAgonyRamp: {

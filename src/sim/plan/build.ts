@@ -1657,7 +1657,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/classes/mage.md#open-questions: what the mage's spells, procs and mana rely on.
   for (const id of mageAssumptions(plan)) notes.add(id)
   // docs/classes/warlock.md §9: what the warlock's spells, mana and talents rely on.
-  for (const id of warlockAssumptions(plan)) notes.add(id)
+  for (const { id, detail } of warlockAssumptions(plan)) notes.add(id, detail)
   // docs/classes/priest.md#9-open-questions: what the priest's spells, talents and mana rely on.
   for (const id of priestAssumptions(plan, setup.talents)) notes.add(id)
   // docs/classes/druid.md §11.8: what the Balance druid's spells, procs and mana rely on.

@@ -260,6 +260,19 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonTable', 'demonMana', 'masterDemonologist']))
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
   })
+
+  it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +20% at 5/5', () => {
+    const text = (talents?: string) => {
+      const bundle = buildPlan(fixed({}, talents ? { talents } : {}))
+      return bundle.assumptions.find((a) => a.id === 'improvedShadowBolt')!.text
+    }
+    expect(text()).toContain('+12% Shadow damage taken from you (4% a rank)')
+    expect(text()).not.toContain('{detail}')
+    // Improved Shadow Bolt 5/5 for two of Agonizing Flames' points.
+    const talents = defaultConfig('warlock-demonology').talents.replace(/-0350305003$/, '-0550305001')
+    expect(talentRanksByName(TALENT_DATA.warlock, talents).get('Improved Shadow Bolt')).toBe(5)
+    expect(text(talents)).toContain('+20% Shadow damage taken from you')
+  })
 })
 
 describe('golden runs (fixed config and seed)', () => {

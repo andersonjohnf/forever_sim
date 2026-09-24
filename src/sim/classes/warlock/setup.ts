@@ -30,8 +30,9 @@ export function warlockManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, 
  * The [?] assumptions a warlock plan relies on (warlock.md §9), each only when the plan uses what it's
  * about: the caster core's spell rules, its DoTs' crits and snapshots, Life Tap, Demonic Sacrifice with
  * no pet, Conflagrate and Incinerate, Nightfall, Bane of Agony's ramp and the multiplying talents.
+ * Each comes with the detail its text fills in, if any (Improved Shadow Bolt's rank).
  */
-export function warlockAssumptions(plan: Plan): AssumptionId[] {
+export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: string }[] {
   if (plan.classId !== 'warlock') return []
   const ids: AssumptionId[] = ['warlockMana', 'casterSpellRules']
   const has = (id: string) => plan.abilities.some((a) => a.id === id)
@@ -52,5 +53,7 @@ export function warlockAssumptions(plan: Plan): AssumptionId[] {
   if (plan.procs.some((p) => p.id === 'improvedShadowBolt')) ids.push('improvedShadowBolt')
   if (has('baneOfAgony')) ids.push('baneOfAgonyRamp')
   ids.push('warlockTalentStacking')
-  return ids
+  // Improved Shadow Bolt's text names the rank's Shadow Vulnerability: +4% a rank (warlock.md §4.1).
+  const vulnerability = plan.auras.find((a) => a.id === 'shadowVulnerability')?.schoolTaken ?? 0
+  return ids.map((id) => (id === 'improvedShadowBolt' ? { id, detail: String(vulnerability) } : { id }))
 }

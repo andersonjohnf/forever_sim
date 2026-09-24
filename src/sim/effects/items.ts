@@ -2,10 +2,13 @@
 // (docs/doctrine.md#3-data). Each entry cites where its numbers come from. An equipped item with a
 // proc or use effect that isn't here is reported as not simulated.
 import type { SpellDef } from '../plan/types'
-import type { SpecId } from '../types'
+import type { CreatureType, SpecId } from '../types'
 import type { EffectList, OnUseSpec } from './types'
 
 const PROC_DOC = 'docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples'
+
+/** Every creature type but Dragonkin, for an effect doubled against Dragonkin (Draconic Infused Emblem). */
+const CREATURES_BUT_DRAGONKIN: CreatureType[] = ['none', 'beast', 'demon', 'elemental', 'giant', 'humanoid', 'mechanical', 'undead']
 
 /**
  * Hand of Justice's internal cooldown: 15600 `ProcCategoryRecovery` 2000 in both clients [F] [C]
@@ -223,6 +226,55 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
         },
       },
     ],
+  },
+  // Wrath of Cenarius (item 21190): "Equip: Gives a chance when your harmful spells land to increase
+  // the damage of your spells and effects by 132 for 10 sec." Spell 25906: ProcChance 5 on ProcTypeMask
+  // 0x10000 (a harmful spell landing), no internal cooldown, triggering 25907: aura 13 (spell damage),
+  // +132 to every magic school (misc 126) for 10000 ms [F] [client] (SpellAuraOptions, SpellEffect,
+  // SpellDuration, 1.60.1.70009). A refresh restarts the 10 s (docs/mechanics/spells.md#10-spell-procs).
+  21190: {
+    source: 'Forever client: spells 25906 and 25907 (1.60.1.70009): 5% a landed harmful spell, +132 spell damage for 10 s',
+    effects: [
+      {
+        kind: 'proc',
+        proc: {
+          id: 'spellBlasting',
+          name: 'Spell Blasting (Wrath of Cenarius)',
+          icon: 'inv_jewelry_ring_40',
+          trigger: 'spellLanded',
+          from: 'any',
+          chance: { pct: 5 },
+          action: { kind: 'aura', aura: { id: 'spellBlasting', name: 'Spell Blasting', durationMs: 10000, mods: { spellDamage: 132 } } },
+          docRef: 'docs/mechanics/spells.md#10-spell-procs',
+        },
+      },
+    ],
+  },
+  // Draconic Infused Emblem (item 22268; its stats are Classic Era's, D6, its item effect Forever's):
+  // "Equip: Chance on harmful spellcast to increase your spell damage and healing by up to 35 for 10
+  // sec. This spell damage increase is doubled against Dragonkin." Forever made Classic Era's 75 s use
+  // an equip proc: spell 1318931, ProcChance 100 on ProcTypeMask 0x10000 (a harmful spell landing), no
+  // internal cooldown and no procs-per-minute row, triggering 1318930: aura 13 (spell damage) +35 to
+  // every magic school, aura 135 (healing) +35, and aura 180 +35 more spell damage against creature
+  // type mask 2 (Dragonkin), for 10000 ms [F] [client] (SpellAuraOptions, SpellEffect, SpellDuration,
+  // 1.60.1.70009). The client's 100% against the tooltip's "chance" is [?] (docs/data/items.md#modelled-item-effects):
+  // as read, it's up from the first landed spell on.
+  22268: {
+    source: 'Forever client: spells 1318931 and 1318930 (1.60.1.70009): 100% a landed harmful spell, +35 spell damage (+70 against Dragonkin) for 10 s [?]',
+    effects: [false, true].map((dragonkin) => ({
+      kind: 'proc' as const,
+      when: dragonkin ? { creature: ['dragonkin' as const] } : { creature: CREATURES_BUT_DRAGONKIN },
+      proc: {
+        id: 'draconicInfusedEmblem',
+        name: 'Draconic Infused Emblem',
+        icon: 'inv_jewelry_talisman_09',
+        trigger: 'spellLanded' as const,
+        from: 'any' as const,
+        chance: { pct: 100 },
+        action: { kind: 'aura' as const, aura: { id: 'draconicInfusedEmblem', name: 'Draconic Infused Emblem', durationMs: 10000, mods: { spellDamage: dragonkin ? 70 : 35 } } },
+        docRef: 'docs/mechanics/spells.md#10-spell-procs',
+      },
+    })),
   },
   // Flurry Axe: "Grants 1 extra attack on your next swing"; 1.8 PPM [C].
   871: {

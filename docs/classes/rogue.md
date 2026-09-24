@@ -13,8 +13,8 @@ Hemorrhage now feeds Rupture. **Poisons** hit about a third less hard: Instant P
 the Forever client, compares it with Classic Era's, and gives the three specs' first-pass rotations
 and defaults under [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24).
 
-Status: researched and built 2026-09-24 (slice R1) · Combat shipped; Assassination and Subtlety
-documented, their rotations next ([§6](#6-rotation-and-priority)) · ruleset tags: [F] Forever ·
+Status: researched and built 2026-09-24 (slice R1) · Combat and Assassination shipped; Subtlety
+documented, its rotation next ([§6](#6-rotation-and-priority)) · ruleset tags: [F] Forever ·
 [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
@@ -474,9 +474,13 @@ byte-identical):
   Poison): one stack count on the boss per poison, whichever weapon applies it.
 - COND 30 `maxComboPoints`; ACTION 7 `stackingDot`.
 
-**What's left** for Subtlety: its rotation (Hemorrhage's Rupture debuff, Ghostly Strike's and
-Hemorrhage's dagger shares, Premeditation, Quietus below 35%, Cutthroat's Ambush window and
-Thousand Cuts' Energy), its e2e flows and golden.
+**What's left** for Subtlety: its rotation, its e2e flows and golden. The rows need four engine
+additions, each absent-is-zero like the ones above: an aura mod that raises your bleeds (Hemorrhage's
++15% Rupture), a per-ability bonus below 35% health (Quietus, from `executePhaseStart` at 35), a
+stacking cost reduction a Rupture tick adds and a Backstab or Hemorrhage uses up (Thousand Cuts), and
+an Ambush window a landed Backstab opens 15% of the time (Cutthroat). Ghostly Strike's and
+Hemorrhage's dagger shares need only the rotation context's weapon types; Premeditation is a `cast`
+with combo points and COND 30 `maxComboPoints`.
 
 ---
 

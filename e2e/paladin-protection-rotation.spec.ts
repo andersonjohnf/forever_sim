@@ -38,7 +38,7 @@ test.describe('Protection paladin rotation', () => {
     await expect(buffs.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
     // Exorcism against a boss that isn't Undead or a Demon: dimmed, and it says why.
     const exorcism = tab.getByRole('switch', { name: 'Exorcism', exact: true })
-    await expect(exorcism).toHaveAccessibleDescription(/Not used: this target isn’t Undead or a Demon\. Set its creature type under Fight → Advanced\./)
+    await expect(exorcism).toHaveAccessibleDescription(/Not used: set Creature type to Undead or Demon in Fight/)
     await expect(tab.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Exorcism', exact: true }) })).toHaveCount(1)
     // Mana thresholds read "% mana".
     const fillers = tab.getByRole('region', { name: 'Fillers' })
@@ -50,6 +50,7 @@ test.describe('Protection paladin rotation', () => {
     const devotion = page.getByRole('switch', { name: 'Devotion Aura', exact: true })
     await expect(devotion).toBeChecked()
     await expect(devotion).toBeDisabled()
+    await expect(devotion).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\), so it isn’t added twice\./)
     // A warrior tank's Thunder Clap isn't in a paladin tank's raid (D26); you can add it.
     await expect(page.getByRole('switch', { name: 'Thunder Clap', exact: true })).not.toBeChecked()
   })
@@ -70,6 +71,7 @@ test.describe('Protection paladin rotation', () => {
     const buff = page.getByRole('switch', { name: 'Devotion Aura', exact: true })
     await expect(buff).not.toBeChecked()
     await expect(buff).toBeEnabled()
+    await expect(buff).toHaveAccessibleDescription(/You’re not keeping it up \(see Rotation\); turn this on if another paladin does\./)
 
     await page.getByRole('button', { name: /^(Simulate|Run again)$/ }).first().click()
     await expect(page.getByRole('button', { name: 'Run again' }).first()).toBeVisible({ timeout: 30_000 })
@@ -117,5 +119,20 @@ test.describe('Protection paladin rotation', () => {
     const boss = results.getByRole('region', { name: 'Boss’s attack table' })
     await expect(boss).toContainText(/Its chances on each swing at you with Holy Shield up, from the stats above and its 20\.0% more block\. Your rotation kept it up \d+\.\d% of the fight\./)
     await expect(boss).not.toContainText('a little')
+  })
+})
+
+test.describe('another tank’s Buffs tab (D26)', () => {
+  test('a paladin tank’s raid leaves out a warrior tank’s Thunder Clap, and says whose duty it is', async ({ page }) => {
+    await page.goto(PROTECTION)
+    await expect(page.getByText('Loaded a shared setup')).toBeVisible()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await expect(page.getByRole('radiogroup', { name: 'Preset' }).getByRole('radio', { name: /^Standard raid/ })).toBeChecked()
+    for (const name of ['Thunder Clap', 'Demoralizing Shout']) {
+      const buff = page.getByRole('switch', { name, exact: true })
+      await expect(buff).not.toBeChecked()
+      await expect(buff).toBeEnabled()
+      await expect(buff).toHaveAccessibleDescription(/\. A warrior tank’s duty, so presets leave it out; turn this on if one keeps it up\.$/)
+    }
   })
 })

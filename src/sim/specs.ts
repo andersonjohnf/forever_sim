@@ -12,9 +12,10 @@ export interface SpecMeta {
   /**
    * Buff catalogue ids the Buffs tab assumes are this spec's own: its rotation keeps them up by
    * default (the cat's Faerie Fire, druid.md §6.2; a Protection warrior's Thunder Clap and
-   * Demoralizing Shout, its duties under D26, warrior.md §5.4). No preset adds them for the spec, so
-   * when the rotation drops one (Protection's Max TPS drops both), the Buffs tab's is off until you
-   * turn it on there because someone else keeps it up (docs/ux.md "Buffs").
+   * Demoralizing Shout and a Protection paladin's Devotion Aura, their duties under D26, warrior.md
+   * §5.4, paladin.md "Priority"). No preset adds them for the spec, so when the rotation drops one
+   * (Max TPS drops them), the Buffs tab's is off until you turn it on there because someone else
+   * keeps it up (docs/ux.md "Buffs"). Another tank's Buffs tab says whose duty it is.
    */
   ownBuffs?: readonly string[]
 }
@@ -77,6 +78,8 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     name: 'Protection',
     role: 'tank',
     icon: 'spell_holy_devotionaura',
+    // Its duty, Devotion Aura, which Tank duties first keeps up and Max TPS drops (paladin.md "Priority", D26).
+    ownBuffs: ['devotionAura'],
   },
 }
 

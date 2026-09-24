@@ -316,10 +316,14 @@ describe('catalogues and presets', () => {
   it('gives tanks Devotion Aura and boss debuffs but not Salvation or Leader of the Pack', () => {
     for (const spec of ['warrior-protection', 'druid-feral-bear', 'paladin-protection'] as const) {
       const buffs = presetBuffs('raid', spec, FULL_RAID)
-      expect(buffs, spec).toEqual(expect.arrayContaining(['devotionAura', 'elixirOfGreaterDefense']))
+      expect(buffs, spec).toEqual(expect.arrayContaining(['elixirOfGreaterDefense']))
       expect(buffs, spec).not.toContain('blessingOfSalvation')
       expect(buffs, spec).not.toContain('leaderOfThePack')
     }
+    // A Protection paladin's Devotion Aura is its own duty (SpecMeta.ownBuffs): the other tanks' presets have one.
+    expect(presetBuffs('raid', 'warrior-protection', FULL_RAID)).toContain('devotionAura')
+    expect(presetBuffs('raid', 'druid-feral-bear', FULL_RAID)).toContain('devotionAura')
+    for (const preset of buffPresets) expect(presetBuffs(preset.id, 'paladin-protection', FULL_RAID), preset.id).not.toContain('devotionAura')
     // No warrior tank's Thunder Clap or Demoralizing Shout in any preset: a Protection warrior's are
     // its own (below), and another tank's raid has none unless you add them (buffs doc §6.2, D26).
     for (const spec of SPEC_IDS) {

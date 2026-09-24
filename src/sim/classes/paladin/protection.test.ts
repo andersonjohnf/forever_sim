@@ -14,7 +14,7 @@ import { FULL_RAID } from '../../defaults'
 import { CHUNK_SIZE } from '../../engine/chunk'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import { maintainedBuffs } from '../rotation'
-import { rotationGroups, unmetRequirements, unusedRotationSettings } from '../../index'
+import { getSpec, rotationGroups, unmetRequirements, unusedRotationSettings } from '../../index'
 import type { SimConfig } from '../../types'
 import { resolveRotationValues } from '../options'
 import { talentRanksByName } from '..'
@@ -132,12 +132,12 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
 
   it('your Devotion Aura is yours: the rotation puts it up, and the Buffs tab’s counts once; Max TPS leaves the Buffs tab’s off', () => {
     const d = defaultConfig(PROT)
-    // D26: the raid preset leaves out a Protection paladin's own Devotion Aura, and a warrior tank's
-    // Thunder Clap and Demoralizing Shout (you can add them in the Buffs tab).
+    // D26: the raid preset leaves out a Protection paladin's own Devotion Aura (SpecMeta.ownBuffs),
+    // and a warrior tank's Thunder Clap and Demoralizing Shout (you can add them in the Buffs tab).
     for (const preset of ['raid', 'max'] as const) {
       for (const id of ['devotionAura', 'thunderClap', 'demoralizingShout']) expect(presetBuffIds(preset, PROT, FULL_RAID), id).not.toContain(id)
     }
-    expect(presetBuffIds('raid', 'warrior-protection', FULL_RAID)).toEqual(expect.arrayContaining(['devotionAura', 'thunderClap', 'demoralizingShout']))
+    expect(getSpec(PROT).ownBuffs).toEqual(['devotionAura'])
     expect(maintainedBuffs(PROT, {})).toEqual(['devotionAura'])
     expect(maintainedBuffs(PROT, MAX_TPS)).toEqual([])
     const duties = buildPlan(d)

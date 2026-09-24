@@ -669,7 +669,7 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Windfury Totem | — | — | all | all |
 | Strength of Earth Totem | — | — | all | all |
 | Mana Spring Totem | — | — | Pal | Pal |
-| Devotion Aura | — | — | Tank, but a Prot paladin's is its own: its rotation keeps it up, and Max TPS drops it ([paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps)) | the same |
+| Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
 | Faerie Fire | — | — | all (not the Feral cat's: see below) | all (the same) |
 | Curse of Recklessness | — | — | all | all |
@@ -683,8 +683,9 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 
 A buff a spec keeps up itself by default is that spec's own, and no preset adds it for the spec:
 the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-priority)), and a
-Protection warrior's Thunder Clap and Demoralizing Shout, its duties
-([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
+Protection warrior's Thunder Clap and Demoralizing Shout, and a Protection paladin's Devotion Aura,
+their duties ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23);
+[paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps)).
 Its rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
 another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs"). Thunder Clap and
 Demoralizing Shout are in no preset for any spec: they're a warrior tank's, so a bear's or a

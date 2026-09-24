@@ -790,9 +790,11 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   the pull, so it's up from the pull, before any threat ability, as D26 asks of a duty; and an
   aura lasts until you cancel it, so it never needs a refresh.
 - **Max TPS** drops it for Retribution Aura, 30 Holy damage to the boss on each of its swings
-  that lands, ×1.9 threat. The Buffs tab's Devotion Aura is then off by default: turn it on there
-  if another paladin in your group keeps it up. A paladin tank's raid preset leaves it out for
-  that reason, and a warrior tank's Thunder Clap and Demoralizing Shout too; you can add them.
+  that lands, ×1.9 threat. The Buffs tab's Devotion Aura is then off by default, and says so:
+  "You're not keeping it up (see Rotation); turn this on if another paladin does." It's the
+  spec's own (`SpecMeta.ownBuffs`), so no preset has it, and none has a warrior tank's Thunder
+  Clap or Demoralizing Shout either (D26; [buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset));
+  you can add them.
   Max TPS moves only that setting's default, and a value you set yourself still wins.
 - **Not duties.** Holy Shield (+20% block, and a block's damage), Seal of Fury (its absorb, and
   its judgement's taunt) and Holy Strike (Iron Creed's −10% damage taken) help you survive too,

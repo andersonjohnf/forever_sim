@@ -214,14 +214,21 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     one applies; yours still makes its threat (untested)." The result lists the same assumption.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
     Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a Protection warrior's Thunder
-    Clap and Demoralizing Shout, its duties under
+    Clap and Demoralizing Shout, and a Protection paladin's Devotion Aura, their duties under
     [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
-    so no preset turns them on. When the rotation drops one (Protection's Max TPS drops both), its
-    Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it up
-    (see Rotation); turn this on if another druid does" (or warrior). Turned on, it's another
+    so no preset turns them on. When the rotation drops one (a Protection warrior's Max TPS drops
+    both of its own, a paladin's its Devotion Aura), its Buffs switch is off by default and
+    unlocked, and its note says so: "You're not keeping it up (see Rotation); turn this on if
+    another druid does" (or warrior, or paladin). Turned on, it's another
     player's, and it stays on until you turn it off. Without that class in the raid it reads
     "Needs another druid in the raid". (A warrior's Battle Shout isn't one of these: the Buffs
     tab's is another warrior's, and stays on when the rotation drops yours.)
+  - Another tank class's duty that no preset gives you (a warrior tank's Thunder Clap and
+    Demoralizing Shout, for a bear or a paladin tank) says whose it is: "Boss attacks 20% slower. A
+    warrior tank's duty, so presets leave it out; turn this on if one keeps it up."
+  - A preset matches on what you choose: a buff your rotation keeps up shows on whatever the
+    preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
+    under Max TPS, then going back to tank duties, leaves the preset as it was.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default. It disables

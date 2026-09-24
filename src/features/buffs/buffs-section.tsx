@@ -21,6 +21,7 @@ import {
   getSpec,
   presetBuffs,
   rotationValues,
+  specs,
   talentBuffs,
   type BuffCategory,
   type BuffDefinition,
@@ -77,6 +78,18 @@ export function BuffsSection() {
   // Shout): while the rotation doesn't keep one up, the tab's switch is someone else's, off unless
   // you turn it on (SpecMeta.ownBuffs, druid.md §6.2, warrior.md §5.4).
   const ownBuffs = useMemo(() => new Set(getSpec(meta.id).ownBuffs ?? []), [meta.id])
+  // Another tank's duties (a warrior tank's Thunder Clap and Demoralizing Shout), for a tank: when no
+  // preset assumes another tank keeps one up, the switch says whose it is (D26, buffs doc §6.2).
+  const otherTanksDuty = useMemo(() => {
+    const duty = new Map<string, string>()
+    if (meta.role !== 'tank') return duty
+    const inPresets = new Set(buffPresets.flatMap((p) => presetBuffs(p.id, meta.id, FULL_RAID)))
+    for (const s of specs) {
+      if (s.role !== 'tank' || s.classId === meta.classId) continue
+      for (const id of s.ownBuffs ?? []) if (!inPresets.has(id)) duty.set(id, CLASS_LABEL[s.classId].toLowerCase())
+    }
+    return duty
+  }, [meta.id, meta.role, meta.classId])
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
   const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])
 
@@ -205,6 +218,7 @@ export function BuffsSection() {
                       const replacedBy = maintained.has(def.id) && def.exclusiveGroup ? rivalOn(def) : undefined
                       // Yours, but the rotation doesn't keep it up: the switch means another player's.
                       const dropped = !own && ownBuffs.has(def.id)
+                      const dutyOf = own || dropped ? undefined : otherTanksDuty.get(def.id)
                       // A buff you cast on yourself needs no one else (a druid's Mark of the Wild).
                       const missing = !own && !buffProvided(def, buffs.raid, meta.id)
                       const unused = own ? undefined : inert[def.id]
@@ -220,6 +234,7 @@ export function BuffsSection() {
                       // rotation drops it; docs/ux.md "Buffs").
                       else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
                       else if (dropped) help = `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
+                      else if (dutyOf) help = `${def.summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
                       return (
                         // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
                         // colour, never opacity: its text turns to the muted colour (AA) and its icon to

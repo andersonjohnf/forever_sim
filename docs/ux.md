@@ -542,15 +542,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Bloodrage, Enrage) included. Swings, shots, casts and procs count attempts, misses included.
     An extra-attacks proc counts the times it fired, so Windfury Weapon's and Ironfoe's two swings
     are one proc; its crit and avoided shares are over the swings. A fire whose swing becomes a
-    queued Heroic Strike or Maul still counts, but that swing's damage lands on that row. A row with a count of its own
-    (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
+    queued Heroic Strike or Maul still counts, but that swing's damage lands on the Heroic
+    Strike's or Maul's row. A row with a count of its own (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
     of mana or rage (Shield Specialization, Primal Fury) shows none: one count a row.
   - **The average ends the line,** on the Damage metric only: the row's damage over its landed
     hits (hits, crits, glances and blocks; misses left out), "1,204 avg hit", or "412 avg tick"
     for a bleed's, a DoT's or a periodic effect's row. A cast whose every cast lands several times
     on its own row counts its casts, but its average and shares are per landing, named for what
-    lands: "21.3 casts a fight · 9.1% crit · 11.0% avoided · 95 avg tick" (Consecration's ticks),
-    "430 avg missile" (Arcane Missiles). A row with no damage or no landed hits has
+    lands: "21.3 casts a fight · 9.1% tick crit · 11.0% of ticks avoided · 95 avg tick"
+    (Consecration's ticks), "missile crit · of missiles avoided · 430 avg missile" (Arcane
+    Missiles). A row with no damage or no landed hits has
     none. A screen reader hears it in words: "1,204 damage a hit on average". Each part stays
     whole, so the line wraps only between parts; at 390 px a DoT's or bleed's line may take three
     or four lines, its uptime included.

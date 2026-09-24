@@ -525,7 +525,8 @@ export interface AbilityResult {
   procs?: number
   /**
    * What one of its landings is, on a `casts` row that lands more than once a cast: a tick
-   * (Consecration) or a missile (Arcane Missiles). Its average damage is per landing: "95 avg tick".
+   * (Consecration) or a missile (Arcane Missiles). Its average damage and its crit and avoided
+   * shares are per landing and say so: "9.1% tick crit · 11.0% of ticks avoided · 95 avg tick".
    */
   landing?: 'tick' | 'missile'
 }

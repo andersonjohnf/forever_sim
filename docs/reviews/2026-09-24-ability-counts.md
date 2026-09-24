@@ -48,3 +48,12 @@ the fixes introduced nothing at medium or worse.
 | PV-1 | low | introduced (PC-1) | A proc's fire whose swing becomes a queued Heroic Strike or Maul counts on the proc's row while its damage lands on the Heroic Strike's or Maul's (bear Windfury 23.9 procs beside 13.4 swings); the docs and the log's "read the same either way" didn't say so. | fixed by the lead: ux.md and the `procs` comment say it; the log's PC-1 row corrected |
 | PV-2 | low | introduced (PC-6) | The `deepWounds` assumption quoted Fury's ~2% to Arms players too. | fixed by the lead: "Fury … about 2% more DPS and Arms about 1.5%" |
 | PV-3 | low | the slice (missed by the first review) | On a tank's Threat view Consecration's shares had no unit, reading as shares of casts. | fixed by the lead: a row that lands more than once names its shares ("6.3% tick crit · 6.3% of ticks avoided"), on both metrics; test |
+
+### Quick check of the PV fixes (201ae424)
+
+Only the multi-landing rows' lines changed (10 of 362 row-and-metric lines over the 23 defaults).
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| PQ-1 | low | PV-3 | ux.md's Consecration example, the `outcomeLines` docstring and the `landing` comment still described the old shares. | fixed by the lead |
+| PQ-2 | nit | PV-1 | ux.md's "lands on that row" was unclear, and the line ran long. | fixed by the lead: "the Heroic Strike's or Maul's row", rewrapped |

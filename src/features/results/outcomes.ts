@@ -26,7 +26,8 @@ export interface OutcomeLines {
  * Fire) can't crit, so it gives only its share missed. On the Damage metric the line ends with the
  * average damage per landing: its damage over its hits, crits, glances and blocks, per tick for a
  * bleed's or a periodic effect's row, and per tick or missile for a cast that lands more than once
- * (`AbilityResult.landing`: Consecration, Arcane Missiles).
+ * (`AbilityResult.landing`: Consecration, Arcane Missiles), whose crit and avoided shares name what
+ * lands too ("tick crit · of ticks avoided"), on either metric.
  */
 export function outcomeLines(a: AbilityResult, fights: number, damageMetric: boolean): OutcomeLines {
   const avoided = a.misses + a.dodges + a.parries

@@ -494,7 +494,10 @@ Top Gear and the retail optimizers do:
 - **What it maximizes.** A DPS spec maximizes DPS. A tank maximizes TPS and DPS as equals (D18):
   the sum of each one's change relative to the spec's current default. That's the Balanced
   rotation's aim too (D28). A tank's search never drops the survival talents its class doc lists
-  as the floor, the ones nearly every tank takes, such as big cuts to defensive cooldowns.
+  as the floor, the ones nearly every tank takes, such as big cuts to defensive cooldowns. The
+  avoidance and health talents are in the floor too (user decision): Anticipation, Deflection and
+  Toughness for a warrior and a paladin. The model says avoided hits cost a tank rage, mana and
+  Reckoning procs, so a threat-first search drops them, but tanks take them.
 - **A tank's gear keeps an effective-health floor** (user decision). Survival stats cost a tank
   threat in Forever (rage from hits taken divides by max health, and avoided hits give none), so
   an unconstrained search builds glass cannons. Effective health is max health ÷ (1 − armor's

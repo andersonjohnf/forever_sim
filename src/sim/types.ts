@@ -368,6 +368,12 @@ export interface AplDefinition {
   specWide: readonly string[]
   /** Named presets besides the default (id `default`, the spec's defaults). */
   presets: readonly AplPreset[]
+  /**
+   * A spec-wide choice the preset picker stands for (a tank's Priority, D28): each preset names one
+   * of its values, and the one at the choice's default is the spec's default, so there's no separate
+   * Default preset. The picker replaces its control, and shows its help.
+   */
+  presetChoice?: string
 }
 
 export interface SpecDefinition {

@@ -29,9 +29,10 @@ export function RotationSection() {
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // A priority-list spec (decision D31) shows its spec-wide settings under the headings, above the
-  // list; the list's rows hold the rest.
+  // list; the list's rows hold the rest. A choice the preset picker stands for (a tank's Priority,
+  // D28) is the picker, so it isn't shown again.
   const apl = spec.rotationApl
-  const headed = apl ? options.filter((o) => apl.specWide.includes(o.id)) : options
+  const headed = apl ? options.filter((o) => apl.specWide.includes(o.id) && o.id !== apl.presetChoice) : options
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
   // under Fight, Exorcism an Undead or Demon target, and Shield Slam its talent and a shield

@@ -142,4 +142,24 @@ describe('the priority list’s presets and “Custom” (decision D31)', () => 
     expect(applyAplPreset(DEF, picked.rotation, DEFAULT_APL_PRESET)).toEqual({ rotation: { stance: 'b' }, rotationOrder: undefined })
     expect(applyAplPreset(DEF, {}, 'nope')).toBeUndefined()
   })
+
+  it('with a preset choice (a tank’s Priority, D28), lists just its presets, one of which is the default', () => {
+    // The stance stands in for the choice: A is the default, B turns C on.
+    const byChoice: AplDefinition = {
+      ...DEF,
+      presetChoice: 'stance',
+      presets: [
+        { id: 'stanceA', label: 'A', help: '', values: { stance: 'a' } },
+        { id: 'stanceB', label: 'B', help: '', values: { stance: 'b' } },
+      ],
+    }
+    const activeOf = (saved: Record<string, string | number | boolean>) => activeAplPreset(byChoice, OPTIONS, saved, undefined, NO_TALENTS)
+    expect(aplPresets(byChoice).map((p) => p.id)).toEqual(['stanceA', 'stanceB'])
+    expect(activeOf({})).toBe('stanceA')
+    expect(activeOf({ stance: 'b' })).toBe('stanceB')
+    // C on by hand in A isn't B: B's other rows would be at their defaults, and the choice is A's.
+    expect(activeOf({ 'c.on': true })).toBe(CUSTOM_APL_PRESET)
+    expect(applyAplPreset(byChoice, { stance: 'a', 'a.min': 50 }, 'stanceB')).toEqual({ rotation: { stance: 'b' }, rotationOrder: undefined })
+    expect(applyAplPreset(byChoice, {}, DEFAULT_APL_PRESET)).toBeUndefined()
+  })
 })

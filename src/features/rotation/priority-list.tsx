@@ -4,7 +4,8 @@
 // below that. A row moves by its handle (a pointer, or the keyboard: Space, the arrow keys, Space),
 // or with Move up and Move down in its settings. Pinned rows (the pre-pull) show a lock and don't
 // move, and nothing moves past them. Above the list, the preset picker ("Custom" once you've
-// edited it) and Reset order.
+// edited it) and Reset order; a picker that stands for a spec-wide choice (a tank's Priority) shows
+// that choice's help under it.
 import {
   closestCenter,
   DndContext,
@@ -104,6 +105,7 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
   const panelRef = useRef<HTMLElement>(null)
   const fade = useVerticalFade(panelRef, selected)
   const helpId = useId()
+  const presetHelpId = useId()
   /** Selecting a row on desktop moves focus to its settings' heading, as the phone's sheet does (docs/ux.md "Rotation"). */
   const select = (id: string) => {
     if (!desktop) return setSelected(id)
@@ -150,6 +152,8 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
 
   const preset = rotationPreset(config)
   const presets = aplPresets(apl)
+  // A picker that stands for a choice (a tank's Priority, D28) says what each preset is, in its help.
+  const presetHelp = apl.presetChoice === undefined ? undefined : options.find((o) => o.id === apl.presetChoice)?.help
   const pickPreset = (id: string) => {
     const picked = applyAplPreset(apl, config.rotation, id)
     if (!picked) return
@@ -190,7 +194,12 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
       <div className="flex items-center gap-2">
         <Select value={preset === CUSTOM_APL_PRESET ? '' : (preset ?? '')} onValueChange={pickPreset}>
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
-          <SelectTrigger ref={presetRef} className="min-w-0 flex-1 data-[size=default]:h-11 sm:max-w-64 sm:min-w-48" aria-label="Rotation preset">
+          <SelectTrigger
+            ref={presetRef}
+            className="min-w-0 flex-1 data-[size=default]:h-11 sm:max-w-64 sm:min-w-48"
+            aria-label="Rotation preset"
+            aria-describedby={presetHelp === undefined ? undefined : presetHelpId}
+          >
             <SelectValue placeholder="Custom" />
           </SelectTrigger>
           <SelectContent>
@@ -205,6 +214,11 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
           <RotateCcw /> Reset order
         </Button>
       </div>
+      {presetHelp !== undefined && (
+        <p id={presetHelpId} className="text-sm text-muted-foreground">
+          {presetHelp}
+        </p>
+      )}
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <DndContext
           sensors={sensors}

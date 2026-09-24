@@ -99,8 +99,12 @@ export function aplRowOptionIds(def: AplDefinition): Set<string> {
   return new Set(def.rows.flatMap((r) => [...(r.enabledId === undefined ? [] : [r.enabledId]), ...r.optionIds]))
 }
 
-/** The spec's default and its named presets, the default first. */
+/**
+ * The spec's default and its named presets, the default first; for a spec whose presets are a
+ * choice's values (`presetChoice`, a tank's Priority), just its presets, one of which is the default.
+ */
 export function aplPresets(def: AplDefinition): AplPreset[] {
+  if (def.presetChoice !== undefined) return [...def.presets]
   return [{ id: DEFAULT_APL_PRESET, label: 'Default', help: 'The spec’s defaults.', values: {} }, ...def.presets]
 }
 

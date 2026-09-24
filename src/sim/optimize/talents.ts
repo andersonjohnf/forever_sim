@@ -19,7 +19,9 @@
 //   (OV3-1), though it's a raise only when the screen finds it objective and not below zero.
 // - A talent that changes what a sheet constraint reads (health, armor, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): under the effective-health
-//   floor, a build that keeps Toughness is one to try, not a tie.
+//   floor, a build that keeps Toughness is one to try, not a tie. One only a constraint made
+//   (neither objective nor the preferred filler) takes core ranks only in a build whose preferred
+//   filler is at max rank (OV4-1): D30 fills Anticipation before Toughness.
 // - Kept talents (the class's survival floor, and the player's) sit at their rank in every build;
 //   excluded and **harmful** talents (those that lower the score, ./screen.ts) are never taken, but
 //   for the preferred filler. A
@@ -78,7 +80,8 @@ export interface TalentSpaceOptions extends TalentConstraints {
   values?: ReadonlyMap<string, number>
   /**
    * Talents, by id, that change what a constraint reads: search dimensions whatever their role (a
-   * harmful one is never taken to fill leftover points, nor counted as a raise).
+   * harmful one is never taken to fill leftover points, nor counted as a raise). One that isn't
+   * objective takes core ranks only in a build whose preferred filler is at max rank (OV4-1).
    */
   constrained?: ReadonlySet<string>
   /**
@@ -234,6 +237,15 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   const raisable = (i: number) => nodes[i].role === 'objective' && fillable(i)
   const isDim = new Uint8Array(count)
   for (const i of dims) isDim[i] = 1
+  /**
+   * The dimensions only a constraint made (Toughness under the effective-health floor): neither
+   * objective nor the preferred filler. They take core ranks only in a build whose preferred filler
+   * is at max rank (OV4-1, step 6): D30 fills Anticipation before Toughness, so a Toughness-5,
+   * Anticipation-0 twin of an Anticipation-5, Toughness-0 build isn't one to race. Builds with both
+   * at max still cover the constraint's need. With no preferred filler (the bear, or Anticipation
+   * kept or excluded) they're dimensions like any other.
+   */
+  const constraintOnly = dims.filter((i) => nodes[i].role !== 'objective' && !isPreferred[i])
 
   // Fillers: every other talent that may be taken, the ones that lower damage taken first, then the
   // spec's own tree, then the shallower tier, then code order.
@@ -327,6 +339,8 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     /** The fewest extra points a raise of one of its objective talents costs, any raise; and one that makes no new partial rank. */
     raiseAny: number
     raiseKeepingPartials: number
+    /** Whether its core (before the gates' fillers) gives a constraint-only dimension ranks. */
+    constraintOnly: boolean
   }
 
   const treeCores: TreeCore[][] = []
@@ -369,7 +383,7 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
         dominated++
         return
       }
-      list.push({ ranks, used, partial: partial >= 0, raiseAny, raiseKeepingPartials })
+      list.push({ ranks, used, partial: partial >= 0, raiseAny, raiseKeepingPartials, constraintOnly: constraintOnly.some((i) => core[i] > 0) })
     }
     const visit = (d: number, spent: number, partial: number) => {
       if (d === dims.length) return leaf(partial)
@@ -416,6 +430,8 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     }
     const ranks = new Int8Array(count)
     for (const c of chosen) for (let i = 0; i < count; i++) ranks[i] += c.ranks[i]
+    // A constraint-only dimension's core ranks need the preferred filler at max rank first (OV4-1).
+    if (chosen.some((c) => c.constraintOnly) && preferred.some((p) => ranks[p] < nodes[p].max)) return
     // The rest of the points, by preference, a point at a time (a point can open a deeper filler's gate).
     for (let left = slack; left > 0; left--) {
       const f = fillOrder.find((i) => canFill(ranks, i))

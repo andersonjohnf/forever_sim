@@ -543,7 +543,9 @@ end-of-race rule preferring a close candidate with more Anticipation. The race t
 limits (such as a damage-taken cap, which this decision already rules out); its constraints are the
 sheet's (the floor, effective health, crit and crush immunity), which are exact. An answer that
 drops Anticipation entirely, when the gain is clear, is acceptable (user decision: the warrior's
-Deep Wounds build, +4.4 points).
+Deep Wounds build, +4.4 points). After the fourth verification (step 6 again), a dimension only a
+constraint made (Toughness, for the effective-health floor) takes ranks only after the preferred
+filler is full.
 
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority

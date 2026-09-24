@@ -8,11 +8,12 @@ keeps, how the talent space is built, and how a spec's defaults come from its re
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
 constraints with effective health and crit and crush immunity, and the command line
-(`npm run optimize`), with the review's and both verifications' fixes
+(`npm run optimize`), with the review's and the verifications' fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
 answer (user decision); Anticipation is the warrior's and paladin's preferred filler, first in the
 fill order, rather than a floor talent (user decision, D30); the leader is the answer, and the race
-takes no result limits (step 6 of the review, D30). Gear is O2, the
+takes no result limits (step 6 of the review, D30); Toughness, a dimension only for the
+effective-health floor, takes ranks only after the preferred filler is full (step 6 again). Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -279,7 +280,10 @@ not every legal one, which would be astronomically many:
   and without it both race.
 - **So is a talent a constraint reads.** One that changes a sheet number a constraint reads
   (Toughness's armor, Sacred Duty's health, under the effective-health floor) is a dimension too,
-  whatever its role, so builds with and without it both race. So is a warrior's or paladin's
+  whatever its role, so builds with and without it both race. One only a constraint made (neither
+  objective nor the preferred filler: Toughness) takes ranks in a build's core only when the
+  preferred filler is at max rank there, or there's none (kept, excluded, or the bear)
+  ([below](#the-preferred-filler)). So is a warrior's or paladin's
   preferred filler ([below](#the-preferred-filler)). A harmful one (Heart of the Wild, when the floor doesn't keep it) is searched but
   never forced by the maximality rule below, nor given leftover points.
 - **Leftover points go to partial ranks, the preferred filler, then fillers.** Points the core
@@ -311,7 +315,7 @@ not every legal one, which would be astronomically many:
   Reckoning procs, so a threat-first search drops them, but tanks take them. **Anticipation is not
   in the floor** (user decision, D30): it's the warrior's and paladin's **preferred filler**
   ([below](#the-preferred-filler)). Toughness is optional: the search decides its ranks (under the
-  effective-health floor it's a dimension). `--no-floor` drops the floor; `--keep` extends it for
+  effective-health floor it's a dimension, beside a full Anticipation). `--no-floor` drops the floor; `--keep` extends it for
   one search (kept talents join it in every build: `--keep Anticipation` holds it at 5/5); a
   spec's default floor changes in `SURVIVAL_FLOOR` and its class doc together. Harmful talents are
   never taken unless kept, searched for a constraint, or the preferred filler.
@@ -321,7 +325,7 @@ not every legal one, which would be astronomically many:
   objective dimension is a raise: one only a constraint made (Toughness under the effective-health
   floor) has no screened value, so a build without it may score better, and a core that leaves
   room for it keeps its points for the fill order (Anticipation first) instead of being dropped
-  (OV3-1). The check is one talent at a time: a build that could only do better by swapping one
+  (OV3-1); it takes core ranks only beside a full preferred filler (OV4-1). The check is one talent at a time: a build that could only do better by swapping one
   talent for another stays, and the race decides.
 - **One tree at a time.** Tier gates and arrows never cross trees; only the 51-point total does.
   So each tree's cores are enumerated alone, each with the least points it can be legal in and the
@@ -351,6 +355,17 @@ only when the screen finds it objective and not below zero. And a build with roo
 points and no Toughness keeps them for the fill order rather than being dropped for want of
 Toughness (OV3-1).
 
+**Toughness only after Anticipation** (step 6 of O1's review, after its third round on the
+preferred filler; D30). Toughness is a dimension only because the effective-health floor reads its
+armor, and it takes ranks in a build's core only when Anticipation is at 5/5 there (or is kept or
+excluded, when there's no preferred filler). Otherwise the space held a Toughness-5,
+Anticipation-0 twin of each Anticipation-5, Toughness-0 build, and since Toughness screens at zero
+and Anticipation below it, the race took the Toughness twin: the fourth verification's repro, every
+default talent kept but those two, answered `35-05-512501233301210531` (Anticipation 5→1,
+Toughness 1→5) against D30's fill order. Builds with Anticipation 5/5 and Toughness 5/5 still cover
+what the effective-health floor needs, and a build without Anticipation takes Toughness only from
+its leftover points, after Anticipation.
+
 **The race's leader is the answer**, whatever its Anticipation. An end-of-race rule that preferred a
 candidate level with the leader that had more Anticipation (within 0.5% of its score or inside its
 paired interval) was cut at step 6 of O1's review, after two rounds in a row found new problems in
@@ -360,8 +375,8 @@ when the gain is clear is acceptable (user decision: the warrior's Deep Wounds b
 floor used to. The bear has no preferred filler: its avoidance, Feral Swiftness, is in its floor.
 
 The spaces at the default setups (tanks with 31 points in their tree, their survival floor, the
-preferred filler, and the effective-health floor, which makes Toughness a dimension), from the
-screens of 2026-09-24 with D30's preferred filler (the
+preferred filler, and the effective-health floor, which makes Toughness a dimension, beside a full
+Anticipation), from the screens of 2026-09-24 with D30's preferred filler (the
 defaults of that day's T3 and T4 gear; the kept talents aren't dimensions; Anticipation is one of
 the warrior's and paladin's objective ones). The candidates are the builds and the setup itself
 when it keeps the constraints (the warrior's default isn't among its space's builds; the bear's
@@ -369,14 +384,16 @@ and the paladin's are), and each race runs the baseline beside them:
 
 | Spec | Dimensions | Builds | Candidates | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- | --- |
-| `warrior-protection` | 23 objective + Toughness | 4,735 | 4,736 | 3,184 | 6,758 |
+| `warrior-protection` | 23 objective + Toughness | 3,690 | 3,691 | 3,184 | 6,758 |
 | `druid-feral-bear` | 17 objective | 129 | 129 | 1,314 | 1,080 |
-| `paladin-protection` | 27 objective + Toughness | 8,918 | 8,918 | 2,752 | 3,585 |
+| `paladin-protection` | 27 objective + Toughness | 6,833 | 6,833 | 2,752 | 3,585 |
 | `warrior-fury` (no constraints) | 20 objective | 288 | | 1,636 | 1,507 |
 
-So on `quick` the warrior's space runs 94 fights each in the first round, the paladin's 50 and the
-bear's and Fury's 1,000. With Anticipation 5/5 in the floor (before D30's preferred filler) the
-warrior's space was 3,544 builds and the paladin's 10,805; before Feral Swiftness joined the bear's
+So on `quick` the warrior's space runs 121 fights each in the first round, the paladin's 65 and the
+bear's and Fury's 1,000. Before Toughness waited for a full Anticipation (OV4-1) the warrior's space
+was 4,735 builds (4,388 on a 3,000-fight screen, now 3,412) and the paladin's 8,918. With
+Anticipation 5/5 in the floor (before D30's preferred filler) the warrior's space was 3,544 builds
+and the paladin's 10,805; before Feral Swiftness joined the bear's
 floor, its space was 199 builds (200 candidates with the setup). Enumerating takes about a second.
 Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's space was
 17,644 builds and took eight minutes to list; the paladin's passed 50,000.
@@ -502,7 +519,8 @@ comparison with one (`vsLeader` is left out of the JSON).
   negative, is still raised when it fits.
 - **Maximality counts only objective talents.** A dimension only a constraint made (Toughness
   under the effective-health floor) is never forced: the build without it keeps its points for
-  the fill order, Anticipation first (OV3-1), and the build with it races too.
+  the fill order, Anticipation first (OV3-1), and the build with it races too when Anticipation is
+  at 5/5 in it (OV4-1).
 - **The screen's sign and score per point come from a few contexts**, 400 fights each. A talent
   that helps only in a build far from both contexts can be misjudged; `--screen-fights` raises the
   fights.
@@ -548,9 +566,13 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   and it runs no fights of its own (OV2-5).
 - **The preferred filler.** Shield Slam's 31 points in Protection leave 20, and Anticipation takes
   5 of them before Toughness, whether the screen calls it harmful, survival or no effect. A
-  Protection build kept whole at 34 points with 5 to 9 left over: the build without Toughness keeps
-  them, Anticipation 5 and the rest to Toughness, beside the build with Toughness 5, whether the
-  screen calls Anticipation objective, no effect or harmful (OV3-1; `talents.test.ts`).
+  Protection build kept whole at 34 points with 5 to 9 left over: the only build is Anticipation 5
+  and the rest to Toughness, whether the screen calls Anticipation objective, no effect or harmful
+  (OV3-1, OV4-1; `talents.test.ts`).
+- **Toughness only after Anticipation.** The default Protection warrior with every talent kept but
+  Anticipation and Toughness, and the Arms and Fury talents it lacks excluded: the space is the
+  default alone, `35-05-552101233301210531`, never its Toughness twin `35-05-512501233301210531`,
+  whatever the screen made of Anticipation (OV4-1; `talents.test.ts`).
 - **No result limits.** The best DPS takes 20% more damage than the rest: it leads all the same,
   and `taken<=102%` is refused as a fight result (`race.test.ts`, `optimize.test.ts`).
 - **Nothing fits the talent constraints.** The bear keeping Moonkin Form: no legal 51-point build

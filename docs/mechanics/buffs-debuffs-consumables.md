@@ -485,7 +485,8 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 | Gift of Arthas (proc) | 11374 | +8 physical damage taken | 3 min | Applied to whoever strikes the drinker | See [§3.2](#32-elixirs) | [F] | [client] (SpellEffect, 1.60.1.69913) |
 
 Improved Scorch, Winter's Chill and Improved Shadow Bolt don't affect melee. Shadow
-Weaving is now a self-buff [F] [[fc-changes]].
+Weaving is now a debuff on the boss that counts only the priest's own Shadow damage [F]
+([spells.md §9](spells.md#9-caster-raid-buffs-and-debuffs)).
 
 ### 4.3 Debuff slot limit
 

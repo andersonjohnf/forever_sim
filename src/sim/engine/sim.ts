@@ -3672,6 +3672,8 @@ export class Sim {
       this.abTicksLeft[a] = 0
       this.abTickGen[a]++
     }
+    // A guard: today a channel ends only when its aura was set to expire, so this is a no-op; it
+    // keeps the aura from outliving a channel ended any other way.
     const aura = this.channelAura(a)
     if (aura >= 0 && this.auraActive[aura]) this.removeAura(aura)
     this.channeling = -1

@@ -1023,6 +1023,13 @@ export const COND = {
    * lands, sees it at its next decision; it schedules no wake-up.
    */
   auraEndsWithin: 43,
+  // 50–53 are the Shadow Priest's (docs/classes/priest.md#8-implementation-notes).
+  /**
+   * ability a could start now: it's off cooldown and affordable, and a GCD ability's global cooldown
+   * is free. Inner Focus waits for Mind Blast this way, so the Mind Blast right after it is the spell
+   * that uses its charge (docs/classes/priest.md#6-rotation). Checked on each walk.
+   */
+  abilityReady: 50,
 } as const
 
 export interface RotationCondition {
@@ -1207,6 +1214,11 @@ export interface Plan {
   mana?: ManaPlan
   /** The plan aura that makes the next ability with a cost free (Clearcasting, druid.md §2.7), or absent. */
   freeCastAura?: number
+  /**
+   * Spell crit % the spell that uses `freeCastAura`'s charge gets, its DoT's ticks included (Inner
+   * Focus's +25%, docs/classes/priest.md#35-inner-focus-14751). Absent: none (Clearcasting's).
+   */
+  freeCastCritPct?: number
   /** Damaging spells (seal procs, judgements, Holy Strike), indexed by abilities and procs. */
   spells?: SpellPlan[]
   /** Multiplier on Holy damage done, static (paladin.md#conventions-used-below). */

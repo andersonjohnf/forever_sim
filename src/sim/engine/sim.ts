@@ -748,6 +748,10 @@ export class Sim {
   private readonly pForms: Int32Array
   /** The aura whose charge makes the next ability with a cost free (Clearcasting), or −1. */
   private readonly freeAura: number
+  /** Spell crit % the ability that uses the free-cast charge gets (Inner Focus's 25, docs/classes/priest.md); 0 for Clearcasting. */
+  private readonly freeCritPct: number
+  /** That crit while the ability that used the charge resolves its spell, else 0. */
+  private freeCrit = 0
   /** The form the fight starts in (−1: no forms), and the forms Furor's rules name (druid.md §2.8). */
   private readonly startForm: number
   private readonly catForm: number
@@ -1412,6 +1416,7 @@ export class Sim {
     this.abOpensChance = Float64Array.from(abilities, (a) => a.opensAuraChance ?? 0)
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
+    this.freeCritPct = plan.freeCastCritPct ?? 0
     this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
@@ -2574,6 +2579,11 @@ export class Sim {
         case COND.auraEndsWithin:
           if (this.auraActive[a] && this.auraEndAt(a) - now > b) return false
           break
+        // docs/classes/priest.md#6-rotation: Inner Focus waits until Mind Blast could start now.
+        case COND.abilityReady:
+          if (this.abReadyAt[a] > now || (this.abGcd[a] > 0 && this.gcdEnd > now)) return false
+          if (this.abPlainRage[a] === 1 ? this.rage < this.abCost[a] : !this.affordable(a)) return false
+          break
       }
     }
     return true
@@ -3587,6 +3597,7 @@ export class Sim {
     this.castCostTenths = this.abCost[a]
     const landed = s < 0 || this.castSpell(s, false)
     this.castCostTenths = 0
+    this.freeCrit = 0
     if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
     // docs/classes/warlock.md §3: a landed Conflagrate ends your Immolate, unless Shadow and Flame keeps it.
     const consumed = this.abConsumesDot[a]
@@ -3687,7 +3698,7 @@ export class Sim {
       }
       // §5: spell crit, the spell's own and its school's (Critical Mass, Combustion), and an aura's
       // stacks for this spell only (Winter's Chill on Frostbolt, docs/classes/mage.md#winters-chill).
-      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]] + this.critAuraPct(s)
+      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]] + this.critAuraPct(s) + this.freeCrit
     }
 
     let base: number
@@ -3825,7 +3836,7 @@ export class Sim {
     let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school]
     if (school === SCHOOL.holy) snapshot *= this.holyMult
     this.spDotDamage[s] = snapshot
-    this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] : -1
+    this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] + this.freeCrit : -1
     this.spDotTicksLeft[s] = this.splDotTicks[s]
     this.spDotNextAt[s] = now + this.splDotTickMs[s]
     this.q.push(this.spDotNextAt[s], EV_SPELL_DOT_TICK, s, ++this.spDotGen[s])
@@ -3885,7 +3896,9 @@ export class Sim {
     let ticks = this.abTicks[a]
     let tickMs = this.abTickMs[a]
     if (s >= 0) {
-      if (!this.castSpell(s, false)) return
+      const landed = this.castSpell(s, false)
+      this.freeCrit = 0
+      if (!landed) return
       ticks = this.splDotTicks[s]
       tickMs = this.splDotTickMs[s]
     } else this.startTicks(a)
@@ -3918,7 +3931,12 @@ export class Sim {
     const now = this.now
     const s = this.abSpell[a]
     if (s >= 0) {
-      if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
+      if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) {
+        this.spellDotTick(s)
+        // That tick's own event is still queued for now: stale from here, even when it was the last
+        // (docs/classes/priest.md#33-mind-flay-r6-18807: a full Mind Flay ticks 3 times, not 4).
+        this.spDotGen[s]++
+      }
       this.cancelSpellDot(s)
     } else {
       if (this.abTicksLeft[a] > 0 && this.abTickAt[a] === now) this.castTick(a)
@@ -4008,6 +4026,7 @@ export class Sim {
    */
   private payCost(a: number): void {
     const cost = this.costNow(a)
+    this.freeCrit = 0
     // rogue.md §5.3: the ability that Thousand Cuts made cheaper uses its stacks up.
     const costAura = this.abCostAura[a]
     if (costAura >= 0 && this.auraActive[costAura]) this.removeAura(costAura)
@@ -4019,6 +4038,8 @@ export class Sim {
     if (cost > 0 && this.abFree[a] === 1 && this.auraActive[this.freeAura]) {
       this.lastPaid = 0
       this.removeAura(this.freeAura)
+      // docs/classes/priest.md#35-inner-focus-14751: the charge's crit goes to this ability's spell.
+      this.freeCrit = this.freeCritPct
       return
     }
     const res = this.abRes[a]

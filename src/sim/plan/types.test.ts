@@ -68,4 +68,9 @@ describe('the plan’s code tables', () => {
     expect(TRIGGER_COUNT).toBe(22)
     expect(COND.auraUp).toBe(38)
   })
+
+  it('the Shadow Priest’s code (K4): abilityReady takes 50, the first of its 50–53, and adds no trigger or action', () => {
+    expect(COND.abilityReady).toBe(50)
+    for (const [key, code] of Object.entries(COND)) if (code >= 50 && code <= 53) expect(key).toBe('abilityReady')
+  })
 })

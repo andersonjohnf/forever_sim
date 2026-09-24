@@ -49,7 +49,7 @@ import {
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/talents-client.mjs";
@@ -70,7 +70,7 @@ const DEFAULT_BASELINE = "1.15.9.69722";
  * "${($m1+($bh*$bc))*$<mult>}", reads bonus healing), as the spellbook's Victory Rush does with no
  * attack power (spells-client.mjs).
  */
-const TOOLTIP_STATS = { SPS: 0, SPFI: 0, BH: 0 };
+const TOOLTIP_STATS = { SPS: 0, SPFI: 0, BH: 0, RAP: 0 };
 
 const STORED_BUILDS_FILE = "scripts/scrape/stored-builds.json";
 const STORED_BUILDS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, STORED_BUILDS_FILE), "utf8"));

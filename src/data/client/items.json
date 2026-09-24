@@ -4987,10 +4987,10 @@
     "consumablesWithEffects": 89,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1705,
-    "withEffects": 246,
-    "withItemRow": 1705,
-    "withItemSparseRow": 934
+    "items": 1729,
+    "withEffects": 255,
+    "withItemRow": 1729,
+    "withItemSparseRow": 949
   },
   "items": {
     "868": {
@@ -5161,6 +5161,32 @@
       },
       "itemSparse": null
     },
+    "2099": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 97392,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 29639,
+          "triggerType": 2
+        }
+      ],
+      "id": 2099,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135618,
+        "inventoryType": 26,
+        "material": 1,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": null
+    },
     "2100": {
       "effects": [],
       "id": 2100,
@@ -5197,6 +5223,58 @@
         "material": 1,
         "sheatheType": 0,
         "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "2662": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 97391,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 29415,
+          "triggerType": 1
+        }
+      ],
+      "id": 2662,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 134406,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": null
+    },
+    "2663": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 97486,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 14828,
+          "triggerType": 1
+        }
+      ],
+      "id": 2663,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 133581,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 3
       },
       "itemSparse": null
     },
@@ -5374,6 +5452,102 @@
       },
       "itemSparse": null
     },
+    "8217": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 98004,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 29413,
+          "triggerType": 1
+        }
+      ],
+      "id": 8217,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 134407,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Quickdraw Quiver",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 18,
+        "itemDelay": 0,
+        "itemLevel": 45,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "8218": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 98005,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 14827,
+          "triggerType": 1
+        }
+      ],
+      "id": 8218,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 133635,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Thick Leather Ammo Pouch",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 18,
+        "itemDelay": 0,
+        "itemLevel": 45,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "8345": {
       "effects": [
         {
@@ -5531,6 +5705,41 @@
         "statPercentEditor": [3571, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "10513": {
+      "effects": [],
+      "id": 10513,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132383,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Mithril Gyro-Shot",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 49,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 44,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "10783": {
       "effects": [],
       "id": 10783,
@@ -5556,6 +5765,76 @@
         "subclassId": 0
       },
       "itemSparse": null
+    },
+    "11284": {
+      "effects": [],
+      "id": 11284,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132383,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Accurate Slugs",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 45,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "11285": {
+      "effects": [],
+      "id": 11285,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 135661,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Jagged Arrow",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 45,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
     },
     "11604": {
       "effects": [],
@@ -5602,6 +5881,32 @@
         "material": 7,
         "sheatheType": 0,
         "subclassId": 1
+      },
+      "itemSparse": null
+    },
+    "11626": {
+      "effects": [],
+      "id": 11626,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133770,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
+    },
+    "11630": {
+      "effects": [],
+      "id": 11630,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132384,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
       },
       "itemSparse": null
     },
@@ -7159,6 +7464,19 @@
       },
       "itemSparse": null
     },
+    "12654": {
+      "effects": [],
+      "id": 12654,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132169,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": null
+    },
     "12709": {
       "effects": [],
       "id": 12709,
@@ -8124,6 +8442,19 @@
         "material": 2,
         "sheatheType": 1,
         "subclassId": 5
+      },
+      "itemSparse": null
+    },
+    "13052": {
+      "effects": [],
+      "id": 13052,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135356,
+        "inventoryType": 17,
+        "material": 1,
+        "sheatheType": 1,
+        "subclassId": 8
       },
       "itemSparse": null
     },
@@ -9542,6 +9873,19 @@
         "material": 7,
         "sheatheType": 0,
         "subclassId": 1
+      },
+      "itemSparse": null
+    },
+    "13377": {
+      "effects": [],
+      "id": 13377,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132384,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
       },
       "itemSparse": null
     },
@@ -12508,6 +12852,41 @@
         "subclassId": 0
       },
       "itemSparse": null
+    },
+    "15997": {
+      "effects": [],
+      "id": 15997,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132385,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Thorium Shells",
+        "dmgVariance": 0,
+        "flags": [0, 24576, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 57,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 52,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
     },
     "16007": {
       "effects": [],
@@ -18931,6 +19310,41 @@
         "statPercentEditor": [5263, 5263, 6842, 6842, 0, 0, 0, 0, 0, 0]
       }
     },
+    "18042": {
+      "effects": [],
+      "id": 18042,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 132382,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Thorium Headed Arrow",
+        "dmgVariance": 0,
+        "flags": [0, 24576, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 57,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 52,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "18044": {
       "effects": [],
       "id": 18044,
@@ -21871,6 +22285,54 @@
       },
       "itemSparse": null
     },
+    "18714": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 102174,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 29414,
+          "triggerType": 1
+        }
+      ],
+      "id": 18714,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 134403,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": 4,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Ancient Sinew Wrapped Lamina",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 18,
+        "itemDelay": 0,
+        "itemLevel": 75,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "18716": {
       "effects": [],
       "id": 18716,
@@ -24129,6 +24591,172 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 45, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [0, 11666, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19316": {
+      "effects": [],
+      "id": 19316,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 135855,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Ice Threaded Arrow",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 54,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 51,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19317": {
+      "effects": [],
+      "id": 19317,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 135844,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Ice Threaded Bullet",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 54,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 51,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19319": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 102528,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 29414,
+          "triggerType": 1
+        }
+      ],
+      "id": 19319,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 134406,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Harpy Hide Quiver",
+        "dmgVariance": 0.2,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 18,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 3,
+        "requiredLevel": 55,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19320": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": -1,
+          "id": 102200,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 14829,
+          "triggerType": 1
+        }
+      ],
+      "id": 19320,
+      "item": {
+        "classId": 11,
+        "iconFileDataId": 133581,
+        "inventoryType": 18,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Gnoll Skin Bandolier",
+        "dmgVariance": 0.2,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 18,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 3,
+        "requiredLevel": 55,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "19323": {
@@ -26793,6 +27421,32 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "19991": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": 0,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 300000,
+          "id": 101844,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 24352,
+          "triggerType": 0
+        }
+      ],
+      "id": 19991,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133884,
+        "inventoryType": 12,
+        "material": 4,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": null
+    },
     "19993": {
       "effects": [],
       "id": 19993,
@@ -27717,6 +28371,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4444, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20073": {
+      "effects": [],
+      "id": 20073,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133754,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Cloak of the Honor Guard",
+        "dmgVariance": 0.2,
+        "flags": [32768, 24580, 0, 32, 0],
+        "inventoryType": 16,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 3, 38, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [4074, 1852, 12593, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "20082": {
@@ -49251,6 +49940,76 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 5, 43, 41, 42, -1, -1, -1, -1, -1],
         "statPercentEditor": [7307, 2692, 1538, 5000, 1538, 0, 0, 0, 0, 0]
+      }
+    },
+    "274387": {
+      "effects": [],
+      "id": 274387,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 249173,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Swiftfeather Arrow",
+        "dmgVariance": 1,
+        "flags": [0, 4218884, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "274388": {
+      "effects": [],
+      "id": 274388,
+      "item": {
+        "classId": 6,
+        "iconFileDataId": 249176,
+        "inventoryType": 24,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Swiftstrike Shot",
+        "dmgVariance": 0,
+        "flags": [0, 4218884, 0, 0, 0],
+        "inventoryType": 24,
+        "itemDelay": 3000,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "274417": {

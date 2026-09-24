@@ -215,5 +215,39 @@
         "Shadow Focus 5, Shadow Affinity 3, Improved Shadow Word: Pain 2, Improved Mind Blast 5, Mind Flay 1, Improved Mind Flay 2, Vampiric Embrace 1, Shadow Weaving 3, Silence 1, Devouring Contagion 2, Darkness 5, Shadowform 1"
       ]
     }
+  },
+  "hunter": {
+    "55-0053552511503051-": {
+      "note": "Marksmanship default (10/41/0, Lone Wolf), hunter.md §7.1",
+      "ranks": [
+        "Deadly Aspects 5, Endurance Training 5",
+        "Lethal Attacks 5, Improved Stings 3, Efficiency 5, Careful Aim 5, Rapid Killing 2, Improved Arcane Shot 5, Lone Wolf 1, Trueshot Aura 1, Mortal Shots 5, Barrage 3, Ranged Weapon Specialization 5, Sniper Shot 1",
+        ""
+      ]
+    },
+    "5023-1053552501503051-": {
+      "note": "Marksmanship with a pet (10/41/0), hunter.md §7.1",
+      "ranks": [
+        "Deadly Aspects 5, Focused Fire 2, Improved Aspect of the Monkey 3",
+        "Hawk Eye 1, Lethal Attacks 5, Improved Stings 3, Efficiency 5, Careful Aim 5, Rapid Killing 2, Improved Arcane Shot 5, Trueshot Aura 1, Mortal Shots 5, Barrage 3, Ranged Weapon Specialization 5, Sniper Shot 1",
+        ""
+      ]
+    },
+    "5023001505011251-00505505-": {
+      "note": "Beast Mastery default (31/20/0), hunter.md §7.1",
+      "ranks": [
+        "Deadly Aspects 5, Focused Fire 2, Improved Aspect of the Monkey 3, Bestial Swiftness 1, Unleashed Fury 5, Ferocity 5, Spirit Bond 1, Intimidation 1, Bestial Discipline 2, Frenzy 5, Bestial Wrath 1",
+        "Lethal Attacks 5, Efficiency 5, Careful Aim 5, Improved Arcane Shot 5",
+        ""
+      ]
+    },
+    "-00505515-55005003124000005": {
+      "note": "Survival default (0/21/30), hunter.md §7.1",
+      "ranks": [
+        "",
+        "Lethal Attacks 5, Efficiency 5, Careful Aim 5, Rapid Killing 1, Improved Arcane Shot 5",
+        "Improved Tracking 5, Deflection 5, Survivalist 5, Surefooted 3, Deterrence 1, Survival Tactics 2, Predator's Edge 4, Lightning Reflexes 5"
+      ]
+    }
   }
 }

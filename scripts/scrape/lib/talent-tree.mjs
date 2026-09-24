@@ -24,6 +24,19 @@ export const GRID = 600;
  * rows (0–6), so 11 is well clear of any real tier. See readForeverTree's retired copies.
  */
 const RETIRED_BELOW_TIERS = 11;
+/**
+ * Columns right of the tree's other nodes beyond which a node is parked the same way: the three tabs
+ * span 13 columns with their gaps, so 11 empty columns past the last is no real column.
+ */
+const RETIRED_RIGHT_COLUMNS = 11;
+/**
+ * Parked nodes that copy no other node's talent: talents Forever retired and replaced, left in the
+ * client parked away from the tree, by class and node id, with the talent that replaced them. The
+ * hunter's Improved Serpent Sting (node 105003, spell 19464; 1.60.1.69913) sits 62 rows below
+ * Marksmanship, where Improved Stings (1310661, node 110870) took its place at tier 2. A parked node
+ * not listed here, or a listed one that moves back onto the tree, is a problem.
+ */
+const RETIRED_REPLACED = new Map([["hunter 105003", "Improved Stings (node 110870)"]]);
 
 /** Forever tables this module reads (plus lib/spell-text.mjs SPELL_TEXT_TABLES). */
 export const FOREVER_TREE_TABLES = [
@@ -55,9 +68,9 @@ export const FOREVER_TREE_TABLES = [
 export const CLASSIC_TREE_TABLES = ["Talent", "TalentTab", "ChrClasses"];
 
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5, priest: 6 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5, priest: 6, hunter: 9 };
 /** ChrClasses.Name_lang of each class slug. */
-const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock", priest: "Priest" };
+const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock", priest: "Priest", hunter: "Hunter" };
 /**
  * Tabs whose nodes leave a whole edge column empty, so the node positions alone can't tell the
  * left edge, with the edge that places them. The warlock's Destruction (1.60.1.69913) has no talent
@@ -170,16 +183,36 @@ export function readForeverTree(t, cls) {
   // tree (more than RETIRED_BELOW_TIERS rows under its top) whose talent another node of the tree
   // teaches. The client keeps it with no gate of its own; it's left out, and so are the tier gates'
   // counts of it (docs/data/talents.md#retired-nodes). A far node that's no copy is a problem.
+  // The hunter's tree parks two the same way: a copy of Lightning Reflexes (node 104982) 154 columns
+  // right of the tree, and Improved Serpent Sting (node 105003), which Forever replaced with Improved
+  // Stings, 62 rows below it (RETIRED_REPLACED).
   const nodeTop = Math.min(...nodes.map((n) => n.PosY));
+  const xsAll = [...new Set(nodes.map((n) => n.PosX))].sort((a, b) => a - b);
+  // A column far right of every column before it: the first gap wider than RETIRED_RIGHT_COLUMNS.
+  const gapAt = xsAll.findIndex((x, i) => i > 0 && (x - xsAll[i - 1]) / GRID > RETIRED_RIGHT_COLUMNS);
+  const rightEdge = gapAt > 0 ? xsAll[gapAt - 1] : Infinity;
+  const parkedBy = (n) => {
+    if ((n.PosY - nodeTop) / GRID > RETIRED_BELOW_TIERS) return `sits ${Math.round((n.PosY - nodeTop) / GRID)} rows below the tree`;
+    if (n.PosX > rightEdge) return `sits ${Math.round((n.PosX - rightEdge) / GRID)} columns right of the tree`;
+    return null;
+  };
   const spellOfNode = (n) => nodeEntries(n.ID)[0]?.def.SpellID;
   const retired = new Set();
   for (const n of nodes) {
-    if ((n.PosY - nodeTop) / GRID <= RETIRED_BELOW_TIERS) continue;
-    const copyOf = nodes.find((o) => o.ID !== n.ID && (o.PosY - nodeTop) / GRID <= RETIRED_BELOW_TIERS && spellOfNode(o) === spellOfNode(n));
+    const where = parkedBy(n);
+    const replacedBy = RETIRED_REPLACED.get(`${cls} ${n.ID}`);
+    if (!where) {
+      if (replacedBy) problems.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) is listed as retired (RETIRED_REPLACED) but sits on the tree`);
+      continue;
+    }
+    const copyOf = nodes.find((o) => o.ID !== n.ID && !parkedBy(o) && spellOfNode(o) === spellOfNode(n));
     if (copyOf) {
       retired.add(n.ID);
-      notes.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) sits ${Math.round((n.PosY - nodeTop) / GRID)} rows below the tree and copies node ${copyOf.ID}: a retired copy (left out)`);
-    } else problems.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) sits ${Math.round((n.PosY - nodeTop) / GRID)} rows below the tree`);
+      notes.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) ${where} and copies node ${copyOf.ID}: a retired copy (left out)`);
+    } else if (replacedBy) {
+      retired.add(n.ID);
+      notes.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) ${where}: retired, replaced by ${replacedBy} (left out)`);
+    } else problems.push(`${cls}: node ${n.ID} (spell ${spellOfNode(n)}) ${where}`);
   }
   nodes = nodes.filter((n) => !retired.has(n.ID));
   for (const n of nodes) if (nodeEntries(n.ID).length > 1) problems.push(`${cls}: node ${n.ID} has ${nodeEntries(n.ID).length} entries (a choice node)`);
@@ -310,6 +343,18 @@ export function readForeverTree(t, cls) {
 
   // Gates against the classic rule: tier N needs 5·N points in lower tiers of the same tree.
   const byNode = new Map(talents.map((x) => [x.nodeId, x]));
+  // A backward arrow: the hunter's tree (1.60.1.69913) has both Intimidation → Bestial Wrath (edge
+  // 124701, tier 4 to tier 6, Classic Era's arrow) and Bestial Wrath → Intimidation (124700), a cycle
+  // no build could fill. An arrow into a talent from a lower tier whose reverse arrow exists is
+  // dropped (docs/data/talents.md#retired-nodes); any other arrow from below stays a problem downstream.
+  for (const x of talents) {
+    x.prerequisiteNodeIds = x.prerequisiteNodeIds.filter((p) => {
+      const from = byNode.get(p.nodeId);
+      const backward = from && from.tab === x.tab && from.tier > x.tier && from.prerequisiteNodeIds.some((q) => q.nodeId === x.nodeId);
+      if (backward) notes.push(`${cls} ${x.name}: arrow from ${from.name} (tier ${from.tier + 1}, below it) dropped: the reverse of ${from.name}'s own arrow from it`);
+      return !backward;
+    });
+  }
   for (const x of talents) {
     if (x.tier === 0) {
       if (x.gates.length) problems.push(`${cls} ${x.name}: a tier-1 talent with a gate`);

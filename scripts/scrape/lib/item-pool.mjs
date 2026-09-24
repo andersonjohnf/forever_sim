@@ -31,10 +31,15 @@ export const EQUIP_SLOTS = {
   ranged: ["ranged"],
   thrown: ["ranged"],
   relic: ["ranged"], // relics use the ranged slot in Classic
+  // docs/data/items.md#ammo-and-quivers: a ranged weapon's ammo and a quiver or ammo pouch.
+  ammo: ["ammo"],
+  quiver: ["quiver"],
 };
 export const SLOT_ORDER = Object.keys(EQUIP_SLOTS);
 
 const ARMOR_TYPES = { 1: "cloth", 2: "leather", 3: "mail", 4: "plate" };
+/** Item.ClassID → `Item.itemClass`: weapons, armor, and the ranged supplies (Projectile 6, Quiver 11). */
+const ITEM_CLASS = { 2: "Weapon", 4: "Armor", 6: "Projectile", 11: "Quiver" };
 /** Weapon subclass → `WeaponType` (Item.SubclassID of class 2). */
 const WEAPON_TYPES = {
   0: "axe",
@@ -67,8 +72,19 @@ const LIMIT_EQUIPPED = 1;
  */
 const PVP_RANK_OFFSET = 4;
 
-/** Is an Item row an equippable piece the pool keeps? Weapons and armor with a paperdoll slot. */
+/**
+ * Is an Item row a ranged supply (docs/data/items.md#ammo-and-quivers)? Arrows and bullets
+ * (Projectile, class 6, subclasses 2 and 3, InventoryType 24) and quivers and ammo pouches (Quiver,
+ * class 11, subclasses 2 and 3, a bag: InventoryType 18).
+ */
+export function isRangedSupply(item, row) {
+  if (!item || (item.SubclassID !== 2 && item.SubclassID !== 3)) return false;
+  return (item.ClassID === 6 && row.InventoryType === 24) || (item.ClassID === 11 && row.InventoryType === 18);
+}
+
+/** Is an Item row an equippable piece the pool keeps? Weapons and armor with a paperdoll slot, and the ranged supplies. */
 export function isEquippable(item, row) {
+  if (isRangedSupply(item, row)) return true;
   if (!item || (item.ClassID !== 2 && item.ClassID !== 4)) return false;
   if (item.ClassID === 4 && item.SubclassID === 5) return false; // cosmetic
   if (item.ClassID === 2 && (item.SubclassID === 14 || item.SubclassID === 20)) return false; // misc, fishing poles
@@ -109,6 +125,7 @@ const STAT_LABEL = {
   bonusArmor: "Armor",
   attackPower: "Attack Power",
   rangedAttackPower: "Ranged Attack Power",
+  rangedAttackSpeed: "% Ranged Attack Speed",
   hitRating: "Hit Rating",
   critRating: "Critical Strike Rating",
   defenseRating: "Defense Rating",
@@ -290,7 +307,7 @@ export function describeRow(bundle, id, coverage) {
     itemLevel: row.ItemLevel,
     reqLevel: row.RequiredLevel,
     slot: derived.slot,
-    itemClass: item?.ClassID === 2 ? "Weapon" : "Armor",
+    itemClass: ITEM_CLASS[item?.ClassID] ?? "Armor",
     itemSubclass: L.subclassName(item?.ClassID, item?.SubclassID) ?? `Subclass ${item?.SubclassID}`,
     armorType: item?.ClassID === 4 ? (ARMOR_TYPES[item.SubclassID] ?? null) : null,
     weaponType: item?.ClassID === 2 ? (WEAPON_TYPES[item.SubclassID] ?? null) : null,
@@ -352,6 +369,9 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
     (r.RequiredLevel >= filter.reqLevel[0] && r.RequiredLevel <= filter.reqLevel[1]) ||
     (filter.minItemLevel !== null && r.ItemLevel >= filter.minItemLevel);
   const byRule = (r) => filter.qualities.includes(r.OverallQualityID) && levelOk(r);
+  // docs/data/items.md#ammo-and-quivers: the ranged supplies have their own quality and level rule.
+  const supplyRule = (r, item) =>
+    isRangedSupply(item, r) && filter.supplies.qualities.includes(r.OverallQualityID) && r.RequiredLevel >= filter.supplies.reqLevel[0] && r.RequiredLevel <= filter.supplies.reqLevel[1];
 
   const ids = [...new Set([...forever.ctx.sparse.keys(), ...classic.ctx.sparse.keys()])].sort((a, b) => a - b);
   const items = [];
@@ -361,7 +381,7 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
     const bundle = fRow ? forever : classic;
     const row = fRow ?? cRow;
     const listed = bis.byId.has(id);
-    if (!byRule(row) && !listed) continue;
+    if (!byRule(row) && !listed && !supplyRule(row, bundle.ctx.item.get(id))) continue;
     // Season of Discovery guard: an original Classic id, or an item only Forever has.
     if (!(id < filter.maxClassicItemId || (fRow && !cRow))) {
       report.sod.push({ id, name: row.Display_lang });
@@ -442,6 +462,7 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
       stats: d.stats,
       weapon: d.weapon,
       weaponSkill: d.weaponSkill,
+      ...(d.derived.ammo ? { ammo: d.derived.ammo } : {}),
       statSpellIds: d.statSpellIds,
       procs: d.procs,
       useEffects: d.useEffects,

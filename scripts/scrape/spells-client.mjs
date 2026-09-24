@@ -44,7 +44,7 @@ import {
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/spells-client.mjs";
@@ -59,7 +59,7 @@ const RACE_TABLES = ["ChrRaces", "CharBaseInfo"];
  * ($bh), so the text depends on the client files alone.
  * docs/data/spells.md#caveats.
  */
-const TOOLTIP_STATS = { AP: 0, SPI: 0, BH: 0 };
+const TOOLTIP_STATS = { AP: 0, RAP: 0, SPI: 0, BH: 0 };
 /**
  * Classic Era rows that pass every rule but that no trainer teaches: cut content left in the
  * client's skill lines. Classic Era 22570 "Mangle" is a Feral finishing move (level 6, icon

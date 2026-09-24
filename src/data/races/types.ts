@@ -20,7 +20,7 @@ export type ClassSlug =
   | 'shaman';
 
 /** The classes this simulator models. */
-export type SimClass = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue' | 'mage' | 'warlock' | 'priest';
+export type SimClass = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue' | 'mage' | 'warlock' | 'priest' | 'hunter';
 
 export type Faction = 'Horde' | 'Alliance';
 

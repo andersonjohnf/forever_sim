@@ -5,15 +5,15 @@
     "counts": {
       "byTab": {
         "changed": 370,
-        "missing": 771,
-        "new": 328,
-        "unchanged": 236
+        "missing": 780,
+        "new": 330,
+        "unchanged": 249
       },
-      "items": 1705,
+      "items": 1729,
       "sets": 102,
       "statsFrom": {
-        "classic": 771,
-        "forever": 934
+        "classic": 780,
+        "forever": 949
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 544
+      "rendered": 546
     },
     "fallbackEffects": {
-      "effectsFromForever": 112,
-      "items": 522,
-      "spells": 648,
-      "spellsFromForever": 648
+      "effectsFromForever": 116,
+      "items": 527,
+      "spells": 653,
+      "spellsFromForever": 653
     },
     "filter": {
       "equippableOnly": true,
@@ -78,7 +78,11 @@
       "minItemLevel": 58,
       "qualities": [3],
       "reqLevel": [55, 60],
-      "rule": "equippable AND ((quality in [3] AND (55 <= required level <= 60 OR item level >= 58 (any required level, including none))) OR listed in scripts/scrape/pre-raid-bis.json (any quality or level)) AND (id < 25000 OR new in Forever: a Forever row and no Classic Era row)"
+      "rule": "equippable AND ((quality in [3] AND (55 <= required level <= 60 OR item level >= 58 (any required level, including none))) OR (ammo or quiver AND quality in [1, 2, 3, 4] AND 40 <= required level <= 60) OR listed in scripts/scrape/pre-raid-bis.json (any quality or level)) AND (id < 25000 OR new in Forever: a Forever row and no Classic Era row)",
+      "supplies": {
+        "qualities": [1, 2, 3, 4],
+        "reqLevel": [40, 60]
+      }
     },
     "foreverBuild": "1.60.1.69913",
     "foreverBuildDate": "2026-09-18",
@@ -149,10 +153,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 125,
+      "addedByList": 130,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 349,
-      "listedItems": 349,
+      "inPool": 371,
+      "listedItems": 371,
       "notInData": [],
       "specs": {
         "druid-balance": {
@@ -181,6 +185,36 @@
             "snapshot": "2021-05-18",
             "title": "Feral Druid DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-feral-druid-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "hunter-beast-mastery": {
+          "name": "Beast Mastery Hunter",
+          "note": "The guide's Phase 6 list (patch 1.13.7), one for every hunter, so each hunter spec has the same rows. Its one-handed row is the main hand, with Dal'Rend's Tribal Guardian its only off-hand entry (the pair's 2-piece); its two-handed row is kept as twoHand. Its PvP entries (the rank-4 shoulders, chest, hands and legs) fall below the kept picks. The guide lists no ammo or quiver: the hunter's defaults pick them from the pool (docs/classes/hunter.md, defaults).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210516173218/https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-16",
+            "title": "Classic Hunter Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "hunter-marksmanship": {
+          "name": "Marksmanship Hunter",
+          "note": "The guide's Phase 6 list (patch 1.13.7), one for every hunter, so each hunter spec has the same rows. Its one-handed row is the main hand, with Dal'Rend's Tribal Guardian its only off-hand entry (the pair's 2-piece); its two-handed row is kept as twoHand. Its PvP entries (the rank-4 shoulders, chest, hands and legs) fall below the kept picks. The guide lists no ammo or quiver: the hunter's defaults pick them from the pool (docs/classes/hunter.md, defaults).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210516173218/https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-16",
+            "title": "Classic Hunter Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "hunter-survival": {
+          "name": "Survival Hunter",
+          "note": "The guide's Phase 6 list (patch 1.13.7), one for every hunter, so each hunter spec has the same rows. Its one-handed row is the main hand, with Dal'Rend's Tribal Guardian its only off-hand entry (the pair's 2-piece); its two-handed row is kept as twoHand. Its PvP entries (the rank-4 shoulders, chest, hands and legs) fall below the kept picks. The guide lists no ammo or quiver: the hunter's defaults pick them from the pool (docs/classes/hunter.md, defaults).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210516173218/https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-16",
+            "title": "Classic Hunter Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear"
           }
         },
         "mage-arcane": {
@@ -396,7 +430,7 @@
         "unit": "rating per 1% parry"
       }
     },
-    "scrapedAt": "2026-09-23T01:16:53Z",
+    "scrapedAt": "2026-09-24T10:38:00Z",
     "scraper": "scripts/scrape/items-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -407,6 +441,7 @@
         "ItemArmorQuality": 1283021,
         "ItemArmorShield": 1277741,
         "ItemArmorTotal": 1283022,
+        "ItemDamageAmmo": 1277740,
         "ItemDamageOneHand": 1277743,
         "ItemDamageOneHandCaster": 1277739,
         "ItemDamageRanged": 6156256,
@@ -448,6 +483,7 @@
         "ItemArmorQuality": 1283021,
         "ItemArmorShield": 1277741,
         "ItemArmorTotal": 1283022,
+        "ItemDamageAmmo": 1277740,
         "ItemDamageOneHand": 1277743,
         "ItemDamageOneHandCaster": 1277739,
         "ItemDamageRanged": 6156256,
@@ -1221,6 +1257,21 @@
           "rank": 1,
           "slot": "head",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -2311,7 +2362,23 @@
       "name": "Beaststalker's Cap",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -3048,7 +3115,23 @@
       "name": "Backwood Helm",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7597 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -7215,6 +7298,21 @@
           "rank": 2,
           "slot": "neck",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -7732,6 +7830,21 @@
           "rank": 1,
           "slot": "neck",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -7951,6 +8064,21 @@
           "rank": 3,
           "slot": "neck",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -10646,6 +10774,21 @@
           "rank": 2,
           "slot": "shoulder",
           "spec": "paladin-retribution"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -10876,6 +11019,21 @@
           "rank": 3,
           "slot": "shoulder",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -11190,7 +11348,23 @@
       "name": "Wyrmtongue Shoulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -17881,6 +18055,65 @@
       "foreverData": false,
       "foreverSource": null,
       "icon": "inv_misc_cape_18",
+      "id": 11626,
+      "itemClass": "Armor",
+      "itemLevel": 53,
+      "itemSubclass": "Cloth",
+      "name": "Blackveil Cape",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "hunter-survival"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 48,
+      "requirements": [],
+      "sellPrice": 9698,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 14,
+        "armor": 38,
+        "strength": 6
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_cape_18",
       "id": 11812,
       "itemClass": "Armor",
       "itemLevel": 58,
@@ -18375,6 +18608,21 @@
           "rank": 1,
           "slot": "back",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -19904,6 +20152,73 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
+      "icon": "inv_misc_cape_02",
+      "id": 20073,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Cloth",
+      "name": "Cloak of the Honor Guard",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "hunter-survival"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [
+        {
+          "faction": "The League of Arathor",
+          "kind": "reputation",
+          "standing": "Exalted",
+          "text": "Requires The League of Arathor - Exalted"
+        }
+      ],
+      "sellPrice": 24279,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 5,
+        "armor": 50,
+        "attackPower": 34,
+        "stamina": 11
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
       "icon": "inv_misc_cape_13",
       "id": 20218,
       "itemClass": "Armor",
@@ -20865,6 +21180,21 @@
           "rank": 1,
           "slot": "chest",
           "spec": "shaman-enhancement"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -21065,6 +21395,21 @@
           "rank": 3,
           "slot": "chest",
           "spec": "druid-feral-cat"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -22519,6 +22864,21 @@
           "rank": 3,
           "slot": "chest",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -28514,7 +28874,23 @@
       "name": "Slashclaw Bracers",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15464 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -29414,6 +29790,21 @@
           "rank": 2,
           "slot": "wrist",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "wrist",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -29790,6 +30181,21 @@
           "rank": 3,
           "slot": "wrist",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -34232,7 +34638,23 @@
       "name": "Skul's Fingerbone Claws",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14049 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -34738,6 +35160,21 @@
           "rank": 3,
           "slot": "hands",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -35552,7 +35989,23 @@
       "name": "Beaststalker's Gloves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -41825,7 +42278,23 @@
       "name": "Chiselbrand Girdle",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15810 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -43468,6 +43937,21 @@
           "rank": 2,
           "slot": "waist",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -43986,7 +44470,23 @@
       "name": "Warpwood Binding",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7597 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -49279,7 +49779,23 @@
       "name": "Blademaster Leggings",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 15464, 7597, 13670 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -50423,6 +50939,21 @@
           "rank": 3,
           "slot": "legs",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -51238,7 +51769,23 @@
       "name": "Beaststalker's Pants",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -58840,7 +59387,23 @@
       "name": "Beaststalker's Boots",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -59040,6 +59603,21 @@
           "rank": 2,
           "slot": "feet",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -59743,7 +60321,23 @@
       "name": "Mongoose Boots",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -65787,6 +66381,21 @@
           "rank": 3,
           "slot": "finger",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -66265,6 +66874,21 @@
           "rank": 2,
           "slot": "finger",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -66696,6 +67320,21 @@
           "rank": 1,
           "slot": "finger",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -67121,6 +67760,21 @@
           "rank": 4,
           "slot": "finger",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -70246,6 +70900,21 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -71614,7 +72283,23 @@
       "name": "Royal Seal of Eldre'Thalas",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 21445 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -71889,6 +72574,21 @@
           "rank": 4,
           "slot": "trinket",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -72097,6 +72797,67 @@
           "cooldownSec": 5,
           "raw": "Use: Transform into a frenzy fish which grants water breathing and increases your swim speed by 25%. Can only be used while swimming. Some combat actions may break this effect. (5 Sec Cooldown)",
           "spellId": 24347
+        }
+      ],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["trinket"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_eye_01",
+      "id": 19991,
+      "itemClass": "Armor",
+      "itemLevel": 52,
+      "itemSubclass": "Miscellaneous",
+      "name": "Devilsaur Eye",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 24352 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "hunter-survival"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": null,
+      "setId": null,
+      "slot": "trinket",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [
+        {
+          "cooldownSec": 300,
+          "raw": "Use: Your next melee or ranged attack within 10 sec will Root the target for 2.5 sec. The duration of this effect is doubled if the target was moving. Only works against Beasts. (5 Min Cooldown)",
+          "spellId": 24352
         }
       ],
       "weapon": null,
@@ -73632,6 +74393,71 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_sword_46",
+      "id": 13052,
+      "itemClass": "Weapon",
+      "itemLevel": 52,
+      "itemSubclass": "Two-Handed Swords",
+      "name": "Warmonger",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 15466 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "twoHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "twoHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "twoHand",
+          "spec": "hunter-survival"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 47,
+      "requirements": [],
+      "sellPrice": 41677,
+      "setId": null,
+      "slot": "twoHand",
+      "source": null,
+      "statSpellIds": [15466],
+      "stats": {
+        "hit": 3,
+        "strength": 3
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 45,
+        "max": 162,
+        "min": 108,
+        "school": "Physical",
+        "skill": "Two-Handed Swords",
+        "speed": 3
+      },
+      "weaponSkill": null,
+      "weaponType": "sword"
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_sword_01",
       "id": 13053,
       "itemClass": "Weapon",
@@ -74716,7 +75542,23 @@
       "name": "Barbarous Blade",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 7597, 14052 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -75026,7 +75868,23 @@
       "name": "Peacemaker",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 7597, 15814 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -77336,6 +78194,21 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -80063,6 +80936,21 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "druid-feral-cat"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -81032,7 +81920,23 @@
       "name": "Bone Slicing Hatchet",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -82358,6 +83262,21 @@
           "rank": 1,
           "slot": "offHand",
           "spec": "rogue-combat"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -84846,6 +85765,73 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_weapon_rifle_09",
+      "id": 2099,
+      "itemClass": "Weapon",
+      "itemLevel": 58,
+      "itemSubclass": "Gun",
+      "name": "Dwarven Hand Cannon",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 29639 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "hunter-survival"
+        }
+      ],
+      "procs": [
+        {
+          "raw": "Chance on hit: Fires a Flaming Cannonball at your target for 39 to 59 Fire damage.",
+          "spellId": 29639
+        }
+      ],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 53,
+      "requirements": [],
+      "sellPrice": 45040,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 32.8,
+        "max": 124,
+        "min": 66,
+        "school": "Physical",
+        "skill": "Guns",
+        "speed": 2.9
+      },
+      "weaponSkill": null,
+      "weaponType": "gun"
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_weapon_rifle_06",
       "id": 2100,
       "itemClass": "Weapon",
@@ -85062,6 +86048,21 @@
           "rank": 2,
           "slot": "ranged",
           "spec": "rogue-subtlety"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "hunter-survival"
         }
       ],
       "procs": [],
@@ -86206,7 +87207,23 @@
       "name": "Bloodseeker",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "hunter-marksmanship"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "hunter-beast-mastery"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "hunter-survival"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -88032,6 +89049,809 @@
       "statsFrom": "forever",
       "tab": "new",
       "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 15.241,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_bullet_01",
+      "id": 10513,
+      "itemClass": "Projectile",
+      "itemLevel": 49,
+      "itemSubclass": "Bullet",
+      "name": "Mithril Gyro-Shot",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 44,
+      "requirements": [],
+      "sellPrice": 5,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 13.028,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_bullet_01",
+      "id": 11284,
+      "itemClass": "Projectile",
+      "itemLevel": 45,
+      "itemSubclass": "Bullet",
+      "name": "Accurate Slugs",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 1,
+      "races": null,
+      "reqLevel": 40,
+      "requirements": [],
+      "sellPrice": 1,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 13.028,
+        "projectile": "arrow"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_weapon_shortblade_25",
+      "id": 11285,
+      "itemClass": "Projectile",
+      "itemLevel": 45,
+      "itemSubclass": "Arrow",
+      "name": "Jagged Arrow",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 1,
+      "races": null,
+      "reqLevel": 40,
+      "requirements": [],
+      "sellPrice": 2,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 18.03,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_ammo_bullet_02",
+      "id": 11630,
+      "itemClass": "Projectile",
+      "itemLevel": 52,
+      "itemSubclass": "Bullet",
+      "name": "Rockshard Pellets",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 47,
+      "requirements": [],
+      "sellPrice": 5,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 20.244,
+        "projectile": "arrow"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "ability_hunter_criticalshot",
+      "id": 12654,
+      "itemClass": "Projectile",
+      "itemLevel": 59,
+      "itemSubclass": "Arrow",
+      "name": "Doomshot",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 54,
+      "requirements": [],
+      "sellPrice": 62,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 20.901,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_ammo_bullet_02",
+      "id": 13377,
+      "itemClass": "Projectile",
+      "itemLevel": 61,
+      "itemSubclass": "Bullet",
+      "name": "Miniature Cannon Balls",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 56,
+      "requirements": [],
+      "sellPrice": 7,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 17.715,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_bullet_03",
+      "id": 15997,
+      "itemClass": "Projectile",
+      "itemLevel": 57,
+      "itemSubclass": "Bullet",
+      "name": "Thorium Shells",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 10,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 17.715,
+        "projectile": "arrow"
+      },
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_arrow_02",
+      "id": 18042,
+      "itemClass": "Projectile",
+      "itemLevel": 57,
+      "itemSubclass": "Arrow",
+      "name": "Thorium Headed Arrow",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 10,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 16.788,
+        "projectile": "arrow"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "spell_frost_iceshard",
+      "id": 19316,
+      "itemClass": "Projectile",
+      "itemLevel": 54,
+      "itemSubclass": "Arrow",
+      "name": "Ice Threaded Arrow",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 51,
+      "requirements": [],
+      "sellPrice": 7,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 16.788,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "spell_frost_frostblast",
+      "id": 19317,
+      "itemClass": "Projectile",
+      "itemLevel": 54,
+      "itemSubclass": "Bullet",
+      "name": "Ice Threaded Bullet",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 51,
+      "requirements": [],
+      "sellPrice": 7,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 24.617,
+        "projectile": "arrow"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_arrow_06",
+      "id": 274387,
+      "itemClass": "Projectile",
+      "itemLevel": 65,
+      "itemSubclass": "Arrow",
+      "name": "Swiftfeather Arrow",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": null,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "new",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "ammo": {
+        "dps": 24.617,
+        "projectile": "bullet"
+      },
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ammo"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ammo_bullet_06",
+      "id": 274388,
+      "itemClass": "Projectile",
+      "itemLevel": 65,
+      "itemSubclass": "Bullet",
+      "name": "Swiftstrike Shot",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": null,
+      "setId": null,
+      "slot": "ammo",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {},
+      "statsFrom": "forever",
+      "tab": "new",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_quiver_06",
+      "id": 2662,
+      "itemClass": "Quiver",
+      "itemLevel": 55,
+      "itemSubclass": "Quiver",
+      "name": "Ribbly's Quiver",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 29415 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 50,
+      "requirements": [],
+      "sellPrice": 8750,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [29415],
+      "stats": {
+        "rangedAttackSpeed": 14
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_ammo_bullet_01",
+      "id": 2663,
+      "itemClass": "Quiver",
+      "itemLevel": 55,
+      "itemSubclass": "Ammo Pouch",
+      "name": "Ribbly's Bandolier",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 14828 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 50,
+      "requirements": [],
+      "sellPrice": 8750,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [14828],
+      "stats": {
+        "rangedAttackSpeed": 14
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_quiver_07",
+      "id": 8217,
+      "itemClass": "Quiver",
+      "itemLevel": 45,
+      "itemSubclass": "Quiver",
+      "name": "Quickdraw Quiver",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 40,
+      "requirements": [],
+      "sellPrice": 1000,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [29413],
+      "stats": {
+        "rangedAttackSpeed": 13
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": null,
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_bag_09_black",
+      "id": 8218,
+      "itemClass": "Quiver",
+      "itemLevel": 45,
+      "itemSubclass": "Ammo Pouch",
+      "name": "Thick Leather Ammo Pouch",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 40,
+      "requirements": [],
+      "sellPrice": 1000,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [14827],
+      "stats": {
+        "rangedAttackSpeed": 13
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": ["Hunter"],
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_quiver_03",
+      "id": 18714,
+      "itemClass": "Quiver",
+      "itemLevel": 75,
+      "itemSubclass": "Quiver",
+      "name": "Ancient Sinew Wrapped Lamina",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": null,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [29414],
+      "stats": {
+        "rangedAttackSpeed": 15
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_quiver_06",
+      "id": 19319,
+      "itemClass": "Quiver",
+      "itemLevel": 60,
+      "itemSubclass": "Quiver",
+      "name": "Harpy Hide Quiver",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 55,
+      "requirements": [],
+      "sellPrice": 87500,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [29414],
+      "stats": {
+        "rangedAttackSpeed": 15
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["quiver"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_misc_ammo_bullet_01",
+      "id": 19320,
+      "itemClass": "Quiver",
+      "itemLevel": 60,
+      "itemSubclass": "Ammo Pouch",
+      "name": "Gnoll Skin Bandolier",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 55,
+      "requirements": [],
+      "sellPrice": 87500,
+      "setId": null,
+      "slot": "quiver",
+      "source": null,
+      "statSpellIds": [14829],
+      "stats": {
+        "rangedAttackSpeed": 15
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": null,

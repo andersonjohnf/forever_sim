@@ -334,6 +334,16 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
   effect of its shield and its heal ("$1277463s2", "$1277456o2") that neither has, so those two
   phrases are left out while the client lacks them: "they will gain a shield and begin healing over
   15 sec" (`MISSING_EFFECT_PHRASES` in `lib/spell-text.mjs`).
+- **The hunter's tokens.** Summon Hawk reads "$rap", the client's lower-case "$RAP" (ranged attack
+  power, 0 for the reader). Resourcefulness's "$m3" and the pet's Savage Rend's "$1265065s2" (five
+  ranks) read an effect their spells don't have, so those phrases are left out the same way ("your
+  critical strikes have a chance to …"; "Bleed for 156 damage over 18 sec."). Lava Breath r2 (444682)
+  has a typo, "$$444681s2", read as "$444681s2" (`DESCRIPTION_TYPOS`).
+- **Season of Discovery rows in Forever's spellbook.** The hunter's Heart of the Lion (409580),
+  Aspect of the Viper (415423) and Aspect of the Falcon (469145) pass the spellbook's rules in the
+  Forever client, but the Classic Era client has the same `SkillLineAbility` rows for its Season of
+  Discovery runes, so the dataset lists them as new while the sim leaves them out
+  ([hunter.md OQ-H6](../classes/hunter.md#oq-h6-season-of-discovery-rows)).
 - Size: about 0.98 MB of JSON across the three files, most of it tooltip text on both sides.
 
 ## Re-running

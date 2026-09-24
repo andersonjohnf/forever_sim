@@ -1737,6 +1737,1664 @@
       ],
       "traitTreeId": 1089
     },
+    "hunter": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Beast Mastery"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Marksmanship"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Survival"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Deadly Aspects",
+          "col": 1,
+          "id": "hunter-beast-mastery-deadly-aspects",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Deadly Aspects",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82832,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 104809,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [19552, 19552, 19552, 19552, 19552],
+          "spellId": 19552,
+          "tier": 0,
+          "traitDefinitionId": 134422,
+          "traitNodeEntryId": 129621,
+          "traitNodeId": 104960,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Endurance Training",
+          "col": 2,
+          "id": "hunter-beast-mastery-endurance-training",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Endurance Training",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82831,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            },
+            {
+              "curveId": 110241,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [19583, 19583, 19583, 19583, 19583],
+          "spellId": 19583,
+          "tier": 0,
+          "traitDefinitionId": 134438,
+          "traitNodeEntryId": 129637,
+          "traitNodeId": 104976,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Focused Fire",
+          "col": 0,
+          "id": "hunter-beast-mastery-focused-fire",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Focused Fire",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82830,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [1223755, 1223755],
+          "spellId": 1223755,
+          "tier": 1,
+          "traitDefinitionId": 134437,
+          "traitNodeEntryId": 129636,
+          "traitNodeId": 104975,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Aspect of the Monkey",
+          "col": 1,
+          "id": "hunter-beast-mastery-improved-aspect-of-the-monkey",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Aspect of the Monkey",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82828,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            },
+            {
+              "curveId": 110242,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 6, 7]
+            }
+          ],
+          "rankSpellIds": [19549, 19549, 19549],
+          "spellId": 19549,
+          "tier": 1,
+          "traitDefinitionId": 134436,
+          "traitNodeEntryId": 129635,
+          "traitNodeId": 104974,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Pathfinding",
+          "col": 2,
+          "id": "hunter-beast-mastery-pathfinding",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Pathfinding",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82827,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6]
+            }
+          ],
+          "rankSpellIds": [19559, 19559],
+          "spellId": 19559,
+          "tier": 1,
+          "traitDefinitionId": 134435,
+          "traitNodeEntryId": 129634,
+          "traitNodeId": 104973,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Revive Pet",
+          "col": 3,
+          "id": "hunter-beast-mastery-improved-revive-pet",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Revive Pet",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82826,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3000, -6000]
+            },
+            {
+              "curveId": 82825,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-20, -40]
+            },
+            {
+              "curveId": 82824,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [24443, 24443],
+          "spellId": 24443,
+          "tier": 1,
+          "traitDefinitionId": 134434,
+          "traitNodeEntryId": 129633,
+          "traitNodeId": 104972,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Bestial Swiftness",
+          "col": 1,
+          "id": "hunter-beast-mastery-bestial-swiftness",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Bestial Swiftness",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19596],
+          "spellId": 19596,
+          "tier": 2,
+          "traitDefinitionId": 134432,
+          "traitNodeEntryId": 129631,
+          "traitNodeId": 104970,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Unleashed Fury",
+          "col": 2,
+          "id": "hunter-beast-mastery-unleashed-fury",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Unleashed Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82822,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [19616, 19616, 19616, 19616, 19616],
+          "spellId": 19616,
+          "tier": 2,
+          "traitDefinitionId": 134431,
+          "traitNodeEntryId": 129630,
+          "traitNodeId": 104969,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Mend Pet",
+          "col": 0,
+          "id": "hunter-beast-mastery-improved-mend-pet",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Mend Pet",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82821,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 50]
+            },
+            {
+              "curveId": 110240,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [19572, 19572],
+          "spellId": 19572,
+          "tier": 3,
+          "traitDefinitionId": 134430,
+          "traitNodeEntryId": 129629,
+          "traitNodeId": 104968,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Ferocity",
+          "col": 2,
+          "id": "hunter-beast-mastery-ferocity",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ferocity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82820,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [19598, 19598, 19598, 19598, 19598],
+          "spellId": 19598,
+          "tier": 3,
+          "traitDefinitionId": 134429,
+          "traitNodeEntryId": 129628,
+          "traitNodeId": 104967,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Summon Hawk",
+          "col": 3,
+          "id": "hunter-beast-mastery-summon-hawk",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Summon Hawk",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1293241],
+          "spellId": 1293241,
+          "tier": 3,
+          "traitDefinitionId": 134428,
+          "traitNodeEntryId": 129627,
+          "traitNodeId": 104966,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Spirit Bond",
+          "col": 0,
+          "id": "hunter-beast-mastery-spirit-bond",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Spirit Bond",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82819,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 1]
+            },
+            {
+              "curveId": 82818,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 5]
+            }
+          ],
+          "rankSpellIds": [19578, 19578],
+          "spellId": 19578,
+          "tier": 4,
+          "traitDefinitionId": 134427,
+          "traitNodeEntryId": 129626,
+          "traitNodeId": 104965,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104961, 104970],
+            "prerequisiteTalentIds": ["hunter-beast-mastery-bestial-wrath", "hunter-beast-mastery-bestial-swiftness"],
+            "tier": 4
+          },
+          "clientName": "Intimidation",
+          "col": 1,
+          "id": "hunter-beast-mastery-intimidation",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": ["prerequisite: scraped hunter-beast-mastery-bestial-swiftness, client hunter-beast-mastery-bestial-wrath, hunter-beast-mastery-bestial-swiftness"],
+          "name": "Intimidation",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19577],
+          "spellId": 19577,
+          "tier": 4,
+          "traitDefinitionId": 134426,
+          "traitNodeEntryId": 129625,
+          "traitNodeId": 104964,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Bestial Discipline",
+          "col": 3,
+          "id": "hunter-beast-mastery-bestial-discipline",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Bestial Discipline",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82817,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 82816,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [19590, 19590],
+          "spellId": 19590,
+          "tier": 4,
+          "traitDefinitionId": 134425,
+          "traitNodeEntryId": 129624,
+          "traitNodeId": 104963,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104967],
+            "prerequisiteTalentIds": ["hunter-beast-mastery-ferocity"],
+            "tier": 5
+          },
+          "clientName": "Frenzy",
+          "col": 2,
+          "id": "hunter-beast-mastery-frenzy",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Frenzy",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82815,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [19621, 19621, 19621, 19621, 19621],
+          "spellId": 19621,
+          "tier": 5,
+          "traitDefinitionId": 134424,
+          "traitNodeEntryId": 129623,
+          "traitNodeId": 104962,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104964],
+            "prerequisiteTalentIds": ["hunter-beast-mastery-intimidation"],
+            "tier": 6
+          },
+          "clientName": "Bestial Wrath",
+          "col": 1,
+          "id": "hunter-beast-mastery-bestial-wrath",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Bestial Wrath",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19574],
+          "spellId": 19574,
+          "tier": 6,
+          "traitDefinitionId": 134423,
+          "traitNodeEntryId": 129622,
+          "traitNodeId": 104961,
+          "tree": "Beast Mastery",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Hawk Eye",
+          "col": 0,
+          "id": "hunter-marksmanship-hawk-eye",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Hawk Eye",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82814,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [19498, 19498, 19498],
+          "spellId": 19498,
+          "tier": 0,
+          "traitDefinitionId": 134478,
+          "traitNodeEntryId": 129677,
+          "traitNodeId": 105013,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Concussive Shot",
+          "col": 1,
+          "id": "hunter-marksmanship-improved-concussive-shot",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Concussive Shot",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82813,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            }
+          ],
+          "rankSpellIds": [19407, 19407, 19407, 19407, 19407],
+          "spellId": 19407,
+          "tier": 0,
+          "traitDefinitionId": 134477,
+          "traitNodeEntryId": 129676,
+          "traitNodeId": 105012,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Lethal Attacks",
+          "col": 2,
+          "id": "hunter-marksmanship-lethal-attacks",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Lethal Attacks",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82812,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [19426, 19426, 19426, 19426, 19426],
+          "spellId": 19426,
+          "tier": 0,
+          "traitDefinitionId": 134476,
+          "traitNodeEntryId": 129675,
+          "traitNodeId": 105011,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Stings",
+          "col": 0,
+          "id": "hunter-marksmanship-improved-stings",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Stings",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110239,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 13, 20]
+            },
+            {
+              "curveId": 110238,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2000, -4000, -6000]
+            },
+            {
+              "curveId": 110237,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [15000, 30000, 45000]
+            }
+          ],
+          "rankSpellIds": [1310661, 1310661, 1310661],
+          "spellId": 1310661,
+          "tier": 1,
+          "traitDefinitionId": 142622,
+          "traitNodeEntryId": 137868,
+          "traitNodeId": 110870,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Efficiency",
+          "col": 1,
+          "id": "hunter-marksmanship-efficiency",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Efficiency",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82809,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -6, -9, -12, -15]
+            }
+          ],
+          "rankSpellIds": [19416, 19416, 19416, 19416, 19416],
+          "spellId": 19416,
+          "tier": 1,
+          "traitDefinitionId": 134474,
+          "traitNodeEntryId": 129673,
+          "traitNodeId": 105009,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Careful Aim",
+          "col": 2,
+          "id": "hunter-marksmanship-careful-aim",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Careful Aim",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82810,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 104810,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [1223984, 1223984, 1223984, 1223984, 1223984],
+          "spellId": 1223984,
+          "tier": 1,
+          "traitDefinitionId": 134473,
+          "traitNodeEntryId": 129672,
+          "traitNodeId": 105008,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Rapid Killing",
+          "col": 0,
+          "id": "hunter-marksmanship-rapid-killing",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Rapid Killing",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82807,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-60000, -120000]
+            },
+            {
+              "curveId": 82806,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [415405, 415405],
+          "spellId": 415405,
+          "tier": 2,
+          "traitDefinitionId": 134470,
+          "traitNodeEntryId": 129669,
+          "traitNodeId": 105005,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Arcane Shot",
+          "col": 1,
+          "id": "hunter-marksmanship-improved-arcane-shot",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Arcane Shot",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82808,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-300, -600, -900, -1200, -1500]
+            }
+          ],
+          "rankSpellIds": [19454, 19454, 19454, 19454, 19454],
+          "spellId": 19454,
+          "tier": 2,
+          "traitDefinitionId": 134471,
+          "traitNodeEntryId": 129670,
+          "traitNodeId": 105006,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Lone Wolf",
+          "col": 3,
+          "id": "hunter-marksmanship-lone-wolf",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Lone Wolf",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [415370],
+          "spellId": 415370,
+          "tier": 2,
+          "traitDefinitionId": 134472,
+          "traitNodeEntryId": 129671,
+          "traitNodeId": 105007,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Trueshot Aura",
+          "col": 1,
+          "id": "hunter-marksmanship-trueshot-aura",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Trueshot Aura",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1299346],
+          "spellId": 1299346,
+          "tier": 3,
+          "traitDefinitionId": 134469,
+          "traitNodeEntryId": 129668,
+          "traitNodeId": 105004,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105008],
+            "prerequisiteTalentIds": ["hunter-marksmanship-careful-aim"],
+            "tier": 3
+          },
+          "clientName": "Mortal Shots",
+          "col": 2,
+          "id": "hunter-marksmanship-mortal-shots",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Mortal Shots",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82804,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 12, 18, 24, 30]
+            }
+          ],
+          "rankSpellIds": [19485, 19485, 19485, 19485, 19485],
+          "spellId": 19485,
+          "tier": 3,
+          "traitDefinitionId": 134467,
+          "traitNodeEntryId": 129666,
+          "traitNodeId": 105002,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [105005],
+            "prerequisiteTalentIds": ["hunter-marksmanship-rapid-killing"],
+            "tier": 4
+          },
+          "clientName": "Rapid Recuperation",
+          "col": 0,
+          "id": "hunter-marksmanship-rapid-recuperation",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Rapid Recuperation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82802,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50]
+            },
+            {
+              "curveId": 82801,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [1223987, 1223987],
+          "spellId": 1223987,
+          "tier": 4,
+          "traitDefinitionId": 134464,
+          "traitNodeEntryId": 129663,
+          "traitNodeId": 104999,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Barrage",
+          "col": 2,
+          "id": "hunter-marksmanship-barrage",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Barrage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82803,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [19461, 19461, 19461],
+          "spellId": 19461,
+          "tier": 4,
+          "traitDefinitionId": 134466,
+          "traitNodeEntryId": 129665,
+          "traitNodeId": 105001,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Scatter Shot",
+          "col": 3,
+          "id": "hunter-marksmanship-scatter-shot",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Scatter Shot",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19503],
+          "spellId": 19503,
+          "tier": 4,
+          "traitDefinitionId": 134465,
+          "traitNodeEntryId": 129664,
+          "traitNodeId": 105000,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Ranged Weapon Specialization",
+          "col": 2,
+          "id": "hunter-marksmanship-ranged-weapon-specialization",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ranged Weapon Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82800,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [19507, 19507, 19507, 19507, 19507],
+          "spellId": 19507,
+          "tier": 5,
+          "traitDefinitionId": 134463,
+          "traitNodeEntryId": 129662,
+          "traitNodeId": 104998,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105004],
+            "prerequisiteTalentIds": ["hunter-marksmanship-trueshot-aura"],
+            "tier": 6
+          },
+          "clientName": "Sniper Shot",
+          "col": 1,
+          "id": "hunter-marksmanship-sniper-shot",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Sniper Shot",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310687],
+          "spellId": 1310687,
+          "tier": 6,
+          "traitDefinitionId": 134462,
+          "traitNodeEntryId": 129661,
+          "traitNodeId": 104997,
+          "tree": "Marksmanship",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Tracking",
+          "col": 1,
+          "id": "hunter-survival-improved-tracking",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Tracking",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82794,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 82793,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [24293, 24293, 24293, 24293, 24293],
+          "spellId": 24293,
+          "tier": 0,
+          "traitDefinitionId": 134461,
+          "traitNodeEntryId": 129660,
+          "traitNodeId": 104996,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Deflection",
+          "col": 2,
+          "id": "hunter-survival-deflection",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Deflection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82792,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [19295, 19295, 19295, 19295, 19295],
+          "spellId": 19295,
+          "tier": 0,
+          "traitDefinitionId": 134460,
+          "traitNodeEntryId": 129659,
+          "traitNodeId": 104995,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Entrapment",
+          "col": 0,
+          "id": "hunter-survival-entrapment",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Entrapment",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82791,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1000, 2000, 3000, 4000, 5000]
+            }
+          ],
+          "rankSpellIds": [19184, 19184, 19184, 19184, 19184],
+          "spellId": 19184,
+          "tier": 1,
+          "traitDefinitionId": 134459,
+          "traitNodeEntryId": 129658,
+          "traitNodeId": 104994,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Savage Strikes",
+          "col": 1,
+          "id": "hunter-survival-savage-strikes",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Savage Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82790,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            }
+          ],
+          "rankSpellIds": [19159, 19159],
+          "spellId": 19159,
+          "tier": 1,
+          "traitDefinitionId": 134458,
+          "traitNodeEntryId": 129657,
+          "traitNodeId": 104993,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Survivalist",
+          "col": 2,
+          "id": "hunter-survival-survivalist",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Survivalist",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82789,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [19255, 19255, 19255, 19255, 19255],
+          "spellId": 19255,
+          "tier": 1,
+          "traitDefinitionId": 134457,
+          "traitNodeEntryId": 129656,
+          "traitNodeId": 104992,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Wing Clip",
+          "col": 3,
+          "id": "hunter-survival-improved-wing-clip",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Wing Clip",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82786,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [7, 13, 20]
+            }
+          ],
+          "rankSpellIds": [19228, 19228, 19228],
+          "spellId": 19228,
+          "tier": 1,
+          "traitDefinitionId": 134455,
+          "traitNodeEntryId": 129654,
+          "traitNodeId": 104990,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Clever Traps",
+          "col": 0,
+          "id": "hunter-survival-clever-traps",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Clever Traps",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82788,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30]
+            },
+            {
+              "curveId": 82787,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [19239, 19239],
+          "spellId": 19239,
+          "tier": 2,
+          "traitDefinitionId": 134456,
+          "traitNodeEntryId": 129655,
+          "traitNodeId": 104991,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Surefooted",
+          "col": 1,
+          "id": "hunter-survival-surefooted",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Surefooted",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82784,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            },
+            {
+              "curveId": 82783,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            },
+            {
+              "curveId": 88007,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [19290, 19290, 19290],
+          "spellId": 19290,
+          "tier": 2,
+          "traitDefinitionId": 134452,
+          "traitNodeEntryId": 129651,
+          "traitNodeId": 104987,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Deterrence",
+          "col": 2,
+          "id": "hunter-survival-deterrence",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Deterrence",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19263],
+          "spellId": 19263,
+          "tier": 2,
+          "traitDefinitionId": 134451,
+          "traitNodeEntryId": 129650,
+          "traitNodeId": 104986,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Survival Tactics",
+          "col": 0,
+          "id": "hunter-survival-survival-tactics",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Survival Tactics",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82785,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [19376, 19376],
+          "spellId": 19376,
+          "tier": 3,
+          "traitDefinitionId": 134453,
+          "traitNodeEntryId": 129652,
+          "traitNodeId": 104988,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Predator's Edge",
+          "col": 1,
+          "id": "hunter-survival-predators-edge",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Predator's Edge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109721,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 12, 18, 24, 30]
+            },
+            {
+              "curveId": 109720,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [1310627, 1310627, 1310627, 1310627, 1310627],
+          "spellId": 1310627,
+          "tier": 3,
+          "traitDefinitionId": 142607,
+          "traitNodeEntryId": 137853,
+          "traitNodeId": 110861,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104986],
+            "prerequisiteTalentIds": ["hunter-survival-deterrence"],
+            "tier": 3
+          },
+          "clientName": "Counterattack",
+          "col": 2,
+          "id": "hunter-survival-counterattack",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Counterattack",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19306],
+          "spellId": 19306,
+          "tier": 3,
+          "traitDefinitionId": 134454,
+          "traitNodeEntryId": 129653,
+          "traitNodeId": 104989,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Resourcefulness",
+          "col": 0,
+          "id": "hunter-survival-resourcefulness",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Resourcefulness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82781,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-30, -60]
+            },
+            {
+              "curveId": 82780,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-20, -40]
+            },
+            {
+              "curveId": 85425,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [440529, 440529],
+          "spellId": 440529,
+          "tier": 4,
+          "traitDefinitionId": 134448,
+          "traitNodeEntryId": 129647,
+          "traitNodeId": 104983,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Expose Prey",
+          "col": 1,
+          "id": "hunter-survival-expose-prey",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Expose Prey",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82782,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [1310532, 1310532],
+          "spellId": 1310532,
+          "tier": 4,
+          "traitDefinitionId": 134450,
+          "traitNodeEntryId": 129649,
+          "traitNodeId": 104985,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Survivalist's Discipline",
+          "col": 2,
+          "id": "hunter-survival-survivalists-discipline",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Survivalist's Discipline",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109597,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-20, -40]
+            }
+          ],
+          "rankSpellIds": [1310496, 1310496],
+          "spellId": 1310496,
+          "tier": 4,
+          "traitDefinitionId": 142606,
+          "traitNodeEntryId": 137852,
+          "traitNodeId": 110860,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Strider Kick",
+          "col": 3,
+          "id": "hunter-survival-strider-kick",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Strider Kick",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1317257],
+          "spellId": 1317257,
+          "tier": 4,
+          "traitDefinitionId": 134446,
+          "traitNodeEntryId": 129645,
+          "traitNodeId": 104981,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Lightning Reflexes",
+          "col": 2,
+          "id": "hunter-survival-lightning-reflexes",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Lightning Reflexes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109548,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [19168, 19168, 19168, 19168, 19168],
+          "spellId": 19168,
+          "tier": 5,
+          "traitDefinitionId": 142605,
+          "traitNodeEntryId": 137851,
+          "traitNodeId": 110859,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104985],
+            "prerequisiteTalentIds": ["hunter-survival-expose-prey"],
+            "tier": 6
+          },
+          "clientName": "Lacerating Strikes",
+          "col": 1,
+          "id": "hunter-survival-lacerating-strikes",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Lacerating Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310533],
+          "spellId": 1310533,
+          "tier": 6,
+          "traitDefinitionId": 134449,
+          "traitNodeEntryId": 129648,
+          "traitNodeId": 104984,
+          "tree": "Survival",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1091
+    },
     "mage": {
       "tabs": [
         {
@@ -13772,10 +15430,10 @@
     }
   },
   "counts": {
-    "byName": 418,
+    "byName": 468,
     "byPosition": 0,
-    "mapped": 418,
-    "talents": 418,
+    "mapped": 468,
+    "talents": 468,
     "unmapped": 0
   },
   "unmapped": []

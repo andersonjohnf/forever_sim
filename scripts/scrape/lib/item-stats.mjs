@@ -34,6 +34,7 @@ export const ITEM_TABLES = [
   "ItemDamageRanged",
   "ItemDamageThrown",
   "ItemDamageWand",
+  "ItemDamageAmmo", // arrows and bullets: damage per second by item level and quality (docs/data/items.md#ammo-and-quivers)
   "SpellEffect",
   "SpellName",
   "SpellCooldowns",
@@ -75,6 +76,31 @@ export const SLOT = {
   26: "ranged",
   28: "relic",
 };
+
+/**
+ * The item's slot: SLOT by InventoryType, and the ranged supplies the pool keeps
+ * (docs/data/items.md#ammo-and-quivers): arrows and bullets (Projectile, class 6, InventoryType 24)
+ * in the ammo slot, quivers and ammo pouches (Quiver, class 11, InventoryType 18, a bag) in the quiver
+ * slot. Other bags have no slot.
+ */
+export function slotOf(row, item) {
+  if (item?.ClassID === 6 && row.InventoryType === 24) return "ammo";
+  if (item?.ClassID === 11 && row.InventoryType === 18) return "quiver";
+  return SLOT[row.InventoryType] ?? null;
+}
+
+/**
+ * An arrow's or bullet's damage (docs/data/items.md#ammo-and-quivers): its damage per second from
+ * ItemDamageAmmo[item level].Quality[quality], the table both clients ship (Forever's ItemSparse
+ * has no damage fields), rounded to 0.001, and whether it's an arrow (bows, crossbows) or a bullet
+ * (guns). Null for anything else, or when the table has no row.
+ */
+export function ammo(ctx, row, item) {
+  if (item?.ClassID !== 6) return null;
+  const dps = ctx.damage.Ammo.get(row.ItemLevel)?.Quality?.[row.OverallQualityID];
+  const projectile = item.SubclassID === 2 ? "arrow" : item.SubclassID === 3 ? "bullet" : null;
+  return dps && projectile ? { dps: Math.round(dps * 1000) / 1000, projectile } : null;
+}
 
 /**
  * InventoryType → RandPropPoints column index ("slot group"): 0 head, chest, legs, two-hand;
@@ -240,6 +266,7 @@ export const AURA_STAT = {
   158: (v) => [["blockValue", v]], // MOD_SHIELD_BLOCKVALUE
   564: (v) => [["blockValue", v]], // Classic Era 1.15: shield block value
   274: (v) => [["blockValue", v]], // Forever: shield block value ("Increases the block value of your shield by N")
+  557: (v) => [["rangedAttackSpeed", v]], // quivers and ammo pouches: ranged attack speed %, both clients (docs/data/items.md#ammo-and-quivers)
   189: (v, misc) => ratingsByMask(v, misc), // MOD_RATING (combat-rating mask)
 };
 
@@ -363,7 +390,7 @@ export function createItemContext(tables, gameTables = {}) {
   );
   for (const list of spellEffects.values()) list.sort((a, b) => a.EffectIndex - b.EffectIndex);
   const damage = {};
-  for (const name of ["OneHand", "OneHandCaster", "TwoHand", "TwoHandCaster", "Ranged", "Thrown", "Wand"]) damage[name] = indexById(t(`ItemDamage${name}`));
+  for (const name of ["OneHand", "OneHandCaster", "TwoHand", "TwoHandCaster", "Ranged", "Thrown", "Wand", "Ammo"]) damage[name] = indexById(t(`ItemDamage${name}`));
   const shieldBlock = new Map((gameTables.shieldBlock ?? []).map((r) => [r.Level, r]));
   return {
     sparse: indexById(t("ItemSparse")),
@@ -750,7 +777,11 @@ export function itemEffects(ctx, itemId) {
       const auras = ctx.spellEffects.get(e.SpellID) ?? [];
       const isProc = auras.some((x) => x.Effect === 6 && PROC_AURAS.has(x.EffectAura));
       const condition = spellCondition(ctx, e.SpellID);
-      if (condition) {
+      // A quiver's or ammo pouch's ranged attack speed (aura 557) needs a ranged weapon (its
+      // SpellEquippedItems), the only weapon it can speed up, so it holds whenever it does anything:
+      // a flat stat (docs/data/items.md#ammo-and-quivers).
+      const rangedHasteOnly = condition?.weaponSubclassMask !== undefined && auras.length > 0 && auras.every((x) => x.Effect === 6 && x.EffectAura === 557);
+      if (condition && !rangedHasteOnly) {
         effects.push({ ...base, kind: "equip", condition, stats: s.stats });
         continue;
       }
@@ -826,13 +857,14 @@ export function deriveItem(ctx, id) {
     itemLevel: row.ItemLevel,
     requiredLevel: row.RequiredLevel,
     inventoryType: row.InventoryType,
-    slot: SLOT[row.InventoryType] ?? null,
+    slot: slotOf(row, item),
     classId: item?.ClassID ?? null,
     subclassId: item?.SubclassID ?? null,
     layout: storesAmounts(row) ? "amounts" : "budget",
     budget: storesAmounts(row) ? null : statBudget(ctx, row),
     stats,
     weapon: weapon(ctx, row, item),
+    ammo: ammo(ctx, row, item),
     weaponSkill: Object.keys(weaponSkill).length ? weaponSkill : null,
     shieldBlockValue: shieldBlockValue(ctx, row, item),
     effects: fx.effects,

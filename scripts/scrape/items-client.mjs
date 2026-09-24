@@ -81,12 +81,19 @@ const WATCH_ITEMS = new Map([
   [271932, "Insurgent's Manifesto"],
   [272087, "Tome of the Darkspear Prophecy"],
 ]);
+/**
+ * The ranged supplies (docs/data/items.md#ammo-and-quivers; slice H2, the hunter): arrows, bullets,
+ * quivers and ammo pouches a level-60 hunter could use, from Common to Epic, required level 40–60.
+ * They're consumables and bags, not the pool's weapons and armor, so they have their own rule.
+ */
+const SUPPLIES = { qualities: [1, 2, 3, 4], reqLevel: [40, 60] };
 const OUT_FILE = "src/data/items/pre-bis.json";
 
 const FILTER_RULE =
   `equippable AND ((quality in [${QUALITIES.join(", ")}] AND ` +
   `(${REQ_LEVEL[0]} <= required level <= ${REQ_LEVEL[1]}` +
   `${MIN_ITEM_LEVEL === null ? "" : ` OR item level >= ${MIN_ITEM_LEVEL} (any required level, including none)`}))` +
+  ` OR (ammo or quiver AND quality in [${SUPPLIES.qualities.join(", ")}] AND ${SUPPLIES.reqLevel[0]} <= required level <= ${SUPPLIES.reqLevel[1]})` +
   ` OR listed in ${PRE_RAID_BIS_FILE} (any quality or level))` +
   ` AND (id < ${MAX_CLASSIC_ITEM_ID} OR new in Forever: a Forever row and no Classic Era row)`;
 
@@ -272,7 +279,7 @@ async function write() {
   const { iconName, unresolved } = await createIconNamer();
   forever.lookups = createLookups(forever, iconName);
   classic.lookups = createLookups(classic, iconName);
-  const filter = { qualities: QUALITIES, reqLevel: REQ_LEVEL, minItemLevel: MIN_ITEM_LEVEL, maxClassicItemId: MAX_CLASSIC_ITEM_ID, excludedItems: EXCLUDED_ITEMS, junkName: JUNK_NAME };
+  const filter = { qualities: QUALITIES, reqLevel: REQ_LEVEL, minItemLevel: MIN_ITEM_LEVEL, supplies: SUPPLIES, maxClassicItemId: MAX_CLASSIC_ITEM_ID, excludedItems: EXCLUDED_ITEMS, junkName: JUNK_NAME };
   let pool = buildPool({ forever, classic, filter, bis, watch: WATCH_ITEMS });
   if (unresolved.length) {
     // Rare: an icon only the Classic Era file list names. Read it and build again.
@@ -323,6 +330,7 @@ async function write() {
         qualities: QUALITIES,
         reqLevel: REQ_LEVEL,
         minItemLevel: MIN_ITEM_LEVEL,
+        supplies: SUPPLIES,
         equippableOnly: true,
         maxClassicItemId: MAX_CLASSIC_ITEM_ID,
         excludedItemIds: Object.fromEntries(EXCLUDED_ITEMS),

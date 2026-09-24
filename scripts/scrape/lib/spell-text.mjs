@@ -22,7 +22,7 @@
 //   $<name>                a SpellDescriptionVariables variable of the spell
 //   $gmale:female;         the first form      $lsingular:plural;  by the last number
 //   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
-//   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats`
+//   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats` ($rap = $RAP)
 //   $SPI $SPS $SPFI        (Spirit, Shadow and Fire spell power: the warlock's Life Tap, Demonic Brand)
 //   $bh $bc                bonus healing (a `stats` value, BH) and the first effect's bonus coefficient, inside ${…}
 // Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
@@ -72,15 +72,33 @@ const CONTINGENCY_PLAN = [
   [1277639, 1277467, 1277459],
   [1277640, 1277466, 1277460],
 ];
-const MISSING_EFFECT_PHRASES = new Map(
-  CONTINGENCY_PLAN.map(([id, shield, heal]) => [
+const MISSING_EFFECT_PHRASES = new Map([
+  ...CONTINGENCY_PLAN.map(([id, shield, heal]) => [
     id,
     [
       { phrase: ` absorbing $${shield}s2 damage`, spellId: shield, effectIndex: 1 },
       { phrase: ` for $${heal}o2 Health`, spellId: heal, effectIndex: 1 },
     ],
   ]),
-);
+  // The hunter's Resourcefulness (440529, Forever): "your critical strikes have a $m3% chance to allow
+  // …", but the spell has two effects, so the chance is server-side: the text reads "have a chance".
+  [440529, [{ phrase: "$m3% ", spellId: 440529, effectIndex: 2 }]],
+  // The hunter pet's Savage Rend (Forever, five ranks): "… and take $1265065s2% additional damage from
+  // Bleed effects …", but each rank's bleed has one effect, so that part is server-side and left out.
+  ...[
+    [1265831, 1265065],
+    [1265833, 1265066],
+    [1265834, 1265067],
+    [1265835, 1265068],
+    [1265836, 1265069],
+  ].map(([id, bleed]) => [id, [{ phrase: ` and take $${bleed}s2% additional damage from Bleed effects for the duration`, spellId: bleed, effectIndex: 1 }]]),
+]);
+/**
+ * Client typos in a description, fixed before rendering while the text still has them: the hunter
+ * pet's Lava Breath r2 (444682, Forever) reads "by $$444681s2%", a doubled "$" its rank 1 (444680)
+ * doesn't have (docs/data/spells.md#caveats).
+ */
+const DESCRIPTION_TYPOS = new Map([[444682, [{ from: "$$444681s2", to: "$444681s2" }]]]);
 
 /** Player level used for `$PL` and per-level effect points (the sim is level 60). */
 export const PLAYER_LEVEL = 60;
@@ -332,6 +350,7 @@ export function renderSpellText(ctx, spellId, { field = "Description_lang", dept
   // A phrase whose token names a spell neither client has a row for is left out while it has none.
   for (const fix of SERVER_ONLY_PHRASES.get(spellId) ?? []) if (!ctx.spell.has(fix.missingSpellId)) raw = raw.replace(fix.phrase, "");
   for (const fix of MISSING_EFFECT_PHRASES.get(spellId) ?? []) if (!ctx.effects.get(fix.spellId)?.has(fix.effectIndex)) raw = raw.replace(fix.phrase, "");
+  if (field === "Description_lang") for (const fix of DESCRIPTION_TYPOS.get(spellId) ?? []) raw = raw.replace(fix.from, fix.to);
   const unrendered = [];
   const state = { lastNumber: null, conditions, paragraphs, lines, wholeExpressions, assumed: [] };
   const text = renderString(ctx, spellId, raw, unrendered, state, depth);
@@ -714,9 +733,10 @@ export function evaluate(ctx, spellId, expr, depth = 0, conditions = null) {
       i += bonus[0].length;
       continue;
     }
-    const stat = /^\$(AP|RAP|SP|SPH|SPI|SPS|SPFI)\b/.exec(rest);
+    // $rap is the client's lower-case spelling of $RAP (the hunter's Summon Hawk, 1293241).
+    const stat = /^\$(AP|RAP|rap|SP|SPH|SPI|SPS|SPFI)\b/.exec(rest);
     if (stat) {
-      const v = ctx.stats?.[stat[1]];
+      const v = ctx.stats?.[stat[1] === "rap" ? "RAP" : stat[1]];
       if (v === undefined) return null;
       tokens.push({ type: "num", value: v });
       i += stat[0].length;

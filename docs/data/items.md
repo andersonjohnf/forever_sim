@@ -77,6 +77,7 @@ the pool is every Rare, equippable item with required level 55–60 **or** item 
 
 ```text
 equippable AND ((quality in [3] AND (55 <= required level <= 60 OR item level >= 58 (any required level, including none)))
+  OR (ammo or quiver AND quality in [1, 2, 3, 4] AND 40 <= required level <= 60)
   OR listed in scripts/scrape/pre-raid-bis.json (any quality or level))
   AND (id < 25000 OR new in Forever: a Forever row and no Classic Era row)
 ```
@@ -93,13 +94,15 @@ const EXCLUDED_ITEMS = new Map([...]);  // unobtainable items, id → reason
 const JUNK_NAME = /\b(?:test|deprecated)\b|^monster\b|\bplaceholder\b|\[dnt\]|\(dnt\)/i;
 const PRE_RAID_BIS_FILE = "scripts/scrape/pre-raid-bis.json";
 const WATCH_ITEMS = new Map([...]);    // new items no client build carries yet, below
+const SUPPLIES = { qualities: [1, 2, 3, 4], reqLevel: [40, 60] };  // ammo and quivers, below
 ```
 
 **Equippable** means item class Weapon (2) or Armor (4) with a paperdoll inventory type, and
 none of cosmetic armor, "Miscellaneous" weapons or fishing poles. That keeps
 cloth/leather/mail/plate, shields, cloaks, rings, necks, trinkets, held-in-off-hand items,
 relics (librams, idols, totems), melee weapons, bows, guns, crossbows, thrown weapons and
-wands. Shirts, tabards, ammo, quivers and bags are dropped.
+wands, and the [ranged supplies](#ammo-and-quivers): arrows, bullets, quivers and ammo pouches.
+Shirts, tabards and other bags are dropped.
 
 **Developer rows.** The clients also carry test, deprecated and monster items that were never
 loot. 44 equippable rows pass the level rule but match `JUNK_NAME` and are left out
@@ -232,6 +235,31 @@ Reaper, 284257 Icesworn Decapitator, 271928 Clever Expeditionary's Spellblade, 2
 Guerilla's Jagged Mace, 272083 Darkspear Insurgent's Spellblade, 272091 Darkspear
 Skirmisher's Bludgeon, 271932 Insurgent's Manifesto and 272087 Tome of the Darkspear
 Prophecy.
+
+### Ammo and quivers
+
+The hunter's ranged supplies (slice H2, [docs/classes/hunter.md](../classes/hunter.md#73-gear)) join
+the pool by their own rule: every **Projectile** (item class 6: Arrow, subclass 2; Bullet, 3;
+InventoryType 24) and every **Quiver** (class 11: Quiver, 2; Ammo Pouch, 3; InventoryType 18, a bag)
+of quality Common to Epic with required level 40–60, under the same SoD guard, junk-name rule and D6
+fallback as the rest. They go in their own gear slots, `ammo` and `quiver` (a hunter's only).
+
+- **An arrow's or bullet's damage** is `ammo: { dps, projectile }`: its damage per second from
+  `ItemDamageAmmo[item level].Quality[quality]` (both clients ship the table; Forever's `ItemSparse`
+  has no damage fields), rounded to 0.001, and whether it's an arrow (bows and crossbows fire it) or a
+  bullet (guns). Only ammo has the field.
+- **A quiver's or ammo pouch's haste** is the stat `rangedAttackSpeed`, the % of its equip spell's
+  aura 557 (13–15%). Its spell names a ranged weapon (`SpellEquippedItems`), which would make it a
+  conditional equip effect; since aura 557 only ever speeds up a ranged weapon, a spell whose every
+  aura is 557 counts as a flat stat.
+
+19 items: 12 kinds of ammo (Thorium Headed Arrow and Thorium Shells, 17.715; Ice Threaded Arrow and
+Bullet; Jagged Arrow, Accurate Slugs and Mithril Gyro-Shot; Doomshot, Rockshard Pellets and Miniature
+Cannon Balls, which Forever has no row for; Forever's new epic Swiftfeather Arrow and Swiftstrike
+Shot, 24.617) and 7 quivers and pouches (Quickdraw Quiver and Thick Leather Ammo Pouch 13%, Harpy Hide
+Quiver, Gnoll Skin Bandolier and Ancient Sinew Wrapped Lamina 15%, Ribbly's Quiver and Bandolier 14%,
+no Forever row). The Classic Era client's Season of Discovery ones (Sanguine, Soulfrost, Scarlet,
+Searing, Dream Imbued) fail the SoD guard.
 
 ## Counts
 
@@ -577,6 +605,7 @@ copies are cited instead. Wowhead's Season of Discovery guides weren't used eith
 | `mage-fire` | [Icy Veins: Mage DPS Pre-Raid Gear](https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear) (for Fire mages heading into AQ40) | 2021-02-15 | all rows (Main Hand, Off-Hand, Two-Hand, Wand) |
 | `mage-frost` | [Mage Pre-Raid BiS, WoW Classic 1.13](https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear) (one list, a Frost list by its picks) | 2021-05-15 | all rows |
 | `mage-arcane` | same guide as `mage-frost`: Classic Era had no Arcane list | 2021-05-15 | all rows |
+| `hunter-marksmanship`, `hunter-beast-mastery`, `hunter-survival` | [Hunter Pre-Raid BiS, WoW Classic Phase 6](https://web.archive.org/web/20210516173218/https://classic.wowhead.com/guides/wow-classic-hunter-dps-pre-raid-best-in-slot-gear) (one list for every hunter) | 2021-05-16 | all rows: One-Hand as the main hand with Dal'Rend's Tribal Guardian its only off hand, Two-Hand, Ranged; its rank-4 PvP pieces fall below the kept picks, and it lists no ammo or quiver ([hunter.md](../classes/hunter.md#73-gear)) |
 
 **Selection.** Each guide row lists items best-first. The list keeps that order as `rank` (1 =
 BiS, 2+ = alternatives), up to the top pick plus two alternatives per slot. Finger and

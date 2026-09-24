@@ -292,7 +292,19 @@ The priest's tree (Trait tree 1114) keeps an old copy of Holy Specialization: no
 110855 teaches the same talent (spell 14889) at Holy's tier 1. The reader leaves out a node more than
 11 rows below its tree's top whose talent another node of the tree teaches, and drops it from the
 tier gates' counts too (its only group is Prayer of Mending's whole-tree gate). A far node that
-copies nothing is a problem, and the run stops. No other class has one.
+copies nothing is a problem, and the run stops.
+
+The hunter's tree (Trait tree 1091) parks two (1.60.1.69913): a copy of Lightning Reflexes (node
+104982) 154 columns right of the tree, a copy of node 110859, left out the same way (a node more than
+11 empty columns right of every other node is parked too); and Improved Serpent Sting (node 105003,
+spell 19464) 62 rows below Marksmanship, which copies nothing: Forever replaced it with Improved Stings
+(node 110870) at tier 2. A parked node that copies nothing is left out only when `RETIRED_REPLACED`
+(`lib/talent-tree.mjs`) names it with its replacement; any other stops the run.
+
+The hunter's tree also has a backward arrow: Bestial Wrath → Intimidation (edge 124700) beside
+Intimidation → Bestial Wrath (124701, Classic Era's), a cycle no build could fill. An arrow into a
+talent from a lower tier whose reverse arrow exists is dropped with a note; Intimidation keeps its
+other arrow, from Bestial Swiftness.
 
 ## From foreverchanges to the client
 

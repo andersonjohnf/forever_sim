@@ -1312,6 +1312,10 @@
       "classic": ["horde-tauren", "alliance-night-elf"],
       "forever": ["horde-tauren", "horde-skyborne-windshaper", "alliance-night-elf", "alliance-skyborne-high-order"]
     },
+    "hunter": {
+      "classic": ["horde-orc", "horde-tauren", "horde-troll", "alliance-dwarf", "alliance-night-elf"],
+      "forever": ["horde-orc", "horde-tauren", "horde-troll", "horde-skyborne-windshaper", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-skyborne-high-order"]
+    },
     "mage": {
       "classic": ["horde-undead", "horde-troll", "alliance-human", "alliance-gnome"],
       "forever": ["horde-orc", "horde-undead", "horde-troll", "alliance-human", "alliance-gnome", "alliance-skyborne-high-order"]

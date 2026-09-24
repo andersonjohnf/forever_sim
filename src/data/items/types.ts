@@ -33,7 +33,10 @@ export type ItemSlot =
   | "heldInOffHand"
   | "ranged"
   | "thrown"
-  | "relic";
+  | "relic"
+  /** Arrows and bullets; quivers and ammo pouches (docs/data/items.md#ammo-and-quivers). */
+  | "ammo"
+  | "quiver";
 
 /** Paperdoll slot group an item can be equipped in (finger/trinket have two slots each). */
 export type EquipSlot =
@@ -51,7 +54,9 @@ export type EquipSlot =
   | "trinket"
   | "mainHand"
   | "offHand"
-  | "ranged";
+  | "ranged"
+  | "ammo"
+  | "quiver";
 
 export type ArmorType = "cloth" | "leather" | "mail" | "plate";
 
@@ -137,6 +142,8 @@ export interface Stats {
   // Physical
   attackPower: number;
   rangedAttackPower: number;
+  /** Ranged attack speed %, multiplicative: a quiver's or ammo pouch's (aura 557; docs/data/items.md#ammo-and-quivers). */
+  rangedAttackSpeed: number;
   /** "Attack Power in Cat, Bear, and Dire Bear forms only". */
   feralAttackPower: number;
   attackPowerVsBeasts: number;
@@ -303,7 +310,10 @@ export type PreRaidBisSpec =
   | "mage-arcane"
   | "warlock-destruction"
   | "warlock-affliction"
-  | "priest-shadow";
+  | "priest-shadow"
+  | "hunter-marksmanship"
+  | "hunter-beast-mastery"
+  | "hunter-survival";
 
 /** Slot keys used by the pre-raid BiS lists: paperdoll slots, plus `twoHand` and `relic`. */
 export type PreRaidBisSlot =
@@ -381,6 +391,11 @@ export interface ItemDataMeta {
     qualities: number[];
     reqLevel: [number, number];
     minItemLevel: number | null;
+    /**
+     * The ranged supplies' own rule (arrows, bullets, quivers and ammo pouches;
+     * docs/data/items.md#ammo-and-quivers): these qualities, this required-level range.
+     */
+    supplies: { qualities: number[]; reqLevel: [number, number] };
     equippableOnly: true;
     maxClassicItemId: number;
     /** Items that pass the rule but are dropped as unobtainable, id → reason. */
@@ -460,7 +475,8 @@ export interface Item {
   statsFrom: "forever" | "classic";
   slot: ItemSlot;
   equipSlots: EquipSlot[];
-  itemClass: "Armor" | "Weapon";
+  /** The client's item class: armor, weapons, and the ranged supplies (arrows and bullets, quivers and ammo pouches). */
+  itemClass: "Armor" | "Weapon" | "Projectile" | "Quiver";
   /** The client's subclass name, e.g. "Plate", "One-Handed Swords", "Miscellaneous", "Shield", "Idol". */
   itemSubclass: string;
   armorType: ArmorType | null;
@@ -507,6 +523,12 @@ export interface Item {
    * block value, so a fallback shield would otherwise outrank a Forever one on missing data.
    */
   classicShieldBlockValue?: number;
+  /**
+   * An arrow's or bullet's damage per second, from ItemDamageAmmo[item level].Quality[quality] (both
+   * clients; Forever's ItemSparse has none), and which weapons fire it: arrows for bows and crossbows,
+   * bullets for guns (docs/data/items.md#ammo-and-quivers). Only on ammo.
+   */
+  ammo?: { dps: number; projectile: "arrow" | "bullet" };
   /** What the generator noticed about the item (fallback, unknown stat types). */
   notes: string[];
 }

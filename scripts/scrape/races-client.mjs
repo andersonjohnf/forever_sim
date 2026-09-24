@@ -42,7 +42,7 @@ const OUT_FILE = "src/data/races/races.json";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
-const SIM_CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest"];
+const SIM_CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 /**
  * The client ships no race icon (character creation draws races from atlas textures). Icons follow
  * Wowhead's race_<ClientFileString>_male names (decision D14); the Skyborne, which have none there,

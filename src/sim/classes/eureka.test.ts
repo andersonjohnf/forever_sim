@@ -87,8 +87,8 @@ describe('Eureka! against the client (eureka.ts)', () => {
           continue
         }
         const inMask = ids.filter((i) => {
-          const o = spell(i).classOptions
-          return o?.spellClassSet === set && o.spellClassMask !== undefined && masks.some((m) => overlaps(o.spellClassMask!, m))
+          const own = spell(i).classOptions?.spellClassSet === set ? spell(i).classOptions?.spellClassMask : undefined
+          return own !== undefined && masks.some((m) => overlaps(own, m))
         })
         expect(inMask, `${spec} ${id} (${name}) is in ${cls}'s Eureka! masks but not in EUREKA_ABILITIES`).toEqual([])
       }

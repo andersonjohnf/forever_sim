@@ -74,6 +74,14 @@ describe('golden run (fixed config and seed)', () => {
   //   the Crusader before the pull and judged at the pull, then Seal of Fury; the Buffs tab's (another
   //   paladin's) leaves the Standard raid. TPS 817.61 → 809.18, DPS 438.06 → 433.62 (the opener's
   //   judgement and 90 mana), damage taken 899 → 898.
+  // - T3R-2 (buffs doc §1.2, §6.2): a raid druid's Thorns on the main tank is in every tank's raid
+  //   preset, as Devotion Aura. TPS 809.18 → 818.32, DPS 433.62 → 442.58; damage taken unchanged.
+  // - T2's fix round, the survival floor (D30, user): talents -0530513321301551-50215 (0/37/13), the
+  //   best measured build that keeps Anticipation 5, Deflection 5, Improved Righteous Fury 3, Sacred
+  //   Duty 2, Templar's Bulwark and Holy Shield: Anticipation 5 and Holy Conduit 1 for Toughness 4 and
+  //   Improved Holy Strike 2 (paladin.md "Protection defaults"). TPS 818.32 → 821.34, DPS 442.58 →
+  //   445.72, damage taken 897.9 → 902.7 a second (Toughness's armor goes; Anticipation's defense
+  //   comes).
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

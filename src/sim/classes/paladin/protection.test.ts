@@ -354,20 +354,24 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     expect(plan.freeCastAura).toBe(auraOf(plan, 'swiftJudgement'))
     const sim = new Sim(plan)
-    const events: [id: string, time: number, mana: number][] = []
-    sim.castTrace = (a, t, mana) => {
-      if (a === judge || a === swift) events.push([plan.abilities[a].id, t, mana])
-    }
+    const casts: [id: string, time: number, mana: number, cost: number][] = []
+    sim.castTrace = (a, t, mana) => casts.push([plan.abilities[a].id, t, mana, plan.abilities[a].costTenths])
     sim.runFight(0)
+    const events = casts.filter(([id]) => id === 'judgementOfFury' || id === 'swiftJudgement')
+    expect(plan.abilities[judge].id).toBe('judgementOfFury')
     const swifts = events.filter(([id]) => id === 'swiftJudgement')
     expect(swifts.map(([, t]) => t)).toEqual([0, 64000, 128000])
     for (const [, t] of swifts) {
       // Judge, Swift Judgement, judge again: all at once, off the GCD.
       const at = events.filter(([, time]) => time === t).map(([id]) => id)
       expect(at).toEqual(['judgementOfFury', 'swiftJudgement', 'judgementOfFury'])
-      const [first, , second] = events.filter(([, time]) => time === t)
-      // The first judgement pays 90; the second finds the same mana, and is free.
-      expect(first[2] - second[2]).toBe(900)
+      // The first judgement pays 90; the second finds the same mana, less what a global-cooldown
+      // spell cast at the same moment between them cost (Holy Strike's 20), and is free.
+      const now = casts.filter(([, time]) => time === t)
+      const first = now.findIndex(([id]) => id === 'judgementOfFury')
+      const second = now.findLastIndex(([id]) => id === 'judgementOfFury')
+      const between = now.slice(first + 1, second).reduce((sum, [, , , cost]) => sum + cost, 0)
+      expect(now[first][2] - now[second][2]).toBe(900 + between)
     }
     // Judgements every 8 s from the pull, and two at each Swift Judgement.
     const judgements = events.filter(([id]) => id === 'judgementOfFury').map(([, t]) => t)
@@ -393,7 +397,9 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
       if (a === swift) after = t
     }
     sim.runFight(0)
-    expect(seen.map(([t]) => t)).toEqual([0, 64000, 128000])
+    // The third comes at 124 s, the minute's end: Hammer of Wrath's 1 s cast at 119.5 s held the
+    // Judgement due at 120 s until 120.5 s, so at 124 s it still has 4.5 s of its cooldown left.
+    expect(seen.map(([t]) => t)).toEqual([0, 64000, 124000])
     for (const [t, readyOther, readyNever] of seen) {
       expect(readyOther, `at ${t}`).toBeLessThanOrEqual(t)
       expect(readyNever).toBe(Infinity)
@@ -656,14 +662,15 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     expect(up('sealOfFury')).toBeGreaterThan(0.98)
     expect(up('holyShield')).toBeGreaterThan(0.9)
     const perFight = (id: string) => field(sim, plan, id, FIELD.casts) / fights
-    // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
+    // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 12 s (the
+    // default build has no Improved Holy Strike).
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
-    expect(perFight('holyStrike')).toBeGreaterThan(0.96 * 60)
-    // Consecration from 20% of maximum mana: about two thirds as often as its cooldown allows (75),
-    // rank 1 in some of the rest, both on one cooldown. The
-    // potion every 2 minutes, from the pull's first: 5, but for the odd fight whose pool (4,472 with
-    // the T2 gear) never gets low enough in time.
-    expect(perFight('consecration')).toBeLessThan(60)
+    expect(perFight('holyStrike')).toBeGreaterThan(0.96 * 50)
+    // Consecration from 20% of maximum mana: about five sixths as often as its cooldown allows (75),
+    // with Holy Conduit 1/2's 20% off its mana (two thirds before the fix round's build), rank 1 in
+    // some of the rest, both on one cooldown. The potion every 2 minutes, from the pull's first: 5, but
+    // for the odd fight whose pool never gets low enough in time.
+    expect(perFight('consecration')).toBeLessThan(68)
     expect(perFight('consecration') + perFight('consecrationRank1')).toBeLessThanOrEqual(75)
     expect(perFight('majorManaPotion')).toBeGreaterThanOrEqual(4.9)
     expect(perFight('majorManaPotion')).toBeLessThanOrEqual(5)
@@ -699,7 +706,7 @@ describe('Iron Creed’s damage taken (paladin.md#protection-tree)', () => {
     expect(hits.get(true)!.size).toBe(1)
     expect(hits.get(false)!.size).toBe(1)
     expect(up / down).toBeCloseTo(0.9, 9)
-    // Holy Strike every 10 s, a landed one up for 6 s: under 60% of the fight.
+    // Holy Strike every 12 s, a landed one up for 6 s: under half the fight.
     const uptime = sim.auraUpMs[aura] / ms
     expect(uptime).toBeGreaterThan(0.3)
     expect(uptime).toBeLessThan(0.6)

@@ -100,11 +100,11 @@ test.describe('Protection paladin', () => {
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Protection (default)')
-    await expect(talents.getByText('2 / 37 / 12')).toBeVisible()
+    await expect(talents.getByText('0 / 37 / 13')).toBeVisible()
     await presets.click()
     // Only this spec's default is "(default)": Retribution's reads plainly (TU10). The popular build,
     // v1's default, stays a preset (T2).
-    await expect(page.getByRole('option')).toHaveText(['Retribution default', 'Protection (default)', 'Protection (popular build)'])
+    await expect(page.getByRole('option')).toHaveText(['Retribution default', 'Protection (default)', 'Protection popular build'])
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()

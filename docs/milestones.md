@@ -440,8 +440,10 @@ slice is worked:
     paladin.md OQ 16).
   - **P10:** Consecration's ticks miss at the spell rate (14% against a boss); never missing would be
     +1.8% (guild test T7, OQ 18).
-  - **P11:** the talent variants (Improved Seals, Sanctified Judgement, Vindication): the interim
-    build takes Conviction only; the optimizer (O1) searches the rest, within the survival floor.
+  - **P11:** the talent variants: T2's fix round compared about 45 builds within the survival floor
+    (paladin.md "The interim talents"), Sanctified Judgement, Vindication, Benediction and Holy
+    Conduit among them, but not Improved Seals, which needs five Holy points first; the optimizer
+    (O1) searches them all.
   - **P12:** mana-gain threat (Shield Specialization, Improved Seal of Fury, the potion) skips the
     Threat gloves' 1.02 (sim.ts's mana threat); about 0.1%.
   - **A6:** Undead's Touch of the Grave (5% of maximum health as Shadow damage a proc, [?]) isn't

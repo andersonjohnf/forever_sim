@@ -863,8 +863,8 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`2-4530013321301551-50205`** (Holy 2 / Prot 37 / Ret 12), **interim, measured** (T2, 2026-09-24; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): the popular build below with **Conviction 5** (+5% melee crit) for Anticipation 5 (+20 defense). Against the popular build on the T2 gear: **+3.20% TPS, +3.84% DPS** (+25.5 TPS, +16.2 DPS), +31.7 damage taken a second (20,000 paired fights, seed 777). The threat review's builds did better on the balanced objective, B3 `2-2530012301301551-5020523` +4.95% TPS and +5.06% DPS and B4 `2-2530512301301551-50205` +3.32% and +3.92%, but both drop **Sacred Duty**, the survival floor below; with it kept, the best five points for Conviction are Anticipation's (the least damage taken of the options that make the same threat: Toughness 4 + Improved RF 1 +51.8, Toughness 2 + Improved RF 3 +73.9). The popular build stays a preset: `2-4530513321301551-502`, Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | measured, [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
-| Survival floor | **Sacred Duty 2/2** (its minute off Divine Shield, Divine Protection and Templar's Bulwark: D30's "big cuts to defensive cooldowns"), Templar's Bulwark and Holy Shield: no default or search drops them. And an **effective-health floor** for the gear (user decision, 2026-09-24): health ÷ (1 − armor's reduction against a level-63 boss) at least 90% of v1's preset, 14,346 (5,851 health, 8,356 armor) | user, D30 |
+| Talents | **`-0530513321301551-50215`** (Holy 0 / Prot 37 / Ret 13), **interim, measured** (T2's fix round, 2026-09-24; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, Holy Conduit 1, Conviction 5. The best of about 45 builds that keep the survival floor below, on the balanced objective ([below](#the-interim-talents-t2s-fix-round)): against T2's build `2-4530013321301551-50205` (which dropped Anticipation for Conviction), **+0.51% TPS, +0.94% DPS** (+4.1 TPS, 95% CI +3.9 to +4.3, and +4.1 DPS), for 6.1 more damage taken a second (100,000 paired fights on seed 20260924, which the search didn't use). The popular build stays a preset (it keeps the floor, at 3.1% less TPS and 3.7% less DPS): `2-4530513321301551-502`, Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F]. T2's build stays decodable for saved setups | measured, [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
+| Survival floor | Talents no default or search drops ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24), user decisions, 2026-09-24): **Sacred Duty 2/2** (its minute off Divine Shield, Divine Protection and Templar's Bulwark: D30's "big cuts to defensive cooldowns"), **Templar's Bulwark**, **Holy Shield**, **Improved Righteous Fury 3/3** (−6% damage taken), and the avoidance talents **Anticipation 5/5** (+20 defense) and **Deflection 5/5** (+5% parry): the model says an avoided hit costs a paladin Reckoning procs and Shield Specialization's mana, so a threat-first search would drop them, but tanks take them. **Toughness is optional** (user): the search sets its ranks, and the default takes none. And an **effective-health floor** for the gear (user decision): health ÷ (1 − armor's reduction against a level-63 boss) at least 90% of v1's preset with the same talents and race, for either faction's races (a unit test holds it, `defaults.test.ts`) | user, D30 |
 | Race | Human / Undead (Horde) | The default weapon is an axe (below), so Human's Sword Specialization (+2% crit, with a sword) doesn't apply, nor Dwarf's Mace Specialization; the race changes only base stats until you pick a sword or mace. Dwarf is a close choice for Stoneform |
 | Weapon | **Flurry Axe** (1.5 s, the weapon's +30 spell damage) and **Draconian Aegis of the Legion** (+20 spell damage). Of the pool's spell damage one-handers, Simone's Cultivating Hammer (the gear search's pick, 46 spell damage, 1.8 s) makes 8.7 TPS and 8.1 DPS less after T2's model fixes, and the Elderwild Construction Hammer (68, 2.4 s) 22.6 TPS less: a fast weapon's swings carry Seal of Fury's flat 35 and Windfury's chances. A 1H axe, mace or sword keeps Hammer of the Righteous usable | measured (20,000 fights, seed 12345) |
 | Gear | **Interim, measured** (T2; `INTERIM_GEAR` in `src/sim/defaults.ts`; the optimizer replaces it): the gear review's slot-by-slot paired search for threat from the pool (`.cache/probes/gear-review`), Lionheart Helm, Orb of the Darkmoon, Lieutenant Commander's Lamellar Shoulders, Crystalline Threaded Cape, Knight-Captain's Lamellar Breastplate and Leggings, Battleborn Armbraces, Soulforge Belt, Knight-Lieutenant's Lamellar Sabatons, Elemental Focus Band, Don Julio's Band, Weakness Analyzer, Briarwood Reed, with **Deathbone Gauntlets** in place of its Darkrune Gauntlets for the effective-health floor: 90.6% of v1's (5,241 health, 8,512 armor, 12,993) where the search's set had 89.4%, for 8.0 TPS. 379 Holy spell damage and 4,382 mana with the Standard raid; damage taken 898 a second (v1's preset 681 in the same setup), defense 310, so the boss crits for 5.2% (v1: 433, 0.3%). A Horde race takes the pre-raid list's pick where a piece is Alliance's (the Lamellar PvP set): a known gap | measured; user's floor |
@@ -872,7 +872,46 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Judgement of the Crusader | **Your own**, from the opener (row 0c): +161 Holy damage taken all fight, +84.7 TPS | user, 2026-09-24 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS (30 × 1.9 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
-| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26) | buffs doc owns names, values and presets |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a druid's Thorns on you, as every tank's raid preset does (+9 TPS, 1.1%; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
+
+#### The interim talents (T2's fix round)
+
+D30's survival floor ([above](#protection-defaults)) keeps Anticipation 5/5, which T2's build had
+traded for Conviction, so the fix round searched again (2026-09-24), by hand in the optimizer's way:
+paired, same-seed runs of whole builds with `scripts/tune/rotation.mjs --spec paladin-protection
+talents=<code>` (40,000 fights on seed 777), on T2's gear and rotation, scored on the balanced
+objective, Δ TPS % + Δ DPS % (D18, D28), against T2's build. Every candidate keeps the floor and
+spends 51 points. The first rounds kept Toughness 5, the floor then; the user made it optional, and
+the last rounds let the search set it. Some of the ~45 builds (the rest are in the fix round's
+review log):
+
+| Build | What changes against T2's | Δ TPS % | Δ DPS % | Objective |
+| --- | --- | --- | --- | --- |
+| `-0530513321301551-50215` **(adopted)** | Anticipation 5 and Holy Conduit 1 for Toughness 4 and Improved Holy Strike 2 | +0.50 | +0.95 | **+1.45** |
+| `-1530513321301541-50215` | as adopted, with Toughness 1 for Iron Creed's fifth rank | +0.14 | +0.95 | +1.09 |
+| `-0530513321301541-50225` | Holy Conduit 2 for Iron Creed's fifth rank | −0.21 | +1.05 | +0.84 |
+| `-2530513321301531-50215` | Toughness 2, Iron Creed 3 | −0.23 | +0.95 | +0.72 |
+| `-0530513321201551-50225` | Holy Conduit 2 for a rank of 1HWS | −0.25 | +0.32 | +0.07 |
+| `-4530513321301511-50215` | Toughness 4, Iron Creed 1 | −0.95 | +0.95 | +0.00 |
+| `2-0530513321301531-50215` | Improved Holy Strike 2 for two ranks of Iron Creed | −0.60 | +0.45 | −0.15 |
+| `-5530513321301501-50215` | Toughness 5 (the earlier floor), no Iron Creed | −1.31 | +0.95 | −0.36 |
+| `1-0530513321301551-50205` | Improved Holy Strike 1 for Holy Conduit | −0.48 | −0.25 | −0.73 |
+| `-5530513321301511-50205` | Toughness 5, Iron Creed 1, no Holy Conduit | −1.97 | −0.17 | −2.14 |
+| `-5530513321301501-5000503` | Toughness 5, Sanctified Judgement 3 for Improved Judgement | −3.19 | −1.70 | −4.89 |
+| `-5530513321301551-53` | Toughness 5, Benediction 3, no Conviction | −5.46 | −5.58 | −11.04 |
+| `2-4530513321301551-502` | the popular build (keeps the floor) | −3.10 | −3.67 | −6.77 |
+
+- **Why.** Improved Judgement 2 and Conviction 5 are worth the most of the optional points (each
+  build without them loses 2 to 5%). Holy Conduit's first rank makes Consecration 20% cheaper, and
+  mana still limits Protection ([mana model](#mana-model)), but its second rank costs more than it
+  gives. Iron Creed's ranks are worth more than Toughness's (armor only) and Improved Holy Strike's
+  (a Holy Strike every 11 or 10 s, each one pushing a global cooldown's worth of something else).
+- **Confirmed** on seed 20260924 (100,000 paired fights, which the search didn't use), against T2's
+  build: +4.12 TPS (+0.51%, 95% CI +3.90 to +4.34), +4.07 DPS (+0.94%), and 6.1 more damage taken a
+  second (Toughness's armor goes; Anticipation's defense comes). The runner-up, Toughness 1 for
+  Iron Creed's fifth rank, is +0.15% and +0.94%.
+- **Not searched:** Improved Seals, which needs five Holy points before it; the rotation's
+  thresholds, held from T2's re-check (the optimizer, O4, searches them with the talents).
 
 #### Tuning the defaults (C3)
 
@@ -887,7 +926,12 @@ and the re-check around it (seed 777, 40,000 paired fights) holds every value: C
 −0.02% and from 10% −0.06%, rank 1 off −0.09%, the seal with 2 s left −0.06%, Swift Judgement with
 4 s −0.55%. Hammer of the Righteous in Holy Strike's place loses 1.65%; Max TPS gains +3.1% TPS
 (+25.2) for 5.7% more damage taken. The optimizer (O4) re-tunes all of them with the talents and
-gear. The grid by fight length below is C3's.
+gear. The grid by fight length below is C3's. **After T2's fix round** (its talents and Thorns;
+seed 777, 40,000 paired fights) Consecration from 20% still holds (10% level, 30% −0.06%, 40%
+−0.18%; rank 1 off −0.03%), and Hammer of the Righteous in Holy Strike's place loses 0.39% of TPS
+but gains 1.24% of DPS, for 4.3% more damage taken (Iron Creed's cut goes with Holy Strike): under
+D23's rule for tanks, TPS first, Holy Strike stays; D28's Balanced rotation, once the paladin has
+one, would weigh it again.
 
 The defaults are the best rotation found on 2026-09-24 per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23) and, keeping
@@ -1334,9 +1378,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     1.60.1.69913), which would give its damage the spell table. The sim multiplies (×2.28) and has
     the damage always land and never crit [?]: the damage is the buff's aura effect (43), with no
     damage spell of its own, and the sim reads 20928's table as its cast's, on yourself
-    ([Other abilities](#other-abilities)). Holy Shield's damage is 28% of the default Protection
-    TPS: additive (×2.1) would cost about 2.2% of TPS, a miss on the spell table (14% for the
-    default build against a boss) about 3.9%, and a crit at spell crit would add about 0.7%.
+    ([Other abilities](#other-abilities)). Holy Shield's damage was 28% of the default Protection
+    TPS in C3's setup (2026-09-23): additive (×2.1) would have cost about 2.2% of TPS, a miss on the
+    spell table (14% for the default build against a boss) about 3.9%, and a crit at spell crit
+    would have added about 0.7%. After T2's fix round it's 13% of TPS, so each is about half that
+    (the milestones' known gap P9).
     *Test (guild test T6):* Holy Shield's damage events against a boss (misses, crits), and the
     threat of each block ÷ its damage: 2.28 means multiplied, 2.10 additive; count misses over 100
     blocks.

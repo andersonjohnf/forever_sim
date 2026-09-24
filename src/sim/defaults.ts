@@ -47,9 +47,10 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
-  // docs/classes/paladin.md#protection-defaults: interim, measured (T2): the popular build with Conviction 5 for
-  // Anticipation 5, which keeps the survival floor (Sacred Duty); the optimizer (O4) replaces it.
-  'paladin-protection': '2-4530013321301551-50205',
+  // docs/classes/paladin.md#protection-defaults: interim, measured (T2's fix round): the best build found that keeps
+  // the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Anticipation,
+  // Deflection and Toughness, D30); the optimizer (O4) replaces it.
+  'paladin-protection': '-0530513321301551-50215',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
@@ -110,10 +111,10 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   paladin: [
     // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
     { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
-    // docs/classes/paladin.md#protection-defaults: Holy 2 / Prot 37 / Ret 12, interim (T2)
+    // docs/classes/paladin.md#protection-defaults: Holy 0 / Prot 37 / Ret 13, interim (T2's fix round)
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
     // docs/classes/paladin.md#protection-defaults: the popular Forever build, v1's default, Holy 2 / Prot 42 / Ret 7
-    { name: 'Protection (popular build)', code: '2-4530513321301551-502' },
+    { name: 'Protection popular build', code: '2-4530513321301551-502' },
   ],
   shaman: [
     // docs/classes/shaman.md#talents: Elemental 8 / Enhancement 33 / Restoration 10

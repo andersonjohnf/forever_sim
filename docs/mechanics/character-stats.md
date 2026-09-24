@@ -1131,6 +1131,11 @@ kept Classic's "base AP" behaviour.
 ### OQ-10: Touch of the Grave
 We don't know the drain amount (5% of whose health, and is "up to" a cap or a range), its school,
 whether it can miss, crit or cause threat, or whether auto-attacks and abilities proc it equally.
+**1.60.1.70009 narrowed what procs it** (the build's [development notes][dev-70009], [F]): only spells and
+abilities with a damage component, so it no longer breaks crowd control; Shadow Word: Pain procs it
+on the cast, not on its periodic damage, and Distract, Pick Pocket and Polymorph don't. The client
+still gives 1260189 a 5% chance with a 1 s internal cooldown (`ProcCategoryRecovery` 1000) on proc
+mask 0x11154 [F] [client] (SpellAuraOptions, 1.60.1.70009).
 **Route B:** combat log of an Undead warrior hitting mobs three levels above them for 5 minutes
 (the beta has no target dummies); count the procs and read their amounts.
 
@@ -1307,3 +1312,4 @@ was not fetched, because its `robots.txt` disallows Anthropic agents.
 [rb-vanilla]: https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
 [bnet-base]: https://us.forums.blizzard.com/en/wow/t/paladin-base-crit-and-dodge-should-be-5-base-at-max-weapon-and-defense-skill/419469
 [wsc-base]: https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696

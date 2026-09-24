@@ -1062,7 +1062,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B52. Touch of the Grave
 **Low · M2 · ≤20**
 - **Assumes:** healing only, not simulated [?]; amount, school, and whether it can miss, crit or
-  cause threat are unknown.
+  cause threat are unknown. What procs it is narrower since 1.60.1.70009: only spells and
+  abilities with a damage component (Shadow Word: Pain on the cast, not its ticks) [F] (the build's
+  notes; [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)).
 - **Test:** Undead warrior or paladin: log 5 minutes of melee; count procs and read amounts.
 - **Samples:** ≥5 minutes.
 - **Changes:** whether it needs modelling.

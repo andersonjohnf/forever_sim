@@ -926,7 +926,7 @@ const REGISTRY = {
     docRef: `${PRIEST}#35-inner-focus-14751`,
   },
   darkSacrifice: {
-    text: 'Dark Sacrifice’s 1,600 mana comes in 5 ticks over 15 s; the health it costs isn’t tracked.',
+    text: 'Dark Sacrifice’s mana, 1,600 plus your Spirit at the pull, comes in 5 even ticks over 15 s; the health it costs isn’t tracked.',
     docRef: `${PRIEST}#72-race-and-weapons`,
   },
   shadowfiendNotSimulated: {

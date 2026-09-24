@@ -16,7 +16,7 @@ import { CASTER_RACIALS } from '../caster-racials'
 import { eurekaFor } from '../eureka'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
 import {
-  DARK_SACRIFICE,
+  darkSacrifice,
   DARK_SACRIFICE_TICK,
   DEVOURING_PLAGUE,
   INNER_FOCUS,
@@ -223,7 +223,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.sacrifice,
     group: 'Consumables',
     label: 'Dark Sacrifice',
-    help: 'Undead only: trade 1,600 health for 1,600 mana over 15 s, every 10 minutes, once it fits. It takes a global cooldown.',
+    help: 'Undead only: trade 1,600 health for 1,600 mana plus your Spirit over 15 s, every 10 minutes, once it fits. It takes a global cooldown.',
     default: true,
   },
   {
@@ -231,7 +231,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.sacrificeMissing,
     group: 'Consumables',
     label: 'Dark Sacrifice when missing',
-    help: 'Use it when you’re missing at least this much mana. 1,600 is what it restores.',
+    help: 'Use it when you’re missing at least this much mana. It restores 1,600 plus your Spirit.',
     unit: 'mana',
     min: 0,
     max: 5000,
@@ -323,7 +323,7 @@ export function shadowRotation(
     pressed.push(id)
     if (v.on(setting)) add(consumable(use), [missing(v.num(amount))])
   }
-  if (ctx.race === DARK_SACRIFICE_RACE && v.on(ID.sacrifice)) add(DARK_SACRIFICE, [missing(v.num(ID.sacrificeMissing))])
+  if (ctx.race === DARK_SACRIFICE_RACE && v.on(ID.sacrifice)) add(darkSacrifice(ctx.spirit ?? 0), [missing(v.num(ID.sacrificeMissing))])
 
   // Shadow Word: Pain whenever it's off the boss, and Devouring Plague on cooldown, while enough of the
   // fight is left for their ticks.
@@ -359,5 +359,5 @@ export function shadowRotation(
 /** Whether the build keeps Shadowform up (the fixed row's note, the sheet). */
 export const shadowformUp = hasShadowform
 
-/** Dark Sacrifice's mana in all, for docs and tests: 5 ticks of its level-60 points. */
+/** Dark Sacrifice's mana in all before Spirit, for docs and tests: 5 ticks of its level-60 points. */
 export const DARK_SACRIFICE_MANA = 5 * DARK_SACRIFICE_TICK

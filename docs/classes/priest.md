@@ -147,7 +147,7 @@ it only costs a GCD: off by default.
 | Troll | Berserking (20554): **+10% casting and attack speed** for 10 s, 3 min, off the GCD [F] | on cooldown (a Mind Blast casts in 1,364 ms) |
 | Night Elf | Elune's Light (1259799): +10% all crit for 15 s, 3 min [F] | on cooldown |
 | Night Elf | Starshards r7 (19305): a channel, 300 Arcane a second for 6 s, +0.167 a tick, the crit flag, 350 mana, 30 s cooldown [F] | on cooldown; Arcane, so no Shadowform, Shadow Weaving or Darkness |
-| Undead | Dark Sacrifice r5 (1277328): 320 mana every 3 s for 15 s (1,600), paid in health, 10 min, on the GCD [F] | once 1,600 mana fits; health isn't tracked |
+| Undead | Dark Sacrifice r5 (1277328): 1,600 mana **plus your Spirit** over 15 s, 5 ticks every 3 s, paid in 1,600 health, 10 min, on the GCD [F] [client] (SpellEffect, Spell, 1.60.1.70009: the tooltip's `${$o2+$SPI}`; before 1.60.1.70009 it was 1,600 flat, and its health cost could break crowd control) | once the mana setting fits (1,600 by default); Spirit at the pull, spread evenly over the ticks [?]; health isn't tracked |
 | Gnome | Expansive Mind (20591): +5% maximum mana (aura 178) [F] | a passive: the mana pool is 5% larger |
 | Gnome | Eureka! (1259823): the next 3 damaging or healing spells cost 10% less mana (15% until 1.60.1.70009 made every class's cut 10%) and deal +10%, periodic damage +10%; 3 charges, 15 s, 2 min [F] [client] (1.60.1.70009) | on cooldown from the pull: Mind Blast, Shadow Word: Pain, Mind Flay, Devouring Plague and Starshards spend its charges, rounded down, landed or not [?] (`src/sim/classes/eureka.ts`, `eureka`): +1.11% (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights; the same at 15%: the +10% damage is nearly all of it) |
 | Human, Dwarf, Gnome, Troll, Undead | Feedback, Divine Grace, Desperate Prayer, Chastise (humanoids only), Contingency Plan, Confounding Flash, Hex of Weakness, Shadowguard, Touch of Weakness | nothing for damage on a boss, or not modelled (Chastise: [OQ-P8](#9-open-questions)) |
@@ -191,7 +191,7 @@ Meditation's 17/33/50% of it inside the rule [F], and mp5 always. What restores 
 
 - **Major Mana Potion** and **Demonic Rune** (Buffs), off the GCD when their most fits
   ([buffs §3.5](../mechanics/buffs-debuffs-consumables.md#35-potions-and-runes)).
-- **Dark Sacrifice** (Undead): 1,600 mana in 5 ticks over 15 s, a GCD, once it fits.
+- **Dark Sacrifice** (Undead): 1,600 mana plus your Spirit in 5 ticks over 15 s, a GCD, once it fits.
 - **Spirit Tap** does nothing: it needs a kill.
 - **Shadowfiend** (401977: "Caster receives 5% mana when the Shadowfiend attacks", 15 s, 5 min) is a
   pet; the sim can't model pets until the pet core (H1), so it's left out and listed in the result's
@@ -337,7 +337,8 @@ Each is a unit test (`src/sim/classes/priest/priest.test.ts`). A level-60 priest
    Shadow damage; Mind Blast at 5 stacks: `662.42 × 1.1 = 728.66`. A lone Shadow Word: Pain's stack
    covers its ticks at 3–12 s (×1.02): it expires at 15 s, before that moment's tick.
 8. **Inner Focus.** The Mind Blast after it costs 0 and crits at the sheet's spell crit + 25%.
-9. **Dark Sacrifice.** 5 ticks of 320: 1,600 mana over 15 s.
+9. **Dark Sacrifice.** 5 ticks of 320 + Spirit ÷ 5: 1,600 mana plus your Spirit over 15 s; at 250
+   Spirit, 5 ticks of 370, **1,850**.
 
 ## 9. Open questions
 
@@ -367,7 +368,12 @@ Each [?] the priest relies on, its assumption id (the result's list) and its est
   simulated. Effect: none in raids, where it casts all fight.
 - **OQ-P11: Shadowfiend** (`shadowfiendNotSimulated`): a pet; its mana waits for the pet core.
   Effect: about 5% of mana a hit for 15 s every 5 minutes.
-- **OQ-P12: Dark Sacrifice** (`darkSacrifice`): its mana in 5 ticks, the health cost ignored.
+- **OQ-P12: Dark Sacrifice** (`darkSacrifice`): ✅ its Spirit scaling is settled by 1.60.1.70009: the
+  tooltip reads "gain ${$o2+$SPI} Mana", 1,600 plus your Spirit [F] [client] (Spell.Description_lang;
+  the build's [notes][dev-70009]: "the Mana gained from the ability scales with Spirit"). Still [?]: the Spirit it
+  reads (the sim takes the sheet's at the pull, as Life Tap's) and how it's spread (evenly over the 5
+  ticks); the health cost is ignored. Effect: none on the default (Troll); an Undead gets about 50 mana
+  a tick more at 250 Spirit.
 
 ## Sources
 
@@ -389,3 +395,4 @@ Each [?] the priest relies on, its assumption id (the result's list) and its est
 [wh-bis]: https://web.archive.org/web/20210518011006/https://classic.wowhead.com/guides/wow-classic-shadow-priest-dps-pre-raid-best-in-slot-gear
 [wowsims-base]: https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
 [mangos-stats]: https://github.com/mangoszero/database/tree/master/World/Setup/FullDB
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696

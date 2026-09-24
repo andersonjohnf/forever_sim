@@ -615,6 +615,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       durationMs: spec.durationMs,
       maxStacks: spec.maxStacks ?? 1,
       whiteSwingCharges: spec.whiteSwingCharges ?? 0,
+      // docs/classes/shaman.md#flurry: at most one charge used per 500 ms, only when set.
+      ...(spec.whiteSwingChargeIcdMs ? { whiteSwingChargeIcdMs: spec.whiteSwingChargeIcdMs } : {}),
       critCharges: spec.critCharges ?? 0,
       str: spec.mods.str ?? 0,
       agi: spec.mods.agi ?? 0,

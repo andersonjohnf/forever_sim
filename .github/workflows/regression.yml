@@ -1,7 +1,9 @@
 name: Full regression
 
 # Every test on the deploy's platform (Linux x64, Node from .nvmrc): lint, typecheck, all unit
-# and all end-to-end tests. It runs beside each push's deploy without holding it up, since the
+# and all end-to-end tests. test:full's scrape:check step skips here (exit 0, with a line saying
+# so): CI has no .cache/client to regenerate from, and the cache-free half of that check runs
+# with the unit tests (docs/data/README.md#checking-the-committed-data). It runs beside each push's deploy without holding it up, since the
 # deploy runs only the smoke suite and a Mac can pass what this platform fails. Run it by hand
 # too: Actions → Full regression → Run workflow.
 on:

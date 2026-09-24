@@ -48,7 +48,7 @@ import {
   readBook,
 } from "./lib/spellbook.mjs";
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
-import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 
 const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -57,7 +57,7 @@ const SCRAPER = "scripts/scrape/spells-client.mjs";
 const OUT_DIR = "src/data/spells";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
-const DEFAULT_BASELINE = "1.15.9.69722";
+const DEFAULT_BASELINE = CLASSIC_BASELINE;
 const RACE_TABLES = ["ChrRaces", "CharBaseInfo"];
 /**
  * Player stats for tooltips that scale with them (Victory Rush: "${1+$AP*$m3/100} damage"; Forever's
@@ -98,7 +98,7 @@ for (const arg of process.argv.slice(2)) {
   else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const problem of [...checkConflicts(opts), ...dbdefsProblems(opts)]) usage(problem);
 function usage(msg) {
   console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);

@@ -45,6 +45,21 @@ export function slotsOffDefault(config: Pick<SimConfig, 'spec' | 'race' | 'gear'
   return GEAR_SLOTS.filter((slot) => !sameEntry(config.gear[slot], defaults[slot]))
 }
 
+/**
+ * What equipping the default set does to the slots that differ from it, for the Gear tab's line
+ * (docs/ux.md "Gear"): an empty slot is filled, one holding something is replaced. "replaces that
+ * slot", "replaces both", "fills all 17", or for a mix, "fills 2 empty slots and replaces the other 3".
+ */
+export function equipEffect(gear: SimConfig['gear'], offSlots: readonly GearSlot[]): string {
+  const empty = offSlots.filter((slot) => !gear[slot]).length
+  const held = offSlots.length - empty
+  // A no-break space keeps "all 17" whole, so a wrapped line never ends on "all" (docs/ux.md "Gear").
+  const count = (n: number) => (n === 1 ? 'that slot' : n === 2 ? 'both' : `all ${n}`)
+  if (empty === 0) return `replaces ${count(held)}`
+  if (held === 0) return `fills ${count(empty)}`
+  return `fills ${empty} empty ${empty === 1 ? 'slot' : 'slots'} and replaces the other${held === 1 ? '' : ` ${held}`}`
+}
+
 /** The parts of a spec's setup that follow its defaults: gear slots, and whether the talent build. */
 export interface Following {
   gear: GearSlot[]

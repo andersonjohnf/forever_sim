@@ -355,9 +355,10 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
  * otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
  * for threat from the pool (2026-09-24), held to the tanks' effective-health floor (docs/classes/
  * paladin.md "Protection defaults", druid.md §7.3a, warrior.md §6.3). Interim: the optimizer's
- * results (O4) replace it.
+ * results (O4) replace it. Exported for its test: `preRaidListGear` silently skips an item the class
+ * can't use, so the test checks every id is one it can.
  */
-const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
+export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly number[]>>>> = {
   'paladin-protection': {
     head: [12640], // Lionheart Helm
     neck: [19426], // Orb of the Darkmoon

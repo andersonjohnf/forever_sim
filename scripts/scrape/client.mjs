@@ -38,7 +38,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createFetcher } from "./lib/http.mjs";
-import { buildRecord, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildRecord, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib/spells.mjs";
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
 import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
@@ -50,7 +50,7 @@ const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/client.mjs";
 const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 const DEFAULT_PRODUCT = "wow_classic_beta";
-const DEFAULT_BASELINE = "1.15.9.69722";
+const DEFAULT_BASELINE = CLASSIC_BASELINE;
 
 // ---------------------------------------------------------------------------
 // Arguments
@@ -71,7 +71,7 @@ for (const arg of process.argv.slice(2)) {
   else if (key === "fresh" && value) opts.fresh = value;
   else usage(`Unknown argument: ${arg}`);
 }
-for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const problem of [...checkConflicts(opts), ...dbdefsProblems(opts)]) usage(problem);
 function usage(msg) {
   console.error(`${msg}\nUsage: node ${SCRAPER} [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--product=<product>] [--dbdefs=<sha>] [--out=<dir>] [--claims[=<build>]]`);
   process.exit(2);
@@ -458,6 +458,9 @@ for (const c of buffsDoc.consumables) {
     }
   }
   consumableRecords[c.itemId] = rec;
+  // Recorded in items.json, and said here too: a doc chain the client disagrees with shouldn't pass
+  // unseen (committed-data.test.mjs asserts the committed lists are empty).
+  for (const m of rec.docMismatches) warn(`${c.name}: ${m}`);
 }
 const itemCounts = {
   items: itemData.items.length,
@@ -533,6 +536,8 @@ for (const en of buffsDoc.enchants) {
   }
 }
 for (const rec of Object.values(enchantRecords)) rec.doc.sort((a, b) => (a.section + a.name < b.section + b.name ? -1 : 1));
+// Recorded in enchants.json, and said here too, as the consumables' are.
+for (const m of enchantDocMismatches) warn(m);
 
 // ---------------------------------------------------------------------------
 // gametables.json

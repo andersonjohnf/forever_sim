@@ -4,7 +4,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, talentsInCodeOrder, validateTalentBuild } from '@/data/talents/types'
-import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
+import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
 import { canUse, fitsFaction, uniqueConflicts } from './equip'
 import { buildPlan } from './plan/build'
@@ -110,6 +110,23 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     const listIds = (race: string) => preRaidListGear('druid-feral-bear', race).back?.itemId
     expect(listIds('alliance-night-elf')).toBe(18461) // Sergeant's Cloak
     expect(listIds('horde-tauren')).toBe(16342) // Sergeant's Cape
+  })
+
+  it('lists only interim items that exist and that the spec’s class can use', () => {
+    // preRaidListGear skips an unusable pick without a word and falls back to the list's
+    // (the Horde paladin's Legionnaire's Plate Leggings, 22873, did: the 2026-09-24 tank review's PP-1).
+    const specs = Object.keys(INTERIM_GEAR) as SpecId[]
+    expect(specs.length).toBeGreaterThan(0)
+    for (const spec of specs) {
+      const classId = SPEC_META[spec].classId
+      for (const [slot, ids] of Object.entries(INTERIM_GEAR[spec] ?? {})) {
+        for (const id of ids) {
+          const item = items.get(id)
+          expect(item, `${spec} ${slot} ${id} is in the item data`).toBeDefined()
+          expect(item && canUse(classId, item), `${spec} ${slot} ${id} (${item?.name}) is usable by a ${classId}`).toBe(true)
+        }
+      }
+    }
   })
 
   it('opens with the default race’s gear', () => {

@@ -438,9 +438,11 @@ slice is worked:
   assumptions list it (T4R-8).
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
-- **Pre-push check lows** (PV-1..PV-3, tank quick-fix log): README's "report" → "reports"; the release
-  stamp's second line opens on its separator at 390 px; a test that every `INTERIM_GEAR` id is
-  wearable by its class.
+- **A race change doesn't remember a slot it blocked** (gear-defaults verification FV-5): `changeRace`
+  (`src/features/character/faction-gear.ts`) moves the slots that follow the defaults with
+  `followDefaults`, but unlike a load it doesn't keep a slot a Unique rule or a two-hander blocked in
+  `following`, so that slot becomes the player's at the next save. Practically unreachable: the
+  factions' defaults differ only in non-unique PvP armour, which no Unique rule or two-hander blocks.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),

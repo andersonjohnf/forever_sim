@@ -171,7 +171,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     names them and says what the button replaces, since it replaces them all at once and there's
     no undo ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
     "3 slots differ from the threat set: Head, Legs and Main hand. Equipping it replaces all 3."
-    ("… replaces that slot." for one), after a dot in the primary colour (the changed-setting
+    ("… replaces that slot." for one, "… replaces both." for two; an empty slot, as after Remove all
+    gear, is filled rather than replaced: "… fills all 17.", or for a mix "… fills 2 empty slots and
+    replaces the other 3."), after a dot in the primary colour (the changed-setting
     marker of Character and Rotation); the row takes a muted fill and the button is the primary
     one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
     and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that

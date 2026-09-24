@@ -38,7 +38,7 @@ import { RACE_TABLES, classSlugs, classesOfMask, groupByText, isHidden, raceName
 import { SPELL_TEXT_TABLES, createSpellTextContext, renderSpellText } from "./lib/spell-text.mjs";
 import { SPELLBOOK_TABLES, castTimeOf, cooldownOf, costOf, createBookContext, norm, rangeOf } from "./lib/spellbook.mjs";
 import { isPassive } from "./lib/talent-tree.mjs";
-import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -46,7 +46,7 @@ const SCRAPER = "scripts/scrape/races-client.mjs";
 const OUT_FILE = "src/data/races/races.json";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
-const DEFAULT_BASELINE = "1.15.9.69722";
+const DEFAULT_BASELINE = CLASSIC_BASELINE;
 const SIM_CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
 /**
  * The client ships no race icon (character creation draws races from atlas textures). Icons follow
@@ -64,7 +64,7 @@ for (const arg of process.argv.slice(2)) {
   else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const problem of [...checkConflicts(opts), ...dbdefsProblems(opts)]) usage(problem);
 function usage(msg) {
   console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--skip-committed-check] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);

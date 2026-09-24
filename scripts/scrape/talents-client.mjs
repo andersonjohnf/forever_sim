@@ -52,7 +52,7 @@ import {
   slug,
   tooltipHeader,
 } from "./lib/talent-tree.mjs";
-import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
 
 const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock", "priest", "hunter"];
@@ -62,7 +62,7 @@ const SCRAPER = "scripts/scrape/talents-client.mjs";
 const OUT_DIR = "src/data/talents";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
-const DEFAULT_BASELINE = "1.15.9.69722";
+const DEFAULT_BASELINE = CLASSIC_BASELINE;
 
 /**
  * Every build code the repo stores (defaults, presets, the class docs' builds, tests), by class,
@@ -94,7 +94,7 @@ for (const arg of process.argv.slice(2)) {
   else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-for (const conflict of checkConflicts(opts)) usage(conflict);
+for (const problem of [...checkConflicts(opts), ...dbdefsProblems(opts)]) usage(problem);
 function usage(msg) {
   console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);

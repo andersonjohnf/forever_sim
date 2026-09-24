@@ -13,7 +13,7 @@ import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
-import { defaultGearFor, slotsOffDefault } from './default-set'
+import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
@@ -148,7 +148,7 @@ export function GearSection() {
           <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
             {offDefault === 0
               ? `Wearing ${setName}.`
-              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it replaces ${offDefault === 1 ? 'that slot' : `all ${offDefault}`}.`}
+              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it ${equipEffect(config.gear, offSlots)}.`}
           </span>
         </p>
         {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}

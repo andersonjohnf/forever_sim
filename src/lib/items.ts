@@ -51,6 +51,16 @@ const SUMMARY_STATS: [keyof Stats, string, '%' | ''][] = [
   ['blockValue', 'Block value', ''],
   ['spellPower', 'SP', ''],
   ['spellDamage', 'Spell dmg', ''],
+  // One school's spell damage (docs/mechanics/spells.md §5): a caster's tomes and elixirs.
+  ['arcaneSpellDamage', 'Arcane dmg', ''],
+  ['fireSpellDamage', 'Fire dmg', ''],
+  ['frostSpellDamage', 'Frost dmg', ''],
+  ['natureSpellDamage', 'Nature dmg', ''],
+  ['shadowSpellDamage', 'Shadow dmg', ''],
+  ['holySpellDamage', 'Holy dmg', ''],
+  ['spellHit', 'Spell hit', '%'],
+  ['spellCrit', 'Spell crit', '%'],
+  ['spellPenetration', 'Spell pen', ''],
   ['mp5', 'MP5', ''],
 ]
 

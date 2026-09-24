@@ -167,7 +167,7 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
               <Info aria-hidden />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" aria-labelledby={infoTitleId} className="flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-3 text-sm">
+          <PopoverContent align="end" aria-labelledby={infoTitleId} className="flex max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] flex-col gap-3 overflow-y-auto text-sm">
             <p id={infoTitleId} className="font-medium">
               The presets
             </p>

@@ -455,6 +455,20 @@ test.describe('Feral bear on a phone', () => {
     const info = (await tab.getByRole('button', { name: 'About the presets' }).boundingBox())!
     expect(info.height).toBeGreaterThanOrEqual(44)
     expect(info.x + info.width).toBeLessThanOrEqual(390 - 16)
+    // Its popover stays on the screen and scrolls to its last preset.
+    await tab.getByRole('button', { name: 'About the presets' }).tap()
+    const about = page.getByRole('dialog', { name: 'The presets' })
+    await expect(about).toBeVisible()
+    const bottom = async () => {
+      const box = (await about.boundingBox())!
+      return box.y + box.height
+    }
+    await expect.poll(bottom).toBeLessThanOrEqual(844)
+    const last = about.getByText(/Pick it when another tank or the raid covers your survival\.$/)
+    await last.scrollIntoViewIfNeeded()
+    await expect(last).toBeInViewport()
+    await page.keyboard.press('Escape')
+    await expect(about).toHaveCount(0)
     await preset(page).tap()
     await expectTouchTargets(page.getByRole('option'))
     await page.getByRole('option', { name: 'Defensive', exact: true }).tap()

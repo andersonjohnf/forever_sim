@@ -8,9 +8,10 @@
 // day in them. Only the automatic save does this: a share link, an imported code and a saved setup
 // keep exactly what they carry.
 import { factionOf, factionTwin } from '@/features/character/faction-gear'
-import { defaultGearFor, sameEntry, type Following } from '@/features/gear/default-set'
+import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { defaultConfig, defaultTalents, GEAR_SLOTS, normalizeConfig, preRaidListGear, SPEC_META, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { GEAR_SLOTS, SPEC_META, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
 
@@ -28,18 +29,23 @@ export function readFollowing(input: unknown): Partial<Record<SpecId, Following>
 }
 
 /**
- * Defaults before the save kept `following` (2026-09-24), from git history: the talent builds each
- * spec's default was, and the items and enchants the interim tank sets (INTERIM_GEAR) put in each
- * slot, in any version, for either faction. A save from then with one of these in a slot counts it as
- * the default's. Frozen: later default changes need nothing here, since saves now say what follows.
+ * The defaults before saves said what follows them (2026-09-24), frozen: nothing here reads today's
+ * defaults, so a save holding one of these keeps migrating however the defaults change later. The
+ * snapshot (./legacy-defaults.ts, generated from ee171d2a, the last build deployed before
+ * `following`) holds each spec's default talents, and for every race its default gear and v1's pick.
+ * These tables add what came before it, from git history: the talent builds each spec's default
+ * was, and the items the interim tank sets (INTERIM_GEAR) put in each slot, in any version, for either
+ * faction. A save from then with one of these in a slot counts it as the default's.
  */
 const FORMER_TALENTS: Partial<Record<SpecId, readonly string[]>> = {
   // warrior.md §6.1: 5/5/36, until P2's review (scripts/scrape/stored-builds.json)
   'warrior-protection': ['05-05-552001233201210531'],
   // druid.md §7.1: Feral Charge, 8/43/0
   'druid-feral-bear': ['050012-5523032120132210551-'],
-  // paladin.md "Protection defaults": v1's popular build, 2/42/7, then T2's interim 2/37/12
-  'paladin-protection': ['2-4530513321301551-502', '2-4530013321301551-50205'],
+  // paladin.md "Protection defaults": v1's popular build, 2/42/7, then T2's interim 2/37/12, then
+  // the fix round's 0/38/13, ee171d2a's default (the snapshot has it too; listed here as well, since
+  // it's the build most saves hold)
+  'paladin-protection': ['2-4530513321301551-502', '2-4530013321301551-50205', '-0530513321301551-50215'],
   // warlock.md §11.6: Demonology before H3's review
   'warlock-demonology': ['-0325003231120001351-0350305003'],
 }
@@ -105,32 +111,34 @@ const FORMER_UNENCHANTED: Partial<Record<SpecId, readonly GearSlot[]>> = {
   'paladin-protection': ['head', 'legs', 'mainHand'],
 }
 
-const listGearCache = new Map<string, SimConfig['gear']>()
+const toEntry = ([itemId, enchantId]: LegacyEntry): EquippedItem => (enchantId === undefined ? { itemId } : { itemId, enchantId })
 
-/** v1's default gear: the spec's pre-raid lists alone, without the interim sets, normalized. */
-function listGear(spec: SpecId, race: string): SimConfig['gear'] {
-  const key = `${spec}|${race}`
-  let gear = listGearCache.get(key)
-  if (!gear) {
-    gear = normalizeConfig({ ...defaultConfig(spec, race), gear: preRaidListGear(spec, race) }).config.gear
-    listGearCache.set(key, gear)
-  }
-  return gear
+/** The snapshot's default gear and v1's pick for a race, as a loaded setup holds them: none for a race it hasn't. */
+function frozenGear(spec: SpecId, race: string): SimConfig['gear'][] {
+  const frozen = LEGACY_DEFAULTS[spec]
+  const picks = frozen?.races[race]
+  if (!picks) return []
+  return [...new Set(picks)].map((i) => {
+    const gear: SimConfig['gear'] = {}
+    for (const [slot, entry] of Object.entries(frozen.sets[i]) as [GearSlot, LegacyEntry][]) gear[slot] = toEntry(entry)
+    return gear
+  })
 }
 
 /**
- * The parts of a setup saved before saves said what follows the defaults that held a default then:
- * a slot with the current default, v1's pre-raid list pick or a former interim item (with the
- * slot's default enchant, or none where the former default had none), for the setup's race or the
- * class's default race, or a race change's twin of one of those; and a talent build that is or was the
- * spec's default. Everything else is the player's.
+ * The parts of a setup saved before saves said what follows the defaults that held a default then,
+ * by the frozen tables alone, never today's defaults: a slot with the snapshot's default, its v1
+ * pick or a former interim item (with one of the slot's frozen enchants, or none where the former
+ * default had none), for the setup's race or the class's default race, or a race change's twin of
+ * one of those; and a talent build that was the spec's default. Everything else is the player's.
  */
 export function legacyFollowing(config: SimConfig): Following {
   const { spec, race } = config
   const { classId } = SPEC_META[spec]
   const faction = factionOf(race)
-  const races = [...new Set([race, defaultConfig(spec).race])]
-  const defaults = races.flatMap((r) => [defaultGearFor(spec, r), listGear(spec, r)])
+  const frozen = LEGACY_DEFAULTS[spec]
+  const races = [...new Set([race, frozen?.race ?? race])]
+  const defaults = races.flatMap((r) => frozenGear(spec, r))
   const gear = GEAR_SLOTS.filter((slot) => {
     const entry = config.gear[slot]
     if (defaults.some((d) => sameEntry(entry, d[slot]))) return true
@@ -146,7 +154,7 @@ export function legacyFollowing(config: SimConfig): Following {
     if (FORMER_UNENCHANTED[spec]?.includes(slot)) enchants.add(undefined)
     return ids.has(entry.itemId) && enchants.has(entry.enchantId)
   })
-  const talents = config.talents === defaultTalents(spec) || (FORMER_TALENTS[spec] ?? []).includes(config.talents)
+  const talents = config.talents === frozen?.talents || (FORMER_TALENTS[spec] ?? []).includes(config.talents)
   return { gear, talents }
 }
 

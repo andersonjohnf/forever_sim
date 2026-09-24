@@ -85,14 +85,22 @@ talent build, and what they changed stays theirs.
   (`changeRace` in `src/features/character/faction-gear.ts`), so a Horde paladin gets its own threat
   set pieces rather than keeping Alliance-only ones; the player's own items swap for their faction
   twins as before.
-- **Saves from before `following` migrate** (`legacyFollowing()` in `src/app/follow-defaults.ts`):
-  a slot follows if it holds today's default, v1's pick (the spec's pre-raid lists alone,
-  `preRaidListGear` without the interim sets) or any item a former interim set (`INTERIM_GEAR`, any
-  version in git history) put in that slot, for the setup's race or the class's default race, or a
-  race change's faction twin of one of those, with the slot's default enchant (or none, where the
-  former default had none: the Protection paladin's head, legs and weapon). The talent build follows
-  if it's the default or a former default (`stored-builds.json`'s "former default" builds). That
-  table is frozen: saves now say what follows, so later default changes need nothing added.
+- **Saves from before `following` migrate** (`legacyFollowing()` in `src/app/follow-defaults.ts`),
+  by **frozen tables only, never today's defaults**, so a save that holds an old default keeps
+  migrating however the defaults change later. The snapshot, `src/app/legacy-defaults.ts`, is the
+  defaults as deployed at `ee171d2a`, the last build before `following`: for each spec its default
+  talents and the class's default race, and for every race the class can be, its default gear
+  (`defaultGearFor`) and v1's pick (the pre-raid lists alone, `preRaidListGear` without the interim
+  sets), items and enchants. It's generated once by `scripts/freeze-legacy-defaults.mjs`, which reads
+  that commit's source rather than the working tree, and is never regenerated from a newer one;
+  `legacy-defaults.test.ts` checks its shape. Beside it, hand-kept tables from git history add
+  earlier defaults: any item a former interim set (`INTERIM_GEAR`, any version) put in a slot, and
+  the former default talent builds (`stored-builds.json`'s "former default" builds, and the
+  Protection paladin's `-0530513321301551-50215`). A slot follows if it holds one of the snapshot's
+  entries, or one of those items with one of the slot's frozen enchants (or none, where the former
+  default had none: the Protection paladin's head, legs and weapon), for the setup's race or the
+  class's default race, or a race change's faction twin of one. The talent build follows if it's one
+  of those builds. Saves now say what follows, so later default changes need nothing added here.
 - **Share links, setup codes and saved setups are deliberate** and keep exactly what they carry:
   they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. Once one is
   loaded, the autosave treats it as any setup: its slots that happen to hold today's defaults follow

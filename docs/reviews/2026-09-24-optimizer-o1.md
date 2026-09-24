@@ -9,7 +9,7 @@ main twice by user decision: crit- and crush-immune switches replaced a damage-t
 the tanks' survival floor gained Anticipation 5/5 and Deflection 5/5 (Toughness optional). The
 fixes below take both in.
 
-## Logic review (`9d2044e`, `2b14e01`, `8f689b1`)
+## Logic review (`d5616cc`, `bd06fd5`, `efd6f1f`)
 
 The reviewer ran the four default searches on `quick`, the bear in turns, a rotation sweep
 against main's tuner, and a winner's-curse probe on the race alone (its probes and logs are in
@@ -17,17 +17,17 @@ against main's tuner, and a winner's-curse probe on the race alone (its probes a
 
 | id | sev | origin | finding | disposition |
 | --- | --- | --- | --- | --- |
-| O1-1 | high | introduced | A rotation search never raced the start's own rotation (`optimize.ts`: the variants replaced it). So `optimizeInTurns` and `--search both` could end worse than the talent pass: on the bear, `--turns --rotation "maul.minRage=90"` found +10.1 points in the talent pass, then the rotation pass raced only the baseline and the winner with Maul held for 90, and fell back to the baseline (`bear-turns.log`). | fixed, `cd29573`: every search races its start and the start's own rotation beside the variants, deduplicated; `--search both` tries every build with the setup's rotation too. Unit tests: the rotation pass's candidates, rotations × builds, and the repro in miniature (the final answer is never worse than any pass's winner on a fresh seed). They fail on the old code |
-| O1-2 | medium | introduced | Winner's curse: the elimination bar was a plain 99% interval against the leader, the luckiest of thousands, so the true best was dropped in round 0 far more often than the doc's "at most a 0.5% chance" (`curse.probe.ts`: 4 in 20 at 3,000 near-equal candidates). | fixed, `185fa1f`: the bar is Student's t at a 0.5% upper tail ÷ the survivors compared with the leader (Bonferroni), with n − 1 degrees of freedom; the limit check uses t at 0.5% a side. [optimizer.md](../optimizer.md#racing) now states what's guaranteed: at most 0.5% a round under the normal model, at most r × 0.5% over r rounds. Probe and budget cost below |
-| O1-3 | medium | introduced | The tank talent winners drop the avoidance talents (Anticipation, Deflection) for threat, since the model's avoided hits cost rage, mana and Reckoning procs; the survival floor didn't keep them. | fixed by the user's decision (D30 on main, `9d96152`): Anticipation 5/5 and Deflection 5/5 join the warrior's and paladin's floor, Toughness optional (`47ed6e0`, warrior.md §6.4, paladin.md "Protection survival floor"). `--keep` extends the floor for a search, and floor.ts says how to change a default. A baseline that breaks the floor races as a reference only, so the answer keeps it (`cd29573`). `--confirm` names the [?] assumptions only the winner, only the default, or both rely on |
-| O1-4 | low | introduced | The budget ending's "the closest is X behind" always printed 0 (`Math.min` of positive gaps and 0). | fixed, `185fa1f` and `cd29573`: the race reports the closest unseparated survivor with its paired interval, and the CLI prints its build and gap |
-| O1-5 | low | introduced | An objective talent whose screen mean is below zero, but not clearly (Feral Swiftness for a bear, −0.9), was forced into every build it fit by maximality. | fixed, `d64a18b`: it's never a raise nor given leftover points, so builds with and without it race |
-| O1-6 | low | introduced | The pool and the CLI's thread runner updated the cache mirror and the busy count before building the plan: a plan that threw left the mirror claiming the worker had it. | fixed, `80d3c9a` (pool) and `cd29573` (CLI): the plan is built first |
-| O1-7 | low | introduced | `WorkerPool.fightRunner` had no test. | fixed, `80d3c9a`: a vitest against stub workers with the real engine cache: a plan goes only to a worker that lacks it, the mirror matches through evictions, and a failed plan leaves the bookkeeping as it was. Real workers run it first in O3's e2e tests (known gaps) |
-| O1-8 | low | introduced | A tank's talent search had no tree minimum unless given one, though D30's example and every run used 31 in the tank tree. | fixed, `cd29573`: 31 in the tank tree by default (`TANK_TREE`); `--min-tree <tree>=0` drops it |
-| O1-9 | low | introduced | The screen started every run at once, so a cancel waited for all of them; the doc didn't say what budget a space needs; and a space too big for `quick` threw. | fixed, `f8db7b7` (the screen keeps twice the lanes in flight and checks cancel before each) and `cd29573` (`fitBudget`: a smaller first round down to 20 fights, then a larger budget, with a note; [optimizer.md](../optimizer.md#budgets) has the sizes each budget covers) |
+| O1-1 | high | introduced | A rotation search never raced the start's own rotation (`optimize.ts`: the variants replaced it). So `optimizeInTurns` and `--search both` could end worse than the talent pass: on the bear, `--turns --rotation "maul.minRage=90"` found +10.1 points in the talent pass, then the rotation pass raced only the baseline and the winner with Maul held for 90, and fell back to the baseline (`bear-turns.log`). | fixed, `8ee7afa`: every search races its start and the start's own rotation beside the variants, deduplicated; `--search both` tries every build with the setup's rotation too. Unit tests: the rotation pass's candidates, rotations × builds, and the repro in miniature (the final answer is never worse than any pass's winner on a fresh seed). They fail on the old code |
+| O1-2 | medium | introduced | Winner's curse: the elimination bar was a plain 99% interval against the leader, the luckiest of thousands, so the true best was dropped in round 0 far more often than the doc's "at most a 0.5% chance" (`curse.probe.ts`: 4 in 20 at 3,000 near-equal candidates). | fixed, `8cb09b3`: the bar is Student's t at a 0.5% upper tail ÷ the survivors compared with the leader (Bonferroni), with n − 1 degrees of freedom; the limit check uses t at 0.5% a side. [optimizer.md](../optimizer.md#racing) now states what's guaranteed: at most 0.5% a round under the normal model, at most r × 0.5% over r rounds. Probe and budget cost below |
+| O1-3 | medium | introduced | The tank talent winners drop the avoidance talents (Anticipation, Deflection) for threat, since the model's avoided hits cost rage, mana and Reckoning procs; the survival floor didn't keep them. | fixed by the user's decision (D30 on main, `9d96152`): Anticipation 5/5 and Deflection 5/5 join the warrior's and paladin's floor, Toughness optional (`5db84d0`, warrior.md §6.4, paladin.md "Protection survival floor"). `--keep` extends the floor for a search, and floor.ts says how to change a default. A baseline that breaks the floor races as a reference only, so the answer keeps it (`8ee7afa`). `--confirm` names the [?] assumptions only the winner, only the default, or both rely on |
+| O1-4 | low | introduced | The budget ending's "the closest is X behind" always printed 0 (`Math.min` of positive gaps and 0). | fixed, `8cb09b3` and `8ee7afa`: the race reports the closest unseparated survivor with its paired interval, and the CLI prints its build and gap |
+| O1-5 | low | introduced | An objective talent whose screen mean is below zero, but not clearly (Feral Swiftness for a bear, −0.9), was forced into every build it fit by maximality. | fixed, `026da75`: it's never a raise nor given leftover points, so builds with and without it race |
+| O1-6 | low | introduced | The pool and the CLI's thread runner updated the cache mirror and the busy count before building the plan: a plan that threw left the mirror claiming the worker had it. | fixed, `8f9f8bc` (pool) and `8ee7afa` (CLI): the plan is built first |
+| O1-7 | low | introduced | `WorkerPool.fightRunner` had no test. | fixed, `8f9f8bc`: a vitest against stub workers with the real engine cache: a plan goes only to a worker that lacks it, the mirror matches through evictions, and a failed plan leaves the bookkeeping as it was. Real workers run it first in O3's e2e tests (known gaps) |
+| O1-8 | low | introduced | A tank's talent search had no tree minimum unless given one, though D30's example and every run used 31 in the tank tree. | fixed, `8ee7afa`: 31 in the tank tree by default (`TANK_TREE`); `--min-tree <tree>=0` drops it |
+| O1-9 | low | introduced | The screen started every run at once, so a cancel waited for all of them; the doc didn't say what budget a space needs; and a space too big for `quick` threw. | fixed, `1cfb924` (the screen keeps twice the lanes in flight and checks cancel before each) and `8ee7afa` (`fitBudget`: a smaller first round down to 20 fights, then a larger budget, with a note; [optimizer.md](../optimizer.md#budgets) has the sizes each budget covers) |
 
-**D30's update** (`cd29573`): crit immune (`bossCritPct<=0`) and crush immune (`bossCrushPct<=0`)
+**D30's update** (`8ee7afa`): crit immune (`bossCritPct<=0`) and crush immune (`bossCrushPct<=0`)
 are sheet constraints read from the boss table the engine rolls and the Results show
 (`sheet.bossTable`; with the rotation's block buff up, Holy Shield, when it keeps one, as the
 Results' second table), off by default, with `--crit-immune` and `--crush-immune`. Every reported
@@ -67,12 +67,15 @@ fights each):
 | Spec | Space | Result | Confirmed vs the default |
 | --- | --- | --- | --- |
 | Protection warrior | 3,544 builds | Toughness 1→0, Improved Thunder Clap 0→1 | +0.54 points (+0.51 to +0.58), clears with ratings either way |
-| Protection paladin | 10,805 builds; the default races as a reference (Anticipation 0/5) | Anticipation 0→5, Toughness 4→0, Sanctified Judgement 3, Crusade 2, … | +5.30 (+5.22 to +5.39); the gain flows through `sanctifiedJudgement` [?], which only the winner relies on |
+| Protection paladin | 10,805 builds; the default races as a reference (Anticipation 0/5) | Anticipation 0→5, Toughness 4→0, Sanctified Judgement 3, Crusade 2, … | +5.30 (+5.22 to +5.39); only the winner relies on `sanctifiedJudgement` [?], so part of the gain may rest on it |
 | Feral bear | 199 builds | Feral Swiftness 2→0 (+4% dodge), Feral Instinct 0→2 | +0.59 (+0.48 to +0.69), taking 30 more damage a second |
 
 These aren't O4's defaults: that's `thorough` with the whole process.
 
 ## For the lead
+
+Both points are settled in the verification pass below: the user added Feral Swiftness 2/2 to the
+bear's floor (OV-8), and crit immunity now reads the table without Holy Shield (OV-4).
 
 - **The bear's floor (proposal, not added):** the bear's winner drops Feral Swiftness 2/2 (+4%
   dodge) for +0.59 points, the same trade the user ruled out for the warrior's and paladin's
@@ -84,4 +87,58 @@ These aren't O4's defaults: that's `thorough` with the whole process.
 
 ## Verification pass
 
-Awaiting the verification pass, scoped to `185fa1f`..`cd29573` and the docs commits after them.
+A fresh reviewer verified `8cb09b3`..`8ee7afa` and the docs commits after them (its probes are in
+`.cache/probes/o1-verify/`). Its two new bugs were in how the setup and the baseline are handled,
+the same area as O1-1 and O1-3 in the round before, so under step 6 the lead proposed a simpler
+design and **the user chose it**: the setup is only ever a measuring stick. It races every round as
+the baseline, every candidate is paired with it, but it's never an answer. Every answer meets every
+constraint (talent, sheet and result), checked the same way for every candidate in every pass. The
+setup can win only as a regular candidate, a copy that met them like any other. When nothing meets
+them, there's no answer and the report names what blocks. OV-1 and OV-2 are resolved by that
+design rather than by patching the special cases, which it removes (the race's reference-only
+candidates and the index-0 and index-1 branches).
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| OV-1 | high | introduced (O1-1's fix) | In turns, a rotation pass ran with no talent constraints, so it could answer with the baseline, whose build breaks them: the bear with `--exclude Ferocity --rotation maul.minRage=90` ended on the default, which takes Ferocity (`turns.probe.ts`). | fixed by the simpler design, `7a0212f`: every pass holds every candidate to every constraint (a rotation pass keeps the start's build, `TalentSearch.fixedBuild`, and checks the talent constraints too), and the setup races only as a candidate that meets them. Unit test: the repro in turns; every pass's candidates keep Ferocity out, and the rotation pass leaves the setup out. The CLI repro on `quick` (`.cache/probes/o1-simple/bear-turns.log`): the talent pass answers `050022-052103202313221005-505`, the rotation pass keeps it, and both say the setup fails "Ferocity taken" |
+| OV-2 | high | introduced (D30's immunity update) | The baseline always raced whatever it failed, so when every candidate missed a sheet constraint it raced alone and "won": the paladin under `--crit-immune` answered with its default, 5.20% boss crit (`pal-crit.log`). | fixed by the simpler design, `7a0212f`: no candidate, no answer. The report's leader is null, `blocked` names each constraint no candidate meets, with the closest value, and the CLI prints "no setup meets these constraints". Unit test: the repro. The CLI (`.cache/probes/o1-simple/pal-crit.log`): "crit immune: no candidate reaches the defense it needs on this gear; the closest has 330 defense, leaving the boss 4.40% crit", with all 10,805 builds left out for it and the setup for Anticipation 0/5 |
+| OV-3 | low | introduced (O1-2) | `tTail(0)` recursed forever (`t <= 0` called itself with −0), and every negative t went through that branch. | fixed, `0eed941`: 0.5 at zero, mirrored below it, NaN for NaN; tests |
+| OV-4 | low | introduced (D30's immunity update) | Crit immunity read the table with Holy Shield up, so a paladin whose block pushed crits off only while it's up would count as crit immune. | fixed, `fdd5290`: crit reads the table with no block buff (`sheet.bossTable`), crush the one with it up (`immunityTables`); a test with a table whose Holy Shield pushed crits off |
+| OV-5 | low | introduced (O1-4) | `unseparated` listed every survivor but the leader, including those the leader is clear of at 95% that the (higher) elimination bar kept; `closest` was set on a separated ending too. | fixed, `7a0212f`: `unseparated` is the survivors whose paired 95% lower bound behind the leader isn't above zero, `closest` only on a budget ending; a toy race that fails on the old rule |
+| OV-6 | low | introduced (O1-8) | `--min-tree` replaced the tank's default 31 in its tank tree, so a minimum for another tree silently dropped it. | fixed, `7a0212f`: the search's minimums merge over the default (a tree given replaces its own, another tree's joins); the CLI marks the default; a test |
+| OV-7 | low | introduced (docs) | The docs still gave the bear's 180 candidates (199 builds, 200 candidates on that day's space); "the gain flows through `sanctifiedJudgement`" said more than the check measures; the CLI's "builds × rotations … with the baseline and the start" line was hard to read. | fixed, `b29e3fc` and this log: optimizer.md has the spaces after this round (the bear's is 129 builds and 129 candidates now that Feral Swiftness is kept, and says it was 199 and 200 before), the paladin's line above is softened, and the CLI prints "candidates: N, each paired with the baseline" |
+| OV-8 | low | introduced (O1-3's floor) | The bear's winner dropped Feral Swiftness 2/2 (+4% dodge) for +0.59 points, the trade the user ruled out for the other tanks' avoidance talents. | **user decision** (D30 on main, `8553d5b`), `3b04b99`: Feral Swiftness 2/2 joins `SURVIVAL_FLOOR` and druid.md §7.6 |
+
+### The numbers after this round
+
+The default searches (`quick`, seed 1, `--confirm` on seed 2654435770, 40,000 fights each; logs in
+`.cache/probes/o1-simple/`):
+
+| Spec | Space | Result | Confirmed vs the default |
+| --- | --- | --- | --- |
+| Protection warrior | 3,544 builds, 3,545 candidates (the setup's own build isn't in the space) | Toughness 1→0, Improved Thunder Clap 0→1, separated after 5 rounds (484,086 fights) | +0.54 (+0.51 to +0.58), clears with ratings either way |
+| Protection paladin | 10,805 builds and candidates; the setup is left out (Anticipation 0/5) and is only the baseline | Anticipation 0→5, Toughness 4→0, Improved Holy Strike 2→0, Iron Creed 5→0, Sanctified Judgement 0→3, Sacred Arbiter 0→1, Crusade 0→2, separated after 9 rounds | +5.30 (+5.22 to +5.39), clears with ratings either way; only the winner relies on `sanctifiedJudgement` [?] |
+| Feral bear | 129 builds and candidates (the setup's build is one), Feral Swiftness 2/2 kept | **the setup itself**, separated after round 0; the next best is −8.33 points (−9.14 to −7.51) | nothing to confirm: the setup leads as a candidate |
+
+The warrior's and paladin's winners are the fix round's. The bear's changes with the floor: every
+build keeping Feral Swiftness 2/2 is clearly below the default, so the default stands.
+
+`npm run test:full` after the rebase onto main: lint and typecheck clean; 16 unit tests and one e2e
+test (the tank results sheet's layout on a phone) failed only under a load average over 30 from
+other agents (timeouts and the speed benchmarks), and pass run alone.
+
+### For the next verification
+
+Scope `0eed941`..`b29e3fc` (the log commit needs no pass). Worth checking:
+- that no path still treats index 0 or the start specially: the race's standings never hold the
+  baseline, a pass in turns holds the talent constraints, `--search both` checks every build ×
+  rotation, and `confirm` pairs the winner with the setup;
+- the no-answer status: `blocked`'s reasons for a talent constraint no build keeps, for sheet
+  constraints met alone but not together, and for result constraints (every candidate clearly
+  outside, or the budget ending with none whose means meet them); the CLI and the JSON report with
+  a null leader and in turns;
+- the setup as a candidate: its copy runs the same fights as the baseline (twice the work for one
+  candidate), ties merge with a space build that makes the same plan, and `isSetup` in the CLI;
+- `--search rotation` has no talent constraints (documented), while `--turns` does;
+- the bear's new default search: the setup leads by 8 points in round 0, the space's structure
+  (every build keeping Feral Swiftness and 31 in Feral), and whether that's plausible.

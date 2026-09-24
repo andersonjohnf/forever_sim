@@ -17,6 +17,7 @@ import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanPlan } from '../classe
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
+import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -365,7 +366,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
   // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
   // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
-  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage' || classId === 'warlock'
+  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage' || classId === 'warlock' || classId === 'priest'
   const usesRage = classId === 'warrior' || classId === 'druid'
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
@@ -598,8 +599,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     for (const e of sheetOnly) if (e.kind === 'stat') sheetBlock[e.stat] += e.value
     shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
   }
-  // docs/mechanics/spells.md §12: a caster spec (a mage, a warlock, an Elemental shaman) casts from range and
-  // never swings its weapon (above), whose stats still count: nothing melee applies to it.
+  // docs/mechanics/spells.md §12: a caster spec (a mage, a warlock, an Elemental shaman, a Shadow
+  // Priest) casts from range and never swings its weapon (above), whose stats still count: nothing
+  // melee applies to it.
   const melee = !meta.caster
   const mh = weapons[HAND.main]
   const sheet: CharacterSheet = {
@@ -1220,6 +1222,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'mage' ? { mana: mageManaPlan(derived, block.mp5, setup.talents, profile), ...mageFreeCast(auras) } : {}),
     // docs/classes/warlock.md §5: the same mana model, with the warlock's Spirit regeneration.
     ...(classId === 'warlock' ? { mana: warlockManaPlan(derived, block.mp5) } : {}),
+    // docs/classes/priest.md#5-mana: the same model, with Meditation's share while casting; Inner
+    // Focus is the free-cast aura (#35-inner-focus-14751).
+    ...(classId === 'priest' ? { mana: priestManaPlan(derived, block.mp5, setup.talents), ...priestPlan(auras) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
@@ -1239,7 +1244,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         ? 'reactionTimeRogue'
         : energy
           ? 'reactionTimeEnergy'
-          : classId === 'paladin' || (classId === 'shaman' && !melee)
+          : classId === 'paladin' || classId === 'priest' || (classId === 'shaman' && !melee)
             ? 'reactionTimeMana'
             : classId === 'shaman'
               ? 'reactionTimeShaman'
@@ -1267,7 +1272,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  // A caster's spells need no weapon (docs/classes/mage.md, warlock.md), and it swings none: no note.
+  // A caster's spells need no weapon (docs/classes/mage.md, warlock.md, priest.md), and it swings none: no note.
   if (!mh && !meta.caster) {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
@@ -1494,6 +1499,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of mageAssumptions(plan)) notes.add(id)
   // docs/classes/warlock.md §9: what the warlock's spells, mana and talents rely on.
   for (const id of warlockAssumptions(plan)) notes.add(id)
+  // docs/classes/priest.md#9-open-questions: what the priest's spells, talents and mana rely on.
+  for (const id of priestAssumptions(plan, setup.talents)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }

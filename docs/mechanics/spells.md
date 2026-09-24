@@ -20,7 +20,7 @@ that covers every magic school, Holy included, and makes Moonkin Aura all crit
 Status: researched 2026-09-24 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 ·
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the caster core (slice K1)
 ([Implementation notes](#implementation-notes)); the first caster specs on it are the mage's (K2,
-[mage.md](../classes/mage.md))
+[mage.md](../classes/mage.md)), then the Shadow Priest (K4, [priest.md](../classes/priest.md))
 
 ---
 
@@ -331,7 +331,8 @@ What the Forever client changes for casters, read from its tables against Classi
 - **Channels** reuse the cast ticks (Consecration's) for a triggering channel, or the spell's DoT
   for a DoT channel, and an end event (`EV_CHANNEL_END`) that delivers a tick due that moment
   first, then cuts off the rest and takes down the channel's own aura (`channelAura`), which is
-  queued to expire just after it.
+  queued to expire just after it. The tick it delivers makes that tick's own queued event stale, so
+  a channel's last tick lands once (K4: a full Mind Flay ticks 3 times, not 4).
 - **Casting speed** is the derived stats' (`castHasteMult`: Π casting speed × haste rating's %)
   times the auras'. It divides only the casts marked `castHasted`, so Slam and Hammer of Wrath keep
   their fixed cast times.

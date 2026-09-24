@@ -13,6 +13,7 @@ import { shamanEffects } from './shaman/setup'
 import { rogueEffects } from './rogue/setup'
 import { mageEffects } from './mage/setup'
 import { warlockEffects } from './warlock/setup'
+import { priestEffects } from './priest/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -74,6 +75,8 @@ export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, p
   if (classId === 'mage') return { effects: mageEffects(talents), stance: null, talents, simulated: true }
   // docs/classes/warlock.md §4: its passive talents and procs; mana is the plan's (warlockManaPlan).
   if (classId === 'warlock') return { effects: warlockEffects(talents), stance: null, talents, simulated: true }
+  // docs/classes/priest.md §4: its talents and Shadowform; mana is the plan's (priestManaPlan).
+  if (classId === 'priest') return { effects: priestEffects(talents), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

@@ -30,6 +30,7 @@ import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotat
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
+import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -93,6 +94,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (SPEC_META[spec].classId === 'mage') return mageOptions(spec)
   if (spec === 'warlock-destruction') return DESTRUCTION_OPTIONS
   if (spec === 'warlock-affliction') return AFFLICTION_OPTIONS
+  if (spec === 'priest-shadow') return SHADOW_OPTIONS
   return []
 }
 
@@ -100,6 +102,8 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
   if (spec === 'shaman-elemental') return ELEMENTAL_FIXED_ROWS
+  // docs/classes/priest.md §6: Shadowform, up all fight.
+  if (spec === 'priest-shadow') return SHADOW_FIXED_ROWS
   return []
 }
 
@@ -138,6 +142,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (SPEC_META[spec].classId === 'mage') return 'The defaults are the common priority.'
   // docs/classes/warlock.md §6.3: the same for the warlock.
   if (spec === 'warlock-destruction' || spec === 'warlock-affliction') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  if (spec === 'priest-shadow') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -170,6 +175,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'mage-arcane': 'mage.arcane.racial.enabled',
   'warlock-destruction': 'warlock.destruction.racial.enabled',
   'warlock-affliction': 'warlock.affliction.racial.enabled',
+  'priest-shadow': 'priest.shadow.racial.enabled',
 }
 
 /**
@@ -215,6 +221,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'rogue-subtlety') Object.assign(out, subtletyUnusedSettings(values))
   if (spec === 'warlock-destruction') Object.assign(out, destructionUnusedSettings(values, setup.talents ?? new Map()))
   if (spec === 'warlock-affliction') Object.assign(out, afflictionUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
+  if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   return out
 }
 
@@ -279,5 +287,7 @@ export function classRotation(
   // docs/classes/warlock.md §6.
   if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context)
   if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
+  // docs/classes/priest.md §6.
+  if (spec === 'priest-shadow') return shadowRotation(values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

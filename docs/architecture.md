@@ -214,7 +214,7 @@ A spec is data plus small ability modules, never its own loop.
   landed one puts its debuff on the boss; and one that deals no damage never rolls for a crit. A
   `spell` ability rolls nothing itself and hands its `SpellDef` to the one resolver above.
 - **The caster core** ([spells.md](mechanics/spells.md), slice K1; the mage's specs are the first on
-  it, K2) extends that
+  it, K2, then the Shadow Priest, K4) extends that
   resolver rather than adding a second path, and every addition is an optional field a plan
   without it never reads, so every warrior, druid and paladin result is unchanged, bit for bit:
   - **Schools:** spell damage per school (all-schools plus the school's own lines), and per
@@ -277,6 +277,10 @@ A spec is data plus small ability modules, never its own loop.
   resistance with its hit (Faerie Fire, Nature). A marker aura with several stacks makes a bleed a
   stacking one, whose ticks and hit read the stacks (Lacerate). `noCooldownAura` suspends a
   cooldown (Berserk's Mangle), and `itemArmorPct` joins the defensive aura mods (Enrage).
+- **The Shadow Priest's pieces** ([priest.md §8](classes/priest.md#8-implementation-notes)), each
+  optional: the free-cast charge can carry crit to the spell that uses it
+  (`Plan.freeCastCritPct`: Inner Focus); and condition `abilityReady` (50) waits until an ability
+  could start now (Inner Focus before Mind Blast).
 - **The shaman's pieces** ([shaman.md › How the engine does it](classes/shaman.md#how-the-engine-does-it)),
   generic and optional, so a plan without them runs as before. The shaman shares the paladin's mana
   model and the results' mana ledger, and has no rage pool. A spell can be boosted by an aura it

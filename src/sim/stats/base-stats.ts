@@ -146,6 +146,24 @@ const WARLOCK_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-troll': { str: 46, agi: 52, sta: 66, int: 106, spi: 116 },
 }
 
+/**
+ * Priest base attributes at level 60, [?] placeholders (D24 rule 2; docs/classes/priest.md#73-base-values,
+ * character-stats.md OQ-1). Origin: the mangos emulator's 1.12 rows,
+ * https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql, not
+ * evidence: the class row Str 35, Agi 40, Sta 50, Int 120, Spi 125 plus the [C] race offsets, which
+ * wowsims/classic `base_stats.go` copies. Spirit is stored raw (the emulator's Human 131 is 125 ×
+ * 1.05). The Gnome, a priest only in Forever, is the class row plus its offsets, Int 123: Forever
+ * removed its +5% Int. No Skyborne priest in Forever.
+ */
+const PRIEST_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 35, agi: 40, sta: 50, int: 120, spi: 125 },
+  'alliance-dwarf': { str: 37, agi: 36, sta: 53, int: 119, spi: 124 },
+  'alliance-night-elf': { str: 32, agi: 45, sta: 49, int: 120, spi: 125 },
+  'alliance-gnome': { str: 30, agi: 43, sta: 49, int: 123, spi: 125 },
+  'horde-undead': { str: 34, agi: 38, sta: 51, int: 118, spi: 130 },
+  'horde-troll': { str: 36, agi: 42, sta: 51, int: 116, spi: 126 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -316,6 +334,25 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     // PlayerExpectedStat.BaseMana 1373 [F] (docs/mechanics/spells.md §8)
     baseMana: 1373,
   },
+  priest: {
+    // Unmeasured (docs/classes/priest.md#73-base-values): the attribute rows, attack power, crit, spell
+    // crit, dodge and health are D24 placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // PlayerExpectedStat.CritPerAgility 0.0005, 20 Agility per 1% [F]
+    critPerAgi: 0.05,
+    // PlayerExpectedStat.SpellCritPerIntellect 0.000168, 59.52 Intellect per 1% [F] (docs/mechanics/spells.md §2)
+    spellCritPerInt: 0.0168,
+    baseSpellCrit: null,
+    baseDodge: null,
+    // A priest can't parry or block (no parry skill, no shields).
+    baseParry: 0,
+    baseBlock: 0,
+    baseHealth: null,
+    // PlayerExpectedStat.BaseMana 1376 [F] (docs/mechanics/spells.md §8)
+    baseMana: 1376,
+  },
 }
 
 /**
@@ -448,5 +485,17 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseCrit: 2,
     baseSpellCrit: 1.7,
     baseDodge: 2,
+  },
+  // docs/classes/priest.md#73-base-values: every priest base value nobody has measured, each "[?]
+  // placeholder (D24)": attributes and health 1,387 from the mangos emulator's tables (as the other
+  // classes'), and base spell crit 0.8%, melee crit and dodge 3% and attack power −10 from
+  // wowsims/classic's priest row. Not evidence. Only the spell crit moves a Shadow Priest's DPS.
+  priest: {
+    attributes: PRIEST_ROWS,
+    baseAp: -10,
+    baseHealth: 1387,
+    baseCrit: 3,
+    baseSpellCrit: 0.8,
+    baseDodge: 3,
   },
 }

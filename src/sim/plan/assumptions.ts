@@ -19,6 +19,7 @@ const ROGUE = 'docs/classes/rogue.md'
 const MAGE = 'docs/classes/mage.md'
 const LOCK = 'docs/classes/warlock.md'
 const SPELLS = 'docs/mechanics/spells.md'
+const PRIEST = 'docs/classes/priest.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -808,6 +809,51 @@ const REGISTRY = {
   warlockTalentStacking: {
     text: 'Talents that raise the same spell’s damage multiply with each other (Agonizing Flames and Aftermath on Immolate, Malediction and Shadow Mastery on the DoTs), as the modern client does; the additive reading would be under 1% lower. Untested.',
     docRef: `${LOCK}#4-talents`,
+  },
+  // --- The Shadow Priest's (docs/classes/priest.md §9) ---
+  priestNoMelee: {
+    text: 'You stand at range and cast: no melee swings and no wand shots are simulated, though your weapon’s and wand’s stats count.',
+    docRef: `${PRIEST}#8-implementation-notes`,
+  },
+  manaRegenPriest: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 13 + Spirit / 4 when you’ve spent none for 5 s, Meditation’s share of it while casting, and your mp5 always, as in Classic Era; untested in Forever.',
+    docRef: `${PRIEST}#5-mana`,
+  },
+  priestSpellResists: {
+    text: 'The boss resists your Shadow spells by 6% on average (24 resistance at level 63), Mind Flay whole or not at all, like a spell with a slow; the numbers are Classic Era’s, untested in Forever.',
+    docRef: 'docs/mechanics/spells.md#3-resistances',
+  },
+  priestPeriodicCrits: {
+    text: 'Shadow Word: Pain’s and Mind Flay’s ticks can crit, as the Forever client’s flag says, at your spell crit when they land, for double damage in Shadowform. Untested in combat.',
+    docRef: `${PRIEST}#31-shadow-word-pain-r8-10894`,
+  },
+  mindFlayChannel: {
+    text: 'Mind Flay rolls to hit once, as it starts, and casting speed doesn’t shorten it; a cut channel loses the ticks it would have dealt. Untested.',
+    docRef: 'docs/mechanics/spells.md#6-channels',
+  },
+  shadowWeaving: {
+    text: 'Shadow Weaving is a debuff on the boss that raises only your Shadow damage, 2% a stack; each of your Shadow spells that lands adds a stack and refreshes it, and damage over time ticks don’t. Forever’s client says so; untested in combat.',
+    docRef: `${PRIEST}#4-talents`,
+  },
+  shadowformCosts: {
+    text: 'Shadowform halves your Shadow spells’ mana after the talents’ cuts, which add up (Mental Agility, Devouring Contagion); each cost rounds down to whole mana. Untested.',
+    docRef: `${PRIEST}#36-shadowform-15473`,
+  },
+  shadowFocusHit: {
+    text: 'Shadow Focus adds its hit to your Shadow spells, up to the 17% that makes them never miss a raid boss in Forever.',
+    docRef: `${PRIEST}#4-talents`,
+  },
+  innerFocus: {
+    text: 'Inner Focus is used just before a Mind Blast, which costs nothing and gets +25% crit; its charge goes to the next spell with a cost.',
+    docRef: `${PRIEST}#35-inner-focus-14751`,
+  },
+  darkSacrifice: {
+    text: 'Dark Sacrifice’s 1,600 mana comes in 5 ticks over 15 s; the health it costs isn’t tracked.',
+    docRef: `${PRIEST}#72-race-and-weapons`,
+  },
+  shadowfiendNotSimulated: {
+    text: 'Shadowfiend isn’t simulated: it’s a pet, which the sim can’t model yet, so its mana (5% of yours each hit, for 15 s every 5 minutes) is left out.',
+    docRef: `${PRIEST}#5-mana`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

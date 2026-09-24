@@ -52,9 +52,13 @@ const ROGUES: SpecId[] = ['rogue-combat', 'rogue-assassination', 'rogue-subtlety
 /** The melee DPS specs: Leader of the Pack's audience, which the casters' Moonkin Aura rivals. */
 const MELEE_DPS: SpecId[] = [...WARRIOR_DPS, 'druid-feral-cat', 'paladin-retribution', ...SHAMAN, ...ROGUES]
 const ROGUE_ONLY: readonly ClassId[] = ['rogue']
-/** The warlock specs (docs/classes/warlock.md#74-enchants-and-consumables), and entries only a warlock uses among the classes in scope. */
-const WARLOCKS: SpecId[] = ['warlock-destruction', 'warlock-affliction']
-const WARLOCK_ONLY: readonly ClassId[] = ['warlock']
+/**
+ * The Shadow casters, whose Shadow spells the Shadow-only entries (Elixir of Shadow Power) serve: the
+ * warlocks (docs/classes/warlock.md#74-enchants-and-consumables) and the Shadow Priest
+ * (docs/classes/priest.md#74-enchants-and-consumables); their classes, the only ones in scope that use them.
+ */
+const SHADOW_SPECS: SpecId[] = ['warlock-destruction', 'warlock-affliction', 'priest-shadow']
+const SHADOW_CASTERS: readonly ClassId[] = ['warlock', 'priest']
 const ROGUE_DOC = 'docs/classes/rogue.md'
 
 /**
@@ -107,7 +111,8 @@ const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 't
  * presets, Buffs tab, saved setups and plan; the `forSpecs: 'caster'` ones (Moonkin Aura, Power
  * Infusion, Curse of the Elements) come in (buffs doc "Class-only entries"). The caster classes are
  * those whose every spec is a caster (the mage since K2, docs/classes/mage.md; the warlock since
- * K3, docs/classes/warlock.md): the mana and spell damage entries go to them by class. A class with a
+ * K3, docs/classes/warlock.md; the priest, whose one spec in scope is Shadow, since K4,
+ * docs/classes/priest.md): the mana and spell damage entries go to them by class. A class with a
  * melee spec too (the druid's Feral specs beside Balance) gets those per spec instead.
  */
 export const CASTER_SPECS: readonly SpecId[] = SPEC_IDS.filter((s) => SPEC_META[s].caster === true)
@@ -765,13 +770,14 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Elixirs',
     summary: '+40 Shadow spell damage',
-    forClasses: WARLOCK_ONLY,
+    forClasses: SHADOW_CASTERS,
     // Spell damage only a caster's spells read (spells.md §5).
     forSpecs: 'caster',
     docRef: `${DOC}#32-elixirs`,
-    // 9264 → 11474 #0: aura 13, school mask 32 (Shadow), the same in both clients.
+    // 9264 → 11474 #0: aura 13, school mask 32 (Shadow), 40, 30 min, unchanged in Forever [F] [C]
+    // [client] (SpellEffect, SpellDuration, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'stat', stat: 'shadowSpellDamage', value: 40 }],
-    presets: { raid: WARLOCKS, max: WARLOCKS },
+    presets: { raid: SHADOW_SPECS, max: SHADOW_SPECS },
   },
   {
     id: 'elixirOfHolyPower',

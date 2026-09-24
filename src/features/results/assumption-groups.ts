@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {
@@ -74,6 +74,18 @@ export const ASSUMPTION_GROUP = {
   omenOfClarityCat: 'class',
   noPowershift: 'class',
   energyTicks: 'class',
+  // The Shadow Priest's (docs/classes/priest.md §9).
+  priestSpellResists: 'class',
+  priestPeriodicCrits: 'class',
+  shadowWeaving: 'class',
+  mindFlayChannel: 'class',
+  shadowformCosts: 'class',
+  shadowFocusHit: 'class',
+  innerFocus: 'class',
+  manaRegenPriest: 'class',
+  priestNoMelee: 'class',
+  shadowfiendNotSimulated: 'class',
+  darkSacrifice: 'character',
   // The rogue's (docs/classes/rogue.md §9).
   energyTicksRogue: 'class',
   rogueFinisherAp: 'class',

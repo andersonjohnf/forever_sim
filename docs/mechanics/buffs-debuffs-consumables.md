@@ -324,7 +324,7 @@ in the tooltips; category 79 [F] [client] (ItemEffect, 1.60.1.69913)).
 | Elixir of the Phalanx *(new)* | 250329 → 1250920 | +400 max health, +500 armor | 30 min | Unknown | New, required level 55 | [F] effect · [?] stacking | [fc/250329](https://foreverchanges.pro/item/250329) |
 | Elixir of Strength *(new)* | 250349 | +10 Str | 30 min | Unknown | New, required level 45 | [F] effect · [?] stacking | [fc/250349](https://foreverchanges.pro/item/250349) |
 | Greater Arcane Elixir | 13454 → 17539 | +35 spell damage (all schools, so Holy too) | 1 h | — | Alchemy (Same). Paladins only | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
-| Elixir of Shadow Power | 9264 → 11474 | +40 Shadow spell damage | 30 min | — | Alchemy (Same). Warlocks only among the classes in scope ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | [F] | [client] (SpellEffect, 1.60.1.69913) |
+| Elixir of Shadow Power | 9264 → 11474 | +40 Shadow spell damage | 30 min | — | Alchemy (Same). Warlocks and priests only among the classes in scope ([warlock](../classes/warlock.md#74-enchants-and-consumables), [priest](../classes/priest.md#74-enchants-and-consumables)) | [F] [C] | [client] (SpellEffect, SpellDuration, 1.60.1.69913 and 1.15.9.69722) |
 | Elixir of Holy Power *(Classic: Elixir of Greater Firepower)* | 21546 → 1310077 | **+40 Holy spell damage** (C: +40 Fire) | 30 min | — | Alchemy. Renamed and re-schooled, so it is now a paladin elixir | [F] | [fc/21546](https://foreverchanges.pro/item/21546) |
 | Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, it may put a debuff on the attacker: +8 physical damage taken for 3 min (11374) | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 
@@ -762,6 +762,7 @@ their stacking group is verified; the UI offers them as options.
 | Elemental shaman | — | Greater Arcane Elixir; Major Mana Potion. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet; no stones: a caster never swings, and the melee entries leave its Buffs tab ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
 | Warlock (both) | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune |
+| Shadow Priest | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([priest](../classes/priest.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 | Mage (Fire, Frost, Arcane) | — | Greater Arcane Elixir; Major Mana Potion. Conjured mana gems are the mage's own ([mage](../classes/mage.md#mana)) | Flask of Supreme Power; Demonic / Dark Rune. Brilliant Wizard Oil, Elixir of Frost Power and the caster foods aren't in the catalogue yet (a known gap) |
 
@@ -992,8 +993,10 @@ Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune 
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
-every spec is a caster, the mage since K2 and the warlock since K3) get them too, all but Elixir of
-Holy Power.
+every spec is a caster, the mage since K2, the warlock since K3 and the priest since K4) get them
+too, all but Elixir of Holy Power. The Elixir of Shadow Power is the warlock's and the priest's alone
+([warlock](../classes/warlock.md#74-enchants-and-consumables),
+[priest](../classes/priest.md#74-enchants-and-consumables)).
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever
@@ -1019,7 +1022,7 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   they change nothing for it ([ux.md](../ux.md) "Buffs").
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
   Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
-  warlock's by class too (`forClasses`).
+  warlock's and the priest's by class too (`forClasses`).
 
 A class slice opts its specs in by setting `SpecMeta.caster`: nothing else. For a class, or a
 kind of spec, an entry isn't for, the Buffs tab doesn't list it, no preset selects it,

@@ -92,9 +92,21 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: null,
     dualWield: false,
   },
+  // docs/classes/priest.md#72-race-and-weapons: cloth, one-handed maces, daggers, staves and wands
+  // (SkillLineAbility rows 254, 1387, 700 and 2927: their class masks include the priest's 16) [F];
+  // held-in-off-hand items, no shields.
+  priest: {
+    armor: ['cloth'],
+    shield: false,
+    oneHand: ['mace', 'dagger'],
+    twoHand: ['staff'],
+    ranged: ['wand'],
+    relic: null,
+    dualWield: false,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {

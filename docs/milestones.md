@@ -423,6 +423,13 @@ slice is worked:
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).
+- **The Shadow Priest's gaps** (K4, [priest.md](classes/priest.md#9-open-questions)):
+  - **No caster enchants in the catalogue** (Arcanum of Focus, the +30 Spell Power weapon, Mana
+    Oil), nor Brilliant Wizard Oil among the consumables: the priest's defaults are Greater Stats
+    and Minor Haste only (priest.md §7.4). A few percent of DPS.
+  - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
+  - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
+    power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

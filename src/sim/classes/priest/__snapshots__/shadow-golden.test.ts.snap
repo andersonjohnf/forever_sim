@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "shadowWordPain",
+      19538050.6543414,
+      7902,
+      50896,
+      6729,
+      400,
+    ],
+    [
+      "devouringPlague",
+      4990064.286955412,
+      3210,
+      23436,
+      0,
+      154,
+    ],
+    [
+      "mindBlast",
+      21547823.090408016,
+      21877,
+      18043,
+      2717,
+      1117,
+    ],
+    [
+      "mindFlay",
+      47903800.41746038,
+      46219,
+      108163,
+      14242,
+      4892,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "berserking",
+      1.482,
+      7.5015851446830535,
+    ],
+    [
+      "majorManaPotion",
+      1.144,
+      null,
+    ],
+    [
+      "innerFocus",
+      1.322,
+      null,
+    ],
+    [
+      "shadowWeaving",
+      null,
+      99.95826150184176,
+    ],
+  ],
+  "dps": {
+    "ci95": 0.9777969635641536,
+    "mean": 523.0449043997769,
+    "stdev": 15.776134247614834,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 5506,
+    "regeneratedPerFight": 5397.1061,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 2061.8663,
+      },
+    ],
+    "restoredPerFight": 2061.8663,
+    "spentPerFight": 10617.63,
+  },
+}
+`;

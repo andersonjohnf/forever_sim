@@ -70,6 +70,8 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   // docs/classes/warlock.md: landed under D27's first-pass defaults (K3).
   'warlock-destruction',
   'warlock-affliction',
+  // docs/classes/priest.md: landed under D27's first-pass defaults (K4).
+  'priest-shadow',
 ])
 
 /**

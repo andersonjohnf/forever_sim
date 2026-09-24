@@ -184,6 +184,16 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     ownBuffs: ['curseOfTheElements'],
     caster: true,
   },
+  // docs/classes/priest.md: the Shadow Priest, on the caster core, landed under D27 (K4).
+  'priest-shadow': {
+    id: 'priest-shadow',
+    classId: 'priest',
+    className: 'Priest',
+    name: 'Shadow',
+    role: 'dps',
+    icon: 'spell_shadow_shadowwordpain',
+    caster: true,
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -197,4 +207,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   rogue: '#FFF468',
   mage: '#3FC7EB',
   warlock: '#8788EE',
+  priest: '#FFFFFF',
 }

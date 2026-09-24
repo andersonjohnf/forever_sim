@@ -57,6 +57,7 @@
     --color-class-rogue: var(--class-rogue);
     --color-class-mage: var(--class-mage);
     --color-class-warlock: var(--class-warlock);
+    --color-class-priest: var(--class-priest);
 }
 
 :root {
@@ -123,6 +124,8 @@
     --class-mage: #0a7fa3;
     /* Warlock #8788EE is 3.3:1 on white; this is darker for AA. */
     --class-warlock: oklch(0.5 0.16 278);
+    /* Priest #FFFFFF is 1:1 on white; a neutral grey, 5.7:1. */
+    --class-priest: oklch(0.5 0 0);
     --switch-off: oklch(0.64 0 0);
 }
 
@@ -176,6 +179,7 @@
     /* #3fc7eb is 10:1 on the dark background. */
     --class-mage: #3fc7eb;
     --class-warlock: #8788ee;
+    --class-priest: #ffffff;
     /* The switch draws its off track at 80% of this. */
     --switch-off: oklch(0.62 0 0);
 }

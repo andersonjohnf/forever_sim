@@ -10,6 +10,7 @@ import shamanTalents from '@/data/talents/shaman.json'
 import rogueTalents from '@/data/talents/rogue.json'
 import mageTalents from '@/data/talents/mage.json'
 import warlockTalents from '@/data/talents/warlock.json'
+import priestTalents from '@/data/talents/priest.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
@@ -27,6 +28,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   rogue: rogueTalents as unknown as TalentData,
   mage: mageTalents as unknown as TalentData,
   warlock: warlockTalents as unknown as TalentData,
+  priest: priestTalents as unknown as TalentData,
 }
 
 /**
@@ -53,6 +55,8 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   // docs/classes/warlock.md#71-talents: Destruction 7/11/33 (Fire, Demonic Sacrifice), Affliction 35/11/5
   'warlock-destruction': '25-0050203001-0050355103101351',
   'warlock-affliction': '2555002003520105-0050203001-005',
+  // docs/classes/priest.md#71-talents: Shadow 20/0/31, Shadowform with Twin Disciplines, Inner Focus and Meditation
+  'priest-shadow': '025300031303--500320501201312051',
 }
 
 export interface TalentPreset {
@@ -116,6 +120,10 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/warlock.md#71-talents: Affliction 35/11/5 with Demonic Sacrifice
     { name: 'Affliction (default)', code: DEFAULT_TALENTS['warlock-affliction'] },
   ],
+  priest: [
+    // docs/classes/priest.md#71-talents: Discipline 20 / Holy 0 / Shadow 31
+    { name: 'Shadow (default)', code: DEFAULT_TALENTS['priest-shadow'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -135,6 +143,8 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   mage: 'horde-troll',
   // docs/classes/warlock.md#72-race: Orc, for Forever's Blood Fury (+10% spell power for 15 s)
   warlock: 'horde-orc',
+  // docs/classes/priest.md#72-race-and-weapons: Troll, for Berserking's casting speed
+  priest: 'horde-troll',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -239,6 +249,10 @@ const WARLOCK_ENCHANTS: Partial<Record<GearSlot, string>> = {
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
   'warlock-destruction': WARLOCK_ENCHANTS,
   'warlock-affliction': WARLOCK_ENCHANTS,
+  // docs/classes/priest.md#74-enchants-and-consumables: the catalogue has no caster enchants yet
+  // (Arcanum of Focus, spell power on the weapon), so Greater Stats on the chest and Forever's Minor
+  // Haste gloves, which cast faster.
+  'priest-shadow': { chest: 'chestGreaterStats', hands: 'gloveMinorHaste' },
   'rogue-combat': ROGUE_ENCHANTS,
   'rogue-assassination': ROGUE_ENCHANTS,
   'rogue-subtlety': ROGUE_ENCHANTS,

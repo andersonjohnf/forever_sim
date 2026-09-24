@@ -4987,10 +4987,10 @@
     "consumablesWithEffects": 89,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1701,
+    "items": 1705,
     "withEffects": 246,
-    "withItemRow": 1701,
-    "withItemSparseRow": 931
+    "withItemRow": 1705,
+    "withItemSparseRow": 934
   },
   "items": {
     "868": {
@@ -5591,6 +5591,19 @@
         "statModifierBonusStat": [7, 50, 51, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [3529, 58824, 5588, 0, 0, 0, 0, 0, 0, 0]
       }
+    },
+    "11623": {
+      "effects": [],
+      "id": 11623,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133772,
+        "inventoryType": 16,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
     },
     "11662": {
       "effects": [],
@@ -23943,6 +23956,41 @@
         "statPercentEditor": [4286, 3265, 8776, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "19308": {
+      "effects": [],
+      "id": 19308,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133733,
+        "inventoryType": 23,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Tome of Arcane Domination",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [89, 43, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [12593, 1111, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "19309": {
       "effects": [],
       "id": 19309,
@@ -32780,6 +32828,41 @@
         "statPercentEditor": [5714, 2857, 2857, 2857, 2381, 2381, 0, 0, 0, 0]
       }
     },
+    "22109": {
+      "effects": [],
+      "id": 22109,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133129,
+        "inventoryType": 1,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Feralheart Cowl",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 1,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 513,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 6, 7, 4, 3, 45, -1, -1, -1, -1],
+        "statPercentEditor": [3864, 3636, 3864, 3182, 2045, 3636, 0, 0, 0, 0]
+      }
+    },
     "22111": {
       "effects": [],
       "id": 22111,
@@ -32848,6 +32931,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 7, 6, 4, 3, 45, 43, -1, -1, -1],
         "statPercentEditor": [5714, 3214, 2857, 2857, 1786, 2143, 714, 0, 0, 0]
+      }
+    },
+    "22113": {
+      "effects": [],
+      "id": 22113,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132741,
+        "inventoryType": 5,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Feralheart Vest",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 5,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 513,
+        "material": 8,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 6, 7, 4, 3, 45, 43, -1, -1, -1],
+        "statPercentEditor": [3864, 3182, 3864, 3636, 2045, 2727, 909, 0, 0, 0]
       }
     },
     "22149": {

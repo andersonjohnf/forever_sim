@@ -5,15 +5,15 @@
     "counts": {
       "byTab": {
         "changed": 370,
-        "missing": 770,
+        "missing": 771,
         "new": 328,
-        "unchanged": 233
+        "unchanged": 236
       },
-      "items": 1701,
+      "items": 1705,
       "sets": 102,
       "statsFrom": {
-        "classic": 770,
-        "forever": 931
+        "classic": 771,
+        "forever": 934
       }
     },
     "descriptionCoverage": {
@@ -62,9 +62,9 @@
     },
     "fallbackEffects": {
       "effectsFromForever": 112,
-      "items": 521,
-      "spells": 647,
-      "spellsFromForever": 647
+      "items": 522,
+      "spells": 648,
+      "spellsFromForever": 648
     },
     "filter": {
       "equippableOnly": true,
@@ -149,12 +149,22 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 121,
+      "addedByList": 125,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 343,
-      "listedItems": 343,
+      "inPool": 349,
+      "listedItems": 349,
       "notInData": [],
       "specs": {
+        "druid-balance": {
+          "name": "Balance Druid",
+          "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2. It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde), so they share rank 1 and no counterpart was added. It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
+            "snapshot": "2021-05-16",
+            "title": "Classic Balance Druid Best in Slot (BiS) Gear Guide - WoW Classic 1.13 (section: Pre-Raid Best in Slot Gear for Balance Druids - Phase 6)",
+            "url": "https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow"
+          }
+        },
         "druid-feral-bear": {
           "name": "Feral Druid (bear)",
           "source": {
@@ -4127,6 +4137,59 @@
       "weaponType": null
     },
     {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["head"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_helmet_27",
+      "id": 22109,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Leather",
+      "name": "Feralheart Cowl",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "druid-balance"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 24619,
+      "setId": "513",
+      "slot": "head",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 9,
+        "armor": 150,
+        "intellect": 17,
+        "spellPower": 16,
+        "spirit": 16,
+        "stamina": 17,
+        "strength": 14
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
       "armorType": "cloth",
       "binding": "BoP",
       "classes": null,
@@ -4189,6 +4252,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 18053, 23727 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "head",
@@ -7238,6 +7306,11 @@
         {
           "rank": 3,
           "slot": "neck",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
           "spec": "mage-frost"
         },
         {
@@ -8603,6 +8676,11 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "neck",
@@ -10035,6 +10113,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9415 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "druid-balance"
+        },
         {
           "rank": 3,
           "slot": "neck",
@@ -13476,6 +13559,11 @@
       "otherEquip": [],
       "preRaidBis": [
         {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "druid-balance"
+        },
+        {
           "rank": 3,
           "slot": "shoulder",
           "spec": "shaman-elemental"
@@ -14403,6 +14491,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 23727 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "druid-balance"
+        },
         {
           "rank": 2,
           "slot": "shoulder",
@@ -17719,6 +17812,57 @@
       },
       "statsFrom": "forever",
       "tab": "new",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["back"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_misc_cape_20",
+      "id": 11623,
+      "itemClass": "Armor",
+      "itemLevel": 52,
+      "itemSubclass": "Cloth",
+      "name": "Spritecaster Cape",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9343 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "druid-balance"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 47,
+      "requirements": [],
+      "sellPrice": 9999,
+      "setId": null,
+      "slot": "back",
+      "source": null,
+      "statSpellIds": [9343],
+      "stats": {
+        "armor": 37,
+        "intellect": 4,
+        "spellPower": 14,
+        "spirit": 5,
+        "stamina": 4
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -24213,6 +24357,11 @@
         {
           "rank": 3,
           "slot": "chest",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
           "spec": "shaman-elemental"
         }
       ],
@@ -24458,6 +24607,11 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "chest",
@@ -25052,6 +25206,60 @@
       },
       "statsFrom": "forever",
       "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "leather",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_plate06",
+      "id": 22113,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Leather",
+      "name": "Feralheart Vest",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "druid-balance"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 33313,
+      "setId": "513",
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "agility": 9,
+        "armor": 185,
+        "intellect": 17,
+        "mp5": 4,
+        "spellPower": 12,
+        "spirit": 14,
+        "stamina": 17,
+        "strength": 16
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -30950,6 +31158,11 @@
         {
           "rank": 1,
           "slot": "wrist",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
           "spec": "shaman-elemental"
         },
         {
@@ -31586,7 +31799,13 @@
       "name": "Feralheart Bracers",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "druid-balance"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -33791,6 +34010,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18049 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "druid-balance"
+        },
         {
           "rank": 3,
           "slot": "hands",
@@ -41333,6 +41557,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9417 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "druid-balance"
+        },
         {
           "rank": 2,
           "slot": "waist",
@@ -49284,6 +49513,11 @@
         {
           "rank": 2,
           "slot": "legs",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
           "spec": "shaman-elemental"
         },
         {
@@ -52075,6 +52309,11 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "legs",
@@ -60002,6 +60241,11 @@
         {
           "rank": 1,
           "slot": "feet",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
           "spec": "shaman-elemental"
         },
         {
@@ -61829,7 +62073,13 @@
       "name": "Kayser's Boots of Precision",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 23727 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "druid-balance"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -65116,6 +65366,11 @@
       "otherEquip": [],
       "preRaidBis": [
         {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "druid-balance"
+        },
+        {
           "rank": 4,
           "slot": "finger",
           "spec": "mage-frost"
@@ -65391,6 +65646,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "druid-balance"
+        },
         {
           "rank": 4,
           "slot": "finger",
@@ -67426,6 +67686,11 @@
       "otherEquip": [],
       "preRaidBis": [
         {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "druid-balance"
+        },
+        {
           "rank": 3,
           "slot": "finger",
           "spec": "shaman-elemental"
@@ -67972,6 +68237,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 23727, 9345 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "finger",
@@ -69582,6 +69852,11 @@
       ],
       "preRaidBis": [
         {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "druid-balance"
+        },
+        {
           "rank": 2,
           "slot": "trinket",
           "spec": "shaman-elemental"
@@ -70074,6 +70349,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 1318956, 1287840, 1318846 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "trinket",
@@ -72150,6 +72430,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 1318931 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "druid-balance"
+        },
         {
           "rank": 3,
           "slot": "trinket",
@@ -74537,6 +74822,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 18384, 14047 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "druid-balance"
+        },
         {
           "rank": 4,
           "slot": "twoHand",
@@ -77933,6 +78223,11 @@
         {
           "rank": 1,
           "slot": "mainHand",
+          "spec": "druid-balance"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
           "spec": "mage-frost"
         },
         {
@@ -78015,6 +78310,11 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "mainHand",
@@ -79864,6 +80164,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9343 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "druid-balance"
+        },
         {
           "rank": 2,
           "slot": "mainHand",
@@ -83981,6 +84286,54 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
+      "icon": "inv_misc_book_01",
+      "id": 19308,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Tome of Arcane Domination",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "druid-balance"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 125000,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "arcaneSpellDamage": 34,
+        "mp5": 3
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
       "icon": "inv_misc_book_06",
       "id": 19309,
       "itemClass": "Armor",
@@ -84356,6 +84709,11 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spells 9415, 23727, 18384 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "druid-balance"
+        },
         {
           "rank": 1,
           "slot": "offHand",

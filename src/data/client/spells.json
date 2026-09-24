@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 493,
+      "docs": 515,
       "enchant": 125,
       "item": 423,
       "racial": 44,
@@ -48,7 +48,7 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2517,
+    "seeds": 2518,
     "spells": 2675
   },
   "excludedWorldBuffs": {
@@ -20320,7 +20320,7 @@
       "shapeshift": {
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "5573": {
       "auraOptions": {
@@ -38933,7 +38933,7 @@
         "shapeshiftExclude": [2, 0],
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "9839": {
       "auraOptions": {
@@ -40984,7 +40984,7 @@
         "shapeshiftExclude": [2, 0],
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "9913": {
       "categories": {
@@ -69995,7 +69995,7 @@
         "spellIconFileDataId": 136006
       },
       "name": "Improved Wrath",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16819": {
       "classOptions": {
@@ -70036,7 +70036,7 @@
         "spellIconFileDataId": 136065
       },
       "name": "Nature's Reach",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16821": {
       "classOptions": {
@@ -70080,7 +70080,7 @@
         "spellIconFileDataId": 136096
       },
       "name": "Improved Moonfire",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16833": {
       "classOptions": {
@@ -70131,7 +70131,7 @@
       },
       "name": "Moonglow",
       "nameSubtext": "Rank 1",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16850": {
       "auraOptions": {
@@ -70169,7 +70169,7 @@
         "spellIconFileDataId": 135753
       },
       "name": "Improved Starfire",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16864": {
       "auraOptions": {
@@ -70280,7 +70280,7 @@
         "spellIconFileDataId": 136062
       },
       "name": "Nature's Grace",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16886": {
       "categories": {
@@ -70323,7 +70323,7 @@
         "spellIconFileDataId": 136062
       },
       "name": "Nature's Grace",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "16896": {
       "classOptions": {
@@ -70347,7 +70347,7 @@
         "spellIconFileDataId": 136057
       },
       "name": "Moonfury",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16909": {
       "classOptions": {
@@ -70372,7 +70372,7 @@
         "spellIconFileDataId": 136075
       },
       "name": "Vengeance",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16914": {
       "auraOptions": {
@@ -71072,7 +71072,7 @@
         "spellIconFileDataId": 135879
       },
       "name": "Heart of the Wild",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17007": {
       "classOptions": {
@@ -71340,7 +71340,7 @@
         "spellIconFileDataId": 135863
       },
       "name": "Reflection",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17111": {
       "classOptions": {
@@ -95650,7 +95650,7 @@
           "powerCostPct": 35
         }
       ],
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "24907": {
       "classOptions": {
@@ -96004,7 +96004,7 @@
       "shapeshift": {
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25063": {
       "duration": {
@@ -96803,7 +96803,7 @@
         "shapeshiftExclude": [2, 0],
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25299": {
       "auraOptions": {
@@ -101213,7 +101213,7 @@
       "shapeshift": {
         "shapeshiftMask": [1073741826, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "29187": {
       "classOptions": {
@@ -103235,7 +103235,7 @@
         "spellIconFileDataId": 236151
       },
       "name": "Eclipse",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "408341": {
       "categories": {
@@ -105956,7 +105956,7 @@
         "spellIconFileDataId": 135730
       },
       "name": "Genesis",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223082": {
       "classOptions": {
@@ -105982,7 +105982,7 @@
         "spellIconFileDataId": 135138
       },
       "name": "Nature's Majesty",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223083": {
       "classOptions": {
@@ -106028,7 +106028,7 @@
         "spellIconFileDataId": 136061
       },
       "name": "Nature's Splendor",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223242": {
       "classOptions": {

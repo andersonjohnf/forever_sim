@@ -1,11 +1,12 @@
 # Forever Sim
 
-A DPS and TPS simulator for **WoW Forever**, built for our guild. Pick
+A DPS and TPS simulator for **WoW Forever**, built by [Decades](https://decades.gg), a gaming
+community since 2005. Pick
 your spec, talents and gear, tune buffs and your rotation, and simulate. It works on your phone
 as well as your desktop.
 
 It runs entirely in your browser (no server) and is hosted on GitHub Pages:
-**https://andersonjohnf.github.io/forever_sim/**
+**https://sim.decades.gg/**
 
 > **Status:** Fury, Arms and Protection Warriors, Feral Cat and Feral Bear Druids, and Retribution
 > and Protection Paladins so far. The other DPS specs are next: see
@@ -85,5 +86,5 @@ One-time setup: **Settings → Pages → Source: GitHub Actions**.
 - Classic Era mechanics research by the Classic theorycrafting community, credited in each
   doc's *Sources* section.
 
-World of Warcraft is a trademark of Blizzard Entertainment. This project is not affiliated
-with Blizzard.
+World of Warcraft is a trademark of Blizzard Entertainment. Forever Sim and Decades are not
+affiliated with or endorsed by Blizzard Entertainment.

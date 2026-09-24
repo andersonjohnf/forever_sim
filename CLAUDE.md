@@ -2,7 +2,8 @@
 
 DPS/TPS simulator for level-60 characters in **WoW Forever**: every DPS spec, and the Warrior,
 Feral Druid and Paladin tanks. It's a
-static Vite + React + TypeScript + shadcn/ui app on GitHub Pages with no server.
+static Vite + React + TypeScript + shadcn/ui app on GitHub Pages with no server. It's built by
+the Decades guild (https://decades.gg) and carries its light branding (`docs/ux.md#brand`).
 
 **The bar:** the best Forever sim we can build with the data we have, with a clean, modern UX
 that works great on mobile and desktop. wowsims may ship Forever support one day; that is

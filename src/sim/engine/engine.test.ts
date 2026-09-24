@@ -539,6 +539,8 @@ describe('benchmark', () => {
       // Shared CI runners are noisy; the real bar is checked locally.
       const ci = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.CI
       expect(perSecond).toBeGreaterThanOrEqual(ci ? 1000 : 5000)
-    })
+      // 10,500 fights at CI's 1,000 a second take 10.5 s: past vitest's 5 s default, which would
+      // fail a run the floor above passes.
+    }, 30_000)
   }
 })

@@ -1,5 +1,5 @@
 // What every rogue brings to the plan (docs/classes/rogue.md §2, §5): its passive talents as effects,
-// and Energy (20 every 2 s, capped at 100 plus Vigor, full at the pull [?]).
+// and Energy (20 every 2 s, capped at 100 plus Vigor, times a Gnome's +5%, full at the pull [?]).
 import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { ACTION, type EnergyPlan, type Plan } from '../../plan/types'
@@ -12,9 +12,12 @@ export function rogueEffects(talents: ReadonlyMap<string, number>): Effect[] {
   return rogueTalentEffects(talents)
 }
 
-/** The rogue's Energy (rogue.md §2.1): the cap with Vigor, full at the pull [?], 20 a tick [C]. */
-export function rogueEnergy(talents: ReadonlyMap<string, number>): EnergyPlan {
-  const max = BASE_MAX_ENERGY_TENTHS + VIGOR_TENTHS_PER_RANK * (talents.get('Vigor') ?? 0)
+/**
+ * The rogue's Energy (rogue.md §2.1): the cap with Vigor, times `maxMult` (a Gnome's Expansive Mind,
+ * +5% of the total [?] as the warrior's rage, warrior Q17), full at the pull [?], 20 a tick [C].
+ */
+export function rogueEnergy(talents: ReadonlyMap<string, number>, maxMult = 1): EnergyPlan {
+  const max = Math.round((BASE_MAX_ENERGY_TENTHS + VIGOR_TENTHS_PER_RANK * (talents.get('Vigor') ?? 0)) * maxMult)
   return { maxTenths: max, startTenths: max, tickTenths: ENERGY_PER_TICK_TENTHS }
 }
 

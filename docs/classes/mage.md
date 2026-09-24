@@ -60,7 +60,7 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Orc | Horde | no | **yes (new)** | Blood Fury (20572): +10% attack power, and a third effect (aura 317) that [shaman.md](shaman.md#spell-damage) reads as +10% spell power; not simulated for a mage (a known gap), so the Rotation tab marks the racial setting unused |
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
-| Gnome | Alliance | yes | yes | Eureka! isn't simulated; Expansive Mind no longer gives +5% Intellect |
+| Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; Eureka! isn't simulated |
 | High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (+1% haste): the sim doesn't apply it to casts yet (a known gap) |
 
 [F] [client] (ChrRaces, CharBaseInfo, SkillLineAbility, SpellEffect, 1.60.1.69913;

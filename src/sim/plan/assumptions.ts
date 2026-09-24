@@ -169,6 +169,10 @@ const REGISTRY = {
     text: 'Expansive Mind’s +5% maximum rage multiplies the total, including Boundless Rage.',
     docRef: `${WAR}#9-open-questions`,
   },
+  gnomeEnergy: {
+    text: 'Expansive Mind’s +5% maximum Energy multiplies the total, including Vigor.',
+    docRef: `${ROGUE}#21-energy`,
+  },
   cooldownRacial: {
     text: 'Eureka! isn’t simulated: how its 40% cost cut rounds, and what spends its charges, are open questions.',
     docRef: `${WAR}#9-open-questions`,

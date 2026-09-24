@@ -137,7 +137,7 @@ Slash's extra attack (§5.2) and the Orc's axe racial.
 | Rule | Value | Tag, source |
 | --- | --- | --- |
 | Regeneration | 20 Energy per tick, every 2 s, on the player-global power tick with a random phase | [C] as the cat's ([druid.md §2.4](druid.md#24-energy-cat)) |
-| Cap | 100, +5 per rank of Vigor | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10) |
+| Cap | 100, +5 per rank of Vigor; a Gnome's Expansive Mind (1259803) multiplies the total by 1.05, so 105 without Vigor and 115.5 with 2/2 | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10); Expansive Mind [F] [client] (aura 178, misc 3 = Energy, 1.60.1.69913), multiplying Vigor's too [?] as the warrior's rage (warrior Q17) |
 | At the pull | Full | [?] |
 | Adrenaline Rush | Each tick doubled (+100% regeneration, aura 110) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Refunds | An avoided builder gets 80% back; a finisher nothing, and keeps its points | [?] (the cat's Q29) |
@@ -478,7 +478,8 @@ With Hemorrhage building, rows 7 and 8 do nothing, and the Rotation tab says so.
 
 **Human**: +2% crit with a sword (Forever's racial, [warrior.md §2.9](warrior.md#29-racials-for-warriors))
 and no racial cooldown. Orcs (Blood Fury), Trolls (Berserking) and Night Elves (Elune's Light) press
-theirs on cooldown.
+theirs on cooldown. A Gnome's Expansive Mind raises the Energy cap by 5% ([§2.1](#21-energy)); its
+Eureka! isn't simulated.
 
 ### 7.3 Weapons and gear
 

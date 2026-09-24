@@ -63,6 +63,7 @@ export const ASSUMPTION_GROUP = {
   unknownBaseAttributes: 'character',
   racialWeaponCrit: 'character',
   gnomeRage: 'character',
+  gnomeEnergy: 'character',
   cooldownRacial: 'character',
   touchOfTheGrave: 'character',
   baseStatPlaceholders: 'character',

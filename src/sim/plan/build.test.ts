@@ -361,6 +361,27 @@ describe('talents, racials and stances', () => {
     expect(tauren.hitPct).toBe(1)
   })
 
+  it('gives a Gnome Expansive Mind for every class it has: mana, Energy or rage +5% (character-stats racials)', () => {
+    // Class masks 400 (priest, mage, warlock: mana), 8 (rogue: Energy), 1 (warrior: rage) [F] [client].
+    for (const spec of ['mage-frost', 'priest-shadow', 'warlock-affliction'] as const) {
+      const gnome = buildPlan({ ...defaultConfig(spec), race: 'alliance-gnome' }).plan
+      const human = buildPlan({ ...defaultConfig(spec), race: 'alliance-human' }).plan
+      // The warlock's Fel Vitality multiplies too; the Gnome's share is 5%.
+      expect(gnome.stats.manaMult / human.stats.manaMult, spec).toBeCloseTo(1.05, 9)
+      expect(gnome.mana!.maxTenths, spec).toBe(10 * computeSheet({ ...defaultConfig(spec), race: 'alliance-gnome' })!.mana!)
+    }
+    // A rogue with no Vigor: 100 Energy × 1.05 = 105, full at the pull (rogue.md §2.1).
+    const rogue = (race: string) => buildPlan({ ...defaultConfig('rogue-combat'), race, talents: '' }).plan.energy!
+    expect(rogue('alliance-gnome')).toMatchObject({ maxTenths: 1050, startTenths: 1050 })
+    expect(rogue('alliance-human')).toMatchObject({ maxTenths: 1000, startTenths: 1000 })
+    // With Vigor, how the two combine is [?]: the result says so.
+    const vigor = encodeTalentCode(TALENT_DATA.rogue, { 'rogue-assassination-vigor': 2 })
+    const notes = (race: string, talents: string) => buildPlan({ ...defaultConfig('rogue-combat'), race, talents }).assumptions.map((a) => a.id)
+    expect(notes('alliance-gnome', vigor)).toContain('gnomeEnergy')
+    expect(notes('alliance-gnome', '')).not.toContain('gnomeEnergy')
+    expect(notes('alliance-human', vigor)).not.toContain('gnomeEnergy')
+  })
+
   it('resolves the rotation’s abilities with the build’s talents (warrior.md §2.3, §2.5, §3.1)', () => {
     const { plan } = buildPlan(defaultConfig('warrior-fury'))
     const byId = Object.fromEntries(plan.abilities.map((a) => [a.id, a]))

@@ -50,10 +50,22 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
       // Quickness (20582): +1% dodge [F]
       return [{ kind: 'stat', stat: 'dodge', value: 1 }]
     case 'alliance-gnome':
-      // Expansive Mind, warrior version (1259802): maximum Rage +5% [F]; how it combines with Boundless Rage is [?] (warrior Q17)
-      // Forever's caster version (20591): maximum mana +5% (aura 178) [F] (docs/classes/warlock.md#72-race).
-      if (classId === 'warlock') return [{ kind: 'mult', stat: 'mana', pct: 5 }]
-      return classId === 'warrior' ? [{ kind: 'maxRagePct', pct: 5 }] : []
+      // Expansive Mind, one spell per class mask (character-stats.md#racials-that-matter-to-the-sim) [F]:
+      switch (classId) {
+        // 1259802 (warrior): maximum Rage +5%; how it combines with Boundless Rage is [?] (warrior Q17)
+        case 'warrior':
+          return [{ kind: 'maxRagePct', pct: 5 }]
+        // 1259803 (rogue): maximum Energy +5% (aura 178, misc 3); how it combines with Vigor is [?] (rogue.md §2.1)
+        case 'rogue':
+          return [{ kind: 'maxEnergyPct', pct: 5 }]
+        // 20591 (priest, mage, warlock: class mask 400): maximum mana +5% (aura 178)
+        case 'priest':
+        case 'mage':
+        case 'warlock':
+          return [{ kind: 'mult', stat: 'mana', pct: 5 }]
+        default:
+          return []
+      }
     case 'horde-orc':
       // Axe Specialization (20574): +1% crit while an axe is equipped [F]; either hand [?] (warrior Q15)
       return weaponRacial(1, ['axe'])

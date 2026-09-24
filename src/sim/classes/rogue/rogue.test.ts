@@ -203,6 +203,8 @@ describe('talents against the client’s curves (rogue.md §5)', () => {
     expect(at('Improved Poisons', 5)).toEqual([{ kind: 'poisonChance', pct: curve('Improved Poisons', 0)[4] }])
     expect(at('Serrated Blades', 3)).toEqual([{ kind: 'weaponArmorPenPct', pct: curve('Serrated Blades', 0)[2] }])
     expect(rogueEnergy(ranks([['Vigor', 2]])).maxTenths).toBe(BASE_MAX_ENERGY_TENTHS + 10 * curve('Vigor')[1])
+    // A Gnome's Expansive Mind multiplies the total [?] (rogue.md §2.1): (100 + 10) × 1.05 = 115.5.
+    expect(rogueEnergy(ranks([['Vigor', 2]]), 1.05)).toMatchObject({ maxTenths: 1155, startTenths: 1155 })
     expect(VIGOR_TENTHS_PER_RANK).toBe(10 * curve('Vigor')[0])
   })
 

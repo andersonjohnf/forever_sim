@@ -146,6 +146,7 @@ it only costs a GCD: off by default.
 | Night Elf | Elune's Light (1259799): +10% all crit for 15 s, 3 min [F] | on cooldown |
 | Night Elf | Starshards r7 (19305): a channel, 300 Arcane a second for 6 s, +0.167 a tick, the crit flag, 350 mana, 30 s cooldown [F] | on cooldown; Arcane, so no Shadowform, Shadow Weaving or Darkness |
 | Undead | Dark Sacrifice r5 (1277328): 320 mana every 3 s for 15 s (1,600), paid in health, 10 min, on the GCD [F] | once 1,600 mana fits; health isn't tracked |
+| Gnome | Expansive Mind (20591): +5% maximum mana (aura 178) [F] | a passive: the mana pool is 5% larger |
 | Human, Dwarf, Gnome, Troll, Undead | Feedback, Divine Grace, Desperate Prayer, Chastise (humanoids only), Contingency Plan, Confounding Flash, Hex of Weakness, Shadowguard, Touch of Weakness | nothing for damage on a boss, or not modelled (Chastise: [OQ-P8](#9-open-questions)) |
 
 The Classic Era guide below leaves Devouring Plague and Starshards out of raids for their debuff

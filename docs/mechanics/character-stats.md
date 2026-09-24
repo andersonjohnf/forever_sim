@@ -135,7 +135,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Night Elf | Elune's Light (1259799) | +10% crit chance with all spells and attacks for 15 s (aura 290, value 10); 3 min cooldown | did not exist | CD | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Night Elf | Shadowmeld | now usable in combat (drops aggro, 2 min cooldown when used in combat) | 10 s cooldown, out of combat | ignore (see [threat.md](threat.md)) | [F] [racials][fc-racials] |
 | Night Elf | Nature Resistance | **removed** | +10 Nature resistance | — | [F] [racials][fc-racials] |
-| Gnome | Expansive Mind, warrior version (1259802) | Warrior: maximum Rage +5% (aura 178, misc 1 = Rage) → 105 | Intellect +5% (all classes) | stat: see [rage.md](rage.md) | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Gnome | Expansive Mind: one spell per class (`ClassMask`) | Warrior (1259802, mask 1): maximum Rage +5% (aura 178, misc 1 = Rage) → 105. Rogue (1259803, mask 8): maximum Energy +5% (aura 178, misc 3 = Energy) → 105. Priest, mage, warlock (20591, mask 400): maximum mana +5% (aura 178) | Intellect +5% (all classes) | stat: rage [rage.md](rage.md); Energy [rogue.md §2.1](../classes/rogue.md#21-energy); mana a multiplier on the sheet's maximum | [F] [client] (SpellEffect, SkillLineAbility, 1.60.1.69913) |
 | Gnome | Eureka!, warrior version (1259813) | Next 3 damaging abilities cost 40% less Rage and deal 10% more damage; 15 s window; 2 min cooldown; no cost | did not exist | CD (charges) | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
 | Gnome | Arcane Resistance | **removed** | +10 Arcane resistance | — | [F] [racials][fc-racials] |
 | Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura, as Human Sword Specialization (an axe in either hand) | [F] [client] (SpellEffect, 1.60.1.69913) |
@@ -689,7 +689,8 @@ Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
    physical damage taken instead of +10% armor.
 7. **New passives:** Touch of the Grave (Undead drain proc), Big Game Hunter (Dwarf, +5% vs Beasts),
    Wind Blessed (Skyborne, +1% haste), Elemental Insight (Skyborne, +5% vs Elementals).
-8. **Gnome Expansive Mind:** +5% maximum Rage for warriors instead of +5% Intellect.
+8. **Gnome Expansive Mind:** +5% maximum Rage for warriors, maximum Energy for rogues and maximum
+   mana for priests, mages and warlocks, instead of +5% Intellect.
 9. **All racial resistances are removed:** Frost (Dwarf), Nature (Night Elf, Tauren), Arcane
    (Gnome), Shadow (Undead).
 10. **Blessing of Kings is baseline** (no talent) and lasts 1 hour.

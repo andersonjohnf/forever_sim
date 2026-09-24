@@ -220,6 +220,8 @@ interface Collected {
   holyThreatMult: number
   maxRageFlat: number
   maxRageMult: number
+  /** The rogue's maximum Energy multiplier (Expansive Mind; rogue.md §2.1). */
+  maxEnergyMult: number
   targetArmor: number
   /** The boss's static flat Holy damage taken: another paladin's Judgement of the Crusader (buffs doc §4.2). */
   holyTaken: number
@@ -443,6 +445,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     holyThreatMult: 1,
     maxRageFlat: 0,
     maxRageMult: 1,
+    maxEnergyMult: 1,
     targetArmor: 0,
     holyTaken: 0,
     bossAp: 0,
@@ -1355,8 +1358,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
     ...(classId === 'shaman' ? shamanPlan(derived, block.mp5, setup.talents, auras) : {}),
-    // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
-    ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
+    // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap and a Gnome's Expansive Mind.
+    ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents, c.maxEnergyMult) } : {}),
     // docs/classes/mage.md#mana: the same model, with Mage Armor's and Arcane Meditation's regeneration while casting, and Clearcasting's free cast.
     ...(classId === 'mage' ? { mana: mageManaPlan(derived, block.mp5, setup.talents, profile), ...mageFreeCast(auras) } : {}),
     // docs/classes/warlock.md §5: the same mana model, with the warlock's Spirit regeneration.
@@ -1520,6 +1523,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const racialWeapon = racialWeapons[config.race]
   if ((racialWeapon && mixed([racialWeapon])) || (setup.talents.has('Weaponmaster') && mixed(['axe', 'polearm']))) notes.add('racialWeaponCrit')
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
+  if (config.race === 'alliance-gnome' && classId === 'rogue' && (setup.talents.get('Vigor') ?? 0) > 0) notes.add('gnomeEnergy')
   // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
   if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
@@ -1719,6 +1723,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'maxRagePct':
       c.maxRageMult *= 1 + e.pct / 100
+      return
+    case 'maxEnergyPct':
+      c.maxEnergyMult *= 1 + e.pct / 100
       return
     case 'weaponDamage':
       for (const w of matching(e.weapons)) if (origin === null || w.hand === origin) w.plan.flatDamage += e.value

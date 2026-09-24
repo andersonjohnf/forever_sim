@@ -498,7 +498,7 @@ damage coefficient, a **1 s cast** and no GCD [F] [client] (ItemEffect, SpellEff
 SpellCategories, SpellCastTimes, 1.60.1.69913), and a 15 yd range (`SpellRange`). Every rotation
 throws it on cooldown (`classes/shared-consumables.ts`): a caster or a hunter from the pull, a spec
 that swings just after a main-hand swing (below), and the results list the rules below
-(`explosiveThrow`).
+(`explosiveThrow`). Each [?] rule is [open question 21](#open-questions), with a beta check.
 
 | Rule | Value | Tag |
 | --- | --- | --- |
@@ -1502,6 +1502,26 @@ Each item says what was found and how the guild can check it on the Forever beta
     Era at 60 works too): dual wield, note the sheet's crit, put a stone on the off hand only and
     read it again (+2% means the main hand gets it), then add a second stone to the main hand
     (+4% in all means they stack).
+21. **EZ-Thro Dark Bomb's rules** [?] ([§3.7](#37-engineering-and-explosives)). The client gives its
+    damage, cast, cooldown and range; the sim assumes the rest, each untested:
+    - **Binary resist:** its stun makes it resisted whole at the boss's average Fire resistance, and a
+      landed one takes no partial resist.
+    - **The cast stops swings:** its 1 s throw stops both melee swings, which restart from full as it
+      lands, and holds your other abilities, off-GCD ones too (a caster's next cast, a hunter's Auto
+      Shot); a melee spec throws it just after a main-hand swing.
+    - **Threat:** its damage × your threat multipliers, with no threat of its own.
+    - **No class talents:** spell 1269334 has no `SpellClassOptions` row, so no talent that names your
+      class's spells reads its school: no Critical Mass, Elemental Precision, Fire Power, Combustion or
+      Ignite, and none of your own school multipliers.
+    - **Forms:** whether a druid can throw it in Cat or Bear Form at all (the sim lets it).
+
+    *Check:* throw 30+ bombs at a training dummy (or a mob, if the beta has none) with a swing-timer
+    addon on and the combat log recording. Watch whether the swing bar restarts, pauses or runs on
+    through the throw, and whether a Heroic Strike or potion can be used during it. In the log, count
+    full resists and look for partial ones ("(x resisted)"), and count crits and their size (×1.5).
+    As a Fire mage, compare the bombs' crit rate with Fireball's, which Critical Mass raises, and see
+    whether an Ignite follows a bomb crit or a Combustion charge goes. With a second player on a mob,
+    read the threat a bomb adds on a threat meter. As a druid, try it in Cat and Bear Form.
 
 ---
 

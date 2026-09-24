@@ -25,6 +25,10 @@ describe('golden run (fixed config and seed)', () => {
   //   out after a 4.5 s Pyroblast (COND 44); Fireball waits up to 0.3 s for Fire Blast; Pyroblast
   //   waits up to 0.3 s so it doesn't cut off its own DoT's tick (COND 45). 513.15 → 514.50 DPS;
   //   Scorches 13.9 → 12.6 a fight (the stacks no longer drop and rebuild), Fire Blasts 19.8 → 20.2.
+  // - 1.60.1.70009 (September 2026): Ignite's ticks no longer take Curse of the Elements and Fire
+  //   Vulnerability again (the crit carries them), and Hot Streak lasts 20 s (was 15). 514.50 →
+  //   501.69 DPS: Ignite's damage −20.8% (1 ÷ (1.1 × 1.15)); Hot Streak's 5 s more changes little at
+  //   the default's 1-stack Pyroblast.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

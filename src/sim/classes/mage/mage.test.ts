@@ -117,10 +117,11 @@ describe('Ignite (docs/classes/mage.md#ignite): pooled and rolling [?]', () => {
     ticks.forEach((d, i) => expect(d.value, String(d.t)).toBeCloseTo([first, rolled, rolled][i % 3], 9))
   })
 
-  it('multiplies each tick by the boss’s Fire damage taken and the average resist at the tick (Curse of the Elements: 1,551 crit, 320.75 a first tick)', () => {
+  it('takes the average resist again at each tick, but not the boss’s Fire damage taken: the crit carries it (Curse of the Elements: 1,551 crit, 291.59 a first tick; 1.60.1.70009’s no double dip)', () => {
     const { damage } = events(ignitePlan({ buffs: ['curseOfTheElements'] }))
     expect(damage('fireball')[0].value).toBeCloseTo(1000 * 1.1 * RESIST * 1.5, 9)
-    expect(damage('ignite')[0].value).toBeCloseTo(((0.4 * 1551) / 2) * 1.1 * RESIST, 9)
+    expect(damage('ignite')[0].value).toBeCloseTo(((0.4 * 1551) / 2) * RESIST, 9)
+    expect(damage('ignite')[0].value).toBeCloseTo(291.588, 9)
   })
 
   it('never crits or misses; its row counts the crits that fed it (casts) and its ticks (hits); a non-crit feeds nothing', () => {
@@ -167,7 +168,7 @@ describe('Improved Scorch (docs/classes/mage.md#improved-scorch)', () => {
     for (const d of damage('fireballDot').filter((x) => x.t < 37000)) expect(d.value).toBeCloseTo(15 * RESIST * 1.15, 9)
   })
 
-  it('multiplies Ignite’s ticks too, and the crit that fed them: 1,621.5 crit, a first tick of 0.4 × 1,621.5 / 2 × 1.15 × 0.94', () => {
+  it('multiplies the crit that feeds Ignite, not Ignite’s ticks again: 1,621.5 crit, a first tick of 0.4 × 1,621.5 / 2 × 0.94 (1.60.1.70009’s no double dip)', () => {
     const plan = scorchPlan({ talents: { 'Improved Scorch': 3, Ignite: 5 } })
     // Only Fireball crits (Scorch never does), so the Scorches feed nothing.
     spellOf(plan, 'fireball').bonusCrit = 300
@@ -176,7 +177,7 @@ describe('Improved Scorch (docs/classes/mage.md#improved-scorch)', () => {
     expect(damage('fireball')[0]).toMatchObject({ t: 11000 })
     expect(damage('fireball')[0].value).toBeCloseTo(crit, 9)
     expect(damage('ignite')[0]).toMatchObject({ t: 13000 })
-    expect(damage('ignite')[0].value).toBeCloseTo(((0.4 * crit) / 2) * 1.15 * RESIST, 9)
+    expect(damage('ignite')[0].value).toBeCloseTo(((0.4 * crit) / 2) * RESIST, 9)
   })
 
   it('the Fire priority casts Scorch until 5 stacks (COND 42), and again at ≤ the refresh setting’s time left (COND 43) or before a Fireball would let them run out (COND 44)', () => {
@@ -277,7 +278,7 @@ describe('Hot Streak (docs/classes/mage.md#hot-streak)', () => {
     // A spell the plan doesn't cast leaves its proc out.
     const plan = examplePlan({ talents: { 'Hot Streak': 1, Pyroblast: 1 }, spellCrit: 200 })
     expect(plan.procs.filter((p) => p.id.startsWith('hotStreak')).map((p) => p.id)).toEqual(['hotStreak.fireball'])
-    expect(plan.auras[auraOf(plan, 'hotStreak')]).toMatchObject({ maxStacks: 3, durationMs: 15000 })
+    expect(plan.auras[auraOf(plan, 'hotStreak')]).toMatchObject({ maxStacks: 3, durationMs: 20000 })
     expect(events(plan, ['hotStreak']).uses('fireball').slice(0, 6).map((u) => u.stacks.hotStreak)).toEqual([0, 1, 2, 3, 3, 3])
     const pyro = examplePlan({ talents: { 'Hot Streak': 1, Pyroblast: 1 }, rotation: { [F.pyroblast]: true, [F.pyroblastStacks]: 1 }, spellCrit: 200 })
     // Pyroblast at 1 stack: 6 s × 0.75 = 4.5 s, and it leaves none.

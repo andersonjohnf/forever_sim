@@ -17,7 +17,7 @@ is the API it builds on). It's a lighter class doc than [shaman.md](shaman.md): 
 and talents the sim uses, with numbers and sources, the three priorities and their settings, the
 defaults, and the questions the beta has to answer.
 
-Status: researched 2026-09-24 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 ·
+Status: researched 2026-09-24 · Forever client build 1.60.1.69913 (Ignite and Hot Streak: 1.60.1.70009) · Classic Era 1.15.9.69722 ·
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: Fire, Frost and Arcane with
 first-pass defaults ([First-pass defaults](#first-pass-defaults))
 
@@ -185,7 +185,14 @@ Ignite 5/5 (11119), Forever tooltip: "Your critical strikes from Fire damage spe
 to burn for an additional 40% of your spell's damage over 4 sec" (8% a rank) [F]. Its DoT is
 412538: one stack, a 2 s period for 4 s, triggering 412545's damage; its aura text deals half the
 amount it holds each tick [F] [client] (SpellEffect, SpellAuraOptions,
-SpellDuration, 1.60.1.69913). How the server adds a new crit to what's left isn't in the client.
+SpellDuration, 1.60.1.70009). How the server adds a new crit to what's left isn't in the client.
+
+**No double dip (1.60.1.70009).** The build's notes: "Ignite no longer double dips on % damage
+increase modifiers" [F] ([Forever beta development notes][dev-70009], 2026-09-24). The client agrees:
+412545, the tick's damage spell, gains two flags it didn't carry in 1.60.1.69913, `Attributes[6]`
+0x20000000 and `Attributes[10]` 0x2 [F] [client] (SpellMisc, 1.60.1.70009); no other spell in the
+client carries the first. So the crit's damage, which already holds Curse of the Elements and Fire
+Vulnerability, isn't multiplied by them again at each tick.
 
 **The sim's rolling Ignite** (`Plan.ignite`) [?] (`mageIgnite`):
 
@@ -194,8 +201,10 @@ SpellDuration, 1.60.1.69913). How the server adds a new crit to what's left isn'
   its average partial resist.
 - It gives the pool **2 ticks, 2 s apart.** With no tick pending, the next comes 2 s after the crit;
   a tick already due **keeps its time**, and the ticks left go back to 2.
-- Each tick deals **pool ÷ ticks left × the boss's Fire damage taken now × (1 − average Fire
-  resist)**. It never misses, never crits and triggers nothing.
+- Each tick deals **pool ÷ ticks left × (1 − average Fire resist)**. The boss's Fire damage taken
+  (Curse of the Elements, Fire Vulnerability) isn't applied again: it's in the crit's damage. The
+  average partial resist is taken again, as Classic's ticks rolled theirs again [?] (`mageIgnite`):
+  the notes speak of damage increases only. It never misses, never crits and triggers nothing.
 - Its row counts the crits that fed it (casts) and its ticks (hits); a marker on the boss shows its
   uptime.
 
@@ -204,7 +213,8 @@ Season of Discovery):
 
 - The 40%: each tick adds 0.2 × 1.5 × the spell's hit, over two ticks.
 - The double dip: the crit's damage already carries Curse of the Elements and Improved Scorch's stacks,
-  and each tick multiplies by them again, with a partial resist rolled again.
+  and each tick multiplies by them again, with a partial resist rolled again. Forever's Ignite no
+  longer does the first (above); the sim keeps the second.
 - No crits on the ticks.
 - **The contrast**: R1's Classic Ignite is 12654's 5-stack DoT. Up to five crits add to it and each
   refreshes it to 4 s; later crits refresh it without adding. It snapshots Power Infusion at the
@@ -222,7 +232,8 @@ SpellAuraOptions `CumulativeAura` 5; SpellDuration, 1.60.1.69913). Forever toolt
 vulnerability increases all Fire damage you deal to your target by 3%".
 
 - It's an aura the mage keeps on the boss (`schoolTaken`, [spells §9](../mechanics/spells.md#9-caster-raid-buffs-and-debuffs)),
-  read at each hit and tick, Ignite's included, and it multiplies with Curse of the Elements.
+  read at each hit and tick, and it multiplies with Curse of the Elements. Ignite's ticks don't read
+  it: the crit that fed them did ([Ignite](#ignite)).
 - The stack lands with Scorch's hit, after its damage, with no separate roll to resist the debuff
   [?] (`mageImprovedScorch`). Scorch's travel time isn't simulated
   ([spells OQ-S13](../mechanics/spells.md#open-questions)).
@@ -234,9 +245,11 @@ vulnerability increases all Fire damage you deal to your target by 3%".
 ## Hot Streak
 
 Hot Streak (400624 → 400625), new in Forever: "Your non-periodic critical strikes with Fireball,
-Frostfire Bolt, Fire Blast, and Scorch grant Hot Streak for 15 sec. Hot Streak reduces the cast time
+Frostfire Bolt, Fire Blast, and Scorch grant Hot Streak for 20 sec. Hot Streak reduces the cast time
 of Pyroblast by 25%, stacking up to 3 times" [F] tooltip; [client] (SpellEffect aura 108 misc 10,
-−25, class mask Pyroblast; SpellAuraOptions: 3 stacks, 1 charge, 1.60.1.69913).
+−25, class mask Pyroblast; SpellAuraOptions: 3 stacks, 1 charge; SpellDuration 20 s, 1.60.1.70009).
+It lasted 15 s until 1.60.1.70009 ("Hot Streak buff duration has been increased to 20 seconds (was
+15 seconds)", [development notes][dev-70009]).
 
 - A crit of Fireball, Fire Blast or Scorch adds a stack (Frostfire Bolt isn't simulated); a
   Pyroblast's crit doesn't.
@@ -452,8 +465,8 @@ and the crit-bonus talents set the spell's crit multiplier (×1.5 + 0.5 × 20% a
 
 ### Damage sources (Fire)
 
-On the default setup: Fireball about 34% (its DoT 1%), Pyroblast 24% (its DoT 6%), Fire Blast 21%,
-Ignite 12%, Scorch 8%.
+On the default setup: Fireball about 34% (its DoT 1%), Pyroblast 25% (its DoT 7%), Fire Blast 22%,
+Ignite 10% (12% before 1.60.1.70009 ended its double dip), Scorch 8%.
 
 **Classic Era approach** [C]:
 
@@ -766,8 +779,9 @@ engine in `src/sim/classes/mage/mage.test.ts` ("worked examples"), in the `forev
    **1,601.2** (**1,565.69–1,636.71** over its range). It's binary, so a landed one takes no partial
    resist.
 3. **Ignite from one 1,000 crit** (Ignite 5/5): 40% = **400** into the pool; **2 ticks of 200 × 0.94 =
-   188**, 2 s and 4 s after the crit. With Fire Vulnerability or Curse of the Elements up, each tick
-   is multiplied by them again.
+   188**, 2 s and 4 s after the crit. With Fire Vulnerability or Curse of the Elements up, the crit
+   already carries them and the ticks aren't multiplied again: a 1,551 crit under Curse of the
+   Elements (1,000 × 1.1 × 0.94 × 1.5) gives ticks of 0.4 × 1,551 ÷ 2 × 0.94 = **291.59**.
 4. **Scorch's refresh** (Improved Scorch 3/3, Scorch again at 5 s, Fireball's 3.5 s cast): Scorches
    at 0, 1.5, 3, 4.5 and 6 s put up 5 stacks by 7.5 s, which hold to **37.5 s**. Fireballs follow from
    7.5 s. The one starting at 32 s sees 5.5 s left, more than 5, so it's another Fireball; at 35.5 s,
@@ -788,7 +802,7 @@ the default setups' DPS. Each names the results' assumption it's listed under.
 
 1. **OQ-M1: Ignite's pooling** (`mageIgnite`). The sim pools every Fire crit's 40% into two ticks, a due
    tick keeping its time; the rules are server-side. *Test:* two Fire crits 1 s apart (Fire Blast, then
-   Scorch) on a dummy; log Ignite's ticks and compare them with the pool rule. *Effect:* Ignite is 12% of
+   Scorch) on a dummy; log Ignite's ticks and compare them with the pool rule. *Effect:* Ignite is 10% of
    Fire's damage; a different pooling rule moves Fire by up to ±2%.
 2. **OQ-M2: Improved Scorch's stacks** (`mageImprovedScorch`) land with Scorch's hit, with no separate
    resist. *Test:* count Fire Vulnerability stacks against landed Scorches over 100 casts. *Effect:*
@@ -835,12 +849,14 @@ the default setups' DPS. Each names the results' assumption it's listed under.
 | Source | What it covers | Ruleset |
 | --- | --- | --- |
 | Client DB2 tables and game tables, Forever 1.60.1.69913 and Classic Era 1.15.9.69722, via the wago.tools API, parsed into `src/data/client/*.json`, `src/data/spells/mage.json`, `src/data/talents/mage.json` ([client.md](../data/client.md)) | every [F] number: ranges, coefficients, costs, cast times, cooldowns and categories, charges, stacks, auras, class masks, talent curves, base mana, crit per stat, races | Forever [F] / Classic Era [C] |
+| [WoW Forever Beta Development Notes, updated September 24][dev-70009] (Blizzard, 2026-09-24), the 1.60.1.70009 build's | Hot Streak's 20 s; Ignite no longer double dips | Forever [F] |
 | [R1] ronkuby's Classic Era fire-mage simulation, pinned before Season of Discovery (commit 9ae1d3bb, 2023-10-19): [mechanics][r1-mech], [constants][r1-const] | Ignite's 40%, double dip and ticks; Combustion's model; Scorch refresh at 5 s; Frostbolt without partials | Classic Era [C] |
 | [Wowhead Classic: mage rotation][wh-rotation], [talents and builds][wh-talents], [consumables][wh-consumables], [pre-raid BiS][wh-prebis] (Wayback, 2021) | the Classic Era priorities, the builds the defaults adapt, consumables, the Frost and Arcane gear | Classic Era [C] |
 | [Icy Veins Classic: mage rotation][iv-rotation], [pre-raid gear][iv-prebis] (Wayback, 2021) | Scorch and Winter's Chill stacks, Presence of Mind on Pyroblast, Evocation, the Fire gear | Classic Era [C] |
 | [mangos player_levelstats](https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql), [player_classlevelstats](https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql) | the D24 attribute and health placeholders | **Forbidden** as evidence (an emulator); placeholders only, under D24 |
 | [wowsims/classic base_stats.go](https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go), [RatingBuster d8588dcd](https://github.com/raethkcj/RatingBuster/commit/d8588dcd1644e635ac664d468e1614726f885bf7) | base spell crit, melee crit and dodge placeholders | secondary (mixed lineage) [?] |
 
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696
 [r1-mech]: https://github.com/ronkuby-mage/fire-mage-simulation/blob/9ae1d3bbbdeba7468b48f02c28aafa747c17f26d/src/sim/mechanics.py
 [r1-const]: https://github.com/ronkuby-mage/fire-mage-simulation/blob/9ae1d3bbbdeba7468b48f02c28aafa747c17f26d/src/sim/constants.py
 [wh-rotation]: http://web.archive.org/web/20210515120244/https://classic.wowhead.com/guides/mage-dps-rotation-abilities-classic-wow

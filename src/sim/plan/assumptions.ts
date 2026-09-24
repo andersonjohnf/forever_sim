@@ -752,7 +752,7 @@ const REGISTRY = {
     docRef: `${MAGE}#open-questions`,
   },
   mageIgnite: {
-    text: 'Ignite pools: each Fire crit adds 40% of its damage to what’s still to come and gives it 2 more ticks, 2 s apart; a tick already due keeps its time. The boss’s Fire Vulnerability and Curse of the Elements apply again at each tick. Forever’s pooling rules are server-side and untested.',
+    text: 'Ignite pools: each Fire crit adds 40% of its damage to what’s still to come and gives it 2 more ticks, 2 s apart; a tick already due keeps its time. The boss’s Fire Vulnerability and Curse of the Elements are in the crit’s damage and don’t apply again at each tick (Forever’s Ignite no longer double dips); the average partial resist does, as it did in Classic. Forever’s pooling rules are server-side and untested.',
     docRef: `${MAGE}#ignite`,
   },
   mageImprovedScorch: {

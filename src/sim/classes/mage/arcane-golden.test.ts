@@ -20,6 +20,8 @@ describe('golden run (fixed config and seed)', () => {
   // - K2: the default Arcane mage (mage.md "Arcane priority", "First-pass defaults"): Troll,
   //   050225003100301531-2355001010003-, Arcane Power, Presence of Mind (an instant Pyroblast) and
   //   Berserking on cooldown, Arcane Missiles, the mana gems and Evocation; the Standard raid's buffs.
+  // - 1.60.1.70009 (September 2026): Ignite's ticks no longer take Curse of the Elements again (the
+  //   crit carries it). 402.71 → 402.62 DPS: Ignite, fed by Presence of Mind's Pyroblasts, −9.1%.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

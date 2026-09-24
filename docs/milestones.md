@@ -278,6 +278,23 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
 
+## M5.7: The optimizer (D30) 🚧 top priority
+
+The sim finds the best talents, gear and rotation for a setup, within constraints the player
+sets. Each spec's defaults are then its results.
+- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
+      racing over candidates in the worker pool, with confidence intervals), the talent build
+      enumerator (tree rules, required talents, the minimum points in a tree, the class's
+      survival floor), rotation settings as candidates, the objective per role, and a CLI
+      (`npm run optimize`)
+- [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
+      locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
+      coordinate ascent with restarts; talents, gear and rotation alternated until stable
+- [ ] **O3 In the app:** an Optimize flow (what to search, constraints, a search budget, progress
+      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
+- [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
+      fresh seed, tanks after M5.6's threat fixes
+
 ## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
 
 The officers' review of v1 found the Protection paladin and the bear far behind the warrior:
@@ -288,13 +305,13 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
       armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
       presets built for threat (the gear review)
-- [ ] **T2 Protection paladin:** a spell-damage preset, its documented enchants and consumables
+- [ ] **T2 Protection paladin:** its documented enchants and consumables
       (Nightfin Soup, Wizard Oil), another paladin's Judgement of the Crusader and the JotC
-      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous, a
-      balanced talent build
-- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, a balanced talent build, Thorns on
-      the tank, Thick Hide's armor, a threat preset
-- [ ] **T4 Warrior:** a balanced talent build and a like-for-like preset under D29
+      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous; its
+      talents and gear then come from the optimizer (O4)
+- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
+      armor; its talents and gear then come from the optimizer (O4)
+- [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,

@@ -475,3 +475,27 @@ had no known number was modelled with none. Both are now rules:
   source leaves a range, the default takes the reading that fits the benchmark. A tank that
   still misses the benchmark after that is an open plausibility finding, and its fix goes to
   the guild's in-game tests or to combat logs.
+
+### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
+User decision, now the top priority. Talent builds, gear sets and rotations have a numerically
+best answer for a given setup, so the sim searches for it rather than assuming one, as Raidbots'
+Top Gear and the retail optimizers do:
+- **An optimizer in the engine and the app.** It runs tens of thousands of fights over
+  candidate talent builds, gear sets (with enchants) and rotation settings. It uses the same
+  paired, same-seed comparisons as the rotation tuner (D23), and races candidates so that weak
+  ones stop early. Its constraints are the player's:
+  - talents it must keep, or a minimum in a tree (for example 31 points in Protection)
+  - an item level range, item sources and slots to leave as they are
+  - how long to search
+- **Defaults are the optimizer's results** under each spec's default constraints, confirmed on a
+  fresh seed (D23). They replace the guide-picked gear (D11 still decides what's in the pool),
+  the "most popular build" talent defaults and D27's first-pass rotations.
+- **What it maximizes.** A DPS spec maximizes DPS. A tank maximizes TPS and DPS as equals (D18):
+  the sum of each one's change relative to the spec's current default. That's the Balanced
+  rotation's aim too (D28). A tank's search never drops the survival talents its class doc lists
+  as the floor, the ones nearly every tank takes, such as big cuts to defensive cooldowns.
+- **What stays as it was.** The model: what the sim can't measure (damage taken, a talent's
+  utility) is a constraint or a tie-break, never a guess. Every value that affects the result
+  has a default (D29), and the optimizer is only as right as those values, so the tanks' threat
+  fixes land first.
+

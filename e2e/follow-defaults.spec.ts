@@ -59,9 +59,9 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
     await expect(gear.getByText('1 slot differs from the threat set: Head. Equipping it replaces that slot.', { exact: true })).toBeVisible()
 
-    // Today's default build, the guild theorycrafter's 9/35/7 (D30).
+    // Today's default build, the guild theorycrafter's on 1.60.1.70009's trees, 8/36/7 (D30).
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/9\s*\/\s*35\s*\/\s*7/).first()).toBeVisible()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/8\s*\/\s*36\s*\/\s*7/).first()).toBeVisible()
 
     // The load saved what follows, so a reload moves nothing and says nothing.
     await page.reload()
@@ -72,17 +72,45 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
   })
 })
 
+test.describe('a build from the game’s older talent trees (docs/data/talents.md#tree-versions)', () => {
+  test('the player’s own Retribution build is mapped by name, and the visit says what it lost, once', async ({ page }) => {
+    // Saved on 1.60.1.69913's trees (version 1), after saves said what follows: the player's own build.
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const config = { version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }
+      const following = { 'paladin-retribution': { gear: [], talents: false } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'talents', following }, version: 1 }))
+    })
+    await page.goto('./')
+    const notice = toasts(page).filter({ hasText: 'Talent points refunded for Retribution Paladin' })
+    await expect(notice).toHaveCount(1)
+    await expect(notice).toContainText('The game’s new talent trees refunded 16 of your Retribution Paladin talent points: 2 in Improved Holy Strike (removed from the game), 2 in Crusade (removed from the game), 3 in Two-Handed Weapon Specialization (needs 20 points in Retribution above it)')
+    await expect(toasts(page).filter({ hasText: /Updated to the new default/ })).toHaveCount(0)
+    // 8/8/19 on today's trees: what kept its place.
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
+
+    // The visit saved it on today's trees, so a reload says nothing.
+    await page.reload()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
+    await expect(toasts(page)).toHaveCount(0)
+  })
+})
+
 test.describe('a share link and the defaults notice (docs/ux.md "Persistence and sharing")', () => {
   test('a link that replaces the moved spec leaves it out, so no notice contradicts the link', async ({ page }) => {
     await page.goto('about:blank')
     const hash = await linkFor(page, { version: 1, spec: 'paladin-protection', talents: '2-4530513321301551-502' })
     await seedOldPaladin(page)
     await page.goto(`./${hash}`)
-    await expect(toasts(page).filter({ hasText: 'Loaded a shared setup' })).toHaveCount(1)
+    const loaded = toasts(page).filter({ hasText: 'Loaded a shared setup' })
+    await expect(loaded).toHaveCount(1)
     await expect(toasts(page).filter({ hasText: /Updated to the new default/ })).toHaveCount(0)
-    // The link's own talents, as it carries them: 2/42/7.
+    // The link's own talents, written on 1.60.1.69913's trees (version 1), mapped onto today's by name
+    // (docs/data/talents.md#tree-versions): 2/42/7 there, Improved Holy Strike's 2 points refunded here.
+    await expect(loaded).toContainText('The game’s new talent trees refunded 2 of your talent points: 2 in Improved Holy Strike (removed from the game).')
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/2\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/0\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
   })
 
   test('a link for another spec leaves the notice for the spec that moved', async ({ page }) => {

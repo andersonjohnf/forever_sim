@@ -139,9 +139,12 @@ describe('setup store', () => {
 // docs/architecture.md "Following the defaults"
 describe('the automatic save follows the defaults', () => {
   const KEY = 'forever-sim:setup'
-  /** v1's defaults: the pre-raid lists alone, and v1's talents where they differ from today's. */
+  /**
+   * v1's defaults: the pre-raid lists alone, and v1's talents where they differ from today's, as a save
+   * from then holds them (setup version 1, its talents on 1.60.1.69913's trees).
+   */
   const v1 = (spec: SpecId, talents?: string): SimConfig =>
-    normalizeConfig({ ...defaultConfig(spec), gear: preRaidListGear(spec), ...(talents ? { talents } : {}) }).config
+    ({ ...normalizeConfig({ ...defaultConfig(spec), gear: preRaidListGear(spec) }).config, version: 1, ...(talents ? { talents } : {}) }) as unknown as SimConfig
   const seed = (state: object) => memory.set(KEY, JSON.stringify({ state, version: 1 }))
   const saved = () => JSON.parse(memory.get(KEY)!).state
   /** A load, as the page's: hydration, then its save once the store exists (a microtask). */
@@ -198,8 +201,35 @@ describe('the automatic save follows the defaults', () => {
     expect(takeDefaultsUpdates()).toEqual([{ spec: 'paladin-protection', gear: true, talents: false }])
   })
 
+  test('the player’s own build on 1.60.1.69913’s trees is mapped by name, says what it lost once, and saves on today’s', async () => {
+    // Saved after saves said what follows, before 1.60.1.70009: version 1, the player's own Retribution talents.
+    const d = normalizeConfig(defaultConfig('paladin-retribution')).config
+    const config = { ...d, version: 1, talents: '250003-503-052052310012330321' }
+    seed({ config, bySpec: {}, section: 'gear', following: { 'paladin-retribution': { gear: Object.keys(d.gear), talents: false } } })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.talents).toBe('50003-503-05205231001')
+    const [update] = takeDefaultsUpdates()
+    expect(update).toMatchObject({ spec: 'paladin-retribution', gear: false, talents: false })
+    expect(update.refunds?.map((r) => `${r.name} ${r.points}`)).toEqual([
+      'Improved Holy Strike 2',
+      'Crusade 2',
+      'Two-Handed Weapon Specialization 3',
+      'Vengeance 3',
+      'Champion of the Light 3',
+      'Instrument of Law 2',
+      'Twist of Light 1',
+    ])
+    // The load saved it on today's trees, so the next one has nothing to say.
+    expect(saved().config).toMatchObject({ version: 2, talents: '50003-503-05205231001' })
+    await load()
+    expect(takeDefaultsUpdates()).toEqual([])
+  })
+
   test('a shared link’s or saved setup’s old gear and talents are kept exactly, through reloads', async () => {
-    const shared = { ...v1('paladin-protection', '2-4530513321301551-502'), race: 'alliance-dwarf' }
+    // A link from then, as loading it gives it: its talents mapped onto today's trees.
+    const shared = normalizeConfig({ ...v1('paladin-protection', '2-4530513321301551-502'), race: 'alliance-dwarf' }).config
+    expect(shared.talents).toBe('-4530513321301551-502')
     const code = await packSetup(shared)
     store().replace(shared)
     expect(store().config).toBe(shared)

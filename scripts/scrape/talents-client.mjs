@@ -203,7 +203,7 @@ function checkCodes(cls, old, next) {
 
 /**
  * The frozen code order of each FROZEN_TALENT_BUILDS build (src/data/talents/frozen.json): per class
- * and tree, the talents in build-code order as [name, maxRank, spellId, tier, col], read from that
+ * and tree, the talents in build-code order as [name, maxRank, spellId, tier, col, prerequisite], read from that
  * build's own Trait tables on every run, so a check regenerates it byte for byte. A code written on
  * that build decodes against it, and the app maps it onto today's trees by talent name
  * (docs/data/talents.md#tree-versions). Each code the repo stored on that build (stored-builds.json
@@ -219,12 +219,13 @@ function frozenOrders() {
     for (const cls of CLASSES) {
       const tree = readForeverTree(b.tables, cls);
       for (const p of tree.problems) fail(`${b.build}: ${p}`);
+      const nodeName = new Map(tree.talents.map((t) => [t.nodeId, t.name]));
       classes[cls] = tree.tabs.map((tab, i) => ({
         name: tab.name,
         talents: tree.talents
           .filter((t) => t.tab === i)
           .sort((x, y) => x.tier - y.tier || x.col - y.col)
-          .map((t) => [t.name, t.maxRank, t.spellId, t.tier, t.col]),
+          .map((t) => [t.name, t.maxRank, t.spellId, t.tier, t.col, t.prerequisiteNodeIds.length ? nodeName.get(t.prerequisiteNodeIds[0].nodeId) : null]),
       }));
       const names = classes[cls].flatMap((t) => t.talents.map(([name]) => name));
       if (new Set(names).size !== names.length) fail(`${b.build} ${cls}: two talents share a name, so its codes can't be mapped by name`);

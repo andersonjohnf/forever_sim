@@ -9,7 +9,7 @@
 // - A small store that reads and writes localStorage, every access in try/catch, and reports what
 //   went wrong for the UI to say.
 import { create } from 'zustand'
-import { normalizeConfig, SPEC_IDS, type SimConfig, type SpecId } from '@/sim'
+import { CONFIG_VERSION, normalizeConfig, SPEC_IDS, type SimConfig, type SpecId } from '@/sim'
 import { isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
 
@@ -270,7 +270,8 @@ export function serializeSavedSetups(setups: readonly StoredSetup[], unreadable:
  */
 export function isShown(setup: StoredSetup): boolean {
   const config = setup.config as Obj
-  if (config.version !== undefined && config.version !== 1) return false
+  // Versions 1 and 2 differ only in the trees the talent code is on, which loading maps (docs/data/talents.md#tree-versions).
+  if (config.version !== undefined && config.version !== 1 && config.version !== CONFIG_VERSION) return false
   return SPEC_IDS.includes(config.spec as SpecId) && isVisibleSpec(config.spec as SpecId)
 }
 

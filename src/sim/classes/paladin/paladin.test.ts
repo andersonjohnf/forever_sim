@@ -210,8 +210,9 @@ describe('Consecration recast on its cooldown', () => {
 })
 
 describe('worked example 8: the Retribution mana cycle', () => {
-  const RET = { Benediction: 5, 'Sanctified Judgement': 3, 'Improved Judgement': 2, 'Improved Holy Strike': 2 }
-  it('Judgement costs 81 and returns 126 (+45); Seal of Command 189; Holy Strike 18: 74.25 mana over 30 s', () => {
+  // Improved Holy Strike left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions): Holy Strike every 12 s.
+  const RET = { Benediction: 5, 'Sanctified Judgement': 3, 'Improved Judgement': 2 }
+  it('Judgement costs 81 and returns 126 (+45); Seal of Command 189; Holy Strike 18: 65.25 mana over 30 s', () => {
     const t = ranks(RET)
     const judge = withTalents(JUDGE_COMMAND, t)
     expect(manaCostOf(judge)).toBe(81)
@@ -222,8 +223,8 @@ describe('worked example 8: the Retribution mana cycle', () => {
     expect(manaCostOf(seal)).toBe(189)
     const strike = withTalents(HOLY_STRIKE_ABILITY, t)
     expect(manaCostOf(strike)).toBe(18)
-    expect(strike.cooldownMs).toBe(10000)
-    expect(manaCostOf(seal) + 3 * manaCostOf(strike) - 3.75 * (judge.manaReturnTenths! / 10 - manaCostOf(judge))).toBeCloseTo(74.25, 9)
+    expect(strike.cooldownMs).toBe(12000)
+    expect(manaCostOf(seal) + (30000 / strike.cooldownMs) * manaCostOf(strike) - 3.75 * (judge.manaReturnTenths! / 10 - manaCostOf(judge))).toBeCloseTo(65.25, 9)
   })
 
   it('in a fight: each landed Judgement of Command pays 81 and gets 126 back', () => {
@@ -242,20 +243,20 @@ describe('worked example 8: the Retribution mana cycle', () => {
 })
 
 describe('worked example 9: damage multipliers', () => {
-  it('a white hit: 2HWS 3/3 × Vengeance 3/3 at 5 stacks × Crusade 2/2 = ×1.27857; a Seal of Command proc ×1.34895', () => {
-    const talents = { 'Two-Handed Weapon Specialization': 3, Vengeance: 3, Crusade: 2, ...IMPROVED_SEALS }
+  it('a white hit: 2HWS 3/3 × Vengeance 3/3 at 5 stacks = ×1.2535; a Seal of Command proc ×1.3225', () => {
+    const talents = { 'Two-Handed Weapon Specialization': 3, Vengeance: 3, ...IMPROVED_SEALS }
     const plan = examplePlan({ talents, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     plan.stats.crit = 100
     // A target below your level: no glancing blows, so every white hit crits (×2).
     plan.fight.targetLevel = 59
     const white = damagesOf(plan, 'mainHand')
     // By the sixth white hit, the crits before it (white hits, seal procs, judgements) have given five stacks.
-    expect(white[5]).toBeCloseTo((250 + 300) * 2 * 1.09 * 1.15 * 1.02, 9)
+    expect(white[5]).toBeCloseTo((250 + 300) * 2 * 1.09 * 1.15, 9)
     expect(white[6]).toBeCloseTo(white[5], 9)
-    expect(1.09 * 1.15 * 1.02).toBeCloseTo(1.27857, 5)
+    expect(1.09 * 1.15).toBeCloseTo(1.2535, 9)
     const procs = damagesOf(plan, 'sealOfCommandProc')
     const base = 0.7 * (250 + 300) + 0.203 * 100
-    expect(Math.max(...procs)).toBeCloseTo(base * 2 * 1.34895, 1)
+    expect(Math.max(...procs)).toBeCloseTo(base * 2 * 1.3225, 1)
   })
 })
 

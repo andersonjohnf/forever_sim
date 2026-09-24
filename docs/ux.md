@@ -1013,6 +1013,16 @@ Every view handles these states:
   it was, still following the default, and the next visit tries again. Share links, codes and
   saved setups are loaded exactly as they are; after that, anything in them that is the default
   follows it.
+- **A talent build from the game's older talent trees** (a setup saved or shared before
+  1.60.1.70009) loads mapped onto today's trees, talent by talent
+  ([talents.md § Tree versions](data/talents.md#tree-versions)). Points that have no place there
+  are refunded, and the load says so in one sentence, each talent with why: "The game’s new talent
+  trees refunded 4 of your talent points: 2 in Improved Holy Strike (removed from the game) and 2
+  in Crusade (removed from the game)." A link, a code or a Load says it among its changes, below. A
+  visit says it in the defaults notice, naming the spec ("… 4 of your Retribution Paladin talent
+  points: …"), after what moved, or on its own under "Talent points refunded for Retribution
+  Paladin"; a build that follows the default takes today's instead and loses nothing. A build that
+  keeps every point says nothing.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser

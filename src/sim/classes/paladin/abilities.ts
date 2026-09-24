@@ -2,8 +2,8 @@
 //
 // Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.69913), checked by
 // abilities.test.ts. These are the base rows; the build's talents (Benediction, Holy Conduit,
-// Improved Judgement, Improved Holy Strike, Purifying Power, Instrument of Law, Sanctified
-// Judgement and the spell talents) are applied by `withTalents` in talents.ts. Seals are `cast`s
+// Improved Judgement, Purifying Power, Instrument of Law, Sanctified Judgement and the spell
+// talents) are applied by `withTalents` in talents.ts. Seals are `cast`s
 // that put their aura up, one seal at a time; each damage seal procs from landed main-hand auto
 // attacks while its aura is up (`sealProcs`). Each seal has its own judgement row, usable while
 // its seal is up, and all of them share Judgement's cooldown (category `judgement`); the seal stays

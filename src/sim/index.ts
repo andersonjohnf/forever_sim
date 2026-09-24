@@ -53,7 +53,8 @@ export {
   type TalentPreset,
 } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'
-export { GEAR_SLOTS, normalizeConfig } from './config/normalize'
+export { GEAR_SLOTS, normalizeConfig, type NormalizedConfig } from './config/normalize'
+export { CONFIG_VERSION, refundNotice, type TalentRefund } from './config/talent-trees'
 export {
   aplPresets,
   aplRowOptionIds,

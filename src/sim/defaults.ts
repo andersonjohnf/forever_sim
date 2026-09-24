@@ -19,6 +19,7 @@ import { canUse, fitsFaction, uniqueConflicts, usesSupplies } from './equip'
 import { firesAmmo } from './plan/ranged'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
+import { CONFIG_VERSION } from './config/talent-trees'
 
 const items = (itemJson as unknown as ItemData).items
 
@@ -46,13 +47,17 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   // docs/classes/druid.md#71-talents: 9/42/0, interim (M5.6 T3, measured); the optimizer replaces it (D30)
   'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
-  'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
-  // docs/classes/paladin.md#protection-defaults: 9/35/7, the guild's lead theorycrafter's build (2026-09-24), which
-  // keeps the survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Deflection 5;
-  // Anticipation the preferred filler, Toughness optional, D30); the optimizer (O4) replaces it.
-  'paladin-protection': '240003-0530213321301551-502',
+  // docs/classes/paladin.md#retribution-defaults: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name:
+  // of Improved Holy Strike's and Crusade's 4 refunded points, 1 to Vindication 3/3 for the deeper rows' gate and 3
+  // unspent until the paladin slice places them (8/8/32)
+  'paladin-retribution': '50003-503-05205331001330321',
+  // docs/classes/paladin.md#protection-defaults: 8/36/7, the guild's lead theorycrafter's build (2026-09-24) on
+  // 1.60.1.70009's trees (Improved Holy Strike's 2 points to Divine Strength 5 and Anticipation 3), which keeps the
+  // survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Deflection 5; Anticipation
+  // the preferred filler, Toughness optional, D30); the optimizer (O4) replaces it.
+  'paladin-protection': '50003-0530313321301551-502',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
-  'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
+  'shaman-elemental': '5504301300103051-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
   'rogue-combat': '005303105001-32502300001515231-',
   'rogue-assassination': '00531310551521051-302303-002',
@@ -112,11 +117,12 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     { name: 'Balance (default)', code: DEFAULT_TALENTS['druid-balance'] },
   ],
   paladin: [
-    // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
+    // docs/classes/paladin.md#retribution-defaults: Holy 8 / Prot 8 / Ret 32, 3 points unspent
     { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
-    // docs/classes/paladin.md#protection-defaults: Holy 9 / Prot 35 / Ret 7, the guild's lead theorycrafter's
+    // docs/classes/paladin.md#protection-defaults: Holy 8 / Prot 36 / Ret 7, the guild's lead theorycrafter's
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
     // docs/classes/paladin.md#protection-defaults: the popular Forever build, v1's default, Holy 2 / Prot 42 / Ret 7
+    // (on 1.60.1.70009's trees its 2 Holy points are Divine Strength's, Improved Holy Strike being gone)
     { name: 'Protection popular build', code: '2-4530513321301551-502' },
   ],
   shaman: [
@@ -583,7 +589,7 @@ export function defaultConfig(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].
   const meta = SPEC_META[spec]
   const tank = meta.role === 'tank'
   return {
-    version: 1,
+    version: CONFIG_VERSION,
     spec,
     race,
     talents: DEFAULT_TALENTS[spec],

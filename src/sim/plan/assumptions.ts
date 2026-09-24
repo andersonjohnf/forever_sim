@@ -502,7 +502,7 @@ const REGISTRY = {
     docRef: `${DRUID}#51-feral-combat`,
   },
   berserkCrits: {
-    text: 'Berserk’s crits give Primal Fury’s extra combo point like any crit, and Rake’s bleed keeps its crit chance. Untested.',
+    text: 'Berserk’s crits give Blood Frenzy’s extra combo point like any crit, and Rake’s bleed keeps its crit chance. Untested.',
     docRef: `${DRUID}#37-berserk-417141-cat-use`,
   },
   formHaste: {

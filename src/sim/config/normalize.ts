@@ -17,6 +17,7 @@ import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
 import { renamedRotationOptions, rotationApl, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
+import { CONFIG_VERSION, migrateTalentCode, refundNotice, TALENT_TREES_OF_VERSION, type TalentRefund } from './talent-trees'
 
 const items = new Map<number, Item>((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
 const raceData = raceJson as unknown as RaceData
@@ -114,7 +115,18 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
   return fallback
 }
 
-export function normalizeConfig(input: unknown): { config: SimConfig; warnings: string[] } {
+/**
+ * A normalized setup, with one plain-language warning per repair. `talentRefunds` are the points a
+ * talent build written on older trees lost on today's (./talent-trees.ts), which `warnings` also
+ * says: the automatic save, which says nothing about its other repairs, says this one.
+ */
+export interface NormalizedConfig {
+  config: SimConfig
+  warnings: string[]
+  talentRefunds?: TalentRefund[]
+}
+
+export function normalizeConfig(input: unknown): NormalizedConfig {
   try {
     return normalize(input)
   } catch {
@@ -122,15 +134,17 @@ export function normalizeConfig(input: unknown): { config: SimConfig; warnings: 
   }
 }
 
-function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
+function normalize(input: unknown): NormalizedConfig {
   const r = new Repairs()
   if (!isObj(input)) {
     r.add('The setup couldn’t be read, so it was reset to the defaults.')
     return { config: defaultConfig('warrior-fury'), warnings: r.warnings }
   }
 
-  // Version: 1 is the only version so far. A newer one comes from a newer app.
-  if (input.version !== undefined && input.version !== 1) {
+  // Version (docs/data/talents.md#tree-versions): 1 (or none) and 2 differ only in the trees the
+  // talent code was written on, 1.60.1.69913's and today's. A newer one comes from a newer app.
+  const version = input.version ?? 1
+  if (version !== 1 && version !== CONFIG_VERSION) {
     r.add('The setup comes from a different version of the app, so it was reset to the defaults.')
     const spec = SPEC_IDS.includes(input.spec as SpecId) ? (input.spec as SpecId) : 'warrior-fury'
     return { config: defaultConfig(spec), warnings: r.warnings }
@@ -149,20 +163,30 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     else r.add(`That race can’t be a ${meta.className.toLowerCase()} in Forever, so the default race was used.`)
   }
 
-  // Talents: a legal build code for the class (docs/data/talents.md).
+  // Talents: a legal build code for the class (docs/data/talents.md). One written on older trees is
+  // mapped onto today's by talent name, and any points it loses are refunded (./talent-trees.ts).
   let talents = d.talents
+  let talentRefunds: TalentRefund[] | undefined
   if (input.talents !== undefined) {
     const data = TALENT_DATA[meta.classId]
+    const trees = TALENT_TREES_OF_VERSION[version as number]
     let ok = typeof input.talents === 'string'
     if (ok) {
       try {
-        ok = validateTalentBuild(data, decodeTalentCode(data, input.talents as string)).length === 0
+        if (trees) {
+          const migrated = migrateTalentCode(data, trees, input.talents as string)
+          talents = migrated.code
+          if (migrated.refunds.length > 0) talentRefunds = migrated.refunds
+        } else if (validateTalentBuild(data, decodeTalentCode(data, input.talents as string)).length === 0) talents = input.talents as string
+        else ok = false
       } catch {
         ok = false
       }
     }
-    if (ok) talents = input.talents as string
-    else r.add('The talent build wasn’t valid, so the default build was used.')
+    if (!ok) {
+      talents = d.talents
+      r.add('The talent build wasn’t valid, so the default build was used.')
+    } else if (talentRefunds) r.add(refundNotice(talentRefunds))
   }
 
   // Rules first: which exclusive buff is the larger can depend on the profile.
@@ -213,8 +237,9 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
   // The order is stored only while it isn't the default (decision D31), so a setup without one is
   // the same object, and gives the same results, as before priority lists.
   return {
-    config: { version: 1, spec, race, talents, gear, buffs, rotation, ...(rotationOrder ? { rotationOrder } : {}), fight, rules, run },
+    config: { version: CONFIG_VERSION, spec, race, talents, gear, buffs, rotation, ...(rotationOrder ? { rotationOrder } : {}), fight, rules, run },
     warnings: r.warnings,
+    ...(talentRefunds ? { talentRefunds } : {}),
   }
 }
 

@@ -1,7 +1,7 @@
 // Setup codes (docs/ux.md#setups, decision D21): a share link's payload on its own, the setup
 // deflated and base64url-encoded (src/app/share.ts). Export's "Copy setup code" copies one, and
 // Import's field takes one, or a whole share link, and makes it the current setup.
-import { normalizeConfig, SPEC_IDS, SPEC_META, type SimConfig, type SpecId } from '@/sim'
+import { CONFIG_VERSION, normalizeConfig, SPEC_IDS, SPEC_META, type SimConfig, type SpecId } from '@/sim'
 import { withinDepth } from './saved-setups'
 import { BrokenShareLinkError, unpackSetup } from './share'
 import { isVisibleSpec } from './specs'
@@ -59,9 +59,10 @@ export const CODE_ERRORS = {
  * (normalizing would turn anything into a default setup, and replace yours with it):
  * - notASetup: not an object, an empty one, a version that isn't a number, or nested deeper than
  *   any setup (MAX_CONFIG_DEPTH)
- * - newer: a version after 1, so a newer version of the app made it
+ * - newer: a version after CONFIG_VERSION (2), so a newer version of the app made it
  * - unknownSpec: a spec that isn't one of the sim's (SPEC_IDS)
- * A setup with no version is taken as version 1, as normalizing and saved setups take it.
+ * A setup with no version is taken as version 1, as normalizing and saved setups take it; version 1's
+ * talent code is on older trees, which normalizing maps (docs/data/talents.md#tree-versions).
  */
 export type SetupProblem = 'notASetup' | 'newer' | 'unknownSpec'
 
@@ -69,7 +70,7 @@ export function setupProblem(raw: unknown): SetupProblem | null {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return 'notASetup'
   const { version, spec } = raw as Record<string, unknown>
   if (Object.keys(raw).length === 0) return 'notASetup'
-  if (version !== undefined && version !== 1) return typeof version === 'number' && version > 1 ? 'newer' : 'notASetup'
+  if (version !== undefined && version !== 1 && version !== CONFIG_VERSION) return typeof version === 'number' && version > CONFIG_VERSION ? 'newer' : 'notASetup'
   if (typeof spec !== 'string' || !SPEC_IDS.includes(spec as SpecId)) return 'unknownSpec'
   if (!withinDepth(raw)) return 'notASetup'
   return null

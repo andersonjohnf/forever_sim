@@ -2,10 +2,10 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scrapedAt": "2026-09-24T22:47:41Z",
     "scraper": "scripts/scrape/talents-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -447,7 +447,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["Your melee attacks against targets afflicted by your Rend have a 2% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 4% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 6% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 8% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec."]
+            "forever": ["Your Main Hand melee attacks against enemies afflicted by your Rend have a 4% chance to allow the use of your Overpower ability on the target. Lasts 6 sec.", "Your Main Hand melee attacks against enemies afflicted by your Rend have a 8% chance to allow the use of your Overpower ability on the target. Lasts 6 sec.", "Your Main Hand melee attacks against enemies afflicted by your Rend have a 12% chance to allow the use of your Overpower ability on the target. Lasts 6 sec.", "Your Main Hand melee attacks against enemies afflicted by your Rend have a 16% chance to allow the use of your Overpower ability on the target. Lasts 6 sec.", "Your Main Hand melee attacks against enemies afflicted by your Rend have a 20% chance to allow the use of your Overpower ability on the target. Lasts 6 sec."]
           },
           "spellId": 1289682,
           "tier": 4,
@@ -536,7 +536,7 @@
           "previousName": null,
           "ranks": {
             "classic": ["Decreases the casting time of your Slam ability by 0.1 sec.", "Decreases the casting time of your Slam ability by 0.2 sec.", "Decreases the casting time of your Slam ability by 0.3 sec.", "Decreases the casting time of your Slam ability by 0.4 sec.", "Decreases the casting time of your Slam ability by 0.5 sec."],
-            "forever": ["Reduces the global cooldown and cast time of your Slam ability by 0.25 sec. In addition, Slam no longer interrupts your melee swing time.", "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time."]
+            "forever": ["Reduces the global cooldown and cast time of your Slam ability by 0.25 sec. In addition, Slam no longer interrupts or delays your melee swing and Slam's cooldown is reduced by 1.5 sec.", "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts or delays your melee swing and Slam's cooldown is reduced by 3.0 sec."]
           },
           "spellId": 12862,
           "tier": 5,

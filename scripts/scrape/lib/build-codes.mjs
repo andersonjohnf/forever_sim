@@ -7,11 +7,11 @@
  * The fields of a talent in src/data/talents/frozen.json, in order: each talent is one array
  * (docs/data/talents.md#tree-versions).
  */
-export const FROZEN_TALENT_FIELDS = ["name", "maxRank", "spellId", "tier", "col"];
+export const FROZEN_TALENT_FIELDS = ["name", "maxRank", "spellId", "tier", "col", "prerequisite"];
 
 /**
  * A class's frozen trees (src/data/talents/frozen.json: `[{ name, talents: [[name, maxRank, spellId,
- * tier, col], …] }, …]`) in the dataset's shape, as far as the helpers below read it, so a code
+ * tier, col, prerequisite], …] }, …]`) in the dataset's shape, as far as the helpers below read it, so a code
  * written on a frozen build decodes as the dataset's own codes do.
  */
 export function frozenAsData(trees) {

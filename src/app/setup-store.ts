@@ -7,7 +7,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { sameEntry } from '@/features/gear/default-set'
 import { defaultConfig, GEAR_SLOTS, normalizeConfig, SPEC_IDS, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
-import { followDefaults, following, legacyFollowing, readFollowing, type DefaultsUpdate, type Following } from './follow-defaults'
+import { followDefaults, following, legacyFollowing, readFollowing, writtenV1Talents, type DefaultsUpdate, type Following } from './follow-defaults'
 import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
@@ -205,12 +205,15 @@ export const useSetup = create<SetupState>()(
         blockedSlots = {}
         // A saved setup, normalized, with the parts the player never changed on today's defaults.
         const load = (raw: unknown): SimConfig => {
-          const normalized = normalizeConfig(raw).config
+          const { config: normalized, talentRefunds } = normalizeConfig(raw)
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
-          const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized))
-          if (moved.gear || moved.talents) {
-            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents })
+          const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw)))
+          // Points the player's own build lost on today's talent trees are said (docs/data/talents.md
+          // #tree-versions); a build that follows the default takes today's, which loses none.
+          const refunds = moved.talents ? undefined : talentRefunds
+          if (moved.gear || moved.talents || refunds) {
+            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents, ...(refunds ? { refunds } : {}) })
             moves.push(moved.config)
           }
           if (moved.blocked.length > 0) {

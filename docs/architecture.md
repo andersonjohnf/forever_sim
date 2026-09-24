@@ -120,6 +120,12 @@ talent build, and what they changed stays theirs.
   default had none: the Protection paladin's head, legs and weapon), for the setup's race or the
   class's default race, or a race change's faction twin of one. The talent build follows if it's one
   of those builds. Saves now say what follows, so later default changes need nothing added here.
+  Those builds are on 1.60.1.69913's talent trees, as the saves from then are (setup version 1), so
+  the save's code is compared as it was written (`writtenV1Talents`), before loading maps it onto
+  today's trees ([talents.md § Tree versions](data/talents.md#tree-versions)).
+- **A player's own talent build that lost points on the game's new trees** (a version-1 code mapped
+  by name, `talentRefunds` from `normalizeConfig`) is said in the defaults notice, naming the spec;
+  the load then saves, on today's trees, so the next one says nothing.
 - **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
   they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
   the autosave treats one as any setup: its slots that happen to hold today's defaults follow them

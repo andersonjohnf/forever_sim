@@ -152,11 +152,12 @@ export interface TalentData {
 
 /**
  * A tree of a frozen build's code order (frozen.json): its talents in code order, each as
- * [name, maxRank, spellId, tier, col] (docs/data/talents.md#tree-versions).
+ * [name, maxRank, spellId, tier, col, prerequisite] (the prerequisite's name, needed at its max
+ * rank, or null) (docs/data/talents.md#tree-versions).
  */
 export interface FrozenTree {
   name: string;
-  talents: [name: string, maxRank: number, spellId: number, tier: number, col: number][];
+  talents: [name: string, maxRank: number, spellId: number, tier: number, col: number, prerequisite: string | null][];
 }
 
 /**
@@ -196,6 +197,29 @@ export function decodeFrozenCode(trees: FrozenTree[], code: string): Record<stri
     });
   });
   return ranks;
+}
+
+/**
+ * The rule violations of a build on a frozen build's trees, ranks by talent name (decodeFrozenCode):
+ * the same rules as `validateTalentBuild` (tier gates counted in lower tiers, prerequisites at max
+ * rank, the point cap), with `rules` today's, which every frozen build shares.
+ */
+export function frozenBuildProblems(trees: FrozenTree[], ranks: Record<string, number>, rules: Pick<TalentRules, 'maxPoints' | 'pointsPerTier'>): string[] {
+  const problems: string[] = [];
+  const maxRank = new Map(trees.flatMap((tree) => tree.talents.map(([name, max]) => [name, max] as const)));
+  let total = 0;
+  for (const tree of trees) {
+    for (const [name, , , tier, , prerequisite] of tree.talents) {
+      const rank = ranks[name] ?? 0;
+      total += rank;
+      if (!rank) continue;
+      const above = tree.talents.filter((t) => t[3] < tier).reduce((n, t) => n + (ranks[t[0]] ?? 0), 0);
+      if (above < rules.pointsPerTier * tier) problems.push(`${name} (tier ${tier + 1}) needs ${rules.pointsPerTier * tier} points in lower tiers, has ${above}`);
+      if (prerequisite !== null && (ranks[prerequisite] ?? 0) < (maxRank.get(prerequisite) ?? 0)) problems.push(`${name} requires ${prerequisite} at rank ${maxRank.get(prerequisite)}`);
+    }
+  }
+  if (total > rules.maxPoints) problems.push(`${total} points exceeds the ${rules.maxPoints}-point cap`);
+  return problems;
 }
 
 /** Ranks keyed by talent id; talents with 0 points are omitted. */

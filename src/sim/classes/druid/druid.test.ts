@@ -143,8 +143,8 @@ describe('talents against their client curves (druid.md §5)', () => {
       expect(reaction?.kind === 'proc' && reaction.proc.chance).toEqual({ pct: curve('Natural Reaction', 1)[r - 1] })
     }
     for (let r = 1; r <= 2; r++) {
-      const fury = at('Primal Fury', r)[0]
-      expect(fury.kind === 'proc' && fury.proc.chance).toEqual({ pct: curve('Primal Fury', 0)[r - 1] })
+      const fury = at('Blood Frenzy', r)[0] // Primal Fury until 1.60.1.70009
+      expect(fury.kind === 'proc' && fury.proc.chance).toEqual({ pct: curve('Blood Frenzy', 0)[r - 1] })
     }
   })
 

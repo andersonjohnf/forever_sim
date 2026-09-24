@@ -3,20 +3,28 @@ import { changeRace } from '@/features/character/faction-gear'
 import { raceChangeMessage } from '@/features/character/races'
 import { defaultGearFor, slotsOffDefault } from '@/features/gear/default-set'
 import { defaultConfig, defaultTalents, GEAR_SLOTS, normalizeConfig, preRaidListGear, type SimConfig, type SpecId } from '@/sim'
-import { defaultsUpdateNotice, followDefaults, following, legacyFollowing, readFollowing } from './follow-defaults'
+import { defaultsUpdateNotice, followDefaults, following, legacyFollowing, readFollowing, writtenV1Talents } from './follow-defaults'
 
 // docs/architecture.md "Following the defaults"
 
 const PROT_PALADIN: SpecId = 'paladin-protection'
-/** v1's default Protection paladin talents: the popular build, 2/42/7 (stored-builds.json). */
+/** v1's default Protection paladin talents: the popular build, 2/42/7, on 1.60.1.69913's trees (stored-builds.json). */
 const V1_PALADIN_TALENTS = '2-4530513321301551-502'
 
 /** A loaded setup: normalized, as the store holds it. */
 const setup = (spec: SpecId, patch: Partial<SimConfig> = {}): SimConfig => normalizeConfig({ ...defaultConfig(spec, patch.race), ...patch }).config
 /** v1's default gear, the pre-raid lists alone. */
 const v1Gear = (spec: SpecId, race?: string) => normalizeConfig({ ...defaultConfig(spec, race), gear: preRaidListGear(spec, race) }).config.gear
-/** What a load does to a save from before `following`. */
-const migrate = (config: SimConfig) => followDefaults(config, legacyFollowing(config))
+/**
+ * What a load does to a save from before `following`: a setup of version 1, whose talents are on
+ * 1.60.1.69913's trees, normalized (which maps them onto today's), then its parts that held a
+ * default then moved to today's.
+ */
+const migrate = (saved: SimConfig) => {
+  const raw = { ...saved, version: 1 }
+  const config = normalizeConfig(raw).config
+  return followDefaults(config, legacyFollowing(config, writtenV1Talents(raw)))
+}
 
 describe('following the defaults', () => {
   it('follows every part of an untouched setup, and nothing moves', () => {
@@ -171,5 +179,36 @@ describe('the notice', () => {
     const three = [...two, { spec: 'druid-feral-bear' as const, gear: false, talents: true }]
     expect(defaultsUpdateNotice(three, 'warrior-fury')?.title).toBe('Updated to the new default gear and talents for Protection Warrior and 2 other specs')
     expect(defaultsUpdateNotice([], PROT_PALADIN)).toBeNull()
+  })
+
+  it('says what the player’s own talent build lost on the game’s new trees, after what moved or on its own', () => {
+    const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, refunds: [{ name: 'Crusade', points: 2, reason: 'removed from the game' }] }
+    const refund = 'The game’s new talent trees refunded 2 of your Retribution Paladin talent points: 2 in Crusade (removed from the game).'
+    expect(defaultsUpdateNotice([ret], PROT_PALADIN)).toEqual({ title: 'Talent points refunded for Retribution Paladin', description: refund })
+    expect(defaultsUpdateNotice([{ spec: PROT_PALADIN, gear: true, talents: false }, ret], 'paladin-retribution')).toEqual({
+      title: 'Updated to the new default gear for Protection Paladin',
+      description: `Gear and talents you changed yourself are kept. ${refund}`,
+    })
+  })
+})
+
+describe('a player’s own talents on the game’s new trees (docs/data/talents.md#tree-versions)', () => {
+  it('a save from before `following` keeps the player’s build, mapped by name, with what it lost', () => {
+    // Improved Holy Strike 2 and one point short of the popular build's Iron Creed: never a default.
+    const raw = { ...setup(PROT_PALADIN), version: 1, talents: '2-4530513321301541-502' }
+    const { config, talentRefunds } = normalizeConfig(raw)
+    expect(config.talents).toBe('-4530513321301541-502')
+    expect(talentRefunds).toEqual([{ name: 'Improved Holy Strike', points: 2, reason: 'removed from the game' }])
+    const moved = followDefaults(config, legacyFollowing(config, writtenV1Talents(raw)))
+    expect(moved.talents).toBe(false)
+    expect(moved.config.talents).toBe('-4530513321301541-502')
+  })
+
+  it('reads only a version-1 save’s code as written on the old trees', () => {
+    expect(writtenV1Talents({ version: 1, talents: 'x' })).toBe('x')
+    expect(writtenV1Talents({ talents: 'x' })).toBe('x')
+    expect(writtenV1Talents({ version: 2, talents: 'x' })).toBeUndefined()
+    expect(writtenV1Talents({ version: 1, talents: 3 })).toBeUndefined()
+    expect(writtenV1Talents(null)).toBeUndefined()
   })
 })

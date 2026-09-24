@@ -173,16 +173,16 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
   },
   druid: {
     Balance: "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Improved Entangling Roots 3, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Overgrowth 2, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
-    'Feral Combat': 'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Brutal Impact 2, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Natural Reaction 5, Rend and Tear 5, Berserk 1',
+    'Feral Combat': 'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Brutal Impact 2, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Primal Bite 1, Predatory Strikes 3, Blood Frenzy 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Natural Reaction 5, Rend and Tear 5, Berserk 1',
     Restoration: "Nature's Focus 5, Furor 5, Naturalist 5, Subtlety 3, Natural Shapeshifter 3, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Tranquil Spirit 5, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1",
   },
   paladin: {
-    Holy: "Improved Holy Strike 2, Divine Strength 5, Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Improved Seals 3, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Consecrated Ground 2, Holy Power 5, Light's Vigil 1",
+    Holy: "Divine Strength 5, Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Improved Seals 3, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Consecrated Ground 2, Holy Power 5, Light's Vigil 1",
     Protection: "Toughness 5, Redoubt 5, Precision 3, Guardian's Favor 2, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Improved Hammer of Justice 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
-    Retribution: 'Deflection 5, Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Pursuit of Justice 2, Eye for an Eye 2, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Repentance 1, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
+    Retribution: 'Deflection 5, Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Pursuit of Justice 2, Eye for an Eye 2, Sacred Arbiter 1, Two-Handed Weapon Specialization 3, Vengeance 3, Repentance 1, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
   },
   shaman: {
-    Elemental: 'Convection 5, Concussion 5, Elemental Warding 3, Reverberation 5, Call of Flame 3, Elemental Devastation 3, Elemental Focus 1, Elemental Fury 5, Improved Fire Nova 2, Eye of the Storm 3, Call of Thunder 1, Elemental Reach 2, Lightning Overload 3, Earthbound 1, Elemental Alacrity 3, Lava Burst 1',
+    Elemental: 'Convection 5, Concussion 5, Elemental Warding 3, Reverberation 5, Call of Flame 3, Elemental Devastation 3, Elemental Focus 1, Elemental Alacrity 3, Improved Fire Nova 2, Eye of the Storm 3, Call of Thunder 1, Elemental Reach 2, Lightning Overload 3, Earthbound 1, Elemental Fury 5, Lava Burst 1',
     Enhancement: "Earth's Grasp 2, Thundering Strikes 5, Ancestral Knowledge 5, Guardian Totems 2, Mental Dexterity 3, Improved Ghost Wolf 2, Improved Lightning Shield 3, Elemental Weapons 3, Shamanistic Focus 1, Anticipation 3, Toughness 5, Flurry 5, Stormstrike 1, Spirit Weapons 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
     Restoration: "Improved Healing Wave 5, Totemic Focus 5, Mindfulness 3, Natural Grace 3, Tidal Focus 5, Improved Reincarnation 2, Ancestral Healing 3, Healing Focus 3, Water Shield 1, Tidal Mastery 5, Restorative Totems 5, Mana Tide Totem 1, Healing Way 3, Nature's Swiftness 1, Purification 5, Riptide 1",
   },
@@ -215,7 +215,24 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
 
 // The code order of 1.60.1.69913, frozen (docs/data/talents.md#tree-versions): setups saved on it
 // (config version 1) hold codes on these trees, so every position keeps its meaning forever.
-const CODE_ORDER_69913: Record<keyof typeof talentData, Record<string, string>> = CODE_ORDER
+const CODE_ORDER_69913: Record<keyof typeof talentData, Record<string, string>> = {
+  ...CODE_ORDER,
+  druid: {
+    Balance: "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Improved Entangling Roots 3, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Overgrowth 2, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
+    'Feral Combat': 'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Brutal Impact 2, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Natural Reaction 5, Rend and Tear 5, Berserk 1',
+    Restoration: "Nature's Focus 5, Furor 5, Naturalist 5, Subtlety 3, Natural Shapeshifter 3, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Tranquil Spirit 5, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1",
+  },
+  paladin: {
+    Holy: "Improved Holy Strike 2, Divine Strength 5, Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Improved Seals 3, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Consecrated Ground 2, Holy Power 5, Light's Vigil 1",
+    Protection: "Toughness 5, Redoubt 5, Precision 3, Guardian's Favor 2, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Improved Hammer of Justice 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+    Retribution: 'Deflection 5, Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Pursuit of Justice 2, Eye for an Eye 2, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Repentance 1, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
+  },
+  shaman: {
+    Elemental: 'Convection 5, Concussion 5, Elemental Warding 3, Reverberation 5, Call of Flame 3, Elemental Devastation 3, Elemental Focus 1, Elemental Fury 5, Improved Fire Nova 2, Eye of the Storm 3, Call of Thunder 1, Elemental Reach 2, Lightning Overload 3, Earthbound 1, Elemental Alacrity 3, Lava Burst 1',
+    Enhancement: "Earth's Grasp 2, Thundering Strikes 5, Ancestral Knowledge 5, Guardian Totems 2, Mental Dexterity 3, Improved Ghost Wolf 2, Improved Lightning Shield 3, Elemental Weapons 3, Shamanistic Focus 1, Anticipation 3, Toughness 5, Flurry 5, Stormstrike 1, Spirit Weapons 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
+    Restoration: "Improved Healing Wave 5, Totemic Focus 5, Mindfulness 3, Natural Grace 3, Tidal Focus 5, Improved Reincarnation 2, Ancestral Healing 3, Healing Focus 3, Water Shield 1, Tidal Mastery 5, Restorative Totems 5, Mana Tide Totem 1, Healing Way 3, Nature's Swiftness 1, Purification 5, Riptide 1",
+  },
+}
 
 const frozen = frozenJson as unknown as FrozenTalentOrders
 

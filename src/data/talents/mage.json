@@ -2,10 +2,10 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scrapedAt": "2026-09-24T22:47:41Z",
     "scraper": "scripts/scrape/talents-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -677,7 +677,7 @@
           "previousName": "Improved Fire Blast",
           "ranks": {
             "classic": ["Reduces the cooldown of your Fire Blast spell by 0.5 sec.", "Reduces the cooldown of your Fire Blast spell by 1 sec.", "Reduces the cooldown of your Fire Blast spell by 1.5 sec."],
-            "forever": ["Reduces the cooldown of your Fire Blast spell by 1 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 20 sec by 25%.", "Reduces the cooldown of your Fire Blast spell by 2 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 20 sec by 50%."]
+            "forever": ["Reduces the cooldown of your Fire Blast spell by 1 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 30 sec by 25%.", "Reduces the cooldown of your Fire Blast spell by 2 sec. Killing a non-trivial target increases the critical strike chance of your next Fire Blast cast within 30 sec by 50%."]
           },
           "spellId": 11078,
           "tier": 0,
@@ -1017,7 +1017,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["Your non-periodic critical strikes with Fireball, Frostfire Bolt, Fire Blast, and Scorch grant Hot Streak for 15 sec. Hot Streak reduces the cast time of Pyroblast by 25%, stacking up to 3 times."]
+            "forever": ["Your non-periodic critical strikes with Fireball, Frostfire Bolt, Fire Blast, and Scorch grant Hot Streak for 20 sec. Hot Streak reduces the cast time of Pyroblast by 25%, stacking up to 3 times."]
           },
           "spellId": 400624,
           "tier": 3,

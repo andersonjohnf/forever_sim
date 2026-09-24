@@ -15,7 +15,7 @@ import hunterTalents from '@/data/talents/hunter.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
-import { fitsFaction, uniqueConflicts, usesSupplies } from './equip'
+import { canUse, fitsFaction, uniqueConflicts, usesSupplies } from './equip'
 import { firesAmmo } from './plan/ranged'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
@@ -368,7 +368,7 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
     // 89.4% of v1's; paladin.md "Protection defaults").
     hands: [14622],
     waist: [22086], // Soulforge Belt
-    legs: [23273, 22873], // Knight-Captain's Lamellar Leggings; Horde: Legionnaire's Plate Leggings
+    legs: [23273, 274232], // Knight-Captain's Lamellar Leggings; Horde: Premier Scaled Leggings (Champion's Vindication)
     feet: [23275, 274226], // Knight-Lieutenant's Lamellar Sabatons; Horde: Premier Scaled Sabatons (Champion's Vindication)
     finger1: [20682], // Elemental Focus Band
     finger2: [19325], // Don Julio's Band
@@ -522,11 +522,14 @@ export function preRaidListGear(
 ): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
   const worn: Partial<Record<GearSlot, Item>> = {}
+  const classId = SPEC_META[spec].classId
   const put = (slot: GearSlot, listed: Item[]) => {
     // The spec's interim picks first (INTERIM_GEAR: an item and its other faction's twin), then the list's.
     const picks = (interim[slot] ?? []).flatMap((id) => itemById.get(id) ?? [])
     const candidates = [...picks, ...listed]
-    const item = candidates.find((i) => fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0)
+    const item = candidates.find(
+      (i) => canUse(classId, i) && fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0,
+    )
     if (!item) return
     worn[slot] = item
     gear[slot] = { itemId: item.id }

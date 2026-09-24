@@ -6,7 +6,7 @@ import type { RaceData } from '@/data/races/types'
 import { decodeTalentCode, talentsInCodeOrder, validateTalentBuild } from '@/data/talents/types'
 import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
-import { fitsFaction, uniqueConflicts } from './equip'
+import { canUse, fitsFaction, uniqueConflicts } from './equip'
 import { buildPlan } from './plan/build'
 import { FOREVER } from './rules/profiles'
 import { SPEC_IDS, SPEC_META } from './specs'
@@ -56,6 +56,7 @@ describe.each(SPEC_IDS)('default setup for %s', (spec) => {
     const worn: Partial<Record<GearSlot, Item>> = {}
     for (const [slot, { itemId }] of Object.entries(gear) as [GearSlot, { itemId: number }][]) {
       const item = items.get(itemId)!
+      expect(canUse(meta.classId, item), `${slot}: ${item.name}`).toBe(true)
       expect(fitsFaction(race, item), `${slot}: ${item.name}`).toBe(true)
       expect(uniqueConflicts(worn, slot, item), `${slot}: ${item.name}`).toEqual([])
       worn[slot] = item
@@ -139,7 +140,7 @@ describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
   })
   it('gives a Horde paladin the Horde picks where the Lamellar pieces are Alliance’s', () => {
     const { shoulder, chest, legs, feet } = defaultConfig('paladin-protection', 'horde-undead').gear
-    expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([274233, 13168, 22873, 274226])
+    expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([274233, 13168, 274232, 274226])
     const ally = defaultConfig('paladin-protection', 'alliance-human').gear
     expect([ally.shoulder, ally.chest, ally.legs, ally.feet].map((e) => e?.itemId)).toEqual([23277, 23272, 23273, 23275])
   })

@@ -84,7 +84,7 @@ export function AboutSheet({
             </p>
           </Section>
           <Section title="Game data">
-            <DataAttribution newTab />
+            <DataAttribution newTab icon />
             <p className="text-muted-foreground">
               Spellbooks, talents, races, items and ability numbers all come from the WoW Forever beta
               client&apos;s own data tables, served by wago.tools. Classic Era comparisons come from the Classic Era
@@ -173,8 +173,16 @@ function ReleaseStamp() {
   const commit = shortCommit(RELEASE.commit)
   return (
     <p className="mt-1 text-sm text-muted-foreground">
-      Updated <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
-      {commit && <span className="whitespace-nowrap"> · build {commit}</span>}
+      Updated{' '}
+      <time dateTime={RELEASE.time.toISOString()} className="whitespace-nowrap">
+        {formatReleaseTime(RELEASE.time)}
+      </time>
+      {commit && (
+        <>
+          {' '}
+          <span className="whitespace-nowrap">· build {commit}</span>
+        </>
+      )}
     </p>
   )
 }

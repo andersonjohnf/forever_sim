@@ -81,7 +81,8 @@ function gitCommit(): string {
     return ''
   }
 }
-const BUILD_TIME = process.env.BUILD_TIME ?? new Date().toISOString()
+const BUILD_TIME = process.env.BUILD_TIME || new Date().toISOString()
+if (Number.isNaN(Date.parse(BUILD_TIME))) throw new Error(`BUILD_TIME isn't a date: ${JSON.stringify(BUILD_TIME)}`)
 const BUILD_COMMIT = process.env.GITHUB_SHA ?? gitCommit()
 
 // https://vite.dev/config/

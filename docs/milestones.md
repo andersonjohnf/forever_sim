@@ -460,8 +460,8 @@ slice is worked:
   - **A11:** mana-gain threat doesn't take the global multiplier [?] (+0.1%).
 - **Interim Protection paladin gear** (T2; T2R-2's fix): the Lamellar PvP pieces are Alliance's with
   no Horde twin, so a Horde paladin wears the Horde picks measured for those slots (the Premier
-  Scaled pieces, Champion's Vindication), 798.0 TPS against Alliance's 823.6 (−3.1%, all of it the
-  gear), both within the floor (90.8% and 90.4% of v1's). Premier Scaled Gauntlets would give Horde
+  Scaled pieces, Champion's Vindication, and Plate of the Shaman King), 794.0 TPS against Alliance's
+  823.6 (−3.6%, all of it the gear), both within the floor (91.9% and 90.4% of v1's). Premier Scaled Gauntlets would give Horde
   813.0, but the slot lists can't hand one faction a different glove while B76 holds; the Optimizer
   (O2) takes it. The
   threat set leaves the boss 4.4% crit chance (defense 330, v1's 433) and about a third more damage

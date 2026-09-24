@@ -12,21 +12,27 @@ It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 > Next: the Optimizer, which finds the best talents, gear and rotation for a setup; see
 > [docs/milestones.md](docs/milestones.md).
 
-## What it will do
+## What it does
 
-- Simulate a level 60 character against a level 63 raid boss and report **DPS** or **TPS**,
+- Simulates a level 60 character against a level 63 raid boss and report **DPS** or **TPS**,
   with a per-ability breakdown.
-- Let you pick **gear** (pre-raid Rares, required level 55–60), **enchants**, **raid buffs,
+- Lets you pick **gear** (pre-raid Rares, required level 55–60), **enchants**, **raid buffs,
   debuffs and consumables**, **talents**, and **which abilities the rotation uses**. Every
   option has a sensible default. World buffs aren't included: they aren't available in
   Forever raids.
-- Cover these specs:
+- Covers every DPS spec, and the Warrior, Feral (Bear) Druid and Protection Paladin tanks:
 
   | Class | DPS | TPS |
   | --- | --- | --- |
   | Warrior | Arms, Fury | Protection |
-  | Druid | Feral cat | Feral bear |
+  | Druid | Feral (Cat), Balance | Feral (Bear) |
   | Paladin | Retribution | Protection |
+  | Shaman | Enhancement, Elemental | |
+  | Rogue | Combat, Assassination, Subtlety | |
+  | Mage | Fire, Frost, Arcane | |
+  | Warlock | Destruction, Affliction, Demonology | |
+  | Priest | Shadow | |
+  | Hunter | Marksmanship, Beast Mastery, Survival | |
 
 ## Where the numbers come from
 

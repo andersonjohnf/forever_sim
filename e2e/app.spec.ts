@@ -407,6 +407,9 @@ test.describe('Arms rotation', () => {
 })
 
 test.describe('about', () => {
+  // The release stamp's format depends on the locale and zone (docs/ux.md "About & data").
+  test.use({ locale: 'en-US', timezoneId: 'America/New_York' })
+
   test('credits wago.tools, the only game-data source, in the footer and the About sheet', async ({ page }) => {
     await page.goto('./')
     const footer = page.locator('footer')

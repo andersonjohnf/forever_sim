@@ -99,11 +99,28 @@ the Swift Judgement tests, and the three tanks' plausibility (warrior 1.38× the
 | id | sev | origin | finding | disposition |
 | --- | --- | --- | --- | --- |
 | TV-1 | medium | introduced (T2R-2) | The Horde paladin's "Horde" boots, Premier Chevalier Sabatons (272718), are in item set 2086, "Lieutenant Commander's Vindication": Alliance's. Their Horde twin is Premier Scaled Sabatons (274226, set 2084, "Champion's Vindication"). | fixed: the Horde picks are the Champion's Vindication pieces; B76 records the set-name evidence |
-| TV-2 | medium | introduced (T2R-2) | The Horde search missed the Premier set's 2-piece bonus (+23 spell damage); an all-plate set (Premier Scaled Shoulders and Sabatons, Plate of the Shaman King, Legionnaire's Plate Leggings) measures 798.0 TPS at 90.8% against 787.2, and paladin.md's "best of about 9,800" was wrong. | fixed: that all-plate set; the mail variant (799.8) isn't what a paladin wears, and the Premier Scaled Gauntlets (813.0) can't go to Horde alone while B76 holds, so the Optimizer (O2) takes it. paladin.md and the milestones corrected |
+| TV-2 | medium | introduced (T2R-2) | The Horde search missed the Premier set's 2-piece bonus (+23 spell damage); an all-plate set measures better than 787.2, and paladin.md's "best of about 9,800" was wrong. | fixed: an all-plate set, Premier Scaled Shoulders, Leggings and Sabatons with Plate of the Shaman King, 794.0 TPS at 91.9% (the pre-push check, PP-1, replaced the warrior-only Legionnaire's Plate Leggings first picked here); the mail variant (799.8) isn't what a paladin wears, and the Premier Scaled Gauntlets (813.0) can't go to Horde alone while B76 holds, so the Optimizer (O2) takes it. paladin.md and the milestones corrected |
 | TV-3 | medium | introduced (T2R-1) | The results' Seal of Righteousness assumption left out the flat 35. | fixed: "35 Holy plus 1.2 × 18.8 × …, as Seal of Fury's is read" |
 | TV-4 | low | introduced | The Seal help said about 5% less threat with a one-hander; it's 3.9% on the current defaults. | fixed: "about 4%"; paladin.md's bullet dated to T2's talents |
 | TV-5 | low | introduced | The interim-talent table was measured before Thorns. | fixed: its lead-in says so; the ranking doesn't change |
 | TV-6 | low | introduced | defaults.ts listed Toughness in the floor. | fixed: "Toughness optional" |
 | TV-7 | low | introduced | No test pinned D30's talent floor in the tank defaults. | fixed: a defaults test per tank |
 | TV-8 | low | introduced | c5db3beb's message says 0/37/13; the build is 0/38/13 (corrected in 131e00ec). | waived: history stays as it is; recorded here |
+
+## Pre-push check (local main c1fd7b94 against origin 43fbfd6c)
+
+It covered the verification fixes above, the release stamp (new, user request), the branding and
+Rotation tab merges onto main, and the domain hotfix (43fbfd6c) pushed earlier at the user's
+request. The hotfix checks out: no asset or link assumes `/forever_sim/`, share links build from
+`BASE_URL`, and the old github.io URL redirects keeping the `#s=` setup.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| PP-1 | high | introduced (c1fd7b94) | The Horde paladin's new legs, Legionnaire's Plate Leggings (22873), are warriors' only; the default gear never checked the class. | fixed: Premier Scaled Leggings (274232, paladin, Champion's Vindication): 794.0 TPS, 91.9% EHP; `defaultGear` takes only items the class can wear |
+| PP-2 | low | pre-existing | The default-gear legality test didn't check the class. | fixed: it does now, for every spec and race |
+| PP-3 | low | introduced (166c878e) | The release stamp could split its date across lines at 390 px. | fixed: the time and the build each stay whole |
+| PP-4 | low | introduced (166c878e) | An empty or invalid `BUILD_TIME` would throw when About renders. | fixed: an empty value is unset; an invalid one fails the build |
+| PP-5 | low | introduced (166c878e) | The stamp's e2e assumed an en-US 12-hour locale. | fixed: the test pins its locale and zone |
+| PP-6 | low | introduced (7f1c2222) | `newTab` also added the external-link icon, so the footer's wago credit had one and its Decades pair didn't. | fixed: the icon is its own option, shown in About only |
+| PP-7 | low | pre-existing | README's coverage table still listed three classes in the future tense. | fixed: every class, present tense |
 

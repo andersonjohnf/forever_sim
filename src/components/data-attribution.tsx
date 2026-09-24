@@ -9,7 +9,7 @@ const base = import.meta.env.BASE_URL
  * effects; keep it legible (at least 24 px tall) with space around it. The link around it is a
  * 44 px target (docs/ux.md principle 4). `newTab` opens it in a new tab, as About's links do.
  */
-export function WagoToolsLogo({ className, newTab = false }: { className?: string; newTab?: boolean }) {
+export function WagoToolsLogo({ className, newTab = false, icon = false }: { className?: string; newTab?: boolean; icon?: boolean }) {
   return (
     <a
       href="https://wago.tools"
@@ -22,17 +22,17 @@ export function WagoToolsLogo({ className, newTab = false }: { className?: strin
     >
       <img src={`${base}attribution/wago-tools-dark.svg`} alt="" className="h-6 w-auto dark:hidden" />
       <img src={`${base}attribution/wago-tools-white.svg`} alt="" className="hidden h-6 w-auto dark:block" />
-      {newTab && <ExternalLink className="ml-1 size-3.5 text-muted-foreground" aria-hidden />}
+      {icon && <ExternalLink className="ml-1 size-3.5 text-muted-foreground" aria-hidden />}
     </a>
   )
 }
 
 /** Credit for the game data, at the foot of the page and in the About sheet; both open it in a new tab, so a result isn't lost. */
-export function DataAttribution({ className, newTab = false }: { className?: string; newTab?: boolean }) {
+export function DataAttribution({ className, newTab = false, icon = false }: { className?: string; newTab?: boolean; icon?: boolean }) {
   return (
     <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground', className)}>
       <span>Game data from</span>
-      <WagoToolsLogo newTab={newTab} />
+      <WagoToolsLogo newTab={newTab} icon={icon} />
     </div>
   )
 }

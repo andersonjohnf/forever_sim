@@ -2,12 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+/* The Decades guild's display face, for the brand's lettering alone (docs/ux.md#brand): one weight, Latin. */
+@import "@fontsource/josefin-sans/latin-600.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --font-brand: 'Josefin Sans', 'Geist Variable', sans-serif;
+    /* docs/ux.md#brand: the guild's antique gold, for its crest and lettering only. */
+    --color-brand-gold: var(--brand-gold);
+    --color-brand-gold-text: var(--brand-gold-text);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -130,22 +136,36 @@
     /* Hunter #AAD372 is 1.8:1 on white; a darker green for AA. */
     --class-hunter: oklch(0.5 0.12 130);
     --switch-off: oklch(0.64 0 0);
+    /*
+     * The Decades brand's antique gold (docs/ux.md#brand). The guild's #c4a75e is 2.3:1 on white,
+     * so light surfaces take it darker in OKLCH, near its hue: the crest's hourglass at 3.7:1 on the
+     * page (3.4:1 on muted rows; 3:1 for graphics), and the brand's lettering at 5.3:1 (4.9:1 on muted
+     * rows; AA for text). The hairlines draw it at 40–50%: dividers, like --border, not controls.
+     */
+    --brand-gold: oklch(0.62 0.1 85);
+    --brand-gold-text: oklch(0.53 0.09 80);
 }
 
+/*
+ * Dark surfaces lean toward the Decades guild's ink navy (#070710, #161622, #22222f; docs/ux.md#brand):
+ * the stock neutral lightness with a little blue-violet chroma (hue 285). Lightness is what contrast
+ * reads, so every pair measured against the neutral surfaces moves by 0.03:1 or less (text, the
+ * control edge, the focus ring, the switch track, status and class colours).
+ */
 .dark {
-    --background: oklch(0.145 0 0);
+    --background: oklch(0.145 0.018 285);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
+    --card: oklch(0.205 0.018 285);
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
+    --popover: oklch(0.205 0.018 285);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
+    --primary-foreground: oklch(0.205 0.018 285);
+    --secondary: oklch(0.269 0.018 285);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
+    --muted: oklch(0.269 0.018 285);
     --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
+    --accent: oklch(0.269 0.018 285);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
@@ -161,11 +181,11 @@
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
+    --sidebar: oklch(0.205 0.018 285);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.488 0.243 264.376);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent: oklch(0.269 0.018 285);
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
@@ -186,6 +206,9 @@
     --class-hunter: #aad372;
     /* The switch draws its off track at 80% of this. */
     --switch-off: oklch(0.62 0 0);
+    /* The guild's own gold, 8.5:1 on the page and 7.7:1 on cards: one shade for the crest and the lettering. */
+    --brand-gold: #c4a75e;
+    --brand-gold-text: #c4a75e;
 }
 
 @layer base {

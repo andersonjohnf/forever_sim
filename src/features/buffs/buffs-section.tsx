@@ -98,8 +98,15 @@ export function BuffsSection() {
   const inert = useMemo(() => {
     const out = unusedBuffs(meta.id)
     if (values['shaman.enhancement.imbue'] === 'windfury') out.windfuryTotem = 'Not used: your Windfury Weapon (see Rotation) turns it off for you'
+    // A caster whose pet swings gets the boss's armor debuffs for its pet (SpecMeta.petMelee): with the
+    // Imp or no demon out, nothing of yours meets the boss's armor (docs/classes/warlock.md §11.2).
+    const demon = values['warlock.demonology.demon.summoned']
+    if (meta.petMelee && (demon === 'imp' || demon === 'none')) {
+      const why = demon === 'imp' ? 'your Imp (see Rotation) doesn’t swing' : 'you keep no demon out (see Rotation)'
+      for (const b of buffCatalogue) if (b.category === 'targetDebuff' && b.group === 'Armor' && b.forSpecs === 'melee') out[b.id] = `Not used: only your demon’s swings meet the boss’s armor, and ${why}`
+    }
     return out
-  }, [meta.id, values])
+  }, [meta.id, meta.petMelee, values, buffCatalogue])
   // Your own buffs whose Rotation setting the setup leaves unused (the bear's roar while a Demoralizing
   // Shout here takes its place, druid.md §6.3): your rotation doesn't cast them.
   const race = useSetup((s) => s.config.race)

@@ -84,13 +84,21 @@ test.describe('Demonology warlock', () => {
     await expect(choice(tab, 'Bane', 'Doom')).toBeChecked()
     for (const name of ['Curse of the Elements', 'Immolate', 'Corruption', 'Racial cooldown', 'Soul Fire below 35%']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab).not.toContainText(OTHER_CLASS)
-    // Summoning the demon you sacrificed cancels its buff.
-    await choice(tab, 'Demon', 'Succubus').click()
-    await expect(tab.getByText('Not used: summoning the demon you sacrificed cancels its buff.')).toBeVisible()
-    // The Buffs tab keeps the boss's armor debuffs for the demon's swings (ranged-and-pets.md §8).
-    const buffs = await openTab(page, 'Buffs')
+    // With the Imp out, the boss's armor debuffs meet nothing of yours: locked off, saying why.
+    let buffs = await openTab(page, 'Buffs')
     await expect(buffs.getByRole('switch', { name: 'Curse of the Elements' })).toBeChecked()
+    const sunder = buffs.getByRole('switch', { name: /^Sunder Armor/ })
+    await expect(sunder).toBeDisabled()
+    await expect(sunder).not.toBeChecked()
+    await expect(buffs.getByText(/Not used: only your demon’s swings meet the boss’s armor, and your Imp \(see Rotation\) doesn’t swing\.$/).first()).toBeVisible()
+    // Summoning the demon you sacrificed cancels its buff.
+    const rotation = await openTab(page, 'Rotation')
+    await choice(rotation, 'Demon', 'Succubus').click()
+    await expect(rotation.getByText('Not used: summoning the demon you sacrificed cancels its buff.')).toBeVisible()
+    // With the Succubus out, the Buffs tab keeps them for its swings (ranged-and-pets.md §8).
+    buffs = await openTab(page, 'Buffs')
     await expect(buffs.getByRole('switch', { name: /^Sunder Armor/ })).toBeChecked()
+    await expect(buffs).not.toContainText('Not used: only your demon’s swings')
   })
 
   test('simulates, and its results show the demon’s rows, its passives and its assumptions', { tag: '@smoke' }, async ({ page }) => {

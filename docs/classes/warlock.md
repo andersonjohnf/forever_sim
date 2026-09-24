@@ -512,6 +512,8 @@ uses, all [?], each a D29 default (closest allowed analog, never zero because it
   miss, are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
   a caster whose demon swings (`SpecMeta.petMelee`), so its Buffs tab keeps the melee's armor debuffs
   on the boss ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
+  With the Imp (the default) or no demon out, nothing of yours meets the boss's armor, so the tab
+  locks them off and says why (docs/ux.md "Buffs").
   Your Curse of the Elements raises its spells as yours.
 - Its mana regenerates as the warlock's formula of its Spirit, without the five-second rule [?]
   (Q16); Demonic Energies 2/2 gives it the mana of each Life Tap, so the Imp never runs dry in the

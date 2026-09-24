@@ -203,7 +203,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Blessing of Might another paladin. Its switch is an ordinary one, yours to turn off.
     One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
-    use your weapon's damage.").
+    use your weapon's damage."). One that a Rotation setting leaves doing nothing says so the same
+    way, naming the setting: Windfury Totem beside an Enhancement shaman's Windfury Weapon, and the
+    boss's armor debuffs for a Demonology warlock with the Imp or no demon out ("Not used: only your
+    demon's swings meet the boss's armor, and your Imp (see Rotation) doesn't swing.").
   - Only what does something for your class and spec is listed at all: mana and spell damage
     entries (Blessing of Wisdom, mana potions, spell damage elixirs) show for the classes that
     spend mana (the paladin, the shaman, the mage), and what changes only attacks (attack power,

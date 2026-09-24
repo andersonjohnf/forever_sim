@@ -566,9 +566,6 @@ slice is worked:
   - **The demon's spells take your Shadow Vulnerability** (DM2), whose aura 270 is damage taken from
     you alone: Lash of Pain gets +12% for about a quarter of the fight, +0.3 DPS (0.06%). It needs an
     aura flag for "from the caster only" that pet damage skips, with its test (DM12's last).
-  - **The Buffs tab's armor debuffs don't say they reach only your demon's swings** (DM8), and stay
-    with no "changes nothing" note when the Imp or no demon is out (ux.md "Buffs"). `SpecMeta.petMelee`
-    is per spec; the note needs the setup's demon. Low: the default Succubus swings.
   - **"Voidwalker" touches its button's borders at 390 px** in the Demonic Sacrifice choice (DM9,
     pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
   - **The default Imp build rests on Q19** [?] (DV2, D30): it's the sim's best found build, 6% ahead

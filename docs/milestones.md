@@ -464,6 +464,9 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **The auto-save error isn't held behind What's New (WV-4).** On a load whose first save fails,
+  "Your changes aren't being kept" shows over What's New at once and can run out its 10 s unread.
+
 - **Breakdown shares that can't happen (CM-4).** A no-damage strike (Sunder Armor) shows "0.0% crit"
   and a proc that can't be avoided (Seal of Fury) "0.0% avoided"; leave such a share out, as Faerie
   Fire's row shows only "missed".

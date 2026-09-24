@@ -57,11 +57,13 @@ const NOTICE_ID = 'shared-link'
  * (src/app/held-toasts.ts); a link pasted in later says so at once.
  */
 function loadSharedLink(onOpen = false) {
-  const notify = onOpen ? showWhenClear : (show: () => void) => show()
   // Reading a link takes it out of the URL before decoding it (src/app/share.ts), so a second
   // call for the same link (React's dev double effects) finds none, and doesn't count as a newer one.
   if (!hasSharedSetup()) return
   const attempt = ++latest
+  // A held notice checks again when it's shown: a link pasted meanwhile has its own, newer one
+  // (review finding WV-1).
+  const notify = (show: () => void) => (onOpen ? showWhenClear(() => attempt === latest && show()) : show())
   readSharedSetup()
     .then((raw) => {
       if (raw === undefined || attempt !== latest) return

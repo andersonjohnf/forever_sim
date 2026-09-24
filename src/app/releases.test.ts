@@ -181,12 +181,14 @@ describe('checkReleases', () => {
     }
   })
 
-  it('works without storage: nothing when it can’t be read, what’s new when it can’t be written', () => {
+  it('works without storage: nothing when it can’t be read, what’s new when it can’t be written if an id was stored', () => {
     expect(checkReleases(null, list)).toEqual([])
     expect(checkReleases(storage({ [LAST_SEEN_RELEASE_KEY]: A }, { readFails: true }), list)).toEqual([])
     expect(checkReleases(storage({ 'forever-sim:setup': '{}' }, { readFails: true }), list)).toEqual([])
     expect(ids(checkReleases(storage({ [LAST_SEEN_RELEASE_KEY]: B }, { writeFails: true }), list))).toEqual([C])
-    expect(ids(checkReleases(storage({ 'forever-sim:setup': '{}' }, { writeFails: true }), list))).toEqual([C])
+    // An earlier visitor with no id sees nothing while the id can't be stored, or full storage would
+    // show it on every load (WV-2).
+    expect(ids(checkReleases(storage({ 'forever-sim:setup': '{}' }, { writeFails: true }), list))).toEqual([])
   })
 
   it('does nothing with no releases', () => {

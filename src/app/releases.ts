@@ -30,11 +30,11 @@ export const RELEASES: readonly Release[] = [
         label: 'Tanks',
         items: [
           'Protection Warrior about 980 to 1,130 TPS: a threat set that keeps about 90% of the old pre-raid best in slot set’s effective health.',
-          'Feral Bear about 690 to 1,080 TPS: Lacerate’s threat, Idol of Brutality, new talents and a threat set.',
+          'Feral Bear about 690 to 1,080 TPS, from the three changes below and a threat set.',
           'Protection Paladin about 425 to 820 TPS: spell damage enchants, Nightfin Soup and Wizard Oil, its own Judgement of the Crusader, and the full damage of Seal of Fury and Holy Strike.',
           'Hammer of the Righteous is simulated, as an option in place of Holy Strike.',
           'New default talents for Protection Paladin and Feral Bear.',
-          'Lacerate makes the high threat its tooltip promises, and Idol of Brutality takes 2 rage off Maul and Swipe.',
+          'Lacerate makes the high threat its tooltip promises, and Idol of Brutality takes 2 rage off Maul, Swipe and Mangle.',
           'A raid druid’s Thorns now reaches every tank in the raid presets.',
           'Horde paladins get Horde pieces where the default gear is Alliance-only.',
         ],
@@ -211,13 +211,17 @@ export function checkReleases(storage: ReleaseStorage | null, releases: readonly
   const known = seen !== null && releases.some((r) => r.id === seen)
   // NaN for a junk id, which isn't newer, so it's replaced.
   const unknownNewer = seen !== null && !known && compareReleaseIds(seen, newest) > 0
+  let stored = false
   if (seen !== newest && !unknownNewer) {
     try {
       storage.setItem(LAST_SEEN_RELEASE_KEY, newest)
+      stored = true
     } catch {
       // Full or blocked: shown now, and maybe again next time.
     }
   }
-  if (seen === null) return earlierVisit ? releases.slice(0, 1) : []
+  // An earlier visitor with no id is shown the newest only once it's stored, or full storage would
+  // show it on every load (review finding WV-2).
+  if (seen === null) return earlierVisit && stored ? releases.slice(0, 1) : []
   return releasesSince(seen, releases)
 }

@@ -293,6 +293,7 @@ export type PreRaidBisSpec =
   | "paladin-retribution"
   | "paladin-protection"
   | "shaman-enhancement"
+  | "shaman-elemental"
   | "rogue-combat"
   | "rogue-assassination"
   | "rogue-subtlety"

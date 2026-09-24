@@ -42,6 +42,7 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
   'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
+  'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
   'rogue-combat': '005303105001-32502300001515231-',
   'rogue-assassination': '00531310551521051-302303-002',
@@ -92,6 +93,8 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   shaman: [
     // docs/classes/shaman.md#talents: Elemental 8 / Enhancement 33 / Restoration 10
     { name: 'Enhancement (default)', code: DEFAULT_TALENTS['shaman-enhancement'] },
+    // docs/classes/shaman.md#elemental-defaults: Elemental 31 / Enhancement 4 / Restoration 16
+    { name: 'Elemental (default)', code: DEFAULT_TALENTS['shaman-elemental'] },
   ],
   rogue: [
     // docs/classes/rogue.md#71-talents: Combat swords 18/33/0
@@ -259,6 +262,8 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   'mage-fire': { chest: 'chestGreaterStats' },
   'mage-frost': { chest: 'chestGreaterStats' },
   'mage-arcane': { chest: 'chestGreaterStats' },
+  // Elemental shaman (docs/classes/shaman.md#elemental-defaults): Greater Stats on the chest.
+  'shaman-elemental': { chest: 'chestGreaterStats' },
   'paladin-protection': {
     back: 'cloakSuperiorDefense',
     chest: 'chestGreaterStats',

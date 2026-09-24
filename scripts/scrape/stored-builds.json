@@ -126,6 +126,14 @@
         "Thundering Strikes 5, Ancestral Knowledge 5, Mental Dexterity 3, Elemental Weapons 3, Shamanistic Focus 1, Flurry 5, Stormstrike 1, Mental Quickness 2, Improved Stormstrike 2, Maelstrom Weapon 5, Rage of the Farseer 1",
         "Totemic Focus 5, Tidal Focus 5"
       ]
+    },
+    "5504301500103031-04-053250000001": {
+      "note": "Elemental default (31/4/16), shaman.md#elemental-defaults",
+      "ranks": [
+        "Convection 5, Concussion 5, Reverberation 4, Call of Flame 3, Elemental Focus 1, Elemental Fury 5, Call of Thunder 1, Lightning Overload 3, Elemental Alacrity 3, Lava Burst 1",
+        "Thundering Strikes 4",
+        "Totemic Focus 5, Mindfulness 3, Natural Grace 2, Tidal Focus 5, Mana Tide Totem 1"
+      ]
     }
   },
   "rogue": {

@@ -99,6 +99,16 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     role: 'dps',
     icon: 'spell_nature_lightningshield',
   },
+  // docs/classes/shaman.md#elemental: a caster, landed under D27 (K5): its sheet shows spell damage by school.
+  'shaman-elemental': {
+    id: 'shaman-elemental',
+    classId: 'shaman',
+    className: 'Shaman',
+    name: 'Elemental',
+    role: 'dps',
+    icon: 'spell_nature_lightning',
+    caster: true,
+  },
   // docs/classes/rogue.md: the three rogue specs, landed under D27.
   'rogue-combat': {
     id: 'rogue-combat',

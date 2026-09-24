@@ -2566,6 +2566,350 @@
         ]
       }
     },
+    "shaman-elemental": {
+      "name": "Elemental Shaman",
+      "source": {
+        "title": "Classic Elemental Shaman DPS Pre-Raid Best in Slot Gear Guide - WoW Classic Phase 5",
+        "url": "https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-16"
+      },
+      "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance counterpart with spell power (Classic Era had no Alliance shamans, and the Alliance's honor chain is the hunter's), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats.",
+      "slots": {
+        "head": [
+          {
+            "id": 22267,
+            "name": "Spellweaver's Turban",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire (General Drakkisath)"
+          },
+          {
+            "id": 10504,
+            "name": "Green Lens",
+            "rank": 2,
+            "notes": "Crafted - Engineering; the guide's 'of Nature's Wrath' suffix"
+          },
+          {
+            "id": 18727,
+            "name": "Crimson Felt Hat",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Magistrate Barthilas)"
+          }
+        ],
+        "neck": [
+          {
+            "id": 19426,
+            "name": "Orb of the Darkmoon",
+            "rank": 1,
+            "notes": "Quest - Darkmoon Faire tickets"
+          },
+          {
+            "id": 18289,
+            "name": "Barbed Thorn Necklace",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul West"
+          },
+          {
+            "id": 22403,
+            "name": "Nacreous Shell Necklace",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 23260,
+            "name": "Champion's Mail Pauldrons",
+            "rank": 1,
+            "notes": "PvP - Rank 10; Horde"
+          },
+          {
+            "id": 20680,
+            "name": "Abyssal Mail Pauldrons",
+            "rank": 2,
+            "notes": "Silithus summoned boss (Prince Skaldrenox); the guide's 'of Sorcery' suffix"
+          },
+          {
+            "id": 18681,
+            "name": "Burial Shawl",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "back": [
+          {
+            "id": 20697,
+            "name": "Crystalline Threaded Cape",
+            "rank": 1,
+            "notes": "Quest - Cenarion Circle, Silithus"
+          },
+          {
+            "id": 18350,
+            "name": "Amplifying Cloak",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul West (Magister Kalendris)"
+          },
+          {
+            "id": 18496,
+            "name": "Heliotrope Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul North"
+          }
+        ],
+        "chest": [
+          {
+            "id": 19682,
+            "name": "Bloodvine Vest",
+            "rank": 1,
+            "notes": "Crafted - Tailoring"
+          },
+          {
+            "id": 12624,
+            "name": "Wildthorn Mail",
+            "rank": 2,
+            "notes": "Crafted - Blacksmithing (Armorsmith)"
+          },
+          {
+            "id": 18385,
+            "name": "Robe of Everlasting Night",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West (Immol'thar)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 21186,
+            "name": "Rockfury Bracers",
+            "rank": 1,
+            "notes": "Quest - Stalwart's Battlegear"
+          },
+          {
+            "id": 20684,
+            "name": "Abyssal Mail Armguards",
+            "rank": 2,
+            "notes": "Silithus summoned boss (Lord Skwol); the guide's 'of Sorcery' suffix"
+          },
+          {
+            "id": 11765,
+            "name": "Pyremail Wristguards",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths (Lord Incendius); the guide's 'of Nature's Wrath' suffix"
+          }
+        ],
+        "hands": [
+          {
+            "id": 22867,
+            "name": "Blood Guard's Mail Vices",
+            "rank": 1,
+            "notes": "PvP - Rank 7; Horde"
+          },
+          {
+            "id": 21178,
+            "name": "Gloves of Earthen Power",
+            "rank": 2,
+            "notes": "Quest - Volunteer's Battlegear"
+          },
+          {
+            "id": 13253,
+            "name": "Hands of Power",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire (Quartermaster Zigris)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 18676,
+            "name": "Sash of the Windreaver",
+            "rank": 1,
+            "notes": "World event - Elemental Invasion (The Windreaver)"
+          },
+          {
+            "id": 11662,
+            "name": "Ban'thok Sash",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths (Ok'thor the Breaker)"
+          },
+          {
+            "id": 18721,
+            "name": "Barrage Girdle",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Cannon Master Willey)"
+          }
+        ],
+        "legs": [
+          {
+            "id": 19683,
+            "name": "Bloodvine Leggings",
+            "rank": 1,
+            "notes": "Crafted - Tailoring"
+          },
+          {
+            "id": 13170,
+            "name": "Skyshroud Leggings",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire (Highlord Omokk)"
+          },
+          {
+            "id": 18378,
+            "name": "Silvermoon Leggings",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West (Prince Tortheldrin)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 19684,
+            "name": "Bloodvine Boots",
+            "rank": 1,
+            "notes": "Crafted - Tailoring"
+          },
+          {
+            "id": 18322,
+            "name": "Waterspout Boots",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul East (Hydrospawn)"
+          },
+          {
+            "id": 11822,
+            "name": "Omnicast Boots",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths (Golem Lord Argelmach)"
+          }
+        ],
+        "finger": [
+          {
+            "id": 22339,
+            "name": "Rune Band of Wizardry",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
+          },
+          {
+            "id": 21190,
+            "name": "Wrath of Cenarius",
+            "rank": 2,
+            "notes": "Quest - Champion's Battlegear"
+          },
+          {
+            "id": 20682,
+            "name": "Elemental Focus Band",
+            "rank": 3,
+            "notes": "Silithus summoned boss (Prince Skaldrenox)"
+          },
+          {
+            "id": 13001,
+            "name": "Maiden's Circle",
+            "rank": 4,
+            "notes": "World drop"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 13968,
+            "name": "Eye of the Beast",
+            "rank": 1,
+            "notes": "Quest - For The Horde!"
+          },
+          {
+            "id": 12930,
+            "name": "Briarwood Reed",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire (Jed Runewatcher)"
+          },
+          {
+            "id": 22268,
+            "name": "Draconic Infused Emblem",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire (General Drakkisath)"
+          },
+          {
+            "id": 18471,
+            "name": "Royal Seal of Eldre'Thalas",
+            "rank": 4,
+            "notes": "Quest - Dire Maul"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 20214,
+            "name": "Mindfang",
+            "rank": 1,
+            "notes": "PvP - Arathi Basin Exalted"
+          },
+          {
+            "id": 13964,
+            "name": "Witchblade",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (Darkmaster Gandling)"
+          },
+          {
+            "id": 18321,
+            "name": "Energetic Rod",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul East (Alzzin the Wildshaper)"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 22329,
+            "name": "Scepter of Interminable Focus",
+            "rank": 1,
+            "notes": "Quest - Sothos and Jarien's Heirlooms"
+          },
+          {
+            "id": 19315,
+            "name": "Therazane's Touch",
+            "rank": 2,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 11904,
+            "name": "Spirit of Aquementas",
+            "rank": 3,
+            "notes": "Quest - It's Dangerous to Go Alone"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 20069,
+            "name": "Ironbark Staff",
+            "rank": 1,
+            "notes": "PvP - Arathi Basin Exalted"
+          },
+          {
+            "id": 21188,
+            "name": "Fist of Cenarius",
+            "rank": 2,
+            "notes": "Quest - Champion's Battlegear"
+          },
+          {
+            "id": 18534,
+            "name": "Rod of the Ogre Magi",
+            "rank": 4,
+            "notes": "Dungeon - Dire Maul North (Gordok Tribute)"
+          }
+        ],
+        "relic": [
+          {
+            "id": 23199,
+            "name": "Totem of the Storm",
+            "rank": 1,
+            "notes": "World drop"
+          },
+          {
+            "id": 22345,
+            "name": "Totem of Rebirth",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul East (Isalien)"
+          },
+          {
+            "id": 22395,
+            "name": "Totem of Rage",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths (Magmus)"
+          }
+        ]
+      }
+    },
     "rogue-combat": {
       "name": "Combat Rogue (swords)",
       "source": {

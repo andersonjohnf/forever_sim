@@ -130,14 +130,14 @@ describe('simulate', () => {
 })
 
 describe('paladin', () => {
-  it('simulates both specs on the placeholder base stats of D24, and says so; Retribution ships (C2), Protection is still hidden', async () => {
+  it('simulates both specs on the placeholder base stats of D24, and says so; Retribution ships since C2, Protection since C3', async () => {
     for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
       const result = await simulate(quick(defaultConfig(spec)))
       expect(result.dps.mean).toBeGreaterThan(0)
       expect(result.assumptions.map((a) => a.id)).toContain('baseStatPlaceholders')
     }
     expect(getSpec('paladin-retribution').available).toBe(true)
-    expect(getSpec('paladin-protection').available).toBe(false)
+    expect(getSpec('paladin-protection').available).toBe(true)
   })
 
   it('reports a paladin’s spell stats and mana (docs/ux.md#results), and no one else’s', async () => {
@@ -155,9 +155,11 @@ describe('paladin', () => {
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2 and Retribution since C2 (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, Protection since P2, the Feral cat since B2, Retribution since C2 and the Protection paladin since C3 (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'paladin-retribution'])
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'paladin-retribution', 'paladin-protection'])
+    // The bear is still unfinished, so the switcher doesn't offer it.
+    expect(getSpec('druid-feral-bear').available).toBe(false)
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })

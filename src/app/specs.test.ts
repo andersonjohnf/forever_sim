@@ -20,8 +20,9 @@ describe('the About sheet and page description', () => {
     expect(coverageSentence(offering('warrior-fury'))).toBe('Covers Warriors: Fury.')
     expect(coverageSentence(offering('warrior-fury', 'warrior-arms'))).toBe('Covers Warriors: Fury and Arms.')
     // The specs that ship today: Protection since P2, the Feral cat since B2, whose name never breaks
-    // across lines, and Retribution since C2, a class after another " · ".
-    expect(coverageSentence()).toBe('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins: Retribution.')
+    // across lines, Retribution since C2, a class after another " · ", and the Protection paladin
+    // since C3.
+    expect(coverageSentence()).toBe('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins: Retribution and Protection.')
     const all = coverageSentence(specs)
     expect(all).toMatch(/^Covers Warriors: [^·]+ · Druids: [^·]+ · Paladins: [^·]+\.$/)
     expect(all).toContain('Fury, Arms and Protection')

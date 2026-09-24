@@ -261,8 +261,8 @@ test.describe('tank results', () => {
   })
 
   test('a link to a tank the app doesn’t offer yet is still refused', async ({ page }) => {
-    await page.goto(shareLink('paladin-protection'))
-    await expect(page.getByText('That link is for a Protection Paladin')).toBeVisible()
+    await page.goto(shareLink('druid-feral-bear'))
+    await expect(page.getByText('That link is for a Feral (Bear) Druid')).toBeVisible()
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
   })
 })

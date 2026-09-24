@@ -5,9 +5,9 @@ import { expect, test } from './fixtures.ts'
 // The Protection paladin's Rotation tab (docs/ux.md "Rotation"; docs/classes/paladin.md "Protection:
 // model and rotation"): its priority choice first, "Tank duties first" by default or "Max TPS"
 // (decision D26), which turns its duty, Devotion Aura, off for Retribution Aura; the Buffs tab's
-// Devotion Aura as yours or, with Max TPS, off for another paladin's; and a run with each. The spec
-// isn't offered yet, so these tests preview it (src/app/preview-specs.ts) from a share link.
-const PROTECTION = `./?preview=paladin-protection#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'paladin-protection' })).toString('base64url')}`
+// Devotion Aura as yours or, with Max TPS, off for another paladin's; and a run with each. These
+// tests load it from a plain share link (paladin-protection.spec.ts gets there from the switcher).
+const PROTECTION = `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'paladin-protection' })).toString('base64url')}`
 
 async function openRotation(page: Page) {
   await page.goto(PROTECTION)

@@ -28,7 +28,7 @@ When a design decision isn't covered here, make it, then add it here.
 8. **Only finished specs ship.** A spec appears in the spec picker only when its sim and UI
    are complete. Nothing is visibly "coming soon". To see and test one before it ships, a dev
    build, or a browser under automation (the e2e tests, `npm run snap`), offers it too when the
-   URL names it: `?preview=paladin-protection` (`src/app/preview-specs.ts`). A visitor's browser
+   URL names it: `?preview=druid-feral-bear` (`src/app/preview-specs.ts`). A visitor's browser
    ignores the parameter.
 
 ## Layout
@@ -51,9 +51,9 @@ warrior's Protection from a paladin's too. Then
 and TPS simulator for WoW Forever", since Protection, the first tank spec, shipped; "A DPS
 simulator" while only DPS specs did), then the specs it covers on their own line, one class at a
 time ("Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins:
-Retribution"), which grows as specs ship (principle 8). The page's meta and Open Graph
-descriptions in `index.html` carry the same description line, so they changed once, when the
-first tank spec shipped; an e2e test compares them.
+Retribution and Protection"), which grows as specs ship (principle 8). The page's meta and Open
+Graph descriptions in `index.html` carry the same description line, so they changed once, when
+the first tank spec shipped; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
@@ -110,7 +110,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): a druid sees the Feral cat's build but no bear build
-    until the bear ships, and a paladin sees Retribution's but not yet Protection's. The spec
+    until the bear ships, and a paladin sees Retribution's and Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented

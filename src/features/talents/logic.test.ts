@@ -93,6 +93,8 @@ describe('talent presets per spec (docs/ux.md principle 8)', () => {
     ])
     const druids = Object.values(SPEC_META).filter((s) => s.classId === 'druid')
     expect(talentPresets('druid').map((p) => presetSpec(p.name, druids)?.id)).toEqual(['druid-feral-cat', 'druid-feral-bear'])
+    const paladins = Object.values(SPEC_META).filter((s) => s.classId === 'paladin')
+    expect(talentPresets('paladin').map((p) => presetSpec(p.name, paladins)?.id)).toEqual(['paladin-retribution', 'paladin-protection'])
   })
 
   it('leaves out presets for specs that aren’t offered', () => {

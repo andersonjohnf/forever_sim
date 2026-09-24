@@ -503,6 +503,14 @@ const REGISTRY = {
     text: 'Hammer of Wrath’s 1 s cast stops your auto attacks, which start again from a full swing when it ends, and holds Judgement until then; it pays its mana when the cast ends. Untested in Forever.',
     docRef: `${PAL}#other-abilities`,
   },
+  hammerOfTheRighteous: {
+    text: 'Hammer of the Righteous deals 3 × your main hand’s weapon DPS with your attack power counted in, as the character sheet shows it (Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    docRef: `${PAL}#other-abilities`,
+  },
+  hammerOfTheRighteousWeaponOnly: {
+    text: 'Hammer of the Righteous deals 3 × your main hand’s own weapon DPS, without your attack power (as set under Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    docRef: `${PAL}#other-abilities`,
+  },
   improvedSealOfFury: {
     text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,

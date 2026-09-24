@@ -1025,7 +1025,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         // paladin.md#protection-model-and-rotation: Holy Shield needs a shield.
         hasShield,
         creatureType: fight.creatureType,
-        mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand } : null,
+        mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand, type: mh.type } : null,
         equipped: new Set([...equipped.values()].map((i) => i.id)),
         othersBleed,
         front: fight.position === 'front',
@@ -1033,6 +1033,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         maxMana: block.hasMana ? derived.mana : 0,
         spellDamage: derived.natureSpellDamage,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
+        hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
       })

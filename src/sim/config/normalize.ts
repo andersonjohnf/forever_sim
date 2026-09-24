@@ -181,6 +181,10 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
   if (rulesIn.jotcBonus !== undefined && meta.classId === 'paladin') {
     if (oneOf(rulesIn.jotcBonus, ['coefficient', 'flat'] as const, 'coefficient', 'The Judgement of the Crusader rule', r) === 'flat') rules.jotcBonus = 'flat'
   }
+  // A paladin's Hammer of the Righteous rule (paladin.md OQ 11): kept only when it isn't the default.
+  if (rulesIn.hotrWeaponDps !== undefined && meta.classId === 'paladin') {
+    if (oneOf(rulesIn.hotrWeaponDps, ['withAttackPower', 'weaponOnly'] as const, 'withAttackPower', 'The Hammer of the Righteous rule', r) === 'weaponOnly') rules.hotrWeaponDps = 'weaponOnly'
+  }
 
   const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)

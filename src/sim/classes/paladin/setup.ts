@@ -8,6 +8,7 @@ import type { Effect, ProcSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type AbilityDef, COND, DEFENSE, type ManaPlan, NO_PREPULL, type Plan, POWER_TICK_MS, type RotationEntry } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
+import type { WeaponType } from '@/data/items/types'
 import type { SpecId } from '../../types'
 import type { ClassRotation, RotationContext } from '../warrior/shared'
 import { JOTC_REFRESH, JUDGE_CRUSADER, JUDGEMENT_OF, SEAL_OF_COMMAND, SEAL_OF_FURY, sealProcs } from './abilities'
@@ -52,9 +53,12 @@ export function paladinEffects(spec: SpecId, talents: TalentRanks): Effect[] {
  * shield is equipped (Protection).
  */
 export interface PaladinContext extends RotationContext {
-  mainHand?: { speedSec: number; twoHand: boolean } | null
+  /** The main hand's base speed, whether it's a two-hander, and its type (Hammer of the Righteous needs a one-handed axe, mace or sword). */
+  mainHand?: { speedSec: number; twoHand: boolean; type?: WeaponType } | null
   maxMana?: number
   jotcRule?: JotcRule
+  /** Whether Hammer of the Righteous's weapon DPS counts attack power (Character → Advanced, `rules.hotrWeaponDps`; OQ 11). */
+  hotrWeaponDps?: 'withAttackPower' | 'weaponOnly'
   /** A shield is equipped: Holy Shield and Seal of Fury's absorb need one (paladin.md#protection-model-and-rotation). */
   hasShield?: boolean
 }

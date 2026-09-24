@@ -202,6 +202,29 @@ export const HOLY_STRIKE: SpellDef = {
 }
 
 /**
+ * Hammer of the Righteous (407632, paladin.md#other-abilities): "Holy damage ... equal to 3 times the
+ * damage per second of your main hand weapon" (effect 2's 3; effect 0 is the damage, a script), Holy,
+ * no spell damage coefficient in the data. Melee class with neither No Active Defense nor Always Hit:
+ * the full special table, crit ×2, and like the other melee-class spells without a weapon share it
+ * rolls to hit and then to crit [?]. Whether the weapon's DPS counts attack power is OQ 11's [?]: the
+ * default counts it, the character sheet's weapon DPS (`hotrWeaponDps`, Character → Advanced), the
+ * reading that fits the guild's benchmark (D29). Its effect 1 (120, 3 chain targets) is the extra
+ * targets' part, left out on one target (M6). A cast spell, so it triggers procs; not the seals'.
+ */
+export function hammerOfTheRighteous(withAttackPower = true): SpellDef {
+  return {
+    ...HOLY_MELEE,
+    id: 'hammerOfTheRighteous',
+    name: 'Hammer of the Righteous',
+    icon: 'ability_paladin_hammeroftherighteous',
+    weaponDps: 3,
+    weaponDpsAp: withAttackPower,
+    spCoefficient: 0,
+    takenScale: 0,
+  }
+}
+
+/**
  * Exorcism r6 (10314, paladin.md#other-abilities): 502 base points, variance 0.1086, so 474.7–529.3,
  * + 0.429 × SP. Magic class: spell hit, crit ×1.5. Undead and Demons only (the rotation's gate).
  */

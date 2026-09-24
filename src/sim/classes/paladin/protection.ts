@@ -22,6 +22,8 @@ import {
   CONSECRATION,
   CONSECRATION_RANK1,
   EXORCISM_ABILITY,
+  HAMMER_OF_THE_RIGHTEOUS_WEAPONS,
+  hammerOfTheRighteousAbility,
   HAMMER_OF_WRATH_ABILITY,
   HOLY_STRIKE_ABILITY,
   JUDGEMENT_OF,
@@ -48,6 +50,7 @@ const ID = {
   devotionAura: `${P}.devotionAura.enabled`,
   judgement: `${P}.judgement.enabled`,
   holyStrike: `${P}.holyStrike.enabled`,
+  hammerOfTheRighteous: `${P}.hammerOfTheRighteous.enabled`,
   exorcism: `${P}.exorcism.enabled`,
   exorcismMana: `${P}.exorcism.minManaPct`,
   consecration: `${P}.consecration.enabled`,
@@ -334,7 +337,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps your Devotion Aura up, +735 armor, so you take less damage. Max TPS runs Retribution Aura instead for threat, 30 Holy damage to the boss each time it hits you: about 5% more TPS and 6% more damage taken in the default setup. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.',
+    help: 'Tank duties first keeps your Devotion Aura up, +735 armor, so you take less damage. Max TPS runs Retribution Aura instead for threat, 30 Holy damage to the boss each time it hits you: about 3% more TPS and 6% more damage taken in the default setup. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -442,6 +445,14 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
+    id: ID.hammerOfTheRighteous,
+    group: 'Core abilities',
+    label: 'Hammer of the Righteous',
+    help: 'Use Hammer of the Righteous in place of Holy Strike: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so it’s one or the other, and Iron Creed’s extra threat and lower damage taken come only with Holy Strike. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used.',
+    default: false,
+  },
+  {
+    kind: 'toggle',
     id: ID.exorcism,
     group: 'Core abilities',
     label: 'Exorcism',
@@ -455,14 +466,14 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.consecration,
     group: 'Fillers',
     label: 'Consecration',
-    help: 'Put down Consecration (rank 5, 565 mana): 8 ticks of Holy damage over 8 s. By default only from 40% mana: below that, the mana does more for Holy Shield, your seal and Hammer of Wrath.',
+    help: 'Put down Consecration (rank 5, 565 mana): 8 ticks of Holy damage over 8 s. By default only from 20% mana: below that, rank 1 goes down instead, and the rest goes to Holy Shield, your seal and Hammer of Wrath.',
     default: true,
   },
   manaOption(
     ID.consecrationMana,
     'Consecration from',
-    'Use rank 5 only at or above this share of your maximum mana. 40 is tuned for the default 3-minute fight, and it’s within half a percent of the best from 30 s to 5 minutes.',
-    40,
+    'Use rank 5 only at or above this share of your maximum mana. 20 is tuned for the default setup’s 3-minute fight (T2’s gear and mana).',
+    20,
     ID.consecration,
     'Fillers',
   ),
@@ -472,7 +483,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     group: 'Fillers',
     label: 'Consecration (Rank 1)',
     help: 'Below rank 5’s mana threshold, put down rank 1 (135 mana). Every rank has the full spell damage bonus, so with enough spell damage it’s the most threat for the mana.',
-    default: false,
+    default: true,
   },
   manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this share of your maximum mana.', 10, ID.consecrationRank1, 'Fillers'),
   {
@@ -664,8 +675,13 @@ export function protectionRotation(
     }
   }
 
+  // Row 5b: Hammer of the Righteous in Holy Strike's place (they share a cooldown), with a one-handed
+  // axe, mace or sword; otherwise row 5.
+  const mh = ctx.mainHand
+  const hammerFits = mh != null && !mh.twoHand && mh.type !== undefined && (HAMMER_OF_THE_RIGHTEOUS_WEAPONS as readonly string[]).includes(mh.type)
+  if (v.on(ID.hammerOfTheRighteous) && hammerFits) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
   // Row 5: Holy Strike on cooldown; with Iron Creed, each that lands cuts damage taken for 6 s.
-  if (v.on(ID.holyStrike)) {
+  else if (v.on(ID.holyStrike)) {
     const strike = add(HOLY_STRIKE_ABILITY, [])
     const creed = talents.get('Iron Creed') ?? 0
     if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
@@ -726,5 +742,8 @@ export function protectionAssumptions(plan: Plan): AssumptionId[] {
   if (procs.has('reckoning')) ids.push('reckoning')
   if (procs.has('redoubt')) ids.push('redoubt')
   if (procs.has('improvedSealOfFury')) ids.push('improvedSealOfFury')
+  // paladin.md#other-abilities, OQ 11: Hammer of the Righteous's weapon DPS, by the Advanced rule.
+  const hammer = plan.abilities.find((a) => a.id === 'hammerOfTheRighteous')
+  if (hammer) ids.push(plan.spells?.[hammer.spell ?? -1]?.weaponDpsAp === false ? 'hammerOfTheRighteousWeaponOnly' : 'hammerOfTheRighteous')
   return ids
 }

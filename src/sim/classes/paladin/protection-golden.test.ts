@@ -65,6 +65,11 @@ describe('golden run (fixed config and seed)', () => {
   //   default axe [?] (Seal of Righteousness’s rule; OQ 10). TPS 552.32 → 579.57, DPS 294.51 → 308.57.
   // - T2 (P6/A3): Holy Strike's flat 81–105 after its 40%, as its tooltip reads [?] (OQ 6): TPS
   //   579.57 → 590.07, DPS 308.57 → 312.91.
+  // - T2, interim defaults (D30; paladin.md "Protection defaults"): the gear review's threat set with
+  //   the Flurry Axe and, for the effective-health floor, Deathbone Gauntlets; talents
+  //   2-4530013321301551-50205 (Conviction 5 for Anticipation 5); Consecration from 20% with rank 1
+  //   on (T2’s re-check). Hammer of the Righteous is in the rotation, off. TPS 590.07 → 817.61, DPS
+  //   312.91 → 438.06, damage taken 682 → 899 a second.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

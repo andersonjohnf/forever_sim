@@ -447,6 +447,9 @@ export class Sim {
   private readonly splNormalized: Uint8Array
   /** A weapon-damage spell's flat part outside its weapon share (SpellDef.flatApart: Holy Strike). */
   private readonly splFlatApart: Uint8Array
+  /** Damage from the main hand's weapon DPS × this, and whether with attack power (SpellDef.weaponDps: Hammer of the Righteous). */
+  private readonly splWeaponDps: Float64Array
+  private readonly splWeaponDpsAp: Uint8Array
   private readonly splSpCoef: Float64Array
   private readonly splTakenScale: Float64Array
   private readonly splCritMult: Float64Array
@@ -1467,6 +1470,8 @@ export class Sim {
     this.splWeaponPct = Float64Array.from(spells, (x) => x.weaponPercent)
     this.splNormalized = Uint8Array.from(spells, (x) => (x.normalized ? 1 : 0))
     this.splFlatApart = Uint8Array.from(spells, (x) => (x.flatApart ? 1 : 0))
+    this.splWeaponDps = Float64Array.from(spells, (x) => x.weaponDps ?? 0)
+    this.splWeaponDpsAp = Uint8Array.from(spells, (x) => (x.weaponDpsAp ? 1 : 0))
     this.splSpCoef = Float64Array.from(spells, (x) => x.spCoefficient)
     this.splTakenScale = Float64Array.from(spells, (x) => x.takenScale)
     this.splCritMult = Float64Array.from(spells, (x) => x.critMultiplier)
@@ -1482,7 +1487,7 @@ export class Sim {
     // docs/mechanics/spells.md §3, §7: binary spells and DoTs. A tick crits only with the spell's
     // flag, in a profile whose periodic effects can (damage-and-timing §4).
     this.splBinary = Uint8Array.from(spells, (x) => (x.binary ? 1 : 0))
-    this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
+    this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || (x.weaponDps ?? 0) > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
     this.splDotTicks = Int32Array.from(spells, (x) => x.dotTicks ?? 0)
     this.splDotTickMs = Float64Array.from(spells, (x) => x.dotTickMs ?? 0)
     this.splDotTick = Float64Array.from(spells, (x) => x.dotTickDamage ?? 0)
@@ -1681,7 +1686,7 @@ export class Sim {
       // needs a shield instead (Shield Slam; Shield Block is a cast). Those need a shield (§3.1, §3.2).
       // docs/mechanics/ranged-and-pets.md §5: a shot needs the ranged weapon, not the main hand.
       const shot = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].ranged === true
-      const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0 && !shot
+      const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && (spells[a.spell].weaponPercent > 0 || (spells[a.spell].weaponDps ?? 0) > 0) && !shot
       const needsWeapon =
         a.kind === 'spell'
           ? weaponSpell
@@ -4198,6 +4203,13 @@ export class Sim {
       const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
       // paladin.md#other-abilities: Holy Strike's flat 81–105 comes after its 40% (flatApart) [?].
       base = this.splFlatApart[s] === 1 ? (roll + this.wFlat[h] + (this.ap / 14) * speed) * pct + flat : (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
+    } else if (this.splWeaponDps[s] > 0) {
+      // paladin.md#other-abilities: Hammer of the Righteous, 3 × the main hand's weapon DPS, with its
+      // attack power or without [?] (OQ 11), no roll.
+      const h = HAND.main
+      const speed = this.wSpeedSec[h]
+      const average = (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + (this.splWeaponDpsAp[s] === 1 ? (this.ap / 14) * speed : 0)
+      base = (this.splWeaponDps[s] * average) / speed
     } else {
       base = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
     }

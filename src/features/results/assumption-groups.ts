@@ -163,6 +163,8 @@ export const ASSUMPTION_GROUP = {
   jotcBonus: 'class',
   jotcBonusFlat: 'class',
   jotcRaid: 'class',
+  hammerOfTheRighteous: 'class',
+  hammerOfTheRighteousWeaponOnly: 'class',
   holyStrike: 'class',
   consecrationTicks: 'class',
   hammerOfWrath: 'class',

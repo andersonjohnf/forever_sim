@@ -27,10 +27,11 @@ test.describe('Protection paladin rotation', () => {
     await expect(priority).toHaveAccessibleDescription(/^Tank duties first keeps your Devotion Aura up, \+735 armor, so you take less damage\. Max TPS runs Retribution Aura instead for threat/)
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
-    for (const name of ['Holy Shield', 'Devotion Aura', 'On-use trinkets', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Hammer of Wrath', 'Major Mana Potion']) {
+    for (const name of ['Holy Shield', 'Devotion Aura', 'On-use trinkets', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    await expect(tab.getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).not.toBeChecked()
+    // Hammer of the Righteous in Holy Strike's place is off: Holy Strike makes more threat (T2).
+    await expect(tab.getByRole('switch', { name: 'Hammer of the Righteous', exact: true })).not.toBeChecked()
 
     // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
     const buffs = tab.getByRole('region', { name: 'Cooldowns and buffs' })

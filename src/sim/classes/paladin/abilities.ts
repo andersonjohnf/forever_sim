@@ -16,6 +16,7 @@ import {
   CONSECRATION_TICK,
   EXORCISM,
   HAMMER_OF_WRATH,
+  hammerOfTheRighteous,
   HOLY_STRIKE,
   JUDGEMENT_OF_COMMAND,
   JUDGEMENT_OF_FURY,
@@ -277,6 +278,28 @@ export const HOLY_STRIKE_ABILITY: AbilityDef = {
   category: HOLY_STRIKE_CATEGORY,
   spellDef: HOLY_STRIKE,
 }
+
+/**
+ * Hammer of the Righteous (407632, trained at 40): 6% of base mana (90), a 6 s cooldown in category
+ * 2404, shared with Holy Strike, GCD 1.5 s; it needs a one-handed axe, mace or sword [F] [client]
+ * (SpellPower, SpellCooldowns, SpellCategories, SpellEquippedItems subclass mask 145, 1.60.1.69913).
+ * Casting it holds Holy Strike for 6 s, and Holy Strike holds it for Holy Strike's 10 to 12
+ * (paladin.md#other-abilities). It doesn't proc the damage seals.
+ */
+export const hammerOfTheRighteousAbility = (withAttackPower = true): AbilityDef => ({
+  ...PALADIN,
+  id: 'hammerOfTheRighteous',
+  name: 'Hammer of the Righteous',
+  icon: 'ability_paladin_hammeroftherighteous',
+  kind: 'spell',
+  ...mana(pctOfBaseMana(6)),
+  cooldownMs: 6000,
+  category: HOLY_STRIKE_CATEGORY,
+  spellDef: hammerOfTheRighteous(withAttackPower),
+})
+
+/** The weapons Hammer of the Righteous needs: one-handed axes, maces and swords (407632's subclass mask 145). */
+export const HAMMER_OF_THE_RIGHTEOUS_WEAPONS = ['axe', 'mace', 'sword'] as const
 
 /** Exorcism r6 (10314): 345 mana, 15 s, GCD 1.5 s; Undead and Demons only (paladin.md#other-abilities). */
 export const EXORCISM_ABILITY: AbilityDef = {

@@ -382,7 +382,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. The cast stops your auto attacks, which start again from a full swing when it ends, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules) has every cast do, and holds everything else until it ends, the off-GCD Judgement too: in game you can't cast one spell during another [?]. It pays its mana and starts its cooldown when the cast ends. The default Retribution build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s (row 8), where the cast costs 1.8% of TPS against letting swings and Judgement go on | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
-| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike**; GCD 1.5 s; needs a 1H axe, mace or sword | Melee special, full table [?] | [F] [F 407632][f407632]; category 2404 with 6 s: [client] (SpellCategories, SpellCooldowns, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. Whether "weapon DPS" includes AP is [?] |
+| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10–12 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (a script) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): the sim counts it by default, the weapon DPS a character sheet shows, since that reading fits the guild's benchmark ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)); **Character → Advanced** switches to the weapon's own (`rules.hotrWeaponDps`). Worked example 24 |
 | **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is the buff's own effect (aura 43, `PROC_TRIGGER_DAMAGE`), with no damage spell of its own. The client marks spell 20928 **magic** (DefenseType 1), which would give the damage the spell table: a miss roll (14% for the default build against a level-63 boss) and spell crit. The sim overrides it and has the damage always land and never crit [?]: 20928's table is the one its cast rolls, on yourself, and nothing in the client says the damage its aura deals rolls one again. Untested ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, SpellCategories, 1.60.1.69913; [20928][f20928]) |
 | **Righteous Fury** (25780) | **+90% threat from Holy damage**; Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.69913; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
@@ -753,14 +753,14 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
 
 ### Threat sources, in expected order of size
 
-Measured in the default setup (C3, re-run after the rebase onto Retribution: 180 s, the Standard
-raid buffs with a paladin's mana buffs and the Major Mana Potion, pre-raid gear and Elixir of Holy
-Power's 40 spell damage): Holy Shield's block damage (24% of TPS, ×2.28 threat), white hits with
-their Windfury and Reckoning extra attacks (21% together, ×1), Judgement of Fury and Seal of
-Fury's procs (12% each), Consecration (11%, from 40% mana), the mana Shield Specialization,
-Improved Seal of Fury and the potion give (8%, 0.5 a mana), Holy Strike (6%, ×2.375) and Hammer
-of Wrath in the execute phase (6%). Retribution Aura adds 5% with Max TPS; Exorcism counts only
-against Undead and Demons.
+Measured in the default setup after T2 (180 s, the Standard raid with another paladin's Judgement
+of the Crusader, the interim gear and talents, 379 Holy spell damage; 818.6 TPS and 438.3 DPS over
+20,000 fights on seed 12345): Seal of Fury's procs (19% of TPS), Consecration (16%), Judgement of
+Fury (15%), Holy Shield's block damage (14%, ×2.28 threat), Holy Strike (11%, ×2.375), white hits
+with their Windfury, Flurry Axe and Reckoning extra attacks (14% together, ×1), Hammer of Wrath in
+the execute phase (5%), and the mana Shield Specialization, Improved Seal of Fury and the potion
+give (5%, 0.5 a mana). Retribution Aura adds 3% with Max TPS; Exorcism counts only against Undead
+and Demons. Before T2 (C3's setup, 424.8 TPS) Holy Shield led with 24%.
 Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
 fixed row, always on, and the results list it up all fight.
 
@@ -791,10 +791,10 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
-| 5b | Hammer of the Righteous instead of Holy Strike | for 3 or more targets; 1H axe, mace or sword only | off; not simulated yet (single target, [open question 11](#open-questions)) |
+| 5b | Hammer of the Righteous instead of Holy Strike | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so it's one or the other | off: Holy Strike makes more threat on one target (below) |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
-| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (40%: tuned for the default 3-minute fight, and within half a percent of the best from 30 s to 5 minutes, [below](#tuning-the-defaults-c3)) | on |
-| 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | off |
+| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
+| 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | on (T2) |
 | 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)). Dimmed on the Rotation tab without an execute phase | on |
 | — | On-use trinkets (Weakness Analyzer, Earthstrike) and Juju Flurry, off the GCD, on cooldown from the pull, as Retribution's (`consumables.ts`) | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs (no Protection preset selects it) | on; neither acts in the default setup |
 | — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.earlyMissingMana` (1,500) while the fight has at least its 2 min cooldown left, so another will be ready before the end; after that, missing at least `manaPotion.missingMana` (2,250, its most). Its mana makes threat, 0.5 a point. The early line rests on knowing the fight's end, which the results list (`knownFightEnd`, [below](#tuning-the-defaults-c3)) | on (Standard raid) |
@@ -803,8 +803,12 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 | — | Templar's Bulwark, Divine Protection | defensive; no TPS effect | off; not simulated |
 
 Holy Strike and HotR share category 2404: casting one locks the other for that spell's
-cooldown [F] [client] (SpellCategories, 1.60.1.69913). Single target: Holy Strike wins. It's cheaper, scales with SP (0.429), and
-Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
+cooldown [F] [client] (SpellCategories, 1.60.1.69913). Single target: Holy Strike wins, though HotR
+comes every 6 s to its 10. It scales with SP (0.429) and with another paladin's Judgement of the
+Crusader, and Iron Creed adds 25% threat and cuts damage taken; HotR has no SP coefficient in the
+data. In the T2 default setup, HotR in its place makes **−16.8 TPS (−2.1%)** and +0.1 DPS, even with
+attack power counted in its weapon DPS, for 5% more damage taken (20,000 paired fights, seed 777).
+A slow, high-DPS one-hander with little spell damage is where HotR could win.
 
 #### Priority: tank duties first, or Max TPS
 
@@ -840,7 +844,7 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   untested threat value, and every threshold's best value is the same for both priorities. Holy
   Shield is still the first global cooldown at the pull, and the seal is up from before it.
 
-Max TPS against the default: **+19.98 TPS (+4.70%, 95% CI +19.98 to +19.99)** and +10.31 DPS
+Max TPS against the default (C3's setup; after T2 it's +25.2 TPS, +3.1%, for 5.7% more damage taken, [T2's re-check](#tuning-the-defaults-c3)): **+19.98 TPS (+4.70%, 95% CI +19.98 to +19.99)** and +10.31 DPS
 (+4.46%), for 38.1 more damage taken a second (+5.6%), over 400,000 paired fights on seed 4482,
 which no search used; +4.54% at 60 s and +4.82% at 300 s. Its search on its own base (seed 1,
 40,000 fights) found the default's thresholds best too: around them, Consecration from 35% −0.06%
@@ -851,16 +855,28 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`2-4530513321301551-502`** (Holy 2 / Prot 42 / Ret 7): Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2 | the most popular Forever Prot build when chosen, 2026-09-22 [F] |
+| Talents | **`2-4530013321301551-50205`** (Holy 2 / Prot 37 / Ret 12), **interim, measured** (T2, 2026-09-24; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): the popular build below with **Conviction 5** (+5% melee crit) for Anticipation 5 (+20 defense). Against the popular build on the T2 gear: **+3.20% TPS, +3.84% DPS** (+25.5 TPS, +16.2 DPS), +31.7 damage taken a second (20,000 paired fights, seed 777). The threat review's builds did better on the balanced objective, B3 `2-2530012301301551-5020523` +4.95% TPS and +5.06% DPS and B4 `2-2530512301301551-50205` +3.32% and +3.92%, but both drop **Sacred Duty**, the survival floor below; with it kept, the best five points for Conviction are Anticipation's (the least damage taken of the options that make the same threat: Toughness 4 + Improved RF 1 +51.8, Toughness 2 + Improved RF 3 +73.9). The popular build stays a preset: `2-4530513321301551-502`, Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | measured, [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
+| Survival floor | **Sacred Duty 2/2** (its minute off Divine Shield, Divine Protection and Templar's Bulwark: D30's "big cuts to defensive cooldowns"), Templar's Bulwark and Holy Shield: no default or search drops them. And an **effective-health floor** for the gear (user decision, 2026-09-24): health ÷ (1 − armor's reduction against a level-63 boss) at least 90% of v1's preset, 14,346 (5,851 health, 8,356 armor) | user, D30 |
 | Race | Human / Undead (Horde) | The default weapon is an axe (below), so Human's Sword Specialization (+2% crit, with a sword) doesn't apply, nor Dwarf's Mace Specialization; the race changes only base stats until you pick a sword or mace. Dwarf is a close choice for Stoneform |
-| Weapon | best pre-raid 1H **sword, mace or axe** (so HotR is usable) + shield: the pre-raid lists give the Flurry Axe (1.5 s) and Draconian Deflector | [F] HotR requirement |
+| Weapon | **Flurry Axe** (1.5 s, the weapon's +30 spell damage) and **Draconian Aegis of the Legion** (+20 spell damage). Of the pool's spell damage one-handers, Simone's Cultivating Hammer (the gear search's pick, 46 spell damage, 1.8 s) makes 8.7 TPS and 8.1 DPS less after T2's model fixes, and the Elderwild Construction Hammer (68, 2.4 s) 22.6 TPS less: a fast weapon's swings carry Seal of Fury's flat 35 and Windfury's chances. A 1H axe, mace or sword keeps Hammer of the Righteous usable | measured (20,000 fights, seed 12345) |
+| Gear | **Interim, measured** (T2; `INTERIM_GEAR` in `src/sim/defaults.ts`; the optimizer replaces it): the gear review's slot-by-slot paired search for threat from the pool (`.cache/probes/gear-review`), Lionheart Helm, Orb of the Darkmoon, Lieutenant Commander's Lamellar Shoulders, Crystalline Threaded Cape, Knight-Captain's Lamellar Breastplate and Leggings, Battleborn Armbraces, Soulforge Belt, Knight-Lieutenant's Lamellar Sabatons, Elemental Focus Band, Don Julio's Band, Weakness Analyzer, Briarwood Reed, with **Deathbone Gauntlets** in place of its Darkrune Gauntlets for the effective-health floor: 90.6% of v1's (5,241 health, 8,512 armor, 12,993) where the search's set had 89.4%, for 8.0 TPS. 379 Holy spell damage and 4,382 mana with the Standard raid; damage taken 898 a second (v1's preset 681 in the same setup), defense 310, so the boss crits for 5.2% (v1: 433, 0.3%). A Horde race takes the pre-raid list's pick where a piece is Alliance's (the Lamellar PvP set): a known gap | measured; user's floor |
 | Seal | **Seal of Fury** (SoR selectable) | [F] |
 | Raid debuff | **Another paladin's Judgement of the Crusader** (+161 Holy damage taken), in the Standard and Max raids when the raid has another paladin [?]: a raid's Holy or Retribution paladin usually judges the Crusader ([open question 26](#open-questions)) | [buffs §4.2](../mechanics/buffs-debuffs-consumables.md#42-other-debuffs), D29 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS (30 × 1.9 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
-| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 3,227 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26) | buffs doc owns names, values and presets |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26) | buffs doc owns names, values and presets |
 
 #### Tuning the defaults (C3)
+
+**T2's re-check (2026-09-24).** The threat fixes (the caster enchants, Nightfin Soup and Wizard Oil,
+another paladin's Judgement of the Crusader, Seal of Fury's seal value, Holy Strike's flat damage)
+and the interim gear and talents ([above](#protection-defaults)) raise the pool to 4,382 mana and
+the Holy spell damage to 379, so Consecration's threshold moved: **from 20%, with rank 1 on (from
+10%)**, +4.55 TPS (+0.56%, 95% CI +4.47 to +4.63) and +2.56 DPS over 100,000 paired fights on seed
+9091, which the search (seed 777, 40,000 fights: 0 to 60% in steps of 5 and 10, rank 1 on and off)
+didn't use; 20% alone is +0.45%. Hammer of the Righteous in Holy Strike's place loses 2.1%; Max TPS
+now gains +3.1% TPS (+25.2) for 5.7% more damage taken. The other thresholds weren't re-searched:
+the optimizer (O4) re-tunes them with the talents and gear. The grid by fight length below is C3's.
 
 The defaults are the best rotation found on 2026-09-24 per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23) and, keeping
@@ -1121,7 +1137,7 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   druid's in `BASE_PLACEHOLDERS` (`src/sim/stats/base-stats.ts`), which the results list on the
   sheet and in the assumptions (`baseStatPlaceholders`).
 - **Not modelled yet:** Twist of Light and seal twisting (row 9, off by default), Hammer of the
-  Righteous, Holy Wrath, Sacred Arbiter's judgement refresh (your auto attacks already keep
+  Righteous's extra targets (M6), Holy Wrath, Sacred Arbiter's judgement refresh (your auto attacks already keep
   Judgement of the Crusader up), the utility seals, another paladin's Judgement of Wisdom, a
   Protection paladin's judgement debuff for the raid (Wisdom or Light), a rune's health cost, and
   the T1 5-piece's −0.5 s Judgement. For a tank: Judgement of Fury's taunt (no threat while you
@@ -1275,7 +1291,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     *Test:* mana per boss hit taken with Seal of Fury up, with and without Improved Seal of Fury,
     and whether two boss hits between two of your swings both restore it.
 11. **Hammer of the Righteous**: target count (3 or 4 in total?), whether "weapon DPS"
-    includes AP, avoidance, and whether its SP coefficient is really 0.
+    includes AP, avoidance, and whether its SP coefficient is really 0. The sim counts attack power
+    [?] (Character → Advanced switches it off), rolls the full table in two rolls, and gives it no
+    spell damage; it's off by default, as Holy Strike makes more threat on one target. With the
+    default Flurry Axe and 1,034 attack power: 3 × (53 + 1,034 / 14 × 1.5) / 1.5 = 328 with it, 106
+    without. *Test (guild test T3):* 50 non-crit Hammer of the Righteous casts with Blessing of Might
+    on and off: does the damage move with attack power?
 12. **Sanctified Judgement**: base or modified seal cost; refund on a missed JoR or JoF?
 13. **Seal of Wisdom / Judgement of Wisdom** proc rates in Forever.
 14. **Level-based partial resists** on melee-class Holy (SoC, judgements, Holy Strike) vs a

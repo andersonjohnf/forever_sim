@@ -127,6 +127,13 @@ export interface SimConfig {
      * it on melee-class hits (seal procs, judgements, Holy Strike). Kept for paladins only.
      */
     jotcBonus?: 'coefficient' | 'flat'
+    /**
+     * Whether Hammer of the Righteous's "damage per second of your main hand weapon" counts attack
+     * power, a Protection paladin's untested-mechanic switch (docs/classes/paladin.md open question
+     * 11, Character → Advanced). Omitted: `withAttackPower`, the weapon's DPS as the character sheet
+     * shows it, attack power included; `weaponOnly`, the weapon's own damage. Kept for paladins only.
+     */
+    hotrWeaponDps?: 'withAttackPower' | 'weaponOnly'
   }
   run: {
     /**

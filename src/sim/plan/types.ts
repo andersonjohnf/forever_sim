@@ -184,6 +184,16 @@ export interface SpellDef {
    */
   flatApart?: boolean
   /**
+   * Damage from the main hand's weapon DPS, not a swing: `weaponDps` × (its average damage, its flat
+   * weapon damage and, with `weaponDpsAp`, attack power ÷ 14 × its speed) ÷ its base speed, no roll
+   * (Hammer of the Righteous's "3 times the damage per second of your main hand weapon",
+   * paladin.md#other-abilities). A spell without a weapon share, so a melee-class one rolls twice
+   * (paladin.md#conventions-used-below), and it needs a main hand. Absent: none.
+   */
+  weaponDps?: number
+  /** Whether `weaponDps` counts attack power (paladin.md OQ 11) [?]. */
+  weaponDpsAp?: boolean
+  /**
    * More damage while an aura (by id) is up, which the spell uses up when it lands: Stormstrike's
    * +20% to the shaman's next Lightning Bolt or Earth Shock (docs/classes/shaman.md#stormstrike).
    * Absent: none. With `keep`, the spell doesn't use the aura up: Lava Burst's +20% while your Flame

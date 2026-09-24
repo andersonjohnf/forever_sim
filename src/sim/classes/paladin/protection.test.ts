@@ -30,8 +30,8 @@ import {
   SEAL_OF_FURY_SHIELD_AURA,
   SWIFT_JUDGEMENT,
 } from './protection'
-import { addPaladinAbility, setSp } from './test-helpers'
-import { JUDGEMENT_OF } from './abilities'
+import { addPaladinAbility, examplePlan, setSp } from './test-helpers'
+import { hammerOfTheRighteousAbility, JUDGEMENT_OF } from './abilities'
 
 const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
@@ -103,8 +103,8 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
       [ID.holyStrike]: true,
       [ID.consecration]: true,
       [ID.exorcismMana]: 0,
-      [ID.consecrationMana]: 40,
-      [ID.consecrationRank1]: false,
+      [ID.consecrationMana]: 20,
+      [ID.consecrationRank1]: true,
       [ID.hammerOfWrath]: true,
       [ID.hammerOfWrathMana]: 0,
       [ID.trinkets]: true,
@@ -188,9 +188,9 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
   const ctx = { hasShield: true, maxMana: 2000, executePhase: true, mainHand: { speedSec: 1.5, twoHand: false } }
   const ids = (r: ReturnType<typeof protectionRotation>) => r.rotation.map((e) => r.abilities[e.ability].id)
 
-  it('the default: the seal, Holy Shield, Judgement, Swift Judgement, Holy Strike, Consecration and Hammer of Wrath', () => {
+  it('the default: the seal, Holy Shield, Judgement, Swift Judgement, Holy Strike, Consecration (ranks 5 and 1) and Hammer of Wrath', () => {
     const r = protectionRotation({}, TALENTS, () => -1, ctx)
-    expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'hammerOfWrath'])
+    expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
     // The duty first (D26's fixed rule): Devotion Aura 4.5 s before the pull, Righteous Fury at 3 s, then the seal.
@@ -213,8 +213,9 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
       { code: COND.abilityAuraUp, a: 0, b: 0 },
     ])
     expect(lines.holyStrike).toEqual([])
-    // 40% of 2,000 mana, in tenths.
-    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 8000, b: 0 }])
+    // 20% of 2,000 mana, in tenths; rank 1 from 10%.
+    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 4000, b: 0 }])
+    expect(lines.consecrationRank1).toEqual([{ code: COND.minMana, a: 2000, b: 0 }])
     expect(lines.hammerOfWrath).toEqual([])
     // Swift Judgement ends the judgement's cooldown, and its buff makes that judgement free.
     const swift = r.abilities.find((a) => a.id === 'swiftJudgement')!
@@ -227,7 +228,7 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
 
   it('needs the talents and a shield for Holy Shield, the talent for Swift Judgement, and Undead or Demons for Exorcism', () => {
     const none = protectionRotation({}, new Map(), () => -1, ctx)
-    expect(ids(none)).toEqual(['sealOfFury', 'judgementOfFury', 'holyStrike', 'consecration', 'hammerOfWrath'])
+    expect(ids(none)).toEqual(['sealOfFury', 'judgementOfFury', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
     expect(none.abilities[1].clearcastable).toBeUndefined()
     const noShield = protectionRotation({}, TALENTS, () => -1, { ...ctx, hasShield: false })
     expect(ids(noShield)).not.toContain('holyShield')
@@ -641,11 +642,11 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     }
     for (let i = 0; i < fights; i++) sim.runFight(i)
     const share = (minute: number) => sum[minute] / ticks[minute] / plan.mana!.maxTenths
-    // It holds: from the second minute to the eighth the pool stays around 35–50% (Consecration
-    // takes what's above 40%, and a Major Mana Potion every 2 minutes tops it up). Then, in the
-    // execute phase from 8 minutes (the last 20%), Hammer of Wrath runs it down: under 30% on
-    // average in the ninth minute, and under 15% in the last.
-    for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.3)
+    // It holds: from the second minute to the eighth the pool stays around 20–40% (Consecration
+    // takes what's above 20%, rank 1 what's above 10%, and a Major Mana Potion every 2 minutes tops
+    // it up). Then, in the execute phase from 8 minutes (the last 20%), Hammer of Wrath runs it down:
+    // under 30% on average in the ninth minute, and under 15% in the last.
+    for (let minute = 1; minute < 8; minute++) expect(share(minute), `minute ${minute}`).toBeGreaterThan(0.2)
     expect(share(8)).toBeLessThan(0.3)
     expect(share(9)).toBeLessThan(0.15)
     const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (fights * 600000)
@@ -655,10 +656,14 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
     expect(perFight('holyStrike')).toBeGreaterThan(0.97 * 60)
-    // Consecration from 40% of maximum mana: about half as often as its cooldown allows (75). The
-    // potion every 2 minutes, from the pull's first: 5.
-    expect(perFight('consecration')).toBeLessThan(50)
-    expect(perFight('majorManaPotion')).toBe(5)
+    // Consecration from 20% of maximum mana: about two thirds as often as its cooldown allows (75),
+    // rank 1 in some of the rest, both on one cooldown. The
+    // potion every 2 minutes, from the pull's first: 5, but for the odd fight whose pool (4,472 with
+    // the T2 gear) never gets low enough in time.
+    expect(perFight('consecration')).toBeLessThan(60)
+    expect(perFight('consecration') + perFight('consecrationRank1')).toBeLessThanOrEqual(75)
+    expect(perFight('majorManaPotion')).toBeGreaterThanOrEqual(4.9)
+    expect(perFight('majorManaPotion')).toBeLessThanOrEqual(5)
     expect(low).toBeGreaterThanOrEqual(0)
   })
 })
@@ -923,6 +928,62 @@ describe('another paladin’s Judgement of the Crusader (buffs doc §4.2; paladi
       expect(extra('judgementOfFury'), rule).toBeCloseTo(jof, 6)
       expect(extra('sealOfFuryProc'), rule).toBeCloseTo(sof, 6)
     }
+  })
+})
+
+describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24, OQ 11)', () => {
+  const ONE_HAND = { min: 150, max: 150, speedSec: 2.7, twoHand: false }
+  const hammerDamage = (withAp: boolean) => {
+    const plan = examplePlan({ spec: PROT, core: false, weapon: ONE_HAND, ap: 1200 })
+    // From behind, so nothing parries or blocks it: the example's hits land and never crit.
+    plan.fight.front = false
+    const a = addPaladinAbility(plan, { ...hammerOfTheRighteousAbility(withAp), cooldownMs: 1e9, gcdMs: 0 })
+    plan.rotation.push({ ability: a, conditions: [], unqueueBelowTenths: 0 })
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.hits)).toBe(1)
+    return { plan, sim }
+  }
+
+  it('example 24: 3 × weapon DPS, AP counted: 3 × (150 + 1200 / 14 × 2.7) / 2.7 = 423.81; without it 166.67; Holy, × 1.9 threat', () => {
+    for (const [withAp, damage] of [
+      [true, (3 * (150 + (1200 / 14) * 2.7)) / 2.7],
+      [false, (3 * 150) / 2.7],
+    ] as const) {
+      const { plan, sim } = hammerDamage(withAp)
+      expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.damage)).toBeCloseTo(damage, 9)
+      expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.threat)).toBeCloseTo(damage * 1.9, 9)
+    }
+    expect((3 * (150 + (1200 / 14) * 2.7)) / 2.7).toBeCloseTo(423.81, 2)
+    // The client row: 6% of base mana, a 6 s cooldown in Holy Strike's category, no spell damage coefficient.
+    const hammer = hammerOfTheRighteousAbility()
+    expect(hammer).toMatchObject({ costTenths: 900, cooldownMs: 6000, category: 'holyStrike', gcdMs: 1500 })
+    expect(hammer.spellDef).toMatchObject({ school: 'holy', defense: 'melee', noActiveDefense: false, alwaysHit: false, spCoefficient: 0, weaponDps: 3, weaponDpsAp: true })
+  })
+
+  it('takes Holy Strike’s place when it’s on, with a one-handed axe, mace or sword; Holy Strike otherwise', () => {
+    const ctx = { hasShield: true, maxMana: 2000, executePhase: true }
+    const on = { [ID.hammerOfTheRighteous]: true }
+    const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'weaponOnly') =>
+      protectionRotation(on, TALENTS, () => -1, { ...ctx, mainHand, hotrWeaponDps: rules }).abilities.filter((a) => a.id === 'holyStrike' || a.id === 'hammerOfTheRighteous')
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous'])
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
+    expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
+    // Off by default: Holy Strike makes more threat in the default setup (paladin.md "Tuning the defaults").
+    expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)[ID.hammerOfTheRighteous]).toBe(false)
+  })
+
+  it('in the fight: every 6 s, holding Holy Strike, and the results note which weapon DPS it used', () => {
+    const on = buildPlan({ ...defaultConfig(PROT), rotation: { [ID.hammerOfTheRighteous]: true } })
+    const sim = new Sim(on.plan)
+    for (let i = 0; i < 3; i++) sim.runFight(i)
+    const casts = field(sim, on.plan, 'hammerOfTheRighteous', FIELD.casts) / 3
+    expect(casts).toBeGreaterThan(0.9 * (on.plan.fight.durationMs / 6000) * 0.8)
+    expect(on.plan.sources.some((s) => s.id === 'holyStrike')).toBe(false)
+    expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
+    const weaponOnly = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'weaponOnly' }, rotation: { [ID.hammerOfTheRighteous]: true } })
+    expect(weaponOnly.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
   })
 })
 

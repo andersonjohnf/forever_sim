@@ -46,7 +46,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050012-5523032120132210551-', // documented bear preset (docs/classes/druid.md)
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
-  'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
+  // docs/classes/paladin.md#protection-defaults: interim, measured (T2): the popular build with Conviction 5 for
+  // Anticipation 5, which keeps the survival floor (Sacred Duty); the optimizer (O4) replaces it.
+  'paladin-protection': '2-4530013321301551-50205',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301500103031-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36
@@ -105,8 +107,10 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   paladin: [
     // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
     { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
-    // docs/classes/paladin.md#protection-defaults: Holy 2 / Prot 42 / Ret 7
+    // docs/classes/paladin.md#protection-defaults: Holy 2 / Prot 37 / Ret 12, interim (T2)
     { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
+    // docs/classes/paladin.md#protection-defaults: the popular Forever build, v1's default, Holy 2 / Prot 42 / Ret 7
+    { name: 'Protection (popular build)', code: '2-4530513321301551-502' },
   ],
   shaman: [
     // docs/classes/shaman.md#talents: Elemental 8 / Enhancement 33 / Restoration 10
@@ -335,6 +339,38 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 }
 
 /**
+ * Interim default gear (M5.6 T2; D29, D30): a spec whose pre-raid list doesn't suit what it measures
+ * takes these items first, slot by slot, when the race's faction can wear them and they break no
+ * unique rule; otherwise the list's pick. Measured, not guide-picked: the Protection paladin's is the
+ * gear review's slot-by-slot paired search for threat from the pool (2026-09-24,
+ * docs/classes/paladin.md "Protection defaults"). Interim: the optimizer's results (O4) replace it.
+ */
+const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, number>>>> = {
+  'paladin-protection': {
+    head: 12640, // Lionheart Helm
+    neck: 19426, // Orb of the Darkmoon
+    shoulder: 23277, // Lieutenant Commander's Lamellar Shoulders
+    back: 20697, // Crystalline Threaded Cape
+    chest: 23272, // Knight-Captain's Lamellar Breastplate
+    wrist: 12936, // Battleborn Armbraces
+    // Deathbone Gauntlets, for the effective-health floor (the search's Darkrune Gauntlets, 20549, leave
+    // 89.4% of v1's; paladin.md "Protection defaults").
+    hands: 14622,
+    waist: 22086, // Soulforge Belt
+    legs: 23273, // Knight-Captain's Lamellar Leggings
+    feet: 23275, // Knight-Lieutenant's Lamellar Sabatons
+    finger1: 20682, // Elemental Focus Band
+    finger2: 19325, // Don Julio's Band
+    trinket1: 272438, // Weakness Analyzer
+    trinket2: 12930, // Briarwood Reed
+    mainHand: 871, // Flurry Axe: the search's Simone's Cultivating Hammer (22380) makes 8.7 TPS less after T2's model fixes
+    offHand: 22336, // Draconian Aegis of the Legion
+  },
+}
+
+const itemById = new Map(items.map((i) => [i.id, i]))
+
+/**
  * Specs whose default weapon is the two-hander even when the lists also rank a one-hander: a
  * feral's weapon damage does nothing in form, and the two-hander's enchant is the bigger one
  * (docs/classes/druid.md §7.3); an Enhancement shaman's Windfury Weapon and Stormstrike favour a
@@ -413,7 +449,11 @@ export function matchSupplies(
 export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].classId]): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
   const worn: Partial<Record<GearSlot, Item>> = {}
-  const put = (slot: GearSlot, candidates: Item[]) => {
+  const interim = INTERIM_GEAR[spec] ?? {}
+  const put = (slot: GearSlot, listed: Item[]) => {
+    // The spec's interim pick first, when it has one for the slot (INTERIM_GEAR).
+    const pick = interim[slot] !== undefined ? itemById.get(interim[slot]) : undefined
+    const candidates = pick ? [pick, ...listed] : listed
     const item = candidates.find((i) => fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0)
     if (!item) return
     worn[slot] = item

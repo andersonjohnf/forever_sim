@@ -73,7 +73,7 @@ test.describe('Retribution', () => {
     await expect(talents.getByRole('combobox', { name: 'Talent build presets' })).toContainText('Retribution (default)')
     await talents.getByRole('combobox', { name: 'Talent build presets' }).click()
     // Protection's build since C3, read plainly: only this spec's is "(default)" (docs/ux.md "Talents").
-    await expect(page.getByRole('option')).toHaveText(['Retribution (default)', 'Protection default'])
+    await expect(page.getByRole('option')).toHaveText(['Retribution (default)', 'Protection default', 'Protection (popular build)'])
     await page.keyboard.press('Escape')
     // About names the paladin, after the warriors and the druid (and before the rogue, since R1).
     await page.getByRole('button', { name: 'More' }).click()

@@ -456,8 +456,10 @@ describe('items/pre-bis', () => {
     // A kept item (a list dropped it) is in the pool with no rank.
     for (const id of bis.kept) expect(byId.get(id)?.preRaidBis, String(id)).toEqual([])
     expect(bis.inPool).toBe(bis.listedItems)
+    // docs/data/items.md#faction-twins: the rest take a listed twin's entries.
     const tagged = items.items.filter((i) => i.preRaidBis.length > 0)
-    expect(tagged).toHaveLength(bis.listedItems)
+    expect(tagged).toHaveLength(bis.listedItems + bis.twinsListed)
+    expect(bis.twinsListed).toBeGreaterThan(0)
   })
 
   it('matches its recorded filter (decisions D10)', () => {

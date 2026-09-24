@@ -4987,10 +4987,10 @@
     "consumablesWithEffects": 89,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1729,
+    "items": 1730,
     "withEffects": 255,
-    "withItemRow": 1729,
-    "withItemSparseRow": 946
+    "withItemRow": 1730,
+    "withItemSparseRow": 947
   },
   "items": {
     "868": {
@@ -29227,6 +29227,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [4, 7, 46, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5789, 5263, 6315, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "20220": {
+      "effects": [],
+      "id": 20220,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135466,
+        "inventoryType": 17,
+        "material": 2,
+        "sheatheType": 2,
+        "subclassId": 10
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Ironbark Staff",
+        "dmgVariance": 0.4,
+        "flags": [32768, 24580, 0, 0, 768],
+        "inventoryType": 17,
+        "itemDelay": 3400,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 2,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 2,
+        "statModifierBonusStat": [5, 7, 32, 50, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2128, 4043, 5957, 21276, 0, 0, 0, 0, 0, 0]
       }
     },
     "20258": {

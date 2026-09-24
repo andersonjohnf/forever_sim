@@ -13,13 +13,16 @@
     "Wowhead's Classic mage guide has no Fire list, so mage-fire cites Icy Veins' Classic guide, archived",
     "in February 2021 (also before Season of Mastery).",
     "Selection: the guide's order is the rank (1 = BiS, 2+ = alternatives). Each slot keeps the top pick plus",
-    "two alternatives; finger and trinket keep four, since two are worn. The guides link Horde PvP items;",
-    "the Alliance counterpart is added at the same rank. PvP items are Rank 10 or lower. No raid drops.",
+    "two alternatives; finger and trinket keep four, since two are worn. A list names one side's PvP or",
+    "reputation item; its faction twin, which the scraper reads from the client (two items whose rows match",
+    "on everything but their names, price and what binds them to a side), takes the same rank",
+    "(docs/data/items.md#faction-twins). PvP items are Rank 10 or lower. No raid drops or event-only items.",
     "An item Forever redesigned out of the spec's role is left out and keeps no rank; the other entries keep",
     "the guide's rank, and the spec's note says why (Diamond Flask, docs/classes/warrior.md Q30).",
     "Random-suffix items are listed by their base id, and the pool has only the base row's stats (no",
-    "suffix). One whose base row has no spell stats is left out like a raid drop: the entries below it",
-    "move up, and the spec's note names it. One that keeps a rank has the guide's suffix in its notes.",
+    "suffix). One whose base row has none of the stats the spec's list is for is left out, as a raid drop is,",
+    "on every list: the entries below it move up, and the spec's note names it. One that keeps a rank has",
+    "the guide's suffix in its notes.",
     "Sim-ranked lists (the three warlocks, 2026-09-24): where no allowed guide fits the spec's default build in",
     "Forever (a build the guide never considered, or items Forever re-itemized past the guide's picks), the sim",
     "ranks pre-raid pool items for it and the guide's picks are among the candidates; the rank is the sim's,",
@@ -88,12 +91,6 @@
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
           },
           {
-            "id": 23314,
-            "name": "Lieutenant Commander's Plate Helm",
-            "rank": 2,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Helm"
-          },
-          {
             "id": 12587,
             "name": "Eye of Rend",
             "rank": 3,
@@ -126,12 +123,6 @@
             "name": "Champion's Plate Shoulders",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23315,
-            "name": "Lieutenant Commander's Plate Shoulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
           },
           {
             "id": 12927,
@@ -180,12 +171,6 @@
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
           },
           {
-            "id": 23300,
-            "name": "Knight-Captain's Plate Hauberk",
-            "rank": 2,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
-          },
-          {
             "id": 11926,
             "name": "Deathdealer Breastplate",
             "rank": 3,
@@ -226,12 +211,6 @@
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
           },
           {
-            "id": 23286,
-            "name": "Knight-Lieutenant's Plate Gauntlets",
-            "rank": 2,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Gauntlets"
-          },
-          {
             "id": 13957,
             "name": "Gargoyle Slashers",
             "rank": 3,
@@ -270,12 +249,6 @@
             "name": "Legionnaire's Plate Leggings",
             "rank": 3,
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
-          },
-          {
-            "id": 23301,
-            "name": "Knight-Captain's Plate Leggings",
-            "rank": 3,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
           }
         ],
         "feet": [
@@ -284,12 +257,6 @@
             "name": "Blood Guard's Plate Greaves",
             "rank": 1,
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
-          },
-          {
-            "id": 23287,
-            "name": "Knight-Lieutenant's Plate Greaves",
-            "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
           },
           {
             "id": 14616,
@@ -424,12 +391,6 @@
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
           },
           {
-            "id": 23314,
-            "name": "Lieutenant Commander's Plate Helm",
-            "rank": 2,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Helm"
-          },
-          {
             "id": 12587,
             "name": "Eye of Rend",
             "rank": 3,
@@ -462,12 +423,6 @@
             "name": "Champion's Plate Shoulders",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23315,
-            "name": "Lieutenant Commander's Plate Shoulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
           },
           {
             "id": 12927,
@@ -516,12 +471,6 @@
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
           },
           {
-            "id": 23300,
-            "name": "Knight-Captain's Plate Hauberk",
-            "rank": 2,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
-          },
-          {
             "id": 11926,
             "name": "Deathdealer Breastplate",
             "rank": 3,
@@ -562,12 +511,6 @@
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
           },
           {
-            "id": 23286,
-            "name": "Knight-Lieutenant's Plate Gauntlets",
-            "rank": 2,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Gauntlets"
-          },
-          {
             "id": 13957,
             "name": "Gargoyle Slashers",
             "rank": 3,
@@ -606,12 +549,6 @@
             "name": "Legionnaire's Plate Leggings",
             "rank": 3,
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
-          },
-          {
-            "id": 23301,
-            "name": "Knight-Captain's Plate Leggings",
-            "rank": 3,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
           }
         ],
         "feet": [
@@ -620,12 +557,6 @@
             "name": "Blood Guard's Plate Greaves",
             "rank": 1,
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
-          },
-          {
-            "id": 23287,
-            "name": "Knight-Lieutenant's Plate Greaves",
-            "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
           },
           {
             "id": 14616,
@@ -774,12 +705,6 @@
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
           },
           {
-            "id": 23315,
-            "name": "Lieutenant Commander's Plate Shoulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
-          },
-          {
             "id": 16733,
             "name": "Spaulders of Valor",
             "rank": 2,
@@ -818,12 +743,6 @@
             "name": "Legionnaire's Plate Hauberk",
             "rank": 1,
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
-          },
-          {
-            "id": 23300,
-            "name": "Knight-Captain's Plate Hauberk",
-            "rank": 1,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
           },
           {
             "id": 11726,
@@ -912,12 +831,6 @@
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
           },
           {
-            "id": 23301,
-            "name": "Knight-Captain's Plate Leggings",
-            "rank": 2,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
-          },
-          {
             "id": 12935,
             "name": "Warmaster Legguards",
             "rank": 3,
@@ -930,12 +843,6 @@
             "name": "Blood Guard's Plate Greaves",
             "rank": 1,
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
-          },
-          {
-            "id": 23287,
-            "name": "Knight-Lieutenant's Plate Greaves",
-            "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
           },
           {
             "id": 14616,
@@ -1368,12 +1275,6 @@
             "name": "Champion's Dragonhide Headguard",
             "rank": 3,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23308,
-            "name": "Lieutenant Commander's Dragonhide Headguard",
-            "rank": 3,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dragonhide Headguard"
           }
         ],
         "neck": [
@@ -1408,12 +1309,6 @@
             "name": "Champion's Dragonhide Shoulders",
             "rank": 3,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23309,
-            "name": "Lieutenant Commander's Dragonhide Shoulders",
-            "rank": 3,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dragonhide Shoulders"
           }
         ],
         "back": [
@@ -1422,12 +1317,6 @@
             "name": "Sergeant's Cape",
             "rank": 1,
             "notes": "PvP - Rank 3 (Sergeant); Horde version"
-          },
-          {
-            "id": 18461,
-            "name": "Sergeant's Cloak",
-            "rank": 1,
-            "notes": "PvP - Rank 3 (Sergeant); Alliance counterpart of Sergeant's Cape"
           },
           {
             "id": 12551,
@@ -1480,12 +1369,6 @@
             "name": "First Sergeant's Dragonhide Armguards",
             "rank": 3,
             "notes": "PvP - Rank 4 (Sergeant Major/First Sergeant); Horde version"
-          },
-          {
-            "id": 18454,
-            "name": "Sergeant Major's Dragonhide Armsplints",
-            "rank": 3,
-            "notes": "PvP - Rank 4 (Sergeant Major/First Sergeant); Alliance counterpart of First Sergeant's Dragonhide Armguards"
           }
         ],
         "hands": [
@@ -1506,12 +1389,6 @@
             "name": "Blood Guard's Dragonhide Grips",
             "rank": 3,
             "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
-          },
-          {
-            "id": 23280,
-            "name": "Knight-Lieutenant's Dragonhide Grips",
-            "rank": 3,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Dragonhide Grips"
           }
         ],
         "waist": [
@@ -1546,12 +1423,6 @@
             "name": "Legionnaire's Dragonhide Leggings",
             "rank": 3,
             "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
-          },
-          {
-            "id": 23295,
-            "name": "Knight-Captain's Dragonhide Leggings",
-            "rank": 3,
-            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Dragonhide Leggings"
           }
         ],
         "feet": [
@@ -1692,7 +1563,7 @@
         "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
         "snapshot": "2021-05-16"
       },
-      "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2. It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde), so they share rank 1 and no counterpart was added. It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+      "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2. It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
       "slots": {
         "head": [
           {
@@ -1875,12 +1746,6 @@
           }
         ],
         "mainHand": [
-          {
-            "id": 20070,
-            "name": "Sageclaw",
-            "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
-          },
           {
             "id": 20214,
             "name": "Mindfang",
@@ -2258,12 +2123,6 @@
             "notes": "PvP - Rank 3 (Sergeant); Horde version"
           },
           {
-            "id": 18461,
-            "name": "Sergeant's Cloak",
-            "rank": 2,
-            "notes": "PvP - Rank 3 (Sergeant); Alliance counterpart of Sergeant's Cape"
-          },
-          {
             "id": 18495,
             "name": "Redoubt Cloak",
             "rank": 3,
@@ -2436,12 +2295,6 @@
             "notes": "Quest (Alliance, Alterac Valley)"
           },
           {
-            "id": 17909,
-            "name": "Frostwolf Insignia Rank 6",
-            "rank": 3,
-            "notes": "Quest (Horde, Alterac Valley); Horde counterpart of Stormpike Insignia Rank 6"
-          },
-          {
             "id": 17774,
             "name": "Mark of the Chosen",
             "rank": 4,
@@ -2498,7 +2351,7 @@
         "archivedUrl": "https://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-15"
       },
-      "note": "The guide's One-Handed row is the main hand; it lists no shield, so there is no off-hand row. Its Horde honor and battleground mail gets its Alliance counterpart at the same rank, as the other lists do (Classic Era had no Alliance shamans, so some counterparts are the hunter's chain). Its rank-3 gloves, Shadow Panther Hide Gloves (a Zul'Gurub drop), are left out as a raid drop, so Voone's Vice Grips move up.",
+      "note": "The guide's One-Handed row is the main hand; it lists no shield, so there is no off-hand row. Its Horde honor and battleground mail's Alliance faction twins take the same rank (docs/data/items.md#faction-twins). Two have none a shaman can wear in the client: Defiler's Mail Pauldrons, whose Alliance copy, Highlander's Mail Pauldrons, has the same stats but a spell-crit 3-piece bonus where the Defilers' is melee crit, so it is listed on its own at the same rank; and Blood Guard's Mail Greaves, whose only Alliance match would be the hunter's Knight-Lieutenant's Chain Greaves, with other stats, so an Alliance shaman takes the next rank. Its rank-3 gloves, Shadow Panther Hide Gloves (a Zul'Gurub drop), are left out as a raid drop, so Voone's Vice Grips move up.",
       "slots": {
         "head": [
           {
@@ -2557,7 +2410,7 @@
             "id": 20056,
             "name": "Highlander's Mail Pauldrons",
             "rank": 2,
-            "notes": "PvP - Arathi Basin Exalted; Alliance counterpart of Defiler's Mail Pauldrons"
+            "notes": "PvP - Arathi Basin Exalted; the Alliance's, with Defiler's Mail Pauldrons' stats but a spell-crit 3-piece bonus, so not its faction twin (docs/data/items.md#faction-twins)"
           },
           {
             "id": 12927,
@@ -2664,12 +2517,6 @@
             "name": "Defiler's Chain Girdle",
             "rank": 3,
             "notes": "PvP - Arathi Basin Honored; Horde version"
-          },
-          {
-            "id": 20043,
-            "name": "Highlander's Chain Girdle",
-            "rank": 3,
-            "notes": "PvP - Arathi Basin Honored; Alliance counterpart of Defiler's Chain Girdle"
           }
         ],
         "legs": [
@@ -2678,12 +2525,6 @@
             "name": "Outrider's Chain Leggings",
             "rank": 1,
             "notes": "PvP - Warsong Gulch Exalted; Horde version"
-          },
-          {
-            "id": 22748,
-            "name": "Sentinel's Chain Leggings",
-            "rank": 1,
-            "notes": "PvP - Warsong Gulch Exalted; Alliance counterpart of Outrider's Chain Leggings"
           },
           {
             "id": 20668,
@@ -2716,12 +2557,6 @@
             "name": "Blood Guard's Mail Greaves",
             "rank": 3,
             "notes": "PvP - Rank 7 (Blood Guard); Horde version"
-          },
-          {
-            "id": 23278,
-            "name": "Knight-Lieutenant's Chain Greaves",
-            "rank": 3,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant); Alliance counterpart of Blood Guard's Mail Greaves"
           }
         ],
         "finger": [
@@ -2840,7 +2675,7 @@
         "archivedUrl": "https://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-16"
       },
-      "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance counterpart with spell power (Classic Era had no Alliance shamans, and the Alliance's honor chain is the hunter's), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; the League of Arathor's Sageclaw, the same dagger, is added at its rank for the Alliance.",
+      "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance faction twin a shaman can wear in the client (the Alliance's honor chain is the hunter's; docs/data/items.md#faction-twins), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's.",
       "slots": {
         "head": [
           {
@@ -3102,12 +2937,6 @@
             "notes": "PvP - Arathi Basin Exalted"
           },
           {
-            "id": 20070,
-            "name": "Sageclaw",
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version",
-            "rank": 1
-          },
-          {
             "id": 13964,
             "name": "Witchblade",
             "rank": 2,
@@ -3145,7 +2974,7 @@
             "id": 20069,
             "name": "Ironbark Staff",
             "rank": 1,
-            "notes": "PvP - Arathi Basin Exalted"
+            "notes": "PvP - Arathi Basin Exalted (League of Arathor); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank"
           },
           {
             "id": 21188,
@@ -4150,7 +3979,7 @@
         "archivedUrl": "https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear",
         "snapshot": "2021-02-15"
       },
-      "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear gets the Alliance counterpart at the same rank. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; the League of Arathor's Sageclaw, the same dagger, is added at its rank for the Alliance. Its rank-2 two-hander, Staff of Balzaphon, is event-only: Balzaphon appears in Stratholme only during the Scourge Invasion (docs/data/items.md#sources-c). It keeps the guide's rank, since the default wears a one-hander and an off hand.",
+      "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear's Alliance faction twins take the same rank (docs/data/items.md#faction-twins); the Alliance's Rank 7 to 10 silk has the same stats but no item set in Forever's client, so it isn't a twin and is listed at the Horde piece's rank on its own. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rank-2 two-hander, Staff of Balzaphon, is left out as event-only (Balzaphon appears in Stratholme only during the Scourge Invasion; docs/data/items.md#sources-c), so Lord Valthalak's Staff of Command moves up.",
       "slots": {
         "head": [
           {
@@ -4169,7 +3998,7 @@
             "id": 23318,
             "name": "Lieutenant Commander's Silk Cowl",
             "rank": 2,
-            "notes": "PvP - Rank 10 (Lieutenant Commander); Alliance counterpart of Champion's Silk Cowl"
+            "notes": "PvP - Rank 10 (Lieutenant Commander); the Alliance's, with Champion's Silk Cowl's stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 18727,
@@ -4209,7 +4038,7 @@
             "id": 23319,
             "name": "Lieutenant Commander's Silk Mantle",
             "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander); Alliance counterpart of Champion's Silk Mantle"
+            "notes": "PvP - Rank 10 (Lieutenant Commander); the Alliance's, with Champion's Silk Mantle's stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 20686,
@@ -4295,7 +4124,7 @@
             "id": 23290,
             "name": "Knight-Lieutenant's Silk Handwraps",
             "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant); Alliance counterpart of Blood Guard's Silk Handwraps"
+            "notes": "PvP - Rank 7 (Knight-Lieutenant); the Alliance's, with Blood Guard's Silk Handwraps' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 18408,
@@ -4322,12 +4151,6 @@
             "name": "Defiler's Cloth Girdle",
             "rank": 2,
             "notes": "Reputation - The Defilers Honored (Arathi Basin); Horde version"
-          },
-          {
-            "id": 20047,
-            "name": "Highlander's Cloth Girdle",
-            "rank": 2,
-            "notes": "Reputation - League of Arathor Honored (Arathi Basin); Alliance counterpart of Defiler's Cloth Girdle"
           },
           {
             "id": 13956,
@@ -4359,7 +4182,7 @@
             "id": 23304,
             "name": "Knight-Captain's Silk Legguards",
             "rank": 3,
-            "notes": "PvP - Rank 8 (Knight-Captain); Alliance counterpart of Legionnaire's Silk Legguards"
+            "notes": "PvP - Rank 8 (Knight-Captain); the Alliance's, with Legionnaire's Silk Legguards' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           }
         ],
         "feet": [
@@ -4442,12 +4265,6 @@
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
           },
           {
-            "id": 20070,
-            "name": "Sageclaw",
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version",
-            "rank": 1
-          },
-          {
             "id": 20720,
             "name": "Dark Whisper Blade",
             "rank": 2,
@@ -4485,18 +4302,12 @@
             "id": 20069,
             "name": "Ironbark Staff",
             "rank": 1,
-            "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
-          },
-          {
-            "id": 23124,
-            "name": "Staff of Balzaphon",
-            "rank": 2,
-            "notes": "Dungeon - Stratholme (Balzaphon, Scourge Invasion: event-only; Wowhead Classic: https://www.wowhead.com/classic/item=23124)"
+            "notes": "Reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank"
           },
           {
             "id": 22335,
             "name": "Lord Valthalak's Staff of Command",
-            "rank": 3,
+            "rank": 2,
             "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak)"
           }
         ],
@@ -4530,7 +4341,7 @@
         "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-15"
       },
-      "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth gets the Alliance counterpart at the same rank. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix. Its rank-1 dagger, Sageclaw, is the League of Arathor's; The Defilers' Mindfang, the same dagger, is added at its rank for the Horde.",
+      "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth's Alliance pieces, with the same stats, are listed at the same rank; they aren't the client's faction twins, since Forever's rows for the Alliance's Rank 7 to 10 silk have no item set (docs/data/items.md#faction-twins). Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins).",
       "slots": {
         "head": [
           {
@@ -4543,7 +4354,7 @@
             "id": 23318,
             "name": "Lieutenant Commander's Silk Cowl",
             "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander); Alliance counterpart of Champion's Silk Cowl"
+            "notes": "PvP - Rank 10 (Lieutenant Commander); the Alliance's, with Champion's Silk Cowl's stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 22065,
@@ -4703,7 +4514,7 @@
             "id": 23304,
             "name": "Knight-Captain's Silk Legguards",
             "rank": 1,
-            "notes": "PvP - Rank 8 (Knight-Captain); Alliance counterpart of Legionnaire's Silk Legguards"
+            "notes": "PvP - Rank 8 (Knight-Captain); the Alliance's, with Legionnaire's Silk Legguards' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 13170,
@@ -4729,7 +4540,7 @@
             "id": 23291,
             "name": "Knight-Lieutenant's Silk Walkers",
             "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant); Alliance counterpart of Blood Guard's Silk Walkers"
+            "notes": "PvP - Rank 7 (Knight-Lieutenant); the Alliance's, with Blood Guard's Silk Walkers' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 11822,
@@ -4768,12 +4579,6 @@
             "name": "Eye of Orgrimmar",
             "rank": 4,
             "notes": "Quest - The Princess Saved? (Blackrock Depths); Horde version"
-          },
-          {
-            "id": 12543,
-            "name": "Songstone of Ironforge",
-            "rank": 4,
-            "notes": "Quest - The Princess's Surprise (Blackrock Depths); Alliance counterpart of Eye of Orgrimmar"
           }
         ],
         "trinket": [
@@ -4802,12 +4607,6 @@
             "name": "Sageclaw",
             "rank": 1,
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
-          },
-          {
-            "id": 20214,
-            "name": "Mindfang",
-            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version",
-            "rank": 1
           },
           {
             "id": 13964,
@@ -4880,7 +4679,7 @@
         "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-15"
       },
-      "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead. Its rank-1 dagger, Sageclaw, is the League of Arathor's; The Defilers' Mindfang, the same dagger, is added at its rank for the Horde.",
+      "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins).",
       "slots": {
         "head": [
           {
@@ -4893,7 +4692,7 @@
             "id": 23318,
             "name": "Lieutenant Commander's Silk Cowl",
             "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander); Alliance counterpart of Champion's Silk Cowl"
+            "notes": "PvP - Rank 10 (Lieutenant Commander); the Alliance's, with Champion's Silk Cowl's stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 22065,
@@ -5053,7 +4852,7 @@
             "id": 23304,
             "name": "Knight-Captain's Silk Legguards",
             "rank": 1,
-            "notes": "PvP - Rank 8 (Knight-Captain); Alliance counterpart of Legionnaire's Silk Legguards"
+            "notes": "PvP - Rank 8 (Knight-Captain); the Alliance's, with Legionnaire's Silk Legguards' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 13170,
@@ -5079,7 +4878,7 @@
             "id": 23291,
             "name": "Knight-Lieutenant's Silk Walkers",
             "rank": 1,
-            "notes": "PvP - Rank 7 (Knight-Lieutenant); Alliance counterpart of Blood Guard's Silk Walkers"
+            "notes": "PvP - Rank 7 (Knight-Lieutenant); the Alliance's, with Blood Guard's Silk Walkers' stats; not its faction twin, since Forever's row has no item set (docs/data/items.md#faction-twins)"
           },
           {
             "id": 11822,
@@ -5118,12 +4917,6 @@
             "name": "Eye of Orgrimmar",
             "rank": 4,
             "notes": "Quest - The Princess Saved? (Blackrock Depths); Horde version"
-          },
-          {
-            "id": 12543,
-            "name": "Songstone of Ironforge",
-            "rank": 4,
-            "notes": "Quest - The Princess's Surprise (Blackrock Depths); Alliance counterpart of Eye of Orgrimmar"
           }
         ],
         "trinket": [
@@ -5152,12 +4945,6 @@
             "name": "Sageclaw",
             "rank": 1,
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
-          },
-          {
-            "id": 20214,
-            "name": "Mindfang",
-            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version",
-            "rank": 1
           },
           {
             "id": 13964,
@@ -5230,7 +5017,7 @@
         "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-18"
       },
-      "note": "Ranked by the sim, not copied from a guide (docs/data/items.md 'Forever caveat': let the sim decide; docs/classes/warlock.md#73-gear). Wowhead's Classic warlock guide (the source below) has one Shadow list for every warlock, and it never considers the Fire items the default Fire build (warlock.md §7.1) can use. Candidates: every pool item a warlock can wear with spell damage (any school), spell power, spell hit or crit, Intellect or an effect, from pre-raid sources (dungeons, quests, reputation, crafting, world drops, PvP Rank 10 or lower), with the guide's picks among them. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); event-only items, from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and the invasion's other bosses' loot); Forever-new items, whose sources aren't known yet; random-suffix items, whose base rows have no spell stats; and four weapons whose Classic Era sources couldn't be confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power, a [?] estimate; the sim would rank them second and third in the main hand), Whiteout Staff (it would lead a Horde warlock's two-handers; Ironbark Staff, which a Horde warlock can't wear, leads the Alliance's) and Amethyst War Staff. Method: a slot-by-slot paired search from the old default gear (the default Orc Destruction setup, 6,000 fights a candidate on seed 2701, common random numbers) until no swap helped, then each slot's alternatives ranked by their paired DPS in the finished set (20,000 fights); close calls get a direct paired run (40,000 fights). Within the 95% interval the guide's pick keeps the place (Deathmist Wraps over Inferno Gloves; Eye of the Beast over Rune of the Guard Captain, +0.02 ± 0.15). The Bloodvine Garb 3-piece (+2% spell crit) and the Champion's Dreadgear 2-piece (+23 spell power) win over more Dreadgear (paired, in the finished set: 4 pieces -20 to -31 DPS, 5 pieces -30, 6 pieces -42). Fire items lose most slots: the default build still casts Shadow (Shadowburn, Corruption, Bane of Doom), so +1 Fire spell damage is worth about 70% of +1 to every school (the sim's weights: 0.41 against 0.58 DPS), and Tome of Fiery Arcana's +40 Fire ranks second to Therazane's Touch's +31. The two-hand row's rank 1 is Ironbark Staff, the Alliance's (paired, a Human: -12.9 DPS against Sageclaw and Therazane's Touch; Lord Valthalak's Staff -54.1); a Horde warlock's best two-hander is Lord Valthalak's. Twins at the same rank: the Alliance Dreadweave pieces, Sageclaw for Mindfang, the Arathi Basin and Alterac Valley belts, and the two Blackrock Depths rings.",
+      "note": "Ranked by the sim, not copied from a guide (docs/data/items.md 'Forever caveat': let the sim decide; docs/classes/warlock.md#73-gear). Wowhead's Classic warlock guide (the source below) has one Shadow list for every warlock, and it never considers the Fire items the default Fire build (warlock.md §7.1) can use. Candidates: every pool item a warlock can wear with spell damage (any school), spell power, spell hit or crit, Intellect or an effect, from pre-raid sources (dungeons, quests, reputation, crafting, world drops, PvP Rank 10 or lower), with the guide's picks among them. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); event-only items, from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and the invasion's other bosses' loot); Forever-new items, whose sources aren't known yet; random-suffix items, whose base rows have no spell stats; and four weapons whose Classic Era sources couldn't be confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power, a [?] estimate; the sim would rank them second and third in the main hand), Whiteout Staff (+74 spell power; Ironbark Staff and its twin, with +94 and 28 crit rating, would still lead the two-handers) and Amethyst War Staff. Method: a slot-by-slot paired search from the old default gear (the default Orc Destruction setup, 6,000 fights a candidate on seed 2701, common random numbers) until no swap helped, then each slot's alternatives ranked by their paired DPS in the finished set (20,000 fights); close calls get a direct paired run (40,000 fights). Within the 95% interval the guide's pick keeps the place (Deathmist Wraps over Inferno Gloves; Eye of the Beast over Rune of the Guard Captain, +0.02 ± 0.15). The Bloodvine Garb 3-piece (+2% spell crit) and the Champion's Dreadgear 2-piece (+23 spell power) win over more Dreadgear (paired, in the finished set: 4 pieces -20 to -31 DPS, 5 pieces -30, 6 pieces -42). Fire items lose most slots: the default build still casts Shadow (Shadowburn, Corruption, Bane of Doom), so +1 Fire spell damage is worth about 70% of +1 to every school (the sim's weights: 0.41 against 0.58 DPS), and Tome of Fiery Arcana's +40 Fire ranks second to Therazane's Touch's +31. The two-hand row's rank 1 is Ironbark Staff, the League of Arathor's, and its faction twin, The Defilers' (paired, a Human: -12.9 DPS against Sageclaw and Therazane's Touch; Lord Valthalak's Staff -54.1). Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
       "slots": {
         "head": [
           {
@@ -5238,12 +5025,6 @@
             "name": "Champion's Dreadweave Cowl",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version. With the spaulders, the Champion's Dreadgear 2-piece bonus (+23 spell power)"
-          },
-          {
-            "id": 23310,
-            "name": "Lieutenant Commander's Dreadweave Cowl",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Cowl"
           },
           {
             "id": 22267,
@@ -5284,12 +5065,6 @@
             "name": "Champion's Dreadweave Spaulders",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23311,
-            "name": "Lieutenant Commander's Dreadweave Spaulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Spaulders"
           },
           {
             "id": 19050,
@@ -5398,22 +5173,10 @@
             "notes": "Reputation - The Defilers Honored (Arathi Basin); Horde version"
           },
           {
-            "id": 20047,
-            "name": "Highlander's Cloth Girdle",
-            "rank": 2,
-            "notes": "Reputation - League of Arathor Honored (Arathi Basin); Alliance counterpart of Defiler's Cloth Girdle"
-          },
-          {
             "id": 19090,
             "name": "Frostwolf Cloth Belt",
             "rank": 3,
             "notes": "Reputation - Frostwolf Clan (Alterac Valley); Horde version (Wowhead Classic: https://www.wowhead.com/classic/item=19090)"
-          },
-          {
-            "id": 19094,
-            "name": "Stormpike Cloth Girdle",
-            "rank": 3,
-            "notes": "Reputation - Stormpike Guard (Alterac Valley); Alliance counterpart of Frostwolf Cloth Belt (Wowhead Classic: https://www.wowhead.com/classic/item=19094)"
           }
         ],
         "legs": [
@@ -5480,12 +5243,6 @@
             "name": "Eye of Orgrimmar",
             "rank": 4,
             "notes": "Quest - The Princess Saved? (Blackrock Depths); Horde version"
-          },
-          {
-            "id": 12543,
-            "name": "Songstone of Ironforge",
-            "rank": 4,
-            "notes": "Quest - Blackrock Depths (The Princess's Surprise); Alliance version"
           }
         ],
         "trinket": [
@@ -5562,12 +5319,6 @@
             "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
           },
           {
-            "id": 20070,
-            "name": "Sageclaw",
-            "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
-          },
-          {
             "id": 20720,
             "name": "Dark Whisper Blade",
             "rank": 2,
@@ -5585,7 +5336,7 @@
             "id": 20069,
             "name": "Ironbark Staff",
             "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance only, no Horde twin: a Horde warlock's best two-hander is the next (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
           },
           {
             "id": 22335,
@@ -5610,7 +5361,7 @@
         "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-18"
       },
-      "note": "Ranked by the sim for the default Affliction build (warlock.md §7.1, a Shadow build), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear): Wowhead's one Classic warlock list (the source below) is among the candidates, but it was written for Classic Era's items, and Forever gave Mindfang and Sageclaw +94 spell power (a [?] estimate; Classic Era +30), worth +41 DPS on its own. The search starts from the guide's gear (the default Orc Affliction setup, 402.0 DPS) and ends at 502.5 (20,000 fights on seed 2701). Its Shadow items keep the slots where they lead: Felcloth Gloves, Tome of Shadow Force and Skul's Ghastly Touch. Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.14 ± 0.15 on a direct paired run), Blade of the New Moon over Dark Whisper Blade (the same +19 on its Shadow spells). Rune of the Guard Captain (Forever's +7 hit rating) beats Eye of the Beast by 0.21 ± 0.15. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -17 to -23 DPS, 6 pieces -34). Ironbark Staff leads the Alliance's two-handers (-13.9 DPS against Sageclaw and Tome of Shadow Force); a Horde warlock can't wear it. Twins at the same rank: the Alliance Dreadweave pieces, Sageclaw for Mindfang, the Arathi Basin and Alterac Valley belts, and the two Blackrock Depths rings.",
+      "note": "Ranked by the sim for the default Affliction build (warlock.md §7.1, a Shadow build), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear): Wowhead's one Classic warlock list (the source below) is among the candidates, but it was written for Classic Era's items, and Forever gave Mindfang and Sageclaw +94 spell power (a [?] estimate; Classic Era +30), worth +41 DPS on its own. The search starts from the guide's gear (the default Orc Affliction setup, 402.0 DPS) and ends at 502.5 (20,000 fights on seed 2701). Its Shadow items keep the slots where they lead: Felcloth Gloves, Tome of Shadow Force and Skul's Ghastly Touch. Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.14 ± 0.15 on a direct paired run), Blade of the New Moon over Dark Whisper Blade (the same +19 on its Shadow spells). Rune of the Guard Captain (Forever's +7 hit rating) beats Eye of the Beast by 0.21 ± 0.15. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -17 to -23 DPS, 6 pieces -34). Ironbark Staff leads the Alliance's two-handers (-13.9 DPS against Sageclaw and Tome of Shadow Force); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
       "slots": {
         "head": [
           {
@@ -5618,12 +5369,6 @@
             "name": "Champion's Dreadweave Cowl",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23310,
-            "name": "Lieutenant Commander's Dreadweave Cowl",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Cowl"
           },
           {
             "id": 22267,
@@ -5664,12 +5409,6 @@
             "name": "Champion's Dreadweave Spaulders",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23311,
-            "name": "Lieutenant Commander's Dreadweave Spaulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Spaulders"
           },
           {
             "id": 14112,
@@ -5778,22 +5517,10 @@
             "notes": "PvP - Arathi Basin Honored; Horde version"
           },
           {
-            "id": 20047,
-            "name": "Highlander's Cloth Girdle",
-            "rank": 2,
-            "notes": "PvP - Arathi Basin Honored; Alliance version"
-          },
-          {
             "id": 19090,
             "name": "Frostwolf Cloth Belt",
             "rank": 3,
             "notes": "Reputation - Frostwolf Clan (Alterac Valley); Horde version (Wowhead Classic: https://www.wowhead.com/classic/item=19090)"
-          },
-          {
-            "id": 19094,
-            "name": "Stormpike Cloth Girdle",
-            "rank": 3,
-            "notes": "Reputation - Stormpike Guard (Alterac Valley); Alliance counterpart of Frostwolf Cloth Belt (Wowhead Classic: https://www.wowhead.com/classic/item=19094)"
           }
         ],
         "legs": [
@@ -5860,12 +5587,6 @@
             "name": "Eye of Orgrimmar",
             "rank": 4,
             "notes": "Quest - The Princess Saved? (Blackrock Depths); Horde version"
-          },
-          {
-            "id": 12543,
-            "name": "Songstone of Ironforge",
-            "rank": 4,
-            "notes": "Quest - Blackrock Depths (Princess Moira Bronzebeard); Alliance version"
           }
         ],
         "trinket": [
@@ -5942,12 +5663,6 @@
             "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
           },
           {
-            "id": 20070,
-            "name": "Sageclaw",
-            "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
-          },
-          {
             "id": 18372,
             "name": "Blade of the New Moon",
             "rank": 2,
@@ -5965,7 +5680,7 @@
             "id": 20069,
             "name": "Ironbark Staff",
             "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance only, no Horde twin: a Horde warlock's best two-hander is the next (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
           },
           {
             "id": 22335,
@@ -5990,7 +5705,7 @@
         "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-18"
       },
-      "note": "Ranked by the sim for the default Demonology build (warlock.md §11.6: the Imp out, the Succubus sacrificed, so every buff is on Fire), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear). Wowhead's one Classic warlock list (the source below) is among the candidates. The search starts from the guide's gear (the default Orc Demonology setup, 534.2 DPS) and ends at 663.7 (20,000 fights on seed 2701), wearing Destruction's set: the search ended on Sandworm Skin Gloves and Ritssyn's Wand of Bad Mojo, which tie Hands of Power and Bonecreeper Stylus (+0.04 ± 0.33). Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.06 ± 0.23 on a direct paired run) and Deathmist Wraps (-0.28 ± 0.29 against Sandworm), and Maiden's Circle over Don Mauricio's Band of Domination (-0.06 ± 0.28); Don Julio's Band (Forever's +14 crit and +10 hit rating) beats Maiden's Circle by 0.46 ± 0.30. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -22 to -37 DPS, 6 pieces -47). Ironbark Staff leads the Alliance's two-handers (-11.9 DPS against Sageclaw and Therazane's Touch); a Horde warlock can't wear it. Twins at the same rank: the Alliance Dreadweave pieces, Sageclaw for Mindfang, the Arathi Basin and Alterac Valley belts, and the two Blackrock Depths rings.",
+      "note": "Ranked by the sim for the default Demonology build (warlock.md §11.6: the Imp out, the Succubus sacrificed, so every buff is on Fire), with warlock-destruction's candidates, rules and method (see its note; docs/classes/warlock.md#73-gear). Wowhead's one Classic warlock list (the source below) is among the candidates. The search starts from the guide's gear (the default Orc Demonology setup, 534.2 DPS) and ends at 663.7 (20,000 fights on seed 2701), wearing Destruction's set: the search ended on Sandworm Skin Gloves and Ritssyn's Wand of Bad Mojo, which tie Hands of Power and Bonecreeper Stylus (+0.04 ± 0.33). Within the interval the guide's pick keeps the place: Hands of Power over Sandworm Skin Gloves (-0.06 ± 0.23 on a direct paired run) and Deathmist Wraps (-0.28 ± 0.29 against Sandworm), and Maiden's Circle over Don Mauricio's Band of Domination (-0.06 ± 0.28); Don Julio's Band (Forever's +14 crit and +10 hit rating) beats Maiden's Circle by 0.46 ± 0.30. The Bloodvine Garb 3-piece and the Champion's Dreadgear 2-piece win over more Dreadgear (4 pieces -22 to -37 DPS, 6 pieces -47). Ironbark Staff leads the Alliance's two-handers (-11.9 DPS against Sageclaw and Therazane's Touch); its faction twin, The Defilers', takes the same rank. Each listed item's faction twin takes its rank (docs/data/items.md#faction-twins): the Alliance Dreadweave pieces, Sageclaw, the other Ironbark Staff, the Arathi Basin and Alterac Valley belts, and the other Blackrock Depths ring.",
       "slots": {
         "head": [
           {
@@ -5998,12 +5713,6 @@
             "name": "Champion's Dreadweave Cowl",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23310,
-            "name": "Lieutenant Commander's Dreadweave Cowl",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Cowl"
           },
           {
             "id": 22267,
@@ -6044,12 +5753,6 @@
             "name": "Champion's Dreadweave Spaulders",
             "rank": 1,
             "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
-          },
-          {
-            "id": 23311,
-            "name": "Lieutenant Commander's Dreadweave Spaulders",
-            "rank": 1,
-            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dreadweave Spaulders"
           },
           {
             "id": 19050,
@@ -6158,22 +5861,10 @@
             "notes": "PvP - Arathi Basin Honored; Horde version"
           },
           {
-            "id": 20047,
-            "name": "Highlander's Cloth Girdle",
-            "rank": 2,
-            "notes": "PvP - Arathi Basin Honored; Alliance version"
-          },
-          {
             "id": 19090,
             "name": "Frostwolf Cloth Belt",
             "rank": 3,
             "notes": "Reputation - Frostwolf Clan (Alterac Valley); Horde version (Wowhead Classic: https://www.wowhead.com/classic/item=19090)"
-          },
-          {
-            "id": 19094,
-            "name": "Stormpike Cloth Girdle",
-            "rank": 3,
-            "notes": "Reputation - Stormpike Guard (Alterac Valley); Alliance counterpart of Frostwolf Cloth Belt (Wowhead Classic: https://www.wowhead.com/classic/item=19094)"
           }
         ],
         "legs": [
@@ -6316,12 +6007,6 @@
             "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
           },
           {
-            "id": 20070,
-            "name": "Sageclaw",
-            "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
-          },
-          {
             "id": 20720,
             "name": "Dark Whisper Blade",
             "rank": 2,
@@ -6339,7 +6024,7 @@
             "id": 20069,
             "name": "Ironbark Staff",
             "rank": 1,
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance only, no Horde twin: a Horde warlock's best two-hander is the next (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); its faction twin, The Defilers' Ironbark Staff (20220), takes its rank (Wowhead Classic: https://www.wowhead.com/classic/item=20069)"
           },
           {
             "id": 22335,
@@ -6617,12 +6302,6 @@
             "id": 20214,
             "name": "Mindfang",
             "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version; not on the guide: Forever's +94 spell power (a [?] estimate; Classic Era +30) puts it first (paired, about +37 DPS on the guide's gear)",
-            "rank": 1
-          },
-          {
-            "id": 20070,
-            "name": "Sageclaw",
-            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version; not on the guide, as Mindfang",
             "rank": 1
           },
           {

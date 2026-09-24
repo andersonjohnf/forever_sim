@@ -497,9 +497,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   hand: "Holy Strength (main hand)". A buff that only triggers when you're hit (Enrage) shows a
   dash, not 0.0%, when a DPS run took no damage, with "Needs damage taken (Fight → Advanced)"
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
-  default. A proc the next ability spends (a cat's Clearcasting) is up only until then, so its
-  uptime is tiny: the line under its name says how often it came, "6.3 a fight, each spent by
-  your next ability". A cast before the pull whose buff is gone by the pull (Seal of the Crusader,
+  default. A proc the next ability spends (a cat's or a bear's Clearcasting) is up only until
+  then, so its uptime is tiny: the line under its name says how often it came, "6.3 a fight, each
+  spent by your next ability". Without an ability that can spend it (a bear whose rotation keeps
+  only Faerie Fire), it's up until it runs out, and that line is left out. A cast before the pull whose buff is gone by the pull (Seal of the Crusader,
   judged at the pull) shows a dash for its uptime, with "Before the pull, for its judgement" under
   its name.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the

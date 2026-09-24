@@ -530,6 +530,23 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(row('lacerate').bleed).toBeUndefined()
   })
 
+  it('gives Clearcasting’s procs per fight only while an ability can spend it (CV1)', () => {
+    const clearcasting = (rotation: SimConfig['rotation']) => {
+      const bundle = buildPlan({ ...config(), rotation })
+      const agg = mergeChunk(emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length), runChunk(bundle.plan, 0, 50))
+      return toResult(bundle, agg, 0).cooldowns.find((c) => c.id === 'clearcasting')!
+    }
+    // Maul, Mangle, Lacerate and the roar spend it: a few procs a fight, each spent soon after.
+    const spent = clearcasting({})
+    expect(spent.procsPerFight).toBeGreaterThan(5)
+    expect(spent.uptimePct).toBeLessThan(15)
+    // With only Faerie Fire, which it doesn't pay for, it's up until it runs out: no procs per fight.
+    const off = { [BEAR_IDS.maulEnabled]: false, [BEAR_IDS.mangleEnabled]: false, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false }
+    const idle = clearcasting(off)
+    expect(idle.procsPerFight).toBeUndefined()
+    expect(idle.uptimePct).toBeGreaterThan(spent.uptimePct!)
+  })
+
   it('keeps its own Faerie Fire and Demoralizing Roar up all fight, but for their first casts and misses (D26: the duties in full)', () => {
     const { plan } = buildPlan(config())
     const sim = new Sim(plan)

@@ -131,8 +131,10 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   plan.auras.forEach((aura, i) => {
     if (shown.has(i)) return
     // A proc the next ability spends (Clearcasting, druid.md §2.7) is up only until then, so its
-    // uptime is tiny: its procs per fight say what it did.
-    const spent = plan.freeCastAura === i && agg.fights > 0 ? { procsPerFight: agg.auraApplications[i] / agg.fights } : {}
+    // uptime is tiny: its procs per fight say what it did. Only with an ability that can spend it:
+    // without one it's up until it runs out, and its uptime says so (CV1).
+    const spendable = plan.freeCastAura === i && agg.fights > 0 && plan.abilities.some((a) => a.clearcastable)
+    const spent = spendable ? { procsPerFight: agg.auraApplications[i] / agg.fights } : {}
     const source = appliedBy.get(i)
     const castsPerFight = source === undefined ? null : agg.fights > 0 ? c[source * FIELD_COUNT + FIELD.casts] / agg.fights : 0
     rows.push({ id: aura.id, name: aura.name, icon: aura.icon, uptimePct: uptimePct(agg, i), castsPerFight, ...spent })

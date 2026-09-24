@@ -162,12 +162,12 @@ describe('worked example 6: Seal of Righteousness', () => {
     withSeal(plan, SEAL_OF_RIGHTEOUSNESS, talents)
     return damagesOf(plan, 'sealOfRighteousnessProc')
   }
-  it('deals 1.2 × 18.80 × 3.5 + 0.1 × SP = 88.96 on every landed swing with a two-hander, 102.30 with Improved Seals, 65.93 one-handed', () => {
+  it('deals 35 + 1.2 × 18.80 × 3.5 + 0.1 × SP = 123.96 on every landed swing with a two-hander, 142.55 with Improved Seals, 100.93 one-handed', () => {
     const twoHand = sor(true)
     expect(twoHand.length).toBe(Math.ceil(60000 / 3500))
-    for (const d of twoHand) expect(d).toBeCloseTo(88.96, 9)
-    expect(sor(true, IMPROVED_SEALS)[0]).toBeCloseTo(102.304, 9)
-    expect(sor(false)[0]).toBeCloseTo(65.93, 9)
+    for (const d of twoHand) expect(d).toBeCloseTo(123.96, 9)
+    expect(sor(true, IMPROVED_SEALS)[0]).toBeCloseTo(142.554, 9)
+    expect(sor(false)[0]).toBeCloseTo(100.93, 9)
   })
 })
 

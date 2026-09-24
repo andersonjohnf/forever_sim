@@ -257,7 +257,7 @@ always uses the halved value.
 | Spell (r8) | 20293, trained at 58; proc 25713 | [F] [F 20293][f20293], [F 25713][f25713] |
 | Cost | 200 mana | [F] |
 | Seal value `v` | dummy points 1786 + 47/level from 58 to 60 → **v = 18.80** per second of weapon speed at 60 | [F] data (same as [C]) |
-| Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 18.8 × 1.2 × 3.5 = 79.0 before SP. Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C]/[?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?] |
+| Damage per landed white hit | **35 +** **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 35 + 18.8 × 1.2 × 3.5 = 114.0 before SP. The flat 35 is Forever's: proc 25713 carries base 35 on effect 0, where Classic Era's had 0 (and rank 1's proc 25742 went from 0 to 4), the same 35 as Seal of Fury's 20418 [F] [client] (SpellEffect, 1.60.1.69913 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]). Adding it to the seal value, rather than in its place, is [?]: the same reading as Seal of Fury's ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), [open question 10](#open-questions), guild test T1). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C]/[?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?] |
 | SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [client] (SpellEffect, 1.60.1.69913; [25713][f25713]), [C 25713][c25713] |
 | Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.69913; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, Crusade, JotC | [F] |
@@ -328,14 +328,16 @@ It corroborates the client data above but isn't a guild measurement.
 
 **The seal value** [?]. The SoF aura carries the same weapon-speed "seal value" dummy as SoR,
 1607 + 42/level from 58, so **16.91** per second of weapon speed at 60 [F] [client] (SpellEffect,
-1.60.1.69913; [20423][f20423]). SoR's is its whole damage (1786 + 47/level, 18.80, by the one- and
+1.60.1.69913; [20423][f20423]). SoR's is its whole damage in Classic Era (1786 + 47/level, 18.80, by the one- and
 two-hander factors 0.85 and 1.2, [Seal of Righteousness](#seal-of-righteousness-sor)), and Forever
-gives SoR's proc 25713 the same base 35 as SoF's 20418. So the sim reads SoF's the same way, on top
+gives SoR's proc 25713 the same base 35 as SoF's 20418, where Classic Era's had 0. The two procs carry
+identical client data, so the sim reads them the same way: the 35 plus the seal value, for both
+([Seal of Righteousness](#seal-of-righteousness-sor)). For Seal of Fury that's the seal value on top
 of the tooltip's flat 35: `35 + 0.85 × 16.91 × speed` a landed swing with a one-hander (with the default
 1.5 s Flurry Axe, 56.56), `35 + 1.2 × 16.91 × speed` with a two-hander [?]. That's
 [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
 the aura carries the value, so it gets a default from its closest analog, and of the two readings
-(the value on top of the 35, or in its place as SoR's formula has it) the one that fits the guild's
+(the value on top of the 35, or in its place as Classic Era's SoR formula has it) the one that fits the guild's
 benchmark. The tooltip's flat 35 is the other reading, and the one guild test T1 would confirm
 ([open question 10](#open-questions)). It's +27.2 TPS in the default setup (T2's measurement).
 Per second it hardly depends on the weapon's speed: a slower weapon hits for more, less often.
@@ -593,8 +595,8 @@ Notes:
 
 - **No seal twisting by default.** A twist pair (SoC→SoR, swing, SoR→SoC, swing) costs
   369 mana and 2 GCDs. It adds **two SoR procs** on top of the SoC rolls those swings get
-  anyway: 2 × 88.96 ≈ 178 damage before multipliers at 100 SP (worked example 6), or about
-  0.5 per mana. Consecration returns more per mana (at 250 SP: rank 5 about 1.0, rank 1
+  anyway: 2 × 123.96 ≈ 248 damage before multipliers at 100 SP (worked example 6), or about
+  0.7 per mana. Consecration returns more per mana (at 250 SP: rank 5 about 1.0, rank 1
   about 2.0; worked example 7), so it comes first. Twisting is the mana sink after
   Consecration.
 - Recast SoC **before** it expires, so there's always a seal for Judgement. Don't recast
@@ -602,7 +604,9 @@ Notes:
 - Improved Seals and Vengeance make JoC and SoC scale with SP. Champion of the Light turns
   Int into SP. **Intellect and spell damage are real Retribution stats in Forever.**
 - `sealPrimary = SoR` is available for fast or weak weapons. SoC wins with any slow 2H:
-  about 47 base DPS from SoC vs about 23 from SoR at 1200 AP, 3.5 speed, 250 weapon average.
+  about 47 base DPS from SoC vs about 33 from SoR at 1200 AP, 3.5 speed, 250 weapon average.
+  In the default setup SoR in SoC's place makes 31.0 DPS less (−4.9%; 20,000 fights, seed 777;
+  −51.6, −8.2%, before SoR's proc had Forever's flat 35).
 
 ### Retribution defaults
 
@@ -728,7 +732,8 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
   of Wrath. At 2,250 missing there was one potion a fight, late. The early line needs at least
   the potion's 2 minute cooldown left, so a short fight doesn't drink early for nothing.
 - **Kept** (each against the first round's defaults on seed 1, 40,000 fights). Seal of
-  Righteousness in place of Command: −52.78 DPS (−8.68%). Judgement of the Crusader off: −45.27
+  Righteousness in place of Command: −52.78 DPS (−8.68%); with Forever's flat 35 on its proc
+  (2026-09-24) still −31.0 (−4.9%) in today's default setup. Judgement of the Crusader off: −45.27
   (−7.44%). The seal recast at 1.5 s left (0 to 3 s: none clears; 0 s −0.94). Hammer of Wrath at
   any mana (from 15%: −0.19). The potion's no-waste 2,250 after the early line (1,750 to 2,500:
   none clears). Turning a row off costs: Judgement −86.14, Holy Strike −66.29, Hammer of Wrath
@@ -984,11 +989,13 @@ over 400,000 paired fights on seed 4481, which no search used.
   before the fight ends, which the sim knows exactly and a player has to judge; the results list
   it (`knownFightEnd`). With the default setup (seed 7374, 100,000 paired fights), judging its two
   minutes 10 or 20 s off costs up to 0.51% (140 s judged: −0.51%; 100 s: −0.09%).
-- **Not adopted.** Seal of Righteousness loses 10% with the default 1.5 s axe, where it adds 24 a
-  swing to Seal of Fury's 35, and still 3.9% with a 2.8 s one-hander (the Ravenholdt Slicer): it
-  wins only with a two-hander (+10% against Seal of Fury with the Retribution default's), which
-  leaves no hand for a shield, so no Holy Shield or absorb, and far less threat (302 TPS against
-  the default's 425).
+- **Not adopted.** Seal of Righteousness (35 + 0.85 × 18.80 × speed a swing, read as Seal of Fury's
+  is, [above](#seal-of-righteousness-sor)) loses 5.0% of TPS with the default 1.5 s axe (−40.4 TPS,
+  −12.6 DPS) and 4.4% with a 2.8 s one-hander (the Ravenholdt Slicer), where it has no absorb and so
+  no Improved Seal of Fury mana: it wins only with a two-hander (+3.1% against Seal of Fury with the
+  Retribution default's), which leaves no hand for a shield, so no Holy Shield, and far less threat
+  (587 TPS against the default's 811). T2's setup, 20,000 fights on seed 777; before its proc had
+  Forever's flat 35 it lost 11.2% with the axe.
 
 ##### First round (C3)
 
@@ -1185,8 +1192,8 @@ default setup.
    Sacred Arbiter ×1.10 = **383.95**. Range with Sacred Arbiter: **349.16–418.73**. Holy school:
    boss armor doesn't reduce it. (The other reading, 0.40 × (532.857 + 93) + 42.9, is 293.24:
    [open question 6](#open-questions).)
-6. **SoR proc, 2H, r8 at 60**: 1.2 × 18.80 × 3.5 = 78.96 + 0.1 × 100 = **88.96**; ×1.15 =
-   **102.30**. Same weapon 1H-style (0.85): 55.93 + 10 = 65.93.
+6. **SoR proc, 2H, r8 at 60**: 35 + 1.2 × 18.80 × 3.5 = 113.96 + 0.1 × 100 = **123.96**; ×1.15 =
+   **142.55**. Same weapon 1H-style (0.85): 35 + 55.93 + 10 = 100.93.
 7. **Consecration r5, SP 300, one target**: per tick 12 + 27 + 0.095 × 300 = **67.5**; 8 ticks
    = **540**. A fifth enemy takes only 12 per tick = **96**. Rank 1 on one target: 8 × (2 +
    4 + 28.5) = **276** for 135 mana.
@@ -1266,7 +1273,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    top? *Test:* average non-crit proc with and without a +100 spell damage item.
 3. **SoC proc avoidance**: can procs be dodged or parried, and do they partially resist?
    *Test:* combat log on a mob attacked from the front.
-4. **SoR formula**: per-hit damage vs weapon speed and SP, 1H and 2H, and whether a
+4. **SoR formula**: per-hit damage vs weapon speed and SP, 1H and 2H, whether Forever's flat 35
+   is added to the seal value (the sim's reading, [open question 10](#open-questions)), and whether a
    `+0.03 × weapon average ±1` term exists (that term is from TBC-era wiki text, so it's
    forbidden to adopt without a beta test). *Test:* two 2H weapons of different speed and
    one 1H, with no SP; then +SP.
@@ -1297,8 +1305,9 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     against the flat 35. *Test (guild test T1):* 200+ auto hits with Seal of Fury and no spell damage
     with a 1.5 s one-hander, then a 2.6–2.8 s one: about 35 both times means flat; more on the slow
     weapon, the seal value applies (by how much says whether it's on top of the 35 or in its place).
-    Seal of Righteousness's proc 25713 carries the same base 35 in Forever, which its Classic formula
-    leaves out: T1 on Seal of Righteousness settles that too.
+    Seal of Righteousness's proc 25713 carries the same base 35 in Forever (Classic Era's had 0), so the
+    sim reads it the same way, 35 plus its seal value (`35 + 0.85 × 18.80 × speed` one-handed): T1 on
+    Seal of Righteousness settles that too.
     Absorb stacking? Improved Seal of Fury's actual mana return ("restore 0 Mana")? The client's
     rank text reads 60 (0 + 1 a level) [F]. The sim keeps one absorb, which each proc replaces and
     the next hit that costs you health uses up (at most the seal's 30 s), restoring 87 mana against

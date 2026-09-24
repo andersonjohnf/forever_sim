@@ -38,6 +38,7 @@ import {
   JUDGEMENT_OF_RIGHTEOUSNESS,
   SEAL_OF_COMMAND_PROC,
   SEAL_OF_FURY_BASE,
+  SEAL_PROC_BASE,
   SEAL_OF_FURY_VALUE,
   sealOfFuryProc,
   SEAL_OF_RIGHTEOUSNESS_VALUE,
@@ -119,6 +120,13 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)
+    // Seal of Righteousness: Forever's proc carries the same 35 as Seal of Fury's, read the same way,
+    // on top of the seal value [?] (OQ 4, OQ 10). Worked example 6: 35 + 1.2 × 18.80 × 3.5 = 113.96 before
+    // spell damage; the same weapon one-handed (0.85) 90.93.
+    expect(effect(25713, 0).effectBasePointsF).toBe(SEAL_PROC_BASE)
+    expect(SEAL_OF_FURY_BASE).toBe(SEAL_PROC_BASE)
+    expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(113.96, 9)
+    expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(90.93, 9)
   })
 
   it('Holy Strike: normalized weapon + 93 ± 12.5% (effect 121), then 40% (effect 31), 0.429; category 2404 with Hammer of the Righteous', () => {

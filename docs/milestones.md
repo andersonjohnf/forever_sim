@@ -460,8 +460,6 @@ slice is worked:
   D30's survival constraint for it is the class doc's floor.
 - **Hammer of the Righteous's extra targets** (its effect 1, 120 to 3 chain targets, and the other 3
   targets' weapon damage) wait for M6, as does Consecration's 12 to every enemy.
-- **Seal of Righteousness's proc base:** Forever's 25713 carries 35, the same as Seal of Fury's, and the
-  sim's Classic formula leaves it out (paladin.md OQ 10, guild test T1 on Seal of Righteousness).
 - **Crit from auras and the paladin (GR9, not a bug):** against a +3 boss the first 1.8% of crit from
   auras is suppressed (combat-tables §4.4), and v1's Protection paladin had none, so its first +2%
   crit from gear or buffs gave +0.2%. The interim build's Conviction (+5%) is past it.

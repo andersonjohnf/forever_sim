@@ -557,8 +557,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B20. Seal of Fury per-hit damage
 **High · M5 · ≤20 (ranks from level 10)**
-- **Assumes:** flat +35 Holy per landed white hit at rank 7, 0.1 × SP [F tooltip]. The aura
-  also carries an SoR-style weapon-speed value (1607 + 42/level) that the sim ignores [?].
+- **Assumes:** +35 Holy per landed white hit at rank 7 [F tooltip], plus the aura's SoR-style
+  weapon-speed value (1607 + 42/level: `0.85 × 16.91 × speed` one-handed) on top [?], and 0.1 × SP.
+  Seal of Righteousness's proc carries the same 35 and is read the same way (B67).
   Absorb stacking [?]; Improved Seal of Fury's mana (the client's rank text reads 60, which
   foreverchanges printed as 0) [?].
 - **Test:** highest rank available, two weapons of different speed: average proc damage vs the
@@ -1186,8 +1187,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B67. Seal of Righteousness formula
 **Low · M5 · ≤20**
-- **Assumes:** two-hander `1.20 × v × speed`, one-hander `0.85 × v × speed`, plus 0.1 × SP, with
-  v = 18.80 at 60 [C/?]; the TBC-era `+0.03 × weapon average` term is refused.
+- **Assumes:** Forever's flat 35 (proc 25713's base, 0 in Classic Era) [F] plus two-hander
+  `1.20 × v × speed`, one-hander `0.85 × v × speed`, plus 0.1 × SP, with v = 18.80 at 60 [C/?]; the
+  35 on top of the seal value, as Seal of Fury's (B20) [?]; the TBC-era `+0.03 × weapon average`
+  term is refused.
 - **Test:** SoR procs with two two-handers of different speed and one one-hander, no spell
   power; then add spell power.
 - **Samples:** ≥30 procs per weapon.

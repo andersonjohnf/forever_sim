@@ -85,13 +85,22 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
 export const SEAL_OF_RIGHTEOUSNESS_VALUE = atLevel60(1786, 47, 58, 64) / 100
 
 /**
+ * The seal procs' flat base (paladin.md#seal-of-righteousness-sor, #seal-of-fury-sof-new-the-protection-seal):
+ * Forever's Seal of Righteousness proc 25713 and Seal of Fury proc 20418 both carry 35 on effect 0 [F]
+ * (Classic Era's 25713 had 0, so Forever set it deliberately). The sim reads the two procs the same
+ * way, the 35 plus the seal value [?] (OQ 4, OQ 10, guild test T1 on both seals; D29).
+ */
+export const SEAL_PROC_BASE = 35
+
+/**
  * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor):
- * `1.2 × v × speed` with a two-hander, `0.85 × v × speed` with a one-hander [?] (OQ 4), plus
- * 0.1 × SP. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
+ * Forever's flat 35, plus the seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed`
+ * with a one-hander [?] (OQ 4, OQ 10, guild test T1), plus 0.1 × SP: the same reading as Seal of
+ * Fury's. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
  * It lacks NOT_A_PROC, so it triggers no procs: no Windfury, Crusader or Vengeance from it [?].
  */
 export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): SpellDef {
-  const damage = (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
+  const damage = SEAL_PROC_BASE + (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
   return {
     ...HOLY_MELEE,
     id: 'sealOfRighteousnessProc',
@@ -125,8 +134,8 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
   takenScale: 0.5,
 }
 
-/** Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the tooltip's flat 35 [F]. */
-export const SEAL_OF_FURY_BASE = 35
+/** Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the tooltip's flat 35 [F], as Seal of Righteousness's. */
+export const SEAL_OF_FURY_BASE = SEAL_PROC_BASE
 
 /**
  * The seal value of Seal of Fury r7 (20423 effect 0): 1607 + 42 per level from 58, per 100 s of
@@ -139,7 +148,7 @@ export const SEAL_OF_FURY_VALUE = atLevel60(1607, 42, 58, 64) / 100
  * Seal of Fury's proc per landed white hit (20418, paladin.md#seal-of-fury-sof-new-the-protection-seal):
  * the flat 35, plus its seal value by Seal of Righteousness's rule, `0.85 × 16.91 × speed` with a
  * one-hander and `1.2 × …` with a two-hander [?] (OQ 10, guild test T1; D29: the aura carries the
- * value, so it gets a default, the reading that fits the guild's benchmark), + 0.1 × SP. With the
+ * value, so it gets a default; Seal of Righteousness's proc is read the same way), + 0.1 × SP. With the
  * default 1.5 s axe that's 35 + 21.56. With no main hand it's the flat 35. Melee class with No Active
  * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs [?].
  */

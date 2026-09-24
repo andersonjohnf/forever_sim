@@ -549,8 +549,13 @@ A spec is data plus small ability modules, never its own loop.
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
   chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
   with an error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes
-  well under a second on a desktop even at the longest fight), and replaces that worker; it never
-  changes a result. It counts in 1 s heartbeats while the pool has work, and a beat adds at most
+  well under a second on a desktop even at the longest fight), and drops that worker; it never
+  changes a result. A worker that crashes is dropped the same way. The next run replaces what was
+  dropped, and nothing else does: a worker whose script can't load (the site updated since the page
+  loaded) would otherwise fail and respawn in a loop, and each run now costs at most one worker per
+  lane however often they fail. A worker that fails before it ever answered says the simulation
+  couldn't start and to reload the page; one that had been answering says it stopped unexpectedly
+  (`WORKER_START_MESSAGE`, `WORKER_CRASH_MESSAGE` in `src/sim/run/pool.ts`). It counts in 1 s heartbeats while the pool has work, and a beat adds at most
   2 s however long it's been since the last one, so a tab the phone or Energy Saver froze resumes
   its run instead of failing it on waking; time the page is hidden doesn't count either. Any
   future pool work (the optimizer's) must also answer within 60 s of awake time, or scale the

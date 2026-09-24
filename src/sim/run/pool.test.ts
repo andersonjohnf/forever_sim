@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FromWorker, ToWorker } from '@/worker/protocol'
 import type { ChunkResult } from '../engine/chunk'
 import type { Plan } from '../plan/types'
-import { CHUNK_TIMEOUT_MS, WORKER_HANG_MESSAGE, WorkerPool } from './pool'
+import { CHUNK_TIMEOUT_MS, WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, WorkerPool } from './pool'
 
 /** A stand-in Worker: records what it's sent; a test answers its chunks by hand. */
 class FakeWorker {
@@ -14,8 +14,16 @@ class FakeWorker {
   onerror: ((event: ErrorEvent) => void) | null = null
   readonly received: ToWorker[] = []
   terminated = false
+  /** Workers made while this is set fail as they start, as one whose script won't load does. */
+  static failOnStart = false
   constructor() {
     FakeWorker.all.push(this)
+    if (FakeWorker.failOnStart) setTimeout(() => this.crash(), 0)
+  }
+  /** The worker's error event: an uncaught error in it, or its script failing to load (no message). */
+  crash(message = '') {
+    if (this.terminated) return
+    this.onerror?.({ message, preventDefault() {} } as ErrorEvent)
   }
   postMessage(message: ToWorker) {
     this.received.push(message)
@@ -47,6 +55,7 @@ const settle = <T>(p: Promise<T>) =>
 describe('WorkerPool watchdog', () => {
   beforeEach(() => {
     FakeWorker.all = []
+    FakeWorker.failOnStart = false
     vi.useFakeTimers()
     vi.stubGlobal('Worker', FakeWorker)
   })
@@ -64,9 +73,9 @@ describe('WorkerPool watchdog', () => {
     await vi.advanceTimersByTimeAsync(1)
     expect(await outcome).toBe(WORKER_HANG_MESSAGE)
     expect(FakeWorker.all[0].terminated).toBe(true)
-    expect(FakeWorker.all).toHaveLength(2)
-    // The replacement runs the next chunk.
+    // The next run replaces it, and the replacement runs its chunk.
     const next = pool.executor(plan).run(0, 250)
+    expect(FakeWorker.all).toHaveLength(2)
     FakeWorker.all[1].answer()
     await expect(next).resolves.toMatchObject({ chunk: 0 })
   })
@@ -144,6 +153,18 @@ describe('WorkerPool watchdog', () => {
     expect(await outcome).toBe(WORKER_HANG_MESSAGE)
   })
 
+  it('replaces a failed worker at the next run, not at once', async () => {
+    const pool = new WorkerPool(1, { chunkTimeoutMs: 1000, now })
+    const outcome = settle(pool.executor(plan).run(0, 250))
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(await outcome).toBe(WORKER_HANG_MESSAGE)
+    expect(FakeWorker.all).toHaveLength(1)
+    const next = pool.executor(plan).run(0, 250)
+    expect(FakeWorker.all).toHaveLength(2)
+    FakeWorker.all[1].answer()
+    await expect(next).resolves.toMatchObject({ chunk: 0 })
+  })
+
   it('gives a chunk queued between beats its full timeout', async () => {
     const pool = new WorkerPool(1, { chunkTimeoutMs: 5_000, now })
     const executor = pool.executor(plan)
@@ -157,5 +178,84 @@ describe('WorkerPool watchdog', () => {
     expect(worker.terminated).toBe(false)
     await vi.advanceTimersByTimeAsync(501)
     expect(await second).toBe(WORKER_HANG_MESSAGE)
+  })
+})
+
+// A worker that fails as it starts (a script that won't load, say after a deploy) was replaced at once,
+// and its replacement failed the same way, forever, with no run asking for it (issue #1). A failed
+// worker is now replaced only when the next run starts, so a failing pool costs one worker a run.
+describe('WorkerPool failures', () => {
+  beforeEach(() => {
+    FakeWorker.all = []
+    FakeWorker.failOnStart = false
+    vi.useFakeTimers()
+    vi.stubGlobal('Worker', FakeWorker)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('never respawns a worker that fails as it starts on its own; the run fails with a clear message', async () => {
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(2, { now })
+    const executor = pool.executor(plan)
+    const outcomes = [settle(executor.run(0, 250)), settle(executor.run(1, 250))]
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await Promise.all(outcomes)).toEqual([WORKER_START_MESSAGE, WORKER_START_MESSAGE])
+    expect(FakeWorker.all).toHaveLength(2)
+    expect(FakeWorker.all.every((w) => w.terminated)).toBe(true)
+  })
+
+  it('lets the next run recover once workers start again', async () => {
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(1, { now })
+    const failed = settle(pool.executor(plan).run(0, 250))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(await failed).toBe(WORKER_START_MESSAGE)
+
+    // Still failing: the next run tries one fresh worker, and fails as clearly.
+    const again = settle(pool.executor(plan).run(0, 250))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(await again).toBe(WORKER_START_MESSAGE)
+    expect(FakeWorker.all).toHaveLength(2)
+
+    FakeWorker.failOnStart = false
+    const executor = pool.executor(plan)
+    const next = executor.run(0, 250)
+    expect(FakeWorker.all).toHaveLength(3)
+    // The fresh worker gets the plan before its chunk.
+    expect(FakeWorker.all[2].received.map((m) => m.type)).toEqual(['plan', 'chunk'])
+    FakeWorker.all[2].answer()
+    await expect(next).resolves.toMatchObject({ chunk: 0 })
+  })
+
+  it('says a worker that crashed after answering stopped unexpectedly, and fails only its own chunks', async () => {
+    const pool = new WorkerPool(2, { now })
+    const executor = pool.executor(plan)
+    const first = executor.run(0, 250)
+    FakeWorker.all[0].answer()
+    await first
+    const a = settle(executor.run(1, 250))
+    const b = executor.run(2, 250)
+    const crashed = FakeWorker.all.find((w) => w.received.some((m) => m.type === 'chunk' && m.chunk === 1))!
+    const other = FakeWorker.all.find((w) => w !== crashed)!
+    crashed.crash('Uncaught RangeError: out of memory')
+    expect(await a).toBe(WORKER_CRASH_MESSAGE)
+    other.answer()
+    await expect(b).resolves.toMatchObject({ chunk: 2 })
+    expect(FakeWorker.all).toHaveLength(2)
+  })
+
+  it('refuses a chunk when every worker has failed during a run', async () => {
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(1, { now })
+    const executor = pool.executor(plan)
+    const first = settle(executor.run(0, 250))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(await first).toBe(WORKER_START_MESSAGE)
+    // The same run asking for more finds no worker, and isn't left waiting.
+    expect(await settle(executor.run(1, 250))).toBe(WORKER_START_MESSAGE)
+    expect(FakeWorker.all).toHaveLength(1)
   })
 })

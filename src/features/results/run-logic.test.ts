@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, normalizeConfig, WORKER_HANG_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
+import { defaultConfig, normalizeConfig, WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
 import { TALENT_EFFECTS } from '@/sim/classes/warrior/talents'
 import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
@@ -26,10 +26,12 @@ describe('isSetupError', () => {
 })
 
 describe('carriesItsOwnAdvice', () => {
-  it('skips the retry advice for setup refusals and a hung worker, which already say what to do', () => {
+  it('skips the retry advice for setup refusals and a hung or unstartable worker, which already say what to do', () => {
     expect(carriesItsOwnAdvice(WORKER_HANG_MESSAGE)).toBe(true)
+    expect(carriesItsOwnAdvice(WORKER_START_MESSAGE)).toBe(true)
     expect(carriesItsOwnAdvice('Paladin simulation isn’t available yet.')).toBe(true)
-    expect(carriesItsOwnAdvice('A simulation worker stopped unexpectedly.')).toBe(false)
+    expect(carriesItsOwnAdvice(WORKER_CRASH_MESSAGE)).toBe(false)
+    expect(isSetupError(WORKER_START_MESSAGE)).toBe(false)
   })
 })
 

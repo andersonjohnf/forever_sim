@@ -123,6 +123,33 @@ test.describe('run states', () => {
     await expect(alert).not.toContainText('reset this spec')
   })
 
+  test('a worker that can’t start fails the run, says to reload, and the next Simulate recovers (#1)', async ({ page }) => {
+    // Workers whose script throws as it loads, as one the site no longer serves would fail; they
+    // used to respawn in a loop, and every later run failed with them.
+    let failing = true
+    let loads = 0
+    await page.route('**/assets/sim.worker*.js', (route) => {
+      loads++
+      return failing ? route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("no worker")' }) : route.continue()
+    })
+    await page.goto('./')
+    const panel = results(page)
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    const alert = panel.getByRole('alert')
+    await expect(alert).toContainText('The simulation failed')
+    await expect(alert).toContainText('The simulation couldn’t start. Reload the page, then run it again.')
+    await expect(alert).not.toContainText('reset this spec')
+    // No worker is started again until a run asks for one.
+    const afterFailure = loads
+    await page.waitForTimeout(1_000)
+    expect(loads).toBe(afterFailure)
+
+    failing = false
+    await simulate(panel)
+    await expect(alert).toHaveCount(0)
+    await expect(panel.getByRole('group', { name: 'DPS' })).toContainText(/\d+\.\d/)
+  })
+
   test('says how many fights of what length, and how long the run took', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)

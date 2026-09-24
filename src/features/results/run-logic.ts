@@ -1,6 +1,6 @@
 // Pure helpers for the results (docs/ux.md#results, #states): no React, no stores, so unit tests
 // can import them.
-import { SPEC_META, WORKER_HANG_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
+import { SPEC_META, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
 
 export type Metric = 'tps' | 'dps'
 
@@ -66,8 +66,13 @@ export function runError(sim: { status: string; error: string | null; errorKey: 
  */
 export const isSetupError = (message: string) => /can[’']t be simulated|simulation isn[’']t available/i.test(message)
 
-/** Whether a failed run's message already says what to do next, so the retry advice would repeat it (a hung worker). */
-export const carriesItsOwnAdvice = (message: string) => isSetupError(message) || message === WORKER_HANG_MESSAGE
+/**
+ * Whether a failed run's message already says what to do next, so the retry advice would repeat it:
+ * a hung worker ("Run it again") or one that couldn't start ("Reload the page"), where resetting the
+ * spec wouldn't help.
+ */
+export const carriesItsOwnAdvice = (message: string) =>
+  isSetupError(message) || message === WORKER_HANG_MESSAGE || message === WORKER_START_MESSAGE
 
 /**
  * Buffs on you that only trigger when you're hit (Fury's Enrage talent). A DPS player is hit only

@@ -929,11 +929,19 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   if (!mh) {
-    notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
-    // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used.
-    const weaponless = abilities.filter((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast' && hasShield))
-    const names = weaponless.map((a) => a.name)
-    if (names.length > 0) notes.add('weaponlessAttacks', names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0])
+    // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
+    // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
+    // special-attack table at the base skill. Without a shield, nothing that needs one is named.
+    const shieldAttacks = hasShield ? abilities.filter((a) => a.shieldOnly === true && a.kind !== 'cast') : []
+    const weaponless = abilities.filter((a) => a.kind === 'spellTable' || shieldAttacks.includes(a))
+    // A paladin's spells need no weapon either: its note says what's left out (seal procs, Holy Strike).
+    notes.add(classId === 'paladin' ? 'noWeaponSpells' : weaponless.length > 0 ? 'noWeaponSomeUsed' : 'noWeapon')
+    if (weaponless.length > 0) {
+      const names = (list: readonly { name: string }[]) =>
+        list.length > 1 ? `${list.slice(0, -1).map((a) => a.name).join(', ')} and ${list.at(-1)!.name}` : list[0].name
+      const table = shieldAttacks.length > 0 ? `. ${names(shieldAttacks)} ${shieldAttacks.length > 1 ? 'roll' : 'rolls'} on a special-attack table at your level’s base weapon skill` : ''
+      notes.add('weaponlessAttacks', `${weaponless.length > 1 ? 'they need' : 'it needs'} no weapon: ${names(weaponless)}${table}`)
+    }
   }
   // Thunder Clap and Demoralizing Shout roll the spell table (warrior.md §7 "Spell-table abilities", Q33).
   const spellTableRows = abilities.filter((a) => a.kind === 'spellTable')

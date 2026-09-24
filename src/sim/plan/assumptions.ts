@@ -451,7 +451,12 @@ const REGISTRY = {
     docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
   },
   noWeapon: {
-    text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',
+    text: 'No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one; only cooldowns and buffs are used.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
+  // The same, when some attacks need no weapon and are still used (`weaponlessAttacks` names them).
+  noWeaponSomeUsed: {
+    text: 'No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one.',
     docRef: `${WAR}#7-implementation-notes`,
   },
   // The paladin's spells don't need a weapon, so they're still cast.
@@ -460,8 +465,8 @@ const REGISTRY = {
     docRef: `${PAL}#conventions-used-below`,
   },
   weaponlessAttacks: {
-    // warrior.md §7; the plan names the abilities ({detail}).
-    text: 'Still used, since they need no weapon: {detail}. They roll on a special-attack table at your level’s base weapon skill.',
+    // warrior.md §7; the plan names the abilities, and which roll the special-attack table ({detail}).
+    text: 'Still used, since {detail}.',
     docRef: `${WAR}#7-implementation-notes`,
   },
 } satisfies Record<string, { text: string; docRef: string }>

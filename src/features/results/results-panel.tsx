@@ -233,10 +233,11 @@ type Navigate = (then: () => void) => void
 function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
-  const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon' || a.id === 'noWeaponSpells')
+  // A warrior's Protection attacks that need no weapon (noWeaponSomeUsed) and a paladin's spells
+  // (noWeaponSpells) still deal damage without one (docs/ux.md#states).
+  const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon' || a.id === 'noWeaponSomeUsed' || a.id === 'noWeaponSpells')
   if (!noWeapon && result.abilities.length > 0) return null
-  // A paladin's spells don't need a weapon, so they still deal damage (docs/ux.md#states).
-  const spellsOnly = noWeapon && result.abilities.length > 0
+  const spellsOnly = result.abilities.length > 0 && result.assumptions.some((a) => a.id === 'noWeaponSpells')
   // Beside the desktop panel, the tab you're on is already in view; the phone's sheet covers it.
   const offer = (target: Section) => variant === 'sheet' || section !== target
   const open = (target: Section) => {

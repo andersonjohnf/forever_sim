@@ -34,6 +34,7 @@ export const ASSUMPTION_GROUP = {
   // Your gear and consumables: items, enchants, consumables and the ratings on your gear.
   noWeapon: 'gear',
   noWeaponSpells: 'gear',
+  noWeaponSomeUsed: 'gear',
   weaponlessAttacks: 'gear',
   classicItems: 'gear',
   unmodelledProcs: 'gear',

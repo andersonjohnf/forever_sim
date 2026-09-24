@@ -172,14 +172,23 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
     expect(perHit(shield) / perHit(armed)).toBeGreaterThan(0.98)
     expect(perHit(shield) / perHit(armed)).toBeLessThan(1.02)
     expect(counter(shield.sim, shield.row('thunderClap'), FIELD.damage)).toBeGreaterThan(0)
-    expect(shield.assumptions.find((a) => a.id === 'weaponlessAttacks')?.text).toMatch(
-      /^Still used, since they need no weapon: Thunder Clap, Demoralizing Shout and Shield Slam\./,
+    // The notes agree (PV7): the first names nothing, and only Shield Slam rolls the special-attack table.
+    const text = (r: typeof shield, id: string) => r.assumptions.find((a) => a.id === id)?.text
+    expect(text(shield, 'noWeapon')).toBeUndefined()
+    expect(text(shield, 'noWeaponSomeUsed')).toBe('No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one.')
+    expect(text(shield, 'weaponlessAttacks')).toBe(
+      'Still used, since they need no weapon: Thunder Clap, Demoralizing Shout and Shield Slam. Shield Slam rolls on a special-attack table at your level’s base weapon skill.',
     )
     // With neither a weapon nor a shield: Thunder Clap and Demoralizing Shout only.
     const bare = run({ ...d.gear, mainHand: undefined, offHand: undefined })
     for (const id of ['thunderClap', 'demoralizingShout']) expect(bare.casts(id), id).toBeGreaterThan(0)
     for (const id of ['shieldSlam', 'shieldBlock', 'sunderArmor', 'revenge', 'heroicStrike']) expect(bare.casts(id), id).toBe(0)
-    expect(bare.assumptions.find((a) => a.id === 'weaponlessAttacks')?.text).toMatch(/: Thunder Clap and Demoralizing Shout\./)
+    // Without a shield, nothing that needs one is named, and nothing rolls the special-attack table.
+    expect(text(bare, 'weaponlessAttacks')).toBe('Still used, since they need no weapon: Thunder Clap and Demoralizing Shout.')
+    // With neither, the first note says only cooldowns and buffs are used (a Fury warrior).
+    const fury = buildPlan({ ...defaultConfig('warrior-fury'), gear: { ...defaultConfig('warrior-fury').gear, mainHand: undefined } }).assumptions
+    expect(fury.find((a) => a.id === 'noWeapon')?.text).toBe('No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one; only cooldowns and buffs are used.')
+    expect(fury.some((a) => a.id === 'noWeaponSomeUsed' || a.id === 'weaponlessAttacks')).toBe(false)
   })
 })
 

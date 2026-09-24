@@ -393,8 +393,10 @@ pieces separately. So, for new specs until the tuning milestone:
 - **Shared engine first, then thin class slices.** A caster core (casts, channels, DoTs, spell
   power, spell hit, crit and resists) and a ranged core (Auto Shot, ranged weapons, pets) are
   built once; each class is then data, talents and a rotation.
-- **A merge queue with at most about four agents at once.** A branch rebases once, just before
-  its review, and merges as soon as it's green.
+- **A merge queue.** A branch rebases once, just before its review, and merges as soon as it's
+  green. **Agents run in parallel on disjoint files, at most 8 at once** (user decision,
+  2026-09-24, replacing "about four"), and new ones wait while the machine is saturated, that is,
+  while tests fail from load rather than from the change.
 - **Unchanged:** the sourcing rules (doctrine §2), no world buffs, determinism, green checks
   (`npm run test:full`) before every push, D24's placeholders, and D25's push at every stable
   state.
@@ -415,7 +417,9 @@ Balanced. Each tank spec's Priority choice offers three rotations:
   - a warrior uses Shield Block when it's ready and keeps Sunder Armor at 5 stacks, refreshed
     by D26's duty rule but not used as a filler; it drops Thunder Clap and Demoralizing Shout
   - a bear keeps Faerie Fire and drops Demoralizing Roar
-  - a paladin keeps Devotion Aura and Holy Shield
+  - a paladin keeps Devotion Aura and Holy Shield, and Holy Strike too, whose Iron Creed cuts
+    damage taken by 10% (user decision: that's active mitigation Balanced keeps), so a paladin's
+    Balanced plays like Defensive
 
   The kept upkeep follows D26's fixed timing rule. The search tunes the other abilities on DPS.
   A change that costs a larger share of TPS than it gains in DPS isn't adopted, which is D18's

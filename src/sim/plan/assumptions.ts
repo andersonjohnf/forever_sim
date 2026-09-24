@@ -978,7 +978,7 @@ const REGISTRY = {
     docRef: 'docs/mechanics/spells.md#3-resistances',
   },
   huntersMarkLands: {
-    text: 'Hunter’s Mark always lands, and its +71 ranged attack power counts for your shots and Auto Shots only, not your pet’s bites.',
+    text: 'Hunter’s Mark always lands, and its +71 ranged attack power counts for your shots and Auto Shots; your pet gets only the tenth of it that it inherits from your ranged attack power.',
     docRef: `${HUNTER}#36-hunters-mark-r4-14325`,
   },
   petBaseStats: {
@@ -986,8 +986,8 @@ const REGISTRY = {
     docRef: `${RANGED}#oq-6-pet-stats-and-inheritance`,
   },
   petInheritance: {
-    text: 'Your pet gets none of your stats, as in Classic Era. Forever ships pet scaling auras whose amounts are server-side; testers report 10% of your attack power and all of your crit. Untested.',
-    docRef: `${RANGED}#oq-6-pet-stats-and-inheritance`,
+    text: 'Your pet inherits 10% of your attack power or ranged attack power, whichever is higher, and all of your crit, as Forever testers report (the amounts are server-side). The crit counts as crit from auras, which a raid boss suppresses. It gets none of your hit, which the report doesn’t mention. Untested.',
+    docRef: `${HUNTER}#6-pets`,
   },
   focusRegen: {
     text: 'Your pet gains 5 Focus a second (6 with Bestial Discipline), as Classic Era players measured; Forever testers report 10. Untested.',

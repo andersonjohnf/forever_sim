@@ -500,7 +500,9 @@ uses, all [?], each a D29 default (closest allowed analog, never zero because it
   power** (138 in the default: +13.8), **10% of your spell damage** in its spell's school (486 Shadow:
   +48.6), and **your spell crit and spell hit** as its crit and hit, melee and spells alike (11.73%
   and 4% in the default), none of its own; the aura carries hit beside crit, so hit takes crit's
-  reading. Demonic Knowledge's spell damage is its own besides. Health, resistances and healing reach
+  reading. The crit arrives through the aura (#13, aura 52), so its swings count it as aura crit and
+  lose 1.8% of it against a level-63 boss, as a player's do (combat-tables §4.4); its spells, as
+  yours, don't. Demonic Knowledge's spell damage is its own besides. Health, resistances and healing reach
   no DPS number; Intellect and mana regeneration reach only the demon's mana, which Demonic Energies
   refills in the default, so they're left out with no analog to size them (Q15). The default gains
   +1.9% (492.8 → 502.0), the Imp with the Succubus sacrificed +4.9% (440.3 → 461.9).
@@ -693,7 +695,8 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 8. **What the Succubus inherits in the default** (§11.2): attack power 240 + 0.1 × 138 = **253.8**;
    Lash of Pain's spell damage 60 + 0.1 × 486 (426 Shadow + your Demonic Knowledge's 60) = **108.6**,
    so `(50 + 0.429 × 108.6) × 1.3 × 1.1 × 1.133` = **156.49**; its crit is your **11.73%**, and its
-   spells miss 17 − 4 = **13%**.
+   spells miss 17 − 4 = **13%**. Against the boss its swings' special table crits 11.73 − 0.6 (its
+   skill of 300) − 1.8 (aura crit) = **9.33%**.
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
 
 ---

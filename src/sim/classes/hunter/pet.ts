@@ -16,6 +16,15 @@ const DOC = 'docs/classes/hunter.md#6-pets'
  */
 export const PET_BASE = { damagePerSwing: 45.8, speedSec: 2, str: 136, baseAp: -20, crit: 5 } as const
 
+/**
+ * What your pet inherits from you [?] (hunter.md §6; ranged-and-pets.md §6, OQ-6), D29's default: the
+ * Forever client's "Hunter Pet Scaling" (415429) has slots for them with every amount 0 (they're set
+ * server-side), and Forever testers report 10% of the hunter's higher attack power and all of its crit.
+ * So the pet takes 10% of the higher of your attack power and ranged attack power, and your higher sheet
+ * crit, melee or ranged (your ranged crit, with Lethal Shots and a scope), added to its own.
+ */
+export const PET_INHERITS = { apFromOwnerHigherAp: 0.1, critFromOwnerCrit: 1 } as const
+
 /** A cat's damage modifier, ×1.10, and a Happy pet's ×1.25 [C] (Warcraft Tavern's Classic pet guide; ranged-and-pets.md §6). */
 export const CAT_DAMAGE = 1.1
 export const HAPPY_DAMAGE = 1.25
@@ -65,8 +74,9 @@ export const petDamageMult = (talents: TalentRanks) =>
 
 /**
  * The cat (docs/classes/hunter.md#6-pets): behind the boss, its white swings glancing as a player's
- * [?], none of your stats (Classic Era's pets inherit nothing [C]; Forever's scaling auras are
- * server-side [?], OQ-6). Its list: Bite on cooldown, and Claw while its Focus is at least
+ * [?], with its shares of your attack power and crit (`PET_INHERITS`: Classic Era's pets inherit
+ * nothing [C]; Forever's scaling auras are server-side, so the testers' report is the default [?],
+ * OQ-6). Its list: Bite on cooldown, and Claw while its Focus is at least
  * `clawFocus` (so Bite stays affordable).
  */
 export function hunterPet(talents: TalentRanks, clawFocus: number): PetDef {
@@ -79,6 +89,7 @@ export function hunterPet(talents: TalentRanks, clawFocus: number): PetDef {
     weapon: { min: PET_BASE.damagePerSwing, max: PET_BASE.damagePerSwing, speedSec: PET_BASE.speedSec },
     stats: { baseStr: PET_BASE.str, baseAp: PET_BASE.baseAp, apPerStr: 2, baseCrit: PET_BASE.crit + 2 * rank(talents, 'Ferocity') },
     damageMult: petDamageMult(talents),
+    ...PET_INHERITS,
     glances: true,
     front: false,
     power: { kind: 'focus', maxTenths: 1000, startTenths: 1000, tickTenths: focusTick, tickMs: 1000 },

@@ -1112,9 +1112,11 @@ export class Sim {
   private readonly petSpellHit: number
   private readonly petApFromAp: number
   private readonly petApFromRap: number
+  private readonly petApFromHigher: number
   private readonly petSpFromOwner: number
   private readonly petCritFromOwner: number
   private readonly petHitFromOwner: number
+  private readonly petCritFromOwnerCrit: number
   private readonly petStaticDamage: number
   private readonly petStaticHaste: number
   private readonly petCritMult: number
@@ -1980,9 +1982,11 @@ export class Sim {
     this.petSpellHit = pet?.spellHit ?? 0
     this.petApFromAp = pet?.apFromOwnerAp ?? 0
     this.petApFromRap = pet?.apFromOwnerRap ?? 0
+    this.petApFromHigher = pet?.apFromOwnerHigherAp ?? 0
     this.petSpFromOwner = pet?.spellDamageFromOwner ?? 0
     this.petCritFromOwner = pet?.critFromOwnerSpellCrit ?? 0
     this.petHitFromOwner = pet?.hitFromOwnerSpellHit ?? 0
+    this.petCritFromOwnerCrit = pet?.critFromOwnerCrit ?? 0
     this.petStaticDamage = pet?.damageMult ?? 1
     this.petStaticHaste = pet?.hasteMult ?? 1
     this.petCritMult = pet?.critMultiplier ?? CRIT_MULTIPLIER.melee
@@ -4618,19 +4622,24 @@ export class Sim {
 
   /**
    * The pet's numbers against the current stats and auras (§6, §8): attack power (its own, the
-   * auras' and its shares of yours), crit and hit (its own and its shares of your spell crit and spell
-   * hit, melee and spells alike), damage and attack speed; its white and special tables
+   * auras' and its shares of yours), crit and hit (its own and its shares of your crit, spell crit and
+   * spell hit, melee and spells alike), damage and attack speed; its white and special tables
    * against the boss at its level and skill (combat-tables §2–§4, from behind or the front, glancing
-   * only if it glances); its spell miss (combat-tables §9); and the boss's armor, less your debuffs on
-   * it, at its level.
+   * only if it glances), where the crit it inherits counts as aura crit for the +3 suppression (§4.4:
+   * it arrives through an aura, 416189's or 415429's #52); its spell miss (combat-tables §9); and the
+   * boss's armor, less your debuffs on it, at its level.
    */
   private recomputePet(): void {
     const plan = this.plan
     const f = plan.fight
-    this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petApFromAp * this.ap + this.petApFromRap * this.rap)
-    // Its shares of your spell crit and spell hit (§6: a warlock's demon, warlock.md §11.2) [?].
-    const ownerCrit = this.petCritFromOwner * this.derived.spellCrit
-    const ownerHit = this.petHitFromOwner * this.derived.spellHit
+    const higherAp = this.hasRanged ? Math.max(this.ap, this.rap) : this.ap
+    this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petApFromAp * this.ap + this.petApFromRap * this.rap + this.petApFromHigher * higherAp)
+    // Its shares of your spell crit and spell hit (§6: a warlock's demon, warlock.md §11.2), and of your
+    // higher sheet crit, melee or ranged (§6: the hunter's pet, hunter.md §6) [?].
+    const d = this.derived
+    const higherCrit = this.hasRanged ? Math.max(d.crit, d.crit + this.rCritBonus) : d.crit
+    const ownerCrit = this.petCritFromOwner * d.spellCrit + this.petCritFromOwnerCrit * higherCrit
+    const ownerHit = this.petHitFromOwner * d.spellHit
     this.petCritPct = this.petBaseCrit + ownerCrit + this.dynPetCrit
     this.petSpellCritNow = this.petSpellCrit + ownerCrit
     this.petDamageMult = this.petStaticDamage * this.petAuraDamage
@@ -4642,7 +4651,7 @@ export class Sim {
     inputs.skill = this.petSkill
     inputs.hit = this.petHit + ownerHit
     inputs.sheetCrit = this.petCritPct
-    inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit
+    inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit + ownerCrit
     inputs.expertise = 0
     inputs.front = this.petFront
     inputs.canDodge = f.bossCanDodge

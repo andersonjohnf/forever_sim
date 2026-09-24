@@ -9,6 +9,7 @@ import type { ClientSpells, ClientTalents } from '@/data/client/types'
 import { executePhaseStart } from '../../core/formulas'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
+import { addCast, addPlanAura } from '../../engine/ranged-helpers'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
 import { COND, type Plan, SCHOOL } from '../../plan/types'
@@ -151,16 +152,18 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
   })
 
-  it('8. What the Succubus inherits in the default: 253.8 attack power, 108.6 spell damage, your 11.73% crit, 13% spell miss; Lash of Pain 156.49', () => {
+  it('8. What the Succubus inherits: 253.8 attack power, 108.6 spell damage, your 11.73% crit (9.33% on its swings vs the boss), 13% spell miss; Lash of Pain 156.49', () => {
     const { plan } = buildPlan(fixed())
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, ...DEMON_INHERITS })
     const sim = new Sim(plan)
     sim.runFight(0)
-    const s = sim as unknown as { ap: number; derived: { spellCrit: number; spellHit: number }; spSchool: Float64Array; petAp: number; petCritPct: number; petSpellCritNow: number; petSpellMissPct: number }
+    const s = sim as unknown as { ap: number; derived: { spellCrit: number; spellHit: number }; spSchool: Float64Array; petAp: number; petCritPct: number; petSpellCritNow: number; petSpecCrit: number; petSpellMissPct: number }
     expect(s.ap).toBe(138)
     expect(s.petAp).toBeCloseTo(253.8, 9)
     expect(s.derived.spellCrit).toBeCloseTo(11.7325, 9)
     expect([s.petCritPct, s.petSpellCritNow]).toEqual([s.derived.spellCrit, s.derived.spellCrit])
+    // Its swings: − 0.6 for its skill of 300, − 1.8 as aura crit (combat-tables §4.4) = 9.33%.
+    expect(s.petSpecCrit).toBeCloseTo(9.3325, 9)
     expect(s.derived.spellHit).toBe(4)
     expect(s.petSpellMissPct).toBe(13)
     // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 486 Shadow (426 + your own 60).
@@ -194,6 +197,8 @@ function fixed(rotation: SimConfig['rotation'] = {}, extra: Partial<SimConfig> =
   const d = defaultConfig('warlock-demonology')
   return { ...d, ...extra, rotation: { ...d.rotation, ...rotation }, run: { mode: 'fixed', iterations: 500, seed: 4242 } }
 }
+/** The Succubus out with the Imp sacrificed, Soul Fire off: the Shadow build (warlock.md §11.6). */
+const SUCCUBUS = { [DEMONOLOGY_IDS.demon]: 'succubus', [DEMONOLOGY_IDS.sacrifice]: 'imp', [DEMONOLOGY_IDS.soulFire]: false }
 const row = (plan: Plan, id: string) => plan.sources.findIndex((s) => s.id === id)
 const perFight = (plan: Plan, agg: Aggregate, id: string, field: keyof typeof FIELD) => agg.counters[row(plan, id) * FIELD_COUNT + FIELD[field]] / agg.fights
 const prepull = (plan: Plan) => plan.prepull.casts.map((c) => [plan.abilities[c.ability].id, c.atMs])
@@ -330,6 +335,37 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(perFight(bare, without, 'shadowBolt', 'damage')).toBeLessThan(perFight(plan, base, 'shadowBolt', 'damage'))
   })
 
+  it('the demon’s crit follows your spell crit as it changes mid-fight, and its swings take the aura-crit suppression', () => {
+    const { plan } = buildPlan(fixed(SUCCUBUS))
+    // A +10% spell crit aura on you for 5 s every 20 s, cast first on the list.
+    const aura = addPlanAura(plan, 'testSpellCrit', 5000, { spellCrit: 10 })
+    const cast = addCast(plan, aura, 20000)
+    plan.rotation = [{ ability: cast, conditions: [], unqueueBelowTenths: 0 }, ...plan.rotation]
+    const sim = new Sim(plan)
+    const s = sim as unknown as { derived: { spellCrit: number }; auraActive: Uint8Array | boolean[]; petCritPct: number; petSpellCritNow: number; petSpecCrit: number }
+    const seen = { on: new Set<string>(), off: new Set<string>() }
+    sim.damageTrace = () => {
+      const key = [s.derived.spellCrit, s.petCritPct, s.petSpellCritNow, s.petSpecCrit].map((x) => x.toFixed(6)).join(' ')
+      seen[s.auraActive[aura] ? 'on' : 'off'].add(key)
+    }
+    sim.runFight(0)
+    const parse = (set: Set<string>) => [...set].map((k) => k.split(' ').map(Number))
+    const off = parse(seen.off)
+    const on = parse(seen.on)
+    expect(off.length).toBe(1)
+    expect(on.length).toBe(1)
+    const [[mine, crit, spellCrit, special]] = off
+    // Off: your 11.73% is its crit, melee and spells alike; its specials lose 0.6 (skill 300) and 1.8 (aura crit).
+    expect(mine).toBeCloseTo(11.7325, 9)
+    expect([crit, spellCrit]).toEqual([mine, mine])
+    expect(special).toBeCloseTo(mine - 0.6 - 1.8, 6)
+    // On: +10 on you and on it.
+    expect(on[0][0]).toBeCloseTo(mine + 10, 6)
+    expect(on[0][1]).toBeCloseTo(mine + 10, 6)
+    expect(on[0][2]).toBeCloseTo(mine + 10, 6)
+    expect(on[0][3]).toBeCloseTo(mine + 10 - 0.6 - 1.8, 6)
+  })
+
   it('Improved Shadow Bolt’s assumption names its rank’s Shadow Vulnerability: +12% at 3/5, +20% at 5/5', () => {
     const text = (talents?: string) => {
       const bundle = buildPlan(fixed({}, talents ? { talents } : {}))
@@ -351,6 +387,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   of Doom then Agony, Shadow Bolt, Life Tap at 10%; 492.8 DPS over 20,000 fights on seed 2701 (§11.6).
   // - H3 review (DM4): the demon inherits 10% of your attack power and spell damage, and your spell crit
   //   and hit (§11.2, D29): 491.39 → 500.64 here (+1.9%); 492.8 → 502.0 over 20,000 fights.
+  // - H3 verification (DV3): the crit the demon inherits is aura crit, so its swings lose 1.8% of it
+  //   against the boss (combat-tables §4.4): 500.64 → 499.89 here; 502.0 → 501.3 over 20,000 fights.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

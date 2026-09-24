@@ -40,10 +40,14 @@ export interface PetDef {
   /** Shares of your stats it gets, read as they change (§6): 0 in Classic Era [C]; Forever's are server-side [?]. */
   apFromOwnerAp?: number
   apFromOwnerRap?: number
+  /** A share of the higher of your attack power and ranged attack power (§6: the hunter's pet) [?]. */
+  apFromOwnerHigherAp?: number
   spellDamageFromOwner?: number
-  /** Shares of your spell crit and spell hit it adds to its own crit and hit, melee and spells alike [?] (§6). */
+  /** Shares of your spell crit and spell hit it adds to its own crit and hit, melee and spells alike [?] (§6: a warlock's demon). */
   critFromOwnerSpellCrit?: number
   hitFromOwnerSpellHit?: number
+  /** A share of your higher sheet crit, melee or ranged, it adds to its own crit [?] (§6: the hunter's pet). */
+  critFromOwnerCrit?: number
   /** Its white swings can glance against a higher-level boss, as a player's do [?] (§6). */
   glances: boolean
   /** It attacks from in front of the boss (parried and blocked) rather than from behind [?] (§6). */
@@ -133,8 +137,10 @@ export function petPlan(
     apFromOwnerAp: def.apFromOwnerAp ?? 0,
     apFromOwnerRap: def.apFromOwnerRap ?? 0,
     spellDamageFromOwner: def.spellDamageFromOwner ?? 0,
+    apFromOwnerHigherAp: def.apFromOwnerHigherAp ?? 0,
     critFromOwnerSpellCrit: def.critFromOwnerSpellCrit ?? 0,
     hitFromOwnerSpellHit: def.hitFromOwnerSpellHit ?? 0,
+    critFromOwnerCrit: def.critFromOwnerCrit ?? 0,
     damageMult,
     hasteMult: d.hasteMult,
     critMultiplier: CRIT_MULTIPLIER.melee,

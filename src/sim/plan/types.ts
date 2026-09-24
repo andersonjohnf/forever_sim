@@ -1487,7 +1487,10 @@ export interface PetPlan {
   /** Attack power, and melee crit and hit %, from its own stats and the buffs that reach it (§6, §8). */
   ap: number
   crit: number
-  /** The part of `crit` from buffs, which the +3 crit suppression reads as a player's aura crit (§6) [?]. */
+  /**
+   * The part of `crit` from buffs, which the +3 crit suppression reads as a player's aura crit (§6) [?].
+   * The crit it inherits from you joins it in the engine: it arrives through an aura too.
+   */
   auraCrit: number
   hit: number
   /** Spell damage, spell crit % and spell hit % for its spells (§7). */
@@ -1497,10 +1500,14 @@ export interface PetPlan {
   /** Shares of your stats it gets, read whenever they change (§6): 0 in Classic Era [C]. */
   apFromOwnerAp: number
   apFromOwnerRap: number
+  /** A share of the higher of your attack power and ranged attack power (§6; the hunter's pet) [?]. */
+  apFromOwnerHigherAp: number
   spellDamageFromOwner: number
   /** Shares of your spell crit and spell hit it adds to its own, melee and spells alike (§6; a warlock's demon) [?]. */
   critFromOwnerSpellCrit: number
   hitFromOwnerSpellHit: number
+  /** A share of your higher sheet crit, melee or ranged, it adds to its own crit (§6; the hunter's pet) [?]. */
+  critFromOwnerCrit: number
   /** All its damage %, as a product: its family's, happiness's, your talents' (§6). */
   damageMult: number
   /** Static attack speed, a product (1: none). */

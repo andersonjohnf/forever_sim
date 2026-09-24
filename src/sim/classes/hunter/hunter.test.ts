@@ -13,7 +13,7 @@ import type { Plan } from '../../plan/types'
 import { rotationValues } from '../../index'
 import type { SimConfig } from '../../types'
 import { HUNTER_BASE_MANA } from './abilities'
-import { CAT_DAMAGE, HAPPY_DAMAGE } from './pet'
+import { CAT_DAMAGE, HAPPY_DAMAGE, PET_INHERITS } from './pet'
 import { hunterIds } from './rotation'
 import { withCritBonus } from './talents'
 
@@ -85,6 +85,32 @@ describe('worked examples (docs/classes/hunter.md §10)', () => {
     expect(p.pet!.damageMult).toBeCloseTo(1.612875, 9)
     expect(p.pet!.power).toMatchObject({ kind: 'focus', maxTenths: 1000, tickTenths: 60, tickMs: 1000 })
     expect(p.pet!.crit).toBeCloseTo(15, 9)
+  })
+
+  it('WE-H9: what the Beast Mastery cat inherits at the pull: 391 + 0.1 × 1,524 = 543.4 attack power, 15 + 23.20 = 38.20% crit, 35.80% on its specials against the boss', () => {
+    const bundle = buildPlan(defaultConfig(BM))
+    const p = bundle.plan
+    expect(p.pet).toMatchObject({ ap: 391, auraCrit: 0, ...PET_INHERITS })
+    expect(p.pet!.crit).toBeCloseTo(15, 9)
+    const sheet = bundle.sheet
+    expect([sheet.attackPower, sheet.ranged!.rangedAttackPower]).toEqual([1155, 1524])
+    expect(sheet.ranged!.critPct).toBeCloseTo(23.2026, 9)
+    // No casts or procs, so the fight ends with the stats it started with.
+    const quiet: Plan = { ...p, rotation: [], procs: [], prepull: { ...p.prepull, casts: [] } }
+    const sim = new Sim(quiet)
+    sim.runFight(0)
+    const s = sim as unknown as { petAp: number; petCritPct: number; petSpecCrit: number }
+    // 10% of the higher of 1,155 and 1,524 (ranged-and-pets.md §6).
+    expect(s.petAp).toBeCloseTo(543.4, 9)
+    expect(s.petCritPct).toBeCloseTo(38.2026, 9)
+    // Against a level-63 boss: −0.6 for its 300 skill, −1.8 because the inherited crit is aura crit (combat-tables §4.4).
+    expect(s.petSpecCrit).toBeCloseTo(35.8026, 9)
+    // With 1,000 more melee attack power (2,155), the melee side is the higher one: 391 + 215.5.
+    const stats = Object.assign(Object.create(Object.getPrototypeOf(p.stats) as object) as Plan['stats'], p.stats)
+    stats.ap += 1000
+    const melee = new Sim({ ...quiet, stats })
+    melee.runFight(0)
+    expect((melee as unknown as { petAp: number }).petAp).toBeCloseTo(606.5, 9)
   })
 
   it('WE-H8: Rapid Fire with Rapid Killing 2/2 is 180 s; Arcane Shot with Improved Arcane Shot 5/5 is 4.5 s', () => {

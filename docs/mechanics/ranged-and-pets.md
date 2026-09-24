@@ -148,11 +148,11 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 
 | Rule | Value | Tag |
 | --- | --- | --- |
-| Inheritance | **Classic Era: none.** Pets took a share of their owner's stats from patch 2.0.1 on ([wiki-201], for the date only). **Forever** ships "Hunter Pet Scaling" (415429) and "Warlock Pet Scaling" (416189) auras with every amount 0 in the client, and new aura types (max health, melee haste, dodge): the amounts are server-side. Forever testers report 10% of the hunter's higher attack power and all of its crit ([fh-changes]). By D29 that report is each class's default: the warlock's demon reads it for a caster ([warlock.md §11.2](../classes/warlock.md#112-your-demon)) | [C] by inference ([bnet-petdps]; players' reports); Forever's auras [F] [client] (SpellEffect, 1.60.1.69977); their amounts [?] ([OQ-6](#oq-6-pet-stats-and-inheritance)) |
+| Inheritance | **Classic Era: none.** Pets took a share of their owner's stats from patch 2.0.1 on ([wiki-201], for the date only). **Forever** ships "Hunter Pet Scaling" (415429) and "Warlock Pet Scaling" (416189) auras with every amount 0 in the client, and new aura types (max health, melee haste, dodge): the amounts are server-side. Forever testers report 10% of the hunter's higher attack power and all of its crit ([fh-changes]). By D29 that report is each class's default: the hunter's pet takes 10% of the higher of your attack power and ranged attack power and your higher sheet crit, melee or ranged ([hunter.md §6](../classes/hunter.md#6-pets)); the warlock's demon reads it for a caster ([warlock.md §11.2](../classes/warlock.md#112-your-demon)). The crit a pet inherits arrives through the scaling aura (#13, aura 52), so its table counts it as aura crit (below) | [C] by inference ([bnet-petdps]; players' reports); Forever's auras [F] [client] (SpellEffect, 1.60.1.69977); their amounts [?] ([OQ-6](#oq-6-pet-stats-and-inheritance)) |
 | Base stats at 60 | not in either client. A Classic Era player reported a level-60 hunter pet's base damage as 22.9 DPS and its attack power as 252 (2 × 136 Strength − 20) | [?] ([bnet-petdps]; [OQ-6](#oq-6-pet-stats-and-inheritance)) |
 | Attack speed | most hunter pets 2.0 s; faster ones deal proportionally less a hit | [C] ([petopia-speed]); Forever reports pets aren't normalized [?] ([fbugs] #31) |
 | Family and happiness | a family's damage modifier (cat ×1.10) and Happy ×1.25, Content ×1, Unhappy ×0.75, all in the pet's damage multiplier; loyalty changes only training points | cat and happiness [C] ([wt-pets]); loyalty [C] ([petopia-train]); other families [?] |
-| Its table | the player formulas of combat-tables §2–§4 at the pet's level and skill (5 × its level): miss, dodge, parry and block from the front, glancing (40% vs +3) for a pet whose white swings glance, crit less the +3 suppression, as a player's | [?] no Classic Era measurement ([OQ-7](#oq-7-the-pets-attack-table)) |
+| Its table | the player formulas of combat-tables §2–§4 at the pet's level and skill (5 × its level): miss, dodge, parry and block from the front, glancing (40% vs +3) for a pet whose white swings glance, crit less the +3 suppression, as a player's. Its aura crit is its buffs' and the crit it inherits from you, so against +3 it loses up to 1.8% ([combat-tables §4.4](combat-tables.md#44-crit-suppression)) | [?] no Classic Era measurement ([OQ-7](#oq-7-the-pets-attack-table)) |
 | Position | behind the boss by default (no parry or block); a class can put it in front | [?] |
 | White damage | `(roll + its AP / 14 × its speed) × its damage multiplier × armor at its level`, crit ×2 | [?] ([wys-formulas]) |
 | Its haste | its own attack speed, and your auras' pet haste (Frenzy: +30% for 8 s) | Frenzy [F] [client] (SpellEffect, 1.60.1.69977) |
@@ -243,8 +243,10 @@ The API the Hunter (H2) and Demonology (warlock) slices build on:
   `petHaste`, `petDamage`.
 - **Procs** (`ProcSpec`): the triggers of §9 and the action `{ kind: 'petPower', amount }`.
 - **The pet**: return a `PetDef` (`sim/plan/pet.ts`) as `ClassRotation.pet`: its base stats (as stat
-  block fields), melee, damage multiplier (family, happiness, talents), shares of your stats,
-  whether it glances and where it stands, its power, its abilities (`melee`, `spell`, or `buff` for
+  block fields), melee, damage multiplier (family, happiness, talents), shares of your stats
+  (`apFromOwnerAp`, `apFromOwnerRap` or `apFromOwnerHigherAp`; `spellDamageFromOwner`;
+  `critFromOwnerSpellCrit` or `critFromOwnerCrit`, the higher of your melee and ranged sheet crit;
+  `hitFromOwnerSpellHit`), whether it glances and where it stands, its power, its abilities (`melee`, `spell`, or `buff` for
   one with no target, each with an optional aura), and its priority list. `petPlan` derives its stats, adds the buffs that reach it
   (`PET_BUFFS`), and gives it rows that name it.
 - **Conditions**: §11.
@@ -281,7 +283,9 @@ tagged:
 - **Reported, not in the client** [?] ([fh-changes], [fbugs]): Auto Shot fires through casts; every
   shot restarts the retry timer (+0.1–0.4 s); a melee swing resets the ranged timer; pets inherit 10%
   of the hunter's attack power and all its crit, and can't be buffed; Human and Orc weapon racials
-  give no ranged crit. Open questions, not the `forever` default (doctrine §2).
+  give no ranged crit. Open questions, not the `forever` default (doctrine §2), except the
+  inheritance: its client auras exist with server-side amounts, so by D29 the report is its default
+  (§6).
 
 ## Implementation notes
 
@@ -364,8 +368,12 @@ can switch it once a class slice exposes it.
 
 ### OQ-6: pet stats and inheritance
 The pets' base stats (the 252 attack power, 22.9 base DPS), the demons', and what Forever's scaling
-auras inherit are server-side. Test: the pet's character sheet (attack power, crit) on the beta with
-two owner gear sets.
+auras inherit are server-side. The sim's default is the testers' report (§6, D29): 10% of the higher
+attack power and all of the crit. Both scaling auras also have hit slots (auras 54 and 55): the
+demon takes your spell hit with its crit ([warlock.md §11.2](../classes/warlock.md#112-your-demon)), but
+the report names no hit for the hunter's pet, so it gets none of yours; your ranged hit on it would be
+about +1.7% on Beast Mastery and Survival. Test: the pet's character sheet (attack power, crit, hit)
+on the beta with two owner gear sets.
 
 ### OQ-7: the pet's attack table
 Whether pets glance, and their miss, dodge and crit against +3, have no Classic Era measurement. The

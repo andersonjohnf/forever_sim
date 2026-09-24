@@ -91,8 +91,8 @@ async function expectBothPriorities(page: Page, tab: Locator) {
 }
 
 /** What a Protection paladin's run must show, in the desktop panel or the phone's sheet. */
-/** `strike`: Balanced's Hammer of the Righteous, or Defensive's and Max TPS's Holy Strike (D28). */
-async function expectProtectionResult(results: Locator, strike = 'Hammer of the Righteous') {
+/** `strike`: Holy Strike, which every preset plays (D28); Hammer of the Righteous when you turn it on. */
+async function expectProtectionResult(results: Locator, strike = 'Holy Strike') {
   // The tank headline: TPS and DPS, each with its CI.
   await expect(results.getByRole('group', { name: 'TPS' })).toContainText(VALUE_WITH_CI)
   await expect(results.getByRole('group', { name: 'DPS' })).toContainText(VALUE_WITH_CI)
@@ -126,7 +126,7 @@ test.describe('Protection paladin', () => {
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Protection (default)')
-    await expect(talents.getByText('0 / 38 / 13')).toBeVisible()
+    await expect(talents.getByText('9 / 35 / 7')).toBeVisible()
     await presets.click()
     // Only this spec's default is "(default)": Retribution's reads plainly (TU10). The popular build,
     // v1's default, stays a preset (T2).
@@ -184,7 +184,7 @@ test.describe('Protection paladin', () => {
     await expect(jotc).toBeDisabled()
     await expect(jotc).toHaveAccessibleDescription(YOURS_JOTC)
     // Character → Advanced: the JotC rule is in use; Hammer of the Righteous's is dimmed while it's off
-    // in Rotation, as Defensive has it (Balanced, the default, plays it).
+    // in Rotation, as every preset has it (D28).
     await openTab(page, 'Rotation')
     await pickPreset(page, 'Defensive')
     const character = await openTab(page, 'Character')

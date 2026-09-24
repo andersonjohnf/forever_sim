@@ -1,9 +1,10 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// Protection's Rotation tab (docs/ux.md "Rotation"; docs/classes/warrior.md §5.4): a priority list
-// (decision D31) whose preset picker is its Priority choice, Balanced by default, or Defensive or Max
-// TPS (D28), each moving the defaults of the rows it drops; the duties pinned; editing the list reads
+// Protection's Rotation tab (docs/ux.md "Rotation", "A tank's presets"; docs/classes/warrior.md
+// §5.4): a priority list (decision D31) whose preset picker, at the top of the tab, is its Priority
+// choice, Balanced by default, or Defensive or Max TPS (D28), each moving the defaults of the rows it
+// drops; only the pre-pull pinned, the duties movable with their rule; editing the list reads
 // "Custom"; and a run with each.
 
 /** Protection's Rotation tab, from the spec switcher, as a visitor gets there. */
@@ -36,10 +37,12 @@ const DEFAULT_ORDER = [
 /** The rows' ids in the list's order. */
 const order = (page: Page) => page.locator('[data-apl-row]').evaluateAll((rows) => rows.map((r) => r.getAttribute('data-apl-row')))
 const preset = (page: Page) => page.getByRole('combobox', { name: 'Rotation preset' })
+/** A preset's name in the menu and the trigger: the default's is marked "(default)". */
+const presetName = (name: string) => new RegExp(`^${name}( \\(default\\))?$`)
 const pick = async (page: Page, name: string) => {
   await preset(page).click()
-  await page.getByRole('option', { name, exact: true }).click()
-  await expect(preset(page)).toHaveText(name)
+  await page.getByRole('option', { name: presetName(name) }).click()
+  await expect(preset(page)).toHaveText(presetName(name))
 }
 /** A row on the list, by id. */
 const row = (page: Page, id: string) => page.locator(`[data-apl-row="${id}"]`)
@@ -54,37 +57,48 @@ const openRow = async (page: Page, name: string): Promise<Locator> => {
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 
 test.describe('Protection rotation', () => {
-  test('is Balanced by default: the preset picker in the Priority choice’s place, its help, and §5.4’s rows with the duties pinned', async ({ page }) => {
+  test('is Balanced by default: the preset picker first on the tab, its line and info, and §5.4’s rows with only the pre-pull pinned', async ({ page }) => {
     const tab = await openProtectionRotation(page)
     await expect(
       tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, is a first quick search and isn’t tuned yet.', {
         exact: true,
       }),
     ).toBeVisible()
-    // The picker is the Priority choice (D28): no separate control, and no separate Default.
+    // The picker is the Priority choice (D28): no separate control, and the default marked in its menu.
     await expect(tab.getByRole('radiogroup', { name: 'Priority' })).toHaveCount(0)
-    await expect(preset(page)).toHaveText('Balanced')
-    // Its help says what each keeps, drops, gains and costs against Defensive, and when to pick Max TPS.
+    await expect(preset(page)).toHaveText('Balanced (default)')
+    // The short line under it says what Balanced keeps and drops, with a number or two.
     await expect(preset(page)).toHaveAccessibleDescription(
-      /^Defensive keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take the least damage\. Balanced, the default, keeps Shield Block and Sunder Armor’s 5 stacks and drops the rest of the upkeep, the Sunder Armor filler too: against Defensive in the default setup, about 11% less TPS, 5% more DPS and 19% more damage taken\. Max TPS drops Shield Block, Thunder Clap and Demoralizing Shout for threat: about 14% more TPS, 7% more DPS and 41% more damage taken than Defensive\. Pick it when another tank or the raid covers your survival\./,
+      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout, Sunder filler from 60 rage: +10% TPS, +6% DPS vs Defensive.',
     )
     await preset(page).click()
-    await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced', 'Max TPS'])
+    await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
     await page.keyboard.press('Escape')
-    // The consumables are spec-wide, above the list; nothing else is.
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+    // The info lists all three with their full numbers.
+    await tab.getByRole('button', { name: 'About the presets' }).click()
+    const info = page.getByRole('dialog', { name: 'The presets' })
+    await expect(info.getByRole('term')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
+    await expect(info).toContainText('9.5% more TPS, 6.4% more DPS and 21% more damage taken')
+    await expect(info).toContainText('13.9% more TPS, 6.9% more DPS and 41% more damage taken')
+    await page.keyboard.press('Escape')
+    await expect(tab.getByRole('button', { name: 'About the presets' })).toBeFocused()
+    // The preset first, then the consumables, spec-wide, above the list; nothing else is.
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Consumables', 'Priority list'])
     expect(await order(page)).toEqual(DEFAULT_ORDER)
-    // The pre-pull and the duties are pinned (D26's rule); the rest have handles.
-    for (const id of ['prepull', 'shieldBlock', 'thunderClap', 'demoShout']) await expect(row(page, id).getByText('Fixed in place:'), id).toHaveCount(1)
-    for (const id of ['bloodrage', 'shieldSlam', 'sunder', 'heroicStrike']) await expect(row(page, id).getByRole('button', { name: /^Move / }), id).toHaveCount(1)
-    // Balanced's rows: Shield Block and Sunder Armor's upkeep on, Thunder Clap, Demoralizing Shout and the filler off.
-    for (const id of ['shieldBlock', 'shieldSlam', 'revenge', 'sunder', 'heroicStrike']) await expect(rowSwitch(page, id), id).toBeChecked()
-    for (const id of ['thunderClap', 'demoShout', 'sunderFiller', 'execute']) {
+    // Only the pre-pull is pinned (D31); the duties have handles like the rest.
+    await expect(row(page, 'prepull').getByText('Fixed in place:')).toHaveCount(1)
+    for (const id of ['shieldBlock', 'thunderClap', 'demoShout', 'bloodrage', 'shieldSlam', 'sunder', 'heroicStrike']) {
+      await expect(row(page, id).getByRole('button', { name: /^Move / }), id).toHaveCount(1)
+    }
+    // Balanced's rows: Shield Block, Sunder Armor's upkeep and its filler from 60 on; Thunder Clap and Demoralizing Shout off.
+    for (const id of ['shieldBlock', 'shieldSlam', 'revenge', 'sunder', 'sunderFiller', 'heroicStrike']) await expect(rowSwitch(page, id), id).toBeChecked()
+    for (const id of ['thunderClap', 'demoShout', 'execute']) {
       await expect(rowSwitch(page, id), id).not.toBeChecked()
       await expect(row(page, id), id).toContainText('Off')
     }
     await expect(row(page, 'sunder')).toContainText('5 stacks · again with 1.5 s left')
-    await expect(row(page, 'heroicStrike')).toContainText('From 40 rage · any rage in the last 12 s')
+    await expect(row(page, 'sunderFiller')).toContainText('From 60 rage')
+    await expect(row(page, 'heroicStrike')).toContainText('From 84 rage · any rage in the last 12 s')
     // The default Protection warrior is a Human, whose racial cooldown isn't used, as for every spec.
     await expect(row(page, 'racial')).toContainText('Not used: Human has no racial cooldown that adds damage.')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
@@ -94,12 +108,14 @@ test.describe('Protection rotation', () => {
     await openProtectionRotation(page)
     await pick(page, 'Defensive')
     await expect(page.locator('[data-announcer]')).toHaveText('Rotation set to Defensive.')
-    // The duties and the filler on, Sunder Armor again with 3 s left, Heroic Strike from 76: none marked.
+    // The duties on, Sunder Armor again with 3 s left, the filler from 9, Heroic Strike from 76: none marked.
     for (const id of ['shieldBlock', 'thunderClap', 'demoShout', 'sunderFiller']) {
       await expect(rowSwitch(page, id), id).toBeChecked()
       await expect(rowSwitch(page, id), id).not.toHaveAccessibleDescription(/Changed/)
     }
+    await expect(preset(page)).toHaveAccessibleDescription('Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.')
     await expect(row(page, 'sunder')).toContainText('5 stacks · again with 3 s left')
+    await expect(row(page, 'sunderFiller')).toContainText('From 9 rage')
     await expect(row(page, 'heroicStrike')).toContainText('From 76 rage')
     await expect(row(page, 'thunderClap')).toContainText('Again with 6 s left')
 
@@ -113,6 +129,7 @@ test.describe('Protection rotation', () => {
     await expect(rowSwitch(page, 'shieldBlock')).toBeChecked()
     await expect(rowSwitch(page, 'shieldBlock')).toHaveAccessibleDescription(/^Changed\./)
     await expect(preset(page)).toHaveText('Custom')
+    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the list from every preset. Pick one to start again from it.')
     // So is a row moved: back to Max TPS, then Battle Shout above Shield Slam.
     await pick(page, 'Max TPS')
     await expect(rowSwitch(page, 'shieldBlock')).not.toBeChecked()
@@ -129,17 +146,21 @@ test.describe('Protection rotation', () => {
     await expect(page.getByRole('button', { name: 'Reset order' })).toBeDisabled()
   })
 
-  test('a duty’s place is fixed and says why; the refresh times follow the duty rule, Balanced’s Sunder Armor too (D26, D28)', async ({ page }) => {
+  test('a duty moves and keeps its refresh rule; the refresh times follow the duty rule, Balanced’s Sunder Armor too (D26, D28, D31)', async ({ page }) => {
     await openProtectionRotation(page)
     await pick(page, 'Defensive')
     const rule = 'follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off.'
     const tc = await openRow(page, 'Thunder Clap')
-    await expect(tc.getByText('Fixed at position 6 of 14')).toBeVisible()
-    await expect(tc.getByText('Its place is the tank duties’ rule: before any threat ability on the global cooldown, so it can’t be moved.')).toBeVisible()
-    await expect(tc.getByRole('button', { name: 'Move up' })).toHaveCount(0)
+    await expect(tc.getByText('Position 6 of 14')).toBeVisible()
     const thunderClap = tc.getByRole('textbox', { name: 'Thunder Clap again with' })
     await expect(thunderClap).toHaveValue('6')
     await expect(thunderClap).toHaveAccessibleDescription(new RegExp(`The default, 6 s \\(its cooldown\\), ${rule}$`))
+    // Moved below Shield Slam, it keeps its rule, and the list is Custom.
+    for (let i = 0; i < 2; i++) await tc.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect.poll(() => order(page)).toEqual([...DEFAULT_ORDER.slice(0, 5), 'demoShout', 'shieldSlam', 'thunderClap', ...DEFAULT_ORDER.slice(8)])
+    await expect(row(page, 'thunderClap')).toContainText('Again with 6 s left')
+    await expect(preset(page)).toHaveText('Custom')
+    await pick(page, 'Defensive')
     const demo = await openRow(page, 'Demoralizing Shout')
     const demoShout = demo.getByRole('textbox', { name: 'Demoralizing Shout again with' })
     await expect(demoShout).toHaveValue('1.5')
@@ -172,7 +193,7 @@ test.describe('Protection rotation', () => {
     await expect(thunderClap).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
   })
 
-  test('runs: Defensive makes more threat and less damage than Balanced, Max TPS more of both', async ({ page }) => {
+  test('runs: Defensive makes less threat and less damage than Balanced, Max TPS more of both', async ({ page }) => {
     await openProtectionRotation(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     const run = async () => {
@@ -192,7 +213,8 @@ test.describe('Protection rotation', () => {
     await pick(page, 'Defensive')
     await expect(results.getByRole('group', { name: 'TPS' })).toContainText('Setup changed')
     await run()
-    await expect(heard('TPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
+    // Balanced's filler from 60 and Heroic Strike from 84 on a faster, harder boss's rage: more of both (§5.4 "Balanced").
+    await expect(heard('TPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
     await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
     // The debuffs it keeps on the boss show their uptime and their attack's casts per fight (PU6).
     for (const name of ['Sunder Armor', 'Thunder Clap', 'Demoralizing Shout']) await expect(uptimeRow(name)).toBeVisible()
@@ -271,6 +293,9 @@ test.describe('Protection rotation on a phone', () => {
     // Measured once the menu's opening zoom has finished.
     for (const option of await page.getByRole('option').all()) await expect.poll(async () => (await option.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await page.getByRole('option', { name: 'Max TPS', exact: true }).tap()
+    // The line under the picker fits in three lines at 390 px.
+    const line = page.getByText(/^Shield Block, Thunder Clap and Demoralizing Shout dropped for threat/)
+    expect((await line.boundingBox())!.height).toBeLessThanOrEqual(3 * 20 + 1)
     await expect(preset(page)).toHaveText('Max TPS')
     await expect(rowSwitch(page, 'shieldBlock')).not.toBeChecked()
     await expect(rowSwitch(page, 'sunderFiller')).toBeChecked()

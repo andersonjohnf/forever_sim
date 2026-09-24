@@ -18,14 +18,14 @@ const DEFAULT_ORDER = [
   'holyShield',
   'judgement',
   'swiftJudgement',
-  'holyStrike',
   'hammerOfTheRighteous',
+  'holyStrike',
   'exorcism',
   'consecration',
   'consecrationRank1',
   'hammerOfWrath',
 ]
-const BALANCED_HELP = /^Balanced keeps Devotion Aura and Holy Shield up, as Defensive does, and is tuned for threat and damage together: Hammer of the Righteous in Holy Strike’s place, 0\.4% less TPS for 1\.3% more DPS/
+const BALANCED_LINE = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 
 async function openRotation(page: Page, url = PROTECTION) {
   await page.goto(url)
@@ -37,7 +37,7 @@ async function openRotation(page: Page, url = PROTECTION) {
 const preset = (page: Page) => page.getByRole('combobox', { name: 'Rotation preset' })
 const pick = async (page: Page, name: string) => {
   await preset(page).click()
-  await page.getByRole('option', { name, exact: true }).click()
+  await page.getByRole('option', { name: new RegExp(`^${name}( \\(default\\))?$`) }).click()
 }
 const list = (tab: Locator) => tab.getByRole('list', { name: 'Priority list' })
 const row = (tab: Locator, id: string) => tab.locator(`[data-apl-row="${id}"]`)
@@ -54,7 +54,13 @@ test.describe('Protection paladin rotation', () => {
     const tab = await openRotation(page)
     await expect(tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.', { exact: true })).toBeVisible()
     await expect(preset(page)).toHaveText('Balanced (default)')
-    await expect(preset(page)).toHaveAccessibleDescription(BALANCED_HELP)
+    await expect(preset(page)).toHaveAccessibleDescription(BALANCED_LINE)
+    // The info says why Balanced keeps Holy Strike (D28), with each preset's numbers.
+    await tab.getByRole('button', { name: 'About the presets' }).click()
+    const info = page.getByRole('dialog', { name: 'The presets' })
+    await expect(info).toContainText('Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation')
+    await expect(info).toContainText('3% more TPS and 3% more DPS than Defensive, for 6% more damage taken')
+    await page.keyboard.press('Escape')
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Cooldowns and buffs', 'Consumables', 'Priority list'])
     // The preset comes before everything else on the tab, as a tank's priority choice always did.
     expect((await preset(page).boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
@@ -66,15 +72,30 @@ test.describe('Protection paladin rotation', () => {
     await expect(row(tab, 'prepull')).toContainText('Devotion Aura · Righteous Fury · Judgement of the Crusader at the pull')
     await expect(row(tab, 'prepull').getByText('Fixed in place:')).toHaveCount(1)
     await expect(row(tab, 'seal')).toContainText('Seal of Fury · again with 2.5 s left')
-    for (const name of ['Holy Shield', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Hammer of the Righteous', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
+    for (const name of ['Holy Shield', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
       await expect(list(tab).getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab.getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
     await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
-    // Balanced's Hammer of the Righteous takes Holy Strike's place with the default axe, and Holy Strike's row says so.
-    await expect(row(tab, 'hammerOfTheRighteous')).toContainText('In Holy Strike’s place, on cooldown')
-    await expect(row(tab, 'holyStrike')).toContainText('Not used: Hammer of the Righteous takes its place (they share a cooldown).')
+    // Balanced keeps Holy Strike (D28); Hammer of the Righteous is off just above it. Turned on, it takes
+    // Holy Strike's place with the default axe, and Holy Strike's row says so; moved below it, it says why it isn't used.
+    const hammer = list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true })
+    await expect(hammer).not.toBeChecked()
+    await expect(row(tab, 'holyStrike')).toContainText('On cooldown')
+    await hammer.click()
+    await expect(row(tab, 'hammerOfTheRighteous')).toContainText('On cooldown, in Holy Strike’s place')
+    await expect(row(tab, 'holyStrike')).toContainText('Not used: Hammer of the Righteous, above it, takes its place (they share a cooldown).')
     await expect(row(tab, 'holyStrike')).toHaveAttribute('data-inactive')
+    await expect(preset(page)).toHaveText('Custom')
+    const hammerRow = await openRow(page, tab, 'Hammer of the Righteous')
+    await hammerRow.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect(row(tab, 'hammerOfTheRighteous')).toContainText(
+      'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.',
+    )
+    await expect(row(tab, 'holyStrike')).toContainText('On cooldown')
+    await pick(page, 'Balanced')
+    await expect(hammer).not.toBeChecked()
+    expect(await order(page)).toEqual(DEFAULT_ORDER)
     await expect(row(tab, 'consecration')).toContainText('Rank 5 · from 20% mana')
 
     // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
@@ -107,7 +128,7 @@ test.describe('Protection paladin rotation', () => {
     const tab = await openRotation(page)
     await pick(page, 'Defensive')
     await expect(preset(page)).toHaveText('Defensive')
-    await expect(preset(page)).toHaveAccessibleDescription(/^Defensive keeps your Devotion Aura up, \+735 armor, and is tuned for threat: Holy Strike/)
+    await expect(preset(page)).toHaveAccessibleDescription('Devotion Aura, Holy Shield and Holy Strike’s Iron Creed kept: the most survival. Tuned on threat.')
     await expect(page.locator('[data-announcer]')).toHaveText('Rotation set to Defensive.')
     await expect(list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true })).not.toBeChecked()
     await expect(row(tab, 'holyStrike')).toContainText('On cooldown')
@@ -116,7 +137,7 @@ test.describe('Protection paladin rotation', () => {
 
     await pick(page, 'Max TPS')
     await expect(preset(page)).toHaveText('Max TPS')
-    await expect(preset(page)).toHaveAccessibleDescription(/^Max TPS runs Retribution Aura instead of Devotion Aura for threat/)
+    await expect(preset(page)).toHaveAccessibleDescription('Retribution Aura instead of Devotion Aura, for threat: +3% TPS and 6% more damage taken than Defensive.')
     await expect(row(tab, 'prepull')).toContainText('Retribution Aura · Righteous Fury')
     const prepull = await openRow(page, tab, 'Before the pull')
     const devotion = prepull.getByRole('switch', { name: 'Devotion Aura', exact: true })
@@ -142,7 +163,7 @@ test.describe('Protection paladin rotation', () => {
     await pick(page, 'Defensive')
     await list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true }).click()
     await expect(preset(page)).toHaveText('Custom')
-    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the priority list from every preset. Pick one to start again from it.')
+    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the list from every preset. Pick one to start again from it.')
     await pick(page, 'Defensive')
     await expect(list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).toBeChecked()
     // Moving a row makes it Custom too; Reset order hands focus to the list's first row.
@@ -182,15 +203,15 @@ test.describe('Protection paladin rotation', () => {
     await expect(page.getByText('Custom selection.')).toHaveCount(0)
   })
 
-  test('a Balanced run shows Hammer of the Righteous, Righteous Fury up all fight, Holy Shield’s blocks, the mana rows’ mana, and the boss’s table with Holy Shield up', async ({ page }) => {
+  test('a Balanced run shows Holy Strike and not Hammer of the Righteous, Righteous Fury up all fight, Holy Shield’s blocks, the mana rows’ mana, and the boss’s table with Holy Shield up', async ({ page }) => {
     await openRotation(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     const breakdown = results.getByRole('region', { name: 'Threat by ability' })
     const line = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
-    await expect(line('Hammer of the Righteous')).toHaveCount(1)
-    await expect(line('Holy Strike')).toHaveCount(0)
+    await expect(line('Hammer of the Righteous')).toHaveCount(0)
+    await expect(line('Holy Strike')).toHaveCount(1)
     await expect(line('Holy Shield')).toContainText(/\d+\.\d blocks a fight$/)
     await expect(line('Holy Shield')).not.toContainText('crit')
     await expect(line('Reckoning')).toContainText(/\d+\.\d extra attacks a fight · \d+\.\d% crit/)

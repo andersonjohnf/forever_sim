@@ -74,6 +74,29 @@ test.describe('setup', () => {
     await expect(page.getByRole('tab', { name: 'Rotation', exact: true })).toHaveAttribute('aria-selected', 'true')
   })
 
+  // #8: a stored tab that no longer exists left no tab selected and no section showing, and a setup
+  // stored under another spec's key opened when you switched to that spec.
+  test('a malformed save falls back safely: an unknown tab opens Gear, and a misfiled setup is dropped', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const fury = { version: 1, spec: 'warrior-fury', race: 'horde-orc' }
+      const bySpec = { 'warrior-arms': { ...fury }, 'warrior-berserker': { version: 1, spec: 'warrior-arms' }, 'rogue-combat': 'garbage' }
+      const state = { config: fury, bySpec, section: 'stats', junk: { a: 1 } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    await expect(page.getByRole('tab', { name: 'Gear', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tabpanel', { name: 'Gear' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'Orc', exact: true })).toBeChecked()
+    // Arms opens on its own defaults, not on the Fury setup stored under its name.
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await expect(page.getByRole('button', { name: /^Spec: Arms Warrior/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'Human', exact: true })).toBeChecked()
+  })
+
   test('remembers the setup across reloads', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()

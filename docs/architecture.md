@@ -80,6 +80,11 @@ talent build, and what they changed stays theirs.
   holds `following: { [spec]: { gear: GearSlot[], talents: boolean } }`, worked out by comparison
   on every save (`following()`), for the current setup and each spec's last one. The setups
   themselves are saved whole, so an older copy of the app reading the save still gets a full setup.
+- **A load trusts nothing in the save** (`merge` in `setup-store.ts`): a state that isn't an object
+  reads as none, `bySpec` keeps only entries whose key is a spec id (`SPEC_IDS`) and whose setup is
+  that spec's, `section` falls back to Gear unless it's one of today's tabs (`SECTION_IDS`), and
+  unknown keys are dropped. A save from another version (`version` other than 1) goes through the
+  same merge (`migrate` passes it on) rather than being dropped with a console error.
 - **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
   The player's own slots go in first: a default item that would break a Unique rule with one of
   them, or a default two-hander beside their own off hand, leaves its slot as it was, and a

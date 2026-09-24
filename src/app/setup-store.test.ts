@@ -287,3 +287,90 @@ describe('the automatic save follows the defaults', () => {
     }
   })
 })
+
+// Issue #8: a stored save is untrusted. Unknown or malformed keys, and a tab that no longer exists,
+// fall back safely instead of breaking the app or putting one spec's setup under another.
+describe('a malformed automatic save', () => {
+  const KEY = 'forever-sim:setup'
+  const load = async () => {
+    await useSetup.persist.rehydrate()
+    await Promise.resolve()
+  }
+  const fury = fresh('warrior-fury', 'horde-orc')
+  const arms = fresh('warrior-arms', 'horde-troll')
+  const following = { 'warrior-fury': { gear: [], talents: false }, 'warrior-arms': { gear: [], talents: false } }
+  const seedRaw = (raw: string) => memory.set(KEY, raw)
+  const seed = (state: unknown, version: unknown = 1) => seedRaw(JSON.stringify({ state, version }))
+  beforeEach(() => {
+    useSetup.setState({ config: fresh('warrior-fury'), bySpec: {}, section: 'gear' })
+  })
+
+  test('a stored tab that no longer exists opens Gear', async () => {
+    for (const section of ['stats', 'constructor', 42, null, { id: 'gear' }]) {
+      useSetup.setState({ section: 'fight' })
+      seed({ config: fury, bySpec: {}, section, following })
+      await load()
+      expect(store().section, JSON.stringify(section)).toBe('gear')
+      expect(store().config.race).toBe('horde-orc')
+    }
+    seed({ config: fury, bySpec: {}, section: 'rotation', following })
+    await load()
+    expect(store().section).toBe('rotation')
+  })
+
+  test('drops setups stored under a spec the sim doesn’t know, or under another spec’s key', async () => {
+    const bySpec = { 'warrior-arms': fury, 'warrior-berserker': arms, toString: arms, constructor: arms, 'rogue-combat': 'garbage' }
+    // A key JSON can hold but an object literal can't set: it must not become the list's prototype.
+    const raw = JSON.stringify({ state: { config: fury, bySpec, section: 'gear', following }, version: 1 }).replace('"toString":', '"__proto__":')
+    seedRaw(raw)
+    await load()
+    const { bySpec: loaded } = store()
+    expect(Object.getPrototypeOf(loaded)).toBe(Object.prototype)
+    expect(Object.keys(loaded)).toEqual([])
+    // Arms opens on its own defaults, not on the Fury setup stored under its name.
+    store().setSpec('warrior-arms')
+    expect(store().config).toEqual(fresh('warrior-arms'))
+    store().setSpec('rogue-combat')
+    expect(store().config.spec).toBe('rogue-combat')
+  })
+
+  test('keeps a well-formed save’s other specs', async () => {
+    seed({ config: fury, bySpec: { 'warrior-arms': arms }, section: 'talents', following })
+    await load()
+    expect(store().section).toBe('talents')
+    store().setSpec('warrior-arms')
+    expect(store().config.race).toBe('horde-troll')
+  })
+
+  test('a save whose state isn’t a setup, or that isn’t JSON, opens the defaults', async () => {
+    for (const state of [null, 'text', 7, [fury], { config: 'garbage', bySpec: [arms], section: 'gear' }, { config: [1, 2], bySpec: 'x' }]) {
+      useSetup.setState({ config: fresh('warrior-fury'), bySpec: {}, section: 'fight' })
+      seed(state)
+      await expect(load(), JSON.stringify(state)).resolves.toBeUndefined()
+      expect(store().config.spec).toBe('warrior-fury')
+      expect(store().config.race).toBe(fresh('warrior-fury').race)
+      expect(store().bySpec).toEqual({})
+    }
+    seedRaw('{"state": {"config": ')
+    await expect(load()).resolves.toBeUndefined()
+    // Still usable: a change applies and saves.
+    store().update((c) => ({ ...c, race: 'horde-troll' }))
+    expect(JSON.parse(memory.get(KEY)!).state.config.race).toBe('horde-troll')
+  })
+
+  test('a save from another version of the app is read the same careful way, without an error', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      for (const version of [0, 2]) {
+        seed({ config: fury, bySpec: { 'warrior-arms': arms, bogus: arms }, section: 'nope', following }, version)
+        await load()
+        expect(store().config.race, String(version)).toBe('horde-orc')
+        expect(Object.keys(store().bySpec)).toEqual(['warrior-arms'])
+        expect(store().section).toBe('gear')
+      }
+      expect(error).not.toHaveBeenCalled()
+    } finally {
+      error.mockRestore()
+    }
+  })
+})

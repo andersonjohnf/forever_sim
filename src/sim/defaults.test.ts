@@ -112,20 +112,29 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     expect(listIds('horde-tauren')).toBe(16342) // Sergeant's Cape
   })
 
-  it('gives a Destruction warlock its sim-ranked list’s twins, and Affliction and Demonology the guide’s list', () => {
-    // docs/classes/warlock.md#73-gear: Destruction's own list, with the Arathi Basin main hand and the
-    // Rank 10 Dreadweave cowl and spaulders by faction; the Fire tome ranks second in the off hand.
+  it('gives each warlock its sim-ranked list’s twins, and Affliction its Shadow picks', () => {
+    // docs/classes/warlock.md#73-gear: each spec's own list, with the Arathi Basin main hand and the
+    // Rank 10 Dreadweave cowl and spaulders by faction; the Fire tome ranks second in Destruction's off hand.
     const slots: GearSlot[] = ['head', 'shoulder', 'mainHand', 'offHand']
-    expect(ids('warlock-destruction', 'horde-orc', slots)).toEqual([23255, 23256, 20214, 19315])
-    expect(ids('warlock-destruction', 'horde-undead', slots)).toEqual([23255, 23256, 20214, 19315])
-    expect(ids('warlock-destruction', 'alliance-human', slots)).toEqual([23310, 23311, 20070, 19315])
-    expect(ids('warlock-destruction', 'alliance-gnome', slots)).toEqual([23310, 23311, 20070, 19315])
+    for (const spec of ['warlock-destruction', 'warlock-demonology'] as const) {
+      expect(ids(spec, 'horde-orc', slots)).toEqual([23255, 23256, 20214, 19315])
+      expect(ids(spec, 'horde-undead', slots)).toEqual([23255, 23256, 20214, 19315])
+      expect(ids(spec, 'alliance-human', slots)).toEqual([23310, 23311, 20070, 19315])
+      expect(ids(spec, 'alliance-gnome', slots)).toEqual([23310, 23311, 20070, 19315])
+    }
     const tome = items.get(19311)!
     expect(tome.preRaidBis.filter((p) => p.spec.startsWith('warlock-'))).toEqual([{ spec: 'warlock-destruction', slot: 'offHand', rank: 2 }])
-    // The Shadow specs keep Wowhead's one warlock list: Blade of the New Moon, Maleki's Footwraps.
-    for (const spec of ['warlock-affliction', 'warlock-demonology'] as const) {
-      expect(ids(spec, 'horde-orc', ['head', 'feet', 'mainHand', 'offHand'])).toEqual([22074, 18735, 18372, 19315])
-    }
+    // Affliction, a Shadow build, keeps the Shadow items where they lead: Felcloth Gloves, Tome of
+    // Shadow Force, Skul's Ghastly Touch.
+    const aff: GearSlot[] = [...slots, 'hands', 'ranged']
+    expect(ids('warlock-affliction', 'horde-orc', aff)).toEqual([23255, 23256, 20214, 19309, 18407, 13396])
+    expect(ids('warlock-affliction', 'alliance-human', aff)).toEqual([23310, 23311, 20070, 19309, 18407, 13396])
+    // Ironbark Staff leads an Alliance warlock's two-handers; a Horde warlock can't wear it.
+    for (const spec of ['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)
+      expect(items.get(20069)!.preRaidBis.filter((p) => p.spec === spec)).toEqual([{ spec, slot: 'twoHand', rank: 1 }])
+    // The Scourge Invasion's items are event-only: no warlock list has them.
+    for (const id of [23124, 23125])
+      expect(items.get(id)!.preRaidBis.filter((p) => p.spec.startsWith('warlock-')), String(id)).toEqual([])
   })
 
   it('opens with the default race’s gear', () => {

@@ -315,8 +315,8 @@ describe('the engine’s warlock pieces (warlock.md §8)', () => {
   })
 })
 
-describe('Destruction’s sim-ranked gear (warlock.md §7.3)', () => {
-  // Paired runs (same seed, same fights) of the default Destruction setup with one item swapped.
+describe('the warlocks’ sim-ranked gear (warlock.md §7.3)', () => {
+  // Paired runs (same seed, same fights) of a default setup with its gear swapped.
   const dpsWith = (gear: Partial<SimConfig['gear']>) => {
     const d = fixed('warlock-destruction')
     const bundle = buildPlan({ ...d, gear: { ...d.gear, ...gear } })
@@ -333,26 +333,39 @@ describe('Destruction’s sim-ranked gear (warlock.md §7.3)', () => {
     expect(base - tome).toBeLessThan(5)
   })
 
-  it('beats the guide’s shared Shadow list it replaced', () => {
-    // The old default: Deathmist Mask and Wraps, Star of Mystaria, Amplifying Cloak, Robe of the Void,
-    // Sublime Wristguards, Skyshroud Leggings, Maleki's Footwraps, Skul's Ghastly Touch, the two Blackrock
-    // Depths rings, Eye of the Beast and Blade of the New Moon (447.6 DPS on seed 2701, §6.3).
-    const old = dpsWith({
-      head: { itemId: 22074, enchantId: 'arcanumFocus' },
-      neck: { itemId: 12103 },
-      back: { itemId: 18350 },
-      chest: { itemId: 14153, enchantId: 'chestGreaterStats' },
-      wrist: { itemId: 18497 },
-      hands: { itemId: 22077, enchantId: 'gloveMinorHaste' },
-      legs: { itemId: 13170, enchantId: 'arcanumFocus' },
-      feet: { itemId: 18735 },
-      ranged: { itemId: 13396 },
-      finger1: { itemId: 12543 },
-      finger2: { itemId: 12545 },
-      trinket2: { itemId: 13968 },
-      mainHand: { itemId: 18372, enchantId: 'weaponSpellPower' },
-    })
-    expect(dpsWith({}) / old).toBeGreaterThan(1.25)
+  // The old default of every warlock: Deathmist Mask and Wraps, Star of Mystaria, Champion's Dreadweave
+  // Spaulders, Amplifying Cloak, Robe of the Void, Sublime Wristguards, Ban'thok Sash, Skyshroud Leggings,
+  // Maleki's Footwraps, Skul's Ghastly Touch, the two Blackrock Depths rings, Briarwood Reed, Eye of the
+  // Beast, Blade of the New Moon and Therazane's Touch (Destruction 447.6 DPS on seed 2701, §6.3;
+  // Affliction 402.0; Demonology 534.2, §11.6).
+  const GUIDE: SimConfig['gear'] = {
+    head: { itemId: 22074, enchantId: 'arcanumFocus' },
+    neck: { itemId: 12103 },
+    shoulder: { itemId: 23256 },
+    back: { itemId: 18350 },
+    chest: { itemId: 14153, enchantId: 'chestGreaterStats' },
+    wrist: { itemId: 18497 },
+    hands: { itemId: 22077, enchantId: 'gloveMinorHaste' },
+    waist: { itemId: 11662 },
+    legs: { itemId: 13170, enchantId: 'arcanumFocus' },
+    feet: { itemId: 18735 },
+    ranged: { itemId: 13396 },
+    finger1: { itemId: 12543 },
+    finger2: { itemId: 12545 },
+    trinket1: { itemId: 12930 },
+    trinket2: { itemId: 13968 },
+    mainHand: { itemId: 18372, enchantId: 'weaponSpellPower' },
+    offHand: { itemId: 19315 },
+  }
+
+  // Each spec's own list beats the guide's by about a quarter or more (Destruction +31%, Affliction
+  // +25%, Demonology +24% over 20,000 fights; §7.3).
+  it.each(['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)('%s: its own list beats the guide’s shared Shadow list it replaced', (spec) => {
+    const run = (gear: SimConfig['gear']) => {
+      const bundle = buildPlan({ ...fixed(spec), gear })
+      return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
+    }
+    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.2)
   })
 })
 
@@ -369,6 +382,10 @@ describe('golden runs (fixed config and seed)', () => {
   //   list shared by every warlock: Mindfang, the Bloodvine Garb, the Dreadweave cowl, Rockfury Bracers
   //   and eight more swaps; 586.0 DPS over 20,000 fights on seed 2701, up from 447.6. Affliction's is
   //   unchanged.
+  // - The Destruction gear review (DG-1): Affliction wears its own sim-ranked list too (§7.3), with its
+  //   Shadow items where they lead (Felcloth Gloves, Tome of Shadow Force, Skul's Ghastly Touch):
+  //   402.07 → 503.79 here; 402.0 → 502.5 over 20,000 fights on seed 2701. Destruction's list lost its
+  //   event-only items and gained Ironbark Staff for the Alliance, neither worn: its result is unchanged.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

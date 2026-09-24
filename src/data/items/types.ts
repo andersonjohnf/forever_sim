@@ -423,6 +423,11 @@ export interface ItemDataMeta {
     specs: Partial<Record<PreRaidBisSpec, { name: string; source: PreRaidBisSource; note?: string }>>;
     /** Distinct item ids on the lists. */
     listedItems: number;
+    /**
+     * Items a list dropped, kept in the pool with no rank so saved setups and share links that wear
+     * them keep them (the file's `kept`).
+     */
+    kept: number[];
     /** Pool items on at least one list. */
     inPool: number;
     /** Pool items that are there only because of the lists (they fail the quality/level rule). */

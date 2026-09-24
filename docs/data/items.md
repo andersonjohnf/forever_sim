@@ -579,7 +579,12 @@ name and source. The run fails if a listed name differs from the client's name f
 
 "Pre-raid" here means gear from dungeons (Dire Maul, LBRS/UBRS, Stratholme, Scholomance, BRD
 and the rest), crafting, quests, reputation, world drops and BoEs, and PvP ranks up to Rank
-10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out. Doctrine §2
+10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out, but tradeable
+crafted items made from raid materials (Bloodvine's Zandalar patterns and Zul'Gurub's Bloodvine,
+Flarecore's Molten Core materials) count as pre-raid: a crafter can make and sell them. Event-only
+items, such as the Scourge Invasion's (Chains of the Lich and Staff of Balzaphon, from Balzaphon in
+Stratholme, who appears only during the invasion), aren't pre-raid sources: a sim-ranked list leaves
+them out, and a guide list that has one says so in its `note`. Doctrine §2
 allows only Classic Era guides, so every list comes from **Wowhead's WoW Classic pre-raid BiS
 guides as they stood in 2021, before Season of Mastery and TBC Classic**, with one exception:
 Wowhead's Classic mage guide has no Fire list, so `mage-fire` comes from **Icy Veins' Classic mage
@@ -623,14 +628,25 @@ heal ([warrior Q30](../classes/warrior.md#9-open-questions)). No other list has 
 filter doesn't keep it, so it's out of the pool; the lists' trinket ranks run 1, 2 and 4. The
 default gear is unchanged, since it wears ranks 1 and 2.
 
-**Sim-ranked lists.** Where no allowed guide fits a spec's default build, the sim ranks the list
-itself, as the [Forever caveat](#forever-caveat) asks: the candidates are the pool's pre-raid items
-for the spec's stats (no raid drops, no Forever-new items until their sources are known, PvP Rank 10
-or lower), a slot-by-slot paired search picks rank 1, and paired runs in that set rank the rest.
-Within the 95% interval, a guide's pick keeps its place. The spec keeps its guide as `source`, since
-the guide's picks are among the candidates, and its `note` says how the list was ranked. So far that's
-`warlock-destruction`: Wowhead's one warlock list is a Shadow list, and Destruction's default is a
-Fire build ([warlock.md §7.3](../classes/warlock.md#73-gear)).
+**Sim-ranked lists.** Where no allowed guide fits a spec's default build in Forever, the sim ranks
+the list itself, as the [Forever caveat](#forever-caveat) and
+[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)
+ask ("guides supply candidates"): a build the guide never considered, or items Forever re-itemized past
+the guide's picks. The candidates are the pool's pre-raid items for the spec's stats (no raid drops, no
+event-only items, no Forever-new items until their sources are known, PvP Rank 10 or lower), a
+slot-by-slot paired search picks rank 1, and paired runs in that set rank the rest, close calls on a
+direct paired run. Within the 95% interval, a guide's pick keeps its place. The spec keeps its guide as
+`source`, since the guide's picks are among the candidates, and its `note` says how the list was
+ranked. So far that's the three warlocks ([warlock.md §7.3](../classes/warlock.md#73-gear)): Wowhead's
+one warlock list is a Shadow list written for Classic Era's items, Destruction's and Demonology's
+defaults are Fire builds, and Forever gave the Arathi Basin daggers +94 spell power `[?]`. Frost, Arcane
+and Shadow keep their guide lists with that dagger added at rank 1 (DG-2); ranking them too is a known
+gap.
+
+**Kept items.** When a list change leaves an item on no list, and the level rule wouldn't keep it, the
+file's `kept` section keeps it in the pool with no rank (`meta.preRaidBis.kept`), so saved setups and
+share links that wear it keep it. So far that's the five items only Wowhead's warlock list had (Deathmist
+Mask, Felcloth Robe and Pants, Band of the Unicorn, Inventor's Focal Sword).
 
 ### Coverage
 

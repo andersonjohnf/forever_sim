@@ -244,9 +244,10 @@ Dark Pact isn't in Forever, so Life Tap is the mana ability.
 ### 6.3 First-pass defaults (D27)
 
 One search over the biggest settings, 20,000 fights on seed 2701 each, the default setup otherwise
-(Orc, the guide's pre-raid list, the Standard raid buffs). DPS ± the 95% interval. Destruction has
-since worn its own list (§7.3), where its default deals 586.0 and the Fire choices still lead: the
-Shadow Bolt filler loses 10.8% and the Imp 4.5% (paired, 20,000 fights on seed 2701).
+(Orc, the guide's pre-raid list, the Standard raid buffs). DPS ± the 95% interval. Every warlock has
+since worn its own list (§7.3): Destruction's default deals 586.0 there and the Fire choices still lead
+(the Shadow Bolt filler loses 10.8% and the Imp 4.5%, paired, 20,000 fights on seed 2701), and
+Affliction's deals 502.5.
 
 | Destruction (with the Imp, Shadow Bolt, no Shadowburn: the Classic priority) | DPS |
 | --- | --- |
@@ -313,22 +314,30 @@ that adds damage. Classic Era had no Troll warlock; Forever does (CharBaseInfo) 
 Cloth; daggers and swords, staves, wands and an item held in the off hand [C]. A caster doesn't swing
 its weapon: its stats count, its procs don't. The lists are in `scripts/scrape/pre-raid-bis.json`.
 
-**Affliction and Demonology** wear Wowhead's Classic warlock guide as archived on 2021-05-18 ([wh-bis]),
-a Shadow list: its random-suffix "of Shadow Wrath" items are left out, since the item pool has only
-their base items.
+**Every warlock wears its own list, ranked by the sim** ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24);
+[items.md "Forever caveat"](../data/items.md#forever-caveat): let the sim decide). Wowhead's one Classic
+warlock guide, archived on 2021-05-18 ([wh-bis]), is a Shadow list written for Classic Era's items. It
+never considers the Fire items the Fire builds can use (Destruction's, §7.1, and Demonology's, whose
+buffs are all Fire, §11.6; issue #16), and Forever re-itemized its main hand past it: Mindfang and
+Sageclaw carry +94 spell power in Forever (Classic Era: +30), worth +41 to +55 DPS on their own. That +94
+is the derived caster-weapon rule's estimate `[?]`: the rule was fitted on Rare weapons and these are
+Epic ([client.md "Caster weapons"](../data/client.md#weapon-damage), open question in
+[client.md](../data/client.md#open-questions)). The guide's picks are among the candidates.
 
-**Destruction** wears its own list, **ranked by the sim** ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24);
-[items.md "Forever caveat"](../data/items.md#forever-caveat): let the sim decide). The guide's one list
-never considers the Fire items the default Fire build (§7.1) can use (issue #16). The candidates are
-every pool item a warlock can wear with spell damage of any school, spell hit or crit, Intellect or an
-effect, from pre-raid sources: dungeons, quests, reputation, crafting, world drops and PvP Rank 10 or
-lower. Raid drops (Zul'Gurub, Ruins of Ahn'Qiraj), Forever-new items (no known source yet) and
-random-suffix items are left out, and so are four weapons whose Classic Era source couldn't be
-confirmed (Verimonde's Last Resort and Shivsprocket's Shiv, which would rank second and third in the
-main hand, Whiteout Staff and Amethyst War Staff). A slot-by-slot paired search from the guide's gear
-(the default Orc setup, 6,000 fights a candidate on seed 2701) swapped items until no swap helped.
-Each slot's alternatives are then ranked by their paired DPS in the finished set (20,000 fights). Within
-the 95% interval the guide's pick keeps its place. The list's `note` has the details.
+The candidates are every pool item a warlock can wear with spell damage of any school, spell hit or
+crit, Intellect or an effect, from pre-raid sources: dungeons, quests, reputation, crafting, world drops
+and PvP Rank 10 or lower. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); **event-only items**,
+from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and
+the invasion's other bosses' loot: [items.md "Sources"](../data/items.md#sources-c)); Forever-new items
+(no known source yet); random-suffix items; and four weapons whose Classic Era source couldn't be
+confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power
+`[?]`; they would rank second and third in the main hand), Whiteout Staff (it would lead a Horde
+warlock's two-handers; the Alliance's leader is Ironbark Staff, below) and Amethyst War Staff. A
+slot-by-slot paired search from the guide's gear (each spec's default Orc setup, 6,000 fights a
+candidate on seed 2701) swapped items until no swap helped. Each slot's alternatives are then ranked
+by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000
+fights). Within the 95% interval the guide's pick keeps its place. Each list's `note` has the details,
+and the sources no guide gave cite Wowhead Classic ([wh-items]).
 
 **What +1 is worth** to the default Destruction setup, in DPS a point (paired: +20 of a stat, or 1%
 of hit or crit, on 20,000 fights on seed 2701; the intervals are ±0.01 a point for spell damage, ±0.25
@@ -348,12 +357,12 @@ pick keeps the place. Spell penetration is worth the most a point, since Forever
 boss's resistance below 0 ([spells §3](../mechanics/spells.md#3-resistances)), but among the
 candidates only Sorcerer's Robes carries any (+5), and it ranks well below the list's chests.
 
-The default set, and each swap's gain: alone on the guide's gear, and left out of the new set (paired,
-20,000 fights on seed 2701, ±0.4 or better):
+Destruction's set, and each swap's gain: alone on the guide's gear, and left out of the new set
+(paired, 20,000 fights on seed 2701, ±0.4 or better):
 
 | Slot | Guide's gear | Destruction's list | Alone | Left out |
 | --- | --- | --- | --: | --: |
-| Main hand | Blade of the New Moon | **Mindfang** (Horde) / Sageclaw (Alliance), Arathi Basin Exalted: +94 spell power in Forever (Classic Era: +30) | +55.2 | +58.0 |
+| Main hand | Blade of the New Moon | **Mindfang** (Horde) / Sageclaw (Alliance), Arathi Basin Exalted: +94 spell power in Forever `[?]` (Classic Era: +30) | +55.2 | +58.0 |
 | Head | Deathmist Mask | Champion's / Lieutenant Commander's Dreadweave Cowl (Rank 10): the Dreadgear 2-piece, +23 spell power | +13.7 | +14.3 |
 | Feet | Maleki's Footwraps | Bloodvine Boots | +12.3 | +22.8 |
 | Wrist | Sublime Wristguards | Rockfury Bracers | +12.2 | +13.0 |
@@ -367,11 +376,57 @@ The default set, and each swap's gain: alone on the guide's gear, and left out o
 | Back | Amplifying Cloak | Crystalline Threaded Cape | +1.7 | +2.0 |
 
 Shoulders (Champion's Dreadweave Spaulders), waist (Ban'thok Sash), the first trinket (Briarwood Reed)
-and the off hand (Therazane's Touch) stay. The Bloodvine 3-piece and the Dreadgear 2-piece beat 4 and
-6 Dreadgear pieces (−4 to −42 DPS). **Destruction's default goes from 447.6 to 586.0 DPS** (+30.9%;
-586.2 on seed 1). The gain is the gear, not the spec: on the same set, Demonology deals 663.7 and
-Affliction 497.4, so the order of §6.3 and §11.6 holds. Sim-ranked lists for the Shadow specs, whose
-guide gear leaves the same gain (Mindfang alone is most of it), are a known gap.
+and the off hand (Therazane's Touch) stay. The Bloodvine 3-piece and the Dreadgear 2-piece beat more
+Dreadgear: paired in the finished set, 4 pieces lose 20 to 31 DPS, 5 lose 30 and 6 lose 42 (the
+Destruction gear review's figures; the first draft's "−4 to −42" came from an earlier base).
+
+**Demonology** ends on the same set (the search stopped on Sandworm Skin Gloves and Ritssyn's Wand of
+Bad Mojo, which tie Hands of Power, −0.06 ± 0.23, and Bonecreeper Stylus, +0.04 ± 0.33, so the guide's
+picks keep the places). Its swaps' gains, alone on the guide's gear and left out of the new set: Mindfang
++50.5 / +53.2, the Dreadweave cowl +13.9 / +14.6, Rockfury Bracers +13.0 / +14.4, Bloodvine Boots +7.4 /
++19.5, Bloodvine Leggings +7.3 / +19.3, Bloodvine Vest +1.0 / +14.0, the rest under 6 each. More
+Dreadgear loses 22 to 37 DPS (4 pieces) and 47 (6).
+
+**Affliction**, a Shadow build, keeps the Shadow items where they lead: Felcloth Gloves (+33 Shadow),
+Tome of Shadow Force (+34 Shadow) and Skul's Ghastly Touch; the rest is Destruction's set. Its swaps'
+gains, alone on the guide's gear and left out of the new set:
+
+| Slot | Guide's gear | Affliction's list | Alone | Left out |
+| --- | --- | --- | --: | --: |
+| Main hand | Blade of the New Moon | Mindfang / Sageclaw | +41.2 | +42.7 |
+| Head | Deathmist Mask | Champion's / Lieutenant Commander's Dreadweave Cowl | +12.5 | +12.4 |
+| Wrist | Sublime Wristguards | Rockfury Bracers | +10.0 | +10.6 |
+| Legs | Skyshroud Leggings | Bloodvine Leggings | +5.1 | +11.2 |
+| Trinket | Eye of the Beast | Royal Seal of Eldre'Thalas | +6.8 | +6.7 |
+| Neck | Star of Mystaria | Orb of the Darkmoon | +6.7 | +6.0 |
+| Feet | Maleki's Footwraps | Bloodvine Boots | +0.3 | +6.7 |
+| Hands | Deathmist Wraps | Felcloth Gloves | +5.4 | +4.6 |
+| Chest | Robe of the Void | Bloodvine Vest | −2.1 | +4.9 |
+| Rings | Songstone of Ironforge, Eye of Orgrimmar | Elemental Focus Band, Rune Band of Wizardry | +2.2, +1.7 | +2.3, +1.8 |
+| Back | Amplifying Cloak | Crystalline Threaded Cape | +1.5 | +1.6 |
+| Off hand | Therazane's Touch | Tome of Shadow Force | +1.5 | +1.6 |
+
+More Dreadgear loses Affliction 17 to 23 DPS (4 pieces) and 34 (6). Rune of the Guard Captain (Forever's
++7 hit rating) beats Eye of the Beast for its fourth trinket by 0.21 ± 0.15.
+
+**Two-handers.** Ironbark Staff (League of Arathor Exalted: +94 spell power `[?]` and 2% spell crit)
+leads an Alliance warlock's, ahead of Lord Valthalak's Staff (paired, a Human in each spec's set: −12.9,
+−13.9 and −11.9 DPS against Sageclaw and the off hand for Destruction, Affliction and Demonology;
+Lord Valthalak's −54.1, −48.7 and −52.7). A Horde warlock can't wear it, and its best is Lord
+Valthalak's. Whiteout Staff (left out, above) would be second for the Alliance (−32.4 for Destruction).
+
+**The defaults** (20,000 fights on seed 2701):
+
+| Spec | The guide's list | Its own list | Gain |
+| --- | --: | --: | --: |
+| Destruction | 447.6 | **586.0** | +30.9% (586.2 on seed 1) |
+| Affliction | 402.0 | **502.5** | +25.0% |
+| Demonology | 534.2 | **663.7** | +24.2% |
+
+The order of §6.3 and §11.6 holds: Demonology leads Destruction by 13%, and Affliction trails it by
+14%. The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
+Band of the Unicorn and Inventor's Focal Sword) stay in it with no rank, so saved setups and share links
+that wear them keep them ([items.md](../data/items.md#pre-raid-bis-lists)).
 
 ### 7.4 Enchants and consumables
 
@@ -689,8 +744,8 @@ So Demonology defaults to the sim's best found build (D30): the **Imp out and th
 sacrificed**, with Soul Fire below 35%, Immolate, Corruption and Bane of Doom, and Life Tap at 10%.
 Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.2%. The default is **+19%** on
 Destruction's default (447.6, §6.3), the build Classic Era's warlocks raided with, and +42% on the
-same talents with no demon out (376.0). Both on the guide's list: Destruction now wears its own
-(§7.3, 586.0), and on that set Demonology deals 663.7, still 13% ahead.
+same talents with no demon out (376.0). Both on the guide's list: every warlock now wears its own
+(§7.3), Destruction's default deals 586.0 and Demonology's 663.7, still 13% ahead.
 
 **Its lead rests on Q19 [?].** The Imp leads the Succubus by 6% only through the sim's reading of
 Improved Imp's hidden effect as Firebolt's cast time: without it the default deals 476.6, 5% below the
@@ -709,8 +764,9 @@ The other Demonology points add no DPS in the sim (Demonic Embrace, Master Summo
 Q21's, not cast), so they only fill the tiers, and the optimizer's talent search (O4) takes up the
 rest.
 
-**Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, the same pre-raid list,
-the caster enchants, the Standard raid's elixirs and mana potion. The Talents tab has the build as a
+**Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, its own sim-ranked
+pre-raid list (§7.3; the same set as Destruction's), the caster enchants, the Standard raid's elixirs and
+mana potion. The Talents tab has the build as a
 preset.
 
 ### 11.7 Open questions
@@ -785,11 +841,13 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    Succubus out and the Imp sacrificed, Burning Shadow × Master Demonologist × Soul Link, the same
    **×1.30295** on your Shadow spells.
 8. **What the Succubus inherits, out with the Imp sacrificed** (§11.2; ranged-and-pets §6.1): attack
-   power 240 + 0.1 × 138 = **253.8**; on its swings your **9.65%** melee crit and 2% hit (the gear's
-   hit rating), so against the boss its special table crits 9.65 − 0.6 (its skill of 300) − 1.8 (aura
-   crit) = **7.25%** and misses 8 − 2 = **6%**. Lash of Pain's spell damage 60 + 0.1 × 486 (426 Shadow
-   + your Demonic Knowledge's 60) = **108.6**, so `(50 + 0.429 × 108.6) × 1.2 × 1.1 × 1.133` =
-   **144.46**; it crits at your spell crit, **11.73%**, and misses 17 − 4 = **13%**.
+   power 240 + 0.1 × 138 = **253.8**; on its swings your **11.65%** melee crit and 5% hit (the gear's
+   hit rating), so against the boss its special table crits 11.65 − 0.6 (its skill of 300) − 1.8 (aura
+   crit) = **9.25%** and misses 8 − 5 = **3%**. Lash of Pain's spell damage 60 + 0.1 × 634 (574 Shadow
+   + your Demonic Knowledge's 60) = **123.4**, so `(50 + 0.429 × 123.4) × 1.2 × 1.1 × 1.133` =
+   **153.95**; it crits at your spell crit, **14.42%**, and misses 17 − 7 = **10%**. (On Demonology's
+   sim-ranked list since 2026-09-24, §7.3; on the guide's list it was 9.65% and 2% hit, 486 Shadow,
+   108.6, 144.46, 11.73% and 13%.)
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
 
 ---
@@ -807,6 +865,14 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
   https://web.archive.org/web/20210619035247/https://www.warcrafttavern.com/wow-classic/guides/warlock-pve-dps/
 - [wh-bis] Wowhead, *Classic Warlock Best in Slot Pre-Raid Gear Guide*, archived 2021-05-18:
   https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear
+- [wh-items] Wowhead Classic item pages, for the sim-ranked lists' sources that no guide gave (Classic
+  Era [C]; the lists' `notes` carry each link): Mantle of the Timbermaw
+  https://www.wowhead.com/classic/item=19050, Argent Shoulders https://www.wowhead.com/classic/item=19059,
+  Frostwolf Cloth Belt https://www.wowhead.com/classic/item=19090, Stormpike Cloth Girdle
+  https://www.wowhead.com/classic/item=19094, Leggings of Torment https://www.wowhead.com/classic/item=22342,
+  Ironbark Staff https://www.wowhead.com/classic/item=20069; the Scourge Invasion's, left out as
+  event-only: Chains of the Lich https://www.wowhead.com/classic/item=23125 and Staff of Balzaphon
+  https://www.wowhead.com/classic/item=23124.
 - [mangos-stats] https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql
   and `player_classlevelstats.sql` (D24 placeholders, not evidence).
 - [ws-base] https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go (placeholder origin).

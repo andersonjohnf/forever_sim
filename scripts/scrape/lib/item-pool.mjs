@@ -380,7 +380,8 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
     const cRow = classic.ctx.sparse.get(id);
     const bundle = fRow ? forever : classic;
     const row = fRow ?? cRow;
-    const listed = bis.byId.has(id);
+    // docs/data/items.md#pre-raid-bis-lists: a list's items, and the items a list dropped (kept, no rank).
+    const listed = bis.byId.has(id) || (bis.kept?.has(id) ?? false);
     if (!byRule(row) && !listed && !supplyRule(row, bundle.ctx.item.get(id))) continue;
     // Season of Discovery guard: an original Classic id, or an item only Forever has.
     if (!(id < filter.maxClassicItemId || (fRow && !cRow))) {

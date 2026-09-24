@@ -853,7 +853,7 @@ Lightning Bolt as an always-on filler row.
 | Enchants | Greater Stats on the chest. The caster enchants (Spell Power on the weapon, Arcanum of Focus, Zandalar Signet of Mojo) aren't in the sim's enchant catalogue yet | [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec) |
 | Totems | Mana Spring (your own); the raid's others don't help a caster | [Totems](#totems) |
 | Buffs | the Standard raid preset: Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Blessing of Kings, Curse of the Elements (a warlock's; the casters' entry), Moonkin Aura (a druid's, +3% crit; the casters' entry, as Leader of the Pack is the melee's). No Windfury Totem, stones or other melee entries: you never swing, so the Buffs tab doesn't list them. **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | [buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset) |
-| Consumables | Standard raid: Greater Arcane Elixir, Major Mana Potion. Max adds Flask of Supreme Power and Demonic Rune. Nightfin Soup and Brilliant Wizard Oil aren't in the catalogue yet | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
+| Consumables | Standard raid: Greater Arcane Elixir, Nightfin Soup (+22 spell damage), Brilliant Wizard Oil (+36 and +1% spell crit, on your main hand though you never swing it), Major Mana Potion: the caster food and oil came with the Protection paladin's threat fixes (T2), +9.6% DPS. Max adds Flask of Supreme Power and Demonic Rune | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
 | Rotation | [the priority list](#forever-priority-list-default-1) with its first-pass defaults | [Elemental first-pass defaults](#elemental-first-pass-defaults) |
 
 ### Elemental first-pass defaults
@@ -942,9 +942,10 @@ Each with its effect on the default setup's DPS, per
   a 3-minute fight, about +0.6%.
 - **E8: Alliance gear.** The list's honor mail and weapons are Horde's, with no Alliance counterpart
   that has spell power, so a Dwarf takes the next rank: 15% less. *Effect:* Alliance only.
-- **E9: the caster enchants and consumables** (Spell Power, Arcanum of Focus, Zandalar Signet of
-  Mojo, Brilliant Wizard Oil, Nightfin Soup) aren't in the catalogue yet: about 110 spell damage in
-  all, roughly +12%. They're shared with the other casters.
+- **E9: the caster enchants** (Spell Power on the weapon, Arcanum of Focus) are in the catalogue
+  (the warlock's slice) but not the Elemental defaults yet, and Zandalar Signet of Mojo waits on
+  Zandalar: about 50 spell damage, roughly +5%. The caster food and oil (Nightfin Soup, Brilliant
+  Wizard Oil) are in the Standard raid since T2.
 - **E10: the core's [?]s** apply as spells.md has them: the level-based resistance (OQ-S2), DoT
   crits (OQ-S4), the GCD under casting speed (OQ-S7) and the partial resist on each tick (OQ-S3).
 

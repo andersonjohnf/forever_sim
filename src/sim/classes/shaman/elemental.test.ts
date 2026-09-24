@@ -278,8 +278,8 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
     const { list } = events(bundle.plan)
     expect(list.some((e) => e.kind === 'swing')).toBe(false)
     const unarmed = buildPlan({ ...d, gear: { ...d.gear, mainHand: undefined } })
-    // Mindfang's 94 spell power.
-    expect(bundle.sheet.spell!.caster!.schoolDamage.nature - unarmed.sheet.spell!.caster!.schoolDamage.nature).toBe(94)
+    // Mindfang's 94 spell power, and the Brilliant Wizard Oil on it (36; buffs doc §3.6).
+    expect(bundle.sheet.spell!.caster!.schoolDamage.nature - unarmed.sheet.spell!.caster!.schoolDamage.nature).toBe(94 + 36)
     const ids = bundle.assumptions.map((a) => a.id)
     for (const id of ['foreverHitTable', 'foreverGlancing', 'critSuppression', 'hasteNextSwing', 'noWeaponShaman', 'lightningBoltCast', 'manaRegenShaman', 'shamanTotems']) expect(ids).not.toContain(id)
     for (const id of ['elementalSpells', 'manaRegenElemental', 'elementalFocus', 'lightningOverload', 'manaTideTotem', 'lightningBoltDownrank', 'elementalTotems', 'reactionTimeMana']) expect(ids).toContain(id)

@@ -480,9 +480,10 @@ slice is worked:
   feed the plan; the engine side is tested (CV3 in
   [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).
 - **The Shadow Priest's gaps** (K4, [priest.md](classes/priest.md#9-open-questions)):
-  - **No caster enchants in the catalogue** (Arcanum of Focus, the +30 Spell Power weapon, Mana
-    Oil), nor Brilliant Wizard Oil among the consumables: the priest's defaults are Greater Stats
-    and Minor Haste only (priest.md §7.4). A few percent of DPS.
+  - **The caster enchants aren't in its defaults** (Arcanum of Focus, the +30 Spell Power weapon),
+    though the catalogue has them, and Brilliant Mana Oil isn't in the catalogue: the priest's
+    enchants are Greater Stats and Minor Haste only (priest.md §7.4). Brilliant Wizard Oil is in the
+    catalogue since T2, in no priest preset (the buffs doc's §6.3 gives it none). A few percent of DPS.
   - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
   - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
     power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).
@@ -529,9 +530,10 @@ slice is worked:
     Nature-, Frost- and Fire-only spell damage lines count; its default result and golden didn't
     move ([shaman.md](classes/shaman.md#enhancement-on-the-core)).
 - **The Elemental shaman's first-pass gaps** (K5, [shaman.md](classes/shaman.md#elemental-open-questions)):
-  - **Caster enchants and consumables** (Spell Power on the weapon, Arcanum of Focus, Zandalar
-    Signet of Mojo, Brilliant Wizard Oil, Nightfin Soup) aren't in the catalogue: about 110 spell
-    damage, roughly +12% for an Elemental shaman; the mages have the same gap ([mage.md](classes/mage.md)) (E9).
+  - **Caster enchants** (Spell Power on the weapon, Arcanum of Focus) are in the catalogue but not
+    its defaults, and Zandalar Signet of Mojo waits on Zandalar: about 50 spell damage, roughly +5%
+    for an Elemental shaman; the mages have the same gap ([mage.md](classes/mage.md)) (E9). Nightfin
+    Soup and Brilliant Wizard Oil are in its Standard raid since T2.
   - **Eye of the Beast's use** (+7% spell hit for 20 s) needs a spell-hit aura mod (E7).
   - **Alliance gear**: the pre-raid list's honor mail and weapons are Horde's, and the Alliance's
     honor chain has no spell power, so a Dwarf is 15% behind (E8).
@@ -565,8 +567,11 @@ slice is worked:
   Mana Spring share the water totem slot; Totemic Focus should make Mana Tide cost 45; two notes
   repeat that casting speed doesn't shorten the GCD; a stale comment range; Totem of the Storm's
   card shows no stats.
-- **Caster enchants and consumables** (weapon spell power, Arcanum of Focus, Brilliant Wizard Oil,
-  Nightfin Soup) are partly missing from the catalogue, roughly +12% for a caster.
+- **Caster enchants in the casters' defaults:** the catalogue has weapon Spell Power, Arcanum of
+  Focus, Nightfin Soup and the wizard oils (T2), but only the warlock's and the Protection paladin's
+  enchant defaults use the enchants, and only the Elemental shaman's and the Protection paladin's
+  Standard raids the food and oil (buffs doc §6.3, §6.4). The mages, the priest and the Elemental
+  shaman lack the enchants, roughly +5% each; the optimizer (O2) will pick them.
 - **A flaky e2e test:** `tank-results.spec.ts`'s "the results sheet has damage taken and the boss's
   table, inside the screen" (phone) fails about 1 run in 15, on main as well; it passes on rerun.
   Find the timing it depends on.

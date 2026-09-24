@@ -575,13 +575,15 @@ Setting ids are `mage.arcane.<x>`.
 | Gear | Fire: Icy Veins' Classic mage pre-raid list; Frost and Arcane: Wowhead's ([Races and gear](#races-and-gear)) | [pre-raid BiS](../data/items.md#pre-raid-bis-lists) [C] |
 | Enchants | **Greater Stats on the chest** only | the enchant catalogue has no caster enchants yet (a known gap: spell damage on the weapon, head, legs, gloves and shoulders) |
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): the caster core's **Curse of the Elements**, Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring Totem, Moonkin Aura (the casters' party crit aura). Nothing that changes only attacks (Battle Shout, Windfury Totem, Sunder Armor, …): those are the melee's, not listed for a mage ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)). **Power Infusion off** (another priest's cooldown; an option). **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |
-| Consumables | Standard raid: **Greater Arcane Elixir**, **Major Mana Potion**. Max adds **Flask of Supreme Power** and the **Demonic Rune** | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset); [Wowhead consumables][wh-consumables] [C] |
+| Consumables | Standard raid: **Greater Arcane Elixir**, **Major Mana Potion**. Max adds **Flask of Supreme Power**, the **Demonic Rune**, **Nightfin Soup** (+22 spell damage) and **Brilliant Wizard Oil** (+36, +1% spell crit) | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset); [Wowhead consumables][wh-consumables] [C] |
 | Rotation | the priority lists above with their first-pass defaults | [First-pass defaults](#first-pass-defaults) |
 
 Wowhead's Classic consumables list also has Brilliant Wizard Oil ("the best Weapon Oil in the game"),
 Elixir of Frost Power, Mageblood, Nightfin Soup and Runn Tum Tuber Surprise [C]
-([consumables][wh-consumables]). None is in the catalogue yet (a known gap); Brilliant Wizard Oil's
-Forever values are in the [buffs doc](../mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary).
+([consumables][wh-consumables]). Brilliant Wizard Oil and Nightfin Soup (+22 spell damage in Forever)
+are in the catalogue since the Protection paladin's threat fixes (T2), and in the Max-consumables
+preset ([buffs §3.4, §3.6](../mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary));
+the others aren't yet (a known gap).
 Wowhead's Elixir of Greater Firepower (21546) is Forever's Elixir of Holy Power (Holy only), which does
 nothing for a mage.
 

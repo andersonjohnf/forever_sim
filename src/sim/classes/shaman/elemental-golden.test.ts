@@ -25,6 +25,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Potion at 2,250, Flame Shock kept up, Lava Burst, Chain Lightning with Clearcasting, Lightning
   //   Bolt rank 10 from 10% mana and rank 4 below. On this seed's 1,000 fights, DPS 338.00 and TPS
   //   242.32 (Blessing of Salvation’s −30%); 4,735 mana, 13,994 spent a fight.
+  // - T2 (M5.6): the caster food and oil reach the catalogue, and the Standard raid brings the buffs
+  //   doc's §6.3 Elemental consumables, Nightfin Soup (+22 spell damage) and Brilliant Wizard Oil
+  //   (+36 and +1% spell crit, on Mindfang): DPS 338.00 → 370.34, TPS 242.32 → 264.19.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

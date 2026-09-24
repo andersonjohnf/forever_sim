@@ -45,6 +45,8 @@ const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 const SHAMAN: SpecId[] = ['shaman-enhancement']
 /** The Elemental shaman (docs/classes/shaman.md#elemental-defaults): a caster, which never swings. */
 const ELEMENTAL: SpecId[] = ['shaman-elemental']
+/** The mages (docs/classes/mage.md#defaults): the caster food and oil are in their Max consumables (§6.3). */
+const MAGES: SpecId[] = ['mage-fire', 'mage-frost', 'mage-arcane']
 /** The classes that spend mana in their rotations: the paladin and the shaman (buffs doc, class-only entries). */
 const MANA_USERS: readonly ClassId[] = ['paladin', 'shaman']
 /** The rogue specs, and entries only a rogue can use (its poisons, docs/classes/rogue.md §4). */
@@ -1044,7 +1046,8 @@ export const BUFFS: BuffSpec[] = [
     // Classic Era's is Mana Regeneration 18194, 8 mana every 5 s [C] (SpellEffect, 1.15.9.69722).
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 22 }],
     classicEra: { summary: '+8 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 8 }] },
-    presets: { dungeon: PROTECTION_PALADIN, raid: PROTECTION_PALADIN, max: PROTECTION_PALADIN },
+    // The Elemental shaman's Standard raid and a mage's Max too (§6.3).
+    presets: { dungeon: PROTECTION_PALADIN, raid: [...PROTECTION_PALADIN, ...ELEMENTAL], max: [...PROTECTION_PALADIN, ...ELEMENTAL, ...MAGES] },
   },
   {
     id: 'denseSharpeningStone',
@@ -1108,7 +1111,8 @@ export const BUFFS: BuffSpec[] = [
     // 20749 → 25122 → enchant 2628 → 25113: aura 13 (mask 126) 36 and aura 57 (spell crit) 1, the
     // same in both clients [F] [C] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'brilliantWizardOil', priority: 4, hand: 'main', spellDamage: 36, spellCrit: 1 }],
-    presets: { max: PROTECTION_PALADIN },
+    // The Elemental shaman's Standard raid and a mage's Max too (§6.3).
+    presets: { raid: ELEMENTAL, max: [...PROTECTION_PALADIN, ...ELEMENTAL, ...MAGES] },
   },
   // The rogue's poisons (buffs doc §3.6; docs/classes/rogue.md §4): one per weapon, in place of a stone there.
   {

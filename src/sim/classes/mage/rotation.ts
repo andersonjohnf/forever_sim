@@ -39,7 +39,8 @@ export const POWER_INFUSION = 'powerInfusion'
  * "Fire priority", rows 10 and 12) [?] (`mageFireWait`): Fireball waits for a Fire Blast ready this
  * soon, and Pyroblast for its own DoT's tick due this soon after it would land. At about 560 DPS,
  * 0.3 s idle costs about 170 damage, what a cut-off Pyroblast tick or a Fire Blast held back a whole
- * Fireball costs, so a perfect player waits up to about this long. A reasoned estimate.
+ * Fireball costs, so a perfect player waits up to about this long. A reasoned estimate, near where
+ * waiting stops paying across common casting speeds (mage.md "Fire priority" has the measurements).
  */
 export const FIRE_WAIT_MS = 300
 

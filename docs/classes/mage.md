@@ -517,9 +517,13 @@ casting speed, and three ties on that grid decided more than the speed did (Huma
   five more Scorches rebuilt it. Scorch now goes first whenever the Pyroblast, or a Fireball, and then
   a Scorch wouldn't land in time, at their cast times now.
 
-0.3 s is where waiting stops paying [?]: at about 560 DPS it costs about 170 damage, what a cut-off
-Pyroblast tick (53 + 0.15 SP, with its crits) or a Fire Blast held back a Fireball costs; 0.15–0.5 s
-measure the same. Afterwards (same runs): ×1.00 561.3, ×1.002 560.3, ×1.01 562.6, ×1.02 565.4, and on
+0.3 s is near where waiting stops paying, across common casting speeds [?]: at about 560 DPS it costs
+about 170 damage, what a cut-off Pyroblast tick (53 + 0.15 SP, with its crits) or a Fire Blast held
+back a Fireball costs. Measured (Human, unlimited mana, seed 12345, 4,000 fights, ±0.8), waits of 0,
+0.15, 0.3, 0.45 and 0.6 s give ×1.00 561.8 for each; ×1.01 556.1, then 564.0 for each of the rest;
+×1.05 573.3, 573.8, 576.1, 575.6, 575.2; ×1.10 592.3, 592.3, 591.9, 590.5, 590.3. So no wait loses at
+×1.01, 0.3 s is best at ×1.05 and within the noise of the best at ×1.10, and longer waits start to
+lose. Afterwards (same runs): ×1.00 561.3, ×1.002 560.3, ×1.01 562.6, ×1.02 565.4, and on
 the default setup (Troll, with its mana, seed 12345, 1,000 fights) the golden moved 513.15 → 514.50. The
 1 DPS left at ×1.002 is within those runs' ±0.8 (95% CI).
 

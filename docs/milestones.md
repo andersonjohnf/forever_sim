@@ -276,8 +276,9 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [x] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
-      first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md)).
-      The Demonology Warlock on the pet core is still to come
+      first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md))
+- [ ] **H3 Demonology Warlock:** a demon kept out beside a sacrificed one (Demonic Pact), on the pet
+      core. Built on its branch, awaiting review ([warlock.md §11](classes/warlock.md#11-demonology))
 
 ## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
 

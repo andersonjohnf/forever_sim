@@ -465,6 +465,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A **spell on the boss** that deals no damage, so can't crit (the bear's Faerie Fire and
     Demoralizing Roar, a warrior's Demoralizing Shout), shows only the share of its casts that
     missed ("16.4% missed"), resists included.
+  - A **pet's rows** name it after the ability, in the muted color: "Auto attack · Succubus",
+    "Firebolt · Imp" ([ranged-and-pets §10](mechanics/ranged-and-pets.md#10-pet-damage-in-the-results)).
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
     out of the breakdown. They're under **Cooldowns and buffs**.
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows

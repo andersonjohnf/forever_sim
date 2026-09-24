@@ -40,13 +40,13 @@ test.describe('setup', () => {
     await expect(page.getByRole('group', { name: 'Rogue' }).getByRole('menuitem')).toHaveText([/^Combat\s*DPS$/, /^Assassination\s*DPS$/, /^Subtlety\s*DPS$/])
     // Fire, Frost and Arcane since K2, under the Mage heading.
     await expect(page.getByRole('group', { name: 'Mage' }).getByRole('menuitem')).toHaveText([/^Fire\s*DPS$/, /^Frost\s*DPS$/, /^Arcane\s*DPS$/])
-    // The Destruction and Affliction warlocks since K3.
-    await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
+    // The Destruction and Affliction warlocks since K3, Demonology since H3.
+    await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/, /^Demonology\s*DPS$/])
     // The Shadow Priest since K4, under the Priest heading.
     await expect(page.getByRole('group', { name: 'Priest' }).getByRole('menuitem')).toHaveText([/^Shadow\s*DPS$/])
     // Marksmanship, Beast Mastery and Survival since H2, under the Hunter heading.
     await expect(page.getByRole('group', { name: 'Hunter' }).getByRole('menuitem')).toHaveText([/^Marksmanship\s*DPS$/, /^Beast\sMastery\s*DPS$/, /^Survival\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(22)
+    await expect(page.getByRole('menuitem')).toHaveCount(23)
     await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/, /^Priest/, /^Hunter/])
   })
 

@@ -68,7 +68,7 @@ test.describe('Destruction warlock', () => {
   test('is in the switcher under Warlock, with its build, an Orc and its gear, and About names it', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
-    await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
+    await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/, /^Demonology\s*DPS$/])
     await page.getByRole('menuitem', { name: /Destruction/ }).click()
     await expect(page.getByRole('button', { name: DESTRUCTION })).toBeVisible()
 
@@ -81,11 +81,11 @@ test.describe('Destruction warlock', () => {
     await expect(presets).toHaveText('Destruction (default)')
     await expect(page.getByText('7 / 11 / 33')).toBeVisible()
     await presets.click()
-    await expect(page.getByRole('option')).toHaveText(['Destruction (default)', 'Affliction default'])
+    await expect(page.getByRole('option')).toHaveText(['Destruction (default)', 'Affliction default', 'Demonology default'])
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction and Affliction( · .+)?\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction, Affliction and Demonology( · .+)?\.$/)).toBeVisible()
   })
 
   test('its Rotation tab: the common priority, the Succubus, Corruption, Bane of Doom, Incinerate and its own curse', async ({ page }) => {

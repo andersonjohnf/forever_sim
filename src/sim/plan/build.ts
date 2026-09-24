@@ -1937,14 +1937,11 @@ export function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weap
   for (const h of [HAND.main, HAND.off] as const) {
     if ('ppm' in spec.chance) {
       const w = weapons[h]
-      // docs/mechanics/damage-and-timing.md#51-ppm-formula: PPM × base weapon speed / 60
-      chance[h] = w ? ppmChance(spec.chance.ppm, w.plan.speedSec) : 0
-    } else if ('pct' in spec.chance) {
       // docs/mechanics/damage-and-timing.md#51-ppm-formula: PPM × base weapon speed / 60; a ranged
       // trigger fires with no hand (−1), so its chance is slot 0's, from the ranged weapon.
       const speed = onRanged ? (h === HAND.main ? rangedSpeedSec : null) : w ? w.plan.speedSec : null
       chance[h] = speed !== null ? ppmChance(spec.chance.ppm, speed) : 0
-    } else {
+    } else if ('pct' in spec.chance) {
       chance[h] = spec.chance.pct / 100
     }
   }

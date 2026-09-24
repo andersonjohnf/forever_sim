@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 515,
+      "docs": 519,
       "enchant": 125,
       "item": 423,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2518,
-    "spells": 2675
+    "seeds": 2522,
+    "spells": 2679
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -16840,6 +16840,53 @@
         }
       ],
       "sources": ["spellbook"]
+    },
+    "3009": {
+      "categories": {
+        "defenseType": 2,
+        "preventionType": 2,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 268435456, 0, 8],
+        "spellClassSet": 9
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 51,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0],
+          "variance": 0.3137255
+        }
+      ],
+      "id": 3009,
+      "levels": {
+        "baseLevel": 56,
+        "spellLevel": 56
+      },
+      "misc": {
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132140
+      },
+      "name": "Claw",
+      "nameSubtext": "Rank 8",
+      "power": [
+        {
+          "manaCost": 25,
+          "powerType": 2
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "sources": ["docs"]
     },
     "3025": {
       "classOptions": {
@@ -71533,6 +71580,55 @@
       "name": "Overgrowth",
       "sources": ["talent"]
     },
+    "17261": {
+      "categories": {
+        "category": 19,
+        "defenseType": 2,
+        "preventionType": 2,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 268435456, 0, 8],
+        "spellClassSet": 9
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 10000,
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 90,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0],
+          "variance": 0.2
+        }
+      ],
+      "id": 17261,
+      "levels": {
+        "baseLevel": 56,
+        "spellLevel": 56
+      },
+      "misc": {
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132278
+      },
+      "name": "Bite",
+      "nameSubtext": "Rank 8",
+      "power": [
+        {
+          "manaCost": 35,
+          "powerType": 2
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "sources": ["docs"]
+    },
     "17275": {
       "auraOptions": {
         "procChance": 101
@@ -104189,6 +104285,297 @@
       },
       "name": "Mental Dexterity",
       "sources": ["docs", "talent"]
+    },
+    "415429": {
+      "auraOptions": {
+        "procCategoryRecovery": 2000,
+        "procChance": 100,
+        "procTypeMask": [69904, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 9
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 34,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectIndex": 2,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 3,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 4,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 5,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 6,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 7,
+          "effectMiscValue": [64, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 8,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectIndex": 9,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 55,
+          "effectIndex": 10,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 319,
+          "effectIndex": 11,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 65,
+          "effectIndex": 12,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 52,
+          "effectIndex": 13,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 57,
+          "effectIndex": 14,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 418,
+          "effectBasePointsF": 50,
+          "effectIndex": 15,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectIndex": 16,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectIndex": 17,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 49,
+          "effectIndex": 18,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 415429,
+      "misc": {
+        "attributes": [448, 0, 0, 268435456, 34603008, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132252
+      },
+      "name": "Hunter Pet Scaling",
+      "sources": ["docs"]
+    },
+    "416189": {
+      "classOptions": {
+        "spellClassSet": 9
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 34,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectIndex": 2,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 3,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 4,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 5,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 6,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 7,
+          "effectMiscValue": [64, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectIndex": 8,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectIndex": 9,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 55,
+          "effectIndex": 10,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 319,
+          "effectIndex": 11,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 65,
+          "effectIndex": 12,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 52,
+          "effectIndex": 13,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 57,
+          "effectIndex": 14,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectIndex": 15,
+          "effectMiscValue": [3, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectIndex": 16,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectIndex": 17,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectIndex": 18,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectIndex": 19,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 416189,
+      "misc": {
+        "attributes": [448, 0, 0, 268435456, 34603008, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135861
+      },
+      "name": "Warlock Pet Scaling",
+      "sources": ["docs"]
     },
     "417046": {
       "classOptions": {

@@ -1,4 +1,4 @@
-import { Check, CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
+import { Check, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { announce } from '@/app/announce'
@@ -26,11 +26,14 @@ import {
 } from '@/data/talents/types'
 import { changeAndFocus } from '@/features/refocus'
 import { SectionHeader } from '@/features/section'
-import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
+import { useIsDesktop, useIsWide, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { defaultTalents, TALENT_DATA, talentPresets } from '@/sim'
 import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, totalPoints, withRank } from './logic'
+import { TalentDetailPanel } from './talent-detail-panel'
+import { TalentDetails } from './talent-details'
+import { type TalentTracker, useTalentTracker } from './tracker'
 
 export function TalentsSection() {
   const meta = useSpecMeta()
@@ -55,6 +58,10 @@ export function TalentsSection() {
     })
   }, [meta.classId, meta.id])
   const isDesktop = useIsDesktop()
+  // From 1440 px the talents report the pointer and focus to the detail panel beside the trees,
+  // which shows from a 90 rem setup pane (talent-detail-panel.tsx).
+  const wide = useIsWide()
+  const tracker = useTalentTracker()
   const finePointer = useMediaQuery('(hover: hover) and (pointer: fine)')
   const [treeIndex, setTreeIndex] = useState(() => perTree.indexOf(Math.max(...perTree)))
   const [importOpen, setImportOpen] = useState(false)
@@ -148,10 +155,25 @@ export function TalentsSection() {
       </div>
 
       {isDesktop ? (
-        <div className="grid grid-cols-3 gap-4">
-          {data.trees.map((tree, i) => (
-            <TreeGrid key={tree.id} data={data} tree={tree} points={perTree[i]} ranks={ranks} setRanks={setRanks} finePointer={finePointer} />
-          ))}
+        // From a 64 rem setup pane (1440 px and wider, where the pane is a container) each tree's
+        // card stops at 26 rem and the three sit centred; from 90 rem the detail panel sits beside
+        // them (docs/ux.md "Talents").
+        <div className="@min-[90rem]/setup:grid @min-[90rem]/setup:grid-cols-[minmax(0,1fr)_22rem] @min-[90rem]/setup:items-start @min-[90rem]/setup:gap-6">
+          <div className="grid grid-cols-3 gap-4 @min-[64rem]/setup:grid-cols-[repeat(3,minmax(0,26rem))] @min-[64rem]/setup:justify-center">
+            {data.trees.map((tree, i) => (
+              <TreeGrid
+                key={tree.id}
+                data={data}
+                tree={tree}
+                points={perTree[i]}
+                ranks={ranks}
+                setRanks={setRanks}
+                finePointer={finePointer}
+                tracker={wide ? tracker : undefined}
+              />
+            ))}
+          </div>
+          {wide && <TalentDetailPanel data={data} ranks={ranks} tracker={tracker} />}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -216,6 +238,7 @@ function TreeGrid({
   ranks,
   setRanks,
   finePointer,
+  tracker,
 }: {
   data: TalentData
   tree: TalentTree
@@ -223,6 +246,7 @@ function TreeGrid({
   ranks: TalentRanksById
   setRanks: (ranks: TalentRanksById) => void
   finePointer: boolean
+  tracker?: TalentTracker
 }) {
   const talents = tree.talents.filter((t) => t.inForeverTree)
   const rows = Math.max(...talents.map((t) => t.tier)) + 1
@@ -236,7 +260,7 @@ function TreeGrid({
       <div className="grid grid-cols-4 gap-x-2 gap-y-3" style={{ gridTemplateRows: `repeat(${rows}, auto)` }}>
         {talents.map((talent) => (
           <div key={talent.id} className="flex justify-center" style={{ gridRow: talent.tier + 1, gridColumn: talent.col + 1 }}>
-            <TalentCell data={data} talent={talent} ranks={ranks} setRanks={setRanks} finePointer={finePointer} />
+            <TalentCell data={data} talent={talent} ranks={ranks} setRanks={setRanks} finePointer={finePointer} tracker={tracker} />
           </div>
         ))}
       </div>
@@ -250,12 +274,15 @@ function TalentCell({
   ranks,
   setRanks,
   finePointer,
+  tracker,
 }: {
   data: TalentData
   talent: Talent
   ranks: TalentRanksById
   setRanks: (ranks: TalentRanksById) => void
   finePointer: boolean
+  /** The wide tab's detail panel's, from 1440 px: this talent under the pointer, or focused. */
+  tracker?: TalentTracker
 }) {
   const rank = ranks[talent.id] ?? 0
   const addable = canAdd(data, ranks, talent)
@@ -284,6 +311,10 @@ function TalentCell({
       aria-label={label}
       aria-keyshortcuts="Backspace"
       onClick={finePointer ? tryAdd : undefined}
+      onPointerEnter={tracker && (() => tracker.enter(talent.id))}
+      onPointerLeave={tracker && (() => tracker.leave(talent.id))}
+      onFocus={tracker && (() => tracker.focus(talent.id))}
+      onBlur={tracker && (() => tracker.blur(talent.id))}
       onContextMenu={(e) => {
         e.preventDefault()
         tryRemove()
@@ -306,7 +337,8 @@ function TalentCell({
               : 'border-transparent',
       )}
     >
-      <WowIcon icon={talent.icon} size="lg" grayscale={locked} className="border-0" />
+      {/* 44 px, and 52 px from a 64 rem setup pane (docs/ux.md "Talents"). */}
+      <WowIcon icon={talent.icon} size="lg" grayscale={locked} className="border-0 @min-[64rem]/setup:size-13" />
       {/* A locked talent's badge is dimmed by colour alone (the muted text colour, AA), never by
           opacity (docs/ux.md "Visual language"); its icon turns gray and its border goes. */}
       <span
@@ -358,58 +390,6 @@ function TalentCell({
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
-
-/**
- * A talent's name, rank and texts, and why a point can't be added or removed. `inverted` is for the
- * tooltip's inverted colours, where the notice colour would fall below AA, so a reason there is
- * marked by weight and icon instead.
- */
-function TalentDetails({
-  data,
-  talent,
-  ranks,
-  removeId,
-  inverted = false,
-}: {
-  data: TalentData
-  talent: Talent
-  ranks: TalentRanksById
-  /** The id of the remove reason, which describes the popover's "−". */
-  removeId?: string
-  inverted?: boolean
-}) {
-  const rank = ranks[talent.id] ?? 0
-  const current = rank > 0 ? talent.ranks.forever[rank - 1] : null
-  const next = rank < talent.maxRank ? talent.ranks.forever[rank] : null
-  const reasons = [
-    { id: undefined, text: lockReason(data, ranks, talent) },
-    { id: removeId, text: removeReason(data, ranks, talent) },
-  ].filter((r) => r.text)
-  return (
-    <div className="flex flex-col gap-2 text-sm">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="font-semibold">{talent.name}</span>
-        <span className="tabular-nums opacity-80">
-          Rank {rank}/{talent.maxRank}
-        </span>
-      </div>
-      {/* Rank texts keep the client's paragraph breaks as "\n" (docs/data/talents.md). */}
-      {current && <p className="whitespace-pre-line">{current}</p>}
-      {next && (
-        <p className={cn('whitespace-pre-line', current && 'opacity-80')}>
-          {current ? 'Next rank: ' : ''}
-          {next}
-        </p>
-      )}
-      {reasons.map((r) => (
-        <p key={r.text} id={r.id} className={cn('flex items-start gap-1.5 font-medium', !inverted && 'text-notice')}>
-          <CircleAlert aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-          {r.text}
-        </p>
-      ))}
-    </div>
   )
 }
 

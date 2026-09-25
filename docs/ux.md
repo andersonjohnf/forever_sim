@@ -243,6 +243,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     point and Backspace removes one (Delete and − work too); the hint above the trees and each
     talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's
     icon turns gray and its rank badge takes the muted text colour (AA), never opacity.
+  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): from a 64 rem pane the
+    talent icons grow from 44 to 52 px and each tree's card stops at 26 rem, the three centred. From
+    90 rem (about 2,450 px) a **talent detail panel** sits beside the trees, sticky as the Rotation
+    panel is: the talent under the pointer, or else the focused one, or else the last one shown, with
+    its tree and tier, rank, the current and next rank's text, why a point can't move, and what it
+    **needs**: the tree's points above its tier and its arrow's talent, each met or not with the
+    count ("30 points in Fury, 30 of 30"; a first-tier talent needs nothing). Until you point at
+    one it says to. It isn't a live region, and the tooltips, popovers and every click and key stay
+    as they are (`src/features/talents/talent-detail-panel.tsx`).
   - **A point that can't move says why.** A talent that can't take a point says what it needs
     ("Requires 5 points in Fury."). One whose point can't come back names what depends on it:
     the talent its arrow leads to ("Can't remove a point: Bloodthirst needs 1 point in Death

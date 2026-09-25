@@ -598,6 +598,7 @@ describe('which seal procs trigger procs (paladin.md#seals, OQ 22)', () => {
         chance: { pct: 100 },
         icdMs: 5000,
         action: { kind: 'spell', spell: { ...EZ_THRO_DARK_BOMB_SPELL, triggersProcs, alwaysHit: true, bonusCrit: 1000 } },
+        docRef: 'docs/classes/paladin.md#conventions-used-below',
       })
       return EZ_THRO_DARK_BOMB_SPELL.id
     }

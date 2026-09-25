@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, History, Info, MoreHorizontal } from 'lucide-react'
 import { useRef, useState, type CSSProperties } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
-import { ClassicEraNote } from '@/features/character/classic-era-note'
-import { changeAndFocus } from '@/features/refocus'
+import { ClassicEraNote, RULE_PROFILE_ID } from '@/features/character/classic-era-note'
+import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { SectionHeader } from '@/features/section'
 import { useIsWide } from '@/hooks/use-media-query'
 import { itemsById } from '@/lib/items'
@@ -84,12 +84,16 @@ const WIDE_GRID: Record<string, { columns: number; down: boolean; span: string; 
   },
 }
 
-/** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
-function EmptySlot({ slot, locked }: { slot: GearSlot; locked: boolean }) {
+/**
+ * An empty slot's icon and name, or why a two-hander leaves the off hand empty. At wide it has an
+ * item's icon size and text block height (`ItemSummary`'s compact one), so emptying a slot doesn't
+ * move the grid.
+ */
+function EmptySlot({ slot, locked, wide }: { slot: GearSlot; locked: boolean; wide: boolean }) {
   return (
     <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
-      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
-      <div className="flex flex-col">
+      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size={wide ? 'md' : 'lg'} grayscale />
+      <div className="flex flex-col wide:min-h-13 wide:justify-center">
         <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
         <span className="text-xs text-muted-foreground">{locked ? 'Your two-handed weapon uses both hands' : 'Empty'}</span>
       </div>
@@ -133,10 +137,25 @@ export function GearSection() {
     update((c) => ({ ...c, gear: {} }))
     announce('Removed all gear.')
   }
+  const setSection = useSetup((s) => s.setSection)
+  const profile = useSetup((s) => s.config.rules.profile)
 
   // From 1440 px the slots are a grid that shows them all at once (docs/ux.md "Gear", D34).
   const wide = useIsWide()
   const groups = slotGroups(meta.classId)
+  const slotCount = groups.reduce((n, group) => n + group.slots.length, 0)
+
+  // The intro, and the line on how the gear compares with the default set, as the page says them
+  // below 1440 px; from 1440 px each is one line, in shorter words (docs/ux.md "Gear").
+  const intro = threatSet
+    ? `Starts as ${defaultSet}: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.`
+    : `Starts as ${defaultSet}. Choose a slot to change its item.`
+  const wideIntro = threatSet ? `Starts as ${defaultSet}, measured for threat with an effective-health floor.` : intro
+  const effect = offDefault > 0 ? equipEffect(config.gear, offSlots, defaultGearFor(config.spec, config.race)) : ''
+  const differ = `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'}`
+  const status = offDefault === 0 ? `Wearing ${setName}.` : `${differ} from ${setName}: ${slotList(offSlots)}. Equipping it ${effect}.`
+  // A long list of names would push what equipping does off the line: past three, the count alone.
+  const wideStatus = offDefault === 0 ? status : `${differ}${offDefault <= 3 ? `: ${slotList(offSlots)}` : ''}. Equipping ${effect}.`
 
   const pick = (slot: GearSlot, item: Item | null) => {
     const swapped = slot === 'ranged' ? suppliesSwapped(config.gear, equip(config, slot, item).gear) : null
@@ -183,13 +202,22 @@ export function GearSection() {
     </button>
   )
 
+  // At wide the note takes the stats line's place, on one line with the whole on hover (docs/ux.md "Gear").
   const unusedNote = (unused: string | null) =>
-    unused && (
+    unused &&
+    (wide ? (
+      <>
+        <Info className="size-3.5 shrink-0" aria-hidden />
+        <span title={unused} className="truncate">
+          {unused}
+        </span>
+      </>
+    ) : (
       <>
         <Info className="mt-px size-3.5 shrink-0" aria-hidden />
         {unused}
       </>
-    )
+    ))
 
   const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined) => (
     <EnchantPicker
@@ -216,16 +244,33 @@ export function GearSection() {
       <SectionHeader
         title="Gear"
         description={
-          threatSet
-            ? `Starts as ${defaultSet}: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.`
-            : `Starts as ${defaultSet}. Choose a slot to change its item.`
+          // From 1440 px one line, whatever the spec: cut short, with the whole on hover, should it ever not fit.
+          wide ? (
+            <span title={intro} className="block truncate">
+              {wideIntro}
+            </span>
+          ) : (
+            intro
+          )
         }
         action={
-          // From 1440 px the action is in view rather than in a menu (docs/ux.md principle 4), sized to its label.
+          // From 1440 px the action is in view rather than in a menu (docs/ux.md principle 4), sized to
+          // its label. It empties every slot with no undo, so, like the header's Reset setup, it opens a
+          // one-item menu that takes a second, deliberate click (decision D21).
           wide ? (
-            <Button variant="outline" className="h-11 px-4" onClick={clearAll}>
-              Remove all gear
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-11 gap-2 px-4">
+                  Remove all gear
+                  <ChevronDown className="text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
+                  Empty all {slotCount} slots
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -262,12 +307,33 @@ export function GearSection() {
           ) : (
             <Check aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           )}
-          <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
-            {offDefault === 0
-              ? `Wearing ${setName}.`
-              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it ${equipEffect(config.gear, offSlots, defaultGearFor(config.spec, config.race))}.`}
+          {/* From 1440 px one line in shorter words, cut short with the whole sentence on hover should
+              a long list of slots not fit. */}
+          <span title={wide ? status : undefined} className={cn(offDefault === 0 && 'text-muted-foreground', 'wide:truncate')}>
+            {wide ? wideStatus : status}
           </span>
         </p>
+        {/* From 1440 px Classic Era's enchant note is a link on this line rather than a box above the
+            slots, which would push the last row out of the window (review finding DL2-2). */}
+        {wide && profile === 'classicEra' && (
+          <button
+            type="button"
+            aria-describedby="gear-classic-era"
+            className="relative flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium underline underline-offset-2 outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() =>
+              changeAndFocus(
+                () => setSection('character'),
+                () => selectedOption(RULE_PROFILE_ID),
+              )
+            }
+          >
+            <History aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+            Classic Era enchants
+            <span id="gear-classic-era" className="sr-only">
+              Enchants use Classic Era’s numbers, as set in Character → Advanced.
+            </span>
+          </button>
+        )}
         {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}
         {offDefault > 0 && (
           <Button
@@ -281,7 +347,7 @@ export function GearSection() {
           </Button>
         )}
       </div>
-      <ClassicEraNote what="Enchants" />
+      {!wide && <ClassicEraNote what="Enchants" />}
 
       {/* Under 1440 px the groups stack, each a list of cards. From 1440 px (docs/ux.md "Gear", D34)
           they're one grid, laid out like the character pane, that shows every slot without scrolling
@@ -327,7 +393,7 @@ export function GearSection() {
                       <div
                         className={cn(
                           'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors wide:static wide:min-h-0 wide:rounded-none wide:hover:bg-transparent',
-                          enchantable ? 'wide:pt-1.5 wide:pb-1' : 'wide:py-1.5',
+                          enchantable ? 'wide:pt-1.5 wide:pb-0' : 'wide:py-1.5',
                           lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
                           enchantable && 'rounded-b-none',
                         )}
@@ -344,7 +410,7 @@ export function GearSection() {
                         {item ? (
                           <ItemSummary compact={wide} item={item} bis={bis} meta={wide ? null : SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
                         ) : (
-                          <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                          <EmptySlot slot={slot} locked={lockedByTwoHand} wide={wide} />
                         )}
                         {/* At wide the flags sit at the slot's right edge: here beside an item with no enchant,
                             otherwise on the enchant chip's line. */}
@@ -352,12 +418,12 @@ export function GearSection() {
                         {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground wide:hidden" aria-hidden />}
                       </div>
                       {item && enchantable && (
-                        // At wide one line of 44 px hit areas that each take 20 px, the chip's text wrapping
-                        // beside the flags; the slot's bottom padding leaves room for their hit areas, and
-                        // the 12 px gap keeps the chip's clear of the first flag's.
-                        <div className="border-t wide:flex wide:items-start wide:gap-x-3 wide:border-t-0 wide:pr-4 wide:pb-3 wide:pl-2">
+                        // At wide one 16 px line of 44 px hit areas, the chip's text cut short beside the
+                        // flags; the 4 px above holds the chip's focus ring, the slot's bottom padding the
+                        // hit areas, and the 12 px gap keeps the chip's clear of the first flag's.
+                        <div className="border-t wide:flex wide:items-center wide:gap-x-3 wide:border-t-0 wide:pt-1 wide:pr-4 wide:pb-3.5 wide:pl-2">
                           {enchantPicker(slot, item, equipped?.enchantId)}
-                          {wide && <ItemFlags item={item} className="mr-1 ml-auto" />}
+                          {wide && <ItemFlags item={item} className="mr-1 ml-auto" fit={`${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}`} />}
                         </div>
                       )}
                     </li>

@@ -375,9 +375,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     so it holds in the dialog and the phone's sheet alike.
   - **From 1440 px** (the wide layout, [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25),
     as amended: desktop shows, principle 4), **every slot is in view with no scrolling**, at
-    1440×900 and up: under the header, the tabs and Gear's own header, the 1440×900 window holds the
-    last slot with room to spare for every spec's default gear (the tightest, the Feral (Bear) threat
-    set with its two-line intro, ends at the window's bottom edge), and with a slot changed too.
+    1440×900 and up, **by construction** rather than for today's default sets (review findings
+    DL2-1, DL2-2, DU1-1: a longer name, Classic Era's note or a classic scrollbar pushed the last row
+    out twice). Each slot has a **fixed budget of lines**, the same whatever it holds, and Gear's
+    intro and the default set's line are one line each, so the grid's height doesn't depend on the
+    items. The worst case, a hunter (seven rows of slots) with the longest real item name and enchant
+    in every slot, under Classic Era rules, beside a classic 17 px scrollbar, ends about 36 px clear of
+    a 1440×900 window's bottom edge; every other spec has more to spare (`e2e/wide-gear-fit.spec.ts`
+    holds it to 16 px).
     - The slots are one grid laid out like the character pane: **Armor** in two columns (head,
       shoulders, back, chest and wrists down the left; hands, waist, legs and feet down the right),
       **Jewelry** in a third column beside it, and the **Weapons** in a row across the bottom (a
@@ -385,34 +390,58 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       bordered list with a divider between its slots; the weapons' dividers line up with Armor's
       and with the middle of the gap beside Jewelry. The group headings are there for screen
       readers only: the layout says what's where. The grid's three columns share the setup pane
-      (about 18 rem each at 1440 px, 24.5 at 1,920 px); extra width goes to fewer wrapped lines, never
-      to bigger icons or controls.
-    - Each slot: the icon (36 px), the item's name in its quality colour with its BiS rank after
-      it, the stats line under it (the slot's name is left out: the grid's place says it), each up
-      to two lines with the whole text as its hover title (an effect item's tooltip words can run
-      longer), then the **enchant** as a line of green text, its whole name and effect wrapping as
-      needed and never cut short, with the same whole text as its hover title (review finding DB-2:
-      "Lesser Arcanum of…" could have been any of three). The chip opens the enchant popover, as
-      below 1440 px; it takes a line's height and a 44 px hit area 12 px past it each way, like a
-      flag. A slot with no enchant to choose has no chip. An empty slot shows its faded icon, name
-      and "Empty".
-    - The **flags** are icons at the slot's right edge, on the chip's line or beside an item with
-      no chip: a clock-and-arrow for **Classic stats** and a crossed-out flask for **Effect not
+      (about 18 rem each at 1440 px, 24.5 at 1,920 px); extra width goes to fewer cut-short lines,
+      never to bigger icons or controls.
+    - Each slot's budget: the icon (36 px) beside a block that's always two name lines and a stats
+      line tall (52 px), then, where the item has an enchant to choose, the enchant's line: 64 px a
+      slot without one, 92 px with. The item's name, in its quality colour with its BiS rank after
+      it, takes up to **two 18 px lines**, clamped, with the whole name as its hover title and the
+      slot's accessible name. The **stats** take one line, cut short with the whole as its hover title
+      (an effect item's tooltip words, which stand in for stats, can run longer); the slot's name is
+      left out, as the grid's place says it. Ammo the ranged weapon doesn't fire shows its reason in
+      the stats line's place, the same way. The **enchant** is one line of green text, its name and
+      effect cut short only where the slot is narrower, with the whole as its hover title (review
+      finding DB-2: "Lesser Arcanum of…" could have been any of three; the popover lists them whole).
+      The chip opens the enchant popover, as below 1440 px; it takes a 16 px line and a 44 px hit area
+      14 px past it each way, like a flag, and its **focus ring** is drawn around its text, on its own
+      line, never over the stats above (review finding DU1-5). A slot with no enchant to choose has no
+      chip. An empty slot shows its faded icon, name and "Empty" in the same block.
+    - The **flags** sit at the slot's right edge, on the enchant's line or beside an item with no
+      enchant: a clock-and-arrow for **Classic stats** and a crossed-out flask for **Effect not
       simulated**. Each is named by its words, has them as its hover title, and opens the same
-      explanation. Their words on every other slot would have taken a line each and cost the no-
-      scrolling view; below 1440 px they keep their words.
+      explanation. On the enchant's line they show their words too **wherever those fit** beside
+      the enchant's whole text (review finding DU1-6: at 1,920 px many single flags do); otherwise
+      they're icons and the enchant keeps the room. The line measures itself (`ItemFlags` in
+      `src/features/gear/item-row.tsx`), and what it measures doesn't depend on which it shows, so it
+      never flips back and forth. Beside an item with no enchant they stay icons, leaving the name
+      and stats the room. Below 1440 px they keep their words.
     - The slot's button covers the whole slot, with its focus ring inside; the chip and flags sit
       over it. Every target is 44 px or more, and a slot's small targets never overlap each other
-      or leave the slot: the chip keeps 12 px from the first flag, the flags 24 px apart, and the
-      slot's padding holds their hit areas.
+      or leave the slot: the chip keeps 12 px from the first flag, icons 24 px apart (flags with
+      words 6 px, each its own hit area), and the slot's padding holds their hit areas.
     - Choosing a slot opens the **item picker dialog**, the same as at 1024–1439 px (a transient
       task in a modal: the persistent view keeps the width). A pick equips the item, closes the
       dialog and returns focus to the slot.
+    - The intro is one line in shorter words for a tank ("Starts as the Protection Warrior threat
+      set, measured for threat with an effective-health floor."), cut short with the whole on hover
+      should a longer spec name ever not fit.
     - Gear's actions are **buttons in view**, each sized to its label: **Remove all gear** in the
       header where the `…` menu is below 1440 px, and **Equip pre-raid best in slot** (or **Equip
-      the threat set**) on the default set's line. That line drops its box and fill and sits just
-      under the intro, and its button is 32 px tall there with a 44 px hit area, so the line is one
-      text line tall in both states and the slots don't move when the gear changes.
+      the threat set**) on the default set's line. **Remove all gear** empties every slot with no undo,
+      so like the header's **Reset setup** it opens a one-item menu, **Empty all 17 slots** (19 for
+      a hunter), and takes a second, deliberate click (review finding DL2-4; D21).
+    - The default set's line drops its box and fill and sits just under the intro, and its button
+      is 32 px tall there with a 44 px hit area. It's **one line** in both states, in shorter words:
+      "2 slots differ: Chest and Hands. Equipping fills 1 empty slot and replaces the other.", the
+      names left out past three ("16 slots differ. Equipping fills 3 empty slots and replaces the
+      other 13."), so what equipping does stays in view (review finding DU1-4). The full sentence is
+      its hover title, and it's cut short, never wrapped, should a rare one still not fit, so the
+      slots don't move when the gear changes.
+    - Under **Classic Era** rules the enchant note is a link on that line, **Classic Era enchants**
+      with the note's clock-and-arrow, rather than the box above the slots (review finding DL2-2: the
+      box pushed the last row out of the window). Screen readers hear the note's sentence as its
+      description, and it opens Character on the rules, as the box's **Character → Advanced** does.
+      Its 44 px hit area keeps clear of the Equip button's.
     - The grid is the same elements as the stacked cards below 1440 px, in the same order,
       restyled: crossing 1440 px (browser zoom, snapping a window) keeps focus where it was, on a
       slot's button or its enchant chip. Tab moves through the slots down each Armor column, then

@@ -115,7 +115,10 @@ for (const width of [1280, 390]) {
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
       await closeRow(page)
       expect(await order(page)).toEqual(moved('consecrationRank1', 'consecration'))
-      await expect(list.locator('[data-apl-row="consecration"]')).toContainText('Not used: Consecration (Rank 1), above it, takes the cooldown they share')
+      await expect(list.locator('[data-apl-row="consecration"]')).toContainText(
+        'Not used: Consecration (Rank 1), above it, takes their shared cooldown from 10% mana, and this starts from 20%. Set this below 10%, or move it above Consecration (Rank 1).',
+      )
+      await expect(list.locator('[data-apl-row="consecration"]')).toHaveAttribute('data-inactive')
     })
   })
 }

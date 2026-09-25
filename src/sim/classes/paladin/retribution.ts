@@ -13,7 +13,7 @@
 // before their costs or spells feed anything.
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, CreatureType, RotationOption, RotationValue } from '../../types'
-import { compileAplRows, normalizeAplOrder } from '../apl'
+import { compileAplRows } from '../apl'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -27,6 +27,7 @@ import {
   SEAL_OF_RIGHTEOUSNESS,
   SEAL_OF_THE_CRUSADER,
 } from './abilities'
+import { consecrationUnused } from './consecration-rows'
 import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS, SEAL_REFRESH_MS } from './setup'
 import { type JotcRule, withJotcRule } from './spells'
@@ -351,27 +352,21 @@ export const RETRIBUTION_APL: AplDefinition = {
   presets: [],
 }
 
-/** The two Consecration rows, which share one cooldown (paladin.md rows 7 and 8). */
+/** The two Consecration rows, rank 5 and rank 1, which share one cooldown (paladin.md rows 7 and 8). */
 const CONSECRATION_ROWS = [
   { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
   { row: 'consecrationRank1', label: 'Consecration (Rank 1)', on: ID.consecrationRank1, mana: ID.consecrationRank1Mana },
 ] as const
 
 /**
- * What the Rotation tab says under a Consecration row that's never used (docs/ux.md "Rotation"): the
- * ranks share one cooldown, so with both on, the higher row takes it whenever its mana is there, and
- * the lower is used only below the higher's mana threshold. A lower row that starts from as much mana
- * as the higher, or more, is never used (rank 5 moved below rank 1, with the defaults).
+ * What the Rotation tab says under a Consecration row that's never cast (docs/ux.md "Rows that share
+ * a cooldown"; consecration-rows.ts): the ranks share one cooldown, so the lower row is cast only
+ * with the mana for it and not for the higher. Rank 5 below rank 1 from as much mana, or more, never
+ * is (the default thresholds, rank 1 moved above); rank 1 below rank 5 never is only from as much
+ * mana and enough to pay rank 5 on any paladin's maximum.
  */
 export function retributionUnusedSettings(values: Record<string, RotationValue>, order?: readonly string[]): Record<string, string> {
-  const v = reader(RETRIBUTION_OPTIONS, values)
-  if (!CONSECRATION_ROWS.every((r) => v.on(r.on))) return {}
-  const current = normalizeAplOrder(RETRIBUTION_APL, order)
-  const [higher, lower] = [...CONSECRATION_ROWS].sort((a, b) => current.indexOf(a.row) - current.indexOf(b.row))
-  if (v.num(lower.mana) < v.num(higher.mana)) return {}
-  return {
-    [lower.on]: `Not used: ${higher.label}, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than ${higher.label}, or move it above.`,
-  }
+  return consecrationUnused(RETRIBUTION_APL, CONSECRATION_ROWS, reader(RETRIBUTION_OPTIONS, values), order)
 }
 
 /**

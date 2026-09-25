@@ -163,23 +163,28 @@ describe('Retribution’s priority list (D31)', () => {
 })
 
 describe('the two Consecration rows, which share a cooldown', () => {
-  const rank5 = 'Not used: Consecration (Rank 1), above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration (Rank 1), or move it above.'
-  const rank1 = 'Not used: Consecration, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration, or move it above.'
+  const rank5 = 'Not used: Consecration (Rank 1), above it, takes their shared cooldown from 10% mana, and this starts from 20%. Set this below 10%, or move it above Consecration (Rank 1).'
+  const rank1 = 'Not used: Consecration, above it, takes their shared cooldown from 20% mana, and this starts from 30%. Set this below 20%, or move it above Consecration.'
 
   it('say nothing in the default order and settings', () => {
     expect(retributionUnusedSettings({})).toEqual({})
     expect(unusedRotationSettings(defaultConfig(RET))).toEqual({})
   })
 
-  it('say when the lower row starts from as much mana as the higher, or more: it never has the cooldown', () => {
+  it('say when the lower row is never cast: from as much mana as the higher, and rank 1 from enough to pay rank 5 (consecration-rows.test.ts)', () => {
     const rank1First = moveAplRow(RETRIBUTION_APL, DEFAULT_ORDER, 'consecrationRank1', DEFAULT_ORDER.indexOf('consecration'))!
-    expect(rank1First.slice(-2)).toEqual(['consecrationRank1', 'consecration'])
+    expect(rank1First.indexOf('consecrationRank1')).toBe(rank1First.indexOf('consecration') - 1)
     // Rank 1 (from 10%) above rank 5 (from 20%): rank 5 is never cast.
     expect(retributionUnusedSettings({}, rank1First)).toEqual({ [ID.consecration]: rank5 })
     // …unless rank 1 needs more mana than rank 5.
     expect(retributionUnusedSettings({ [ID.consecrationRank1Mana]: 30 }, rank1First)).toEqual({})
-    // In the default order, rank 1 from as much mana as rank 5 is never cast.
-    expect(retributionUnusedSettings({ [ID.consecrationRank1Mana]: 20 })).toEqual({ [ID.consecrationRank1]: rank1 })
+    // In the default order, rank 1 from as much mana as rank 5 is still cast whenever the mana is there
+    // for it and not for rank 5 (15.76 a fight from 0% each, the review measured), so the note waits
+    // until rank 1 starts from more than rank 5's most cost on any paladin's mana: just over 25%.
+    expect(retributionUnusedSettings({ [ID.consecrationMana]: 0, [ID.consecrationRank1Mana]: 0 })).toEqual({})
+    expect(retributionUnusedSettings({ [ID.consecrationRank1Mana]: 20 })).toEqual({})
+    expect(retributionUnusedSettings({ [ID.consecrationRank1Mana]: 25 })).toEqual({})
+    expect(retributionUnusedSettings({ [ID.consecrationRank1Mana]: 30 })).toEqual({ [ID.consecrationRank1]: rank1 })
     // With either off, nothing to say.
     expect(retributionUnusedSettings({ [ID.consecrationRank1]: false }, rank1First)).toEqual({})
     // The Rotation tab reads it through the config's order.

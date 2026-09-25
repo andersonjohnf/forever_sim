@@ -494,3 +494,32 @@ average 7–29).
 Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run src/worker` 203
 passed; `npm test` 2,932 passed; the results-states, results-keyed and app e2e specs 58 passed
 (port 4291, the merge touches the pool); `scrape:check` matches. No UI changed, so no screenshots.
+
+## OGV verification (OGV2)
+
+A fresh verification of OGV's fixes (`e2cd1ba1`) found five low findings, all in the hard ceiling
+OGV-2 added. Its probes are in the O1 worktree's `.cache/probes/ogv-verify/` (`cap.sh`, and the
+`cap-*` logs). The fixes are on this branch, one commit each.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| OGV2-1 | low | introduced by OGV-2 (`e2cd1ba1`) | The narrowing check called `fitBudget` with the caller's budget, so a large `--first` narrowed a space that fits at 50 fights a plan: the probe's bear on `quick` with `--first 2000 --max-fights 1000000` raced 56 max-rank builds where its 502 builds with partial ranks fit. | fixed, `5fa8310c`: the check tests the documented rule, plans × `FIRST_ROUND_MIN` within 90% of what the cap leaves the race, whatever the caller's first round; `fitBudget` shrinks a caller's first round that passes the cap to fit it (fits, with a note, while that's 50 or more). optimizer.md#budgets and the CLI's `--first` help say so. Tests: the probe's bear (every rank searched, not narrowed, the first round shrunk, the note), and `fitBudget`'s shrink (504 plans at 2,000 each in 979,200: 1,748 each) and its limit; both fail on the code before the fix |
+| OGV2-2 | low | introduced by OGV-2 (`e2cd1ba1`) | `--confirm` wasn't bounded: its check ran 4 × `--confirm-fights` outside the cap, however large the flag. | fixed, `2c84a4b6`: the confirmation counts under the cap. `confirmFights` gives it what the search left, split over its runs (the CLI's two, the unmeasured ratings applied and ignored, each the winner and the baseline), no more than asked; with less left it runs fewer each and says so, and below 100 each (`MIN_CONFIRM_FIGHTS`) it doesn't confirm and says to raise `--max-fights`. The search is the same with the check or without it. optimizer.md's budgets and confirmation sections say so. Test: `confirmFights`'s regimes (unclamped, clamped to 25,000 each, the 100-a-fight floor, nothing left); a CLI run at `--max-fights 150000` ran the check at 22,815 each and said why |
+| OGV2-3 | low | introduced by OGV-2 (`e2cd1ba1`) | The CLI's pre-run time assumed 6,000 fights a second a thread whatever the fight length: the probe's 900 s fights (`cap-long`) estimated about 17 s for the 800,000-fight cap, and ran 253,586 of them in 16 s, about 2,000 fights a second a thread. | fixed, `2af1a95d`: the rough pace is 6,000 at 180 s fights, scaled by 180 ÷ the fight's length (1,200 at 900 s), and the ceiling line says so when the length differs; the estimate without a screen (a rotation pass) uses the same pace. optimizer.md#budgets says so. The CLI has no unit tests; a 900 s run printed "about 13 s … at a rough 1,200 fights a second a thread (6,000 at 180 s fights, scaled to 900 s)" |
+| OGV2-4 | low | introduced by OGV-2 (`e2cd1ba1`) | In `--turns`, one pass could spend the whole cap: a talent pass whose race ended on its budget left the rotation pass nothing. | fixed, `7d5cc709`: each pass but the last runs at most 90% of what the passes before it left (`TURNS_RESERVE`, a tenth held back for the passes after it; the last pass may run all of it); `optimizeInTurns` takes `reserve` (0 turns it off). The CLI says so before a search in turns, and optimizer.md's turns and budgets sections document it. Test: the bear in turns at a 30,000-fight cap and a budget far past it: the talent pass ends on its budget at 27,000 fights and the rotation pass runs; with no reserve the talent pass spends 30,000 and the turns stop there |
+| OGV2-5 | low | introduced by OGV-2 (`e2cd1ba1`) | The fight cap bounds work, not a device's time or memory: a phone runs far fewer fights a second, and the race keeps three 8-byte samples a fight a candidate, about 576 MB at the 24,000,000-fight cap. | fixed, `d318cac6`: O3's brief in milestones.md adds a per-device time ceiling from a measured pace (a calibration run or the screen's), with the fight cap as the outer limit; a memory bound (cap the fights by what the device can spare, or free dropped candidates' samples); and its confirmation counting under the cap (`confirmFights`) |
+
+**For the reviewers:**
+- **The reserve is a share of what's left, not of the cap.** A tenth of the cap held back once
+  would starve the pass after the rotation pass in the same way; a tenth of what's left at every
+  pass never leaves the next pass nothing. Each pass's `budget.cap` is what it could run, so a
+  pass's notes say "the search's cap leaves the race" of its share, not of `--max-fights`.
+- **The confirmation takes what's left, rather than reserving it up front.** Reserving it would
+  change the search's own cap, and so its answer, by whether `--confirm` was given.
+- **A caller's first round below 50** doesn't widen the narrowing check: the rule reads 50 fights a
+  plan whatever the caller asks for, as the brief says.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run src/worker` 206
+passed; `npm test` 2,929 passed, 6 skipped (a first run under load, average 7, failed three
+one-core benchmarks at 3,200–4,800 fights a second, which pass alone and on the rerun; the engine
+didn't change). No UI changed, so no screenshots.

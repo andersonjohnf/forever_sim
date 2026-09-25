@@ -4,7 +4,8 @@
 // Rows: Judgement of the Crusader before the pull and whenever it's missing (rows 0 and 2), the
 // main seal (row 1: Seal of Command, or Seal of Righteousness), its judgement (row 3), Hammer of
 // Wrath in the execute phase (row 4), Holy Strike (row 5), Exorcism against Undead and Demons
-// (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), and the mana potion and rune.
+// (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), the on-use trinkets, and Juju
+// Flurry, the mana potion and the rune.
 // Your own Blessing of Might is the Buffs tab's (its `selfCast`). Seal twisting (row 9) is off by
 // default and not simulated yet, nor is Holy Wrath. The rows are a priority list you reorder
 // (RETRIBUTION_APL, decision D31). Setting ids are `paladin.retribution.<ability>.<param>`;
@@ -13,7 +14,7 @@
 // before their costs or spells feed anything.
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, CreatureType, RotationOption, RotationValue } from '../../types'
-import { compileAplRows, normalizeAplOrder } from '../apl'
+import { compileAplRows } from '../apl'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -27,7 +28,8 @@ import {
   SEAL_OF_RIGHTEOUSNESS,
   SEAL_OF_THE_CRUSADER,
 } from './abilities'
-import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
+import { consecrationUnused } from './consecration-rows'
+import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables, paladinTrinkets } from './consumables'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS, SEAL_REFRESH_MS } from './setup'
 import { type JotcRule, withJotcRule } from './spells'
 import { type TalentRanks, withTalents } from './talents'
@@ -116,7 +118,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.juju,
-    group: 'Cooldowns and buffs',
+    group: 'Consumables',
     label: 'Juju Flurry',
     help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute. More swings are more Seal of Command procs.',
     default: true,
@@ -280,12 +282,13 @@ export function retributionMaintainedBuffs(values: Record<string, RotationValue>
 
 /**
  * The Retribution rotation as a priority list (decision D31; paladin.md "Forever priority list
- * (default)"): rows 1–8 in its order, each with its switch and its own settings. Rows 0 and 2, the
- * opener and Judgement of the Crusader kept up, are one pinned row first, as the Protection
- * paladin's: the opener's judgement comes at the pull. The seal (row 1) has no switch: there's
- * always one, and its row holds the seal choice, as Protection's does. The on-use trinkets, Juju
- * Flurry and the mana consumables are spec-wide, off the GCD, and always come after the list. No
- * named presets: the defaults are the implicit Default.
+ * (default)"): rows 1–8 in its order, each with its switch and its own settings, then the on-use
+ * trinkets' row, last, where their lines always were, so the default order plays as before. Rows 0
+ * and 2, the opener and Judgement of the Crusader kept up, are one pinned row first, as the
+ * Protection paladin's: the opener's judgement comes at the pull. The seal (row 1) has no switch:
+ * there's always one, and its row holds the seal choice, as Protection's does. Juju Flurry and the
+ * mana consumables are spec-wide, off the GCD, and always come after the list. No named presets:
+ * the defaults are the implicit Default.
  */
 export const RETRIBUTION_APL: AplDefinition = {
   rows: [
@@ -346,32 +349,27 @@ export const RETRIBUTION_APL: AplDefinition = {
       optionIds: [ID.consecrationRank1Mana],
       summary: [{ option: ID.consecrationRank1Mana, text: 'from {}', hideWhen: 0 }],
     },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
   ],
-  specWide: [ID.trinkets, ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
+  specWide: [ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
   presets: [],
 }
 
-/** The two Consecration rows, which share one cooldown (paladin.md rows 7 and 8). */
+/** The two Consecration rows, rank 5 and rank 1, which share one cooldown (paladin.md rows 7 and 8). */
 const CONSECRATION_ROWS = [
   { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
   { row: 'consecrationRank1', label: 'Consecration (Rank 1)', on: ID.consecrationRank1, mana: ID.consecrationRank1Mana },
 ] as const
 
 /**
- * What the Rotation tab says under a Consecration row that's never used (docs/ux.md "Rotation"): the
- * ranks share one cooldown, so with both on, the higher row takes it whenever its mana is there, and
- * the lower is used only below the higher's mana threshold. A lower row that starts from as much mana
- * as the higher, or more, is never used (rank 5 moved below rank 1, with the defaults).
+ * What the Rotation tab says under a Consecration row that's never cast (docs/ux.md "Rows that share
+ * a cooldown"; consecration-rows.ts): the ranks share one cooldown, so the lower row is cast only
+ * with the mana for it and not for the higher. Rank 5 below rank 1 from as much mana, or more, never
+ * is (the default thresholds, rank 1 moved above); rank 1 below rank 5 never is only from as much
+ * mana and enough to pay rank 5 on any paladin's maximum.
  */
 export function retributionUnusedSettings(values: Record<string, RotationValue>, order?: readonly string[]): Record<string, string> {
-  const v = reader(RETRIBUTION_OPTIONS, values)
-  if (!CONSECRATION_ROWS.every((r) => v.on(r.on))) return {}
-  const current = normalizeAplOrder(RETRIBUTION_APL, order)
-  const [higher, lower] = [...CONSECRATION_ROWS].sort((a, b) => current.indexOf(a.row) - current.indexOf(b.row))
-  if (v.num(lower.mana) < v.num(higher.mana)) return {}
-  return {
-    [lower.on]: `Not used: ${higher.label}, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than ${higher.label}, or move it above.`,
-  }
+  return consecrationUnused(RETRIBUTION_APL, CONSECRATION_ROWS, reader(RETRIBUTION_OPTIONS, values), order)
 }
 
 /**
@@ -476,11 +474,12 @@ export function retributionRotation(
     consecrationRank1: () => {
       if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
     },
+    // The on-use trinkets (Weakness Analyzer, Earthstrike), off the GCD, on cooldown from the pull.
+    trinkets: () => paladinTrinkets(v, ID.trinkets, ctx, add),
   })
 
-  // After the list, off the GCD: on-use trinkets (Weakness Analyzer) and Juju Flurry on cooldown
-  // from the pull, then the mana potion and rune, when selected in Buffs, whenever the most they
-  // restore fits (consumables.ts).
+  // After the list, off the GCD: Juju Flurry on cooldown from the pull, then the mana potion and
+  // rune, when selected in Buffs, whenever the most they restore fits (consumables.ts).
   const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
 
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C2)").

@@ -103,11 +103,14 @@ test.describe('Retribution', () => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText('The defaults were tuned on an earlier game build and had a quick search on this one.')).toBeVisible()
-    // The trinkets, Juju Flurry and the mana consumables are spec-wide, above the list (D31).
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
-    for (const name of ['On-use trinkets', 'Major Mana Potion']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    // Juju Flurry and the mana consumables are spec-wide, above the list (D31), under Consumables as
+    // every spec's; the on-use trinkets are a row of the list, as every spec's (UA-6).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+    const consumables = tab.getByRole('region', { name: 'Consumables' })
+    await expect(consumables.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+    await expect(consumables.getByRole('switch', { name: 'Juju Flurry', exact: true })).toBeVisible()
     const list = tab.getByRole('list', { name: 'Priority list' })
-    for (const name of ['Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
+    for (const name of ['Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'On-use trinkets']) {
       await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(list.locator('[data-apl-row="seal"]')).toContainText('Seal of Command · again with 1.5 s left')

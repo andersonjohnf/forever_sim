@@ -667,13 +667,17 @@ The conditions are the table's rows above, and each row keeps its own wherever i
 | Exorcism (`exorcism`) | 6 | `exorcism.enabled` | `exorcism.minManaPct` | Undead or Demon, mana ≥ 20% |
 | Consecration (`consecration`) | 7 | `consecration.enabled` | `consecration.minManaPct` | rank 5, mana ≥ 20% |
 | Consecration (Rank 1) (`consecrationRank1`) | 8 | `consecrationRank1.enabled` | `consecrationRank1.minManaPct` | mana ≥ 10% |
+| On-use trinkets (`trinkets`) | — (the trinkets' line) | `trinkets.enabled` | | on cooldown, off the GCD |
 
 - **Pinned:** only the pre-pull and opener, first: its judgement comes at the pull. The seal has no
   switch, since there's always one, and its row holds the seal choice, as the Protection paladin's
   seal row does.
-- **Spec-wide, above the list:** the on-use trinkets and Juju Flurry (Cooldowns and buffs), and the
-  Major Mana Potion and Demonic Rune with their limits (Consumables). They're off the GCD and always
-  come after the list, as they did before it.
+- **The on-use trinkets are a row,** as every other spec's are, last by
+  default, where their lines always came, so the default order's plan didn't move; a setup saved
+  before the row puts it last too. Moved up, they're still off the GCD.
+- **Spec-wide, above the list:** Juju Flurry and the Major Mana Potion and Demonic Rune with their
+  limits, under Consumables, as every spec's Juju Flurry is. They're off the GCD and always come
+  after the list, as they did before it.
 - **No named presets:** the defaults are the implicit Default, as Fury's, and the tab still says how
   they were tuned (C2, then a quick search on 1.60.1.70009 under
   [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)). In the default order the plan is the
@@ -682,10 +686,21 @@ The conditions are the table's rows above, and each row keeps its own wherever i
   are fingerprinted against the code before it (`retribution-apl.test.ts`), and the Retribution
   golden is unchanged.
 - **The two Consecration rows share one cooldown,** so with both on, the higher takes it whenever
-  its mana is there, and the lower only below that. A lower row that starts from as much mana as
-  the higher, or more, is never cast; the Rotation tab says so under it ("Not used: Consecration
-  (Rank 1), above it, takes the cooldown they share…", `retributionUnusedSettings`), and the plan
-  keeps its line, which never fires.
+  it can be cast, and the lower only when it can't. Each can first be cast at its *floor*: its
+  threshold's share of maximum mana, or its cost, whichever is more. The lower row is cast only with
+  mana at or above its own floor and below the higher's, so **it's never cast exactly when its floor
+  is at least the higher's** (`consecration-rows.ts`; `consecration-rows.test.ts` sweeps both
+  thresholds from 0 to 40% in both orders on both specs and counts the casts). Rank 5 below rank 1
+  from as much mana, or more, is never cast, since it costs more. Rank 1 below rank 5 from as much
+  mana is still cast whenever the mana is there for it and not for rank 5's cost: from 0% each, 15.76
+  times a fight in the default setup without the potions, a review measured. The Rotation tab knows neither the
+  maximum mana nor the talents, so it says "Not used" under the lower row only where that holds on
+  every paladin: rank 5 from at least rank 1's threshold, or rank 1 from at least rank 5's and from
+  enough to pay rank 5's most cost (565, no talent) on the least maximum mana a paladin is simulated
+  with (2,252: base mana and the Undead row's Intellect), just over 25%. The note names both
+  thresholds: "Not used: Consecration, above it, takes their shared cooldown from 20% mana, and this
+  starts from 30%. Set this below 20%, or move it above Consecration." (`retributionUnusedSettings`).
+  The plan keeps the lower row's line either way.
 - **What reordering does,** in the default setup (seed 28301, 20,000 paired fights, 622.0 DPS):
   Consecration above Holy Strike −0.33% (95% CI −0.42 to −0.23%), unlike the Protection paladin's,
   where it gains ([its priority list](#forever-priority-list-default-1) below); Consecration above Hammer of Wrath −0.31%; Holy Strike above Hammer of Wrath −0.06%; Holy Strike
@@ -919,13 +934,15 @@ and Consecration (rows 6, 8, 7 and 7b) come before Holy Strike (row 5): Consecra
 then goes down on its cooldown rather than behind Holy Strike's, **+12.37 TPS (+1.67%, 95% CI +12.18
 to +12.55)** and +7.47 DPS (+1.63%) for 1.1 more damage taken a second, together with the refunded
 point's Holy Conduit 1 ([Protection defaults](#protection-defaults); seed 20260935, 100,000 paired
-fights, which no search used; Max TPS the same, +12.36 TPS, +1.56%). The on-use trinkets, Juju Flurry and the mana consumables
-are spec-wide, above the list, and always come after it: they're off the global cooldown. A row's
+fights, which no search used; Max TPS the same, +12.36 TPS, +1.56%). The on-use trinkets are the
+list's last row (`trinkets`), as Retribution's are, where their lines always came, so no plan moved;
+Juju Flurry and the mana consumables are spec-wide, above the list, under Consumables, and always
+come after it: they're all off the global cooldown. A row's
 conditions are its own wherever it sits: Swift Judgement still frees Judgement wherever it is.
 Hammer of the Righteous and Holy Strike share a cooldown, so with both on, the plan has both rows
 and the shared cooldown decides, as a real priority list would: the higher row is used whenever it
 can be, and the lower only when the higher can't be paid for. Hammer of the Righteous sits just
-above Holy Strike by default, the last two rows, off, so turning it on puts it in Holy Strike's place, with Holy Strike
+above Holy Strike by default, the last two ability rows, off, so turning it on puts it in Holy Strike's place, with Holy Strike
 as its fallback when Hammer's 90 mana isn't there (rarely, in the default setup); moving it below
 Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing, and the plan leaves Hammer out (and its weapon-DPS assumption with it). In the order before PR-1 the plan is the one the rotation gave before the list, fight for
 fight (`protection-apl.test.ts`, `PRE_LIST_ORDER`).
@@ -942,7 +959,7 @@ fight (`protection-apl.test.ts`, `PRE_LIST_ORDER`).
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
 | 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)). Dimmed on the Rotation tab without an execute phase | on |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
-| 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown, so the higher row takes it whenever its mana is there; a lower row that starts from as much mana as the higher, or more, is never cast, and the Rotation tab says so under it, as Retribution's does ("Not used: Consecration, above it, takes the cooldown they share…", `protectionUnusedSettings`) | on (T2) |
+| 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown, so the lower row is cast only when the higher can't be: never when its floor (its threshold's share of maximum mana, or its cost, whichever is more) is at least the higher's. The Rotation tab says "Not used" under it only where that holds for any maximum mana and talents, as Retribution's does ([its notes](#the-priority-list-a2)): rank 1 below rank 5 from 10% with rank 5 from 10% is still cast, up to 0.61 times a fight (a review's measurement), when the mana is there for rank 1 and not for rank 5's cost (`protectionUnusedSettings`) | on (T2) |
 | 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used whenever it can be: this one, while it's above Holy Strike and on, with Holy Strike when its 90 mana isn't there. The Rotation tab's Holy Strike row then says so ("Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It's used when you can't pay Hammer's 90 mana."); its own row says when the main hand can't use it (and that Holy Strike is used, or to turn Holy Strike on; with no main hand, neither is), or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
 | 5 | Holy Strike | `holyStrike.enabled`; ready; a weapon in the main hand (with none, the Rotation tab says "Not used: needs a weapon in your main hand.") | on |
 | — | On-use trinkets (Weakness Analyzer, Earthstrike) and Juju Flurry, off the GCD, on cooldown from the pull, as Retribution's (`consumables.ts`) | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs (no Protection preset selects it) | on; neither acts in the default setup |

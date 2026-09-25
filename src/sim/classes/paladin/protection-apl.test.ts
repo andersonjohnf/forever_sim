@@ -9,10 +9,10 @@ import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { rotationPreset } from '../../index'
 import { buildPlan } from '../../plan/build'
 import { COND } from '../../plan/types'
-import { activeAplPreset, aplPresets, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow } from '../apl'
+import { activeAplPreset, aplPresets, applyAplPreset, CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { fingerprint, planJson } from '../warrior/fury-apl-cases'
 import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, protectionRotation } from './protection'
-import { protectionCases } from './protection-apl-cases'
+import { PRE_LIST_ORDER, protectionCases } from './protection-apl-cases'
 
 const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
@@ -58,7 +58,12 @@ describe('Protection paladin’s priority list (D31)', () => {
       'consecrationRank1',
       'hammerOfTheRighteous',
       'holyStrike',
+      'trinkets',
     ])
+    // The on-use trinkets are a row, last, where their lines were before it (UA-6), so no plan moved; a
+    // stored order from before it, such as PRE_LIST_ORDER, puts it last too.
+    expect(normalizeAplOrder(PROTECTION_APL, [...PRE_LIST_ORDER]).at(-1)).toBe('trinkets')
+    expect(PROTECTION_APL.specWide).toEqual([ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing])
     expect(PROTECTION_APL.rows.filter((r) => r.pinned).map((r) => r.id)).toEqual(['prepull'])
   })
 

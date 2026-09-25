@@ -40,7 +40,8 @@ import {
   SEAL_OF_RIGHTEOUSNESS,
   SEAL_OF_THE_CRUSADER,
 } from './abilities'
-import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
+import { consecrationUnused } from './consecration-rows'
+import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables, paladinTrinkets } from './consumables'
 import { EXORCISM_TARGETS, manaOption } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
 import { type JotcRule, withJotcRule } from './spells'
@@ -422,7 +423,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.juju,
-    group: 'Cooldowns and buffs',
+    group: 'Consumables',
     label: 'Juju Flurry',
     help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute. More swings are more threat from your auto attacks and Seal of Fury.',
     default: true,
@@ -662,31 +663,15 @@ const hammerAbove = (order: readonly string[] | undefined): boolean => {
   return current.indexOf('hammerOfTheRighteous') < current.indexOf('holyStrike')
 }
 
-/** The two Consecration rows (paladin.md rows 7 and 7b), which share one cooldown. */
+/** The two Consecration rows, rank 5 and rank 1 (paladin.md rows 7 and 7b), which share one cooldown. */
 const CONSECRATION_ROWS = [
   { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
   { row: 'consecrationRank1', label: 'Consecration (Rank 1)', on: ID.consecrationRank1, mana: ID.consecrationRank1Mana },
 ] as const
 
 /**
- * What the Rotation tab says under a Consecration row that's never used (paladin.md rows 7 and 7b,
- * as Retribution's): the ranks share one cooldown, so with both on, the higher row takes it whenever
- * its mana is there, and the lower is used only below the higher's threshold. A lower row that starts
- * from as much mana as the higher, or more, is never used.
- */
-function consecrationUnused(v: ReturnType<typeof reader>, order: readonly string[] | undefined): Record<string, string> {
-  if (!CONSECRATION_ROWS.every((r) => v.on(r.on))) return {}
-  const current = normalizeAplOrder(PROTECTION_APL, order)
-  const [higher, lower] = [...CONSECRATION_ROWS].sort((a, b) => current.indexOf(a.row) - current.indexOf(b.row))
-  if (v.num(lower.mana) < v.num(higher.mana)) return {}
-  return {
-    [lower.on]: `Not used: ${higher.label}, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than ${higher.label}, or move it above.`,
-  }
-}
-
-/**
  * What the Rotation tab says under a row that's never or rarely used (docs/ux.md "Rotation"): the
- * lower of the two Consecration rows when it never has their cooldown (consecrationUnused), and
+ * lower of the two Consecration rows when it's never cast (consecration-rows.ts), and
  * Holy Strike or Hammer of the Righteous when the other takes its place. They share a cooldown, so
  * with both on, the higher row is used and the lower only when you can't pay for the higher: Holy
  * Strike under Hammer of the Righteous when
@@ -701,7 +686,7 @@ export function protectionUnusedSettings(
   order?: readonly string[],
 ): Record<string, string> {
   const v = reader(PROTECTION_OPTIONS, values)
-  return { ...consecrationUnused(v, order), ...strikeUnused(v, mainHand, order) }
+  return { ...consecrationUnused(PROTECTION_APL, CONSECRATION_ROWS, v, order), ...strikeUnused(v, mainHand, order) }
 }
 
 /** Holy Strike's and Hammer of the Righteous's notes (protectionUnusedSettings). */
@@ -744,8 +729,9 @@ const MAX_TPS_HELP = `Runs Retribution Aura instead of Devotion Aura for threat,
  * the aura, Righteous Fury and the opener, are one pinned row first: the aura is D26's duty, first
  * by its fixed rule, and the opener's judgement comes at the pull. The seal (row 1) has no switch:
  * there's always one. Hammer of the Righteous (5b) takes Holy Strike's place (5) when it's on and
- * the weapon allows; each says so when the other does. The consumables and on-use trinkets are
- * spec-wide, off the GCD, and always come after the list. The Priority choice is the preset
+ * the weapon allows; each says so when the other does. The on-use trinkets are a row, last, where
+ * their lines always were, so the default order plays as before; Juju Flurry and the mana
+ * consumables are spec-wide, off the GCD, and always come after the list. The Priority choice is the preset
  * picker: D28's Defensive, Balanced (the default) and Max TPS set it, so it isn't shown as a
  * control of its own.
  */
@@ -827,8 +813,9 @@ export const PROTECTION_APL: AplDefinition = {
       summary: [{ text: 'on cooldown, in Holy Strike’s place' }],
     },
     { id: 'holyStrike', label: 'Holy Strike', icon: HOLY_STRIKE_ABILITY.icon, enabledId: ID.holyStrike, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
   ],
-  specWide: [ID.trinkets, ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
+  specWide: [ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
   presets: [
     { id: 'defensive', label: 'Defensive', summary: DEFENSIVE_SUMMARY, help: DEFENSIVE_HELP, values: { [ID.priority]: PROTECTION_PRIORITY.duties } },
     { id: DEFAULT_APL_PRESET, label: 'Balanced', summary: BALANCED_SUMMARY, help: BALANCED_HELP, values: {} },
@@ -973,11 +960,13 @@ export function protectionRotation(
     hammerOfWrath: () => {
       if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
     },
+    // The on-use trinkets, off the GCD, on cooldown from the pull (consumables.ts, as Retribution's).
+    trinkets: () => paladinTrinkets(v, ID.trinkets, ctx, add),
   })
 
-  // After the list, off the GCD: on-use trinkets and Juju Flurry on cooldown from the pull, then the
-  // mana potion and rune, when selected in Buffs, whenever the most they restore fits
-  // (consumables.ts, as Retribution's).
+  // After the list, off the GCD: Juju Flurry on cooldown from the pull, then the mana potion and
+  // rune, when selected in Buffs, whenever the most they restore fits (consumables.ts, as
+  // Retribution's).
   const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C3)").
   const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))

@@ -496,7 +496,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       used.", or with Holy Strike off "… main hand. Turn Holy Strike on to use it instead.", and
       with no main hand, where Holy Strike can't be used either, just "… in your main hand.". With
       no main hand, Holy Strike (on) says so too, with Hammer on or off: "Not used: needs a weapon
-      in your main hand."
+      in your main hand." A paladin's two Consecration rows, rank 5 and rank 1, say "Not used"
+      under the lower only when it's never cast whatever the gear and talents
+      ([paladin.md](classes/paladin.md#the-priority-list-a2)), and name both thresholds and what
+      to change: "Not used: Consecration, above it, takes their shared cooldown from 20% mana, and
+      this starts from 30%. Set this below 20%, or move it above Consecration." With the higher
+      row from 0%, it takes the cooldown "whenever you can pay for it"; then rank 1 is told to
+      "Set this lower", and rank 5, which costs more, only to move above rank 1.
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and

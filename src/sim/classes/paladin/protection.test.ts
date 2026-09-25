@@ -941,8 +941,9 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
 
 describe('the two Consecration rows, which share a cooldown (paladin.md rows 7 and 7b)', () => {
   const d = defaultConfig(PROT)
-  const rank5 = 'Not used: Consecration (Rank 1), above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration (Rank 1), or move it above.'
-  const rank1 = 'Not used: Consecration, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration, or move it above.'
+  const rank5 = 'Not used: Consecration (Rank 1), above it, takes their shared cooldown from 10% mana, and this starts from 20%. Set this below 10%, or move it above Consecration (Rank 1).'
+  const rank1 = (from: number) =>
+    `Not used: Consecration, above it, takes their shared cooldown from 20% mana, and this starts from ${from}%. Set this below 20%, or move it above Consecration.`
   const order = defaultAplOrder(PROTECTION_APL)
   const rank1First = moveAplRow(PROTECTION_APL, order, 'consecrationRank1', order.indexOf('consecration'))!
 
@@ -953,21 +954,33 @@ describe('the two Consecration rows, which share a cooldown (paladin.md rows 7 a
     }
   })
 
-  it('say when the lower row starts from as much mana as the higher, or more: it never has the cooldown', () => {
+  it('say when the lower row starts from as much mana as the higher, or more, and so is never cast (consecration-rows.test.ts)', () => {
     expect(rank1First.indexOf('consecrationRank1')).toBeLessThan(rank1First.indexOf('consecration'))
     // Rank 1 (from 10%) above rank 5 (from 20%): rank 5 is never cast.
     expect(unusedRotationSettings({ ...d, rotationOrder: rank1First })).toEqual({ [ID.consecration]: rank5 })
     // …unless rank 1 needs more mana than rank 5.
     expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 30 }, rotationOrder: rank1First })).toEqual({})
-    // In the default order, rank 1 from as much mana as rank 5 is never cast.
-    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 20 } })).toEqual({ [ID.consecrationRank1]: rank1 })
+    // In the default order, rank 1 from as much mana as rank 5 is cast when you can pay for it and not
+    // for rank 5 (from 10% in the review, 0.61 a fight), so no note until it starts from more than
+    // rank 5's most cost on any paladin's mana (just over 25%).
+    for (const from of [0, 10, 20, 25]) expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationMana]: Math.min(from, 20), [ID.consecrationRank1Mana]: from } }), `${from}%`).toEqual({})
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 30 } })).toEqual({ [ID.consecrationRank1]: rank1(30) })
     // With either off, nothing to say.
     expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1]: false }, rotationOrder: rank1First })).toEqual({})
-    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecration]: false, [ID.consecrationRank1Mana]: 20 } })).toEqual({})
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecration]: false, [ID.consecrationRank1Mana]: 30 } })).toEqual({})
     // Alongside Hammer of the Righteous's note, each keeps its own.
-    expect(unusedRotationSettings({ ...d, rotation: { [ID.hammerOfTheRighteous]: true, [ID.consecrationRank1Mana]: 25 } })).toEqual({
-      [ID.consecrationRank1]: rank1,
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.hammerOfTheRighteous]: true, [ID.consecrationRank1Mana]: 40 } })).toEqual({
+      [ID.consecrationRank1]: rank1(40),
       [ID.holyStrike]: 'Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.',
+    })
+  })
+
+  it('say what to do from 0%: rank 1 below rank 5 can start lower, rank 5 below rank 1 can only move', () => {
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationMana]: 0, [ID.consecrationRank1Mana]: 30 } })).toEqual({
+      [ID.consecrationRank1]: 'Not used: Consecration, above it, takes their shared cooldown whenever you can pay for it, and this starts from 30%. Set this lower, or move it above Consecration.',
+    })
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 0 }, rotationOrder: rank1First })).toEqual({
+      [ID.consecration]: 'Not used: Consecration (Rank 1), above it, takes their shared cooldown whenever you can pay for it, and costs less. Move this above Consecration (Rank 1).',
     })
   })
 })

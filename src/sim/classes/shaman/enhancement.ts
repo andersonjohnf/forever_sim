@@ -75,7 +75,8 @@ export const ENHANCEMENT_OPTIONS: RotationOption[] = [
   {
     kind: 'choice',
     id: ID.imbue,
-    group: 'Cooldowns and buffs',
+    // No heading: it shapes the rest (it turns off Windfury Totem), so it comes first, as Arms' stance
+    // does (docs/ux.md "Rotation").
     label: 'Weapon imbue',
     help: 'Windfury Weapon: each hit has a 20% chance, at most every 1.5 s, of 2 extra attacks with more attack power. Rockbiter Weapon: +653 attack power all fight. Either takes your main hand’s temporary enchant, and Windfury Weapon turns off Windfury Totem for you.',
     choices: [

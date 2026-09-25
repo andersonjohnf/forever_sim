@@ -48,8 +48,11 @@ async function noSideScroll(page: Page, what = 'no horizontal page scroll') {
 /** What the Rotation tab shows by default, at any width: the imbue and consumables above the priority list (D31). */
 async function expectDefaultRotation(tab: Locator) {
   await expect(tab.getByText(/The defaults are the common priority\. There’s no totem twisting/)).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+  // The imbue comes first without a heading, as Arms' stance does (docs/ux.md "Rotation"); the consumables have theirs.
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
   await expect(tab.getByRole('radio', { name: 'Windfury', exact: true })).toBeChecked()
+  const imbueTop = (await tab.getByRole('radio', { name: 'Windfury', exact: true }).boundingBox())!.y
+  expect(imbueTop).toBeLessThan((await tab.getByRole('heading', { name: 'Consumables', level: 3 }).boundingBox())!.y)
   await expect(tab.getByRole('radio', { name: 'Rockbiter', exact: true })).not.toBeChecked()
   const list = tab.getByRole('list', { name: 'Priority list' })
   for (const name of ['Racial cooldown', 'Rage of the Farseer', 'On-use trinkets', 'Stormstrike', 'Lightning Bolt']) {

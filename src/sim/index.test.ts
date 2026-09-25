@@ -206,9 +206,10 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
       const options = spec.rotationOptions
       for (const [i, option] of options.entries()) {
         // Only what shapes the rest comes first without a heading: Arms' stance, a tank's Priority,
-        // its duties first or Max TPS (D26), and Destruction's and Affliction's Demonic Sacrifice,
-        // which picks the school their spells gain.
-        const unheaded = ['warrior.arms.baseStance', 'warrior.protection.priority', 'paladin.protection.priority', 'druid.bear.priority', 'warlock.destruction.demonicSacrifice.demon', 'warlock.affliction.demonicSacrifice.demon']
+        // its duties first or Max TPS (D26), Destruction's and Affliction's Demonic Sacrifice,
+        // which picks the school their spells gain, and Enhancement's weapon imbue, which turns off
+        // Windfury Totem.
+        const unheaded = ['warrior.arms.baseStance', 'warrior.protection.priority', 'paladin.protection.priority', 'druid.bear.priority', 'warlock.destruction.demonicSacrifice.demon', 'warlock.affliction.demonicSacrifice.demon', 'shaman.enhancement.imbue']
         if (unheaded.includes(option.id)) {
           expect(option.group).toBeUndefined()
           expect(i, option.id).toBe(0)

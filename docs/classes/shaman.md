@@ -469,8 +469,10 @@ Each row keeps its conditions wherever you move it:
 | Shock (`shock`) | — (`None` in its choice) | `shock.spell`, `shock.minManaPct` | ready, mana ≥ the share (row 7); at None its summary reads just "None", without the share |
 
 - **Pinned:** nothing. The imbue goes on 3 s before the pull whatever the order.
-- **Spec-wide, above the list:** the weapon imbue (row 0), and the consumables: Juju Flurry, the
-  Major Mana Potion and Demonic Rune with their mana limits, under Consumables. Juju Flurry takes its
+- **Spec-wide, above the list:** the weapon imbue (row 0), first and without a heading, since it
+  shapes the rest (Windfury Weapon turns off Windfury Totem), as Arms' stance does
+  ([ux.md "Rotation"](../ux.md)); and the consumables: Juju Flurry, the Major Mana Potion and
+  Demonic Rune with their mana limits, under Consumables. Juju Flurry takes its
   turn in the list with the on-use trinkets' row, wherever that sits, as it did before the list;
   the potion and rune come after the list, off the GCD once all they restore fits.
 - **No named rotations:** the implicit Default only, the common priority (D27).

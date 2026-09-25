@@ -330,7 +330,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     weapon)" for a warrior, "(one stone or poison per weapon)" for a rogue, "(one stone or oil per
     weapon)" for a Retribution paladin, "(one oil at a time)" for a caster; one the spec can't use
     says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
-    cooldown, so one is on at a time". So the switch that turns off isn't a surprise
+    cooldown, so one is on at a time". The air totems' (Windfury and Grace of Air) end "One air
+    totem at a time (even from different shamans)", and the two Thorns' (a raid druid's and a bear's
+    own) "Doesn't stack with the other Thorns", but only while the tab lists the rival and the spec
+    can use it: a warrior's Thorns, with no own Thorns beside it, and an Enhancement shaman's totems
+    while its Windfury Weapon locks Windfury off, have none (`src/features/buffs/rival-note.ts`). So
+    the switch that turns off isn't a surprise
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
   - EZ-Thro Dark Bomb's summary ends with what its 1 s throw costs your spec, in its own terms: "its
     1 s throw stops your melee swings" for a spec that swings, "holds your next cast" for a caster,

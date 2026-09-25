@@ -1,8 +1,9 @@
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Buffs": entries of which only one can be on turn each other off, and their summaries
-// say so. A weapon takes one stone or oil (issue #13), and potions share one cooldown (issue #14;
-// buffs doc "Exclusivity groups", "On-use items and cooldown categories").
+// say so. A weapon takes one stone or oil (issue #13), potions share one cooldown (issue #14), and a
+// group has one air totem and one Thorns (review FU-5; buffs doc "Exclusivity groups", "On-use items
+// and cooldown categories").
 
 test('a warrior’s stones and potions: one of each, the other switched off', async ({ page }) => {
   await page.goto('./')
@@ -65,4 +66,46 @@ test('a mage’s oils: one at a time, and the potion stays beside the rune', asy
   await expect(buffs.getByRole('switch', { name: 'Demonic Rune' })).toBeChecked()
   // A caster never swings: the bomb's throw holds its next cast (review CV-2).
   await expect(buffs.getByRole('switch', { name: 'EZ-Thro Dark Bomb' })).toHaveAccessibleDescription('225–675 Fire damage, every minute; its 1 s throw holds your next cast')
+})
+
+// The air totems and the two Thorns name the rival they turn off (src/features/buffs/rival-note.ts).
+test('a Fury warrior’s air totems: one at a time, and each says so', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+  const windfury = buffs.getByRole('switch', { name: 'Windfury Totem' })
+  const grace = buffs.getByRole('switch', { name: 'Grace of Air Totem' })
+  const note = 'One air totem at a time (even from different shamans)'
+  await expect(windfury).toBeChecked()
+  await expect(grace).not.toBeChecked()
+  await expect(windfury).toHaveAccessibleDescription(`20% chance on a main-hand hit for an extra attack with +246 attack power. ${note}`)
+  await expect(grace).toHaveAccessibleDescription(`+89 Agility. ${note}`)
+  await grace.click()
+  await expect(grace).toBeChecked()
+  await expect(windfury).not.toBeChecked()
+})
+
+test('a bear’s two Thorns: one at a time, and each says so', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('menuitem', { name: /Feral \(Bear\)/ }).click()
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+  const thorns = buffs.getByRole('switch', { name: 'Thorns', exact: true })
+  const own = buffs.getByRole('switch', { name: 'Thorns (your own)', exact: true })
+  await expect(thorns).toHaveAccessibleDescription(/: a raid Restoration druid’s, with its spell damage\. Doesn’t stack with the other Thorns$/)
+  await expect(own).toHaveAccessibleDescription(/, when no other druid casts it\. Doesn’t stack with the other Thorns$/)
+  await expect(thorns).toBeChecked()
+  await own.click()
+  await expect(own).toBeChecked()
+  await expect(thorns).not.toBeChecked()
+})
+
+test('a Protection warrior’s Thorns has no rival to name', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('group', { name: 'Warrior' }).getByRole('menuitem', { name: /^Protection/ }).click()
+  await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+  const thorns = page.getByRole('tabpanel', { name: 'Buffs' }).getByRole('switch', { name: 'Thorns', exact: true })
+  await expect(thorns).toHaveAccessibleDescription('38 Nature damage to the boss each time it hits you: a raid Restoration druid’s, with its spell damage')
 })

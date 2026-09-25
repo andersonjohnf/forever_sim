@@ -1,5 +1,5 @@
 import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -17,6 +17,8 @@ import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
+import { PICKER_HEADING_ID, PickerPanel } from './picker-panel'
+import { useInlinePicker } from './use-inline-picker'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
@@ -66,6 +68,19 @@ function slotList(slots: readonly GearSlot[]): string {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 }
 
+/** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
+function EmptySlot({ slot, locked }: { slot: GearSlot; locked: boolean }) {
+  return (
+    <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
+      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
+        <span className="text-xs text-muted-foreground">{locked ? 'Your two-handed weapon uses both hands' : 'Empty'}</span>
+      </div>
+    </div>
+  )
+}
+
 export function GearSection() {
   const meta = useSpecMeta()
   const config = useSetup((s) => s.config)
@@ -103,8 +118,170 @@ export function GearSection() {
     announce('Removed all gear.')
   }
 
+  // From 1440 px the picker opens inline beside a compact slot list (docs/ux.md "Gear", D34). A slot
+  // chosen in one layout doesn't carry into the other: the dialog doesn't pop up when the window
+  // narrows past it.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const inline = useInlinePicker(rootRef)
+  const [wasInline, setWasInline] = useState(inline)
+  if (wasInline !== inline) {
+    setWasInline(inline)
+    setPicking(null)
+  }
+  // The off hand can't be chosen while a two-hander locks it, so the panel lets it go.
+  const panelSlot = inline && picking && !(picking === 'offHand' && twoHanded) ? picking : null
+  const groups = slotGroups(meta.classId)
+
+  /** Opens a slot's picker. Inline, focus moves to the panel's heading, as a Rotation row's does. */
+  const choose = (slot: GearSlot) => {
+    if (!inline) return setPicking(slot)
+    changeAndFocus(
+      () => setPicking(slot),
+      () => document.getElementById(PICKER_HEADING_ID),
+    )
+  }
+
+  /** Equips a pick. The dialog closes on it; the inline panel stays on the slot to compare (D34). */
+  const pick = (slot: GearSlot, item: Item | null) => {
+    const before = config.gear
+    const after = equip(config, slot, item).gear
+    const swapped = slot === 'ranged' ? suppliesSwapped(before, after) : null
+    if (!inline) {
+      update((c) => equip(c, slot, item))
+      if (swapped) announce(swapped)
+      return setPicking(null)
+    }
+    // The row that left the slot empty goes with the item, so focus moves to the panel's heading.
+    changeAndFocus(
+      () => update((c) => equip(c, slot, item)),
+      () => (item ? null : document.getElementById(PICKER_HEADING_ID)),
+    )
+    // Focus stays on the item, so screen readers hear what changed.
+    announce([item ? `Equipped ${item.name}.` : `${SLOT_LABEL[slot]} left empty.`, swapped].filter(Boolean).join(' '))
+  }
+
+  /** What a slot holds, and how its row shows it. */
+  const slotState = (slot: GearSlot) => {
+    const equipped = config.gear[slot]
+    const item = equipped ? itemsById.get(equipped.itemId) : undefined
+    return {
+      equipped,
+      item,
+      lockedByTwoHand: slot === 'offHand' && twoHanded,
+      bis: item ? bisRank(item, config.spec, slot) : null,
+      // Ammo the ranged weapon doesn't fire adds nothing: dimmed, with the reason, as in the picker.
+      unused: item ? ammoNote(item, ranged) : null,
+      enchantable: Boolean(item && enchantsFor(slot, item, config.rules.profile).length > 0),
+    }
+  }
+
+  const slotButton = (slot: GearSlot, item: Item | undefined, locked: boolean, bis: number | null, unused: string | null, className: string) => (
+    <button
+      ref={(el) => {
+        if (el) slotButtons.current.set(slot, el)
+        else slotButtons.current.delete(slot)
+      }}
+      type="button"
+      // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
+      data-gear-slot={slot}
+      disabled={locked}
+      onClick={() => choose(slot)}
+      className={className}
+      aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (locked ? 'two-handed weapon equipped' : 'empty')}`}
+      aria-describedby={item ? `slot-${slot}-description` : undefined}
+      // Inline, the slot whose items the panel shows, as the Rotation list's selected row.
+      aria-current={inline && panelSlot === slot ? 'true' : undefined}
+    >
+      {item && (
+        <span id={`slot-${slot}-description`} className="sr-only">
+          {itemDescription(item, { bis, spec: meta.id, note: unused })}
+        </span>
+      )}
+    </button>
+  )
+
+  const unusedNote = (unused: string | null) =>
+    unused && (
+      <>
+        <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+        {unused}
+      </>
+    )
+
+  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined) => (
+    <EnchantPicker
+      slot={slot}
+      item={item}
+      enchantId={enchantId}
+      // The slot's button, or the main hand's if a two-hander now locks this slot.
+      fallbackFocus={() => {
+        const button = slotButtons.current.get(slot)
+        return button && !button.disabled ? button : slotButtons.current.get('mainHand')
+      }}
+      onChange={(enchantId) =>
+        update((c) => ({
+          ...c,
+          gear: { ...c.gear, [slot]: enchantId ? { itemId: item.id, enchantId } : { itemId: item.id } },
+        }))
+      }
+    />
+  )
+
+  /**
+   * Up and Down from anywhere in a slot's row move to the slot above or below, across the groups;
+   * Enter on the slot opens it. Keys from a badge's popover, which React passes up from its portal,
+   * and the enchant list's own arrows are left alone.
+   */
+  const slotKeys = (e: KeyboardEvent<HTMLLIElement>, slot: GearSlot) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+    if (e.defaultPrevented || !e.currentTarget.contains(e.target as Node)) return
+    const order = groups.flatMap((g) => g.slots).filter((s) => s === slot || slotButtons.current.get(s)?.disabled === false)
+    const next = order[order.indexOf(slot) + (e.key === 'ArrowDown' ? 1 : -1)]
+    if (!next) return
+    e.preventDefault()
+    slotButtons.current.get(next)?.focus()
+  }
+
+  /** A group of the wide layout's compact slot list: one row a slot, about 56 px, with its enchant chip at the end. */
+  const compactGroup = (group: { label: string; slots: GearSlot[] }) => (
+    <section key={group.label} className="flex min-w-0 flex-col gap-2">
+      <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
+      <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
+        {group.slots.map((slot) => {
+          const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+          return (
+            <li key={slot} onKeyDown={(e) => slotKeys(e, slot)} className="relative flex min-h-14 min-w-0">
+              {/* The chosen slot: a bar in the primary colour on its leading edge, as a Rotation row's. */}
+              {panelSlot === slot && <span aria-hidden className="absolute inset-y-0 left-0 z-2 w-[3px] bg-primary" />}
+              <div
+                className={cn(
+                  'relative flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 transition-colors',
+                  lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                )}
+              >
+                {/* Its ring is inset, so the list's rounded edge doesn't clip it. */}
+                {slotButton(slot, item, lockedByTwoHand, bis, unused, 'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed')}
+                {item ? (
+                  <ItemSummary compact item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
+                ) : (
+                  <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                )}
+              </div>
+              {item && enchantable && (
+                // The chip fills its cell, square-cornered and with an inset ring, beside the item.
+                <div className="flex w-[min(34%,13rem)] shrink-0 border-l [&>button]:rounded-none [&>button]:focus-visible:ring-inset">
+                  {enchantPicker(slot, item, equipped?.enchantId)}
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       <SectionHeader
         title="Gear"
         description={
@@ -160,106 +337,64 @@ export function GearSection() {
       </div>
       <ClassicEraNote what="Enchants" />
 
-      {slotGroups(meta.classId).map((group) => (
-        <section key={group.label} className="flex min-w-0 flex-col gap-2">
-          <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
-          {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
-            {group.slots.map((slot) => {
-              const equipped = config.gear[slot]
-              const item = equipped ? itemsById.get(equipped.itemId) : undefined
-              const lockedByTwoHand = slot === 'offHand' && twoHanded
-              const bis = item ? bisRank(item, config.spec, slot) : null
-              // Ammo the ranged weapon doesn't fire adds nothing: dimmed, with the reason, as in the picker.
-              const unused = item ? ammoNote(item, ranged) : null
-              return (
-                <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
-                  {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
-                      explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
-                      over faded content too (an empty slot's icon), which opacity would lift above it. */}
-                  <div
-                    className={cn(
-                      'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                      lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                      item && enchantsFor(slot, item, config.rules.profile).length > 0 && 'rounded-b-none',
-                    )}
-                  >
-                    <button
-                      ref={(el) => {
-                        if (el) slotButtons.current.set(slot, el)
-                        else slotButtons.current.delete(slot)
-                      }}
-                      type="button"
-                      // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
-                      data-gear-slot={slot}
-                      disabled={lockedByTwoHand}
-                      onClick={() => setPicking(slot)}
-                      className="absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
-                      aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
-                      aria-describedby={item ? `slot-${slot}-description` : undefined}
-                    >
-                      {item && (
-                        <span id={`slot-${slot}-description`} className="sr-only">
-                          {itemDescription(item, { bis, spec: meta.id, note: unused })}
-                        </span>
+      {inline ? (
+        // The wide layout (docs/ux.md "Gear", D34): the slots as a compact list, and the item picker
+        // in a panel beside it. The panel widens with the pane, and from 84 rem the slots take two
+        // columns beside it: Armor, then Jewelry and Weapons.
+        <div className="grid grid-cols-[minmax(0,1fr)_24rem] items-start gap-6 @min-[68rem]/setup:grid-cols-[minmax(0,1fr)_30rem]">
+          <div className="grid min-w-0 gap-6 @min-[84rem]/setup:grid-cols-2 @min-[84rem]/setup:items-start">
+            <div className="flex min-w-0 flex-col gap-6">{groups.slice(0, 1).map(compactGroup)}</div>
+            <div className="flex min-w-0 flex-col gap-6">{groups.slice(1).map(compactGroup)}</div>
+          </div>
+          <PickerPanel
+            key={panelSlot ?? 'none'}
+            slot={panelSlot}
+            spec={config.spec}
+            race={config.race}
+            equippedId={panelSlot ? (config.gear[panelSlot]?.itemId ?? null) : null}
+            worn={wornItems(config.gear)}
+            onPick={(item) => panelSlot && pick(panelSlot, item)}
+            onBack={() => panelSlot && slotButtons.current.get(panelSlot)?.focus()}
+          />
+        </div>
+      ) : (
+        groups.map((group) => (
+          <section key={group.label} className="flex min-w-0 flex-col gap-2">
+            <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
+            {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+              {group.slots.map((slot) => {
+                const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+                return (
+                  <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
+                    {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
+                        explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
+                        over faded content too (an empty slot's icon), which opacity would lift above it. */}
+                    <div
+                      className={cn(
+                        'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
+                        lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                        enchantable && 'rounded-b-none',
                       )}
-                    </button>
-                    {item ? (
-                      <ItemSummary
-                        item={item}
-                        bis={bis}
-                        meta={SLOT_LABEL[slot]}
-                        dimmed={Boolean(unused)}
-                        note={
-                          unused && (
-                            <>
-                              <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-                              {unused}
-                            </>
-                          )
-                        }
-                      />
-                    ) : (
-                      <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
-                        <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {lockedByTwoHand ? 'Your two-handed weapon uses both hands' : 'Empty'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                  </div>
-                  {item && enchantsFor(slot, item, config.rules.profile).length > 0 && (
-                    <div className="border-t">
-                      <EnchantPicker
-                        slot={slot}
-                        item={item}
-                        enchantId={equipped?.enchantId}
-                        // The slot's button, or the main hand's if a two-hander now locks this slot.
-                        fallbackFocus={() => {
-                          const button = slotButtons.current.get(slot)
-                          return button && !button.disabled ? button : slotButtons.current.get('mainHand')
-                        }}
-                        onChange={(enchantId) =>
-                          update((c) => ({
-                            ...c,
-                            gear: { ...c.gear, [slot]: enchantId ? { itemId: item.id, enchantId } : { itemId: item.id } },
-                          }))
-                        }
-                      />
+                    >
+                      {slotButton(slot, item, lockedByTwoHand, bis, unused, 'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed')}
+                      {item ? (
+                        <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
+                      ) : (
+                        <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                      )}
+                      {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                     </div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      ))}
+                    {item && enchantable && <div className="border-t">{enchantPicker(slot, item, equipped?.enchantId)}</div>}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        ))
+      )}
 
-      {picking && (
+      {picking && !inline && (
         <ItemPicker
           open
           onOpenChange={(open) => !open && setPicking(null)}
@@ -268,14 +403,7 @@ export function GearSection() {
           slot={picking}
           equippedId={config.gear[picking]?.itemId ?? null}
           worn={wornItems(config.gear)}
-          onPick={(item) => {
-            const before = config.gear
-            const after = equip(config, picking, item).gear
-            update((c) => equip(c, picking, item))
-            const swapped = picking === 'ranged' ? suppliesSwapped(before, after) : null
-            if (swapped) announce(swapped)
-            setPicking(null)
-          }}
+          onPick={(item) => pick(picking, item)}
           returnTo={() => slotButtons.current.get(picking)}
         />
       )}

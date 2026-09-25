@@ -85,6 +85,7 @@ export function ItemSummary({
   meta,
   note,
   dimmed = false,
+  compact = false,
   className,
 }: {
   item: Item
@@ -95,10 +96,53 @@ export function ItemSummary({
   note?: ReactNode
   /** Fades the icon, name and stats (an item the picker can't equip here, or ammo the ranged weapon doesn't fire). */
   dimmed?: boolean
+  /**
+   * The wide layout's slot list (docs/ux.md "Gear"): the name and its BiS rank on one line, then
+   * `meta` and the stats on the next, with the flags beside them, so a row is about 56 px.
+   */
+  compact?: boolean
   className?: string
 }) {
   const fade = dimmed && 'opacity-60'
   const effects = unsimulatedEffects(item, useSpecMeta().id)
+  const flags = (!item.foreverData || effects.length > 0) && (
+    <>
+      {!item.foreverData && <ClassicStatsBadge />}
+      {effects.length > 0 && <UnsimulatedBadge effects={effects} />}
+    </>
+  )
+  if (compact) {
+    return (
+      <div className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
+        <WowIcon icon={item.icon} size="lg" className={cn(fade)} />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span aria-hidden className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>
+              {item.name}
+            </span>
+            {bis ? (
+              <span aria-hidden className={cn('shrink-0', fade)}>
+                <BisBadge rank={bis} />
+              </span>
+            ) : null}
+          </span>
+          {/* The flags wrap under the stats when they'd squeeze them, and a line of flags that wraps
+              starts 24 px lower, so their 44 px hit areas never overlap. */}
+          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span aria-hidden className={cn('line-clamp-2 max-w-full min-w-0 text-xs text-muted-foreground tabular-nums', fade)}>
+              {[meta, statsLine(item)].filter(Boolean).join(' · ')}
+            </span>
+            {flags && <span className="flex flex-wrap items-center gap-x-1 gap-y-6">{flags}</span>}
+          </span>
+          {note && (
+            <span aria-hidden className="mt-1 flex items-start gap-1.5 text-xs text-foreground">
+              {note}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
   return (
     <div className={cn('flex min-w-0 flex-1 items-start gap-3', className)}>
       <WowIcon icon={item.icon} size="lg" className={cn(fade)} />

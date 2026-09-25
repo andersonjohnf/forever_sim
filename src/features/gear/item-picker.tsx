@@ -1,5 +1,5 @@
 import { Ban, Check, Info, Search, X } from 'lucide-react'
-import { useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState, type RefObject } from 'react'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { SelectContent } from '@/components/select-content'
@@ -10,12 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Item } from '@/data/items/types'
+import { useScrollEdges } from '@/features/results/use-scroll-edges'
 import { useIsDesktop } from '@/hooks/use-media-query'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { itemDescription } from './item-flags'
+import { pickerDescription, pickerTitle } from './picker-text'
 import { ItemSummary } from './item-row'
 import { ammoNote, bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
@@ -35,6 +37,16 @@ interface PickerProps {
   onPick: (item: Item | null) => void
   /** The slot's button, which focus goes back to however the picker closes, a pick included. */
   returnTo: () => HTMLElement | null | undefined
+}
+
+/** What the picker's body needs: the dialog's, the drawer's and the wide layout's inline panel's alike. */
+export type PickerBodyProps = Pick<PickerProps, 'spec' | 'race' | 'slot' | 'equippedId' | 'worn' | 'onPick'> & {
+  /** Focus the search box when it mounts (the desktop dialog). */
+  autoFocus?: boolean
+  /** The search box, for a caller that moves focus to it (the inline panel's `/`). */
+  searchRef?: RefObject<HTMLInputElement | null>
+  /** Fade the item list's edges while it has more past them (the inline panel, as the Rotation panel does). */
+  fadeEdges?: boolean
 }
 
 /** How the Unique rules treat an item here: free to pick, moving from another slot, or blocked. */
@@ -69,8 +81,8 @@ function CloseButton() {
 export function ItemPicker(props: PickerProps) {
   const isDesktop = useIsDesktop()
   const { titleRef, contentProps } = useSheetFocus(props.returnTo)
-  const title = `Choose ${SLOT_LABEL[props.slot].toLowerCase()}`
-  const description = `Items a ${SPEC_META[props.spec].className.toLowerCase()} can equip here.`
+  const title = pickerTitle(props.slot)
+  const description = pickerDescription(props.spec)
   if (isDesktop) {
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -105,6 +117,13 @@ export function ItemPicker(props: PickerProps) {
   )
 }
 
+/**
+ * The Rotation panel's edge fades (src/features/rotation/priority-list.tsx), on the inline panel's
+ * list. Focus scrolls clear of them, and at the bottom clear of the toasts too (scroll-pb-toast).
+ */
+const FADE_EDGES =
+  'scroll-pt-12 [scroll-padding-bottom:max(3rem,calc(var(--toast-clearance,-0.5rem)+0.5rem))] data-[fade=both]:[mask-image:linear-gradient(to_bottom,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)] data-[fade=bottom]:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] data-[fade=top]:[mask-image:linear-gradient(to_top,black_calc(100%-2.5rem),transparent)]'
+
 /** The picker's orders (docs/ux.md "Gear"): the spec's BiS ranks first, item level, or name. */
 const SORTS: { value: Sort; label: string }[] = [
   { value: 'bis', label: 'BiS rank' },
@@ -123,11 +142,20 @@ const COMPARE: Record<Sort, (a: Candidate, b: Candidate) => number> = {
   name: byName,
 }
 
-function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: PickerProps & { autoFocus?: boolean }) {
+/**
+ * The picker's search, filters, sort and item rows (docs/ux.md "Gear"): one body for the dialog,
+ * the phone's drawer and, from 1440 px, the panel beside the slot list (picker-panel.tsx).
+ */
+export function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus, searchRef: outerSearchRef, fadeEdges = false }: PickerBodyProps) {
   const { classId } = SPEC_META[spec]
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
-  const searchRef = useRef<HTMLInputElement>(null)
+  const ownSearchRef = useRef<HTMLInputElement>(null)
+  const searchRef = outerSearchRef ?? ownSearchRef
+  // The list scrolls inside its box; in the inline panel a fade marks each edge with more past it.
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
+  const edges = useScrollEdges(scrollerRef, listRef)
   const candidates = useMemo(
     () =>
       itemData.items
@@ -221,81 +249,88 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
         </div>
       </div>
 
-      {/* Focus in it scrolls clear of the toasts, which sit over the picker (src/index.css). */}
-      <ul className="min-h-0 flex-1 scroll-pb-toast overflow-y-auto overscroll-contain p-2" aria-label="Items">
-        {equippedId !== null && !searching && (
-          <li>
-            <button
-              type="button"
-              onClick={() => onPick(null)}
-              className="flex min-h-12 w-full items-center gap-3 rounded-lg px-3 text-left text-sm text-muted-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-            >
-              <X className="size-4" /> Leave this slot empty
-            </button>
-          </li>
-        )}
-        {shown.map(({ item, bis, unused }) => {
-          const equipped = item.id === equippedId
-          const { moves, blocked } = uniqueState(worn, slot, item)
-          // A blocked item can't be picked; an unused one can, but does nothing with this weapon.
-          const note = blocked ?? unused
-          const details = itemDetails(item, moves)
-          return (
-            <li key={item.id}>
-              {/* The item's button covers the row, with the whole item as its name; the flag badges sit
-                  above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded content,
-                  which opacity would lift above it. A blocked item stays focusable (aria-disabled), so
-                  its reason is read out. */}
-              <div
-                className={cn(
-                  'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
-                  blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
-                  equipped && 'bg-muted',
-                )}
+      {/* Focus in it scrolls clear of the toasts, which sit over the picker (src/index.css). The list
+          sits in its scroller, so a change in its height (a search) moves the fades' ends. */}
+      <div
+        ref={scrollerRef}
+        data-fade={fadeEdges ? (edges.above && edges.below ? 'both' : edges.above ? 'top' : edges.below ? 'bottom' : 'none') : undefined}
+        className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain', fadeEdges ? FADE_EDGES : 'scroll-pb-toast')}
+      >
+        <ul ref={listRef} className="p-2" aria-label="Items">
+          {equippedId !== null && !searching && (
+            <li>
+              <button
+                type="button"
+                onClick={() => onPick(null)}
+                className="flex min-h-12 w-full items-center gap-3 rounded-lg px-3 text-left text-sm text-muted-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
-                <button
-                  type="button"
-                  aria-current={equipped || undefined}
-                  aria-disabled={blocked ? true : undefined}
-                  onClick={() => !blocked && onPick(item)}
+                <X className="size-4" /> Leave this slot empty
+              </button>
+            </li>
+          )}
+          {shown.map(({ item, bis, unused }) => {
+            const equipped = item.id === equippedId
+            const { moves, blocked } = uniqueState(worn, slot, item)
+            // A blocked item can't be picked; an unused one can, but does nothing with this weapon.
+            const note = blocked ?? unused
+            const details = itemDetails(item, moves)
+            return (
+              <li key={item.id}>
+                {/* The item's button covers the row, with the whole item as its name; the flag badges sit
+                    above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded content,
+                    which opacity would lift above it. A blocked item stays focusable (aria-disabled), so
+                    its reason is read out. */}
+                <div
                   className={cn(
-                    'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-                    blocked && 'cursor-not-allowed',
+                    'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
+                    blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
+                    equipped && 'bg-muted',
                   )}
                 >
-                  <span className="sr-only">
-                    {item.name}. {itemDescription(item, { bis, meta: details, note, spec })}
-                    {equipped && '. Equipped'}
-                  </span>
-                </button>
-                <ItemSummary
-                  item={item}
-                  bis={bis}
-                  meta={details}
-                  dimmed={Boolean(note)}
-                  note={
-                    note && (
-                      <>
-                        {blocked ? <Ban className="mt-px size-3.5 shrink-0" aria-hidden /> : <Info className="mt-px size-3.5 shrink-0" aria-hidden />}
-                        {note}
-                      </>
-                    )
-                  }
-                />
-                {equipped && <Check className="mt-1 size-4 shrink-0" aria-hidden />}
-              </div>
+                  <button
+                    type="button"
+                    aria-current={equipped || undefined}
+                    aria-disabled={blocked ? true : undefined}
+                    onClick={() => !blocked && onPick(item)}
+                    className={cn(
+                      'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                      blocked && 'cursor-not-allowed',
+                    )}
+                  >
+                    <span className="sr-only">
+                      {item.name}. {itemDescription(item, { bis, meta: details, note, spec })}
+                      {equipped && '. Equipped'}
+                    </span>
+                  </button>
+                  <ItemSummary
+                    item={item}
+                    bis={bis}
+                    meta={details}
+                    dimmed={Boolean(note)}
+                    note={
+                      note && (
+                        <>
+                          {blocked ? <Ban className="mt-px size-3.5 shrink-0" aria-hidden /> : <Info className="mt-px size-3.5 shrink-0" aria-hidden />}
+                          {note}
+                        </>
+                      )
+                    }
+                  />
+                  {equipped && <Check className="mt-1 size-4 shrink-0" aria-hidden />}
+                </div>
+              </li>
+            )
+          })}
+          {shown.length === 0 && (
+            <li className="flex flex-col items-center gap-3 px-4 py-12 text-center text-sm text-muted-foreground">
+              No items match “{deferredQuery}”.
+              <Button variant="outline" className="h-11" onClick={clearSearch}>
+                Clear search
+              </Button>
             </li>
-          )
-        })}
-        {shown.length === 0 && (
-          <li className="flex flex-col items-center gap-3 px-4 py-12 text-center text-sm text-muted-foreground">
-            No items match “{deferredQuery}”.
-            <Button variant="outline" className="h-11" onClick={clearSearch}>
-              Clear search
-            </Button>
-          </li>
-        )}
-      </ul>
+          )}
+        </ul>
+      </div>
     </div>
   )
 }

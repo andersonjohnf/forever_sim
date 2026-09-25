@@ -278,7 +278,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     count. Its settings flow into balanced columns, read top to bottom and then on (CSS columns, each
     setting whole in one): 2 from 53 rem and 3 from 72 rem, the Buffs tab's widths, so a paladin's
     four settings take two short columns rather than one long one (review finding DU1-7: at
-    1440×900 Prot Paladin's tab ends at 971 px, from 1,115; every other spec's fits the window). Its
+    1440×900 Prot Paladin's tab ends at 971 px, from 1,115; every other spec's fits the window, the
+    longest Retribution's at 859). So Prot Paladin's Character tab scrolls at 1440×900, and by
+    design (review finding V2-3, waived): 71 px past the window's edge, with every setting in view
+    in balanced columns, as principle 4 asks, rather than behind a disclosure, and it fits from
+    1920×1080 (851). Its
     choices (the rule profile, a paladin's two untested rules) are as wide as their options,
     left-aligned ([Visual language](#visual-language)), not two halves of the pane. Narrower, the
     racials come under the races and Advanced is a disclosure, as at every width under 1440 px.
@@ -915,9 +919,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     about 16 rem hold a stepper, a menu or Precision's two options, and 4 from 72 rem. Balanced
     columns fit whatever the spec shows, rather than a split tuned to today's settings (review
     finding DU1-2: Advanced beside the fight ran long in one column while the other stood empty).
-    At 1440×900 a DPS spec's tab fits the window (Fury ends at 891 px, from 943); a tank's, with
-    Boss melee's seven settings, ends at 1,083 (from 1,323) and fits from 1920×1080 (927). Boss
-    armor, position and precision are as wide as their options, left-aligned
+    At 1440×900 a DPS spec's tab fits the window **at its defaults** (Fury ends at 891 px, from
+    943). A changed seed adds its "Default: …" line and Fixed precision its Number of fights, so
+    Fury's then ends at 907, or 947 with both (review finding V2-2). A tank's tab scrolls at
+    1440×900, and by design (review finding V2-3, waived): Boss melee's seven settings make one
+    column the tallest, so the tab ends at 1,083 px (a bear's at 1,059; from 1,323), under 200 px
+    past the window's edge. Every setting stays in view in balanced columns, as principle 4 asks,
+    rather than behind a disclosure, and it fits from 1920×1080 (927, or 951 with Fixed). Measured
+    with a classic 17 px scrollbar. Boss armor, position and precision are as wide as their
+    options, left-aligned
     ([Visual language](#visual-language)). Narrower, Advanced is a disclosure under them, as at every
     width under 1440 px. Shown and disclosure are the same elements, the disclosure held open and
     its button hidden, so a window crossing 1440 px keeps focus on the setting that had it, and

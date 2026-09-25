@@ -843,9 +843,9 @@ export const SUNDER_ARMOR: AbilityDef = {
  * and T2): `bonus` + `apCoefficient` × the attack power when it lands, before the global multipliers.
  * - `forever`: the Forever client's THREAT effect, 206 at rank 5 [F] (1.60.1.70009, 34 / 75 / 117 /
  *   158 / 206 by rank), plus 0.05 × attack power [?]. Blizzard's notes promise an Attack Power term
- *   the client doesn't carry; 0.05 is D29's reasoned default, the share that brings 206 to Classic
- *   Era's rank 5 total of 261, the closest allowed value, at 1,100 attack power, about a level-60
- *   tank's before raid buffs (warrior.md Q1; open-questions B10).
+ *   the client doesn't carry; 0.05 is D29's reasoned guess, which keeps the total near Classic Era's
+ *   rank 5 total of 261, the closest allowed value: 261 at 1,100 attack power, about 281 at the
+ *   default tank's ~1,500 when its Sunders land (threat.md#warrior; warrior.md Q1; open-questions B10).
  * - `classicEra`: Classic Era's server-side 261 [C] (Magey), flat, since the Classic Era client has no
  *   threat effect on the spell.
  */

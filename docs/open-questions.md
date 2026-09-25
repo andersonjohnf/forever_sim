@@ -449,8 +449,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   correction "on all ranks, including a small increase to threat generated from Attack Power". So
   whether 1013 replaced or added to 261 is moot, and rank 1's "1" is gone.
 - **Assumes now:** 206 plus **0.05 × attack power** [?] per landed Sunder at rank 5: the client
-  carries no attack power coefficient, so the share is D29's default, the one that brings 206 to
-  Classic Era's 261 at 1,100 AP. The results list it.
+  carries no attack power coefficient, so the share is D29's default, a guess that keeps the total
+  near Classic Era's 261: 261 at 1,100 AP, about 281 at the default tank's ~1,500 AP when its
+  Sunders land. The results list it.
 - **Test:** at 60, Defensive Stance with Defiance 3/3 and a shield (×1.495), auto attack off: one
   landed Sunder on a mob, threat read before and after, at two attack powers (with and without
   Battle Shout and a Mighty Rage Potion or Juju Might). `threat ÷ 1.495 − 206` is the term; its

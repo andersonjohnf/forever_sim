@@ -250,7 +250,7 @@ const REGISTRY = {
   },
   // threat.md#warrior, warrior.md Q1: the plan gives the client's value and the attack power share ({detail}).
   sunderThreat: {
-    text: 'Sunder Armor makes {detail} in threat, before your stance’s multiplier. The 206 is the Forever client’s; Blizzard’s notes add threat from attack power without a number, so 5% is a guess that makes Classic Era’s 261 at 1,100 attack power. Untested.',
+    text: 'Sunder Armor makes {detail} in threat, before your stance’s multiplier. The 206 is the Forever client’s; Blizzard’s notes add threat from attack power without a number, so 5% is a guess that keeps it near Classic Era’s 261: about 281 at the default tank’s 1,500 attack power in a fight. Untested.',
     docRef: `${THREAT}#warrior`,
   },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.

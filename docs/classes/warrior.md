@@ -121,7 +121,7 @@ utility are covered in [§4](#4-talents).
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
 | Demoralizing Shout (rank 5) | −146 AP at 60, 30 s | **−204 AP at 60, 45 s** [sb] [client] (SpellEffect, SpellLevels, 1.60.1.69913) | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
 | Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
-| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 206 at rank 5** (34/75/117/158 at ranks 1–4) [F] [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1/405/608/810/1013; Blizzard's notes for 1.60.1.70009 "corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" [notes-70009], a term the client doesn't carry: **default + 0.05 × AP** [?] (Q1) | Below Classic Era's 261 flat until about 1,100 AP. See [threat.md](../mechanics/threat.md#warrior) and Q1 |
+| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 206 at rank 5** (34/75/117/158 at ranks 1–4) [F] [client] (SpellEffect, 1.60.1.70009). Build 1.60.1.69913 had 1/405/608/810/1013; Blizzard's notes for 1.60.1.70009 "corrected the threat values on all ranks, including a small increase to threat generated from Attack Power" [notes-70009], a term the client doesn't carry: **default + 0.05 × AP** [?] (Q1) | Below Classic Era's 261 flat until 1,100 AP; about 281 at the default tank's ~1,500 AP when its Sunders land. See [threat.md](../mechanics/threat.md#warrior) and Q1 |
 | Victory Rush | Does not exist in Classic Era | New baseline spell: 1 damage, heals 10% of max health, 30 s cooldown, only within 20 s of killing a non-trivial enemy [sb] | Not used against bosses |
 | Retaliation, Shield Wall, Last Stand, Taunt | 30 min, 30 min (75%, 10 s), 10 min, 10 s | 15 min, 15 min (60%, 12 s), **3 min**, 8 s [sb] [db-cd] | Not simulated |
 | Concussion Blow | 15 rage | 10 rage [db-pow] | Not simulated |
@@ -2730,10 +2730,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    ranks, including a small increase to threat generated from Attack Power" [notes-70009]. So the
    old question (1013, or 1013 on top of the server's 261?) is moot: the client value is the base.
    **What's left:** the attack power term, which the client doesn't carry (no bonus coefficient on
-   the effect). The sim's default is **0.05 × AP** [?] (D29): the share that brings 206 to Classic
-   Era's rank 5 total, 261, at 1,100 AP, about a level-60 tank's before raid buffs, since the
-   notes frame the change as a correction and Classic Era's is the closest allowed value for the
-   total. At the default setup's ~1,400 AP in a fight that's 276 a Sunder before the stance.
+   the effect). The sim's default is **0.05 × AP** [?] (D29), a reasoned guess: the notes frame
+   the change as a correction with a small attack power increase, and Classic Era's rank 5 total,
+   261, is the closest allowed value for the total, so the share keeps it near 261. It makes 261
+   at 1,100 AP (a round figure: the default tank has 802 without raid buffs and 1,241 with them at
+   the pull), and **about 281 at the default tank's ~1,500 AP when its Sunders land** (1,494 on
+   average over a fight), 8% over 261, before the stance.
    **Test:** at 60, in Defensive Stance with Defiance 3/3 and a shield (×1.495), read the threat
    macro before and after a landed Sunder at two attack powers (with and without Battle Shout and
    a Juju Might or Mighty Rage Potion): threat ÷ 1.495 − 206 = the AP term, and its change over

@@ -170,7 +170,9 @@ const ROWS: Record<string, Row> = {
   blessingOfSalvation: { rows: [S(1038)] },
   devotionAura: { rows: [S(10293)] },
   // A damage shield on the tank: 100% of the boss's landed swings, and its damage.
-  thorns: { forever: [['thorns chance %', 100], ['thorns nature', 22]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, S(9910)] },
+  // 1.60.1.70009: Forever's 22 (9910) grows with its caster's spell damage, 0.08 × a raid druid's 389 [?]
+  // (buffs doc §1.2), dealt as a whole 53; no client row holds that.
+  thorns: { forever: [['thorns chance %', 100], ['thorns nature', 53]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, null], classicRows: [null, S(9910)] },
   // Mana per 5 s: 40 every 5 s (Classic Era 33); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
   blessingOfWisdom: { forever: [['mp5', 40]], classicEra: [['mp5', 33]], rows: [S(25290)] },
   manaSpringTotem: { forever: [['mp5', 25]], rows: [S(10494, 0, { times: 2.5 })] },

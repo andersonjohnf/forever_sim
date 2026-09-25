@@ -304,7 +304,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     const thorns = buffs.getByRole('switch', { name: 'Thorns', exact: true })
     await expect(thorns).toBeChecked()
     await expect(thorns).toBeEnabled()
-    await expect(thorns).toHaveAccessibleDescription(/^22 Nature damage to the boss each time it hits you/)
+    await expect(thorns).toHaveAccessibleDescription(/^53 Nature damage to the boss each time it hits you/)
     // A run lists its damage and threat on its own row.
     const results = await simulate(page)
     await expect(results.getByText('Thorns', { exact: true }).first()).toBeVisible()

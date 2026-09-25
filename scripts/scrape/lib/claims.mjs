@@ -184,15 +184,15 @@ export async function checkClaims(ctx) {
     const v = [20966, 20286, 25713].map((id) => byType(f(id), 2).effectBonusCoefficient);
     return verdict(list(v) === "0.429/0.5/0.1", `SP coefficients ${list(v)}`);
   });
-  claim("D7", "Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429", () => {
+  claim("D7", "Holy Strike 10333 effect 121 (+93) then 31 (50% since 1.60.1.70009), 0.429", () => {
     const s = f(10333);
-    return verdict(pts(eff(s, 0)) === 93 && eff(s, 0).effect === 121 && eff(s, 1).effect === 31 && pts(eff(s, 1)) === 40 && eff(s, 0).effectBonusCoefficient === 0.429, `e0 ${eff(s, 0).effect} ${pts(eff(s, 0))} (variance ${eff(s, 0).variance}, +${eff(s, 0).effectRealPointsPerLevel}/level), e1 ${eff(s, 1).effect} ${pts(eff(s, 1))}%, SP ${eff(s, 0).effectBonusCoefficient}`);
+    return verdict(pts(eff(s, 0)) === 93 && eff(s, 0).effect === 121 && eff(s, 1).effect === 31 && pts(eff(s, 1)) === 50 && eff(s, 0).effectBonusCoefficient === 0.429, `e0 ${eff(s, 0).effect} ${pts(eff(s, 0))} (variance ${eff(s, 0).variance}, +${eff(s, 0).effectRealPointsPerLevel}/level), e1 ${eff(s, 1).effect} ${pts(eff(s, 1))}%, SP ${eff(s, 0).effectBonusCoefficient}`);
   });
   claim("D7", "Consecration 1280349 12 + 27 at 0.095", () => {
     const s = f(1280349);
     return verdict(pts(eff(s, 0)) === 12 && pts(eff(s, 1)) === 27 && eff(s, 1).effectBonusCoefficient === 0.095, `${pts(eff(s, 0))} + ${pts(eff(s, 1))} (SP ${eff(s, 1).effectBonusCoefficient})`);
   });
-  claim("D7", "Vengeance 20050 5 stacks, 30 s", () => verdict(f(20050).auraOptions?.cumulativeAura === 5 && f(20050).duration?.duration === 30000, `${f(20050).auraOptions?.cumulativeAura} stacks, ${f(20050).duration?.duration} ms, +${pts(eff(f(20050), 0))}% per stack (curve ${list(curve(talent("paladin", "Vengeance"), 0))})`));
+  claim("D7", "Vengeance 20050 3 stacks (5 until 1.60.1.70009), 30 s", () => verdict(f(20050).auraOptions?.cumulativeAura === 3 && f(20050).duration?.duration === 30000, `${f(20050).auraOptions?.cumulativeAura} stacks, ${f(20050).duration?.duration} ms, +${pts(eff(f(20050), 0))}% per stack (curve ${list(curve(talent("paladin", "Vengeance"), 0))})`));
   claim("D7", "Two-Handed 20111 / One-Handed 20196 Weapon Specialization: Physical only", () => {
     const m = [20111, 20196].map((id) => byAura(f(id), 79)?.effectMiscValue[0]);
     return verdict(m.every((x) => x === 1), `aura 79 school mask ${list(m)} (1 = Physical)`);
@@ -371,10 +371,10 @@ export async function checkClaims(ctx) {
   claim("D15", "Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30", () => verdict(threatAura(21156) === -20 && threatAura(7381) === -20 && threatAura(7376) === 30, `${threatAura(21156)} / ${threatAura(7381)} / ${threatAura(7376)}`));
   claim("D15", "Bear Passive2 21178 +30; Cat 3025 −29", () => verdict(threatAura(21178) === 30 && threatAura(3025) === -29, `${threatAura(21178)} / ${threatAura(3025)}`));
   claim("D15", "Defiance 12792 curve 5/10/15", () => verdict(tv("warrior", "Defiance") === "5/10/15", tv("warrior", "Defiance")));
-  claim("D15", "Righteous Fury 25780 = 90 (Classic 59+1), school mask 2", () => {
+  claim("D15", "Righteous Fury 25780 = 60 (90 until 1.60.1.70009; Classic 59+1), school mask 2", () => {
     const fe = byAura(f(25780), 10);
     const ce = byAura(c(25780), 10);
-    return verdict(pts(fe) === 90 && fe.effectMiscValue[0] === 2 && ce.effectBasePoints === 59 && pts(ce) === 60, `Forever ${pts(fe)} on school mask ${fe.effectMiscValue[0]} (×${1 + pts(fe) / 100}); Classic ${ce.effectBasePoints}+${ce.effectDieSides}`);
+    return verdict(pts(fe) === 60 && fe.effectMiscValue[0] === 2 && ce.effectBasePoints === 59 && pts(ce) === 60, `Forever ${pts(fe)} on school mask ${fe.effectMiscValue[0]} (×${1 + pts(fe) / 100}); Classic ${ce.effectBasePoints}+${ce.effectDieSides}`);
   });
   claim("D15", "Improved Righteous Fury 20468 −2/−4/−6 (curve 82954)", () => {
     const tal = talent("paladin", "Improved Righteous Fury");
@@ -458,7 +458,7 @@ export async function checkClaims(ctx) {
     const util = [20357, 20349, 20164].map((id) => f(id).auraOptions?.procTypeMask[0]);
     return verdict(f(20920).auraOptions?.procCategoryRecovery === 1000 && dmg.every((m) => m === 4) && util.every((m) => m === 0x14), `SoC ICD ${f(20920).auraOptions?.procCategoryRecovery} ms; SoC/SoR/SoF ${dmg.map(hex).join("/")}; SoW/SoL/SoJ ${util.map(hex).join("/")}`);
   });
-  claim("D18", "Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2", () => verdict(f(10333).categories?.category === 2404 && f(407632).categories?.category === 2404 && cd(f(10333)) === 12000 && cd(f(407632)) === 6000 && f(10333).misc?.schoolMask === 2, `10333 ${f(10333).categories?.category} ${cd(f(10333))} ms school ${f(10333).misc?.schoolMask}; 407632 ${f(407632).categories?.category} ${cd(f(407632))} ms`));
+  claim("D18", "Holy Strike and HotR category 2404 (10 s since 1.60.1.70009 / 6 s); Holy Strike SpellMisc school 2", () => verdict(f(10333).categories?.category === 2404 && f(407632).categories?.category === 2404 && cd(f(10333)) === 10000 && cd(f(407632)) === 6000 && f(10333).misc?.schoolMask === 2, `10333 ${f(10333).categories?.category} ${cd(f(10333))} ms school ${f(10333).misc?.schoolMask}; 407632 ${f(407632).categories?.category} ${cd(f(407632))} ms`));
   claim("D18", "Holy Shield 20928 4 charges, 0.08", () => verdict(f(20928).auraOptions?.procCharges === 4 && byAura(f(20928), 43)?.effectBonusCoefficient === 0.08, `${f(20928).auraOptions?.procCharges} charges, block +${pts(byAura(f(20928), 51))}%, ${pts(byAura(f(20928), 43))} damage at ${byAura(f(20928), 43)?.effectBonusCoefficient}`));
   claim("D18", "SoF 20418 35 at 0.1; JoF 20414 0.45", () => verdict(pts(eff(f(20418), 0)) === 35 && eff(f(20418), 0).effectBonusCoefficient === 0.1 && eff(f(20414), 0).effectBonusCoefficient === 0.45, `20418 ${pts(eff(f(20418), 0))} at ${eff(f(20418), 0).effectBonusCoefficient}; 20414 ${pts(eff(f(20414), 0))} (variance ${eff(f(20414), 0).variance}, +${eff(f(20414), 0).effectRealPointsPerLevel}/level) at ${eff(f(20414), 0).effectBonusCoefficient}`));
   claim("D18", "SotC 20308 +2.4/level", () => verdict(byAura(f(20308), 99)?.effectRealPointsPerLevel === 2.4, `aura 99 ${pts(byAura(f(20308), 99))} + ${byAura(f(20308), 99)?.effectRealPointsPerLevel}/level (levels ${f(20308).levels?.baseLevel}–${f(20308).levels?.maxLevel})`));

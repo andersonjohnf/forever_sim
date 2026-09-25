@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 597,
+      "docs": 599,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2848,
-    "spells": 3123
+    "seeds": 2849,
+    "spells": 3124
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -23586,7 +23586,7 @@
         "spellIconFileDataId": 135938
       },
       "name": "Holy Power",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "6041": {
       "castTime": {
@@ -112109,6 +112109,41 @@
       },
       "name": "Increased Spell Penetration 05",
       "sources": ["item"]
+    },
+    "26363": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [1024, 0, 0, 0],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 178,
+          "effectBonusCoefficient": 0.267,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 26363,
+      "levels": {
+        "baseLevel": 56,
+        "spellLevel": 56
+      },
+      "misc": {
+        "attributes": [16777216, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136048
+      },
+      "name": "Lightning Shield",
+      "nameSubtext": "Rank 7",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "26545": {
       "categories": {

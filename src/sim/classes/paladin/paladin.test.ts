@@ -94,7 +94,8 @@ describe('worked example 2: Seal of Command’s proc damage', () => {
     const fixed = { min: 250, max: 250, speedSec: 3.5 }
     expect(damagesOf(examplePlan({ weapon: fixed, talents: IMPROVED_SEALS }), 'sealOfCommandProc')[0]).toBeCloseTo(466.095, 9)
     const twoHander = examplePlan({ weapon: fixed, talents: { ...IMPROVED_SEALS, 'Two-Handed Weapon Specialization': 3 } })
-    expect(twoHander.physicalMult).toBeCloseTo(1.09, 12)
+    // 2 / 4 / 6% since 1.60.1.70009 (20111).
+    expect(twoHander.physicalMult).toBeCloseTo(1.06, 12)
     expect(damagesOf(twoHander, 'sealOfCommandProc')[0]).toBeCloseTo(466.095, 9)
     const crits = examplePlan({ weapon: fixed, talents: IMPROVED_SEALS })
     crits.stats.crit = 100
@@ -138,10 +139,10 @@ describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteo
 })
 
 describe('worked example 5: Holy Strike', () => {
-  it('is 0.40 × normalized main hand + 81–105 + 0.429 × SP = 349.04 (its tooltip’s reading); with Sacred Arbiter 383.95, from 349.16 to 418.73; armor doesn’t touch it', () => {
+  it('is 0.50 × normalized main hand + 81–105 + 0.429 × SP = 402.33 (its tooltip’s reading); with Sacred Arbiter 482.79, from 438.84 to 526.74; armor doesn’t touch it', () => {
     const fixed = examplePlan({ core: false, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     once(fixed, HOLY_STRIKE_ABILITY)
-    expectMean(damagesOf(fixed, 'holyStrike', 400), 349.043)
+    expectMean(damagesOf(fixed, 'holyStrike', 400), 402.329)
     const arbiter = (armor: number) => {
       const plan = examplePlan({ core: false, talents: { 'Sacred Arbiter': 1 } })
       plan.fight.targetArmor = armor
@@ -149,9 +150,9 @@ describe('worked example 5: Holy Strike', () => {
       return damagesOf(plan, 'holyStrike', 400)
     }
     const hs = arbiter(0)
-    expect(Math.min(...hs)).toBeGreaterThanOrEqual(349.16 - 0.01)
-    expect(Math.max(...hs)).toBeLessThanOrEqual(418.73 + 0.01)
-    expectMean(hs, 383.947)
+    expect(Math.min(...hs)).toBeGreaterThanOrEqual(438.84 - 0.01)
+    expect(Math.max(...hs)).toBeLessThanOrEqual(526.74 + 0.01)
+    expectMean(hs, 482.794)
     expect(arbiter(5000)).toEqual(hs)
   })
 })
@@ -210,9 +211,9 @@ describe('Consecration recast on its cooldown', () => {
 })
 
 describe('worked example 8: the Retribution mana cycle', () => {
-  // Improved Holy Strike left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions): Holy Strike every 12 s.
+  // 1.60.1.70009 made Improved Holy Strike's cut baseline: Holy Strike every 10 s, 3 in 30 s.
   const RET = { Benediction: 5, 'Sanctified Judgement': 3, 'Improved Judgement': 2 }
-  it('Judgement costs 81 and returns 126 (+45); Seal of Command 189; Holy Strike 18: 65.25 mana over 30 s', () => {
+  it('Judgement costs 81 and returns 126 (+45); Seal of Command 189 (147 with Twist of Light); Holy Strike 18: 74.25 mana over 30 s (32.25)', () => {
     const t = ranks(RET)
     const judge = withTalents(JUDGE_COMMAND, t)
     expect(manaCostOf(judge)).toBe(81)
@@ -223,8 +224,13 @@ describe('worked example 8: the Retribution mana cycle', () => {
     expect(manaCostOf(seal)).toBe(189)
     const strike = withTalents(HOLY_STRIKE_ABILITY, t)
     expect(manaCostOf(strike)).toBe(18)
-    expect(strike.cooldownMs).toBe(12000)
-    expect(manaCostOf(seal) + (30000 / strike.cooldownMs) * manaCostOf(strike) - 3.75 * (judge.manaReturnTenths! / 10 - manaCostOf(judge))).toBeCloseTo(65.25, 9)
+    expect(strike.cooldownMs).toBe(10000)
+    const cycle = (sealCost: number) => sealCost + (30000 / strike.cooldownMs) * manaCostOf(strike) - 3.75 * (judge.manaReturnTenths! / 10 - manaCostOf(judge))
+    expect(cycle(manaCostOf(seal))).toBeCloseTo(74.25, 9)
+    // Twist of Light's −20% on the seal, added to Benediction's −10% [?]: 210 × 0.7 = 147.
+    const twisted = withTalents(SEAL_OF_COMMAND, ranks({ ...RET, 'Twist of Light': 1 }))
+    expect(manaCostOf(twisted)).toBe(147)
+    expect(cycle(manaCostOf(twisted))).toBeCloseTo(32.25, 9)
   })
 
   it('in a fight: each landed Judgement of Command pays 81 and gets 126 back', () => {
@@ -243,20 +249,21 @@ describe('worked example 8: the Retribution mana cycle', () => {
 })
 
 describe('worked example 9: damage multipliers', () => {
-  it('a white hit: 2HWS 3/3 × Vengeance 3/3 at 5 stacks = ×1.2535; a Seal of Command proc ×1.3225', () => {
+  it('a white hit: 2HWS 3/3 × Vengeance 3/3 at 3 stacks = ×1.1554; a Seal of Command proc ×1.2535', () => {
     const talents = { 'Two-Handed Weapon Specialization': 3, Vengeance: 3, ...IMPROVED_SEALS }
     const plan = examplePlan({ talents, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     plan.stats.crit = 100
     // A target below your level: no glancing blows, so every white hit crits (×2).
     plan.fight.targetLevel = 59
     const white = damagesOf(plan, 'mainHand')
-    // By the sixth white hit, the crits before it (white hits, seal procs, judgements) have given five stacks.
-    expect(white[5]).toBeCloseTo((250 + 300) * 2 * 1.09 * 1.15, 9)
-    expect(white[6]).toBeCloseTo(white[5], 9)
-    expect(1.09 * 1.15).toBeCloseTo(1.2535, 9)
+    // By the fourth white hit, the crits before it (white hits, seal procs, judgements) have given
+    // Vengeance's three stacks (1.60.1.70009; 2HWS 2 / 4 / 6%).
+    expect(white[3]).toBeCloseTo((250 + 300) * 2 * 1.06 * 1.09, 9)
+    expect(white[6]).toBeCloseTo(white[3], 9)
+    expect(1.06 * 1.09).toBeCloseTo(1.1554, 9)
     const procs = damagesOf(plan, 'sealOfCommandProc')
     const base = 0.7 * (250 + 300) + 0.203 * 100
-    expect(Math.max(...procs)).toBeCloseTo(base * 2 * 1.3225, 1)
+    expect(Math.max(...procs)).toBeCloseTo(base * 2 * 1.2535, 1)
   })
 })
 
@@ -342,14 +349,14 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
 })
 
 describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', () => {
-  it('at SP 300 with a 2.7 s one-hander: 35 + 0.85 × 16.91 × 2.7 + 30 = 103.81 Holy a landed swing, 197.24 threat with Righteous Fury; JoF 295.38 on average, 339.69 with Improved Seals', () => {
+  it('at SP 300 with a 2.7 s one-hander: 35 + 0.85 × 16.91 × 2.7 + 30 = 103.81 Holy a landed swing, 166.10 threat with Righteous Fury; JoF 295.38 on average, 339.69 with Improved Seals', () => {
     const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon: { min: 150, max: 150, speedSec: 2.7, twoHand: false } })
-    expect(plan.holyThreatMult).toBeCloseTo(1.9, 12)
+    expect(plan.holyThreatMult).toBeCloseTo(1.6, 12)
     const sim = new Sim(plan)
     sim.runFight(0)
     const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
     expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(35 + 0.85 * 16.91 * 2.7 + 30, 9)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo((35 + 0.85 * 16.91 * 2.7 + 30) * 1.9, 9)
+    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo((35 + 0.85 * 16.91 * 2.7 + 30) * 1.6, 9)
     expectMean(damagesOf(plan, 'judgementOfFury', 40), 160.38 + 135)
     const improved = examplePlan({ spec: 'paladin-protection', sp: 300, talents: IMPROVED_SEALS })
     expectMean(damagesOf(improved, 'judgementOfFury', 40), 339.69)
@@ -357,12 +364,12 @@ describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', (
 })
 
 describe('worked example 14: Holy Strike threat with Righteous Fury and Iron Creed 5/5', () => {
-  it('is damage × 1.9 × 1.25', () => {
+  it('is damage × 1.6 × 1.25', () => {
     const plan = examplePlan({ spec: 'paladin-protection', core: false, talents: { 'Iron Creed': 5 } })
     once(plan, withTalents(HOLY_STRIKE_ABILITY, ranks({ 'Iron Creed': 5 })))
     const sim = new Sim(plan)
     sim.runFight(0)
-    expect(counter(sim, plan, 'holyStrike', FIELD.threat) / counter(sim, plan, 'holyStrike', FIELD.damage)).toBeCloseTo(2.375, 12)
+    expect(counter(sim, plan, 'holyStrike', FIELD.threat) / counter(sim, plan, 'holyStrike', FIELD.damage)).toBeCloseTo(2, 12)
   })
 })
 
@@ -432,14 +439,14 @@ describe('worked example 18: Judgement doesn’t consume the seal', () => {
 })
 
 describe('worked example 19: Vengeance', () => {
-  it('3/3: each crit adds a stack of +3% Physical and Holy damage for 30 s, up to 5', () => {
+  it('3/3: each crit adds a stack of +3% Physical and Holy damage for 30 s, up to 3 (1.60.1.70009)', () => {
     const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     plan.stats.crit = 100
     plan.fight.targetLevel = 59 // no glancing blows: every white hit crits
     const white = damagesOf(plan, 'mainHand')
-    for (let k = 0; k < 7; k++) expect(white[k] / white[0]).toBeCloseTo(1 + 0.03 * Math.min(k, 5), 12)
+    for (let k = 0; k < 7; k++) expect(white[k] / white[0]).toBeCloseTo(1 + 0.03 * Math.min(k, 3), 12)
     const aura = plan.auras.find((a) => a.id === 'vengeance')!
-    expect(aura).toMatchObject({ durationMs: 30000, maxStacks: 5, damage: 3, holy: 3 })
+    expect(aura).toMatchObject({ durationMs: 30000, maxStacks: 3, damage: 3, holy: 3 })
   })
 
   it('drops 30 s after the last crit', () => {
@@ -558,7 +565,7 @@ describe('the default setups', () => {
     const prot = buildPlan({ ...defaultConfig('paladin-protection'), buffs: noBuffs }).plan
     // Abilities 0 and 1 are the seal and its judgement; Protection's other rows follow (protection.test.ts).
     expect(prot.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
-    expect(prot.holyThreatMult).toBeCloseTo(1.9, 12)
+    expect(prot.holyThreatMult).toBeCloseTo(1.6, 12)
     // Improved Righteous Fury 3/3: −6% damage taken with Righteous Fury up.
     expect(prot.damageTakenMult).toBeCloseTo(0.94, 12)
   })

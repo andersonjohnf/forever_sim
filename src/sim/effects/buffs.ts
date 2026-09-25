@@ -360,13 +360,35 @@ export const POWER_INFUSION: OnUseSpec = {
 }
 
 /**
+ * The spell damage coefficient of a damage shield that scales with its caster's spell power (buffs doc
+ * §1.2 "Thorns"): since 1.60.1.70009, Thorns and Retribution Aura "dynamically update" their values
+ * with it (the dev notes) [F], but the client carries no coefficient for either (9910, 10301: 0), so
+ * the server holds it. The default is the Forever client's closest analog, Holy Shield's damage on
+ * each block (20928 effect 1, aura 43: 221 + 0.08 × spell damage), a damage shield that deals its
+ * damage on every attack it meets, with no internal cooldown [?] (D29). Lightning Shield's 0.267 a
+ * ball (26363) is the other allowed reading, but its balls fire at most every few seconds.
+ */
+export const DAMAGE_SHIELD_SP_COEFFICIENT = 0.08
+
+/**
+ * The spell damage of the druid whose Thorns is on a tank (buffs doc §1.2 "Thorns"): the sim's default
+ * Balance druid's Nature spell damage, 389 (docs/classes/druid.md, its default setup; 2026-09-24) [?].
+ * Thorns scales with its caster's spell power, and in a raid a druid puts it on the main tank; a bear
+ * that casts its own, with no spell damage, gets its base 22.
+ */
+export const THORNS_CASTER_SPELL_DAMAGE = 389
+
+/**
  * Thorns r6 (9910; buffs doc §1.2 "Thorns"): a damage shield (aura 15) of 22 Nature damage to each
- * melee attacker that hits its target, 10 min, no spell damage coefficient [F] [client] (SpellEffect,
- * 1.60.1.69913); Classic Era's 18 [C]. Like every damage shield it always lands and never crits [?],
- * and each of the boss's swings that lands on you (a hit, crit, crushing blow or block) triggers it,
- * as Retribution Aura's does (paladin.md#other-abilities). As a pure Nature damage spell the boss's
- * resistance takes its average share (spells.md §3). Its threat is its damage × your threat
- * multipliers (stance, form, Righteous Fury on Holy only) [?]: no tooltip names a threat of its own.
+ * melee attacker that hits its target, 10 min [F] [client] (SpellEffect, 1.60.1.70009), plus its
+ * caster's spell damage × `DAMAGE_SHIELD_SP_COEFFICIENT` in Forever (a raid druid's
+ * `THORNS_CASTER_SPELL_DAMAGE`: 22 + 0.08 × 389 = 53.12, dealt as 53) [?]; Classic Era's 18, with no
+ * scaling [C].
+ * Like every damage shield it always lands and never crits [?], and each of the boss's swings that
+ * lands on you (a hit, crit, crushing blow or block) triggers it, as Retribution Aura's does
+ * (paladin.md#other-abilities). As a pure Nature damage spell the boss's resistance takes its average
+ * share (spells.md §3). Its threat is its damage × your threat multipliers (stance, form, Righteous
+ * Fury on Holy only) [?]: no tooltip names a threat of its own.
  */
 const thornsDamage = (damage: number): SpellDef => ({
   id: 'thorns',
@@ -401,8 +423,15 @@ const thorns = (damage: number): ProcSpec => ({
   action: { kind: 'spell', spell: thornsDamage(damage) },
   docRef: `${DOC}#12-threat-defense-and-mana`,
 })
-/** Thorns r6's damage per swing that lands: Forever's 22 [F], Classic Era's 18 [C] (buffs doc §1.2). */
-export const THORNS_DAMAGE = { forever: 22, classicEra: 18 } as const
+/**
+ * Thorns r6's damage per swing that lands (buffs doc §1.2): Forever's 22 [F] with its caster's spell
+ * damage, 22 + 0.08 × 389 = 53.12, which the game deals as a whole 53 [?]; Classic Era's 18 [C].
+ */
+export const THORNS_BASE_DAMAGE = { forever: 22, classicEra: 18 } as const
+export const THORNS_DAMAGE = {
+  forever: Math.round(THORNS_BASE_DAMAGE.forever + DAMAGE_SHIELD_SP_COEFFICIENT * THORNS_CASTER_SPELL_DAMAGE),
+  classicEra: THORNS_BASE_DAMAGE.classicEra,
+} as const
 
 export const BUFFS: BuffSpec[] = [
   // --- Raid buffs (§1.1, §1.2) ---------------------------------------------------------------
@@ -651,7 +680,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_thorns',
     category: 'raidBuff',
     group: 'Threat and defense',
-    summary: '22 Nature damage to the boss each time it hits you',
+    summary: '53 Nature damage to the boss each time it hits you, with a raid druid’s spell damage',
     providedBy: 'druid',
     selfCast: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,

@@ -357,6 +357,35 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         - **Rage logs:** two bears' logs of 23–24 Sep suggest more rage for it (rage from hits taken
           rises with the mob's level; one auto at the two-hander's rate), not adopted until the logs
           listed in [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-) settle it
+      - **Open plausibility finding (the paladin's 1.60.1.70009 slice, 2026-09-24): the Protection
+        paladin is below D29's benchmark, and the model stays as it is until a test explains it.**
+        1.60.1.70009 cut Righteous Fury from +90% to Classic Era's +60% Holy threat (client and dev
+        notes [F]), and the sim doesn't invent threat to make up for it (D29 counts the benchmark as
+        evidence only where a value is unknown). The default paladin (Balanced) makes **749.2 TPS** on
+        seed 31101 (100,000 fights; 466.8 DPS), against 828.9 on 1.60.1.70009's data with the old
+        values, and the officers' 800–900; on the same build the warrior makes 993 (+32.5%; its own
+        1.60.1.70009 slice) and the bear 1,115 (+48.8%, before its slice), each before Thorns' new
+        spell-power scaling, which adds about 1.3% to either (+16.0 and +14.5 TPS on seed 31101 against
+        build-70009; about 1,009 and 1,130, +34.7% and +50.8%). Its threat by ability (seed 31101,
+        10,000 fights, 750.3 TPS; share, TPS, casts a fight): Seal of Fury's procs **19.4%, 146,
+        118.5**; Judgement of Fury 14.8%, 111, 25.2; Consecration 14.8%, 111, 18.8; Holy Shield's
+        block damage 12.6%, 95, 32.9 blocks; Holy Strike 10.2%, 77, 17.8; the auto attack 10.1%, 76,
+        and Windfury, Reckoning and the Flurry Axe's extra swings 5.5%, 41; Hammer of Wrath 4.3%, 33;
+        Thorns 2.9%, 22; the mana Shield Specialization, Improved Seal of Fury and the potion give
+        5.3%, 40. Holy damage is about 76% of it, all × Righteous Fury, so its multiplier moves the
+        headline most. To test in game, in this order (paladin.md open questions):
+        - **Righteous Fury's multiplier** (25780): threat on the boss from one Holy hit (a Judgement of
+          Fury while you already have top threat) ÷ its damage: 1.6 as the client says, or more
+        - **Seal of Fury's per-swing damage** (T1, OQ 10): 35 flat, or 35 plus the seal value the sim
+          adds [?]: its procs are the biggest share
+        - **Judgement of Fury's scripted dummy** (T5, OQ 28): no threat of its own in the sim; as flat
+          threat it would be about +454 TPS
+        - **Holy Shield's 20%** (T6, OQ 16): multiplied with Righteous Fury (×1.92, the sim's) or added
+          (×1.8), and whether its damage can miss or crit
+        - **Holy Strike's formula** (T2, OQ 6): 50% of the weapon plus 81–105, or 50% of both, and its
+          third effect's threat (T4, OQ 27)
+        - **Thorns' and Retribution Aura's spell damage coefficient** (OQ 29): 0.08 [?]; Lightning
+          Shield's 0.267 would make Thorns about 30 TPS more
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 

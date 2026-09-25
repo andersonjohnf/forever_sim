@@ -58,9 +58,14 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       expect(hashes).toMatchSnapshot()
     })
 
+    // Re-taken for 1.60.1.70009's Thorns (buffs doc §1.2: 22 + 0.08 × a raid druid's 389, dealt as
+    // 53): the whole setups' plans carry its damage, so every case with Thorns in its buffs moved.
     it(`gives 200 random whole setups the plan they had before the list: ${name}`, () => {
       // Re-taken for 1.60.1.70009's Eureka! (a 10% cost cut for every class, was the warrior's 40%;
       // classes/eureka.ts): 27 of the 200 cases moved, every one a Gnome's; no other case changed.
+      // The 70009 integration re-took it on the merge of the Thorns (paladin slice), Eureka! (casters)
+      // and Sunder Armor and Shield Slam (warrior) changes: with Thorns set back to its flat 22, the
+      // pre-merge snapshot reproduces exactly.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

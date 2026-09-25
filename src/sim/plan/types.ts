@@ -1413,7 +1413,7 @@ export interface Plan {
   spells?: SpellPlan[]
   /** Multiplier on Holy damage done, static (paladin.md#conventions-used-below). */
   holyMult?: number
-  /** Multiplier on Holy threat, static: Righteous Fury ×1.9 (paladin.md#threat-paladin-specific). */
+  /** Multiplier on Holy threat, static: Righteous Fury ×1.6 (paladin.md#threat-paladin-specific). */
   holyThreatMult?: number
   /**
    * The boss's flat Holy damage taken all fight, from the Buffs tab: another paladin's Judgement of

@@ -170,10 +170,10 @@ describe('threat.md worked examples (formula level)', () => {
   it('T8–T14: bear, paladin and DPS multipliers', () => {
     expect(threat(400, 1.75, 0, 1.3)).toBeCloseTo(910, 6)
     expect(threat(400, 1.75, 0, 1.45)).toBeCloseTo(1015, 6)
-    expect(threat(221, 1.2, 0, 1.9)).toBeCloseTo(503.88, 6)
+    expect(threat(221, 1.2, 0, 1.6)).toBeCloseTo(424.32, 6)
     expect(threat(130, 1.2, 0, 1.6)).toBeCloseTo(249.6, 6)
     expect(threat(130, 1.2, 0, 1.9)).toBeCloseTo(296.4, 6)
-    expect(threat(250, 1.25, 0, 1.9)).toBeCloseTo(593.75, 6)
+    expect(threat(250, 1.25, 0, 1.6)).toBeCloseTo(500, 6)
     expect(threat(300, 1, 0, 1)).toBe(300)
     expect(threat(1000, 1, 0, 0.71 * 0.7)).toBeCloseTo(497, 6)
   })

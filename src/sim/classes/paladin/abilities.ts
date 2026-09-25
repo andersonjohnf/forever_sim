@@ -1,6 +1,6 @@
 // Paladin abilities as data (docs/classes/paladin.md "Seals", "Judgement", "Other abilities").
 //
-// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.69913), checked by
+// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.70009), checked by
 // abilities.test.ts. These are the base rows; the build's talents (Benediction, Holy Conduit,
 // Improved Judgement, Purifying Power, Instrument of Law, Sanctified Judgement and the spell
 // talents) are applied by `withTalents` in talents.ts. Seals are `cast`s
@@ -263,8 +263,9 @@ export const JUDGEMENT_OF: Readonly<Record<string, AbilityDef>> = {
 // --- Other abilities (paladin.md#other-abilities) ----------------------------------------------
 
 /**
- * Holy Strike r8 (10333): 20 mana, 12 s (category 2404, shared with Hammer of the Righteous), GCD
- * 1.5 s. It doesn't proc the damage seals (paladin.md#other-abilities).
+ * Holy Strike r8 (10333): 20 mana, 10 s (category 2404, shared with Hammer of the Righteous; 12 s
+ * before 1.60.1.70009 made Improved Holy Strike's cut baseline), GCD 1.5 s [F] [client]
+ * (SpellCooldowns, 1.60.1.70009). It doesn't proc the damage seals (paladin.md#other-abilities).
  */
 export const HOLY_STRIKE_CATEGORY = 'holyStrike'
 export const HOLY_STRIKE_ABILITY: AbilityDef = {
@@ -274,7 +275,7 @@ export const HOLY_STRIKE_ABILITY: AbilityDef = {
   icon: 'classicon_paladin',
   kind: 'spell',
   ...mana(20),
-  cooldownMs: 12000,
+  cooldownMs: 10000,
   category: HOLY_STRIKE_CATEGORY,
   spellDef: HOLY_STRIKE,
 }
@@ -283,7 +284,7 @@ export const HOLY_STRIKE_ABILITY: AbilityDef = {
  * Hammer of the Righteous (407632, trained at 40): 6% of base mana (90), a 6 s cooldown in category
  * 2404, shared with Holy Strike, GCD 1.5 s; it needs a one-handed axe, mace or sword [F] [client]
  * (SpellPower, SpellCooldowns, SpellCategories, SpellEquippedItems subclass mask 145, 1.60.1.69913).
- * Casting it holds Holy Strike for 6 s, and Holy Strike holds it for Holy Strike's 10 to 12
+ * Casting it holds Holy Strike for 6 s, and Holy Strike holds it for Holy Strike's 10
  * (paladin.md#other-abilities). It doesn't proc the damage seals.
  */
 export const hammerOfTheRighteousAbility = (withAttackPower = true): AbilityDef => ({

@@ -575,6 +575,19 @@ describe('golden run (fixed config and seed)', () => {
   //   threat is dmg + 475 [?] (the wording table; 254 before). Defensive's Sunder Armor threat
   //   31.28 M → 8.66 M, Shield Slam 18.96 M → 22.96 M; TPS 1,132.88 → 925.71, DPS unchanged
   //   (363.16). Fury and the cat are unchanged.
+  // - 1.60.1.70009 (the paladin's slice; buffs doc §1.2): Thorns grows with its caster's spell damage,
+  //   22 + 0.08 × a raid druid's 389, dealt as 53 [?]. Only the Thorns rows move, in all four tank
+  //   snapshots here (the Protection warrior's and the bear's, default and Defensive): on this seed's
+  //   500 fights, the warrior's Balanced TPS 1,241.15 → 1,257.10 and DPS 385.89 → 396.35, Defensive
+  //   1,132.88 → 1,146.36 and 363.16 → 372.00; the bear's Balanced 1,114.45 → 1,128.97 and 547.00 →
+  //   557.95, Defensive 1,081.78 → 1,096.28 and 532.43 → 543.37. Fury, Arms and the cat are unchanged.
+  // - The 70009 integration (the warrior, druid and paladin slices merged): the paladin slice's Thorns
+  //   (53 a landed swing) on top of the warrior's Sunder Armor and Shield Slam and the druid's bear, so
+  //   the tank rows above re-taken on the merge. The warrior's Balanced TPS 993.42 → 1,009.36 and DPS
+  //   385.89 → 396.35, Defensive 925.71 → 939.19 and 363.16 → 372.00; the bear's Balanced 1,118.19 →
+  //   1,132.71 and 547.00 → 557.95, Defensive 1,085.34 → 1,099.84 and 532.43 → 543.37. With Thorns set
+  //   back to its flat 22 (no caster spell damage), the pre-merge snapshot reproduces exactly. Fury,
+  //   Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -46,7 +46,17 @@ import {
   spread,
   withJotcRule,
 } from './spells'
-import { IMPROVED_SEALS, righteousFuryEffects, TALENT_EFFECTS, withSpellTalents, withTalents } from './talents'
+import {
+  IMPROVED_SEALS,
+  RIGHTEOUS_FURY_HOLY_THREAT_PCT,
+  righteousFuryEffects,
+  SACRED_ARBITER_PCT,
+  TALENT_EFFECTS,
+  TWIST_OF_LIGHT_SEAL_COST_CUT_PCT,
+  VENGEANCE_MAX_STACKS,
+  withSpellTalents,
+  withTalents,
+} from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const spell = (id: number): ClientSpell => {
@@ -129,11 +139,11 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(90.93, 9)
   })
 
-  it('Holy Strike: normalized weapon + 93 ± 12.5% (effect 121), then 40% (effect 31), 0.429; category 2404 with Hammer of the Righteous', () => {
+  it('Holy Strike: normalized weapon + 93 ± 12.5% (effect 121), then 50% (effect 31; 40% before 1.60.1.70009), 0.429; category 2404 with Hammer of the Righteous', () => {
     expect(effect(10333, 0)).toMatchObject({ effect: 121, effectBasePointsF: 93, variance: 0.25, effectBonusCoefficient: 0.429 })
-    expect(effect(10333, 1)).toMatchObject({ effect: 31, effectBasePointsF: 40 })
+    expect(effect(10333, 1)).toMatchObject({ effect: 31, effectBasePointsF: 50 })
     expect([HOLY_STRIKE.min, HOLY_STRIKE.max]).toEqual(spread(93, 0.25))
-    expect(HOLY_STRIKE.weaponPercent).toBe(0.4)
+    expect(HOLY_STRIKE.weaponPercent).toBe(0.5)
     matches(HOLY_STRIKE, 10333)
     expect(spell(10333).categories!.category).toBe(spell(407632).categories!.category)
   })
@@ -207,14 +217,30 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(JUDGE_CRUSADER.aura).toBe(JUDGEMENT_OF_THE_CRUSADER_AURA)
   })
 
-  it('Righteous Fury: +90% Holy threat (aura 10, Holy); Vengeance: +3% Physical and Holy per stack, 5 stacks, 30 s', () => {
-    expect(effect(25780, 0)).toMatchObject({ effectAura: 10, effectBasePointsF: 90 })
+  it('Righteous Fury: +60% Holy threat (aura 10, Holy); Vengeance: +3% Physical and Holy per stack, 3 stacks, 30 s, from non-periodic crits', () => {
+    expect(effect(25780, 0)).toMatchObject({ effectAura: 10, effectBasePointsF: 60 })
     expect(effect(25780, 0).effectMiscValue![0]).toBe(HOLY_MASK)
-    expect(righteousFuryEffects(true, new Map())).toEqual([{ kind: 'threat', pct: 90, holyOnly: true }])
+    expect(RIGHTEOUS_FURY_HOLY_THREAT_PCT).toBe(60)
+    expect(righteousFuryEffects(true, new Map())).toEqual([{ kind: 'threat', pct: 60, holyOnly: true }])
     expect(effect(20050, 0)).toMatchObject({ effectAura: 79, effectBasePointsF: 3 })
     expect(effect(20050, 0).effectMiscValue![0]).toBe(1 | HOLY_MASK)
-    expect(spell(20050).auraOptions!.cumulativeAura).toBe(5)
+    expect(spell(20050).auraOptions!.cumulativeAura).toBe(VENGEANCE_MAX_STACKS)
+    expect(VENGEANCE_MAX_STACKS).toBe(3)
     expect(spell(20050).duration!.duration).toBe(30000)
+    // The talent's proc mask (20049): melee and ranged autos, melee-, ranged- and magic-class spells,
+    // no periodic damage (0x40000, which 1.60.1.69913's 332116 had).
+    expect(spell(20049).auraOptions!.procTypeMask![0]).toBe(69972)
+    expect(spell(20049).auraOptions!.procTypeMask![0] & 0x40000).toBe(0)
+  })
+
+  it('Twist of Light: −20% on the seals’ cost (aura 108, misc 14); Sacred Arbiter +20% Holy Strike; Holy Power +15% Holy Strike crit at 5/5', () => {
+    expect(effect(1310735, 0)).toMatchObject({ effectAura: 108, effectBasePointsF: -TWIST_OF_LIGHT_SEAL_COST_CUT_PCT })
+    expect(effect(1310735, 0).effectMiscValue![0]).toBe(14)
+    expect(effect(1311087, 0)).toMatchObject({ effectAura: 108, effectBasePointsF: SACRED_ARBITER_PCT })
+    expect(SACRED_ARBITER_PCT).toBe(20)
+    // Holy Power's second effect is Holy Strike's (class mask word 3 bit 0x8000) and Holy Shock's: 15 at 5/5.
+    expect(effect(5923, 1)).toMatchObject({ effectAura: 108, effectBasePointsF: 15 })
+    expect(effect(5923, 1).effectSpellClassMask![3] & spell(10333).classOptions!.spellClassMask![3]).not.toBe(0)
   })
 
   // Each paladin spell's client row, and whether another spell or an aura triggers it (a seal's
@@ -276,7 +302,6 @@ describe('paladin talents (paladin.md#talents)', () => {
     const cases: [string, number, string][] = [
       ['Divine Strength', 5, 'by 10%'],
       ['Divine Intellect', 5, 'by 10%'],
-      ['Holy Power', 5, 'all other spells by 5%'],
       ['Divine Precision', 3, 'by 18%'],
       ['Precision', 3, 'by 3%'],
       ['Toughness', 5, 'by 10%'],
@@ -286,16 +311,18 @@ describe('paladin talents (paladin.md#talents)', () => {
       ['Shield Specialization', 2, 'by 20%, and gives your blocks a 66% chance to restore 6%'],
       ['Deflection', 5, 'by 5%'],
       ['Conviction', 5, 'by 5%'],
-      ['Two-Handed Weapon Specialization', 3, 'by 9%'],
+      ['Two-Handed Weapon Specialization', 3, 'by 6%'],
       ['Champion of the Light', 2, 'up to 66% of your Intellect'],
-      ['Vengeance', 3, 'by 3% for 30 sec'],
+      ['Vengeance', 3, 'by 3% for 30 sec after landing a non-periodic critical strike. Stacks up to 3 times'],
       ['Vindication', 3, 'Attack Power by 3% for 30 sec'],
       ['Improved Seals', 3, 'by 15%'],
       ['Benediction', 5, 'by 10%'],
       ['Holy Conduit', 2, 'by 40%'],
       ['Improved Judgement', 2, 'by 2 sec'],
       ['Sanctified Judgement', 2, '66% chance to return 40%'],
-      ['Sacred Arbiter', 1, 'by 10%'],
+      ['Sacred Arbiter', 1, 'by 20%'],
+      ['Twist of Light', 1, 'Mana cost of your Seal spells by 20%'],
+      ['Holy Power', 5, 'Holy Shock and Holy Strike spells by 15%, and all other spells by 5%'],
       ['Iron Creed', 5, 'Holy Strike ability 25%'],
       ['Instrument of Law', 2, 'by 1.0 sec, and reduces all threat you generate by 20%'],
       ['Improved Righteous Fury', 3, 'reduced by 6%'],
@@ -306,7 +333,7 @@ describe('paladin talents (paladin.md#talents)', () => {
     // Spot checks of the effects at those ranks.
     expect(TALENT_EFFECTS['One-Handed Weapon Specialization'](2)).toEqual([{ kind: 'damage', pct: 7, physicalOnly: true, when: { twoHand: false } }])
     expect(TALENT_EFFECTS['Champion of the Light'](2)).toEqual([{ kind: 'stat', stat: 'spellDamagePerIntPct', value: 66 }])
-    expect(TALENT_EFFECTS['Two-Handed Weapon Specialization'](3)[0]).toMatchObject({ pct: 9, physicalOnly: true })
+    expect(TALENT_EFFECTS['Two-Handed Weapon Specialization'](3)[0]).toMatchObject({ pct: 6, physicalOnly: true })
     // Crusade and Improved Holy Strike left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions).
     expect(TALENT_EFFECTS.Crusade).toBeUndefined()
     expect(righteousFuryEffects(false, new Map([['Instrument of Law', 2]]))).toEqual([{ kind: 'threat', pct: -20 }])
@@ -320,6 +347,16 @@ describe('paladin talents (paladin.md#talents)', () => {
       expect(withSpellTalents(def, t).damageMult).toBeCloseTo(1.15, 12)
     }
     for (const def of [HOLY_STRIKE, CONSECRATION_TICK, EXORCISM]) expect(withSpellTalents(def, t).damageMult).toBe(1)
+  })
+
+  it('Sacred Arbiter: Holy Strike ×1.20; Holy Power: +3% crit a rank on Holy Strike, +1% on the seals’ procs and damage judgements, none on the magic spells’ own', () => {
+    expect(withSpellTalents(HOLY_STRIKE, new Map([['Sacred Arbiter', 1]])).damageMult).toBeCloseTo(1.2, 12)
+    const power = new Map([['Holy Power', 5]])
+    expect(withSpellTalents(HOLY_STRIKE, power).bonusCrit).toBe(15)
+    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(null), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS]) expect(withSpellTalents(def, power).bonusCrit, def.id).toBe(5)
+    // Exorcism and Consecration are magic class: Holy Power's +5% is their spell crit (TALENT_EFFECTS).
+    for (const def of [EXORCISM, CONSECRATION_TICK]) expect(withSpellTalents(def, power).bonusCrit, def.id).toBe(0)
+    expect(TALENT_EFFECTS['Holy Power'](5)).toEqual([{ kind: 'stat', stat: 'spellCrit', value: 5 }])
   })
 })
 
@@ -343,6 +380,21 @@ describe('mana costs (paladin.md#mana-model)', () => {
     expect(cost(HAMMER_OF_WRATH_ABILITY, new Map([['Benediction', 5]]))).toBe(425)
     // Holy Conduit 2/2 adds to Benediction [?]: Consecration 565 × (1 − 0.1 − 0.4) = 282.
     expect(cost(CONSECRATION, new Map([...RET, ['Holy Conduit', 2]]))).toBe(282)
+  })
+
+  it('Twist of Light takes 20% off every seal, added to Benediction [?]: SoC 147, SoR and SoF 140, SotC 112; nothing else', () => {
+    const tol = new Map([...RET, ['Twist of Light', 1]])
+    const cost = (def: Parameters<typeof withTalents>[0]) => manaCostOf(withTalents(def, tol))
+    expect(cost(SEAL_OF_COMMAND)).toBe(147)
+    expect(cost(SEAL_OF_RIGHTEOUSNESS)).toBe(140)
+    expect(cost(SEAL_OF_FURY)).toBe(140)
+    expect(cost(SEAL_OF_THE_CRUSADER)).toBe(112)
+    expect(cost(JUDGE_COMMAND)).toBe(81)
+    expect(cost(HOLY_STRIKE_ABILITY)).toBe(18)
+    // Alone (no Benediction): 210 × 0.8 = 168.
+    expect(manaCostOf(withTalents(SEAL_OF_COMMAND, new Map([['Twist of Light', 1]])))).toBe(168)
+    // Sanctified Judgement still returns its share of the seal's base cost (126 of 210).
+    expect(withTalents(JUDGE_COMMAND, new Map([['Twist of Light', 1], ['Sanctified Judgement', 3]])).manaReturnTenths).toBeCloseTo(1260, 9)
   })
 
   it('Protection (no Benediction): SoF 200, Judgement 90, Holy Strike 20, Consecration 565', () => {

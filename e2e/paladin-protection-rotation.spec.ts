@@ -59,7 +59,7 @@ test.describe('Protection paladin rotation', () => {
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
     await expect(info).toContainText('Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation')
-    await expect(info).toContainText('3% more TPS and 3% more DPS than Defensive, for 6% more damage taken')
+    await expect(info).toContainText('7% more TPS and 7% more DPS than Defensive, for 6% more damage taken')
     await page.keyboard.press('Escape')
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Cooldowns and buffs', 'Consumables', 'Priority list'])
     // The preset comes before everything else on the tab, as a tank's priority choice always did.
@@ -100,7 +100,7 @@ test.describe('Protection paladin rotation', () => {
 
     // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
     const buffs = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-    await expect(buffs.getByRole('listitem').first()).toContainText(/^Righteous Fury.*×1\.9 threat from your Holy damage.*Always on$/)
+    await expect(buffs.getByRole('listitem').first()).toContainText(/^Righteous Fury.*×1\.6 threat from your Holy damage.*Always on$/)
     await expect(buffs.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
     // Exorcism against a boss that isn't Undead or a Demon: dimmed, and it says why.
     await expect(row(tab, 'exorcism')).toContainText('Not used: needs another creature type (Fight tab).')
@@ -137,7 +137,7 @@ test.describe('Protection paladin rotation', () => {
 
     await pick(page, 'Max TPS')
     await expect(preset(page)).toHaveText('Max TPS')
-    await expect(preset(page)).toHaveAccessibleDescription('Retribution Aura instead of Devotion Aura, for threat: +3% TPS and 6% more damage taken than Defensive.')
+    await expect(preset(page)).toHaveAccessibleDescription('Retribution Aura instead of Devotion Aura, for threat: +7% TPS and 6% more damage taken than Defensive.')
     await expect(row(tab, 'prepull')).toContainText('Retribution Aura · Righteous Fury')
     const prepull = await openRow(page, tab, 'Before the pull')
     const devotion = prepull.getByRole('switch', { name: 'Devotion Aura', exact: true })

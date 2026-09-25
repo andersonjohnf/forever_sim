@@ -219,7 +219,7 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
       { ability: fury, atMs: -3000 },
       { ability: 0, atMs: -1500 },
     ])
-    // Righteous Fury's buff has no mods: its ×1.9 Holy threat is the plan's all fight.
+    // Righteous Fury's buff has no mods: its ×1.6 Holy threat is the plan's all fight.
     expect(r.abilities[fury].aura).toMatchObject({ id: 'righteousFury', mods: {} })
     const lines = Object.fromEntries(r.rotation.map((e) => [r.abilities[e.ability].id, e.conditions]))
     const shield = r.abilities.findIndex((a) => a.id === 'holyShield')
@@ -274,10 +274,10 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
 })
 
 describe('worked example 12: Holy Shield (paladin.md#worked-examples)', () => {
-  it('SP 300: 221 + 0.08 × 300 = 245 a block, threat 245 × 1.9 × 1.2 = 558.6; at SP 0, 221 × 1.2 × 1.9 = 503.88 (threat.md T10)', () => {
+  it('SP 300: 221 + 0.08 × 300 = 245 a block, threat 245 × 1.6 × 1.2 = 470.4; at SP 0, 221 × 1.2 × 1.6 = 424.32 (threat.md T10)', () => {
     for (const [sp, damage, threat] of [
-      [300, 245, 558.6],
-      [0, 221, 503.88],
+      [300, 245, 470.4],
+      [0, 221, 424.32],
     ] as const) {
       // Without your own Judgement of the Crusader, whose +161 would add its 0.08 share.
       const plan = protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand, offHand: defaultConfig(PROT).gear.offHand }, rotation: NO_JOTC })
@@ -418,9 +418,11 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
       if (a === swift) after = t
     }
     sim.runFight(0)
-    // The third comes at 124 s, the minute's end: Hammer of Wrath's 1 s cast at 119.5 s held the
-    // Judgement due at 120 s until 120.5 s, so at 124 s it still has 4.5 s of its cooldown left.
-    expect(seen.map(([t]) => t)).toEqual([0, 64000, 124000])
+    // The third comes at 128 s: at 124 s, the minute's end, the Judgement at 120 s has 4 s of its
+    // cooldown left, under the 4.5 s, so it waits for the next Judgement's full 8 s. (Before Holy
+    // Strike's 10 s cooldown, 1.60.1.70009, Hammer of Wrath's cast at 119.5 s held that Judgement to
+    // 120.5 s, so at 124 s it had 4.5 s left.)
+    expect(seen.map(([t]) => t)).toEqual([0, 64000, 128000])
     for (const [t, readyOther, readyNever] of seen) {
       expect(readyOther, `at ${t}`).toBeLessThanOrEqual(t)
       expect(readyNever).toBe(Infinity)
@@ -609,9 +611,11 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
 })
 
 describe('Retribution Aura (paladin.md#other-abilities)', () => {
-  it('30 Holy to the boss on each of its swings that lands on you, blocked ones too, × 1.9 threat; it never crits', () => {
-    // Devotion Aura off: Retribution Aura instead.
-    const plan = protPlan({ rotation: MAX_TPS })
+  it('30 Holy + 0.08 × SP to the boss on each of its swings that lands on you, blocked ones too, × 1.6 threat; it never crits', () => {
+    // Devotion Aura off: Retribution Aura instead. Without your own Judgement of the Crusader, whose
+    // +161 would add its 0.08 share, and the gear's other enchants: 300 spell damage.
+    const plan = protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand, offHand: defaultConfig(PROT).gear.offHand }, rotation: { ...MAX_TPS, ...NO_JOTC } })
+    setSp(plan, 300)
     plan.stats.spellCrit = 100
     const sim = new Sim(plan)
     let landed = 0
@@ -626,26 +630,26 @@ describe('Retribution Aura (paladin.md#other-abilities)', () => {
     const hits = field(sim, plan, 'retributionAuraDamage', FIELD.hits)
     expect(hits).toBe(landed)
     expect(field(sim, plan, 'retributionAuraDamage', FIELD.crits)).toBe(0)
-    expect(field(sim, plan, 'retributionAuraDamage', FIELD.damage) / hits).toBeCloseTo(30, 9)
-    // × the Threat gloves' 2% (the default gear's enchant).
-    expect(plan.threatMult).toBeCloseTo(1.02, 12)
-    expect(field(sim, plan, 'retributionAuraDamage', FIELD.threat) / hits).toBeCloseTo(57 * 1.02, 9)
+    // 1.60.1.70009: it scales with your spell damage, at Holy Shield's 0.08 [?] (buffs doc §1.2).
+    expect(field(sim, plan, 'retributionAuraDamage', FIELD.damage) / hits).toBeCloseTo(30 + 0.08 * 300, 9)
+    expect(plan.threatMult).toBe(1)
+    expect(field(sim, plan, 'retributionAuraDamage', FIELD.threat) / hits).toBeCloseTo(54 * 1.6, 9)
     // It's up all fight, from its cast before the pull.
     expect(sim.auraUpMs[auraOf(plan, 'retributionAura')]).toBe(ms)
-    expect(RETRIBUTION_AURA_DAMAGE).toMatchObject({ spCoefficient: 0, takenScale: 0, cannotCrit: true })
+    expect(RETRIBUTION_AURA_DAMAGE).toMatchObject({ spCoefficient: 0.08, takenScale: 0.08, cannotCrit: true })
   })
 })
 
 describe('threat per ability (paladin.md#threat-paladin-specific; threat.md)', () => {
-  it('Holy × 1.9 with Righteous Fury, Holy Strike × 1.25 more, Holy Shield × 1.2 more; white hits × 1; mana 0.5 a point', () => {
+  it('Holy × 1.6 with Righteous Fury, Holy Strike × 1.25 more, Holy Shield × 1.2 more; white hits × 1; mana 0.5 a point', () => {
     const plan = protPlan({ rotation: { ...MAX_TPS, [ID.consecrationMana]: 0 } })
     const sim = new Sim(plan)
     for (let i = 0; i < 20; i++) sim.runFight(i)
     // Everything also × the Threat gloves' 2% (the default gear's enchant).
     const ratio = (id: string) => field(sim, plan, id, FIELD.threat) / field(sim, plan, id, FIELD.damage) / plan.threatMult
-    for (const id of ['sealOfFuryProc', 'judgementOfFury', 'consecration', 'hammerOfWrath', 'retributionAuraDamage']) expect(ratio(id), id).toBeCloseTo(1.9, 12)
-    expect(ratio('holyStrike')).toBeCloseTo(1.9 * 1.25, 12)
-    expect(ratio('holyShieldProc')).toBeCloseTo(1.9 * 1.2, 12)
+    for (const id of ['sealOfFuryProc', 'judgementOfFury', 'consecration', 'hammerOfWrath', 'retributionAuraDamage']) expect(ratio(id), id).toBeCloseTo(1.6, 12)
+    expect(ratio('holyStrike')).toBeCloseTo(1.6 * 1.25, 12)
+    expect(ratio('holyShieldProc')).toBeCloseTo(1.6 * 1.2, 12)
     for (const id of ['mainHand', 'reckoning']) expect(ratio(id), id).toBeCloseTo(1, 12)
     // Improved Seal of Fury's 87 mana and Shield Specialization's: 0.5 threat a point of mana gained.
     const restores = field(sim, plan, 'improvedSealOfFury', FIELD.threat) / (0.5 * 87 * plan.threatMult)
@@ -1016,14 +1020,14 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     return { plan, sim }
   }
 
-  it('example 24: 3 × weapon DPS, AP counted: 3 × (150 + 1200 / 14 × 2.7) / 2.7 = 423.81; without it 166.67; Holy, × 1.9 threat', () => {
+  it('example 24: 3 × weapon DPS, AP counted: 3 × (150 + 1200 / 14 × 2.7) / 2.7 = 423.81; without it 166.67; Holy, × 1.6 threat', () => {
     for (const [withAp, damage] of [
       [true, (3 * (150 + (1200 / 14) * 2.7)) / 2.7],
       [false, (3 * 150) / 2.7],
     ] as const) {
       const { plan, sim } = hammerDamage(withAp)
       expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.damage)).toBeCloseTo(damage, 9)
-      expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.threat)).toBeCloseTo(damage * 1.9, 9)
+      expect(field(sim, plan, 'hammerOfTheRighteous', FIELD.threat)).toBeCloseTo(damage * 1.6, 9)
     }
     expect((3 * (150 + (1200 / 14) * 2.7)) / 2.7).toBeCloseTo(423.81, 2)
     // The client row: 6% of base mana, a 6 s cooldown in Holy Strike's category, no spell damage coefficient.

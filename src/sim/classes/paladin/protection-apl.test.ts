@@ -73,7 +73,11 @@ describe('Protection paladin’s priority list (D31)', () => {
     // is of the plans before the priority list (A2), taken on that code: a change to it is a change
     // to what Defensive or Max TPS plays. Re-taken for 1.60.1.70009's Wizard Oil (+24 spell damage,
     // was 30), which every case's Standard raid brings: all 200 moved, and with the oil at 30 again
-    // all 200 match the old snapshot.
+    // all 200 match the old snapshot. Re-snapshotted for 1.60.1.70009's paladin values (Righteous
+    // Fury +60%, Holy Strike 50% every 10 s, Retribution Aura and Thorns with spell damage, Improved
+    // Holy Strike's and Crusade's points refunded): each plan's values moved with them. The 70009
+    // integration re-took it on the merge of the two: with Wizard Oil back at 30, the paladin slice's
+    // own snapshot reproduces exactly.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

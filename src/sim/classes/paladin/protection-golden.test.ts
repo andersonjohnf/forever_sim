@@ -99,6 +99,19 @@ describe('golden run (fixed config and seed)', () => {
   // - 1.60.1.70009 (September 2026): Wizard Oil, in the Standard raid, is +24 spell damage (was 30):
   //   TPS 830.39 → 826.85, DPS 447.21 → 445.45 for Balanced and Defensive alike. The build's paladin
   //   changes (Righteous Fury, Holy Strike, Vengeance) are the paladin slice's, not taken here.
+  // - 1.60.1.70009 (the new beta build; paladin.md, threat.md): its data and trees (Improved Holy
+  //   Strike removed), then its values: Righteous Fury +60% Holy threat (was +90%), Holy Strike 50% of
+  //   a normalized swing (was 40%) every 10 s (its talent's cut made baseline), Thorns and
+  //   Retribution Aura scaling with their caster's spell power (0.08 [?]; a raid druid's 389 for
+  //   Thorns), and the default talents 50003-0530213321301551-50201 (Improved Holy Strike's 2 points
+  //   to Divine Strength 5 and Conviction 1, by measured Balanced value). On this seed's 1,000
+  //   fights, Balanced and Defensive alike: TPS 830.39 → 747.85, DPS 447.21 → 466.13, damage taken
+  //   917.4 → 917.2 a second. Righteous Fury's cut is most of it (paladin.md "Protection defaults").
+  // - The 70009 integration (the casters' and the paladin slices merged): the two notes above
+  //   together, Wizard Oil's +24 on the paladin slice's values. TPS 826.85 (oil alone) / 747.85
+  //   (paladin alone) → 744.85, DPS 445.45 / 466.13 → 464.36, damage taken 917.2 a second, for
+  //   Balanced and Defensive alike. With Wizard Oil back at 30, the paladin slice's snapshot
+  //   reproduces exactly.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

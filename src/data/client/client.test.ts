@@ -155,11 +155,11 @@ describe('values the docs state, read from the raw client', () => {
     expect(points(byEffect(shred, WEAPON_DAMAGE))).toBe(80)
   })
 
-  it('Righteous Fury multiplies Holy threat by 1.9 (docs/mechanics/threat.md)', () => {
+  it('Righteous Fury multiplies Holy threat by 1.6 (docs/mechanics/threat.md; ×1.9 before 1.60.1.70009)', () => {
     const rf = byAura(spell(25780), AURA_MOD_THREAT)
-    expect(points(rf)).toBe(90)
+    expect(points(rf)).toBe(60)
     expect(rf?.effectMiscValue?.[0]).toBe(HOLY_SCHOOL_MASK)
-    expect(1 + points(rf) / 100).toBe(1.9)
+    expect(1 + points(rf) / 100).toBe(1.6)
   })
 
   it('Sunder Armor carries a THREAT effect of 34 / 75 / 117 / 158 / 206 by rank, with no attack power coefficient (docs/mechanics/threat.md)', () => {

@@ -361,7 +361,12 @@ its place in the priority changes.
 - **Byte for byte:** in the default order the plans are the ones each spec built before the list:
   200 random setups per spec (settings, talents, race, Buffs, fight and rules) are fingerprinted
   against the code before it (`destruction-apl.test.ts`, `affliction-apl.test.ts`,
-  `demonology-apl.test.ts`; `apl-cases.ts` makes the setups).
+  `demonology-apl.test.ts`; `apl-cases.ts` makes the setups). Those keep the default gear and only take
+  ranks off the default talents, so a second, fixed set guards what they never reach
+  (`fixed-cases.test.ts`, `fixed-cases.ts`): Incinerate talented on each spec, chosen or not; Demonic
+  Brand at ranks 1–3 with the Imp, the Succubus and the Felhunter; on-use trinkets worn; and 40 random
+  setups a spec around them, drawn from frozen option lists so a new setting or choice value can't
+  reshuffle them. Its snapshot is a regression guard, taken on the code as it stood.
 - **The filler choice is every spec's** (issue #17): the Filler row's `filler.spell`, Shadow Bolt or
   Incinerate. Without the Incinerate talent there's nothing to choose: Shadow Bolt is the filler
   whatever it says, and the Rotation tab says so under it. Each spec's default is measured on a build

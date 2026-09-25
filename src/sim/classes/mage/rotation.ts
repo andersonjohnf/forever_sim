@@ -2,10 +2,12 @@
 // priority", "Arcane priority"): the Classic Era common priority adapted to Forever, with the first-pass
 // search of decision D27 (mage.md "First-pass defaults"). Setting ids are `mage.<spec>.<ability>.<param>`;
 // mana thresholds are shares of maximum mana. Abilities are resolved with the build's talents
-// (talents.ts) before their costs or spells feed anything.
+// (talents.ts) before their costs or spells feed anything. Each spec's rotation is a priority list you
+// reorder (MAGE_APL, decision D31; mage.md "The priority lists"), each row with its own settings.
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { RotationOption, RotationValue, SpecId } from '../../types'
+import type { AplDefinition, AplRow, AplSummaryPart, RotationOption, RotationValue, SpecId } from '../../types'
+import { compileAplRows } from '../apl'
 import type { PaladinContext } from '../paladin/setup'
 import { CASTER_RACIALS } from '../caster-racials'
 import { eurekaFor } from '../eureka'
@@ -136,7 +138,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.gems,
         group: MANA,
         label: 'Mana gems',
-        help: 'Use a Mana Ruby (1,000–1,200 mana) and a Mana Citrine (775–925), conjured before the pull, each once all it restores fits: whichever fits first, the Ruby if both do. They share a 2-minute cooldown with each other and the Demonic Rune.',
+        help: 'Use a Mana Ruby (1,000–1,200 mana) and a Mana Citrine (775–925), conjured before the pull, each once all it restores fits: whichever fits first, the Ruby if both do. They share a 2-minute cooldown with each other and the Demonic Rune. The Major Mana Potion and the Demonic Rune take their turn just after them.',
         default: true,
       },
       {
@@ -144,7 +146,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.manaPotion,
         group: MANA,
         label: 'Major Mana Potion',
-        help: 'Drink one every 2 minutes, once all it can restore (up to 2,250 mana) fits.',
+        help: 'Drink one every 2 minutes, once all it can restore (up to 2,250 mana) fits. It takes its turn just after the mana gems in the priority list.',
         default: true,
         requiresBuff: MANA_POTION,
       },
@@ -166,7 +168,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.rune,
         group: MANA,
         label: 'Demonic Rune',
-        help: 'Use one once all it can restore (up to 1,500 mana) fits, after your mana gems: they share a 2-minute cooldown.',
+        help: 'Use one once all it can restore (up to 1,500 mana) fits, just after your mana gems in the priority list: they share a 2-minute cooldown.',
         default: true,
         requiresBuff: MANA_RUNE,
       },
@@ -336,10 +338,157 @@ const consumable = (use: OnUseSpec, rest: Partial<AbilityDef> = {}): AbilityDef 
   ...rest,
 })
 
+
+/** The spec's filler, which Evocation makes sure you can pay for (mage.md "Fire priority" row 8). */
+const FILLER: Record<Spec, AbilityDef> = { fire: FIREBALL, frost: FROSTBOLT, arcane: ARCANE_MISSILES }
+
+/**
+ * The rows every spec shares (mage.md "The priority lists"): its racial cooldown, on-use trinkets and
+ * Power Infusion, then the mana gems (with the potion and the rune, spec-wide, just after them) and
+ * Evocation.
+ */
+function sharedRows(spec: Spec): { cooldowns: AplRow[]; mana: AplRow[] } {
+  const ID = ids(spec)
+  const ON_COOLDOWN: AplSummaryPart[] = [{ text: 'on cooldown' }]
+  return {
+    cooldowns: [
+      { id: 'racial', label: 'Racial cooldown', icon: 'racial_troll_berserk', enabledId: ID.racial, optionIds: [], summary: ON_COOLDOWN },
+      { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: ON_COOLDOWN },
+      { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'whenever it’s ready' }] },
+    ],
+    mana: [
+      { id: 'manaGems', label: 'Mana gems', icon: MANA_RUBY.icon, enabledId: ID.gems, optionIds: [], summary: [{ text: 'each once all it restores fits' }] },
+      {
+        id: 'evocation',
+        label: 'Evocation',
+        icon: EVOCATION.icon,
+        enabledId: ID.evocation,
+        optionIds: [ID.evocationMana],
+        summary: [
+          { option: ID.evocationMana, text: 'at {} or less', hideWhen: 0 },
+          { text: `when you can’t pay for ${FILLER[spec].name}` },
+        ],
+      },
+    ],
+  }
+}
+
+/** The filler's row: no switch, it's what you cast when nothing above it is. */
+const fillerRow = (spec: Spec, summary: AplSummaryPart[] = []): AplRow => ({
+  id: FILLER[spec].id,
+  label: FILLER[spec].name,
+  icon: FILLER[spec].icon,
+  optionIds: [],
+  summary: [{ text: 'filler' }, ...summary],
+  help: 'Your filler: cast whenever nothing above it is. It has no switch.',
+})
+
+/** The mana consumables are spec-wide (Consumables, above the list): they take their turn just after the mana gems' row. */
+const specWide = (spec: Spec): string[] => {
+  const ID = ids(spec)
+  return [ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing]
+}
+
+/** Fire's priority list (mage.md "Fire priority list"), in its default order. */
+function fireApl(): AplDefinition {
+  const ID = ids('fire')
+  const { cooldowns, mana } = sharedRows('fire')
+  return {
+    rows: [
+      { id: 'combustion', label: 'Combustion', icon: COMBUSTION.icon, enabledId: ID.combustion, optionIds: [], summary: [{ text: 'on cooldown from the pull' }] },
+      ...cooldowns,
+      ...mana,
+      {
+        id: 'scorch',
+        label: 'Scorch',
+        icon: SCORCH.icon,
+        enabledId: ID.scorch,
+        optionIds: [ID.scorchRefresh],
+        summary: [{ text: 'to 5 stacks of Fire Vulnerability' }, { option: ID.scorchRefresh, text: 'again with {}' }],
+      },
+      {
+        id: 'pyroblast',
+        label: 'Pyroblast',
+        icon: PYROBLAST.icon,
+        enabledId: ID.pyroblast,
+        optionIds: [ID.pyroblastStacks],
+        summary: [{ text: 'on Hot Streak' }, { option: ID.pyroblastStacks, text: 'at {}', hideWhen: 1 }],
+      },
+      { id: 'fireBlast', label: 'Fire Blast', icon: FIRE_BLAST.icon, enabledId: ID.fireBlast, optionIds: [], summary: [{ text: 'on cooldown' }] },
+      fillerRow('fire', [{ text: `waits up to ${FIRE_WAIT_MS / 1000} s for Fire Blast`, alsoOn: [ID.fireBlast] }]),
+    ],
+    specWide: specWide('fire'),
+    presets: [],
+  }
+}
+
+/** Frost's priority list (mage.md "Frost priority list"), in its default order. */
+function frostApl(): AplDefinition {
+  const ID = ids('frost')
+  const { cooldowns, mana } = sharedRows('frost')
+  return {
+    rows: [
+      {
+        id: 'presenceOfMind',
+        label: 'Presence of Mind',
+        icon: PRESENCE_OF_MIND.icon,
+        enabledId: ID.presenceOfMind,
+        optionIds: [],
+        summary: [{ text: 'on cooldown, for an instant Frostbolt' }],
+      },
+      ...cooldowns,
+      ...mana,
+      { id: 'iceBarrier', label: 'Ice Barrier', icon: ICE_BARRIER.icon, enabledId: ID.iceBarrier, optionIds: [], summary: [{ text: 'on cooldown' }] },
+      fillerRow('frost'),
+    ],
+    specWide: specWide('frost'),
+    presets: [],
+  }
+}
+
+/** Arcane's priority list (mage.md "Arcane priority list"), in its default order. */
+function arcaneApl(): AplDefinition {
+  const ID = ids('arcane')
+  const { cooldowns, mana } = sharedRows('arcane')
+  return {
+    rows: [
+      { id: 'arcanePower', label: 'Arcane Power', icon: ARCANE_POWER.icon, enabledId: ID.arcanePower, optionIds: [], summary: [{ text: 'on cooldown from the pull' }] },
+      { id: 'presenceOfMind', label: 'Presence of Mind', icon: PRESENCE_OF_MIND.icon, enabledId: ID.presenceOfMind, optionIds: [], summary: [{ text: 'on cooldown' }] },
+      ...cooldowns,
+      ...mana,
+      {
+        id: 'pyroblast',
+        label: 'Pyroblast with Presence of Mind',
+        icon: PYROBLAST.icon,
+        optionIds: [],
+        summary: [{ text: 'while Presence of Mind is up', alsoOn: [ID.presenceOfMind] }],
+        help: 'Spends Presence of Mind on an instant Pyroblast, if you have the talent. It goes with Presence of Mind’s switch.',
+      },
+      fillerRow('arcane'),
+    ],
+    specWide: specWide('arcane'),
+    presets: [],
+  }
+}
+
+export const FIRE_APL = fireApl()
+export const FROST_APL = frostApl()
+export const ARCANE_APL = arcaneApl()
+export const MAGE_APL: Record<Spec, AplDefinition> = { fire: FIRE_APL, frost: FROST_APL, arcane: ARCANE_APL }
+
+/** A spec's priority list (decision D31), or undefined for another spec. */
+export const mageApl = (spec: SpecId): AplDefinition | undefined => (SPEC_OF[spec] ? MAGE_APL[SPEC_OF[spec]] : undefined)
+
 /**
  * A mage priority list from the settings (mage.md "Fire priority", "Frost priority", "Arcane
- * priority"). `context` gives the maximum mana (the thresholds are shares of it), the race, the
- * equipped on-use items and the selected consumables.
+ * priority"), its rows in `order` (MAGE_APL; absent: the default order). `context` gives the maximum
+ * mana (the thresholds are shares of it), the race, the equipped on-use items and the selected
+ * consumables.
+ *
+ * A row's conditions are its own wherever it sits: Scorch still refreshes in time for the Pyroblast or
+ * Fireball after it, and Fireball still waits for Fire Blast, if you move them. Rows refer to each
+ * other's abilities by definition (`index`), which in the default order resolves to the index the
+ * earlier row gave it, as before the list.
  */
 export function mageRotation(
   specId: SpecId,
@@ -347,6 +496,7 @@ export function mageRotation(
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<PaladinContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const spec = SPEC_OF[specId] ?? 'fire'
   const ID = ids(spec)
@@ -360,55 +510,55 @@ export function mageRotation(
     abilities.push(withTalents(def, talents))
     return abilities.length - 1
   }
-  const add = (def: AbilityDef, conditions: RotationCondition[] = []) => {
-    const a = index(def)
-    rotation.push({ ability: a, conditions, unqueueBelowTenths: 0 })
-    return a
-  }
+  const line = (ability: number, conditions: RotationCondition[]) => rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
+  const add = (def: AbilityDef, conditions: RotationCondition[] = []) => line(index(def), conditions)
   const maxManaTenths = 10 * (ctx.maxMana ?? 0)
-  const pressed: string[] = ctx.items.map((i) => i.id)
   const has = (talent: string) => rank(talents, talent) > 0
-
-  // Off the GCD, on cooldown from the pull: Combustion, Arcane Power, Presence of Mind, the racial,
-  // trinkets and Power Infusion (mage.md "Cooldowns").
-  if (spec === 'fire' && v.on(ID.combustion) && has('Combustion')) add(COMBUSTION)
-  if (spec === 'arcane' && v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
-  if (spec !== 'fire' && v.on(ID.presenceOfMind) && has('Presence of Mind')) add(PRESENCE_OF_MIND)
-  // A Gnome's Eureka! (classes/eureka.ts) goes with them: its 3 charges go to the spells it modifies.
-  const racial = eurekaFor(ctx.race, 'mage') ?? CASTER_RACIALS[ctx.race]
-  if (racial && v.on(ID.racial)) add(racial)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const pi = ctx.consumables.find((c) => c.id === POWER_INFUSION)
-  if (pi) {
-    pressed.push(POWER_INFUSION)
-    if (v.on(ID.powerInfusion)) add(consumable(pi))
-  }
+  /** The mana consumables selected in Buffs, the potion before the rune. */
+  const mana = [MANA_POTION, MANA_RUNE].flatMap((id) => ctx.consumables.find((c) => c.id === id) ?? [])
+  /** What the rotation presses, used or not: the on-use items, Power Infusion and the mana consumables selected. */
+  const pressed: string[] = [...ctx.items.map((i) => i.id), ...(pi ? [POWER_INFUSION] : []), ...mana.map((c) => c.id)]
+  const pom = v.on(ID.presenceOfMind) && has('Presence of Mind')
 
-  // Mana (mage.md "Mana"), off the GCD, before the spells so a gem or potion goes as soon as it fits:
-  // the gems, then the rune (they share category 1153), and the potion on its own cooldown.
-  const missing = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
-  // Each gem once all it restores fits (mage.md "Mana gems"): the Citrine's smaller restore usually
-  // fits first; the Ruby, listed first, goes when both do.
-  if (v.on(ID.gems)) {
-    add(MANA_RUBY, [missing(1200)])
-    add(MANA_CITRINE, [missing(925)])
-  }
-  for (const [id, setting, need] of [
-    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
-    [MANA_RUNE, ID.rune, ID.runeMissing],
-  ] as const) {
-    const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
-    pressed.push(id)
-    if (v.on(setting)) add(consumable(use, id === MANA_RUNE ? { category: GEM_CATEGORY } : {}), [missing(v.num(need))])
-  }
-  // Evocation at mana ≤ x% (on the GCD, a channel), before any spell, or once the spec's filler
-  // (Fireball, Frostbolt, Arcane Missiles) costs more than you have, so a low threshold never leaves
-  // you waiting for regeneration with Evocation ready.
-  if (v.on(ID.evocation)) {
-    add(EVOCATION, [{ code: COND.maxMana, a: Math.round((v.num(ID.evocationMana) / 100) * maxManaTenths), b: 0 }])
-    const filler = withTalents(spec === 'fire' ? FIREBALL : spec === 'frost' ? FROSTBOLT : ARCANE_MISSILES, talents)
-    add(EVOCATION, [{ code: COND.maxMana, a: filler.costTenths - 1, b: 0 }])
+  // The rows every spec shares (mage.md "Cooldowns", "Mana"). The cooldowns are off the GCD, on
+  // cooldown from the pull.
+  const shared = {
+    // A Gnome's Eureka! (classes/eureka.ts) goes with them: its 3 charges go to the spells it modifies.
+    racial: () => {
+      const racial = eurekaFor(ctx.race, 'mage') ?? CASTER_RACIALS[ctx.race]
+      if (racial && v.on(ID.racial)) add(racial)
+    },
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+    },
+    powerInfusion: () => {
+      if (pi && v.on(ID.powerInfusion)) add(consumable(pi))
+    },
+    // Mana, off the GCD, before the spells by default so a gem or potion goes as soon as it fits: the
+    // gems, then the rune (they share category 1153), and the potion on its own cooldown.
+    manaGems: () => {
+      const missing = (need: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * need, b: 0 })
+      // Each gem once all it restores fits (mage.md "Mana gems"): the Citrine's smaller restore
+      // usually fits first; the Ruby, listed first, goes when both do.
+      if (v.on(ID.gems)) {
+        add(MANA_RUBY, [missing(1200)])
+        add(MANA_CITRINE, [missing(925)])
+      }
+      // The potion and the rune, spec-wide, take their turn just after the gems, wherever they sit.
+      for (const use of mana) {
+        const rune = use.id === MANA_RUNE
+        if (v.on(rune ? ID.rune : ID.manaPotion)) add(consumable(use, rune ? { category: GEM_CATEGORY } : {}), [missing(v.num(rune ? ID.runeMissing : ID.manaPotionMissing))])
+      }
+    },
+    // Evocation at mana ≤ x% (on the GCD, a channel), or once the spec's filler (Fireball, Frostbolt,
+    // Arcane Missiles) costs more than you have, so a low threshold never leaves you waiting for
+    // regeneration with Evocation ready.
+    evocation: () => {
+      if (!v.on(ID.evocation)) return
+      add(EVOCATION, [{ code: COND.maxMana, a: Math.round((v.num(ID.evocationMana) / 100) * maxManaTenths), b: 0 }])
+      add(EVOCATION, [{ code: COND.maxMana, a: withTalents(FILLER[spec], talents).costTenths - 1, b: 0 }])
+    },
   }
 
   if (spec === 'fire') {
@@ -416,37 +566,78 @@ export function mageRotation(
     const fv = auraIndex(FIRE_VULNERABILITY.id)
     const scorchOn = v.on(ID.scorch) && has('Improved Scorch') && fv >= 0
     const pyroOn = v.on(ID.pyroblast) && has('Hot Streak') && has('Pyroblast') && hs >= 0
+    const fireBlastOn = v.on(ID.fireBlast)
     const pyroWhen: RotationCondition = { code: COND.auraStacksAtLeast, a: hs, b: Math.max(1, Math.min(3, Math.round(v.num(ID.pyroblastStacks)))) }
-    // The abilities in the priority's order, so the rows keep it; each line refers to them by index.
-    const scorch = scorchOn ? index(SCORCH) : -1
-    const pyro = pyroOn ? index(PYROBLAST) : -1
-    const fireBlast = v.on(ID.fireBlast) ? index(FIRE_BLAST) : -1
-    const fireball = index(FIREBALL)
-    const line = (ability: number, conditions: RotationCondition[]) => rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
-    // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left, or sooner when the
-    // Pyroblast or Fireball below would let it run out before the Scorch after it lands (mage.md "Fire
-    // priority" row 9): a player refreshes so the Scorch lands in time, at any casting speed.
-    if (scorchOn) {
-      line(scorch, [{ code: COND.auraStacksBelow, a: fv, b: 5 }])
-      line(scorch, [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }])
-      if (pyroOn) line(scorch, [pyroWhen, { code: COND.auraEndsBeforeCasts, a: fv, b: pyro }])
-      line(scorch, [{ code: COND.auraEndsBeforeCasts, a: fv, b: fireball }])
-    }
-    // Pyroblast at x Hot Streak stacks, waiting up to FIRE_WAIT_MS so it doesn't land just before its
-    // own DoT's next tick and cut it off (row 10).
-    if (pyroOn) line(pyro, [pyroWhen, { code: COND.dotTickWait, a: pyro, b: FIRE_WAIT_MS }])
-    // Fire Blast when it's ready; Fireball waits for one ready within FIRE_WAIT_MS (rows 11 and 12).
-    if (fireBlast >= 0) line(fireBlast, [])
-    line(fireball, fireBlast >= 0 ? [{ code: COND.cooldownAtLeast, a: fireBlast, b: FIRE_WAIT_MS }] : [])
+    // The Fire spells are indexed together, in the priority's default order, the first time a row
+    // needs one, so the default order's plan keeps its abilities where they were; each line refers
+    // to them by index.
+    let spells: { scorch: number; pyro: number; fireBlast: number; fireball: number } | undefined
+    const fire = () =>
+      (spells ??= {
+        scorch: scorchOn ? index(SCORCH) : -1,
+        pyro: pyroOn ? index(PYROBLAST) : -1,
+        fireBlast: fireBlastOn ? index(FIRE_BLAST) : -1,
+        fireball: index(FIREBALL),
+      })
+    compileAplRows(FIRE_APL, order, {
+      combustion: () => {
+        if (v.on(ID.combustion) && has('Combustion')) add(COMBUSTION)
+      },
+      ...shared,
+      // Row 9: Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left, or
+      // sooner when the Pyroblast or Fireball would let it run out before the Scorch after it lands:
+      // a player refreshes so the Scorch lands in time, at any casting speed.
+      scorch: () => {
+        if (!scorchOn) return
+        const { scorch, pyro, fireball } = fire()
+        line(scorch, [{ code: COND.auraStacksBelow, a: fv, b: 5 }])
+        line(scorch, [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }])
+        if (pyroOn) line(scorch, [pyroWhen, { code: COND.auraEndsBeforeCasts, a: fv, b: pyro }])
+        line(scorch, [{ code: COND.auraEndsBeforeCasts, a: fv, b: fireball }])
+      },
+      // Row 10: Pyroblast at x Hot Streak stacks, waiting up to FIRE_WAIT_MS so it doesn't land just
+      // before its own DoT's next tick and cut it off.
+      pyroblast: () => {
+        if (!pyroOn) return
+        const { pyro } = fire()
+        line(pyro, [pyroWhen, { code: COND.dotTickWait, a: pyro, b: FIRE_WAIT_MS }])
+      },
+      // Rows 11 and 12: Fire Blast when it's ready; Fireball waits for one ready within FIRE_WAIT_MS.
+      fireBlast: () => {
+        if (fireBlastOn) line(fire().fireBlast, [])
+      },
+      fireball: () => {
+        const { fireBlast, fireball } = fire()
+        line(fireball, fireBlast >= 0 ? [{ code: COND.cooldownAtLeast, a: fireBlast, b: FIRE_WAIT_MS }] : [])
+      },
+    })
   } else if (spec === 'frost') {
-    if (v.on(ID.iceBarrier) && has('Ice Barrier')) add(ICE_BARRIER)
-    add(FROSTBOLT)
+    compileAplRows(FROST_APL, order, {
+      presenceOfMind: () => {
+        if (pom) add(PRESENCE_OF_MIND)
+      },
+      ...shared,
+      iceBarrier: () => {
+        if (v.on(ID.iceBarrier) && has('Ice Barrier')) add(ICE_BARRIER)
+      },
+      frostbolt: () => add(FROSTBOLT),
+    })
   } else {
-    // Presence of Mind's instant spell: a Pyroblast if you have it (Classic Era's AP/PoM), else the next Arcane Missiles' turn.
-    if (v.on(ID.presenceOfMind) && has('Presence of Mind') && has('Pyroblast')) {
-      add(PYROBLAST, [{ code: COND.abilityAuraUp, a: index(PRESENCE_OF_MIND), b: 0 }])
-    }
-    add(ARCANE_MISSILES)
+    compileAplRows(ARCANE_APL, order, {
+      arcanePower: () => {
+        if (v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
+      },
+      presenceOfMind: () => {
+        if (pom) add(PRESENCE_OF_MIND)
+      },
+      ...shared,
+      // Presence of Mind's instant spell: a Pyroblast if you have it (Classic Era's AP/PoM), else the
+      // next Arcane Missiles' turn. It reads Presence of Mind's aura wherever the two rows sit.
+      pyroblast: () => {
+        if (pom && has('Pyroblast')) add(PYROBLAST, [{ code: COND.abilityAuraUp, a: index(PRESENCE_OF_MIND), b: 0 }])
+      },
+      arcaneMissiles: () => add(ARCANE_MISSILES),
+    })
   }
 
   return { abilities, rotation, prepull: NO_PREPULL, onUse: pressed, procs: [] }

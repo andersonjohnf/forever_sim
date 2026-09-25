@@ -40,7 +40,8 @@ first-pass defaults ([First-pass defaults](#first-pass-defaults))
 8. **Mana**: the mage's regeneration, Evocation, mana gems, potions and runes ([Mana](#mana)).
 9. **Talents** as passives, procs and changes to the spell rows ([Talents](#talents)).
 10. **Three priority lists** with their settings ([Fire](#fire-priority), [Frost](#frost-priority),
-    [Arcane](#arcane-priority)).
+    [Arcane](#arcane-priority)), each a list of rows you reorder
+    ([The priority lists](#the-priority-lists)).
 
 A mage never swings its weapon in the sim: its weapon's stats count, and nothing melee applies.
 
@@ -385,8 +386,10 @@ check uses the base cost, not Arcane Power's.
   1,500).
 - The **Major Mana Potion** has its own 2 min cooldown: when missing **Major Mana Potion when
   missing** (default 2,250).
-- All of them come before any spell in the priority, in the Rotation tab's order: the gems, the
-  potion, the rune, then Evocation.
+- All of them come before any spell in the default priority: the gems, the potion, the rune, then
+  Evocation. The gems are a row of the priority list you can move; the potion and the rune are
+  spec-wide settings that take their turn just after the gems, wherever they sit
+  ([The priority lists](#the-priority-lists)).
 
 ---
 
@@ -496,8 +499,9 @@ Ignite 10% (12% before 1.60.1.70009 ended its double dip), Scorch 8%.
 
 ### Fire priority list (default)
 
-Evaluated top to bottom whenever the mage is free. Setting ids are `mage.fire.<x>` (written without
-the prefix below), in the Rotation tab's groups. A mana threshold is a share of maximum mana.
+Evaluated top to bottom whenever the mage is free, in the default order ([The priority
+lists](#the-priority-lists) has the rows you reorder). Setting ids are `mage.fire.<x>` (written
+without the prefix below). A mana threshold is a share of maximum mana.
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -607,6 +611,53 @@ Setting ids are `mage.arcane.<x>`.
 | 9 | Evocation | `evocation.enabled`; mana ≤ `evocation.maxManaPct`, or below Arcane Missiles' cost | on, 0% |
 | 10 | Pyroblast | with Presence of Mind and Pyroblast; while Presence of Mind's aura is up | on (with Presence of Mind) |
 | 11 | Arcane Missiles | always | — |
+
+---
+
+## The priority lists
+
+Since M5.65 A2 each spec's rotation is the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`MAGE_APL` in `rotation.ts`): its rows in the default order below, each with its switch and its own
+settings (ids without their `mage.<spec>.` prefix). The # is the row of the spec's table above, which
+has each row's cited conditions. A row's conditions are its own wherever it sits.
+
+**Fire** (`FIRE_APL`):
+
+| Row (`id`) | Switch | Its settings | Conditions (# above) |
+| --- | --- | --- | --- |
+| Combustion (`combustion`) | `combustion.enabled` | | 1: with the talent, ready |
+| Racial cooldown (`racial`) | `racial.enabled` | | 2: Berserking, Blood Fury or Eureka!, on cooldown |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | 3: on cooldown |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, ready |
+| Mana gems (`manaGems`) | `manaGems.enabled` | | 5: each once all it restores fits; then 6 and 7, spec-wide |
+| Evocation (`evocation`) | `evocation.enabled` | `evocation.maxManaPct` | 8: at or below the share, or below Fireball's cost |
+| Scorch (`scorch`) | `scorch.enabled` | `scorch.refreshSec` | 9: under 5 stacks, or refresh in time (COND 44) |
+| Pyroblast (`pyroblast`) | `pyroblast.enabled` | `pyroblast.minStacks` | 10: Hot Streak stacks, waiting for its DoT's tick (COND 45) |
+| Fire Blast (`fireBlast`) | `fireBlast.enabled` | | 11: ready |
+| Fireball (`fireball`) | — (the filler) | | 12: waits up to 0.3 s for Fire Blast |
+
+**Frost** (`FROST_APL`): Presence of Mind (`presenceOfMind`, 1), then the shared rows `racial`,
+`trinkets`, `powerInfusion`, `manaGems` and `evocation` (2–8, Evocation below Frostbolt's cost), Ice
+Barrier (`iceBarrier`, switch `iceBarrier.enabled`, 9), and Frostbolt (`frostbolt`, the filler, 10).
+
+**Arcane** (`ARCANE_APL`): Arcane Power (`arcanePower`, 1), Presence of Mind (`presenceOfMind`, 2),
+the shared rows (3–9, Evocation below Arcane Missiles' cost), Pyroblast with Presence of Mind
+(`pyroblast`, 10: no switch of its own, it goes with `presenceOfMind.enabled` and needs Pyroblast;
+it waits for Presence of Mind's aura wherever it sits), and Arcane Missiles (`arcaneMissiles`, the
+filler, 11).
+
+- **Nothing is pinned:** the mage has no pre-pull or opener. The filler has no switch; moved up, it
+  takes every global cooldown it can pay for, so the rows below it wait.
+- **Spec-wide, above the list** under Consumables: the Major Mana Potion and the Demonic Rune, with
+  their "when missing" amounts (rows 6 and 7). They take their turn just after the mana gems' row,
+  wherever it sits, as they did before the list, so the rune still follows the gems it shares a
+  cooldown with. Mage Armor isn't a setting: the sim assumes it's up all fight ([Mana](#mana)).
+- **No named rotations:** only the implicit Default preset; the Rotation tab still says the defaults
+  are the common priority ([First-pass defaults](#first-pass-defaults), D27).
+- **Byte for byte:** in the default order, each spec's plan is the one it had before the list. 200
+  random setups per spec (settings, talents, race, on-use trinkets, Buffs, fight and rules) are
+  fingerprinted against the code before it (`mage-apl.test.ts`), and the three goldens are unchanged.
 
 ---
 

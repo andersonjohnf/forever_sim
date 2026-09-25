@@ -724,3 +724,32 @@ always in view; calm, single-column results. What changes from the design above:
   character sheet and then the result scroll beneath it. Once the sheet scrolls out of view, a
   **one-line strip of its key stats** stays pinned under Your setup, so the sheet's numbers are always
   in view. The tank's attack-table explanation is shortened to fit.
+
+### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
+User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `forever-sim`
+(`https://forever-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
+the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover is a DNS change.
+- **Independent jobs.** The deploy workflow builds once; the Pages and Firebase jobs each deploy
+  that build, and a Firebase failure never blocks Pages during the transition.
+- **The cutover, in order** (review FH-3, FH-5): check both hosts serve the same commit; add
+  `sim.decades.gg` to the Firebase site and pre-provision its certificate (the ACME record) before
+  moving DNS; switch the A records; keep Pages' custom-domain setting and decades.gg's domain
+  verification in GitHub until DNS has moved, so the name can't be claimed in between; once the
+  user confirms, drop the Pages deploy job. The Pages site itself may stay (with its custom domain)
+  for the old `github.io/forever_sim/` redirect.
+- **Permissions are project-wide** (review FH-2; user accepted, 2026-09-25): Firebase Hosting roles
+  cover every site in `decades-prod`, so the deploy account could also change `decades-web`. All
+  are the Decades umbrella's apps. The pipeline limits the exposure: only this repository's `main`
+  (the provider's condition, the `firebase` environment and the job's `if`), and the CLI pinned to
+  a major (`firebase-tools@15`), as decades_app pins it.
+- **Workload Identity Federation, no keys.** GitHub's OIDC token is exchanged for a short-lived
+  token of the service account `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`, through
+  a provider that trusts only this repository's `main` branch. No JSON key exists to leak.
+- **Analytics are Firebase Hosting's request logs in Cloud Logging,** switched on in the console.
+  Nothing in the app: no script, cookie or beacon, and no change to the Content-Security-Policy.
+- **Security headers are real headers now** (`firebase.json`): the same policy as `index.html`'s
+  meta tag plus `frame-ancestors 'none'`, which a meta tag can't set, with `nosniff`, a
+  referrer policy and a restrictive Permissions-Policy. The meta tag stays, for `vite preview`, the
+  e2e suite and Pages; a unit test keeps the two policies the same.
+- **Caching:** Vite's hashed `/assets/` are immutable for a year, the page revalidates on every
+  load, and the unhashed files in `public/` cache for an hour.

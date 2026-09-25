@@ -5,7 +5,8 @@ community since 2005. Pick
 your spec, talents and gear, tune buffs and your rotation, and simulate. It works on your phone
 as well as your desktop.
 
-It runs entirely in your browser (no server) and is hosted on GitHub Pages:
+It runs entirely in your browser (no server). It's moving from GitHub Pages to Firebase Hosting;
+the address stays the same:
 **https://sim.decades.gg/**
 
 > **Status:** every DPS spec, and the Warrior, Feral (Bear) Druid and Protection Paladin tanks.
@@ -76,10 +77,12 @@ Then review `git diff src/data` and the diff reports. See [docs/data/README.md](
 
 ### Deployment
 
-Every push to `main` runs lint, the smoke suite and the build, then deploys to GitHub Pages
-(`.github/workflows/deploy.yml`). Beside it, the **Full regression** workflow runs every test on
+Every push to `main` runs lint, the smoke suite and the build, then deploys to Firebase Hosting
+and, until the cutover, GitHub Pages, in independent jobs (`.github/workflows/deploy.yml`,
+[docs/architecture.md § Firebase Hosting](docs/architecture.md#firebase-hosting)). Beside it, the **Full regression** workflow runs every test on
 the same platform (`.github/workflows/regression.yml`); run it by hand from the Actions tab too.
-One-time setup: **Settings → Pages → Source: GitHub Actions**.
+One-time setup: **Settings → Pages → Source: GitHub Actions**, and for Firebase the Workload
+Identity Federation provider and deploy service account that section names.
 
 ## Credits
 

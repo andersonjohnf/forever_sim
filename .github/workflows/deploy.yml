@@ -1,4 +1,8 @@
-name: Deploy to GitHub Pages
+name: Deploy
+
+# One build, published twice while hosting moves (docs/decisions.md, D35): to GitHub Pages, and to
+# Firebase Hosting (decades-prod, site forever-sim). The two deploy jobs are independent, so a
+# Firebase failure never holds up Pages until the user confirms the cutover.
 
 on:
   push:
@@ -8,7 +12,10 @@ on:
 # Least privilege: the build job (checkout, npm ci, tests, build) reads the repo and nothing else.
 # upload-pages-artifact stores dist/ as a workflow artifact through the runner's own artifact
 # token, not GITHUB_TOKEN, so it needs no extra scope. Only deploy-pages publishes, and it alone
-# gets Pages write and the OIDC token it proves the run with.
+# gets Pages write and the OIDC token it proves the run with. upload-artifact keeps dist/ for
+# deploy-firebase the same way. deploy-firebase gets only the OIDC token, which Google's Workload
+# Identity Federation exchanges for a short-lived token of the deploy service account: no JSON key
+# is stored anywhere, and the provider trusts only this repository's main branch.
 permissions:
   contents: read
 
@@ -35,6 +42,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
 
   deploy:
     needs: build
@@ -48,3 +61,31 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  deploy-firebase:
+    needs: build
+    # The identity provider trusts main alone, so a run by hand from another branch skips this job.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: firebase
+      url: https://forever-sim.web.app
+    steps:
+      # firebase.json and .firebaserc: the site, its headers and the project.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/232648440272/locations/global/workloadIdentityPools/github/providers/forever-sim
+          service_account: forever-sim-deploy@decades-prod.iam.gserviceaccount.com
+      # The CLI's major pinned, so a new major's changes arrive by a commit, not by surprise.
+      - run: npx --yes firebase-tools@15 deploy --only hosting:forever-sim --project decades-prod --non-interactive

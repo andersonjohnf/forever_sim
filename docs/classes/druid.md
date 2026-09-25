@@ -1489,8 +1489,10 @@ default setups; `scripts/tune/rotation.mjs`):
 - **The presets, re-checked (D27 first pass).** Balanced's Maul from 20: 14 to 16 gain 0.13–0.14%
   TPS for 0.12–0.23% of the DPS, 22 and up lose TPS, as before; Max TPS's 14: 12 and 16 are within
   ±0.04% (not significant), 18 and 20 lose. Lacerate's 12 s refresh: 9 s −1.84%, 15 s −0.63%.
-  Defensive (Maul from 20): 16 +0.10% TPS for 0.25% of the DPS. Max TPS is +0.15% TPS and −0.22%
-  DPS against Balanced, Defensive −3.03% TPS (40,000 fights a candidate). Nothing moves. The cat's
+  Defensive (Maul from 20): 16 +0.10% TPS for 0.25% of the DPS (40,000 fights a candidate).
+  Nothing moves, and the presets' lines in the Rotation tab still hold on their seed, 28401
+  (200,000 paired fights): Max TPS +0.18% TPS and −0.20% DPS against Balanced (1,119.25 →
+  1,121.22), Balanced +3.13% TPS and +2.83% DPS against Defensive (1,085.33 → 1,119.25). The cat's
   finishers hold too: Ferocious Bite and Rip at 5 combo points beat every mix with 4 (−0.09% to
   −0.82%).
 - **Plausibility (D29, milestones T6).** The default bear is still above the guild's 800–900 TPS for

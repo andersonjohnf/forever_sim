@@ -788,7 +788,7 @@ export const SHIELD_SLAM: AbilityDef = {
  *   342–358 damage; Forever raised the damage to 640–670 (×1.871 at the midpoints, 655 / 350) and the
  *   words to "very high" together, so the bonus scales with the damage, as the table's "high" on
  *   Heroic Strike scales with its bonus damage: 254 × 1.871 = 475. A guild test replaces it
- *   (warrior.md Q1, open-questions B13).
+ *   (warrior.md Q34, open-questions C6).
  * - `classicEra`: Classic Era's 254 [C], its tooltip's "high".
  */
 export const SHIELD_SLAM_THREAT = { forever: 475, classicEra: 254 } as const

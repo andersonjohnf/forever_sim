@@ -1600,7 +1600,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // threat.md#threat-wording-table: Forever's "very high" on Shield Slam [?].
     const slam = forever ? abilities.find((a) => a.id === 'shieldSlam') : undefined
     const own = [sunder && 'Sunder Armor', slam && 'Shield Slam'].filter(Boolean).join(' and ')
-    notes.add('whiteThreat', own ? `${own} ${own.includes(' and ') ? 'follow' : 'follows'} Forever’s values (below), the other abilities Classic Era’s` : undefined)
+    // "Their own values", not Forever's: only Sunder's 206 is the client's; its AP share and Shield Slam's +475 are [?] defaults.
+    const plural = own.includes(' and ')
+    notes.add('whiteThreat', own ? `${own} ${plural ? 'use their own values' : 'uses its own value'} (below), the other abilities Classic Era’s` : undefined)
     if (sunder) {
       const pct = Math.round((sunder.threatApCoefficient ?? 0) * 100)
       notes.add('sunderThreat', `${sunder.threatBonus.toLocaleString('en-US')} plus ${pct}% of your attack power`)

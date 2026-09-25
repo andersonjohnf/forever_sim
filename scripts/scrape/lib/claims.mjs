@@ -128,10 +128,12 @@ export async function checkClaims(ctx) {
     const ids = [7386, 7405, 8380, 11596, 11597];
     const v = ids.map((id) => pts(byType(f(id), 63)));
     const coef = ids.map((id) => byType(f(id), 63)?.effectBonusCoefficient ?? 0);
+    // Nor an attack power one (BonusCoefficientFromAP, written as bonusCoefficientFromAp).
+    const apCoef = ids.map((id) => byType(f(id), 63)?.bonusCoefficientFromAp ?? 0);
     const classic = ids.map((id) => byType(c(id), 63)).filter(Boolean).length;
     return verdict(
-      list(v) === "34/75/117/158/206" && coef.every((x) => x === 0) && classic === 0,
-      `${ids.join("/")}: ${list(v)}, bonus coefficient ${list(coef)}; armor ${ids.map((id) => pts(byAura(f(id), 22))).join("/")}; Classic THREAT effects: ${classic}`,
+      list(v) === "34/75/117/158/206" && coef.every((x) => x === 0) && apCoef.every((x) => x === 0) && classic === 0,
+      `${ids.join("/")}: ${list(v)}, bonus coefficient ${list(coef)}, from AP ${list(apCoef)}; armor ${ids.map((id) => pts(byAura(f(id), 22))).join("/")}; Classic THREAT effects: ${classic}`,
     );
   });
 

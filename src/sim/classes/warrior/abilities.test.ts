@@ -276,6 +276,8 @@ describe('Overpower, its window and Bloodthrill (warrior.md §2.8, §3.1, §4.1)
     const talent = spells['1289682']
     // 0x4 auto attacks and 0x10 melee abilities; Attributes[3] 0x400, main hand only (warrior.md §2.8).
     expect(talent.auraOptions?.procTypeMask?.[0]).toBe(0x14)
+    // The second word's 0x20 is new in 1.60.1.70009, its meaning unknown; the sim adds no trigger for it [?] (Q11).
+    expect(talent.auraOptions?.procTypeMask?.[1]).toBe(0x20)
     expect(talent.misc?.attributes?.[3]).toBe(0x400)
     // Aura 42 (proc trigger spell) into the dodge's window, 1282733, so the same 5 s.
     expect([talent.effects[0].effectAura, talent.effects[0].effectTriggerSpell]).toEqual([42, 1282733])

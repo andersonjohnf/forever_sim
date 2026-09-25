@@ -460,6 +460,10 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
     Weaponmaster, Hand of Justice), Heroic Strike, Cleave, Mortal Strike, Slam, Overpower,
     Whirlwind's main-hand strike, Execute, Hamstring. **Never the off hand** (Raging Blows'
     off-hand Whirlwind, off-hand swings). Before 1.60.1.70009 the mask was 4, auto attacks only.
+  - **The mask's second word** is new too: 0x20 (`ProcTypeMask` [20, 32]; [0, 0] before, where
+    the first word was 4) [F] [client] (SpellAuraOptions, 1.60.1.70009). No allowed source says
+    what that bit of the second word means, and the notes describe only main-hand melee attacks,
+    so the sim reads it as adding no trigger [?] (Q11).
   - **Still needs your Rend.** The notes left it open whether Bloodthrill keeps its Rend
     condition. The client has no aura restriction on the spell (the condition is the server's),
     and the 1.60.1.70009 tooltip still reads "Your Main Hand melee attacks against enemies
@@ -2803,9 +2807,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     Rend? The notes don't say, the client has no aura restriction (it's the server's), and the
     tooltip still says "against enemies afflicted by your Rend"; the sim keeps the condition. And the
     tooltip's "Lasts 6 sec." (the old window spell 1289681's duration, which nothing triggers now)
-    against the data's 5 s: the sim takes the data. **Test:** Overpower lighting up after main-hand
-    hits with and without your Rend on the target (a Rend from another warrior, then none), and the
-    time until it greys out.
+    against the data's 5 s: the sim takes the data. And the proc mask's new second word, 0x20
+    (§2.8): the sim gives it no trigger of its own [?]. **Test:** Overpower lighting up after
+    main-hand hits with and without your Rend on the target (a Rend from another warrior, then
+    none), and the time until it greys out; for the second word, whether Bloodthrill ever lights
+    Overpower with no main-hand attack landing (a hit taken, a spell cast).
 12. **Revenge window.** Is it 5 s after a block, dodge or parry? The sim assumes Overpower's
     5 s. The only source we found for a number (4 s) is Turtle WoW, which is forbidden. It's
     small: 4 s would cost the default 0.05% TPS ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)).

@@ -765,3 +765,37 @@ the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover i
   e2e suite and Pages; a unit test keeps the two policies the same.
 - **Caching:** Vite's hashed `/assets/` are immutable for a year, the page revalidates on every
   load, and the unhashed files in `public/` cache for an hour.
+
+### D36: What we take from WarriorSim (2026-09-25)
+User decision, after six researchers compared WarriorSim's Forever mode
+([tzcnt/WarriorSim](https://github.com/tzcnt/WarriorSim) at `069329b`) with this sim, area by
+area. WarriorSim is the Classic sim with a thin Forever layer; most of that layer cites no source,
+and some of it is Season of Discovery code. We adopt only where its choice beats ours on the
+evidence, and no organized guild tests are coming, so each call rests on the evidence in hand.
+- **Adopted:**
+  - **Deep Wounds rolls.** Each crit adds 60% of the critting weapon's average hit to a pool
+    that the next 4 ticks pay out, and the pending tick isn't lost. Forever's bleed is spell
+    412609, the Season of Discovery spell that's also in the 1.15.9 client, and the Forever
+    client has no Classic bleed (12721). This is the doctrine's second exception (§2 item 4):
+    SoD's behaviour for a spell Forever took from SoD, tagged `[?]`.
+  - **Pre-AQ ranks everywhere.** Ahn'Qiraj comes long after launch, so no class has an AQ book's
+    rank. The ability and buff ranks drop to what a trainer teaches, and there's no AQ-books
+    toggle until AQ is near.
+  - **Unbridled Wrath procs only from auto attacks,** not from Heroic Strike or Cleave swings,
+    as the client's proc mask says.
+  - **Rend's ticks add 0.02 × AP** `[?]`.
+  - **Gift of Arthas** is a boss debuff a tank applies: +8 physical damage taken.
+  - **Windfury's attack-power buff keeps its second charge** (2 charges, 1 s, from the client).
+  - **Skyborne warriors and hunters** get the class-row placeholder the other Skyborne classes
+    have (D24) instead of a refusal.
+  - **The warrior defaults are re-tuned** after these changes.
+- **Kept ours:**
+  - the attack table (glancing 25%, crit suppression 2.4%, the queued-strike off-hand rule, the
+    8% hit cap, the 27% dual-wield miss);
+  - the Berserker Rage GCD and Recklessness's 15 s;
+  - Improved Slam not delaying swings;
+  - Blood Fury and Berserking as the client has them;
+  - rage from damage taken;
+  - Hand of Justice's 1% and 2 s;
+  - Forever's item, consumable and enchant values;
+  - no reaction delay.

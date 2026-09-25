@@ -440,7 +440,19 @@ where it changes) and updates only its own ux.md subsection.
 - [x] **The light theme's contrast** (user decision): a navy toolbar, white panels on a tinted page,
       tooltips that follow the theme
 
-## M5.67: Item tooltips 🚧 next update, before the optimizer
+## M5.665: What we take from WarriorSim (D36) 🚧 next update
+
+The changes the user adopted after comparing WarriorSim's Forever mode with ours
+([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); the six comparisons were
+research only). They ship as soon as the gate passes, ahead of the tooltips.
+- [ ] **W1 Warrior and engine:** Deep Wounds rolls; Unbridled Wrath only from auto attacks;
+      Rend's ticks add 0.02 × AP; Windfury's attack-power buff keeps its second charge
+- [ ] **W2 Pre-AQ ranks:** every class's abilities and the buff catalogue drop the AQ books' ranks;
+      Gift of Arthas joins the boss debuffs
+- [ ] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
+- [ ] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
+
+## M5.67: Item tooltips 🚧 in progress, after the WarriorSim update
 
 A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
 2026-09-25: its own milestone, shipping in the update after the priority lists and the wide

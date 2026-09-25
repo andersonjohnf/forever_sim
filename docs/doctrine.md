@@ -72,6 +72,11 @@ Rules come from four tiers. Use the highest tier that has an answer.
    [C] values around it. It's tagged `[?]` as a placeholder, never cited as evidence, listed in
    the open questions with its estimated effect and in the results' assumptions, and replaced as
    soon as a tier 1–3 source has it.
+   **A second exception ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)):**
+   where the Forever client itself carries a Season of Discovery spell in place of the Classic
+   one (the same ID, absent from Classic before SoD), that spell's SoD behaviour is the closest
+   analog for how the server runs it. It's tagged `[?]` with that reasoning, never as a value
+   from SoD alone.
 
 **Secondary Forever sources** include Wowhead news posts, streamer tooltip captures, and
 community Forever sims such as [wowsims/forever](https://github.com/wowsims/forever) and

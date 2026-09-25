@@ -109,12 +109,13 @@ export default function App() {
       <Header />
       {/*
        * The bottom padding clears the phone's sim bar. From 1440 px (the wide layout, D34) the page
-       * fills the window up to 2560 px, with 24 px gutters, and the results pane widens: 30 rem, and
-       * from 1920 px 38% of the page between 46 and 68 rem. Each pane is a named container from
+       * fills the window up to 2560 px, with 24 px gutters, and the results pane widens smoothly: 30 rem
+       * at 1440, a third of each pixel past it (40 rem at 1920, about 53 rem at 2560), up to 60 rem, so
+       * no step at 1920 takes a column from the setup (review finding DA-2). Each pane is a named container from
        * 1440 px (setup, results), so a section styles itself by its own width there, and container
        * queries match nothing below it.
        */}
-      <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12 wide:max-w-[160rem] wide:grid-cols-[minmax(0,1fr)_30rem] wide:gap-8 wide:px-6 3xl:grid-cols-[minmax(0,1fr)_clamp(46rem,38%,68rem)]">
+      <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12 wide:max-w-[160rem] wide:grid-cols-[minmax(0,1fr)_clamp(30rem,calc(30rem_+_(100vw_-_90rem)_/_3),60rem)] wide:gap-8 wide:px-6">
         {/*
          * Manual activation: arrow keys move between tabs, Enter or Space opens one. Sonner hands
          * focus back to where it was when you leave the toasts, so with automatic activation a tab

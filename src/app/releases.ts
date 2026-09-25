@@ -24,7 +24,7 @@ export interface Release {
 export const RELEASES: readonly Release[] = [
   {
     id: '2026-09-25.2',
-    time: '2026-09-25T23:00:00Z',
+    time: '2026-09-25T21:33:00Z',
     groups: [
       {
         label: 'DPS specs',

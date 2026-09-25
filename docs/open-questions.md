@@ -1203,7 +1203,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B65. Righteous Fury scope and paladin healing threat
 **Low · M5 · ≤20**
-- **Assumes:** Righteous Fury ×1.9 on Holy damage [F]; whether it also scales Holy heals and
+- **Assumes:** Righteous Fury ×1.6 on Holy damage [F] (×1.9 until 1.60.1.70009); whether it also scales Holy heals and
   blessing casts, whether paladin healing threat is halved, and each blessing cast's threat
   (about its spell level per recipient) [? threat-meter code only].
 - **Test:** threat macro before and after a self-heal and a blessing cast, with and without

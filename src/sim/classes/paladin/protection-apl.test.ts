@@ -71,7 +71,9 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Settings, talents, race, weapons, shield, trinkets, consumables, phase, creature type and
     // rules at random, the priority always set to one of the two rotations there were. The snapshot
     // is of the plans before the priority list (A2), taken on that code: a change to it is a change
-    // to what Defensive or Max TPS plays.
+    // to what Defensive or Max TPS plays. Re-snapshotted for 1.60.1.70009's values (Righteous Fury
+    // +60%, Holy Strike 50% every 10 s, Retribution Aura and Thorns with spell damage, Improved Holy
+    // Strike's and Crusade's points refunded): each plan's values moved with them.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

@@ -715,7 +715,7 @@ export class Sim {
   private readonly hasWeaponlessAttacks: boolean
   /** Some proc fires after a landed white swing's own procs (the paladin's damage seals). */
   private readonly hasWhiteResolved: boolean
-  /** Static multipliers on Holy damage and Holy threat (Righteous Fury ×1.9, paladin.md#threat-paladin-specific). */
+  /** Static multipliers on Holy damage and Holy threat (Righteous Fury ×1.6, paladin.md#threat-paladin-specific). */
   private readonly staticHolyMult: number
   private readonly holyThreatMult: number
 

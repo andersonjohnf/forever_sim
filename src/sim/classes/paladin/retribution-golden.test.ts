@@ -35,6 +35,14 @@ describe('golden run (fixed config and seed)', () => {
   //   DPS 624.07 and TPS 367.10.
   // - T2 (P6): Holy Strike's flat 81–105 after its 40%, as its tooltip reads [?] (OQ 6): DPS 624.07 →
   //   632.76, TPS 367.10 → 371.98.
+  // - 1.60.1.70009 (the new beta build; paladin.md "Retribution defaults"): its data and trees
+  //   (Improved Holy Strike and Crusade removed, their points refunded), then its values: Holy Strike
+  //   50% of a normalized swing every 10 s, Sacred Arbiter +20%, Vengeance at most 3 stacks from
+  //   non-periodic crits, Two-Handed Weapon Specialization 2 / 4 / 6%, Twist of Light −20% on the
+  //   seals; the refunded points placed by measured DPS (52003-503-05215331001330321: Divine Intellect
+  //   2, Holy Conduit 1) and, re-checked on that setup (D27), Consecration from 40% (was 60%) and
+  //   rank 1 from 20% (was 15%). On this seed's 1,000 fights: DPS 632.76 → 613.51, TPS 371.98 →
+  //   361.01.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

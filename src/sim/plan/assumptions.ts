@@ -245,7 +245,7 @@ const REGISTRY = {
   },
   // The same in a paladin tank's terms: no rage or stance, its mana and Righteous Fury instead.
   whiteThreatPaladin: {
-    text: 'Threat uses Classic Era rules (1 threat per damage, 0.5 per mana you gain, ×1.9 on Holy damage from Righteous Fury); Forever threat is server-side and unmeasured.',
+    text: 'Threat uses Classic Era rules (1 threat per damage, 0.5 per mana you gain, ×1.6 on Holy damage from Righteous Fury); Forever threat is server-side and unmeasured.',
     docRef: `${THREAT}#per-ability-threat-at-max-rank`,
   },
   defiance: {
@@ -403,7 +403,7 @@ const REGISTRY = {
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
   thorns: {
-    text: 'Thorns’ Nature damage comes from every boss swing that lands on you, a blocked one too, always lands and never crits, and makes threat at your threat multipliers; untested.',
+    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage, taken as 389 (Holy Shield’s coefficient; Forever’s is on the server), on every boss swing that lands on you, a blocked one too; it always lands, never crits, and makes threat at your threat multipliers. Untested.',
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
@@ -454,7 +454,7 @@ const REGISTRY = {
     docRef: `${BUFFS}#42-other-debuffs`,
   },
   holyStrike: {
-    text: 'Holy Strike deals 40% of a normalized main-hand swing plus 81–105, as its tooltip reads (not 40% of the 81–105 too), plus the full 0.429 × spell damage, and its script effect adds no threat; untested.',
+    text: 'Holy Strike deals 50% of a normalized main-hand swing plus 81–105, as its tooltip reads (not 50% of the 81–105 too), plus the full 0.429 × spell damage, and its script effect adds no threat; untested.',
     docRef: `${PAL}#other-abilities`,
   },
   consecrationTicks: {
@@ -511,11 +511,11 @@ const REGISTRY = {
   },
   // Protection (paladin.md "Protection: model and rotation", #protection-tree, OQ 8, 9, 16, 22).
   holyShieldDamage: {
-    text: 'Holy Shield’s damage on each block always lands and never crits, though the client marks the spell as magic, which could miss and crit as spells do; and its 20% more threat multiplies Righteous Fury’s (×2.28, not ×2.1). Untested.',
+    text: 'Holy Shield’s damage on each block always lands and never crits, though the client marks the spell as magic, which could miss and crit as spells do; and its 20% more threat multiplies Righteous Fury’s (×1.92, not ×1.8). Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   retributionAura: {
-    text: 'Retribution Aura’s 30 Holy damage comes from every boss swing that lands on you, a blocked one too, always lands and never crits; untested.',
+    text: 'Retribution Aura deals 30 Holy damage plus 0.08 × your spell damage (Holy Shield’s coefficient; Forever’s is on the server) on every boss swing that lands on you, a blocked one too; it always lands and never crits. Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   reckoning: {

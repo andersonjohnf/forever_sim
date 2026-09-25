@@ -96,6 +96,14 @@ describe('golden run (fixed config and seed)', () => {
   //   Anticipation's last three ranks, Holy Conduit and Conviction. On this seed's 1,000 fights, for
   //   Balanced and Defensive alike: TPS 821.34 → 830.39, DPS 445.72 → 447.21, damage taken 902.7 →
   //   917.4 a second (Max TPS: 855.29, 460.06, 969.9).
+  // - 1.60.1.70009 (the new beta build; paladin.md, threat.md): its data and trees (Improved Holy
+  //   Strike removed), then its values: Righteous Fury +60% Holy threat (was +90%), Holy Strike 50% of
+  //   a normalized swing (was 40%) every 10 s (its talent's cut made baseline), Thorns and
+  //   Retribution Aura scaling with their caster's spell power (0.08 [?]; a raid druid's 389 for
+  //   Thorns), and the default talents 50003-0530213321301551-50201 (Improved Holy Strike's 2 points
+  //   to Divine Strength 5 and Conviction 1, by measured Balanced value). On this seed's 1,000
+  //   fights, Balanced and Defensive alike: TPS 830.39 → 747.85, DPS 447.21 → 466.13, damage taken
+  //   917.4 → 917.2 a second. Righteous Fury's cut is most of it (paladin.md "Protection defaults").
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

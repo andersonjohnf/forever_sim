@@ -48,14 +48,14 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-feral-bear': '050022-5520032023132210551-',
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   // docs/classes/paladin.md#retribution-defaults: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name:
-  // of Improved Holy Strike's and Crusade's 4 refunded points, 1 to Vindication 3/3 for the deeper rows' gate and 3
-  // unspent until the paladin slice places them (8/8/32)
-  'paladin-retribution': '50003-503-05205331001330321',
-  // docs/classes/paladin.md#protection-defaults: 8/36/7, the guild's lead theorycrafter's build (2026-09-24) on
-  // 1.60.1.70009's trees (Improved Holy Strike's 2 points to Divine Strength 5 and Anticipation 3), which keeps the
-  // survival floor (Sacred Duty, Templar's Bulwark, Holy Shield, Improved Righteous Fury, Deflection 5; Anticipation
-  // the preferred filler, Toughness optional, D30); the optimizer (O4) replaces it.
-  'paladin-protection': '50003-0530313321301551-502',
+  // of Improved Holy Strike's and Crusade's 4 refunded points, 1 to Vindication 3/3 for the deeper rows' gate, and 3
+  // placed by measured DPS: Divine Intellect 2 and Holy Conduit 1 (10/8/33)
+  'paladin-retribution': '52003-503-05215331001330321',
+  // docs/classes/paladin.md#protection-defaults: 8/35/8, the guild's lead theorycrafter's build (2026-09-24) on
+  // 1.60.1.70009's trees, by name, with Improved Holy Strike's 2 refunded points placed by measured Balanced value
+  // (D28, D30): Divine Strength 5 (Improved Seals' row needs 5 points above it) and Conviction 1; the optimizer (O4)
+  // replaces it.
+  'paladin-protection': '50003-0530213321301551-50201',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301300103051-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36

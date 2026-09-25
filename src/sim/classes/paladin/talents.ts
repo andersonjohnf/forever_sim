@@ -5,8 +5,8 @@
 // talentRanksByName), as the warrior's are. Rank values are the Forever client's rank tooltips
 // (src/data/talents/paladin.json); talents.test.ts checks them. The tank talents Redoubt and
 // Reckoning are procs on the boss's swings (the Protection slice); Iron Creed's damage reduction and
-// Eye for an Eye aren't modelled (paladin.md#implementation-notes), and Twist of Light comes with
-// seal twisting.
+// Eye for an Eye aren't modelled (paladin.md#implementation-notes), and Twist of Light's echoes come
+// with seal twisting (its seal cost cut is `withTalents`').
 import type { Effect } from '../../effects/types'
 import type { AbilityDef, SpellDef } from '../../plan/types'
 import {
@@ -18,6 +18,7 @@ import {
   JUDGEMENT_OF,
   manaCostOf,
   SEAL_BASE_COST,
+  SEAL_GROUP,
 } from './abilities'
 
 export type TalentRanks = ReadonlyMap<string, number>
@@ -30,7 +31,8 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   // Holy: +2% Strength and +2% total Intellect per rank
   'Divine Strength': (r) => [{ kind: 'mult', stat: 'str', pct: 2 * r }],
   'Divine Intellect': (r) => [{ kind: 'mult', stat: 'int', pct: 2 * r }],
-  // Holy: +1% crit with spells per rank (Holy Shock's extra isn't modelled)
+  // Holy: +1% crit with spells per rank (the magic ones; its +1% a rank on the melee-class seal procs
+  // and judgements and +3% a rank on Holy Strike are `withSpellTalents`'; Holy Shock's isn't modelled)
   'Holy Power': (r) => [{ kind: 'stat', stat: 'spellCrit', value: r }],
   // Holy: +6% hit with Holy spells per rank; every damaging paladin spell is Holy
   'Divine Precision': (r) => [{ kind: 'stat', stat: 'spellHit', value: 6 * r }],
@@ -133,12 +135,16 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   Deflection: (r) => [{ kind: 'stat', stat: 'parry', value: r }],
   Conviction: (r) => [{ kind: 'stat', stat: 'crit', value: r }],
   // Crusade (Retribution) left the trees in 1.60.1.70009 (docs/data/talents.md#tree-versions).
-  // Retribution: +3% Physical damage per rank with a two-hander (school mask 1: not Holy)
-  'Two-Handed Weapon Specialization': (r) => [{ kind: 'damage', pct: 3 * r, physicalOnly: true, when: { twoHand: true } }],
+  // Retribution: +2% Physical damage per rank with a two-hander (20111: aura 79, school mask 1, not
+  // Holy; 2 / 4 / 6% in 1.60.1.70009, was 3 / 6 / 9%)
+  'Two-Handed Weapon Specialization': (r) => [{ kind: 'damage', pct: 2 * r, physicalOnly: true, when: { twoHand: true } }],
   // Retribution: 33 / 66 / 100% of Intellect as spell damage
   'Champion of the Light': (r) => [{ kind: 'stat', stat: 'spellDamagePerIntPct', value: [0, 33, 66, 100][r] }],
-  // Retribution: a crit (melee, special, seal proc, judgement or spell) gives a stack of +1% Physical
-  // and Holy damage per rank for 30 s, up to 5 stacks (20050: aura 79, school mask 3, 5 stacks)
+  // Retribution: a non-periodic crit (melee, special, seal proc, judgement or spell) gives a stack of
+  // +1% Physical and Holy damage per rank for 30 s, up to 3 stacks (20050: aura 79, school mask 3,
+  // 3 stacks; 20049's proc mask has no periodic bit, 1.60.1.70009). A periodic tick fires `spellTick`,
+  // never `spellCrit`, so it gives none; nor do Seal of Righteousness's and Seal of Fury's procs,
+  // which trigger no procs (paladin.md#conventions-used-below) [?]
   Vengeance: (r) =>
     (['meleeCrit', 'spellCrit'] as const).map(
       (trigger): Effect => ({
@@ -150,7 +156,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
           trigger,
           from: 'any',
           chance: { pct: 100 },
-          action: { kind: 'aura', aura: { id: 'vengeance', name: 'Vengeance', durationMs: 30000, maxStacks: 5, mods: { damage: r, holy: r } } },
+          action: { kind: 'aura', aura: { id: 'vengeance', name: 'Vengeance', durationMs: 30000, maxStacks: VENGEANCE_MAX_STACKS, mods: { damage: r, holy: r } } },
           docRef: `${DOC}#retribution-tree`,
         },
       }),
@@ -174,8 +180,14 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   ],
 }
 
+/** Vengeance's most stacks (20050 `CumulativeAura` 3, paladin.md#retribution-tree; 5 before 1.60.1.70009) [F]. */
+export const VENGEANCE_MAX_STACKS = 3
+
+/** Righteous Fury's Holy threat, % (25780 effect 0, aura 10 on Holy; +90% before 1.60.1.70009; paladin.md#threat-paladin-specific) [F]. */
+export const RIGHTEOUS_FURY_HOLY_THREAT_PCT = 60
+
 /**
- * Righteous Fury (25780, paladin.md#threat-paladin-specific): +90% threat from Holy damage [F], and
+ * Righteous Fury (25780, paladin.md#threat-paladin-specific): +60% threat from Holy damage [F], and
  * with Improved Righteous Fury −2% damage taken per rank while it's up. Without it, Instrument of
  * Law cuts all threat by 10% per rank. The rotation decides whether it's up for the fight.
  */
@@ -185,7 +197,7 @@ export function righteousFuryEffects(on: boolean, talents: TalentRanks): Effect[
     return law > 0 ? [{ kind: 'threat', pct: -10 * law }] : []
   }
   const improved = rank(talents, 'Improved Righteous Fury')
-  return [{ kind: 'threat', pct: 90, holyOnly: true }, ...(improved > 0 ? [{ kind: 'damageTaken', pct: -2 * improved } as Effect] : [])]
+  return [{ kind: 'threat', pct: RIGHTEOUS_FURY_HOLY_THREAT_PCT, holyOnly: true }, ...(improved > 0 ? [{ kind: 'damageTaken', pct: -2 * improved } as Effect] : [])]
 }
 
 /** Reverence: 10% of Spirit regen per rank continues inside the five-second rule (paladin.md#mana-model). */
@@ -201,22 +213,41 @@ export const IMPROVED_SEALS: ReadonlySet<string> = new Set([
   'judgementOfFury',
 ])
 
+/** Sacred Arbiter's Holy Strike damage, % (1311087, aura 108; 10% before 1.60.1.70009; paladin.md#retribution-tree) [F]. */
+export const SACRED_ARBITER_PCT = 20
+
 /**
  * A spell with the build's talents (paladin.md#talents): Improved Seals +5% per rank on the seals'
- * procs and damage judgements; Sacred Arbiter +10% Holy Strike damage; Iron Creed +5% Holy Strike
- * threat per rank. Percent spell modifiers on the same spell add (paladin.md#conventions-used-below).
+ * procs and damage judgements; Sacred Arbiter +20% Holy Strike damage; Iron Creed +5% Holy Strike
+ * threat per rank; Holy Power +3% crit per rank on Holy Strike and +1% on the seals' procs and damage
+ * judgements (5923's two spell masks: 15% and 5% at 5/5; the magic spells get its +1% as spell crit).
+ * Percent spell modifiers on the same spell add (paladin.md#conventions-used-below).
  */
 export function withSpellTalents(spell: SpellDef, talents: TalentRanks): SpellDef {
   let damagePct = 0
   let threatPct = 0
-  if (IMPROVED_SEALS.has(spell.id)) damagePct += 5 * rank(talents, 'Improved Seals')
-  if (spell.id === 'holyStrike') {
-    damagePct += 10 * rank(talents, 'Sacred Arbiter')
-    threatPct += 5 * rank(talents, 'Iron Creed')
+  let crit = 0
+  const holyPower = rank(talents, 'Holy Power')
+  if (IMPROVED_SEALS.has(spell.id)) {
+    damagePct += 5 * rank(talents, 'Improved Seals')
+    crit += holyPower
   }
-  if (damagePct === 0 && threatPct === 0) return spell
-  return { ...spell, damageMult: spell.damageMult * (1 + damagePct / 100), threatMult: spell.threatMult * (1 + threatPct / 100) }
+  if (spell.id === 'holyStrike') {
+    damagePct += SACRED_ARBITER_PCT * rank(talents, 'Sacred Arbiter')
+    threatPct += 5 * rank(talents, 'Iron Creed')
+    crit += 3 * holyPower
+  }
+  if (damagePct === 0 && threatPct === 0 && crit === 0) return spell
+  return {
+    ...spell,
+    damageMult: spell.damageMult * (1 + damagePct / 100),
+    threatMult: spell.threatMult * (1 + threatPct / 100),
+    bonusCrit: spell.bonusCrit + crit,
+  }
 }
+
+/** Twist of Light's cut to the seals' mana cost, % (1310735: aura 108, misc 14, −20; new in 1.60.1.70009; paladin.md#retribution-tree) [F]. */
+export const TWIST_OF_LIGHT_SEAL_COST_CUT_PCT = 20
 
 /** Benediction's mask: every instant spell and ability (paladin.md#retribution-tree), so HoW only when instant. */
 const INSTANT = (a: AbilityDef) => a.castMs === 0
@@ -233,8 +264,9 @@ export const HOLY_CONDUIT: ReadonlySet<string> = new Set([
  * An ability with the build's talents (paladin.md#talents), after `withSpellTalents` on its spells:
  * - Instrument of Law: Hammer of Wrath's cast −0.5 s per rank (instant at 2/2, when it no longer
  *   stops swings or holds Judgement; its GCD stays 1 s)
- * - Benediction −2% per rank on instant abilities and Holy Conduit −20% per rank on its four, added
- *   together [?] (OQ 19), then rounded down (paladin.md#mana-model: SoC 189, Consecration 508)
+ * - Benediction −2% per rank on instant abilities, Holy Conduit −20% per rank on its four and Twist of
+ *   Light −20% on the seals (1310735, aura 108 on cost), added together [?] (OQ 19), then rounded down
+ *   (paladin.md#mana-model: SoC 189, 147 with Twist of Light; Consecration 508)
  * - Improved Judgement −1 s per rank on Judgement; Purifying Power −17% / −33% on Exorcism's
  *   cooldown (Improved Holy Strike, −1 s per rank on Holy Strike, left the trees in 1.60.1.70009:
  *   docs/data/talents.md#tree-versions)
@@ -255,7 +287,10 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
       out.castHoldsOffGcd = false
     }
   }
-  const cut = (INSTANT(out) ? 2 * rank(talents, 'Benediction') : 0) + (HOLY_CONDUIT.has(def.id) ? 20 * rank(talents, 'Holy Conduit') : 0)
+  const cut =
+    (INSTANT(out) ? 2 * rank(talents, 'Benediction') : 0) +
+    (HOLY_CONDUIT.has(def.id) ? 20 * rank(talents, 'Holy Conduit') : 0) +
+    (def.aura?.group === SEAL_GROUP ? TWIST_OF_LIGHT_SEAL_COST_CUT_PCT * rank(talents, 'Twist of Light') : 0)
   if (def.resource === 'mana' && def.costTenths > 0 && cut > 0) out.costTenths = 10 * Math.floor((manaCostOf(def) * (100 - cut)) / 100 + 1e-9)
   if (def.category === JUDGEMENT_CATEGORY) {
     out.cooldownMs = def.cooldownMs - 1000 * rank(talents, 'Improved Judgement')

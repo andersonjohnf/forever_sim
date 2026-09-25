@@ -17,6 +17,7 @@
 // `paladin.protection.<ability>.<param>`; mana thresholds are percentages of maximum mana.
 // Abilities are resolved with the build's talents (talents.ts) before their costs or spells feed
 // anything.
+import { DAMAGE_SHIELD_SP_COEFFICIENT } from '../../effects/buffs'
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
 import type { AssumptionId } from '../../plan/assumptions'
@@ -130,7 +131,7 @@ export const HOLY_SHIELD: AbilityDef = {
 /**
  * The damage of each block while Holy Shield is up (20928 effect 1, aura 43 `PROC_TRIGGER_DAMAGE`,
  * paladin.md#other-abilities): 221 Holy + 0.08 × SP [F] [client] (SpellEffect, 1.60.1.69913), with
- * 20% more threat, multiplied with Righteous Fury's (×1.9 × 1.2 = ×2.28) [?]
+ * 20% more threat, multiplied with Righteous Fury's (×1.6 × 1.2 = ×1.92) [?]
  * (paladin.md#threat-paladin-specific, OQ 16). Like a damage shield it always lands and never
  * crits [?] (OQ 16). Its share of Judgement of the Crusader's bonus is its coefficient's, the
  * default rule. It's triggered by the aura and lacks NOT_A_PROC, so it triggers no procs [?].
@@ -279,7 +280,7 @@ const paladinAura = (id: string, name: string, icon: string, mods: AuraSpec['mod
 export const DEVOTION_AURA = paladinAura('devotionAura', 'Devotion Aura', 'spell_holy_devotionaura', { armor: 735 })
 
 /**
- * Righteous Fury (25780, paladin.md#threat-paladin-specific): +90% threat from Holy damage, 30 min [F].
+ * Righteous Fury (25780, paladin.md#threat-paladin-specific): +60% threat from Holy damage, 30 min [F].
  * Its threat is the plan's for the whole fight (`righteousFuryEffects`, setup.ts); this cast before
  * the pull only puts up its buff, with no mods, so the results list it up all fight. Free there, as
  * every cast before the pull is.
@@ -298,10 +299,13 @@ export const RETRIBUTION_AURA = paladinAura('retributionAura', 'Retribution Aura
 
 /**
  * Retribution Aura r5 (10301, paladin.md#other-abilities): 30 Holy damage to each attacker that
- * hits you (aura 15, a damage shield; no spell damage coefficient) [F] [client] (SpellEffect,
- * 1.60.1.69913), × Righteous Fury for its threat. Like every damage shield it always lands and
- * never crits [?]; each of the boss's swings that lands on you (a hit, crit, crushing blow or block)
- * triggers it [?].
+ * hits you (aura 15, a damage shield) [F] [client] (SpellEffect, 1.60.1.70009), + your spell damage
+ * × `DAMAGE_SHIELD_SP_COEFFICIENT` (0.08): since 1.60.1.70009 it "will now dynamically update its
+ * values based on the caster's spell power" (the dev notes) [F], and the client carries no
+ * coefficient, so it takes Holy Shield's block damage's [?] (buffs doc §1.2). × Righteous Fury for its
+ * threat. Like every damage shield it always lands and never crits [?]; each of the boss's swings that
+ * lands on you (a hit, crit, crushing blow or block) triggers it [?]. Its share of Judgement of the
+ * Crusader's bonus is its coefficient's, the default rule, as Holy Shield's.
  */
 export const RETRIBUTION_AURA_DAMAGE: SpellDef = {
   ...HOLY_SHIELD_DAMAGE,
@@ -310,8 +314,8 @@ export const RETRIBUTION_AURA_DAMAGE: SpellDef = {
   icon: 'spell_holy_auraoflight',
   min: 30,
   max: 30,
-  spCoefficient: 0,
-  takenScale: 0,
+  spCoefficient: DAMAGE_SHIELD_SP_COEFFICIENT,
+  takenScale: DAMAGE_SHIELD_SP_COEFFICIENT,
   threatMult: 1,
 }
 
@@ -366,7 +370,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.devotionAura,
     group: 'Cooldowns and buffs',
     label: 'Devotion Aura',
-    help: 'Keep your Devotion Aura up: +735 armor. Off, you run Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, with Righteous Fury’s threat. While this is on, the Buffs tab’s Devotion Aura is yours. Off by default with Max TPS.',
+    help: 'Keep your Devotion Aura up: +735 armor. Off, you run Retribution Aura instead: the boss takes 30 Holy damage plus some of your spell damage each time it hits you, with Righteous Fury’s threat. While this is on, the Buffs tab’s Devotion Aura is yours. Off by default with Max TPS.',
     default: true,
     defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'devotionAura',
@@ -467,7 +471,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus 81 to 105 and spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
+    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing plus 81 to 105 and spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
     default: true,
   },
   {
@@ -475,9 +479,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfTheRighteous,
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
-    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so the higher of the two in the list is used, and the lower only when you can’t pay for the higher. It makes about 0.9% more DPS for 1.1% less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used if it’s on.',
-    // paladin.md "Priority: Defensive, Balanced or Max TPS": +0.9% DPS for −1.1% TPS in the default
-    // setup, and Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
+    help: 'Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so the higher of the two in the list is used, and the lower only when you can’t pay for the higher. It makes about 0.5% more DPS for 1.4% less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used if it’s on.',
+    // paladin.md "Priority: Defensive, Balanced or Max TPS": +0.5% DPS for −1.4% TPS in the default
+    // setup (1.60.1.70009), and Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
     default: false,
   },
   {
@@ -612,7 +616,7 @@ export const PROTECTION_FIXED_ROWS: FixedRotationRow[] = [
     id: `${P}.righteousFury`,
     label: 'Righteous Fury',
     group: 'Cooldowns and buffs',
-    help: 'Up all fight, cast before the pull: ×1.9 threat from your Holy damage. A Protection paladin never tanks without it.',
+    help: 'Up all fight, cast before the pull: ×1.6 threat from your Holy damage. A Protection paladin never tanks without it.',
     value: 'Always on',
   },
 ]
@@ -682,10 +686,10 @@ const DEFENSIVE_HELP =
   'Keeps your Devotion Aura up, +735 armor, and Holy Shield, and uses Holy Strike, whose Iron Creed cuts your damage taken 10%. Tuned on threat. The most survival of the three: 832 TPS, 448 DPS and 918 damage taken a second in the default setup.'
 const BALANCED_SUMMARY = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 const BALANCED_HELP =
-  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 0.9% more DPS and 1.1% less TPS, and 5% more damage taken without Iron Creed.'
-const MAX_TPS_SUMMARY = 'Retribution Aura instead of Devotion Aura, for threat: +3% TPS and 6% more damage taken than Defensive.'
+  'The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about 0.5% more DPS and 1.4% less TPS, and 5% more damage taken without Iron Creed.'
+const MAX_TPS_SUMMARY = 'Retribution Aura instead of Devotion Aura, for threat: +7% TPS and 6% more damage taken than Defensive.'
 const MAX_TPS_HELP =
-  'Runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage to the boss each time it hits you: 3% more TPS and 3% more DPS than Defensive, for 6% more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.'
+  'Runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage plus some of your spell damage to the boss each time it hits you: 7% more TPS and 7% more DPS than Defensive, for 6% more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.'
 
 /**
  * The Protection paladin's rotation as a priority list (decision D31; paladin.md "Forever priority

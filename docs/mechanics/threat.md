@@ -9,7 +9,7 @@ on the 1.13 client. WoW Forever keeps that shape but changes several key numbers
   was 261, set server-side.
 - **Defiance** is +5% per rank, needs a shield, and has 3 ranks (+15% at 3/3).
 - **Bears** lose Feral Instinct's threat, so they stay at a flat ×1.3.
-- **Righteous Fury** is +90% baseline. Improved Righteous Fury now reduces damage taken instead.
+- **Righteous Fury** is +60% baseline, Classic Era's value (1.60.1.70009; it was +90% before). Improved Righteous Fury now reduces damage taken instead.
 - **Thunder Clap** is usable in Defensive Stance.
 - **Tranquil Air Totem** and **Blessing of Sanctuary** are gone.
 
@@ -76,7 +76,7 @@ threat_to_target = (damage × abilityMult + abilityBonus) × Π_i (1 + m_i)
   Talents or set bonuses that raise one ability's threat multiply that ability's threat before
   the global multipliers. Examples are Iron Creed (+5% per rank to Holy Strike) and Enhanced
   Sunder Armor (T1 8-piece, +15% Sunder). In DB2 these are percent spell modifiers on "threat"
-  (aura 108, modifier 2). [F] [client] (SpellEffect, 1.60.1.69913): 1311034, 23561.
+  (aura 108, modifier 2). [F] [client] (SpellEffect, 1.60.1.70009): 1311034, 23561.
 - **Global multipliers are multiplicative**, one factor per active threat aura (aura 10, filtered
   by school mask). For example, Defensive Stance with 5/5 Defiance gives 1.3 × 1.15 = 1.495.
   [C] [Magey](https://github.com/magey/classic-warrior/wiki/Threat-Mechanics) states this, and
@@ -90,7 +90,7 @@ threat_to_target = (damage × abilityMult + abilityBonus) × Π_i (1 + m_i)
   below).
 - **Holy-only multipliers** (Righteous Fury) apply only to Holy-school events. An event's school
   is the spell's school: Holy Strike is all Holy even though it is a weapon strike (SpellMisc
-  school 2, [F] [client] (SpellMisc, 1.60.1.69913)).
+  school 2, [F] [client] (SpellMisc, 1.60.1.70009)).
 
 ---
 
@@ -117,7 +117,7 @@ Resulting tank multipliers:
 | Warrior, Defensive Stance | 1.3 × 1.15 = **1.495** (any weapon) | 1.3 × 1.15 = **1.495** with a shield; **1.3** without one |
 | Bear | 1.3 + 0.15 = **1.45** | **1.3** |
 | Paladin, physical damage | 1.0 | 1.0 |
-| Paladin, Holy damage | 1.6 × 1.5 (Improved RF) → **1.9** | **1.9** baseline |
+| Paladin, Holy damage | 1.6 × 1.5 (Improved RF) → **1.9** | **1.6** baseline (1.9 before 1.60.1.70009) |
 
 ---
 
@@ -125,10 +125,10 @@ Resulting tank multipliers:
 
 | Rule | Classic Era | Forever | Tag | Source |
 | --- | --- | --- | --- | --- |
-| Righteous Fury (spell 25780, 30 min) | Holy threat +60% (×1.6) | **Holy threat +90% (×1.9)** | [F][C] | [client] (SpellEffect, 1.60.1.69913) and [client] (SpellEffect, 1.15.9.69722): 25780 aura 10, school mask 2: 59+1 (C) vs 90 (F); [spellbook](https://foreverchanges.pro/spellbook/paladin) |
-| Improved Righteous Fury (3 ranks) | +16 / +33 / +50% of RF's bonus: ×1.696 / ×1.798 / **×1.9** | **Threat part removed.** Now 2 / 4 / 6% less damage taken while RF is active. | [F][C] | 20468: Classic spell mod on RF; Forever flat −2/−4/−6 on RF's damage-taken effect (curve 82954) [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
-| Instrument of Law (Ret, 2 ranks, new) | — | −10% / −20% **all** threat while RF is **not** active | [F] | [client] (SpellEffect, CurvePoint, 1.60.1.69913): 1311085 aura 10, curve 10/20; [class/paladin](https://foreverchanges.pro/class/paladin) |
-| Iron Creed (Prot, 5 ranks, new) | — | Holy Strike threat +5% per rank (+25% at 5/5). With RF active, Holy Strike also gives 2–10% less damage taken for 6 s. | [F] | [client] (SpellEffect, CurvePoint, 1.60.1.69913): 1311034 aura 108, modifier 2 on Holy Strike's class mask, curve 5…25 |
+| Righteous Fury (spell 25780, 30 min) | Holy threat +60% (×1.6) | **Holy threat +60% (×1.6)**; +90% (×1.9) until 1.60.1.70009 | [F][C] | [client] (SpellEffect, 1.60.1.70009) and [client] (SpellEffect, 1.15.9.69722): 25780 aura 10, school mask 2: 59+1 (C) vs 60 (F; 90 in 1.60.1.69913); the 70009 dev notes: "Righteous Fury: Holy threat increase increased to 60% (was 90%)" (their wording; the value fell) |
+| Improved Righteous Fury (3 ranks) | +16 / +33 / +50% of RF's bonus: ×1.696 / ×1.798 / **×1.9** | **Threat part removed.** Now 2 / 4 / 6% less damage taken while RF is active. | [F][C] | 20468: Classic spell mod on RF; Forever flat −2/−4/−6 on RF's damage-taken effect (curve 82954) [client] (SpellEffect, CurvePoint, 1.60.1.70009) |
+| Instrument of Law (Ret, 2 ranks, new) | — | −10% / −20% **all** threat while RF is **not** active | [F] | [client] (SpellEffect, CurvePoint, 1.60.1.70009): 1311085 aura 10, curve 10/20; [class/paladin](https://foreverchanges.pro/class/paladin) |
+| Iron Creed (Prot, 5 ranks, new) | — | Holy Strike threat +5% per rank (+25% at 5/5). With RF active, Holy Strike also gives 2–10% less damage taken for 6 s. | [F] | [client] (SpellEffect, CurvePoint, 1.60.1.70009): 1311034 aura 108, modifier 2 on Holy Strike's class mask, curve 5…25 |
 
 **What RF amplifies:** every **Holy-school** threat event from the paladin. That covers:
 
@@ -136,7 +136,7 @@ Resulting tank multipliers:
   Righteousness, Judgement of Fury;
 - Holy Shield damage, Consecration, Retribution Aura;
 - Forever's Holy Strike and Hammer of the Righteous (both Holy school in DB2; Holy Strike
-  [client] (SpellMisc, 1.60.1.69913));
+  [client] (SpellMisc, 1.60.1.70009));
 - Exorcism, Holy Wrath, Hammer of Wrath, Holy Shock.
 
 It does **not** amplify physical white hits, Reckoning's extra attacks, or rage/mana gain threat.
@@ -151,7 +151,7 @@ heals and buffs, and LTC2 alone is not a [C] source: RF on heals and buffs is [?
 
 | Modifier | Value | Tag | Source / notes |
 | --- | --- | --- | --- |
-| Blessing of Salvation / Greater Blessing of Salvation | ×0.7 (all) | [F][C] | [client] (SpellEffect, 1.60.1.69913): 1038 / 25895 aura 10 = −30. Forever duration 1 h ([spellbook](https://foreverchanges.pro/spellbook/paladin)). |
+| Blessing of Salvation / Greater Blessing of Salvation | ×0.7 (all) | [F][C] | [client] (SpellEffect, 1.60.1.70009): 1038 / 25895 aura 10 = −30. Forever duration 1 h ([spellbook](https://foreverchanges.pro/spellbook/paladin)). |
 | **Tranquil Air Totem** | Classic ×0.8 (party within 20 yd) | [C]; **[F] removed** | DB2 25909 = −20 still exists, but the totem is listed "In a Classic Shaman's spellbook, not in Forever" ([spellbook/shaman](https://foreverchanges.pro/spellbook/shaman)) |
 | Enchant Gloves – Threat | ×1.02 | [F][C] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913): enchant 2613 → spell 25063 (+2) |
 | Enchant Cloak – Subtlety | ×0.98 | [F][C] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913): enchant 2621 → spell 25070 (−2) |
@@ -181,7 +181,7 @@ value (effect 63) only for Sunder Armor and Cower, so every other row is server-
 | "a moderate amount of threat" | Mocking Blow r5; no value (LTC2's 250 is commented out, "NEED MORE INFO") | — | The sim doesn't use Mocking Blow |
 | "lowering your threat by a small / medium / large amount" (Cower) | −480 / −780 / −1200, and −1 per level [F] (effect 63; Classic Era −600 at r3) | By rank and level | The sim doesn't use Cower |
 | "Damage caused by X causes N% additional threat" | Holy Shield: ×1.2 on its damage [F] [C] | A multiplier on that spell's damage threat | — |
-| "Increases the threat generated by your X by N%" | Iron Creed: +5% a rank on Holy Strike [F]; Righteous Fury: +90% on Holy [F] | A multiplier on that ability's (or school's) threat | — |
+| "Increases the threat generated by your X by N%" | Iron Creed: +5% a rank on Holy Strike [F]; Righteous Fury: +60% on Holy [F] | A multiplier on that ability's (or school's) threat | — |
 | "Increases (reduces) all threat generated by N%" | Defensive Stance +30%, Bear Form +30%, Defiance +5% a rank, Cat Form −29%, Salvation −30%, Instrument of Law −10% a rank [F] | A global multiplier ([stances and forms](#stance-and-form-modifiers), [global](#global-threat-modifiers)) | — |
 | "taunts" / "forces the target to attack you" | Taunt and Growl 3 s, Judgement of Fury 4 s, Mocking Blow and the challenging shouts 6 s [F] | Top threat for a taunt ([taunts](#taunts-and-forced-attacks)) | — |
 | No threat words | Maul and Swipe ×1.75, Faerie Fire 108, Demoralizing Roar 39 (LTC2 [?]); Thunder Clap ×2.5, Shield Bash 1.5 × dmg + 156, Hamstring 1.25 × dmg + 135, Demoralizing Shout 43.2 [C] | Each ability's own value; one per damage where none is known | Mangle, Holy Strike, Hammer of the Righteous, Seal of Fury, Judgement of Fury, Consecration, Hammer of Wrath and damage shields (Thorns, Retribution Aura): dmg × 1, × Righteous Fury on Holy |
@@ -256,14 +256,14 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 | Ability (spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| Holy Shield (r3, 20928) | Holy dmg × **1.2** per block, then × RF [C] | Same rule [F tooltip] | "Damage caused by Holy Shield causes 20% additional threat" appears in both clients. Forever r3 deals **221** per block with a 0.08 coefficient and +20% block chance (Classic: 130, 0.05, +30%) [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913). The client keeps 4 charges, but the r2 and r3 Forever tooltips drop "4 charges", which is for [classes/paladin.md](../classes/paladin.md) to resolve. LTC2: ×1.2. |
+| Holy Shield (r3, 20928) | Holy dmg × **1.2** per block, then × RF [C] | Same rule [F tooltip] | "Damage caused by Holy Shield causes 20% additional threat" appears in both clients. Forever r3 deals **221** per block with a 0.08 coefficient and +20% block chance (Classic: 130, 0.05, +30%) [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009). The client keeps 4 charges, but the r2 and r3 Forever tooltips drop "4 charges", which is for [classes/paladin.md](../classes/paladin.md) to resolve. LTC2: ×1.2. |
 | Seal of Righteousness (r8, 20293) procs; Judgement of Righteousness | Holy dmg × RF [C] | [F] unchanged spell | — |
 | Consecration (r5, 20924) | Holy dmg × RF [C] | [F] rule | Forever: 96 over 8 s to everyone in it, plus an extra 216 over 8 s to the first 4 enemies [F] |
 | **Seal of Fury** (Forever, r7 20423) | — | Holy dmg (+35 per melee hit, plus its seal value 0.85 × 16.91 × weapon speed with a one-hander [?]) × RF | New tanking seal [F]. It also grants an absorb shield with a shield equipped (no threat). The seal value's reading: [paladin.md](../classes/paladin.md#seal-of-fury-sof-new-the-protection-seal) |
 | **Judgement of Fury** (20414) | — | 146–160 Holy (153.7–167.1 at level 60, + 0.45 × SP) × RF, and **taunts the target for 4 s** [F] | [paladin.md](../classes/paladin.md#threat-paladin-specific) models the taunt like Taunt: it raises you to top threat, and does nothing if you are already there. We use that as the default, but the mechanism is untested [?]. The client carries a scripted value (a dummy effect of 1607 + 42.3 per level, coefficient 0.18, [F] [client] (SpellEffect, 1.60.1.69913)). Judgement of Righteousness has the identical structure in the Classic Era client, and deals only its own damage there (170–186 + 0.5 × SP) [C]: the allowed analog gives the dummy no effect, so the sim gives it none, no damage and no threat ([paladin.md](../classes/paladin.md#seal-of-fury-sof-new-the-protection-seal); guild test T5 in its open questions). |
-| **Holy Strike** (Forever, r8 10333; 40% weapon + 81–105) | — | dmg × RF × (1 + 0.05 × Iron Creed rank) | The whole strike is Holy school (SpellMisc 2) [F]. Its third effect (77, a script) is Sacred Arbiter's judgement refresh, the same effect Judgement 20271 carries, not a threat bonus: its tooltip has no threat wording, so no bonus (D29) [?] (guild test T4 in [paladin.md](../classes/paladin.md#open-questions)) |
+| **Holy Strike** (Forever, r8 10333; 50% weapon + 81–105, 10 s since 1.60.1.70009) | — | dmg × RF × (1 + 0.05 × Iron Creed rank) | The whole strike is Holy school (SpellMisc 2) [F]. Its third effect (77, a script) is Sacred Arbiter's judgement refresh, the same effect Judgement 20271 carries, not a threat bonus: its tooltip has no threat wording, so no bonus (D29) [?] (guild test T4 in [paladin.md](../classes/paladin.md#open-questions)) |
 | **Hammer of the Righteous** (Forever, 407632) | — | Holy dmg (3 × main-hand weapon DPS, attack power counted [?]) to up to 4 targets × RF | Holy school [F]. No threat wording in its tooltip, so no bonus (D29). The sim hits one target ([paladin.md](../classes/paladin.md#other-abilities)) |
-| Retribution Aura (r5) | 20 Holy per attacker hit × RF [C] | 30 × RF [F] damage | — |
+| Retribution Aura (r5) | 20 Holy per attacker hit × RF [C] | (30 [F] + 0.08 × spell damage [?]) × RF | Since 1.60.1.70009 it scales with its caster's spell power (the dev notes) [F]; the client carries no coefficient, so it takes Holy Shield's 0.08 ([buffs §1.2](buffs-debuffs-consumables.md#12-threat-defense-and-mana)) [?] |
 | Blessings (cast) | ≈ **spell level** per recipient, split across enemies, × RF: Might r7 / Wisdom r6 / Light r3 = 60, Kings 20, Salvation 26, Greater blessings 60 per recipient [?] (LTC2 only) | [?] | Matches the warrior shout pattern (Battle Shout = spell level). Out-of-combat buffing produces none. |
 | Blessing of Sanctuary | Holy damage when the target blocks, × RF [C] | **Removed** [F] | Not in the Forever talent tree, spellbook or SpellName table |
 | Reckoning | Extra white attacks, physical × 1 [C] | Also procs on blocks (8% per rank, 40% at 5/5) [F] | — |
@@ -331,7 +331,7 @@ threat talents are out of scope.
 | Defiance | +3% per rank, 5 ranks, Defensive Stance | +5% per rank, **3 ranks**, Defensive Stance **with a shield** | [F] |
 | Defensive Stance | ×1.3 | ×1.3 (now stated in the tooltip) | [F]: no change |
 | Bear Form | ×1.3 (+ Feral Instinct → ×1.45) | ×1.3; Feral Instinct is Swipe damage | [F] |
-| Righteous Fury | +60% Holy; Improved RF up to +90% | **+90% baseline**; Improved RF gives damage reduction | [F] |
+| Righteous Fury | +60% Holy; Improved RF up to +90% | **+60% baseline** (+90% until 1.60.1.70009); Improved RF gives damage reduction | [F] |
 | New paladin threat talents | — | Iron Creed (Holy Strike +25%), Instrument of Law (−20% without RF) | [F] |
 | Thunder Clap | Battle Stance only, 10% slow, 4 s CD | **Usable in Defensive Stance**, 20% slow, 6 s CD | [F] |
 | Revenge / Shield Slam damage | 81–99 / 342–358 | 138–168 / 640–670 (threat grows with damage) | [F] damage; threat formula [?] |
@@ -401,7 +401,7 @@ function applyThreat(e: ThreatEvent) {
 function globalMultiplier(a: Actor, school: SchoolMask): number {
   let m = 1;
   for (const aura of a.threatAuras) if (aura.schoolMask & school) m *= 1 + aura.pct / 100;
-  return m;   // e.g. Defensive Stance 1.3 × Defiance 1.15 (with a shield) × Righteous Fury 1.9 (Holy only)
+  return m;   // e.g. Defensive Stance 1.3 × Defiance 1.15 (with a shield) × Righteous Fury 1.6 (Holy only)
 }
 ```
 
@@ -444,9 +444,9 @@ Each of these becomes a unit test. T1 and T2 run in the engine under each profil
 | T8 | Forever bear (×1.3); Maul hits for 400 (Maul ×1.75 [?]) | 400 × 1.75 × 1.3 = **910** |
 | T9 | Classic bear, 5/5 Feral Instinct (×1.45); Maul for 400 (Maul ×1.75 [?]) | **1015** |
 | T9b | Forever bear (×1.3); Lacerate r3 hits for 154.566 (+261 [?], the wording table) | (154.566 + 261) × 1.3 = **540.235**; a first application (no damage) **339.3** |
-| T10 | Forever paladin with RF; Holy Shield proc for 221 | 221 × 1.2 × 1.9 = **503.88** |
+| T10 | Forever paladin with RF; Holy Shield proc for 221 | 221 × 1.2 × 1.6 = **424.32** |
 | T11 | Classic paladin with RF, 0/3 and 3/3 Improved RF; Holy Shield proc for 130 | **249.6** / **296.4** |
-| T12 | Forever paladin with RF, 5/5 Iron Creed; Holy Strike hits for 250 | 250 × 1.25 × 1.9 = **593.75** |
+| T12 | Forever paladin with RF, 5/5 Iron Creed; Holy Strike hits for 250 | 250 × 1.25 × 1.6 = **500** |
 | T13 | Forever paladin; white hit for 300 (physical) with RF active | **300** (RF doesn't apply) |
 | T14 | Rogue (×0.71) with Salvation (×0.7); a 1000-damage hit | **497** |
 | T15 | Warrior gains 10 rage (Bloodrage) while 2 enemies are in combat, Defensive Stance | 50 total, **25 per enemy** (no stance multiplier) |

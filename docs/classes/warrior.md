@@ -251,9 +251,9 @@ This section adds the warrior's own sources and sinks.
   - utility and cooldowns: Pummel, Shield Bash, Intercept, Mocking Blow, Disarm, Concussion
     Blow, Death Wish, Sweeping Strikes
   - **not** reduced: Battle Shout, Shield Block, Berserker Rage, Bloodrage
-- Gnome Eureka! cuts the next 3 damaging abilities' cost by 40%, rounded down to whole rage
-  (Q18 [?]): Bloodthirst and Mortal Strike 30 → 18, Whirlwind 25 → 15, Execute's 15 → 9 [F]
-  [rac] [db-eff]. The model is every class's ([§7](#7-implementation-notes), `src/sim/classes/eureka.ts`).
+- Gnome Eureka! cuts the next 3 damaging abilities' cost by 10%, rounded down to whole rage
+  (Q18 [?]): Bloodthirst and Mortal Strike 30 → 27, Whirlwind 25 → 22, Execute's 15 → 13 [F]
+  [rac] [db-eff] [client] (1.60.1.70009; until then 40%: 18, 15 and 9). The model is every class's ([§7](#7-implementation-notes), `src/sim/classes/eureka.ts`).
 
 ### 2.4 Heroic Strike and Cleave (on-next-swing)
 
@@ -474,7 +474,7 @@ racials ([architecture](../architecture.md#rules-and-stats)). The warrior-releva
 | Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit on all attacks while an axe is in either hand [?] (Q15); AP ×1.10 | [F] [rac] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913) (20574, 20572) |
 | Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s, 3 min cooldown, **on the GCD** | +1% aura crit on all attacks while a mace is in either hand [?] (Q15) | [F] [rac] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) (1259719, 20594) |
 | Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown (all crit: spells too) | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259799) |
-| Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 40% less rage and deal +10% damage**, 15 s, 2 min cooldown | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259802, 1259813) |
+| Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 10% less rage and deal +10% damage**, 15 s, 2 min cooldown (until 1.60.1.70009, 40% less) | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.70009) (1259802, 1259813) |
 | Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
 | Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (20550) |
 | Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health | Healing only, not simulated [?] (Q16) | [F] [rac]; 1260189 exists [client] (SpellEffect, 1.60.1.69913) |
@@ -2729,7 +2729,7 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     it should be modelled.
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or
     100 × 1.05 + 30 = 135? How does the fraction round?
-18. **Eureka!.** How does the 40% cost cut round? Execute costs 15, and 40% of it is 6. Does
+18. **Eureka!.** How does the 10% cost cut round? Execute costs 15, and 10% of it is 1.5. Does
     Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss? The sim
     rounds down, cuts only the base cost and spends a charge on a miss (`eureka`) [?].
 19. **Improved Slam's replacement spells.** The Improved Slam ranks replace the Slam spells

@@ -14,7 +14,7 @@ import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { compileAplRows, normalizeAplOrder } from '../apl'
+import { belowRowNote, compileAplRows, normalizeAplOrder } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
@@ -277,8 +277,9 @@ export const ELEMENTAL_APL: AplDefinition = {
       icon: CHAIN_LIGHTNING.icon,
       optionIds: [ID.chainLightning],
       // Clearcasting comes only from Elemental Focus: without it the row never casts, and reads
-      // "None"; its setting says why (elementalUnusedSettings). Below Lightning Bolt, it reads "Not
-      // used", and its setting says why.
+      // "None" (the `inactiveText` keeps its setting's note off the row); its setting says why
+      // (elementalUnusedSettings). Below Lightning Bolt, the row shows its setting's note, dimmed
+      // (`belowRowNote`, which the Rotation tab shows over any `inactiveText`).
       summary: [
         {
           option: ID.chainLightning,
@@ -325,8 +326,9 @@ const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string 
  * "Elemental priority list (A2)"):
  * - Chain Lightning with Clearcasting needs Elemental Focus, the only source of Clearcasting.
  * - Lightning Bolt, the filler, has a line with no condition but its mana (rank 4, or rank 10
- *   without the downrank), so a row on the global cooldown moved below it gets one only without that
- *   mana. The rows off the GCD (the racial, trinkets, Power Infusion and the consumables) are pressed
+ *   without the downrank), so a row on the global cooldown moved below it gets one only when
+ *   Lightning Bolt can't be cast: `belowRowNote`, the rule every filler's rows share (docs/ux.md
+ *   "Rotation"). The rows off the GCD (the racial, trinkets, Power Infusion and the consumables) are pressed
  *   wherever they sit.
  * `order` absent: the default order.
  */
@@ -334,7 +336,7 @@ export function elementalUnusedSettings(values: Record<string, RotationValue>, t
   const v = reader(ELEMENTAL_OPTIONS, values, talents)
   const current = normalizeAplOrder(ELEMENTAL_APL, order)
   const belowBolt = (row: string) => current.indexOf(row) > current.indexOf('lightningBolt')
-  const note = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+  const note = belowRowNote('Lightning Bolt')
   const out: Record<string, string> = {}
   const chain = v.str(ID.chainLightning)
   if (chain === 'clearcasting' && rank(talents, 'Elemental Focus') === 0) out[ID.chainLightning] = 'Not used: Clearcasting needs the Elemental Focus talent.'

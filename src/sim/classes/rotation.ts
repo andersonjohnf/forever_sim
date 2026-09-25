@@ -13,7 +13,6 @@ import { ARMS_APL, ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotati
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation, RETRIBUTION_APL, retributionUnusedSettings } from './paladin/retribution'
 import {
   PROTECTION_APL as PALADIN_PROTECTION_APL,
-  PROTECTION_FIXED_ROWS,
   PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS,
   protectionMaintainedBuffs as paladinProtectionMaintainedBuffs,
   protectionRotation as paladinProtectionRotation,
@@ -152,9 +151,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   return undefined
 }
 
-/** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
+/** What the spec always does, shown on the Rotation tab without a control (a hunter's Auto Shot and pet). */
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
-  if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
   // docs/classes/hunter.md §8.3: Auto Shot and the pet; Aspect of the Hawk and Trueshot Aura are the list's pinned first row.
   if (isHunterSpec(spec)) return hunterFixedRows(spec)
   return []

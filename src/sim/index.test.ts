@@ -221,9 +221,12 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
         if (parent.group === option.group) expect(p, option.id).toBeLessThan(i)
         else expect(option.help, option.id).toContain(`Needs ${parent.label} on`)
       }
-      // No heading over a single setting.
+      // No heading over a single setting: count what shows under it above the list, its spec-wide
+      // settings (a priority list's other settings are its rows) plus its fixed rows, each one.
+      const apl = spec.rotationApl
+      const headed = apl ? options.filter((o) => apl.specWide.includes(o.id)) : options
       for (const group of rotationGroups) {
-        const n = options.filter((o) => o.group === group).length
+        const n = headed.filter((o) => o.group === group).length + spec.rotationFixed.filter((f) => f.group === group).length
         if (n > 0) expect(n, group).toBeGreaterThanOrEqual(2)
       }
     })

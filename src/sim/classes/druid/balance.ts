@@ -13,7 +13,7 @@ import type { OnUseSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type AbilityDef, COND, type Plan, type RotationCondition } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
-import { compileAplRows, normalizeAplOrder } from '../apl'
+import { belowRowNote, compileAplRows, normalizeAplOrder } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, NO_CONTEXT, reader, RotationBuilder, timeLeftAtLeast } from '../warrior/shared'
@@ -209,7 +209,8 @@ const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string 
  * "Balance's priority list"). Wrath for Eclipse (with the talent) and the Filler each cast on every
  * global cooldown there's the mana for Wrath, so the higher of the two leaves the lower nothing: in
  * the default order, the filler, since Starfire and Wrath then alternate. A row on the global cooldown
- * moved below it gets one only without the mana for Wrath.
+ * moved below it gets one only when that row can't be cast: `belowRowNote`, the rule every filler's
+ * rows share (docs/ux.md "Rotation").
  */
 export function balanceUnusedSettings(values: Record<string, RotationValue>, talents: ReadonlyMap<string, number>, order?: readonly string[]): Record<string, string> {
   const v = reader(BALANCE_OPTIONS, values, talents)
@@ -221,7 +222,7 @@ export function balanceUnusedSettings(values: Record<string, RotationValue>, tal
   if (stopper === 'eclipse') {
     out[ID.filler] = 'Not used: Wrath for Eclipse is on. Starfire and Wrath already take turns. Turn Wrath for Eclipse off to cast only the filler.'
   }
-  const note = `Below ${stopper === 'eclipse' ? 'Wrath for Eclipse' : 'the Filler'}: used only while you haven’t the mana for Wrath.`
+  const note = belowRowNote(stopper === 'eclipse' ? 'Wrath for Eclipse' : 'the Filler')
   for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
     if (row === stopper || current.indexOf(row) < at || !v.on(enabled) || (talent !== undefined && !talents.has(talent))) continue
     out[enabled] = note

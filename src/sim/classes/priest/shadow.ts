@@ -13,7 +13,7 @@ import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { compileAplRows, normalizeAplOrder } from '../apl'
+import { belowRowNote, compileAplRows, normalizeAplOrder } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { eurekaFor } from '../eureka'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
@@ -322,11 +322,12 @@ const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string 
  * The Shadow settings that do nothing in this setup, with why (docs/ux.md "Rotation"; priest.md §6
  * "The priority list"):
  * - Starshards and Dark Sacrifice are two races' own.
- * - Mind Flay, the filler, takes every global cooldown there's the mana for, so a row on the global
- *   cooldown moved below it gets one only without that mana, and so does Inner Focus, which waits
- *   for Mind Blast to be ready, the global cooldown included.
- * - Inner Focus below Mind Blast finds it ready only when Mind Blast can't be paid for: Mind Blast
- *   goes first the moment it's ready.
+ * - Mind Flay, the filler, takes every global cooldown it can, so a row on the global cooldown
+ *   moved below it gets one only when Mind Flay can't be cast, and so does Inner Focus, which waits
+ *   for Mind Blast to be ready, the global cooldown included: `belowRowNote`, the rule every
+ *   filler's rows share (docs/ux.md "Rotation").
+ * - Inner Focus below Mind Blast finds it ready only when Mind Blast can't be cast: Mind Blast goes
+ *   first the moment it's ready. The same note, of Mind Blast.
  * `values`, `talents` and `order` absent: the defaults, no talents and the default order.
  */
 export function shadowUnusedSettings(
@@ -344,10 +345,10 @@ export function shadowUnusedSettings(
   const below = (row: string, above: string) => current.indexOf(row) > current.indexOf(above)
   const innerFocus = v.on(ID.innerFocus) && v.on(ID.blast) && rank(talents, 'Inner Focus') > 0
   if (innerFocus && below('innerFocus', 'mindBlast')) {
-    out[ID.innerFocus] = 'Below Mind Blast: used only while you haven’t the mana for Mind Blast, which goes first the moment it’s ready.'
+    out[ID.innerFocus] = belowRowNote('Mind Blast')
   }
   if (!v.on(ID.flay) || rank(talents, 'Mind Flay') === 0) return out
-  const note = 'Below Mind Flay: used only while you haven’t the mana for Mind Flay.'
+  const note = belowRowNote('Mind Flay')
   for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
     if (out[enabled] !== undefined || !below(row, 'mindFlay') || !v.on(enabled) || (talent !== undefined && rank(talents, talent) === 0)) continue
     out[enabled] = note

@@ -136,8 +136,8 @@ test.describe('the Shadow Priest’s list from the keyboard, in a run and a shar
     await expect.poll(() => order(page)).toEqual(moved('mindBlast', 'innerFocus'))
     await expect(liveRegion(page)).toHaveText(`Mind Blast dropped at position 8 of ${COUNT}.`)
     await expect(list.getByRole('button', { name: 'Move Mind Blast, position 8' })).toBeFocused()
-    // Below Mind Blast, Inner Focus never finds it ready: its row is dimmed and says so.
-    await expect(focus).toContainText('Below Mind Blast: used only while you haven’t the mana for Mind Blast, which goes first the moment it’s ready.')
+    // Below Mind Blast, Inner Focus finds it ready only when Mind Blast can't be cast: its row is dimmed and says so.
+    await expect(focus).toContainText('Below Mind Blast: cast only when Mind Blast can’t be.')
     await expect(focus).toHaveAttribute('data-inactive', 'true')
   })
 
@@ -168,7 +168,7 @@ test.describe('the Shadow Priest’s list from the keyboard, in a run and a shar
     // The rows on the global cooldown below it, and Inner Focus, are dimmed and say why; the racial,
     // off the global cooldown, isn't.
     for (const id of ['shadowWordPain', 'devouringPlague', 'innerFocus', 'mindBlast']) {
-      await expect(list.locator(`[data-apl-row="${id}"]`), id).toContainText('Below Mind Flay: used only while you haven’t the mana for Mind Flay.')
+      await expect(list.locator(`[data-apl-row="${id}"]`), id).toContainText('Below Mind Flay: cast only when Mind Flay can’t be.')
       await expect(list.locator(`[data-apl-row="${id}"]`), id).toHaveAttribute('data-inactive', 'true')
     }
     await expect(list.locator('[data-apl-row="racial"]')).toContainText('On cooldown')

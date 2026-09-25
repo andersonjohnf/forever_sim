@@ -471,13 +471,23 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       puts them first on the global cooldown, and their refresh stays the duty rule's wherever you
       move them, since it's the row's own condition; a moved duty makes the list Custom. The rule
       decides when a duty wants the global cooldown, not that it gets it: a row above it takes it
-      first. A warrior's Thunder Clap, Demoralizing Shout or Battle Shout, on and below the Sunder
-      Armor filler (on), says so in place of its summary, dimmed, with the filler's threshold (or
-      Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your
-      rage is under its 9." It's a fact about the order, whatever the threshold, and judges nothing:
-      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 about a third of its casts.
-      Thunder Clap on cooldown (its "only to keep the slow up" off) is tried just above the filler
-      wherever its row is, so it has no note.
+      first. A warrior's Thunder Clap, Demoralizing Shout or Battle Shout below the Sunder Armor
+      filler says so, by the rule below. Thunder Clap on cooldown (its "only to keep the slow up"
+      off) is tried just above the filler wherever its row is, so it has no note.
+    - **Rows below the filler.** A spec's filler takes every global cooldown it can, so a row on
+      the global cooldown placed below it (on, with its talent) is cast only when the filler can't
+      be. Every spec says so with one rule, in place of the row's summary and on its setting, and
+      dims the row, since in practice it's almost never cast: "Below <filler>: cast only when
+      <filler> can't be." ("Below Mind Flay: cast only when Mind Flay can't be.";
+      `belowRowNote`). It names no reason (mana, rage) and no threshold, so it's true whatever
+      stops the filler: Shadow's Mind Flay, Elemental's Lightning Bolt, Balance's Filler (or Wrath
+      for Eclipse while it's the higher), the Protection warrior's Sunder Armor filler. A row
+      without a switch shows it and is dimmed too, whatever its summary would say instead (Chain
+      Lightning below Lightning Bolt). Rows off the global cooldown (the racial, trinkets,
+      consumables) are pressed wherever they sit, so they have no note. Shadow's Inner Focus below
+      Mind Blast, which goes first the moment it's ready, says the same of Mind Blast. (CLAUDE.md
+      step 6's simplification, after the reviews' LA-2, VA-2 and VA-3 found the per-spec wordings
+      wrong twice.)
     - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without
       named ones (Fury), or a tank's three (above). A tank's preset sets its Priority choice, which
       moves defaults; picking any preset sets it (Balanced back to its default). Once you move a row or change one
@@ -623,8 +633,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     one under another switch that needs it too (`alsoDependsOn` on a switch: "Sunder Armor filler
     waits for Shield Slam" while Shield Slam is off or can't be used).
   - Something the spec always does, with nothing to choose, is a row with no control, first under
-    its heading: its name, one line of help, and what it is where the switch would be ("Righteous
-    Fury", "Always on"; `SpecDefinition.rotationFixed`).
+    its heading: its name, one line of help, and what it is where the switch would be (a hunter's
+    "Auto Shot", "Always on"; `SpecDefinition.rotationFixed`). A fixed row that a pinned list row
+    already names isn't repeated above the list: a Protection paladin's Righteous Fury is in its
+    **Before the pull** row.
   - A threshold's unit says what it's a share of: "% mana" for a paladin's mana thresholds.
 - **Fight.**
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.

@@ -490,13 +490,12 @@ had no known number was modelled with none. Both are now rules:
   what the class's players expect, is a finding in itself: a tank below most DPS specs' threat,
   or one tank at twice another. "Every formula matches its doc" doesn't close that finding; a
   cited mechanic that explains the gap does, or a fix.
-- **The guild's benchmark for tanks** (user, 2026-09-24): at the default setup, a Protection
-  paladin and a bear should reach about 800–900 TPS, and a warrior shouldn't lead either by
-  more than about 50%. It's the officers' experience, not a measurement, so it doesn't set any
-  constant by itself. It does count as evidence when a value is unknown: where an allowed
-  source leaves a range, the default takes the reading that fits the benchmark. A tank that
-  still misses the benchmark after that is an open plausibility finding, and its fix goes to
-  the guild's in-game tests or to combat logs.
+- **No numeric benchmark for tanks** (user decision, 2026-09-24, withdrawing the earlier one). The
+  officers' "paladin and bear about 800–900 TPS, warrior no more than about 50% ahead" was a feel,
+  not a measurement, and no longer applies: the model's numbers land where the cited mechanics put
+  them. Unknown values still take reasoned defaults from allowed sources, and the sanity checks
+  above still apply; a gap no cited mechanic explains is an open question for the guild's in-game
+  tests or combat logs, not a reason to move a value.
 
 ### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
 User decision, now the top priority. The feature is called **the Optimizer** (user's name for it;
@@ -571,6 +570,10 @@ default, as above; Defense = the least damage taken), and it searches every lega
 rotation in scope and takes the best by that goal, measured. Sheet constraints stay, as options the
 player sets (the effective-health floor, crit and crush immunity); they read the character sheet,
 not talent names. Where this paragraph and the ones above disagree, this one holds.
+**A search has a hard ceiling** (user decision, same day: "there does need to be some reasonable
+limit to iterations"). The optimizer grows its budget to race every plan fairly, but never past a
+fixed cap on total fights (and on builds enumerated); beyond it, it narrows the space (max ranks
+first) and says so, and it shows the estimated fights and time before it runs.
 
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority

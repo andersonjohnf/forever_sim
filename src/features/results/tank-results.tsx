@@ -93,11 +93,14 @@ export function BossTable({
   avoidance,
   fight,
   up = null,
+  brief = false,
 }: {
   table: BossOutcomes
   avoidance: readonly Avoidance[]
   fight: FightConfig | null
   up?: BlockBuffUp | null
+  /** The wide panel's shorter line under the heading (`bossTableIntro`). */
+  brief?: boolean
 }) {
   const headingId = useId()
   return (
@@ -106,9 +109,10 @@ export function BossTable({
         <h4 id={headingId} className="text-sm font-medium">
           Boss’s attack table
         </h4>
-        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance, up)}</p>
+        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance, up, brief)}</p>
       </div>
-      <dl className={cn(OUTCOME_GRID, 'gap-y-1.5')}>
+      {/* In the wide panel its two columns are the sheet's first two, never stretched across a wider panel (DU2-4). */}
+      <dl className={cn(OUTCOME_GRID, 'gap-y-1.5', brief && '@min-[38rem]/results:grid-cols-3 @min-[48rem]/results:grid-cols-4')}>
         {BOSS_OUTCOMES.map(([key, label]) => (
           <div key={key} className="flex justify-between gap-2">
             <dt className="text-muted-foreground">{label}</dt>

@@ -20,9 +20,11 @@ const SECTION_ICON: Record<Section, LucideIcon> = {
  * "Your setup" in the wide layout's right panel (from 1440 px, D34; docs/ux.md#results), a card: one
  * line a section, its icon and name over what it holds (src/app/section-summary.ts), so the whole
  * setup reads at a glance. Each line is a button that opens its section's tab and moves focus there
- * (`onOpen`, the shell's own tab opening); on hover its name gains a chevron and its value an
- * underline. The card ends on its action row: `note` on the left (what a run would do, or its
- * progress) and `action`, Simulate, on the right, sized to its label.
+ * (`onOpen`, the shell's own tab opening), and looks it: its name ends on a faint chevron, and on
+ * hover or focus the chevron darkens, the name takes the value's colour and the value an underline.
+ * The card ends on its action row: `note` on the left (where things stand: what a run would do, its
+ * progress, or that the result is up to date) and `action`, Simulate, on the right, sized to its
+ * label, in the same place in every state.
  */
 export function SetupSummary({
   sections,
@@ -59,11 +61,13 @@ export function SetupSummary({
                     onClick={() => onOpen(id)}
                     className="group flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {/* On the hover fill the name turns the value's colour, keeping it over 4.5:1 (review finding DU2-5). */}
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground group-hover:text-foreground group-focus-visible:text-foreground">
                       <Icon className="size-3.5 shrink-0" aria-hidden />
                       {label}
+                      {/* Faint at rest, so the line reads as something to press before it's hovered (DU2-3). */}
                       <ChevronRight
-                        className="size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                        className="size-3 shrink-0 opacity-60 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
                         aria-hidden
                       />
                     </span>

@@ -154,7 +154,7 @@ export default function App() {
         </Tabs>
         {/*
          * The skip link's target: focus lands on its Simulate button. From 1440 px (D34) it's the
-         * wide panel: the character sheet and the setup summary, with Simulate, then the result.
+         * wide panel: the setup summary with Simulate, pinned, then the character sheet and the result.
          */}
         <aside ref={results} id="results" className="hidden outline-none lg:block wide:@container/results" aria-label="Results">
           <div className="sticky top-20 pt-6">

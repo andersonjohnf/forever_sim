@@ -4,7 +4,7 @@
 import { Info } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatOne, formatPct } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { BossOutcomes, FightConfig, SpecId, TankResult } from '@/sim'
@@ -118,31 +118,34 @@ export function BossTable({
       Boss’s attack table
     </h4>
   )
-  return (
+  const section = (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
       {wide ? (
         // The button's 44 px target overhangs the heading's line rather than making the row taller.
         <div className="flex items-center gap-0.5">
           {heading}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="-my-3 size-11 shrink-0 text-muted-foreground" aria-label="About the boss’s attack table">
-                <Info aria-hidden />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              collisionPadding={16}
-              aria-labelledby={infoTitleId}
-              className="max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] overflow-y-auto text-sm"
-            >
-              <p id={infoTitleId} className="font-medium">
-                Boss’s attack table
-              </p>
-              <p className="text-muted-foreground">{intro}</p>
-              <p className="text-muted-foreground">{crushing}</p>
-            </PopoverContent>
-          </Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="-my-3 size-11 shrink-0 text-muted-foreground" aria-label="About the boss’s attack table">
+              <Info aria-hidden />
+            </Button>
+          </PopoverTrigger>
+          {/* Beside the table, out in the page, its top level with the heading: never over the table it
+              explains or the stats above it (review finding V4-4), and clear of the panel's edge. Where
+              there's no room on that side it goes to the other. */}
+          <PopoverContent
+            side="left"
+            align="start"
+            sideOffset={28}
+            collisionPadding={16}
+            aria-labelledby={infoTitleId}
+            className="max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] overflow-y-auto text-sm"
+          >
+            <p id={infoTitleId} className="font-medium">
+              Boss’s attack table
+            </p>
+            <p className="text-muted-foreground">{intro}</p>
+            <p className="text-muted-foreground">{crushing}</p>
+          </PopoverContent>
         </div>
       ) : (
         <div className="flex flex-col gap-0.5">
@@ -167,5 +170,13 @@ export function BossTable({
       </dl>
       {!wide && <p className="text-xs text-muted-foreground">{crushing}</p>}
     </section>
+  )
+  // Wide, the info button's popover is placed by the whole section.
+  return wide ? (
+    <Popover>
+      <PopoverAnchor asChild>{section}</PopoverAnchor>
+    </Popover>
+  ) : (
+    section
   )
 }

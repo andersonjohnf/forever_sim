@@ -214,9 +214,9 @@ describe('worked example 7: Clearcasting', () => {
 describe('worked example 8: mana', () => {
   const bundle = buildPlan(defaultConfig(ELE))
 
-  it('the default setup: 4,975 mana, 52.6 Spirit regeneration a tick (Spirit 188), 50% of it while casting (Mindfulness 3/3), 26 mp5', () => {
+  it('the default setup: 4,975 mana, 52.6 Spirit regeneration a tick (Spirit 188), 50% of it while casting (Mindfulness 3/3), 24.4 mp5 a tick (Blessing of Wisdom r5’s 36 + Mana Spring’s 25)', () => {
     expect([bundle.sheet.mana, bundle.sheet.spirit]).toEqual([4975, 188])
-    expect(bundle.plan.mana).toEqual({ maxTenths: 49750, regenTickTenths: 526, fiveSecondRuleMs: 5000, mp5TickTenths: 260, inFsrShare: 0.5 })
+    expect(bundle.plan.mana).toEqual({ maxTenths: 49750, regenTickTenths: 526, fiveSecondRuleMs: 5000, mp5TickTenths: 244, inFsrShare: 0.5 })
   })
 
   it('Mana Tide Totem restores 1,160 in 4 ticks of 290, 3 s apart, for 60 mana and a 1 s GCD', () => {

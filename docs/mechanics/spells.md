@@ -335,7 +335,7 @@ What the Forever client changes for casters, read from its tables against Classi
   `spellDamage` proc (Instant Poison) and each tick of a stacking poison (Deadly Poison) take the
   school's average resist (`resistFactor`), your school multiplier, the boss's damage taken and the
   school's crit. A stacking poison keeps its own slot and timer (`EV_STACKING_DOT_TICK`,
-  [rogue.md §4.2](../classes/rogue.md#42-deadly-poison-v)): its stacks, and a tick timer a new
+  [rogue.md §4.2](../classes/rogue.md#42-deadly-poison-iv)): its stacks, and a tick timer a new
   application doesn't restart, aren't a plan spell's DoT.
 - **Channels** reuse the cast ticks (Consecration's) for a triggering channel, or the spell's DoT
   for a DoT channel, and an end event (`EV_CHANNEL_END`) that delivers a tick due that moment

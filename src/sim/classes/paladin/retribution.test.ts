@@ -227,11 +227,11 @@ describe('your own Blessing of Might (RU9): the Buffs tab’s, which a paladin c
     expect(saved.config.buffs.enabled).toEqual(['blessingOfMight'])
   })
 
-  it('is its switch: +133 attack power (Classic Era 185), and nothing with it off', () => {
+  it('is its switch: rank 6’s +112 attack power (Classic Era 155), and nothing with it off', () => {
     const alone = { raid: noPaladin }
-    expect(ap({ ...alone, buffs: ['blessingOfMight'] }) - ap({ ...alone, buffs: [] })).toBe(133)
+    expect(ap({ ...alone, buffs: ['blessingOfMight'] }) - ap({ ...alone, buffs: [] })).toBe(112)
     const classic = { ...alone, rules: { profile: 'classicEra' as const } }
-    expect(ap({ ...classic, buffs: ['blessingOfMight'] }) - ap({ ...classic, buffs: [] })).toBe(185)
+    expect(ap({ ...classic, buffs: ['blessingOfMight'] }) - ap({ ...classic, buffs: [] })).toBe(155)
     // Self only is the buffs you cast on yourself: your Might, as a druid's Mark of the Wild.
     expect(presetBuffIds('self', RET, FULL_RAID)).toEqual(['blessingOfMight'])
   })

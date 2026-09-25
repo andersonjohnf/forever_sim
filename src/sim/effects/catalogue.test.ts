@@ -138,8 +138,10 @@ interface Row {
 
 const ROWS: Record<string, Row> = {
   // Raid buffs
-  battleShout: { forever: [['ap', 139]], classicEra: [['ap', 232]], rows: [S(25289)] },
-  blessingOfMight: { forever: [['ap', 133]], classicEra: [['ap', 185]], rows: [S(25291)] },
+  // The trainers' top ranks (D36: no Ahn'Qiraj book's rank): Battle Shout r6 at 60 (111 + 0.6 × 8,
+  // truncated; Classic 185 + 8), Blessing of Might r6 (Greater r1, 25782, the same).
+  battleShout: { forever: [['ap', 115]], classicEra: [['ap', 193]], rows: [S(11551)] },
+  blessingOfMight: { forever: [['ap', 112]], classicEra: [['ap', 155]], rows: [S(19838)] },
   blessingOfKings: { rows: [S(20217)] },
   markOfTheWild: {
     forever: [['str', 16], ['agi', 16], ['sta', 16], ['int', 16], ['spi', 16], ['bonusArmor', 385]],
@@ -165,8 +167,8 @@ const ROWS: Record<string, Row> = {
     classicEra: [['windfury chance %', 20], ['windfury bonusAp', 315]],
     rows: [E(564), S(10610)],
   },
-  graceOfAir: { forever: [['agi', 89]], classicEra: [['agi', 77]], rows: [S(25360)] },
-  strengthOfEarth: { forever: [['str', 53]], classicEra: [['str', 77]], rows: [S(25362)] },
+  graceOfAir: { forever: [['agi', 77]], classicEra: [['agi', 67]], rows: [S(10626)] },
+  strengthOfEarth: { forever: [['str', 42]], classicEra: [['str', 61]], rows: [S(10441)] },
   blessingOfSalvation: { rows: [S(1038)] },
   devotionAura: { rows: [S(10293)] },
   // A damage shield on the tank: 100% of the boss's landed swings, and its damage.
@@ -174,8 +176,8 @@ const ROWS: Record<string, Row> = {
   // (buffs doc §1.2), dealt as a whole 53; no client row holds that.
   thorns: { forever: [['thorns chance %', 100], ['thorns nature', 38]], classicEra: [['thorns chance %', 100], ['thorns nature', 18]], rows: [null, null], classicRows: [null, S(9910)] },
   thornsOwn: { forever: [['thornsOwn chance %', 100], ['thornsOwn nature', 22]], classicEra: [['thornsOwn chance %', 100], ['thornsOwn nature', 18]], rows: [null, S(9910)], classicRows: [null, S(9910)] },
-  // Mana per 5 s: 40 every 5 s (Classic Era 33); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
-  blessingOfWisdom: { forever: [['mp5', 40]], classicEra: [['mp5', 33]], rows: [S(25290)] },
+  // Mana per 5 s: rank 5's 36 every 5 s (Classic Era 30); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
+  blessingOfWisdom: { forever: [['mp5', 36]], classicEra: [['mp5', 30]], rows: [S(19854)] },
   manaSpringTotem: { forever: [['mp5', 25]], rows: [S(10494, 0, { times: 2.5 })] },
   // Target debuffs
   sunderArmor: { rows: [S(11597, 0, { times: 5 })] },
@@ -268,14 +270,14 @@ const ROWS: Record<string, Row> = {
     rows: [E(625), S(11337, 0, { bound: 'min', whole: true }), S(11337, 0, { bound: 'max', whole: true })],
   },
   deadlyPoisonMainHand: {
-    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 23], ['deadlyPoison stacks', 5]],
-    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 34], ['deadlyPoison stacks', 5]],
-    rows: [E(2630), S(25349), null],
+    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 18], ['deadlyPoison stacks', 5]],
+    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 27], ['deadlyPoison stacks', 5]],
+    rows: [E(627), S(11354), null],
   },
   deadlyPoisonOffHand: {
-    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 23], ['deadlyPoison stacks', 5]],
-    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 34], ['deadlyPoison stacks', 5]],
-    rows: [E(2630), S(25349), null],
+    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 18], ['deadlyPoison stacks', 5]],
+    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 27], ['deadlyPoison stacks', 5]],
+    rows: [E(627), S(11354), null],
   },
   // Its Energy in tenths: Restore Energy 9512's 100 × 10.
   thistleTea: { rows: [S(9512, 0, { times: 10 }), S(9512, 0, { times: 10 })] },
@@ -387,10 +389,10 @@ describe('the catalogue in both profiles (buffs doc, Classic Era values)', () =>
         for (const n of numbers(summary)) expect(values, `${id} (${profile.id}): “${summary}”`).toContain(n)
       }
     }
-    expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, FOREVER)).toBe('+139 attack power')
-    expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, CLASSIC_ERA)).toBe('+232 attack power')
+    expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, FOREVER)).toBe('+115 attack power')
+    expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, CLASSIC_ERA)).toBe('+193 attack power')
     expect(catalogueSummary(BUFFS_BY_ID.get('blessingOfKings')!, CLASSIC_ERA)).toBe('+10% all stats')
-    expect(catalogueSummary(BUFFS_BY_ID.get('blessingOfWisdom')!, CLASSIC_ERA)).toBe('+33 mana every 5 s')
+    expect(catalogueSummary(BUFFS_BY_ID.get('blessingOfWisdom')!, CLASSIC_ERA)).toBe('+30 mana every 5 s')
   })
 })
 
@@ -432,16 +434,16 @@ describe('a plan per profile', () => {
     ])
     const buffs = (profile: 'forever' | 'classicEra') => delta(numbers(withRules(fury, profile)), numbers(withRules(noBuffs, profile)))
     // Battle Shout is the rotation's own (an aura in the fight), Kings a multiplier and the potion a cast,
-    // so none of them is here. Forever: Strength of Earth 53 + Gift of the Wild 16 + Giants 25 +
-    // Dumplings 20; Mongoose 25; Prayer of Fortitude 70; Might 133 + Firewater 35; Leader of the Pack
+    // so none of them is here. Forever: Strength of Earth 42 + Gift of the Wild 16 + Giants 25 +
+    // Dumplings 20; Mongoose 25; Prayer of Fortitude 70; Might 112 + Firewater 35; Leader of the Pack
     // 3 + Mongoose 2; Sunder 2250 + Faerie Fire 505 + Recklessness 505; the stone on each weapon.
     expect(buffs('forever')).toEqual({
-      str: 114,
+      str: 103,
       agi: 41,
       sta: 86,
       int: 16,
       spi: 16,
-      ap: 168,
+      ap: 147,
       crit: 5,
       bonusArmor: 385,
       health: 0,
@@ -449,15 +451,15 @@ describe('a plan per profile', () => {
       mainHandStone: 8,
       offHandStone: 8,
     })
-    // Classic Era: Strength of Earth 77, Gift of the Wild 12 and 285, Fortitude 54, Might 185,
+    // Classic Era: Strength of Earth 61, Gift of the Wild 12 and 285, Fortitude 54, Might 155,
     // Recklessness 640, and Windfury Totem holds the main hand's temporary-enchant slot.
     expect(buffs('classicEra')).toEqual({
-      str: 134,
+      str: 118,
       agi: 37,
       sta: 66,
       int: 12,
       spi: 12,
-      ap: 220,
+      ap: 190,
       crit: 5,
       bonusArmor: 285,
       health: 0,
@@ -482,13 +484,13 @@ describe('a plan per profile', () => {
     expect(changed).toEqual({ str: -3, spellCrit: -3 })
   })
 
-  it('buffs doc example 5 in Classic Era: another warrior’s Battle Shout and Blessing of Might, untalented, add 417', () => {
+  it('buffs doc example 5 in Classic Era: another warrior’s Battle Shout and Blessing of Might, untalented, add 348', () => {
     const rotation = { 'warrior.fury.battleShout.enabled': false }
     const bare: SimConfig = { ...noBuffs, gear: {}, talents: '', rotation }
     const ap = (profile: 'forever' | 'classicEra', enabled: string[]) =>
       buildPlan(withRules({ ...bare, buffs: { raid: ['warrior', 'paladin'], enabled } }, profile)).sheet.attackPower
-    expect(ap('forever', ['battleShout', 'blessingOfMight']) - ap('forever', [])).toBe(272)
-    expect(ap('classicEra', ['battleShout', 'blessingOfMight']) - ap('classicEra', [])).toBe(232 + 185)
+    expect(ap('forever', ['battleShout', 'blessingOfMight']) - ap('forever', [])).toBe(115 + 112)
+    expect(ap('classicEra', ['battleShout', 'blessingOfMight']) - ap('classicEra', [])).toBe(193 + 155)
   })
 
   it('counts the rotation’s own Battle Shout on the sheet at the value the fight uses, in both profiles', () => {
@@ -498,8 +500,8 @@ describe('a plan per profile', () => {
         withRules({ ...fury, rotation: { 'warrior.fury.battleShout.enabled': false }, buffs: { ...fury.buffs, enabled: fury.buffs.enabled.filter((id) => id !== 'battleShout') } }, profile),
       )
       const aura = own.plan.auras.find((a) => a.id === 'battleShout')!
-      // The profile's own shout (warrior.md §1.1): Forever 139 for 3 min, Classic Era 232 for 2 min.
-      expect([aura.ap, aura.durationMs], profile).toEqual(profile === 'forever' ? [139, 180000] : [232, 120000])
+      // The profile's own shout, rank 6 (warrior.md §1.1): Forever 115 for 3 min, Classic Era 193 for 2 min.
+      expect([aura.ap, aura.durationMs], profile).toEqual(profile === 'forever' ? [115, 180000] : [193, 120000])
       expect(own.plan.stats.apMult).toBe(1)
       expect(own.sheet.attackPower - none.sheet.attackPower, profile).toBe(aura.ap)
     }

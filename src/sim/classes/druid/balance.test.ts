@@ -71,15 +71,17 @@ function talentCode(ranks: Record<string, number>): string {
 }
 
 describe('the Balance spells against the Forever client (druid.md §11.2)', () => {
-  it('Starfire r7, Wrath r8, Moonfire r10 and Insect Swarm r5 have the client’s damage, coefficients, casts and costs', () => {
-    const sf = effect(25298, 0)
+  it('Starfire r6 (the trainer’s, D36), Wrath r8, Moonfire r10 and Insect Swarm r5 have the client’s damage, coefficients, casts and costs', () => {
+    const sf = effect(9876, 0)
+    const sfGrow = atLevel60(0, sf.effectRealPointsPerLevel!, spell(9876).levels!.baseLevel!, spell(9876).levels!.maxLevel!)
     const [sfMin, sfMax] = spread(sf.effectBasePointsF!, sf.variance!)
-    expect([STARFIRE_SPELL.min, STARFIRE_SPELL.max]).toEqual([sfMin, sfMax])
-    expect(spell(25298).levels!.baseLevel).toBe(60)
+    expect(STARFIRE_SPELL.min).toBeCloseTo(sfMin + sfGrow, 9)
+    expect(STARFIRE_SPELL.max).toBeCloseTo(sfMax + sfGrow, 9)
+    expect([STARFIRE_SPELL.min, STARFIRE_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([313.81, 369.39])
     expect(STARFIRE_SPELL.spCoefficient).toBe(sf.effectBonusCoefficient)
-    expect(STARFIRE.castMs).toBe(spell(25298).castTime!.base)
-    expect(STARFIRE.costTenths).toBe(10 * spell(25298).power![0].manaCost!)
-    expect(spell(25298).misc!.schoolMask).toBe(64)
+    expect(STARFIRE.castMs).toBe(spell(9876).castTime!.base)
+    expect(STARFIRE.costTenths).toBe(10 * spell(9876).power![0].manaCost!)
+    expect(spell(9876).misc!.schoolMask).toBe(64)
 
     const w = effect(9912, 0)
     const grow = atLevel60(0, w.effectRealPointsPerLevel!, spell(9912).levels!.baseLevel!, spell(9912).levels!.maxLevel!)
@@ -115,7 +117,7 @@ describe('the Balance spells against the Forever client (druid.md §11.2)', () =
   })
 
   it('every Balance spell is magic-class, on the 1.5 s GCD, castable in Moonkin Form; Faerie Fire and Innervate as the client has them', () => {
-    for (const id of [25298, 9912, 9835, 24977, 9907, 29166]) {
+    for (const id of [9876, 9912, 9835, 24977, 9907, 29166]) {
       expect(spell(id).categories!.defenseType, String(id)).toBe(1)
       expect(spell(id).cooldowns!.startRecoveryTime, String(id)).toBe(GCD_MS)
       expect(spell(id).shapeshift!.shapeshiftMask![0] & (1 << 30), String(id)).toBe(1 << 30)
@@ -160,7 +162,7 @@ describe('the Balance talents against the client (druid.md §11.3)', () => {
   it('Clearcasting pays for Starfire, Moonfire and Insect Swarm, not Wrath (16870’s class mask)', () => {
     const mask = effect(16870, 0).effectSpellClassMask![0] >>> 0
     const bit = (id: number) => (spell(id).classOptions!.spellClassMask![0] & mask) !== 0
-    expect([bit(25298), bit(9835), bit(24977), bit(9912)]).toEqual([true, true, true, false])
+    expect([bit(9876), bit(9835), bit(24977), bit(9912)]).toEqual([true, true, true, false])
     expect([STARFIRE.clearcastable, MOONFIRE.clearcastable, INSECT_SWARM.clearcastable, WRATH.clearcastable]).toEqual([true, true, true, undefined])
   })
 })
@@ -172,9 +174,9 @@ describe('worked examples (druid.md §11.7)', () => {
 
   it('B1, B2: Starfire and Wrath at 500 spell damage with Moonfury, and Vengeance’s ×2.0 crits', () => {
     const sf = resolved(STARFIRE).spellDef!
-    expect((mid(sf) + 500) * moonfury * resist).toBeCloseTo(910.95, 2)
+    expect((mid(sf) + 500) * moonfury * resist).toBeCloseTo(870.21, 2)
     expect(sf.critMultiplier).toBe(spellCritMultiplier(100))
-    expect((mid(sf) + 500) * moonfury * resist * sf.critMultiplier).toBeCloseTo(1821.91, 2)
+    expect((mid(sf) + 500) * moonfury * resist * sf.critMultiplier).toBeCloseTo(1740.43, 2)
     const w = resolved(WRATH).spellDef!
     expect((mid(w) + 0.571 * 500) * moonfury * resist).toBeCloseTo(395.51, 2)
     expect((mid(w) + 0.571 * 500) * moonfury * resist * 2).toBeCloseTo(791.01, 2)
@@ -214,7 +216,7 @@ describe('worked examples (druid.md §11.7)', () => {
   })
 
   it('B6: mana, the talents’ percentages multiplied and rounded down', () => {
-    expect([STARFIRE, WRATH, MOONFIRE, INSECT_SWARM].map((a) => resolved(a).costTenths / 10)).toEqual([255, 45, 281, 120])
+    expect([STARFIRE, WRATH, MOONFIRE, INSECT_SWARM].map((a) => resolved(a).costTenths / 10)).toEqual([236, 45, 281, 120])
     expect(balanceCost(120, [50, 25])).toBe(45)
     expect(INNERVATE_MANA).toBe(62)
   })
@@ -323,7 +325,7 @@ describe('the Balance plan and priority (druid.md §11.1, §11.5, §11.6)', () =
     const { plan } = buildPlan(defaultConfig(BALANCE))
     const onGcd = plan.rotation.filter((e) => plan.abilities[e.ability].gcdMs > 0).map((e) => plan.abilities[e.ability].id)
     expect(onGcd).toEqual(['innervate', 'insectSwarm', 'moonfire', 'starfire', 'starfire', 'wrath', 'starfire', 'wrath'])
-    expect(plan.abilities.find((a) => a.id === 'starfire')).toMatchObject({ castMs: 3000, costTenths: 2550, gcdCut: true, chargeCastMs: 500 })
+    expect(plan.abilities.find((a) => a.id === 'starfire')).toMatchObject({ castMs: 3000, costTenths: 2360, gcdCut: true, chargeCastMs: 500 })
     expect(plan.abilities.find((a) => a.id === 'innervate')!.gcdCut).toBe(false)
   })
 
@@ -358,6 +360,8 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   // - The 70009 integration (the casters' and the caster gear slices merged): both changes above
   //   together, 432.84 (Wrath alone) / 442.54 (gear alone) → 448.73 DPS. Checked both ways: with
   //   either side's code reverted, the other side's snapshot reproduces exactly.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Starfire r6 (9876: 313.81–369.39, 315 mana) for r7 (349.96–412.04, 340),
+  //   and Blessing of Wisdom r5. 448.73 → 445.04 DPS.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

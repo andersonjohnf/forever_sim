@@ -59,18 +59,23 @@ labels, resolved under [Sources](#sources).
 
 ### 1.1 Spells (level 60)
 
-Top ranks, before spell damage, from the rendered tooltips and SpellEffect [F] [C] [client]
-(SpellEffect, SpellPower, SpellMisc, SpellCastTimes, both builds):
+The ranks a trainer teaches at 60, before spell damage, from the rendered tooltips and SpellEffect
+[F] [C] [client] (SpellEffect, SpellPower, SpellMisc, SpellCastTimes, both builds). Shadow Bolt r10
+(25307), Immolate r8 (25309) and Corruption r7 (25311) are Ahn'Qiraj books (Grimoire of Shadow Bolt X,
+Immolate VIII and Corruption VII, items 21281–21283, whose `ItemEffect` learns each [F] [client]
+(ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), and Ahn'Qiraj comes long after launch, so
+the sim casts the ranks below them ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25);
+the books' ranks were 253–283 and 380 mana, 158 then 55 × 5 and 380 mana, and 73 × 6 and 340 mana):
 
 | Spell (rank, id) | Forever | Classic Era | Coefficient F / C |
 | --- | --- | --- | --- |
-| Shadow Bolt (10, 25307) | 253–283, 3 s, 380 mana | 482–538 | 0.857 / 0.857 |
-| Immolate (8, 25309) | 158, then 55 × 5 (3 s), 2 s, 380 mana | 279, then 102 × 5 | 0.2 + 0.13 a tick, both |
+| Shadow Bolt (9, 11661) | 237–265, 3 s, 370 mana | 455–507 | 0.857 / 0.857 |
+| Immolate (7, 11668) | 146, then 52 × 5 (3 s), 2 s, 370 mana | 258, then 97 × 5 | 0.2 + 0.13 a tick, both |
 | Conflagrate (6, 18932) | 251–313, 10 s cooldown, 255 mana | 18932 is rank 4: 447–557 | 0.429 / 0.429 |
 | Incinerate (3, 1293813) | 201–233, +25% on your Immolate, 2.5 s, 325 mana | none (new) | 0.714 |
 | Shadowburn (6, 18871) | 258–288, 15 s cooldown, 365 mana | 462–514 | 0.429 / 0.429 |
 | Searing Pain (6, 17923) | 107–126 at 60 (114 ± 8.1%, +1.2 a level from 58), 1.5 s, 168 mana | 208–244 | 0.429 / 0.429 |
-| Corruption (7, 25311) | 73 × 6 (3 s), 2 s, 340 mana | 137 × 6 | 0.2 / 0.167 a tick |
+| Corruption (6, 11672) | 57 × 6 (3 s), 2 s, 290 mana | 111 × 6 | 0.2 / 0.167 a tick |
 | Bane of Agony (6, 11713) | 46 × 12 (2 s), 552 in all, 215 mana | Curse of Agony: 87 × 12 | 0.133 / 0.083 a tick |
 | Bane of Doom (603) | 1742 after 60 s, 1 min cooldown, 300 mana | Curse of Doom: 3200 | **4.0** / 1.0 |
 | Siphon Life (4, 18881) | 41 × 10 (3 s), 365 mana, no periodic crits | 45 × 10 | 0.05 / 0.05 |
@@ -647,12 +652,12 @@ Each with its estimated effect on DPS, per [D24](../decisions.md).
 Each is a unit test in `src/sim/classes/warlock/warlock.test.ts`. Profile `forever`; a level-63 boss
 (6% average resist).
 
-1. **Shadow Bolt.** 268 × (1 ± 0.0549) = 253.29–282.71; with 500 Shadow spell damage, no talents:
-   `(268 + 0.857 × 500) × 0.94 = 654.71` on average.
+1. **Shadow Bolt r9.** 251 × (1 ± 0.0541) = 237.43–264.57; with 500 Shadow spell damage, no talents:
+   `(251 + 0.857 × 500) × 0.94 = 638.73` on average.
 2. **Immolate, Destruction build.** Aftermath 5 and Agonizing Flames 3: its hit ×1.5 × 1.1 = ×1.65,
-   its ticks ×1.1; with 400 Fire spell damage, `(158 + 80) × 1.65 = 392.7` before resist, and each
-   tick `(55 + 52) × 1.1 = 117.7`.
-3. **Costs with Cataclysm 3/3.** Shadow Bolt 380 → 342, Immolate 342, Conflagrate 255 → 229,
+   its ticks ×1.1; with 400 Fire spell damage, rank 7's `(146 + 80) × 1.65 = 372.9` before resist,
+   and each tick `(52 + 52) × 1.1 = 114.4`.
+3. **Costs with Cataclysm 3/3.** Shadow Bolt 370 → 333, Immolate 333, Conflagrate 255 → 229,
    Incinerate 325 → 292, Shadowburn 365 → 328 (rounded down).
 4. **Casts with Bane 5/5.** Shadow Bolt 2.5 s, Immolate 1.5 s, Incinerate 2.0 s; Corruption with
    Improved Corruption 5/5 is instant.

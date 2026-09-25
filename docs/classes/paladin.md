@@ -12,7 +12,7 @@ Light, which does seal twisting for you and makes seals cheaper. Protection gain
 judgement (Seal of Fury), mana on block (Shield Specialization), Iron Creed and a stronger
 Holy Shield; Righteous Fury is Classic Era's +60% Holy threat again (1.60.1.70009; it was +90%). Blessing of Sanctuary,
 Sanctity Aura and Improved Blessing of Might are gone. Blessing of Might drops to 133 attack
-power, Consecration and Blessing of Kings are trained baseline, and Blessings last an hour.
+power at rank 7 (112 at rank 6, the trainer's: rank 7 is an Ahn'Qiraj libram, D36), Consecration and Blessing of Kings are trained baseline, and Blessings last an hour.
 Undead can now be paladins, so **both factions have paladins**, and Dwarves can be shamans,
 so both factions also have Windfury. This doc is the engine contract for both specs: every
 ability, proc and talent at level 60, with numbers, hit-table behaviour, rotation settings,
@@ -101,10 +101,10 @@ Charger is Dwarf and Human only [F].
 | Holy Shield r3 | 30% block, 130 dmg, 0.05 coef | **20% block, 221 dmg, 0.08 coef**, 4 charges | [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009; [20928][f20928]) vs [C 20928][c20928] |
 | Righteous Fury | +60% Holy threat | **+60%**, the same (+90% until 1.60.1.70009) | [F] [client] (SpellEffect, school mask 2, 1.60.1.70009; [25780][f25780]) |
 | Improved Righteous Fury | +16/33/50% RF threat | **−2/4/6% damage taken** while RF is up | [F] [talents](https://foreverchanges.pro/talents/paladin); [client] (TraitDefinitionEffectPoints curve 82954, 1.60.1.70009) |
-| Blessing of Might r7 | 185 AP, 5 min | **133 AP, 1 h** | [F] [F 25291][f25291] |
+| Blessing of Might r6 (19838), the trainer's (r7 is an Ahn'Qiraj libram, D36) | 155 AP, 5 min | **112 AP, 1 h** (r7: 133) | [F] [F 19838][f19838] ([F 25291][f25291]) |
 | Improved Blessing of Might | +20% | **removed** | [F] [class page](https://foreverchanges.pro/class/paladin) |
 | Blessing of Kings | Prot talent (tier 3) | **trained at 20**, 1 h | [F] [F 20217][f20217] |
-| Blessing of Wisdom r6 | 33 mp5 | **40 mp5**, 1 h | [F] [F 25290][f25290] |
+| Blessing of Wisdom r5 (19854), the trainer's (r6 is an Ahn'Qiraj libram, D36) | 30 mp5 | **36 mp5**, 1 h (r6: 40) | [F] [F 19854][f19854] ([F 25290][f25290]) |
 | Blessing of Salvation | 5 min | 1 h, still −30% threat | [F] [client] (SpellEffect, 1.60.1.70009; [1038][f1038]) |
 | Blessing of Sanctuary (+ Greater) | talent | **gone from the client** | [F] [spellbook "Not in Forever"](https://foreverchanges.pro/spellbook/paladin), [C 20914][c20914] |
 | Sanctity Aura (+10% party Holy damage) | Ret talent | **removed** from the tree and not trained | [F] [class page](https://foreverchanges.pro/class/paladin) |
@@ -437,8 +437,12 @@ These judgements are debuffs: taking one replaces your JotC.
 
 ### Blessings (for the buffs doc)
 
-Might **133 AP** (Greater Might r2 133) [F] ([F 25291][f25291], [F 25916][f25916]). Kings +10% all
-stats (baseline) [F] ([F 20217][f20217]). Wisdom **40 mp5** [F] ([F 25290][f25290]). Salvation
+The trainer's ranks ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25): no
+Ahn'Qiraj libram's rank): Might r6 **112 AP** (Greater Might r1 112) [F] ([F 19838][f19838],
+[F 25782][f25782]); the librams' r7 and Greater r2 are 133 ([F 25291][f25291], [F 25916][f25916]),
+and Greater r2 is taken to come with the libram [?] ([buffs OQ 22](../mechanics/buffs-debuffs-consumables.md#open-questions)).
+Kings +10% all stats (baseline) [F] ([F 20217][f20217]). Wisdom r5 **36 mp5** (Greater r1 the same;
+the libram's r6 40) [F] ([F 19854][f19854], [F 25290][f25290]). Salvation
 −30% threat [F] [client] (SpellEffect, 1.60.1.70009; [1038][f1038]). Light unchanged. All last 1 h, Greater Blessings too.
 Blessing of Sanctuary doesn't exist [F]. Presets and stacking rules belong in
 [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md).
@@ -532,7 +536,7 @@ and aren't modelled.
 | Costs, Prot build (no Benediction) | SoF 200, Judgement 90 (0 after Swift Judgement), Holy Strike 20, Holy Shield 240, Consecration r5 565, HotR 90, RF 453 | [F] |
 | Sanctified Judgement 3/3 | +126 per SoC judgement, +120 per SoR/SoF judgement | [F] |
 | Spirit regen | the class formula with the five-second rule; any mana spent starts a 5 s window with no spirit regen (Reverence lets some continue) | [C] → [character-stats.md](../mechanics/character-stats.md) |
-| mp5 | gear mp5 and Blessing of Wisdom (40 mp5) tick through the five-second rule | [F]/[C] |
+| mp5 | gear mp5 and Blessing of Wisdom (36 mp5) tick through the five-second rule | [F]/[C] |
 | The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
 | Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
@@ -715,7 +719,7 @@ The conditions are the table's rows above, and each row keeps its own wherever i
 | Weapon | slowest high-DPS pre-raid 2H (speed ≥ 3.4 preferred; ties → sword for Human) from `src/data/items` | SoC scales with weapon damage per swing; the 7 PPM normalizes procs/min, so a slow weapon gives bigger procs and more procs per swing |
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
 | Aura | Retribution Aura (no DPS effect unless you're hit); raid aura choice lives in the buffs doc | — |
-| Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions. Might is yours when no other paladin brings it: you bless yourself (the entry's `selfCast`, [buffs §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)), while Kings, Wisdom and Salvation need another paladin | [F] factions |
+| Buffs | standard raid buffs from the buffs doc: Kings and Might (112) from paladins, Windfury and totems in a melee group, both factions. Might is yours when no other paladin brings it: you bless yourself (the entry's `selfCast`, [buffs §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)), while Kings, Wisdom and Salvation need another paladin | [F] factions |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Elixir of Holy Power, an Elemental stone (in place of the Dense one: one stone at a time), Demonic/Dark Rune and Flask of Supreme Power. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 3,392 mana with the default gear. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
 | Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader from before the pull, Seal of Command, Consecration from 20% mana and rank 1 from 10% (searched with the talents on 1.60.1.70009, first pass, D27), Exorcism from 20%, Hammer of Wrath at any mana, the potion early from 1,500 missing, on-use trinkets and Juju Flurry on cooldown | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
 
@@ -1064,9 +1068,14 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
       +7.47 DPS (+1.63%), +1.1 damage taken a second (+0.12%); Max TPS +12.36 TPS (+1.56%), +7.47
       DPS. On seed 31101 (100,000 fights): **752.62 TPS, 466.60 DPS and 918.6 damage taken a second**
       for Balanced and Defensive; Max TPS against it +6.76% TPS, +6.68% DPS and +5.72% damage taken;
-      Hammer of the Righteous turned on −1.64% TPS, +0.23% DPS and +4.92% damage taken. The presets'
-      help quotes these (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures
-      again).
+      Hammer of the Righteous turned on −1.64% TPS, +0.23% DPS and +4.92% damage taken.
+    - **Re-measured with the trainers' ranks** ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25):
+      the raid's Blessing of Might r6 and Wisdom r5, Battle Shout r6 and Strength of Earth r4; seed
+      31101, 100,000 fights): **746.42 TPS, 460.97 DPS and 918.9 damage taken a second** for Balanced
+      and Defensive; Max TPS against it +6.81% TPS, +6.76% DPS and +5.72% damage taken; Hammer of the
+      Righteous turned on −2.00% TPS (−15.13 to −14.77), −0.13% DPS (−0.73 to −0.50) and +4.92% damage
+      taken. The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
+      `protection-presets.test.ts` measures again), each change with its direction.
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -1835,6 +1844,9 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f1224697]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=1224697
 [f9452]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=9452
 [f440668]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=440668
+[f19838]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=19838
+[f25782]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=25782
+[f19854]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=19854
 [f25291]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=25291
 [f25916]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=25916
 [f20217]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20217

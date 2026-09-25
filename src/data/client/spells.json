@@ -36,9 +36,9 @@
   },
   "counts": {
     "bySource": {
-      "buffsDoc": 49,
+      "buffsDoc": 51,
       "consumable": 82,
-      "docs": 605,
+      "docs": 623,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2853,
-    "spells": 3128
+    "seeds": 2856,
+    "spells": 3130
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -42648,7 +42648,7 @@
         "shapeshiftExclude": [2, 0],
         "shapeshiftMask": [1073741824, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "9880": {
       "categories": {
@@ -44489,7 +44489,7 @@
       "range": {
         "rangeMax": [35, 35]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10156": {
       "categories": {
@@ -45276,7 +45276,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10185": {
       "categories": {
@@ -46077,7 +46077,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10215": {
       "castTime": {
@@ -46612,7 +46612,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "10278": {
       "auraOptions": {
@@ -48642,6 +48642,39 @@
       ],
       "sources": ["spellbook"]
     },
+    "10441": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 134217728],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 29,
+          "effectBasePointsF": 42,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 10441,
+      "levels": {
+        "baseLevel": 52,
+        "spellLevel": 52
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136023
+      },
+      "name": "Strength of Earth",
+      "nameSubtext": "Rank 4",
+      "sources": ["buffsDoc", "docs"]
+    },
     "10442": {
       "categories": {
         "defenseType": 1,
@@ -48685,7 +48718,7 @@
           "manaCost": 225
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "10447": {
       "categories": {
@@ -50381,7 +50414,7 @@
       },
       "name": "Grace of Air",
       "nameSubtext": "Rank 2",
-      "sources": ["docs"]
+      "sources": ["buffsDoc", "docs"]
     },
     "10627": {
       "categories": {
@@ -50426,7 +50459,7 @@
           "manaCost": 250
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "10667": {
       "auraOptions": {
@@ -55086,7 +55119,7 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11285": {
       "auraOptions": {
@@ -56006,6 +56039,100 @@
       "name": "Greater Armor",
       "sources": ["consumable"]
     },
+    "11354": {
+      "auraOptions": {
+        "cumulativeAura": 5,
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 4
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "duration": {
+        "duration": 12000,
+        "maxDuration": 12000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 3,
+          "effectAuraPeriod": 3000,
+          "effectBasePointsF": 18,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 11354,
+      "levels": {
+        "baseLevel": 54,
+        "spellLevel": 54
+      },
+      "misc": {
+        "attributes": [0, 131208, 0, 1073741952, 0, 0, 0, 0, 512, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 132290
+      },
+      "name": "Deadly Poison IV",
+      "nameSubtext": "Rank 4",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "11356": {
+      "auraOptions": {
+        "procChance": 30
+      },
+      "castTime": {
+        "base": 3000,
+        "minimum": 3000
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 0],
+        "spellClassSet": 8
+      },
+      "effects": [
+        {
+          "effect": 360,
+          "effectBasePointsF": 1800,
+          "effectIndex": 0,
+          "effectMiscValue": [627, 0]
+        },
+        {
+          "effect": 3,
+          "effectIndex": 1
+        },
+        {
+          "effect": 3,
+          "effectBasePointsF": 160,
+          "effectIndex": 2
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 2,
+        "equippedItemSubclass": 173555
+      },
+      "id": 11356,
+      "levels": {
+        "baseLevel": 54,
+        "spellLevel": 54
+      },
+      "misc": {
+        "attributes": [65552, 131104, 8192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132290
+      },
+      "name": "Deadly Poison IV",
+      "nameSubtext": "Rank 4",
+      "sources": ["consumable", "docs"],
+      "targetRestrictions": {
+        "targets": 16
+      }
+    },
     "11366": {
       "auraOptions": {
         "procChance": 101
@@ -56678,7 +56805,7 @@
           "powerType": 1
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "11554": {
       "auraOptions": {
@@ -57746,7 +57873,7 @@
       "shapeshift": {
         "shapeshiftMask": [131072, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11604": {
       "castTime": {
@@ -58111,7 +58238,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11665": {
       "castTime": {
@@ -58321,7 +58448,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11671": {
       "castTime": {
@@ -58433,7 +58560,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11675": {
       "auraOptions": {
@@ -64612,7 +64739,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "13601": {
       "auraOptions": {
@@ -69737,7 +69864,7 @@
           "manaCost": 90
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "14322": {
       "auraOptions": {
@@ -90112,7 +90239,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "19850": {
       "categories": {
@@ -90312,7 +90439,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "19874": {
       "categories": {
@@ -109744,7 +109871,7 @@
           "powerType": 1
         }
       ],
-      "sources": ["buffsDoc", "docs", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25290": {
       "categories": {
@@ -109794,7 +109921,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["buffsDoc", "docs", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25291": {
       "categories": {
@@ -109844,7 +109971,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["buffsDoc", "docs", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25292": {
       "castTime": {
@@ -110010,7 +110137,7 @@
           "manaCost": 120
         }
       ],
-      "sources": ["docs", "spellbook"]
+      "sources": ["spellbook"]
     },
     "25297": {
       "castTime": {
@@ -110361,7 +110488,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["docs", "spellbook"]
+      "sources": ["spellbook"]
     },
     "25306": {
       "auraOptions": {
@@ -110481,7 +110608,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["docs", "spellbook"]
+      "sources": ["spellbook"]
     },
     "25309": {
       "castTime": {
@@ -110962,7 +111089,7 @@
       },
       "name": "Deadly Poison V",
       "nameSubtext": "Rank 5",
-      "sources": ["consumable", "docs"],
+      "sources": ["docs"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -111062,7 +111189,7 @@
           "manaCost": 310
         }
       ],
-      "sources": ["buffsDoc", "docs", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25360": {
       "categories": {
@@ -111141,40 +111268,7 @@
           "manaCost": 275
         }
       ],
-      "sources": ["buffsDoc", "docs", "spellbook"]
-    },
-    "25362": {
-      "categories": {
-        "defenseType": 1,
-        "preventionType": 1
-      },
-      "classOptions": {
-        "spellClassMask": [65536, 0, 0, 134217728],
-        "spellClassSet": 11
-      },
-      "effects": [
-        {
-          "effect": 35,
-          "effectAura": 29,
-          "effectBasePointsF": 53,
-          "effectIndex": 0,
-          "effectRadiusIndex": [10, 10],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 25362,
-      "levels": {
-        "baseLevel": 60,
-        "spellLevel": 60
-      },
-      "misc": {
-        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 8,
-        "spellIconFileDataId": 136023
-      },
-      "name": "Strength of Earth",
-      "nameSubtext": "Rank 5",
-      "sources": ["docs"]
+      "sources": ["docs", "spellbook"]
     },
     "25660": {
       "categories": {
@@ -111431,7 +111525,7 @@
       "range": {
         "rangeMax": [40, 40]
       },
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "docs", "spellbook"]
     },
     "25804": {
       "auraOptions": {
@@ -111637,7 +111731,7 @@
       "range": {
         "rangeMax": [40, 40]
       },
-      "sources": ["spellbook"]
+      "sources": ["buffsDoc", "spellbook"]
     },
     "25895": {
       "categories": {
@@ -111881,7 +111975,7 @@
       "range": {
         "rangeMax": [40, 40]
       },
-      "sources": ["buffsDoc", "docs", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25918": {
       "categories": {
@@ -111932,7 +112026,7 @@
       "range": {
         "rangeMax": [40, 40]
       },
-      "sources": ["buffsDoc", "spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25956": {
       "classOptions": {

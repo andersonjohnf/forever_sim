@@ -84,7 +84,7 @@ test.describe('Combat rogue', () => {
     await switchToCombat(page)
     await openTab(page, 'Buffs')
     const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
-    await expect(buffs.getByRole('switch', { name: 'Deadly Poison V (main hand)' })).toBeChecked()
+    await expect(buffs.getByRole('switch', { name: 'Deadly Poison IV (main hand)' })).toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Instant Poison VI (off hand)' })).toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Instant Poison VI (main hand)' })).not.toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Thistle Tea' })).toBeChecked()

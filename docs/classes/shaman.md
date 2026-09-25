@@ -289,8 +289,8 @@ mana ledger ("Mana per fight": the pool, regenerated, restored, spent).
 | Consumables | Major Mana Potion (1,350–2,250, 2 min) and Demonic or Dark Rune (900–1,500, their own 2 min); values owned by the [buffs doc](../mechanics/buffs-debuffs-consumables.md#35-potions-and-runes) | [C] |
 
 Mindfulness (Restoration, 50% of regeneration while casting) isn't in the default build and isn't
-simulated. With the default setup's Spirit 168 and mp5 65, a tick is 48.6 + 26 = 74.6 outside the
-rule, 26 inside it, and 26 + 24.3 = 50.3 inside it after a Stormstrike
+simulated. With the default setup's Spirit 168 and mp5 61, a tick is 48.6 + 24.4 = 73.0 outside the
+rule, 24.4 inside it, and 24.4 + 24.3 = 48.7 inside it after a Stormstrike
 ([worked example 9](#worked-examples)). Earth Shock is the mana sink: the rotation keeps a reserve
 for Stormstrike by shocking only above 10% mana.
 
@@ -305,8 +305,8 @@ shaman in the raid and Self only brings them
 
 | Totem | Effect | Default |
 | --- | --- | --- |
-| Strength of Earth | +53 Strength | on |
-| Grace of Air | +89 Agility | on (the air totem) |
+| Strength of Earth (rank 4) | +42 Strength | on |
+| Grace of Air (rank 2) | +77 Agility | on (the air totem) |
 | Mana Spring | 10 mana every 2 s | on |
 | Windfury Totem | 20% on a main-hand hit, 1 extra attack with +246 AP | **off**: Windfury Weapon disables it for you |
 
@@ -321,7 +321,12 @@ them all with the same new `Attributes[11]` flag, 0x400, on every rank's aura [F
 - Windfury Totem 8515, 10609 and 10612, and Grace of Air 8836, 10626 and 25360;
 - Flametongue Totem 8230, 8250, 10521 and 15036, and Tranquil Air 25909.
 
-The sim models the rank-3 Windfury and Grace of Air; Flametongue Totem isn't in the catalogue.
+The sim models the rank-3 Windfury, the rank-2 Grace of Air and the rank-4 Strength of Earth, the
+top ranks a trainer teaches: Grace of Air rank 3 (25359) and Strength of Earth rank 5 (25361) are
+Ahn'Qiraj tablets (Tablet of Grace of Air Totem III and Tablet of Strength of Earth Totem V, items 21293
+and 21292 [F] [client] (ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), and Ahn'Qiraj comes
+long after launch ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Flametongue
+Totem isn't in the catalogue.
 
 - **Windfury Totem and Windfury Weapon.** Windfury Weapon's Forever tooltip: "When applied to main
   hand, disables any benefit you personally receive from Windfury Totem" [F]. So no preset gives
@@ -668,9 +673,10 @@ runs through the engine in `src/sim/classes/shaman/shaman.test.ts`.
    would come at 0, 3.6, 7.2 s.
 8. **Elemental Devastation** (3/3): a spell crit gives **+9% melee crit for 10 s**; an Earth Shock that
    crits every 6 s keeps it up, and your white crits rise by 9 points.
-9. **Mana ticks** (the default setup: 3,925 mana, Spirit 168, mp5 65): **48.6** spirit regeneration
-   (15 + 168 / 5) and **26** mp5 (65 × 2 / 5) a tick, so **74.6** outside the five-second rule, **26**
-   inside it, and **50.3** inside it within 15 s of a Stormstrike with Improved Stormstrike 2/2. A
+9. **Mana ticks** (the default setup: 3,925 mana, Spirit 168, mp5 61: Blessing of Wisdom r5's 36 and
+   Mana Spring's 25): **48.6** spirit regeneration (15 + 168 / 5) and **24.4** mp5 (61 × 2 / 5) a tick,
+   so **73.0** outside the five-second rule, **24.4** inside it, and **48.7** inside it within 15 s of a
+   Stormstrike with Improved Stormstrike 2/2. A
    free Lightning Bolt (5 stacks) starts no five-second rule; one with 4 stacks (44 mana) does.
 10. **Intellect**: the default setup's **179** Intellect (Ancestral Knowledge's +10% and Blessing of
     Kings' +10% included) gives **+179 attack power** (Mental Dexterity 3/3) and **+53 spell damage**
@@ -1007,8 +1013,8 @@ build's talents. Each runs through the engine in `src/sim/classes/shaman/element
    threat and triggers nothing.
 7. **Clearcasting**: 10% of landed Fire, Frost and Nature spells; the next spell costs nothing and
    starts no five-second rule, and Chain Lightning with Clearcasting waits for it.
-8. **Mana** (the default setup: 4,975 mana, Spirit 188, mp5 65): **52.6 + 26 = 78.6** a tick outside
-   the five-second rule, **26.3 + 26 = 52.3** inside it (Mindfulness 3/3). Mana Tide restores **1,160**
+8. **Mana** (the default setup: 4,975 mana, Spirit 188, mp5 61): **52.6 + 24.4 = 77.0** a tick
+   outside the five-second rule, **26.3 + 24.4 = 50.7** inside it (Mindfulness 3/3). Mana Tide restores **1,160**
    (4 × 290, from 3 s after it drops), once a 3-minute fight, at 3,000 missing: 1,975 mana or less.
 9. **Downranking** with rank 10 from 10% (497.5 mana): rank 10 at 497.5 or more, rank 4 below;
    rank 10 with Clearcasting at any mana.

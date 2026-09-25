@@ -186,7 +186,7 @@ same types and is corroboration only.
 | Whirlwind (1680) | 121 | normalized | [F]; [C] ([ws-spell]; [marrow-ab]) |
 | Spearing Strike (1310222, new) | 121 + 31 | normalized | [F] |
 | Holy Strike (10333, new baseline) | 121 + 31 | normalized | [F] |
-| Heroic Strike (25286) | 17 | real | [F]; [C] ([ws-weapon]) |
+| Heroic Strike (11567, rank 8) | 17 | real | [F]; [C] ([ws-weapon]) |
 | Cleave (20569) | 17 | real | [F]; [C] (it replaces the main-hand swing, [marrow-ab]) |
 | Slam (11605) | 17 | real | [F] tooltip "weapon damage plus 87"; [C] "Slam is not speed normalized" ([marrow-ab]) |
 | Cat/bear attacks (Shred, Claw, Rake, Ravage, Maul, …) | 58 (+31) | form weapon | [F]; see the druid doc |
@@ -578,8 +578,8 @@ Weapon 150–230 (mean 190), speed 3.60, AP 1500, multipliers ×1.05:
 - Whirlwind (normalized 3.3): 190 + 1500/14 × 3.3 = **543.571**
 - Mortal Strike (+160 flat in the Forever client, rank 4; value owned by the warrior doc):
   543.571 + 160 = **703.571**
-- Heroic Strike (rank 9, +157 in both clients' tooltips; value owned by the warrior doc; real
-  speed 3.6): 575.714 + 157 = **732.714**
+- Heroic Strike (rank 8, the trainer's (D36), +138 in both clients; value owned by the warrior
+  doc; real speed 3.6): 575.714 + 138 = **713.714**
 
 **WE-4: off-hand**
 

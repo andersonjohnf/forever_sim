@@ -77,9 +77,9 @@ const FORM = { battle: 1 << 16, defensive: 1 << 17, berserker: 1 << 18 }
 /** `TargetAuraState` 2: the target is at or below 20% health (the execute phase). */
 const HEALTH_20 = 2
 
-/** Every warrior ability the talent lists name, with its max-rank spell id (warrior.md §3.1, §3.2). */
+/** Every warrior ability the talent lists name, with the trainer's top rank's spell id at 60 (warrior.md §3.1, §3.2; D36: no Ahn'Qiraj book's rank). */
 const SPELL_ID: Record<string, number> = {
-  heroicStrike: 25286,
+  heroicStrike: 11567,
   cleave: 20569,
   bloodthirst: 23894,
   mortalStrike: 21553,
@@ -91,10 +91,10 @@ const SPELL_ID: Record<string, number> = {
   rend: 11574,
   spearingStrike: 1310222,
   thunderClap: 11581,
-  revenge: 25288,
+  revenge: 11601,
   shieldSlam: 23925,
   victoryRush: 402927,
-  battleShout: 25289,
+  battleShout: 11551,
   demoralizingShout: 11556,
   sunderArmor: 11597,
   bloodrage: 2687,
@@ -388,7 +388,7 @@ describe('Arms talents on the abilities (warrior.md §4.1)', () => {
 
 /** Cast abilities and their spell ids (warrior.md §3.2, §2.9). */
 const CAST_SPELL_ID: Record<string, number> = {
-  battleShout: 25289,
+  battleShout: 11551,
   bloodrage: 2687,
   deathWish: 12328,
   recklessness: 1719,
@@ -412,7 +412,7 @@ const AURA_MOD: Record<number, string[]> = { 79: ['damage'], 290: ['crit', 'spel
  * An effect's points at level 60, by the spell-text renderer's rule (scripts/scrape/lib/spell-text.mjs
  * `scalingLevels`, `effectRange`; docs/data/items.md#per-level-values): base + the per-level term ×
  * the levels from `spellLevel` to 60 (or to `maxLevel` when lower), never below 0, truncated toward
- * zero (Battle Shout: 139 + 0.6 × 0).
+ * zero (Battle Shout rank 6: 111 + trunc(0.6 × 8) = 115).
  */
 const pointsAt60 = (spell: (typeof spells)[string], e: (typeof spells)[string]['effects'][number]) =>
   (e.effectBasePointsF ?? 0) +
@@ -455,11 +455,11 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
     })
   }
 
-  it('Battle Shout rank 7 is 139 attack power at 60 (0.6 per level from level 60), not reduced by Focused Rage (warrior.md §1.1, §2.3)', () => {
-    expect(BATTLE_SHOUT.aura?.mods).toEqual({ ap: 139 })
+  it('Battle Shout rank 6 is 115 attack power at 60 (111 + 0.6 per level from level 52, truncated), not reduced by Focused Rage (warrior.md §1.1, §2.3)', () => {
+    expect(BATTLE_SHOUT.aura?.mods).toEqual({ ap: 115 })
     expect(withTalents(BATTLE_SHOUT, new Map([['Focused Rage', 3]])).costTenths).toBe(100)
-    // The same 139 as the Buffs tab's Battle Shout, which the rotation's upkeep replaces.
-    expect(BUFFS_BY_ID.get('battleShout')!.effects).toEqual([{ kind: 'stat', stat: 'ap', value: 139 }])
+    // The same 115 as the Buffs tab's Battle Shout, which the rotation's upkeep replaces.
+    expect(BUFFS_BY_ID.get('battleShout')!.effects).toEqual([{ kind: 'stat', stat: 'ap', value: 115 }])
   })
 
   it('Recklessness per profile: all crit (aura 290) in Forever, so spells crit more; Classic Era’s is melee crit only (aura 52) (warrior.md §2.6)', () => {
@@ -472,26 +472,26 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
     expect(aura).toEqual({ ...foreverAura, mods: { crit: 100 } })
   })
 
-  it('Battle Shout per profile: Classic Era’s is 232 attack power for 2 min, the catalogue’s Classic Era value (warrior.md §1.1, §3.2)', () => {
+  it('Battle Shout per profile: Classic Era’s rank 6 is 193 attack power for 2 min, the catalogue’s Classic Era value (warrior.md §1.1, §3.2)', () => {
     expect(battleShout(FOREVER)).toBe(BATTLE_SHOUT)
     expect(battleShout(CLASSIC_ERA)).toBe(BATTLE_SHOUT_CLASSIC_ERA)
     // Only the aura differs: the cost, cooldown, GCD and stances are the same in both clients.
     const { aura, ...rest } = BATTLE_SHOUT_CLASSIC_ERA
     const { aura: foreverAura, ...foreverRest } = BATTLE_SHOUT
     expect(rest).toEqual(foreverRest)
-    expect(aura).toEqual({ ...foreverAura, durationMs: 120000, mods: { ap: 232 } })
+    expect(aura).toEqual({ ...foreverAura, durationMs: 120000, mods: { ap: 193 } })
     for (const profile of [FOREVER, CLASSIC_ERA]) {
       expect(catalogueEffects(BUFFS_BY_ID.get('battleShout')!, profile)).toEqual([{ kind: 'stat', stat: 'ap', value: battleShout(profile).aura!.mods.ap }])
     }
   })
 
   // The committed client data is Forever's only; with the raw Classic Era tables cached locally
-  // (.cache/client/1.15.9.69722/tables, from `npm run scrape:client`), check Classic Era's 25289.
+  // (.cache/client/1.15.9.69722/tables, from `npm run scrape:client`), check Classic Era's 11551.
   const CLASSIC_TABLES = import.meta.glob<string>('/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellLevels,SpellMisc,SpellDuration,SpellPower,SpellCooldowns}.ndjson', {
     query: '?raw',
     import: 'default',
   })
-  it.skipIf(Object.keys(CLASSIC_TABLES).length !== 6)('Classic Era’s Battle Shout matches the Classic Era client’s 25289 (1.15.9.69722, cached locally)', async () => {
+  it.skipIf(Object.keys(CLASSIC_TABLES).length !== 6)('Classic Era’s Battle Shout matches the Classic Era client’s 11551 (1.15.9.69722, cached locally)', async () => {
     /** The spell's rows in a table, found by line so the large tables aren't parsed whole. */
     const rows = async (table: string, key: string, id: number) => {
       const raw = await CLASSIC_TABLES[`/.cache/client/1.15.9.69722/tables/${table}.ndjson`]()
@@ -502,12 +502,12 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
         .map((line) => JSON.parse(line) as Record<string, number>)
         .filter((r) => (r.DifficultyID ?? 0) === 0)
     }
-    const [effect] = (await rows('SpellEffect', 'SpellID', 25289)).filter((r) => r.Effect === APPLY_AURA && r.EffectAura === 99)
-    const [levels] = await rows('SpellLevels', 'SpellID', 25289)
-    const [misc] = await rows('SpellMisc', 'SpellID', 25289)
+    const [effect] = (await rows('SpellEffect', 'SpellID', 11551)).filter((r) => r.Effect === APPLY_AURA && r.EffectAura === 99)
+    const [levels] = await rows('SpellLevels', 'SpellID', 11551)
+    const [misc] = await rows('SpellMisc', 'SpellID', 11551)
     const [duration] = await rows('SpellDuration', 'ID', misc.DurationIndex)
-    const [power] = await rows('SpellPower', 'SpellID', 25289)
-    const [cooldowns] = await rows('SpellCooldowns', 'SpellID', 25289)
+    const [power] = await rows('SpellPower', 'SpellID', 11551)
+    const [cooldowns] = await rows('SpellCooldowns', 'SpellID', 11551)
     // Classic Era's layout: EffectBasePoints + 1 (EffectDieSides 1), + the per-level term at 60.
     const scaled = Math.trunc(effect.EffectRealPointsPerLevel * Math.max(0, Math.min(60, levels.MaxLevel || 60) - levels.SpellLevel))
     expect(effect.EffectDieSides).toBe(1)

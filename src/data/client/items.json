@@ -579,6 +579,62 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "8985": {
+      "appliesEnchantIds": [],
+      "doc": {
+        "enchantIds": [],
+        "name": "Deadly Poison IV",
+        "section": "3.6 Weapon enhancements (temporary)",
+        "spellIds": [11356]
+      },
+      "docMismatches": [],
+      "effects": [
+        {
+          "categoryCoolDownMSec": -1,
+          "charges": -1,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 0,
+          "id": 98512,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 11356,
+          "triggerType": 0
+        }
+      ],
+      "id": 8985,
+      "item": {
+        "classId": 0,
+        "iconFileDataId": 132290,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 8
+      },
+      "itemSparse": {
+        "allowableClass": 8,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Deadly Poison IV",
+        "dmgVariance": 0,
+        "flags": [64, 28676, 0, 0, 0],
+        "inventoryType": 0,
+        "itemDelay": 0,
+        "itemLevel": 54,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 54,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "9088": {
       "appliesEnchantIds": [],
       "doc": {
@@ -3070,62 +3126,6 @@
         "maxCount": 0,
         "overallQualityId": 1,
         "requiredLevel": 40,
-        "requiredSkill": 0,
-        "requiredSkillRank": 0,
-        "sheatheType": 0,
-        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      }
-    },
-    "20844": {
-      "appliesEnchantIds": [],
-      "doc": {
-        "enchantIds": [],
-        "name": "Deadly Poison V",
-        "section": "3.6 Weapon enhancements (temporary)",
-        "spellIds": [25351]
-      },
-      "docMismatches": [],
-      "effects": [
-        {
-          "categoryCoolDownMSec": -1,
-          "charges": -1,
-          "chrSpecializationId": 0,
-          "coolDownMSec": 0,
-          "id": 102389,
-          "legacySlotIndex": 0,
-          "playerConditionId": 0,
-          "spellCategoryId": 0,
-          "spellId": 25351,
-          "triggerType": 0
-        }
-      ],
-      "id": 20844,
-      "item": {
-        "classId": 0,
-        "iconFileDataId": 132290,
-        "inventoryType": 0,
-        "material": 3,
-        "sheatheType": 0,
-        "subclassId": 8
-      },
-      "itemSparse": {
-        "allowableClass": 8,
-        "allowableRace": [-1, -1],
-        "bonding": 0,
-        "damageType": 0,
-        "display": "Deadly Poison V",
-        "dmgVariance": 0,
-        "flags": [64, 28676, 0, 0, 0],
-        "inventoryType": 0,
-        "itemDelay": 0,
-        "itemLevel": 60,
-        "itemRange": 0,
-        "itemSet": 0,
-        "material": 3,
-        "maxCount": 0,
-        "overallQualityId": 1,
-        "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
         "sheatheType": 0,

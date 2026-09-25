@@ -31,7 +31,7 @@ first-pass defaults ([§8](#8-rotation))
 2. **Shots** on the ranged table: Aimed Shot and Multi-Shot on their shared cooldown, fitted between
    Auto Shots; Arcane Shot; Serpent Sting as a sting; Sniper Shot ([§3](#3-abilities)).
 3. **Your own buffs and debuff**: Aspect of the Hawk and Trueshot Aura before the pull, Hunter's Mark
-   on the boss, Rapid Fire and Quick Shots as ranged haste ([§3.6](#36-hunters-mark-r4-14325)–[§3.9](#39-aspect-of-the-hawk-r7-25296)).
+   on the boss, Rapid Fire and Quick Shots as ranged haste ([§3.6](#36-hunters-mark-r4-14325)–[§3.9](#39-aspect-of-the-hawk-r5-14321)).
 4. **The pet**: a cat with Claw and Bite on Focus, Bestial Wrath and Frenzy, or none with Lone Wolf
    ([§6](#6-pets)).
 5. **Mana**: `15 + Spirit / 5`, Bestial Discipline's share while casting, potions and runes ([§5](#5-mana)).
@@ -47,7 +47,9 @@ From the Forever client against Classic Era's (1.60.1.69913 vs 1.15.9.69722), [F
 - **Multi-Shot**: one rank (2643, level 18, no bonus; Classic Era's r5 +150), a 0.5 s cast, 13.9% of
   base mana, the shared 6 s cooldown (its own 10 s).
 - **Arcane Shot** r8 (14287): 217 Arcane and no spell damage coefficient (183 and 0.429).
-- **Serpent Sting** r9 (25295): 555 over 15 s as before, and the periodic-crit flag (Attributes[8] 0x200).
+- **Serpent Sting** r8 (13555), the trainer's top rank (r9, 25295, is an Ahn'Qiraj book, Guide: Serpent
+  Sting IX, [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)): 415 over 15 s (Classic
+  Era 490), and the periodic-crit flag (Attributes[8] 0x200).
 - **Hunter's Mark** r4 (14325): +71 ranged attack power (110).
 - **Rapid Fire** (3045): +40% melee attack speed too (aura 319).
 - **Trueshot Aura**: ranged attack power only, a Marksmanship talent (1299346, +30) whose rank 5 at
@@ -92,9 +94,14 @@ Normalized weapon damage, no bonus, a 0.5 s cast (hasted as Aimed Shot's [?]), 2
 217 Arcane, instant, 190 mana, its own 6 s cooldown (category 1173). A school shot: the ranged table's
 miss and crit, the Arcane multipliers and the boss's average resist, no armor; crit ×2 as a shot's [?].
 
-### 3.4 Serpent Sting (r9, 25295)
-A pure DoT on the ranged table: the hit roll lands it, 5 ticks of 111 Nature every 3 s, no
-coefficient, 250 mana. Its ticks can crit (the flag), at your spell crit as it lands, ×1.5 [?]; a
+<a id="34-serpent-sting-r9-25295"></a>
+
+### 3.4 Serpent Sting (r8, 13555)
+A pure DoT on the ranged table: the hit roll lands it, 5 ticks of 83 Nature every 3 s, no
+coefficient, 230 mana [F] [client] (SpellEffect, SpellPower, SpellMisc, 1.60.1.70009). Rank 9 (25295,
+111 a tick, 250 mana) is taught by an Ahn'Qiraj book (Guide: Serpent Sting IX, item 21306 → 25295 [F]
+[client] (ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), and Ahn'Qiraj comes long after
+launch ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Its ticks can crit (the flag), at your spell crit as it lands, ×1.5 [?]; a
 partial resist on average [?].
 
 ### 3.5 Sniper Shot (r3, 1310786)
@@ -113,8 +120,17 @@ and Auto Shots' ranged attack power, not your pet's (a melee attacker).
 ### 3.8 Bestial Wrath (19574)
 The pet deals +50% damage (aura 79) for 18 s; 12% of base mana (206), a 2 min cooldown, off the GCD [F].
 
-### 3.9 Aspect of the Hawk (r7, 25296)
-+120 ranged attack power (aura 124) until cancelled, cast before the pull [F]. It carries Quick Shots
+<a id="39-aspect-of-the-hawk-r7-25296"></a>
+
+### 3.9 Aspect of the Hawk (r5, 14321)
++90 ranged attack power (aura 124) until cancelled, cast before the pull [F] [client] (SpellEffect,
+1.60.1.70009). Rank 7 (25296, +120) is an Ahn'Qiraj book (Guide: Aspect of the Hawk VII, item 21307 →
+25296), so the sim doesn't use it ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)).
+The trainer's rank 6 (14322, level 58) gives only **+55** in the Forever client (Classic Era's is 110;
+every other rank is Classic's: 20, 35, 50, 70, 90, 120), and its tooltip says 55 too [F] [client]
+(SpellEffect, 1.60.1.69913, 69977 and 70009), so rank 5's +90 is the best a hunter has, and the one a
+hunter casts: a hunter who reads the spellbook picks the higher rank (D29). Whether rank 6's +55 is
+what the server applies is [OQ-H8](#oq-h8-aspect-of-the-hawk-rank-6) [?]. It carries Quick Shots
 (6150: +30% ranged attack speed for 12 s, aura 140) as a proc on Auto Shots that land, at the chance
 Deadly Aspects gives it (§4) [F].
 
@@ -372,12 +388,12 @@ attack power, no talents, no armor: (85 + 128) / 2 + 17.715 × 3.3 + 1000 / 14 �
 tick crit ×1.5 to 1 + 0.5 × 1.30 = **×1.65**.
 
 **WE-H3: Efficiency 5/5.** Aimed Shot 310 → ⌊263.5⌋ = **263**; Multi-Shot 239 → **203**; Arcane Shot 190
-→ **161**; Serpent Sting 250 → **212**; Hunter's Mark (**60**) and Sniper Shot (**365**) stay.
+→ **161**; Serpent Sting r8 230 → **195**; Hunter's Mark (**60**) and Sniper Shot (**365**) stay.
 
-**WE-H4: Improved Stings 3/3.** Serpent Sting's tick 111 × 1.20 = **133.2**, **666** over 15 s.
+**WE-H4: Improved Stings 3/3.** Serpent Sting r8's tick 83 × 1.20 = **99.6**, **498** over 15 s.
 
-**WE-H5: ranged attack power.** A naked Orc hunter (122 Agility) with Aspect of the Hawk: 110 + 2 × 122
-+ 120 = **474**; with Careful Aim 5/5 and 62 Intellect, **536**; Hunter's Mark, **607**.
+**WE-H5: ranged attack power.** A naked Orc hunter (122 Agility) with Aspect of the Hawk r5: 110 + 2 ×
+122 + 90 = **444**; with Careful Aim 5/5 and 62 Intellect, **506**; Hunter's Mark, **577**.
 
 **WE-H6: Quick Shots.** Deadly Aspects 5/5: **10%** of Auto Shots that land. With a 15% quiver and
 Rapid Fire, a 3.3 s weapon shoots every 3300 / (1.15 × 1.40 × 1.30) = **1,577 ms** (the core's WE-4).
@@ -386,12 +402,12 @@ Rapid Fire, a 3.3 s weapon shoots every 3300 / (1.15 × 1.40 × 1.30) = **1,577 
 1.02 (Focused Fire 2/2) = **1.612875**; Focus 5 × 1.20 = **6 a second** with Bestial Discipline 2/2.
 
 **WE-H9: what the Beast Mastery cat inherits** ([ranged-and-pets §6.1](../mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)).
-The default Beast Mastery setup at the pull: 1,155 attack power, 1,524 ranged attack power, 23.20%
-crit and 6% hit, melee and ranged alike; the cat's own 252 attack power + Battle Shout's 139 = 391,
-5% + Ferocity's 10% crit, and no hit. Its attack power 391 + 0.1 × 1,524 = **543.4**; its crit 15 +
-23.20 = **38.20%**; against a level-63 boss its specials crit 38.20 − 0.6 (its skill of 300) − 1.8
-(aura crit) = **35.80%**, and its swings and specials miss 8 − 6 = **2%**. With 1,000 more melee attack
-power (2,155), the melee side is the higher: 391 + 215.5 = **606.5**.
+The default Beast Mastery setup at the pull: 1,118 attack power, 1,468 ranged attack power, 22.96%
+crit and 6% hit, melee and ranged alike; the cat's own 252 attack power + Battle Shout's 115 (rank 6,
+D36) = 367, 5% + Ferocity's 10% crit, and no hit. Its attack power 367 + 0.1 × 1,468 = **513.8**; its
+crit 15 + 22.96 = **37.96%**; against a level-63 boss its specials crit 37.96 − 0.6 (its skill of 300) −
+1.8 (aura crit) = **35.56%**, and its swings and specials miss 8 − 6 = **2%**. With 1,000 more melee
+attack power (2,118), the melee side is the higher: 367 + 211.8 = **578.8**.
 
 **WE-H8: Rapid Fire with Rapid Killing 2/2**: 300 − 120 = **180 s**; Improved Arcane Shot 5/5: 6 − 1.5
 = **4.5 s**.
@@ -431,6 +447,13 @@ Survival's about a quarter. Its inheritance is the core's one rule (§6.1): with
 and Survival 9%. Battle Shout on it is worth 24.6 DPS (4.4%) on Beast Mastery, and Forever testers
 report pets can't receive external buffs (§6; the core's OQ-8). Test: the pet's sheet with and without
 Battle Shout, and with two owner gear sets.
+
+### OQ-H8: Aspect of the Hawk rank 6
+Rank 6 (14322, level 58) is +55 ranged attack power in every Forever client read (1.60.1.69913 to
+70009), under rank 5's +90 (Classic Era's rank 6 is 110). Ahn'Qiraj's rank 7 is out (D36), so the sim
+casts rank 5 (+90) [?]; if the server applies 110 to rank 6, the hunter's aspect is 20 more ranged attack
+power (about 1% of DPS). Test: rank 6's buff tooltip and the sheet's ranged attack power with rank 5
+and rank 6.
 
 ## Sources
 

@@ -202,9 +202,10 @@ Attack-table probabilities, glancing, and a mob blocking your attacks are covere
   (SpellAuraOptions, 1.60.1.69913)), so the HS and Cleave part is open. This default and question
   Q5 are owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific). Confidence:
   medium.
-- Forever Heroic Strike rank 9 is "+157 damage", unchanged from Classic
-  ([spellbook](https://foreverchanges.pro/spellbook/warrior); 25286 [client] (SpellEffect,
-  1.60.1.69913)). Damage, the queue and swing timing are covered in
+- Forever Heroic Strike rank 8, the trainer's ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25):
+  rank 9 is an Ahn'Qiraj book), is "+138 damage", unchanged from Classic (11567 [client]
+  (SpellEffect, 1.60.1.70009); rank 9's +157 is unchanged too,
+  [spellbook](https://foreverchanges.pro/spellbook/warrior)). Damage, the queue and swing timing are covered in
   [damage-and-timing.md](damage-and-timing.md).
 
 ---

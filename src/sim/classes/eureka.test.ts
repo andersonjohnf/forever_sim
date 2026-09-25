@@ -48,8 +48,8 @@ describe('Eureka! against the client (eureka.ts)', () => {
     }
     // Mutilate's cast only cuts its cost; its strikes, the damage spell, take the +10% (EV-1).
     expect(EUREKA_ABILITIES.rogue.mutilate.bits).toBe(EUREKA_COST | EUREKA_DAMAGE)
-    // Outside the masks: Pyroblast (18809), Incinerate (1293813), Siphon Life (18881), Hemorrhage (16511), Sunder Armor (11597), Revenge (25288).
-    const outside: [EurekaClass, number][] = [['mage', 18809], ['warlock', 1293813], ['warlock', 18881], ['rogue', 16511], ['warrior', 11597], ['warrior', 25288]]
+    // Outside the masks: Pyroblast (18809), Incinerate (1293813), Siphon Life (18881), Hemorrhage (16511), Sunder Armor (11597), Revenge (11601).
+    const outside: [EurekaClass, number][] = [['mage', 18809], ['warlock', 1293813], ['warlock', 18881], ['rogue', 16511], ['warrior', 11597], ['warrior', 11601]]
     for (const [cls, id] of outside) {
       const [cost, damage] = spell(EUREKA[cls].spellId).effects.map((x) => x.effectSpellClassMask ?? [])
       const mask = spell(id).classOptions!.spellClassMask!
@@ -99,7 +99,7 @@ describe('Eureka! against the client (eureka.ts)', () => {
 })
 
 describe('Eureka! in the engine (eureka.ts)', () => {
-  it('a Gnome mage: the next 3 Fireballs cost 369 mana, not 410, and deal +10%, their DoT’s ticks too; then the aura is gone', () => {
+  it('a Gnome mage: the next 3 Fireballs (rank 11) cost 355 mana, not 395, and deal +10%, their DoT’s ticks too; then the aura is gone', () => {
     const plan = examplePlan({ race: 'alliance-gnome', rotation: { [MAGE_IDS.fire.racial]: true } })
     fixSpell(plan, 'fireball', 1000)
     const { uses, damage, list } = events(plan, ['eureka'])
@@ -108,7 +108,7 @@ describe('Eureka! in the engine (eureka.ts)', () => {
     const casts = uses('fireball').slice(0, 5)
     expect(casts.map((u) => u.t)).toEqual([0, 3500, 7000, 10500, 14000])
     const spent = casts.slice(1).map((u, i) => casts[i].value - u.value)
-    expect(spent).toEqual([3690, 3690, 3690, 4100])
+    expect(spent).toEqual([3550, 3550, 3550, 3950])
     const hits = damage('fireball').slice(0, 5).map((d) => d.value)
     for (const k of [0, 1, 2]) expect(hits[k] / hits[3], `Fireball ${k + 1}`).toBeCloseTo(1.1, 12)
     expect(hits[4]).toBeCloseTo(hits[3], 12)

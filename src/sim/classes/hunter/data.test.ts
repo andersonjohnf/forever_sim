@@ -57,12 +57,12 @@ const curve = (name: string, effectIndex = 0) => talent(name).rankEffects.find((
 const AIMED = 20904
 const MULTI = 2643
 const ARCANE = 14287
-const STING = 25295
+const STING = 13555
 const SNIPER = 1310786
 const MARK = 14325
 const RAPID = 3045
 const WRATH = 19574
-const HAWK = 25296
+const HAWK = 14321
 const AUTO = 75
 /** Ranged defense type (SpellCategories.DefenseType 3). */
 const RANGED = 3
@@ -116,7 +116,7 @@ describe('the hunter’s rows against the Forever client (docs/classes/hunter.md
     expect(s.categories!.defenseType).toBe(RANGED)
   })
 
-  it('Serpent Sting: 5 ticks of 111 Nature every 3 s, no coefficient, the periodic-crit flag, 250 mana, on the ranged table', () => {
+  it('Serpent Sting r8 (the trainer’s, D36): 5 ticks of 83 Nature every 3 s, no coefficient, the periodic-crit flag, 230 mana, on the ranged table', () => {
     const s = spell(STING)
     const def = SERPENT_STING.spellDef!
     expect(effect(STING, 0).effectAura).toBe(3)
@@ -164,7 +164,8 @@ describe('the hunter’s rows against the Forever client (docs/classes/hunter.md
     expect(BESTIAL_WRATH.gcdMs).toBe(0)
   })
 
-  it('Aspect of the Hawk +120 ranged attack power and its Quick Shots: +30% ranged speed for 12 s', () => {
+  it('Aspect of the Hawk r5 +90 ranged attack power (r6 is +55 in Forever, r7 an Ahn’Qiraj book) and its Quick Shots: +30% ranged speed for 12 s', () => {
+    expect(effect(14322, 0).effectBasePointsF).toBe(55)
     expect(effect(HAWK, 0).effectAura).toBe(124)
     expect(effect(HAWK, 0).effectBasePointsF).toBe(ASPECT_OF_THE_HAWK_RAP)
     expect(effect(HAWK, 1).effectTriggerSpell).toBe(6150)

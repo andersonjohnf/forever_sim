@@ -178,7 +178,7 @@ describe('warrior worked examples in the engine (1800 AP, pre-armor)', () => {
     for (const d of damages(plan, source(plan, 'whirlwind'), 2)) expect(d).toBeCloseTo(555.2857142857143, 9)
   })
 
-  it('W7: Heroic Strike with one-hander O uses the real speed: 597.29–689.29, average 643.29, never glancing', () => {
+  it('W7: Heroic Strike rank 8 with one-hander O uses the real speed: 578.29–670.29, average 624.29, never glancing', () => {
     const plan = abilityPlan(only('heroicStrike'), 180000)
     plan.weapons = [{ ...plan.weapons[0]!, ...O }, null]
     alwaysLandNoCrit(plan)
@@ -186,9 +186,9 @@ describe('warrior worked examples in the engine (1800 AP, pre-armor)', () => {
     const hits = damages(plan, source(plan, 'heroicStrike'), 150)
     expect(hits.length).toBeGreaterThan(1000)
     // A glancing blow (×0.65–0.85 at 300 skill) would fall below the minimum.
-    expect(Math.min(...hits)).toBeGreaterThanOrEqual(106 + (1800 / 14) * 2.6 + 157 - 1e-9)
-    expect(Math.max(...hits)).toBeLessThanOrEqual(198 + (1800 / 14) * 2.6 + 157 + 1e-9)
-    expectMean(hits, 643.2857142857143)
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(106 + (1800 / 14) * 2.6 + 138 - 1e-9)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(198 + (1800 / 14) * 2.6 + 138 + 1e-9)
+    expectMean(hits, 624.2857142857143)
   })
 
   it('W7: a white swing with one-hander O averages 486.29 (no glancing here, to compare)', () => {
@@ -1001,17 +1001,17 @@ describe('Battle Shout (warrior.md §5.2 rows 0 and 1, §1.1)', () => {
     expect(late[0][2]).toBeGreaterThanOrEqual(100)
   })
 
-  it('adds 139 attack power while it’s up: Bloodthirst deals 0.35 × (2000 + 139) + 48 (W1)', () => {
+  it('adds 115 attack power while it’s up: Bloodthirst deals 0.35 × (2000 + 115) + 48 (W1)', () => {
     // 170 s: the pre-pull shout lasts the whole fight.
     const plan = abilityPlan(shout({ 'warrior.fury.bloodthirst.enabled': true }), 170000)
     alwaysLandNoCrit(plan)
     setAttackPower(plan, 2000)
     const hits = damages(plan, source(plan, 'bloodthirst'), 3)
     expect(hits.length).toBeGreaterThan(50)
-    for (const d of hits) expect(d).toBeCloseTo(0.35 * 2139 + 48, 9)
+    for (const d of hits) expect(d).toBeCloseTo(0.35 * 2115 + 48, 9)
   })
 
-  it('counts once: with the upkeep on, the Buffs switch changes nothing; with it off, the switch adds its static 139', () => {
+  it('counts once: with the upkeep on, the Buffs switch changes nothing; with it off, the switch adds its static 115', () => {
     const d = defaultConfig('warrior-fury')
     const run = { mode: 'fixed' as const, iterations: 100, seed: 31 }
     const withBuff: SimConfig = { ...d, buffs: { raid: d.buffs.raid, enabled: ['battleShout'] }, run }
@@ -1024,11 +1024,11 @@ describe('Battle Shout (warrior.md §5.2 rows 0 and 1, §1.1)', () => {
     }
     expect(buildPlan(withBuff).plan.stats.ap).toBe(buildPlan(without).plan.stats.ap)
     expect(damage(withBuff)).toEqual(damage(without))
-    expect(buildPlan({ ...withBuff, rotation: off }).plan.stats.ap - buildPlan({ ...without, rotation: off }).plan.stats.ap).toBe(139)
+    expect(buildPlan({ ...withBuff, rotation: off }).plan.stats.ap - buildPlan({ ...without, rotation: off }).plan.stats.ap).toBe(115)
     expect(buildPlan({ ...withBuff, rotation: off }).plan.abilities.map((a) => a.id)).not.toContain('battleShout')
     // The sheet shows the shout the rotation keeps up, as it shows the Buffs switch's.
     expect(buildPlan(without).sheet.attackPower).toBe(buildPlan({ ...withBuff, rotation: off }).sheet.attackPower)
-    expect(buildPlan(without).sheet.attackPower - buildPlan({ ...without, rotation: off }).sheet.attackPower).toBe(139)
+    expect(buildPlan(without).sheet.attackPower - buildPlan({ ...without, rotation: off }).sheet.attackPower).toBe(115)
   })
 })
 

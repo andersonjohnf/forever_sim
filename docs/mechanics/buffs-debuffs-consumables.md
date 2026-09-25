@@ -152,12 +152,26 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 
 ### 1.1 Attack power, stats and crit
 
-| Name | ID | Effect (max rank) | Duration | Stacking / exclusivity | Availability | Tag | Source |
+**Ranks: what a trainer teaches ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)).**
+Ahn'Qiraj comes long after launch, so no buff here is an Ahn'Qiraj book's rank, and there's no
+toggle for them. The books' ranks the catalogue used before are Battle Shout r7 (25289, Manual of
+Battle Shout VII), Blessing of Might r7 (25291, Libram: Blessing of Might VII), Blessing of Wisdom
+r6 (25290, Libram: Blessing of Wisdom VI), Strength of Earth Totem r5 (25361, Tablet of Strength of
+Earth Totem V) and Grace of Air Totem r3 (25359, Tablet of Grace of Air Totem III): each of those
+items teaches its spell (`ItemEffect` trigger 6, learn spell) [F] [client] (ItemSparse, ItemEffect,
+ItemXItemEffect, 1.60.1.70009), and in Classic Era they drop only in the Ruins and the Temple of
+Ahn'Qiraj [C] [aq-books]. The Greater Blessings' rank 2 (25916, 25918) carries exactly the
+librams' values, and whether a trainer teaches it before a paladin has learned the libram's rank
+isn't in any allowed source; the sim takes it to come with the libram, so the raid's blessings are
+rank 6 and Greater rank 1 [?] ([OQ 22](#open-questions)). Books that drop outside Ahn'Qiraj (the
+Arcane Brilliance, Gift of the Wild and Prayer of Fortitude books, from content open at launch) stay.
+
+| Name | ID | Effect (the rank at 60) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Battle Shout (r7) | 25289 | **+139** melee AP (C: 232). Every rank is a flat 0.6× of Classic (9 / 21 / 33 / 51 / 78 / 111 / 139); see [warrior](../classes/warrior.md) | **3 min** (C: 2 min) | Party within 20 yd (Booming Voice adds radius only; it no longer adds duration). Stacks with Blessing of Might and all other AP | Warrior | [F] | [fc-sb-warrior] · [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
+| Battle Shout (r6) | 11551 | **+115** melee AP at 60 (C: 193): 111 + 0.6 per level from 52, truncated ([per-level values](../data/items.md#per-level-values)). Every rank is a flat 0.6× of Classic (9 / 21 / 33 / 51 / 78 / 111 / 139); rank 7 (25289, +139) is an Ahn'Qiraj book (D36); see [warrior](../classes/warrior.md#11-battle-shout-a-nerf-not-a-re-ranking) | **3 min** (C: 2 min) | Party within 20 yd (Booming Voice adds radius only; it no longer adds duration). Stacks with Blessing of Might and all other AP | Warrior | [F] | [fc-sb-warrior] · [fc-changes] · [client] (SpellEffect, SpellLevels, 1.60.1.70009) |
 | Improved Battle Shout | talent (C: 12318) | **Removed** (C: +25% Battle Shout AP at 5/5) | — | — | — | [F] | [fc-changes] |
-| Blessing of Might (r7) | 25291 | **+133** melee AP (C: 185) | **1 h** (C: 5 min) | One Blessing per paladin on a player; stacks with Battle Shout | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
-| Greater Blessing of Might (r2) | 25916 | **+133** melee AP to every raid member of the target's class (C: 185) | **1 h** (C: 15 min) | Same blessing slot as Blessing of Might from that paladin | Paladin | [F] | [fc-sb-paladin] |
+| Blessing of Might (r6) | 19838 | **+112** melee AP (C: 155). Rank 7 (25291, +133) is an Ahn'Qiraj libram (D36) | **1 h** (C: 5 min) | One Blessing per paladin on a player; stacks with Battle Shout | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.70009) |
+| Greater Blessing of Might (r1) | 25782 | **+112** melee AP to every raid member of the target's class (C: 155). Rank 2 (25916, +133) is taken to need the libram's rank 7 [?] (above) | **1 h** (C: 15 min) | Same blessing slot as Blessing of Might from that paladin | Paladin | [F] value · [?] rank | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.70009) |
 | Improved Blessing of Might | talent (C: 20042) | **Removed** (C: +20% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Blessing of Kings | 20217 | +10% all stats | **1 h** (C: 5 min) | One Blessing per paladin | Paladin, **trained at level 20** (C: Protection talent) | [F] | [fc-sb-paladin] · [fc-changes] |
 | Greater Blessing of Kings | 25898 | +10% all stats, class-wide | **1 h** (C: 15 min) | As above | Paladin | [F] | [fc-sb-paladin] |
@@ -168,8 +182,8 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)); a Balance druid's own Moonkin Form brings it, so its Buffs tab shows it on and locked, and a Leader of the Pack in its group adds nothing ([druid §11.1](../classes/druid.md#111-moonkin-form)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Power Infusion | 10060 | +20% spell damage (every magic school), 15 s | 3 min cooldown | — | Priest talent, cast on another player. The casters' Buffs entry, which a caster's rotation presses on cooldown ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
-| Strength of Earth Totem (r5) | 25361 | **+53** Str (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
-| Grace of Air Totem (r3) | 25359 | **+89** Agi (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
+| Strength of Earth Totem (r4) | 10442 (aura 10441) | **+42** Str (C: 61). Rank 5 (25361, +53) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
+| Grace of Air Totem (r2) | 10627 (aura 10626) | **+77** Agi (C: 67). Rank 3 (25359, +89) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
 | Windfury Totem (r3) | 10614 (proc 10610) | Each main-hand hit has a 20% chance to grant 1 extra attack with **+246** AP (C: +315) | **5 min** (C: 2 min) | Party only, air totem. **Party aura in Forever, weapon enchant in Classic**; see [Windfury Totem](#windfury-totem) | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913) |
 | Enhancing Totems / Improved Weapon Totems / Totemic Mastery | talents (C: 16259 / 29192 / 16189) | **Removed** (C: +15% SoE/GoA; +30% Windfury AP; 30 yd radius). Forever's totems have 30 yd baseline | — | — | — | [F] | [fc-changes] |
 | Power Word: Fortitude (r6) | 10938 | **+70** Sta (C: 54) | **1 h** (C: 30 min) | Same buff as Prayer of Fortitude | Priest | [F] | [fc-sb-priest] · [client] (SpellEffect, 1.60.1.69913) |
@@ -192,7 +206,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
 | Stoneskin Totem (r6) | 10408 | −30 **Physical** damage taken per hit (C: melee damage) | **5 min**, 30 yd (C: 2 min, 20 yd) | Earth totem, so it excludes Strength of Earth from the same shaman | Shaman | [F] | [fc-sb-shaman] |
 | Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18), + 0.08 × its caster's spell damage since 1.60.1.70009 [?] (below) | 10 min | — | Druid. On the tank: a damage shield on the boss's swings (below) | [F] | [fc-sb-druid] · [client] (SpellEffect, 1.60.1.70009) |
-| Blessing of Wisdom (r6) / Greater (r2) | 25290 / 25918 | **40** mana per 5 s (C: 33) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] | [fc-sb-paladin] |
+| Blessing of Wisdom (r5) / Greater (r1) | 19854 / 25894 | **36** mana per 5 s (C: 30). Rank 6 (25290, 40) is an Ahn'Qiraj libram, and Greater rank 2 (25918) is taken to need it [?] (D36, §1.1) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] value · [?] rank | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.70009) |
 | Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins, shamans and mages use it | [F] | [fc-sb-shaman] |
 
 **Thorns on the tank** (`thorns`; M5.6 T3, BR5). A damage shield (aura 15) of 22 Nature damage,
@@ -517,7 +531,7 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 | Brilliant Wizard Oil (`brilliantWizardOil`) | 20749 → 25122 → enchant 2628 → 25113 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25113 #0 36, #2 (aura 57) 1, the same in both |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
 | Instant Poison VI | 8928 → 11340 | Enchant 625: each hit of its weapon has a 20% chance of 76–100 Nature damage + 0.5% of attack power (spell 11337; C: 112–148, no attack power; the share from a guild test, [rogue §4.1](../classes/rogue.md#41-instant-poison-vi)); 175 charges | 30 min | One poison per weapon, in place of a stone there; rogues only | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellItemEnchantment, 1.60.1.69913); [rogue §4.1](../classes/rogue.md#41-instant-poison-vi) |
-| Deadly Poison V | 20844 → 25351 | Enchant 2630: each hit of its weapon has a 30% chance of a stack of 23 Nature damage + 0.1125% of attack power every 3 s for 12 s, 5 stacks (spell 25349; C: 34, no attack power; the share from a guild test, [rogue §4.2](../classes/rogue.md#42-deadly-poison-v)); 180 charges | 30 min | As above | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellAuraOptions, SpellItemEnchantment, 1.60.1.69913); [rogue §4.2](../classes/rogue.md#42-deadly-poison-v) |
+| Deadly Poison IV | 8985 → 11356 | Enchant 627: each hit of its weapon has a 30% chance of a stack of 18 Nature damage + 0.1125% of attack power every 3 s for 12 s, 5 stacks (Deadly Poison IV 11354; C: 27, no attack power; the share from a guild test, [rogue §4.2](../classes/rogue.md#42-deadly-poison-iv)); 160 charges. The top poison before Ahn'Qiraj: Deadly Poison V (20844, 23 a stack) is made from an Ahn'Qiraj book's recipe (D36) | 30 min | As above | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellAuraOptions, SpellItemEnchantment, 1.60.1.70009); [rogue §4.2](../classes/rogue.md#42-deadly-poison-iv) |
 
 **Wizard oils** are the casters' temporary weapon enchants: the sim puts the one you pick on your main
 hand, in place of a stone, and its spell damage and spell crit are its equip aura's, on you. A
@@ -903,7 +917,7 @@ their stacking group is verified; the UI offers them as options.
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune; Major Frenzy Potion (replaces Major Mana Potion, below) |
 | Elemental shaman | — | Greater Arcane Elixir; Nightfin Soup; Brilliant Wizard Oil; Major Mana Potion. No stones: a caster never swings, and the melee entries leave its Buffs tab ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
-| Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use); Major Frenzy Potion (below) |
+| Rogue (all three) | Flank au Poivre; Deadly Poison IV (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use); Major Frenzy Potion (below) |
 | Warlock (all three) | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
 | Shadow Priest | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([priest](../classes/priest.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
 | Balance druid | — | Greater Arcane Elixir; Major Mana Potion ([druid](../classes/druid.md#11-balance-moonkin-sim-model)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
@@ -1016,8 +1030,10 @@ the weapon's Crusader sits beside the imbue, which is the temporary enchant
 ## WoW Forever deviations
 
 **Raid and party buffs**
-- Battle Shout 232 → **139** AP, 3 min. Improved Battle Shout removed.
-- Blessing of Might 185 → **133**. Improved Blessing of Might removed. All Blessings last
+- Battle Shout 232 → **139** AP at rank 7 (rank 6, the trainer's: 193 → **115**), 3 min. Improved
+  Battle Shout removed.
+- Blessing of Might 185 → **133** at rank 7 (rank 6, the trainer's: 155 → **112**). Improved
+  Blessing of Might removed. All Blessings last
   **1 h**; Kings is baseline at level 20. **Sanctuary removed.**
 - Mark / Gift of the Wild 285 / 12 / 20 → **385 / 16 / 27**, raid-wide, 1 h. Improved Mark
   of the Wild removed.
@@ -1025,7 +1041,8 @@ the weapon's Crusader sits beside the imbue, which is the temporary enchant
   Divine Spirit is baseline. Arcane Intellect lasts 1 h and Brilliance is raid-wide.
 - Trueshot Aura is **ranged-only** (up to 75). Leader of the Pack's +3% crit is now
   exclusive with the new all-crit Moonkin Aura.
-- Totems: 5 min, 30 yd. Strength of Earth 77 → **53**, Grace of Air 77 → **89**, Windfury
+- Totems: 5 min, 30 yd. Strength of Earth 77 → **53** at rank 5 (rank 4, the trainer's: 61 →
+  **42**), Grace of Air 77 → **89** at rank 3 (rank 2, the trainer's: 67 → **77**), Windfury
   315 → **246** AP and now a **party aura** instead of a weapon enchant. Enhancing Totems,
   Improved Weapon Totems and Totemic Mastery removed. The site listed **Tranquil Air** as removed
   too; the 1.60.1.70009 development notes name it among the air totems that no longer stack
@@ -1185,7 +1202,7 @@ fight.
   owned by [encounter](encounter.md). A warrior's *own* Battle Shout upkeep belongs to
   [warrior](../classes/warrior.md#52-fury-dual-wield): the Battle Shout switch here means
   *someone else* keeps it up. When the warrior's rotation keeps its own up (Fury's default), the
-  switch's static +139 is left out and the shout is an aura in the fight, so it counts once; the
+  switch's static +115 is left out and the shout is an aura in the fight, so it counts once; the
   switch shows as on and locked. With the rotation's shout off, the switch decides.
 - **Stat order**: flat buffs are added first, then Blessing of Kings multiplies. Rounding
   and conversions are in [character-stats](character-stats.md).
@@ -1208,8 +1225,8 @@ fight.
   specs. How "up to 161" applies to each Holy source belongs to
   [paladin](../classes/paladin.md).
 - **Mana over time** is mana per 5 s on the sim's 2 s mana tick
-  ([paladin](../classes/paladin.md#mana-model)): Blessing of Wisdom's 40 every 5 s is 16 a
-  tick, and Mana Spring Totem's 10 every 2 s is 25 per 5 s, so exactly its 10 a tick. The
+  ([paladin](../classes/paladin.md#mana-model)): Blessing of Wisdom's 36 every 5 s is 14.4
+  a tick, and Mana Spring Totem's 10 every 2 s is 25 per 5 s, so exactly its 10 a tick. The
   Blessing's 5 s period isn't kept (under 0.5% of DPS).
 - **Boss-side debuffs** (Demoralizing Shout / Roar, Thunder Clap, Curse of Weakness) reduce
   damage taken, which lowers tank rage from damage taken ([rage](rage.md)). They don't
@@ -1303,8 +1320,11 @@ melee and ranged crit (aura 52) in Classic Era.
   Wild, Improved Power Word: Fortitude, Enhancing Totems, Improved Weapon Totems) aren't
   applied, because the sim doesn't know the other players' builds; [worked example
   5](#worked-examples) shows the talented numbers. For reference, Forever's Mark of the Wild
-  (16 / 385), Fortitude (70) and Grace of Air (89) equal Classic's with the improving talent at
-  5/5, rounded.
+  (16 / 385), Fortitude (70) and Grace of Air rank 3 (89, an Ahn'Qiraj tablet's) equal Classic's
+  with the improving talent at 5/5, rounded.
+- **The same rank in both profiles.** Which rank a player has is a question of content, not of
+  rules, so both profiles use the trainer's rank (D36) and `classicEra` reads Classic Era's value of
+  that rank.
 - **New in Forever.** An entry with no Classic Era row, or whose only 1.15 row is Season of
   Discovery's (a forbidden source,
   [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)), has no Classic Era
@@ -1317,8 +1337,8 @@ melee and ranged crit (aura 52) in Classic Era.
   instead, and Windfury's main-hand enchant is the profile's `catalogue.windfuryMainHandEnchant`.
 - **The warrior's own Battle Shout** (the rotation's upkeep) isn't a catalogue entry. It's the
   class ability ([warrior §3.2](../classes/warrior.md#32-buffs-debuffs-and-cooldowns)), which
-  picks its profile's values the same way: +139 for 3 min in `forever`, Classic Era's 25289,
-  +232 for 2 min, in `classicEra`. The character sheet counts it at that value, the same as the
+  picks its profile's values the same way: rank 6's +115 for 3 min in `forever`, Classic Era's
+  11551, +193 for 2 min, in `classicEra`. The character sheet counts it at that value, the same as the
   catalogue's Battle Shout (another warrior's). Recklessness and Berserker Stance follow the
   profile the same way: their crit is all crit (spells too) in `forever` and melee crit only
   (aura 52) in `classicEra`. The racials, talents and items stay Forever's in both profiles
@@ -1331,8 +1351,8 @@ melee and ranged crit (aura 52) in Classic Era.
 
 | Entry (sim id) | Forever | Classic Era | Classic Era client row | Tag |
 | --- | --- | --- | --- | --- |
-| Battle Shout r7 (`battleShout`) | +139 AP | **+232 AP** | SpellEffect 25289 #0: 231 + 1 (+1 per level from 60) | [C] |
-| Blessing of Might r7 (`blessingOfMight`) | +133 AP | **+185 AP** | 25291 #0: 184 + 1 (Greater 25916 the same) | [C] |
+| Battle Shout r6 (`battleShout`) | +115 AP | **+193 AP** | SpellEffect 11551 #0: 184 + 1, +1 per level from 52, so 193 at 60 | [C] |
+| Blessing of Might r6 (`blessingOfMight`) | +112 AP | **+155 AP** | 19838 #0: 154 + 1 (Greater r1 25782 the same) | [C] |
 | Blessing of Kings (`blessingOfKings`) | +10% all stats | same | 20217 #0: 9 + 1 | [C] |
 | Gift of the Wild r2 (`markOfTheWild`) | +16 all stats, +385 armor | **+12 all stats, +285 armor** | 21850 #1: 11 + 1; #0: 284 + 1 (resistances 19 + 1, not simulated) | [C] |
 | Prayer of Fortitude r2 (`powerWordFortitude`) | +70 Sta | **+54 Sta** | 21564 #0: 53 + 1 | [C] |
@@ -1342,12 +1362,12 @@ melee and ranged crit (aura 52) in Classic Era.
 | Moonkin Aura (`moonkinAura`), the casters' | +3% crit, spells too (aura 290) | **+3% spell crit** | 24907 #0 (aura 57): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Power Infusion (`powerInfusion`), the casters' | +20% spell damage for 15 s, 3 min cooldown | same | 10060 #1 (aura 79, every magic school): 19 + 1 | [C] |
 | Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
-| Grace of Air Totem r3 (`graceOfAir`) | +89 Agi | **+77 Agi** | 25360 #0 (the totem's aura): 76 + 1 | [C] |
-| Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
+| Grace of Air Totem r2 (`graceOfAir`) | +77 Agi | **+67 Agi** | 10626 #0 (the totem's aura): 66 + 1 | [C] |
+| Strength of Earth Totem r4 (`strengthOfEarth`) | +42 Str | **+61 Str** | 10441 #0 (the totem's aura): 60 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
 | Devotion Aura r7 (`devotionAura`) | +735 armor | same | 10293 #0: 734 + 1 | [C] |
 | Thorns r6 (`thorns`, a raid druid's; `thornsOwn`, the bear's own), on the tank | 22 Nature damage on each boss swing that lands (+ 0.08 × its caster's spell damage in Forever) | **18** | 9910 #0 (aura 15): 17 + 1 | [C] |
-| Blessing of Wisdom r6 (`blessingOfWisdom`) | 40 mana every 5 s | **33 every 5 s** | 25290 #0 (aura 24, period 5000): 32 + 1 (Greater 25918 the same) | [C] |
+| Blessing of Wisdom r5 (`blessingOfWisdom`) | 36 mana every 5 s | **30 every 5 s** | 19854 #0 (aura 24, period 5000): 29 + 1 (Greater r1 25894 the same) | [C] |
 | Mana Spring Totem r4 (`manaSpringTotem`) | 10 mana every 2 s (25 per 5 s) | same | the totem's Mana Spring 10494 #0 (aura 24, period 2000): 9 + 1 | [C] |
 | Sunder Armor ×5 (`sunderArmor`) | −2250 armor | same | 11597 #0: −451 + 1, ×5 | [C] |
 | Expose Armor (`exposeArmor`) | −2250 armor | **−1700 armor** | Both clients hold 0 (combo points scale it server-side), so these are the tooltip values ([§4.1](#41-armor-reduction)) | [C] tooltip |
@@ -1393,7 +1413,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Demonic Rune (`demonicRune`; a Dark Rune is the same) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |
 | Juju Flurry (`jujuFlurry`) | +3% attack speed for 20 s | same | 12450 → 16322 #0: 2 + 1; 20 s | [C] |
 | Instant Poison VI (`instantPoisonMainHand`, `instantPoisonOffHand`) | 20%: 76–100 Nature | **112–148** | 8928 → 11340 → enchant 625: 20%, proc 11337 #0: 111 + 1d37 | [C] |
-| Deadly Poison V (`deadlyPoisonMainHand`, `deadlyPoisonOffHand`) | 30%: 23 a stack every 3 s, 5 stacks; ticks may crit | **34** a tick; no periodic-crit flag | 20844 → 25351 → enchant 2630: 30%, proc 25349 #0: 33 + 1, `CumulativeAura` 5 | [C] |
+| Deadly Poison IV (`deadlyPoisonMainHand`, `deadlyPoisonOffHand`) | 30%: 18 a stack every 3 s, 5 stacks; ticks may crit | **27** a tick; no periodic-crit flag | 8985 → 11356 → enchant 627: 30%, proc 11354 #0: 26 + 1, `CumulativeAura` 5 | [C] |
 | Thistle Tea (`thistleTea`) | +100 Energy | same | 7676 → 9512 #0: 99 + 1 | [C] |
 | EZ-Thro Dark Bomb (`ezThroDarkBomb`) | 225–675 Fire, a 1 s throw, every 60 s ([§3.7](#37-engineering-and-explosives)) | none: new in Forever (260817) | — | [F] |
 | Greater Stoneshield Potion (`greaterStoneshieldPotion`) | +2,000 armor for 2 min ([§3.5](#35-potions-and-runes)) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
@@ -1464,13 +1484,13 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
    `classicEra`: Example 2 plus Armor Shatter ×3 (Classic −600): 336 − 600 = −264 → **0**.
 4. **Sunder vs Expose Armor, Forever.** Sunder ×5 and a 5-CP Expose Armor both selected →
    one `armor-major` slot → **−2250** (not −4500).
-5. **External melee AP, Forever standard raid.** Battle Shout 139 + Blessing of Might 133 =
-   **272** flat AP. Classic Era with 5/5 Improved Battle Shout and 5/5 Improved Blessing of
-   Might: 232 × 1.25 + 185 × 1.20 = 290 + 222 = **512**. That is 240 AP less in Forever. The
-   `classicEra` profile uses the untalented spells ([Classic Era values](#classic-era-values)):
-   232 + 185 = **417**.
+5. **External melee AP, Forever standard raid.** The trainers' ranks (D36): Battle Shout r6 115 +
+   Blessing of Might r6 112 = **227** flat AP. Classic Era's same ranks with 5/5 Improved Battle
+   Shout and 5/5 Improved Blessing of Might: 193 × 1.25 + 155 × 1.20 = 241.25 + 186 = **427.25**.
+   That is about 200 AP less in Forever. The `classicEra` profile uses the untalented spells
+   ([Classic Era values](#classic-era-values)): 193 + 155 = **348**.
 6. **Strength stack.** A warrior with 200 Str from base and gear, plus Strength of Earth
-   (+53) and Gift of the Wild (+16), with Kings: (200 + 53 + 16) × 1.10 = **295.9** before
+   r4 (+42) and Gift of the Wild (+16), with Kings: (200 + 42 + 16) × 1.10 = **283.8** before
    the rounding that [character-stats](character-stats.md) defines.
 7. **Windfury extra attack.** A Forever proc adds +246 AP to the extra swing only. The extra
    attack is an ordinary main-hand swing, so with the AP-to-damage rule in
@@ -1613,6 +1633,13 @@ Each item says what was found and how the guild can check it on the Forever beta
     As a Fire mage, compare the bombs' crit rate with Fireball's, which Critical Mass raises, and see
     whether an Ignite follows a bomb crit or a Combustion charge goes. With a second player on a mob,
     read the threat a bomb adds on a threat meter. As a druid, try it in Cat and Bear Form.
+22. **Greater Blessings' rank 2 before Ahn'Qiraj** [?] ([§1.1](#11-attack-power-stats-and-crit),
+    D36). Greater Blessing of Might rank 2 (25916, +133) and of Wisdom rank 2 (25918, 40) have the
+    Ahn'Qiraj librams' values, and no allowed source says whether a trainer teaches them before a
+    paladin has learned the libram's rank. The sim takes them to come with the libram, so the raid's
+    Might is rank 6's +112 and Wisdom rank 5's 36. If a trainer teaches rank 2 at 60 anyway, Might is
+    +133 again (+21 attack power, about +1% of a melee spec's DPS). *Check:* a level-60 paladin's
+    trainer window, without the librams.
 
 ---
 
@@ -1625,6 +1652,7 @@ Each item says what was found and how the guild can check it on the Forever beta
 | fc-items | https://foreverchanges.pro/items (data files `/items/new.json`, `/items/changed.json`, `/items/same.json`, `/items/missing.json`) | Forever and Classic item tooltips; "Same" means unchanged | Forever [F] |
 | fc/<id> | https://foreverchanges.pro/item/13452 (pattern `/item/<id>`) | Single-item Forever vs Classic comparison | Forever [F] |
 | fc-ench | https://foreverchanges.pro/professions/enchanting/recipes | All 229 Forever enchanting recipes, new ones and formula sources | Forever [F] |
+| aq-books | https://warcraft.wiki.gg/wiki/Ruins_of_Ahn'Qiraj_loot | "All bosses also have a chance of dropping up to two class books, which were used to upgrade spells beyond the maximum level" a trainer taught: the Ahn'Qiraj books (D36) | Classic Era [C] |
 | fc-racials | https://foreverchanges.pro/racials | Race/class matrix (community-reported), racials | Forever [F] / [?] |
 | fc-beta | https://foreverchanges.pro/beta | Beta dates, builds, new race/class combinations | Forever [F] |
 | client | [client.md](../data/client.md), `src/data/client/*.json`: raw DB2 files of build 1.60.1.69913 (and 1.15.9.69722 for Classic halves), fetched through the wago.tools API and parsed by `scripts/scrape/client.mjs` | Exact effect values, durations, proc chances and internal cooldowns, stack counts, item→spell mapping, cooldown categories; the claims check that confirmed this doc's values | Forever [F] / Classic Era [C] |
@@ -1650,6 +1678,7 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [paladin](../classes/paladin.md).
 
 [fc-changes]: https://foreverchanges.pro/changes
+[aq-books]: https://warcraft.wiki.gg/wiki/Ruins_of_Ahn'Qiraj_loot
 [fc-sb-warrior]: https://foreverchanges.pro/spellbook/warrior
 [fc-sb-paladin]: https://foreverchanges.pro/spellbook/paladin
 [fc-sb-druid]: https://foreverchanges.pro/spellbook/druid

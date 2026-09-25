@@ -48,9 +48,9 @@ const range = (base: number, variance: number, perLevel: number, baseLevel: numb
 }
 
 /**
- * Starfire r7 (25298): 381 base points, variance 0.16296296, +2.4 a level from 60, so 349.96–412.04 at
- * 60; coefficient 1.0; Arcane (Classic Era: 496–584) [F] [client] (SpellEffect, SpellLevels,
- * 1.60.1.69913; §11.2).
+ * Starfire r6 (9876), the trainer's top rank (r7 is an Ahn'Qiraj book, D36; druid.md §11.2): 337 base
+ * points, variance 0.16494845, +2.3 a level from 58 to 64, so 313.81–369.39 at 60; coefficient 1.0;
+ * Arcane (Classic Era: 451–531) [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009; §11.2).
  */
 export const STARFIRE_SPELL: SpellDef = {
   ...SPELL,
@@ -58,7 +58,7 @@ export const STARFIRE_SPELL: SpellDef = {
   name: 'Starfire',
   icon: 'spell_arcane_starfire',
   school: 'arcane',
-  ...range(381, 0.16296296, 2.4, 60, 66),
+  ...range(337, 0.16494845, 2.3, 58, 64),
   spCoefficient: 1,
 }
 
@@ -153,8 +153,8 @@ const BALANCE = {
 } as const
 
 /**
- * Starfire r7: 340 mana, a 3.5 s cast that casting speed shortens [F] [client] (SpellPower,
- * SpellCastTimes, 1.60.1.69913). Clearcasting pays for it (16870's class mask). Eclipse's charges cut
+ * Starfire r6: 315 mana, a 3.5 s cast that casting speed shortens [F] [client] (SpellPower,
+ * SpellCastTimes, 1.60.1.70009). Clearcasting pays for it (16870's class mask). Eclipse's charges cut
  * its cast (`withBalanceTalents`).
  */
 export const STARFIRE: AbilityDef = {
@@ -163,7 +163,7 @@ export const STARFIRE: AbilityDef = {
   name: 'Starfire',
   icon: 'spell_arcane_starfire',
   kind: 'spell',
-  ...mana(340),
+  ...mana(315),
   castMs: 3500,
   castHasted: true,
   clearcastable: true,

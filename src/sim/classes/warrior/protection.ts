@@ -161,10 +161,10 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
  * until they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 933.23, dps: 367.63, damageTaken: 610.59 },
-  balanced: { tpsPct: 7.33, dpsPct: 6.52, damageTakenPct: 21.05 },
-  maxTps: { tpsPct: 8.41, dpsPct: 7.03, damageTakenPct: 21.11 },
-  maxTpsOverBalanced: { tpsPct: 1.01, dpsPct: 0.48, damageTakenPct: 0.05 },
+  defensive: { tps: 882.83, dps: 351.55, damageTaken: 610.74 },
+  balanced: { tpsPct: 7.0, dpsPct: 6.27, damageTakenPct: 21.05 },
+  maxTps: { tpsPct: 8.03, dpsPct: 6.73, damageTakenPct: 21.11 },
+  maxTpsOverBalanced: { tpsPct: 0.96, dpsPct: 0.44, damageTakenPct: 0.05 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES

@@ -107,7 +107,7 @@ utility are covered in [§4](#4-talents).
 | Tactical Mastery | Talent, keeps 5/10/15/20/25 rage | **Trained at level 14 and keeps 10 rage**; the talent is now **Improved Tactical Mastery**, +3 per rank, so 25 at 5/5 [sb] [tal] | Same at 5/5. Without the talent a warrior keeps 10 rage, not 0 |
 | New in Arms | none | **Spearing Strike** (40% weapon damage, 120% against Giants, Dragonkin and mounted targets; 15 rage, 20 s cooldown, two-hander only), **Bloodthrill** (4% per rank chance that a main-hand melee attack, Heroic Strike and Cleave included, on your Rend target enables Overpower; 2% per rank from any melee attack before 1.60.1.70009) [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.70009) | New Arms abilities and procs |
 | Shield Slam | 342–358 + block value | **640–670 + block value** [sb] | About ×1.87 |
-| Revenge (rank 6) | 81–99 | **138–168** [sb] | About ×1.7 |
+| Revenge (rank 6; rank 5 is the trainer's, D36) | 81–99 (r5: 64–78) | **138–168** [sb] (r5: **109–133** [client] (SpellEffect, 1.60.1.70009)) | About ×1.7 |
 | Improved Revenge | Stun chance | **+20% Revenge damage per rank** [tal] | +60% at 3/3 |
 | Shield Block | 75% block for 5 s, 1 block | 75% block for **7 s, 2 blocks** [sb] | Improved Shield Block was removed; its effect is now baseline |
 | Shield Specialization | 20% per rank chance of **1** rage on block | 20% per rank chance of **5** rage on block [tal] | Big tank rage source |
@@ -117,7 +117,7 @@ utility are covered in [§4](#4-talents).
 | Anticipation | +2 defense per rank | **+4 defense per rank** [tal] | +20 defense at 5/5 |
 | Improved Bloodrage | +2 / +5 instant rage | **+25% / +50% to all Bloodrage rage** [tal] | 15 + 15 rage at 2/2 |
 | Improved Thunder Clap | −1 / −2 / −4 rage, Arms tree | −2 / −4 / −6 rage, **Protection** tree [tal] | None |
-| Battle Shout (rank 7) | +232 AP, 2 min | **+139 AP, 3 min** [sb] | −93 AP to the party. See [§1.1](#11-battle-shout-a-nerf-not-a-re-ranking) |
+| Battle Shout (rank 7; rank 6 is the trainer's, D36) | +232 AP, 2 min (r6: 193) | **+139 AP, 3 min** [sb] (r6: **115**) | −93 AP to the party (r6: −78). See [§1.1](#11-battle-shout-a-nerf-not-a-re-ranking) |
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
 | Demoralizing Shout (rank 5) | −146 AP at 60, 30 s | **−204 AP at 60, 45 s** [sb] [client] (SpellEffect, SpellLevels, 1.60.1.69913) | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
 | Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
@@ -130,17 +130,31 @@ utility are covered in [§4](#4-talents).
 ### 1.1 Battle Shout: a nerf, not a re-ranking
 
 Every Forever rank of Battle Shout is 0.60× its Classic value: 9/15, 21/35, 33/55, 51/85, 78/130,
-111/185 and 139/232 [sb]. Rank 7 is still the level-60 rank, spell 25289. Its client row is base
-139 with 0.6 points per level [client] (SpellEffect, 1.60.1.69913), where Classic had 232 and 1
-point per level [C-eff], so the whole spell was scaled by 0.6. This is a **flat nerf, not a
-re-ranking**. Nothing restores the old value:
+111/185 and 139/232 [sb]. Rank 7 (25289) is the level-60 rank, but it's taught by an Ahn'Qiraj
+book (Manual of Battle Shout VII, item 21298, whose `ItemEffect` learns 25289 [F] [client]
+(ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), and Ahn'Qiraj comes long after launch, so
+the sim uses the trainer's **rank 6 (11551)** ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25);
+the same holds for Heroic Strike r9 and Revenge r6, §3.1). Rank 7's client row is base 139 with 0.6
+points per level [client] (SpellEffect, 1.60.1.69913), where Classic had 232 and 1 point per level
+[C-eff], so the whole spell was scaled by 0.6. This is a **flat nerf, not a re-ranking**. Nothing
+restores the old value:
 
 - Improved Battle Shout was removed from the Fury tree [cls].
 - Booming Voice now only increases the radius. Its Classic duration bonus is gone from both
   the tooltip and the data [tal] [db-eff].
 
+**Rank 6 at level 60: 115** [F]. Its row is base 111 with 0.6 points per level from `SpellLevel`
+52, `MaxLevel` 61 [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009). The per-level term is
+applied at 60 and truncated, as the client renders every per-level value
+([per-level values](../data/items.md#per-level-values)): 111 + trunc(0.6 × 8) = 111 + 4 = **115**,
+not the base 111 (the unrounded 115.8 would be 116; 1 AP is under 0.05% of DPS). That the term
+applies in combat is Classic Era's own evidence: its rank 6 is 184 + 1 with 1 point per level from
+52, so **193** at 60 [C] [client] (SpellEffect, SpellLevels, 1.15.9.69722), the value Classic
+players knew before Ahn'Qiraj. `classicEra` uses that 193 for 2 min.
+
 The duration went up from 2 to 3 minutes [sb]. Classic raids ran 5/5 Improved Battle Shout
-for 290 AP, so a Forever party gets 151 AP less from its warrior. Demoralizing Shout went the
+for 290 AP (rank 7), so a Forever party gets 151 AP less from its warrior at rank 7; at the
+trainer's rank 6 it gets 115 against Classic's talented 241. Demoralizing Shout went the
 other way: ×1.40 at every rank (63/45 … 204/146 at level 60) and 45 s instead of 30 s [sb]
 [client] (SpellEffect, SpellLevels, 1.60.1.69913; 1.15.9.69722).
 
@@ -148,7 +162,7 @@ other way: ×1.40 at every rank (63/45 … 204/146 at level 60) and 45 s instead
 
 These are identical in the tooltip and the client data [sb] [db-eff] [C-eff]:
 
-- Heroic Strike (rank 9, +157), Cleave (rank 5, +50), Mortal Strike (rank 4, +160),
+- Heroic Strike (rank 9, +157; the trainer's rank 8, +138), Cleave (rank 5, +50), Mortal Strike (rank 4, +160),
   Whirlwind, Execute (rank 5, 600 + 15 per rage), Overpower (rank 4, +35), Hamstring (45),
   Rend (147 over 21 s) and Sunder Armor's armor reduction (−450 × 5)
 - Bloodrage, Berserker Rage, Recklessness's cooldown, Death Wish's cost and cooldown, and
@@ -264,8 +278,8 @@ This section adds the warrior's own sources and sinks.
    swing**. Rage is checked and spent **when the swing happens**; if there isn't enough, the
    swing is an ordinary white swing [C] [ws-player] [marrow].
 2. **Damage.** The replaced swing uses the main-hand's non-normalized weapon damage
-   (`weaponRoll + AP / 14 × weaponSpeed`) plus the bonus: +157 for Heroic Strike rank 9, +50
-   for Cleave rank 5. Cleave hits the target and one more nearby enemy, each with the +50 [F]
+   (`weaponRoll + AP / 14 × weaponSpeed`) plus the bonus: +138 for Heroic Strike rank 8 (the
+   trainer's; rank 9's +157 is an Ahn'Qiraj book, D36), +50 for Cleave rank 5. Cleave hits the target and one more nearby enemy, each with the +50 [F]
    [sb] [client] (SpellEffect, 1.60.1.69913) (effect 17 = non-normalized weapon damage). The
    swing rolls on the **special attack table**, so it cannot glance; see
    [combat-tables.md](../mechanics/combat-tables.md) [C] [marrow-mech].
@@ -513,7 +527,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Damage and effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| Heroic Strike (9, 25286) | 15 | none | off (next swing) | any | MH `weapon` + 157 | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
+| Heroic Strike (8, 11567) | 15 | none | off (next swing) | any | MH `weapon` + 138. Rank 9 (25286, +157) is an Ahn'Qiraj book (D36, Q25) | [F] [client] (SpellEffect, 1.60.1.70009) |
 | Cleave (5, 20569) | 20 | none | off (next swing) | any | MH `weapon` + 50 to the target and one more enemy | [F] [sb] [db-eff] |
 | Bloodthirst (4, 23894) | 30 | 6 s | yes | any | **0.35 × AP + 48**, physical, not weapon-based. Also +10% movement speed for 10 s (ignore) | [F] [sb] [client] (SpellEffect, 1.60.1.69913). Classic: 0.45 × AP [C] |
 | Mortal Strike (4, 21553) | 30 | 6 s | yes | any | MH `normalized` + 160. Also −50% healing on the target for 10 s | [F] [sb] [db-eff] |
@@ -525,7 +539,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
 | Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
-| Revenge (6, 25288) | 5 | 5 s | yes | Defensive | **138–168** (153 ±10%) × (1 + 0.20 × Improved Revenge rank). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
+| Revenge (5, 11601) | 5 | 5 s | yes | Defensive | **109–133** (121, `Variance` 0.197, 121 ± 12 in whole numbers) × (1 + 0.20 × Improved Revenge rank). Rank 6 (25288, 138–168) is an Ahn'Qiraj book (D36, Q25). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
 | Shield Slam (4, 23925) | 20 | 6 s | yes | any, shield | **640–670 + block value** (655 ±2.3%). Also a 50% chance to dispel one magic effect | [F] [sb] [db-eff]. Block value is in [character-stats.md](../mechanics/character-stats.md) |
 | Victory Rush (402927) | 0 | 30 s | yes | any | 1 damage and heals 10% of max health. Only usable within 20 s of killing a non-trivial enemy. **Not used against bosses** | [F] [sb] (Q14) |
 
@@ -569,7 +583,7 @@ buffs. It is physical, so armor applies, and it uses the special attack table [F
 
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min. `classicEra`: Classic Era's rank 7, +232 for 2 min (231 + 1, +1 per level from 60; `DurationIndex` 4), the same cost and GCD | [F] [sb] [client] (SpellEffect, 1.60.1.69913); `classicEra` [C] [client] (SpellEffect, SpellLevels, SpellMisc, SpellDuration, 1.15.9.69722) |
+| Battle Shout (6, 11551) | 10 | none | yes | any | +115 melee AP to the party (20 yd) for 3 min (111 + 0.6 per level from 52, truncated, §1.1). Rank 7 (25289, +139) is an Ahn'Qiraj book (D36, Q25). `classicEra`: Classic Era's rank 6, +193 for 2 min (184 + 1, +1 per level from 52; `DurationIndex` 4), the same cost and GCD | [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009); `classicEra` [C] [client] (SpellEffect, SpellLevels, SpellMisc, SpellDuration, 1.15.9.69722) |
 | Demoralizing Shout (5, 11556) | 10 | none | yes | any | −204 AP to enemies within 10 yd for 45 s: the level-60 tooltip, base −196 and −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60), −204.4 shown as 204. Whether the debuff applies −204 in combat is an open question (Q22) | tooltip [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); in combat [?] |
 | Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 206 (1013 before 1.60.1.70009); the sim adds 0.05 × AP [?] for the notes' attack power term | [F] [sb] [client] (SpellEffect, 1.60.1.70009) (Q1) |
 | Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
@@ -837,7 +851,7 @@ Notes:
   keeps running at its `minRage`, and its cancel below `unqueueBelow` applies there too, so a
   queued one gives way when an Execute empties the bar first. With it off, the phase stops the
   queue and a Heroic Strike already queued when the phase starts is cancelled: on paper its 12
-  rage is worth 180 damage in the next Execute, more than the 157 it adds to a swing that also
+  rage is worth 180 damage in the next Execute, more than the 138 it adds to a swing that also
   gives up that swing's white rage. Measured, keeping it is +1.34 DPS in the default setup and
   +0.5% to +0.8% in 30–60 s fights with a phase (below): the queue also lifts the off hand's
   dual-wield miss penalty ([§2.4](#24-heroic-strike-and-cleave-on-next-swing), [?]), and Heroic
@@ -898,11 +912,11 @@ Notes:
   Berserker Rage it does nothing the sim models, so the plan leaves it out.
 - **Your Battle Shout or the raid's** (rows 0 and 1). The Buffs tab's "Battle Shout" switch
   means someone in the party keeps it up. With `fury.battleShout.enabled` on (the default),
-  the warrior keeps it up themselves: the plan leaves out the switch's static +139, and the
+  the warrior keeps it up themselves: the plan leaves out the switch's static +115, and the
   shout is an aura in the fight, so it counts once whether the switch is on or off (it's the
   same spell, which doesn't stack). The Buffs tab shows the switch on and locked, and the
-  character sheet counts the +139, since the shout is up for all but a moment of the fight.
-  In `classicEra` the switch and the warrior's own shout are both Classic Era's +232, and the
+  character sheet counts the +115, since the shout is up for all but a moment of the fight.
+  In `classicEra` the switch and the warrior's own shout are both Classic Era's rank 6, +193, and the
   own shout lasts 2 min, so a 180 s fight refreshes it once (§3.2).
   With the setting off, the switch decides, and the rotation never shouts. Both places' help
   text says so. This is an engine choice; no source covers it.
@@ -911,9 +925,9 @@ Notes:
   the fight isn't refreshed. The engine wakes the rotation when that window opens. With the
   pre-pull shout (177 s left at the pull) a default 180 s fight refreshes it at 174 s only if
   it lasts past 177 s. That late refresh costs a GCD and 10 rage in the execute phase for a few
-  seconds of +139 AP, about 2.5 DPS on average in the golden run; the setting follows the
-  Classic Era priority and the sim doesn't second-guess it. The shout's threat (60 per party
-  member, [threat.md](../mechanics/threat.md)) isn't counted: the party isn't modelled.
+  seconds of +115 AP, about 2 DPS on average in the golden run; the setting follows the
+  Classic Era priority and the sim doesn't second-guess it. The shout's threat (52 per party
+  member at rank 6, [threat.md](../mechanics/threat.md)) isn't counted: the party isn't modelled.
 - **The pre-pull** (row 0). Battle Shout at −3 s has 177 s left at the pull. **Its 10 rage
   came before the pull** (left over from trash, say), so it costs nothing in the fight: an
   engine choice. Bloodrage at −1 s: its 10 rage at once (15 with Improved Bloodrage 2/2) is
@@ -1343,7 +1357,7 @@ Notes:
   ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 12 rage
   plus that swing's. Since the default rests on that report, Arms' result lists the assumption
   even with Heroic Strike off.
-  For about 157 more damage than the swing, that's the worst use of rage Arms has: Slam, Mortal
+  For about 138 more damage than the swing, that's the worst use of rage Arms has: Slam, Mortal
   Strike, Overpower and Hamstring all do more with it, and Execute turns what's left into 15
   damage a point. Against the tuned defaults, every threshold from 30 to 120 measured below off
   (seed 10, 200,000 fights), and at 125 or 130, a dump for rage that would otherwise hit the cap,
@@ -2092,21 +2106,24 @@ presets' thresholds (seed 31101, 20,000 paired fights a candidate):
   seed 31101, 6,000 fights; [Q34](#9-open-questions)).
 
 The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup,
-re-measured 2026-09-25 once Thorns scaled with spell power (the table before gave Defensive 926.27
-TPS, 363.06 DPS; Balanced 993.37; Max TPS 1,003.49). `PROTECTION_PRESET_MEASURES` holds these for the
-Rotation tab's help, and `protection-presets.test.ts` measures them again:
+re-measured 2026-09-25 with the trainers' ranks ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25):
+Heroic Strike r8, Revenge r5 and Battle Shout r6, and the raid's Blessing of Might r6 and Strength of
+Earth r4; the table before gave Defensive 933.23 TPS, 367.63 DPS; Balanced 1,001.62; Max TPS
+1,011.74, and before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993.37; Max
+TPS 1,003.49). `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
+`protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 933.23 | 367.63 | 610.59 |
-| Balanced (the default) | 1,001.62, **+7.33%** (+68.08 to +68.70) | 391.59, +6.52% | 739.10, +21.0% |
-| Max TPS | 1,011.74, **+8.41%** (+78.20 to +78.82) | 393.48, +7.03% | 739.50, +21.1% |
+| Defensive | 882.83 | 351.55 | 610.74 |
+| Balanced (the default) | 944.64, **+7.00%** (+61.52 to +62.11) | 373.58, +6.27% | 739.28, +21.0% |
+| Max TPS | 953.75, **+8.03%** (+70.63 to +71.22) | 375.22, +6.73% | 739.68, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (9) rather than 60% of the max
 rage, and Heroic Strike from 45 rage rather than 84% of the max rage. On the same fights that's
-**+10.12 TPS (+1.01%, +9.90 to +10.33)**, +1.89 DPS (+0.48%, +1.77 to +2.01) and +0.40 damage taken a second
-(+0.05%, +0.32 to +0.48): the same damage taken. The preset's line and help name that difference
+**+9.11 TPS (+0.96%, +8.91 to +9.31)**, +1.63 DPS (+0.44%, +1.52 to +1.75) and +0.40 damage taken a second
+(+0.05%, +0.32 to +0.48): the same damage taken (before the trainers' ranks, +10.12 TPS, +1.01%). The preset's line and help name that difference
 (`MAX_TPS_SUMMARY`, `MAX_TPS_HELP`), since against Defensive the two read alike.
 
 Before the build, Balanced made 1,240.98 TPS and Max TPS 1,290.09 (41% more damage taken, without
@@ -2294,7 +2311,7 @@ seed 12345). The enchants stay the spec's
   tables.
 - **Damage order.** Compute in this order:
   1. base weapon roll or ability base
-  2. flat bonuses (+157, +87, +160, +35, +50, block value, flat weapon damage)
+  2. flat bonuses (+138, +87, +160, +35, +50, block value, flat weapon damage)
   3. ability-percent modifiers: Improved Revenge, Improved Rend, the ×0.4 or ×1.2 on Spearing
      Strike, Eureka!
   4. multiplicative damage-done auras: Death Wish, Enrage, Two-Handed Weapon Specialization,
@@ -2332,8 +2349,8 @@ seed 12345). The enchants stay the spec's
   the numbers from the client ([§3.2](#32-buffs-debuffs-and-cooldowns), §2.9), checked by the
   tests.
 - **Battle Shout, on-use items and consumables are `cast` abilities too.** Battle Shout's
-  aura is +139 attack power for 180 s (§1.1); `battleShout(profile)` gives `classicEra`
-  Classic Era's +232 for 120 s, as the catalogue does for the Buffs switch (§3.2). An on-use item's use effect sits next to its
+  aura is rank 6's +115 attack power for 180 s (§1.1); `battleShout(profile)` gives `classicEra`
+  Classic Era's rank 6, +193 for 120 s, as the catalogue does for the Buffs switch (§3.2). An on-use item's use effect sits next to its
   other effects in `sim/effects/items.ts` (Weakness Analyzer), a consumable's on its Buffs entry
   (`sim/effects/buffs.ts`: the Mighty Rage Potion and Juju Flurry), each with its numbers from
   the client, checked by the tests; the rotation turns them into casts. A cast can draw a random
@@ -2642,8 +2659,8 @@ Dragonkin: `1.20 × 555.29 = 666.34`, or 686.33 with ×1.03 [F] [?] (Q13).
 ### W7: Heroic Strike with one-hander O in the main hand
 
 The AP bonus uses the real speed: `1800 / 14 × 2.6 = 334.29`. A white swing averages
-`152 + 334.29 = 486.29`. Heroic Strike averages `486.29 + 157 = 643.29`, ranging from 597.29
-to 689.29. Cleave averages `486.29 + 50 = 536.29` on each of 2 targets.
+`152 + 334.29 = 486.29`. Heroic Strike rank 8 (the trainer's, D36) averages
+`486.29 + 138 = 624.29`, ranging from 578.29 to 670.29. Cleave averages `486.29 + 50 = 536.29` on each of 2 targets.
 
 ### W8: Off-hand white swing with Dual Wield Specialization 5/5
 
@@ -2684,11 +2701,11 @@ Classic's break-even was 2000 at cost 10 [marrow].
 
 `147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
 
-### W14: Revenge rank 6, Protection
+### W14: Revenge rank 5, Protection
 
-With Improved Revenge 3/3, Bastion 5/5 and Defensive Stance, the multiplier is
-`1.6 × 1.10 × 0.90 = 1.584`. The average is `153 × 1.584 = 242.35`, ranging from 218.59 to
-266.11.
+Rank 5 is the trainer's (D36): 109–133. With Improved Revenge 3/3, Bastion 5/5 and Defensive
+Stance, the multiplier is `1.6 × 1.10 × 0.90 = 1.584`. The average is `121 × 1.584 = 191.66`,
+ranging from 172.66 to 210.67.
 
 ### W15: Shield Slam rank 4, Protection
 
@@ -2774,7 +2791,7 @@ build 1.60.1.70009; before it, Sunder Armor made 1,514.44 a cast, 168.27 a rage,
 | --- | --- | --- | --- |
 | Sunder Armor | `(206 + 0.05 × 1400) × 1.495 = 412.62` | 9 | 45.85 |
 | Shield Slam | `((655 + 62) × 0.99 + 475) × 1.495 = 1771.32` | 17 | 104.20 |
-| Revenge | `(153 × 1.6 × 0.99 × 2.25 + 270) × 1.495 = 1218.86` | 2 | 609.43 |
+| Revenge (rank 5) | `(121 × 1.6 × 0.99 × 2.25 + 243) × 1.495 = 1007.99` | 2 | 504.00 |
 | Thunder Clap | `103 × 0.99 × 2.5 × 1.495 = 381.11` | 17 | 22.42 |
 | Demoralizing Shout | `43.2 × 1.495 = 64.58` | 7 | 9.23 |
 
@@ -2957,9 +2974,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     Stance dancing for Rend and Overpower is −22.5 DPS (−3.5%) against Battle Stance, over 200,000
     paired fights ([§5.3](#53-arms-two-hander) notes). Battle Stance stays the default; the answer
     depends on the unverified Bloodthrill and Overpower rules (Q10, Q11) and moves with gear.
-25. **Rank availability.** Classic Era added Heroic Strike rank 9, Battle Shout rank 7 and
-    Revenge rank 6 in its AQ patch. The Forever spellbook lists them all at level 60. Are they
-    trainable at launch (November 4)?
+25. **Rank availability.** ✅ Resolved by [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)
+    (user decision): Ahn'Qiraj comes long after launch, so no warrior has its books' ranks. The
+    Forever client still carries the books that teach Heroic Strike rank 9 (Manual of Heroic Strike
+    IX, item 21297 → 25286), Battle Shout rank 7 (21298 → 25289) and Revenge rank 6 (21299 → 25288)
+    [F] [client] (ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009), so the sim uses the
+    trainer's Heroic Strike r8 (11567), Battle Shout r6 (11551) and Revenge r5 (11601), with no
+    toggle until Ahn'Qiraj is near (§1.1, §3.1).
 26. **Recklessness, Retaliation and Shield Wall.** Do they still share a cooldown? The data
     suggests not: Recklessness has its own recovery and no category [F]
     [client] (SpellCooldowns, SpellCategories, 1.60.1.69913). This doesn't matter for DPS.

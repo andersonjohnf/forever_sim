@@ -130,13 +130,14 @@ export const ARCANE_SHOT_SPELL: SpellDef = {
 }
 export const ARCANE_SHOT: AbilityDef = { ...SHOT, id: 'arcaneShot', name: 'Arcane Shot', icon: 'ability_impalingbolt', ...mana(190), cooldownMs: 6000, spellDef: ARCANE_SHOT_SPELL }
 
-// --- Serpent Sting (docs/classes/hunter.md#34-serpent-sting-r9-25295) -----------------------------
+// --- Serpent Sting (docs/classes/hunter.md#34-serpent-sting-r8-13555) -----------------------------
 
 /**
- * Serpent Sting r9 (25295) [F] [client] (SpellEffect, SpellDuration, SpellMisc, SpellPower,
- * 1.60.1.69913): a pure DoT on the ranged table (DefenseType 3), aura 3, 111 Nature every 3 s for 15 s
- * (5 ticks, 555, as in Classic Era), no coefficient, and the periodic-crit flag (Attributes[8] 0x200):
- * its ticks crit at your spell crit, ×1.5 [?]. 250 mana, instant. Pure damage: partially resisted.
+ * Serpent Sting r8 (13555), the trainer's top rank (r9, 25295, is an Ahn'Qiraj book, D36) [F] [client]
+ * (SpellEffect, SpellDuration, SpellMisc, SpellPower, 1.60.1.70009): a pure DoT on the ranged table
+ * (DefenseType 3), aura 3, 83 Nature every 3 s for 15 s (5 ticks, 415; Classic Era 98 a tick), no
+ * coefficient, and the periodic-crit flag (Attributes[8] 0x200): its ticks crit at your spell crit,
+ * ×1.5 [?]. 230 mana, instant. Pure damage: partially resisted.
  */
 export const SERPENT_STING_SPELL: SpellDef = {
   ...SHOT_SPELL,
@@ -149,7 +150,7 @@ export const SERPENT_STING_SPELL: SpellDef = {
   critMultiplier: CRIT_MULTIPLIER.spell,
   dotTicks: 5,
   dotTickMs: 3000,
-  dotTickDamage: 111,
+  dotTickDamage: 83,
   dotSpCoefficient: 0,
   dotCanCrit: true,
 }
@@ -160,7 +161,7 @@ export const SERPENT_STING: AbilityDef = {
   id: 'serpentSting',
   name: 'Serpent Sting',
   icon: 'ability_hunter_quickshot',
-  ...mana(250),
+  ...mana(230),
   aura: SERPENT_STING_AURA,
   spellDef: SERPENT_STING_SPELL,
 }
@@ -238,10 +239,15 @@ export const BESTIAL_WRATH: AbilityDef = {
   aura: { id: 'bestialWrath', name: 'Bestial Wrath', durationMs: 18000, mods: { petDamage: 50 } },
 }
 
-// --- Aspect of the Hawk and its Quick Shots (docs/classes/hunter.md#39-aspect-of-the-hawk-r7-25296) -
+// --- Aspect of the Hawk and its Quick Shots (docs/classes/hunter.md#39-aspect-of-the-hawk-r5-14321) -
 
-/** Aspect of the Hawk r7 (25296): +120 ranged attack power (aura 124) until cancelled [F]; cast before the pull. */
-export const ASPECT_OF_THE_HAWK_RAP = 120
+/**
+ * Aspect of the Hawk r5 (14321): +90 ranged attack power (aura 124) until cancelled [F] [client]
+ * (SpellEffect, 1.60.1.70009); cast before the pull. Rank 7 (25296, +120) is an Ahn'Qiraj book (D36),
+ * and the trainer's rank 6 (14322) gives only +55 in the Forever client, so rank 5's +90 is the best a
+ * hunter has before Ahn'Qiraj (docs/classes/hunter.md §3.9, Q15 [?]).
+ */
+export const ASPECT_OF_THE_HAWK_RAP = 90
 /**
  * Quick Shots (6150), the proc Aspect of the Hawk carries (its aura 42) at the chance Deadly Aspects
  * gives it: +30% ranged attack speed (aura 140) for 12 s [F] [client] (SpellEffect, SpellDuration,

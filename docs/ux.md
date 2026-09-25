@@ -56,7 +56,7 @@ When a design decision isn't covered here, make it, then add it here.
 
 | Width | Layout |
 | --- | --- |
-| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. The results pane is the **right panel**: Your setup with Simulate, pinned at its top, then the character sheet and the result, in one column ([Results](#results)). |
+| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. The results pane is the **right panel**: the character sheet, then Your setup with Simulate and the result's headline, then the rest of the result, in one column that scrolls as one ([Results](#results)). |
 | **1024–1439 px** | A header, then two columns, capped at 1280 px. **Left:** the setup, as section tabs. **Right:** a sticky results panel, 22 rem, with the Simulate button. |
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
@@ -999,32 +999,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25) as amended: `WidePanel`
   in `src/features/results/results-panel.tsx`, Your setup in `src/app/setup-summary.tsx`). Under
   1440 px the panel and the phone's bar and sheet are as this section describes elsewhere. From
-  1440 px the panel is one calm column, top to bottom: **Your setup** with Simulate, pinned at the
-  top, then the **character sheet**, then the result (D34's panel order, after the final review: a
-  1440×900 window can't show a tank's whole sheet, Your setup and a result together, and Simulate
-  must never be out of view). Your setup and the sheet are each a card (shadcn's `Card`, its small
-  size, on the neutral card surface), headed by a muted 16 px icon and their name; the result
-  under them isn't, so the cards read as context and the result as the answer.
-  - **Your setup**: a line a section (Character, Talents, Gear, Buffs, Rotation, Fight), each its
-    section's icon and name in muted 12 px text over what it holds ([Your setup's lines](#layout)):
-    a person for Character, a node tree for Talents, a shield for Gear, sparkles for Buffs, an
-    ordered list for Rotation, crossed swords for Fight. Each line is a 44 px button, named
-    "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a tab does, and
-    moves focus into it. It looks like one at rest: its name ends on a faint chevron (review
-    finding DU2-3). On hover or keyboard focus, over the muted hover fill, the chevron darkens, the
-    name takes the value's colour, keeping it over 4.5:1 on the fill (DU2-5), and the value gains
-    an underline. The lines sit in two columns in a 30 rem panel (1440 px) and three from a 38 rem
-    one (about 1,824 px).
-  - **Your setup's action row** ends the card, on the muted footer surface: the status on the
-    left and **Simulate** on the right (Run again after a run, Cancel during one), in the primary
-    style, 44 px tall and sized to its label, never stretched, in the same place in every state.
-    The status always says where things stand, so the row is never an empty band (DU2-6): "Your
-    setup is ready. Simulate to see your DPS." before a first run; during a run its progress,
-    "Simulating… 45%" over a bar, beside Cancel; "Your result is up to date." with a check once the
-    result is this setup's; "Your setup changed since this run. Simulate to update it." when it's
-    stale; and "This run didn't finish. See why below." over a failure's message. The button keeps
-    its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the skip link's target
-    (`[data-simulate]`).
+  1440 px the panel is one calm column, top to bottom: the **character sheet**, then **Your setup**,
+  whose action row holds Simulate and, once run, the result's headline, then the rest of the result
+  (D34's panel, after the user's look at the fixes). **Nothing is pinned**: they scroll together
+  ("Scrolling" below). The sheet and Your setup are each a card (shadcn's `Card`, its small size, on
+  the neutral card surface), headed by their name at a section heading's size (16 px, semibold),
+  with no icon before it; the rest of the result under them isn't, so the cards read as context and
+  the result as the answer.
   - **Character sheet**, always shown, before any run too. It comes from your setup (the plan the
     sim builds), not from the fights, so it follows every change as you make it and is never
     stale. It isn't collapsible here. Its heading's right names whose sheet it is, "Fury Warrior",
@@ -1042,59 +1023,83 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 
     The groups flow down two columns in a 30 rem panel (1440 px), three from a 38 rem one (about
     1,824 px) and four from a 48 rem one (about 2,300 px), each kept whole, so a Fury warrior's
-    reads Offense | Attributes and Defense, and a Protection paladin's Melee | Spells and Mana |
-    Attributes at 1920 px. The fourth column keeps a column near 12 rem at 2560 px as at 1920, rather than stretched to 18, so a value sits near its label
-    (review finding DU2-4). A tank's Defense spans the columns, its rows running across them
-    (Health, Armor, Defense, …); from three columns its crit reduction takes two, its label in the
-    first and its value in the second, so "Crit reduction (boss's crits)" stays on one line, and
-    the rows after it fill any cell that leaves. Under it, the **Boss's attack table**, in the
-    sheet's first two columns. Its line here is brief, so a tank's sheet is shorter: "Its chances on
-    each swing at you as the fight starts.", or with a block buff "Its chances with Holy Shield up,
-    its 20.0% more block included." and the latest run's uptime while that run is of this setup
-    ("Your rotation kept it up 94.9% of the fight."), otherwise "Your rotation keeps Holy Shield up
-    most of the fight." The boss's skill and why the swings that landed differ are in the table's
-    numbers and the result, and in the full line under 1440 px.
+    reads Offense | Attributes and Defense. A paladin's, whose five groups are short, has three
+    columns from 1440 px, Melee | Spells and Mana | Attributes, as at 1920: in two, a Protection
+    paladin's sheet ran so long that Simulate went under the panel's edge at 1440×900 (review
+    finding DU2-1). The fourth column keeps a column near 12 rem at 2560 px as at 1920, rather than
+    stretched to 18, so a value sits near its label (review finding DU2-4). A tank's Defense spans
+    the columns, its rows running across them (Health, Armor, Defense, …); from three columns its
+    crit reduction takes two, so "Crit reduction (boss's crits)" stays on one line: its label in the
+    first and its value in the second from a 38 rem panel, and across both, its value ending the
+    second, in a paladin's 30 rem one. The rows after it fill any cell that leaves. Under it, the
+    **Boss's attack table**, filling down three columns (four from a 48 rem panel, the sheet's own),
+    so it takes three rows. Here it's the table alone, so a tank's sheet is short enough for
+    Simulate to be in view on load at 1440×900: its explanation is behind an **info button** (ⓘ,
+    "About the boss's attack table") beside its heading, a 44 px target that overhangs the heading's
+    line rather than making the row taller. It opens a popover on a click, a tap or Enter and closes
+    on Escape or a click outside, never on hover alone. The popover holds the full line under 1440 px
+    (what the table is, with Holy Shield up and the latest run's uptime while that run is of this
+    setup, the boss's skill, and why the swings that landed differ) and the crushing line ("Another
+    58.9 points of miss, dodge, parry or block would push crushing blows off the table.").
+  - **Your setup**: a line a section (Character, Talents, Gear, Buffs, Rotation, Fight), each its
+    section's icon and name in muted 12 px text over what it holds ([Your setup's lines](#layout)):
+    a person for Character, a node tree for Talents, a shield for Gear, sparkles for Buffs, an
+    ordered list for Rotation, crossed swords for Fight. Each line is a 44 px button, named
+    "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a tab does, and
+    moves focus into it. It looks like one at rest: its name ends on a faint chevron (review
+    finding DU2-3). On hover or keyboard focus, over the muted hover fill, the chevron darkens, the
+    name takes the value's colour, keeping it over 4.5:1 on the fill (DU2-5), and the value gains
+    an underline. The lines sit in two columns in a 30 rem panel (1440 px) and three from a 38 rem
+    one (about 1,824 px).
+  - **Your setup's action row** ends the card, on the muted footer surface: where things stand on
+    the left and **Simulate** on the right (Run again after a run, Cancel during one), in the
+    primary style, 44 px tall and sized to its label, never stretched. Simulate sits at the row's
+    top, so it's in the same place in every state however tall the left side grows, and a one-line
+    status centres on it. The left side is never an empty band (DU2-6):
+    - before a first run, "Your setup is ready. Simulate to see your DPS." (or "TPS and DPS");
+    - during a run, its progress, "Simulating… 45%" over a bar, beside Cancel;
+    - after a run, **the result's headline**: "DPS 713.7 ± 1.8" and its change from the last run
+      ("▲ +12.3"), the value 24 px and semibold, its label, ± and change small beside it; a tank's
+      TPS over its DPS, each on its own line (decision D18's equals). The run's size is under them,
+      12 px and muted: "2,250 fights of 180 s · Forever rules · ran in 0.1 s". Each value is a
+      group named by its label ("DPS"), as the headline is under 1440 px;
+    - once the setup changes, the same headline dimmed and marked **Setup changed** (the amber
+      badge), with Simulate in place of Run again;
+    - when a run fails, "This run didn't finish. See why below.", the failure's message first under
+      the card.
+
+    The button keeps its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the skip link's
+    target (`[data-simulate]`). A screen reader hears a run's outcome from the run's live region
+    ("Done: 713.7 DPS", [States](#states)), and a failure from its alert.
   - **The result**, once there's one or a failure; before that there's no result box at all, and
-    a first run shows only its progress in the action row. The headline (the values with their ±
-    and change, then the run's summary; a re-run's progress is in the action row, not above it), any
-    failure or "no damage" message, then a tank's Damage taken, the breakdown (or Threat by
-    ability), How the boss's swings landed, Mana per fight, **Cooldowns and buffs** and
-    **Assumptions**. Each part is divided from the next by a rule with the same spacing, has a
-    plain heading, and starts at the same left edge: nothing sits beside the breakdown. A tank's
-    TPS and DPS sit side by side in the headline, as everywhere.
+    a run's progress and the headline are in the action row. Under Your setup: any failure or "no
+    damage" message, then a tank's Damage taken, the breakdown (or Threat by ability), How the
+    boss's swings landed, Mana per fight, **Cooldowns and buffs** and **Assumptions**. Each part is
+    divided from the next by a rule with the same spacing, has a plain heading, and starts at the
+    cards' left edge: nothing sits beside the breakdown.
   - **Cooldowns and buffs** is open by default. A reader who closes it keeps it closed, and one
     reopened stays open: each browser remembers it (`forever-sim:results-closed` in
     `localStorage`, a list of the closed ones; a value it can't read counts as none closed).
     **Assumptions** stays collapsed: it's long and read rarely; in a panel wider than 32 rem (from
     about 1,540 px) its text keeps to 32 rem, about 75 characters a line (review finding DA-8). The
     30 rem panel keeps each breakdown row's first outcome line on one line.
-  - **Scrolling.** The panel never runs past the viewport: the sheet and the result scroll inside
-    it as one, under **Your setup, which always stays put** at the top with Simulate, with a fade
-    and a chevron at the bottom while there's more, and a fade under what stays put once anything
-    has scrolled under it. While it overflows it takes keyboard focus, so arrow keys scroll it.
-    Measured at 1440×900 (a 772 px panel): Your setup takes 241 px and a tank's sheet 542–696, so
-    before a run a tank's panel already scrolls, with Simulate in view.
-    - **The key-stats strip.** Once the sheet's key stats have scrolled up under Your setup, a
-      one-line strip of them stays pinned under it, so the sheet's numbers are always in view:
-      "AP 1,455 · Crit 37.1% · Hit 9.0%" (`keyStats` in `sheet-groups.ts`). They're the first three
-      of the sheet's first group: a melee or ranged spec's attack power, crit and hit ("Ranged AP"
-      for a hunter); a caster's spell damage, crit and hit, each its best school's where a school's
-      own is higher (a fire mage's "Fire crit"); a tank's Health, Armor and Defense, from its
-      Defense group. It's the sheet card's surface in miniature, its ID-card icon first, 12 px, one
-      line tall: a stat that wouldn't fit is left out whole, never cut. It lies over what scrolls
-      rather than taking room in the column, so showing it moves nothing, and it goes as soon as the
-      sheet's key stats scroll back into view. It's hidden from assistive tech (`aria-hidden`): it
-      only repeats rows of the sheet, which a screen reader reads in order wherever the panel is
-      scrolled, so exposing it would say them twice, and would add and remove content as the panel
-      scrolls.
-    - **Revealing the result.** When a run starts or finishes and its headline isn't in view (below
-      the panel's edge under a tank's long sheet, or scrolled up under Your setup deep in a long
-      result), the panel scrolls (smoothly, unless reduced motion is asked for) just far enough for
-      the result to start under Your setup and the strip, which shows once the sheet above the
-      result has gone; it never scrolls on its own otherwise, and not on the first render, so a
-      result waiting when the page opens leaves the sheet in view. At 1440×900 a DPS spec's
-      headline starts in view under its sheet, so the sheet stays; a tank's doesn't. At 1920×1080
-      every spec's does. Keyboard focus scrolls clear of what stays put.
+  - **Scrolling.** The panel sticks beside the page and never runs past the viewport: the sheet,
+    Your setup and the result scroll inside it as one, nothing pinned, with a fade at the top once
+    anything has scrolled up and a fade and a chevron at the bottom while there's more. While it
+    overflows it takes keyboard focus, so arrow keys scroll it. Measured at 1440×900 (a 772 px
+    panel): Your setup takes 245 px before a run and a tank's sheet 470–492 (a bear's, a Protection
+    warrior's, a Protection paladin's), so before a run every spec's sheet and setup fit whole, with
+    nothing to scroll: a tank's Simulate ends 58–80 px above the window's bottom edge, 26–48 px
+    inside the panel's room.
+    - **Keeping the action row in view.** When a run starts, finishes or fails, the panel keeps Your
+      setup's action row in view, since it holds the progress, the headline or the failure (and on a
+      failure, the message under the card too). A row already in view stays where it is; otherwise
+      the panel scrolls (smoothly, unless reduced motion is asked for) just far enough, clear of the
+      bottom fade: up to the row when Ctrl+Enter ran it from deep in a long result, or down a little
+      when a result arrives under a tank's sheet at 1440×900, the sheet's top giving way first. It
+      never scrolls on its own otherwise, and not on the first render, so a result waiting when the
+      page opens leaves the sheet in view. At 1440×900 a DPS spec's breakdown starts in view under
+      the setup; at 1920×1080 every spec's does.
 - **A result with no damage** says why and what to do next: with no main-hand weapon, "Add a
   weapon in Gear", with a button that opens the tab (and closes the sheet on a phone). The
   button is left out beside the desktop panel when that tab is already open.

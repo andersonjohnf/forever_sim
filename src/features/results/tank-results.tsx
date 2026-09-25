@@ -1,7 +1,10 @@
 // A tank's results beside TPS and DPS (docs/ux.md#results, decision D18): the damage the boss's
 // swings cost you and how they landed, and, on the character sheet, the boss's table against
 // your stats (docs/mechanics/combat-tables.md#8-boss--player-tanks, encounter.md §5).
+import { Info } from 'lucide-react'
 import { useId } from 'react'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatOne, formatPct } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { BossOutcomes, FightConfig, SpecId, TankResult } from '@/sim'
@@ -87,32 +90,74 @@ export function SwingOutcomes({ tank }: { tank: TankResult }) {
  * the fight starts, or with the block buff your rotation keeps up (`up`: Holy Shield), and whether
  * it can land crushing blows on you. `avoidance` is what the sheet above it shows you have, for the
  * lines that name it.
+ *
+ * `wide` is the wide panel's (from 1440 px), where the sheet sits above Your setup and a tank's must
+ * leave Simulate in view at 1440×900 (review finding DU2-1): the table alone, filling down three
+ * columns (the sheet's four in a 48 rem panel), with its two lines behind an info button beside the
+ * heading, which opens on a click, a tap or Enter and closes on Escape, never on hover alone.
  */
 export function BossTable({
   table,
   avoidance,
   fight,
   up = null,
-  brief = false,
+  wide = false,
 }: {
   table: BossOutcomes
   avoidance: readonly Avoidance[]
   fight: FightConfig | null
   up?: BlockBuffUp | null
-  /** The wide panel's shorter line under the heading (`bossTableIntro`). */
-  brief?: boolean
+  wide?: boolean
 }) {
   const headingId = useId()
+  const infoTitleId = useId()
+  const intro = bossTableIntro(fight?.bossLevel ?? null, avoidance, up)
+  const crushing = crushingText(crushingState(table, fight), avoidance)
+  const heading = (
+    <h4 id={headingId} className="text-sm font-medium">
+      Boss’s attack table
+    </h4>
+  )
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex flex-col gap-0.5">
-        <h4 id={headingId} className="text-sm font-medium">
-          Boss’s attack table
-        </h4>
-        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance, up, brief)}</p>
-      </div>
-      {/* In the wide panel its two columns are the sheet's first two, never stretched across a wider panel (DU2-4). */}
-      <dl className={cn(OUTCOME_GRID, 'gap-y-1.5', brief && '@min-[38rem]/results:grid-cols-3 @min-[48rem]/results:grid-cols-4')}>
+      {wide ? (
+        // The button's 44 px target overhangs the heading's line rather than making the row taller.
+        <div className="flex items-center gap-0.5">
+          {heading}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="-my-3 size-11 shrink-0 text-muted-foreground" aria-label="About the boss’s attack table">
+                <Info aria-hidden />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              collisionPadding={16}
+              aria-labelledby={infoTitleId}
+              className="max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] overflow-y-auto text-sm"
+            >
+              <p id={infoTitleId} className="font-medium">
+                Boss’s attack table
+              </p>
+              <p className="text-muted-foreground">{intro}</p>
+              <p className="text-muted-foreground">{crushing}</p>
+            </PopoverContent>
+          </Popover>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          {heading}
+          <p className="text-xs text-muted-foreground">{intro}</p>
+        </div>
+      )}
+      {/* In the wide panel it fills down three columns, or the sheet's four in a 48 rem panel, never stretched (DU2-4). */}
+      <dl
+        className={cn(
+          OUTCOME_GRID,
+          'gap-y-1.5',
+          wide && 'grid-cols-3 grid-rows-3 @min-[48rem]/results:grid-cols-4 @min-[48rem]/results:grid-rows-2',
+        )}
+      >
         {BOSS_OUTCOMES.map(([key, label]) => (
           <div key={key} className="flex justify-between gap-2">
             <dt className="text-muted-foreground">{label}</dt>
@@ -120,7 +165,7 @@ export function BossTable({
           </div>
         ))}
       </dl>
-      <p className="text-xs text-muted-foreground">{crushingText(crushingState(table, fight), avoidance)}</p>
+      {!wide && <p className="text-xs text-muted-foreground">{crushing}</p>}
     </section>
   )
 }

@@ -16,7 +16,7 @@ import { CharacterSection } from '@/features/character/character-section'
 import { FightSection } from '@/features/fight/fight-section'
 import { GearSection } from '@/features/gear/gear-section'
 import { MobileSimBar } from '@/features/results/mobile-sim-bar'
-import { ResultsPanel, SimulateButton, SimulateNote } from '@/features/results/results-panel'
+import { ResultsPanel, SimulateButton, WideRunStatus } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
 import { useIsWide } from '@/hooks/use-media-query'
@@ -154,11 +154,12 @@ export default function App() {
         </Tabs>
         {/*
          * The skip link's target: focus lands on its Simulate button. From 1440 px (D34) it's the
-         * wide panel: the setup summary with Simulate, pinned, then the character sheet and the result.
+         * wide panel: the character sheet, then the setup summary with Simulate and the result's
+         * headline, then the rest of the result, none of it pinned.
          */}
         <aside ref={results} id="results" className="hidden outline-none lg:block wide:@container/results" aria-label="Results">
           <div className="sticky top-20 pt-6">
-            <ResultsPanel setup={wide ? <SetupSummary sections={SECTIONS} onOpen={openAndFocus} action={<SimulateButton />} note={<SimulateNote />} /> : undefined} />
+            <ResultsPanel setup={wide ? <SetupSummary sections={SECTIONS} onOpen={openAndFocus} action={<SimulateButton />} note={<WideRunStatus />} /> : undefined} />
           </div>
         </aside>
       </main>

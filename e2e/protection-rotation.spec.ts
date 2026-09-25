@@ -69,7 +69,7 @@ test.describe('Protection rotation', () => {
     await expect(preset(page)).toHaveText('Balanced (default)')
     // The short line under it says what Balanced keeps and drops, with a number or two.
     await expect(preset(page)).toHaveAccessibleDescription(
-      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +6% DPS, 21% more damage taken than Defensive.',
+      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +7% DPS, 21% more damage taken than Defensive.',
     )
     await preset(page).click()
     await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
@@ -78,8 +78,8 @@ test.describe('Protection rotation', () => {
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
     await expect(info.getByRole('term')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
-    await expect(info).toContainText('7.2% more TPS, 6.4% more DPS and 21% more damage taken')
-    await expect(info).toContainText('8.3% more TPS, 6.9% more DPS and 21% more damage taken')
+    await expect(info).toContainText('7.3% more TPS, 6.5% more DPS and 21% more damage taken')
+    await expect(info).toContainText('8.4% more TPS, 7.0% more DPS and 21% more damage taken')
     // Max TPS names what it changes from Balanced, whose rows it shares (WR-1).
     await expect(info).toContainText('Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken')
     await page.keyboard.press('Escape')

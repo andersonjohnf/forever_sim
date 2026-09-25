@@ -136,6 +136,22 @@ from further down the page scrolls up to the new section's top, just under the s
 (smoothly, unless reduced motion is asked for), so its header and any note under it (Classic
 Era's) start in view rather than under the tabs.
 
+**Section tab summaries** (from 1440 px, decision D34): under each tab's name, a muted 12 px
+line says what its section holds, so the whole setup reads at a glance. The name stays the tab's
+label; the line is its description. Each line uses the rule its own tab uses to say the same
+thing (`src/app/section-summary.ts`), so it never disagrees with the tab, and stays within 24
+characters, about what fits under a tab at 1440 px:
+- **Character:** the race, and the rules when they aren't Forever's: "Human", "Orc · Classic
+  Era". A Skyborne race drops its faction variant only when the rules would push it past the
+  width: "Skyborne · Classic Era".
+- **Talents:** the points in each tree, in tree order: "17/34/0".
+- **Gear:** "Pre-raid best in slot" (a tank's "Threat set") while every slot holds the default
+  set, by the Gear tab's own comparison; otherwise "1 slot changed", "3 slots changed".
+- **Buffs:** the preset the Buffs tab's picker shows ("Standard raid"), or "Custom".
+- **Rotation:** the preset the Rotation tab's picker shows ("Default", "Balanced"), or "Custom".
+- **Fight:** the length as the Fight tab shows it ("3:00"), and the boss's level only when it
+  isn't a raid boss's 63: "3:00 · level 62".
+
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 Each opens with its title and a short intro. An action (Reset rotation, the gear menu) sits on the
 title's right; on a phone the intro takes the full width under both, and from 640 px it sits

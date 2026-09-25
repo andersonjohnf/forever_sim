@@ -419,16 +419,43 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
 sets. Each spec's defaults are then its results.
-- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
+- [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
-      enumerator (tree rules, required talents, the minimum points in a tree, the class's
-      survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`)
+      enumerator (tree rules, kept and excluded talents, the minimum points in a tree), rotation
+      settings as candidates, and a CLI (`npm run optimize`). Also constraints on the sheet, with
+      effective health and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's
+      `fightRunner` for O3 ([optimizer.md](optimizer.md)). After its review
+      ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination
+      bar corrects for the winner's curse, crit and crush immunity (off by default, no
+      damage-taken cap), a tank's 31 points in its tree by default, and budgets that fit a large
+      space. After its verifications: the setup is only ever the baseline, never an answer; every
+      candidate meets every constraint, or the search says which block (user decision, simpler
+      design); empty spaces and blocked searches say why, and the setup's copy costs no fights;
+      the leader is the answer, and the race takes no result limits (step 6, D30). After its
+      fifth round (user decision, D30): **the player picks the goal**, Defense, DPS, TPS or
+      Balanced (`--goal`; tanks Balanced, DPS specs DPS by default), and **no talent-specific
+      rules**: the survival floor and the preferred filler are gone, and every talent is judged
+      by what the screen measures it doing for the goal. After the goals review's verification (user
+      decision, D30): **a hard ceiling** on a search's fights (thorough's 24 million) and builds
+      (200,000); the budget grows to it, the space narrows to max ranks past it and says so, and the
+      estimate is told before the search runs
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
 - [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
-      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
+      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px.
+      It shows the hard ceiling's estimate (fights and time) before the search and again before the
+      race, and says when the space was narrowed (D30; [budgets](optimizer.md#budgets)). It calls
+      `optimize()` in a worker, not on the page's thread: sizing and listing a space and building
+      every candidate's plan and sheet take seconds (OGV-5). Two bounds the CLI doesn't need (OGV2-5):
+      - **A time ceiling a device, from a measured pace:** the fights a second this device runs (a
+        short calibration run, or the screen's pace) sets how many fights a search may take in the
+        time the player picked; the fight cap (`MAX_SEARCH_FIGHTS`) stays the outer limit.
+      - **A memory bound:** the race keeps about 24 bytes a fight a candidate (DPS, TPS and damage
+        taken, 8 bytes each), about 576 MB at the 24,000,000-fight cap, enough to run a phone's
+        browser out of memory. Cap the fights by the memory the device can spare too, or free a
+        dropped candidate's samples.
+      - Its confirmation counts under the cap, as the CLI's does (`confirmFights`, OGV2-2).
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 
@@ -641,6 +668,9 @@ slice is worked:
 - **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
   shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
   on the TPS row instead.
+- **The optimizer (O1):** `WorkerPool.fightRunner` runs real workers only in a browser: a unit
+  test drives it against stub workers (its plan sending and cache mirror), and O3's e2e tests are
+  the first to run it for real.
 - **Encounter settings the contract lacks:** `biome`, `extraTargetUptimePct` and
   `bossExtraDtps` ([encounter.md](mechanics/encounter.md#encounter-settings)).
 - **Engine choices where the docs are silent (made in M1):**

@@ -527,6 +527,14 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
   (`withSharedConsumables`), and the Rotation tab shows no row for them. The buffs doc says so;
   the tanks' and Fury's priority-list docs don't yet. Both are off by default.
 
+- **A pasted code legal on both talent trees reads as today's, silently (TMV-6).** A code that's a
+  legal build on today's trees and on 1.60.1.69913's keeps today's reading with no notice, even
+  when the two readings differ (`2-4530513321301541-502`: Divine Strength 2 today, Improved Holy
+  Strike 2 then). Low: the paste is still a legal build, a setup's own version says which trees its
+  code is on, and only a code copied from the older trees and never loaded since can hit it; a
+  notice would need the two readings compared on every paste
+  ([talents.md § Tree versions](data/talents.md#tree-versions)).
+
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
 - **The DPS specs' Rotation intros say "with a first quick search; they aren't tuned yet"** (tank

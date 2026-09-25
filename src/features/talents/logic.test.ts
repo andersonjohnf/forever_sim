@@ -170,16 +170,30 @@ describe('pasting a code from the game’s older talent trees', () => {
       older: {
         title,
         description:
-          'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+          // Already in Talents: "Spend them again", not "…in Talents" (review TMV-2).
+          'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again.',
       },
     })
   })
 
-  it('reads an old default the sim shipped as today’s default', () => {
+  it('reads an old default the sim shipped as today’s default, speaking of the code (review TMV-2)', () => {
     expect(read('https://sim.example/250003-503-052052310012330321')).toEqual({
       ok: true,
       code: defaultTalents('paladin-retribution'),
-      older: { title, description: 'Your talents were the Retribution default on the game’s old trees; they’re now today’s default.' },
+      older: { title, description: 'That code was the Retribution default on the game’s old trees; it’s now today’s default.' },
+    })
+  })
+
+  it('reads an old default written with trailing zeros as the default too (review TMV-1)', () => {
+    expect(read('2500030-5030-052052310012330321')).toEqual({
+      ok: true,
+      code: defaultTalents('paladin-retribution'),
+      older: { title, description: 'That code was the Retribution default on the game’s old trees; it’s now today’s default.' },
+    })
+    expect(read('240003-0530213321301551-5020')).toEqual({
+      ok: true,
+      code: defaultTalents('paladin-protection'),
+      older: { title, description: 'That code was the Protection default on the game’s old trees; it’s now today’s default.' },
     })
   })
 

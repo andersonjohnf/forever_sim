@@ -215,7 +215,33 @@ describe('the notice', () => {
     expect(defaultsUpdateNotice(updates, 'paladin-retribution')).toEqual({
       title: 'Talents moved onto the game’s new trees for Retribution Paladin and Protection Paladin',
       description:
-        'Your Retribution Paladin talents were the Retribution default on the game’s old trees; they’re now today’s default. The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents.',
+        'Your Retribution Paladin talents were the default then; they’re now today’s default. The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents.',
+    })
+  })
+
+  it('says each spec’s talents in spec order, the current spec first (review TMV-3)', () => {
+    const ret = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }).talentChange!
+    const prot = normalizeConfig({ version: 1, spec: PROT_PALADIN, talents: '2-4530513321301541-502' }).talentChange!
+    const updates = [
+      { spec: 'paladin-retribution' as const, gear: false, talents: false, change: ret },
+      { spec: PROT_PALADIN, gear: false, talents: false, change: prot },
+    ]
+    expect(defaultsUpdateNotice(updates, PROT_PALADIN)).toEqual({
+      title: 'Talents moved onto the game’s new trees for Protection Paladin and Retribution Paladin',
+      description:
+        'The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents. Your Retribution Paladin talents were the default then; they’re now today’s default.',
+    })
+  })
+
+  it('doesn’t say talents the player changed are kept when a successor replaced one (review TMV-3)', () => {
+    const ret = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }).talentChange!
+    const updates = [
+      { spec: PROT_PALADIN, gear: true, talents: false },
+      { spec: 'paladin-retribution' as const, gear: false, talents: false, change: ret },
+    ]
+    expect(defaultsUpdateNotice(updates, PROT_PALADIN)).toEqual({
+      title: 'Updated to the new default gear for Protection Paladin',
+      description: 'Gear you changed yourself is kept. Your Retribution Paladin talents were the default then; they’re now today’s default.',
     })
   })
 })

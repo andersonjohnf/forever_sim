@@ -8,7 +8,7 @@
 // preset) reads as the build that succeeds it instead (./talent-successors.ts).
 import frozenJson from '@/data/talents/frozen.json'
 import { decodeFrozenCode, encodeTalentCode, frozenBuildProblems, validateTalentBuild, type FrozenTalentOrders, type Talent, type TalentData, type TalentRanksById } from '@/data/talents/types'
-import type { ClassId } from '../types'
+import type { ClassId, SpecId } from '../types'
 
 const frozen = frozenJson as unknown as FrozenTalentOrders
 
@@ -30,22 +30,38 @@ export const RENAMED_TALENTS: Readonly<Record<string, Partial<Record<ClassId, Re
 /** Why a talent's points have no place on today's trees: the game removed it, lowered its max rank, or its row or arrow lost what it needs. */
 export type RefundCause = 'removed' | 'ranks' | 'row' | 'arrow'
 
-/** Points a build lost on today's trees, and why (`maxRank`: today's, for a lowered max rank). */
+/**
+ * Points a build lost on today's trees, and why (`maxRank`: today's, for a lowered max rank;
+ * `needs`: the talent today's arrow needs, for a lost arrow).
+ */
 export interface TalentRefund {
   name: string
   points: number
   cause: RefundCause
   maxRank?: number
+  needs?: string
 }
 
 /**
  * The build a code on older trees was, when the sim itself shipped that code (a default or a
  * preset, ./talent-successors.ts), in the words of the load's notice: "Your talents were `label` on
- * the game’s old trees; they’re now `now`."
+ * the game’s old trees; they’re now `now`." `spec` is the spec whose default it was.
  */
 export interface TalentSuccessor {
   label: string
   now: string
+  spec?: SpecId
+}
+
+/**
+ * Where a notice about a code from older trees is read: `whose` names the build's spec when the
+ * notice doesn't otherwise (a load's notice covering several specs), `spec` being that spec, and
+ * `pasted` is set for a code pasted into Talents, where the notice speaks of the code (review TMV-2).
+ */
+export interface NoticeContext {
+  whose?: string
+  spec?: SpecId
+  pasted?: boolean
 }
 
 /** A code on older trees, read on today's: the canonical code, the points refunded, and the build it succeeds, if any. */
@@ -63,6 +79,23 @@ function lockedOut(data: TalentData, ranks: TalentRanksById, talent: Talent): 'r
   const pre = talent.prerequisite
   if (pre && (ranks[pre.talentId] ?? 0) < pre.rank) return 'arrow'
   return null
+}
+
+/**
+ * A code written on a frozen build's trees in canonical form: decoded on those trees, each tree's
+ * trailing zeros trimmed, always three segments ("2500030-5030-…" is "250003-503-…"), as
+ * `encodeTalentCode` writes today's. Null when there are no such trees or the code doesn't decode
+ * on them (review TMV-1).
+ */
+export function canonicalFrozenCode(data: TalentData, fromBuild: string, code: string): string | null {
+  const trees = frozen.builds[fromBuild]?.classes[data.class]
+  if (!trees) return null
+  try {
+    const ranks = decodeFrozenCode(trees, code)
+    return trees.map((tree) => tree.talents.map(([name]) => ranks[name] ?? 0).join('').replace(/0+$/, '')).join('-')
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -106,7 +139,8 @@ export function mapByName(data: TalentData, old: Readonly<Record<string, number>
     })
     if (out.length === 0) break
     for (const [t, cause] of out) {
-      refunds.push({ name: t.name, points: ranks[t.id], cause })
+      const needs = cause === 'arrow' ? all.find((p) => p.id === t.prerequisite?.talentId)?.name : undefined
+      refunds.push({ name: t.name, points: ranks[t.id], cause, ...(needs ? { needs } : {}) })
       delete ranks[t.id]
     }
   }
@@ -122,6 +156,8 @@ const unique = (words: readonly string[]) => [...new Set(words)]
  * Why the points went, a clause per cause, each talent named once however many builds or causes it's
  * in, and more than three talents that lost their arrow, or their row, counted rather than named: "Improved
  * Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need".
+ * A talent that lost its arrow names the talent the arrow needs: "Call of Thunder now needs Elemental
+ * Alacrity" (review TMV-5).
  */
 function refundCauses(refunds: readonly TalentRefund[]): string {
   const named = (cause: RefundCause) => unique(refunds.filter((r) => r.cause === cause).map((r) => r.name))
@@ -132,13 +168,17 @@ function refundCauses(refunds: readonly TalentRefund[]): string {
   const clauses = [...(removed.length > 0 ? [`${list(removed)} left the game`] : []), ...lowered]
   // "below it" or "below them": the talents the game changed, which these needed.
   let below = removed.length + lowered.length === 0 ? '' : removed.length + lowered.length === 1 ? ' below it' : ' below them'
-  const locked = (names: string[], one: string, many: string) => {
-    if (names.length === 0) return
-    clauses.push(`${names.length <= 3 ? list(names) : `${names.length} talents${below}`} lost ${names.length === 1 ? one : many}`)
-    below = ''
+  const arrows = named('arrow')
+  if (arrows.length > 3) clauses.push(`${arrows.length} talents${below} lost the talents their arrows need`)
+  else {
+    for (const name of arrows) {
+      const needs = refunds.find((r) => r.cause === 'arrow' && r.name === name && r.needs)?.needs
+      clauses.push(needs ? `${name} now needs ${needs}` : `${name} lost the talent its arrow needs`)
+    }
   }
-  locked(named('arrow'), 'the talent its arrow needs', 'the talents their arrows need')
-  locked(named('row'), 'the points its row needs', 'the points their rows need')
+  if (arrows.length > 0) below = ''
+  const rows = named('row')
+  if (rows.length > 0) clauses.push(`${rows.length <= 3 ? list(rows) : `${rows.length} talents${below}`} lost ${rows.length === 1 ? 'the points its row needs' : 'the points their rows need'}`)
   return clauses.length < 2 ? clauses.join('') : `${clauses.slice(0, -1).join(', ')}, and ${clauses.at(-1)}`
 }
 
@@ -149,27 +189,34 @@ function refundCauses(refunds: readonly TalentRefund[]): string {
  *   game, and 5 talents below them lost the points their rows need. Spend them again in Talents."
  *   "The game’s new talent trees refunded 16 of your Retribution Paladin and 2 of your Protection
  *   Paladin talent points: …"
+ * A paste, already in Talents, ends "Spend them again." (review TMV-2).
  */
-export function refundNotice(builds: readonly { refunds: readonly TalentRefund[]; whose?: string }[]): string {
+export function refundNotice(builds: readonly { refunds: readonly TalentRefund[]; whose?: string }[], context: Pick<NoticeContext, 'pasted'> = {}): string {
   const counted = builds.map((b) => ({ ...b, points: b.refunds.reduce((n, r) => n + r.points, 0) })).filter((b) => b.points > 0)
   const total = counted.reduce((n, b) => n + b.points, 0)
   const amounts = counted.every((b) => b.whose)
     ? `${list(counted.map((b) => `${b.points} of your ${b.whose}`))} talent points`
     : `${total} talent ${total === 1 ? 'point' : 'points'}`
-  return `The game’s new talent trees refunded ${amounts}: ${refundCauses(counted.flatMap((b) => b.refunds))}. Spend ${total === 1 ? 'it' : 'them'} again in Talents.`
+  const spend = `Spend ${total === 1 ? 'it' : 'them'} again${context.pasted ? '' : ' in Talents'}.`
+  return `The game’s new talent trees refunded ${amounts}: ${refundCauses(counted.flatMap((b) => b.refunds))}. ${spend}`
 }
 
 /**
- * What a load says about a code the sim shipped on older trees, read as the build that succeeds it,
- * `whose` naming the spec where the notice doesn't: "Your talents were the Retribution default on
- * the game’s old trees; they’re now today’s default."
+ * What a load says about a code the sim shipped on older trees, read as the build that succeeds it:
+ * "Your talents were the Retribution default on the game’s old trees; they’re now today’s default."
+ * With `whose`, the notice names the spec, and a default of that same spec isn't named twice: "Your
+ * Retribution Paladin talents were the default then; they’re now today’s default." A paste speaks of
+ * the code: "That code was the Retribution default on the game’s old trees; it’s now today’s
+ * default." (review TMV-2).
  */
-export function successorNotice(successor: TalentSuccessor, whose?: string): string {
-  return `Your ${whose ? `${whose} ` : ''}talents were ${successor.label} on the game’s old trees; they’re now ${successor.now}.`
+export function successorNotice(successor: TalentSuccessor, context: NoticeContext = {}): string {
+  if (context.pasted) return `That code was ${successor.label} on the game’s old trees; it’s now ${successor.now}.`
+  if (context.whose && successor.spec && successor.spec === context.spec) return `Your ${context.whose} talents were the default then; they’re now ${successor.now}.`
+  return `Your ${context.whose ? `${context.whose} ` : ''}talents were ${successor.label} on the game’s old trees; they’re now ${successor.now}.`
 }
 
-/** What a load says about a code it read on older trees, or null when the build lost nothing and needs no word. */
-export function migrationNotice(migration: Omit<TalentMigration, 'code'>, whose?: string): string | null {
-  if (migration.successor) return successorNotice(migration.successor, whose)
-  return migration.refunds.length > 0 ? refundNotice([{ refunds: migration.refunds, whose }]) : null
+/** What a load or a paste says about a code it read on older trees, or null when the build lost nothing and needs no word. */
+export function migrationNotice(migration: Omit<TalentMigration, 'code'>, context: NoticeContext = {}): string | null {
+  if (migration.successor) return successorNotice(migration.successor, context)
+  return migration.refunds.length > 0 ? refundNotice([{ refunds: migration.refunds, whose: context.whose }], context) : null
 }

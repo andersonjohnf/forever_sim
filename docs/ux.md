@@ -204,8 +204,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     a code for another class; more than 51 points; or the talent a tier gate or arrow blocks.
     A code that isn't a build on today's trees but is on the game's older ones is read there and
     mapped onto today's, as an old setup is, and a notice says so: "Pasted a code from the game’s
-    older talent trees", with the points it lost, the build the sim shipped it succeeds, or "Every
-    talent kept its points on today’s trees." ([talents.md § Tree versions](data/talents.md#tree-versions)).
+    older talent trees", with the points it lost ("… Spend them again.": you're in Talents
+    already), the build the sim shipped it succeeds ("That code was the Retribution default on the
+    game’s old trees; it’s now today’s default.", trailing zeros or not), or "Every talent kept its
+    points on today’s trees." ([talents.md § Tree versions](data/talents.md#tree-versions)).
     A code that's a build on both keeps today's reading.
     The paste dialog puts focus in its field, and gives it back to **Paste code** however it
     closes. **Clear** disables itself, so it moves focus to the preset menu (now "Custom build")
@@ -1032,10 +1034,14 @@ Every view handles these states:
   loads as today's version of it, and says so in one line: "Your talents were the Retribution
   default on the game’s old trees; they’re now today’s default." A link, a code or a Load says it
   among its changes, below. A visit says it in the defaults notice, naming the spec ("… 16 of your
-  Retribution Paladin talent points: …", every spec's refunds in the one sentence), after what
-  moved, or on its own under "Talent points refunded for Retribution Paladin" (or "Talents moved
-  onto the game’s new trees for …" when a shipped build is among them); a build that follows the
-  default takes today's instead and loses nothing. A build that keeps every point says nothing.
+  Retribution Paladin talent points: …", every spec's refunds in the one sentence; "Your
+  Retribution Paladin talents were the default then; they’re now today’s default."), by spec, the
+  current spec first, after what moved, or on its own under "Talent points refunded for
+  Retribution Paladin" (or "Talents moved onto the game’s new trees for …" when a shipped build is
+  among them). When a shipped build replaced one you had picked yourself, the notice's opening
+  reads "Gear you changed yourself is kept." rather than claiming your talents were. A build that
+  follows the default takes today's instead and loses nothing. A build that keeps every point says
+  nothing.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -1057,8 +1063,9 @@ Every view handles these states:
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A load's
   notice that says more (its changes, a talent build's refunds) stays long enough to read at a
   slow reader's pace: 4 s, then a second for every 3 words, up to 30 s (`noticeDuration` in
-  `src/app/load-notice.ts`); the worst refund notice, a visit's with two specs, stays 24 s. A swipe
-  sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
+  `src/app/load-notice.ts`). The longest, a visit's that moved parts of several specs and read
+  several specs' builds from the older trees, reaches that 30 s cap; hovering over it, touching it or reaching it with
+  Alt+T pauses it there too, so a reader who needs longer keeps it. A swipe sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear

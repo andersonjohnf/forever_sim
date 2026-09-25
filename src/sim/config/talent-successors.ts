@@ -9,7 +9,7 @@ import { decodeTalentCode, encodeTalentCode, validateTalentBuild, type TalentDat
 import { defaultTalents, talentPresets } from '../defaults'
 import { SPEC_META } from '../specs'
 import type { ClassId, SpecId } from '../types'
-import { migrateTalentCode, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
+import { canonicalFrozenCode, migrateTalentCode, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
 
 /**
  * What a shipped code became: a spec's default (read from today's defaults, so a later default
@@ -88,9 +88,15 @@ function legalToday(data: TalentData, code: string): string | null {
   }
 }
 
-/** The current version of a shipped code on older trees, and how the notice names it; null for a code the sim didn't ship, or one whose mapping by name is its current version. */
-export function successorOf(data: TalentData, fromBuild: string, code: string): { code: string; label: string; now: string } | null {
-  const successor = TALENT_SUCCESSORS[fromBuild]?.[data.class as ClassId]?.[code]
+/**
+ * The current version of a shipped code on older trees, and how the notice names it (`spec`: the
+ * spec whose default it was); null for a code the sim didn't ship, or one whose mapping by name is
+ * its current version. The code is looked up in canonical form on its own trees, so one written
+ * with trailing zeros ("2500030-5030-…") is still the shipped code (review TMV-1).
+ */
+export function successorOf(data: TalentData, fromBuild: string, code: string): { code: string; label: string; now: string; spec?: SpecId } | null {
+  const canonical = canonicalFrozenCode(data, fromBuild, code)
+  const successor = canonical === null ? undefined : TALENT_SUCCESSORS[fromBuild]?.[data.class as ClassId]?.[canonical]
   if (!successor || 'byName' in successor) return null
   const [now, label, words] =
     'default' in successor
@@ -99,7 +105,8 @@ export function successorOf(data: TalentData, fromBuild: string, code: string): 
         ? [talentPresets(data.class as ClassId).find((p) => p.name === successor.preset)?.code, successor.label, 'its version for today’s trees']
         : [code, successor.same, 'its version for today’s trees']
   const legal = now === undefined ? null : legalToday(data, now)
-  return legal ? { code: legal, label, now: words } : null
+  if (!legal) return null
+  return 'default' in successor ? { code: legal, label, now: words, spec: successor.default } : { code: legal, label, now: words }
 }
 
 /**
@@ -112,7 +119,8 @@ export function migrateOlderCode(data: TalentData, fromBuild: string, code: stri
   const successor = successorOf(data, fromBuild, code)
   const mapped = migrateTalentCode(data, fromBuild, code)
   if (!successor || successor.code === mapped.code) return mapped
-  return { code: successor.code, refunds: [], successor: { label: successor.label, now: successor.now } }
+  const { code: now, ...words } = successor
+  return { code: now, refunds: [], successor: words }
 }
 
 /**

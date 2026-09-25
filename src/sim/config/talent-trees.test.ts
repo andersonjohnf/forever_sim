@@ -136,7 +136,7 @@ describe('migrateTalentCode', () => {
     // Elemental Fury 5, Call of Thunder 1 and Lightning Overload 3, no Elemental Alacrity: legal on 69913's trees.
     const { code, refunds } = migrateTalentCode(TALENT_DATA.shaman, OLD, '550530150010300')
     expect(refunds).toEqual([
-      { name: 'Call of Thunder', points: 1, cause: 'arrow' },
+      { name: 'Call of Thunder', points: 1, cause: 'arrow', needs: 'Elemental Alacrity' },
       { name: 'Elemental Fury', points: 5, cause: 'row' },
       { name: 'Lightning Overload', points: 3, cause: 'row' },
     ])
@@ -195,7 +195,7 @@ describe('refundNotice (review TM2-5)', () => {
   it('names up to three talents that lost their arrow or row, a clause for each', () => {
     const { refunds } = migrateTalentCode(TALENT_DATA.shaman, OLD, '550530150010300')
     expect(refundNotice([{ refunds }])).toBe(
-      'The game’s new talent trees refunded 9 talent points: Call of Thunder lost the talent its arrow needs, and Elemental Fury and Lightning Overload lost the points their rows need. Spend them again in Talents.',
+      'The game’s new talent trees refunded 9 talent points: Call of Thunder now needs Elemental Alacrity, and Elemental Fury and Lightning Overload lost the points their rows need. Spend them again in Talents.',
     )
   })
 

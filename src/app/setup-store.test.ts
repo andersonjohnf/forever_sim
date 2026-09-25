@@ -238,7 +238,7 @@ describe('the automatic save follows the defaults', () => {
     await load()
     expect(store().config.talents).toBe(d.talents)
     expect(takeDefaultsUpdates()).toEqual([
-      { spec: 'paladin-retribution', gear: false, talents: false, change: { refunds: [], successor: { label: 'the Retribution default', now: 'today’s default' } } },
+      { spec: 'paladin-retribution', gear: false, talents: false, change: { refunds: [], successor: { label: 'the Retribution default', now: 'today’s default', spec: 'paladin-retribution' } } },
     ])
     // Saved on today's trees: today's default, so it follows the default from now on, and says nothing again.
     expect(saved().config).toMatchObject({ version: 2, talents: d.talents })

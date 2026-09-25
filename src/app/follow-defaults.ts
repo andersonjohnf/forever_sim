@@ -197,12 +197,15 @@ function whoseOf(specs: readonly SpecId[]): string {
 /**
  * The notice after a load moved parts of the setup to newer defaults, the current spec first:
  * "Updated to the new default gear and talents for Protection Paladin". What reading builds from
- * the game's older talent trees changed follows it, or stands on its own: each shipped build read as
- * its successor ("Your Retribution Paladin talents were the Retribution default on the game’s old
- * trees; they’re now today’s default."), then every spec's refunds in one sentence ("The game’s new
- * talent trees refunded 16 of your Retribution Paladin and 2 of your Protection Paladin talent
- * points: …"), under "Talent points refunded for …" or "Talents moved onto the game’s new trees for
- * …". Null when nothing changed.
+ * the game's older talent trees changed follows it, or stands on its own, by spec, the current spec
+ * first: each shipped build read as its successor ("Your Retribution Paladin talents were the
+ * default then; they’re now today’s default."), and every spec's refunds in one sentence, placed at
+ * the first spec it names ("The game’s new talent trees refunded 16 of your Retribution Paladin and 2
+ * of your Protection Paladin talent points: …"), under "Talent points refunded for …" or "Talents
+ * moved onto the game’s new trees for …". "Gear and talents you changed yourself are kept." opens
+ * the notice when parts moved; when a successor replaced a build the player picked (a shipped code
+ * their setup no longer followed), where that wouldn't hold, it's "Gear you changed yourself is
+ * kept." (review TMV-3). Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
@@ -211,10 +214,15 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   const changed = ordered.filter((u) => u.change)
   const succeeded = changed.filter((u) => u.change!.successor)
   const refunded = changed.filter((u) => !u.change!.successor && u.change!.refunds.length > 0)
+  const at = (u: DefaultsUpdate) => ordered.indexOf(u)
   const talentWords = [
-    ...succeeded.map((u) => successorNotice(u.change!.successor!, specName(u.spec))),
-    ...(refunded.length > 0 ? [refundNotice(refunded.map((u) => ({ refunds: u.change!.refunds, whose: specName(u.spec) })))] : []),
+    ...succeeded.map((u) => ({ at: at(u), words: successorNotice(u.change!.successor!, { whose: specName(u.spec), spec: u.spec }) })),
+    ...(refunded.length > 0
+      ? [{ at: Math.min(...refunded.map(at)), words: refundNotice(refunded.map((u) => ({ refunds: u.change!.refunds, whose: specName(u.spec) }))) }]
+      : []),
   ]
+    .sort((a, b) => a.at - b.at)
+    .map((t) => t.words)
   if (moved.length === 0) {
     const title = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
     return { title: `${title} ${whoseOf(changed.map((u) => u.spec))}`, description: talentWords.join(' ') }
@@ -222,8 +230,11 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   const gear = moved.some((u) => u.gear)
   const talents = moved.some((u) => u.talents)
   const what = gear && talents ? 'gear and talents' : gear ? 'gear' : 'talents'
+  // A successor stands in for a build the player picked, so "talents … kept" wouldn't hold for it:
+  // the sentences after it say what became of the talents.
+  const kept = succeeded.length > 0 ? 'Gear you changed yourself is kept.' : 'Gear and talents you changed yourself are kept.'
   return {
     title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
-    description: ['Gear and talents you changed yourself are kept.', ...talentWords].join(' '),
+    description: [kept, ...talentWords].join(' '),
   }
 }

@@ -304,10 +304,16 @@ written on it decodes against that order, and loading maps it onto today's trees
   from today's defaults (so a later default change carries through); a class **preset** by name,
   likewise (the popular Protection build, the same digits today); the **same digits** on today's
   trees, for a former default no preset keeps (T2's interim Protection default); or its **mapping
-  by name**, which already keeps every point (Holy). The load says so in one line: "Your talents
-  were the Retribution default on the game’s old trees; they’re now today’s default." ("…the
-  Protection popular build…; they’re now its version for today’s trees."), and nothing when the
-  successor is what the name mapping gives (Elemental, and every class whose trees didn't change).
+  by name**, which already keeps every point (Holy). The code is looked up in canonical form on its
+  own trees (`canonicalFrozenCode`: decoded there, each tree's trailing zeros trimmed, always three
+  segments), so `2500030-5030-052052310012330321` is the Retribution default too (review TMV-1).
+  The load says so in one line: "Your talents were the Retribution default on the game’s old
+  trees; they’re now today’s default." ("…the Protection popular build…; they’re now its version
+  for today’s trees."); a notice that already names the spec doesn't name its default again ("Your
+  Retribution Paladin talents were the default then; they’re now today’s default."), and a paste
+  speaks of the code ("That code was the Retribution default on the game’s old trees; it’s now
+  today’s default.", review TMV-2). Nothing is said when the successor is what the name mapping
+  gives (Elemental, and every class whose trees didn't change).
   A unit test checks every `legacy` code has a successor, each names a default of its own class,
   a preset the class still has, or a legal build, and none loses a point.
 - **Loading maps any other version-1 code by talent name** (`normalizeConfig` in
@@ -327,10 +333,11 @@ written on it decodes against that order, and loading maps it onto today's trees
 - **The load says what was refunded**, in one sentence that names the talents the game changed as
   the cause (`refundNotice`, review TM2-5): "The game’s new talent trees refunded 16 talent points:
   Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows
-  need. Spend them again in Talents." A lowered max rank reads "Unyielding Faith now has 2 ranks";
-  up to three talents that lost their arrow or row are named ("Call of Thunder lost the talent its
-  arrow needs, and Elemental Fury and Lightning Overload lost the points their rows need"), more are
-  counted; a talent is named once however many specs or causes it's in. A share link, a setup code
+  need. Spend them again in Talents." (a paste, already in Talents: "Spend them again."). A lowered
+  max rank reads "Unyielding Faith now has 2 ranks"; up to three talents that lost their arrow or
+  row are named, a lost arrow with the talent it now needs ("Call of Thunder now needs Elemental
+  Alacrity, and Elemental Fury and Lightning Overload lost the points their rows need", review
+  TMV-5), more are counted; a talent is named once however many specs or causes it's in. A share link, a setup code
   or a saved setup says it in its notice with its other changes
   ([ux.md](../ux.md#persistence-and-sharing)); the automatic save, which is otherwise silent about
   its repairs, says it in the defaults notice, every spec's refunds in the one sentence ("…refunded

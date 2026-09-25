@@ -58,7 +58,7 @@ describe('normalizeConfig', () => {
     it('reads a default or preset the sim shipped on the old trees as today’s version of it, and says so (review TM2-1)', () => {
       const { config, warnings, talentChange } = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' })
       expect(config.talents).toBe(defaultConfig('paladin-retribution').talents)
-      expect(talentChange).toEqual({ refunds: [], successor: { label: 'the Retribution default', now: 'today’s default' } })
+      expect(talentChange).toEqual({ refunds: [], successor: { label: 'the Retribution default', now: 'today’s default', spec: 'paladin-retribution' } })
       expect(warnings).toEqual(['Your talents were the Retribution default on the game’s old trees; they’re now today’s default.'])
       expect(normalizeConfig({ version: 1, spec: 'paladin-protection', talents: '240003-0530213321301551-502' }).config.talents).toBe(defaultConfig('paladin-protection').talents)
     })

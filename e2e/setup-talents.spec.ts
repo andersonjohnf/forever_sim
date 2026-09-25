@@ -62,7 +62,25 @@ test('a code from the game’s older talent trees is read on them, and the notic
   await expect(dialog).toHaveCount(0)
   const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Pasted a code from the game’s older talent trees' })
   await expect(notice).toContainText(
-    'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+    'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again.',
   )
   await expect(talents.getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
+})
+
+// A default the sim shipped on the older trees, written with trailing zeros, is still that default
+// (review TMV-1), and the paste's notice speaks of the code (TMV-2).
+test('an old default pasted with trailing zeros loads as today’s default', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: Fury Warrior/ }).click()
+  await page.getByRole('menuitem', { name: /Retribution/ }).click()
+  await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+  const talents = page.getByRole('tabpanel', { name: 'Talents' })
+  await talents.getByRole('button', { name: /Paste/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Paste a build code' })
+  await dialog.getByRole('textbox', { name: 'Build code or link' }).fill('2500030-5030-052052310012330321')
+  await dialog.getByRole('button', { name: 'Use this build' }).click()
+  await expect(dialog).toHaveCount(0)
+  const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Pasted a code from the game’s older talent trees' })
+  await expect(notice).toContainText('That code was the Retribution default on the game’s old trees; it’s now today’s default.')
+  await expect(talents.getByText('Using the default build.')).toBeVisible()
 })

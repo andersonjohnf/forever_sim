@@ -126,7 +126,7 @@ export function readBuildCode(data: TalentData, text: string, example: string): 
     code: older.code,
     older: {
       title: 'Pasted a code from the game’s older talent trees',
-      description: migrationNotice(older) ?? 'Every talent kept its points on today’s trees.',
+      description: migrationNotice(older, { pasted: true }) ?? 'Every talent kept its points on today’s trees.',
     },
   }
 }

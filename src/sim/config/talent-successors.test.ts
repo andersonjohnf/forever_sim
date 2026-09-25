@@ -7,7 +7,7 @@ import { defaultTalents, TALENT_DATA, talentPresets } from '../defaults'
 import { SPEC_META } from '../specs'
 import type { ClassId } from '../types'
 import { migrateOlderCode, readOnOlderTrees, successorOf, TALENT_SUCCESSORS } from './talent-successors'
-import { migrateTalentCode, migrationNotice } from './talent-trees'
+import { canonicalFrozenCode, migrateTalentCode, migrationNotice } from './talent-trees'
 
 const OLD = '1.60.1.69913'
 type Codes = Record<string, Record<string, { note: string; ranks: string[] }>>
@@ -50,11 +50,22 @@ describe('TALENT_SUCCESSORS', () => {
 describe('migrateOlderCode', () => {
   it('reads the old Retribution and Protection defaults as today’s defaults, from today’s defaults', () => {
     const ret = migrateOlderCode(TALENT_DATA.paladin, OLD, '250003-503-052052310012330321')
-    expect(ret).toEqual({ code: defaultTalents('paladin-retribution'), refunds: [], successor: { label: 'the Retribution default', now: 'today’s default' } })
+    expect(ret).toEqual({
+      code: defaultTalents('paladin-retribution'),
+      refunds: [],
+      successor: { label: 'the Retribution default', now: 'today’s default', spec: 'paladin-retribution' },
+    })
     expect(migrationNotice(ret)).toBe('Your talents were the Retribution default on the game’s old trees; they’re now today’s default.')
-    expect(migrationNotice(ret, 'Retribution Paladin')).toBe(
-      'Your Retribution Paladin talents were the Retribution default on the game’s old trees; they’re now today’s default.',
+    // A notice that names the spec doesn't name the default's spec again (review TMV-2)...
+    expect(migrationNotice(ret, { whose: 'Retribution Paladin', spec: 'paladin-retribution' })).toBe(
+      'Your Retribution Paladin talents were the default then; they’re now today’s default.',
     )
+    // ...unless it's another spec's default.
+    expect(migrationNotice(ret, { whose: 'Protection Paladin', spec: 'paladin-protection' })).toBe(
+      'Your Protection Paladin talents were the Retribution default on the game’s old trees; they’re now today’s default.',
+    )
+    // A paste speaks of the code.
+    expect(migrationNotice(ret, { pasted: true })).toBe('That code was the Retribution default on the game’s old trees; it’s now today’s default.')
     const prot = migrateOlderCode(TALENT_DATA.paladin, OLD, '240003-0530213321301551-502')
     expect(prot.code).toBe(defaultTalents('paladin-protection'))
     expect(prot.refunds).toEqual([])
@@ -85,6 +96,22 @@ describe('migrateOlderCode', () => {
     expect(own.code).toBe('50003-503-05205231001')
     expect(own.refunds.reduce((n, r) => n + r.points, 0)).toBe(15)
     expect(successorOf(TALENT_DATA.paladin, OLD, '250003-503-052052310012330311')).toBeNull()
+  })
+
+  it('finds a shipped code written with trailing zeros, in canonical form on its own trees (review TMV-1)', () => {
+    expect(migrateOlderCode(TALENT_DATA.paladin, OLD, '2500030-5030-052052310012330321').code).toBe(defaultTalents('paladin-retribution'))
+    expect(migrateOlderCode(TALENT_DATA.paladin, OLD, '240003-0530213321301551-5020').code).toBe(defaultTalents('paladin-protection'))
+    expect(canonicalFrozenCode(TALENT_DATA.paladin, OLD, '2500030-5030-052052310012330321')).toBe('250003-503-052052310012330321')
+    expect(canonicalFrozenCode(TALENT_DATA.warrior, OLD, '3500-050-552101233301210531')).toBe('35-05-552101233301210531')
+    // Always three segments: the Fury default written without its empty third tree.
+    expect(canonicalFrozenCode(TALENT_DATA.warrior, OLD, '30305013002-050530035150010051')).toBe('30305013002-050530035150010051-')
+    expect(successorOf(TALENT_DATA.warrior, OLD, '30305013002-050530035150010051')).not.toBeNull()
+    // A code that doesn't decode on the old trees has no canonical form there.
+    expect(canonicalFrozenCode(TALENT_DATA.paladin, OLD, '99')).toBeNull()
+  })
+
+  it('keeps every successor key in canonical form, so the lookup can find it', () => {
+    for (const cls of classes) for (const code of Object.keys(TALENT_SUCCESSORS[OLD][cls]!)) expect(canonicalFrozenCode(TALENT_DATA[cls], OLD, code), code).toBe(code)
   })
 
   it('throws for a code that isn’t a legal build on the old trees', () => {

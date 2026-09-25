@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, History, Info, MoreHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
-import { ClassicEraNote } from '@/features/character/classic-era-note'
-import { changeAndFocus } from '@/features/refocus'
+import { ClassicEraNote, RULE_PROFILE_ID } from '@/features/character/classic-era-note'
+import { changeAndFocus, selectedOption } from '@/features/refocus'
+import { useFocusAcrossPlaces } from '@/features/rotation/layout'
 import { SectionHeader } from '@/features/section'
+import { useIsWide } from '@/hooks/use-media-query'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
@@ -17,8 +19,9 @@ import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
-import { itemDescription } from './item-flags'
-import { ItemSummary } from './item-row'
+import { itemDescription, unsimulatedEffects } from './item-flags'
+import { ItemFlags, ItemSummary } from './item-row'
+import { WideSlot, WideSlotGrid } from './wide-slots'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
@@ -66,6 +69,19 @@ function slotList(slots: readonly GearSlot[]): string {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 }
 
+/** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
+function EmptySlot({ slot, locked }: { slot: GearSlot; locked: boolean }) {
+  return (
+    <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
+      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
+        <span className="text-xs text-muted-foreground">{locked ? 'Your two-handed weapon uses both hands' : 'Empty'}</span>
+      </div>
+    </div>
+  )
+}
+
 export function GearSection() {
   const meta = useSpecMeta()
   const config = useSetup((s) => s.config)
@@ -74,6 +90,7 @@ export function GearSection() {
   // Each slot's button, which takes focus back when the picker closes (docs/ux.md#accessibility).
   const slotButtons = useRef(new Map<GearSlot, HTMLButtonElement>())
   const statusRef = useRef<HTMLParagraphElement>(null)
+  const slotsRef = useRef<HTMLDivElement>(null)
 
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
@@ -102,35 +119,161 @@ export function GearSection() {
     update((c) => ({ ...c, gear: {} }))
     announce('Removed all gear.')
   }
+  const setSection = useSetup((s) => s.setSection)
+  const profile = useSetup((s) => s.config.rules.profile)
+
+  // From 1440 px the slots are a grid that shows them all at once (docs/ux.md "Gear", D34).
+  const wide = useIsWide()
+  const groups = slotGroups(meta.classId)
+  const slotCount = groups.reduce((n, group) => n + group.slots.length, 0)
+  // Crossing 1440 px swaps the cards for the grid: focus stays on the same control (docs/ux.md "Gear").
+  const keepFocus = useFocusAcrossPlaces(
+    wide ? 'wide' : 'narrow',
+    () => slotsRef.current,
+    () => null,
+  )
+
+  // The intro, and the line on how the gear compares with the default set, as the page says them
+  // below 1440 px; from 1440 px each is one line, in shorter words (docs/ux.md "Gear").
+  const intro = threatSet
+    ? `Starts as ${defaultSet}: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.`
+    : `Starts as ${defaultSet}. Choose a slot to change its item.`
+  const wideIntro = threatSet ? `Starts as ${defaultSet}, measured for threat with an effective-health floor.` : intro
+  const effect = offDefault > 0 ? equipEffect(config.gear, offSlots, defaultGearFor(config.spec, config.race)) : ''
+  const differ = `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'}`
+  const status = offDefault === 0 ? `Wearing ${setName}.` : `${differ} from ${setName}: ${slotList(offSlots)}. Equipping it ${effect}.`
+  // A long list of names would push what equipping does off the line: past three, the count alone.
+  const wideStatus = offDefault === 0 ? status : `${differ}${offDefault <= 3 ? `: ${slotList(offSlots)}` : ''}. Equipping ${effect}.`
+
+  const pick = (slot: GearSlot, item: Item | null) => {
+    const swapped = slot === 'ranged' ? suppliesSwapped(config.gear, equip(config, slot, item).gear) : null
+    update((c) => equip(c, slot, item))
+    if (swapped) announce(swapped)
+    setPicking(null)
+  }
+
+  /** What a slot holds, and how its row shows it. */
+  const slotState = (slot: GearSlot) => {
+    const equipped = config.gear[slot]
+    const item = equipped ? itemsById.get(equipped.itemId) : undefined
+    return {
+      equipped,
+      item,
+      lockedByTwoHand: slot === 'offHand' && twoHanded,
+      bis: item ? bisRank(item, config.spec, slot) : null,
+      // Ammo the ranged weapon doesn't fire adds nothing: dimmed, with the reason, as in the picker.
+      unused: item ? ammoNote(item, ranged) : null,
+      enchantable: Boolean(item && enchantsFor(slot, item, config.rules.profile).length > 0),
+    }
+  }
+
+  const slotButton = (slot: GearSlot, item: Item | undefined, locked: boolean, bis: number | null, unused: string | null, className: string) => (
+    <button
+      ref={(el) => {
+        if (el) slotButtons.current.set(slot, el)
+        else slotButtons.current.delete(slot)
+      }}
+      id={`gear-${slot}`}
+      type="button"
+      // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
+      data-gear-slot={slot}
+      disabled={locked}
+      onClick={() => setPicking(slot)}
+      className={className}
+      aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (locked ? 'two-handed weapon equipped' : 'empty')}`}
+      aria-describedby={item ? `slot-${slot}-description` : undefined}
+    >
+      {item && (
+        <span id={`slot-${slot}-description`} className="sr-only">
+          {itemDescription(item, { bis, spec: meta.id, note: unused })}
+        </span>
+      )}
+    </button>
+  )
+
+  const unusedNote = (unused: string | null) =>
+    unused && (
+      <>
+        <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+        {unused}
+      </>
+    )
+
+  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined, className?: string) => (
+    <EnchantPicker
+      slot={slot}
+      item={item}
+      enchantId={enchantId}
+      whole={wide}
+      className={className}
+      // The slot's button, or the main hand's if a two-hander now locks this slot.
+      fallbackFocus={() => {
+        const button = slotButtons.current.get(slot)
+        return button && !button.disabled ? button : slotButtons.current.get('mainHand')
+      }}
+      onChange={(enchantId) =>
+        update((c) => ({
+          ...c,
+          gear: { ...c.gear, [slot]: enchantId ? { itemId: item.id, enchantId } : { itemId: item.id } },
+        }))
+      }
+    />
+  )
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 wide:gap-4">
       <SectionHeader
         title="Gear"
         description={
-          threatSet
-            ? `Starts as ${defaultSet}: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.`
-            : `Starts as ${defaultSet}. Choose a slot to change its item.`
+          // From 1440 px one line, whatever the spec: cut short, with the whole on hover, should it ever not fit.
+          wide ? (
+            <span title={intro} className="block truncate">
+              {wideIntro}
+            </span>
+          ) : (
+            intro
+          )
         }
         action={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="size-11 shrink-0" aria-label="Gear options">
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
-                Remove all gear
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          // From 1440 px the action is in view rather than in a menu (docs/ux.md principle 4), sized to
+          // its label. It empties every slot with no undo, so, like the header's Reset setup, it opens a
+          // one-item menu that takes a second, deliberate click (decision D21).
+          wide ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-11 gap-2 px-4">
+                  Remove all gear
+                  <ChevronDown className="text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
+                  Empty all {slotCount} slots
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="size-11 shrink-0" aria-label="Gear options">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
+                  Remove all gear
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
         }
       />
       <div
         className={cn(
-          'flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
+          'flex flex-col gap-2 rounded-xl border bg-surface shadow-surface px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
           offDefault > 0 && 'bg-muted/50',
+          // From 1440 px it's a line under the intro rather than a box, leaving the height to the slots.
+          'wide:-mt-2 wide:border-0 wide:bg-transparent wide:p-0 wide:shadow-none',
         )}
       >
         {/* Focus lands here when the button that equipped the set goes away (docs/ux.md#accessibility). */}
@@ -145,119 +288,138 @@ export function GearSection() {
           ) : (
             <Check aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           )}
-          <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
-            {offDefault === 0
-              ? `Wearing ${setName}.`
-              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it ${equipEffect(config.gear, offSlots, defaultGearFor(config.spec, config.race))}.`}
+          {/* From 1440 px one line in shorter words, cut short with the whole sentence on hover should
+              a long list of slots not fit. */}
+          <span title={wide ? status : undefined} className={cn(offDefault === 0 && 'text-muted-foreground', 'wide:truncate')}>
+            {wide ? wideStatus : status}
           </span>
         </p>
+        {/* From 1440 px Classic Era's enchant note is a link on this line rather than a box above the
+            slots, which would push the last row out of the window (review finding DL2-2). */}
+        {wide && profile === 'classicEra' && (
+          <button
+            type="button"
+            aria-describedby="gear-classic-era"
+            className="relative flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium underline underline-offset-2 outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() =>
+              changeAndFocus(
+                () => setSection('character'),
+                () => selectedOption(RULE_PROFILE_ID),
+              )
+            }
+          >
+            <History aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+            Classic Era enchants
+            <span id="gear-classic-era" className="sr-only">
+              Enchants use Classic Era’s numbers, as set in Character → Advanced.
+            </span>
+          </button>
+        )}
         {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}
         {offDefault > 0 && (
-          <Button className="h-11 w-full px-4 sm:w-auto" aria-describedby="gear-default-status" onClick={loadBis}>
+          <Button
+            // From 1440 px it takes the line's height: 32 px, with a 44 px hit area (from inside its
+            // border) into the space above and below.
+            className="h-11 w-full px-4 sm:w-auto wide:relative wide:-my-1.5 wide:h-8 wide:px-3 wide:after:absolute wide:after:inset-x-0 wide:after:-inset-y-[7px]"
+            aria-describedby="gear-default-status"
+            onClick={loadBis}
+          >
             {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
           </Button>
         )}
       </div>
-      <ClassicEraNote what="Enchants" />
+      {!wide && <ClassicEraNote what="Enchants" />}
 
-      {slotGroups(meta.classId).map((group) => (
-        <section key={group.label} className="flex min-w-0 flex-col gap-2">
-          <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
-          {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
-            {group.slots.map((slot) => {
-              const equipped = config.gear[slot]
-              const item = equipped ? itemsById.get(equipped.itemId) : undefined
-              const lockedByTwoHand = slot === 'offHand' && twoHanded
-              const bis = item ? bisRank(item, config.spec, slot) : null
-              // Ammo the ranged weapon doesn't fire adds nothing: dimmed, with the reason, as in the picker.
-              const unused = item ? ammoNote(item, ranged) : null
-              return (
-                <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
-                  {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
-                      explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
-                      over faded content too (an empty slot's icon), which opacity would lift above it. */}
-                  <div
-                    className={cn(
-                      'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                      lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                      item && enchantsFor(slot, item, config.rules.profile).length > 0 && 'rounded-b-none',
-                    )}
-                  >
-                    <button
-                      ref={(el) => {
-                        if (el) slotButtons.current.set(slot, el)
-                        else slotButtons.current.delete(slot)
-                      }}
-                      type="button"
-                      // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
-                      data-gear-slot={slot}
-                      disabled={lockedByTwoHand}
-                      onClick={() => setPicking(slot)}
-                      className="absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
-                      aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
-                      aria-describedby={item ? `slot-${slot}-description` : undefined}
-                    >
-                      {item && (
-                        <span id={`slot-${slot}-description`} className="sr-only">
-                          {itemDescription(item, { bis, spec: meta.id, note: unused })}
-                        </span>
-                      )}
-                    </button>
-                    {item ? (
-                      <ItemSummary
-                        item={item}
-                        bis={bis}
-                        meta={SLOT_LABEL[slot]}
-                        dimmed={Boolean(unused)}
-                        note={
-                          unused && (
-                            <>
-                              <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-                              {unused}
-                            </>
-                          )
-                        }
-                      />
-                    ) : (
-                      <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
-                        <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {lockedByTwoHand ? 'Your two-handed weapon uses both hands' : 'Empty'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                  </div>
-                  {item && enchantsFor(slot, item, config.rules.profile).length > 0 && (
-                    <div className="border-t">
-                      <EnchantPicker
-                        slot={slot}
-                        item={item}
-                        enchantId={equipped?.enchantId}
-                        // The slot's button, or the main hand's if a two-hander now locks this slot.
-                        fallbackFocus={() => {
-                          const button = slotButtons.current.get(slot)
-                          return button && !button.disabled ? button : slotButtons.current.get('mainHand')
-                        }}
-                        onChange={(enchantId) =>
-                          update((c) => ({
-                            ...c,
-                            gear: { ...c.gear, [slot]: enchantId ? { itemId: item.id, enchantId } : { itemId: item.id } },
-                          }))
-                        }
-                      />
-                    </div>
-                  )}
-                </li>
+      {/* Under 1440 px the groups stack, each a list of cards. From 1440 px (docs/ux.md "Gear", D34)
+          they're one grid in the game's character-pane order that shows every slot without scrolling
+          at 1440×900. The two are different elements in a different order, so focus follows the
+          control that had it (a slot, its enchant chip or a flag, by id) as the window crosses 1440 px. */}
+      <div className="flex flex-col gap-6" ref={slotsRef} onFocus={keepFocus.onFocus} onBlur={keepFocus.onBlur}>
+        {wide ? (
+          <WideSlotGrid
+            classId={meta.classId}
+            renderSlot={(slot, place) => {
+              const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+              const flags = item && (
+                <ItemFlags
+                  item={item}
+                  idPrefix={`gear-${slot}`}
+                  // Mirrored, the flags run leftward from the chip or the text, as Tab takes them
+                  // (review finding V4-3: Tab zig-zagged).
+                  className={place.mirrored ? 'flex-row-reverse' : undefined}
+                  fit={place.enchantLine ? `${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}` : undefined}
+                />
               )
-            })}
-          </ul>
-        </section>
-      ))}
+              return (
+                <WideSlot
+                  key={slot}
+                  slot={slot}
+                  place={place}
+                  item={item}
+                  locked={lockedByTwoHand}
+                  bis={bis}
+                  note={unused}
+                  button={slotButton(
+                    slot,
+                    item,
+                    lockedByTwoHand,
+                    bis,
+                    unused,
+                    // Its ring inset, so the list's rounded edge doesn't clip it.
+                    'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed',
+                  )}
+                  // The chip's text lines up with the name above it: its focus ring's 4 px of room goes outside.
+                  chip={item && enchantable && enchantPicker(slot, item, equipped?.enchantId, place.mirrored ? '-mr-1' : '-ml-1')}
+                  flags={flags}
+                  flagged={Boolean(item && (!item.foreverData || unsimulatedEffects(item, meta.id).length > 0))}
+                />
+              )
+            }}
+          />
+        ) : (
+          groups.map((group) => (
+            <section key={group.label} className="flex min-w-0 flex-col gap-2">
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
+              {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+                {group.slots.map((slot) => {
+                  const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+                  return (
+                    <li key={slot} className="flex min-w-0 flex-col rounded-xl border bg-surface shadow-surface">
+                      {/* The slot's button covers the row; the flag badges and the enchant chip sit above it, so a
+                          tap on one explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps
+                          it over faded content too (an empty slot's icon), which opacity would lift above it. */}
+                      <div
+                        className={cn(
+                          'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
+                          lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                          enchantable && 'rounded-b-none',
+                        )}
+                      >
+                        {slotButton(
+                          slot,
+                          item,
+                          lockedByTwoHand,
+                          bis,
+                          unused,
+                          'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed',
+                        )}
+                        {item ? (
+                          <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} idPrefix={`gear-${slot}`} />
+                        ) : (
+                          <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                        )}
+                        {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
+                      </div>
+                      {item && enchantable && <div className="border-t">{enchantPicker(slot, item, equipped?.enchantId)}</div>}
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))
+        )}
+      </div>
 
       {picking && (
         <ItemPicker
@@ -268,14 +430,7 @@ export function GearSection() {
           slot={picking}
           equippedId={config.gear[picking]?.itemId ?? null}
           worn={wornItems(config.gear)}
-          onPick={(item) => {
-            const before = config.gear
-            const after = equip(config, picking, item).gear
-            update((c) => equip(c, picking, item))
-            const swapped = picking === 'ranged' ? suppliesSwapped(before, after) : null
-            if (swapped) announce(swapped)
-            setPicking(null)
-          }}
+          onPick={(item) => pick(picking, item)}
           returnTo={() => slotButtons.current.get(picking)}
         />
       )}

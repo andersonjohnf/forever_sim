@@ -18,6 +18,23 @@ When a design decision isn't covered here, make it, then add it here.
 4. **Mobile and desktop are both first-class.** Every screen is designed and reviewed at
    **390 px**, **1280 px** and **1920 px** (the wide layout, D34). No horizontal page scroll. Touch targets are at least 44 px.
    Everything works with a keyboard.
+   **They're designed differently, not scaled** (user decision, D34's amendment):
+   - **Mobile scrolls; desktop shows.** A phone embraces vertical scrolling rather than cramming
+     data or shrinking it. A desktop uses its space to avoid scrolling: a screen's primary view (all
+     your gear, the talent trees, your setup and result) fits the window where it can (1440×900 is
+     the bar), and scrolls only when the content truly doesn't fit.
+   - **Show it when there's room.** Overflow `…` menus, "Advanced" disclosures and collapsed panels
+     are narrow-screen tools; on a wide screen what fits is shown. (Principle 2's disclosure holds
+     where space is short.)
+   - **Never enlarge to fill.** Buttons, choices and icons keep their natural size, and a button is
+     sized by its label, with a sensible maximum width. Extra width buys more columns or more
+     visible content, never bigger controls or stretched buttons.
+   - **Transient tasks go in a modal.** A brief task (picking an item) opens over the page, so the
+     persistent view keeps the full width for what you look at all the time.
+   - **Context stays in view.** On a wide screen your character sheet and a summary of your setup
+     are always on screen, and each part of the summary takes you to its section.
+   - **Results stay calm.** One column with a clear hierarchy; nothing competes side by side with
+     the breakdown.
 5. **Calm, modern, consistent.** Use shadcn/ui components and one type scale. Surfaces are
    neutral; color is reserved for meaning: class, item quality, better or worse. The brand makes
    two exceptions ([Brand](#brand)): the Decades gold, on the brand's own marks alone, and the dark
@@ -39,9 +56,28 @@ When a design decision isn't covered here, make it, then add it here.
 
 | Width | Layout |
 | --- | --- |
-| **≥ 1024 px** | A header, then two columns. **Left:** the setup, as section tabs. **Right:** a sticky results panel with the Simulate button. |
+| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. The results pane is the **right panel**: the character sheet, then Your setup with Simulate and the result's headline, then the rest of the result, in one column that scrolls as one ([Results](#results)). |
+| **1024–1439 px** | A header, then two columns, capped at 1280 px. **Left:** the setup, as section tabs. **Right:** a sticky results panel, 22 rem, with the Simulate button. |
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
+
+**From 1024 px, where the results sit beside the setup,** the first thing in the page is a **Skip to
+results** link, hidden until it has keyboard focus (then a 44 px button at the top left, over the
+header). It moves focus to the results pane's **Simulate** button (Run again after a run, Cancel
+during one), whose focus ring shows where it landed; the pane itself draws no ring, so focusing it
+changed nothing you could see (review finding DA-4). It moves focus in script, not by its
+`#results` hash, which share links own.
+
+**At every desktop width the results pane never runs past the viewport:** it's sticky, and its
+details scroll inside it, with a fade at each edge that has more past it ([Results](#results)).
+
+**Container queries, not breakpoints, lay out what's inside the panes.** From 1440 px the setup
+pane is the container `setup` and the results pane the container `results` (Tailwind's
+`@container/setup` and `@container/results`), so a section styles itself by the width it
+actually has (`@min-[56rem]/setup:…`). Below 1440 px neither is a container, so those queries
+match nothing and the layouts under 1440 px stay as they are. Only the shell (`src/App.tsx`, the
+header, the section tabs) uses the `wide:` breakpoint; `useIsWide()` in
+`src/hooks/use-media-query.ts` is its script's twin.
 
 **Header:** the Decades lockup ([Brand](#brand)): the guild's crest, "Forever Sim" (the page's one
 `<h1>`) and "Decades" under it, one link to the guild's site; on phones only the crest shows,
@@ -51,9 +87,24 @@ spec's name fits whole at 320 px ("Marksmanship", "Beast Mastery"), and a longer
 truncate rather than scroll the page sideways (an e2e test walks every spec at 320 px). Its menu lists
 the specs under their class's heading, each class a group named by it, so a screen reader tells a
 warrior's Protection from a paladin's too. Then
-**Share** (copies a link to this setup) and an overflow menu with Setups…
-([Setups](#setups)), About & data, Release history ([What's new](#whats-new)), Coming soon
-([Coming soon](#coming-soon)), Theme (system, light, dark) and Reset setup. Menu items are 44 px tall.
+**Share** (copies a link to this setup), then Setups ([Setups](#setups)), About & data, Release
+history ([What's new](#whats-new)), Coming soon ([Coming soon](#coming-soon)), Theme (system,
+light, dark) and Reset setup, in that order, all in one group named "Setup and app" that Tab walks
+left to right.
+- **Below 1440 px** everything after Share is in an overflow menu (`…`, named "More"), Setups…
+  with its ellipsis. Menu items are 44 px tall.
+- **From 1440 px** there's room, so there's no `…` ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)
+  as amended): each is its own ghost button, 44 px tall and as wide as its icon and label, never
+  stretched (`WideTools` in `src/app/header-tools.tsx`). At 1440 px the row, with the widest spec
+  ("Marksmanship Hunter"), leaves about 165 px free, so a classic scrollbar (up to 17 px) never crowds it; the
+  space between the switcher and Share is what grows with the window. **Theme** is a button that
+  opens its three choices, calmer than a three-way segmented control beside six labelled buttons.
+  **Reset setup** opens a one-item menu, "Reset Fury to defaults", so it takes a second, deliberate
+  click as it does in the overflow menu, and nothing prompts ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)).
+- Either way each opens the same sheet, which takes focus to its title and, when it closes, gives
+  focus back to the button that opened it: the toolbar's button from 1440 px, the menu's button
+  below. Release history opened from About's release stamp gives it back to About's opener; opened
+  from What's New's All releases, to Release history's.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 and TPS simulator for World of Warcraft: Forever", since Protection, the first tank spec, shipped; "A DPS
@@ -134,7 +185,35 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
 (manual activation), so focus coming back from a toast never switches the tab. Opening a tab
 from further down the page scrolls up to the new section's top, just under the sticky tabs
 (smoothly, unless reduced motion is asked for), so its header and any note under it (Classic
-Era's) start in view rather than under the tabs.
+Era's) start in view rather than under the tabs. A tab is its label alone at every width
+(`src/app/section-tabs.tsx`): what each section holds is said by the wide panel's **Your setup**
+([Results](#results)), not under its tab (D34's amendment took the tabs' summary lines out).
+
+**Your setup's lines** (the wide panel, from 1440 px, decision D34): under each section's name,
+what it holds, so the whole setup reads at a glance. Each line uses the rule its own tab uses to
+say the same thing (`src/app/section-summary.ts`), so it never disagrees with the tab, and stays
+within 30 characters, what fits on one line in a column of Your setup at 1440 px (two columns of a
+30 rem panel), beside a classic scrollbar: measured, the column holds 216 px and the longest real
+line, "Tauren · Classic Era · changed", about 195 (`e2e/wide-panel.spec.ts`). A Character or Fight
+line ends "· changed" when another of its tab's settings differs from the spec's default, by the
+tab's own test (review finding DL2-6): it says there's more to see there without listing it.
+Where a line would run long, what it names gives way to "changed", which is the one that says to
+look.
+- **Character:** the race, and the rules when they aren't Forever's: "Human", "Orc · Classic
+  Era"; "Human · changed" when the untested ratings, or a paladin's Judgement of the Crusader or
+  a Protection paladin's Hammer of the Righteous rule, aren't the default. A Skyborne race drops
+  its faction variant when the line would run long ("Skyborne · Classic Era"), then the rules
+  ("Night Elf · changed" in place of 33 characters).
+- **Talents:** the points in each tree, in tree order: "17/34/0".
+- **Gear:** "Pre-raid best in slot" (a tank's "Threat set") while every slot holds the default
+  set, by the Gear tab's own comparison; "No gear" with every slot empty (after Remove all gear);
+  otherwise "1 slot changed", "3 slots changed".
+- **Buffs:** the preset the Buffs tab's picker shows ("Standard raid"), or "Custom".
+- **Rotation:** the preset the Rotation tab's picker shows ("Default", "Balanced"), or "Custom".
+- **Fight:** the length as the Fight tab shows it ("3:00"), the boss's level only when it isn't
+  a raid boss's 63 ("3:00 · level 62"), and "changed" when any other setting the tab shows
+  differs from its default (armor, position, execute, Advanced's): "3:00 · changed", "15:00 ·
+  level 60 · changed".
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 Each opens with its title and a short intro. An action (Reset rotation, the gear menu) sits on the
@@ -186,9 +265,30 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Ironfoe procs. Racials, talents, other abilities and the rest of the gear stay Forever's.
   - **Changed settings are marked,** as on the Rotation tab: the race and each Advanced setting,
     when it differs from the spec's default, gets a line under it with its default ("Default:
-    Human", "Default: Forever") and a **Reset** that moves focus back to its control. Advanced
-    opens by itself while a setting in it differs from its default, and its button counts them
-    ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
+    Human", "Default: Forever") and a **Reset** that moves focus back to its control. Under 1440 px
+    Advanced opens by itself while a setting in it differs from its default, and its button counts
+    them ("Advanced, 1 changed"), so Classic Era rules are never out of sight; wider, it's always
+    open (below).
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
+    the races sit on the left, three to a row, and the chosen race's racials beside them on the right,
+    so a pick and what it brings are in view together. Advanced spans the pane below both, **shown
+    open** (principle 4, "Show it when there's room"): a card headed "Advanced" with its settings in
+    view and no disclosure to press, so each changed setting's own "Default: …" line marks it, with no
+    count. Its settings flow into balanced columns, read top to bottom and then on (CSS columns, each
+    setting whole in one): 2 from 53 rem and 3 from 72 rem, the Buffs tab's widths, so a paladin's
+    four settings take two short columns rather than one long one (review finding DU1-7: at
+    1440×900 Prot Paladin's tab ends at 971 px, from 1,115; every other spec's fits the window, the
+    longest Retribution's at 859). So Prot Paladin's Character tab scrolls at 1440×900, and by
+    design (review finding V2-3, waived): 71 px past the window's edge, with every setting in view
+    in balanced columns, as principle 4 asks, rather than behind a disclosure, and it fits from
+    1920×1080 (851). Its
+    choices (the rule profile, a paladin's two untested rules) are as wide as their options,
+    left-aligned ([Visual language](#visual-language)), not two halves of the pane. Narrower, the
+    racials come under the races and Advanced is a disclosure, as at every width under 1440 px.
+    Shown and disclosure are the same elements, the disclosure held open and its button hidden, so a
+    window crossing 1440 px keeps focus on the setting that had it, and Advanced stays open when the
+    window narrows under it (review finding DL2-3).
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
@@ -207,6 +307,21 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     point and Backspace removes one (Delete and − work too); the hint above the trees and each
     talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's
     icon turns gray and its rank badge takes the muted text colour (AA), never opacity.
+  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): the talent icons stay
+    44 px, as at every width (principle 4: extra width is never spent enlarging them), and each tree's
+    card stops at 18 rem, about its width at 1280 px, the three left-aligned. From a 73 rem pane (a
+    window of about 1,870 px, or 1,895 beside a classic scrollbar, so **every 1920 px window**) a
+    **talent detail panel**, 21 rem, sits beside the trees, sticky as the Rotation panel is. It can't
+    come sooner: at 1440 px (a 55 rem pane) the panel would leave each tree 10 rem, and a tree of
+    44 px icons needs 16.1 (`talent-detail-panel.tsx` works the fit), so there each talent's tooltip
+    carries its details. The panel shows the talent under the pointer, or else the focused one, or else the last one shown, with
+    its tree and tier, rank, the current and next rank's text, why a point can't move, and what it
+    **needs**: the tree's points above its tier and its arrow's talent, each met or not with the
+    count ("30 points in Fury, 30 of 30"; a first-tier talent needs nothing). Until you point at
+    one it says to. While it shows, pointing at a talent doesn't also open its tooltip, which would
+    repeat the panel over the neighbouring talents; focusing one still does. It isn't a live region,
+    and the popovers and every click and key stay as they are
+    (`src/features/talents/talent-detail-panel.tsx`).
   - **A point that can't move says why.** A talent that can't take a point says what it needs
     ("Requires 5 points in Fury."). One whose point can't come back names what depends on it:
     the talent its arrow leads to ("Can't remove a point: Bloodthirst needs 1 point in Death
@@ -272,6 +387,99 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
     parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
     shows none.
+  - The item in the slot is always listed, marked **Equipped** with a check at the start of its
+    badges (review finding DB-8). The **Best in slot** filter doesn't hide it: where it isn't one
+    of the spec's BiS items (a tank's threat set holds items no guide ranks), it comes first,
+    ahead of the ranked items; otherwise it keeps its place in the order. A search that doesn't
+    match it leaves it out, as the count and "No items match" say. This is the picker's one body,
+    so it holds in the dialog and the phone's sheet alike.
+  - **From 1440 px** (the wide layout, [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25),
+    as amended: desktop shows, principle 4), **every slot is in view with no scrolling**, at
+    1440×900 and up, **by construction** rather than for today's default sets (review findings
+    DL2-1, DL2-2, DU1-1: a longer name, Classic Era's note or a classic scrollbar pushed the last row
+    out twice). Each row of slots has a **fixed height** by the kind of slots in it, the same
+    whatever they hold, and Gear's intro and the default set's line are one line each, so the grid's
+    height doesn't depend on the items. The tallest stack is the pane's right side (eight slots) with
+    the weapons under it. The worst case, a hunter (a second row of weapons) with the longest real
+    item name and enchant in every slot, under Classic Era rules, beside a classic 17 px scrollbar,
+    ends 65 px clear of a 1440×900 window's bottom edge; every other spec, a tank or a caster, ends
+    113 px clear (`e2e/wide-gear-fit.spec.ts` holds it to 16 px).
+    - The slots are in the **game's character-pane order**, like the in-game paper doll (user
+      decision, D34), so each is where a player expects it: **head, neck, shoulders, back, chest and
+      wrists** down the left; **hands, waist, legs, feet, both rings and both trinkets** down the
+      right; and the **weapons** along the bottom across both, three to a row (main hand, off hand,
+      ranged or relic; a hunter's ammo and quiver in a second row under the main and off hand).
+      Each side is one bordered list with a divider between its slots, and the two end together:
+      the left side's six rows share out the right side's height. The group headings ("Head to
+      wrists", "Hands to trinkets", "Weapons") are there for screen readers only: the layout says
+      what's where. The two columns share the setup pane (about 27 rem each at 1440 px, 37 at 1,920
+      px); extra width goes to fewer cut-short lines, never to bigger icons or controls.
+    - The **right side is mirrored**: its icon on the slot's right edge, and its name, stats,
+      enchant chip and flags aligned to the right, toward the icon, the flags before the chip rather
+      than after it. Nothing sits over the icon. The weapons read left to right, like the left side.
+    - Each row's height: **76 px** where a slot in it takes enchants (the icon, 36 px, beside a
+      one-line name and a stats line, then the enchant line under them and 16 px below it for its hit
+      area), **48 px** where none does (the icon beside the name and stats); the left side's rows are
+      78 px. A slot that takes enchants keeps its enchant line whatever it holds. The item's name,
+      in its quality colour with its BiS rank after it, takes **one 18 px line**, cut short, with the
+      whole name as its hover title and the slot's accessible name. The **stats** take one line, cut
+      short with the whole as its hover title (an effect item's tooltip words, which stand in for
+      stats, can run longer); the slot's name is left out, as the grid's place says it. Ammo the
+      ranged weapon doesn't fire shows its reason in the stats line's place, the same way. The
+      **enchant** is one line of green text, its name and effect cut short only where the slot is
+      narrower, with the whole as its hover title (review finding DB-2: "Lesser Arcanum of…" could
+      have been any of three; the popover lists them whole), its text lined up with the name's. The
+      chip opens the enchant popover, as below 1440 px; it takes a 16 px line and a 44 px hit area 14
+      px past it each way, like a flag, and its **focus ring** is drawn around its text, on its own
+      line, never over the stats above (review finding DU1-5). A slot with no enchant to choose has no
+      chip; with no chip and no flag, the item's name and stats are centred in the row. An empty slot
+      shows its faded icon, name and "Empty", and an off hand beside a two-hander "Your two-hander
+      uses both hands".
+    - The **flags** follow the item: on the enchant line after the chip where the row has one (a
+      ranged weapon beside the main and off hand too), otherwise after the name and stats; mirrored
+      on the right side. A clock-and-arrow is **Classic stats** and a crossed-out flask **Effect not
+      simulated**. Each is named by its words, has them as its hover title, and opens the same
+      explanation. On the enchant line they show their words too **wherever those fit** beside the
+      enchant's whole text (review finding DU1-6: at 1440 px many single flags do, at 1,920 px most);
+      otherwise they're icons and the enchant keeps the room. The line measures itself (`ItemFlags`
+      in `src/features/gear/item-row.tsx`), and what it measures doesn't depend on which it shows, so
+      it never flips back and forth. Beside the name and stats they stay icons, leaving the text the
+      room. Below 1440 px they keep their words.
+    - The slot's button covers the whole slot, with its focus ring inside; the chip and flags sit
+      over it. Every target is 44 px or more, and a slot's small targets never overlap each other,
+      the icon or the slot's top and bottom: the chip keeps 12 px from the first flag, icons 24 px
+      apart (flags with words 6 px, each its own hit area), and the slot's padding holds their hit
+      areas.
+    - Choosing a slot opens the **item picker dialog**, the same as at 1024–1439 px (a transient
+      task in a modal: the persistent view keeps the width). A pick equips the item, closes the
+      dialog and returns focus to the slot.
+    - The intro is one line in shorter words for a tank ("Starts as the Protection Warrior threat
+      set, measured for threat with an effective-health floor."), cut short with the whole on hover
+      should a longer spec name ever not fit.
+    - Gear's actions are **buttons in view**, each sized to its label: **Remove all gear** in the
+      header where the `…` menu is below 1440 px, and **Equip pre-raid best in slot** (or **Equip
+      the threat set**) on the default set's line. **Remove all gear** empties every slot with no undo,
+      so like the header's **Reset setup** it opens a one-item menu, **Empty all 17 slots** (19 for
+      a hunter), and takes a second, deliberate click (review finding DL2-4; D21).
+    - The default set's line drops its box and fill and sits just under the intro, and its button
+      is 32 px tall there with a 44 px hit area. It's **one line** in both states, in shorter words:
+      "2 slots differ: Chest and Hands. Equipping fills 1 empty slot and replaces the other.", the
+      names left out past three ("16 slots differ. Equipping fills 3 empty slots and replaces the
+      other 13."), so what equipping does stays in view (review finding DU1-4). The full sentence is
+      its hover title, and it's cut short, never wrapped, should a rare one still not fit, so the
+      slots don't move when the gear changes.
+    - Under **Classic Era** rules the enchant note is a link on that line, **Classic Era enchants**
+      with the note's clock-and-arrow, rather than the box above the slots (review finding DL2-2: the
+      box pushed the last row out of the window). Screen readers hear the note's sentence as its
+      description, and it opens Character on the rules, as the box's **Character → Advanced** does.
+      Its 44 px hit area keeps clear of the Equip button's.
+    - Tab moves **down the left side, then down the right, then along the weapons**, each slot
+      followed by its enchant chip and flags; there are no arrow-key shortcuts. That isn't the
+      stacked cards' order below 1440 px (Armor, Jewelry, Weapons), so the grid is other elements:
+      crossing 1440 px (browser zoom, snapping a window) moves focus with the control that had it, a
+      slot's button, its enchant chip or one of its flags, to its new place, found by an id named for
+      its slot (`useFocusAcrossPlaces`, `src/features/rotation/layout.ts`). Focus that had left the
+      slots stays where it is.
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.
@@ -396,6 +604,25 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A preset matches on what you choose: a buff your rotation keeps up shows on whatever the
     preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
     under Max TPS, then going back to Defensive, leaves the preset as it was.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    each category's groups flow into columns by the setup pane's width, 2 from 53 rem (every width
+    from 1,440 px, whose pane is 54 to 55 rem) and 3 from 72 rem (a window of about 1,850 px, 1,870
+    beside a classic scrollbar, so every 1920 px window, whose columns are about 24 rem), with CSS
+    columns, so they
+    read top to bottom, then on to the next column, and no group splits between two. Each group is its
+    own narrower card with its switches at its end, not across the pane from their names. The category
+    headings, the presets and "In your raid" stay above them. Three columns wait for 72 rem because a
+    column under about 23 rem squeezes a buff's help beside its switch (at 1440 px three would be
+    17.7 rem, 17.3 beside a classic scrollbar: (55 − 2 gaps of 1 rem) ÷ 3). So Buffs scrolls at
+    1440×900 (as a tank's Fight tab and Prot Paladin's Character tab do, a little), by design (review finding DU1-8, waived): it's every raid
+    buff, debuff and consumable, some 60 switches, about 2,750 px of page in two columns and 2,240 in
+    three at 1920×1080, and a third column at 1440 px would buy height with lines of help too narrow
+    to read. "In your raid" is two even rows of equal chips at 53 rem, as many columns as half the
+    classes (5 and 4, each chip as wide as the widest name), rather than a row that leaves one class
+    alone, and one line from 72 rem, where all nine fit. The four presets stop at 16 rem each,
+    left-aligned, rather than each taking a quarter of the pane (principle 4: at 1440 px a quarter is
+    under 16 rem anyway). Narrower, the groups are one column, the chips wrap and the presets share
+    the width, as at every width under 1440 px.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
@@ -404,13 +631,43 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
     Every spec is on the list (Fury first, then the three tanks, then the rest in M5.65 A2), and each
     shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
-    stance, a pet, the consumables) sit under their headings above the list, as below. Under
+    stance, a pet, the consumables) sit under their headings above the list, as below (from
+    1440 px in a column beside it: **Wide layout**, below). Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)
+    as amended; `src/features/rotation/layout.ts`). From 1440 px nothing pushes the list down:
+    - **The spec-wide settings are a column on the left,** first the unheaded ones (Arms' stance,
+      Demonic Sacrifice), then each heading's, one setting a line with its numbers and choices under
+      its label. Every heading shows its thresholds: there's room, so there's no **Advanced**
+      (principle 4).
+    - **The priority list is at the top of the next column,** its heading, preset picker and Reset
+      order first; a tank's **Preset** picker, with its line and info, heads that column, above
+      Priority list.
+    - **Where a third column fits** (a setup pane of 72 rem, from a window of about 1,850 px, 1,870
+      beside a classic scrollbar), the selected row's settings are a panel in it, sticky as below
+      and level with the list column's top. **Where it doesn't** (1440 to about 1,850 px), they open
+      **inline under the selected row**, in its list item, with the leading bar running down them,
+      and the rows below move down. There the row's button opens and closes them
+      (`aria-expanded`), and the row already shows its icon and name, so its settings start with its
+      place beside Move up and Move down; the name is their heading for screen readers, which takes
+      focus as the panel's does, and Escape goes back to the row.
+    - **Focus goes with the settings** when the window crosses the third column's width (browser
+      zoom, snapping a window) and they move between inline and the panel: to the same control in
+      their new place, found by its id or else its role and name (a radio's with its group's
+      label), or else to their heading (`useFocusAcrossPlaces`, review finding DL2-3). Never by its
+      place in the tab order: a roving radio group that has just moved in doesn't join it until its
+      options register, so focus landed one control off, on Increase for Decrease (review finding
+      V2-1). Focus elsewhere stays where it is.
+    - **No Back to list:** the settings sit beside or inside the list, so it's only below 1440 px;
+      Escape still goes back. Move up and Move down are as wide as their labels.
+    - **Nothing stretches:** the settings and the panel run from 22 to 28 rem and the list from 24
+      to 36 rem, each taking an equal share of the room; past those widths (about 2,400 px) the rest
+      of the pane stays empty.
   - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
     A spec with named rotations (a tank's **Defensive**, **Balanced** and **Max TPS**) has its
-    picker at the top of the tab instead, under a **Preset** heading, first as a tank's priority
-    choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
+    picker at the top of the tab instead (from 1440 px, of the list's column), under a **Preset**
+    heading, first as a tank's priority choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
@@ -449,13 +706,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       row's settings are already one level down. From 1024 px they sit in a panel beside the
       list, which stays in view as you scroll, and the selected row has a bar in the primary
       colour on its leading edge. Until you select one the panel says to. Selecting a row moves
-      focus to the panel's heading, as the sheet's title takes it; **Back to list** above it, or
-      Escape anywhere in the panel, returns focus to the row. The panel reaches down to 1rem
+      focus to the panel's heading, as the sheet's title takes it; **Back to list** above it (below
+      1440 px), or Escape anywhere in the panel, returns focus to the row. The panel reaches down to 1rem
       above the window's bottom; settings taller than that scroll inside it, with a fade on
       each edge that has more past it. Its switch is named "Use Battle Shout", so it isn't a
       second switch with the row's name. Below 1024 px they
       open in a bottom sheet, titled with the ability and its place, and closing it returns
-      focus to the row.
+      focus to the row. **From 1440 px** they sit beside the list or inline under the row (**Wide
+      layout**, above), and the ability's name shows once, in the heading with its place (inline,
+      in the row): the switch's line is its help, at the label's size and colour, and screen
+      readers still hear "Use Battle Shout".
     - **Moving a row.** Drag its handle, or focus the handle and press Space, move with the Up
       and Down arrow keys, and press Space again (Escape cancels); a screen reader hears where
       it is at each step ("Whirlwind is over position 10 of 16"). Move up and Move down in its
@@ -568,8 +828,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     on"). A number setting can need a second switch under another heading as well
     (`alsoDependsOn`: "Recklessness before the execute phase" and "Mighty Rage Potion up to" need
     Execute); it's dimmed while either is off, and its help names the second.
-  - **Advanced** (principle 2): switches and choices are always in view, and each heading's
-    number settings (rage and timing thresholds) wait behind an **Advanced** button on the
+  - **Advanced** (principle 2; below 1440 px, since from there every threshold shows): switches
+    and choices are always in view, and each heading's number settings (rage and timing thresholds) wait behind an **Advanced** button on the
     heading's right. Opening it shows them in place, under the switch each one tunes, so a
     label like "Shout again with" keeps its context. A heading opens by itself when one of its
     hidden settings differs from its default, and its button counts them ("1 changed") even
@@ -655,11 +915,37 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **Changed settings are marked,** as on the Rotation tab: each one that differs from the
     spec's default gets a line under it with its default ("Default: 3:00", "Default: 63") and a
     **Reset** that moves focus back to its control; a screen reader hears "Changed. Default: …"
-    as the control's description. Advanced opens by itself while a setting in it differs from
-    its default, and its button counts them ("Advanced, 2 changed").
+    as the control's description. Under 1440 px Advanced opens by itself while a setting in it
+    differs from its default, and its button counts them ("Advanced, 2 changed"); wider, it's always
+    open (below).
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
+    the fight's four settings in two balanced columns (the length and boss armor, then the position
+    and execute phase), and Advanced across the pane below them, **shown open** (principle 4, "Show
+    it when there's room"): a card headed "Advanced" with every setting in view and no disclosure to
+    press, so each changed setting's own "Default: …" line marks it, with no count, and Rotation's
+    "set Creature type" link lands straight on the menu. Its settings flow into balanced columns,
+    read top to bottom and then on (CSS columns, each setting whole in one; Boss melee's heading
+    keeps to its swing settings and each switch flows on its own): 3 from 53 rem, whose columns of
+    about 16 rem hold a stepper, a menu or Precision's two options, and 4 from 72 rem. Balanced
+    columns fit whatever the spec shows, rather than a split tuned to today's settings (review
+    finding DU1-2: Advanced beside the fight ran long in one column while the other stood empty).
+    At 1440×900 a DPS spec's tab fits the window **at its defaults** (Fury ends at 891 px, from
+    943). A changed seed adds its "Default: …" line and Fixed precision its Number of fights, so
+    Fury's then ends at 907, or 947 with both (review finding V2-2). A tank's tab scrolls at
+    1440×900, and by design (review finding V2-3, waived): Boss melee's seven settings make one
+    column the tallest, so the tab ends at 1,083 px (a bear's at 1,059; from 1,323), under 200 px
+    past the window's edge. Every setting stays in view in balanced columns, as principle 4 asks,
+    rather than behind a disclosure, and it fits from 1920×1080 (927, or 951 with Fixed). Measured
+    with a classic 17 px scrollbar. Boss armor, position and precision are as wide as their
+    options, left-aligned
+    ([Visual language](#visual-language)). Narrower, Advanced is a disclosure under them, as at every
+    width under 1440 px. Shown and disclosure are the same elements, the disclosure held open and
+    its button hidden, so a window crossing 1440 px keeps focus on the setting that had it, and
+    Advanced stays open when the window narrows under it (review finding DL2-3).
   - Advanced: precision and seed, then the fight's details. Every field is labelled, the
     Creature type and Zone menus included, and its accessible name contains its visible label
     ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their
@@ -696,11 +982,125 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the color says that on screen: "up 12.3 from the last run, better" (`Delta` in
   `src/features/results/delta.tsx`). Under it, one line says what was run: "2,750 fights of 180 s ·
   Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
-  varied fights; the run time is labelled.
-- **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
-  put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
-  that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a
-  phone the results sheet scrolls as a whole.
+  varied fights; the run time is labelled. The Simulate button names its shortcut in
+  `aria-keyshortcuts` (both keys, `Control+Enter Meta+Enter`) and in a tooltip that names only the
+  platform's own key: "Simulate (⌘+Enter)" on a Mac, iPhone or iPad, "Simulate (Ctrl+Enter)"
+  elsewhere, or "Run again (…)" after a run (`src/features/results/shortcut-label.ts`). The
+  tooltip opens when a mouse or pen hovers the button, not on keyboard focus: there it stayed up
+  after a keyboard run and covered the pane's first line (review finding DA-5). It's the one
+  tooltip that doesn't open on focus ([Accessibility](#accessibility)): what it says is the
+  button's own name, which focus reads, and the shortcut, which `aria-keyshortcuts` gives
+  assistive tech.
+- **From 1024 to 1439 px the panel never runs past the viewport.** The headline card with
+  Simulate stays put, and everything under it scrolls inside the panel, with a fade and a chevron
+  at an edge that has more. While it overflows, that area takes keyboard focus so arrow keys
+  scroll it. On a phone the results sheet scrolls as a whole.
+- **The wide layout's right panel** (from 1440 px,
+  [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25) as amended: `WidePanel`
+  in `src/features/results/results-panel.tsx`, Your setup in `src/app/setup-summary.tsx`). Under
+  1440 px the panel and the phone's bar and sheet are as this section describes elsewhere. From
+  1440 px the panel is one calm column, top to bottom: the **character sheet**, then **Your setup**,
+  whose action row holds Simulate and, once run, the result's headline, then the rest of the result
+  (D34's panel, after the user's look at the fixes). **Nothing is pinned**: they scroll together
+  ("Scrolling" below). The sheet and Your setup are each a card (shadcn's `Card`, its small size, on
+  the neutral card surface), headed by their name at a section heading's size (16 px, semibold),
+  with no icon before it; the rest of the result under them isn't, so the cards read as context and
+  the result as the answer.
+  - **Character sheet**, always shown, before any run too. It comes from your setup (the plan the
+    sim builds), not from the fights, so it follows every change as you make it and is never
+    stale. It isn't collapsible here. Its heading's right names whose sheet it is, "Fury Warrior",
+    in the class's colour (`CLASS_TEXT`): the panel's one accent. Its stats are grouped as a player
+    reads them (`sheetGroups` in `src/features/results/sheet-groups.ts`), each group under a small
+    muted uppercase heading, its values right-aligned in tabular numbers:
+    - a melee spec's **Offense** (attack power, crit, hit, haste, weapon skill, expertise),
+      **Attributes** (Strength, Agility, Stamina) and **Defense** (health, armor);
+    - a caster's **Spells** (spell damage, crit and hit with their schools, casting speed,
+      penetration), **Mana** (mana, mana per 5 s), **Attributes** and **Defense**;
+    - a paladin's **Melee** and **Spells** side by side, then Mana, Attributes and Defense; a
+      hunter's ranged numbers are its Offense;
+    - the defensive rows (Defense, crit reduction, dodge, parry, block, block value) join
+      **Defense**.
+
+    The groups flow down two columns in a 30 rem panel (1440 px), three from a 38 rem one (about
+    1,824 px) and four from a 48 rem one (about 2,300 px), each kept whole, so a Fury warrior's
+    reads Offense | Attributes and Defense. A paladin's, whose five groups are short, has three
+    columns from 1440 px, Melee | Spells and Mana | Attributes, as at 1920: in two, a Protection
+    paladin's sheet ran so long that Simulate went under the panel's edge at 1440×900 (review
+    finding DU2-1). The fourth column keeps a column near 12 rem at 2560 px as at 1920, rather than
+    stretched to 18, so a value sits near its label (review finding DU2-4). A tank's Defense spans
+    the columns, its rows running across them (Health, Armor, Defense, …); from three columns its
+    crit reduction takes two, so "Crit reduction (boss's crits)" stays on one line: its label in the
+    first and its value in the second from a 38 rem panel, and across both, its value ending the
+    second, in a paladin's 30 rem one. The rows after it fill any cell that leaves. Under it, the
+    **Boss's attack table**, filling down three columns (four from a 48 rem panel, the sheet's own),
+    so it takes three rows. Here it's the table alone, so a tank's sheet is short enough for
+    Simulate to be in view on load at 1440×900: its explanation is behind an **info button** (ⓘ,
+    "About the boss's attack table") beside its heading, a 44 px target that overhangs the heading's
+    line rather than making the row taller. It opens a popover on a click, a tap or Enter and closes
+    on Escape or a click outside, never on hover alone. The popover holds the full line under 1440 px
+    (what the table is, with Holy Shield up and the latest run's uptime while that run is of this
+    setup, the boss's skill, and why the swings that landed differ) and the crushing line ("Another
+    58.9 points of miss, dodge, parry or block would push crushing blows off the table.").
+  - **Your setup**: a line a section (Character, Talents, Gear, Buffs, Rotation, Fight), each its
+    section's icon and name in muted 12 px text over what it holds ([Your setup's lines](#layout)):
+    a person for Character, a node tree for Talents, a shield for Gear, sparkles for Buffs, an
+    ordered list for Rotation, crossed swords for Fight. Each line is a 44 px button, named
+    "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a tab does, and
+    moves focus into it. It looks like one at rest: its name ends on a faint chevron (review
+    finding DU2-3). On hover or keyboard focus, over the muted hover fill, the chevron darkens, the
+    name takes the value's colour, keeping it over 4.5:1 on the fill (DU2-5), and the value gains
+    an underline. The lines sit in two columns in a 30 rem panel (1440 px) and three from a 38 rem
+    one (about 1,824 px).
+  - **Your setup's action row** ends the card, on the muted footer surface: where things stand on
+    the left and **Simulate** on the right (Run again after a run, Cancel during one), in the
+    primary style, 44 px tall and sized to its label, never stretched. Simulate sits at the row's
+    top, so it's in the same place in every state however tall the left side grows, and a one-line
+    status centres on it. The left side is never an empty band (DU2-6):
+    - before a first run, "Your setup is ready. Simulate to see your DPS." (or "TPS and DPS");
+    - during a run, its progress, "Simulating… 45%" over a bar, beside Cancel;
+    - after a run, **the result's headline**: "DPS 713.7 ± 1.8" and its change from the last run
+      ("▲ +12.3"), the value 24 px and semibold, its label, ± and change small beside it; a tank's
+      TPS over its DPS, each on its own line (decision D18's equals). The run's size is under them,
+      12 px and muted: "2,250 fights of 180 s · Forever rules · ran in 0.1 s". Each value is a
+      group named by its label ("DPS"), as the headline is under 1440 px;
+    - once the setup changes, the same headline dimmed and marked **Setup changed** (the amber
+      badge), with Simulate in place of Run again;
+    - when a run fails, "This run didn't finish. See why below.", the failure's message first under
+      the card.
+
+    The button keeps its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the skip link's
+    target (`[data-simulate]`). A screen reader hears a run's outcome from the run's live region
+    ("Done: 713.7 DPS", [States](#states)), and a failure from its alert.
+  - **The result**, once there's one or a failure; before that there's no result box at all, and
+    a run's progress and the headline are in the action row. Under Your setup: any failure or "no
+    damage" message, then a tank's Damage taken, the breakdown (or Threat by ability), How the
+    boss's swings landed, Mana per fight, **Cooldowns and buffs** and **Assumptions**. Each part is
+    divided from the next by a rule with the same spacing, has a plain heading, and starts at the
+    cards' left edge: nothing sits beside the breakdown.
+  - **Cooldowns and buffs** is open by default. A reader who closes it keeps it closed, and one
+    reopened stays open: each browser remembers it (`forever-sim:results-closed` in
+    `localStorage`, a list of the closed ones; a value it can't read counts as none closed).
+    **Assumptions** stays collapsed: it's long and read rarely; in a panel wider than 32 rem (from
+    about 1,540 px) its text keeps to 32 rem, about 75 characters a line (review finding DA-8). The
+    30 rem panel keeps each breakdown row's first outcome line on one line.
+  - **Scrolling.** The panel sticks beside the page and never runs past the viewport: the sheet,
+    Your setup and the result scroll inside it as one, nothing pinned, with a fade at the top once
+    anything has scrolled up and a fade and a chevron at the bottom while there's more. While it
+    overflows it takes keyboard focus, so arrow keys scroll it. At 1440×900, before a run, every
+    spec's sheet and setup fit whole with nothing to scroll, the tanks' (the tallest sheets) with
+    Simulate about 70 px above the window's bottom edge; `e2e/wide-panel.spec.ts` checks every spec. The cards' ring and the light theme's shadow paint outside their
+    boxes, and the panel clips at its edges, so it keeps room for them: 2 px above the sheet, 4 px
+    under the last card and 4 px at the sides. Your setup's whole edge, rounded corners and shadow
+    show in every state, before a run too, when it's the last thing in the panel (a user report).
+    - **Keeping the action row in view.** When a run starts, finishes or fails, the panel keeps Your
+      setup's action row in view, since it holds the progress, the headline or the failure (and on a
+      failure, the message under the card too). A row already in view stays where it is; otherwise
+      the panel scrolls (smoothly, unless reduced motion is asked for) just far enough, clear of the
+      bottom fade: up to the row when Ctrl+Enter ran it from deep in a long result, or down a little
+      when a result arrives under a tank's sheet at 1440×900, the sheet's top giving way first. It
+      never scrolls on its own otherwise, and not on the first render, so a result waiting when the
+      page opens leaves the sheet in view. At 1440×900 a DPS spec's breakdown starts in view under
+      the setup; at 1920×1080 every spec's does.
 - **A result with no damage** says why and what to do next: with no main-hand weapon, "Add a
   weapon in Gear", with a button that opens the tab (and closes the sheet on a phone). The
   button is left out beside the desktop panel when that tab is already open.
@@ -803,7 +1203,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the end" (never below 0). A line under it says what "Regenerated" counts: "Spirit and mana per
   5 s." It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
   against; the potion's and rune's casts per fight are under Cooldowns and buffs.
-- **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
+- **Cooldowns and buffs:** a collapsed section, like the character sheet under 1440 px (open by
+  default in the wide panel, above). It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
   then one per other buff on you (Holy Strength, Flurry, Enrage, the Overpower window) and per
@@ -827,7 +1228,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   judged at the pull) shows a dash for its uptime, with "Before the pull, for its judgement" under
   its name.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
-  sim computed them.
+  sim computed them. Weapon skill is one number, "300", with one weapon or both hands at the same
+  skill, and "302 · 300" (main hand first) when they differ, which never wraps: a screen reader
+  hears "302 main hand, 300 off hand" and its tooltip names the hands. Where both hands differ
+  under 1440 px, it takes its row's width, since a 9 rem column can't hold it beside its label. Under 1440 px it's a collapsed section of the result; from 1440 px it heads
+  the wide panel, always shown and live from the setup (above).
   - A paladin's add its spell stats, in two columns of counterparts, row by row: Attack power |
     Spell damage (its Holy spell damage, since every paladin spell is Holy, Champion of the
     Light's share of Intellect included), Crit | Spell crit, Hit | Spell hit, Weapon skill |
@@ -892,16 +1297,45 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   phone, the item picker's filter, a tank's Threat / Damage switch): the selected option is
   filled with the primary color and its text in the primary foreground (`CHOICE_ITEM` in
   `src/lib/choice.ts`), so it reads at a glance in both themes. Secondary text inside an option
-  (the armor presets' "Most raid bosses") switches to match (`CHOICE_HINT`).
+  (the armor presets' "Most raid bosses") switches to match (`CHOICE_HINT`). **In the wide layout**
+  (from 1440 px, by the `setup` container) a choice is never stretched to fill (principle 4): the
+  group is as wide as its options, left-aligned, and each option as wide as its name, at least 7 rem
+  (`CHOICE_GROUP_WIDE`, `CHOICE_ITEM_WIDE`): Character's rule profile, Fight's boss armor, position
+  and precision, and a choice in a Rotation card's column, which wraps where the column is narrow.
+  Under 1440 px they keep their widths (sharing a row on a phone and in the 1024–1439 layout); a
+  choice in Rotation's settings panel, 24–28 rem wide, shares the panel's width at every size.
 - **Type:** Geist, one scale. Use tabular numbers for every stat and result. The brand's
   lettering alone takes the guild's Josefin Sans ([Brand](#brand)).
+- **Surfaces** (user decision, 2026-09-25: the light theme had "no contrast anywhere"). In the
+  light theme the page is a soft grey-blue, `--page` (#f4f4fa: the guild's ink hue at a trace of
+  chroma), and what sits on it is white: every bordered panel (talent trees and the wide detail
+  panel, the gear slots and the Gear status line, buff groups, Rotation's option cards, a section's
+  Advanced box, the results' headline box and their collapsible details), with a light shadow
+  (`bg-surface shadow-surface`), and the race cards; the cards (Character sheet, Your setup);
+  sheets, dialogs, menus, popovers and tooltips; and the controls' own fills (`--background` stays
+  white: outline buttons, segmented choices, switches' thumbs, the priority list's rows). Muted rows
+  and hover fills (`--muted`) are a step below the page, so a hovered row shows on either. The page,
+  the sticky section tabs and the phone's sim bar take `--page`. What was never boxed stays on the
+  page, since boxing it would change the layout: a tab's own controls (Fight's, Character's) and the
+  results' breakdown in the desktop panel (from 1440 px a white card's padding would cost the
+  column about 26 px, and each breakdown row's outcomes line has about 17 px to spare at 1440×900
+  with a classic scrollbar). In the dark theme nothing moved: `--surface` is transparent and the
+  shadow none, so a panel is its border on the page (or on a sheet) as before. Contrast on the light
+  surfaces is measured on the darkest one text sits on, a muted row.
+- **Tooltips** take the popover's colours in both themes, with a border, a light shadow and an arrow
+  of the same surface (`src/components/ui/tooltip.tsx`, one commented edit): shadcn's inverted box
+  was a white box in the dark theme. The talent tooltip's reasons are in the notice colour, as in its
+  popover: 5.3:1 light, 10.4:1 dark.
 - **Color:**
-  - Neutral tokens for surfaces and text.
+  - Neutral tokens for surfaces and text. Muted text, `--muted-foreground`, is 5.8:1 on white,
+    5.3:1 on the page and 5.1:1 on muted rows in the light theme.
   - **Class colors** as accents only: Warrior `#C69B6D`, Druid `#FF7C0A`, Paladin `#F48CBA`.
-    As text on light surfaces they're darkened in OKLCH, keeping the hue, to meet AA:
-    Warrior `#92642D`, Druid `#C54600`, Paladin `#AB4B79` (the `--class-*` tokens in
-    `src/index.css`, used through `CLASS_TEXT` in `src/app/specs.ts`). Dark mode uses the class
-    colors themselves.
+    As text on light surfaces they're darkened in OKLCH, keeping the hue, to meet AA on white, the
+    page and muted rows (4.6:1 or more on muted rows): Warrior `#90622C`, Druid `#BF4100`, Paladin
+    `#AA4977`, Shaman `#016AD2`, Mage `#007497` (the `--class-*` tokens in `src/index.css`, used
+    through `CLASS_TEXT` in `src/app/specs.ts`). Dark mode uses the class colors themselves, and so
+    does the light theme's navy header ([Brand](#brand)), with lighter tints of the shaman's blue
+    and the warlock's purple there.
   - **Status text** uses tokens, never raw palette classes: `text-positive` (emerald: better,
     a partly ranked talent), `text-negative` (red: worse) and `text-notice` (amber: a maxed
     talent, a warning). Light mode takes Tailwind's -700 shades and dark mode the -400 shades,
@@ -914,7 +1348,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Color never carries meaning alone; always pair it with a label, sign or icon.
 - **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. Text fields,
   selects, segmented choices and outline buttons draw their edge with `--input`: a mid gray in
-  light mode (3.6:1 on the page and cards, 3.3:1 on muted rows) and white at 38% in dark mode
+  light mode (4.0:1 on white, 3.6:1 on the page, 3.5:1 on muted rows) and white at 38% in dark mode
   (3.5:1 and 3.4:1), whose fields fill with 30% of it. An outline button takes it whatever its
   slot, so one that opens a menu ("Gear options") does too. So does an outline badge that's the
   face of a button (the gear flags, which open a popover); a badge that only labels keeps the
@@ -927,8 +1361,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   focus ring is the app's.
 - **The focus ring** meets 3:1 too. The shadcn components draw it at half strength
   (`ring-ring/50`), so the `--ring` token is near-black in light mode and light gray in dark
-  mode, which puts the composited ring at about 3.7:1 or more on the page, on cards and
-  dialogs, and on muted rows in both themes.
+  mode, which puts the composited ring at about 3.6:1 or more on the page, on cards and
+  dialogs, and on muted rows in both themes. On the light theme's navy header the ring is white, 5.0:1
+  (4.5:1 on a hovered button); on the dark theme's header, the page's surface, it's the dark
+  theme's own, 3.9:1.
 - **Stale results** (and a kept result during a re-run) are dimmed by color, not opacity: their
   text turns to the muted text color, and bars and icons fade to gray (`data-dimmed` in
   `src/features/results/results-panel.tsx`). Muted text at 60% opacity would fall to about
@@ -945,6 +1381,21 @@ Forever Sim is made by **Decades**, a gaming community since 2005, whose site is
 the sim (principle 1).
 
 - **Where it appears,** and nowhere else:
+  - **The header's toolbar,** in the light theme the guild's ink navy (#1f1c3d,
+    `oklch(0.25 0.06 285)`; user decision, 2026-09-25), with near-white text and icons. It's solid,
+    so what scrolls under it never changes its contrast. `.ink` in `src/index.css` re-points the
+    theme tokens inside it, so its buttons need no colours of their own; the menus and sheets it
+    opens are portalled out and keep the page's theme. Its ghost buttons' hover fill is #302e50, the
+    same fill an open menu's button shows. Measured on the navy and on that fill: text 15.5:1 and
+    12.3:1, muted text 8.6:1 and 6.9:1, the focus ring 5.0:1 and 4.5:1, the crest's gold 7.0:1 and
+    5.5:1, and every class colour 5.4:1 or more and 4.8:1 or more (the dark theme's colours, with
+    the shaman's blue and the warlock's purple a tint lighter, `oklch(0.7 0.15 255)` and
+    `oklch(0.72 0.12 280)`, since theirs were 4.3:1 and 4.2:1 on the fill).
+    **In the dark theme it stays dark** (user decision, 2026-09-25: the navy looked wrong there):
+    `.ink` doesn't apply, and the header is the page's own surface, translucent (70%) and blurred
+    over what scrolls under it, as it was before the navy. Its ghost buttons take the dark theme's
+    usual half-strength hover fill. Every class colour is 6.4:1 or more on it and 5.7:1 or more
+    hovered, the text 18:1, and the focus ring 3.9:1.
   - **The header's lockup:** the crest, "Forever Sim" and "Decades" under it, in the guild's
     lettering (Josefin Sans, uppercase, spaced, 12 px) in the muted text colour, not gold, so it
     never reads as a class colour beside the spec switcher. The whole lockup is one link, 44 px
@@ -953,7 +1404,8 @@ the sim (principle 1).
     pointer can hover, so a tap on a phone leaves no highlight. "Forever Sim" comes before the link
     in the DOM, so a screen reader hears the page's name and then the link; the crest still shows
     first. On a phone it's the crest alone, 44 px square, before the spec switcher.
-  - **The header's bottom edge,** a gold hairline.
+  - **The header's bottom edge,** a gold hairline: the guild's gold at 60% over the light
+    theme's navy, 40% in the dark theme.
   - **About's last section, "Made by Decades":** under a gold hairline, its heading in the guild's
     lettering in gold, the guild's full logo, one line of the guild's own positioning ("a gaming
     community since 2005. Community first: we invest in our players."), and **Visit decades.gg**.
@@ -963,7 +1415,8 @@ the sim (principle 1).
     stacks its wordmark under the crest and can't be read at 24 px, so the mark is the crest with
     "Decades" beside it in the guild's lettering (14 px, the text colour), as the header has it.
   - **The dark theme's surfaces** lean toward the guild's ink navy (hue 285, a little chroma) at the
-    stock lightness, so every contrast measured on them holds (within 0.03:1).
+    stock lightness, so every contrast measured on them holds (within 0.03:1). The light theme's page
+    leans to the same hue ([Visual language](#visual-language), "Surfaces").
   - Not the favicon: the sim keeps its own mark there, since the crest's detail is lost at 16 px.
 - **Links** to the guild's site open in a new tab, with `rel="noopener"`, and say so to screen
   readers ("opens in a new tab"). The header's is named "Decades: decades.gg, opens in a new tab",
@@ -982,13 +1435,13 @@ the sim (principle 1).
 
   | Token | Light | Dark | Use and limit |
   | --- | --- | --- | --- |
-  | `--brand-gold` | `oklch(0.62 0.1 85)` (#a28137): 3.7:1 on the page, 3.4:1 on muted rows | #c4a75e: 8.5:1 on the page, 7.7:1 on cards | The crest's hourglass: a graphic, 3:1. The hairlines draw it at 40–50%: dividers, which need no contrast, like `--border`. |
-  | `--brand-gold-text` | `oklch(0.53 0.09 80)` (#876527): 5.3:1 on the page and sheets, 4.9:1 on muted rows | #c4a75e: 8.5:1 and 7.7:1 | Brand lettering, AA 4.5:1. |
+  | `--brand-gold` | `oklch(0.62 0.1 85)` (#a28137): 3.7:1 on white, 3.3:1 on the page, 3.2:1 on muted rows | #c4a75e: 8.5:1 on the page, 7.7:1 on cards | The crest's hourglass: a graphic, 3:1. The light theme's navy header takes #c4a75e too (7.0:1). The hairlines draw it at 40–60%: dividers, which need no contrast, like `--border`. |
+  | `--brand-gold-text` | `oklch(0.53 0.09 80)` (#876527): 5.3:1 on white and sheets, 4.9:1 on the page, 4.7:1 on muted rows | #c4a75e: 8.5:1 and 7.7:1 | Brand lettering, AA 4.5:1. |
 
   The guild's own gold, #c4a75e, is 2.3:1 on white, so light surfaces never take it, as text or as
-  a graphic. The lockup's "Decades" is muted text (4.7:1 light, 7.7:1 dark), and on hover the text
-  colour on the hover fill (18:1 light, 17:1 dark). The footer's lead-in is muted text too (4.7:1,
-  7.7:1) and its "Decades" the text colour (20:1, 19:1).
+  a graphic. The lockup's "Decades" is the header's muted text (8.6:1 on the light theme's navy, 7.7:1 on
+  the dark page), and on hover the text colour on the hover fill (12.3:1 on the navy). The footer's lead-in is muted text too (5.3:1 on the light
+  page, 7.7:1 dark) and its "Decades" the text colour (18:1, 19:1).
 - **What the brand may say** follows the guild's own rules (its site's content guide): the game is
   World of Warcraft: Forever, never renamed. About's first mention of it gives the full name (its
   description line, which the page's meta description shares); after that, "WoW Forever" is the
@@ -1331,13 +1784,25 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   "Show results and details".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
+- **Ctrl+Enter, or ⌘+Enter on a Mac, runs Simulate** from anywhere on the page at every width,
+  as the button does (decision D34, `src/app/shortcuts.ts`). It's heard before the focused control
+  and taken when it runs, so a control that also acts on Enter doesn't: a focused select (the
+  Rotation preset) stays closed and a drag handle doesn't pick its row up. In a text or number field
+  the field commits what you typed first and keeps focus, so the run takes the new value. It does nothing
+  while a run is under way, or while a sheet, dialog or popover with a form of its own (the item
+  picker, Setups, a pasted build code, the enchant picker) or an open menu or list has the key;
+  a sheet without one, such as the phone's results, leaves it on. It always takes a modifier, so
+  typing never triggers it (WCAG 2.1.4).
 - **A change with no notice is still announced** (WCAG 4.1.3), through a polite live region in
   the app shell (`announce()` in `src/app/announce.ts`): Equip pre-raid best in slot (or the threat set), Remove all
   gear, a talent preset, a pasted build and Clear (with the points in each tree), Reset rotation,
   and renaming a save. Radix hides the page from screen readers while a sheet is open, but leaves
   live regions alone, so it's heard from a sheet too.
 - The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
-- Nothing is hover-only: every tooltip's content is reachable by tap or focus.
+- Nothing is hover-only: every tooltip's content is reachable by tap or focus. The one exception is
+  the Simulate button's shortcut hint (D34), which opens on pointer hover only so it doesn't cover
+  the results after a keyboard run; its content is the button's `aria-keyshortcuts`, which assistive
+  tech announces, and the shortcut is described in this section.
 
 ## UX review checklist
 

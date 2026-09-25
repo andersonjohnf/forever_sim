@@ -21,20 +21,9 @@ export interface RoadmapEntry {
 /** Every agreed milestone, in the order they're coming: the next update first, "Later" last. */
 export const ROADMAP: readonly RoadmapEntry[] = [
   {
-    id: 'priority-lists',
-    title: 'Every rotation as a priority list',
-    when: 'Next update',
-    items: [
-      'Every spec’s Rotation tab becomes a priority list, as Fury’s and the tanks’ already are: drag a row, or use Move up and Move down, to play the order you play.',
-      'Turn any step off, and change its settings in place.',
-      'Your order is saved with your setup and travels in share links.',
-      'Warlocks can pick Incinerate as their filler when it’s talented, and Searing Pain works with Demonic Brand.',
-    ],
-  },
-  {
     id: 'item-tooltips',
     title: 'Item tooltips',
-    when: 'Planned',
+    when: 'Next update',
     items: [
       'Hover over any item, or tap it on a phone, to see its tooltip as the game shows it: stats, effects and set bonuses.',
       'In your gear, the item picker and the character sheet.',

@@ -28,12 +28,26 @@ export function EnchantPicker({
   enchantId,
   onChange,
   fallbackFocus,
+  whole = false,
+  className,
 }: {
   slot: GearSlot
   item: Item
   enchantId: string | undefined
   onChange: (enchantId: string | undefined) => void
   fallbackFocus: () => HTMLElement | null | undefined
+  /**
+   * The wide layout's chip, a line of text under the item in its slot of the grid (docs/ux.md
+   * "Gear"): the enchant's name and effect on one line, sized to its text and cut short only when the
+   * slot is narrower, with the whole text as its hover title (many names share a start: "Lesser
+   * Arcanum of Voracity (Strength)", "(Agility)", "(Stamina)"; review finding DB-2). Like a flag
+   * badge, it takes a 16 px line's height in the layout and a 44 px hit area, 14 px past it each way,
+   * and sits above the slot's button. Its focus ring is drawn around the text, not the hit area, so
+   * it stays on the chip's own line rather than over the stats line above.
+   */
+  whole?: boolean
+  /** Classes for the chip's button: the wide grid lines its text up with the name above. */
+  className?: string
 }) {
   const [open, setOpen] = useState(false)
   const profile = useSetup((s) => s.config.rules.profile)
@@ -70,6 +84,8 @@ export function EnchantPicker({
   const trigger = (
     <button
       ref={chipRef}
+      // Focus finds it by this again when the Gear grid's layout changes under it (docs/ux.md "Gear").
+      id={`gear-${slot}-enchant`}
       type="button"
       // Starts with its visible text (WCAG 2.5.3): "Greater Strength · +10 Strength, Hands enchant".
       aria-label={current ? `${current.name} · ${current.summary}, ${title}` : `Add an enchant, ${SLOT_LABEL[slot]}`}
@@ -78,11 +94,30 @@ export function EnchantPicker({
       className={cn(
         'flex min-h-11 w-full items-center gap-2 rounded-b-xl px-3 text-left text-xs outline-none',
         'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        whole && 'group/chip relative z-10 -my-3.5 min-h-0 w-auto min-w-0 rounded-md px-0 py-3.5 hover:bg-transparent focus-visible:ring-0',
         current ? 'text-positive' : 'text-muted-foreground',
+        className,
       )}
     >
-      <Sparkles className="size-3.5 shrink-0" aria-hidden />
-      <span className="truncate">{current ? `${current.name} · ${current.summary}` : 'Add an enchant'}</span>
+      {whole ? (
+        // The whole text on hover too (review finding DB-2): on the text, not the button, whose name
+        // is its aria-label: a title there would be read out a second time.
+        <span
+          title={current ? `${current.name} · ${current.summary}` : undefined}
+          className="flex min-w-0 items-center gap-1.5 rounded-sm px-1 group-hover/chip:underline group-focus-visible/chip:ring-3 group-focus-visible/chip:ring-ring/50"
+        >
+          <Sparkles className="size-3.5 shrink-0" aria-hidden />
+          {/* data-chip-text: the flags beside it measure it (ItemFlags). */}
+          <span data-chip-text className="truncate">
+            {current ? `${current.name} · ${current.summary}` : 'Add an enchant'}
+          </span>
+        </span>
+      ) : (
+        <>
+          <Sparkles className="size-3.5 shrink-0" aria-hidden />
+          <span className="truncate">{current ? `${current.name} · ${current.summary}` : 'Add an enchant'}</span>
+        </>
+      )}
     </button>
   )
 

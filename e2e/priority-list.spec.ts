@@ -260,8 +260,8 @@ test.describe('the desktop panel', () => {
 
   for (const { width, height } of [
     { width: 1024, height: 600 },
+    // From 1440 px, e2e/wide-rotation.spec.ts: inline under the row to 1,850 px, a panel from there.
     { width: 1280, height: 800 },
-    { width: 1440, height: 900 },
   ]) {
     test(`reaches the window's bottom at ${width}×${height}, and marks settings that scroll`, async ({ page }) => {
       await page.setViewportSize({ width, height })

@@ -675,13 +675,63 @@ recommended, to land in the next update:
   and the Character sheet open by default (remembered per browser). Gear's item picker opens inline
   beside the slot list, like Rotation's row panel, and stays on the slot after a pick so you can
   compare. Sections reflow by their own container width (Buffs in 2–3 columns, larger talent trees).
-- **From 1920 px** the result's headline becomes a strip and its details split into 2–3 columns.
+- **From 1920 px** the result's headline becomes a strip and its details split into two columns,
+  Assumptions across both. (The proposal's third column, from a 64 rem pane, was cut: the capped page
+  never gives the pane that width. The results pane grows smoothly from 1440 rather than stepping at
+  1920, so no setup section loses a column at that width: the reviews' DA-2.)
 - **Tabs, not a side rail**: a rail costs about 200 px that 1440 can't spare.
 - **Keyboard:** Ctrl/Cmd+Enter runs Simulate, and a "Skip to results" link. No Alt+digit section
   shortcuts: Option+digit types characters on a Mac.
 - **Two sections side by side** at 1920+ isn't in this cut; look again once it ships (and with the
   Optimizer's screen).
 - **The review gate adds 1920 px** to its screenshot widths, beside 390 and 1280.
+
+**Amended after the user's review of the preview (2026-09-25): designed for desktop, not scaled.**
+The first build widened things to fill the space rather than using it to show more. The user's rules,
+now ux.md principle 4 and a CLAUDE.md rule: mobile scrolls and desktop shows; show what fits (no
+overflow menus or Advanced disclosures when there's room); never enlarge to fill (no stretched
+buttons, no bigger icons); brief tasks in modals; the character sheet and a clickable setup summary
+always in view; calm, single-column results. What changes from the design above:
+- **The right panel** stacks the character sheet (always shown), then **Your setup** (race, talents,
+  gear, buffs, rotation and fight, each line going to its section) with Simulate, then the results
+  once run, in **one column**: the breakdown, then Cooldowns and buffs, then Assumptions. The
+  headline strip and the two result columns go, and the tabs lose their summary lines, which the
+  setup summary carries.
+- **Gear shows every slot with no scrolling** at 1440×900 and up: a wide grid (armor in two
+  columns, jewelry and weapons beside), each item with its enchant. The item picker is a **modal**
+  again, and Gear's actions (Remove all gear, the default set) are visible buttons, not a `…` menu.
+- **Buttons and choices** keep a sensible maximum width. **Buffs** runs to three columns. **Fight**
+  shows Advanced open. **Talent icons** go back to their normal size (the detail panel stays).
+- **The header** lists Setups, About, Release history, Coming soon and Theme in the toolbar when
+  there's room; `…` only on narrow widths.
+- **Kept:** nothing changes under 1440; the smooth results-pane growth; the Rotation list as one
+  scrolled list; the talent detail panel; Ctrl/Cmd+Enter; the skip link.
+- **Later the same day, after the user's look at the Rotation tab and the panel:**
+  - **Rotation** puts its settings (consumables, cooldowns, buffs) in a column on the left, with
+    every setting shown, and the priority list at the top of the next column, never pushed down by
+    them. Where there's room for three columns (about 1,850 px), a selected row's settings sit in
+    the third; narrower, they open under the row. "Back to list" is gone from 1440 px.
+  - **The panel** is less sterile: the character sheet and Your setup are cards with headings, the
+    sheet's stats grouped (Offense, Spells, Attributes, Defense), each setup line with its section's
+    icon, and Simulate in an action row at the setup card's foot with the run's status beside it.
+  - **Weapon skill** is one number at every width ("302 · 300" when the hands differ), since the
+    old "300 main hand / 300 off hand" wrapped. **The item picker** lists the equipped item first with
+    an "Equipped" badge in place of a trailing check (review finding DB-8), at every width, since
+    it reads better on a phone too. These two are the only changes under 1440 px.
+- **The panel and Gear, after the user's look at the fixes (user decision, 2026-09-25).** This
+  replaces an earlier pinned-setup design:
+  - **The character sheet is at the top** of the right panel, **Your setup beneath it**, and
+    **nothing is pinned**: the sheet, the setup and the result scroll together. The headings "Character
+    sheet" and "Your setup" are larger, with no icons before them.
+  - **The result's headline sits in the setup card's action row**, beside Run again ("DPS 713.7 ±
+    1.8"), where a status line was; the breakdown follows beneath. Simulate is in that row before a
+    run. A tank's sheet is compact enough (its attack table without the paragraph) that Simulate is
+    in view on load at 1440×900.
+  - **Gear is two columns in the game's character-pane order**, so every slot is where a player
+    expects it: Head, Neck, Shoulders, Back, Chest and Wrist on the left; Hands, Waist, Legs, Feet,
+    both rings and both trinkets on the right, mirrored (icon on the outer edge); the weapons
+    (main hand, off hand, ranged or relic, a hunter's ammo and quiver) along the bottom. It still
+    fits 1440×900.
 
 ### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
 User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `forever-sim`

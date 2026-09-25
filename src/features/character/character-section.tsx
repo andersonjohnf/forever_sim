@@ -7,12 +7,13 @@ import { useSpecMeta } from '@/app/specs'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
+import { useIsWide } from '@/hooks/use-media-query'
 import raceJson from '@/data/races/races.json'
 import { racesForClass, racialEffectForClass, type Faction, type Race, type RaceData } from '@/data/races/types'
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
-import { Advanced, Field, SectionHeader } from '@/features/section'
-import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
+import { Advanced, Field, FLOW_ITEM, SectionHeader } from '@/features/section'
+import { CHOICE_GROUP_WIDE, CHOICE_ITEM, CHOICE_ITEM_INACTIVE, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { defaultConfig, rotationValues, type RuleProfileId, type SimConfig } from '@/sim'
 import { RULE_PROFILE_ID } from './classic-era-note'
@@ -48,6 +49,8 @@ const selectedRace = () => document.querySelector<HTMLElement>('[aria-labelledby
 
 export function CharacterSection() {
   const meta = useSpecMeta()
+  // From 1440 px there's room, so Advanced is shown open rather than behind a disclosure (docs/ux.md principle 4).
+  const wide = useIsWide()
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
   const races = racesForClass(raceData, meta.classId)
@@ -108,41 +111,48 @@ export function CharacterSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader title="Character" description={`Level 60 ${meta.name} ${meta.className}.`} />
 
-      <div className="flex flex-col gap-2">
-        <span id="race-label" className="text-sm font-medium">
-          Race
-        </span>
-        <RacePicker races={races} selected={selected} onPick={pick} describedBy={raceChanged ? 'race-default' : undefined} />
-        {raceChanged && (
-          <ChangedHint
-            id="race-default"
-            label="Race"
-            value={defaultRace.name}
-            onReset={() => changeAndFocus(() => pick(defaultRace), selectedRace)}
-          />
-        )}
-      </div>
+      {/*
+       * In the wide layout, from a 53 rem setup pane, the races sit on the left and the chosen race's
+       * racials beside them, with Advanced full width below (D34, docs/ux.md "Character"). Below
+       * 1440 px the pane isn't a container, so this stays one column.
+       */}
+      <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
+        <div className="flex flex-col gap-2">
+          <span id="race-label" className="text-sm font-medium">
+            Race
+          </span>
+          <RacePicker races={races} selected={selected} onPick={pick} describedBy={raceChanged ? 'race-default' : undefined} />
+          {raceChanged && (
+            <ChangedHint
+              id="race-default"
+              label="Race"
+              value={defaultRace.name}
+              onReset={() => changeAndFocus(() => pick(defaultRace), selectedRace)}
+            />
+          )}
+        </div>
 
-      <div className="flex flex-col gap-3">
-        <h3 className="text-sm font-medium">{selected.name} racials</h3>
-        <ul className="flex flex-col gap-3">
-          {selected.racials.map((racial) => (
-            <li key={racial.id} className="flex gap-3">
-              <WowIcon icon={racial.icon} size="sm" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{racial.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {racialEffectForClass(racial, meta.classId) ?? 'No details yet.'}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-medium">{selected.name} racials</h3>
+          <ul className="flex flex-col gap-3">
+            {selected.racials.map((racial) => (
+              <li key={racial.id} className="flex gap-3">
+                <WowIcon icon={racial.icon} size="sm" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">{racial.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {racialEffectForClass(racial, meta.classId) ?? 'No details yet.'}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}
-      <Advanced changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
-        <div className="flex flex-col gap-2">
+      <Advanced shown={wide} flow={2} changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
+        <div className={cn('flex flex-col gap-2', FLOW_ITEM)}>
           <Field
             label="Rules"
             help={
@@ -166,12 +176,12 @@ export function CharacterSection() {
               onValueChange={(profile) => profile && setRules({ profile: profile as RuleProfileId })}
               aria-label="Rules"
               aria-describedby={profileChanged ? 'rules-help rules-default' : 'rules-help'}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
-              <ToggleGroupItem value="forever" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="forever" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 Forever
               </ToggleGroupItem>
-              <ToggleGroupItem value="classicEra" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="classicEra" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 Classic Era
               </ToggleGroupItem>
             </ToggleGroup>
@@ -191,7 +201,7 @@ export function CharacterSection() {
           )}
         </div>
         {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
-        <div className="flex flex-col gap-2">
+        <div className={cn('flex flex-col gap-2', FLOW_ITEM)}>
           <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
             <span className="flex flex-col gap-1">
               <span className="text-sm font-medium">Count untested ratings</span>
@@ -225,7 +235,7 @@ export function CharacterSection() {
         </div>
         {paladin && (
           // Dimmed by colour, never opacity, while the rotation doesn't judge the Crusader.
-          <div data-inactive={jotcUnused || undefined} className={cn('flex flex-col gap-2', jotcUnused && 'text-muted-foreground')}>
+          <div data-inactive={jotcUnused || undefined} className={cn('flex flex-col gap-2', FLOW_ITEM, jotcUnused && 'text-muted-foreground')}>
             <span id="jotc-label" className="text-sm font-medium">
               Judgement of the Crusader’s bonus
             </span>
@@ -237,10 +247,10 @@ export function CharacterSection() {
               onValueChange={(value) => value && setJotc(value as JotcBonus)}
               aria-labelledby="jotc-label"
               aria-describedby={['jotc-help', jotcUnused && 'jotc-off', jotcChanged && 'jotc-default'].filter(Boolean).join(' ')}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
               {(['coefficient', 'flat'] as const).map((value) => (
-                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, jotcUnused && CHOICE_ITEM_INACTIVE)}>
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM, jotcUnused && CHOICE_ITEM_INACTIVE)}>
                   {JOTC_LABEL[value]}
                 </ToggleGroupItem>
               ))}
@@ -272,7 +282,7 @@ export function CharacterSection() {
         )}
         {protection && (
           // Dimmed by colour, never opacity, while the rotation doesn't use Hammer of the Righteous.
-          <div data-inactive={hotrOff || undefined} className={cn('flex flex-col gap-2', hotrOff && 'text-muted-foreground')}>
+          <div data-inactive={hotrOff || undefined} className={cn('flex flex-col gap-2', FLOW_ITEM, hotrOff && 'text-muted-foreground')}>
             <span id="hotr-label" className="text-sm font-medium">
               Hammer of the Righteous’s weapon DPS
             </span>
@@ -284,10 +294,10 @@ export function CharacterSection() {
               onValueChange={(value) => value && setHotr(value as HotrWeaponDps)}
               aria-labelledby="hotr-label"
               aria-describedby={['hotr-help', hotrOff && 'hotr-off', hotrChanged && 'hotr-default'].filter(Boolean).join(' ')}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
               {(['withAttackPower', 'weaponOnly'] as const).map((value) => (
-                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
                   {HOTR_LABEL[value]}
                 </ToggleGroupItem>
               ))}
@@ -392,7 +402,7 @@ function RacePicker({
                   tabIndex={active ? 0 : -1}
                   onClick={() => onPick(race)}
                   className={cn(
-                    'flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors outline-none',
+                    'flex min-h-14 items-center gap-3 rounded-lg border bg-surface px-3 py-2 text-left transition-colors outline-none',
                     'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
                     !available && 'col-span-2 border-dashed',
                     active && 'border-primary bg-muted',

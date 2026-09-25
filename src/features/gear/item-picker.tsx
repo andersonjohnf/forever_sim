@@ -1,4 +1,4 @@
-import { Ban, Check, Info, Search, X } from 'lucide-react'
+import { Ban, Info, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
 import { useSheetFocus } from '@/app/sheet-focus'
@@ -35,6 +35,12 @@ interface PickerProps {
   onPick: (item: Item | null) => void
   /** The slot's button, which focus goes back to however the picker closes, a pick included. */
   returnTo: () => HTMLElement | null | undefined
+}
+
+/** What the picker's body needs: the dialog's and the drawer's alike. */
+type PickerBodyProps = Pick<PickerProps, 'spec' | 'race' | 'slot' | 'equippedId' | 'worn' | 'onPick'> & {
+  /** Focus the search box when it mounts (the desktop dialog). */
+  autoFocus?: boolean
 }
 
 /** How the Unique rules treat an item here: free to pick, moving from another slot, or blocked. */
@@ -123,7 +129,8 @@ const COMPARE: Record<Sort, (a: Candidate, b: Candidate) => number> = {
   name: byName,
 }
 
-function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: PickerProps & { autoFocus?: boolean }) {
+/** The picker's search, filters, sort and item rows (docs/ux.md "Gear"): one body for the dialog and the phone's drawer. */
+function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: PickerBodyProps) {
   const { classId } = SPEC_META[spec]
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
@@ -148,9 +155,13 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
 
   const words = deferredQuery.toLowerCase().split(/\s+/).filter(Boolean)
   const searching = words.length > 0
+  // The equipped item is always listed (review finding DB-8): the Best in slot filter doesn't hide
+  // it, and where it would have, it comes first. A search that doesn't match it leaves it out, as
+  // the count and "No items match" say.
+  const pinned = (c: Candidate) => c.item.id === equippedId && !searching && filter === 'bis' && !c.bis
   const shown = candidates
-    .filter((c) => (searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w)))
-    .sort((a, b) => Number(Boolean(a.unused)) - Number(Boolean(b.unused)) || COMPARE[sort](a, b))
+    .filter((c) => pinned(c) || ((searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w))))
+    .sort((a, b) => Number(pinned(b)) - Number(pinned(a)) || Number(Boolean(a.unused)) - Number(Boolean(b.unused)) || COMPARE[sort](a, b))
   const clearSearch = () => {
     setQuery('')
     searchRef.current?.focus()
@@ -271,6 +282,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                 <ItemSummary
                   item={item}
                   bis={bis}
+                  equipped={equipped}
                   meta={details}
                   dimmed={Boolean(note)}
                   note={
@@ -282,7 +294,6 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                     )
                   }
                 />
-                {equipped && <Check className="mt-1 size-4 shrink-0" aria-hidden />}
               </div>
             </li>
           )

@@ -11,8 +11,11 @@ import { groupAssumptions, groupTitle } from './assumption-groups'
  */
 export function AssumptionList({ result }: { result: SimResult }) {
   const classId = SPEC_META[result.spec].classId
+  // In a wide panel wider than 32 rem (from about 1,540 px) its lines keep a readable measure: 32 rem
+  // holds about 75 characters of its 14 px rows (review finding DA-8). A `ch` cap measures the wide
+  // "0", and let lines run past 100. Narrower, the pane is already narrower than that.
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 @min-[32rem]/results:max-w-[32rem]">
       <p className="text-xs text-muted-foreground">
         What this result takes on trust until someone tests it in game, starting with what you can change. Each links to its doc.
       </p>

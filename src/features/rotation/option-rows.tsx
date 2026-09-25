@@ -11,7 +11,7 @@ import { buffSwitchId } from '@/features/buffs/ids'
 import { CREATURE_TYPES, openCreatureType } from '@/features/fight/ids'
 import { ChangedHint, LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus } from '@/features/refocus'
-import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
+import { CHOICE_GROUP_WIDE, CHOICE_ITEM, CHOICE_ITEM_INACTIVE, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import type { FixedRotationRow, RotationOption } from '@/sim'
 import { controlOf, INACTIVE_SWITCH, rowIds, type RowContext } from './ids'
@@ -21,8 +21,9 @@ import { formatSetting, groupsThousands, type RowState, unitFor } from './logic'
  * Settings in a card. A setting that depends on another under the same heading sits under it,
  * indented on a rule (docs/ux.md "Rotation"). `all` is every setting under the heading, shown or
  * not, so a hidden parent's children don't come up to the top level. `fixed` rows, what the spec
- * always does, come first, with no control. `stacked` puts every number and choice under its label,
- * for a narrow panel (a priority-list row's settings beside the list).
+ * always does, come first, with no control. `stacked` puts every value, number and choice under its
+ * label, for a narrow column (a priority-list row's settings, and from 1440 px the tab's settings
+ * column).
  */
 export function OptionList({
   options,
@@ -59,33 +60,38 @@ export function OptionList({
       </ul>
     )
   }
-  return (
-    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
-      {fixed.map((row) => (
-        <li key={row.id}>
-          <FixedRow row={row} />
-        </li>
-      ))}
-      {options
-        .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
-        .map((option) => (
-          <li key={option.id}>
+  const top = [
+    ...fixed.map((row) => ({ key: row.id, node: <FixedRow row={row} stacked={stacked} /> })),
+    ...options
+      .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
+      .map((option) => ({
+        key: option.id,
+        node: (
+          <>
             <OptionRow option={option} ctx={ctx} stacked={stacked} rowSwitch={rowSwitch} />
             {renderChildren(option.id)}
-          </li>
-        ))}
+          </>
+        ),
+      })),
+  ]
+  return (
+    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-surface shadow-surface">
+      {top.map(({ key, node }) => (
+        <li key={key}>{node}</li>
+      ))}
     </ul>
   )
 }
 
 /**
  * Something the spec always does (a Protection paladin's Righteous Fury): a row like a switch's,
- * with what it is in place of the switch, which there's no point offering.
+ * with what it is in place of the switch, which there's no point offering. `stacked`: its value goes
+ * under the help, as a choice does, so a narrow column doesn't squeeze the help (a hunter's pet).
  */
-function FixedRow({ row }: { row: FixedRotationRow }) {
+function FixedRow({ row, stacked = false }: { row: FixedRotationRow; stacked?: boolean }) {
   const ids = rowIds(row.id)
   return (
-    <div className="flex min-h-14 items-center gap-4 p-4">
+    <div className={cn('flex min-h-14 gap-4 p-4', stacked ? 'flex-col gap-2' : 'items-center')}>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span id={ids.label} className="text-sm font-medium">
           {row.label}
@@ -159,8 +165,10 @@ function OptionRow({
           // Its options share the line equally while their names fit, and wrap to another line
           // where they don't (a phone, the desktop panel beside the list); four sit two to a line
           // on a phone, so a line never holds three and one. No name is ever clipped, nor the page
-          // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts).
-          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap')}
+          // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts). In the wide
+          // layout they're as wide as their names, wrapping where the column is narrow, never
+          // stretched across it (docs/ux.md principle 4).
+          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap', '@min-[53rem]/setup:flex-wrap', CHOICE_GROUP_WIDE)}
         >
           {option.choices.map((choice) => (
             <ToggleGroupItem
@@ -170,6 +178,7 @@ function OptionRow({
                 'h-11 min-w-fit flex-1 px-4',
                 option.choices.length === 4 && 'max-[27rem]:basis-[calc(50%-0.25rem)]',
                 !stacked && 'sm:flex-none',
+                CHOICE_ITEM_WIDE,
                 CHOICE_ITEM,
                 row.inactive && CHOICE_ITEM_INACTIVE,
               )}
@@ -240,11 +249,15 @@ function ToggleRow({
           locked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
         )}
       >
+        {/* A row's own switch in its settings panel, from 1440 px (where the setup pane is the
+            container `setup`, so `@min-[0px]/setup:` means "in the wide layout"): the panel's heading
+            already names the ability, with its place, so the switch's line is its help, at the
+            label's size and colour, and the name stays for screen readers (docs/ux.md "Rotation"). */}
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span id={ids.label} className="text-sm font-medium">
+          <span id={ids.label} className={cn('text-sm font-medium', name !== undefined && '@min-[0px]/setup:sr-only')}>
             {option.label}
           </span>
-          <span id={ids.help} className="text-xs text-muted-foreground">
+          <span id={ids.help} className={cn('text-xs text-muted-foreground', name !== undefined && '@min-[0px]/setup:text-sm @min-[0px]/setup:text-inherit')}>
             {option.help}
           </span>
         </span>

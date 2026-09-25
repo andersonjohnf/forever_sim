@@ -1,8 +1,10 @@
 // The Rotation tab's priority list (decision D31, docs/ux.md "Rotation"): the spec's rows in the
 // order the sim tries them, each with a drag handle, an icon, its name and a one-line summary, and
 // a switch. Selecting a row opens its settings: beside the list on desktop (≥ 1024 px), in a sheet
-// below that. A row moves by its handle (a pointer, or the keyboard: Space, the arrow keys, Space),
-// or with Move up and Move down in its settings. Pinned rows (the pre-pull) show a lock and don't
+// below that, and from 1440 px, where the tab's settings take a column (layout.ts), beside the list
+// where a third column fits and inline under the row where it doesn't. A row moves by its handle
+// (a pointer, or the keyboard: Space, the arrow keys, Space), or with Move up and Move down in its
+// settings. Pinned rows (the pre-pull) show a lock and don't
 // move, and nothing moves past them. Above the list, the preset picker ("Custom" once you've
 // edited it) and Reset order; a spec with named rotations (D28's tanks) has its picker at the top
 // of the tab instead (`AplPresetPicker`), with a line on what the chosen one plays and an info
@@ -19,7 +21,7 @@ import {
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronRight, GripVertical, Info, Lock, RotateCcw } from 'lucide-react'
-import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { announce } from '@/app/announce'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
@@ -49,6 +51,7 @@ import {
 } from '@/sim'
 import { APL_PRESET_TRIGGER_ID, hasNamedPresets, INACTIVE_SWITCH, type RowContext } from './ids'
 import { ImmediateKeyboardSensor } from './keyboard-sensor'
+import { type RotationLayout, useFocusAcrossPlaces } from './layout'
 import { aplRowChanged, aplRowIdle, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
@@ -64,6 +67,16 @@ const listIds = (id: string) => ({
 
 /** The desktop panel's heading, which takes focus when a row is selected. */
 const PANEL_HEADING_ID = 'apl-settings-heading'
+
+/** The inline settings under the selected row (from 1440 px where no third column fits). */
+const INLINE_SETTINGS_ID = 'apl-inline-settings'
+
+/**
+ * Where the selected row's settings show: a bottom `sheet` below 1024 px, a `panel` beside the list
+ * (1024–1439 px, and from 1440 px where a third column fits), or `inline` under the row (from
+ * 1440 px where it doesn't; docs/ux.md "Rotation").
+ */
+type SettingsPlace = 'sheet' | 'panel' | 'inline'
 
 /** Which edges of the desktop panel have more of its settings past them (it scrolls when it's taller than the window). */
 type Fade = 'none' | 'top' | 'bottom' | 'both'
@@ -145,7 +158,7 @@ function PresetSelect({ apl, triggerRef, id, describedBy }: { apl: AplDefinition
  * Custom. The info lists every preset with its full help and measured numbers, so they can be
  * compared before picking (docs/ux.md "Rotation").
  */
-export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
+export function AplPresetPicker({ apl, wide = false }: { apl: AplDefinition; wide?: boolean }) {
   const { preset, presets } = useAplPresets(apl)
   const helpId = useId()
   const infoTitleId = useId()
@@ -153,7 +166,8 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
   const line = preset === CUSTOM_APL_PRESET ? 'Custom: the list matches none of the presets. Pick one to start again from it.' : (current?.summary ?? current?.help)
   return (
     <section aria-labelledby="apl-preset-heading" className="flex flex-col gap-2">
-      <div className="flex min-h-11 items-center">
+      {/* As tall as the other headings' lines, which hold an Advanced button under 1440 px. */}
+      <div className={cn('flex items-center', !wide && 'min-h-11')}>
         <h3 id="apl-preset-heading" className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           Preset
         </h3>
@@ -194,10 +208,24 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
   )
 }
 
-export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; options: readonly RotationOption[]; ctx: RowContext }) {
+export function PriorityList({
+  apl,
+  options,
+  ctx,
+  layout,
+  top,
+}: {
+  apl: AplDefinition
+  options: readonly RotationOption[]
+  ctx: RowContext
+  layout: RotationLayout
+  /** From 1440 px, what sits first in the list's column: a tank's preset picker. */
+  top?: ReactNode
+}) {
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
   const desktop = useIsDesktop()
+  const place: SettingsPlace = !desktop ? 'sheet' : layout === 'two' ? 'inline' : 'panel'
   const order = normalizeAplOrder(apl, config.rotationOrder)
   const byId = new Map(apl.rows.map((r) => [r.id, r]))
   const [selected, setSelected] = useState<string | null>(null)
@@ -205,14 +233,27 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
   const presetRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLElement>(null)
   const fade = useVerticalFade(panelRef, selected)
+  // The row's settings move between inline and the panel as the window crosses the third column's
+  // width; focus in them goes with them (layout.ts).
+  const keepFocus = useFocusAcrossPlaces(
+    place,
+    () => (place === 'inline' ? document.getElementById(INLINE_SETTINGS_ID) : panelRef.current),
+    () => document.getElementById(PANEL_HEADING_ID),
+  )
   const helpId = useId()
   // A spec with named rotations has its picker at the top of the tab (AplPresetPicker).
   const pickerAbove = hasNamedPresets(apl)
-  /** Selecting a row on desktop moves focus to its settings' heading, as the phone's sheet does (docs/ux.md "Rotation"). */
+  /**
+   * Selecting a row on desktop moves focus to its settings' heading, as the phone's sheet does
+   * (docs/ux.md "Rotation"). Inline, the row's button opens and closes its settings, and opening
+   * them brings them into view.
+   */
   const select = (id: string) => {
-    if (!desktop) return setSelected(id)
+    if (place === 'sheet') return setSelected(id)
+    if (place === 'inline' && selected === id) return setSelected(null)
     flushSync(() => setSelected(id))
-    document.getElementById(PANEL_HEADING_ID)?.focus()
+    document.getElementById(PANEL_HEADING_ID)?.focus({ preventScroll: place === 'inline' })
+    if (place === 'inline') document.getElementById(INLINE_SETTINGS_ID)?.scrollIntoView({ block: 'nearest' })
   }
   /** Back from the desktop panel to the selected row on the list. */
   const backToRow = () => {
@@ -262,7 +303,7 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
     announce('Priority list back in its default order.')
   }
 
-  const settings = (row: AplRow, inSheet: boolean) => (
+  const settings = (row: AplRow, at: SettingsPlace) => (
     <RowSettings
       row={row}
       options={options}
@@ -271,102 +312,151 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
       count={order.length}
       canMove={(delta) => moveAplRow(apl, order, row.id, order.indexOf(row.id) + delta) !== null}
       onMove={(delta) => move(row.id, order.indexOf(row.id) + delta)}
-      inSheet={inSheet}
+      at={at}
+      wide={layout !== 'narrow'}
       onBack={backToRow}
     />
   )
+  /** Escape anywhere in the row's settings, on desktop, goes back to the row on the list. */
+  const escapeToRow = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || selected === null) return
+    e.preventDefault()
+    backToRow()
+  }
+
+  const heading = (
+    <div className="flex flex-col gap-1">
+      <h3 id="apl-heading" className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        Priority list
+      </h3>
+      <p id={helpId} className="text-sm text-muted-foreground">
+        Each global cooldown, the sim uses the first ability whose conditions hold. Drag a row by its handle to change the order, or select it for its settings.
+      </p>
+    </div>
+  )
+  const controls = (
+    <div className="flex items-center gap-2">
+      {!pickerAbove && <PresetSelect apl={apl} triggerRef={presetRef} />}
+      <Button variant="ghost" className={cn('h-11 shrink-0', pickerAbove && '-ml-2 self-start')} disabled={config.rotationOrder === undefined} onClick={resetOrder}>
+        <RotateCcw /> Reset order
+      </Button>
+    </div>
+  )
+  const list = (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      modifiers={[vertical]}
+      onDragEnd={onDragEnd}
+      accessibility={{
+        screenReaderInstructions: {
+          draggable: 'To move this ability, press Space or Enter, move it with the Up and Down arrow keys, and press Space or Enter again to drop it, or Escape to cancel.',
+        },
+        announcements: {
+          onDragStart: ({ active }) => `Picked up ${labelOf(active.id)}, ${where(String(active.id))}.`,
+          onDragOver: ({ active, over }) =>
+            over ? `${labelOf(active.id)} is over position ${position(String(over.id))} of ${order.length}.` : `${labelOf(active.id)} is no longer over the list.`,
+          onDragEnd: ({ active, over }) =>
+            over && moveAplRow(apl, order, String(active.id), order.indexOf(String(over.id))) !== null
+              ? `${labelOf(active.id)} dropped at position ${position(String(over.id))} of ${order.length}.`
+              : `${labelOf(active.id)} dropped, still at ${where(String(active.id))}.`,
+          onDragCancel: ({ active }) => `Moving ${labelOf(active.id)} was cancelled. It’s still at ${where(String(active.id))}.`,
+        },
+      }}
+    >
+      <ol aria-labelledby="apl-heading" aria-describedby={helpId} className="flex flex-col divide-y overflow-hidden rounded-xl border">
+        {stretches.map((stretch, i) => (
+          <StretchRows
+            key={stretch.pinned?.id ?? `start-${i}`}
+            stretch={stretch}
+            render={(row, sortable) => (
+              <ListRow
+                key={row.id}
+                row={row}
+                options={options}
+                ctx={ctx}
+                position={position(row.id)}
+                selected={selected === row.id}
+                place={place}
+                sortable={sortable}
+                onSelect={() => select(row.id)}
+              >
+                {place === 'inline' && selected === row.id && (
+                  // Under the row, in its item; Escape goes back to the row, as from the panel.
+                  <section
+                    id={INLINE_SETTINGS_ID}
+                    aria-label={`${row.label} settings`}
+                    onKeyDown={escapeToRow}
+                    onFocus={keepFocus.onFocus}
+                    onBlur={keepFocus.onBlur}
+                    className="border-t bg-muted/40"
+                  >
+                    {settings(row, 'inline')}
+                  </section>
+                )}
+              </ListRow>
+            )}
+          />
+        ))}
+      </ol>
+    </DndContext>
+  )
+  // Keyed by the row, so another row's settings start at their top. It reaches down to 1rem above
+  // the window's bottom; taller settings scroll inside it, and a fade marks each edge with more past
+  // it, as the tabs' does (docs/ux.md "Rotation"). Focus scrolls clear of the fades. Escape goes
+  // back to the row on the list.
+  const panel = place === 'panel' && (
+    <aside
+      key={selected ?? 'none'}
+      ref={panelRef}
+      aria-label={selectedRow ? `${selectedRow.label} settings` : 'Ability settings'}
+      data-fade={fade}
+      onKeyDown={escapeToRow}
+      onFocus={keepFocus.onFocus}
+      onBlur={keepFocus.onBlur}
+      className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] scroll-py-12 overflow-y-auto data-[fade=both]:[mask-image:linear-gradient(to_bottom,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)] data-[fade=bottom]:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] data-[fade=top]:[mask-image:linear-gradient(to_top,black_calc(100%-2.5rem),transparent)]"
+    >
+      {selectedRow ? (
+        settings(selectedRow, 'panel')
+      ) : (
+        <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Select an ability in the list to see its settings here.</p>
+      )}
+    </aside>
+  )
+
+  if (layout !== 'narrow') {
+    // From 1440 px (layout.ts): the list at the top of its column, a tank's preset picker first; and
+    // where a third column fits, the row's settings panel in it, level with the column's top. The
+    // tab's grid sets the columns, which the list and the panel share as a subgrid.
+    return (
+      <section aria-labelledby="apl-heading" className={cn('min-w-0', layout === 'three' && 'col-span-2 grid grid-cols-subgrid items-start')}>
+        <div className="flex min-w-0 flex-col gap-6">
+          {top}
+          <div className="flex flex-col gap-3">
+            {heading}
+            {controls}
+            {list}
+          </div>
+        </div>
+        {panel}
+      </section>
+    )
+  }
 
   return (
     <section aria-labelledby="apl-heading" className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h3 id="apl-heading" className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Priority list
-        </h3>
-        <p id={helpId} className="text-sm text-muted-foreground">
-          Each global cooldown, the sim uses the first ability whose conditions hold. Drag a row by its handle to change the order, or select it for its settings.
-        </p>
-      </div>
-      <div className="flex items-center gap-2">
-        {!pickerAbove && <PresetSelect apl={apl} triggerRef={presetRef} />}
-        <Button variant="ghost" className={cn('h-11 shrink-0', pickerAbove && '-ml-2 self-start')} disabled={config.rotationOrder === undefined} onClick={resetOrder}>
-          <RotateCcw /> Reset order
-        </Button>
-      </div>
+      {heading}
+      {controls}
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[vertical]}
-          onDragEnd={onDragEnd}
-          accessibility={{
-            screenReaderInstructions: {
-              draggable: 'To move this ability, press Space or Enter, move it with the Up and Down arrow keys, and press Space or Enter again to drop it, or Escape to cancel.',
-            },
-            announcements: {
-              onDragStart: ({ active }) => `Picked up ${labelOf(active.id)}, ${where(String(active.id))}.`,
-              onDragOver: ({ active, over }) =>
-                over ? `${labelOf(active.id)} is over position ${position(String(over.id))} of ${order.length}.` : `${labelOf(active.id)} is no longer over the list.`,
-              onDragEnd: ({ active, over }) =>
-                over && moveAplRow(apl, order, String(active.id), order.indexOf(String(over.id))) !== null
-                  ? `${labelOf(active.id)} dropped at position ${position(String(over.id))} of ${order.length}.`
-                  : `${labelOf(active.id)} dropped, still at ${where(String(active.id))}.`,
-              onDragCancel: ({ active }) => `Moving ${labelOf(active.id)} was cancelled. It’s still at ${where(String(active.id))}.`,
-            },
-          }}
-        >
-          <ol aria-labelledby="apl-heading" aria-describedby={helpId} className="flex flex-col divide-y overflow-hidden rounded-xl border">
-            {stretches.map((stretch, i) => (
-              <StretchRows
-                key={stretch.pinned?.id ?? `start-${i}`}
-                stretch={stretch}
-                render={(row, sortable) => (
-                  <ListRow
-                    key={row.id}
-                    row={row}
-                    options={options}
-                    ctx={ctx}
-                    position={position(row.id)}
-                    selected={selected === row.id}
-                    desktop={desktop}
-                    sortable={sortable}
-                    onSelect={() => select(row.id)}
-                  />
-                )}
-              />
-            ))}
-          </ol>
-        </DndContext>
-        {desktop && (
-          // Keyed by the row, so another row's settings start at their top. It reaches down to 1rem
-          // above the window's bottom; taller settings scroll inside it, and a fade marks each edge
-          // with more past it, as the tabs' does (docs/ux.md "Rotation"). Focus scrolls clear of
-          // the fades. Escape goes back to the row on the list.
-          <aside
-            key={selected ?? 'none'}
-            ref={panelRef}
-            aria-label={selectedRow ? `${selectedRow.label} settings` : 'Ability settings'}
-            data-fade={fade}
-            onKeyDown={(e) => {
-              if (e.key !== 'Escape' || e.defaultPrevented || selected === null) return
-              e.preventDefault()
-              backToRow()
-            }}
-            className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] scroll-py-12 overflow-y-auto data-[fade=both]:[mask-image:linear-gradient(to_bottom,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)] data-[fade=bottom]:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] data-[fade=top]:[mask-image:linear-gradient(to_top,black_calc(100%-2.5rem),transparent)]"
-          >
-            {selectedRow ? (
-              settings(selectedRow, false)
-            ) : (
-              <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Select an ability in the list to see its settings here.</p>
-            )}
-          </aside>
-        )}
+        {list}
+        {panel}
       </div>
-      {!desktop && (
+      {place === 'sheet' && (
         <RowSheet
           row={selectedRow}
           describe={(row) => (row.pinned ? `Fixed at ${where(row.id)}` : `At ${where(row.id)}`)}
           onClose={() => setSelected(null)}
-          render={(row) => settings(row, true)}
+          render={(row) => settings(row, 'sheet')}
         />
       )}
     </section>
@@ -389,7 +479,7 @@ function StretchRows({ stretch, render }: { stretch: { pinned?: AplRow; rows: Ap
  * A row on the list: its handle (a lock for a pinned row), then a button with its icon, name and
  * summary that selects it, then its switch. Each is a 44 px target. A row with a changed setting
  * shows a dot after its name; a row that's off, or can't apply, or without a switch does nothing,
- * is dimmed by colour.
+ * is dimmed by colour. `children` are its settings when they open inline, under it in its item.
  */
 function ListRow({
   row,
@@ -397,19 +487,23 @@ function ListRow({
   ctx,
   position,
   selected,
-  desktop,
+  place,
   sortable,
   onSelect,
+  children,
 }: {
   row: AplRow
   options: readonly RotationOption[]
   ctx: RowContext
   position: number
   selected: boolean
-  desktop: boolean
+  place: SettingsPlace
   sortable: boolean
   onSelect: () => void
+  children?: ReactNode
 }) {
+  const desktop = place !== 'sheet'
+  const inline = place === 'inline'
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: row.id, disabled: !sortable })
   const ids = listIds(row.id)
   const state = row.enabledId === undefined ? undefined : ctx.rows.get(row.enabledId)
@@ -422,21 +516,15 @@ function ListRow({
   const changed = aplRowChanged(row, ctx.rows)
   // Its name is its label; that it's changed, and its summary, are its description.
   const described = [changed && ids.changed, summary && ids.summary].filter(Boolean).join(' ') || undefined
-  return (
-    <li
-      ref={setNodeRef}
-      id={ids.row}
-      data-apl-row={row.id}
-      data-selected={selected || undefined}
-      data-inactive={dim || undefined}
-      style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn(
-        'relative flex min-h-16 items-center gap-1 bg-background pr-2',
-        // Selected: a bar in the primary colour on its leading edge, so its dimmed text keeps AA on the page's background.
-        selected && desktop && 'shadow-[inset_3px_0_0_var(--color-primary)]',
-        isDragging && 'z-10 shadow-lg ring-2 ring-ring/50',
-      )}
-    >
+  // Inline, the button opens and closes the row's settings under it; beside the list it marks the
+  // row whose settings the panel shows; in the phone's sheet it opens a dialog.
+  const opens = inline
+    ? { 'aria-expanded': selected, 'aria-controls': selected ? INLINE_SETTINGS_ID : undefined }
+    : desktop
+      ? { 'aria-current': selected ? ('true' as const) : undefined }
+      : { 'aria-haspopup': 'dialog' as const }
+  const content = (
+    <>
       {sortable ? (
         <button
           ref={setActivatorNodeRef}
@@ -461,7 +549,7 @@ function ListRow({
         onClick={onSelect}
         aria-labelledby={ids.label}
         aria-describedby={described}
-        {...(desktop ? { 'aria-current': selected ? ('true' as const) : undefined } : { 'aria-haspopup': 'dialog' as const })}
+        {...opens}
         className={cn(
           'flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md py-2 pr-1 pl-1 text-left outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50',
           dim && 'text-muted-foreground',
@@ -503,6 +591,32 @@ function ListRow({
           />
         </span>
       )}
+    </>
+  )
+  // The row's line, with its settings under it when they open inline. The same elements in every
+  // place, so a window crossing the third column's width (inline to the panel and back) keeps the
+  // row's handle, button and switch rather than remounting them, and focus on one stays there
+  // (e2e/wide-focus.spec.ts). Only the classes differ: without settings under it the item holds
+  // the 4 rem least height, its divider inside it, as it always has.
+  return (
+    <li
+      ref={setNodeRef}
+      id={ids.row}
+      data-apl-row={row.id}
+      data-selected={selected || undefined}
+      data-inactive={dim || undefined}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={cn(
+        'relative bg-background',
+        !inline && 'flex min-h-16 flex-col',
+        // Selected: a bar in the primary colour on its leading edge, so its dimmed text keeps AA on
+        // the page's background. Inline it runs down the row's settings too, which are the row's.
+        selected && desktop && 'shadow-[inset_3px_0_0_var(--color-primary)]',
+        isDragging && 'z-10 shadow-lg ring-2 ring-ring/50',
+      )}
+    >
+      <div className={cn('flex items-center gap-1 pr-2', inline ? 'min-h-16' : 'flex-1')}>{content}</div>
+      {children}
     </li>
   )
 }
@@ -510,7 +624,10 @@ function ListRow({
 /**
  * The selected row's settings: its name and place, Move up and Move down (not for a pinned row),
  * one line on what it does if it has no switch, then its switch and its own settings as the tab's
- * other settings show them, a dependent one under its parent.
+ * other settings show them, a dependent one under its parent. Inline under the row, which shows its
+ * icon and name, the name is its heading for screen readers only, and its place sits beside Move up
+ * and Move down. From 1440 px (`wide`) there's no Back to list, since the list is beside or around
+ * the settings (Escape still goes back), and the Move buttons are as wide as their labels.
  */
 function RowSettings({
   row,
@@ -520,7 +637,8 @@ function RowSettings({
   count,
   canMove,
   onMove,
-  inSheet,
+  at,
+  wide,
   onBack,
 }: {
   row: AplRow
@@ -530,7 +648,8 @@ function RowSettings({
   count: number
   canMove: (delta: -1 | 1) => boolean
   onMove: (delta: -1 | 1) => boolean
-  inSheet: boolean
+  at: SettingsPlace
+  wide: boolean
   /** Back to the row on the list, from the desktop panel. */
   onBack: () => void
 }) {
@@ -541,20 +660,48 @@ function RowSettings({
   const own = [row.enabledId, ...row.optionIds].flatMap((id) => (id === undefined ? [] : [byId.get(id)!]))
   const place = row.pinned ? `Fixed at position ${position} of ${count}` : `Position ${position} of ${count}`
   // A button that disables itself at the end hands focus to the other (docs/ux.md#accessibility).
+  // Inline, the settings move with their row, and a row that React moves in the page drops focus, so
+  // the button that moved it takes it back.
   const step = (delta: -1 | 1) => {
     if (!onMove(delta)) return
     const self = delta < 0 ? upRef.current : downRef.current
     if (self?.disabled) (delta < 0 ? downRef.current : upRef.current)?.focus()
+    else if (self && document.activeElement !== self) self.focus()
   }
+  const inSheet = at === 'sheet'
+  const inline = at === 'inline'
+  const moves = !row.pinned && (
+    <div className={cn(wide ? 'flex flex-wrap gap-2' : 'grid grid-cols-2 gap-2')}>
+      <Button ref={upRef} variant="outline" className="h-11" disabled={!canMove(-1)} aria-describedby={placeId} onClick={() => step(-1)}>
+        <ArrowUp /> Move up
+      </Button>
+      <Button ref={downRef} variant="outline" className="h-11" disabled={!canMove(1)} aria-describedby={placeId} onClick={() => step(1)}>
+        <ArrowDown /> Move down
+      </Button>
+    </div>
+  )
   return (
-    <div className={cn('flex flex-col gap-3', inSheet && 'p-4')}>
-      {!inSheet && (
+    <div className={cn('flex flex-col gap-3', inSheet && 'p-4', inline && 'py-3 pr-3 pl-12')}>
+      {at === 'panel' && !wide && (
         // Back to the list first, so Shift+Tab from the heading reaches it.
         <Button variant="ghost" className="-ml-2 h-11 self-start text-muted-foreground" onClick={onBack}>
           <ArrowLeft /> Back to list
         </Button>
       )}
-      {!inSheet && (
+      {inline && (
+        <>
+          <h4 id={PANEL_HEADING_ID} tabIndex={-1} className="sr-only">
+            {row.label}
+          </h4>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p id={placeId} className="mr-auto text-xs text-muted-foreground">
+              {place}
+            </p>
+            {moves}
+          </div>
+        </>
+      )}
+      {at === 'panel' && (
         <div className="flex items-center gap-3">
           <WowIcon icon={row.icon} size="md" />
           <div className="flex min-w-0 flex-col">
@@ -572,16 +719,7 @@ function RowSettings({
           {place}
         </p>
       )}
-      {!row.pinned && (
-        <div className="grid grid-cols-2 gap-2">
-          <Button ref={upRef} variant="outline" className="h-11" disabled={!canMove(-1)} aria-describedby={placeId} onClick={() => step(-1)}>
-            <ArrowUp /> Move up
-          </Button>
-          <Button ref={downRef} variant="outline" className="h-11" disabled={!canMove(1)} aria-describedby={placeId} onClick={() => step(1)}>
-            <ArrowDown /> Move down
-          </Button>
-        </div>
-      )}
+      {!inline && moves}
       {row.help && <p className="text-sm text-muted-foreground">{row.help}</p>}
       {/* Its switch is named "Use …", so it isn't a second switch with the list row's name. */}
       {own.length > 0 && <OptionList options={own} ctx={ctx} stacked rowSwitch={row.enabledId} />}

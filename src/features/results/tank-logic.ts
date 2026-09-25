@@ -124,15 +124,12 @@ export interface BlockBuffUp {
  * keeps one: how much it adds and how long it was up), why its dodge, parry and block are lower
  * than the sheet's above it, and why the swings that landed differ. Without the fight (null) it
  * leaves out the boss's skill.
+ * In the wide panel it's behind an info button beside the table's heading (`BossTable`'s `wide`).
  */
 export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avoidance[], up: BlockBuffUp | null = null): string {
+  const uptime = up && (up.uptimePct === null ? `Your rotation keeps ${up.name} up most of the fight.` : `Your rotation kept it up ${formatPct(up.uptimePct)} of the fight.`)
   const lines = up
-    ? [
-        `Its chances on each swing at you with ${up.name} up, from the stats above and its ${formatPct(up.blockPct)} more block.`,
-        up.uptimePct === null
-          ? `Your rotation keeps ${up.name} up most of the fight.`
-          : `Your rotation kept it up ${formatPct(up.uptimePct)} of the fight.`,
-      ]
+    ? [`Its chances on each swing at you with ${up.name} up, from the stats above and its ${formatPct(up.blockPct)} more block.`, uptime!]
     : ['Its chances on each swing at you as the fight starts, from the stats above.']
   const penalty = bossLevel === null ? null : bossSkillPenalty(bossLevel)
   if (penalty && penalty.points > 0 && avoidance.length > 0) {

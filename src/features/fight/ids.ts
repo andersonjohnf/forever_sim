@@ -17,13 +17,17 @@ export const CREATURE_TYPES: { value: CreatureType; label: string }[] = [
 ]
 
 
-/** The Fight tab's Advanced disclosure's button, and its creature type control. */
+/**
+ * The Fight tab's Advanced disclosure's button (its heading from 1440 px, where Advanced is shown open),
+ * and its creature type control.
+ */
 export const FIGHT_ADVANCED_ID = 'fight-advanced'
 export const CREATURE_TYPE_ID = 'fight-creatureType'
 
 /**
- * Opens Fight on its creature type: the tab, then its Advanced disclosure if it's closed, with
- * focus on the control, so the next key press opens its list (docs/ux.md#accessibility).
+ * Opens Fight on its creature type: the tab, then its Advanced disclosure if it's closed (from 1440 px
+ * it's always open, with no button), with focus on the control, so the next key press opens its list
+ * (docs/ux.md#accessibility).
  */
 export function openCreatureType(setSection: (section: Section) => void): void {
   flushSync(() => setSection('fight'))

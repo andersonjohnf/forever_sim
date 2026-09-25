@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { Announcer } from '@/app/announcer'
 import { DecadesCredit } from '@/app/decades-credit'
 import { useDefaultsNotice } from '@/app/defaults-notice'
 import { Header } from '@/app/header'
+import { sectionSummaries } from '@/app/section-summary'
 import { SectionTabs } from '@/app/section-tabs'
 import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
 import { useSharedLink } from '@/app/shared-link'
+import { useSimulateShortcut } from '@/app/shortcuts'
 import { WhatsNew } from '@/app/whats-new'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -17,6 +20,7 @@ import { MobileSimBar } from '@/features/results/mobile-sim-bar'
 import { ResultsPanel } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
+import { useIsWide } from '@/hooks/use-media-query'
 
 // One tab per section the store knows (SECTION_IDS), in its order: a Record, so a section added
 // there without a tab here, or a tab it doesn't know, fails the typecheck.
@@ -75,6 +79,10 @@ export default function App() {
   const results = useRef<HTMLElement>(null)
   useDefaultsNotice()
   useSharedLink()
+  useSimulateShortcut()
+  // The tabs' summary lines, from 1440 px only (D34), kept while no line changes.
+  const wide = useIsWide()
+  const summaries = useSetup(useShallow((s) => (wide ? sectionSummaries(s.config) : undefined)))
 
   return (
     <div className="min-h-svh bg-background">
@@ -123,7 +131,7 @@ export default function App() {
           activationMode="manual"
           className="min-w-0 gap-0 wide:@container/setup"
         >
-          <SectionTabs sections={SECTIONS} active={section} />
+          <SectionTabs sections={SECTIONS} active={section} summaries={summaries} />
           {SECTIONS.map(({ id, content: Content }) => (
             // data-section: a control that opens this tab moves focus here (src/app/section-focus.ts).
             <TabsContent key={id} value={id} data-section={id} className="pt-6">

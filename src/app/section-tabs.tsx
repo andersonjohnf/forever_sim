@@ -42,7 +42,9 @@ function useStickyTop() {
  * `summaries` gives a tab a second line under its label, shown from 1440 px (the wide layout,
  * D34), where the tabs grow to 56 px. The tab's accessible name stays its label, so
  * `getByRole('tab', { name: 'Gear', exact: true })` still finds it; the summary is its
- * description. With no summaries the tabs are 44 px at every width.
+ * description. With no summaries the tabs are 44 px at every width. The shell (src/App.tsx)
+ * passes them, from src/app/section-summary.ts, only from 1440 px, so a narrower screen's tabs
+ * have no description either and stay as they were.
  */
 export function SectionTabs({
   sections,

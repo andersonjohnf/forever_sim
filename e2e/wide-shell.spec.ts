@@ -119,7 +119,11 @@ test.describe('the wide shell', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('./')
     const tabs = page.getByRole('tab')
-    await expect(tabs).toHaveText(['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight'])
+    // Each name is its label alone: the summary line under it is its description.
+    await expect(tabs).toHaveCount(6)
+    for (const name of ['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight']) {
+      await expect(page.getByRole('tab', { name, exact: true })).toBeVisible()
+    }
     const character = page.getByRole('tab', { name: 'Character', exact: true })
     await character.click()
     await expect(character).toHaveAttribute('aria-selected', 'true')
@@ -139,7 +143,52 @@ test.describe('the wide shell', () => {
     await character.focus()
     await page.keyboard.press('ArrowLeft')
     await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toBeFocused()
-    // No summaries yet (slice S2 fills them): each tab is 44 px tall.
+    // With its summary line, each tab is 56 px tall.
+    const heights = await tabs.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
+    expect(heights.every((h) => h === 56)).toBe(true)
+  })
+
+  // docs/ux.md "Section tabs": from 1440 px each tab carries a line on what its section holds
+  // (src/app/section-summary.ts), and the line follows the setup.
+  test('at 1440 px each tab summarises its section, and the summary follows the setup', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('./')
+    const tab = (name: string) => page.getByRole('tab', { name, exact: true })
+    // A Fury warrior's defaults.
+    for (const [name, summary] of [
+      ['Character', 'Human'],
+      ['Talents', '17/34/0'],
+      ['Gear', 'Pre-raid best in slot'],
+      ['Buffs', 'Standard raid'],
+      ['Rotation', 'Default'],
+      ['Fight', '3:00'],
+    ]) {
+      await expect(tab(name)).toHaveAccessibleDescription(summary)
+      await expect(tab(name).getByText(summary, { exact: true })).toBeVisible()
+    }
+    // A change in a section changes its tab's line: the boss's level, and a Buffs preset.
+    await tab('Fight').click()
+    await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
+    await page.getByRole('button', { name: 'Decrease Boss level' }).click()
+    await expect(tab('Fight')).toHaveAccessibleDescription('3:00 · level 62')
+    await tab('Buffs').click()
+    await page.getByRole('radio', { name: /^Self only/ }).click()
+    await expect(tab('Buffs')).toHaveAccessibleDescription('Self only')
+    // A buff switched off matches no preset.
+    await page.getByRole('radio', { name: /^Standard raid/ }).click()
+    await expect(tab('Buffs')).toHaveAccessibleDescription('Standard raid')
+    await page.getByRole('switch', { name: 'Blessing of Kings' }).click()
+    await expect(tab('Buffs')).toHaveAccessibleDescription('Custom')
+  })
+
+  test('under 1440 px the tabs have no summary, shown or described', async ({ page }) => {
+    await page.setViewportSize({ width: 1439, height: 900 })
+    await page.goto('./')
+    const tabs = page.getByRole('tab')
+    await expect(tabs).toHaveText(['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight'])
+    for (const name of ['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight']) {
+      await expect(page.getByRole('tab', { name, exact: true })).not.toHaveAttribute('aria-describedby')
+    }
     const heights = await tabs.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
     expect(heights.every((h) => h === 44)).toBe(true)
   })

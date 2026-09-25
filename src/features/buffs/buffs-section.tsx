@@ -10,6 +10,7 @@ import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
+import { activeBuffPreset } from './active-preset'
 import { buffSwitchId } from './ids'
 import { rivalNote } from './rival-note'
 import { weaponNote } from './weapon-note'
@@ -118,10 +119,8 @@ export function BuffsSection() {
     return new Set(getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && unused[o.id] !== undefined ? [o.maintainsBuff] : [])))
   }, [meta.id, talents, rotation, race, buffs])
 
-  // A preset matches on what you choose here: a buff your rotation keeps up shows on whatever the
-  // preset says, so it's left out of both sides (your own Devotion Aura, D26).
-  const chosen = (ids: string[]) => ids.filter((id) => !maintained.has(id))
-  const activePreset = buffPresets.find((p) => sameSet(chosen(presetBuffs(p.id, meta.id, buffs.raid)), chosen(buffs.enabled)))?.id
+  // The preset your buffs match, by the one rule the section tabs' summary line reads too (active-preset.ts).
+  const activePreset = activeBuffPreset({ spec: meta.id, talents, rotation, buffs })?.id
   // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
   const defaultPreset = useMemo(
     () => buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, FULL_RAID), defaultConfig(meta.id).buffs.enabled))?.id,

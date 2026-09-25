@@ -1,7 +1,6 @@
-// Which Buffs preset a setup matches (docs/ux.md "Buffs"): the rule the Buffs tab's preset picker
-// uses, as a pure function, so the section tabs' summary line (src/app/section-summary.ts, decision
-// D34) reads the same preset the tab shows. The tab (buffs-section.tsx) still holds its own copy of
-// this rule until it's wired to this one; the two must stay the same.
+// Which Buffs preset a setup matches (docs/ux.md "Buffs"): the one rule the Buffs tab's preset
+// picker (buffs-section.tsx) and the section tabs' summary line (src/app/section-summary.ts, decision
+// D34) both read, so the summary always names the preset the tab shows.
 import { buffPresets, getSpec, presetBuffs, rotationValues, type BuffPreset, type SimConfig } from '@/sim'
 
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x))

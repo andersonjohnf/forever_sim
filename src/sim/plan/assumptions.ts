@@ -181,7 +181,7 @@ const REGISTRY = {
   },
   touchOfTheGrave: {
     // docs/mechanics/character-stats.md#touch-of-the-grave; the plan gives the chance and the drain ({detail}).
-    text: 'Touch of the Grave: each attack or spell you land that deals damage has a {detail}, as Shadow damage. Its tooltip says “up to 5%”, and how much it really drains isn’t known, so the sim uses the most. The drain never misses or crits, takes your Shadow damage bonuses and the boss’s average partial resist, and makes normal damage threat; the health it gives you makes no healing threat. Damage over time sets it off as it lands, not on its ticks. Untested.',
+    text: 'Touch of the Grave: each attack or spell you land that deals damage has a {detail}, as Shadow damage. Its tooltip says “up to 5%”, and how much it really drains isn’t known, so the sim uses the most. The drain never misses or crits, takes your Shadow damage bonuses and the boss’s average partial resist, and makes normal damage threat. The health it drains heals you for as much and makes healing threat, half what the same damage would make; the sim can’t tell overhealing, so it counts all of it. Damage over time sets it off as it lands, not on its ticks. Untested.',
     docRef: `${STATS}#touch-of-the-grave`,
   },
   classicItems: {

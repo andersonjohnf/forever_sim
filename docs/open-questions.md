@@ -1089,9 +1089,11 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   the client's [F]. **Simulated with a default** (the `touchOfTheGrave` assumption;
   [stats: Touch of the Grave](mechanics/character-stats.md#touch-of-the-grave)): 5% of maximum
   health, the tooltip's "up to", as Shadow damage a proc, which never misses or crits and makes
-  damage threat; the health it gives makes no healing threat [?]. No default race is Undead, so no
-  default headline moves. As Undead, over 20,000 fights, it adds +1.5% to a Protection paladin's
-  TPS, +1.2% to a Protection warrior's and +1.6% to a Shadow Priest's DPS.
+  damage threat; the health it drains heals you for as much, all of it effective (the sim keeps no
+  health pool to overheal), and makes healing threat, 0.5 a point × the global multiplier [C] with
+  no paladin ×0.5 or Righteous Fury [?]. No default race is Undead, so no default headline moves.
+  As Undead, over 20,000 fights, it adds +2.3% to a Protection paladin's TPS, +1.9% to a
+  Protection warrior's and +1.6% to a Shadow Priest's DPS.
 - **Test:** Undead warrior or paladin: log 5 minutes of melee; count procs and read amounts.
 - **Samples:** ≥5 minutes.
 - **Changes:** its default: the amount, school, crit, miss and threat (and whether its heal makes

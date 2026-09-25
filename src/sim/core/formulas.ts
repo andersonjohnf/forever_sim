@@ -263,6 +263,21 @@ export function damageTakenRage(
 export const threat = (amount: number, abilityMult: number, bonus: number, globalMult: number) =>
   (amount * abilityMult + bonus) * globalMult
 
+/**
+ * Threat per point of effective healing [C] (threat.md#threat-from-healing-power-gains-and-buffs):
+ * 0.5, × the global multipliers, split evenly across the enemies the healer is in combat with.
+ */
+export const THREAT_PER_HEAL = 0.5
+
+/**
+ * The threat a heal makes on each enemy the healer is in combat with
+ * (threat.md#threat-from-healing-power-gains-and-buffs) [C]: 0.5 × effective healing × Π global
+ * multipliers (stance, Defiance, Salvation), split evenly across `enemies`. A paladin spell's extra
+ * ×0.5 and Righteous Fury's Holy multiplier are the caller's to fold into `globalMult`.
+ */
+export const healingThreat = (effective: number, globalMult: number, enemies: number) =>
+  threat(effective, THREAT_PER_HEAL, 0, globalMult) / enemies
+
 /** Threat per rage gained from a spell effect, split across enemies, no multipliers (threat.md). */
 export const THREAT_PER_RAGE = 5
 

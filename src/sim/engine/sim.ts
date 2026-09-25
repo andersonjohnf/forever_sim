@@ -46,6 +46,7 @@ import {
   executePhaseStart,
   furorCatEnergyTenths,
   hastedCastMs,
+  healingThreat,
   parryHasteRemaining,
   ppmChance,
   rageConversion,
@@ -174,6 +175,13 @@ const EXTRA_QUEUE = 16
 
 /** Threat per rage from a spell effect (threat.md#threat-from-healing-power-gains-and-buffs). */
 const THREAT_PER_RAGE_TENTH = 0.5
+
+/**
+ * Enemies with the player on their threat list, across which a heal's threat splits
+ * (threat.md#threat-from-healing-power-gains-and-buffs): the one boss, since the engine fights one
+ * target (encounter.md#4-targets-and-position).
+ */
+const ENEMIES_IN_COMBAT = 1
 
 /** The boss's swing outcomes, in its table's roll order (combat-tables §8): `Sim.bossOutcomes` columns. */
 export const BOSS_OUTCOME = { miss: 0, dodge: 1, parry: 2, block: 3, crit: 4, crush: 5, hit: 6 } as const
@@ -4128,7 +4136,11 @@ export class Sim {
    * maximum health (`pA`, from the plan) as damage of its school, with the multipliers a magic proc's
    * damage takes (spellProc's: the average partial resist, your and the boss's school multipliers),
    * but no miss or crit roll, so it uses no random number. Damage threat × the global multiplier
-   * (stance, form); Righteous Fury's only for Holy.
+   * (stance, form); Righteous Fury's only for Holy. The health it drains heals you for as much [?],
+   * all of it effective, since the engine keeps no health pool to overheal [?]: healing threat,
+   * 0.5 a point × the global multiplier, split across the enemies in combat [C]
+   * (threat.md#threat-from-healing-power-gains-and-buffs). A racial, so no paladin heal's extra ×0.5,
+   * and not a Holy heal, so no Righteous Fury.
    */
   private healthDrain(p: number): void {
     const row = this.pSource[p] * FIELD_COUNT
@@ -4137,7 +4149,8 @@ export class Sim {
     if (school === SCHOOL.holy) damage *= this.holyMult
     this.counters[row + FIELD.casts]++
     this.counters[row + FIELD.hits]++
-    this.addDamage(this.pSource[p], damage, damage * (school === SCHOOL.holy ? this.holyThreatMult : 1) * this.threatMult)
+    const damageThreat = damage * (school === SCHOOL.holy ? this.holyThreatMult : 1) * this.threatMult
+    this.addDamage(this.pSource[p], damage, damageThreat + healingThreat(damage, this.threatMult, ENEMIES_IN_COMBAT))
   }
 
   /**

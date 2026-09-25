@@ -204,10 +204,12 @@ the `healthDrain` action in `src/sim/engine/sim.ts`.
 | Hit and crit | It always lands and never crits | [?] the engine has no racial damage proc that rolls; a drain in Classic rolls no crit |
 | Damage multipliers | As a magic proc's (a weapon enchant's): your damage and Shadow damage bonuses (Shadowform, a stance's −10%), the boss's Shadow damage taken (Shadow Weaving, Curse of Shadow) and its average partial resist ([spells §3](spells.md#3-resistances)) | [?] |
 | Threat | Damage threat, 1 per point, × the global threat multiplier (stance, Defiance, Threat gloves); Righteous Fury's only on Holy, so not on it | [?] as every other damage proc ([threat.md](threat.md#base-rule-and-how-modifiers-stack)) |
-| Healing | The health it gives you makes no healing threat | [?] healing threat counts only effective healing ([threat.md](threat.md#threat-from-healing-power-gains-and-buffs)), and the sim doesn't track how much of a heal would be overhealing ([OQ-10](#oq-10-touch-of-the-grave)) |
+| Healing | The health it drains heals you for as much, all of it effective, and makes healing threat: 0.5 a point × the global threat multiplier (stance, Defiance, Threat gloves), split across the enemies you're in combat with (the one boss). Not a paladin spell, so no paladin heal's extra ×0.5; not a Holy heal, so no Righteous Fury. With the damage threat, a drain makes 1.5 threat a point × the global multiplier | Healing threat's rule [C] ([threat.md](threat.md#threat-from-healing-power-gains-and-buffs)); the heal equal to the drain [?] (a drain's leech heals for what it takes); all of it effective [?]: the engine keeps no health pool, so it can't tell overhealing, and a tank on a boss is rarely at full health ([OQ-10](#oq-10-touch-of-the-grave)) |
 
 **Worked example.** An Undead warrior with 5,000 maximum health drains 5% × 5,000 = 250 a proc
-before the multipliers above, with no roll: every proc deals the same. The 1 s cooldown caps it at
+before the multipliers above, with no roll: every proc deals the same. In Defensive Stance with
+Defiance 5/5 (× 1.3 × 1.15 = 1.495), a 250-point drain on the one boss makes 250 × 1.495 = 373.75
+damage threat and 0.5 × 250 × 1.495 = 186.875 healing threat, 560.625 in all. The 1 s cooldown caps it at
 one proc a second, so at 5% a landed hit it procs about once every 20 landed hits while they come
 more than a second apart.
 
@@ -1154,10 +1156,13 @@ kept Classic's "base AP" behaviour.
 
 ### OQ-10: Touch of the Grave
 **Modelled with a `[?]` default** ([Touch of the Grave](#touch-of-the-grave)): 5% of maximum
-health as Shadow damage a proc, always landing, never critting, with damage threat. Unknown still:
-the drain amount (is "up to 5%" a cap, a range, or the target's health?), its school, whether it
-can miss, crit or cause threat, whether the health it gives makes healing threat, and whether
-auto-attacks and abilities proc it equally.
+health as Shadow damage a proc, always landing, never critting, with damage threat, and the health
+it drains healing you for as much, all of it effective, with healing threat (0.5 a point × the
+global multiplier [C], no paladin ×0.5, no Righteous Fury). Unknown still: the drain amount (is "up
+to 5%" a cap, a range, or the target's health?), its school, whether it can miss, crit or cause
+threat, whether its heal equals the drain and makes healing threat (the sim counts it all as
+effective, since it keeps no health pool to overheal), and whether auto-attacks and abilities proc
+it equally.
 **1.60.1.70009 narrowed what procs it** (the build's [development notes][dev-70009], [F]): only spells and
 abilities with a damage component, so it no longer breaks crowd control; Shadow Word: Pain procs it
 on the cast, not on its periodic damage, and Distract, Pick Pocket and Polymorph don't. The client

@@ -288,7 +288,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | Source | Threat | Split | Multipliers | Tag | Source |
 | --- | --- | --- | --- | --- | --- |
 | Healing | 0.5 per point of **effective** healing (overheal excluded) | Evenly across every enemy the healer is in combat with | Global multipliers apply (stance, Salvation, RF for Holy heals) | [C] | [Magey](https://github.com/magey/classic-warrior/wiki/Threat-Mechanics) (0.5 per point; used in its aggro-threshold tests), LTC2 `parseHeal` |
-| Paladin heals | Additional ×0.5 (0.25 per point) | same | same | [?] | LTC2 Paladin.lua `healMod` only |
+| Paladin heals | Additional ×0.5 (0.25 per point) on a paladin's spells, not a racial's (Touch of the Grave) | same | same | [?] | LTC2 Paladin.lua `healMod` only |
 | Rage gained from a spell effect (Bloodrage, Unbridled Wrath, Shield Specialization, Master of Defense, Improved Berserker Rage, potion, Charge, Furor, Enrage, Blood Frenzy, Natural Reaction) | **5 per rage** actually gained (capped at the pool maximum) | Evenly across enemies in combat | **None**: not affected by stance. Assumed unaffected by all other multipliers. | [C] | Magey (1 rage → 3.6–6.4 in Battle Stance and 4.6–5.5 in Defensive Stance, so no stance factor), LTC2 `parseGain`, [Magey issue #22](https://github.com/magey/classic-warrior/issues/22) |
 | Energy gained from a spell effect | 5 per energy | same | none | [?] | LTC2 only; Magey confirms that energy gains cause split threat with no stance factor, but gives no value |
 | Mana gained from a spell effect (Forever paladin Shield Specialization: 6% of max mana on a block, at most every 3 s; Sanctified Judgement; potions) | 0.5 per mana | same | none | [?] | LTC2 only (Warcraft Tavern's table repeats it, uncited); Magey confirms mana gains cause split threat, with no value |
@@ -299,6 +299,12 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 "Enemies in combat" means every enemy with the player on its threat list. In the default single
 boss encounter that is 1. Multi-target settings are in [encounter.md](encounter.md).
+
+The sim's only heal is Touch of the Grave's drain (Undead;
+[character-stats](character-stats.md#touch-of-the-grave)): 0.5 a point × the global multipliers
+(`healingThreat` in `src/sim/core/formulas.ts`), counted as all effective [?], since the engine keeps
+no health pool to tell overhealing and a tank on a boss is rarely at full health. It's a racial, not
+a paladin spell, so no extra ×0.5, and not a Holy heal, so no Righteous Fury.
 
 ---
 

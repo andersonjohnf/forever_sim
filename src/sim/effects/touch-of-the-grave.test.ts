@@ -6,6 +6,7 @@ import racesJson from '@/data/races/races.json'
 import spellsJson from '@/data/client/spells.json'
 import { describe, expect, it } from 'vitest'
 import { averageResist, levelResistance } from '../core/attack-table'
+import { healingThreat, THREAT_PER_HEAL } from '../core/formulas'
 import { defaultConfig } from '../defaults'
 import { CHUNK_SIZE, runChunk } from '../engine/chunk'
 import { FIELD, Sim } from '../engine/sim'
@@ -202,7 +203,7 @@ function run(plan: Plan, fights: number) {
 }
 
 describe('Touch of the Grave in the engine (character-stats.md#touch-of-the-grave)', () => {
-  it('drains its amount as Shadow damage on every landed direct spell: no miss or crit roll, the average partial resist, damage threat × the global multiplier only', () => {
+  it('drains its amount as Shadow damage on every landed direct spell: no miss or crit roll, the average partial resist, damage and healing threat × the global multiplier only', () => {
     const plan = casterPlan(30000)
     // A caster who always misses and always crits with its own spells would show either on the drain.
     plan.stats.spellHit = 100
@@ -218,7 +219,44 @@ describe('Touch of the Grave in the engine (character-stats.md#touch-of-the-grav
     expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits), counter(sim, row, FIELD.misses)]).toEqual([casts, casts, 0, 0])
     const each = 250 * (1 - RESIST)
     expect(new Set(damages(plan, row, 1).map((d) => Math.round(d * 1e6) / 1e6))).toEqual(new Set([Math.round(each * 1e6) / 1e6]))
-    expect(counter(sim, row, FIELD.threat) / counter(sim, row, FIELD.damage)).toBeCloseTo(1.3, 12)
+    // Damage threat (1 a point) plus the heal's (0.5 a point of the health drained), both × 1.3.
+    expect(counter(sim, row, FIELD.threat) / counter(sim, row, FIELD.damage)).toBeCloseTo(1.3 * 1.5, 12)
+  })
+
+  // threat.md#threat-from-healing-power-gains-and-buffs: the drain heals you for the health it takes,
+  // all of it effective [?], and a heal makes 0.5 threat a point × the global multiplier [C].
+  it('its heal makes 0.5 threat a point of the drain × the global multiplier, and Righteous Fury doesn’t touch it', () => {
+    const threatOf = (threatMult: number, holyThreatMult: number) => {
+      const plan = casterPlan(15000)
+      plan.threatMult = threatMult
+      plan.holyThreatMult = holyThreatMult
+      const bolt = addSpell(plan, { min: 100, max: 100, alwaysHit: true })
+      line(plan, addCaster(plan, bolt))
+      const row = addGrave(plan, 400)
+      const sim = run(plan, 1)
+      return { damage: counter(sim, row, FIELD.damage), threat: counter(sim, row, FIELD.threat) }
+    }
+    const plain = threatOf(1.3, 1)
+    expect(plain.damage).toBeGreaterThan(0)
+    const healing = plain.threat - plain.damage * 1.3
+    expect(healing).toBeCloseTo(THREAT_PER_HEAL * plain.damage * 1.3, 9)
+    expect(healing).toBeCloseTo(healingThreat(plain.damage, 1.3, 1), 9)
+    // Righteous Fury (×1.6 on Holy) moves neither the drain's Shadow damage threat nor its heal's.
+    const fury = threatOf(1.3, 1.6)
+    expect(fury.damage).toBe(plain.damage)
+    expect(fury.threat).toBe(plain.threat)
+  })
+})
+
+describe('Healing threat (threat.md#threat-from-healing-power-gains-and-buffs)', () => {
+  it('is 0.5 a point of effective healing × the global multipliers, split evenly across the enemies in combat', () => {
+    expect(THREAT_PER_HEAL).toBe(0.5)
+    // A 250-point drain in Defensive Stance with Defiance 5/5 (1.3 × 1.15 = 1.495) on one boss.
+    expect(healingThreat(250, 1.495, 1)).toBeCloseTo(186.875, 9)
+    // Three enemies in combat: each gets a third.
+    expect(healingThreat(250, 1.495, 3)).toBeCloseTo(186.875 / 3, 9)
+    expect(3 * healingThreat(300, 1.3, 3)).toBeCloseTo(healingThreat(300, 1.3, 1), 9)
+    expect(healingThreat(0, 1.495, 2)).toBe(0)
   })
 
   it('takes the Shadow school’s multipliers, yours and the boss’s', () => {
@@ -318,13 +356,15 @@ describe('Touch of the Grave on real setups', () => {
     expect(other.tps.mean).not.toBe(a.tps.mean)
   })
 
-  it('an Undead Protection warrior’s drain makes its stance’s threat, and a Protection paladin’s none of Righteous Fury’s', () => {
+  it('an Undead Protection warrior’s drain and heal make its stance’s threat, and a Protection paladin’s none of Righteous Fury’s', () => {
     for (const spec of ['warrior-protection', 'paladin-protection'] as const) {
       const bundle = buildPlan(defaultConfig(spec, UNDEAD))
       const r = result(defaultConfig(spec, UNDEAD), 50)
       const row = r.abilities.find((x) => x.id === 'touchOfTheGrave')!
-      // The global multiplier (stance, Defiance, gloves); Righteous Fury (×1.6) is Holy's only.
-      expect(row.threat / row.damage, spec).toBeCloseTo(bundle.plan.threatMult * (bundle.plan.stances?.find((s) => s.stance === bundle.plan.stance)?.threat ?? 1), 6)
+      // Damage threat plus the heal's 0.5 a point, × the global multiplier (stance, Defiance, gloves);
+      // Righteous Fury (×1.6) is Holy's only, and no paladin heal's ×0.5 on a racial.
+      const global = bundle.plan.threatMult * (bundle.plan.stances?.find((s) => s.stance === bundle.plan.stance)?.threat ?? 1)
+      expect(row.threat / row.damage, spec).toBeCloseTo(global * (1 + THREAT_PER_HEAL), 6)
     }
   })
 })

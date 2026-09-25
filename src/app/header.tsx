@@ -88,6 +88,19 @@ export function Header() {
       releaseToasts()
     },
   }
+  // Review finding V4-2: About or What's New, still closing in the history's place, keeps Escape
+  // until the history counts as the top layer, a render or two later; an Escape pressed as the
+  // history opens went to the closing one, which dismissed itself (a no-op) and marked the key
+  // handled, so the history stayed open. While one is still closing, an Escape it took closes the
+  // history. (After the capture listeners Radix puts on the document, so it sees what they did.)
+  useEffect(() => {
+    if (sheet !== 'history') return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && event.defaultPrevented && document.querySelector('[role="dialog"][data-state="closed"]')) setSheet(null)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [sheet])
   return (
     // The guild's ink navy in both themes (`.ink` in src/index.css, docs/ux.md#brand): solid, so what
     // scrolls under it never changes its contrast, over a gold hairline.

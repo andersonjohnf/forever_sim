@@ -268,10 +268,12 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
   Blast, the Mind Blast that follows takes its free, +25% crit cast; moved above the DoTs, the
   charge can go to whatever the list casts next. **Moved below Mind Blast it's never used** while
   there's the mana for Mind Blast, which goes first the moment it's ready, so "Mind Blast ready"
-  never reaches Inner Focus (0 casts in the default setup). Its row and setting say so, dimmed, by
-  the rule every filler's rows share ([ux.md "Rotation"](../ux.md#sections), rows below the filler): "Below
-  Mind Blast: cast only when Mind Blast can't be." (`shadowUnusedSettings`). Below Mind Flay too,
-  it's this note that shows.
+  never reaches Inner Focus (0 casts in the default setup). Its row and setting say so, dimmed:
+  "Not used: below Mind Blast, which it waits for, so Mind Blast always goes first. Move it above Mind
+  Blast." (`shadowUnusedSettings`). It isn't the below-filler rule, since it's never cast rather than
+  cast only when the row above can't be; and when it sits below Mind Flay too, this note is the one
+  that shows. Above Mind Blast but below Mind Flay, the below-filler rule's note shows instead
+  ([ux.md "Rotation"](../ux.md#sections)).
 - **Rows below Mind Flay:** the filler takes every global cooldown there's the mana for, so a row on
   the global cooldown moved below it (Dark Sacrifice, Shadow Word: Pain, Devouring Plague, Mind
   Blast, Starshards, Vampiric Embrace) gets one only without that mana, and so does Inner Focus,

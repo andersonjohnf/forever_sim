@@ -98,6 +98,8 @@ Discord. Its readers already know what the sim is, where it lives and how to rep
 - **No preamble or sign-off.** Leave out what the sim is, the site link, "report issues on
   GitHub" and "thanks for the reports" footers. Start with a plain heading and end on the
   last change.
+- **The heading is just the label:** "## Sim update" or "## Next sim update". No subtitle or
+  tagline after it (not ": today's beta build"); what the update is about shows in the bullets.
 - **No emoji or decorative icons.** Use plain Discord markdown: one `##` heading, bold
   section labels and `•` bullets. Keep it under Discord's 2,000 characters.
 - **Group by who notices:** Tanks, the affected DPS specs, Your setup, Fixes, then anything

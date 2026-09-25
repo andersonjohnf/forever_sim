@@ -480,9 +480,10 @@ threat-value scale with a plain white hit in a known stance.
    value. Re-measure Heroic Strike, Revenge, Shield Slam (the tooltip now says "very high": the sim
    assumes +475 by the [wording table](#threat-wording-table)), Thunder Clap (now used in Defensive
    Stance), Cleave, Shield Bash, Battle Shout, Demoralizing Shout and Mocking Blow at 60. Since
-   1.60.1.70009 Shield Slam no longer decides a preset (dropping it costs Max TPS 12.8% even at
+   1.60.1.70009 Shield Slam no longer decides a preset (dropping it costs Max TPS 12.85% even at
    +254; [warrior.md §5.4](../classes/warrior.md#build-160170009-protection), Q34), but it's 27%
-   of the default warrior's threat, so its bonus moves the headline most.
+   of the default warrior's threat, so its bonus moves the headline most: at +254 the default
+   Balanced makes 946.78 TPS, −4.7%.
 2. **Sunder in play** (same as [warrior.md Q1](../classes/warrior.md#9-open-questions)). Build
    1.60.1.70009 settled the base: the client's 206 at rank 5 (34 at rank 1, no longer the "1" that
    looked like a bug). What's open is the attack power term the notes add: the sim assumes

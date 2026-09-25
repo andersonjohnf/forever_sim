@@ -1494,8 +1494,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   the bonus.
 - **Samples:** ≥8 casts per ability.
 - **Changes:** Prot TPS per ability. Shield Slam is 27% of the default Protection warrior's threat
-  (build 1.60.1.70009), so its bonus moves the headline most; it no longer decides a preset
-  (dropping it costs Max TPS 12.8% even at + 254; [warrior Q34](classes/warrior.md#9-open-questions)).
+  (build 1.60.1.70009), so its bonus moves the headline most: at + 254 the default Balanced makes
+  946.78 TPS, −4.7% against + 475's 993.82 (seed 31101, 6,000 fights). It no longer decides a
+  preset (dropping it costs Max TPS 12.85% even at + 254; [warrior Q34](classes/warrior.md#9-open-questions)).
 - **Docs:** [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 

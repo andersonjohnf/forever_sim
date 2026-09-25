@@ -363,9 +363,12 @@ PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
   search decides it.
 - **Max TPS may drop only the duties, and drops each one whose upkeep costs TPS;** a duty that
   makes threat itself stays (the bear's Faerie Fire). Other abilities stay unless dropping them
-  wins on TPS without resting on an untested threat value. Shield Slam stays: dropping it gains 3.3% TPS
-  only at Classic Era's +254 threat [?], while Forever's tooltip raised its threat to "very high",
-  and from about +449 keeping it wins on TPS as well.
+  wins on TPS without resting on an untested threat value. Shield Slam stayed: before build
+  1.60.1.70009, dropping it gained 3.3% TPS only at Classic Era's +254 threat [?], while Forever's
+  tooltip raised its threat to "very high", and from about +449 keeping it won on TPS as well.
+  Since that build's lower Sunder Armor, dropping it costs Max TPS 12.85% of its TPS even at +254
+  (957.77 → 834.72, seed 31101, 6,000 fights), so the untested value no longer decides it
+  ([warrior.md Q34](classes/warrior.md#9-open-questions)).
 - **The Buffs tab's versions of the duties** assume the tank applies them, so no preset lists a
   tank's duty (buffs doc §6.2). When Max TPS drops a duty, the Buffs tab's version is off by
   default too. You can turn it on there if another player keeps it up. For the same reason, a

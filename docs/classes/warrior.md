@@ -2031,7 +2031,8 @@ presets' thresholds (seed 31101, 20,000 paired fights a candidate):
 - **Shield Slam** off, in Balanced: **−173.13 TPS (−17.43%)** and **−97.07 DPS (−25.1%)** (seed
   31101, 100,000 paired fights). Before this build it was +2.6% TPS for −25% DPS: Sunder Armor's
   global cooldowns made more threat than Shield Slam's at Classic Era's +254. At +254 it's still
-  −12.8% in Max TPS.
+  −12.85% in Max TPS and −13.37% in Balanced, whose headline +254 would put at 946.78 TPS (−4.7%;
+  seed 31101, 6,000 fights; [Q34](#9-open-questions)).
 
 The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup:
 
@@ -2962,9 +2963,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     "high" 254 [C] (Magey) scaled by the damage Forever gave it with the new words (640–670 against
     342–358, ×1.871 at the midpoints), as the table's "high" on Heroic Strike scales with its bonus
     damage. The result lists it among its assumptions. Since build 1.60.1.70009's lower Sunder
-    Armor, the value no longer decides a preset: at +254 dropping Shield Slam still costs 12.8% of
-    Max TPS's threat ([§5.4](#build-160170009-protection); before, +254 made dropping it a 3.3%
-    gain). **Test:** the threat macro before and after a Shield Slam at 60 in Defensive Stance with
+    Armor, the value no longer decides a preset: at +254 dropping Shield Slam still costs 12.85% of
+    Max TPS's threat (957.77 → 834.72 TPS) and 13.37% of Balanced's
+    ([§5.4](#build-160170009-protection); before, +254 made dropping it a 3.3% gain). It still
+    moves the headline: at +254 the default Balanced makes **946.78 TPS, −4.7%** against +475's
+    993.82, and Max TPS 957.77 (−4.6%) (seed 31101, 6,000 fights). **Test:** the threat macro before and after a Shield Slam at 60 in Defensive Stance with
     Defiance 3/3 and a shield, against its damage in the combat log: threat ÷ 1.495 − damage = the
     bonus. As C6 in [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
 

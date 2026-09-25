@@ -684,8 +684,8 @@ recommended, to land in the next update:
 - **The review gate adds 1920 px** to its screenshot widths, beside 390 and 1280.
 
 ### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
-User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `decades-sim`
-(`https://decades-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
+User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `forever-sim`
+(`https://forever-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
 the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover is a DNS change.
 - **Independent jobs.** The deploy workflow builds once; the Pages and Firebase jobs each deploy
   that build, and a Firebase failure never blocks Pages during the transition.

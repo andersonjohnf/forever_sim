@@ -215,7 +215,7 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
 - **UI** uses shadcn/ui: `npx shadcn@latest add <component>`. Avoid hand-editing
   `src/components/ui/*`. `cn` comes from the `cn` npm package (shadcn's official
   clsx + tailwind-merge replacement), not a typo.
-- **Hosting** (D35): Firebase Hosting (`decades-prod`/`decades-sim`) and GitHub Pages get every build;
+- **Hosting** (D35): Firebase Hosting (`decades-prod`/`forever-sim`) and GitHub Pages get every build;
   the custom domain https://sim.decades.gg/ stays on Pages until the DNS cutover: the Vite `base` is `/`. Use
   `import.meta.env.BASE_URL` for runtime asset URLs and hash routing if routing is ever needed.
 - **Scrapers** (`scripts/scrape/`) fetch only client files from the wago.tools API and table

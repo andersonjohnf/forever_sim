@@ -7,8 +7,8 @@ simulation runs in the visitor's browser.
 
 - **Build:** Vite 8, React 19, TypeScript 6, Tailwind CSS v4, shadcn/ui (Radix base, Nova
   preset, Lucide icons), oxlint, Vitest.
-- **Hosting:** Firebase Hosting (project `decades-prod`, site `decades-sim`,
-  `https://decades-sim.web.app`), with GitHub Pages in parallel until the user confirms the
+- **Hosting:** Firebase Hosting (project `decades-prod`, site `forever-sim`,
+  `https://forever-sim.web.app`), with GitHub Pages in parallel until the user confirms the
   cutover (decision D35). `.github/workflows/deploy.yml` deploys every push to `main` to both.
   The custom domain `https://sim.decades.gg/` is a CNAME to `andersonjohnf.github.io` until the
   cutover moves it by DNS. The old `https://andersonjohnf.github.io/forever_sim/` redirects there, keeping a
@@ -683,8 +683,8 @@ A spec is data plus small ability modules, never its own loop.
 
 ### Firebase Hosting
 
-`firebase.json` serves `dist/` as the hosting target `decades-sim`, which `.firebaserc` maps to the
-site `decades-sim` in the default project `decades-prod`. No rewrites or redirects: the app is one
+`firebase.json` serves `dist/` as the hosting target `forever-sim`, which `.firebaserc` maps to the
+site `forever-sim` in the default project `decades-prod`. No rewrites or redirects: the app is one
 page with hash routing, and a missing file is a 404.
 
 - **Deploy.** `deploy-firebase` downloads the build job's `dist` artifact, authenticates with
@@ -692,7 +692,7 @@ page with hash routing, and a missing file is a 404.
   `projects/232648440272/locations/global/workloadIdentityPools/github/providers/forever-sim`,
   trusting only this repository's `main`; the service account
   `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`), and runs
-  `firebase-tools@15 deploy --only hosting:decades-sim`. No JSON key exists. The job has only
+  `firebase-tools@15 deploy --only hosting:forever-sim`. No JSON key exists. The job has only
   `contents: read` and `id-token: write`, and its GitHub environment is `firebase`.
 - **Analytics** are Hosting's request logs in Cloud Logging, switched on in the Firebase console.
   The app has nothing for them: no script, cookie or beacon.

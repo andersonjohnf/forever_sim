@@ -9,7 +9,7 @@ import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, Ro
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
-import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
+import { ARMS_APL, ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
 import {
   PROTECTION_APL as PALADIN_PROTECTION_APL,
@@ -119,6 +119,7 @@ export function rotationSetup(spec: SpecId, talents: TalentRanks, race: string |
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
+  if (spec === 'warrior-arms') return ARMS_APL
   if (spec === 'warrior-protection') return PROTECTION_APL
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
@@ -318,7 +319,7 @@ export function classRotation(
   order?: readonly string[],
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context, order)
-  if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
+  if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context, order)
   if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".

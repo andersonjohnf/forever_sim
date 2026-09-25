@@ -205,15 +205,15 @@ export const useSetup = create<SetupState>()(
         blockedSlots = {}
         // A saved setup, normalized, with the parts the player never changed on today's defaults.
         const load = (raw: unknown): SimConfig => {
-          const { config: normalized, talentRefunds } = normalizeConfig(raw)
+          const { config: normalized, talentChange } = normalizeConfig(raw)
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
           const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw)))
-          // Points the player's own build lost on today's talent trees are said (docs/data/talents.md
-          // #tree-versions); a build that follows the default takes today's, which loses none.
-          const refunds = moved.talents ? undefined : talentRefunds
-          if (moved.gear || moved.talents || refunds) {
-            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents, ...(refunds ? { refunds } : {}) })
+          // What reading a build from older talent trees changed is said (docs/data/talents.md
+          // #tree-versions); a build that follows the default takes today's, which changes nothing.
+          const change = moved.talents ? undefined : talentChange
+          if (moved.gear || moved.talents || change) {
+            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents, ...(change ? { change } : {}) })
             moves.push(moved.config)
           }
           if (moved.blocked.length > 0) {

@@ -182,12 +182,40 @@ describe('the notice', () => {
   })
 
   it('says what the player’s own talent build lost on the game’s new trees, after what moved or on its own', () => {
-    const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, refunds: [{ name: 'Crusade', points: 2, reason: 'removed from the game' }] }
-    const refund = 'The game’s new talent trees refunded 2 of your Retribution Paladin talent points: 2 in Crusade (removed from the game).'
+    const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, change: { refunds: [{ name: 'Crusade', points: 2, cause: 'removed' as const }] } }
+    const refund = 'The game’s new talent trees refunded 2 of your Retribution Paladin talent points: Crusade left the game. Spend them again in Talents.'
     expect(defaultsUpdateNotice([ret], PROT_PALADIN)).toEqual({ title: 'Talent points refunded for Retribution Paladin', description: refund })
     expect(defaultsUpdateNotice([{ spec: PROT_PALADIN, gear: true, talents: false }, ret], 'paladin-retribution')).toEqual({
       title: 'Updated to the new default gear for Protection Paladin',
       description: `Gear and talents you changed yourself are kept. ${refund}`,
+    })
+  })
+
+  it('says two specs’ refunds in one sentence, naming a talent both lost once (review TM2-5)', () => {
+    const ret = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330311' }).talentChange!
+    const prot = normalizeConfig({ version: 1, spec: PROT_PALADIN, talents: '2-4530513321301541-502' }).talentChange!
+    const updates = [
+      { spec: 'paladin-retribution' as const, gear: false, talents: false, change: ret },
+      { spec: PROT_PALADIN, gear: false, talents: false, change: prot },
+    ]
+    expect(defaultsUpdateNotice(updates, PROT_PALADIN)).toEqual({
+      title: 'Talent points refunded for Protection Paladin and Retribution Paladin',
+      description:
+        'The game’s new talent trees refunded 2 of your Protection Paladin and 15 of your Retribution Paladin talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+    })
+  })
+
+  it('says a shipped build read as today’s version of it, before any refunds (review TM2-1)', () => {
+    const ret = normalizeConfig({ version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }).talentChange!
+    const prot = normalizeConfig({ version: 1, spec: PROT_PALADIN, talents: '2-4530513321301541-502' }).talentChange!
+    const updates = [
+      { spec: PROT_PALADIN, gear: false, talents: false, change: prot },
+      { spec: 'paladin-retribution' as const, gear: false, talents: false, change: ret },
+    ]
+    expect(defaultsUpdateNotice(updates, 'paladin-retribution')).toEqual({
+      title: 'Talents moved onto the game’s new trees for Retribution Paladin and Protection Paladin',
+      description:
+        'Your Retribution Paladin talents were the Retribution default on the game’s old trees; they’re now today’s default. The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents.',
     })
   })
 })
@@ -196,9 +224,9 @@ describe('a player’s own talents on the game’s new trees (docs/data/talents.
   it('a save from before `following` keeps the player’s build, mapped by name, with what it lost', () => {
     // Improved Holy Strike 2 and one point short of the popular build's Iron Creed: never a default.
     const raw = { ...setup(PROT_PALADIN), version: 1, talents: '2-4530513321301541-502' }
-    const { config, talentRefunds } = normalizeConfig(raw)
+    const { config, talentChange } = normalizeConfig(raw)
     expect(config.talents).toBe('-4530513321301541-502')
-    expect(talentRefunds).toEqual([{ name: 'Improved Holy Strike', points: 2, reason: 'removed from the game' }])
+    expect(talentChange).toEqual({ refunds: [{ name: 'Improved Holy Strike', points: 2, cause: 'removed' }] })
     const moved = followDefaults(config, legacyFollowing(config, writtenV1Talents(raw)))
     expect(moved.talents).toBe(false)
     expect(moved.config.talents).toBe('-4530513321301541-502')

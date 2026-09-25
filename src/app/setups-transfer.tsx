@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { copyText } from './clipboard'
-import { replacedDescription } from './load-notice'
+import { noticeDuration, replacedDescription } from './load-notice'
 import { importToStorage, isShown, readStoredSetups, type StorageProblem } from './saved-setups'
 import { readSetupCode } from './setup-code'
 import { useSetup } from './setup-store'
@@ -191,7 +191,8 @@ export function ImportSection({
     }
     const switched = result.config.spec !== useSetup.getState().config.spec
     useSetup.getState().replace(result.config)
-    toast('Imported a setup', { id: 'setup-imported', description: replacedDescription(result.config.spec, switched, result.warnings) })
+    const description = replacedDescription(result.config.spec, switched, result.warnings)
+    toast('Imported a setup', { id: 'setup-imported', description, duration: noticeDuration('Imported a setup', description) })
     onImported()
   }
 

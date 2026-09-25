@@ -202,34 +202,56 @@ describe('the automatic save follows the defaults', () => {
   })
 
   test('the player’s own build on 1.60.1.69913’s trees is mapped by name, says what it lost once, and saves on today’s', async () => {
-    // Saved after saves said what follows, before 1.60.1.70009: version 1, the player's own Retribution talents.
+    // Saved after saves said what follows, before 1.60.1.70009: version 1, the player's own Retribution
+    // talents (the default then, one point off).
     const d = normalizeConfig(defaultConfig('paladin-retribution')).config
-    const config = { ...d, version: 1, talents: '250003-503-052052310012330321' }
+    const config = { ...d, version: 1, talents: '250003-503-052052310012330311' }
     seed({ config, bySpec: {}, section: 'gear', following: { 'paladin-retribution': { gear: Object.keys(d.gear), talents: false } } })
     takeDefaultsUpdates()
     await load()
     expect(store().config.talents).toBe('50003-503-05205231001')
     const [update] = takeDefaultsUpdates()
     expect(update).toMatchObject({ spec: 'paladin-retribution', gear: false, talents: false })
-    expect(update.refunds?.map((r) => `${r.name} ${r.points}`)).toEqual([
-      'Improved Holy Strike 2',
-      'Crusade 2',
-      'Two-Handed Weapon Specialization 3',
-      'Vengeance 3',
-      'Champion of the Light 3',
-      'Instrument of Law 2',
-      'Twist of Light 1',
+    expect(update.change?.successor).toBeUndefined()
+    expect(update.change?.refunds.map((r) => r.name)).toEqual([
+      'Improved Holy Strike',
+      'Crusade',
+      'Two-Handed Weapon Specialization',
+      'Vengeance',
+      'Twist of Light',
+      'Champion of the Light',
+      'Instrument of Law',
     ])
+    expect(update.change?.refunds.reduce((n, r) => n + r.points, 0)).toBe(15)
     // The load saved it on today's trees, so the next one has nothing to say.
     expect(saved().config).toMatchObject({ version: 2, talents: '50003-503-05205231001' })
     await load()
     expect(takeDefaultsUpdates()).toEqual([])
   })
 
+  test('the old Retribution default the player kept loads as today’s default, and says so once (review TM2-1)', async () => {
+    // A save whose `following` says the talents were the player's, holding the default then, exactly.
+    const d = normalizeConfig(defaultConfig('paladin-retribution')).config
+    const config = { ...d, version: 1, talents: '250003-503-052052310012330321' }
+    seed({ config, bySpec: {}, section: 'gear', following: { 'paladin-retribution': { gear: Object.keys(d.gear), talents: false } } })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.talents).toBe(d.talents)
+    expect(takeDefaultsUpdates()).toEqual([
+      { spec: 'paladin-retribution', gear: false, talents: false, change: { refunds: [], successor: { label: 'the Retribution default', now: 'today’s default' } } },
+    ])
+    // Saved on today's trees: today's default, so it follows the default from now on, and says nothing again.
+    expect(saved().config).toMatchObject({ version: 2, talents: d.talents })
+    expect(saved().following['paladin-retribution'].talents).toBe(true)
+    await load()
+    expect(takeDefaultsUpdates()).toEqual([])
+  })
+
   test('a shared link’s or saved setup’s old gear and talents are kept exactly, through reloads', async () => {
-    // A link from then, as loading it gives it: its talents mapped onto today's trees.
-    const shared = normalizeConfig({ ...v1('paladin-protection', '2-4530513321301551-502'), race: 'alliance-dwarf' }).config
-    expect(shared.talents).toBe('-4530513321301551-502')
+    // A link from then, as loading it gives it: its talents mapped onto today's trees (the player's
+    // own build, one point short of the popular one, so by name).
+    const shared = normalizeConfig({ ...v1('paladin-protection', '2-4530513321301541-502'), race: 'alliance-dwarf' }).config
+    expect(shared.talents).toBe('-4530513321301541-502')
     const code = await packSetup(shared)
     store().replace(shared)
     expect(store().config).toBe(shared)

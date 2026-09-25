@@ -10,7 +10,7 @@
 import { factionOf, factionTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { GEAR_SLOTS, refundNotice, SPEC_META, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentRefund } from '@/sim'
+import { GEAR_SLOTS, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentChange } from '@/sim'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
@@ -175,14 +175,15 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
 }
 
 /**
- * What a load changed for one spec: parts moved to newer defaults, and the points the player's own
- * talent build lost on the game's new talent trees (`refunds`; docs/data/talents.md#tree-versions).
+ * What a load changed for one spec: parts moved to newer defaults, and what reading a talent build
+ * from the game's older talent trees changed (`change`, docs/data/talents.md#tree-versions): the
+ * points the player's own build lost, or the build that succeeds a code the sim shipped.
  */
 export interface DefaultsUpdate {
   spec: SpecId
   gear: boolean
   talents: boolean
-  refunds?: readonly TalentRefund[]
+  change?: TalentChange
 }
 
 const specName = (spec: SpecId) => `${SPEC_META[spec].name} ${SPEC_META[spec].className}`
@@ -195,23 +196,34 @@ function whoseOf(specs: readonly SpecId[]): string {
 
 /**
  * The notice after a load moved parts of the setup to newer defaults, the current spec first:
- * "Updated to the new default gear and talents for Protection Paladin". A player's own build that
- * lost points on the game's new talent trees says so after it, or on its own: "Talent points
- * refunded for Retribution Paladin", "The game’s new talent trees refunded 4 of your Retribution
- * Paladin talent points: …". Null when nothing changed.
+ * "Updated to the new default gear and talents for Protection Paladin". What reading builds from
+ * the game's older talent trees changed follows it, or stands on its own: each shipped build read as
+ * its successor ("Your Retribution Paladin talents were the Retribution default on the game’s old
+ * trees; they’re now today’s default."), then every spec's refunds in one sentence ("The game’s new
+ * talent trees refunded 16 of your Retribution Paladin and 2 of your Protection Paladin talent
+ * points: …"), under "Talent points refunded for …" or "Talents moved onto the game’s new trees for
+ * …". Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
   const ordered = [...updates].sort((a, b) => Number(b.spec === current) - Number(a.spec === current))
   const moved = ordered.filter((u) => u.gear || u.talents)
-  const refunded = ordered.filter((u) => u.refunds && u.refunds.length > 0)
-  const refunds = refunded.map((u) => refundNotice(u.refunds!, specName(u.spec)))
-  if (moved.length === 0) return { title: `Talent points refunded for ${whoseOf(refunded.map((u) => u.spec))}`, description: refunds.join(' ') }
+  const changed = ordered.filter((u) => u.change)
+  const succeeded = changed.filter((u) => u.change!.successor)
+  const refunded = changed.filter((u) => !u.change!.successor && u.change!.refunds.length > 0)
+  const talentWords = [
+    ...succeeded.map((u) => successorNotice(u.change!.successor!, specName(u.spec))),
+    ...(refunded.length > 0 ? [refundNotice(refunded.map((u) => ({ refunds: u.change!.refunds, whose: specName(u.spec) })))] : []),
+  ]
+  if (moved.length === 0) {
+    const title = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
+    return { title: `${title} ${whoseOf(changed.map((u) => u.spec))}`, description: talentWords.join(' ') }
+  }
   const gear = moved.some((u) => u.gear)
   const talents = moved.some((u) => u.talents)
   const what = gear && talents ? 'gear and talents' : gear ? 'gear' : 'talents'
   return {
     title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
-    description: ['Gear and talents you changed yourself are kept.', ...refunds].join(' '),
+    description: ['Gear and talents you changed yourself are kept.', ...talentWords].join(' '),
   }
 }

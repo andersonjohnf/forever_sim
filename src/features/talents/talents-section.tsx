@@ -2,6 +2,7 @@ import { Check, CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateC
 import { useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { announce } from '@/app/announce'
+import { noticeDuration } from '@/app/load-notice'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta, visibleSpecs } from '@/app/specs'
@@ -187,9 +188,12 @@ export function TalentsSection() {
         onOpenChange={setImportOpen}
         data={data}
         example={presets[0]?.code ?? code}
-        onImport={(pasted) => {
+        onImport={(pasted, older) => {
           setCode(pasted)
           announce(`Pasted a talent build: ${split(pasted)}.`)
+          // A code from the game's older talent trees isn't what the trees show at a glance, so it's
+          // said (docs/ux.md "Talents"): read on those trees, and what it lost on today's.
+          if (older) toast(older.title, { id: 'talent-paste', description: older.description, duration: noticeDuration(older.title, older.description) })
         }}
         contentProps={importFocusProps}
       />
@@ -422,7 +426,8 @@ function ImportDialog({
   data: TalentData
   /** A code for this class, shown as the example. */
   example: string
-  onImport: (code: string) => void
+  /** `older`: what to say when it was a code from the game's older talent trees (readBuildCode). */
+  onImport: (code: string, older?: { title: string; description: string }) => void
   /**
    * From `useSheetFocus`: the dialog opens from state, not from a Dialog.Trigger, so this hands
    * focus back to the Paste button when it closes, however it closes (docs/ux.md#accessibility).
@@ -438,7 +443,7 @@ function ImportDialog({
       setError(result.error)
       return
     }
-    onImport(result.code)
+    onImport(result.code, result.older)
     setText('')
     setError(null)
     onOpenChange(false)

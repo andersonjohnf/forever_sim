@@ -17,7 +17,8 @@ import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
 import { renamedRotationOptions, rotationApl, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
-import { CONFIG_VERSION, migrateTalentCode, refundNotice, TALENT_TREES_OF_VERSION, type TalentRefund } from './talent-trees'
+import { migrateOlderCode } from './talent-successors'
+import { CONFIG_VERSION, migrationNotice, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
 
 const items = new Map<number, Item>((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
 const raceData = raceJson as unknown as RaceData
@@ -116,14 +117,21 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 }
 
 /**
- * A normalized setup, with one plain-language warning per repair. `talentRefunds` are the points a
- * talent build written on older trees lost on today's (./talent-trees.ts), which `warnings` also
- * says: the automatic save, which says nothing about its other repairs, says this one.
+ * What reading a talent build written on older trees changed (./talent-trees.ts): the points it
+ * lost on today's trees, or the build that succeeds a code the sim shipped. Only when that needs a
+ * word (migrationNotice).
+ */
+export type TalentChange = Omit<TalentMigration, 'code'>
+
+/**
+ * A normalized setup, with one plain-language warning per repair. `talentChange` is what reading a
+ * talent build written on older trees changed, which `warnings` also says: the automatic save, which
+ * says nothing about its other repairs, says this one.
  */
 export interface NormalizedConfig {
   config: SimConfig
   warnings: string[]
-  talentRefunds?: TalentRefund[]
+  talentChange?: TalentChange
 }
 
 export function normalizeConfig(input: unknown): NormalizedConfig {
@@ -163,10 +171,11 @@ function normalize(input: unknown): NormalizedConfig {
     else r.add(`That race can’t be a ${meta.className.toLowerCase()} in Forever, so the default race was used.`)
   }
 
-  // Talents: a legal build code for the class (docs/data/talents.md). One written on older trees is
-  // mapped onto today's by talent name, and any points it loses are refunded (./talent-trees.ts).
+  // Talents: a legal build code for the class (docs/data/talents.md). One written on older trees
+  // reads as its successor if the sim shipped it (a default or a preset), else is mapped onto today's
+  // by talent name, and any points it loses are refunded (./talent-successors.ts, ./talent-trees.ts).
   let talents = d.talents
-  let talentRefunds: TalentRefund[] | undefined
+  let talentChange: TalentChange | undefined
   if (input.talents !== undefined) {
     const data = TALENT_DATA[meta.classId]
     const trees = TALENT_TREES_OF_VERSION[version as number]
@@ -174,9 +183,9 @@ function normalize(input: unknown): NormalizedConfig {
     if (ok) {
       try {
         if (trees) {
-          const migrated = migrateTalentCode(data, trees, input.talents as string)
-          talents = migrated.code
-          if (migrated.refunds.length > 0) talentRefunds = migrated.refunds
+          const { code, ...change } = migrateOlderCode(data, trees, input.talents as string)
+          talents = code
+          if (migrationNotice(change) !== null) talentChange = change
         } else if (validateTalentBuild(data, decodeTalentCode(data, input.talents as string)).length === 0) talents = input.talents as string
         else ok = false
       } catch {
@@ -186,7 +195,7 @@ function normalize(input: unknown): NormalizedConfig {
     if (!ok) {
       talents = d.talents
       r.add('The talent build wasn’t valid, so the default build was used.')
-    } else if (talentRefunds) r.add(refundNotice(talentRefunds))
+    } else if (talentChange) r.add(migrationNotice(talentChange)!)
   }
 
   // Rules first: which exclusive buff is the larger can depend on the profile.
@@ -239,7 +248,7 @@ function normalize(input: unknown): NormalizedConfig {
   return {
     config: { version: CONFIG_VERSION, spec, race, talents, gear, buffs, rotation, ...(rotationOrder ? { rotationOrder } : {}), fight, rules, run },
     warnings: r.warnings,
-    ...(talentRefunds ? { talentRefunds } : {}),
+    ...(talentChange ? { talentChange } : {}),
   }
 }
 

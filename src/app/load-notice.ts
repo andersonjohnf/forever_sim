@@ -6,6 +6,23 @@ import { SPEC_META, type SpecId } from '@/sim'
 /** The most changes a notice spells out; past that it names the first ones and counts the rest. */
 export const NOTICE_CHANGES_SHOWN = 3
 
+/** How long a toast stays up (docs/ux.md#persistence-and-sharing), paused while it's hovered or touched, or the page is hidden. */
+export const NOTICE_MS = 10_000
+
+/** A slow reader's pace, in words a second, and the time to notice a toast has come (docs/ux.md#persistence-and-sharing). */
+const WORDS_PER_SEC = 3
+const NOTICE_LEAD_MS = 4_000
+const NOTICE_MAX_MS = 30_000
+
+/**
+ * How long a notice stays up: 10 s, or long enough to read at a slow reader's pace when it says more
+ * (a load's changes, a talent build's refunds), up to 30 s (docs/ux.md#persistence-and-sharing).
+ */
+export function noticeDuration(...texts: (string | undefined)[]): number {
+  const words = texts.join(' ').split(/\s+/).filter(Boolean).length
+  return Math.min(NOTICE_MAX_MS, Math.max(NOTICE_MS, Math.round(NOTICE_LEAD_MS + (words * 1000) / WORDS_PER_SEC)))
+}
+
 /**
  * A notice's description for a setup that just replaced yours: your setup for which spec it
  * replaced, whether that switched you to the spec, and what loading it changed, in normalizeConfig's

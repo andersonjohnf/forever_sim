@@ -6,7 +6,7 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { normalizeConfig, SPEC_META, type SimConfig } from '@/sim'
 import { showWhenClear } from './held-toasts'
-import { replacedDescription } from './load-notice'
+import { noticeDuration, replacedDescription } from './load-notice'
 import { setupProblem, type SetupProblem } from './setup-code'
 import { useSetup } from './setup-store'
 import { hasSharedSetup, readSharedSetup } from './share'
@@ -84,7 +84,8 @@ function apply(raw: unknown, notify: (show: () => void) => void) {
   const { config, warnings } = read
   const switched = config.spec !== useSetup.getState().config.spec
   useSetup.getState().replace(config)
-  notify(() => toast('Loaded a shared setup', { id: NOTICE_ID, description: replacedDescription(config.spec, switched, warnings) }))
+  const description = replacedDescription(config.spec, switched, warnings)
+  notify(() => toast('Loaded a shared setup', { id: NOTICE_ID, description, duration: noticeDuration('Loaded a shared setup', description) }))
 }
 
 /** Loads share links on open and on hashchange. Call once, from App. */

@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures.ts'
 
-// The Talents tab (docs/ux.md "Talents"): keyboard removal and plain paste errors.
+// The Talents tab (docs/ux.md "Talents"): keyboard removal, plain paste errors, and codes from older trees.
 
 test('a focused talent takes a point with Enter and gives it back with Backspace', async ({ page }) => {
   await page.goto('./')
@@ -44,4 +44,25 @@ test('a bad build code gets a plain reason', async ({ page }) => {
   await expect(error).toHaveText(
     'That isn’t a Warrior code: it puts 9 points in Improved Heroic Strike, which has 3 ranks. Is it for another class?',
   )
+})
+
+// docs/data/talents.md#tree-versions, review TM2-2: a code that's only a build on the game's older
+// talent trees is read there and mapped onto today's, with a notice that lists what it lost.
+test('a code from the game’s older talent trees is read on them, and the notice says what it lost', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: Fury Warrior/ }).click()
+  await page.getByRole('menuitem', { name: /Retribution/ }).click()
+  await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+  const talents = page.getByRole('tabpanel', { name: 'Talents' })
+  await talents.getByRole('button', { name: /Paste/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Paste a build code' })
+  // The Retribution default on 1.60.1.69913's trees, one point off: the player's own build.
+  await dialog.getByRole('textbox', { name: 'Build code or link' }).fill('250003-503-052052310012330311')
+  await dialog.getByRole('button', { name: 'Use this build' }).click()
+  await expect(dialog).toHaveCount(0)
+  const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Pasted a code from the game’s older talent trees' })
+  await expect(notice).toContainText(
+    'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+  )
+  await expect(talents.getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
 })

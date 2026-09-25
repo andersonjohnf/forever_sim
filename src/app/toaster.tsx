@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
+import { NOTICE_MS } from './load-notice'
 import { setToastClearance } from './toast-layer'
 
-/** How long a toast stays up, paused while it's hovered or touched, or the page is hidden. */
-const TOAST_MS = 10_000
+/** How long a toast stays up, unless it says more (./load-notice.ts noticeDuration). */
+const TOAST_MS = NOTICE_MS
 
 /** Sonner's gap between stacked toasts, in px. */
 const TOAST_GAP = 14
@@ -105,7 +106,7 @@ function useToastClearance() {
 }
 
 /**
- * Toasts (docs/ux.md#persistence-and-sharing) are plain notices that go after 10 s. They sit at
+ * Toasts (docs/ux.md#persistence-and-sharing) are plain notices that go after 10 s, or a longer one's reading time. They sit at
  * the bottom, clear of the header's controls: on phones and tablets just above the sticky bar,
  * whose height App keeps in --sim-bar-height. Sonner's Alt+T moves focus to them.
  */

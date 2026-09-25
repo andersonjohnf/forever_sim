@@ -4,7 +4,8 @@
 // (src/data/talents/frozen.json) and is mapped onto today's trees by talent name, a renamed
 // talent by its new name. Points that have no place on today's trees are refunded, and the load
 // says so: a talent the game removed, ranks past a talent's new max, and a talent that no longer
-// has the points above it or the arrow it needs.
+// has the points above it or the arrow it needs. A code the sim itself shipped (a default or a
+// preset) reads as the build that succeeds it instead (./talent-successors.ts).
 import frozenJson from '@/data/talents/frozen.json'
 import { decodeFrozenCode, encodeTalentCode, frozenBuildProblems, validateTalentBuild, type FrozenTalentOrders, type Talent, type TalentData, type TalentRanksById } from '@/data/talents/types'
 import type { ClassId } from '../types'
@@ -26,23 +27,41 @@ export const RENAMED_TALENTS: Readonly<Record<string, Partial<Record<ClassId, Re
   '1.60.1.69913': { druid: { Mangle: 'Primal Bite', 'Primal Fury': 'Blood Frenzy' } },
 }
 
-/** Points a build lost on today's trees, and why, in the words of the load's notice. */
+/** Why a talent's points have no place on today's trees: the game removed it, lowered its max rank, or its row or arrow lost what it needs. */
+export type RefundCause = 'removed' | 'ranks' | 'row' | 'arrow'
+
+/** Points a build lost on today's trees, and why (`maxRank`: today's, for a lowered max rank). */
 export interface TalentRefund {
   name: string
   points: number
-  reason: string
+  cause: RefundCause
+  maxRank?: number
 }
 
-const points = (n: number) => `${n} ${n === 1 ? 'point' : 'points'}`
+/**
+ * The build a code on older trees was, when the sim itself shipped that code (a default or a
+ * preset, ./talent-successors.ts), in the words of the load's notice: "Your talents were `label` on
+ * the game’s old trees; they’re now `now`."
+ */
+export interface TalentSuccessor {
+  label: string
+  now: string
+}
 
-/** Why a talent of a build can't keep its points on today's trees, or null if it can. */
-function lockedOut(data: TalentData, ranks: TalentRanksById, talent: Talent, byId: Map<string, Talent>): string | null {
+/** A code on older trees, read on today's: the canonical code, the points refunded, and the build it succeeds, if any. */
+export interface TalentMigration {
+  code: string
+  refunds: TalentRefund[]
+  successor?: TalentSuccessor
+}
+
+/** Why a talent of a build can't keep its points on today's trees (its row's gate, then its arrow), or null if it can. */
+function lockedOut(data: TalentData, ranks: TalentRanksById, talent: Talent): 'row' | 'arrow' | null {
   const tree = data.trees.find((t) => t.id === talent.tree)!
   const above = tree.talents.filter((t) => t.tier < talent.tier).reduce((n, t) => n + (ranks[t.id] ?? 0), 0)
-  const needed = data.rules.pointsPerTier * talent.tier
-  if (above < needed) return `needs ${needed} points in ${tree.name} above it`
+  if (above < data.rules.pointsPerTier * talent.tier) return 'row'
   const pre = talent.prerequisite
-  if (pre && (ranks[pre.talentId] ?? 0) < pre.rank) return `needs ${points(pre.rank)} in ${byId.get(pre.talentId)?.name ?? 'another talent'}`
+  if (pre && (ranks[pre.talentId] ?? 0) < pre.rank) return 'arrow'
   return null
 }
 
@@ -51,53 +70,106 @@ function lockedOut(data: TalentData, ranks: TalentRanksById, talent: Talent, byI
  * name: the canonical code on today's trees, and the points refunded. Throws if the code isn't a
  * legal build of the class on that build's trees.
  */
-export function migrateTalentCode(data: TalentData, fromBuild: string, code: string): { code: string; refunds: TalentRefund[] } {
+export function migrateTalentCode(data: TalentData, fromBuild: string, code: string): TalentMigration {
   const trees = frozen.builds[fromBuild]?.classes[data.class]
   if (!trees) throw new Error(`No frozen ${data.class} trees for ${fromBuild}`)
-  const renamed = RENAMED_TALENTS[fromBuild]?.[data.class as ClassId] ?? {}
-  const all = data.trees.flatMap((t) => t.talents)
-  const byName = new Map(all.map((t) => [t.name, t]))
-  const byId = new Map(all.map((t) => [t.id, t]))
   const old = decodeFrozenCode(trees, code)
   const illegal = frozenBuildProblems(trees, old, data.rules)
   if (illegal.length > 0) throw new Error(`The ${data.class} build ${code} isn't legal on ${fromBuild}'s trees: ${illegal.join('; ')}`)
+  return mapByName(data, old, RENAMED_TALENTS[fromBuild]?.[data.class as ClassId] ?? {})
+}
+
+/**
+ * Old ranks by talent name (`renamed`: old name → today's), onto today's trees: migrateTalentCode's
+ * mapping. Exported for its tests, which lower a max rank to reach a branch no build has needed yet.
+ */
+export function mapByName(data: TalentData, old: Readonly<Record<string, number>>, renamed: Readonly<Record<string, string>> = {}): TalentMigration {
+  const all = data.trees.flatMap((t) => t.talents)
+  const byName = new Map(all.map((t) => [t.name, t]))
   const ranks: TalentRanksById = {}
   const refunds: TalentRefund[] = []
   for (const [oldName, rank] of Object.entries(old)) {
     const talent = byName.get(renamed[oldName] ?? oldName)
     if (!talent) {
-      refunds.push({ name: oldName, points: rank, reason: 'removed from the game' })
+      refunds.push({ name: oldName, points: rank, cause: 'removed' })
       continue
     }
-    if (rank > talent.maxRank) refunds.push({ name: talent.name, points: rank - talent.maxRank, reason: `now ${talent.maxRank} ${talent.maxRank === 1 ? 'rank' : 'ranks'}` })
+    if (rank > talent.maxRank) refunds.push({ name: talent.name, points: rank - talent.maxRank, cause: 'ranks', maxRank: talent.maxRank })
     ranks[talent.id] = Math.min(rank, talent.maxRank)
   }
   // A talent whose row or arrow the new trees gate differently loses its points, and so, in turn,
   // do the talents that needed them, until the build is legal. Points never move to another talent.
   for (;;) {
-    const out = all.flatMap((t) => (ranks[t.id] ? [[t, lockedOut(data, ranks, t, byId)] as const] : [])).filter(([, why]) => why !== null)
+    const out = all.flatMap((t) => {
+      const cause = ranks[t.id] ? lockedOut(data, ranks, t) : null
+      return cause ? [[t, cause] as const] : []
+    })
     if (out.length === 0) break
-    for (const [t, why] of out) {
-      refunds.push({ name: t.name, points: ranks[t.id], reason: why! })
+    for (const [t, cause] of out) {
+      refunds.push({ name: t.name, points: ranks[t.id], cause })
       delete ranks[t.id]
     }
   }
   const problems = validateTalentBuild(data, ranks)
-  if (problems.length > 0) throw new Error(`The ${data.class} build ${code} isn't legal on today's trees: ${problems.join('; ')}`)
+  if (problems.length > 0) throw new Error(`The ${data.class} build isn't legal on today's trees: ${problems.join('; ')}`)
   return { code: encodeTalentCode(data, ranks), refunds }
 }
 
-const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)
+const list = (words: readonly string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)
+const unique = (words: readonly string[]) => [...new Set(words)]
 
 /**
- * What a load says about points a build lost on today's trees, `whose` naming the spec where the
- * notice doesn't:
- *   "The game’s new talent trees refunded 4 of your talent points: 2 in Improved Holy Strike
- *   (removed from the game) and 2 in Crusade (removed from the game)."
- *   "The game’s new talent trees refunded 4 of your Retribution Paladin talent points: …"
+ * Why the points went, a clause per cause, each talent named once however many builds or causes it's
+ * in, and more than three talents that lost their arrow, or their row, counted rather than named: "Improved
+ * Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need".
  */
-export function refundNotice(refunds: readonly TalentRefund[], whose?: string): string {
-  const total = refunds.reduce((n, r) => n + r.points, 0)
-  const items = refunds.map((r) => `${r.points} in ${r.name} (${r.reason})`)
-  return `The game’s new talent trees refunded ${total} of your ${whose ? `${whose} ` : ''}talent points: ${list(items)}.`
+function refundCauses(refunds: readonly TalentRefund[]): string {
+  const named = (cause: RefundCause) => unique(refunds.filter((r) => r.cause === cause).map((r) => r.name))
+  const removed = named('removed')
+  // A lowered talent that then lost its row or arrow too is named once, with those: all its points went.
+  const lockedOut = new Set([...named('row'), ...named('arrow')])
+  const lowered = unique(refunds.filter((r) => r.cause === 'ranks' && !lockedOut.has(r.name)).map((r) => `${r.name} now has ${r.maxRank} ${r.maxRank === 1 ? 'rank' : 'ranks'}`))
+  const clauses = [...(removed.length > 0 ? [`${list(removed)} left the game`] : []), ...lowered]
+  // "below it" or "below them": the talents the game changed, which these needed.
+  let below = removed.length + lowered.length === 0 ? '' : removed.length + lowered.length === 1 ? ' below it' : ' below them'
+  const locked = (names: string[], one: string, many: string) => {
+    if (names.length === 0) return
+    clauses.push(`${names.length <= 3 ? list(names) : `${names.length} talents${below}`} lost ${names.length === 1 ? one : many}`)
+    below = ''
+  }
+  locked(named('arrow'), 'the talent its arrow needs', 'the talents their arrows need')
+  locked(named('row'), 'the points its row needs', 'the points their rows need')
+  return clauses.length < 2 ? clauses.join('') : `${clauses.slice(0, -1).join(', ')}, and ${clauses.at(-1)}`
+}
+
+/**
+ * What a load says about points builds lost on today's trees: one sentence however many specs lost
+ * them, `whose` naming each build's spec where the notice doesn't (docs/data/talents.md#tree-versions).
+ *   "The game’s new talent trees refunded 16 talent points: Improved Holy Strike and Crusade left the
+ *   game, and 5 talents below them lost the points their rows need. Spend them again in Talents."
+ *   "The game’s new talent trees refunded 16 of your Retribution Paladin and 2 of your Protection
+ *   Paladin talent points: …"
+ */
+export function refundNotice(builds: readonly { refunds: readonly TalentRefund[]; whose?: string }[]): string {
+  const counted = builds.map((b) => ({ ...b, points: b.refunds.reduce((n, r) => n + r.points, 0) })).filter((b) => b.points > 0)
+  const total = counted.reduce((n, b) => n + b.points, 0)
+  const amounts = counted.every((b) => b.whose)
+    ? `${list(counted.map((b) => `${b.points} of your ${b.whose}`))} talent points`
+    : `${total} talent ${total === 1 ? 'point' : 'points'}`
+  return `The game’s new talent trees refunded ${amounts}: ${refundCauses(counted.flatMap((b) => b.refunds))}. Spend ${total === 1 ? 'it' : 'them'} again in Talents.`
+}
+
+/**
+ * What a load says about a code the sim shipped on older trees, read as the build that succeeds it,
+ * `whose` naming the spec where the notice doesn't: "Your talents were the Retribution default on
+ * the game’s old trees; they’re now today’s default."
+ */
+export function successorNotice(successor: TalentSuccessor, whose?: string): string {
+  return `Your ${whose ? `${whose} ` : ''}talents were ${successor.label} on the game’s old trees; they’re now ${successor.now}.`
+}
+
+/** What a load says about a code it read on older trees, or null when the build lost nothing and needs no word. */
+export function migrationNotice(migration: Omit<TalentMigration, 'code'>, whose?: string): string | null {
+  if (migration.successor) return successorNotice(migration.successor, whose)
+  return migration.refunds.length > 0 ? refundNotice([{ refunds: migration.refunds, whose }]) : null
 }

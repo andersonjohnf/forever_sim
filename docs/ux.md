@@ -199,6 +199,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A points counter (x / 51) and **Import / Copy build code**. A pasted code that doesn't
     work gets a plain reason: "That isn't a talent code", with an example code for the class;
     a code for another class; more than 51 points; or the talent a tier gate or arrow blocks.
+    A code that isn't a build on today's trees but is on the game's older ones is read there and
+    mapped onto today's, as an old setup is, and a notice says so: "Pasted a code from the game’s
+    older talent trees", with the points it lost, the build the sim shipped it succeeds, or "Every
+    talent kept its points on today’s trees." ([talents.md § Tree versions](data/talents.md#tree-versions)).
+    A code that's a build on both keeps today's reading.
     The paste dialog puts focus in its field, and gives it back to **Paste code** however it
     closes. **Clear** disables itself, so it moves focus to the preset menu (now "Custom build")
     first.
@@ -1016,13 +1021,17 @@ Every view handles these states:
 - **A talent build from the game's older talent trees** (a setup saved or shared before
   1.60.1.70009) loads mapped onto today's trees, talent by talent
   ([talents.md § Tree versions](data/talents.md#tree-versions)). Points that have no place there
-  are refunded, and the load says so in one sentence, each talent with why: "The game’s new talent
-  trees refunded 4 of your talent points: 2 in Improved Holy Strike (removed from the game) and 2
-  in Crusade (removed from the game)." A link, a code or a Load says it among its changes, below. A
-  visit says it in the defaults notice, naming the spec ("… 4 of your Retribution Paladin talent
-  points: …"), after what moved, or on its own under "Talent points refunded for Retribution
-  Paladin"; a build that follows the default takes today's instead and loses nothing. A build that
-  keeps every point says nothing.
+  are refunded, and the load says so in one sentence that names the talents the game changed as
+  the cause, and what to do: "The game’s new talent trees refunded 16 talent points: Improved Holy
+  Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend
+  them again in Talents." A build the sim itself shipped (a default or a preset) isn't mapped: it
+  loads as today's version of it, and says so in one line: "Your talents were the Retribution
+  default on the game’s old trees; they’re now today’s default." A link, a code or a Load says it
+  among its changes, below. A visit says it in the defaults notice, naming the spec ("… 16 of your
+  Retribution Paladin talent points: …", every spec's refunds in the one sentence), after what
+  moved, or on its own under "Talent points refunded for Retribution Paladin" (or "Talents moved
+  onto the game’s new trees for …" when a shipped build is among them); a build that follows the
+  default takes today's instead and loses nothing. A build that keeps every point says nothing.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -1041,14 +1050,18 @@ Every view handles these states:
   too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
   stone) did nothing, so it isn't mentioned.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
-  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A swipe
+  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A load's
+  notice that says more (its changes, a talent build's refunds) stays long enough to read at a
+  slow reader's pace: 4 s, then a second for every 3 words, up to 30 s (`noticeDuration` in
+  `src/app/load-notice.ts`); the worst refund notice, a visit's with two specs, stays 24 s. A swipe
   sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
-    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, and a
-    setup saved, loaded, deleted or imported ([Setups](#setups)). A
-    change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
+    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, a
+    setup saved, loaded, deleted or imported ([Setups](#setups)), and a pasted build code from the
+    game's older talent trees ([Talents](#sections)), which isn't the build the trees show at a
+    glance. A change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
     readers still hear it ([Accessibility](#accessibility)). Setups' **Copy setup code** and
     **Download all setups** say what they did in a line under their buttons instead, since a
     notice would sit over the end of the sheet, where Import is.

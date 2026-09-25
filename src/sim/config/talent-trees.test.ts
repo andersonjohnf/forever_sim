@@ -5,7 +5,7 @@ import { decodeTalentCode, type FrozenTalentOrders, validateTalentBuild } from '
 import storedBuildsJson from '../../../scripts/scrape/stored-builds.json'
 import { TALENT_DATA } from '../defaults'
 import type { ClassId } from '../types'
-import { CONFIG_VERSION, migrateTalentCode, refundNotice, RENAMED_TALENTS, TALENT_TREES_OF_VERSION } from './talent-trees'
+import { CONFIG_VERSION, mapByName, migrateTalentCode, refundNotice, RENAMED_TALENTS, TALENT_TREES_OF_VERSION } from './talent-trees'
 
 const frozen = frozenJson as unknown as FrozenTalentOrders
 const OLD = '1.60.1.69913'
@@ -94,14 +94,14 @@ describe('migrateTalentCode', () => {
     expect(migrateTalentCode(TALENT_DATA.paladin, OLD, '240003-0530213321301551-502')).toEqual({
       code: '4-0530213321301551-502',
       refunds: [
-        { name: 'Improved Holy Strike', points: 2, reason: 'removed from the game' },
-        { name: 'Improved Seals', points: 3, reason: 'needs 5 points in Holy above it' },
+        { name: 'Improved Holy Strike', points: 2, cause: 'removed' },
+        { name: 'Improved Seals', points: 3, cause: 'row' },
       ],
     })
     // The popular build: only Improved Holy Strike.
     expect(migrateTalentCode(TALENT_DATA.paladin, OLD, '2-4530513321301551-502')).toEqual({
       code: '-4530513321301551-502',
-      refunds: [{ name: 'Improved Holy Strike', points: 2, reason: 'removed from the game' }],
+      refunds: [{ name: 'Improved Holy Strike', points: 2, cause: 'removed' }],
     })
     // The Holy build takes none of it: every talent keeps its points, at its new position.
     const holy = migrateTalentCode(TALENT_DATA.paladin, OLD, '005320213225131051-5032-05')
@@ -136,9 +136,9 @@ describe('migrateTalentCode', () => {
     // Elemental Fury 5, Call of Thunder 1 and Lightning Overload 3, no Elemental Alacrity: legal on 69913's trees.
     const { code, refunds } = migrateTalentCode(TALENT_DATA.shaman, OLD, '550530150010300')
     expect(refunds).toEqual([
-      { name: 'Call of Thunder', points: 1, reason: 'needs 3 points in Elemental Alacrity' },
-      { name: 'Elemental Fury', points: 5, reason: 'needs 25 points in Elemental above it' },
-      { name: 'Lightning Overload', points: 3, reason: 'needs 20 points in Elemental above it' },
+      { name: 'Call of Thunder', points: 1, cause: 'arrow' },
+      { name: 'Elemental Fury', points: 5, cause: 'row' },
+      { name: 'Lightning Overload', points: 3, cause: 'row' },
     ])
     expect(code).toBe('5505301--')
   })
@@ -150,19 +150,65 @@ describe('migrateTalentCode', () => {
   })
 })
 
-describe('refundNotice', () => {
-  it('says how many points and where from, in the reasons’ own words', () => {
-    expect(refundNotice([{ name: 'Crusade', points: 2, reason: 'removed from the game' }])).toBe(
-      'The game’s new talent trees refunded 2 of your talent points: 2 in Crusade (removed from the game).',
+describe('mapByName: branches no build has needed yet (review TM2-8)', () => {
+  // Today's warrior trees with Unbridled Wrath (Fury, tier 1) lowered to 3 ranks: a synthetic later build.
+  const lowered = () => {
+    const data = structuredClone(TALENT_DATA.warrior)
+    data.trees[1].talents.find((t) => t.name === 'Unbridled Wrath')!.maxRank = 3
+    return data
+  }
+
+  it('refunds ranks past a lowered max rank, and says the talent now has that many', () => {
+    const data = lowered()
+    const { code, refunds } = mapByName(data, { Cruelty: 5, 'Unbridled Wrath': 5 })
+    expect(refunds).toEqual([{ name: 'Unbridled Wrath', points: 2, cause: 'ranks', maxRank: 3 }])
+    expect(decodeTalentCode(data, code)).toEqual({ 'warrior-fury-cruelty': 5, 'warrior-fury-unbridled-wrath': 3 })
+    expect(refundNotice([{ refunds }])).toBe('The game’s new talent trees refunded 2 talent points: Unbridled Wrath now has 3 ranks. Spend them again in Talents.')
+  })
+
+  it('refunds a talent twice, its extra ranks then the rest when its row loses its gate, and names it once', () => {
+    // Cruelty is gone from these synthetic trees' point of view: an old name today's trees don't have.
+    const { code, refunds } = mapByName(lowered(), { 'Old Cruelty': 5, 'Unbridled Wrath': 5 })
+    expect(code).toBe('--')
+    expect(refunds).toEqual([
+      { name: 'Old Cruelty', points: 5, cause: 'removed' },
+      { name: 'Unbridled Wrath', points: 2, cause: 'ranks', maxRank: 3 },
+      { name: 'Unbridled Wrath', points: 3, cause: 'row' },
+    ])
+    expect(refundNotice([{ refunds }])).toBe(
+      'The game’s new talent trees refunded 10 talent points: Old Cruelty left the game, and Unbridled Wrath lost the points its row needs. Spend them again in Talents.',
     )
+  })
+})
+
+describe('refundNotice (review TM2-5)', () => {
+  it('names the talents the game changed as the cause, and counts more than three that lost their rows', () => {
+    const { refunds } = migrateTalentCode(TALENT_DATA.paladin, OLD, '250003-503-052052310012330311')
+    expect(refundNotice([{ refunds }])).toBe(
+      'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+    )
+    expect(refundNotice([{ refunds: [{ name: 'Crusade', points: 1, cause: 'removed' }] }])).toBe(
+      'The game’s new talent trees refunded 1 talent point: Crusade left the game. Spend it again in Talents.',
+    )
+  })
+
+  it('names up to three talents that lost their arrow or row, a clause for each', () => {
+    const { refunds } = migrateTalentCode(TALENT_DATA.shaman, OLD, '550530150010300')
+    expect(refundNotice([{ refunds }])).toBe(
+      'The game’s new talent trees refunded 9 talent points: Call of Thunder lost the talent its arrow needs, and Elemental Fury and Lightning Overload lost the points their rows need. Spend them again in Talents.',
+    )
+  })
+
+  it('says several specs’ refunds in one sentence, each talent named once', () => {
+    const ret = migrateTalentCode(TALENT_DATA.paladin, OLD, '250003-503-052052310012330311').refunds
+    const prot = migrateTalentCode(TALENT_DATA.paladin, OLD, '2-4530513321301541-502').refunds
     expect(
       refundNotice([
-        { name: 'Improved Holy Strike', points: 2, reason: 'removed from the game' },
-        { name: 'Improved Seals', points: 3, reason: 'needs 5 points in Holy above it' },
-        { name: 'Unyielding Faith', points: 1, reason: 'now 2 ranks' },
+        { refunds: ret, whose: 'Retribution Paladin' },
+        { refunds: prot, whose: 'Protection Paladin' },
       ]),
     ).toBe(
-      'The game’s new talent trees refunded 6 of your talent points: 2 in Improved Holy Strike (removed from the game), 3 in Improved Seals (needs 5 points in Holy above it) and 1 in Unyielding Faith (now 2 ranks).',
+      'The game’s new talent trees refunded 15 of your Retribution Paladin and 2 of your Protection Paladin talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
     )
   })
 })

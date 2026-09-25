@@ -7,6 +7,7 @@ import {
   type TalentData,
   type TalentRanksById,
 } from '@/data/talents/types'
+import { migrationNotice, readOnOlderTrees } from '@/sim'
 
 export function totalPoints(ranks: TalentRanksById): number {
   return Object.values(ranks).reduce((a, b) => a + b, 0)
@@ -94,15 +95,21 @@ export function presetSpec<S extends { name: string }>(presetName: string, specs
     .find((spec) => words(spec.name).every((word, i) => preset[i] === word))
 }
 
-export type BuildCodeResult = { ok: true; code: string } | { ok: false; error: string }
+/**
+ * A pasted code read: canonical, on today's trees. `older` is set when it was a code from the game's
+ * older talent trees, read on them and mapped onto today's (docs/data/talents.md#tree-versions), with
+ * what the paste's notice says about it.
+ */
+export type BuildCodeResult = { ok: true; code: string; older?: { title: string; description: string } } | { ok: false; error: string }
 
 /**
  * Reads a pasted build code, or a talent calculator link ending in one, into a canonical code.
  * Every problem comes back as a plain sentence the paste dialog shows as is; `example` is a code
- * for this class, to show what one looks like.
+ * for this class, to show what one looks like. A code that isn't a legal build on today's trees
+ * but is on the game's older ones is read on those and mapped onto today's, as a setup from then
+ * is (readOnOlderTrees); one legal on both keeps today's reading.
  */
 export function readBuildCode(data: TalentData, text: string, example: string): BuildCodeResult {
-  const className = data.class[0].toUpperCase() + data.class.slice(1)
   const candidate = text.trim().split(/[/#?=]/).at(-1) ?? ''
   if (!/^[0-9]*(-[0-9]*){0,2}$/.test(candidate) || !/[0-9]/.test(candidate)) {
     return {
@@ -110,6 +117,23 @@ export function readBuildCode(data: TalentData, text: string, example: string): 
       error: `That isn’t a talent code. A code has a digit for each talent and a dash between trees, like ${example}`,
     }
   }
+  const today = readOnTodaysTrees(data, candidate)
+  if (today.ok) return today
+  const older = readOnOlderTrees(data, candidate)
+  if (!older) return today
+  return {
+    ok: true,
+    code: older.code,
+    older: {
+      title: 'Pasted a code from the game’s older talent trees',
+      description: migrationNotice(older) ?? 'Every talent kept its points on today’s trees.',
+    },
+  }
+}
+
+/** A code read on today's trees, or the plain reason it isn't a build there (readBuildCode). */
+function readOnTodaysTrees(data: TalentData, candidate: string): BuildCodeResult {
+  const className = data.class[0].toUpperCase() + data.class.slice(1)
   const order = talentsInCodeOrder(data)
   for (const [t, segment] of candidate.split('-').entries()) {
     const talents = order[t]

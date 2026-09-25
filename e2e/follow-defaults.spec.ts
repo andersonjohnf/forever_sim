@@ -73,19 +73,25 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
 })
 
 test.describe('a build from the game’s older talent trees (docs/data/talents.md#tree-versions)', () => {
-  test('the player’s own Retribution build is mapped by name, and the visit says what it lost, once', async ({ page }) => {
-    // Saved on 1.60.1.69913's trees (version 1), after saves said what follows: the player's own build.
-    await page.addInitScript(() => {
+  /** Seeds the automatic save with a Retribution build on 1.60.1.69913's trees (version 1), saved as the player's own. */
+  const seedOldRetribution = (page: Page, talents: string) =>
+    page.addInitScript((talents) => {
       if (sessionStorage.getItem('seeded')) return
       sessionStorage.setItem('seeded', '1')
-      const config = { version: 1, spec: 'paladin-retribution', talents: '250003-503-052052310012330321' }
+      const config = { version: 1, spec: 'paladin-retribution', talents }
       const following = { 'paladin-retribution': { gear: [], talents: false } }
       localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'talents', following }, version: 1 }))
-    })
+    }, talents)
+
+  test('the player’s own Retribution build is mapped by name, and the visit says what it lost, once', async ({ page }) => {
+    // The Retribution default then, one point off: the player's own build.
+    await seedOldRetribution(page, '250003-503-052052310012330311')
     await page.goto('./')
     const notice = toasts(page).filter({ hasText: 'Talent points refunded for Retribution Paladin' })
     await expect(notice).toHaveCount(1)
-    await expect(notice).toContainText('The game’s new talent trees refunded 16 of your Retribution Paladin talent points: 2 in Improved Holy Strike (removed from the game), 2 in Crusade (removed from the game), 3 in Two-Handed Weapon Specialization (needs 20 points in Retribution above it)')
+    await expect(notice).toContainText(
+      'The game’s new talent trees refunded 15 of your Retribution Paladin talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+    )
     await expect(toasts(page).filter({ hasText: /Updated to the new default/ })).toHaveCount(0)
     // 8/8/19 on today's trees: what kept its place.
     await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
@@ -94,6 +100,15 @@ test.describe('a build from the game’s older talent trees (docs/data/talents.m
     await page.reload()
     await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/8\s*\/\s*8\s*\/\s*19/).first()).toBeVisible()
     await expect(toasts(page)).toHaveCount(0)
+  })
+
+  test('the Retribution default then loads as today’s default, and the visit says so (review TM2-1)', async ({ page }) => {
+    await seedOldRetribution(page, '250003-503-052052310012330321')
+    await page.goto('./')
+    const notice = toasts(page).filter({ hasText: 'Talents moved onto the game’s new trees for Retribution Paladin' })
+    await expect(notice).toHaveCount(1)
+    await expect(notice).toContainText('Your Retribution Paladin talents were the Retribution default on the game’s old trees; they’re now today’s default.')
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText('Using the default build.')).toBeVisible()
   })
 })
 
@@ -106,11 +121,12 @@ test.describe('a share link and the defaults notice (docs/ux.md "Persistence and
     const loaded = toasts(page).filter({ hasText: 'Loaded a shared setup' })
     await expect(loaded).toHaveCount(1)
     await expect(toasts(page).filter({ hasText: /Updated to the new default/ })).toHaveCount(0)
-    // The link's own talents, written on 1.60.1.69913's trees (version 1), mapped onto today's by name
-    // (docs/data/talents.md#tree-versions): 2/42/7 there, Improved Holy Strike's 2 points refunded here.
-    await expect(loaded).toContainText('The game’s new talent trees refunded 2 of your talent points: 2 in Improved Holy Strike (removed from the game).')
+    // The link's own talents, written on 1.60.1.69913's trees (version 1): the popular build the sim
+    // shipped as a preset, so they read as today's preset of that name (docs/data/talents.md
+    // #tree-versions), 2/42/7 with Divine Strength's 2 points where Improved Holy Strike's were.
+    await expect(loaded).toContainText('Your talents were the Protection popular build on the game’s old trees; they’re now its version for today’s trees.')
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/0\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/2\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
   })
 
   test('a link for another spec leaves the notice for the spec that moved', async ({ page }) => {

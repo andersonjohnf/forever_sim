@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import type { SpecId } from '@/sim'
 import { showWhenClear } from './held-toasts'
 import { defaultsUpdateNotice, type DefaultsUpdate } from './follow-defaults'
+import { noticeDuration } from './load-notice'
 import { readLinkSetup } from './shared-link'
 import { takeDefaultsUpdates, useSetup } from './setup-store'
 import { peekSharedSetup } from './share'
@@ -44,7 +45,7 @@ export function useDefaultsNotice() {
     void linkedSpec().then((linked) => {
       const notice = defaultsUpdateNotice(withoutLinked(updates, linked), current)
       // It waits while What's New is open (src/app/held-toasts.ts).
-      if (notice) showWhenClear(() => toast(notice.title, { id: 'defaults-update', description: notice.description }))
+      if (notice) showWhenClear(() => toast(notice.title, { id: 'defaults-update', description: notice.description, duration: noticeDuration(notice.title, notice.description) }))
     })
   }, [])
 }

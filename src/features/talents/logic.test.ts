@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, talentsInCodeOrder, type Talent, type TalentData } from '@/data/talents/types'
 import { SPEC_META } from '@/sim'
-import { TALENT_DATA, talentPresets } from '@/sim/defaults'
+import { defaultTalents, TALENT_DATA, talentPresets } from '@/sim/defaults'
 import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, withRank } from './logic'
 
 const find = (data: TalentData, name: string): Talent => data.trees.flatMap((t) => t.talents).find((t) => t.name === name)!
@@ -152,5 +152,49 @@ describe('pasting a build code (plain-language errors)', () => {
       ok: false,
       error: expect.stringMatching(/^That build spends \d+ points, and a level 60 character has 51\.$/),
     })
+  })
+})
+
+// docs/data/talents.md#tree-versions, review TM2-2: a code that isn't a build on today's trees but
+// is on the game's older ones is read there and mapped onto today's, as a setup from then is.
+describe('pasting a code from the game’s older talent trees', () => {
+  const paladin = TALENT_DATA.paladin
+  const read = (text: string) => readBuildCode(paladin, text, 'x')
+  const title = 'Pasted a code from the game’s older talent trees'
+
+  it('maps a player’s own old build by name, listing the refunds', () => {
+    // Illegal today (Unyielding Faith has 2 ranks there); the old Retribution default, one point off.
+    expect(read('250003-503-052052310012330311')).toEqual({
+      ok: true,
+      code: '50003-503-05205231001',
+      older: {
+        title,
+        description:
+          'The game’s new talent trees refunded 15 talent points: Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows need. Spend them again in Talents.',
+      },
+    })
+  })
+
+  it('reads an old default the sim shipped as today’s default', () => {
+    expect(read('https://sim.example/250003-503-052052310012330321')).toEqual({
+      ok: true,
+      code: defaultTalents('paladin-retribution'),
+      older: { title, description: 'Your talents were the Retribution default on the game’s old trees; they’re now today’s default.' },
+    })
+  })
+
+  it('says so when every talent kept its points, as the Holy build does', () => {
+    expect(read('005320213225131051-5032-05')).toEqual({ ok: true, code: '05320213225131051-5032-05', older: { title, description: 'Every talent kept its points on today’s trees.' } })
+  })
+
+  it('keeps today’s reading of a code legal on both trees', () => {
+    // Divine Strength 2 today, Improved Holy Strike 2 then: today's trees win.
+    expect(read('2-4530513321301541-502')).toEqual({ ok: true, code: '2-4530513321301541-502' })
+  })
+
+  it('gives today’s reason for a code legal on neither', () => {
+    expect(read('99')).toEqual({ ok: false, error: 'That isn’t a Paladin code: it puts 9 points in Divine Strength, which has 5 ranks. Is it for another class?' })
+    // Illegal on 1.60.1.69913's trees too: Lava Burst with too few points above it.
+    expect(readBuildCode(TALENT_DATA.shaman, '5505301500103001', 'x')).toMatchObject({ ok: false })
   })
 })

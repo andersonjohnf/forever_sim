@@ -13,7 +13,7 @@ import { changeAndFocus } from '@/features/refocus'
 import { cn } from '@/lib/utils'
 import { SPEC_META } from '@/sim'
 import { announce } from './announce'
-import { replacedDescription } from './load-notice'
+import { noticeDuration, replacedDescription } from './load-notice'
 import {
   deleteFromStorage,
   findByName,
@@ -180,7 +180,9 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
   const load = (setup: SavedSetup) => {
     const switched = setup.config.spec !== useSetup.getState().config.spec
     useSetup.getState().replace(setup.config)
-    toast(`Loaded “${setup.name}”`, { id: 'setup-loaded', description: replacedDescription(setup.config.spec, switched, setup.warnings) })
+    const title = `Loaded “${setup.name}”`
+    const description = replacedDescription(setup.config.spec, switched, setup.warnings)
+    toast(title, { id: 'setup-loaded', description, duration: noticeDuration(title, description) })
     // Closing hands focus back to the menu's button.
     onLoaded()
   }

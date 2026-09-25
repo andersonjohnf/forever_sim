@@ -285,8 +285,27 @@ written on it decodes against that order, and loading maps it onto today's trees
   version 2, in share links, setup codes, saved setups and the automatic save alike, and the code
   itself stays a plain build code, so it still pastes into any talent calculator. A version-2 code
   reads as today's; a newer version is refused as a newer app's, as before. A build code pasted
-  into the Talents tab has no version: it's read on today's trees.
-- **Loading maps a version-1 code by talent name** (`normalizeConfig` in
+  into the Talents tab has no version: it's read on today's trees, and only a code that isn't a
+  legal build there but is on 1.60.1.69913's trees is read on those and loaded as a version-1 code
+  is (below; `readBuildCode` in [`src/features/talents/logic.ts`](../../src/features/talents/logic.ts),
+  `readOnOlderTrees`). A code legal on both keeps today's reading. The paste then says so: "Pasted a
+  code from the game’s older talent trees", with what it lost, or "Every talent kept its points on
+  today’s trees."
+- **A code the sim itself shipped reads as its successor** (`TALENT_SUCCESSORS` in
+  [`src/sim/config/talent-successors.ts`](../../src/sim/config/talent-successors.ts), review TM2-1),
+  before any mapping by name. Mapping by name is right for a player's own build, but it crippled the
+  sim's own: the old Retribution default kept 8/8/19, 16 points refunded (−26% DPS). So each code in
+  `stored-builds.json`'s `legacy`, exactly, maps to its current version: a spec's **default**, read
+  from today's defaults (so a later default change carries through); a class **preset** by name,
+  likewise (the popular Protection build, the same digits today); the **same digits** on today's
+  trees, for a former default no preset keeps (T2's interim Protection default); or its **mapping
+  by name**, which already keeps every point (Holy). The load says so in one line: "Your talents
+  were the Retribution default on the game’s old trees; they’re now today’s default." ("…the
+  Protection popular build…; they’re now its version for today’s trees."), and nothing when the
+  successor is what the name mapping gives (Elemental, and every class whose trees didn't change).
+  A unit test checks every `legacy` code has a successor, each names a default of its own class,
+  a preset the class still has, or a legal build, and none loses a point.
+- **Loading maps any other version-1 code by talent name** (`normalizeConfig` in
   [`src/sim/config/normalize.ts`](../../src/sim/config/normalize.ts), `migrateTalentCode`). The code
   must be a legal build on its own trees (`frozenBuildProblems`: the same rules as
   `validateTalentBuild`); one that isn't is replaced by the default build, as an illegal code always
@@ -300,35 +319,44 @@ written on it decodes against that order, and loading maps it onto today's trees
   those in turn). 1.60.1.70009 also swapped Elemental Fury (now tier 6, after Call of Thunder) and
   Elemental Alacrity (now tier 3, before Call of Thunder), so an Elemental build without Elemental
   Alacrity loses Call of Thunder, then Elemental Fury.
-- **The load says what was refunded**, in one sentence: "The game’s new talent trees refunded 4 of
-  your talent points: 2 in Improved Holy Strike (removed from the game) and 2 in Crusade (removed
-  from the game)." A share link, a setup code or a saved setup says it in its notice with its other
-  changes ([ux.md](../ux.md#persistence-and-sharing)); the automatic save, which is otherwise silent
-  about its repairs, says it in the defaults notice, naming the spec, unless the build follows the
-  default (it then takes today's default, which loses nothing). A mapping that loses nothing says
-  nothing.
+- **The load says what was refunded**, in one sentence that names the talents the game changed as
+  the cause (`refundNotice`, review TM2-5): "The game’s new talent trees refunded 16 talent points:
+  Improved Holy Strike and Crusade left the game, and 5 talents below them lost the points their rows
+  need. Spend them again in Talents." A lowered max rank reads "Unyielding Faith now has 2 ranks";
+  up to three talents that lost their arrow or row are named ("Call of Thunder lost the talent its
+  arrow needs, and Elemental Fury and Lightning Overload lost the points their rows need"), more are
+  counted; a talent is named once however many specs or causes it's in. A share link, a setup code
+  or a saved setup says it in its notice with its other changes
+  ([ux.md](../ux.md#persistence-and-sharing)); the automatic save, which is otherwise silent about
+  its repairs, says it in the defaults notice, every spec's refunds in the one sentence ("…refunded
+  15 of your Retribution Paladin and 2 of your Protection Paladin talent points: …"), unless the
+  build follows the default (it then takes today's default, which loses nothing). A mapping that
+  loses nothing says nothing.
 - **Following the defaults** compares a save from before `following` with the frozen defaults
   (`src/app/legacy-defaults.ts`, ee171d2a's codes, and `FORMER_TALENTS`), which are on
   1.60.1.69913's trees: `legacyFollowing` reads the code as the save wrote it
   (`writtenV1Talents`), before loading maps it, so a save that held a default then takes today's.
 
 **What 1.60.1.70009 did to the stored codes** (every `legacy` code maps to a legal build;
-`src/sim/config/talent-trees.test.ts`):
+`src/sim/config/talent-trees.test.ts`). "By name" is what mapping by name would give, and what a
+player's build of the same shape gets; the sim's own codes load as their successor
+(`src/sim/config/talent-successors.test.ts`):
 
-| Code on 1.60.1.69913's trees | Maps to | Refunded |
-| --- | --- | --- |
-| `250003-503-052052310012330321`, the Retribution default | `50003-503-05205231001` | Improved Holy Strike 2, Crusade 2; then Two-Handed Weapon Specialization 3 and Vengeance 3 (their row needs 20 points above it; Crusade held 2 of them), Champion of the Light 3, Instrument of Law 2 and Twist of Light 1 in turn: 16 points |
-| `240003-0530213321301551-502`, the Protection default (the guild's lead theorycrafter's) | `4-0530213321301551-502` | Improved Holy Strike 2; then Improved Seals 3 (its row needs 5 points above it, and Divine Strength holds 4) |
-| `2-4530513321301551-502`, the popular Protection build | `-4530513321301551-502` | Improved Holy Strike 2 |
-| `2-4530013321301551-50205`, T2's interim Protection default | `-4530013321301551-50205` | Improved Holy Strike 2 |
-| `005320213225131051-5032-05`, Holy | `05320213225131051-5032-05` | none |
-| `5504301500103031-04-053250000001`, the Elemental default | `5504301300103051-04-053250000001` | none |
-| every Feral code | the same code | none (Primal Bite and Blood Frenzy) |
-| every other class's code | the same code | none |
+| Code on 1.60.1.69913's trees | By name | Refunded by name | Loads as (successor) |
+| --- | --- | --- | --- |
+| `250003-503-052052310012330321`, the Retribution default | `50003-503-05205231001` | Improved Holy Strike 2, Crusade 2; then Two-Handed Weapon Specialization 3 and Vengeance 3 (their row needs 20 points above it; Crusade held 2 of them), Champion of the Light 3, Instrument of Law 2 and Twist of Light 1 in turn: 16 points | today's Retribution default |
+| `240003-0530213321301551-502`, the Protection default (the guild's lead theorycrafter's) | `4-0530213321301551-502` | Improved Holy Strike 2; then Improved Seals 3 (its row needs 5 points above it, and Divine Strength holds 4) | today's Protection default |
+| `2-4530513321301551-502`, the popular Protection build | `-4530513321301551-502` | Improved Holy Strike 2 | today's "Protection popular build" preset (`2-4530513321301551-502`: Divine Strength 2) |
+| `2-4530013321301551-50205`, T2's interim Protection default | `-4530013321301551-50205` | Improved Holy Strike 2 | the same digits (Divine Strength 2) |
+| `005320213225131051-5032-05`, Holy | `05320213225131051-5032-05` | none | by name |
+| `5504301500103031-04-053250000001`, the Elemental default | `5504301300103051-04-053250000001` | none | today's Elemental default (the same code) |
+| every Feral code | the same code | none (Primal Bite and Blood Frenzy) | its default or preset, or the same digits |
+| every other class's code | the same code | none | its default or preset, or the same digits |
 
 The defaults themselves are rebuilt on the new trees with the same talents by name (the class
 docs' default rows): a setup that follows the defaults, or that held one of these defaults before
-saves said what follows, takes the new default instead of the mapping above.
+saves said what follows, takes the new default, as the successor table gives any other setup
+holding one.
 
 ## Prerequisite arrows
 

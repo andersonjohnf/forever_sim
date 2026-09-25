@@ -78,14 +78,15 @@ describe('a save from before `following`, after the defaults change', () => {
   })
 
   it.each([
-    // Improved Holy Strike and Crusade are gone: by name, 16 points go, as the row under Crusade loses its gate.
-    ['paladin-retribution', '50003-503-05205231001'],
+    // Improved Holy Strike and Crusade are gone: by name, 16 points would go, as the row under Crusade
+    // loses its gate, so the old default loads as today's (the successor table, review TM2-1).
+    ['paladin-retribution', null],
     // Elemental Fury and Elemental Alacrity trade places: every point stays.
     ['shaman-elemental', '5504301300103051-04-053250000001'],
   ] as const)('moves ee171d2a’s %s talents, written on 1.60.1.69913’s trees, to today’s default', async (spec, mapped) => {
     const race = LEGACY_DEFAULTS[spec]!.race
     const old = await ee171d2aSave(spec, race)
-    expect(old.talents).toBe(mapped)
+    expect(old.talents).toBe(mapped ?? defaultConfig(spec).talents)
     const follow = legacyFollowing(old, LEGACY_DEFAULTS[spec]!.talents)
     expect(follow.talents).toBe(true)
     expect(followDefaults(old, follow).config.talents).toBe(defaultConfig(spec).talents)

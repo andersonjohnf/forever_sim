@@ -1,5 +1,5 @@
 import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
-import { Fragment, type PointerEvent, type ReactNode, useId, useRef, useState } from 'react'
+import { Fragment, type PointerEvent, type ReactNode, type RefObject, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
 import { Button } from '@/components/ui/button'
@@ -7,13 +7,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useIsWide } from '@/hooks/use-media-query'
 import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { casterSheetRows, rangedSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
-import { WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
+import { type CharacterSheet as CharacterSheetData, computeSheet, type FightConfig, WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { ManaPerFight } from './mana-results'
@@ -265,22 +264,19 @@ function RunError({ message }: { message: string }) {
   )
 }
 
-/** In the strip (from 1920 px), each of the summary's "·" parts stays on one line (review DA-3). */
-const PART = '@min-[39.5rem]/results:whitespace-nowrap'
-
 /** The run's size, length and rules, and how long it took. */
 function RunSummary({ result, runConfig }: { result: SimResult; runConfig: SimConfig | null }) {
   // The length you set, not the average of the varied fights (Fight → Advanced → Length variation).
   const seconds = runConfig?.fight.durationSec ?? Math.round(result.durationSec)
   return (
     <p className="text-xs text-muted-foreground tabular-nums">
-      <span className={PART}>
+      <span>
         {formatInt(result.iterations)} fights of {formatInt(seconds)} s
       </span>
       {' · '}
-      <span className={PART}>{result.profile === 'forever' ? 'Forever' : 'Classic Era'} rules</span>
+      <span>{result.profile === 'forever' ? 'Forever' : 'Classic Era'} rules</span>
       {' · '}
-      <span className={PART}>ran in {result.elapsedMs < 50 ? 'under 0.1 s' : formatSeconds(result.elapsedMs)}</span>
+      <span>ran in {result.elapsedMs < 50 ? 'under 0.1 s' : formatSeconds(result.elapsedMs)}</span>
     </p>
   )
 }
@@ -345,62 +341,32 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  * The results (docs/ux.md#results). `panel` is the desktop column: it never grows past the
  * viewport, and the details under the headline scroll inside it. `sheet` is the phone's results
  * sheet, which scrolls as a whole; `onNavigate` closes it when a link opens a setup tab.
+ *
+ * `setup` makes it the wide layout's right panel (from 1440 px, D34; src/App.tsx passes it only
+ * there): the character sheet and that setup summary, then the results in one column (`WidePanel`).
  */
-export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
+export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate; setup?: ReactNode }) {
   const { result, previous, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
-  // The wide layout's details open by default in the desktop pane, as the reader last left them
-  // (docs/ux.md#results); the phone's sheet and the narrower desktops keep them collapsed.
-  const wide = useIsWide() && variant === 'panel'
+  if (setup !== undefined && variant === 'panel') return <WidePanel setup={setup} />
   const empty = result !== null && result.abilities.length === 0
-  // What the result is made of: the left column in the extra-wide pane.
-  const madeOf = result !== null && (result.tank !== undefined || !empty || result.mana !== undefined)
   const body = result && (
-    // From 1920 px the details sit in two columns, Assumptions across both under them; below that,
-    // the columns' wrappers are `contents`, so the sections stack as one list. The DOM keeps ux.md's
-    // order either way. The query is 39.5 rem, not the 40 rem the pane measures at 1920, so 1920
-    // gets it dependably: it starts at 1,896 px (src/App.tsx grows the pane a rem per 48 px).
-    // The left column, the breakdown with its outcome lines, gets the larger share (review DA-1).
-    <div
-      data-dimmed={dimmed}
-      className={cn(
-        'flex flex-col gap-5 @min-[39.5rem]/results:grid @min-[39.5rem]/results:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @min-[39.5rem]/results:items-start @min-[39.5rem]/results:gap-x-6',
-        DIM_ROOT,
-      )}
-    >
-      {madeOf && (
-        <div data-results-column="made-of" className="contents @min-[39.5rem]/results:flex @min-[39.5rem]/results:min-w-0 @min-[39.5rem]/results:flex-col @min-[39.5rem]/results:gap-5">
-          {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
-              they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
-          {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
-          {!empty && <Breakdown result={result} />}
-          {result.tank && <SwingOutcomes tank={result.tank} />}
-          {result.mana && <ManaPerFight mana={result.mana} />}
-        </div>
-      )}
-      {/* What explains it: the right column. With nothing on the left (no damage), it takes both. */}
-      <div
-        data-results-column="explains"
-        className={cn(
-          'contents @min-[39.5rem]/results:flex @min-[39.5rem]/results:min-w-0 @min-[39.5rem]/results:flex-col @min-[39.5rem]/results:gap-5',
-          !madeOf && '@min-[39.5rem]/results:col-span-2',
-        )}
-      >
-        {result.cooldowns.length > 0 && (
-          <Details id="cooldowns" title="Cooldowns and buffs" remember={wide}>
-            <Cooldowns result={result} runConfig={runConfig} />
-          </Details>
-        )}
-        <Details id="sheet" title="Character sheet" remember={wide}>
-          <CharacterSheet result={result} runConfig={runConfig} />
+    <div data-dimmed={dimmed} className={cn('flex flex-col gap-5', DIM_ROOT)}>
+      {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
+          they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
+      {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
+      {!empty && <Breakdown result={result} />}
+      {result.tank && <SwingOutcomes tank={result.tank} />}
+      {result.mana && <ManaPerFight mana={result.mana} />}
+      {result.cooldowns.length > 0 && (
+        <Details id="cooldowns" title="Cooldowns and buffs">
+          <Cooldowns result={result} runConfig={runConfig} />
         </Details>
-      </div>
+      )}
+      <Details id="sheet" title="Character sheet">
+        <SheetStats sheet={result.sheet} fight={runConfig?.fight ?? null} uptimes={result.cooldowns} />
+      </Details>
       {result.assumptions.length > 0 && (
-        <Details
-          id="assumptions"
-          title={`Assumptions (${result.assumptions.length})`}
-          remember={false}
-          className="@min-[39.5rem]/results:col-span-2"
-        >
+        <Details id="assumptions" title={`Assumptions (${result.assumptions.length})`}>
           <AssumptionList result={result} />
         </Details>
       )}
@@ -411,43 +377,254 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
     // The desktop panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops
     // 24 px above the viewport's bottom edge.
     <div className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
-      {/* From 1920 px the headline card is a strip: the values and the run's summary on the left,
-          Simulate on the right, and any message under them (docs/ux.md#results). While a run is
-          under way the headline, with its progress bar, takes the row's free width (review DA-6).
-          The summary keeps each "·" part whole, and moves under the values if the longest part
-          doesn't fit beside them (DA-3). */}
-      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4 @min-[39.5rem]/results:grid @min-[39.5rem]/results:grid-cols-[minmax(0,1fr)_auto] @min-[39.5rem]/results:items-center @min-[39.5rem]/results:gap-x-6">
-        <div className="flex min-w-0 flex-col gap-4 @min-[39.5rem]/results:flex-row @min-[39.5rem]/results:flex-wrap @min-[39.5rem]/results:items-end @min-[39.5rem]/results:gap-x-6 @min-[39.5rem]/results:gap-y-2">
-          <div className={cn('min-w-0 @min-[39.5rem]/results:min-w-56', running && '@min-[39.5rem]/results:flex-1')}>
+      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="min-w-0">
             <Headline />
           </div>
           {result && (
-            <div className="@min-[39.5rem]/results:flex-1 @min-[39.5rem]/results:pb-1">
+            <div>
               <RunSummary result={result} runConfig={runConfig} />
             </div>
           )}
         </div>
         {error !== null && (
-          <div className="@min-[39.5rem]/results:col-span-full">
+          <div>
             <RunError message={error} />
           </div>
         )}
         {result && !running && (
-          <div className="empty:hidden @min-[39.5rem]/results:col-span-full">
+          <div className="empty:hidden">
             <NoDamage result={result} variant={variant} onNavigate={onNavigate} />
           </div>
         )}
-        {!result && !running && error === null && (
-          <p className="text-sm text-muted-foreground @min-[39.5rem]/results:col-span-full">Your setup is ready. Simulate to see your {metricLabel}.</p>
-        )}
-        {stale && !running && error === null && (
-          <p className="text-sm text-muted-foreground @min-[39.5rem]/results:col-span-full">Your setup changed since this run. Simulate to update it.</p>
-        )}
-        <SimulateButton className="w-full @min-[39.5rem]/results:col-start-2 @min-[39.5rem]/results:row-start-1 @min-[39.5rem]/results:w-auto @min-[39.5rem]/results:min-w-36" />
+        {!result && !running && error === null && <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>}
+        {stale && !running && error === null && <p className="text-sm text-muted-foreground">Your setup changed since this run. Simulate to update it.</p>}
+        <SimulateButton className="w-full" />
       </div>
       {body && (variant === 'panel' ? <ScrollBody>{body}</ScrollBody> : body)}
     </div>
   )
+}
+
+/**
+ * The wide layout's line under the setup summary (src/app/setup-summary.tsx), beside its Simulate:
+ * what a run would do now, the first or one for a changed setup, and nothing once the result is
+ * this setup's.
+ */
+export function SimulateNote() {
+  const { result, stale, running, error, metricLabel } = useRunState()
+  if (running || error !== null) return null
+  if (!result) return <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
+  if (stale) return <p className="text-sm text-muted-foreground">Your setup changed since this run. Simulate to update it.</p>
+  return null
+}
+
+/**
+ * How much of the wide panel's height the character sheet and the setup summary may take and still
+ * both stay put (docs/ux.md#results): past it, the sheet scrolls with the results and only the
+ * setup summary, with Simulate, stays, so the results always keep the rest.
+ */
+const PINNED_SHARE = 0.6
+
+/**
+ * Whether the wide panel's character sheet stays put above the setup summary, and the heights that
+ * place the summary under it and keep focus clear of both: measured, since the sheet's length
+ * depends on the spec (a tank's has the boss's table) and the panel's on the window.
+ */
+function usePinned(panel: RefObject<HTMLElement | null>, sheet: RefObject<HTMLElement | null>, setup: RefObject<HTMLElement | null>) {
+  const [pinned, setPinned] = useState({ sheet: true, sheetHeight: 0, setupHeight: 0 })
+  useEffect(() => {
+    const p = panel.current
+    const s = sheet.current
+    const u = setup.current
+    if (!p || !s || !u) return
+    const update = () => {
+      // The panel's most height, whatever its content: its max-height (the window's, less the header).
+      const room = Number.parseFloat(getComputedStyle(p).maxHeight) || p.clientHeight
+      const sheetHeight = s.offsetHeight
+      const setupHeight = u.offsetHeight
+      const next = { sheet: sheetHeight + setupHeight <= room * PINNED_SHARE, sheetHeight, setupHeight }
+      setPinned((prev) => (prev.sheet === next.sheet && prev.sheetHeight === sheetHeight && prev.setupHeight === setupHeight ? prev : next))
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    for (const el of [p, s, u]) observer.observe(el)
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [panel, sheet, setup])
+  return pinned
+}
+
+/**
+ * When a run starts or finishes, the wide panel scrolls its result's headline into view if it isn't
+ * already (docs/ux.md#results): under a tank's long sheet at 1440×900 it starts below the panel's
+ * edge. It scrolls only down, just far enough for the result to start under what stays put, and
+ * never on the first render, so a result waiting when the page opens leaves the sheet in view.
+ */
+function useRevealResult(
+  scroller: RefObject<HTMLElement | null>,
+  results: RefObject<HTMLElement | null>,
+  pinned: { sheet: boolean; sheetHeight: number; setupHeight: number },
+  running: boolean,
+  result: SimResult | null,
+) {
+  const last = useRef({ running, result })
+  // A change of what stays put (a resize) isn't a run's: `changed` lets it pass.
+  useEffect(() => {
+    const changed = last.current.running !== running || last.current.result !== result
+    last.current = { running, result }
+    if (!changed) return
+    const el = scroller.current
+    const headline = results.current?.firstElementChild
+    if (!el || !headline || !(running || result)) return
+    const view = el.getBoundingClientRect()
+    const box = headline.getBoundingClientRect()
+    if (box.bottom <= view.bottom) return
+    const stuck = (pinned.sheet ? pinned.sheetHeight : 0) + pinned.setupHeight
+    const top = el.scrollTop + box.top - view.top - stuck
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollTo({ top: Math.max(el.scrollTop, top), behavior: reduced ? 'auto' : 'smooth' })
+  }, [scroller, results, pinned, running, result])
+}
+
+/**
+ * The wide layout's right panel (from 1440 px, D34; docs/ux.md#results): the character sheet, always
+ * shown and live from the setup; the setup summary with Simulate; then, once run, the result in one
+ * column. It never runs past the viewport and scrolls inside as one. The sheet and the summary stay
+ * put while the results scroll under them, unless together they'd take more than PINNED_SHARE of
+ * the panel: then the sheet scrolls away with the results and the summary alone stays.
+ */
+function WidePanel({ setup }: { setup: ReactNode }) {
+  const { result, previous, runConfig, running, error, dimmed } = useRunState()
+  const panel = useRef<HTMLDivElement>(null)
+  const scroller = useRef<HTMLDivElement>(null)
+  const content = useRef<HTMLDivElement>(null)
+  const sheet = useRef<HTMLElement>(null)
+  const summary = useRef<HTMLDivElement>(null)
+  const results = useRef<HTMLDivElement>(null)
+  const sheetHeadingId = useId()
+  const { above, below } = useScrollEdges(scroller, content)
+  const pinned = usePinned(panel, sheet, summary)
+  const empty = result !== null && result.abilities.length === 0
+  const shown = result !== null || running || error !== null
+  useRevealResult(scroller, results, pinned, running, result)
+  return (
+    // The panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops 24 px above
+    // the viewport's bottom edge.
+    <div ref={panel} className="relative flex max-h-[calc(100svh-8rem)] flex-col">
+      <div
+        ref={scroller}
+        role="region"
+        aria-label="Sheet, setup and result"
+        tabIndex={above || below ? 0 : undefined}
+        // Keyboard focus scrolls clear of what stays put above it (WCAG 2.4.11).
+        style={{ scrollPaddingTop: (pinned.sheet ? pinned.sheetHeight : 0) + pinned.setupHeight }}
+        // Relative, so what's visually hidden inside (the links' "(opens in a new tab)") scrolls with
+        // it rather than lengthening the page (results-assumptions-scroll.spec.ts).
+        className="relative -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <div ref={content} className="flex flex-col">
+          <section ref={sheet} aria-labelledby={sheetHeadingId} className={cn('flex flex-col gap-3 bg-background pb-4', pinned.sheet && 'sticky top-0 z-10')}>
+            <h3 id={sheetHeadingId} className="text-sm font-medium">
+              Character sheet
+            </h3>
+            <LiveSheet />
+          </section>
+          <div ref={summary} className="sticky z-10 border-t bg-background py-4" style={{ top: pinned.sheet ? pinned.sheetHeight : 0 }}>
+            {setup}
+            {/* The results scrolled under it: the fade marks that there's more above. With no result
+                it isn't there, since it would hang past the panel's end and make it scroll. */}
+            {shown && (
+              <div
+                aria-hidden
+                data-fade-above
+                className={cn(
+                  'pointer-events-none absolute inset-x-0 top-full h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
+                  above ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+            )}
+          </div>
+          {shown && (
+            <div ref={results} data-dimmed={dimmed} className={cn('flex flex-col border-t [&>*:last-child]:border-b-0', DIM_ROOT)}>
+              <WideSection>
+                {(result !== null || running) && (
+                  <div className="flex flex-col gap-2">
+                    <Headline />
+                    {result && <RunSummary result={result} runConfig={runConfig} />}
+                  </div>
+                )}
+                {error !== null && <RunError message={error} />}
+                {result && !running && <NoDamage result={result} variant="panel" />}
+              </WideSection>
+              {result?.tank && (
+                <WideSection>
+                  <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />
+                </WideSection>
+              )}
+              {result && !empty && (
+                <WideSection>
+                  <Breakdown result={result} />
+                </WideSection>
+              )}
+              {result?.tank && (
+                <WideSection>
+                  <SwingOutcomes tank={result.tank} />
+                </WideSection>
+              )}
+              {result?.mana && (
+                <WideSection>
+                  <ManaPerFight mana={result.mana} />
+                </WideSection>
+              )}
+              {result && result.cooldowns.length > 0 && (
+                <Details id="cooldowns" title="Cooldowns and buffs" remember flat>
+                  <Cooldowns result={result} runConfig={runConfig} />
+                </Details>
+              )}
+              {result && result.assumptions.length > 0 && (
+                <Details id="assumptions" title={`Assumptions (${result.assumptions.length})`} flat>
+                  <AssumptionList result={result} />
+                </Details>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <div
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-background via-background/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
+          below ? 'opacity-100' : 'opacity-0',
+        )}
+      >
+        <ChevronsDown className="size-4 text-muted-foreground" />
+      </div>
+    </div>
+  )
+}
+
+/** One part of the wide panel's result, divided from the next by a rule, with the same spacing each. */
+function WideSection({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-4 border-b py-4 empty:hidden">{children}</div>
+}
+
+/**
+ * The wide panel's character sheet: live from the setup (it comes from the plan, not the fights), so
+ * it shows before any run and follows every change. A block buff's uptime (Holy Shield's, for the
+ * boss's table) is the latest run's while that run is of this setup.
+ */
+function LiveSheet() {
+  const { config, result, stale } = useRunState()
+  const sheet = useMemo(() => computeSheet(config), [config])
+  if (!sheet) {
+    return <p className="text-sm text-muted-foreground">This setup can’t be simulated, so it has no sheet. Simulate to see what to change.</p>
+  }
+  return <SheetStats sheet={sheet} fight={config.fight} uptimes={result && !stale ? result.cooldowns : []} />
 }
 
 /**
@@ -668,8 +845,12 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
 /** Base values that only the defensive rows (Dodge, Parry, Block) show. */
 const AVOIDANCE_BASES = new Set(['base dodge', 'base parry', 'base block'])
 
-function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: SimConfig | null }) {
-  const s = result.sheet
+/**
+ * The character sheet's stats (docs/ux.md#results): a result's, or in the wide panel the setup's own
+ * (`LiveSheet`). `fight` is the fight for the boss's table; `uptimes`, a run's cooldowns and buffs,
+ * gives the block buff's uptime that the table's line names, when there's a run to take it from.
+ */
+function SheetStats({ sheet: s, fight, uptimes }: { sheet: CharacterSheetData; fight: FightConfig | null; uptimes: SimResult['cooldowns'] }) {
   const unknown = s.unknown ?? []
   const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
   // A tank's sheet has the boss's table against it (docs/ux.md#results).
@@ -761,13 +942,13 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
           // With the block buff the rotation keeps up (Holy Shield), the table as it is most of the fight.
           table={s.bossTableUp?.table ?? bossTable}
           avoidance={avoidanceOf(s)}
-          fight={runConfig?.fight ?? null}
+          fight={fight}
           up={
             s.bossTableUp
               ? {
                   name: s.bossTableUp.name,
                   blockPct: s.bossTableUp.blockPct,
-                  uptimePct: result.cooldowns.find((c) => c.id === s.bossTableUp!.auraId)?.uptimePct ?? null,
+                  uptimePct: uptimes.find((c) => c.id === s.bossTableUp!.auraId)?.uptimePct ?? null,
                 }
               : null
           }
@@ -787,11 +968,11 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   )
 }
 
-/** The details the wide pane opens by default (docs/ux.md#results). */
+/** The collapsible details. The sheet's is under 1440 px only: the wide panel shows it at its top. */
 type DetailsId = 'cooldowns' | 'sheet' | 'assumptions'
 
 /**
- * The details a reader closed in the wide pane, remembered per browser, so they stay closed. The
+ * The details a reader closed in the wide panel, remembered per browser, so they stay closed. The
  * stored list is untrusted: anything but an array of strings reads as nothing closed.
  */
 const CLOSED_KEY = 'forever-sim:results-closed'
@@ -818,10 +999,23 @@ function writeClosed(id: DetailsId, closed: boolean) {
 
 /**
  * A collapsible section of the details. Collapsed until opened, except where `remember` holds (the
- * wide pane's Cooldowns and buffs and Character sheet): there
- * it's open unless the reader closed it, which this browser remembers.
+ * wide panel's Cooldowns and buffs): there it's open unless the reader closed it, which this browser
+ * remembers. `flat` is the wide panel's style: a section divided from the next by a rule, like the
+ * others there, rather than a card.
  */
-function Details({ id, title, remember, className, children }: { id: DetailsId; title: string; remember: boolean; className?: string; children: ReactNode }) {
+function Details({
+  id,
+  title,
+  remember = false,
+  flat = false,
+  children,
+}: {
+  id: DetailsId
+  title: string
+  remember?: boolean
+  flat?: boolean
+  children: ReactNode
+}) {
   const [open, setOpen] = useState(false)
   const [wideOpen, setWideOpen] = useState(() => !readClosed().has(id))
   return (
@@ -832,13 +1026,18 @@ function Details({ id, title, remember, className, children }: { id: DetailsId; 
         setWideOpen(next)
         writeClosed(id, !next)
       }}
-      className={cn('rounded-xl border', className)}
+      className={flat ? 'border-b py-1.5' : 'rounded-xl border'}
     >
-      <CollapsibleTrigger className="group flex min-h-11 w-full items-center gap-2 px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+      <CollapsibleTrigger
+        className={cn(
+          'group flex min-h-11 w-full items-center gap-2 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+          flat ? 'rounded-md' : 'px-4',
+        )}
+      >
         <ChevronRight className="size-4 transition-transform group-data-[state=open]:rotate-90" aria-hidden />
         {title}
       </CollapsibleTrigger>
-      <CollapsibleContent className="border-t px-4 py-3">{children}</CollapsibleContent>
+      <CollapsibleContent className={flat ? 'pb-3' : 'border-t px-4 py-3'}>{children}</CollapsibleContent>
     </Collapsible>
   )
 }

@@ -1,12 +1,13 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// docs/ux.md#results, the wide layout (D34): from 1440 px Cooldowns and buffs and the Character
-// sheet open by default, and a reader who closes one keeps it closed (per browser); Assumptions
-// stays collapsed. From 1920 px the headline card is a one-row strip and the details sit in two
-// columns, the left the wider, with Assumptions across both under them; by container queries on
-// the results pane at 39.5 rem, so they start at 1,896 px, just under 1920's 40 rem pane. The pane
-// never runs past the viewport. Under 1440 px nothing changes (results-states.spec.ts).
+// docs/ux.md#results, the wide layout's right panel (D34 as amended): from 1440 px it stacks the
+// character sheet (always shown, live from the setup), Your setup (a line a section, each opening
+// its tab, with Simulate), then the result once run, in one column: the headline, the breakdown,
+// Cooldowns and buffs (open by default, remembered per browser), then Assumptions (collapsed). It
+// never runs past the viewport and scrolls inside; the sheet and the summary stay put while the
+// results scroll, unless they'd take more than 60% of the panel, when the sheet scrolls with them.
+// Under 1440 px nothing changes (results-states.spec.ts, and the last test here).
 
 const HEIGHT = 900
 
@@ -21,6 +22,9 @@ async function seed(page: Page, config: Record<string, unknown>) {
 }
 
 const results = (page: Page) => page.getByRole('complementary', { name: 'Results' })
+const sheetOf = (panel: Locator) => panel.getByRole('region', { name: 'Character sheet' })
+const setupOf = (panel: Locator) => panel.getByRole('region', { name: 'Your setup' })
+const scrollerOf = (panel: Locator) => panel.getByRole('region', { name: 'Sheet, setup and result' })
 
 async function simulate(panel: Locator) {
   await panel.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
@@ -33,69 +37,157 @@ const ASSUMPTIONS = /^Assumptions \(\d+\)$/
 type Box = { x: number; y: number; width: number; height: number }
 const box = async (l: Locator): Promise<Box> => (await l.boundingBox())!
 
-/** The pane's details stay inside the viewport and scroll inside it (docs/ux.md#layout). */
-async function expectInsideViewport(page: Page, panel: Locator) {
-  await page.evaluate(() => window.scrollTo(0, 0))
-  const details = panel.getByRole('region', { name: 'Result details' })
-  const b = await box(details)
-  expect(b.y + b.height, 'the details end inside the viewport').toBeLessThanOrEqual(HEIGHT)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'no sideways scroll').toBe(true)
-  return details
-}
+/** A value in the sheet's grid, by its label. */
+const stat = (panel: Locator, label: string) => sheetOf(panel).locator('dl > div', { has: panel.page().getByText(label, { exact: true }) }).locator('dd')
 
-test.describe('the wide results pane, 1440 px', () => {
+test.describe('the wide right panel, 1440 px', () => {
   test.use({ viewport: { width: 1440, height: HEIGHT } })
 
-  test('Cooldowns and buffs and the Character sheet open by default; Assumptions stays collapsed', async ({ page }) => {
+  test('before a run: the sheet and your setup with Simulate, and no empty result box', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    // The sheet shows before any run, in its two columns.
+    await expect(sheetOf(panel).getByRole('heading', { name: 'Character sheet' })).toBeVisible()
+    await expect(stat(panel, 'Attack power')).toHaveText(/^\d{1,3}(,\d{3})*$/)
+    const [ap, crit] = await Promise.all([box(sheetOf(panel).getByText('Attack power')), box(sheetOf(panel).getByText('Crit', { exact: true }))])
+    expect(crit.x).toBeGreaterThan(ap.x + 150)
+    expect(Math.abs(crit.y - ap.y)).toBeLessThan(2)
+    // It isn't collapsible here.
+    await expect(trigger(panel, 'Character sheet')).toHaveCount(0)
+    // Your setup: a line a section, in the Fury warrior's defaults, and Simulate with them.
+    const setup = setupOf(panel)
+    for (const name of ['Character Human', 'Talents 17/34/0', 'Gear Pre-raid best in slot', 'Buffs Standard raid', 'Rotation Default', 'Fight 3:00']) {
+      await expect(setup.getByRole('button', { name, exact: true })).toBeVisible()
+    }
+    await expect(setup.getByRole('button', { name: 'Simulate' })).toBeVisible()
+    await expect(setup.getByText('Your setup is ready. Simulate to see your DPS.')).toBeVisible()
+    // Nothing of a result until there is one, and the panel ends where its content does.
+    await expect(panel.getByRole('group', { name: 'DPS' })).toHaveCount(0)
+    const scroller = scrollerOf(panel)
+    expect(await scroller.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true)
+    await expect(scroller).not.toHaveAttribute('tabindex')
+  })
+
+  test('Simulate is sized to its label, never stretched', async ({ page }) => {
+    await page.goto('./')
+    const setup = setupOf(results(page))
+    for (const name of ['Simulate', 'Run again']) {
+      const button = setup.getByRole('button', { name })
+      const b = await box(button)
+      expect(b.height).toBeGreaterThanOrEqual(44)
+      // Its label and icon with the button's padding: far from the panel's 30 rem.
+      expect(b.width).toBeLessThan(160)
+      if (name === 'Simulate') await simulate(results(page))
+    }
+  })
+
+  test('the sheet follows the setup, before any run', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    const before = await stat(panel, 'Attack power').textContent()
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await page.getByRole('radio', { name: /^Self only/ }).click()
+    await expect(stat(panel, 'Attack power')).not.toHaveText(before!)
+    // And the summary with it.
+    await expect(setupOf(panel).getByRole('button', { name: 'Buffs Self only', exact: true })).toBeVisible()
+  })
+
+  test('each setup line opens its section and moves focus there', async ({ page }) => {
+    await page.goto('./')
+    const setup = setupOf(results(page))
+    await setup.getByRole('button', { name: /^Talents / }).click()
+    await expect(page.getByRole('tab', { name: 'Talents', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('[data-section="talents"]')).toBeFocused()
+    // By keyboard too.
+    await setup.getByRole('button', { name: /^Fight / }).focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('[data-section="fight"]')).toBeFocused()
+  })
+
+  // docs/ux.md "Your setup": each line follows the setup, by its own section's rule.
+  test('the setup lines follow the setup', async ({ page }) => {
+    await page.goto('./')
+    const setup = setupOf(results(page))
+    const line = (name: string) => setup.getByRole('button', { name: new RegExp(`^${name} `) })
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
+    await page.getByRole('button', { name: 'Decrease Boss level' }).click()
+    await expect(line('Fight')).toHaveAccessibleName('Fight 3:00 · level 62')
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await page.getByRole('radio', { name: /^Standard raid/ }).click()
+    await expect(line('Buffs')).toHaveAccessibleName('Buffs Standard raid')
+    // A buff switched off matches no preset.
+    await page.getByRole('switch', { name: 'Blessing of Kings' }).click()
+    await expect(line('Buffs')).toHaveAccessibleName('Buffs Custom')
+  })
+
+  test('after a run: one column, in ux.md’s order, Cooldowns open and Assumptions collapsed', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
     await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'true')
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'true')
     await expect(trigger(panel, ASSUMPTIONS)).toHaveAttribute('aria-expanded', 'false')
     await expect(panel.getByRole('table')).toBeAttached()
-    await expect(panel.getByText('Attack power', { exact: true })).toBeAttached()
-
-    // The open details make the pane overflow: it scrolls inside, with its fade, not the page.
-    const details = await expectInsideViewport(page, panel)
-    expect(await details.evaluate((el) => el.scrollHeight > el.clientHeight), 'the details scroll').toBe(true)
-    await expect(details).toHaveAttribute('tabindex', '0')
-    await details.evaluate((el) => el.scrollTo(0, el.scrollHeight))
-    await expect(trigger(panel, ASSUMPTIONS)).toBeInViewport()
-    expect(await page.evaluate(() => window.scrollY), 'the page itself didn’t scroll').toBe(0)
+    await expect(panel.getByText('Your setup is ready.')).toHaveCount(0)
+    // The DOM, and so a screen reader, keeps ux.md's order.
+    const order = await panel.evaluate((el) =>
+      [...el.querySelectorAll('h3, [role="group"][aria-labelledby], button[aria-expanded]')]
+        .map((n) => (n.matches('[role="group"]') ? `group ${n.querySelector('span')?.textContent}` : n.textContent?.trim()))
+        .filter((t) => t && !/^(Threat|Damage)$/.test(t)),
+    )
+    expect(order).toEqual(['Character sheet', 'Your setup', 'group DPS', 'Damage by ability', 'Cooldowns and buffs', expect.stringMatching(ASSUMPTIONS)])
+    // Nothing sits beside the breakdown: every section starts at the same left edge.
+    const lefts = await Promise.all(
+      [panel.getByRole('group', { name: 'DPS' }), panel.getByRole('heading', { name: 'Damage by ability' }), trigger(panel, 'Cooldowns and buffs')].map(async (l) => (await box(l)).x),
+    )
+    for (const x of lefts) expect(x).toBeCloseTo(lefts[0], -1)
   })
 
-  test('a section the reader closes stays closed, and one reopened stays open, across reloads', async ({ page }) => {
+  test('the sheet and your setup stay put while the result scrolls under them', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
-    await trigger(panel, 'Character sheet').click()
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'false')
-
-    await page.reload()
-    await simulate(panel)
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'false')
-    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'true')
-
-    // Opening it again is remembered too, and a re-run leaves both as they are.
-    await trigger(panel, 'Character sheet').click()
-    await trigger(panel, 'Cooldowns and buffs').click()
-    await simulate(panel)
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'true')
-    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'false')
-    await page.reload()
-    await simulate(panel)
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'true')
-    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'false')
+    const scroller = scrollerOf(panel)
+    // The panel stays inside the viewport, and scrolls inside, not the page.
+    const b = await box(scroller)
+    expect(b.y + b.height).toBeLessThanOrEqual(HEIGHT)
+    expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
+    await expect(scroller).toHaveAttribute('tabindex', '0')
+    const sheet = await box(sheetOf(panel))
+    const setup = await box(setupOf(panel))
+    await scroller.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await expect(trigger(panel, ASSUMPTIONS)).toBeInViewport()
+    expect((await box(sheetOf(panel))).y).toBeCloseTo(sheet.y, 0)
+    expect((await box(setupOf(panel))).y).toBeCloseTo(setup.y, 0)
+    expect(await page.evaluate(() => window.scrollY), 'the page itself didn’t scroll').toBe(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'no sideways scroll').toBe(true)
   })
 
-  test('a stored value it can’t read opens both, as for a first visit', async ({ page }) => {
+  test('Cooldowns closed stays closed, and reopened stays open, across reloads', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    await trigger(panel, 'Cooldowns and buffs').click()
+    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'false')
+    await page.reload()
+    await simulate(panel)
+    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'false')
+    // Opening it again is remembered too, and a re-run leaves it as it is.
+    await trigger(panel, 'Cooldowns and buffs').click()
+    await simulate(panel)
+    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'true')
+    await page.reload()
+    await simulate(panel)
+    await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  test('a stored value it can’t read opens Cooldowns, as for a first visit', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('forever-sim:results-closed', '{"not":"a list"'))
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
     await expect(trigger(panel, 'Cooldowns and buffs')).toHaveAttribute('aria-expanded', 'true')
-    await expect(trigger(panel, 'Character sheet')).toHaveAttribute('aria-expanded', 'true')
   })
 
   test('each breakdown row’s outcomes keep to one line', async ({ page }) => {
@@ -115,6 +207,46 @@ test.describe('the wide results pane, 1440 px', () => {
     )
     expect(lines.length).toBeGreaterThan(5)
     for (const l of lines) if (l.text) expect(l.lines, l.text).toBe(1)
+  })
+
+  test('a tank: the boss’s table is in the sheet before a run; a run brings its result into view', async ({ page }) => {
+    await seed(page, { spec: 'paladin-protection' })
+    await page.goto('./')
+    const panel = results(page)
+    const sheet = sheetOf(panel)
+    await expect(sheet.getByRole('heading', { name: 'Boss’s attack table' })).toBeVisible()
+    await expect(sheet.getByText(/Your rotation keeps Holy Shield up most of the fight\./)).toBeVisible()
+    await simulate(panel)
+    // The run's own uptime, once it's this setup's.
+    await expect(sheet.getByText(/Your rotation kept it up \d+\.\d% of the fight\./)).toBeAttached()
+    // The sheet is too long to stay put at 1440×900, so it scrolled away and the result came into
+    // view under your setup, which stays.
+    await expect(panel.getByRole('group', { name: 'TPS' })).toBeInViewport()
+    await expect(setupOf(panel).getByRole('button', { name: 'Run again' })).toBeInViewport()
+    const scroller = scrollerOf(panel)
+    const scrollerTop = (await box(scroller)).y
+    // It scrolls smoothly: your setup ends up at the panel's top, under its rule and padding.
+    await expect.poll(async () => Math.round((await box(setupOf(panel))).y - scrollerTop)).toBe(17)
+    const setupTop = (await box(setupOf(panel))).y
+    await scroller.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    expect((await box(setupOf(panel))).y).toBeCloseTo(setupTop, 0)
+    // Back at the top the sheet is all there.
+    await scroller.evaluate((el) => el.scrollTo(0, 0))
+    await expect(sheet.getByRole('heading', { name: 'Character sheet' })).toBeInViewport()
+  })
+
+  test('a setup the run refuses keeps its sheet, and the refusal shows under your setup', async ({ page }) => {
+    await seed(page, { race: 'alliance-skyborne-high-order' })
+    await page.goto('./')
+    const panel = results(page)
+    // The sheet is the setup's, whatever a run makes of it: it names what it leaves out.
+    await expect(sheetOf(panel)).toContainText('Not known for Forever yet, so left out: base attributes.')
+    await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
+    const alert = panel.getByRole('alert')
+    await expect(alert).toContainText('a Skyborne warrior can’t be simulated')
+    expect((await box(alert)).y).toBeGreaterThan((await box(setupOf(panel))).y)
+    // No headline for a run with no result.
+    await expect(panel.getByRole('group', { name: 'DPS' })).toHaveCount(0)
   })
 
   // Review finding DA-5: the tooltip names only this platform's key, and opens on hover alone.
@@ -151,138 +283,54 @@ test.describe('the wide results pane, 1440 px', () => {
   })
 })
 
-test.describe('the extra-wide results pane, 1920 px', () => {
-  test.use({ viewport: { width: 1920, height: HEIGHT } })
+test.describe('the wide right panel, 1920 px', () => {
+  test.use({ viewport: { width: 1920, height: 1080 } })
 
-  test('the headline is a strip: the value, its ±, the run and Simulate on one row', async ({ page }) => {
-    await page.goto('./')
-    const panel = results(page)
-    // Before a run: the empty value and Simulate side by side, the prompt under them.
-    const value = panel.getByRole('group', { name: 'DPS' })
-    let simulateBox = await box(panel.getByRole('button', { name: 'Simulate' }))
-    let valueBox = await box(value)
-    expect(simulateBox.x).toBeGreaterThan(valueBox.x + valueBox.width)
-    expect(simulateBox.y).toBeLessThan(valueBox.y + valueBox.height)
-    const prompt = await box(panel.getByText(/^Your setup is ready/))
-    expect(prompt.y).toBeGreaterThan(valueBox.y + valueBox.height)
-
-    await simulate(panel)
-    await page.getByRole('button', { name: 'Run again' }).first().blur()
-    valueBox = await box(value)
-    simulateBox = await box(panel.getByRole('button', { name: 'Run again' }))
-    const summary = await box(panel.getByText(/fights of \d+ s/))
-    // Left to right: the value with its ±, the run's summary, then Simulate, all on one row.
-    await expect(value.getByText(/^± \d/)).toBeVisible()
-    expect(summary.x).toBeGreaterThanOrEqual(valueBox.x + valueBox.width)
-    expect(simulateBox.x).toBeGreaterThanOrEqual(summary.x + summary.width)
-    for (const b of [summary, simulateBox]) {
-      expect(b.y + b.height).toBeGreaterThan(valueBox.y)
-      expect(b.y).toBeLessThan(valueBox.y + valueBox.height)
-    }
-    // Simulate keeps its 44 px height.
-    expect(simulateBox.height).toBeGreaterThanOrEqual(44)
-  })
-
-  test('the details sit in two columns, Assumptions under both, in ux.md’s reading order', async ({ page }) => {
+  test('still one column, and your setup in three columns', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
-    const details = await expectInsideViewport(page, panel)
-    const breakdown = await box(panel.getByRole('heading', { name: 'Damage by ability' }))
-    const cooldowns = await box(trigger(panel, 'Cooldowns and buffs'))
-    const sheet = await box(trigger(panel, 'Character sheet'))
-    // Left, what the result is made of; right, what explains it, from the same top.
-    expect(cooldowns.x).toBeGreaterThan(breakdown.x + 200)
-    expect(sheet.x).toBe(cooldowns.x)
-    expect(Math.abs(cooldowns.y - breakdown.y)).toBeLessThan(24)
-    // Assumptions spans both columns, under them, and stays collapsed.
-    const assumptions = trigger(panel, ASSUMPTIONS)
-    await expect(assumptions).toHaveAttribute('aria-expanded', 'false')
-    const detailsBox = await box(details)
-    const a = await box(assumptions)
-    expect(a.width).toBeGreaterThan(detailsBox.width - 24)
-    // The DOM, and so a screen reader, keeps ux.md's order.
-    const order = await panel.evaluate((el) =>
-      [...el.querySelectorAll('h3, button[aria-expanded]')].map((n) => n.textContent?.trim()).filter((t) => t && !/^(Threat|Damage)$/.test(t)),
+    const setup = setupOf(panel)
+    const [character, talents, gear, buffs] = await Promise.all(
+      ['Character', 'Talents', 'Gear', 'Buffs'].map((name) => box(setup.getByRole('button', { name: new RegExp(`^${name} `) }))),
     )
-    expect(order).toEqual(['Damage by ability', 'Cooldowns and buffs', 'Character sheet', expect.stringMatching(ASSUMPTIONS)])
+    expect(talents.y).toBeCloseTo(character.y, 0)
+    expect(gear.y).toBeCloseTo(character.y, 0)
+    expect(buffs.y).toBeGreaterThan(character.y + 40)
+    expect(buffs.x).toBeCloseTo(character.x, 0)
+    const lefts = await Promise.all(
+      [panel.getByRole('group', { name: 'DPS' }), panel.getByRole('heading', { name: 'Damage by ability' }), trigger(panel, 'Cooldowns and buffs')].map(async (l) => (await box(l)).x),
+    )
+    for (const x of lefts) expect(x).toBeCloseTo(lefts[0], -1)
+    // The whole result's top is in view under the sheet and setup, which stay put.
+    await expect(panel.getByRole('group', { name: 'DPS' })).toBeInViewport()
   })
 
-  test('the left column, the breakdown, is the wider (1.4 to 1)', async ({ page }) => {
-    await page.goto('./')
-    const panel = results(page)
-    await simulate(panel)
-    const [left, right] = await panel.locator('[data-results-column]').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width))
-    expect(left / right).toBeCloseTo(1.4, 1)
-  })
-
-  test('Assumptions, across both columns, keeps its lines to a readable measure', async ({ page }) => {
-    await page.goto('./')
-    const panel = results(page)
-    await simulate(panel)
-    await trigger(panel, ASSUMPTIONS).click()
-    const list = panel.getByRole('region', { name: 'Result details' }).locator('p', { hasText: /^What this result takes on trust/ }).locator('..')
-    expect((await box(list)).width).toBeLessThanOrEqual(32 * 16)
-  })
-
-  test('a four-digit TPS leaves each part of the run’s summary whole', async ({ page }) => {
-    // A Protection warrior's default is over 1,000 TPS: the strip's widest headline (review finding
-    // DA-3), in the narrowest strip, at 1,897 px.
-    await page.setViewportSize({ width: 1897, height: HEIGHT })
-    await seed(page, { spec: 'warrior-protection' })
-    await page.goto('./')
-    const panel = results(page)
-    await simulate(panel)
-    await expect(panel.getByRole('group', { name: 'TPS' })).toContainText(/\d,\d{3}\.\d/)
-    const lines = (els: Element[]) => els.map((e) => new Set([...e.getClientRects()].map((r) => Math.round(r.top))).size)
-    const parts = panel.locator('p', { hasText: /fights of \d+ s/ }).locator('span')
-    expect(await parts.evaluateAll(lines)).toEqual([1, 1, 1])
-    // Where the digits happen to wrap at a "·" anyway, the parts still may not break.
-    expect(await parts.evaluateAll((els) => els.map((e) => getComputedStyle(e).whiteSpace))).toEqual(['nowrap', 'nowrap', 'nowrap'])
-  })
-
-  test('a tank: TPS and DPS in the strip, damage taken and the breakdown left, the boss’s table right', async ({ page }) => {
+  test('a tank: TPS and DPS side by side, then damage taken, the breakdown and how the swings landed', async ({ page }) => {
     await seed(page, { spec: 'paladin-protection' })
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
     const tps = await box(panel.getByRole('group', { name: 'TPS' }))
     const dps = await box(panel.getByRole('group', { name: 'DPS' }))
-    const run = await box(panel.getByRole('button', { name: 'Run again' }))
     expect(dps.x).toBeGreaterThan(tps.x + tps.width - 1)
-    expect(run.x).toBeGreaterThan(dps.x + dps.width)
     expect(Math.abs(dps.y - tps.y)).toBeLessThan(2)
-    expect(run.y).toBeLessThan(tps.y + tps.height)
-
-    const taken = await box(panel.getByRole('heading', { name: 'Damage taken per second' }))
-    const threat = await box(panel.getByRole('heading', { name: 'Threat by ability' }))
-    const swings = await box(panel.getByRole('heading', { name: 'How the boss’s swings landed' }))
-    const bossTable = await box(panel.getByRole('heading', { name: 'Boss’s attack table' }))
-    const cooldowns = await box(trigger(panel, 'Cooldowns and buffs'))
-    expect(threat.x).toBe(taken.x)
-    expect(swings.x).toBe(taken.x)
-    expect(threat.y).toBeGreaterThan(taken.y)
-    expect(cooldowns.x).toBeGreaterThan(taken.x + 200)
-    expect(bossTable.x).toBeGreaterThan(taken.x + 200)
-    await expectInsideViewport(page, panel)
-  })
-
-  test('with no damage to show, what explains the result takes both columns', async ({ page }) => {
-    await seed(page, { gear: {} })
-    await page.goto('./')
-    const panel = results(page)
-    await simulate(panel)
-    await expect(panel.getByText('No main-hand weapon')).toBeVisible()
-    const details = await box(panel.getByRole('region', { name: 'Result details' }))
-    const sheet = await box(trigger(panel, 'Character sheet'))
-    expect(sheet.width).toBeGreaterThan(details.width - 24)
+    const ys = await Promise.all(
+      ['Damage taken per second', 'Threat by ability', 'How the boss’s swings landed'].map(async (name) => (await box(panel.getByRole('heading', { name }))).y),
+    )
+    expect(ys[0]).toBeGreaterThan(tps.y)
+    expect(ys[1]).toBeGreaterThan(ys[0])
+    expect(ys[2]).toBeGreaterThan(ys[1])
   })
 })
 
-test('under 1440 px the details stay collapsed, whatever the wide pane remembers', async ({ page }) => {
+test('under 1440 px the panel is as it was: no setup summary, the sheet collapsed in the result', async ({ page }) => {
   await page.setViewportSize({ width: 1439, height: HEIGHT })
+  await page.addInitScript(() => localStorage.setItem('forever-sim:results-closed', '[]'))
   await page.goto('./')
   const panel = results(page)
+  await expect(setupOf(panel)).toHaveCount(0)
+  await expect(sheetOf(panel)).toHaveCount(0)
   await simulate(panel)
   for (const name of ['Cooldowns and buffs', 'Character sheet']) await expect(trigger(panel, name)).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger(panel, ASSUMPTIONS)).toHaveAttribute('aria-expanded', 'false')
@@ -290,47 +338,5 @@ test('under 1440 px the details stay collapsed, whatever the wide pane remembers
   const value = await box(panel.getByRole('group', { name: 'DPS' }))
   const run = await box(panel.getByRole('button', { name: 'Run again' }))
   expect(run.y).toBeGreaterThan(value.y + value.height)
+  expect(run.width).toBeGreaterThan(300)
 })
-
-// Review finding DA-6: while a run is under way, the strip's headline, with its progress bar, takes
-// the row's free width rather than 14 rem.
-test('at 1920 px a first run’s progress bar spans the strip', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: HEIGHT })
-  // 100,000 fights of 10 minutes: long enough to measure the bar.
-  await seed(page, { run: { mode: 'fixed', iterations: 100000, seed: 1 }, fight: { durationSec: 600 } })
-  await page.goto('./')
-  const panel = results(page)
-  await panel.getByRole('button', { name: 'Simulate' }).click()
-  const bar = await box(panel.getByRole('progressbar', { name: 'Simulation progress' }))
-  const cancel = await box(panel.getByRole('button', { name: 'Cancel' }))
-  expect(bar.width).toBeGreaterThan(400)
-  expect(cancel.x - (bar.x + bar.width)).toBeLessThanOrEqual(24 + 1)
-  await panel.getByRole('button', { name: 'Cancel' }).click()
-})
-
-// The strip and the two columns start at 1,896 px (a 39.5 rem pane), so 1920 always has them.
-for (const { width, columns } of [
-  { width: 1895, columns: false },
-  { width: 1897, columns: true },
-  { width: 1919, columns: true },
-  { width: 1920, columns: true },
-  { width: 2000, columns: true },
-]) {
-  test(`at ${width} px the details are ${columns ? 'in two columns, under a strip' : 'one column'}`, async ({ page }) => {
-    await page.setViewportSize({ width, height: HEIGHT })
-    await page.goto('./')
-    const panel = results(page)
-    await simulate(panel)
-    const cooldowns = await box(trigger(panel, 'Cooldowns and buffs'))
-    const breakdown = await box(panel.getByRole('heading', { name: 'Damage by ability' }))
-    const value = await box(panel.getByRole('group', { name: 'DPS' }))
-    const run = await box(panel.getByRole('button', { name: 'Run again' }))
-    if (columns) {
-      expect(cooldowns.x).toBeGreaterThan(breakdown.x + 200)
-      expect(run.y).toBeLessThan(value.y + value.height)
-    } else {
-      expect(cooldowns.x).toBeCloseTo(breakdown.x, -1)
-      expect(run.y).toBeGreaterThan(value.y + value.height)
-    }
-  })
-}

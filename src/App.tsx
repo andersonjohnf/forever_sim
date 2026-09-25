@@ -1,12 +1,11 @@
-import { useEffect, useRef } from 'react'
-import { useShallow } from 'zustand/react/shallow'
+import { useCallback, useEffect, useRef } from 'react'
 import { Announcer } from '@/app/announcer'
 import { DecadesCredit } from '@/app/decades-credit'
 import { useDefaultsNotice } from '@/app/defaults-notice'
 import { Header } from '@/app/header'
-import { sectionSummaries } from '@/app/section-summary'
 import { SectionTabs } from '@/app/section-tabs'
 import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
+import { SetupSummary } from '@/app/setup-summary'
 import { useSharedLink } from '@/app/shared-link'
 import { useSimulateShortcut } from '@/app/shortcuts'
 import { WhatsNew } from '@/app/whats-new'
@@ -17,7 +16,7 @@ import { CharacterSection } from '@/features/character/character-section'
 import { FightSection } from '@/features/fight/fight-section'
 import { GearSection } from '@/features/gear/gear-section'
 import { MobileSimBar } from '@/features/results/mobile-sim-bar'
-import { ResultsPanel } from '@/features/results/results-panel'
+import { ResultsPanel, SimulateButton, SimulateNote } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
 import { useIsWide } from '@/hooks/use-media-query'
@@ -80,9 +79,25 @@ export default function App() {
   useDefaultsNotice()
   useSharedLink()
   useSimulateShortcut()
-  // The tabs' summary lines, from 1440 px only (D34), kept while no line changes.
   const wide = useIsWide()
-  const summaries = useSetup(useShallow((s) => (wide ? sectionSummaries(s.config) : undefined)))
+  // Opens a section's tab, as a tab does and as the wide panel's setup summary does.
+  const openSection = useCallback(
+    (next: Section) => {
+      setSection(next)
+      // Next frame: the new section has rendered by then, and a click has finished moving focus to
+      // its tab.
+      requestAnimationFrame(() => scrollToSectionTop(next))
+    },
+    [setSection],
+  )
+  // The setup summary's lines also move focus into the section they open (docs/ux.md#results).
+  const openAndFocus = useCallback(
+    (next: Section) => {
+      openSection(next)
+      requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-section="${next}"]`)?.focus({ preventScroll: true }))
+    },
+    [openSection],
+  )
 
   return (
     <div className="min-h-svh bg-background">
@@ -120,16 +135,11 @@ export default function App() {
          */}
         <Tabs
           value={section}
-          onValueChange={(v) => {
-            setSection(v as Section)
-            // Next frame: the new section has rendered by then, and a click has finished moving
-            // focus to its tab.
-            requestAnimationFrame(() => scrollToSectionTop(v as Section))
-          }}
+          onValueChange={(v) => openSection(v as Section)}
           activationMode="manual"
           className="min-w-0 gap-0 wide:@container/setup"
         >
-          <SectionTabs sections={SECTIONS} active={section} summaries={summaries} />
+          <SectionTabs sections={SECTIONS} active={section} />
           {SECTIONS.map(({ id, content: Content }) => (
             // data-section: a control that opens this tab moves focus here (src/app/section-focus.ts).
             <TabsContent key={id} value={id} data-section={id} className="pt-6">
@@ -142,10 +152,13 @@ export default function App() {
             <DecadesCredit />
           </footer>
         </Tabs>
-        {/* The skip link's target: focus lands on its Simulate button. */}
+        {/*
+         * The skip link's target: focus lands on its Simulate button. From 1440 px (D34) it's the
+         * wide panel: the character sheet and the setup summary, with Simulate, then the result.
+         */}
         <aside ref={results} id="results" className="hidden outline-none lg:block wide:@container/results" aria-label="Results">
           <div className="sticky top-20 pt-6">
-            <ResultsPanel />
+            <ResultsPanel setup={wide ? <SetupSummary sections={SECTIONS} onOpen={openAndFocus} action={<SimulateButton />} note={<SimulateNote />} /> : undefined} />
           </div>
         </aside>
       </main>

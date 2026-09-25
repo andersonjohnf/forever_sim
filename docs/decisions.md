@@ -397,8 +397,8 @@ pieces separately. So, for new specs until the tuning milestone:
   power, spell hit, crit and resists) and a ranged core (Auto Shot, ranged weapons, pets) are
   built once; each class is then data, talents and a rotation.
 - **A merge queue.** A branch rebases once, just before its review, and merges as soon as it's
-  green. **Agents run in parallel on disjoint files, at most 8 at once** (user decision,
-  2026-09-24, replacing "about four"), and new ones wait while the machine is saturated, that is,
+  green. **Agents run in parallel on disjoint files, at most 10 at once** (user decision,
+  2026-09-25, replacing 8, which replaced "about four"), and new ones wait while the machine is saturated, that is,
   while tests fail from load rather than from the change.
 - **Unchanged:** the sourcing rules (doctrine §2), no world buffs, determinism, green checks
   (`npm run test:full`) before every push, D24's placeholders, and D25's push at every stable
@@ -581,6 +581,29 @@ not talent names. Where this paragraph and the ones above disagree, this one hol
 limit to iterations"). The optimizer grows its budget to race every plan fairly, but never past a
 fixed cap on total fights (and on builds enumerated); beyond it, it narrows the space (max ranks
 first) and says so, and it shows the estimated fights and time before it runs.
+
+**The build plan (user decision, 2026-09-25, "that sounds perfect").** The walkthrough's five
+recommendations, adopted:
+- **Tank defaults keep what the sim can't value, as a visible constraint.** The optimizer stays
+  free of talent rules. The tanks' *default setup* passes the Optimizer a "kept talents" constraint
+  for the emergency cooldowns the rotation never presses (Last Stand, Improved Shield Wall and
+  their like, listed in each class doc), which the player sees and can clear. D29's "what players
+  run" and D30's "the optimizer's results" meet there.
+- **Gear sources.** The Optimizer offers every pool source with filters (item level, source,
+  faction, locked slots). Defaults search the whole pool, as the pre-raid presets do, and each
+  result says which pieces are PvP rank or rare drops.
+- **The gear search (O2)** keeps each slot's top 5 to 8 items by the setup's own stat weights, plus
+  the current item, then races one slot at a time (rings, trinkets and weapons in pairs, a
+  two-hander against dual wield, set bonuses and unique-equipped kept), until a pass changes
+  nothing, with restarts from the default preset and a stat-weight greedy set. Enchants are
+  searched with their slot. Talents, gear and rotation then alternate until stable. It doesn't
+  claim the global best; restarts and the fresh-seed check guard it.
+- **The rotation search** covers row settings, rows on or off, and swaps of neighbouring rows, not
+  free reordering.
+- **In the app (O3)**, the Optimizer is its own screen from the toolbar menu, and Talents, Gear
+  and Rotation each have a "Find the best…" button that opens it scoped to that tab.
+- **Order:** every spec on the Rotation tab's priority list first (M5.65 A2), with the bug fixes
+  and small items that can go alongside it; then O2, O3 and O4; multi-target (M6) after.
 
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority

@@ -62,7 +62,7 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    One fresh reviewer does a **combined logic and UX review** (steps 2 and 3 together). High
    and medium findings are fixed; lows go to the milestones' known gaps unless the fix is one
    line. Only a fix that changed engine logic gets a verification pass. Build shared engine
-   cores before class slices, run agents in parallel on disjoint files (at most 8 at once, and
+   cores before class slices, run agents in parallel on disjoint files (at most 10 at once, and
    none new while tests fail from machine load), and rebase a branch once, just before its review.
 
 ## Git workflow

@@ -414,6 +414,12 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
             TPS's plans byte-identical to before the list for 200 random setups each, and a
             Defensive golden per tank equal to its old default's
             ([architecture.md](architecture.md), "Rotation as a priority list")
+      - [ ] The rest, one slice a class in parallel (user priority, 2026-09-25: "getting the true
+            APL on all specs is priority"), each with a 200-setup plan snapshot taken before the
+            move and byte-identical plans at the default order: Arms; Retribution; Feral cat and
+            Balance; Enhancement and Elemental; the three rogues; the three hunters; the three
+            mages; the three warlocks (then issue #17's Incinerate filler and Searing Pain with
+            Demonic Brand); Shadow
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 
@@ -442,6 +448,9 @@ sets. Each spec's defaults are then its results.
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
+      (D30's build plan, 2026-09-25: each slot's top 5 to 8 by the setup's stat weights plus the
+      current item, pairs raced together, restarts from the default preset and a greedy set,
+      enchants searched with their slot)
 - [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px.
       It shows the hard ceiling's estimate (fights and time) before the search and again before the

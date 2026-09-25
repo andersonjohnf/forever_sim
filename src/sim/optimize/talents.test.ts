@@ -229,17 +229,19 @@ describe('talentSpace', () => {
   })
 
   it('the warrior under ehp>=103%: every rank of one objective talent, Toughness at 0 or 5, finds the better build (OGV-1)', () => {
-    // The verification's screen for Balanced (quick, seed 1): each objective talent's change in score
-    // at max rank, and the tie-break (less damage taken a second) at max rank. The floor at 103% of
-    // the default's effective health binds, so Toughness is a dimension. Before OGV-1 it searched
-    // Toughness's partial ranks too: 52,506 builds, too many for quick's budget at 50 fights each, so
-    // the search fell back to max ranks and missed Booming Voice 3 with Boundless Rage 2, +0.36 ±
-    // 0.10 points over the leader it found, paired.
+    // The screen for Balanced on 1.60.1.70009 (quick, seed 1, the CLI's report): each objective
+    // talent's change in score at max rank, and the tie-break (less damage taken a second) at max
+    // rank. The floor at 103% of the default's effective health binds, so Toughness is a dimension.
+    // Before OGV-1 it searched Toughness's partial ranks too: 52,506 builds on 69913's screen, too
+    // many for quick's budget at 50 fights each, so the search fell back to max ranks and missed
+    // Booming Voice 3 with Boundless Rage 2, +0.36 ± 0.10 points over the leader it found, paired
+    // (69913). On 70009 the answer is Booming Voice 4 with Boundless Rage 1, a partial rank too. The
+    // warrior's tree didn't change in 70009, and the space's counts didn't either.
     const effect: Record<string, number> = {
-      'Improved Heroic Strike': 2.759, Deflection: -0.067, 'Improved Charge': -0.042, 'Anger Management': 1.279, 'Deep Wounds': 5.25,
-      Impale: 4.545, Weaponmaster: 8.077, Cruelty: 7.148, 'Unbridled Wrath': 1.165, 'Boundless Rage': -0.177, Enrage: 11.299, Flurry: 16.448,
-      'Shield Specialization': 12.904, Anticipation: -0.918, 'Improved Bloodrage': 0.743, 'Master of Defense': 4.01, 'Improved Revenge': 7.921,
-      Defiance: 14.782, 'Improved Sunder Armor': 5.081, Vanguard: 0.623, Bastion: 14.791, 'Focused Rage': 14.082, 'Shield Slam': 31.662,
+      'Improved Heroic Strike': 2.686, Deflection: -0.138, 'Improved Charge': -0.084, 'Anger Management': 1.258, 'Deep Wounds': 5.603,
+      Impale: 4.89, Weaponmaster: 8.698, Cruelty: 7.676, 'Unbridled Wrath': 1.224, 'Boundless Rage': -0.686, Enrage: 12.14, Flurry: 17.779,
+      'Shield Specialization': 13.027, Anticipation: -0.958, 'Improved Bloodrage': 0.745, 'Master of Defense': 3.743, 'Improved Revenge': 8.891,
+      Defiance: 14.73, 'Improved Sunder Armor': 5.125, Vanguard: 0.706, Bastion: 15.908, 'Focused Rage': 13.449, 'Shield Slam': 54.656,
     }
     const tie: Record<string, number> = {
       'Improved Heroic Strike': 0.473, Deflection: 51.336, 'Improved Charge': -0.231, 'Anger Management': -1.353, Weaponmaster: -2.607, Cruelty: -0.693,
@@ -261,13 +263,15 @@ describe('talentSpace', () => {
     expect(space.builds.length).toBe(COUNT_WARRIOR_EHP103_PARTIALS)
     expect(talentSpaceSize(options)).toEqual({ builds: COUNT_WARRIOR_EHP103_PARTIALS, stopped: false })
     const codes = space.builds.map((b) => b.code)
-    // The verification's better build, and the leader the max-rank fallback found.
-    expect(codes).toContain('-35050002005-500500233300010531')
+    // 70009's answer (Booming Voice 4, Boundless Rage 1, Toughness 5) and 69913's (Booming Voice 3,
+    // Boundless Rage 2) are in it, and so is the leader 69913's max-rank fallback found.
+    const partialAnswers = ['-45050001005-500500233300010531', '-35050002005-500500233300010531']
+    for (const code of partialAnswers) expect(codes).toContain(code)
     expect(codes).toContain('-25050003005-500500233300010531')
     expectLegal(codes.filter((_, i) => i % 211 === 0))
     const maxRanks = talentSpace({ ...options, searchPartials: false })
     expect(maxRanks.builds.length).toBe(COUNT_WARRIOR_EHP103)
-    expect(maxRanks.builds.map((b) => b.code)).not.toContain('-35050002005-500500233300010531')
+    for (const code of partialAnswers) expect(maxRanks.builds.map((b) => b.code)).not.toContain(code)
   })
 
   it('sizes a space before listing it, exactly, and stops counting past a limit (OGV-5)', () => {

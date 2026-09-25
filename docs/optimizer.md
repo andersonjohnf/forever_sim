@@ -597,8 +597,9 @@ rotation variants); between 20 and 50 a plan, the first round shrinks to fit the
 says it drops fewer and may end on the budget. The narrowing reads 50 fights a plan whatever first
 round the caller asks for (`initialFights`, the CLI's `--first`; OGV2-1): a larger one that passes
 90% of what the cap leaves the race shrinks to fit it, and a note says so ("A first round of 2,000
-fights each over 504 plans … passes the 979,200 fights the search's cap leaves the race: it runs
-1,748 each"), rather than narrowing a space that fits at 50. A talent screen with more fights than the cap is
+fights each over 1,034 plans (the baseline included) passes the 997,920 fights the search's cap
+leaves the race: it runs 868 each", the bear with a 40-fight screen; 69913's bear made 504 plans
+with the default screen and ran 1,748 each), rather than narrowing a space that fits at 50. A talent screen with more fights than the cap is
 refused before its first fight. **In turns** (OGV2-4), each pass but the last runs at most 90% of what
 the passes before it left of the cap, holding back a tenth (`TURNS_RESERVE`) for the passes after it,
 so one pass can't spend the whole cap and leave the next nothing: a talent pass whose race ends on its
@@ -795,12 +796,14 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   space does the same for builds. A cap below the screen's fights is refused before any fight, and
   in turns a pass that doesn't fit ends the turns, saying so (`optimize.test.ts`).
 - **A large first round doesn't narrow** (OGV2-1). The bear on `quick` with a first round of 2,000
-  fights and a cap of 1,000,000: its 504 plans at 2,000 each pass 90% of what the cap leaves the
-  race, but at 50 each they fit, so every rank races and the first round shrinks to fit the cap
-  (`optimize.test.ts`).
-- **A constraint's dimension at 0 or max** (OGV-1). The warrior under `ehp>=103%`, with the
-  verification's screen: 46,814 builds (3,945 with max ranks only), among them Booming Voice 3 with
-  Boundless Rage 2, which max ranks miss (`talents.test.ts`).
+  fights, a cap of 1,000,000 and a 40-fight screen: its plans (1,034 in the CLI) at 2,000 each pass 90% of what
+  the cap leaves the race, but at 50 each they fit, so every rank races and the first round shrinks
+  to fit the cap (`optimize.test.ts`). With the default 400-fight screen, 70009's bear makes only 238
+  plans, which fit at 2,000 each (69913's made 504, which didn't).
+- **A constraint's dimension at 0 or max** (OGV-1). The warrior under `ehp>=103%`, with 70009's
+  screen: 46,814 builds (3,945 with max ranks only), among them 70009's answer, Booming Voice 4
+  with Boundless Rage 1, and 69913's, Booming Voice 3 with Boundless Rage 2, which max ranks miss
+  (`talents.test.ts`).
 - **The confirmation within the cap** (OGV2-2). With 40,000 fights asked for, a search that left
   100,000 of its cap runs the CLI's two checks at 25,000 each; one that left fewer than 400 doesn't
   confirm (`optimize.test.ts`).

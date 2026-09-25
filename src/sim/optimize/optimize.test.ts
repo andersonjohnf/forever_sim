@@ -256,8 +256,11 @@ describe('optimize', () => {
   }, 120_000)
 
   it('a caller’s large first round never narrows the space: it shrinks to fit the cap (OGV2-1, the verification’s bear probe)', async () => {
-    // `--first 2000 --max-fights 1000000` on quick: 504 plans at 2,000 each pass the cap, but at 50
-    // each they fit, so every rank is searched and the first round shrinks. Stopped once the space is known.
+    // `--first 2000 --max-fights 1000000 --screen-fights 40` on quick: the plans at 2,000 each pass
+    // the cap (the CLI's makes 1,034 on 1.60.1.70009; the probe's 504 were 69913's, with the default
+    // screen, which on 70009 makes 238 that fit at 2,000), but at 50
+    // each they fit, so every rank is searched and the first round shrinks. The test checks that the
+    // case holds before relying on it. Stopped once the space is known.
     const controller = new AbortController()
     let space: Extract<OptimizeProgress, { phase: 'space' }> | undefined
     const run = optimize({
@@ -588,7 +591,7 @@ describe('optimize', () => {
 
   it('in turns, a rotation pass keeps the talent pass’s winner when every variant is worse (O1-1, the review’s bear repro)', async () => {
     // From the bear's 8/43/0, the talent pass finds a far better build (about +14 points); Maul held
-    // for 90 rage costs points on it (about 1.6 in the review's CLI run). The rotation pass must keep
+    // for 90 rage costs points on it (about 1.6 in the review's CLI run, on 69913). The rotation pass must keep
     // the talent pass's winner, not fall back to the baseline because the variant lost to it.
     const old = { ...bear, talents: OLD_BEAR }
     const passes = await optimizeInTurns({

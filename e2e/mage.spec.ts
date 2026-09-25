@@ -2,7 +2,8 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The mage (docs/classes/mage.md), shipped in K2: Fire, Frost and Arcane in the switcher, their
-// Rotation tabs (the common priority, D27), runs whose results say how their spells, Ignite and mana
+// Rotation tabs (the common priority, D27, as priority lists since M5.65 A2: e2e/mage-priority-list.spec.ts
+// has the list itself), runs whose results say how their spells, Ignite and mana
 // went, the caster's character sheet (spell damage by school), and a share link that brings a mage
 // back, on a desktop and on a phone (docs/ux.md). Nothing on a mage's screens may speak another class.
 
@@ -65,7 +66,23 @@ async function drinkPotions(page: Page) {
 /** The number field's row, dimmed when what it tunes doesn't apply. */
 const inactiveField = (tab: Locator, name: string) => tab.locator('[data-inactive]').filter({ has: tab.page().getByRole('textbox', { name, exact: true }) })
 
-/** The settings every mage shares: Evocation, the mana gems, the potion and the rune. */
+/**
+ * A priority-list row's settings (docs/ux.md "Rotation"): beside the list on desktop, in a sheet on a
+ * phone. `check` runs on them, then a phone's sheet is closed.
+ */
+async function inRow(tab: Locator, label: string, check: (settings: Locator) => Promise<void>) {
+  const page = tab.page()
+  const phone = (page.viewportSize()?.width ?? 1280) < 1024
+  await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: label, exact: true }).click()
+  const settings = phone ? page.getByRole('dialog', { name: label }) : page.getByRole('complementary', { name: `${label} settings` })
+  await check(settings)
+  if (phone) {
+    await page.getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+  }
+}
+
+/** The settings every mage shares: Evocation and the mana gems on the list, the potion and the rune above it. */
 async function expectSharedRotation(tab: Locator) {
   await expect(tab.getByText(/^Which abilities the sim uses, and when\. The defaults are the common priority\.$/)).toBeVisible()
   for (const name of ['Racial cooldown', 'On-use trinkets', 'Evocation', 'Mana gems']) {
@@ -75,20 +92,21 @@ async function expectSharedRotation(tab: Locator) {
   // The rune waits for the Buffs tab, where the Standard raid preset leaves it off.
   await expect(tab.getByRole('switch', { name: 'Demonic Rune', exact: true })).toHaveAccessibleDescription(/Not used: turn on Demonic Rune in Buffs first/)
   await openAdvanced(tab)
-  await expect(tab.getByRole('textbox', { name: 'Evocation at', exact: true })).toHaveValue(NUMBER)
   await expect(tab.getByRole('textbox', { name: 'Major Mana Potion when missing', exact: true })).toHaveValue(NUMBER)
+  await inRow(tab, 'Evocation', (settings) => expect(settings.getByRole('textbox', { name: 'Evocation at', exact: true })).toHaveValue(NUMBER))
   await expect(tab).not.toContainText(OTHER_CLASS)
 }
 
 /** What the Fire Rotation tab shows by default, at any width. */
 async function expectFireRotation(tab: Locator) {
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
-  for (const name of ['Combustion', 'Scorch for Fire Vulnerability', 'Pyroblast on Hot Streak', 'Fire Blast']) {
+  // The consumables above the priority list; the rest are its rows.
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+  for (const name of ['Combustion', 'Scorch', 'Pyroblast', 'Fire Blast']) {
     await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
   }
   await expectSharedRotation(tab)
-  await expect(tab.getByRole('textbox', { name: 'Scorch again with', exact: true })).toHaveValue(NUMBER)
-  await expect(tab.getByRole('textbox', { name: 'Pyroblast at', exact: true })).toHaveValue(NUMBER)
+  await inRow(tab, 'Scorch', (settings) => expect(settings.getByRole('textbox', { name: 'Scorch again with', exact: true })).toHaveValue(NUMBER))
+  await inRow(tab, 'Pyroblast', (settings) => expect(settings.getByRole('textbox', { name: 'Pyroblast at', exact: true })).toHaveValue(NUMBER))
 }
 
 /** What a Fire run must show, in the desktop panel or the phone's sheet. */
@@ -149,8 +167,10 @@ test.describe('Mage', () => {
     await switchToMage(page, 'Fire')
     const tab = await openTab(page, 'Rotation')
     await expectFireRotation(tab)
-    // "Scorch again with" follows its switch: dimmed while Scorch is off, live again when it's back on.
-    const scorch = tab.getByRole('switch', { name: 'Scorch for Fire Vulnerability', exact: true })
+    // "Scorch again with" (in Scorch's settings, beside the list) follows its switch: dimmed while
+    // Scorch is off, live again when it's back on.
+    await tab.getByRole('button', { name: 'Scorch', exact: true }).click()
+    const scorch = tab.getByRole('switch', { name: 'Scorch', exact: true })
     await expect(inactiveField(tab, 'Scorch again with')).toHaveCount(0)
     await scorch.click()
     await expect(scorch).not.toBeChecked()
@@ -158,6 +178,7 @@ test.describe('Mage', () => {
     await scorch.click()
     await expect(inactiveField(tab, 'Scorch again with')).toHaveCount(0)
     // Evocation's threshold follows Evocation's switch too.
+    await tab.getByRole('button', { name: 'Evocation', exact: true }).click()
     await expect(inactiveField(tab, 'Evocation at')).toHaveCount(0)
     await tab.getByRole('switch', { name: 'Evocation', exact: true }).click()
     await expect(inactiveField(tab, 'Evocation at')).toHaveCount(1)
@@ -259,19 +280,27 @@ test.describe('Mage on a phone', () => {
     const tab = await openTab(page, 'Rotation')
     await noSideScroll(page)
     await expectFireRotation(tab)
-    // Every number fits its field, its unit after it, never over it ("2,250 mana", "5 s left").
-    const fields = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLElement>('[data-slot="input-group"]')]
-        .filter((g) => g.offsetParent !== null)
-        .map((group) => {
-          const input = group.querySelector('input')!
-          const unit = group.querySelector<HTMLElement>('[data-slot="input-group-addon"]')!
-          return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: unit.getBoundingClientRect().left >= input.getBoundingClientRect().right - 1 }
-        }),
-    )
-    expect(fields.length).toBeGreaterThanOrEqual(5)
-    for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true })
+    // Every number fits its field, its unit after it, never over it ("2,250 mana", "5 s left"): the
+    // consumables' above the list, and a row's in its sheet.
+    const fieldsFit = async (atLeast: number) => {
+      const fields = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('[data-slot="input-group"]')]
+          .filter((g) => g.offsetParent !== null)
+          .map((group) => {
+            const input = group.querySelector('input')!
+            const unit = group.querySelector<HTMLElement>('[data-slot="input-group-addon"]')!
+            return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: unit.getBoundingClientRect().left >= input.getBoundingClientRect().right - 1 }
+          }),
+      )
+      expect(fields.length).toBeGreaterThanOrEqual(atLeast)
+      for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true })
+    }
+    await fieldsFit(2)
     await noSideScroll(page, 'no horizontal page scroll with Advanced open')
+    await inRow(tab, 'Scorch', async (settings) => {
+      await expect(settings.getByRole('textbox', { name: 'Scorch again with', exact: true })).toBeVisible()
+      await fieldsFit(1)
+    })
 
     await drinkPotions(page)
     await simulate(page)

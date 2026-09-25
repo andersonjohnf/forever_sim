@@ -21,7 +21,7 @@ import {
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_APL, ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
-import { mageOptions, mageRotation } from './mage/rotation'
+import { mageApl, mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
 import { ELEMENTAL_APL, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
@@ -134,6 +134,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'shaman-enhancement') return ENHANCEMENT_APL
   // docs/classes/shaman.md "Elemental priority".
   if (spec === 'shaman-elemental') return ELEMENTAL_APL
+  // docs/classes/mage.md "The priority lists": Fire, Frost and Arcane.
+  if (SPEC_META[spec].classId === 'mage') return mageApl(spec)
   return undefined
 }
 
@@ -347,7 +349,7 @@ export function classRotation(
   if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
   if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
   // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
-  if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context)
+  if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context, order)
   // docs/classes/warlock.md §6.
   if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context)
   if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)

@@ -940,6 +940,17 @@ slice is worked:
   - **Arcane's and Frost's Alliance legs** (GV-4): Knight-Captain's Silk Legguards and Skyshroud
     Leggings tie within the interval for a Human (Skyshroud +0.3 in Frost, −0.1 in Arcane, 40,000
     fights), so the guide's order stands.
+- **The casters' main-hand ranks** (FU-11, the final pre-release review for 1.60.1.70009,
+  pre-existing, low):
+  - **Two ranked lists in one picker, unlabelled.** A caster's main-hand picker shows two "Best in
+    slot" items and two "#2"s, the two-hand list's and the main-hand list's, without saying which
+    list each belongs to.
+  - **Frost's two-hand ranking fails the D29 plausibility check.** It puts Rod of the Ogre Magi
+    (23 spell power) as best in slot and Staff of Jordan as #2, while Ironbark Staff (94 spell power,
+    +28 crit, item level 65) is unranked.
+  - **The fix:** label each rank with its list, and rank the Frost and Arcane two-handers by sim.
+    Queued with the gear search ([O2](#m57-the-optimizer-d30--top-priority)); low because it's the
+    picker's ranking, not a result, and the picker still offers every item.
 
 ## Later
 

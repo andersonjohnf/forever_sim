@@ -19,13 +19,14 @@ import { statsLine, unsimulatedEffects } from './item-flags'
  * label is its name and its hover title either way, and the popover says it in full. It takes a 16 px
  * line's height in the layout, with its 44 px hit area 14 px past it each way.
  */
-function FlagBadge({ label, icon: Icon, words = false, children }: { label: string; icon?: LucideIcon; words?: boolean; children: ReactNode }) {
+function FlagBadge({ id, label, icon: Icon, words = false, children }: { id?: string; label: string; icon?: LucideIcon; words?: boolean; children: ReactNode }) {
   // The popover is a dialog, named by its heading (docs/ux.md#accessibility).
   const titleId = useId()
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
+          id={id}
           type="button"
           aria-label={Icon ? label : undefined}
           title={Icon ? label : undefined}
@@ -61,9 +62,9 @@ function FlagBadge({ label, icon: Icon, words = false, children }: { label: stri
 }
 
 /** Items with no Forever data yet (decision D6). */
-export function ClassicStatsBadge({ iconOnly = false, words = false }: { iconOnly?: boolean; words?: boolean }) {
+export function ClassicStatsBadge({ id, iconOnly = false, words = false }: { id?: string; iconOnly?: boolean; words?: boolean }) {
   return (
-    <FlagBadge label="Classic stats" icon={iconOnly ? History : undefined} words={words}>
+    <FlagBadge id={id} label="Classic stats" icon={iconOnly ? History : undefined} words={words}>
       <p className="text-muted-foreground">
         The Forever beta client has no data for this item yet, so the sim uses its Classic Era stats. It updates when a
         client build ships the item.
@@ -73,9 +74,10 @@ export function ClassicStatsBadge({ iconOnly = false, words = false }: { iconOnl
 }
 
 /** Items with an effect the sim leaves out; the result's assumptions list them too. */
-export function UnsimulatedBadge({ effects, iconOnly = false, words = false }: { effects: string[]; iconOnly?: boolean; words?: boolean }) {
+export function UnsimulatedBadge({ id, effects, iconOnly = false, words = false }: { id?: string; effects: string[]; iconOnly?: boolean; words?: boolean }) {
   return (
     <FlagBadge
+      id={id}
       label={effects.length === 1 ? 'Effect not simulated' : 'Effects not simulated'}
       icon={iconOnly ? FlaskConicalOff : undefined}
       words={words}
@@ -92,15 +94,20 @@ export function UnsimulatedBadge({ effects, iconOnly = false, words = false }: {
 
 /**
  * An item's flags, for the wide Gear grid (docs/ux.md "Gear"): icons 24 px apart, so their 44 px hit
- * areas don't meet, beside an item with no enchant to choose, where the name and stats keep the room.
+ * areas don't meet, beside an item in a slot with no enchant line, where the name and stats keep the
+ * room.
  *
  * On a slot's enchant line (`fit`, which changes with the enchant) they show their words too wherever
  * those fit beside the enchant's whole text (review finding DU1-6), 6 px apart, each its own hit area;
  * otherwise their icons, and the enchant takes the room. It measures the line: the enchant chip's text
  * at its full width (`data-chip-text`) and a hidden copy of the flags' words, neither of which depends
- * on which the line shows, so the choice never flips back and forth.
+ * on which the line shows, so the choice never flips back and forth. The line is the flags' parent,
+ * which they share with the chip alone, pushed to its far end by an auto margin (either side: the
+ * grid's right column is mirrored).
+ *
+ * `idPrefix` names each flag's button, so focus finds it again when the layout changes under it.
  */
-export function ItemFlags({ item, className, fit }: { item: Item; className?: string; fit?: string }) {
+export function ItemFlags({ item, className, fit, idPrefix }: { item: Item; className?: string; fit?: string; idPrefix?: string }) {
   const effects = unsimulatedEffects(item, useSpecMeta().id)
   const flagged = !item.foreverData || effects.length > 0
   const own = useRef<HTMLSpanElement>(null)
@@ -113,8 +120,7 @@ export function ItemFlags({ item, className, fit }: { item: Item; className?: st
     if (!measured || !flags || !line) return
     const check = () => {
       const lineStyle = getComputedStyle(line)
-      const room =
-        line.clientWidth - Number.parseFloat(lineStyle.paddingLeft) - Number.parseFloat(lineStyle.paddingRight) - Number.parseFloat(getComputedStyle(flags).marginRight)
+      const room = line.clientWidth - Number.parseFloat(lineStyle.paddingLeft) - Number.parseFloat(lineStyle.paddingRight)
       const text = line.querySelector<HTMLElement>('[data-chip-text]')
       const chip = text?.closest('button')
       // The chip as wide as its whole text: its icon, gap and padding, and the text unclipped.
@@ -135,8 +141,8 @@ export function ItemFlags({ item, className, fit }: { item: Item; className?: st
   if (!flagged) return null
   return (
     <span ref={own} className={cn('flex shrink-0 items-center', words ? 'gap-x-1.5' : 'gap-x-6', className)}>
-      {!item.foreverData && <ClassicStatsBadge iconOnly words={words} />}
-      {effects.length > 0 && <UnsimulatedBadge effects={effects} iconOnly words={words} />}
+      {!item.foreverData && <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} iconOnly words={words} />}
+      {effects.length > 0 && <UnsimulatedBadge id={idPrefix && `${idPrefix}-unsimulated`} effects={effects} iconOnly words={words} />}
       {measured && (
         // What the words take, measured, never shown.
         <span ref={wordsCopy} aria-hidden className="pointer-events-none invisible absolute top-0 left-0 flex gap-x-1.5 whitespace-nowrap">
@@ -177,8 +183,8 @@ export function ItemSummary({
   meta,
   note,
   dimmed = false,
-  compact = false,
   equipped = false,
+  idPrefix,
   className,
 }: {
   item: Item
@@ -194,47 +200,12 @@ export function ItemSummary({
    * finding DB-8: the Best in slot filter can list it first, out of its order).
    */
   equipped?: boolean
-  /**
-   * The wide layout's slot grid (docs/ux.md "Gear"), where each slot has a fixed budget of lines so
-   * every slot fits the window whatever it holds: the name and its BiS rank on up to two 18 px lines,
-   * then one line of `meta` and the stats, or of `note` in their place, each cut short with the whole
-   * text as its hover title. The block is always the two lines' height and a stats line's, so a
-   * short name doesn't move the slots. The flags go on the slot's enchant line (`ItemFlags`).
-   */
-  compact?: boolean
+  /** Names each flag badge's button, so focus finds it again when the layout changes under it (a gear slot's). */
+  idPrefix?: string
   className?: string
 }) {
   const fade = dimmed && 'opacity-60'
   const effects = unsimulatedEffects(item, useSpecMeta().id)
-  if (compact) {
-    return (
-      <div className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
-        <WowIcon icon={item.icon} size="md" className={cn(fade)} />
-        <div className="flex min-h-13 min-w-0 flex-1 flex-col justify-center">
-          {/* The rank follows the name's last word, wrapping with it; its box is the line's height, so
-              it never makes the line taller. The whole name on hover, and as the slot's name. */}
-          <span aria-hidden title={item.name} className={cn('line-clamp-2 text-sm leading-4.5 font-medium break-words', fade)}>
-            <span className={QUALITY_CLASS[item.quality]}>{item.name}</span>
-            {bis ? (
-              <span className="ml-1.5 inline-flex h-4.5 items-center align-top">
-                <BisBadge rank={bis} />
-              </span>
-            ) : null}
-          </span>
-          {/* One line, the whole text on hover, where an effect's words stand in for stats (Earthstrike's Use:). */}
-          {note ? (
-            <span aria-hidden className="flex min-w-0 items-center gap-1.5 text-xs text-foreground">
-              {note}
-            </span>
-          ) : (
-            <span aria-hidden title={statsLine(item)} className={cn('truncate text-xs text-muted-foreground tabular-nums', fade)}>
-              {[meta, statsLine(item)].filter(Boolean).join(' · ')}
-            </span>
-          )}
-        </div>
-      </div>
-    )
-  }
   return (
     <div className={cn('flex min-w-0 flex-1 items-start gap-3', className)}>
       <WowIcon icon={item.icon} size="lg" className={cn(fade)} />
@@ -264,8 +235,8 @@ export function ItemSummary({
                 <BisBadge rank={bis} />
               </span>
             ) : null}
-            {!item.foreverData && <ClassicStatsBadge />}
-            {effects.length > 0 && <UnsimulatedBadge effects={effects} />}
+            {!item.foreverData && <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} />}
+            {effects.length > 0 && <UnsimulatedBadge id={idPrefix && `${idPrefix}-unsimulated`} effects={effects} />}
           </span>
         )}
         {note && (

@@ -397,48 +397,59 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     as amended: desktop shows, principle 4), **every slot is in view with no scrolling**, at
     1440×900 and up, **by construction** rather than for today's default sets (review findings
     DL2-1, DL2-2, DU1-1: a longer name, Classic Era's note or a classic scrollbar pushed the last row
-    out twice). Each slot has a **fixed budget of lines**, the same whatever it holds, and Gear's
-    intro and the default set's line are one line each, so the grid's height doesn't depend on the
-    items. The worst case, a hunter (seven rows of slots) with the longest real item name and enchant
-    in every slot, under Classic Era rules, beside a classic 17 px scrollbar, ends about 36 px clear of
-    a 1440×900 window's bottom edge; every other spec has more to spare (`e2e/wide-gear-fit.spec.ts`
-    holds it to 16 px).
-    - The slots are one grid laid out like the character pane: **Armor** in two columns (head,
-      shoulders, back, chest and wrists down the left; hands, waist, legs and feet down the right),
-      **Jewelry** in a third column beside it, and the **Weapons** in a row across the bottom (a
-      hunter's ammo and quiver in a second row under the main and off hand). Each group is one
-      bordered list with a divider between its slots; the weapons' dividers line up with Armor's
-      and with the middle of the gap beside Jewelry. The group headings are there for screen
-      readers only: the layout says what's where. The grid's three columns share the setup pane
-      (about 18 rem each at 1440 px, 24.5 at 1,920 px); extra width goes to fewer cut-short lines,
-      never to bigger icons or controls.
-    - Each slot's budget: the icon (36 px) beside a block that's always two name lines and a stats
-      line tall (52 px), then, where the item has an enchant to choose, the enchant's line: 64 px a
-      slot without one, 92 px with. The item's name, in its quality colour with its BiS rank after
-      it, takes up to **two 18 px lines**, clamped, with the whole name as its hover title and the
-      slot's accessible name. The **stats** take one line, cut short with the whole as its hover title
-      (an effect item's tooltip words, which stand in for stats, can run longer); the slot's name is
-      left out, as the grid's place says it. Ammo the ranged weapon doesn't fire shows its reason in
-      the stats line's place, the same way. The **enchant** is one line of green text, its name and
-      effect cut short only where the slot is narrower, with the whole as its hover title (review
-      finding DB-2: "Lesser Arcanum of…" could have been any of three; the popover lists them whole).
-      The chip opens the enchant popover, as below 1440 px; it takes a 16 px line and a 44 px hit area
-      14 px past it each way, like a flag, and its **focus ring** is drawn around its text, on its own
+    out twice). Each row of slots has a **fixed height** by the kind of slots in it, the same
+    whatever they hold, and Gear's intro and the default set's line are one line each, so the grid's
+    height doesn't depend on the items. The tallest stack is the pane's right side (eight slots) with
+    the weapons under it. The worst case, a hunter (a second row of weapons) with the longest real
+    item name and enchant in every slot, under Classic Era rules, beside a classic 17 px scrollbar,
+    ends 65 px clear of a 1440×900 window's bottom edge; every other spec, a tank or a caster, ends
+    113 px clear (`e2e/wide-gear-fit.spec.ts` holds it to 16 px).
+    - The slots are in the **game's character-pane order**, like the in-game paper doll (user
+      decision, D34), so each is where a player expects it: **head, neck, shoulders, back, chest and
+      wrists** down the left; **hands, waist, legs, feet, both rings and both trinkets** down the
+      right; and the **weapons** along the bottom across both, three to a row (main hand, off hand,
+      ranged or relic; a hunter's ammo and quiver in a second row under the main and off hand).
+      Each side is one bordered list with a divider between its slots, and the two end together:
+      the left side's six rows share out the right side's height. The group headings ("Head to
+      wrists", "Hands to trinkets", "Weapons") are there for screen readers only: the layout says
+      what's where. The two columns share the setup pane (about 27 rem each at 1440 px, 37 at 1,920
+      px); extra width goes to fewer cut-short lines, never to bigger icons or controls.
+    - The **right side is mirrored**: its icon on the slot's right edge, and its name, stats,
+      enchant chip and flags aligned to the right, toward the icon, the flags before the chip rather
+      than after it. Nothing sits over the icon. The weapons read left to right, like the left side.
+    - Each row's height: **76 px** where a slot in it takes enchants (the icon, 36 px, beside a
+      one-line name and a stats line, then the enchant line under them and 16 px below it for its hit
+      area), **48 px** where none does (the icon beside the name and stats); the left side's rows are
+      78 px. A slot that takes enchants keeps its enchant line whatever it holds. The item's name,
+      in its quality colour with its BiS rank after it, takes **one 18 px line**, cut short, with the
+      whole name as its hover title and the slot's accessible name. The **stats** take one line, cut
+      short with the whole as its hover title (an effect item's tooltip words, which stand in for
+      stats, can run longer); the slot's name is left out, as the grid's place says it. Ammo the
+      ranged weapon doesn't fire shows its reason in the stats line's place, the same way. The
+      **enchant** is one line of green text, its name and effect cut short only where the slot is
+      narrower, with the whole as its hover title (review finding DB-2: "Lesser Arcanum of…" could
+      have been any of three; the popover lists them whole), its text lined up with the name's. The
+      chip opens the enchant popover, as below 1440 px; it takes a 16 px line and a 44 px hit area 14
+      px past it each way, like a flag, and its **focus ring** is drawn around its text, on its own
       line, never over the stats above (review finding DU1-5). A slot with no enchant to choose has no
-      chip. An empty slot shows its faded icon, name and "Empty" in the same block.
-    - The **flags** sit at the slot's right edge, on the enchant's line or beside an item with no
-      enchant: a clock-and-arrow for **Classic stats** and a crossed-out flask for **Effect not
+      chip; with no chip and no flag, the item's name and stats are centred in the row. An empty slot
+      shows its faded icon, name and "Empty", and an off hand beside a two-hander "Your two-hander
+      uses both hands".
+    - The **flags** follow the item: on the enchant line after the chip where the row has one (a
+      ranged weapon beside the main and off hand too), otherwise after the name and stats; mirrored
+      on the right side. A clock-and-arrow is **Classic stats** and a crossed-out flask **Effect not
       simulated**. Each is named by its words, has them as its hover title, and opens the same
-      explanation. On the enchant's line they show their words too **wherever those fit** beside
-      the enchant's whole text (review finding DU1-6: at 1,920 px many single flags do); otherwise
-      they're icons and the enchant keeps the room. The line measures itself (`ItemFlags` in
-      `src/features/gear/item-row.tsx`), and what it measures doesn't depend on which it shows, so it
-      never flips back and forth. Beside an item with no enchant they stay icons, leaving the name
-      and stats the room. Below 1440 px they keep their words.
+      explanation. On the enchant line they show their words too **wherever those fit** beside the
+      enchant's whole text (review finding DU1-6: at 1440 px many single flags do, at 1,920 px most);
+      otherwise they're icons and the enchant keeps the room. The line measures itself (`ItemFlags`
+      in `src/features/gear/item-row.tsx`), and what it measures doesn't depend on which it shows, so
+      it never flips back and forth. Beside the name and stats they stay icons, leaving the text the
+      room. Below 1440 px they keep their words.
     - The slot's button covers the whole slot, with its focus ring inside; the chip and flags sit
-      over it. Every target is 44 px or more, and a slot's small targets never overlap each other
-      or leave the slot: the chip keeps 12 px from the first flag, icons 24 px apart (flags with
-      words 6 px, each its own hit area), and the slot's padding holds their hit areas.
+      over it. Every target is 44 px or more, and a slot's small targets never overlap each other,
+      the icon or the slot's top and bottom: the chip keeps 12 px from the first flag, icons 24 px
+      apart (flags with words 6 px, each its own hit area), and the slot's padding holds their hit
+      areas.
     - Choosing a slot opens the **item picker dialog**, the same as at 1024–1439 px (a transient
       task in a modal: the persistent view keeps the width). A pick equips the item, closes the
       dialog and returns focus to the slot.
@@ -462,10 +473,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       box pushed the last row out of the window). Screen readers hear the note's sentence as its
       description, and it opens Character on the rules, as the box's **Character → Advanced** does.
       Its 44 px hit area keeps clear of the Equip button's.
-    - The grid is the same elements as the stacked cards below 1440 px, in the same order,
-      restyled: crossing 1440 px (browser zoom, snapping a window) keeps focus where it was, on a
-      slot's button or its enchant chip. Tab moves through the slots down each Armor column, then
-      Jewelry, then the Weapons; there are no arrow-key shortcuts.
+    - Tab moves **down the left side, then down the right, then along the weapons**, each slot
+      followed by its enchant chip and flags; there are no arrow-key shortcuts. That isn't the
+      stacked cards' order below 1440 px (Armor, Jewelry, Weapons), so the grid is other elements:
+      crossing 1440 px (browser zoom, snapping a window) moves focus with the control that had it, a
+      slot's button, its enchant chip or one of its flags, to its new place, found by an id named for
+      its slot (`useFocusAcrossPlaces`, `src/features/rotation/layout.ts`). Focus that had left the
+      slots stays where it is.
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.

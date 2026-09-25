@@ -29,6 +29,7 @@ export function EnchantPicker({
   onChange,
   fallbackFocus,
   whole = false,
+  className,
 }: {
   slot: GearSlot
   item: Item
@@ -45,6 +46,8 @@ export function EnchantPicker({
    * it stays on the chip's own line rather than over the stats line above.
    */
   whole?: boolean
+  /** Classes for the chip's button: the wide grid lines its text up with the name above. */
+  className?: string
 }) {
   const [open, setOpen] = useState(false)
   const profile = useSetup((s) => s.config.rules.profile)
@@ -81,6 +84,8 @@ export function EnchantPicker({
   const trigger = (
     <button
       ref={chipRef}
+      // Focus finds it by this again when the Gear grid's layout changes under it (docs/ux.md "Gear").
+      id={`gear-${slot}-enchant`}
       type="button"
       // Starts with its visible text (WCAG 2.5.3): "Greater Strength · +10 Strength, Hands enchant".
       aria-label={current ? `${current.name} · ${current.summary}, ${title}` : `Add an enchant, ${SLOT_LABEL[slot]}`}
@@ -91,6 +96,7 @@ export function EnchantPicker({
         'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
         whole && 'group/chip relative z-10 -my-3.5 min-h-0 w-auto min-w-0 rounded-md px-0 py-3.5 hover:bg-transparent focus-visible:ring-0',
         current ? 'text-positive' : 'text-muted-foreground',
+        className,
       )}
     >
       {whole ? (

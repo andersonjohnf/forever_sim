@@ -3,18 +3,24 @@ import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Gear", the wide layout (D34, as amended): from 1440 px every slot is in view with no
 // scrolling at 1440×900 and up, by construction rather than for today's default sets (review findings
-// DL2-1, DL2-2, DU1-1). Each slot has a fixed budget of lines (the name on up to two, the stats on one,
-// the enchant on one), the intro and the default set's line are one line each, and Classic Era's
-// enchant note is a link on that line. These tests fill every slot with the longest real item name and
-// enchant the slot offers, beside a classic 17 px scrollbar (Windows'), which headless Chromium hides.
+// DL2-1, DL2-2, DU1-1), in the game's character-pane order (the right side's eight slots and the
+// weapons under them the tallest stack). Each row has a fixed height by the kind of slots in it (the
+// name on one line, the stats on one, the enchant on one), the intro and the default set's line are one
+// line each, and Classic Era's enchant note is a link on that line. These tests fill every slot with
+// the longest real item name and enchant the slot offers, beside a classic 17 px scrollbar (Windows'),
+// which headless Chromium hides.
 
 test.use({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } })
 
 /** The margin the last slot keeps from the window's bottom edge. */
 const MARGIN = 16
-/** A slot's height at most: with an enchant line, and without (docs/ux.md "Gear"). */
-const SLOT_WITH_ENCHANT = 92
-const SLOT_WITHOUT = 64
+/**
+ * A slot's height at most (docs/ux.md "Gear"): a row with an enchant line, the left side's (which
+ * share out the right side's height), and a row without.
+ */
+const ROW_WITH_ENCHANT = 76
+const LEFT_ROW = 78
+const ROW_WITHOUT = 48
 
 async function open(page: Page, width: number, height: number) {
   await page.setViewportSize({ width, height })
@@ -51,7 +57,8 @@ async function equipLongest(page: Page) {
   for (const slot of slots) {
     const button = page.locator(`[data-gear-slot="${slot}"]`)
     if (await button.isDisabled()) continue
-    await button.click({ position: { x: 10, y: 10 } })
+    // From the keyboard: a click could land on a flag, which sits over the slot's button.
+    await button.press('Enter')
     const picker = page.getByRole('dialog', { name: /^Choose / })
     const all = picker.getByRole('radio', { name: 'All items' })
     if (await all.count()) await all.click()
@@ -97,12 +104,9 @@ async function expectFits(page: Page, height: number) {
     const slots = [...document.querySelectorAll('[data-gear-slot]')].map((button) => {
       const li = button.closest('li')!
       const box = li.getBoundingClientRect()
-      // A slot beside another in a row (Armor's two columns, the Weapons) takes the row's height; a
-      // Jewelry slot's is its own.
-      const alone = li.closest('section')!.querySelector('h3')!.textContent === 'Jewelry'
-      return { slot: (button as HTMLElement).dataset.gearSlot!, height: box.height, bottom: box.bottom, short: alone && !li.querySelector('[data-chip-text]') }
+      return { slot: (button as HTMLElement).dataset.gearSlot!, height: box.height, bottom: box.bottom }
     })
-    // The name on two lines at most, the stats line on one.
+    // The name on one line, the stats line on one.
     const lines = [...document.querySelectorAll('[data-section="gear"] li span[title]')].map((el) => ({
       text: el.getAttribute('title'),
       height: el.getBoundingClientRect().height,
@@ -112,8 +116,10 @@ async function expectFits(page: Page, height: number) {
   expect(m.status, 'the default set’s line is one line').toBe(20)
   expect(m.intro, 'the intro is one line').toBe(20)
   expect(m.slots.length).toBeGreaterThanOrEqual(17)
-  for (const slot of m.slots) expect(slot.height, slot.slot).toBeLessThanOrEqual((slot.short ? SLOT_WITHOUT : SLOT_WITH_ENCHANT) + 1)
-  for (const line of m.lines) expect(line.height, line.text ?? '').toBeLessThanOrEqual(36)
+  const budget: Record<string, number> = { head: LEFT_ROW, neck: LEFT_ROW, shoulder: LEFT_ROW, back: LEFT_ROW, chest: LEFT_ROW, wrist: LEFT_ROW }
+  for (const slot of ['waist', 'finger1', 'finger2', 'trinket1', 'trinket2', 'ammo', 'quiver']) budget[slot] = ROW_WITHOUT
+  for (const slot of m.slots) expect(slot.height, slot.slot).toBeLessThanOrEqual((budget[slot.slot] ?? ROW_WITH_ENCHANT) + 0.5)
+  for (const line of m.lines) expect(line.height, line.text ?? '').toBeLessThanOrEqual(18)
   expect(Math.max(...m.slots.map((slot) => slot.bottom)), 'the last slot’s bottom').toBeLessThanOrEqual(height - MARGIN)
   await expect(page.getByRole('heading', { name: 'Gear', level: 2 })).toBeInViewport()
 }
@@ -174,6 +180,14 @@ test.describe('the wide Gear tab fits the window whatever it holds', () => {
     expect(hit).toBeGreaterThanOrEqual(44)
     await link.click()
     await expect(page.getByRole('radio', { name: 'Classic Era' })).toBeFocused()
+  })
+
+  test('a caster, the longest names and enchants in cloth', async ({ page }) => {
+    await open(page, 1440, 900)
+    await chooseSpec(page, 'Mage', /Fire/)
+    await gearTab(page)
+    await equipLongest(page)
+    await expectFits(page, 900)
   })
 
   test('at 1920×900, the longest names and enchants still fit', async ({ page }) => {

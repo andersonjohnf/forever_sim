@@ -3,15 +3,17 @@
 // The weapon imbue (Windfury Weapon, or Rockbiter Weapon put on before the pull), the racial cooldown,
 // Rage of the Farseer, on-use trinkets and Juju Flurry off the GCD on cooldown, then Stormstrike on
 // cooldown, Lightning Bolt at 5 Maelstrom Weapon stacks (instant and free), a shock at or above a mana
-// threshold, and the mana potion and rune when they fit. Its totems are the Buffs tab's (their
-// `selfCast`). Setting ids are `shaman.enhancement.<ability>.<param>`; mana thresholds are
-// percentages of maximum mana. Abilities are resolved with the build's talents (talents.ts) before
+// threshold, and the mana potion and rune when they fit. The rows are a priority list you reorder
+// (ENHANCEMENT_APL, decision D31); the imbue and the consumables are spec-wide. Its totems are the
+// Buffs tab's (their `selfCast`). Setting ids are `shaman.enhancement.<ability>.<param>`; mana
+// thresholds are percentages of maximum mana. Abilities are resolved with the build's talents (talents.ts) before
 // their costs or spells feed anything. The defaults are the common priority with a first-pass search
 // (decision D27; shaman.md "First-pass defaults").
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
+import { compileAplRows } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
@@ -110,7 +112,7 @@ export const ENHANCEMENT_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.juju,
-    group: 'Cooldowns and buffs',
+    group: 'Consumables',
     label: 'Juju Flurry',
     help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute.',
     default: true,
@@ -218,6 +220,43 @@ export const ENHANCEMENT_OPTIONS: RotationOption[] = [
   },
 ]
 
+/**
+ * The Enhancement priority list (decision D31; shaman.md "Enhancement priority"): the rows of its
+ * table, 1–7, in their default order, each with its switch and its own settings. None is pinned: the
+ * imbue goes on before the pull whatever the order, and it's spec-wide, above the list, with the
+ * consumables. Juju Flurry takes its turn with the on-use trinkets' row, wherever that sits, as it
+ * did before the list; the mana potion and rune come after the list (off the GCD, once they fit).
+ */
+export const ENHANCEMENT_APL: AplDefinition = {
+  rows: [
+    { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'rageOfTheFarseer', label: 'Rage of the Farseer', icon: RAGE_OF_THE_FARSEER.icon, enabledId: ID.farseer, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'stormstrike', label: 'Stormstrike', icon: STORMSTRIKE.icon, enabledId: ID.stormstrike, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'lightningBolt',
+      label: 'Lightning Bolt',
+      icon: LIGHTNING_BOLT.icon,
+      enabledId: ID.bolt,
+      optionIds: [ID.boltStacks],
+      summary: [{ option: ID.boltStacks, text: 'at {} of Maelstrom Weapon' }],
+    },
+    {
+      id: 'shock',
+      label: 'Shock',
+      icon: EARTH_SHOCK.icon,
+      optionIds: [ID.shock, ID.shockMana],
+      summary: [
+        { option: ID.shock, text: '{}' },
+        { option: ID.shockMana, text: 'from {}', hideWhen: 0 },
+      ],
+      help: 'Earth Shock or Frost Shock, whenever the shocks’ cooldown is ready.',
+    },
+  ],
+  specWide: [ID.imbue, ID.juju, ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+  presets: [],
+}
+
 /** An on-use item or consumable as a shaman `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
 const consumable = (use: OnUseSpec): AbilityDef => ({
   ...SHAMAN,
@@ -236,15 +275,17 @@ const consumable = (use: OnUseSpec): AbilityDef => ({
 export const PREPULL_IMBUE_MS = -3000
 
 /**
- * The Enhancement priority list from the settings (shaman.md "Enhancement priority"). `context` gives
- * the maximum mana (the mana thresholds are shares of it), the race (its racial cooldown), the equipped
- * items (Totem of Rage, on-use trinkets) and the selected consumables.
+ * The Enhancement priority list from the settings (shaman.md "Enhancement priority"), its rows in
+ * `order` (ENHANCEMENT_APL; absent: the default order). `context` gives the maximum mana (the mana
+ * thresholds are shares of it), the race (its racial cooldown), the equipped items (Totem of Rage,
+ * on-use trinkets) and the selected consumables.
  */
 export function enhancementRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<PaladinContext & { equipped: ReadonlySet<number> }> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(ENHANCEMENT_OPTIONS, values, talents)
@@ -277,38 +318,50 @@ export function enhancementRotation(
     procs.push(windfuryWeaponProc(WINDFURY_WEAPON_AP * (1 + (ELEMENTAL_WEAPONS_WINDFURY[weapons] ?? 40) / 100)))
   }
 
-  // Off the GCD, on cooldown from the pull: the racial cooldown, Rage of the Farseer, on-use trinkets
-  // and Juju Flurry. Nothing in the list is worth saving them for (shaman.md "Enhancement priority").
-  // The shaman's are the casters' (caster-racials.ts): Berserking's casting speed and Blood Fury's spell power too.
-  const racial = CASTER_RACIALS[ctx.race]
-  if (racial && v.on(ID.racial)) add(racial)
-  if (v.on(ID.farseer) && rank(talents, 'Rage of the Farseer') > 0) add(RAGE_OF_THE_FARSEER)
+  // The on-use items and Juju Flurry, when selected, are the rotation's to press (its `onUse`), switch on or off.
   const pressed: string[] = ctx.items.map((i) => i.id)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
-  if (juju) {
-    pressed.push(JUJU_FLURRY)
-    if (v.on(ID.juju)) add(consumable(juju))
-  }
+  if (juju) pressed.push(JUJU_FLURRY)
 
-  // Stormstrike on cooldown.
-  if (v.on(ID.stormstrike) && rank(talents, 'Stormstrike') > 0) add(STORMSTRIKE)
-
-  // Lightning Bolt at x Maelstrom Weapon stacks (5: instant and free), which Maelstrom Weapon's procs give.
-  if (v.on(ID.bolt) && rank(talents, 'Maelstrom Weapon') > 0) {
-    const bolt = index(LIGHTNING_BOLT)
-    const stacks = Math.max(1, Math.min(5, Math.round(v.num(ID.boltStacks))))
-    // The talent's proc puts the stacks up (talents.ts), so its aura is in the plan already.
-    const aura = auraIndex(MAELSTROM_AURA.id)
-    if (aura >= 0) rotation.push({ ability: bolt, conditions: [{ code: COND.auraStacksAtLeast, a: aura, b: stacks }], unqueueBelowTenths: 0 })
-  }
-
-  // The shock on cooldown, at mana ≥ x%.
-  const shock = v.str(ID.shock)
-  if (shock !== 'none') {
-    const pct = v.num(ID.shockMana)
-    add(shock === 'frost' ? FROST_SHOCK : EARTH_SHOCK, pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : [])
-  }
+  // The rows in `order` (ENHANCEMENT_APL): each row's conditions are its own wherever it sits.
+  compileAplRows(ENHANCEMENT_APL, order, {
+    // Rows 1–4 are off the GCD, on cooldown from the pull: the racial cooldown, Rage of the Farseer,
+    // on-use trinkets and Juju Flurry. Nothing in the list is worth saving them for (shaman.md
+    // "Enhancement priority"). The shaman's racials are the casters' (caster-racials.ts):
+    // Berserking's casting speed and Blood Fury's spell power too.
+    racial: () => {
+      const racial = CASTER_RACIALS[ctx.race]
+      if (racial && v.on(ID.racial)) add(racial)
+    },
+    rageOfTheFarseer: () => {
+      if (v.on(ID.farseer) && rank(talents, 'Rage of the Farseer') > 0) add(RAGE_OF_THE_FARSEER)
+    },
+    // Row 3, and Juju Flurry (row 4, spec-wide) with it, as before the list.
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+      if (juju && v.on(ID.juju)) add(consumable(juju))
+    },
+    // Row 5: Stormstrike on cooldown.
+    stormstrike: () => {
+      if (v.on(ID.stormstrike) && rank(talents, 'Stormstrike') > 0) add(STORMSTRIKE)
+    },
+    // Row 6: Lightning Bolt at x Maelstrom Weapon stacks (5: instant and free), which Maelstrom Weapon's procs give.
+    lightningBolt: () => {
+      if (!v.on(ID.bolt) || rank(talents, 'Maelstrom Weapon') <= 0) return
+      const bolt = index(LIGHTNING_BOLT)
+      const stacks = Math.max(1, Math.min(5, Math.round(v.num(ID.boltStacks))))
+      // The talent's proc puts the stacks up (talents.ts), so its aura is in the plan already.
+      const aura = auraIndex(MAELSTROM_AURA.id)
+      if (aura >= 0) rotation.push({ ability: bolt, conditions: [{ code: COND.auraStacksAtLeast, a: aura, b: stacks }], unqueueBelowTenths: 0 })
+    },
+    // Row 7: the shock on cooldown, at mana ≥ x%.
+    shock: () => {
+      const shock = v.str(ID.shock)
+      if (shock === 'none') return
+      const pct = v.num(ID.shockMana)
+      add(shock === 'frost' ? FROST_SHOCK : EARTH_SHOCK, pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : [])
+    },
+  })
 
   // The mana potion and rune (off the GCD), when selected in Buffs: once the most they restore fits.
   for (const [id, setting, missing] of [

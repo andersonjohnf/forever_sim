@@ -308,6 +308,37 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
     parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
     shows none.
+  - **From 1440 px** (the wide layout, [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)),
+    once the setup pane is 53 rem or more (it's 55 at 1440 px, about 54 where a scrollbar takes
+    room), the slots become **one compact list**, and the picker opens **inline** in a panel beside
+    it rather than in a dialog, as the Rotation tab's row settings do:
+    - Each slot is one row of 56 px or more in one bordered list per group: the icon, the item in
+      its quality colour with its BiS rank, then the slot and its stats on the next line (up to two
+      lines), the flags beside them (under them when they'd squeeze them), and the enchant chip in
+      its own cell at the row's end. The slot's button and the chip are 44 px targets or more; their
+      focus rings sit inside the row. An empty slot shows its faded icon, name and "Empty".
+    - The panel is the dialog's body exactly (the search, filters, sort, rows, rules and messages
+      above, one component for the dialog, the phone's sheet and the panel) under **Back to list**,
+      the title ("Choose chest") and its description. It stays in view as the list scrolls: it sits
+      1 rem under the sticky tabs and reaches down to 1 rem above the window's bottom, its items
+      scrolling inside it with a fade on each edge that has more past it (as the Rotation panel).
+      Until a slot is chosen it says "Choose a slot to see the items you can equip there."
+    - The chosen slot has a bar in the primary colour on its leading edge and is the list's current
+      one (`aria-current`). Choosing a slot moves focus to the panel's heading. **Picking an item
+      equips it and the panel stays on the slot**, so you can compare the candidates and then move
+      on; focus stays on the item, and screen readers hear "Equipped Knight-Captain's Plate
+      Hauberk." (**Leave this slot empty** goes with the item, so focus moves to the heading.)
+      **Back to list**, or Escape anywhere in the panel, returns focus to the slot's row; the panel
+      keeps its slot. A select's or a flag's own Escape closes just that.
+    - Keys: with focus anywhere in a slot's row (its button, a flag, the enchant chip), **Up** and
+      **Down** move to the slot above or below, across the groups and past an off hand a two-hander
+      locks; **Enter** opens the slot in the panel. **/** in the panel, outside the search box,
+      focuses the search.
+    - The panel is 24 rem, and 30 rem from a 68 rem pane (1920 px). From an 84 rem pane (about
+      2,270 px) the slots take two columns beside it: Armor, then Jewelry and Weapons.
+    - The enchant picker stays a popover, and the default set's row and **Gear options** are as
+      above. A slot chosen in one layout doesn't carry into the other, so narrowing the window past
+      1440 px never pops the dialog up.
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.

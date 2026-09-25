@@ -28,7 +28,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Mindfang (EM-6) with Ignite's single Curse of the Elements (70009): 435.43 → 435.33 DPS,
   //   Ignite 195,274 → 177,522 damage (−9.1%), as each side measured alone.
   // - The Destruction gear review (DG-2): Mindfang, Sageclaw's Horde twin, replaces Witchblade for a
-  //   Troll: 402.71 → 435.43 here; 402.2 → 434.8 over 20,000 fights on seed 2701 (+8.1%).
+  //   Troll: 402.71 → 435.43 here; 402.2 → 434.8 over 20,000 fights on seed 2701 (+8.1%). This is the
+  //   same change as EM-6 above, not a second one: main's engine merge check added Mindfang by hand
+  //   (EM-6) and the gear slice's derived twins gave it again (DG-2), so the snapshot moved once.
   // - The caster gear verification (GV-4): the head is re-ranked by the sim, so a Troll wears
   //   Spellweaver's Turban for Champion's Silk Cowl: 435.43 → 440.93 here; 434.8 → 440.5 over 20,000
   //   fights on seed 2701.

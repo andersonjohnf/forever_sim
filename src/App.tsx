@@ -8,6 +8,7 @@ import { sectionSummaries } from '@/app/section-summary'
 import { SectionTabs } from '@/app/section-tabs'
 import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
 import { useSharedLink } from '@/app/shared-link'
+import { useSimulateShortcut } from '@/app/shortcuts'
 import { WhatsNew } from '@/app/whats-new'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -78,6 +79,7 @@ export default function App() {
   const results = useRef<HTMLElement>(null)
   useDefaultsNotice()
   useSharedLink()
+  useSimulateShortcut()
   // The tabs' summary lines, from 1440 px only (D34), kept while no line changes.
   const wide = useIsWide()
   const summaries = useSetup(useShallow((s) => (wide ? sectionSummaries(s.config) : undefined)))

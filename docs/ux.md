@@ -1355,6 +1355,13 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   "Show results and details".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
+- **Ctrl+Enter, or ⌘+Enter on a Mac, runs Simulate** from anywhere on the page at every width,
+  as the button does (decision D34, `src/app/shortcuts.ts`). In a text or number field the field
+  commits what you typed first and keeps focus, so the run takes the new value. It does nothing
+  while a run is under way, or while a sheet, dialog or popover with a form of its own (the item
+  picker, Setups, a pasted build code, the enchant picker) or an open menu or list has the key;
+  a sheet without one, such as the phone's results, leaves it on. It always takes a modifier, so
+  typing never triggers it (WCAG 2.1.4).
 - **A change with no notice is still announced** (WCAG 4.1.3), through a polite live region in
   the app shell (`announce()` in `src/app/announce.ts`): Equip pre-raid best in slot (or the threat set), Remove all
   gear, a talent preset, a pasted build and Clear (with the points in each tree), Reset rotation,

@@ -136,8 +136,8 @@ test.describe('the Shadow Priest’s list from the keyboard, in a run and a shar
     await expect.poll(() => order(page)).toEqual(moved('mindBlast', 'innerFocus'))
     await expect(liveRegion(page)).toHaveText(`Mind Blast dropped at position 8 of ${COUNT}.`)
     await expect(list.getByRole('button', { name: 'Move Mind Blast, position 8' })).toBeFocused()
-    // Below Mind Blast, Inner Focus finds it ready only when Mind Blast can't be cast: its row is dimmed and says so.
-    await expect(focus).toContainText('Below Mind Blast: cast only when Mind Blast can’t be.')
+    // Below Mind Blast, Inner Focus is never cast (it waits for Mind Blast, which goes first): its row is dimmed and says so.
+    await expect(focus).toContainText('Not used: below Mind Blast, which it waits for, so Mind Blast always goes first. Move it above Mind Blast.')
     await expect(focus).toHaveAttribute('data-inactive', 'true')
   })
 

@@ -345,7 +345,9 @@ export function shadowUnusedSettings(
   const below = (row: string, above: string) => current.indexOf(row) > current.indexOf(above)
   const innerFocus = v.on(ID.innerFocus) && v.on(ID.blast) && rank(talents, 'Inner Focus') > 0
   if (innerFocus && below('innerFocus', 'mindBlast')) {
-    out[ID.innerFocus] = belowRowNote('Mind Blast')
+    // Not the below-filler rule: Inner Focus waits for Mind Blast to be ready and affordable, so below
+    // it Mind Blast always goes first and Inner Focus is never cast (the fix round's quick check, QV-1).
+    out[ID.innerFocus] = 'Not used: below Mind Blast, which it waits for, so Mind Blast always goes first. Move it above Mind Blast.'
   }
   if (!v.on(ID.flay) || rank(talents, 'Mind Flay') === 0) return out
   const note = belowRowNote('Mind Flay')

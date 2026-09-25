@@ -94,7 +94,7 @@ export function RotationSection() {
         <>
           {/* D28's rotations as the list's presets: first on the tab, as a tank's priority choice always was. */}
           {apl && hasNamedPresets(apl) && <AplPresetPicker apl={apl} />}
-          {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} />}
+          {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} flow />}
           {groups.map(({ group, options: grouped, fixed }) => (
             // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
             <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} fixed={fixed} ctx={ctx} />
@@ -144,7 +144,7 @@ function GroupSection({ group, options, fixed, ctx }: { group: RotationGroup; op
           </Button>
         )}
       </div>
-      <OptionList options={shown} all={options} fixed={fixed} ctx={ctx} />
+      <OptionList options={shown} all={options} fixed={fixed} ctx={ctx} flow />
     </section>
   )
 }

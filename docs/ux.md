@@ -399,8 +399,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
-    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's Max TPS
-    against Balanced too, which it differs from by one setting), when to pick it, and the Buffs
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's and a
+    warrior's Max TPS against Balanced too, whose rows they share: a bear's differs by one setting,
+    a warrior's by two thresholds), when to pick it, and the Buffs
     tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
     the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
     most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken

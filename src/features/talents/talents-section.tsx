@@ -455,7 +455,7 @@ function ImportDialog({
         <DialogHeader>
           <DialogTitle>Paste a build code</DialogTitle>
           <DialogDescription>
-            A talent code like <span className="font-mono break-all">{example}</span>, or a talent calculator link that ends in one.
+            A talent code like <span className="font-mono">{example}</span>, or a talent calculator link that ends in one.
           </DialogDescription>
         </DialogHeader>
         <Input

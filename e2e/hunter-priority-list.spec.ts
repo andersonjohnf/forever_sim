@@ -125,7 +125,10 @@ test.describe('a hunter’s priority list on a phone', () => {
     sheet = page.getByRole('dialog', { name: 'Aimed Shot or Multi-Shot' })
     await expect(sheet.getByRole('radio', { name: 'Multi-Shot', exact: true })).toBeChecked()
     await expect(sheet.getByRole('switch', { name: 'Wait for Auto Shot', exact: true })).toBeChecked()
+    // At Neither there's no shot to wait for, so the row says just that, not "between Auto Shots".
+    await sheet.getByRole('radio', { name: 'Neither', exact: true }).click()
     await sheet.getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(list.locator('#apl-sharedShot-summary')).toHaveText('Neither')
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
   })
 })

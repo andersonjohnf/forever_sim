@@ -51,7 +51,8 @@ async function expectDefaultRotation(tab: Locator) {
   await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Core abilities', 'Consumables', 'Priority list'])
   await expect(tab.getByRole('region', { name: 'Core abilities' })).toContainText(/Auto Shot.*Always on/s)
   const list = tab.getByRole('list', { name: 'Priority list' })
-  await expect(list.locator('[data-apl-row="prepull"]')).toContainText('Aspect of the Hawk')
+  // Marksmanship's build has Trueshot Aura, so the pre-pull names it.
+  await expect(list.locator('#apl-prepull-summary')).toHaveText('Aspect of the Hawk · Trueshot Aura')
   for (const name of ['Racial cooldown', 'On-use trinkets', 'Rapid Fire', 'Hunter’s Mark', 'Serpent Sting']) {
     await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }

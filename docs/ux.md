@@ -433,7 +433,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Bloodthirst is off." when a switch it depends on is off. Neither is ever cut short: a
       long one wraps. A row that stops in the execute phase says so ("On cooldown · not in the
       execute phase"), and a filler that waits for the core abilities says that too ("while
-      Bloodthirst and Whirlwind cool down"). A
+      Bloodthirst and Whirlwind cool down"). A part a choice rules out is left out: a hunter's
+      shared shot at Neither reads "Neither", not "Neither · between Auto Shots", and a part
+      about a talent shows only with it (Trueshot Aura before the pull). A
       row with a changed setting has a dot after its name, and a screen reader hears "Changed."
       in its description.
     - **Selecting a row** (its icon, name and summary are one button) opens its settings: its

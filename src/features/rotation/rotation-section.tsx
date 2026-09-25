@@ -43,6 +43,7 @@ export function RotationSection() {
   }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid, rotationOrder])
   const ctx: RowContext = {
     rows,
+    setup: { spec: meta.id, talents, gear },
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
     reset: (id) =>
       update((c) => {

@@ -7,6 +7,7 @@ import { decodeTalentCode, talentsInCodeOrder, validateTalentBuild } from '@/dat
 import { ammoKind, DEFAULT_SUPPLIES, defaultConfig, INTERIM_GEAR, matchSupplies, preRaidListGear, TALENT_DATA } from './defaults'
 import { armorReduction } from './core/formulas'
 import { canUse, fitsFaction, uniqueConflicts } from './equip'
+import { ITEM_EFFECTS } from './effects/items'
 import { buildPlan } from './plan/build'
 import { FOREVER } from './rules/profiles'
 import { SPEC_IDS, SPEC_META } from './specs'
@@ -130,6 +131,38 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     }
   })
 
+  it('gives each warlock its sim-ranked list’s twins, and Affliction its Shadow picks', () => {
+    // docs/classes/warlock.md#73-gear: each spec's own list, with the Arathi Basin main hand and the
+    // Rank 10 Dreadweave cowl and spaulders by faction; the Fire tome ranks second in Destruction's off hand.
+    const slots: GearSlot[] = ['head', 'shoulder', 'mainHand', 'offHand']
+    for (const spec of ['warlock-destruction', 'warlock-demonology'] as const) {
+      expect(ids(spec, 'horde-orc', slots)).toEqual([23255, 23256, 20214, 19315])
+      expect(ids(spec, 'horde-undead', slots)).toEqual([23255, 23256, 20214, 19315])
+      expect(ids(spec, 'alliance-human', slots)).toEqual([23310, 23311, 20070, 19315])
+      expect(ids(spec, 'alliance-gnome', slots)).toEqual([23310, 23311, 20070, 19315])
+    }
+    const tome = items.get(19311)!
+    expect(tome.preRaidBis.filter((p) => p.spec.startsWith('warlock-'))).toEqual([{ spec: 'warlock-destruction', slot: 'offHand', rank: 2 }])
+    // Affliction, a Shadow build, keeps the Shadow items where they lead: Felcloth Gloves, Tome of
+    // Shadow Force, Skul's Ghastly Touch.
+    const aff: GearSlot[] = [...slots, 'hands', 'ranged']
+    expect(ids('warlock-affliction', 'horde-orc', aff)).toEqual([23255, 23256, 20214, 19309, 18407, 13396])
+    expect(ids('warlock-affliction', 'alliance-human', aff)).toEqual([23310, 23311, 20070, 19309, 18407, 13396])
+    // Ironbark Staff leads every warlock's two-handers: the League of Arathor's for the Alliance, and its
+    // faction twin from the client, The Defilers' (20220), for the Horde (DV2-1; docs/data/items.md#faction-twins).
+    // So do the Fire mage's and the Elemental shaman's.
+    for (const spec of ['warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'mage-fire', 'shaman-elemental'] as const)
+      for (const id of [20069, 20220]) expect(items.get(id)!.preRaidBis.filter((p) => p.spec === spec), `${spec} ${id}`).toEqual([{ spec, slot: 'twoHand', rank: 1 }])
+    expect([fitsFaction('alliance-human', items.get(20069)!), fitsFaction('horde-orc', items.get(20069)!)]).toEqual([true, false])
+    expect([fitsFaction('alliance-human', items.get(20220)!), fitsFaction('horde-orc', items.get(20220)!)]).toEqual([false, true])
+    // Draconic Infused Emblem's proc, modelled (DV2-4), leads every warlock's trinkets, with the Royal Seal.
+    for (const spec of ['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)
+      expect(ids(spec, 'horde-orc', ['trinket1', 'trinket2']), spec).toEqual([22268, 18467])
+    // The Scourge Invasion's items are event-only: no warlock list has them.
+    for (const id of [23124, 23125])
+      expect(items.get(id)!.preRaidBis.filter((p) => p.spec.startsWith('warlock-')), String(id)).toEqual([])
+  })
+
   it('opens with the default race’s gear', () => {
     expect(defaultConfig('warrior-fury')).toEqual(defaultConfig('warrior-fury', 'alliance-human'))
     expect(defaultConfig('druid-feral-cat')).toEqual(defaultConfig('druid-feral-cat', 'horde-tauren'))
@@ -161,6 +194,33 @@ describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
     expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([274233, 13168, 274232, 274226])
     const ally = defaultConfig('paladin-protection', 'alliance-human').gear
     expect([ally.shoulder, ally.chest, ally.legs, ally.feet].map((e) => e?.itemId)).toEqual([23277, 23272, 23273, 23275])
+  })
+})
+
+describe('Destruction’s sim-ranked list (docs/classes/warlock.md#73-gear; D29)', () => {
+  const listed = [...items.values()].filter((i) => i.preRaidBis.some((p) => p.spec === 'warlock-destruction'))
+  const SPELL_STATS = ['spellPower', 'spellDamage', 'fireSpellDamage', 'shadowSpellDamage', 'spellHit', 'spellCrit', 'hitRating', 'critRating', 'intellect'] as const
+
+  it('lists only warlock gear that kept its spell stats or a modelled spell effect, and no Forever-new item', () => {
+    expect(listed.length).toBeGreaterThan(40)
+    for (const item of listed) {
+      expect(canUse('warlock', item), item.name).toBe(true)
+      // Its spell stats, or a spell effect the sim models (Wrath of Cenarius, Draconic Infused Emblem: effects/items.ts).
+      expect(SPELL_STATS.some((k) => (item.stats[k] ?? 0) > 0) || ITEM_EFFECTS[item.id] !== undefined, `${item.name}: ${JSON.stringify(item.stats)}`).toBe(true)
+      expect(item.tab, item.name).not.toBe('new')
+      for (const r of item.requirements) if (r.kind === 'pvpRank') expect(r.level, item.name).toBeLessThanOrEqual(10)
+    }
+  })
+
+  it('ranks every slot the default gear fills, with Fire items where they place', () => {
+    const rank = (id: number) => items.get(id)!.preRaidBis.find((p) => p.spec === 'warlock-destruction')
+    for (const slot of ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'finger', 'trinket', 'mainHand', 'offHand', 'twoHand', 'ranged'])
+      expect(listed.some((i) => i.preRaidBis.some((p) => p.spec === 'warlock-destruction' && p.slot === slot && p.rank === 1)), slot).toBe(true)
+    // Tome of Fiery Arcana (+40 Fire) and Pyric Caduceus (+13 Fire) place; a Shadow-only item doesn't.
+    expect(rank(19311)).toEqual({ spec: 'warlock-destruction', slot: 'offHand', rank: 2 })
+    expect(rank(11748)).toEqual({ spec: 'warlock-destruction', slot: 'ranged', rank: 3 })
+    expect(rank(19309)).toBeUndefined() // Tome of Shadow Force
+    expect(rank(18735)).toBeUndefined() // Maleki's Footwraps
   })
 })
 

@@ -484,6 +484,8 @@ describe('races', () => {
 describe('items/pre-bis', () => {
   const { meta } = items
   const byId = new Map(items.items.map((i) => [i.id, i]))
+  // docs/data/items.md#pre-raid-bis-lists: items a list dropped stay in the pool, with no rank.
+  const kept = new Set(meta.preRaidBis.kept)
 
   it('matches its recorded counts', () => {
     expect(items.items).toHaveLength(meta.counts.items)
@@ -498,7 +500,7 @@ describe('items/pre-bis', () => {
     for (const item of items.items) {
       // docs/data/items.md#ammo-and-quivers: arrows, bullets, quivers and ammo pouches have their own rule.
       const supply = item.slot === 'ammo' || item.slot === 'quiver'
-      if (item.preRaidBis.length === 0 && !supply) expect(item.quality, item.name).toBe(3)
+      if (item.preRaidBis.length === 0 && !supply && !kept.has(item.id)) expect(item.quality, item.name).toBe(3)
       expect(item.slot, item.name).toBeTruthy()
       expect(item.equipSlots.length, item.name).toBeGreaterThan(0)
       expect(item.icon, item.name).toMatch(/^[a-z0-9_-]+$/)
@@ -508,9 +510,13 @@ describe('items/pre-bis', () => {
   it('contains every item on the curated pre-raid BiS list (decisions D11)', () => {
     const bis = meta.preRaidBis
     expect(bis.notInData).toEqual([])
+    // A kept item (a list dropped it) is in the pool with no rank.
+    for (const id of bis.kept) expect(byId.get(id)?.preRaidBis, String(id)).toEqual([])
     expect(bis.inPool).toBe(bis.listedItems)
+    // docs/data/items.md#faction-twins: the rest take a listed twin's entries.
     const tagged = items.items.filter((i) => i.preRaidBis.length > 0)
-    expect(tagged).toHaveLength(bis.listedItems)
+    expect(tagged).toHaveLength(bis.listedItems + bis.twinsListed)
+    expect(bis.twinsListed).toBeGreaterThan(0)
   })
 
   it('matches its recorded filter (decisions D10)', () => {
@@ -519,7 +525,7 @@ describe('items/pre-bis', () => {
     for (const item of items.items) {
       expect(excludedItemIds[String(item.id)], item.name).toBeUndefined()
       expect(junk.test(item.name), item.name).toBe(false)
-      if (item.preRaidBis.length > 0) continue // listed items join at any quality or level
+      if (item.preRaidBis.length > 0 || kept.has(item.id)) continue // listed and kept items join at any quality or level
       if (item.slot === 'ammo' || item.slot === 'quiver') {
         // docs/data/items.md#ammo-and-quivers: the supplies' own quality and required-level rule.
         expect(meta.filter.supplies.qualities, item.name).toContain(item.quality)

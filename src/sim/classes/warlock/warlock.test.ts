@@ -315,6 +315,60 @@ describe('the engine’s warlock pieces (warlock.md §8)', () => {
   })
 })
 
+describe('the warlocks’ sim-ranked gear (warlock.md §7.3)', () => {
+  // Paired runs (same seed, same fights) of a default setup with its gear swapped.
+  const dpsWith = (gear: Partial<SimConfig['gear']>) => {
+    const d = fixed('warlock-destruction')
+    const bundle = buildPlan({ ...d, gear: { ...d.gear, ...gear } })
+    return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
+  }
+
+  it('keeps Therazane’s Touch (+31 to every school) over Tome of Fiery Arcana (+40 Fire)', () => {
+    // The default Fire build still casts Shadowburn, Corruption and Bane of Doom, so +1 Fire is worth
+    // about 70% of +1 to every school: the Tome ranks second (about −1.6 DPS).
+    expect(defaultConfig('warlock-destruction').gear.offHand?.itemId).toBe(19315)
+    const tome = dpsWith({ offHand: { itemId: 19311 } })
+    const base = dpsWith({})
+    expect(base).toBeGreaterThan(tome)
+    expect(base - tome).toBeLessThan(5)
+  })
+
+  // The old default of every warlock: Deathmist Mask and Wraps, Star of Mystaria, Champion's Dreadweave
+  // Spaulders, Amplifying Cloak, Robe of the Void, Sublime Wristguards, Ban'thok Sash, Skyshroud Leggings,
+  // Maleki's Footwraps, Skul's Ghastly Touch, the two Blackrock Depths rings, Briarwood Reed, Eye of the
+  // Beast, Blade of the New Moon and Therazane's Touch (Destruction 447.6 DPS on seed 2701, §6.3;
+  // Affliction 402.0; Demonology 534.2, §11.6).
+  const GUIDE: SimConfig['gear'] = {
+    head: { itemId: 22074, enchantId: 'arcanumFocus' },
+    neck: { itemId: 12103 },
+    shoulder: { itemId: 23256 },
+    back: { itemId: 18350 },
+    chest: { itemId: 14153, enchantId: 'chestGreaterStats' },
+    wrist: { itemId: 18497 },
+    hands: { itemId: 22077, enchantId: 'gloveMinorHaste' },
+    waist: { itemId: 11662 },
+    legs: { itemId: 13170, enchantId: 'arcanumFocus' },
+    feet: { itemId: 18735 },
+    ranged: { itemId: 13396 },
+    finger1: { itemId: 12543 },
+    finger2: { itemId: 12545 },
+    trinket1: { itemId: 12930 },
+    trinket2: { itemId: 13968 },
+    mainHand: { itemId: 18372, enchantId: 'weaponSpellPower' },
+    offHand: { itemId: 19315 },
+  }
+
+  // Each spec's own list beats the guide's by about a quarter or more (Destruction +31%, Affliction
+  // +25%, Demonology +24% over 20,000 fights; §7.3).
+  it.each(['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)('%s: its own list beats the guide’s shared Shadow list it replaced', (spec) => {
+    const run = (gear: SimConfig['gear']) => {
+      const bundle = buildPlan({ ...fixed(spec), gear })
+      return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
+    }
+    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.2)
+  })
+})
+
 describe('golden runs (fixed config and seed)', () => {
   // Snapshot history (update only deliberately, and say why here):
   // - K3: the default Destruction warlock (warlock.md §6.1, §7): Fire, the Succubus sacrificed,
@@ -324,6 +378,18 @@ describe('golden runs (fixed config and seed)', () => {
   //   Siphon Life, Shadow Bolt with Shadow Trance, Life Tap at 10%; 402.0 DPS on the same.
   // - WL1 (K3 review): Destruction casts Corruption and its Bane too, Bane of Doom then Agony for the last
   //   minute, after Shadowburn (§6.1); 447.6 DPS over 20,000 fights on seed 2701, up from 398.1 (§6.3).
+  // - Issue #16: Destruction wears its own sim-ranked Fire list (§7.3) instead of the guide's Shadow
+  //   list shared by every warlock: Mindfang, the Bloodvine Garb, the Dreadweave cowl, Rockfury Bracers
+  //   and eight more swaps; 586.0 DPS over 20,000 fights on seed 2701, up from 447.6. Affliction's is
+  //   unchanged.
+  // - The Destruction gear review (DG-1): Affliction wears its own sim-ranked list too (§7.3), with its
+  //   Shadow items where they lead (Felcloth Gloves, Tome of Shadow Force, Skul's Ghastly Touch):
+  //   402.07 → 503.79 here; 402.0 → 502.5 over 20,000 fights on seed 2701. Destruction's list lost its
+  //   event-only items and gained Ironbark Staff for the Alliance, neither worn: its result is unchanged.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Draconic Infused Emblem's
+  //   proc is modelled and leads both lists' trinkets, in place of Briarwood Reed (Destruction's third
+  //   ring is Wrath of Cenarius, not worn). Affliction 503.79 → 514.05, Destruction 585.96 → 597.86 here;
+  //   502.5 → 512.7 and 586.0 → 597.9 over 20,000 fights on seed 2701.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

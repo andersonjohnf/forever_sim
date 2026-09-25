@@ -45,6 +45,7 @@ export const ASSUMPTION_GROUP = {
   hyjalFlask: 'gear',
   procRates: 'gear',
   ironfoeChance: 'gear',
+  draconicEmblemChance: 'gear',
   ratingsInCombat: 'gear',
   extraAttackChains: 'gear',
   elementalStone: 'gear',

@@ -198,6 +198,10 @@ const REGISTRY = {
     text: 'Procs-per-minute rates (Crusader 1, Fiery Weapon 6, Flurry Axe 1.8, …) are Classic Era’s: Forever sets them on the server, and nobody has measured them.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
+  draconicEmblemChance: {
+    text: 'Draconic Infused Emblem’s +35 spell damage (+70 against Dragonkin) procs on every harmful spell that lands, so it stays up from the first: the Forever client gives it a 100% chance with no cooldown, though its tooltip says “chance”. At a lower chance it would be worth less. Nobody has measured it.',
+    docRef: 'docs/data/items.md#modelled-item-effects',
+  },
   ironfoeChance: {
     text: 'Ironfoe procs on 3% of its own hits, at most once per 100 ms. The Forever client gives it a 6% chance and says it procs twice as often against Orcs, so, as for Hand of Justice, we read 6% as the chance against Orcs and 3% against other bosses. We also count only its own hits: if hits from the other hand proc it too, the default Fury warrior does about 2.7% more DPS. Nobody has measured either.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,

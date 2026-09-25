@@ -909,7 +909,10 @@ instead; its tooltip DPS includes the extra damage (Warblade of Caer Darrow 142�
 or 0x400 (healing) gives up DPS for spell power worth 2 × the group-0 budget of its quality at
 its item level, whatever its slot. For example, Whiteout Staff and Shivsprocket's Shiv (both
 item level 65, Rare, `SuperiorF[0]` = 37) show **+74 Spell Power**, and Elderwild Construction
-Hammer (60, 34) shows +68. Healing weapons get 3.75 × and 1.25 × that group-0 budget as
+Hammer (60, 34) shows +68. Applied to an Epic, the rule gives Mindfang, Sageclaw and Ironbark Staff
+(item level 65, Epic) **+94**, the number every caster's default main hand now rests on
+([warlock.md §7.3](../classes/warlock.md#73-gear)). No Epic was among the weapons it was fitted on,
+so that +94 is `[?]` until a tooltip confirms it (open question below). Healing weapons get 3.75 × and 1.25 × that group-0 budget as
 healing and spell damage (Simone's Cultivating Hammer: +139 Healing, +46 Spell Damage). The
 DPS falls by **0.195 per point** of that spell power (2 × budget). That constant is a fit, not a
 known formula: scanning 0.190–0.200, only 0.19494–0.19505 reproduces all seven pool weapons'
@@ -1085,6 +1088,11 @@ Custodian).
 - `[?]` **Caster-weapon DPS.** The 0.195-DPS-per-spell-power cut and "no extra spell power when
   the stats carry some" are fits to 7 and 1 items. A caster weapon's tooltip at another item
   level or quality would confirm them.
+- `[?]` **Epic caster weapons' spell power.** The rule was fitted on Rare weapons; on an Epic it gives
+  Mindfang, Sageclaw and Ironbark Staff +94 spell power (Classic Era: +30), which is most of the
+  casters' pre-raid main-hand value (Mindfang alone is +41 to +55 DPS for a warlock,
+  [warlock.md §7.3](../classes/warlock.md#73-gear)). Guild test: Mindfang's or Sageclaw's tooltip in
+  game (its spell power line), or Ironbark Staff's.
 - `[?]` **Hotfix-only rows.** 50 pool items (and all 16 no-row-anywhere items) exist only as
   server hotfixes, and the Undermine trinkets' cooldowns look hotfixed. The raw client files
   can't show these; wago.tools' documented API has no hotfix endpoint.

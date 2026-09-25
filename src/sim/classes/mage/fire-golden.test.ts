@@ -29,6 +29,14 @@ describe('golden run (fixed config and seed)', () => {
   //   Vulnerability again (the crit carries them), and Hot Streak lasts 20 s (was 15). 514.50 →
   //   501.69 DPS: Ignite's damage −20.8% (1 ÷ (1.1 × 1.15)); Hot Streak's 5 s more changes little at
   //   the default's 1-stack Pyroblast.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Wrath of Cenarius's and Draconic
+  //   Infused Emblem's spell-damage procs are modelled (effects/items.ts; the default wore both), and the
+  //   list's rings and trinkets are re-ranked by the sim: Flaming Band for Wrath of Cenarius. 514.50 →
+  //   543.10 here; 542.1 → 544.7 over 20,000 fights on seed 2701 for the re-rank alone.
+  // - The 70009 integration (the casters' and the caster gear slices merged): 70009's Ignite and Hot
+  //   Streak with DV2-4's procs and re-rank. 501.69 (casters alone) / 543.10 (gear alone) → 529.59
+  //   DPS. Checked both ways: with either side's code reverted, the other side's snapshot reproduces
+  //   exactly.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

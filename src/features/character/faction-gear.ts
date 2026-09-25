@@ -1,10 +1,11 @@
 // Faction-bound gear on a race change (docs/ux.md "Character"; docs/data/items.md#equipping-rules).
-// PvP, battleground and reputation rewards come in one twin per faction with the same stats, so
-// when the race changes sides each such item swaps for the new faction's twin.
+// PvP, battleground and reputation rewards come in one twin per faction with the same stats (read
+// from the client, docs/data/items.md#faction-twins), so when the race changes sides each such item
+// swaps for the new faction's piece with the same stats: its twin, or a piece whose set differs.
 import type { Item } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { Faction, RaceData } from '@/data/races/types'
-import { itemData, itemsById } from '@/lib/items'
+import { itemsById } from '@/lib/items'
 import { canUse, fitsFaction, GEAR_SLOTS, itemFaction, SPEC_META, uniqueConflicts, type ClassId, type GearSlot, type SimConfig } from '@/sim'
 import { followDefaults, following } from '@/features/gear/default-set'
 
@@ -15,33 +16,6 @@ export function factionOf(race: string): Faction | null {
   return races.find((r) => r.id === race)?.faction ?? null
 }
 
-/**
- * What must match for two items to be the same item for either side: everything that changes what
- * the item does. A use effect's text can name a faction's base (the Alterac Valley insignias
- * return you to Dun Baldar or Frostwolf Keep), so use effects match by count and cooldown. Class
- * restrictions match by whether this class can wear the item, not by the whole list: Horde's rank-5
- * plate bracers are warrior-only while Alliance's twin is for warriors and paladins, and a warrior
- * wears either.
- */
-function twinKey(item: Item, classId: ClassId): string {
-  return JSON.stringify([
-    item.slot,
-    item.itemLevel,
-    item.quality,
-    item.armorType,
-    item.weaponType,
-    item.unique,
-    item.uniqueEquipped,
-    canUse(classId, item),
-    item.stats,
-    item.weapon,
-    item.weaponSkill,
-    item.procs,
-    item.otherEquip,
-    item.useEffects.map((u) => u.cooldownSec ?? null),
-  ])
-}
-
 /** Length of the longest common suffix, to pick "Defiler's Chain Greaves" for "Highlander's Chain Greaves". */
 function sharedSuffix(a: string, b: string): number {
   let n = 0
@@ -49,31 +23,49 @@ function sharedSuffix(a: string, b: string): number {
   return n
 }
 
-const twinCache = new Map<string, Item | null>()
+/** The other-faction items among `ids` that this class can wear, the name that ends the same way first, then by id. */
+function otherSide(item: Item, ids: readonly number[], faction: Faction, classId: ClassId): Item[] {
+  if (itemFaction(item) === null || itemFaction(item) === faction) return []
+  return ids
+    .map((id) => itemsById.get(id))
+    .filter((other): other is Item => other !== undefined && itemFaction(other) === faction && canUse(classId, other))
+    .sort((a, b) => sharedSuffix(b.name, item.name) - sharedSuffix(a.name, item.name) || a.id - b.id)
+}
 
 /**
- * The other faction's version of a faction-bound item for a character of this class: the `faction`
- * item with the same stats, effects, slot and level that the class can wear too. When several match
- * (Highlander's Chain and Mail Greaves), the one whose name ends the same way wins. Null when the
- * item isn't bound to the other side or has no twin.
+ * The other faction's version of a faction-bound item for a character of this class, for the
+ * pre-raid lists' ranks: among the item's twins, which the item scraper reads from the client with
+ * the set's bonuses matched (docs/data/items.md#faction-twins), the one bound to `faction` that the
+ * class can wear. When several match (Highlander's Chain Greaves has Defiler's Chain and Mail
+ * Greaves), the one whose name ends the same way wins. Null when the item isn't bound to the other
+ * side or has no twin there.
  */
 export function factionTwin(item: Item, faction: Faction, classId: ClassId): Item | null {
-  const own = itemFaction(item)
-  if (own === null || own === faction) return null
-  const cacheKey = `${item.id}:${faction}:${classId}`
-  const cached = twinCache.get(cacheKey)
-  if (cached !== undefined) return cached
-  const key = twinKey(item, classId)
-  const matches = itemData.items.filter((other) => itemFaction(other) === faction && twinKey(other, classId) === key)
-  const twin = matches.sort((a, b) => sharedSuffix(b.name, item.name) - sharedSuffix(a.name, item.name) || a.id - b.id)[0] ?? null
-  twinCache.set(cacheKey, twin)
-  return twin
+  return otherSide(item, item.twins, faction, classId)[0] ?? null
+}
+
+/**
+ * The piece a race change swaps a faction-bound item for (docs/data/items.md#faction-twins, "Two
+ * tiers"): its faction twin when it has one, else the other faction's piece with the same stats and
+ * effects in another set, or none (`statTwins`: the Alliance's Rank 7 to 10 silk and leather have no
+ * item set, Highlander's Mail Pauldrons a spell-crit 3-piece bonus where the Defilers' is melee
+ * crit). `setDiffers` says the new piece's set bonus isn't the old one's, which the race change's
+ * notice names. Null when the item isn't bound to the other side or nothing there matches.
+ */
+export function raceChangeTwin(item: Item, faction: Faction, classId: ClassId): { twin: Item; setDiffers: boolean } | null {
+  const exact = factionTwin(item, faction, classId)
+  if (exact) return { twin: exact, setDiffers: false }
+  const twin = otherSide(item, item.statTwins, faction, classId)[0]
+  return twin ? { twin, setDiffers: true } : null
 }
 
 export interface FactionGearChange {
   config: SimConfig
-  /** Items swapped for the new faction's twin, in paper-doll order of the config's gear. */
-  swapped: { slot: GearSlot; from: Item; to: Item }[]
+  /**
+   * Items swapped for the new faction's piece with the same stats (`raceChangeTwin`), in paper-doll
+   * order of the config's gear; `setDiffers` when its set bonus isn't the old piece's.
+   */
+  swapped: { slot: GearSlot; from: Item; to: Item; setDiffers: boolean }[]
   /**
    * Default items swapped for the new race's default, which isn't their twin (a Horde paladin's own
    * threat set pieces), in paper-doll order.
@@ -86,9 +78,9 @@ export interface FactionGearChange {
 /**
  * Changes the race. The slots that hold the spec's default for the old race take the new race's
  * default (docs/architecture.md "Following the defaults"), so an untouched set stays the default set;
- * then each other item the new race's faction can't wear swaps for its twin. An item with no twin,
- * or whose twin would break a Unique rule with the rest of the gear, stays. Enchants stay with the
- * slot: the twins take the same enchants.
+ * then each other item the new race's faction can't wear swaps for the other faction's piece with
+ * the same stats (`raceChangeTwin`). An item with none, or whose match would break a Unique rule
+ * with the rest of the gear, stays. Enchants stay with the slot: the twins take the same enchants.
  */
 export function changeRace(config: SimConfig, race: string): FactionGearChange {
   const faction = factionOf(race)
@@ -102,7 +94,8 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
     const from = config.gear[slot] && itemsById.get(config.gear[slot].itemId)
     const to = gear[slot] && itemsById.get(gear[slot].itemId)
     if (!from || !to || from.id === to.id) continue
-    if (faction && factionTwin(from, faction, classId)?.id === to.id) swapped.push({ slot, from, to })
+    const twin = faction ? raceChangeTwin(from, faction, classId) : null
+    if (twin?.twin.id === to.id) swapped.push({ slot, from, to, setDiffers: twin.setDiffers })
     else defaulted.push({ slot, from, to })
   }
   if (faction) {
@@ -113,11 +106,12 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
     }
     for (const [slot, item] of Object.entries(worn) as [GearSlot, Item][]) {
       if (fitsFaction(race, item)) continue
-      const twin = factionTwin(item, faction, classId)
-      if (twin && uniqueConflicts(worn, slot, twin).length === 0) {
+      const match = raceChangeTwin(item, faction, classId)
+      if (match && uniqueConflicts(worn, slot, match.twin).length === 0) {
+        const { twin, setDiffers } = match
         gear[slot] = { ...gear[slot], itemId: twin.id }
         worn[slot] = twin
-        swapped.push({ slot, from: item, to: twin })
+        swapped.push({ slot, from: item, to: twin, setDiffers })
       } else {
         kept.push({ slot, item })
       }

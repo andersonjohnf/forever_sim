@@ -27,6 +27,15 @@ describe('golden run (fixed config and seed)', () => {
   // - The 70009 casters merge (September 2026): both changes above together, re-taken on the merge.
   //   Mindfang (EM-6) with Ignite's single Curse of the Elements (70009): 435.43 → 435.33 DPS,
   //   Ignite 195,274 → 177,522 damage (−9.1%), as each side measured alone.
+  // - The Destruction gear review (DG-2): Mindfang, Sageclaw's Horde twin, replaces Witchblade for a
+  //   Troll: 402.71 → 435.43 here; 402.2 → 434.8 over 20,000 fights on seed 2701 (+8.1%).
+  // - The caster gear verification (GV-4): the head is re-ranked by the sim, so a Troll wears
+  //   Spellweaver's Turban for Champion's Silk Cowl: 435.43 → 440.93 here; 434.8 → 440.5 over 20,000
+  //   fights on seed 2701.
+  // - The 70009 integration (the casters' and the caster gear slices merged): Ignite's single Curse of
+  //   the Elements with the Turban (GV-4); both sides already had Mindfang. 435.33 (casters alone) /
+  //   440.93 (gear alone) → 440.84 DPS. Checked both ways: with either side's code reverted, the
+  //   other side's snapshot reproduces exactly.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

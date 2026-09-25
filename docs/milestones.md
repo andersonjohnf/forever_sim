@@ -797,6 +797,62 @@ slice is worked:
   - Each arrow key press between the sticky section tabs scrolls the page up by about 360 px
     (390) or 420 px (1280), because the tabs lie inside the top scroll padding. Peeking at a tab
     without choosing it loses your place.
+- **The Destruction gear review's gaps** ([its log](reviews/2026-09-24-destruction-gear.md)):
+  - **Sim-ranked lists for Frost, Arcane and Shadow** (DG-2). They wear their guide lists with Mindfang /
+    Sageclaw added at rank 1. The same search as the warlocks' (warlock.md §7.3) finds more: Frost
+    447.3 → 461.4 DPS (+3.2%), Arcane 434.8 → 464.3 (+6.8%), Shadow 559.7 → 582.4 (+4.1%), 20,000
+    fights on seed 2701. Before those lists ship, the new candidates' Classic Era sources need
+    checking (Frost Runed Headdress, Wand of Arcane Potency, Simone's Cultivating Hammer, and the
+    staves Whiteout Staff and Crackling Staff). So does Leggings of Torment's, third on Affliction's
+    legs: its note names a Dungeon Set 2 summoned boss from its id's block, with a Wowhead Classic link.
+    The Fire mage's, Balance's and Elemental's guide lists haven't been searched either; their verification
+    passes (DV2-4, GV-3, GV-4) re-ranked only the slots whose items changed, among each list's own items.
+    Off the lists, Elemental Focus Band and Maiden's Circle would add +3.2 and +2.6 DPS in the Fire mage's
+    second ring, and Draconic Infused Emblem +9.6 in the Shadow Priest's second trinket, +10.8 in the Frost
+    mage's and +9.1 in the Arcane mage's (1.60.1.70009, 20,000 fights on seed 2701; GV-3).
+  - **Elixir of Fire Power** (DG-8, [warlock.md §7.4](classes/warlock.md#74-enchants-and-consumables)):
+    the only Fire elixir the Forever client links (+10 Fire spell damage) isn't in the catalogue; about
+    +4 DPS for Destruction `[?]`, if it stacks with Shadow Power.
+  - **Open plausibility finding (DV2-3, the Destruction gear verification, 2026-09-24): Demonology's
+    lead rests on a [?].** On 1.60.1.70009 with the procs modelled, Demonology is 2nd of the 20 DPS
+    specs (675.0 DPS, 20,000 fights on seed 2701), 77 ahead of Destruction (597.9). **42 of that lead
+    rests on Q19** ([warlock.md §11.6](classes/warlock.md#116-defaults)), the sim's reading of Improved
+    Imp's hidden effect as Firebolt's cast time: without it the Imp default falls to 605.2, and the
+    default would be the Succubus build, 632.7, 35 ahead of Destruction. The model stays as it is until
+    the guild's Q19 test (Firebolt's cast bar with Improved Imp 0/3 and 3/3) settles it.
+  - **Item effects the sim doesn't model count as zero** in the lists' rankings (DV2-4,
+    [items.md](data/items.md#modelled-item-effects)); the ones on the caster lists: Eye of the Beast's +7%
+    spell hit use (E7, [shaman.md](classes/shaman.md)), Burst of Knowledge's and Second Wind's mana
+    uses, Robe of the Archmage's mana use, Robe of the Void's pet heal, Energetic Rod's mana proc,
+    Briarwood Reed's area-only +15 spell power, Freezing Band's when-struck proc and the Rank 7 silk
+    handwraps' Mana Shield bonus. The mana ones matter only when a caster runs dry; Eye of the Beast's
+    is about +0.6% for the specs that wear it.
+  - **Draconic Infused Emblem's chance** `[?]`: the Forever client gives its proc (1318931) a 100%
+    chance with no cooldown, so it's up from the first landed spell, though its tooltip says "Chance
+    on harmful spellcast" (both readings argued in [items.md](data/items.md#modelled-item-effects)). It
+    leads every warlock's, the Fire mage's, Elemental's and Balance's trinkets: +9.7 to +11.9 DPS over
+    the next-ranked trinket (Balance +16.1 over Eye of the Beast, whose use counts as zero). At a lower
+    chance it's worth less, and it **breaks even near a 12% chance** for Destruction, the Fire mage and
+    Elemental and near 17% for Affliction and Demonology (paired, 20,000 fights on seed 2701; GV-5).
+    Shown in the results' assumptions (`draconicEmblemChance`). Test: the buff's uptime on a target
+    dummy over a few minutes of casting.
+  - **The archived item citations' dates** (DV2-7): the sim-ranked lists' Wowhead Classic item links
+    are Wayback Machine copies of the pre-Season of Mastery classic.wowhead.com pages, cited with a
+    mid-2021 timestamp (`/web/20210601000000/`, the copy nearest June 2021; GV-7) because the review
+    rounds had no network. Each copy's date wants checking, and pinning to a snapshot from before
+    November 2021.
+  - **Items that lost their Forever rows in 1.60.1.70009** (Spirit of Aquementas, Hardened Stone Band,
+    Tempestria's Frozen Necklace) use Classic Era stats. The Shadow Priest's and Elemental's off hands
+    were re-ranked (DV2-4); no list has the other two now (Hardened Stone Band left the Protection
+    paladin's as Elemental Invasion loot, GV-6).
+  - **A race change across builds** (GV-1): race changes swap stat twins the scraper reads from the
+    client, and a Forever row never matches a Classic Era one, so the hunters' Rank 10 chain helm pair,
+    Lieutenant Commander's Chain Helmet (a Forever row) and Champion's Chain Headguard (no Forever row:
+    Classic Era's), no longer swap as the app's old stat match did. The one such pair in the pool; a
+    hunter keeps the helm, and the notice says so.
+  - **Arcane's and Frost's Alliance legs** (GV-4): Knight-Captain's Silk Legguards and Skyshroud
+    Leggings tie within the interval for a Human (Skyshroud +0.3 in Frost, −0.1 in Arcane, 40,000
+    fights), so the guide's order stands.
 
 ## Later
 

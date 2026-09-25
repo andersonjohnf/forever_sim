@@ -24,7 +24,8 @@ const list = (names: string[]) =>
 
 /**
  * The toast after a race change that moved faction-bound gear, or null when nothing changed. Default
- * pieces that became the new race's own default, not their twin, say which set they come from.
+ * pieces that became the new race's own default, not their twin, say which set they come from, and
+ * a piece whose set bonus isn't the old one's says so (docs/ux.md "Character").
  */
 export function raceChangeMessage(change: FactionGearChange, faction: Faction): { title: string; description: string } | null {
   const { swapped, defaulted, kept } = change
@@ -35,8 +36,11 @@ export function raceChangeMessage(change: FactionGearChange, faction: Faction): 
     : ''
   if (swapped.length === 0 && defaulted.length === 0) return { title: `Your gear includes items a ${faction} character can’t wear`, description: keptLine }
   const set = hasThreatSet(change.config.spec) ? `the ${faction} threat set` : `${faction} pre-raid best in slot`
+  const same = swapped.filter((s) => !s.setDiffers).map((s) => s.to.name)
+  const setDiffers = swapped.filter((s) => s.setDiffers).map((s) => s.to.name)
   const lines = [
-    swapped.length ? `${list(swapped.map((s) => s.to.name))}, with the same stats.` : '',
+    same.length ? `${list(same)}, with the same stats.` : '',
+    setDiffers.length ? `${list(setDiffers)}, with the same stats but not the same set bonus.` : '',
     defaulted.length ? `${list(defaulted.map((s) => s.to.name))}, from ${set}.` : '',
     keptLine,
   ]

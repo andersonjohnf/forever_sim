@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 591,
+      "docs": 592,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2843,
-    "spells": 3119
+    "seeds": 2844,
+    "spells": 3120
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -30087,6 +30087,40 @@
       },
       "name": "Minor Agility",
       "sources": ["enchant"]
+    },
+    "7844": {
+      "categories": {
+        "category": 99,
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 13
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 1000
+      },
+      "duration": {
+        "duration": 1800000,
+        "maxDuration": 1800000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7844,
+      "misc": {
+        "attributes": [671088640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 134835
+      },
+      "name": "Fire Power",
+      "sources": ["docs"]
     },
     "7887": {
       "categories": {

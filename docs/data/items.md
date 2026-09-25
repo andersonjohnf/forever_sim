@@ -512,6 +512,39 @@ spells; `otherEquip` are the other equip spells, including conditional ones. The
 items with procs or other equip effects it doesn't model with each result, and active set
 bonuses without `parsed` stats or a `weaponSkill` ([Equipping rules](#equipping-rules)).
 
+### Modelled item effects
+
+The engine models an item's use, proc or other equip effect only through its override layer,
+`ITEM_EFFECTS` in [`src/sim/effects/items.ts`](../../src/sim/effects/items.ts), where each entry cites
+the client spells its numbers come from; every other such effect is listed with each result as not
+simulated, and counts as zero in a sim-ranked list ([Pre-raid BiS lists](#pre-raid-bis-lists)). The
+casters' (DV2-4, 1.60.1.70009 `[F]`):
+
+| Item | Effect | Client |
+| --- | --- | --- |
+| Wrath of Cenarius (21190) | 5% a landed harmful spell: +132 spell damage for 10 s, no internal cooldown | 25906 → 25907 |
+| Draconic Infused Emblem (22268) | 100% a landed harmful spell: +35 spell damage (+70 against Dragonkin) for 10 s, no internal cooldown; Forever made Classic Era's 75 s use this proc. The client's 100% against the tooltip's "Chance on harmful spellcast" is `[?]`: as read, it's up from the first landed spell (below) | 1318931 → 1318930 |
+
+**Draconic Infused Emblem's chance** `[?]` (GV-5). The sim reads the client's 100%. Both readings:
+
+- *For 100%:* the proc row is Forever's own, written when Forever turned Classic Era's use into this
+  proc, and it says 100% with no cooldown, where Wrath of Cenarius's proc row, read the same way, says
+  5%; the client is the first source (doctrine §2). And +35 always up is a modest trinket beside
+  Forever's others: Royal Seal of Eldre'Thalas and Briarwood Reed rank near it on flat stats.
+- *Against:* the tooltip says "Chance on harmful spellcast", the wording the client uses for procs
+  below 100%, and a 10 s buff that procs on every spell would more simply be a flat equip bonus.
+  Classic Era's use (27675: +100 spell damage for 15 s, 75 s cooldown) averaged +20.
+
+What it's worth: at 100% it leads the trinkets of every list that ranks it, +9.7 (Elemental) to +11.9
+(Destruction) DPS over the next-ranked trinket, and Balance's +16.1 over Eye of the Beast, whose use
+counts as zero. It **breaks even near a 12% chance** for Destruction, the Fire mage and Elemental and
+near 17% for Affliction and Demonology (paired against the next trinket, 20,000 fights on seed 2701,
+1.60.1.70009), so it stays in each default's pair of trinkets at any chance above about a fifth. The results' assumptions
+show it (`draconicEmblemChance`), and a guild test (its buff's uptime on a target dummy) is a known gap.
+
+Eye of the Beast's use (+7% spell hit for 20 s, 5 min) isn't modelled: the aura model has no spell-hit
+buff yet (known gap E7, [shaman.md](../classes/shaman.md)).
+
 ## Forever's ratings `[F]`, with open questions
 
 The Forever client rewrites Classic's percentage bonuses as ratings. `meta.ratingConversions`
@@ -579,7 +612,18 @@ name and source. The run fails if a listed name differs from the client's name f
 
 "Pre-raid" here means gear from dungeons (Dire Maul, LBRS/UBRS, Stratholme, Scholomance, BRD
 and the rest), crafting, quests, reputation, world drops and BoEs, and PvP ranks up to Rank
-10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out. Doctrine §2
+10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out, but tradeable
+crafted items made from raid materials (Bloodvine's Zandalar patterns and Zul'Gurub's Bloodvine,
+Flarecore's Molten Core materials) count as pre-raid: a crafter can make and sell them. Event-only
+items aren't pre-raid sources: loot from a boss that appears only during a world event or an invasion,
+such as the Scourge Invasion's (Chains of the Lich and Staff of Balzaphon, from Balzaphon in
+Stratholme, who appears only during the invasion) and the Elemental Invasion bosses' (Sash of the
+Windreaver from The Windreaver, Hardened Stone Band from Avalanchion; GV-6). **Every list leaves them
+out, as it leaves out a raid drop**, the guide lists included, and the entries below move up (the
+Fire mage's guide ranked Staff of Balzaphon second among its two-handers, Elemental's guide the sash
+first among its belts, and the Protection paladin's guide the band third among its rings; each note
+says it's out).
+Doctrine §2
 allows only Classic Era guides, so every list comes from **Wowhead's WoW Classic pre-raid BiS
 guides as they stood in 2021, before Season of Mastery and TBC Classic**, with one exception:
 Wowhead's Classic mage guide has no Fire list, so `mage-fire` comes from **Icy Veins' Classic mage
@@ -609,11 +653,12 @@ copies are cited instead. Wowhead's Season of Discovery guides weren't used eith
 
 **Selection.** Each guide row lists items best-first. The list keeps that order as `rank` (1 =
 BiS, 2+ = alternatives), up to the top pick plus two alternatives per slot. Finger and
-trinket keep four, since two are worn. The guides link Horde PvP items; each one's Alliance
-counterpart is added at the same rank, as is the Frostwolf twin of Stormpike Insignia Rank 6.
+trinket keep four, since two are worn. A list names one side's PvP or reputation item, and its
+[faction twin](#faction-twins), which the scraper reads from the client, takes the same rank.
 Slot keys are the paperdoll slots plus `twoHand` and `relic`; tanks' shields are under
 `offHand`. **Random-suffix items** are listed by their base id, and the pool has only the base
-row's stats; one whose base row has no spell stats is left out like a raid drop, and the entries
+row's stats. One whose base row has none of the stats the spec's list is for (a caster's spell
+stats, a melee spec's attack stats) is left out on every list, as a raid drop is, and the entries
 below it move up (the mage and Balance lists' notes name them).
 
 **Left out for Forever.** An item Forever redesigned out of the spec's role is taken off the
@@ -622,6 +667,115 @@ list, and the spec's `note` says why; the other entries keep the guide's rank. S
 heal ([warrior Q30](../classes/warrior.md#9-open-questions)). No other list has it and the
 filter doesn't keep it, so it's out of the pool; the lists' trinket ranks run 1, 2 and 4. The
 default gear is unchanged, since it wears ranks 1 and 2.
+
+**Sim-ranked lists.** Where no allowed guide fits a spec's default build in Forever, the sim ranks
+the list itself, as the [Forever caveat](#forever-caveat) and
+[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)
+ask ("guides supply candidates"): a build the guide never considered, or items Forever re-itemized past
+the guide's picks. The candidates are the pool's pre-raid items for the spec's stats (no raid drops, no
+event-only items, no Forever-new items until their sources are known, PvP Rank 10 or lower), a
+slot-by-slot paired search picks rank 1, and paired runs in that set rank the rest, close calls on a
+direct paired run. Within the 95% interval, a guide's pick keeps its place. The spec keeps its guide as
+`source`, since the guide's picks are among the candidates, and its `note` says how the list was
+ranked. So far that's the three warlocks ([warlock.md §7.3](../classes/warlock.md#73-gear)): Wowhead's
+one warlock list is a Shadow list written for Classic Era's items, Destruction's and Demonology's
+defaults are Fire builds, and Forever gave the Arathi Basin daggers +94 spell power `[?]`. Frost, Arcane
+and Shadow keep their guide lists with that dagger added at rank 1 (DG-2); ranking them too is a known
+gap. **Item effects the sim doesn't model count as zero** in a sim-ranked list (an unmodelled use or
+proc adds nothing to a paired run), so each such effect on a candidate is listed in the
+[milestones' known gaps](../milestones.md) and the list's note names it; the modelled ones are
+[below](#modelled-item-effects).
+
+**Kept items.** When a list change leaves an item on no list, and the level rule wouldn't keep it, the
+file's `kept` section keeps it in the pool with no rank (`meta.preRaidBis.kept`), so saved setups and
+share links that wear it keep it. So far that's the five items only Wowhead's warlock list had (Deathmist
+Mask, Felcloth Robe and Pants, Band of the Unicorn, Inventor's Focal Sword), and the two Elemental
+Invasion items the lists left out (Sash of the Windreaver, Hardened Stone Band; GV-6). **No item leaves
+the pool without a reason** (DV2-5): the scraper compares its pool with the committed one
+(`itemsLeavingPool` in [`lib/item-pool.mjs`](../../scripts/scrape/lib/item-pool.mjs), GV-11) and fails
+when an id would go, unless it's kept or named in `REMOVED_ITEMS` (`items-client.mjs`) with why it may go.
+
+### Faction twins
+
+A PvP, battleground or reputation reward comes in one copy per faction. **Two items are faction twins
+when their client rows match on everything but their names, their price and what binds them to a side**
+(the step-6 simplification of the 2026-09-24 Destruction gear review, DV2-1, which replaced hand-written
+twin entries that had missed one). The scraper (`twinKey` and `findTwins` in
+[`lib/item-pool.mjs`](../../scripts/scrape/lib/item-pool.mjs)) compares every equippable row of the
+build the item's stats come from:
+
+- **May differ:** the id; the names (`Display_lang`); the price (`SellPrice`, `BuyPrice`, and
+  `PriceRandomValue`, the vendor price's random part, in which Forever's "Premier" PvP pairs and its
+  Theramore and Darkspear rewards differ: GV-2); what binds the item to
+  a side or class: the reputation it needs (`MinFactionID`, `MinReputation`), `AllowableRace`,
+  `AllowableClass`, and the Horde-only and Alliance-only flags (`Flags[1]` bits 0x1 and 0x2); and its
+  `ItemSet`, whose bonuses are compared instead.
+- **Must match:** every other `ItemSparse` column, the stats as (stat, allocation, amount) triples in any
+  order (Songstone of Ironforge lists Spirit first, Eye of Orgrimmar Intellect), the `Item` class and
+  subclass, each item effect's spell, trigger, cooldowns and charges (a use matches by its cooldowns and
+  charges alone: the Alterac Valley insignias' uses return you to each side's base), and the set's bonuses
+  (pieces and spell).
+- Two matching rows are twins when their names or their side bindings differ. So twins include
+  **class twins**, one side's pieces for different classes (Lieutenant Commander's Plate Helm for the
+  warrior and Lamellar Headguard for the paladin; the Dreadweave, Satin and Silk shoulders) and **quest
+  twins**, a quest's reward choices (Vision of Voodress for the shaman, Enchanted South Seas Kelp for the
+  druid), as well as the faction twins (GV-10). The app picks among them by faction and class.
+
+**Two tiers** (the step-6 narrowing of the caster gear verification, GV-1: the third round in a row
+with twin problems). The client-exact rule above missed pieces a race change had swapped before it:
+the Alliance's Rank 7 to 10 silk, satin and leather have the Horde pieces' rows but no item set, and
+the Arathi Basin mail's sets give other bonuses, so 138 swaps were lost (every Rank 7 to 10
+leather, satin and silk piece, and the Highlander's and Defiler's mail). So each tier gets the match
+its job needs:
+
+- **The lists' ranks** use the exact twins, `twins`: a twin takes a list's rank only when its set
+  bonuses match too, since a piece without its set isn't worth the same.
+- **A race change** uses `statTwins`: the same key with the set's bonuses left out (`twinKey(…, { sets:
+  false })`), so every twin and the other faction's pieces with the same stats and effects in another
+  set or none. `raceChangeTwin` (`src/features/character/faction-gear.ts`) takes the item's twin when
+  it has one, else its stat twin, and says when the set bonus differs; the notice names those pieces
+  ("…, with the same stats but not the same set bonus"). This is the match the app made before the
+  step-6 change, now read from the client: over the pool it gives the same piece for 768 of the old
+  match's 770 (item, class) swaps, and a different one for 4 (Defiler's Mail Greaves takes its exact
+  twin, Highlander's Chain Greaves, where the old name match took Highlander's Mail Greaves). The
+  two it drops are the hunters' Rank 10 chain helms, one of them a Classic Era fallback row: a Forever
+  row never matches a Classic Era one (a known gap).
+
+Each pool item carries its twins in the pool as `twins` and its stat twins as `statTwins` (item ids). **A listed item's twins join the pool
+and take its list entries**, the same spec, slot and rank, unless the twin is on that list itself or the
+spec's class can't wear it; `meta.preRaidBis.twinsListed` counts them. So each list names one side's item.
+Which twin is the other faction's is the app's call: `factionTwin`
+(`src/features/character/faction-gear.ts`) picks, among an item's twins, the one bound to the other
+faction ([Equipping rules](#equipping-rules)) that the class can wear, preferring the name that ends the
+same way (Highlander's Chain Greaves → Defiler's Chain Greaves, not Defiler's Mail Greaves); the tanks'
+interim picks (`INTERIM_GEAR`) use the same twins, and a race change its stat twins (above).
+
+**What it found** (1.60.1.70009): 433 pool items have a twin, in 207 groups (213 in 99 before GV-2
+freed `PriceRandomValue`; the rest are Forever's "Premier" PvP pairs, which suit both factions, and
+its Theramore and Darkspear rewards, Seal of the Expedition and Darkspear Warding Pendant, Theramore
+Signet and Insurgent's Band). 506 have a stat twin, in 239 groups. It found twins the hand-written
+lists missed, The Defilers' Ironbark Staff (20220) for the League of Arathor's (20069), the Deathguard's
+Cloak and Cloak of the Honor Guard (Enhancement's and the hunters' cloaks), and the hunters' Knight-Lieutenant's Chain Greaves for Blood Guard's Chain Greaves; and it found
+pairs the lists called twins that the client says aren't:
+
+- the Alliance's Rank 7 to 10 silk (Lieutenant Commander's Silk Cowl and Mantle, Knight-Captain's Silk
+  Legguards, Knight-Lieutenant's Silk Handwraps and Walkers): the Horde pieces' stats, but no item set in
+  Forever's rows, so they miss the Champion's Arcanum bonuses. The mage lists name them on their own,
+  **ranked by paired runs in a Human's default set** (GV-4, [mage.md](../classes/mage.md#races-and-gear)):
+  without the set, Knight-Lieutenant's Silk Handwraps fall behind Inferno Gloves and Sandworm Skin
+  Gloves on the Fire list. They're each other's stat twins, so a race change still swaps them.
+- Highlander's Mail Pauldrons and Mail Greaves: the Defilers' stats, but a 3-piece bonus of spell crit
+  where the Defilers' is melee crit. Enhancement names the pauldrons on their own; they're stat twins.
+- Knight-Lieutenant's Chain Greaves, which Enhancement listed as Blood Guard's Mail Greaves' twin, is the
+  hunter's, with other stats: a shaman can't wear it, so it left that list.
+
+Tests: `faction-gear.test.ts` checks that every one-faction item on a list has its other faction's twin
+at the same rank, when the client has one, that twins and stat twins pair both ways with the same slot,
+stats and effects, that every twin is a stat twin, and the race changes GV-1 found lost (a Combat
+rogue's Champion's Leather Helm and Blood Guard's Leather Grips going Alliance, a Shadow Priest's
+Knight-Lieutenant's Satin Handwraps going Horde, an Enhancement shaman's Defiler's Mail Pauldrons going
+Dwarf); `lib/item-pool.test.mjs` checks the key's rules (a price's random part may differ; set bonuses
+count for twins and not for stat twins).
 
 ### Coverage
 
@@ -815,10 +969,11 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - The picker leaves out the other faction's items, except the one equipped.
 - `normalizeConfig` leaves them alone.
 - A race change on the Character tab that crosses factions swaps each item the new race can't
-  wear for its twin: the other faction's item with the same slot, level, stats and effects (the
-  closest name when several match), keeping the slot's enchant. An item with no twin, or whose
-  twin would break a Unique rule, stays. A notice names the items swapped and those
-  kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
+  wear for its [faction twin](#faction-twins), read from the client (the closest name when several
+  match), or else its stat twin, the other faction's piece with the same stats in another set,
+  keeping the slot's enchant. An item with neither, or whose
+  match would break a Unique rule, stays. A notice names the items swapped, those whose set bonus
+  differs and those kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
 
 ## Caveats
 

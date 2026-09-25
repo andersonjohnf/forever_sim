@@ -180,6 +180,52 @@ describe('the air totems don’t stack, even from different shamans (buffs doc `
   })
 })
 
+describe('the casters’ spell-damage procs (docs/data/items.md#modelled-item-effects)', () => {
+  /** SpellEffect: apply aura; aura 13: spell damage; 180: spell damage against a creature type. */
+  const SPELL_DAMAGE = 13
+  const VS_CREATURE = 180
+  /** ProcTypeMask 0x10000: a harmful spell landing (the `spellLanded` trigger, spells.md §10). */
+  const HARMFUL_SPELL = 0x10000
+  const itemEffect = (itemId: number) => items.find((i) => i.id === itemId)!.procs[0].spellId
+  const withTrinket = (id: number, creatureType?: SimConfig['fight']['creatureType']): SimConfig => {
+    const c = defaultConfig('mage-fire')
+    return { ...c, gear: { ...c.gear, trinket1: { itemId: id } }, fight: { ...c.fight, ...(creatureType ? { creatureType } : {}) } }
+  }
+  const auraOf = (config: SimConfig, id: string) => buildPlan(config).plan.auras.find((a) => a.id === id)
+
+  it('Wrath of Cenarius: 25906, 5% a landed harmful spell, no cooldown, +132 spell damage for 10 s (25907)', () => {
+    const proc = spells[String(itemEffect(21190))]
+    expect(proc.id).toBe(25906)
+    expect(proc.auraOptions).toMatchObject({ procChance: 5, procTypeMask: [HARMFUL_SPELL, 0] })
+    expect(proc.auraOptions!.procCategoryRecovery ?? 0).toBe(0)
+    const buff = spells[String(proc.effects[0].effectTriggerSpell)]
+    expect(buff.duration!.duration).toBe(10000)
+    expect(buff.effects.find((e) => e.effectAura === SPELL_DAMAGE)?.effectBasePointsF).toBe(132)
+    const [effect] = ITEM_EFFECTS[21190].effects as { proc: { chance: unknown; trigger: string } }[]
+    expect(effect.proc).toMatchObject({ trigger: 'spellLanded', chance: { pct: 5 } })
+    expect(procOf(withTrinket(21190), 'spellBlasting')?.chance[0]).toBeCloseTo(0.05)
+    expect(auraOf(withTrinket(21190), 'spellBlasting')).toMatchObject({ durationMs: 10000, spellDamage: 132 })
+  })
+
+  it('Draconic Infused Emblem: 1318931, 100% a landed harmful spell [?], +35 spell damage for 10 s, +35 more against Dragonkin', () => {
+    const proc = spells[String(itemEffect(22268))]
+    expect(proc.id).toBe(1318931)
+    expect(proc.auraOptions).toMatchObject({ procChance: 100, procTypeMask: [HARMFUL_SPELL, 0] })
+    const buff = spells[String(proc.effects[0].effectTriggerSpell)]
+    expect(buff.duration!.duration).toBe(10000)
+    const base = buff.effects.find((e) => e.effectAura === SPELL_DAMAGE)!.effectBasePointsF!
+    const dragonkin = buff.effects.find((e) => e.effectAura === VS_CREATURE)!.effectBasePointsF!
+    expect([base, dragonkin]).toEqual([35, 35])
+    const mods = (config: SimConfig) => auraOf(config, 'draconicInfusedEmblem')
+    expect(procOf(withTrinket(22268), 'draconicInfusedEmblem')?.chance[0]).toBe(1)
+    expect(mods(withTrinket(22268, 'humanoid'))).toMatchObject({ spellDamage: base })
+    expect(mods(withTrinket(22268, 'dragonkin'))).toMatchObject({ spellDamage: base + dragonkin })
+    // The [?] reading is in the results' assumptions whenever it's worn.
+    expect(assumptionIds(withTrinket(22268))).toContain('draconicEmblemChance')
+    expect(assumptionIds(defaultConfig('mage-frost'))).not.toContain('draconicEmblemChance')
+  })
+})
+
 describe('Windfury Totem’s internal cooldown (spell 10612; damage-and-timing §5.4)', () => {
   const d = defaultConfig('warrior-fury')
   const config = (profile: RuleProfileId) => withRules({ ...d, buffs: { raid: ['shaman'], enabled: ['windfuryTotem'] } }, profile)

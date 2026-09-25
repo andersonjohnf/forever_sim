@@ -5,9 +5,92 @@
 import { describe, expect, it } from "vitest";
 import spellsJson from "../../../src/data/client/spells.json";
 import itemJson from "../../../src/data/items/pre-bis.json";
+import { findTwins, itemsLeavingPool, twinKey } from "./item-pool.mjs";
 import { AURA_STAT, NOT_STAT_AURAS } from "./item-stats.mjs";
 
 const spells = spellsJson.spells;
+
+describe("faction twins (docs/data/items.md#faction-twins)", () => {
+  const row = (id, over = {}) => ({
+    ID: id,
+    Display_lang: `Item ${id}`,
+    SellPrice: id,
+    BuyPrice: id * 5,
+    MinFactionID: 0,
+    MinReputation: 0,
+    AllowableRace: -1,
+    AllowableClass: -1,
+    ItemSet: 0,
+    Flags: [0, 0, 0, 0],
+    ItemLevel: 63,
+    InventoryType: 17,
+    StatModifier_bonusStat: [5, 7, -1],
+    StatPercentEditor: [4000, 6000, 0],
+    ...over,
+  });
+  const ctxOf = (rows, effects = {}) => ({
+    sparse: new Map(rows.map((r) => [r.ID, r])),
+    item: new Map(rows.map((r) => [r.ID, { ID: r.ID, ClassID: 2, SubclassID: 10 }])),
+    itemEffects: new Map(Object.entries(effects).map(([id, list]) => [Number(id), list])),
+    itemSet: new Map(),
+    itemSetSpells: new Map(),
+  });
+  const twinsIn = (rows, effects, opts) => {
+    const ctx = ctxOf(rows, effects);
+    return findTwins(rows.map((r) => [r.ID, twinKey(ctx, "forever", r.ID, opts), r]));
+  };
+
+  it("pairs rows that differ only in name, price, side and class binding, and the flags' faction bits", () => {
+    const alliance = row(20069, { Display_lang: "Ironbark Staff", MinFactionID: 509, MinReputation: 7, Flags: [0, 2, 0, 0] });
+    const horde = row(20220, { Display_lang: "Ironbark Staff", MinFactionID: 510, MinReputation: 7, Flags: [0, 1, 0, 0], AllowableClass: 256 });
+    expect([...twinsIn([alliance, horde])]).toEqual([
+      [20069, [20220]],
+      [20220, [20069]],
+    ]);
+  });
+
+  it("matches stats in any order, and a use by its cooldown, not its spell", () => {
+    const a = row(12543, { StatModifier_bonusStat: [5, 7, -1], StatPercentEditor: [4000, 6000, 0] });
+    const b = row(12545, { StatModifier_bonusStat: [7, 5, -1], StatPercentEditor: [6000, 4000, 0] });
+    const use = (spell) => [{ SpellID: spell, TriggerType: 0, CoolDownMSec: 1000, CategoryCoolDownMSec: 0, Charges: 0 }];
+    expect(twinsIn([a, b], { 12543: use(1), 12545: use(2) }).get(12543)).toEqual([12545]);
+  });
+
+  it("lets the price's random part differ: Forever's Theramore and Darkspear rewards (GV-2)", () => {
+    const alliance = row(271908, { Display_lang: "Theramore Signet", MinFactionID: 2600, MinReputation: 5, PriceRandomValue: 11 });
+    const horde = row(272064, { Display_lang: "Insurgent's Band", MinFactionID: 2601, MinReputation: 5, PriceRandomValue: 29 });
+    expect(twinsIn([alliance, horde]).get(271908)).toEqual([272064]);
+  });
+
+  it("matches set bonuses for the lists' twins, and ignores them for the race change's stat twins", () => {
+    // The Alliance's Rank 7 to 10 silk: the Horde piece's row, but in no item set.
+    const horde = row(22870, { Display_lang: "Blood Guard's Silk Handwraps", ItemSet: 541 });
+    const alliance = row(23290, { Display_lang: "Knight-Lieutenant's Silk Handwraps", ItemSet: 0 });
+    expect(twinsIn([horde, alliance]).size).toBe(0);
+    expect(twinsIn([horde, alliance], {}, { sets: false }).get(22870)).toEqual([23290]);
+  });
+
+  it("keeps apart rows whose stats, level or equip effects differ, and a same-name, same-side copy", () => {
+    const a = row(1);
+    expect(twinsIn([a, row(2, { ItemLevel: 65 })]).size).toBe(0);
+    expect(twinsIn([a, row(2, { StatPercentEditor: [5000, 5000, 0] })]).size).toBe(0);
+    const equip = (spell) => [{ SpellID: spell, TriggerType: 1, CoolDownMSec: 0, CategoryCoolDownMSec: 0, Charges: 0 }];
+    expect(twinsIn([a, row(2)], { 1: equip(10), 2: equip(11) }).size).toBe(0);
+    expect(twinsIn([a, row(2, { Display_lang: "Item 1" })]).size).toBe(0);
+  });
+});
+describe("items leaving the pool (docs/data/items.md#pre-raid-bis-lists, Kept items; GV-11)", () => {
+  const committed = [
+    { id: 1, name: "Stays" },
+    { id: 2, name: "Removed with a reason" },
+    { id: 3, name: "Leaves" },
+  ];
+  it("names each committed item a new pool drops, unless it's removed with a reason", () => {
+    expect(itemsLeavingPool(committed, new Set([1]), new Map([[2, "why"]]))).toEqual([{ id: 3, name: "Leaves" }]);
+    expect(itemsLeavingPool(committed, new Set([1, 2, 3]), new Map())).toEqual([]);
+  });
+});
+
 const APPLY_AURA = 6;
 
 /** Every spell the pool's stats, equip lines and set bonuses read: [spellId, where]. */

@@ -35,6 +35,18 @@ describe('golden run (fixed config and seed)', () => {
   // - 1.60.1.70009 (September 2026): Lightning Bolt rank 4's base points 50 → 56 (55.22–62.78 at
   //   60): DPS 370.30 → 371.73, TPS 264.16 → 265.11; rank 4's damage +1.4%, its Lightning Overload
   //   copies with it. Lava Burst rank 3 and Rage of the Farseer (not in the build) are unchanged.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Wrath of Cenarius's and Draconic
+  //   Infused Emblem's procs are modelled, and the list's rings, trinkets and off hand are re-ranked by
+  //   the sim (Spirit of Aquementas lost its Forever row): Wrath of Cenarius and Elemental Focus Band,
+  //   Draconic Infused Emblem and Royal Seal of Eldre'Thalas, Therazane's Touch. DPS 370.30 → 401.07,
+  //   TPS 264.16 → 284.89; 381.7 → 401.1 over 20,000 fights on seed 2701 for the re-rank alone.
+  // - The caster gear verification (GV-6): Sash of the Windreaver is event-only (an Elemental Invasion
+  //   boss's), so Ban'thok Sash is the belt: DPS 401.07 → 401.81, TPS 284.89 → 285.36 here; 401.1 →
+  //   400.9 over 20,000 fights on seed 2701 (within the interval).
+  // - The 70009 integration (the casters' and the caster gear slices merged): Lightning Bolt r4 at 56
+  //   with the re-ranked list (DV2-4, GV-6). DPS 371.73 (casters alone) / 401.81 (gear alone) →
+  //   403.17, TPS 265.11 / 285.36 → 286.27. Checked both ways: with either side's code reverted, the
+  //   other side's snapshot reproduces exactly.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

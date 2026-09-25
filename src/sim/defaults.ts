@@ -356,9 +356,9 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 
 /**
  * Interim default gear (M5.6 T2, T3, T4; D29, D30): a spec whose pre-raid list doesn't suit what it
- * measures takes these items first, slot by slot: each slot lists an item and, for a faction's item,
- * the other faction's twin, and the first the race can wear that breaks no unique rule goes in;
- * otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
+ * measures takes these items first, slot by slot: each slot lists items in order, each followed by its
+ * faction twins (the item data's `twins`, read from the client: docs/data/items.md#faction-twins),
+ * and the first the race can wear that breaks no unique rule goes in; otherwise the list's pick. Measured, not guide-picked: the gear review's slot-by-slot paired search
  * for threat from the pool (2026-09-24), held to the tanks' effective-health floor (docs/classes/
  * paladin.md "Protection defaults", druid.md §7.3a, warrior.md §6.3). Interim: the optimizer's
  * results (O4) replace it. Exported for its test: `preRaidListGear` silently skips an item the class
@@ -368,7 +368,7 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
   'paladin-protection': {
     head: [12640], // Lionheart Helm
     neck: [19426], // Orb of the Darkmoon
-    // The Lamellar PvP pieces are Alliance's, with no Horde twin: a Horde paladin takes the second item,
+    // The Lamellar PvP pieces are Alliance's, and the client has no Horde twin: a Horde paladin takes the second item,
     // the best Horde set for threat within the effective-health floor (T2R-2; paladin.md "Protection defaults").
     shoulder: [23277, 274233], // Lieutenant Commander's Lamellar Shoulders; Horde: Premier Scaled Shoulders
     back: [20697], // Crystalline Threaded Cape
@@ -394,13 +394,13 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
   'druid-feral-bear': {
     head: [22005], // Darkmantle Cap (EHP swap for Eye of Rend)
     neck: [19491], // Amulet of the Darkmoon (EHP swap for Mark of Fordring)
-    shoulder: [23254, 23309], // Champion's / Lieutenant Commander's Dragonhide Shoulders (EHP swap for Truestrike Shoulders)
+    shoulder: [23254], // Champion's Dragonhide Shoulders, or its twin (EHP swap for Truestrike Shoulders)
     back: [20691], // Windshear Cape (EHP swap for Cape of the Black Baron)
     chest: [12757], // Breastplate of Bloodthirst (EHP swap for Cadaverous Armor)
     wrist: [19587], // Forest Stalker's Bracers
     hands: [19049], // Timbermaw Brawlers
-    waist: [20190, 20045], // Defiler's / Highlander's Leather Girdle
-    legs: [22878, 23295], // Legionnaire's / Knight-Captain's Dragonhide Leggings
+    waist: [20190], // Defiler's Leather Girdle, or its twin
+    legs: [22878], // Legionnaire's Dragonhide Leggings, or its twin
     feet: [20715], // Dunestalker's Boots
     finger1: [13098], // Painweaver Band
     finger2: [19325], // Don Julio's Band (EHP swap for Band of Earthen Might)
@@ -418,12 +418,12 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
     neck: [22340], // Pendant of Celerity
     shoulder: [19695], // Darksoul Shoulders (GR11)
     back: [21187], // Earthweave Cloak
-    chest: [23300, 22872], // Knight-Captain's / Legionnaire's Plate Hauberk
+    chest: [23300], // Knight-Captain's Plate Hauberk, or its twin
     wrist: [13400], // Vambraces of the Sadist
     hands: [18722], // Death Grips
     waist: [13142], // Brigam Girdle
-    legs: [23301, 22873], // Knight-Captain's / Legionnaire's Plate Leggings
-    feet: [23287, 22858], // Knight-Lieutenant's / Blood Guard's Plate Greaves (EHP swap for Battlechaser's Greaves)
+    legs: [23301], // Knight-Captain's Plate Leggings, or its twin
+    feet: [23287], // Knight-Lieutenant's Plate Greaves, or its twin (EHP swap for Battlechaser's Greaves)
     finger1: [19325], // Don Julio's Band (EHP swap for Band of Earthen Might)
     finger2: [275971], // Stalwart Watcher's Signet
     trinket1: [272437], // Adaptive Combat Assistant
@@ -534,8 +534,11 @@ export function preRaidListGear(
   const worn: Partial<Record<GearSlot, Item>> = {}
   const classId = SPEC_META[spec].classId
   const put = (slot: GearSlot, listed: Item[]) => {
-    // The spec's interim picks first (INTERIM_GEAR: an item and its other faction's twin), then the list's.
-    const picks = (interim[slot] ?? []).flatMap((id) => itemById.get(id) ?? [])
+    // The spec's interim picks first (INTERIM_GEAR: each item, then its faction twins), then the list's.
+    const picks = (interim[slot] ?? []).flatMap((id) => {
+      const item = itemById.get(id)
+      return item ? [item, ...item.twins.flatMap((t) => itemById.get(t) ?? [])] : []
+    })
     const candidates = [...picks, ...listed]
     const item = candidates.find(
       (i) => canUse(classId, i) && fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0,

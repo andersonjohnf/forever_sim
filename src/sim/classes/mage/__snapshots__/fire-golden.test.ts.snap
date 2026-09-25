@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
   "abilities": [
     [
       "ignite",
-      8783122.050460674,
+      9262572.294091683,
       15926,
       26446,
       0,
@@ -15,9 +15,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "scorch",
-      7073697.766218683,
-      12582,
-      7744,
+      7525086.0721017895,
+      12583,
+      7745,
       4484,
       354,
       0,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblast",
-      16537714.567725899,
+      17471036.997738414,
       10766,
       7965,
       2490,
@@ -35,19 +35,19 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblastDot",
-      6220970.494014699,
+      6671731.877595104,
       10455,
-      26028,
-      7793,
+      26029,
+      7792,
       0,
       0,
       0,
     ],
     [
       "fireBlast",
-      19549519.776997127,
-      20211,
-      14628,
+      20312202.578772478,
+      20212,
+      14629,
       5024,
       559,
       0,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "fireball",
-      30771048.49933566,
+      32703783.692006968,
       22811,
       18204,
       3928,
@@ -75,14 +75,14 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
   ],
   "dps": {
-    "ci95": 2.1428434705472568,
-    "mean": 501.68983786423576,
-    "stdev": 34.573421193448404,
+    "ci95": 2.2643848316970763,
+    "mean": 529.5931064468646,
+    "stdev": 36.534414018736086,
   },
   "durationSec": 179.690222,
   "mana": {
     "max": 5223,
-    "regeneratedPerFight": 9289.358699999999,
+    "regeneratedPerFight": 9289.39055,
     "restored": [
       {
         "id": "masterOfElements",
@@ -106,12 +106,12 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
       },
     ],
     "restoredPerFight": 7010.54455,
-    "spentPerFight": 20729.09,
+    "spentPerFight": 20729.58,
   },
   "tps": {
-    "ci95": 1.5700293525996374,
-    "mean": 370.73221152877835,
-    "stdev": 25.33142846856732,
+    "ci95": 1.6549514510803884,
+    "mean": 390.26449953661927,
+    "stdev": 26.70159270116835,
   },
 }
 `;

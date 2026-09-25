@@ -706,3 +706,13 @@ always in view; calm, single-column results. What changes from the design above:
   there's room; `…` only on narrow widths.
 - **Kept:** nothing changes under 1440; the smooth results-pane growth; the Rotation list as one
   scrolled list; the talent detail panel; Ctrl/Cmd+Enter; the skip link.
+- **Later the same day, after the user's look at the Rotation tab and the panel:**
+  - **Rotation** puts its settings (consumables, cooldowns, buffs) in a column on the left, with
+    every setting shown, and the priority list at the top of the next column, never pushed down by
+    them. Where there's room for three columns (about 1,850 px), a selected row's settings sit in
+    the third; narrower, they open under the row. "Back to list" is gone from 1440 px.
+  - **The panel** is less sterile: the character sheet and Your setup are cards with headings, the
+    sheet's stats grouped (Offense, Spells, Attributes, Defense), each setup line with its section's
+    icon, and Simulate in an action row at the setup card's foot with the run's status beside it.
+  - **Weapon skill** is one number at every width ("302 · 300" when the hands differ): the one
+    change under 1440 px, since the old "300 main hand / 300 off hand" wrapped.

@@ -1,4 +1,4 @@
-import { ChevronRight, ListOrdered, type LucideIcon, Network, Shield, SlidersHorizontal, Sparkles, Swords, UserRound } from 'lucide-react'
+import { ChevronRight, ListOrdered, type LucideIcon, Network, Shield, Sparkles, Swords, UserRound } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { sectionSummaries } from '@/app/section-summary'
@@ -17,14 +17,16 @@ const SECTION_ICON: Record<Section, LucideIcon> = {
 }
 
 /**
- * "Your setup" in the wide layout's right panel (from 1440 px, D34; docs/ux.md#results), a card: one
- * line a section, its icon and name over what it holds (src/app/section-summary.ts), so the whole
- * setup reads at a glance. Each line is a button that opens its section's tab and moves focus there
- * (`onOpen`, the shell's own tab opening), and looks it: its name ends on a faint chevron, and on
- * hover or focus the chevron darkens, the name takes the value's colour and the value an underline.
- * The card ends on its action row: `note` on the left (where things stand: what a run would do, its
- * progress, or that the result is up to date) and `action`, Simulate, on the right, sized to its
- * label, in the same place in every state.
+ * "Your setup" in the wide layout's right panel (from 1440 px, D34; docs/ux.md#results), a card
+ * under the character sheet: one line a section, its icon and name over what it holds
+ * (src/app/section-summary.ts), so the whole setup reads at a glance. Each line is a button that
+ * opens its section's tab and moves focus there (`onOpen`, the shell's own tab opening), and looks
+ * it: its name ends on a faint chevron, and on hover or focus the chevron darkens, the name takes the
+ * value's colour and the value an underline. The card ends on its action row (`data-setup-actions`,
+ * which the panel keeps in view as a run starts and ends): `note` on the left, where things stand
+ * (what a run would do, its progress, the result's headline, or that it failed), and `action`,
+ * Simulate, on the right, sized to its label. Simulate sits at the row's top, so it stays in the
+ * same place in every state however tall the note grows.
  */
 export function SetupSummary({
   sections,
@@ -44,8 +46,8 @@ export function SetupSummary({
     <section aria-labelledby={headingId}>
       <Card size="sm" className="gap-2">
         <CardHeader>
-          <h3 id={headingId} className="flex items-center gap-2 text-sm font-medium">
-            <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden />
+          {/* A section heading's size, as the sheet's above it, with no icon (D34, after the user's look at the fixes). */}
+          <h3 id={headingId} className="text-base font-semibold tracking-tight">
             Your setup
           </h3>
         </CardHeader>
@@ -79,8 +81,9 @@ export function SetupSummary({
             })}
           </ul>
         </CardContent>
-        <CardFooter className="justify-between gap-3 py-2">
-          <div className="min-w-0 flex-1">{note}</div>
+        <CardFooter data-setup-actions className="items-start justify-between gap-3 py-2">
+          {/* At least the button's height, so a one-line note centres on it, and a taller one (a tank's two values) grows down. */}
+          <div className="flex min-h-11 min-w-0 flex-1 flex-col justify-center">{note}</div>
           <div className="shrink-0">{action}</div>
         </CardFooter>
       </Card>

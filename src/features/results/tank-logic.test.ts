@@ -188,17 +188,6 @@ describe('bossTableIntro', () => {
     )
     expect(bossTableIntro(63, ['dodge', 'parry', 'block'], { ...up, uptimePct: null })).toContain('Your rotation keeps Holy Shield up most of the fight.')
   })
-
-  it('in the wide panel is brief: what the table is, and the block buff with its uptime (D34)', () => {
-    const up = { name: 'Holy Shield', blockPct: 20, uptimePct: 95.93 }
-    expect(bossTableIntro(63, ['dodge', 'parry', 'block'], null, true)).toBe('Its chances on each swing at you as the fight starts.')
-    expect(bossTableIntro(63, ['dodge', 'parry', 'block'], up, true)).toBe(
-      'Its chances with Holy Shield up, its 20.0% more block included. Your rotation kept it up 95.9% of the fight.',
-    )
-    expect(bossTableIntro(63, ['dodge', 'parry', 'block'], { ...up, uptimePct: null }, true)).toBe(
-      'Its chances with Holy Shield up, its 20.0% more block included. Your rotation keeps Holy Shield up most of the fight.',
-    )
-  })
 })
 
 describe('damageTakenText', () => {

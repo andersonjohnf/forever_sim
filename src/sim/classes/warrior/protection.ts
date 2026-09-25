@@ -15,7 +15,7 @@
 import { GCD_MS, toTenths } from '../../core/formulas'
 import { type RotationCondition, STANCE } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
-import { compileAplRows, DEFAULT_APL_PRESET, normalizeAplOrder } from '../apl'
+import { belowRowNote, compileAplRows, DEFAULT_APL_PRESET, normalizeAplOrder } from '../apl'
 import {
   BLOODRAGE,
   DEMORALIZING_SHOUT,
@@ -33,7 +33,7 @@ import {
   THUNDER_CLAP,
   thunderClap,
 } from './abilities'
-import { type TalentRanks, withTalents } from './modifiers'
+import type { TalentRanks } from './modifiers'
 import {
   auraRefresh,
   battleShoutLine,
@@ -403,21 +403,20 @@ const BELOW_FILLER: readonly { row: string; enabled: string }[] = [
  * What the Rotation tab says under a duty below the Sunder Armor filler (docs/ux.md "Rotation";
  * warrior.md §5.4 "The priority list"). A row keeps its own conditions wherever it sits, so a duty
  * keeps its refresh rule below the filler; but the filler takes the global cooldown first whenever
- * rage is at its threshold, so the duty gets one only while rage is under it. The note says that
- * fact and judges nothing: below Defensive's filler from 9, Demoralizing Shout gets under one cast a
- * fight; below Balanced's from 60, about a third of its casts. It's on any enabled Thunder Clap, Demoralizing
- * Shout or Battle Shout below the enabled filler, with the filler's threshold, or Sunder Armor's cost
- * if that's higher (the filler can't be cast for less). Thunder Clap on cooldown (`maintainOnly` off)
- * is tried just above the filler, wherever its own row is, so it has no note. (TI-4, simplified under
- * CLAUDE.md's step 6: the review log's TV-1.)
+ * it can be cast, so the duty gets one only when it can't: `belowRowNote`, the rule every filler's
+ * rows share, which judges nothing and names no threshold (below Defensive's filler from 9,
+ * Demoralizing Shout gets under one cast a fight; below Balanced's from 60, about a third of its
+ * casts). It's on any enabled Thunder Clap, Demoralizing Shout or Battle Shout below the enabled
+ * filler. Thunder Clap on cooldown (`maintainOnly` off) is tried just above the filler, wherever its
+ * own row is, so it has no note. (TI-4, simplified under CLAUDE.md's step 6: the review log's TV-1,
+ * and again for every filler: VA-2.)
  */
 export function protectionUnusedSettings(values: Record<string, RotationValue>, talents: TalentRanks, order?: readonly string[]): Record<string, string> {
   const v = reader(PROTECTION_OPTIONS, values, talents)
   if (!v.on(ID.fillerEnabled)) return {}
   const current = normalizeAplOrder(PROTECTION_APL, order)
   const filler = current.indexOf('sunderFiller')
-  const threshold = Math.max(v.num(ID.fillerMinRage), withTalents(SUNDER_ARMOR, talents).costTenths / 10)
-  const note = `Below the Sunder Armor filler: used only while your rage is under its ${threshold}.`
+  const note = belowRowNote('the Sunder Armor filler')
   const out: Record<string, string> = {}
   for (const { row, enabled } of BELOW_FILLER) {
     if (!v.on(enabled) || current.indexOf(row) < filler) continue

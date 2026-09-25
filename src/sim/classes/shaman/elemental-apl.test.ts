@@ -166,7 +166,7 @@ describe('the Elemental shaman’s priority list (D31)', () => {
 })
 
 describe('the Elemental settings the setup leaves unused (docs/ux.md "Rotation"; shaman.md "Elemental priority list (A2)")', () => {
-  const BELOW_BOLT = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+  const BELOW_BOLT = 'Below Lightning Bolt: cast only when Lightning Bolt can’t be.'
   const noFocus = new Map([...TALENTS].filter(([name]) => name !== 'Elemental Focus'))
 
   it('has none in the default setup and order', () => {
@@ -174,13 +174,14 @@ describe('the Elemental settings the setup leaves unused (docs/ux.md "Rotation";
     expect(elementalUnusedSettings({}, TALENTS, defaultAplOrder(ELEMENTAL_APL))).toEqual({})
   })
 
-  it('notes Chain Lightning with Clearcasting without Elemental Focus (UA-2); below Lightning Bolt its summary reads "Not used"', () => {
+  it('notes Chain Lightning with Clearcasting without Elemental Focus (UA-2), where its row reads "None"', () => {
     expect(elementalUnusedSettings({}, noFocus)).toEqual({ [ID.chainLightning]: 'Not used: Clearcasting needs the Elemental Focus talent.' })
     // On cooldown or never, it needs no Clearcasting.
     expect(elementalUnusedSettings({ [ID.chainLightning]: 'cooldown' }, noFocus)).toEqual({})
     expect(elementalUnusedSettings({ [ID.chainLightning]: 'never' }, noFocus)).toEqual({})
-    // Its summary's parts read "not used" while its setting is unused below Lightning Bolt; without
-    // Elemental Focus the Clearcasting part is left out, so it reads "None".
+    // Its summary's parts have an `inactiveText`, which keeps this note off the row; without
+    // Elemental Focus the Clearcasting part is left out, so it reads "None". Below Lightning Bolt
+    // the row shows its note instead, dimmed (VA-3; the Rotation tab's aplRowIdle).
     const row = ELEMENTAL_APL.rows.find((r) => r.id === 'chainLightning')!
     expect(row.summary!.map((p) => p.inactiveText)).toEqual(['not used', 'not used'])
     expect(row.summary![0].requires).toEqual({ talent: 'Elemental Focus' })

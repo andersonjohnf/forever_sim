@@ -107,18 +107,18 @@ describe('Balance’s priority list (D31)', () => {
     expect(unused({ [ID.eclipse]: false })).toEqual({})
     expect(unused({}, undefined, new Map([...TALENTS].filter(([name]) => name !== 'Eclipse')))).toEqual({})
     // The Filler above Wrath for Eclipse: Eclipse is the one left nothing.
-    expect(unused({}, moved('filler', 'eclipse'))).toEqual({ [ID.eclipse]: 'Below the Filler: used only while you haven’t the mana for Wrath.' })
+    expect(unused({}, moved('filler', 'eclipse'))).toEqual({ [ID.eclipse]: 'Below the Filler: cast only when the Filler can’t be.' })
     // Moonfire and Innervate moved below Wrath for Eclipse; Faerie Fire there too, but it's off.
     let order = moved('moonfire', 'filler')
     order = moved('innervate', 'filler', order)
     order = moved('faerieFire', 'filler', order)
-    const below = 'Below Wrath for Eclipse: used only while you haven’t the mana for Wrath.'
+    const below = 'Below Wrath for Eclipse: cast only when Wrath for Eclipse can’t be.'
     expect(unused({}, order)).toEqual({ [ID.filler]: expect.stringMatching(/^Not used: Wrath for Eclipse is on\./), [ID.moonfire]: below, [ID.innervate]: below })
     // With Eclipse off, they're below the Filler instead.
     expect(unused({ [ID.eclipse]: false }, order)).toEqual({})
     expect(unused({ [ID.eclipse]: false }, moved('filler', 'moonfire', order))).toEqual({
-      [ID.moonfire]: 'Below the Filler: used only while you haven’t the mana for Wrath.',
-      [ID.innervate]: 'Below the Filler: used only while you haven’t the mana for Wrath.',
+      [ID.moonfire]: 'Below the Filler: cast only when the Filler can’t be.',
+      [ID.innervate]: 'Below the Filler: cast only when the Filler can’t be.',
     })
     // The app reads the stored order.
     const config = { ...defaultConfig('druid-balance'), rotationOrder: moved('filler', 'eclipse') }

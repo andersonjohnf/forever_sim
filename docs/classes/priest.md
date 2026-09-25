@@ -255,7 +255,7 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
   keeps it up ([§3.6](#36-shadowform-15473)). Without the talent nothing is cast before the pull,
   and the row reads "None".
 - **Power Infusion is a row,** as on Balance and Elemental. It was spec-wide, taking its turn with
-  the on-use trinkets, and alone under its heading, which [ux.md "Rotation"](../ux.md) rules out.
+  the on-use trinkets, and alone under its heading, which [ux.md "Rotation"](../ux.md#sections) rules out.
 - **Spec-wide, above the list:** the Major Mana Potion and Demonic Rune with their mana thresholds
   (under Consumables). They're Buffs entries the rotation presses, and take their turn just after
   Power Infusion's row, wherever it sits, whether it's on or off. That's where they were before it
@@ -268,17 +268,20 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
   Blast, the Mind Blast that follows takes its free, +25% crit cast; moved above the DoTs, the
   charge can go to whatever the list casts next. **Moved below Mind Blast it's never used** while
   there's the mana for Mind Blast, which goes first the moment it's ready, so "Mind Blast ready"
-  never reaches Inner Focus (0 casts in the default setup). Its setting says so: "Below Mind Blast:
-  used only while you haven't the mana for Mind Blast, which goes first the moment it's ready."
-  (`shadowUnusedSettings`). Below Mind Flay
-  too, it's this note that shows.
+  never reaches Inner Focus (0 casts in the default setup). Its row and setting say so, dimmed:
+  "Not used: below Mind Blast, which it waits for, so Mind Blast always goes first. Move it above Mind
+  Blast." (`shadowUnusedSettings`). It isn't the below-filler rule, since it's never cast rather than
+  cast only when the row above can't be; and when it sits below Mind Flay too, this note is the one
+  that shows. Above Mind Blast but below Mind Flay, the below-filler rule's note shows instead
+  ([ux.md "Rotation"](../ux.md#sections)).
 - **Rows below Mind Flay:** the filler takes every global cooldown there's the mana for, so a row on
   the global cooldown moved below it (Dark Sacrifice, Shadow Word: Pain, Devouring Plague, Mind
   Blast, Starshards, Vampiric Embrace) gets one only without that mana, and so does Inner Focus,
   which waits for Mind Blast's. In the default setup, Mind Flay first casts none of them. Each
-  such row that's on (with its talent) says "Below Mind Flay: used only while you haven't the mana
-  for Mind Flay." (`shadowUnusedSettings`, as Balance's "Below the Filler"); a race's note ("only
-  Night Elf priests have Starshards") comes first. The racial, the trinkets, Power Infusion and the
+  such row that's on (with its talent) says so, dimmed, by the rule every filler's rows share
+  ([ux.md "Rotation"](../ux.md#sections), rows below the filler): "Below Mind Flay: cast only when Mind Flay
+  can't be." (`shadowUnusedSettings`); a race's note ("only Night Elf priests have Starshards")
+  comes first. The racial, the trinkets, Power Infusion and the
   consumables are off the global cooldown and pressed wherever they sit.
 - **Equivalence.** In the default order the plan is the one before the list, byte for byte: 200
   random setups (settings, talents, race, on-use items, the mana consumables and Power Infusion,

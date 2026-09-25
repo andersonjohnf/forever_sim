@@ -163,7 +163,7 @@ describe('the Shadow Priest’s priority list (D31)', () => {
 describe('the Shadow settings a reordered list leaves unused (docs/ux.md "Rotation"; priest.md §6)', () => {
   const TROLL = ['horde-troll', 'Troll'] as const
   const RACE_NOTES = ['priest.shadow.starshards.enabled', 'priest.shadow.darkSacrifice.enabled']
-  const BELOW_FLAY = 'Below Mind Flay: used only while you haven’t the mana for Mind Flay.'
+  const BELOW_FLAY = 'Below Mind Flay: cast only when Mind Flay can’t be.'
 
   it('in the default order, has only the race notes', () => {
     expect(Object.keys(shadowUnusedSettings(...TROLL, {}, TALENTS))).toEqual(RACE_NOTES)
@@ -198,12 +198,12 @@ describe('the Shadow settings a reordered list leaves unused (docs/ux.md "Rotati
 
   it('notes Inner Focus below Mind Blast (LA-3), and not without its talent or with Mind Blast off', () => {
     const order = moved('innerFocus', 'starshards')
-    expect(shadowUnusedSettings(...TROLL, {}, TALENTS, order)[ID.innerFocus]).toBe('Below Mind Blast: used only while you haven’t the mana for Mind Blast, which goes first the moment it’s ready.')
+    expect(shadowUnusedSettings(...TROLL, {}, TALENTS, order)[ID.innerFocus]).toBe('Not used: below Mind Blast, which it waits for, so Mind Blast always goes first. Move it above Mind Blast.')
     expect(shadowUnusedSettings(...TROLL, { [ID.blast]: false }, TALENTS, order)[ID.innerFocus]).toBeUndefined()
     const noFocus = new Map([...TALENTS].filter(([name]) => name !== 'Inner Focus'))
     expect(shadowUnusedSettings(...TROLL, {}, noFocus, order)[ID.innerFocus]).toBeUndefined()
     // Below both, the Mind Blast note is the one: Mind Blast comes first either way.
-    expect(shadowUnusedSettings(...TROLL, {}, TALENTS, moveAplRow(SHADOW_APL, DEFAULT, 'innerFocus', DEFAULT.length - 1)!)[ID.innerFocus]).toMatch(/^Below Mind Blast/)
+    expect(shadowUnusedSettings(...TROLL, {}, TALENTS, moveAplRow(SHADOW_APL, DEFAULT, 'innerFocus', DEFAULT.length - 1)!)[ID.innerFocus]).toMatch(/^Not used: below Mind Blast/)
   })
 
   it('says what the fights show: the noted rows are never cast in the default setup', () => {

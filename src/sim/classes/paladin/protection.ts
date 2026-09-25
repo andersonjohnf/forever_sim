@@ -21,7 +21,7 @@ import { DAMAGE_SHIELD_SP_COEFFICIENT } from '../../effects/buffs'
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
 import type { AssumptionId } from '../../plan/assumptions'
-import type { AplDefinition, FixedRotationRow, RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { WeaponType } from '@/data/items/types'
 import { compileAplRows, DEFAULT_APL_PRESET, normalizeAplOrder } from '../apl'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
@@ -626,20 +626,6 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
 export const PROTECTION_KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs up to 0.51%'
 
 /**
- * What a Protection paladin always does (paladin.md "Forever priority list (default)", row 0): its
- * Righteous Fury, up all fight, with no setting.
- */
-export const PROTECTION_FIXED_ROWS: FixedRotationRow[] = [
-  {
-    id: `${P}.righteousFury`,
-    label: 'Righteous Fury',
-    group: 'Cooldowns and buffs',
-    help: 'Up all fight, cast before the pull: ×1.6 threat from your Holy damage. A Protection paladin never tanks without it.',
-    value: 'Always on',
-  },
-]
-
-/**
  * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the Buffs
  * switch's static version: your own Devotion Aura (paladin.md "Priority", D26) and your own
  * Judgement of the Crusader (paladin.md "the opener").
@@ -748,7 +734,7 @@ export const PROTECTION_APL: AplDefinition = {
         { text: 'Righteous Fury' },
         { option: ID.crusader, text: 'Judgement of the Crusader at the pull' },
       ],
-      help: 'Your aura 4.5 s before the pull, then Righteous Fury, then the seal. The aura is Devotion Aura while it’s on, and Retribution Aura while it’s off. It always comes first.',
+      help: 'Your aura 4.5 s before the pull, then Righteous Fury, then the seal. Righteous Fury stays up all fight: ×1.6 threat from your Holy damage. The aura is Devotion Aura while it’s on, and Retribution Aura while it’s off. This row always comes first.',
       pinned: true,
     },
     {

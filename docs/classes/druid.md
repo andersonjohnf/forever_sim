@@ -2187,9 +2187,11 @@ conditions in the table above (ids `druid.balance.…`):
 - **A row that casts on every global cooldown:** Wrath for Eclipse (with the talent) and the Filler
   each cast whenever there's the mana for Wrath. The higher of the two leaves the lower nothing, and
   the lower says so, dimmed: by default the filler, "Not used: Wrath for Eclipse is on." A row on the
-  global cooldown moved below it gets a global cooldown only without the mana for Wrath, and says
-  "Below Wrath for Eclipse" (or "Below the Filler"). Nothing else reads the order: no row reads
-  another's spell.
+  global cooldown moved below the higher gets a global cooldown only when the higher can't be cast,
+  and says so, dimmed, by the rule every filler's rows share ([ux.md "Rotation"](../ux.md#sections), rows
+  below the filler): "Below Wrath for Eclipse: cast only when Wrath for Eclipse can't be." (or
+  "Below the Filler: cast only when the Filler can't be."). Nothing else reads the order: no row
+  reads another's spell.
 - **Byte-identical in the default order:** 200 random setups (settings, talents in every tree, race,
   the on-use trinkets, the mana consumables, Power Infusion and Faerie Fire in Buffs, the raid's
   priest, the fight and the rules) build the plans they built before the list

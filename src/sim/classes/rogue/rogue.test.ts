@@ -15,7 +15,7 @@ import { catalogueEffects } from '../../effects/types'
 import { fitsSlot } from '../../equip'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
 import { FIELD, Sim } from '../../engine/sim'
-import { alwaysLandNoCrit, counter, damages, expectMean, setAttackPower, timeline } from '../../engine/test-helpers'
+import { addAbility, alwaysLandNoCrit, counter, damages, expectMean, line, setAttackPower, timeline } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
 import { ACTION, type AbilityDef, COND, type Plan, TRIGGER_COUNT } from '../../plan/types'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
@@ -526,12 +526,100 @@ describe('worked examples (rogue.md §9)', () => {
     const config = defaultConfig('rogue-combat')
     const forever = buildPlan(config).plan
     expect(rogueAssumptions(forever, COMBAT)).toContain('poisonAp')
-    expect(rogueAssumptions(forever, COMBAT)).not.toContain('rogueFinisherAp')
     const classic = buildPlan({ ...config, rules: { ...config.rules, profile: 'classicEra' } }).plan
     expect(classic.procs.some((p) => p.poison)).toBe(true)
     expect(rogueAssumptions(classic, COMBAT)).not.toContain('poisonAp')
     const unpoisoned = buildPlan({ ...config, buffs: { ...config.buffs, enabled: [] } }).plan
     expect(rogueAssumptions(unpoisoned, COMBAT)).not.toContain('poisonAp')
+  })
+
+  it('lists the finisher talents on the guild-tested attack-power shares only when one raises a finisher the plan uses (rogue.md Q3)', () => {
+    const forever = buildPlan(defaultConfig('rogue-combat')).plan
+    // Every default build takes one of them, and every build uses Eviscerate.
+    for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety'] as const) {
+      const talents = talentRanksByName(TALENT_DATA.rogue, defaultConfig(spec).talents)
+      expect(rogueAssumptions(buildPlan(defaultConfig(spec)).plan, talents), spec).toContain('rogueFinisherTalents')
+    }
+    const without = (names: string[]) => new Map([...COMBAT].filter(([name]) => !names.includes(name)))
+    expect(rogueAssumptions(forever, without(['Improved Eviscerate', 'Aggression', 'Serrated Blades']))).not.toContain('rogueFinisherTalents')
+    expect(rogueAssumptions(forever, ranks([['Aggression', 1]]))).toContain('rogueFinisherTalents')
+    // Serrated Blades counts only with Rupture in the plan.
+    const withRupture = forever.abilities.some((a) => a.id === 'rupture')
+    expect(rogueAssumptions(forever, ranks([['Serrated Blades', 3]])).includes('rogueFinisherTalents')).toBe(withRupture)
+    const noFinishers = { ...forever, abilities: forever.abilities.filter((a) => a.id !== 'eviscerate' && a.id !== 'rupture') }
+    expect(rogueAssumptions(noFinishers, ranks([['Improved Eviscerate', 3], ['Serrated Blades', 3]]))).not.toContain('rogueFinisherTalents')
+  })
+})
+
+describe('the poisons’ attack-power share in the engine (rogue.md §4.1, §4.2)', () => {
+  /** The Combat rogue with only this poison, on every main-hand hit, always landing; `crit` makes every poison hit crit. */
+  const poisonPlan = (buff: 'instantPoisonMainHand' | 'deadlyPoisonMainHand', crit = false) => {
+    const config = { ...combatWith({}), buffs: { raid: [], enabled: [buff] } }
+    const plan = quiet(config)
+    const poison = buildPlan(config).plan.procs.find((p) => p.poison)!
+    plan.procs = [{ ...poison, chance: [1, 1] }]
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === poison.trigger ? [0] : []))
+    alwaysLandNoCrit(plan)
+    plan.stats.spellHit = 100
+    plan.stats.spellCrit = crit ? 100 : -100
+    return plan
+  }
+  /** A free, off-GCD cast at the pull that puts up `mods` for `durationMs`, the plan's only rotation line. */
+  const buffAtPull = (plan: Plan, durationMs: number, mods: { ap?: number; poisonDamage?: number }) => {
+    const ability = addAbility(plan, { ...ADRENALINE_RUSH, id: 'testBuff', gcdMs: 0, aura: { id: 'testBuff', name: 'Test buff', durationMs, mods: { ap: mods.ap ?? 0 } } })
+    if (mods.poisonDamage) plan.auras[plan.abilities[ability].aura].poisonDamage = mods.poisonDamage
+    plan.rotation = []
+    line(plan, ability)
+  }
+
+  it('Deadly Poison reads attack power at each tick: a +2,000 buff that ends mid-poison lowers the next ticks (rogue.md §4.2 [?])', () => {
+    const plan = poisonPlan('deadlyPoisonMainHand')
+    setAttackPower(plan, 0)
+    // One main-hand swing at the pull applies the poison; nothing else lands in its 12 s.
+    plan.weapons[0] = { ...plan.weapons[0]!, speedSec: 1000 }
+    plan.weapons[1] = null
+    plan.fight.durationMs = 20000
+    plan.fight.variation = 0
+    // +2,000 attack power from the pull to 7.5 s: the ticks at 3 s and 6 s carry it, those at 9 s and 12 s don't.
+    buffAtPull(plan, 7500, { ap: 2000 })
+    const ticks = damages(plan, row(plan, 'deadlyPoison'), 1)
+    expect(ticks).toHaveLength(4)
+    expect(ticks[1]).toBeCloseTo(ticks[0], 9)
+    expect(ticks[3]).toBeCloseTo(ticks[2], 9)
+    // A share fixed when the stack landed would tick the same all 12 s.
+    expect(ticks[0] / ticks[2]).toBeCloseTo((23 + DEADLY_POISON_AP_PER_TICK * 2000) / 23, 9)
+  })
+
+  it('Instant Poison’s crit, ×1.5, multiplies the attack-power share with the rest (rogue.md §4, §4.1)', () => {
+    const run = (crit: boolean) => {
+      const plan = poisonPlan('instantPoisonMainHand', crit)
+      setAttackPower(plan, 2000)
+      return damages(plan, row(plan, 'instantPoison'), 3)
+    }
+    const hits = run(false)
+    const crits = run(true)
+    expect(crits.length).toBe(hits.length)
+    expect(hits.length).toBeGreaterThan(20)
+    // The same fights and rolls: every proc crits for 1.5 × (76…100 + 10), not 1.5 × 76…100 + 10.
+    for (let i = 0; i < hits.length; i++) expect(crits[i] / hits[i]).toBeCloseTo(CRIT_MULTIPLIER.spell, 9)
+  })
+
+  it('Venom’s +30% and the crit multiply Deadly Poison’s attack-power share with the rest, ×1.95 (rogue.md §4.2, §4.3 [?])', () => {
+    const run = (venom: boolean, crit: boolean, ap: number) => {
+      const plan = poisonPlan('deadlyPoisonMainHand', crit)
+      setAttackPower(plan, ap)
+      // Venom's aura from the pull all fight, or the same cast doing nothing, so both runs keep one timeline.
+      buffAtPull(plan, 1e9, venom ? { poisonDamage: VENOM.aura!.mods.poisonDamage } : {})
+      return damages(plan, row(plan, 'deadlyPoison'), 2)
+    }
+    const plain = run(false, false, 2000)
+    const both = run(true, true, 2000)
+    expect(both.length).toBe(plain.length)
+    expect(plain.length).toBeGreaterThan(20)
+    for (let i = 0; i < plain.length; i++) expect(both[i] / plain[i]).toBeCloseTo(1.3 * CRIT_MULTIPLIER.spell, 9)
+    // And the share is in those ticks: the same ticks at no attack power are 23 / 25.25 of them.
+    const noAp = run(true, true, 0)
+    for (let i = 0; i < noAp.length; i++) expect(both[i] / noAp[i]).toBeCloseTo((23 + DEADLY_POISON_AP_PER_TICK * 2000) / 23, 9)
   })
 })
 

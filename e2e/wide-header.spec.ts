@@ -14,6 +14,20 @@ const TOOLS = ['Share', 'Setups', 'About & data', 'Release history', 'Coming soo
 const group = (page: Page) => page.getByRole('banner').getByRole('group', { name: 'Setup and app' })
 const tool = (page: Page, name: string) => group(page).getByRole('button', { name, exact: true })
 
+/**
+ * Review finding V4-2: an Escape pressed the moment Release history opens in About's or What's New's
+ * place, while that one is still closing. This presses it then, as focus lands on the title, which
+ * no key from the test could time.
+ */
+const escapeAsHistoryOpens = (page: Page) =>
+  page.evaluate(() =>
+    document.addEventListener('focusin', (event) => {
+      const title = event.target
+      if (!(title instanceof HTMLElement) || title.tagName !== 'H2' || title.textContent !== 'Release history') return
+      title.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+    }),
+  )
+
 test.describe('the header from 1440 px', () => {
   test.use(WIDE)
 
@@ -106,6 +120,17 @@ test.describe('the header from 1440 px', () => {
     await expect(tool(page, 'About & data')).toBeFocused()
   })
 
+  test('an Escape as Release history opens from About, while About is still closing, closes it', async ({ page }) => {
+    await page.goto('./')
+    await tool(page, 'About & data').click()
+    const stamp = page.getByRole('dialog').getByRole('button', { name: 'What changed in each release' })
+    await expect(stamp).toBeVisible()
+    await escapeAsHistoryOpens(page)
+    await stamp.click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(tool(page, 'About & data')).toBeFocused()
+  })
+
   test('Theme opens its three choices, and a choice takes', async ({ page }) => {
     await page.goto('./')
     await tool(page, 'Theme').click()
@@ -156,6 +181,16 @@ test.describe('What’s new at 1440 px', () => {
     await expect(history.getByRole('heading', { name: 'Release history' })).toBeFocused()
     await page.keyboard.press('Escape')
     await expect(history).toBeHidden()
+    await expect(tool(page, 'Release history')).toBeFocused()
+  })
+
+  test('an Escape as Release history opens, while What’s new is still closing, closes it', async ({ page }) => {
+    await page.goto('./')
+    const all = page.getByRole('dialog', { name: 'What’s new' }).getByRole('button', { name: 'All releases' })
+    await expect(all).toBeVisible()
+    await escapeAsHistoryOpens(page)
+    await all.click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await expect(tool(page, 'Release history')).toBeFocused()
   })
 })

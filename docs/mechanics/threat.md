@@ -16,7 +16,8 @@ on the 1.13 client. WoW Forever keeps that shape but changes several key numbers
 Every other per-ability value is still server-side and unverified in Forever. The engine uses the
 Classic Era numbers and flags them. A new ability whose tooltip names its threat ("a high amount
 of threat") takes the value of the known abilities with the same words, by the
-[wording table](#threat-wording-table) (D29): Lacerate's +261.
+[wording table](#threat-wording-table) (D29): Lacerate's, Forever's Sunder Armor's at the same
+level since build 1.60.1.70009, 206 + 0.05 × AP (261, Classic Era's, before).
 
 Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
@@ -175,7 +176,7 @@ value (effect 63) only for Sunder Armor and Cower, so every other row is server-
 
 | Tooltip phrase | Known values | How they scale | Applied by the wording (`[?]`) |
 | --- | --- | --- | --- |
-| "causes a high amount of threat" (a special on the GCD) | Sunder Armor r5 (level 58): **261** [C] (Magey), Forever's client **1013** [F] (effect 63). Revenge r5 (54): 2.25 × dmg + **243**, r6 (60): 2.25 × dmg + **270** [C]. Shield Slam r4 (60): dmg + **254** [C], when Classic's tooltip said "high" | The flat bonus is **4.5 × the spell's level**: 261 = 4.5 × 58, 243 = 4.5 × 54, 270 = 4.5 × 60 (Shield Slam 4.23 × 60). Forever's Sunder is 2.25 × the armor it removes (180/270/360/450 → 405/608/810/1013), a Forever-only client value that no other ability with the words has | **Lacerate** r1/r2/r3 (levels 42/50/58): **189/225/261** per landed application, on top of 1 per damage ([druid bear](#druid-bear), druid.md Q15). Rank 3 is Sunder r5's analog: level 58, 15 rage, a 5-stack debuff. Classic's 4.5 × level, not Forever's 1013, since only Sunder has the Forever value |
+| "causes a high amount of threat" (a special on the GCD) | Sunder Armor r5 (level 58): **261** [C] (Magey); Forever's client **206** [F] (effect 63, 1.60.1.70009; r1–r4 34/75/117/158 at levels 10/22/34/46), plus an attack power term the notes add and the client doesn't carry, **0.05 × AP** [?] (1013 in 1.60.1.69913). Revenge r5 (54): 2.25 × dmg + **243**, r6 (60): 2.25 × dmg + **270** [C]. Shield Slam r4 (60): dmg + **254** [C], when Classic's tooltip said "high" | Classic Era's flat bonus is **4.5 × the spell's level**: 261 = 4.5 × 58, 243 = 4.5 × 54, 270 = 4.5 × 60 (Shield Slam 4.23 × 60). Forever's Sunder is about 3.4–3.55 × its level (34 / 10 … 206 / 58) plus 0.05 × AP, which meets Classic's 261 at 1,100 AP and passes it above ([warrior](#warrior)) | **Lacerate** r3 (level 58): **206 + 0.05 × AP** per landed application, on top of 1 per damage (about 271 at the default bear's 1,296 AP; [druid bear](#druid-bear), druid.md §4.3, Q15). Rank 3 is Sunder r5's analog: level 58, 15 rage, a 5-stack debuff. Until build 1.60.1.70009 it took Classic's 4.5 × level (r1/r2/r3 189/225/261), since Forever's only value, 1013, was 2.25 × Sunder's armor and so Sunder's alone. 1.60.1.70009's Sunder is 34/75/117/158/**206** at levels 10/22/34/46/58, level-scaled like the Classic rule, plus an attack power term the notes add and the sim defaults to **0.05 × AP** [?] ([warrior](#warrior)): a Forever value for the same words at the same level, which outranks Classic Era's (doctrine §2). Ranks 1 and 2 would take Sunder's ladder at their levels, about 144 and 174, plus the share. **It follows the warrior's Sunder:** if its attack power share moves, Lacerate's does. `classicEra` keeps 261 |
 | "causes a high amount of threat" (on the next swing) | Heroic Strike r9: dmg + **173**, r8: dmg + **145** [C] (Magey) | About 1.05–1.10 × the rank's bonus damage (157 → 173, 138 → 145) | None: no bear or paladin on-next-swing ability says it (Maul has no threat words) |
 | "a very high amount of threat" | Shield Slam r4 in Forever [F] text; no value | Above "high" by the words; unmeasured | Shield Slam keeps Classic's 254 [?] ([warrior](#warrior), OQ 1) |
 | "a moderate amount of threat" | Mocking Blow r5; no value (LTC2's 250 is commented out, "NEED MORE INFO") | — | The sim doesn't use Mocking Blow |
@@ -248,7 +249,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | Growl (6795) | [see taunts](#taunts-and-forced-attacks) | 8 s CD [F] | — |
 | Challenging Roar (5209) | Forced attacks for 6 s | [F] unchanged | — |
 | **Primal Bite** (Forever talent; 407995 / 1238069 / 1238070 / 1238073; Mangle (Bear) until 1.60.1.70009) | — | **unknown** [?]. Default: dmg × 1. | 20 rage, 6 s CD, 100% weapon damage + 77 at level 60 [F]. Hits 3 targets under Berserk. Build 1.60.1.70009 renamed it (its debuff, which the client never carried, was removed) and kept every value; its tooltip still names no threat. |
-| **Lacerate** (Forever, r3 1235827, trained 42/50/58) | — | **dmg × 1 + 261** per landed application [?] (r1 189, r2 225); ticks dmg × 1 | 15 rage; bleeds 75 over 15 s, stacks to 5 [F]. The tooltip says "Causes a high amount of threat", with no threat effect in the client, so the bonus is the [wording table](#threat-wording-table)'s: 4.5 × the rank's level, Classic Era Sunder Armor r5's 261 at the same level 58. **Engine:** 261 × the global multipliers on each landed application (a hit or a block), the first one too, which deals no damage; none for a miss, dodge or parry. **The only numbers we found are Season of Discovery values. They are not adopted.** A guild test (druid.md G1) replaces the default. |
+| **Lacerate** (Forever, r3 1235827, trained 42/50/58) | — | **dmg × 1 + 206 + 0.05 × AP** per landed application [?] (about 271 at 1,296 AP); ticks dmg × 1 | 15 rage; bleeds 75 over 15 s, stacks to 5 [F]. The tooltip says "Causes a high amount of threat", with no threat effect in the client, so the bonus is the [wording table](#threat-wording-table)'s: Forever's Sunder Armor r5 at the same level 58, 206 (its client value since 1.60.1.70009) + 0.05 × AP (the warrior's default for the notes' attack power term); Classic Era's rule, 4.5 × level = 261, until that build. **Engine:** (206 + 0.05 × the attack power as it lands) × the global multipliers on each landed application (a hit or a block), the first one too, which deals no damage; none for a miss, dodge or parry. `classicEra`: 261. **The only numbers we found are Season of Discovery values. They are not adopted.** A guild test (druid.md G1) replaces the default. |
 | Cower (r3, 9892; cat) | −600 − 1 per level (−608 at 60) [C] | **−1200 − 1 per level (−1208 at 60)** [F] | Effect 63 with a per-level term (levels 52–62) [client] (SpellEffect, SpellLevels, 1.60.1.69913). DPS context; details in [druid.md §3](../classes/druid.md). |
 | White hits | dmg × 1 [C] | dmg × 1 [?] | × form multiplier |
 
@@ -339,7 +340,7 @@ threat talents are out of scope.
 | Tranquil Air Totem | ×0.8 | **Not in Forever** | [F] |
 | Blessing of Sanctuary | Talent; Holy damage on block | **Removed** | [F] |
 | Faerie Fire (Feral) | Talent, usable in forms | **Removed**; plain Faerie Fire usable in forms (mana cost) | [F] |
-| Lacerate, Primal Bite (Mangle (Bear) until 1.60.1.70009) | — | New. Lacerate's "high amount of threat": +261 by the [wording table](#threat-wording-table); Primal Bite unknown (dmg × 1) | [F] spells, [?] threat |
+| Lacerate, Primal Bite (Mangle (Bear) until 1.60.1.70009) | — | New. Lacerate's "high amount of threat": +206 + 0.05 × AP (Forever's Sunder Armor r5) by the [wording table](#threat-wording-table); Primal Bite unknown (dmg × 1) | [F] spells, [?] threat |
 | Seal of Fury / Judgement of Fury, Holy Strike, Hammer of the Righteous | — | New Holy-school tanking tools (JoF taunts) | [F] |
 | Taunt / Growl | 10 s CD | 8 s CD | [F] |
 | Cower | −600 | −1200 | [F] |
@@ -443,7 +444,7 @@ Each of these becomes a unit test. T1 and T2 run in the engine under each profil
 | T7 | Warrior ×1.495; Shield Bash hits for 45 | (1.5 × 45 + 156) × 1.495 = **334.1325** |
 | T8 | Forever bear (×1.3); Maul hits for 400 (Maul ×1.75 [?]) | 400 × 1.75 × 1.3 = **910** |
 | T9 | Classic bear, 5/5 Feral Instinct (×1.45); Maul for 400 (Maul ×1.75 [?]) | **1015** |
-| T9b | Forever bear (×1.3); Lacerate r3 hits for 154.566 (+261 [?], the wording table) | (154.566 + 261) × 1.3 = **540.235**; a first application (no damage) **339.3** |
+| T9b | Forever bear (×1.3), 1,200 AP; Lacerate r3 hits for 154.566 (+206 + 0.05 × AP [?], the wording table) | (154.566 + 206 + 60) × 1.3 = **546.735**; a first application (no damage) **345.8**. `classicEra`'s +261: 540.235 and 339.3 |
 | T10 | Forever paladin with RF; Holy Shield proc for 221 | 221 × 1.2 × 1.9 = **503.88** |
 | T11 | Classic paladin with RF, 0/3 and 3/3 Improved RF; Holy Shield proc for 130 | **249.6** / **296.4** |
 | T12 | Forever paladin with RF, 5/5 Iron Creed; Holy Strike hits for 250 | 250 × 1.25 × 1.9 = **593.75** |
@@ -482,7 +483,9 @@ threat-value scale with a plain white hit in a known stance.
    without a shield.
 4. **Bear** [?]: Maul and Swipe multipliers (1.75), Demoralizing Roar (39) and Faerie Fire (108)
    come from LTC2 code only, in Classic Era as well as Forever; no independent Classic Era
-   measurement was found. **Lacerate**'s bonus is the wording table's +261 (4.5 × level 58) and
+   measurement was found. **Lacerate**'s bonus is the wording table's, Forever's Sunder Armor r5
+   at the same level: 206 + 0.05 × AP (about 271; Classic Era's 4.5 × level 58 = 261 before build
+   1.60.1.70009), so a Sunder test settles part of it too, and
    **Primal Bite**'s (Mangle (Bear) until 1.60.1.70009) threat is assumed dmg × 1; neither is measured. The only numbers found are
    Season of Discovery values and are **not adopted**. Test: a first Lacerate on a fresh mob
    (threat ÷ 1.3 = the bonus), then applications at 1–4 stacks (÷ 1.3 − the hit = the same bonus)

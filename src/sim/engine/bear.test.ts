@@ -6,14 +6,14 @@
 // the default bear, one ability at a time, as the plan builder adds them.
 import { describe, expect, it } from 'vitest'
 import { BEAR_IDS, BEAR_PRIORITY, PREPULL_ENRAGE_MS } from '../classes/druid/bear'
-import { demoralizingRoar, enrage, FAERIE_FIRE_BEAR, LACERATE, PRIMAL_BITE, MAUL, SWIPE } from '../classes/druid/bear-abilities'
+import { demoralizingRoar, enrage, FAERIE_FIRE_BEAR, LACERATE, lacerate as lacerateFor, PRIMAL_BITE, MAUL, SWIPE } from '../classes/druid/bear-abilities'
 import { BERSERK } from '../classes/druid/cat-abilities'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
 import { armorReduction } from '../core/formulas'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { type AbilityDef, COND, NO_PREPULL, type Plan, type RotationCondition, TRIGGER_COUNT } from '../plan/types'
-import { FOREVER } from '../rules/profiles'
+import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { SimConfig } from '../types'
 import { emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
@@ -238,6 +238,26 @@ describe('Lacerate (druid.md §4.3, W19)', () => {
     const marker = plan.abilities[lacerate].aura
     expect(sim.auraUpMs[marker]).toBe(40000)
     expect(sim.auraStackMs[marker]).toBe(170000)
+  })
+
+  it('W20: each landed application makes 206 + 0.05 × the attack power more threat × the form’s: 266 at 1200 AP, the first one too (D29)', () => {
+    const { plan, lacerate } = stacking()
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    const r = row(plan, lacerate)
+    const landed = counter(sim, r, FIELD.hits) + counter(sim, r, FIELD.crits) + counter(sim, r, FIELD.blocks)
+    expect(landed).toBe(10)
+    expect((counter(sim, r, FIELD.threat) - counter(sim, r, FIELD.damage) * plan.threatMult) / landed).toBeCloseTo((206 + 0.05 * 1200) * plan.threatMult, 9)
+    // Classic Era's rule: 261 flat, whatever the attack power.
+    const classic = bearPlan(40000)
+    setAttackPower(classic, 1200)
+    const c = addBearAbility(classic, lacerateFor(CLASSIC_ERA), { free: true })
+    withAuraMods(classic, c, LACERATE)
+    line(classic, c, [stacksBelow(c, 5)])
+    const cs = new Sim(classic)
+    cs.runFight(0)
+    const cr = row(classic, c)
+    expect((counter(cs, cr, FIELD.threat) - counter(cs, cr, FIELD.damage) * classic.threatMult) / 10).toBeCloseTo(261 * classic.threatMult, 9)
   })
 
   it('hits for 10% of the weapon damage per stack already on the boss: nothing for the first, which can’t crit', () => {
@@ -483,13 +503,18 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(ratio('mainHand')).toBeCloseTo(t, 12)
     expect(flat('faerieFire')).toBeCloseTo(108 * t, 9)
     expect(flat('demoralizingRoar')).toBeCloseTo(39 * t, 9)
-    // Lacerate: 1 per damage plus 261 per landed application (threat.md's wording table, D29), the
-    // first one of a run too, which deals nothing; its bleed's ticks 1 per damage.
+    // Lacerate: 1 per damage plus 206 + 0.05 × the attack power as it lands, per landed application
+    // (threat.md's wording table, D29: Forever's Sunder Armor), the first one of a run too, which deals
+    // nothing; its bleed's ticks 1 per damage. The attack power share averages at least the sheet's
+    // 0.05 × AP, and only on-use items and the potion add to it.
     const lac = plan.sources.findIndex((s) => s.id === 'lacerate')
     const landed = counter(sim, lac, FIELD.hits) + counter(sim, lac, FIELD.crits) + counter(sim, lac, FIELD.blocks)
     expect(landed).toBeGreaterThan(0)
     expect(counter(sim, lac, FIELD.casts) - counter(sim, lac, FIELD.misses) - counter(sim, lac, FIELD.dodges) - counter(sim, lac, FIELD.parries)).toBe(landed)
-    expect((counter(sim, lac, FIELD.threat) - counter(sim, lac, FIELD.damage) * t) / landed).toBeCloseTo(261 * t, 9)
+    const bonus = (counter(sim, lac, FIELD.threat) - counter(sim, lac, FIELD.damage) * t) / landed / t
+    const sheetAp = new Sim(plan).inspect().attackPower
+    expect(bonus).toBeGreaterThanOrEqual(206 + 0.05 * sheetAp - 1e-9)
+    expect(bonus).toBeLessThan(206 + 0.05 * (sheetAp + 150))
     expect(ratio('lacerateBleed')).toBeCloseTo(t, 12)
     // Energizes: 5 threat a rage, whatever the form (Primal Fury, Natural Reaction), for the rage
     // gained in whole tenths: 0.5 a tenth, less than 5 when the cap takes some of it.

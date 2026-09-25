@@ -40,6 +40,7 @@ import {
   LACERATE_RANK_LEVELS,
   LACERATE_THREAT,
   LACERATE_WEAPON_PCT_PER_STACK,
+  lacerate as lacerateFor,
   PRIMAL_BITE,
   MAUL,
   MAUL_THREAT_MULT,
@@ -130,17 +131,27 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(LACERATE).toMatchObject({ periodicCanCrit: true, weaponPercent: 0, weaponPercentPerStack: 0.1, gcdMs: 1500 })
   })
 
-  it('Lacerate’s “high amount of threat” (D29): 4.5 × each rank’s level, 189, 225 and 261, with no threat effect in the client', () => {
-    // threat.md#threat-wording-table: the warrior's GCD specials with those words fit 4.5 × the spell's
-    // level in Classic Era (Sunder Armor r5 at 58: 261; Revenge r5 at 54: 243, r6 at 60: 270).
-    expect([highThreatBonus(58), highThreatBonus(54), highThreatBonus(60)]).toEqual([261, 243, 270])
+  it('Lacerate’s “high amount of threat” (D29): Sunder Armor r5’s at the same level, 206 + 0.05 × AP in Forever and 261 in Classic Era, with no threat effect in the client', () => {
     const ranks = [414644, 1235826, 1235827]
     expect(ranks.map((id) => spell(id).levels?.spellLevel)).toEqual([...LACERATE_RANK_LEVELS])
-    expect(LACERATE_RANK_LEVELS.map(highThreatBonus)).toEqual([189, 225, 261])
     // No rank carries a THREAT effect (63): the bonus is the wording's, [?].
     for (const id of ranks) expect(spell(id).effects.some((e) => e.effect === 63), String(id)).toBe(false)
-    expect(LACERATE.threatBonus).toBe(LACERATE_THREAT)
-    expect(LACERATE_THREAT).toBe(261)
+    // threat.md#threat-wording-table: rank 3 is level 58, as Sunder Armor r5 is, and Forever's client
+    // gives that Sunder a THREAT effect of 206 (1.60.1.70009), plus the attack power share Blizzard's
+    // notes add and the client doesn't carry, 0.05 × AP [?] (the warrior's default, warrior.md Q1).
+    const sunder = effect(11597, 1)
+    expect(spell(11597).levels?.spellLevel).toBe(LACERATE_RANK_LEVELS[2])
+    expect(sunder).toMatchObject({ effect: 63, effectBasePointsF: LACERATE_THREAT.forever.bonus })
+    expect(LACERATE_THREAT.forever).toEqual({ bonus: 206, apCoefficient: 0.05 })
+    expect(LACERATE).toMatchObject({ threatBonus: 206, threatApCoefficient: 0.05 })
+    expect(lacerateFor(FOREVER)).toBe(LACERATE)
+    // At the default bear's 1,296 attack power in Dire Bear Form, that's 270.8.
+    expect(206 + 0.05 * 1296).toBeCloseTo(270.8, 9)
+    // Classic Era: the warrior's GCD specials with those words fit 4.5 × the spell's level (Sunder
+    // Armor r5 at 58: 261; Revenge r5 at 54: 243, r6 at 60: 270), with no attack power term.
+    expect([highThreatBonus(58), highThreatBonus(54), highThreatBonus(60)]).toEqual([261, 243, 270])
+    expect(LACERATE_THREAT.classicEra).toEqual({ bonus: 261, apCoefficient: 0 })
+    expect(lacerateFor(CLASSIC_ERA)).toMatchObject({ threatBonus: 261, threatApCoefficient: 0 })
   })
 
   it('Demoralizing Roar r5 (9898): 10 rage, GCD 1500, 30 s; W18: −193 − 1.4 × 8 = −204.2 at 60 (Classic −138)', () => {
@@ -300,14 +311,20 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(lacerate.weaponPercentPerStack).toBe(0.1)
   })
 
-  it('W20: Lacerate at 1200 AP onto 4 stacks, the boss bleeding, hits for 0.1 × 4 × 351.286 × 1.10 = 154.566; threat (154.566 + 261) × 1.3 = 540.235', () => {
+  it('W20: Lacerate at 1200 AP onto 4 stacks, the boss bleeding, hits for 0.1 × 4 × 351.286 × 1.10 = 154.566; threat (154.566 + 206 + 0.05 × 1200) × 1.3 = 546.735', () => {
     const lacerate = resolved(LACERATE)
     const wb = (109.6 + 164.4) / 2 + (1200 * 2.5) / 14
     const hit = lacerate.weaponPercentPerStack! * 4 * wb * (1 + lacerate.bleedingTargetPct! / 100)
     expect(hit).toBeCloseTo(154.566, 3)
-    expect((hit * lacerate.threatMult + lacerate.threatBonus) * 1.3).toBeCloseTo(540.235, 3)
-    // The first application deals nothing and still lands its bonus: 261 × 1.3 = 339.3.
-    expect(lacerate.threatBonus * 1.3).toBeCloseTo(339.3, 9)
+    const bonus = lacerate.threatBonus + lacerate.threatApCoefficient! * 1200
+    expect(bonus).toBeCloseTo(266, 9)
+    expect((hit * lacerate.threatMult + bonus) * 1.3).toBeCloseTo(546.735, 3)
+    // The first application deals nothing and still lands its bonus: 266 × 1.3 = 345.8.
+    expect(bonus * 1.3).toBeCloseTo(345.8, 9)
+    // Classic Era's 261: (154.566 + 261) × 1.3 = 540.235, and 339.3 for a first application.
+    const classic = withDruidTalents(lacerateFor(CLASSIC_ERA), TALENTS)
+    expect((hit * classic.threatMult + classic.threatBonus) * 1.3).toBeCloseTo(540.235, 3)
+    expect(classic.threatBonus * 1.3).toBeCloseTo(339.3, 9)
   })
 
   it('Rend and Tear 5/5: +10% on Maul, Swipe, Primal Bite and Lacerate against a bleeding target, as the druid’s talents resolve it', () => {
@@ -570,7 +587,7 @@ describe('the default bear’s plan', () => {
       'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
-      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era). None is measured in Forever.',
+      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
     )
     expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
     expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
@@ -579,6 +596,8 @@ describe('the default bear’s plan', () => {
     const classic = text({ ...d, rules: { profile: 'classicEra', unmeasuredRatings: 'apply' } })
     expect(classic.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 138, Classic Era’s rank 5 at level 60\./)
     expect(classic.bearRage).toContain('would give rage for its damage')
+    // Classic Era's Lacerate is its rule for the words: 4.5 × level 58, Sunder Armor's 261 there.
+    expect(classic.bearThreat).toContain('Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era).')
     // Swipe, no Lacerate and no roar, without warriors: each text names only what's used.
     const other = text({
       ...d,

@@ -1661,7 +1661,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const has = (id: string) => abilities.some((a) => a.id === id)
     const bear = setup.form === 'bear'
     const uses = { maul: has('maul'), swipe: has('swipe'), mangle: has('mangle'), lacerate: has('lacerate'), faerieFire: has('faerieFire'), roar: has('demoralizingRoar') }
-    if (bear && Object.values(uses).some(Boolean)) notes.addText('bearThreat', BEAR_TEXT.threat(uses))
+    if (bear && Object.values(uses).some(Boolean)) notes.addText('bearThreat', BEAR_TEXT.threat(uses, profile.id))
     if (bear && uses.lacerate) notes.add('lacerate')
     if (has('shred') || has('claw')) notes.add('catShredFlat')
     if (has('rip') || has('ferociousBite')) notes.add('catFinisherAp')

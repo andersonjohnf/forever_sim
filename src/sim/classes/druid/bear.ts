@@ -35,6 +35,7 @@ import {
   FAERIE_FIRE_BEAR,
   LACERATE,
   LACERATE_MAX_STACKS,
+  lacerate as lacerateFor,
   PRIMAL_BITE,
   MAUL,
   SWIPE,
@@ -585,9 +586,11 @@ export function bearRotation(
     // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
     lacerate: () => {
       if (!v.on(ID.lacerateEnabled) || lacerateWaits(v.on(ID.lacerateAlone), ctx)) return
-      const lacerate = b.ability(LACERATE)
-      b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
-      b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
+      // Its "high amount of threat" is the profile's (bear-abilities.ts `LACERATE_THREAT`).
+      const def = lacerateFor(ctx.profile)
+      const lacerate = b.ability(def)
+      b.add(def, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
+      b.add(def, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
     },
     // Row 9: Swipe with spare rage (the sim has one target: §6.3's target count never applies).
     swipe: () => {

@@ -46,7 +46,10 @@ describe('the Feral bear’s priority list (D31)', () => {
     // unset keep the old 20: the list itself changes nothing.
     // Build 1.60.1.70009 renamed Mangle to Primal Bite and Primal Fury to Blood Frenzy, with new
     // icons (druid.md §4.2): re-snapshotted, since the plans carry names and icons. Mapping the four
-    // strings back gives all 200 of the old fingerprints: nothing the rotation plays moved.
+    // strings back gives all 200 of the old fingerprints: nothing the rotation plays moved. Then
+    // Lacerate's "high amount of threat" became Forever's Sunder Armor's, 206 + 0.05 × AP (threat.md's
+    // wording table): the `forever` cases' Lacerate row carries it, so they're re-taken again; the
+    // rotation's lines are the same.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

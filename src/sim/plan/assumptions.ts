@@ -2,7 +2,7 @@
 //
 // The plan builder adds an assumption only when the setup actually relies on it, so the list
 // stays short and specific. Each links to the doc section that owns the value.
-import type { Assumption } from '../types'
+import type { Assumption, RuleProfileId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
 
 const CT = 'docs/mechanics/combat-tables.md'
@@ -544,7 +544,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era). None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
@@ -1053,19 +1053,23 @@ const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') 
  * (druid.md §8 "Uncertainty surfacing"). The registry's are the default bear's in Forever.
  */
 export const BEAR_TEXT = {
-  /** What its abilities' threat rests on, naming only the ones it uses. */
-  threat(uses: { maul: boolean; swipe: boolean; mangle: boolean; lacerate: boolean; faerieFire: boolean; roar: boolean }): string {
+  /** What its abilities' threat rests on, naming only the ones it uses, with Lacerate's in the profile's terms. */
+  threat(uses: { maul: boolean; swipe: boolean; mangle: boolean; lacerate: boolean; faerieFire: boolean; roar: boolean }, profile: RuleProfileId = 'forever'): string {
     const multiplied = [...(uses.maul ? ['Maul'] : []), ...(uses.swipe ? ['Swipe'] : [])]
     const flat = [...(uses.faerieFire ? ['Faerie Fire 108'] : []), ...(uses.roar ? ['Demoralizing Roar 39'] : [])]
     const known = [...(multiplied.length ? [`${prose(multiplied)} ${multiplied.length > 1 ? 'make' : 'makes'} 1.75 threat per damage`] : []), ...flat]
     if (multiplied.length === 0 && known.length > 0) known[0] = known[0].replace(/ (\d+)$/, ' makes $1 threat')
-    // threat.md#threat-wording-table (D29): Lacerate's "high amount of threat" is the warrior's.
+    // threat.md#threat-wording-table (D29): Lacerate's "high amount of threat" is the warrior's Sunder
+    // Armor's at its level, the profile's (bear-abilities.ts LACERATE_THREAT).
+    const lacerate = LACERATE_THREAT[profile]
     const sentences = [
       ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
       ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its threat is unknown.'] : []),
       ...(uses.lacerate
         ? [
-            `Lacerate makes 1 per damage and ${LACERATE_THREAT} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era).`,
+            lacerate.apCoefficient > 0
+              ? `Lacerate makes 1 per damage and ${lacerate.bonus} plus ${Math.round(100 * lacerate.apCoefficient)}% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (${lacerate.bonus} is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add).`
+              : `Lacerate makes 1 per damage and ${lacerate.bonus} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate.bonus} in Classic Era).`,
           ]
         : []),
       'None is measured in Forever.',

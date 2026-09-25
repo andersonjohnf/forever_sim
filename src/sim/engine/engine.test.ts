@@ -679,6 +679,11 @@ describe('golden run (fixed config and seed)', () => {
   //   3,747 casts go: Maul 35,653 → 36,750, Mangle 18,198 → 18,936, Lacerate 24,790 → 26,578.
   //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"):
   //   TPS 1,115.32, DPS 545.44, damage taken 633.07.
+  // - Build 1.60.1.70009 (druid.md §4.2, §4.3): Mangle is Primal Bite, which moves nothing here (the
+  //   ability keeps its id); Lacerate's "high amount of threat" follows Forever's new Sunder Armor,
+  //   206 + 0.05 × the attack power as it lands, in place of Classic Era's 261 (threat.md's wording
+  //   table, D29). On this seed's 500 fights only Lacerate's threat moves, 14,273,663 → 14,609,981:
+  //   TPS 1,114.45 → 1,118.19, DPS 547.00 unchanged.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -693,6 +698,8 @@ describe('golden run (fixed config and seed)', () => {
   // - M5.65 A2 and M5.6 T5 (D28, D31): Defensive, the bear's default until Balanced, and its
   //   snapshot, byte for byte as the default's was before (the priority list changed nothing it
   //   plays; bear-apl.test.ts checks 200 random setups too).
+  // - Build 1.60.1.70009: Lacerate's threat as above (206 + 0.05 × AP for 261). Lacerate's threat
+  //   13,321,144 → 13,641,126; TPS 1,081.78 → 1,085.34, DPS unchanged.
   it('keeps the Defensive Feral bear’s result unchanged', () => {
     const d = defaultConfig('druid-feral-bear')
     const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

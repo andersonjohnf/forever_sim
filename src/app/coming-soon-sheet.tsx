@@ -18,16 +18,13 @@ export function ComingSoonSheet(props: MenuSheetProps) {
             <NoteEntry
               key={entry.id}
               divided={i > 0}
-              heading={
-                <>
-                  {entry.title}
-                  {/* The next update's label stands out, as Release history's Latest does; the later
-                      ones are muted. The comma is for screen readers: "The Optimizer, Planned". */}
-                  <Badge variant={next ? 'secondary' : 'outline'} className={cn(!next && 'text-muted-foreground')}>
-                    <span className="sr-only">, </span>
-                    {entry.when}
-                  </Badge>
-                </>
+              heading={entry.title}
+              // The next update's label stands out, as Release history's Latest does; the later ones
+              // are muted.
+              label={
+                <Badge variant={next ? 'secondary' : 'outline'} className={cn(!next && 'text-muted-foreground')}>
+                  {entry.when}
+                </Badge>
               }
             >
               <NoteItems items={entry.items} />

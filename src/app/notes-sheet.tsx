@@ -63,15 +63,23 @@ export function NotesList({ children }: { children: ReactNode }) {
 /**
  * An entry: its heading (a name, and a small label beside it that wraps under it when it must), then
  * its content. Each after the first is divided from the one before it by a rule.
+ *
+ * A screen reader names the heading "Stat boosts, Planned". The comma sits inside the name's own
+ * span, against the name: the heading lays its parts out as flex items, and the browser puts a space
+ * between those, so a comma inside the label would read "Stat boosts , Planned". It's hidden by a
+ * zero font size rather than sr-only, whose absolute position makes it a block with spaces around it.
  */
 export function NoteEntry({
   divided,
   heading,
+  label,
   headingClassName,
   children,
 }: {
   divided: boolean
   heading: ReactNode
+  /** The small label beside the name ("Latest", "Planned"), if it has one. */
+  label?: ReactNode
   headingClassName?: string
   children: ReactNode
 }) {
@@ -79,7 +87,11 @@ export function NoteEntry({
   return (
     <article aria-labelledby={headingId} className={cn('flex flex-col gap-3', divided && 'border-t pt-6')}>
       <h3 id={headingId} className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 font-medium', headingClassName)}>
-        {heading}
+        <span>
+          {heading}
+          {label && <span className="text-[0px]">,</span>}
+        </span>
+        {label}
       </h3>
       {children}
     </article>

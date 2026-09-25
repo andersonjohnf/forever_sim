@@ -323,8 +323,15 @@ for (const [name, device] of [
       expect(await listedTimes(sheet)).toEqual(RELEASES.map((r) => isoOf(r.time)))
       await expect(sheet.locator('article')).toHaveCount(RELEASES.length)
       // The newest is labelled Latest, and only it.
-      await expect(sheet.locator('article').first().getByRole('heading', { level: 3 })).toContainText('Latest')
+      const newest = sheet.locator('article').first().getByRole('heading', { level: 3 })
+      await expect(newest).toContainText('Latest')
       await expect(sheet.getByText(/Latest/)).toHaveCount(1)
+      // A screen reader hears its time, a comma, then Latest: no space before the comma. The others
+      // are their time alone.
+      const newestTime = (await newest.locator('time').textContent())!
+      await expect(newest).toHaveAccessibleName(`${newestTime}, Latest`)
+      const second = sheet.locator('article').nth(1).getByRole('heading', { level: 3 })
+      await expect(second).toHaveAccessibleName((await second.locator('time').textContent())!)
       await trapsFocus(page, sheet)
       await page.keyboard.press('Escape')
       await expect(sheet).toBeHidden()

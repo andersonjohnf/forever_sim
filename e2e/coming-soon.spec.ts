@@ -26,8 +26,8 @@ async function listsTheRoadmap(sheet: Locator) {
   for (const [i, entry] of ROADMAP.entries()) {
     const article = entries.nth(i)
     const heading = article.getByRole('heading', { level: 3 })
-    await expect(heading).toContainText(entry.title)
-    await expect(heading).toContainText(entry.when)
+    // A screen reader hears the name, a comma, then when: no space before the comma.
+    await expect(heading).toHaveAccessibleName(`${entry.title}, ${entry.when}`)
     await expect(article.getByRole('listitem')).toHaveText(entry.items)
   }
   // The next update's label stands out, as Latest does in Release history; the others are muted.
@@ -70,7 +70,8 @@ for (const [name, device] of [
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
       expect(await sheet.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0)
       // Full width on a phone.
-      if (name === 'phone') expect((await sheet.boundingBox())!.width).toBe(device.viewport.width)
+      // (to within a pixel's rounding: the measured width can come back as 390.00001).
+      if (name === 'phone') expect((await sheet.boundingBox())!.width).toBeCloseTo(device.viewport.width, 1)
 
       const close = sheet.getByRole('button', { name: 'Close' })
       const box = (await close.boundingBox())!

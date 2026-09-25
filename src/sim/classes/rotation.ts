@@ -27,9 +27,9 @@ import { ELEMENTAL_APL, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/el
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
-import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
-import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
-import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
+import { COMBAT_APL, COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
+import { ASSASSINATION_APL, ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
+import { SUBTLETY_APL, SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import { DESTRUCTION_APL, DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_APL, AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import { DEMONOLOGY_APL, DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
@@ -140,6 +140,10 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warlock-destruction') return DESTRUCTION_APL
   if (spec === 'warlock-affliction') return AFFLICTION_APL
   if (spec === 'warlock-demonology') return DEMONOLOGY_APL
+  // docs/classes/rogue.md §6.1–§6.3, "The priority list".
+  if (spec === 'rogue-combat') return COMBAT_APL
+  if (spec === 'rogue-assassination') return ASSASSINATION_APL
+  if (spec === 'rogue-subtlety') return SUBTLETY_APL
   return undefined
 }
 
@@ -349,9 +353,9 @@ export function classRotation(
   // docs/classes/shaman.md "Elemental priority".
   if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context, order)
   // docs/classes/rogue.md §6.
-  if (spec === 'rogue-combat') return combatRotation(values, talents, context)
-  if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
-  if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
+  if (spec === 'rogue-combat') return combatRotation(values, talents, context, order)
+  if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context, order)
+  if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context, order)
   // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
   if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context, order)
   // docs/classes/warlock.md §6.

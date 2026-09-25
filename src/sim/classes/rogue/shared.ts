@@ -5,7 +5,7 @@
 import { JUJU_FLURRY } from '../../effects/buffs'
 import type { OnUseSpec } from '../../effects/types'
 import { COND, type RotationCondition } from '../../plan/types'
-import type { RotationGroup, RotationOption } from '../../types'
+import type { AplRow, RotationGroup, RotationOption } from '../../types'
 import { onUseCast } from '../druid/cat-abilities'
 import { eurekaFor } from '../eureka'
 import { RACIAL_COOLDOWNS } from '../warrior/abilities'
@@ -55,6 +55,43 @@ export function rogueIds(spec: RogueSpec) {
   }
 }
 export type RogueIds = ReturnType<typeof rogueIds>
+
+/**
+ * The priority-list rows every rogue spec has (decision D31; rogue.md §6, "The priority list"), by
+ * row id: the racial and on-use items (off the GCD, on cooldown), Slice and Dice's upkeep, Expose
+ * Armor at 5 combo points and Eviscerate. Each spec places them in its list.
+ */
+export const rogueRows = (ids: RogueIds) =>
+  ({
+    racial: { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ids.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    onUseItems: { id: 'onUseItems', label: 'On-use items', icon: 'inv_jewelry_talisman_01', enabledId: ids.items, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    sliceAndDice: {
+      id: 'sliceAndDice',
+      label: 'Slice and Dice',
+      icon: SLICE_AND_DICE.icon,
+      enabledId: ids.snd,
+      optionIds: [ids.sndCp, ids.sndRefresh],
+      summary: [
+        { option: ids.sndCp, text: 'from {}' },
+        { option: ids.sndRefresh, text: 'again with {}', zeroText: 'again once it runs out' },
+      ],
+    },
+    exposeArmor: { id: 'exposeArmor', label: 'Expose Armor', icon: EXPOSE_ARMOR.icon, enabledId: ids.expose, optionIds: [], summary: [{ text: 'at 5 combo points' }] },
+    eviscerate: {
+      id: 'eviscerate',
+      label: 'Eviscerate',
+      icon: EVISCERATE.icon,
+      enabledId: ids.eviscerate,
+      optionIds: [ids.eviscerateCp],
+      summary: [{ option: ids.eviscerateCp, text: 'from {}' }],
+    },
+  }) satisfies Record<string, AplRow>
+
+/**
+ * The spec-wide settings every rogue spec has (decision D31): the consumables, above the list. They
+ * take their turn with the on-use items' row (`onUseLines`), wherever it sits.
+ */
+export const rogueSpecWide = (ids: RogueIds): string[] => [ids.tea, ids.teaEnergy, ids.juju]
 
 /** A combo-point threshold input, 1 to 5. */
 export const comboPointOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup = 'Core abilities'): RotationOption => ({
@@ -190,11 +227,19 @@ export interface RogueContext {
   consumables: OnUseSpec[]
 }
 
-/** The off-GCD lines every spec has: the racial, on-use items, Thistle Tea and Juju Flurry (rogue.md §6). */
-export function offGcdLines(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ctx: RogueContext): void {
+/** The racial cooldown's line, off the GCD, on cooldown (rogue.md §6, row `racial`). */
+export function racialLine(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ctx: RogueContext): void {
   // A Gnome's Eureka! (classes/eureka.ts): its 3 charges go to the next abilities it modifies.
   const racial = eurekaFor(ctx.race, 'rogue') ?? RACIAL_COOLDOWNS[ctx.race]
   if (racial && v.on(ids.racial)) b.add(racial, [])
+}
+
+/**
+ * The on-use items' lines, off the GCD, on cooldown (rogue.md §6, row `onUseItems`); then the
+ * consumables selected in Buffs, spec-wide settings that take their turn here, as they did before the
+ * priority list: Thistle Tea at low Energy and Juju Flurry on cooldown.
+ */
+export function onUseLines(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ctx: RogueContext): void {
   if (v.on(ids.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
   if (ctx.consumables.some((c) => c.id === THISTLE_TEA.id) && v.on(ids.tea)) b.add(THISTLE_TEA_CAST, [maxEnergy(v.num(ids.teaEnergy))])
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY.id)

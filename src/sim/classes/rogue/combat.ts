@@ -1,10 +1,12 @@
 // The Combat rogue's priority list and its settings (docs/classes/rogue.md §6.1): the Classic Era
-// community priority adapted to Forever, with first-pass defaults (decision D27).
+// community priority adapted to Forever, with first-pass defaults (decision D27). The rows are a
+// priority list you reorder (COMBAT_APL, decision D31), each with its own settings.
 //
 // Off the GCD: the racial, on-use items, Thistle Tea at low Energy and Juju Flurry. On the GCD: Slice
 // and Dice's upkeep, Blade Flurry and Adrenaline Rush on cooldown, Expose Armor if it's on, Rupture
 // if it's on, Eviscerate at 5 combo points, and Sinister Strike.
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
+import { compileAplRows } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { reader, seconds, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
 import { ADRENALINE_RUSH, BLADE_FLURRY, RUPTURE, SINISTER_STRIKE } from './abilities'
@@ -18,17 +20,20 @@ import {
   exposeArmorLine,
   exposeArmorOption,
   minComboPoints,
-  offGcdLines,
+  onUseLines,
+  racialLine,
   refresh,
   rogueIds,
   rogueOnUse,
+  rogueRows,
   RogueRotationBuilder,
+  rogueSpecWide,
   sliceAndDiceLine,
   sliceAndDiceOptions,
 } from './shared'
 
 const IDS = rogueIds('combat')
-const ID = {
+export const COMBAT_IDS = {
   ...IDS,
   bladeFlurry: 'rogue.combat.bladeFlurry.enabled',
   adrenalineRush: 'rogue.combat.adrenalineRush.enabled',
@@ -36,6 +41,7 @@ const ID = {
   ruptureCp: 'rogue.combat.rupture.minComboPoints',
   ruptureLeft: 'rogue.combat.rupture.minFightLeftSec',
 }
+const ID = COMBAT_IDS
 
 /** Defaults from rogue.md §6.1's table, in priority order: the common priority with a first-pass search (D27). */
 export const COMBAT_OPTIONS: RotationOption[] = [
@@ -86,33 +92,89 @@ export const COMBAT_OPTIONS: RotationOption[] = [
   ...consumableOptions(ID, 10),
 ]
 
+const ROWS = rogueRows(ID)
+
 /**
- * The Combat priority list from the settings (rogue.md §6.1). `talents` gates Blade Flurry and
- * Adrenaline Rush and resolves every ability's talents; `context` gives the race, the on-use items
- * and the consumables selected in Buffs.
+ * Combat's rotation as a priority list (decision D31; rogue.md §6.1 "The priority list"): §6.1's rows
+ * in their default order, each with its switch and settings. Nothing is pinned: a rogue has no
+ * pre-pull. The consumables are spec-wide and take their turn with the on-use items' row. No named
+ * rotations: the defaults are the implicit Default preset, the common priority (D27).
  */
-export function combatRotation(values: Record<string, RotationValue>, talents: TalentRanks, context: Partial<ClassRotationContext> = {}): ClassRotation {
+export const COMBAT_APL: AplDefinition = {
+  rows: [
+    ROWS.racial,
+    ROWS.onUseItems,
+    ROWS.sliceAndDice,
+    { id: 'bladeFlurry', label: 'Blade Flurry', icon: BLADE_FLURRY.icon, enabledId: ID.bladeFlurry, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'adrenalineRush', label: 'Adrenaline Rush', icon: ADRENALINE_RUSH.icon, enabledId: ID.adrenalineRush, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    ROWS.exposeArmor,
+    {
+      id: 'rupture',
+      label: 'Rupture',
+      icon: RUPTURE.icon,
+      enabledId: ID.rupture,
+      optionIds: [ID.ruptureCp, ID.ruptureLeft],
+      summary: [
+        { option: ID.ruptureCp, text: 'from {}' },
+        { option: ID.ruptureLeft, text: 'while the fight has {}', hideWhen: 0 },
+      ],
+    },
+    ROWS.eviscerate,
+    {
+      id: 'sinisterStrike',
+      label: 'Sinister Strike',
+      icon: SINISTER_STRIKE.icon,
+      optionIds: [],
+      summary: [{ text: 'whenever you have the Energy' }],
+      help: 'The builder, whenever you have the Energy. It has no switch: the rotation always builds combo points.',
+    },
+  ],
+  specWide: rogueSpecWide(ID),
+  presets: [],
+}
+
+/**
+ * The Combat priority list from the settings (rogue.md §6.1), its rows in `order` (COMBAT_APL; absent:
+ * the default order). `talents` gates Blade Flurry and Adrenaline Rush and resolves every ability's
+ * talents; `context` gives the race, the on-use items and the consumables selected in Buffs. No row
+ * reads another's ability, so a row's lines are the same wherever it sits.
+ */
+export function combatRotation(
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  context: Partial<ClassRotationContext> = {},
+  order?: readonly string[],
+): ClassRotation {
   const ctx = { race: context.race ?? '', items: context.items ?? [], consumables: context.consumables ?? [] }
   const v = reader(COMBAT_OPTIONS, values, talents)
   const b = new RogueRotationBuilder(talents)
 
-  // Off the GCD: the racial, on-use items and consumables.
-  offGcdLines(b, v, ID, ctx)
-  // Slice and Dice first: down, or about to run out, at its combo points.
-  sliceAndDiceLine(b, v, ID)
-  // Blade Flurry and Adrenaline Rush on cooldown, with their talents.
-  if (talents.has('Blade Flurry') && v.on(ID.bladeFlurry)) b.add(BLADE_FLURRY, [])
-  if (talents.has('Adrenaline Rush') && v.on(ID.adrenalineRush)) b.add(ADRENALINE_RUSH, [])
-  // Expose Armor at 5 points when it's down.
-  exposeArmorLine(b, v, ID)
-  // Rupture when it's off the boss, at its points, with time for its ticks.
-  if (v.on(ID.rupture)) {
-    const rupture = b.ability(RUPTURE)
-    b.add(RUPTURE, [minComboPoints(v.num(ID.ruptureCp)), refresh(rupture, 0), timeLeftAtLeast(seconds(v, ID.ruptureLeft))])
-  }
-  // Eviscerate at its points, then Sinister Strike whenever it's affordable.
-  eviscerateLine(b, v, ID)
-  b.add(SINISTER_STRIKE, [])
+  compileAplRows(COMBAT_APL, order, {
+    // Off the GCD (§6.1 rows 1–3): the racial, then the on-use items with the consumables selected in Buffs.
+    racial: () => racialLine(b, v, ID, ctx),
+    onUseItems: () => onUseLines(b, v, ID, ctx),
+    // Row 4: Slice and Dice, down or about to run out, at its combo points.
+    sliceAndDice: () => sliceAndDiceLine(b, v, ID),
+    // Rows 5 and 6: Blade Flurry and Adrenaline Rush on cooldown, with their talents.
+    bladeFlurry: () => {
+      if (talents.has('Blade Flurry') && v.on(ID.bladeFlurry)) b.add(BLADE_FLURRY, [])
+    },
+    adrenalineRush: () => {
+      if (talents.has('Adrenaline Rush') && v.on(ID.adrenalineRush)) b.add(ADRENALINE_RUSH, [])
+    },
+    // Row 7: Expose Armor at 5 points when it's down.
+    exposeArmor: () => exposeArmorLine(b, v, ID),
+    // Row 8: Rupture when it's off the boss, at its points, with time for its ticks.
+    rupture: () => {
+      if (!v.on(ID.rupture)) return
+      const rupture = b.ability(RUPTURE)
+      b.add(RUPTURE, [minComboPoints(v.num(ID.ruptureCp)), refresh(rupture, 0), timeLeftAtLeast(seconds(v, ID.ruptureLeft))])
+    },
+    // Row 9: Eviscerate at its points.
+    eviscerate: () => eviscerateLine(b, v, ID),
+    // Row 10: Sinister Strike whenever it's affordable.
+    sinisterStrike: () => b.add(SINISTER_STRIKE, []),
+  })
   return b.result(rogueOnUse(ctx))
 }
 

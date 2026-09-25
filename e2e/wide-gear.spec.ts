@@ -4,9 +4,10 @@ import { expect, test } from './fixtures.ts'
 // docs/ux.md "Gear", the wide layout (D34, as amended): from 1440 px every slot shows at once, with
 // no scrolling at 1440×900 and up, in a grid laid out like the character pane: Armor in two
 // columns, Jewelry in a third, the Weapons in a row across the bottom. Each slot shows its icon, the
-// item in its quality colour with its rank, the stats and its enchant, whole; the flags are icons.
-// The item picker is the dialog, as at 1280 px, and Gear's actions are buttons rather than a menu.
-// Under 1440 px nothing changes (the other gear specs, at 1280).
+// item in its quality colour with its rank, the stats and its enchant, each on a fixed budget of
+// lines; the flags are icons, or their words too where those fit. The item picker is the dialog, as
+// at 1280 px, and Gear's actions are buttons rather than a menu. That every slot fits whatever it
+// holds is wide-gear-fit.spec.ts. Under 1440 px nothing changes (the other gear specs, at 1280).
 
 async function openGear(page: Page, width: number, height = 900) {
   await page.setViewportSize({ width, height })
@@ -37,27 +38,24 @@ async function expectAllInView(page: Page, height: number) {
 }
 
 test.describe('the wide Gear tab', () => {
-  for (const [width, height] of [
-    [1440, 900],
-    [1920, 1080],
-  ]) {
-    test(`every slot shows without scrolling at ${width}×${height}`, async ({ page }) => {
-      await openGear(page, width, height)
-      await expect(page.locator('#gear-default-status')).toHaveText('Wearing pre-raid best in slot.')
-      await expectAllInView(page, height)
-      // With a slot changed, the line and its button still leave room for every slot.
-      await page.getByRole('button', { name: /^Chest: / }).click({ position: { x: 20, y: 20 } })
-      await page.getByRole('dialog', { name: 'Choose chest' }).getByRole('button', { name: /^Knight-Captain's Plate Hauberk\./ }).click()
-      await expect(page.getByRole('button', { name: 'Equip pre-raid best in slot' })).toBeVisible()
-      await expectAllInView(page, height)
-    })
-  }
-
-  test('a tank’s longer intro and threat set still fit at 1440×900', async ({ page }) => {
-    // The tightest default measured: the Feral (Bear) threat set, whose intro takes two lines.
+  test('the default set’s line stays one line as the gear changes, and the slots don’t move', async ({ page }) => {
+    // Review finding DU1-4: one slot emptied and one changed wrapped the line, moving every slot 20 px.
     await openGear(page, 1440, 900)
-    await chooseSpec(page, 'Druid', /Feral \(Bear\)/)
-    await expect(page.locator('#gear-default-status')).toHaveText('Wearing the threat set.')
+    const status = page.locator('#gear-default-status')
+    const tops = async () => Object.values(await slotBoxes(page)).map((box) => box.top)
+    const before = await tops()
+    await page.getByRole('button', { name: /^Chest: / }).click({ position: { x: 20, y: 20 } })
+    await page.getByRole('dialog', { name: 'Choose chest' }).getByRole('button', { name: /^Knight-Captain's Plate Hauberk\./ }).click()
+    await page.getByRole('button', { name: /^Hands: / }).click({ position: { x: 20, y: 20 } })
+    await page.getByRole('dialog', { name: 'Choose hands' }).getByRole('button', { name: /^Leave this slot empty/ }).click()
+    await expect(status).toHaveText('2 slots differ: Chest and Hands. Equipping fills 1 empty slot and replaces the other.')
+    // The whole sentence on hover.
+    await expect(status.locator('span[title]')).toHaveAttribute(
+      'title',
+      /^2 slots differ from pre-raid best in slot: Chest and Hands\. Equipping it fills\s1 empty slot and replaces the other\.$/,
+    )
+    expect((await status.boundingBox())!.height).toBe(20)
+    expect(await tops()).toEqual(before)
     await expectAllInView(page, 900)
   })
 
@@ -99,15 +97,15 @@ test.describe('the wide Gear tab', () => {
     await expect(head).toContainText('Lionheart Helm')
     await expect(head).toContainText('BiS')
     await expect(head).toContainText('+18 Str')
-    // Review finding DB-2: the enchant's whole name and effect, and the same as its hover title.
+    // Review finding DB-2: the enchant's name and effect on one line, the whole as its hover title.
     const chip = page.getByRole('button', { name: /, Head enchant$/ })
     await expect(chip).toContainText('Lesser Arcanum of Voracity (Strength) · +8 Strength')
     await expect(chip.locator('[title]')).toHaveAttribute('title', 'Lesser Arcanum of Voracity (Strength) · +8 Strength')
-    // No chip's text is cut short.
-    const cut = await page.getByRole('button', { name: / enchant$/ }).evaluateAll((els) =>
-      els.flatMap((el) => [...el.querySelectorAll('span')].filter((s) => s.scrollHeight > s.clientHeight + 1 || s.scrollWidth > s.clientWidth + 1).map((s) => s.textContent)),
-    )
-    expect(cut).toEqual([])
+    expect((await chip.locator('[data-chip-text]').boundingBox())!.height).toBe(16)
+    // The stats on one line, the whole on hover.
+    const stats = head.locator('span[title^="+18 Str"]')
+    await expect(stats).toHaveCSS('text-overflow', 'ellipsis')
+    expect((await stats.boundingBox())!.height).toBe(16)
 
     // The chest's flags: an icon each, named, with the words as the hover title, opening the explanation.
     const chest = page.locator('li').filter({ has: page.locator('[data-gear-slot="chest"]') })
@@ -120,30 +118,88 @@ test.describe('the wide Gear tab', () => {
     await expect(classic).toBeFocused()
   })
 
-  test('the targets are 44 px and their hit areas don’t overlap', async ({ page }) => {
-    await openGear(page, 1440)
-    const boxes = await page.evaluate(() => {
-      const rect = (el: Element) => el.getBoundingClientRect().toJSON() as DOMRect
-      return [...document.querySelectorAll('[data-gear-slot]')].map((slot) => {
-        const li = slot.closest('li')!
-        // The chip and the flags sit on the slot's button; each is its own target.
-        const small = [...li.querySelectorAll('button')].filter((b) => b !== slot).map(rect)
-        return { slot: rect(slot), small }
+  for (const width of [1440, 1920]) {
+    test(`the targets are 44 px and their hit areas don’t overlap, ${width} px`, async ({ page }) => {
+      await openGear(page, width)
+      const boxes = await page.evaluate(() => {
+        const rect = (el: Element) => el.getBoundingClientRect().toJSON() as DOMRect
+        return [...document.querySelectorAll('[data-gear-slot]')].map((slot) => {
+          const li = slot.closest('li')!
+          // The chip and the flags sit on the slot's button; each is its own target.
+          const small = [...li.querySelectorAll('button')].filter((b) => b !== slot).map(rect)
+          return { slot: rect(slot), small }
+        })
       })
-    })
-    for (const { slot, small } of boxes) {
-      expect(slot.height).toBeGreaterThanOrEqual(44)
-      for (const box of small) expect(box.height).toBeGreaterThanOrEqual(44)
-      for (const [i, a] of small.entries()) {
-        // Inside their slot, clear of each other.
-        expect(a.top).toBeGreaterThanOrEqual(slot.top - 0.5)
-        expect(a.bottom).toBeLessThanOrEqual(slot.bottom + 0.5)
-        for (const b of small.slice(i + 1)) {
-          const overlap = Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0
-          expect(overlap).toBe(false)
+      for (const { slot, small } of boxes) {
+        expect(slot.height).toBeGreaterThanOrEqual(44)
+        for (const box of small) expect(box.height).toBeGreaterThanOrEqual(44)
+        for (const [i, a] of small.entries()) {
+          // Inside their slot, clear of each other.
+          expect(a.top).toBeGreaterThanOrEqual(slot.top - 0.5)
+          expect(a.bottom).toBeLessThanOrEqual(slot.bottom + 0.5)
+          for (const b of small.slice(i + 1)) {
+            const overlap = Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0
+            expect(overlap).toBe(false)
+          }
         }
       }
-    }
+    })
+  }
+
+  test('the enchant chip’s focus ring stays on its own line, clear of the stats above', async ({ page }) => {
+    // Review finding DU1-5: the ring was drawn around the chip's 44 px hit area, over the stats line.
+    await openGear(page, 1440)
+    const chip = page.getByRole('button', { name: /, Head enchant$/ })
+    await chip.focus()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Tab')
+    await expect(chip).toBeFocused()
+    const ring = await chip.evaluate((el) => {
+      const text = el.querySelector('[data-chip-text]')!.parentElement!
+      const li = el.closest('li')!
+      const stats = li.querySelector('span[title^="+18 Str"]')!
+      const width = Number.parseFloat(getComputedStyle(text).getPropertyValue('--tw-ring-shadow').match(/0 0 0 calc\((\d+)px/)?.[1] ?? '3')
+      return {
+        buttonShadow: getComputedStyle(el).boxShadow,
+        textShadow: getComputedStyle(text).boxShadow,
+        ringTop: text.getBoundingClientRect().top - width,
+        ringBottom: text.getBoundingClientRect().bottom + width,
+        statsBottom: stats.getBoundingClientRect().bottom,
+        slotBottom: li.getBoundingClientRect().bottom,
+      }
+    })
+    // Drawn around the text, not the button: a 3 px ring's spread on the one, none on the other.
+    expect(ring.buttonShadow).not.toMatch(/0px 0px 0px [1-9]/)
+    expect(ring.textShadow).toMatch(/0px 0px 0px 3px/)
+    expect(ring.ringTop).toBeGreaterThanOrEqual(ring.statsBottom)
+    expect(ring.ringBottom).toBeLessThanOrEqual(ring.slotBottom)
+  })
+
+  test('the flags show their words where they fit beside the enchant, and icons where they don’t', async ({ page }) => {
+    // Review finding DU1-6. At 1920 px the wrists' flag fits in words beside "Superior Strength · +9
+    // Strength", about 45 px to spare, while the chest's two don't beside "Greater Stats · +4 all
+    // stats", some 75 px short; at 1440 px the wrists' don't either.
+    await openGear(page, 1920, 1080)
+    const slot = (name: string) => page.locator('li').filter({ has: page.locator(`[data-gear-slot="${name}"]`) })
+    const wrists = slot('wrist').getByRole('button', { name: 'Classic stats', exact: true })
+    await expect(wrists).toHaveText('Classic stats')
+    await expect(slot('chest').getByRole('button', { name: 'Classic stats', exact: true })).toHaveText('')
+    await expect(slot('chest').getByRole('button', { name: 'Effect not simulated', exact: true })).toHaveText('')
+    // Words never cut the enchant short: every line showing them has its enchant whole.
+    const cut = await page.locator('[data-chip-text]').evaluateAll((els) =>
+      els
+        .filter((el) => [...el.closest('button')!.parentElement!.querySelectorAll('button[title]')].some((flag) => flag.textContent) && el.scrollWidth > el.clientWidth)
+        .map((el) => el.textContent),
+    )
+    expect(cut).toEqual([])
+    // The words still open the explanation.
+    await wrists.click()
+    await expect(page.getByRole('dialog', { name: 'Classic stats' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(wrists).toBeFocused()
+    // Narrower, the same flag is its icon again, and the enchant keeps the room.
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(wrists).toHaveText('')
   })
 
   test('a slot opens the item picker as a dialog; a pick equips the item and returns focus to the slot', async ({ page }) => {
@@ -158,7 +214,7 @@ test.describe('the wide Gear tab', () => {
     await expect(dialog).toHaveCount(0)
     const picked = page.getByRole('button', { name: "Chest: Knight-Captain's Plate Hauberk" })
     await expect(picked).toBeFocused()
-    await expect(page.locator('#gear-default-status')).toContainText('1 slot differs from pre-raid best in slot: Chest.')
+    await expect(page.locator('#gear-default-status')).toHaveText('1 slot differs: Chest. Equipping replaces that slot.')
     // Escape closes it too, back to the slot.
     await picked.press('Enter')
     await expect(dialog).toBeVisible()
@@ -182,12 +238,21 @@ test.describe('the wide Gear tab', () => {
     await expect(items.nth(1)).toContainText('Equipped')
   })
 
-  test('Gear’s actions are buttons sized to their labels, not a menu', async ({ page }) => {
+  test('Gear’s actions are buttons sized to their labels; Remove all gear takes a second click', async ({ page }) => {
     await openGear(page, 1440)
     await expect(page.getByRole('button', { name: 'Gear options' })).toHaveCount(0)
     const remove = page.getByRole('button', { name: 'Remove all gear' })
     expect((await remove.boundingBox())!.width).toBeLessThan(200)
+    // Review finding DL2-4: like the header's Reset setup, it opens a one-item menu (decision D21:
+    // no undo), so one click alone empties nothing.
     await remove.click()
+    const empty = page.getByRole('menuitem', { name: 'Empty all 17 slots' })
+    await expect(empty).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(remove).toBeFocused()
+    await expect(page.getByRole('button', { name: 'Head: Lionheart Helm' })).toBeVisible()
+    await remove.press('Enter')
+    await empty.click()
     await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
     const equip = page.getByRole('button', { name: 'Equip pre-raid best in slot' })
     const box = (await equip.boundingBox())!

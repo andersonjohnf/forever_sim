@@ -37,10 +37,12 @@ export function EnchantPicker({
   fallbackFocus: () => HTMLElement | null | undefined
   /**
    * The wide layout's chip, a line of text under the item in its slot of the grid (docs/ux.md
-   * "Gear"): sized to its text, which is the enchant's whole name and effect, wrapping rather than
-   * cut short, since many names share a start ("Lesser Arcanum of Voracity (Strength)", "(Agility)",
-   * "(Stamina)"; review finding DB-2). Like a flag badge, it takes a line's height in the layout and
-   * a 44 px hit area, 12 px past it each way, and sits above the slot's button.
+   * "Gear"): the enchant's name and effect on one line, sized to its text and cut short only when the
+   * slot is narrower, with the whole text as its hover title (many names share a start: "Lesser
+   * Arcanum of Voracity (Strength)", "(Agility)", "(Stamina)"; review finding DB-2). Like a flag
+   * badge, it takes a 16 px line's height in the layout and a 44 px hit area, 14 px past it each way,
+   * and sits above the slot's button. Its focus ring is drawn around the text, not the hit area, so
+   * it stays on the chip's own line rather than over the stats line above.
    */
   whole?: boolean
 }) {
@@ -87,17 +89,21 @@ export function EnchantPicker({
       className={cn(
         'flex min-h-11 w-full items-center gap-2 rounded-b-xl px-3 text-left text-xs outline-none',
         'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-        whole && 'group/chip relative z-10 -my-3 w-auto min-w-0 rounded-md px-1 py-3 hover:bg-transparent',
+        whole && 'group/chip relative z-10 -my-3.5 min-h-0 w-auto min-w-0 rounded-md px-0 py-3.5 hover:bg-transparent focus-visible:ring-0',
         current ? 'text-positive' : 'text-muted-foreground',
       )}
     >
-      {whole && current ? (
+      {whole ? (
         // The whole text on hover too (review finding DB-2): on the text, not the button, whose name
         // is its aria-label: a title there would be read out a second time.
-        <span title={`${current.name} · ${current.summary}`} className="flex min-w-0 items-start gap-1.5 group-hover/chip:underline">
-          <Sparkles className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 break-words">
-            {current.name} · {current.summary}
+        <span
+          title={current ? `${current.name} · ${current.summary}` : undefined}
+          className="flex min-w-0 items-center gap-1.5 rounded-sm px-1 group-hover/chip:underline group-focus-visible/chip:ring-3 group-focus-visible/chip:ring-ring/50"
+        >
+          <Sparkles className="size-3.5 shrink-0" aria-hidden />
+          {/* data-chip-text: the flags beside it measure it (ItemFlags). */}
+          <span data-chip-text className="truncate">
+            {current ? `${current.name} · ${current.summary}` : 'Add an enchant'}
           </span>
         </span>
       ) : (

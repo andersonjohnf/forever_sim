@@ -190,9 +190,11 @@ SpellDuration, 1.60.1.70009). How the server adds a new crit to what's left isn'
 **No double dip (1.60.1.70009).** The build's notes: "Ignite no longer double dips on % damage
 increase modifiers" [F] ([Forever beta development notes][dev-70009], 2026-09-24). The client agrees:
 412545, the tick's damage spell, gains two flags it didn't carry in 1.60.1.69913, `Attributes[6]`
-0x20000000 and `Attributes[10]` 0x2 [F] [client] (SpellMisc, 1.60.1.70009); no other spell in the
-client carries the first. So the crit's damage, which already holds Curse of the Elements and Fire
-Vulnerability, isn't multiplied by them again at each tick.
+0x20000000 and `Attributes[10]` 0x2 [F] [client] (SpellMisc, 1.60.1.70009). It's the only spell
+that gained the first in this build, which 119 spells carry (Deep Wound's tick 412613 among them,
+since 1.60.1.69913), and it gained the second with that tick alone (17 spells carry it) [F]
+[client] (SpellMisc, 1.60.1.69913 and 1.60.1.70009). So the crit's damage, which already holds
+Curse of the Elements and Fire Vulnerability, isn't multiplied by them again at each tick.
 
 **The sim's rolling Ignite** (`Plan.ignite`) [?] (`mageIgnite`):
 

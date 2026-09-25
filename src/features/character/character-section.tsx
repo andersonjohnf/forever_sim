@@ -12,7 +12,7 @@ import raceJson from '@/data/races/races.json'
 import { racesForClass, racialEffectForClass, type Faction, type Race, type RaceData } from '@/data/races/types'
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
-import { Advanced, Field, SectionHeader } from '@/features/section'
+import { Advanced, Field, FLOW_ITEM, SectionHeader } from '@/features/section'
 import { CHOICE_GROUP_WIDE, CHOICE_ITEM, CHOICE_ITEM_INACTIVE, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { defaultConfig, rotationValues, type RuleProfileId, type SimConfig } from '@/sim'
@@ -151,8 +151,8 @@ export function CharacterSection() {
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}
-      <Advanced shown={wide} changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
-        <div className="flex flex-col gap-2">
+      <Advanced shown={wide} flow={2} changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
+        <div className={cn('flex flex-col gap-2', FLOW_ITEM)}>
           <Field
             label="Rules"
             help={
@@ -201,7 +201,7 @@ export function CharacterSection() {
           )}
         </div>
         {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
-        <div className="flex flex-col gap-2">
+        <div className={cn('flex flex-col gap-2', FLOW_ITEM)}>
           <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
             <span className="flex flex-col gap-1">
               <span className="text-sm font-medium">Count untested ratings</span>
@@ -235,7 +235,7 @@ export function CharacterSection() {
         </div>
         {paladin && (
           // Dimmed by colour, never opacity, while the rotation doesn't judge the Crusader.
-          <div data-inactive={jotcUnused || undefined} className={cn('flex flex-col gap-2', jotcUnused && 'text-muted-foreground')}>
+          <div data-inactive={jotcUnused || undefined} className={cn('flex flex-col gap-2', FLOW_ITEM, jotcUnused && 'text-muted-foreground')}>
             <span id="jotc-label" className="text-sm font-medium">
               Judgement of the Crusader’s bonus
             </span>
@@ -282,7 +282,7 @@ export function CharacterSection() {
         )}
         {protection && (
           // Dimmed by colour, never opacity, while the rotation doesn't use Hammer of the Righteous.
-          <div data-inactive={hotrOff || undefined} className={cn('flex flex-col gap-2', hotrOff && 'text-muted-foreground')}>
+          <div data-inactive={hotrOff || undefined} className={cn('flex flex-col gap-2', FLOW_ITEM, hotrOff && 'text-muted-foreground')}>
             <span id="hotr-label" className="text-sm font-medium">
               Hammer of the Righteous’s weapon DPS
             </span>

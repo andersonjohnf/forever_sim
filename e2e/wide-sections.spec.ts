@@ -158,29 +158,136 @@ test.describe('the wide sections', () => {
       expect(rulesBox.width).toBeLessThan(20 * REM)
     })
 
-    test(`at ${width} px, Fight shows Advanced open beside the fight, and no choice is stretched`, async ({ page }) => {
+    test(`at ${width} px, Fight shows its settings in two columns and Advanced open across the pane below, and no choice is stretched`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Fight')
       const pane = await setupWidth(page)
       expect(pane).toBeGreaterThanOrEqual(53 * REM)
-      const length = (await panel.getByRole('slider', { name: 'Fight length' }).boundingBox())!
+      const length = (await panel.locator('#fight-length-label').boundingBox())!
 
-      // No disclosure to press: Advanced's settings are in view, in the right-hand column.
+      // The length and boss armor on the left, the position and execute phase beside them.
+      const armor = (await panel.getByRole('radiogroup', { name: 'Boss armor' }).boundingBox())!
+      const position = (await panel.getByRole('radiogroup', { name: 'Position' }).boundingBox())!
+      expect(armor.x).toBeCloseTo(length.x, 0)
+      expect(armor.y).toBeGreaterThan(length.y)
+      expect(position.x).toBeGreaterThan(armor.x + armor.width)
+      expect(position.y).toBeLessThan(armor.y)
+      expect((await panel.getByRole('switch', { name: 'Execute phase' }).boundingBox())!.x).toBeGreaterThan(armor.x + armor.width)
+
+      // No disclosure to press: Advanced spans the pane under them, its settings in columns.
       await expect(panel.getByRole('button', { name: /^Advanced/ })).toHaveCount(0)
       const advanced = panel.getByRole('region', { name: 'Advanced' })
       const box = (await advanced.boundingBox())!
-      expect(box.x).toBeGreaterThan(length.x + length.width)
-      expect(box.width).toBeLessThan(pane / 2)
+      expect(box.width).toBeGreaterThan(pane - 4)
+      expect(box.y).toBeGreaterThan(armor.y + armor.height)
       const precision = (await advanced.getByRole('radiogroup', { name: 'Precision' }).boundingBox())!
-      expect(precision.x).toBeGreaterThan(length.x + length.width)
-      await expect(advanced.getByRole('combobox', { name: 'Creature type' })).toBeVisible()
+      const creature = (await advanced.getByRole('combobox', { name: 'Creature type' }).boundingBox())!
+      expect(creature.x).toBeGreaterThan(precision.x + precision.width)
       await expect(advanced.getByRole('textbox', { name: 'Random seed' })).toBeVisible()
 
       // Boss armor, position and precision are as wide as their options, not the column.
       expect(await stretchedChoices(panel)).toEqual([])
-      const position = (await panel.getByRole('radiogroup', { name: 'Position' }).boundingBox())!
       expect(position.width).toBeLessThan(20 * REM)
+      await noSidewaysScroll(page)
+    })
+  }
+
+  /**
+   * The settings of an Advanced card shown open, by the column they sit in: each column's left
+   * edge, and its settings' top and bottom. A setting's own box is its FLOW_ITEM, the element
+   * that doesn't split between columns.
+   */
+  const advancedColumns = (advanced: Locator) =>
+    advanced.evaluate((root) => {
+      const items = [...root.querySelectorAll('*')].filter((el) => getComputedStyle(el).breakInside === 'avoid' && el.getBoundingClientRect().height > 0)
+      const columns = new Map<number, { top: number; bottom: number; tallest: number }>()
+      for (const item of items) {
+        const r = item.getBoundingClientRect()
+        const left = Math.round(r.left)
+        const column = columns.get(left) ?? { top: r.top, bottom: r.bottom, tallest: 0 }
+        columns.set(left, { top: Math.min(column.top, r.top), bottom: Math.max(column.bottom, r.bottom), tallest: Math.max(column.tallest, r.height) })
+      }
+      return [...columns.entries()].sort(([a], [b]) => a - b).map(([left, c]) => ({ left, ...c }))
+    })
+
+  // Review finding DU1-2: Fight at 1440×900 scrolled, with Advanced long in one column beside an
+  // empty one. Its settings now flow into balanced columns (3 from a 53 rem pane, 4 from 72 rem), so
+  // a DPS spec's Fight fits the window, and a tank's (Boss melee's settings too) at 1920×1080.
+  for (const [spec, width, height, columns] of [
+    ['warrior-fury', 1440, 900, 3],
+    ['mage-fire', 1440, 900, 3],
+    ['paladin-retribution', 1440, 900, 3],
+    ['warrior-protection', 1440, 900, 3],
+    ['warrior-protection', 1920, 1080, 4],
+    ['paladin-protection', 1920, 1080, 4],
+    ['druid-feral-bear', 1920, 1080, 4],
+  ] as const) {
+    test(`${spec}'s Fight at ${width}×${height}: Advanced's settings in ${columns} balanced columns${spec.endsWith('protection') && width === 1440 ? '' : ', fitting the window'}`, async ({ page }) => {
+      await page.setViewportSize({ width, height })
+      await page.goto('./')
+      await page.evaluate((spec) => localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec }, bySpec: {}, section: 'fight' }, version: 1 })), spec)
+      await page.reload()
+      const panel = page.getByRole('tabpanel', { name: 'Fight' })
+      const advanced = panel.getByRole('region', { name: 'Advanced' })
+      const cols = await advancedColumns(advanced)
+      expect(cols.length).toBe(columns)
+      // Balanced: no column runs on past the others by more than its tallest setting.
+      const bottoms = cols.map((c) => c.bottom)
+      for (const c of cols) expect(Math.max(...bottoms) - c.bottom).toBeLessThanOrEqual(Math.max(...cols.map((k) => k.tallest)) + 1)
+      // Every column starts at the card's top.
+      for (const c of cols) expect(c.top).toBeCloseTo(cols[0].top, 0)
+      // Not the tanks at 1440×900 (their boss melee settings take more than the window has room
+      // for), but everything else fits: the tab ends within the window.
+      if (!(spec.endsWith('protection') && width === 1440)) expect((await panel.boundingBox())!.y + (await panel.boundingBox())!.height).toBeLessThanOrEqual(height)
+      await noSidewaysScroll(page)
+    })
+  }
+
+  // Review finding DU1-7: Prot Paladin's Character tab ran long, its Advanced in one column across
+  // the pane. Its settings flow into 2 columns from a 53 rem pane, 3 from 72 rem.
+  for (const [width, columns] of [
+    [1440, 2],
+    [1920, 3],
+  ] as const) {
+    test(`at ${width} px, Prot Paladin's Character Advanced lays its settings in ${columns} balanced columns`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto('./')
+      await page.evaluate(() =>
+        localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec: 'paladin-protection' }, bySpec: {}, section: 'character' }, version: 1 })),
+      )
+      await page.reload()
+      const advanced = page.getByRole('tabpanel', { name: 'Character' }).getByRole('region', { name: 'Advanced' })
+      const cols = await advancedColumns(advanced)
+      expect(cols.length).toBe(columns)
+      const bottoms = cols.map((c) => c.bottom)
+      for (const c of cols) expect(Math.max(...bottoms) - c.bottom).toBeLessThanOrEqual(Math.max(...cols.map((k) => k.tallest)) + 1)
+      // The rule profile and the Crusader's bonus side by side.
+      const rules = (await advanced.getByRole('radiogroup', { name: 'Rules' }).boundingBox())!
+      const jotc = (await advanced.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' }).boundingBox())!
+      expect(jotc.x).toBeGreaterThan(rules.x + rules.width)
+      expect(jotc.y).toBeCloseTo(rules.y, 0)
+      await noSidewaysScroll(page)
+    })
+  }
+
+  // Review finding DU1-8: at 1440 px the nine class chips wrapped eight and one, Druid alone. Where
+  // they don't fit one line they're two even rows (5 and 4); from a 72 rem pane, one line.
+  for (const [width, rows] of [
+    [1440, [5, 4]],
+    [1600, [5, 4]],
+    [1920, [9]],
+    [2560, [9]],
+  ] as const) {
+    test(`at ${width} px, "In your raid" is ${rows.length === 1 ? 'one line' : 'two even rows'}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto('./')
+      const buffs = await openTab(page, 'Buffs')
+      // The class chips are the tab's toggle buttons.
+      const chips = await buffs.locator('button[aria-pressed]').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)))
+      expect(chips.length).toBe(9)
+      const counts = [...new Set(chips)].map((top) => chips.filter((t) => t === top).length)
+      expect(counts).toEqual(rows)
       await noSidewaysScroll(page)
     })
   }

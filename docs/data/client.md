@@ -664,6 +664,12 @@ Primal Fury matched by position). The claim check (`--claims`) now reads 115 mat
 (18 s), Overpower's window stacks, Bloodthrill's proc mask, Windfury Totem's aura, the Frenzy
 potions (now attack power) and Righteous Fury (+60%). The engine's constants still carry the
 1.60.1.69913 values, so the tests that check them against this data fail until each is adopted.
+The warrior's four are adopted (Sunder Armor 206 at rank 5, Slam 18 s and Improved Slam's −1.5 s a
+rank, the unstacked Overpower window, Bloodthrill's 0x14 main-hand mask at 4% a rank:
+[warrior.md §1](../classes/warrior.md#1-wow-forever-deviations),
+[threat.md](../mechanics/threat.md#warrior)), and `lib/claims.mjs`'s D4 and D9 checks now expect
+1.60.1.70009's values, checked against the committed `spells.json` and `talents.json`; the report
+below is still 1.60.1.69913's until the next `--claims` run.
 
 The talent trees then took 1.60.1.70009 (2026-09-24, 0 requests: `npm run scrape:talents --
 --version=1.60.1.70009 --accept-code-changes`, then this scraper), once the app read codes from both

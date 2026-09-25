@@ -98,7 +98,7 @@ Result: white miss <x.x>% (±<y.y>% at 95%) · raw: <link>
    druid, to replace the [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholders (any level-60 Classic Era character).
 8. [B9](#b9-rage-from-damage-taken-confirm-the-logged-fit): rage from damage taken, confirming
    the logged fit (M3).
-9. [B10](#b10-sunder-armor-threat): Sunder Armor threat by rank (M3).
+9. [B10](#b10-sunder-armor-threat): Sunder Armor's attack power term (M3).
 10. [B12](#b12-boss-parry-from-the-front): boss parry from the front (M3, M4, M5 tanks; same
     session as B2 and B3).
 
@@ -443,14 +443,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [OQ 3](mechanics/encounter.md#open-questions)
 
 #### B10. Sunder Armor threat
-**High · M3 · ≤20**
-- **Assumes:** rank 5 generates 1013 flat threat (a client threat effect, 2.25 × armor removed)
-  that **replaces** Classic's server-side 261 [F client value; ? in game]. Rank 1's data value
-  is 1, which looks like a bug. Alternative: 1013 on top of 261.
-- **Test:** threat macro, Battle Stance (×0.8), auto attack off: one Sunder on a mob, read
-  threat before and after, at every rank available; calibrate with a plain white hit.
-- **Samples:** ≥5 casts per rank.
-- **Changes:** Sunder's flat threat, the Protection filler.
+**High · M3 · ≤20** (the base is answered; the attack power term needs 60)
+- **Answered by build 1.60.1.70009 (the base):** the client's threat effect is 34 / 75 / 117 / 158 /
+  **206** by rank [F] (1 / 405 / 608 / 810 / 1013 in 1.60.1.69913), and Blizzard's notes call it a
+  correction "on all ranks, including a small increase to threat generated from Attack Power". So
+  whether 1013 replaced or added to 261 is moot, and rank 1's "1" is gone.
+- **Assumes now:** 206 plus **0.05 × attack power** [?] per landed Sunder at rank 5: the client
+  carries no attack power coefficient, so the share is D29's default, a guess that keeps the total
+  near Classic Era's 261: 261 at 1,100 AP, about 281 at the default tank's ~1,500 AP when its
+  Sunders land. The results list it.
+- **Test:** at 60, Defensive Stance with Defiance 3/3 and a shield (×1.495), auto attack off: one
+  landed Sunder on a mob, threat read before and after, at two attack powers (with and without
+  Battle Shout and a Mighty Rage Potion or Juju Might). `threat ÷ 1.495 − 206` is the term; its
+  change over the attack power change is the coefficient. Calibrate with a plain white hit.
+- **Samples:** ≥5 landed Sunders per attack power.
+- **Changes:** Sunder's threat (about 11% of the default Protection warrior's), the Protection
+  filler and presets.
 - **Docs:** [threat § warrior](mechanics/threat.md#warrior),
   [threat OQ 2](mechanics/threat.md#open-questions);
   [warrior §1](classes/warrior.md#1-wow-forever-deviations),
@@ -499,10 +507,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B13. Warrior ability threat at low ranks
 **High · M3 · ≤20** (max ranks and Shield Slam: [C6](#c6-warrior-threat-at-max-rank))
-- **Assumes:** Classic Era values (Magey, 1.13.6) for everything except Sunder [?]: Heroic
-  Strike dmg + 173 (r9), Revenge 2.25 × dmg + 270, Shield Bash 1.5 × dmg + 156, Cleave dmg + 100
-  per target, Thunder Clap 2.5 × dmg, Battle Shout 60 per recipient, Demoralizing Shout 43.2,
-  Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown.
+- **Assumes:** Classic Era values (Magey, 1.13.6) for everything except Sunder and Shield Slam
+  [?]: Heroic Strike dmg + 173 (r9), Revenge 2.25 × dmg + 270, Shield Bash 1.5 × dmg + 156,
+  Cleave dmg + 100 per target, Thunder Clap 2.5 × dmg, Battle Shout 60 per recipient,
+  Demoralizing Shout 43.2, Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown. (Shield Slam's
+  "very high" is the wording table's +475, [C6](#c6-warrior-threat-at-max-rank).)
+- **Build 1.60.1.70009:** Blizzard's notes retuned only Sunder Armor's threat among the warrior's
+  ("Corrected the threat values on all ranks"), and its low ranks now carry values (34 / 75 / 117 /
+  158) where rank 1 had 1, so the low-rank Sunder bug players reported is fixed in the data. Every
+  other ability's low-rank threat is still unmeasured, and no other warrior spell carries a threat
+  effect in 1.60.1.70009's client.
 - **Test:** threat macro at every rank available: one ability per cast, several damage rolls,
   fit `(mult × dmg + bonus) × stance`; compare with Classic's per-rank values.
 - **Samples:** ≥8 casts per ability and rank.
@@ -792,14 +806,20 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B32. Overpower windows and Bloodthrill
 **Medium · M2 · ≤20 (Bloodthrill ≤30)**
-- **Assumes:** one 5 s Overpower window, refreshed by each dodge (the data allows banking up to
-  3), and spent by any Overpower, even one that misses [?]; Bloodthrill procs from white swings
-  only (extra attacks included), needs your own Rend, and opens the same window for 6 s, which a
-  later dodge refreshes but doesn't shorten [?].
-- **Test:** time Overpower's availability after a dodge; get two dodges before using it and
-  count the Overpowers allowed; after a missed Overpower, check whether it lights up again before
-  the next dodge; with Bloodthrill and Rend, log which attacks open the window.
-- **Samples:** ≥20 windows; ≥200 attacks on a Rend target.
+- **Answered by build 1.60.1.70009 (the data):** the window's aura 1282733 no longer stacks (it
+  stacked to 3), so windows don't bank [F]. Bloodthrill's proc mask is 0x14 (auto attacks and
+  melee abilities), main hand only (Attributes[3] 0x400), at 4% a rank, into 1282733 itself, so its
+  window is the dodge's 5 s [F]; the notes: "Bloodthrill only activates off of Main Hand melee
+  attacks. This includes Cleave and Heroic Strike."
+- **Assumes now:** one 5 s window, refreshed by each dodge or Bloodthrill proc, spent by any
+  Overpower, even one that misses [?]; Bloodthrill procs from every landed main-hand attack, white
+  or special, and still needs your own Rend (the tooltip's words; the notes leave it open, and the
+  client has no aura restriction) [?]. The tooltip's "Lasts 6 sec." is the old window spell's
+  (1289681), which nothing triggers now; the sim takes the data's 5 s.
+- **Test:** after a missed Overpower, check whether it lights up again before the next dodge; with
+  Bloodthrill, main-hand attacks on a target with your Rend, then with another warrior's Rend only,
+  then none, and whether Overpower lights up; the time until it greys out after a Bloodthrill proc.
+- **Samples:** ≥20 windows; ≥200 main-hand attacks per Rend state.
 - **Changes:** Arms Overpower frequency.
 - **Docs:** [warrior §2.8](classes/warrior.md#28-reactive-abilities-overpower-bloodthrill-revenge),
   [Q10, Q11](classes/warrior.md#9-open-questions)
@@ -1466,13 +1486,17 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C6. Warrior threat at max rank
 **High · M3**
 - **Assumes:** Classic max-rank values [?]: Heroic Strike r9 + 173, Revenge r6 2.25 × dmg + 270,
-  Shield Slam dmg + 254 (the tooltip now says "a very high amount of threat"), Thunder Clap,
-  Battle Shout r7, Demoralizing Shout r5.
-- **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks, including
-  Shield Slam.
+  Thunder Clap, Battle Shout r7, Demoralizing Shout r5; and Shield Slam dmg + **475** [?], the
+  [wording table](mechanics/threat.md#threat-wording-table)'s "very high" (the tooltip's words since
+  Forever; Classic's "high" was + 254, scaled by the ×1.871 damage Forever gave it with the words).
+- **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks. Shield Slam
+  first: in Defensive Stance with Defiance 3/3 and a shield, threat ÷ 1.495 − its logged damage =
+  the bonus.
 - **Samples:** ≥8 casts per ability.
-- **Changes:** Prot TPS per ability. Shield Slam's decides whether Max TPS keeps it: from about
-  +449 it does on TPS alone ([warrior Q34](classes/warrior.md#9-open-questions)).
+- **Changes:** Prot TPS per ability. Shield Slam is 27% of the default Protection warrior's threat
+  (build 1.60.1.70009), so its bonus moves the headline most: at + 254 the default Balanced makes
+  946.78 TPS, −4.7% against + 475's 993.82 (seed 31101, 6,000 fights). It no longer decides a
+  preset (dropping it costs Max TPS 12.85% even at + 254; [warrior Q34](classes/warrior.md#9-open-questions)).
 - **Docs:** [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 
@@ -1536,7 +1560,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C10. Slam and the swing timer
 **Medium · M2**
 - **Assumes:** without Improved Slam, Classic behaviour (no swings during the cast, both timers
-  restart) [C]; with it, timers untouched [F tooltip]. A third-party Forever sim's notes say
+  restart) [C]; with it, timers untouched [F tooltip; 1.60.1.70009's reads "no longer interrupts or
+  delays your melee swing", and its data kept the cast and GCD cut and added −1.5 s a rank off the
+  cooldown, now 18 s; so as far as the data goes it's answered, and what's left is in-game timing].
+  A third-party Forever sim's notes say
   Slam pauses and resumes the timers [?, anecdotal, not adopted]. Slam pays its cost and starts
   its cooldown when the cast completes, and fails if a Heroic Strike swing during an Improved
   Slam cast left too little rage [?]; off-GCD actions (the Heroic Strike queue, Bloodrage,
@@ -1894,12 +1921,12 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 | D1 | PPM rows and proc links | `SpellProcsPerMinute` · both builds; `SpellAuraOptions` · Forever | IDs 454–463 = 1–10 PPM in both; new ID 479 = 2.3 PPM in Forever only; no `SpellAuraOptions` row references a PPM ID | High · M2 | [damage §5.1](mechanics/damage-and-timing.md#51-ppm-formula), [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules) | ✅ confirmed from client data (every PPM row has Flags 1; no proc references one, so PPM rates are server-side and keep their [C]/[?] tags), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D2 | Warrior DPS core | `SpellEffect`, `SpellAuraOptions`, `SpellMisc`, `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Bloodthirst 23894 = 0.35 × AP + 48; Flurry buff 12966 base 30 vs talent curve 5–25, 15,000 ms; Dual Wield Spec curves 5–25 / 20–100 / 2–10 and a hit aura (54) with no hand restriction; Unbridled Wrath curve 12–60, energize 12964 = 10 tenths, proc mask auto attack only; Weaponmaster sword 12281 `ProcCategoryRecovery` 200 (both builds), axe 12700 aura 290 | High · M2 | [warrior §2.3–§2.7](classes/warrior.md#2-warrior-mechanics) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D3 | Rage energize amounts (tenths) | `SpellEffect` · both builds | Bloodrage 2687 = 100 and 29131 = 10 per 1,000 ms for 10 s; Charge 11578 = 150; Mighty Rage Potion 17528 = 600, variance 0.5, 20 s; Shield Specialization 1310318 = 50 (Classic 23602 = 10); Master of Defense → 23602 = 50; Enrage 5229 = 100 + 20/s; Furor 17057 = 100; Primal Fury 16959 = 50; Natural Reaction 417053 = 50; Heroic Strike 25286 +157 | High · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ bear](mechanics/rage.md#bear-druid-rage) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
-| D4 | Sunder Armor threat effect (63) by rank | `SpellEffect` · Forever (Classic has none) | r1 1, r2 405, r3 608, r4 810, r5 1013 (11597) | High · M3 | [threat § warrior](mechanics/threat.md#warrior), [warrior Q1](classes/warrior.md#9-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D4 | Sunder Armor threat effect (63) by rank | `SpellEffect` · Forever (Classic has none) | r1 34, r2 75, r3 117, r4 158, r5 206 (11597), no attack power coefficient (1.60.1.70009; 1 / 405 / 608 / 810 / 1013 in 1.60.1.69913) | High · M3 | [threat § warrior](mechanics/threat.md#warrior), [warrior Q1](classes/warrior.md#9-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D5 | Base stat tables | `PlayerExpectedStat` · Forever (level 60; also the level you test at for B44) and 1.15.9 (absent); `ChrClasses` · both | BaseMana 1512 (paladin), 1244 (druid); CritPerAgility 0.0005 / 0.000506 / 0.0005; SpellCritPerIntellect 0.000167; unnamed columns 10 and 287; AttackPowerPerStrength 2, AttackPowerPerAgility 0, ArmorTypeMask 127 / 2303 / 2343 (all zero in 1.15.9) | High · M4 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser), [OQ-4](mechanics/character-stats.md#oq-4-paladin-intellect-to-spell-crit) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D6 | Cat damage values | `SpellEffect` · both; `SpellDescriptionVariables` · 1.15.9 | Shred 9830 flat 80 / 155%; Claw 9850 115 / 110%; Rake 9904 61 / 34 per 3 s; Rip 9896 15 + 25.5 per CP (Classic 16+1 / 28; SDV 865 `$ticks=6`, `$mult=1.0`); Ferocious Bite 31018 base 82, variance 0.7317, 147 per CP, dummy 270; Tiger's Fury 5217 15%, 30,000 ms, no GCD | High · M4 | [druid Q27](classes/druid.md#10-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D7 | Ret damage coefficients | `SpellEffect` · Forever | SoC proc 20424 70% weapon, 0.29; JoC 20966 0.429; JoR 20286 0.5; SoR proc 25713 0.1; Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429; Consecration 1280349 12 + 27 at 0.095; Vengeance 20050 5 stacks, 30 s; 2HWS 20111 / 1HWS 20196 Physical only; Improved Seals 20224 spell masks | High · M5 | [paladin OQ 21](classes/paladin.md#open-questions), [§ DB2 links](classes/paladin.md#db2-links-per-spell) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D8 | Rage talent curves | `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Boundless Rage 1310236 aura 418 = 100/200/300; Improved Bloodrage 25/50; Shield Specialization 20…100; Master of Defense 50/100; Improved Tactical Mastery 12295 = 3/6/9/12/15 and Tactical Mastery 1310185 dummy 10; Furor 20…100; Natural Reaction 417051 | Medium · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ stances](mechanics/rage.md#stance-changes-and-tactical-mastery) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
-| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 15 s CD on every rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4 stacking to 3; Bloodthrill proc mask 4; Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) | ✅ resolved from client data, with one correction: **Stoneform is on the GCD** (`StartRecoveryTime` 1500); Blood Fury, Berserking, Elune's Light and Eureka! are 0. Deep Wounds 12721 is absent from the client altogether (the Forever bleed is 412609). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 18 s CD on every rank (15 s in 1.60.1.69913), Improved Slam −1.5 s a rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4, no longer stacking (3 in 1.60.1.69913); Bloodthrill proc mask 0x14, main hand only, into 1282733 (4 in 1.60.1.69913); Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) | ✅ resolved from client data, with one correction: **Stoneform is on the GCD** (`StartRecoveryTime` 1500); Blood Fury, Berserking, Elune's Light and Eureka! are 0. Deep Wounds 12721 is absent from the client altogether (the Forever bleed is 412609). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D10 | Racials | `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellPower` · Forever | 20597 (+2% crit, aura 290), 20598, 20572 (+10% AP, RAP, SP; 15 s), 20574, 1259719, 1259721, 20594, 20582, 1259799 (+10%, 15 s), 1259802, 1259813 (15 s), 1260189, 20550 (+5% HP; +1% hit via auras 54 and 55), 20554 (10 s, no cost), 20557 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D11 | Race/class pairs | `CharBaseInfo`, `ChrRaces` · Forever | 56 pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ Forever half confirmed; also found: 10612 has a 100 ms internal cooldown (`ProcCategoryRecovery` 100, see [C11](#c11-windfury-totem)). Classic half: 10612 pulses 10611 → enchant 564 as written, but Classic's `SpellItemEnchantment` has no duration column, so the 10 s is unverifiable there (Forever's row for 564 says 10 s). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |

@@ -124,11 +124,17 @@ export async function checkClaims(ctx) {
   });
 
   // ---------------------------------------------------------------- D4 Sunder threat
-  claim("D4", "Sunder Armor THREAT effect by rank: 1 / 405 / 608 / 810 / 1013 (11597); Classic has none", () => {
+  claim("D4", "Sunder Armor THREAT effect by rank: 34 / 75 / 117 / 158 / 206 (11597), with no attack power coefficient; Classic has none", () => {
     const ids = [7386, 7405, 8380, 11596, 11597];
     const v = ids.map((id) => pts(byType(f(id), 63)));
+    const coef = ids.map((id) => byType(f(id), 63)?.effectBonusCoefficient ?? 0);
+    // Nor an attack power one (BonusCoefficientFromAP, written as bonusCoefficientFromAp).
+    const apCoef = ids.map((id) => byType(f(id), 63)?.bonusCoefficientFromAp ?? 0);
     const classic = ids.map((id) => byType(c(id), 63)).filter(Boolean).length;
-    return verdict(list(v) === "1/405/608/810/1013" && classic === 0, `${ids.join("/")}: ${list(v)}; armor ${ids.map((id) => pts(byAura(f(id), 22))).join("/")}; Classic THREAT effects: ${classic}`);
+    return verdict(
+      list(v) === "34/75/117/158/206" && coef.every((x) => x === 0) && apCoef.every((x) => x === 0) && classic === 0,
+      `${ids.join("/")}: ${list(v)}, bonus coefficient ${list(coef)}, from AP ${list(apCoef)}; armor ${ids.map((id) => pts(byAura(f(id), 22))).join("/")}; Classic THREAT effects: ${classic}`,
+    );
   });
 
   // ---------------------------------------------------------------- D5 base stats
@@ -207,10 +213,14 @@ export async function checkClaims(ctx) {
   claim("D8", "Natural Reaction 417051", () => verdict(talent("druid", "Natural Reaction")?.spellId === 417051, `spell ${talent("druid", "Natural Reaction")?.spellId}, curves ${tv("druid", "Natural Reaction", 0)} · ${tv("druid", "Natural Reaction", 1)}`));
 
   // ---------------------------------------------------------------- D9 warrior timing
-  claim("D9", "Slam 15 s cooldown on every rank", () => {
+  claim("D9", "Slam 18 s cooldown on every rank; Improved Slam's effect 2 cuts it by 1500 / 3000 ms", () => {
     const ids = [1240193, 1464, 8820, 11604, 11605];
     const v = ids.map((id) => cd(f(id)) / 1000);
-    return verdict(v.every((x) => x === 15), `${ids.join("/")}: ${list(v)} s (category ${f(11605).categories?.category}), cast ${f(11605).castTime?.base} ms`);
+    const cut = eff(f(12862), 2);
+    return verdict(
+      v.every((x) => x === 18) && cut?.effectAura === 107 && cut?.effectMiscValue?.[0] === 11 && tv("warrior", "Improved Slam", 2) === "-1500/-3000",
+      `${ids.join("/")}: ${list(v)} s (category ${f(11605).categories?.category}), cast ${f(11605).castTime?.base} ms; Improved Slam effect 2 aura ${cut?.effectAura} misc ${cut?.effectMiscValue?.[0]}, curve ${tv("warrior", "Improved Slam", 2)}`,
+    );
   });
   claim("D9", "Stance swap 1.0 s shared, off the GCD", () => {
     const ids = [2457, 71, 2458];
@@ -226,12 +236,20 @@ export async function checkClaims(ctx) {
     const s = f(11581);
     return verdict(s.categories?.defenseType === 1 && has(s.shapeshift?.shapeshiftMask[0], 1 << 17), `defense type ${s.categories?.defenseType}; stance mask ${hex(s.shapeshift?.shapeshiftMask[0])} (Battle + Defensive)`);
   });
-  claim("D9", "Overpower window 1282733 = 5,000 ms; second cost power type 4, stacking to 3", () => {
+  claim("D9", "Overpower window 1282733 = 5,000 ms, not stacking; second cost power type 4", () => {
     const w = f(1282733);
     const p = f(11585).power;
-    return verdict(w.duration?.duration === 5000 && w.auraOptions?.cumulativeAura === 3 && p[1]?.powerType === 4, `window ${w.duration?.duration} ms, ${w.auraOptions?.cumulativeAura} stacks; Overpower 11585 costs ${p.map((x) => `type ${x.powerType} ${x.manaCost}`).join(" + ")}`);
+    const stacks = w.auraOptions?.cumulativeAura ?? 0;
+    return verdict(w.duration?.duration === 5000 && stacks <= 1 && p[1]?.powerType === 4, `window ${w.duration?.duration} ms, ${stacks || "no"} stacks; Overpower 11585 costs ${p.map((x) => `type ${x.powerType} ${x.manaCost}`).join(" + ")}`);
   });
-  claim("D9", "Bloodthrill proc mask 4; Enrage proc mask 0x222A8", () => verdict(f(1289682).auraOptions?.procTypeMask[0] === 4 && f(12317).auraOptions?.procTypeMask[0] === 0x222a8, `Bloodthrill ${hex(f(1289682).auraOptions?.procTypeMask[0])}; Enrage ${hex(f(12317).auraOptions?.procTypeMask[0])} (${f(12317).auraOptions?.procChance}%)`));
+  claim("D9", "Bloodthrill proc mask 0x14, main hand only (Attributes[3] 0x400), aura 42 into 1282733; Enrage proc mask 0x222A8", () => {
+    const b = f(1289682);
+    const e = eff(b, 0);
+    return verdict(
+      b.auraOptions?.procTypeMask[0] === 0x14 && has(attr(b, 3), 0x400) && e?.effectAura === 42 && e?.effectTriggerSpell === 1282733 && f(12317).auraOptions?.procTypeMask[0] === 0x222a8,
+      `Bloodthrill ${hex(b.auraOptions?.procTypeMask[0])}, Attributes[3] ${hex(attr(b, 3))}, aura ${e?.effectAura} → ${e?.effectTriggerSpell}; Enrage ${hex(f(12317).auraOptions?.procTypeMask[0])} (${f(12317).auraOptions?.procChance}%)`,
+    );
+  });
   claim("D9", "Berserker Stance aura 290 (Classic 52) plus an empty aura 166", () => {
     const e = byAura(f(7381), 166);
     return verdict(byAura(f(7381), 290) && byAura(c(7381), 52) && e && !pts(e), `Forever 7381 auras ${f(7381).effects.map((x) => `${x.effectAura}=${pts(x)}`).join(", ")}; Classic ${c(7381).effects.map((x) => `${x.effectAura}=${pts(x)}`).join(", ")}`);

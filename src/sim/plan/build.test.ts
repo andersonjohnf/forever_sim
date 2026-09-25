@@ -318,7 +318,7 @@ describe('encounter worked examples on the plan', () => {
     const expose = buildPlan(exposeConfig).plan
     expect(expose.fight.targetArmor).toBe(3731 - 2250 - 505 - 505)
     expect(expose.auras.find((a) => a.id === 'sunderArmor')!.targetArmor).toBeUndefined()
-    expect(expose.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(1013)
+    expect(expose.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(206)
     // The result says so, and that a Sunder may fail over it in Classic Era [?] (PL3, Q35); only then.
     const note = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'replacedDebuff')?.text
     expect(note(exposeConfig)).toBe(
@@ -607,13 +607,24 @@ describe('assumptions', () => {
       expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'classicShieldBlockValue', 'baseStatPlaceholders']),
     )
     expect(prot).not.toContain('shieldBlockValue')
-    // threat.md#warrior (W2): Sunder Armor's threat is the profile's, and so is the note's.
-    const whiteThreat = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'whiteThreat')!.text
+    // threat.md#warrior (W2): Sunder Armor's and Shield Slam's threat is the profile's, and so are the notes.
+    const note = (config: SimConfig, id: string) => buildPlan(config).assumptions.find((a) => a.id === id)?.text
     const classicProt = withRules(defaultConfig('warrior-protection'), 'classicEra')
-    expect(buildPlan(classicProt).plan.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(261)
-    expect(buildPlan(defaultConfig('warrior-protection')).plan.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(1013)
-    expect(whiteThreat(defaultConfig('warrior-protection'))).toMatch(/Sunder Armor makes 1,013 threat, the Forever client’s value, in place of Classic Era’s 261/)
-    expect(whiteThreat(classicProt)).not.toMatch(/Sunder/)
+    const ability = (config: SimConfig, id: string) => buildPlan(config).plan.abilities.find((a) => a.id === id)!
+    expect([ability(classicProt, 'sunderArmor').threatBonus, ability(classicProt, 'sunderArmor').threatApCoefficient]).toEqual([261, 0])
+    expect(ability(classicProt, 'shieldSlam').threatBonus).toBe(254)
+    const prot1 = defaultConfig('warrior-protection')
+    expect([ability(prot1, 'sunderArmor').threatBonus, ability(prot1, 'sunderArmor').threatApCoefficient]).toEqual([206, 0.05])
+    expect(ability(prot1, 'shieldSlam').threatBonus).toBe(475)
+    expect(note(prot1, 'whiteThreat')).toMatch(/: Sunder Armor and Shield Slam use their own values \(below\), the other abilities Classic Era’s\.$/)
+    // Without Shield Slam the note names Sunder Armor alone, in the singular.
+    const noSlam = { ...prot1, rotation: { ...prot1.rotation, 'warrior.protection.shieldSlam.enabled': false } }
+    expect(note(noSlam, 'whiteThreat')).toMatch(/: Sunder Armor uses its own value \(below\), the other abilities Classic Era’s\.$/)
+    expect(note(prot1, 'sunderThreat')).toMatch(/^Sunder Armor makes 206 plus 5% of your attack power in threat, before your stance’s multiplier\./)
+    expect(note(prot1, 'shieldSlamThreat')).toMatch(/^Shield Slam makes its damage plus 475 in threat\./)
+    expect(note(classicProt, 'whiteThreat')).not.toMatch(/Sunder/)
+    expect(note(classicProt, 'sunderThreat')).toBeUndefined()
+    expect(note(classicProt, 'shieldSlamThreat')).toBeUndefined()
     const classic = ids(withRules(defaultConfig('warrior-arms'), 'classicEra'))
     expect(classic).not.toContain('foreverGlancing')
     expect(classic).not.toContain('foreverWhiteRage')

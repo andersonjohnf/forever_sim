@@ -148,8 +148,9 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
  * for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
-  // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS are tuned.
-  if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.'
+  // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS were
+  // tuned on 1.60.1.69913 and had D27's first-pass check on 1.60.1.70009 (warrior.md §5.4 "Build 1.60.1.70009").
+  if (spec === 'warrior-protection') return 'Defensive and Max TPS were tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn’t been fully tuned yet.'
   if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'paladin-retribution') return 'The defaults are tuned for the default setup.'
   // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it's Defensive's tuned list.
   if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.'

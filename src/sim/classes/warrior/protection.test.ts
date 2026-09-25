@@ -23,7 +23,10 @@ import {
   revengeWindowProcs,
   SHIELD_BLOCK,
   SHIELD_SLAM,
+  SHIELD_SLAM_THREAT,
+  shieldSlam,
   SUNDER_ARMOR,
+  SUNDER_ARMOR_THREAT,
   THUNDER_CLAP,
   thunderClap,
 } from './abilities'
@@ -70,7 +73,12 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(Math.round(dmg.effectBasePointsF! * (1 + dmg.variance! / 2))).toBe(670)
     expect([SHIELD_SLAM.flatDamage - SHIELD_SLAM.flatSpread!, SHIELD_SLAM.flatDamage + SHIELD_SLAM.flatSpread!]).toEqual([640, 670])
     expect(SHIELD_SLAM.blockValueCoefficient).toBe(1)
-    expect([SHIELD_SLAM.threatMult, SHIELD_SLAM.threatBonus, SHIELD_SLAM.refundShare]).toEqual([1, 254, 0.8])
+    // Threat dmg + 475 [?]: the wording table's "very high" (threat.md), Classic's "high" 254 × 655 / 350.
+    expect(s.effects.find((e) => e.effect === 63)).toBeUndefined()
+    expect([SHIELD_SLAM.threatMult, SHIELD_SLAM.threatBonus, SHIELD_SLAM.refundShare]).toEqual([1, 475, 0.8])
+    expect(Math.round(254 * (655 / 350))).toBe(SHIELD_SLAM_THREAT.forever)
+    expect(shieldSlam(FOREVER)).toBe(SHIELD_SLAM)
+    expect(shieldSlam(CLASSIC_ERA).threatBonus).toBe(254)
   })
 
   it('Revenge (25288): 5 rage, 5 s, the GCD, Defensive Stance, 153 ± 15 (the tooltip’s 138–168), two rolls, its window', () => {
@@ -91,7 +99,7 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect([REVENGE.kind, REVENGE.threatMult, REVENGE.threatBonus, REVENGE.shieldOnly ?? false]).toEqual(['meleeSpell', 2.25, 270, false])
   })
 
-  it('Sunder Armor (11597): 15 rage, the GCD, any stance; −450 armor, 5 stacks, 30 s, and a threat effect of 1013; no damage', () => {
+  it('Sunder Armor (11597): 15 rage, the GCD, any stance; −450 armor, 5 stacks, 30 s, and a threat effect of 206 plus 5% of attack power; no damage', () => {
     const s = spells['11597']
     expect(s.name).toBe('Sunder Armor')
     expect([cost(11597), s.cooldowns?.categoryRecoveryTime ?? 0, s.cooldowns?.startRecoveryTime]).toEqual([SUNDER_ARMOR.costTenths, 0, SUNDER_ARMOR.gcdMs])
@@ -102,6 +110,10 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(s.auraOptions?.cumulativeAura).toBe(SUNDER_ARMOR.aura!.maxStacks)
     expect(s.duration?.duration).toBe(SUNDER_ARMOR.aura!.durationMs)
     expect(s.effects.find((e) => e.effect === 63)?.effectBasePointsF).toBe(SUNDER_ARMOR.threatBonus)
+    expect(SUNDER_ARMOR.threatBonus).toBe(206)
+    // The notes' attack power term, which the client doesn't carry: a D29 default [?] (threat.md#warrior).
+    expect(SUNDER_ARMOR.threatApCoefficient).toBe(0.05)
+    expect(SUNDER_ARMOR_THREAT.forever.bonus + SUNDER_ARMOR_THREAT.forever.apCoefficient * 1100).toBe(SUNDER_ARMOR_THREAT.classicEra.bonus)
     expect([SUNDER_ARMOR.weaponPercent, SUNDER_ARMOR.flatDamage, SUNDER_ARMOR.threatMult]).toEqual([0, 0, 0])
     // Its stacks are the Buffs tab's Sunder Armor ×5, so the plan can drop that one.
     expect(SUNDER_ARMOR.aura!.id).toBe('sunderArmor')
@@ -172,17 +184,17 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
     expect(r.flatDamage * 1.1 * 0.9).toBeCloseTo(242.35, 2)
   })
 
-  it('W26: threat per GCD and per rage, the default build (×1.495, block value 62, average hits, no armor or crits)', () => {
+  it('W26: threat per GCD and per rage, the default build (×1.495, block value 62, 1,400 attack power, average hits, no armor or crits)', () => {
     const m = 1.3 * 1.15 // W16
     const dmg = 0.99 // Bastion 5/5 × Defensive Stance
     const threat = (def: typeof SUNDER_ARMOR) => {
       const a = withTalents(def, TALENTS)
       const damage = (a.flatDamage + 62 * (a.blockValueCoefficient ?? 0)) * dmg
-      const t = (damage * a.threatMult + a.threatBonus) * m
+      const t = (damage * a.threatMult + a.threatBonus + (a.threatApCoefficient ?? 0) * 1400) * m
       return [Math.round(t * 100) / 100, a.costTenths / 10, Math.round((t / (a.costTenths / 10)) * 100) / 100]
     }
-    expect(threat(SUNDER_ARMOR)).toEqual([1514.44, 9, 168.27])
-    expect(threat(SHIELD_SLAM)).toEqual([1440.93, 17, 84.76])
+    expect(threat(SUNDER_ARMOR)).toEqual([412.62, 9, 45.85])
+    expect(threat(SHIELD_SLAM)).toEqual([1771.32, 17, 104.2])
     expect(threat(REVENGE)).toEqual([1218.86, 2, 609.43])
     expect(threat(THUNDER_CLAP)).toEqual([381.11, 17, 22.42])
     expect(threat(DEMORALIZING_SHOUT)).toEqual([64.58, 7, 9.23])
@@ -249,13 +261,16 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
 
 describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   const MAX = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
-  const DUTIES = [ID.sbEnabled, ID.tcEnabled, ID.demoEnabled]
+  /** The duties whose upkeep costs threat, which Max TPS drops (D26's rule). */
+  const DUTIES = [ID.tcEnabled, ID.demoEnabled]
 
-  it('drops the duties, Shield Block, Thunder Clap and Demoralizing Shout, by default, keeps Shield Slam, and queues Heroic Strike from 45', () => {
+  it('drops Thunder Clap and Demoralizing Shout by default, keeps Shield Block and Shield Slam, and queues Heroic Strike from 45', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
-    // D26's amendment: Max TPS drops only the duties.
+    // D26's amendment: Max TPS drops only the duties, each one whose upkeep costs TPS. Shield Block's
+    // blocks make more threat than its rage would since Sunder Armor's fell (1.60.1.70009), so it stays.
+    expect([duties[ID.sbEnabled], max[ID.sbEnabled]]).toEqual([true, true])
     expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
     expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([76, 45])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
@@ -266,8 +281,8 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   })
 
   it('keeps a value you set yourself, and Balanced is the default', () => {
-    const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX, [ID.sbEnabled]: true, [ID.hsMinRage]: 70 }, TALENTS)
-    expect([own[ID.sbEnabled], own[ID.hsMinRage], own[ID.tcEnabled]]).toEqual([true, 70, false])
+    const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX, [ID.sbEnabled]: false, [ID.hsMinRage]: 70 }, TALENTS)
+    expect([own[ID.sbEnabled], own[ID.hsMinRage], own[ID.tcEnabled]]).toEqual([false, 70, false])
     const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.balanced }, TALENTS)
     expect(back).toEqual(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS))
   })
@@ -276,6 +291,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     expect(protectionMaintainedBuffs(MAX)).toEqual(['battleShout', 'sunderArmor'])
     const r = protectionRotation(MAX, TALENTS, noAura, { race: 'alliance-human' })
     expect(r.rotation.map((e) => r.abilities[e.ability].id)).toEqual([
+      'shieldBlock',
       'bloodrage',
       'shieldSlam',
       'revenge',

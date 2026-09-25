@@ -60,7 +60,7 @@ test.describe('Protection rotation', () => {
   test('is Balanced by default: the preset picker first on the tab, its line and info, and §5.4’s rows with only the pre-pull pinned', async ({ page }) => {
     const tab = await openProtectionRotation(page)
     await expect(
-      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.', {
+      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS were tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn’t been fully tuned yet.', {
         exact: true,
       }),
     ).toBeVisible()
@@ -69,7 +69,7 @@ test.describe('Protection rotation', () => {
     await expect(preset(page)).toHaveText('Balanced (default)')
     // The short line under it says what Balanced keeps and drops, with a number or two.
     await expect(preset(page)).toHaveAccessibleDescription(
-      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +10% TPS, +6% DPS, 21% more damage taken than Defensive.',
+      'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +6% DPS, 21% more damage taken than Defensive.',
     )
     await preset(page).click()
     await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
@@ -78,8 +78,10 @@ test.describe('Protection rotation', () => {
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
     await expect(info.getByRole('term')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
-    await expect(info).toContainText('9.5% more TPS, 6.4% more DPS and 21% more damage taken')
-    await expect(info).toContainText('13.9% more TPS, 6.9% more DPS and 41% more damage taken')
+    await expect(info).toContainText('7.2% more TPS, 6.4% more DPS and 21% more damage taken')
+    await expect(info).toContainText('8.3% more TPS, 6.9% more DPS and 21% more damage taken')
+    // Max TPS names what it changes from Balanced, whose rows it shares (WR-1).
+    await expect(info).toContainText('Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken')
     await page.keyboard.press('Escape')
     await expect(tab.getByRole('button', { name: 'About the presets' })).toBeFocused()
     // The preset first, then the consumables, spec-wide, above the list; nothing else is.
@@ -135,19 +137,20 @@ test.describe('Protection rotation', () => {
     await expect(row(page, 'thunderClap')).toContainText('Again with 6 s left')
 
     await pick(page, 'Max TPS')
-    for (const id of ['shieldBlock', 'thunderClap', 'demoShout']) await expect(rowSwitch(page, id), id).not.toBeChecked()
-    await expect(rowSwitch(page, 'sunderFiller')).toBeChecked()
+    for (const id of ['thunderClap', 'demoShout']) await expect(rowSwitch(page, id), id).not.toBeChecked()
+    // Max TPS keeps Shield Block: its blocks make more threat than its rage would elsewhere (§5.4).
+    for (const id of ['shieldBlock', 'sunderFiller']) await expect(rowSwitch(page, id), id).toBeChecked()
     await expect(row(page, 'heroicStrike')).toContainText('From 45 rage')
 
     // A switch you turn back on stays on, marked against Max TPS's default, and the list is Custom.
-    await rowSwitch(page, 'shieldBlock').click()
-    await expect(rowSwitch(page, 'shieldBlock')).toBeChecked()
-    await expect(rowSwitch(page, 'shieldBlock')).toHaveAccessibleDescription(/^Changed\./)
+    await rowSwitch(page, 'thunderClap').click()
+    await expect(rowSwitch(page, 'thunderClap')).toBeChecked()
+    await expect(rowSwitch(page, 'thunderClap')).toHaveAccessibleDescription(/^Changed\./)
     await expect(preset(page)).toHaveText('Custom')
     await expect(preset(page)).toHaveAccessibleDescription('Custom: the list matches none of the presets. Pick one to start again from it.')
     // So is a row moved: back to Max TPS, then Battle Shout above Shield Slam.
     await pick(page, 'Max TPS')
-    await expect(rowSwitch(page, 'shieldBlock')).not.toBeChecked()
+    await expect(rowSwitch(page, 'thunderClap')).not.toBeChecked()
     const panel = await openRow(page, 'Battle Shout')
     await panel.getByRole('button', { name: 'Move up', exact: true }).click()
     await panel.getByRole('button', { name: 'Move up', exact: true }).click()
@@ -323,10 +326,10 @@ test.describe('Protection rotation on a phone', () => {
     for (const option of await page.getByRole('option').all()) await expect.poll(async () => (await option.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await page.getByRole('option', { name: 'Max TPS', exact: true }).tap()
     // The line under the picker fits in three lines at 390 px.
-    const line = page.getByText(/^Shield Block, Thunder Clap and Demoralizing Shout dropped for threat/)
+    const line = page.getByText(/^Sunder Armor filler from its cost, Heroic Strike from 45 rage: about \+1% TPS over Balanced/)
     expect((await line.boundingBox())!.height).toBeLessThanOrEqual(3 * 20 + 1)
     await expect(preset(page)).toHaveText('Max TPS')
-    await expect(rowSwitch(page, 'shieldBlock')).not.toBeChecked()
+    await expect(rowSwitch(page, 'thunderClap')).not.toBeChecked()
     await expect(rowSwitch(page, 'sunderFiller')).toBeChecked()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow, 'no horizontal page scroll').toBeLessThanOrEqual(0)

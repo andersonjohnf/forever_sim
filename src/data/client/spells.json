@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 580,
+      "docs": 581,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 0,
-    "seeds": 2833,
-    "spells": 3109
+    "seeds": 2834,
+    "spells": 3110
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -131408,6 +131408,53 @@
       },
       "name": "Bastion of Tyranny",
       "sources": ["item"]
+    },
+    "1289681": {
+      "auraOptions": {
+        "procChance": 100,
+        "procCharges": 1,
+        "procTypeMask": [16, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 4
+      },
+      "duration": {
+        "duration": 6000,
+        "maxDuration": 6000
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 3,
+          "effectIndex": 2,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1289681,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [-2147221504, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135271
+      },
+      "name": "Bloodthrill",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
     },
     "1289682": {
       "auraOptions": {

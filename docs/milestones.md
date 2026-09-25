@@ -322,7 +322,11 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         above D29's benchmark, and the model stays as it is until a test explains it.** The default
         bear (Balanced) makes **1,115 TPS** on seed 31101 (100,000 fights; 547 DPS), against the
         officers' 800–900 for a paladin or a bear; on the same run the warrior's Balanced makes 1,241
-        and the paladin's 832 (D28; the review log's 1,240.98, 1,115.34 and 832.09). Its
+        and the paladin's 832 (D28; the review log's 1,240.98, 1,115.34 and 832.09). On build
+        1.60.1.70009 the warrior's Balanced fell to 993 TPS with Sunder Armor's threat, so the
+        bear, still 1,116 before its own 1.60.1.70009 pass (829 for the paladin; seed 31101,
+        20,000 fights), is now 12% above the warrior too: the druid slice re-measures it and keeps
+        this finding (the 70009 warrior review's WR-9, 2026-09-24). Its
         threat by ability (seed 31101, 10,000 fights, share of threat, TPS, casts a fight): Maul
         **58.8%, 657, 73.6**; Lacerate 14.2%, 159, 53.2, and its bleed 3.5%, 39; Mangle 14.1%, 158,
         37.9; Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15, 21.9;

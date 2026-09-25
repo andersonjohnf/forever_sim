@@ -254,11 +254,13 @@ export const MORTAL_STRIKE: AbilityDef = {
 
 /**
  * Slam rank 5 (spells.json 11605, and its Improved Slam version 1310200 with the same numbers):
- * cost 150, cooldown `categoryRecoveryTime` 15000, GCD 1500, cast `castTime` 1500, any stance,
+ * cost 150, cooldown `categoryRecoveryTime` 18000 (1.60.1.70009; 15000 before), GCD 1500, cast
+ * `castTime` 1500, any stance,
  * effect 17 `WEAPON_DAMAGE_NOSCHOOL` +87 at the real weapon speed (warrior.md §3.1, W4). One
  * roll. Without Improved Slam no white swings land during the cast and both swing timers restart
- * when it completes (§3.1 "Slam"; damage-and-timing §3.3); Improved Slam shortens the cast and
- * the GCD and leaves the timers alone (modifiers.ts). Threat dmg × 1 [C] (threat.md#warrior).
+ * when it completes (§3.1 "Slam"; damage-and-timing §3.3); Improved Slam shortens the cast, the
+ * GCD and the cooldown and leaves the timers alone (modifiers.ts). Threat dmg × 1 [C]
+ * (threat.md#warrior).
  */
 export const SLAM: AbilityDef = {
   id: 'slam',
@@ -266,7 +268,7 @@ export const SLAM: AbilityDef = {
   icon: 'ability_warrior_decisivestrike',
   kind: 'weaponStrike',
   costTenths: 150,
-  cooldownMs: 15000,
+  cooldownMs: 18000,
   gcdMs: GCD_MS,
   stances: STANCE_ANY,
   executePhaseOnly: false,
@@ -365,16 +367,18 @@ export const REND: AbilityDef = {
 /**
  * The Overpower window (spells.json 1282733, "Overpower"): a dodge of any of your attacks opens it
  * for `duration` 5000 ms (warrior.md §2.8). In the client it grants 1 point of power type 4, which
- * Overpower spends as its second cost, stacking to 3 (`cumulativeAura` 3); the sim keeps one window
- * that each new dodge refreshes, and doesn't bank the stacks [?] (Q10). Bloodthrill opens the same
- * window for 6 s, and a refresh never shortens it (warrior.md §7).
+ * Overpower spends as its second cost. Since 1.60.1.70009 the aura no longer stacks (it lost its
+ * `cumulativeAura` 3), so a new dodge refreshes the one window and none are banked [F] (Q10).
+ * Bloodthrill triggers the same spell, so its window is this one, 5 s too; a refresh never shortens it
+ * (warrior.md §7).
  */
 export const OVERPOWER_WINDOW: AuraSpec = { id: 'overpowerWindow', name: 'Overpower window', durationMs: 5000, mods: {} }
 
-/** Bloodthrill opens the Overpower window for 6 s [F] [tal] (the tooltip; its client spell is a server-scripted dummy, warrior.md §2.8). */
-export const BLOODTHRILL_WINDOW_MS = 6000
-/** Bloodthrill's chance per rank, % (spells.json 1289682's rank curve 2 / 4 / 6 / 8 / 10). */
-export const BLOODTHRILL_PCT_PER_RANK = 2
+/**
+ * Bloodthrill's chance per rank, % (spells.json 1289682's rank curve 4 / 8 / 12 / 16 / 20 [F]
+ * [client] (TraitDefinitionEffectPoints, CurvePoint, 1.60.1.70009); 2 / 4 / 6 / 8 / 10 before).
+ */
+export const BLOODTHRILL_PCT_PER_RANK = 4
 
 /**
  * Overpower rank 4 (spells.json 11585): cost 50, cooldown `categoryRecoveryTime` 5000, GCD 1500,
@@ -414,10 +418,11 @@ export const OVERPOWER: AbilityDef = {
 
 /**
  * The procs that open the Overpower window, for a rotation that uses Overpower (warrior.md §2.8):
- * a target's dodge of any of your attacks, white or special, either hand, for 5 s; and with
- * Bloodthrill, 2% per rank on each landed white swing (the data's proc mask 4, auto attacks, so
- * extra attacks too) while your Rend is on the target, for 6 s [F] [?] (Q11). Without Rend in the
- * rotation the plan leaves Bloodthrill out.
+ * a target's dodge of any of your attacks, white or special, either hand; and with Bloodthrill, 4% per
+ * rank on each landed main-hand melee attack, white or special (Heroic Strike and Cleave included,
+ * extra attacks too; never the off hand: its proc mask 0x14 and Attributes[3] 0x400, main hand only),
+ * while your Rend is on the target [F] (1.60.1.70009; Q11). Both open the same 5 s window (1282733).
+ * Without Rend in the rotation the plan leaves Bloodthrill out.
  */
 export function overpowerWindowProcs(talents: ReadonlyMap<string, number>): ProcSpec[] {
   const doc = 'docs/classes/warrior.md#28-reactive-abilities-overpower-bloodthrill-revenge'
@@ -439,10 +444,10 @@ export function overpowerWindowProcs(talents: ReadonlyMap<string, number>): Proc
       id: 'bloodthrill',
       name: 'Bloodthrill',
       icon: 'inv_sword_01',
-      trigger: 'whiteLanded',
-      from: 'any',
+      trigger: 'meleeLanded',
+      from: 'mainHand',
       chance: { pct: BLOODTHRILL_PCT_PER_RANK * bloodthrill },
-      action: { kind: 'aura', aura: OVERPOWER_WINDOW, durationMs: BLOODTHRILL_WINDOW_MS },
+      action: { kind: 'aura', aura: OVERPOWER_WINDOW },
       requiresAura: REND.aura!.id,
       docRef: doc,
     })
@@ -743,8 +748,10 @@ export const REVENGE: AbilityDef = {
  * 6000, GCD 1500, any stance, a shield (`equippedItemSubclass` 64). `SCHOOL_DAMAGE` 655 with
  * `Variance` 0.0457, 655 ± 15.0: the tooltip's 640–670 [F] [sb], 655 ± 15, plus the block value (the
  * tooltip's "increased by your Block Value", ×1; warrior.md §3.1, W15). A melee spell: two rolls
- * (combat-tables §3). Its dispel doesn't matter here. Threat dmg + 254 [C] (threat.md#warrior); the
- * Forever tooltip's "very high" threat is unmeasured (threat.md OQ 1).
+ * (combat-tables §3). Its dispel doesn't matter here. Threat dmg + 475 [?]: the Forever tooltip raised
+ * its threat from Classic's "high" to "a very high amount", and neither client carries a value
+ * (`SHIELD_SLAM_THREAT`; threat.md#threat-wording-table, warrior.md Q1). This is the `forever` row;
+ * `shieldSlam(profile)` is the profile's.
  */
 export const SHIELD_SLAM: AbilityDef = {
   id: 'shieldSlam',
@@ -767,7 +774,7 @@ export const SHIELD_SLAM: AbilityDef = {
   critMultiplier: CRIT_MULTIPLIER.melee,
   refundShare: REFUND,
   threatMult: 1,
-  threatBonus: 254,
+  threatBonus: 475,
   offHand: false,
   ...INSTANT,
   shieldOnly: true,
@@ -775,14 +782,34 @@ export const SHIELD_SLAM: AbilityDef = {
 }
 
 /**
+ * Shield Slam's threat bonus per landed hit, on top of its damage, by rule profile
+ * (threat.md#threat-wording-table):
+ * - `forever`: 475 [?], the wording table's "very high". Classic's "high" was 254 [C] (Magey) on
+ *   342–358 damage; Forever raised the damage to 640–670 (×1.871 at the midpoints, 655 / 350) and the
+ *   words to "very high" together, so the bonus scales with the damage, as the table's "high" on
+ *   Heroic Strike scales with its bonus damage: 254 × 1.871 = 475. A guild test replaces it
+ *   (warrior.md Q34, open-questions C6).
+ * - `classicEra`: Classic Era's 254 [C], its tooltip's "high".
+ */
+export const SHIELD_SLAM_THREAT = { forever: 475, classicEra: 254 } as const
+
+/** Shield Slam under a rule profile: its threat bonus is the profile's (`SHIELD_SLAM_THREAT`). */
+export function shieldSlam(profile: RulesProfile): AbilityDef {
+  const bonus = SHIELD_SLAM_THREAT[profile.id]
+  return bonus === SHIELD_SLAM.threatBonus ? SHIELD_SLAM : { ...SHIELD_SLAM, threatBonus: bonus }
+}
+
+/**
  * Sunder Armor rank 5 (spells.json 11597): cost 150, no cooldown, GCD 1500, any stance, a melee
  * weapon. On a landed hit (a block lands too) aura 22 −450 armor for `duration` 30000, stacking to 5
  * (`cumulativeAura` 5), each application refreshing the stack's duration; and a THREAT effect (63) of
- * 1013 [F], which replaces Classic Era's 261 [?] (threat.md#warrior, warrior.md Q1). It deals no
- * damage: one roll over miss, dodge, parry and block (combat-tables §3), and what lands is a hit, not a
- * crit (warrior.md §7). A miss, dodge or parry refunds 80% [C]. Its stacks on the boss take the place of
- * the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes). This is the `forever` row;
- * `sunderArmor(profile)` is the profile's.
+ * 206 [F] (1.60.1.70009; 1013 before it), plus 0.05 × attack power [?]: Blizzard's notes add "a small
+ * increase to threat generated from Attack Power", which the client doesn't carry (the effect has no
+ * bonus coefficient), so the share is a D29 default (`SUNDER_ARMOR_THREAT`; threat.md#warrior,
+ * warrior.md Q1). It deals no damage: one roll over miss, dodge, parry and block (combat-tables §3),
+ * and what lands is a hit, not a crit (warrior.md §7). A miss, dodge or parry refunds 80% [C]. Its
+ * stacks on the boss take the place of the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes). This
+ * is the `forever` row; `sunderArmor(profile)` is the profile's.
  */
 export const SUNDER_ARMOR: AbilityDef = {
   id: 'sunderArmor',
@@ -803,7 +830,8 @@ export const SUNDER_ARMOR: AbilityDef = {
   critMultiplier: CRIT_MULTIPLIER.melee,
   refundShare: REFUND,
   threatMult: 0,
-  threatBonus: 1013,
+  threatBonus: 206,
+  threatApCoefficient: 0.05,
   offHand: false,
   ...INSTANT,
   ...NO_CAST,
@@ -812,16 +840,26 @@ export const SUNDER_ARMOR: AbilityDef = {
 
 /**
  * Sunder Armor's threat per landed application, by rule profile (threat.md#warrior, worked examples T1
- * and T2): `forever` the Forever client's THREAT effect, 1013 [F] (its in-game total [?], warrior.md
- * Q1); `classicEra` Classic Era's server-side 261 [C] (Magey), since the Classic Era client has no
- * threat effect on the spell.
+ * and T2): `bonus` + `apCoefficient` × the attack power when it lands, before the global multipliers.
+ * - `forever`: the Forever client's THREAT effect, 206 at rank 5 [F] (1.60.1.70009, 34 / 75 / 117 /
+ *   158 / 206 by rank), plus 0.05 × attack power [?]. Blizzard's notes promise an Attack Power term
+ *   the client doesn't carry; 0.05 is D29's reasoned guess, which keeps the total near Classic Era's
+ *   rank 5 total of 261, the closest allowed value: 261 at 1,100 attack power, about 281 at the
+ *   default tank's ~1,500 when its Sunders land (threat.md#warrior; warrior.md Q1; open-questions B10).
+ * - `classicEra`: Classic Era's server-side 261 [C] (Magey), flat, since the Classic Era client has no
+ *   threat effect on the spell.
  */
-export const SUNDER_ARMOR_THREAT = { forever: 1013, classicEra: 261 } as const
+export const SUNDER_ARMOR_THREAT = {
+  forever: { bonus: 206, apCoefficient: 0.05 },
+  classicEra: { bonus: 261, apCoefficient: 0 },
+} as const
 
 /** Sunder Armor under a rule profile: its threat is the profile's (`SUNDER_ARMOR_THREAT`). */
 export function sunderArmor(profile: RulesProfile): AbilityDef {
-  const threat = SUNDER_ARMOR_THREAT[profile.id]
-  return threat === SUNDER_ARMOR.threatBonus ? SUNDER_ARMOR : { ...SUNDER_ARMOR, threatBonus: threat }
+  const { bonus, apCoefficient } = SUNDER_ARMOR_THREAT[profile.id]
+  return bonus === SUNDER_ARMOR.threatBonus && apCoefficient === SUNDER_ARMOR.threatApCoefficient
+    ? SUNDER_ARMOR
+    : { ...SUNDER_ARMOR, threatBonus: bonus, threatApCoefficient: apCoefficient }
 }
 
 /**

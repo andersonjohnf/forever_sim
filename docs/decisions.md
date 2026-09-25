@@ -363,9 +363,12 @@ PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
   search decides it.
 - **Max TPS may drop only the duties, and drops each one whose upkeep costs TPS;** a duty that
   makes threat itself stays (the bear's Faerie Fire). Other abilities stay unless dropping them
-  wins on TPS without resting on an untested threat value. Shield Slam stays: dropping it gains 3.3% TPS
-  only at Classic Era's +254 threat [?], while Forever's tooltip raised its threat to "very high",
-  and from about +449 keeping it wins on TPS as well.
+  wins on TPS without resting on an untested threat value. Shield Slam stayed: before build
+  1.60.1.70009, dropping it gained 3.3% TPS only at Classic Era's +254 threat [?], while Forever's
+  tooltip raised its threat to "very high", and from about +449 keeping it won on TPS as well.
+  Since that build's lower Sunder Armor, dropping it costs Max TPS 12.85% of its TPS even at +254
+  (957.77 → 834.72, seed 31101, 6,000 fights), so the untested value no longer decides it
+  ([warrior.md Q34](classes/warrior.md#9-open-questions)).
 - **The Buffs tab's versions of the duties** assume the tank applies them, so no preset lists a
   tank's duty (buffs doc §6.2). When Max TPS drops a duty, the Buffs tab's version is off by
   default too. You can turn it on there if another player keeps it up. For the same reason, a
@@ -447,7 +450,12 @@ paladin's plays as Defensive ([paladin.md](classes/paladin.md#priority-defensive
 The warrior leads: its Balanced makes 1,241 TPS against the paladin's 832 and the bear's 1,115
 (seed 31101, 100,000 fights), **+49.1%** over the paladin, at D29's
 ceiling, and Sunder Armor's 1,013 threat [F] is 33% of the warrior's threat. The next change that
-moves either tank checks against this.
+moves either tank checks against this. Build 1.60.1.70009 did: Sunder Armor fell to 206 plus 0.05 ×
+AP [?], and Shield Slam's "very high" took the wording table's +475 [?], so the warrior's Balanced
+makes 993 TPS, +19% over the paladin's 832 and 11% under the bear's 1,115 (the same seed, before
+their own 1.60.1.70009 slices); Balanced is +7.2% TPS over Defensive, and Max TPS keeps Shield Block
+by D26's rule, since its blocks now make more threat than its rage would elsewhere
+([warrior.md §5.4](classes/warrior.md#build-160170009-protection)).
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

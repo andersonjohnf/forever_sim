@@ -162,10 +162,13 @@ describe('values the docs state, read from the raw client', () => {
     expect(1 + points(rf) / 100).toBe(1.9)
   })
 
-  it('Sunder Armor rank 5 carries a THREAT effect of 1013 (docs/mechanics/threat.md)', () => {
-    const sunder = spell(rankId('warrior', 'Sunder Armor', 5))
-    expect(points(byEffect(sunder, THREAT))).toBe(1013)
-    expect(points(byAura(sunder, 22))).toBe(-450)
+  it('Sunder Armor carries a THREAT effect of 34 / 75 / 117 / 158 / 206 by rank, with no attack power coefficient (docs/mechanics/threat.md)', () => {
+    const ranks = [1, 2, 3, 4, 5].map((r) => byEffect(spell(rankId('warrior', 'Sunder Armor', r)), THREAT))
+    expect(ranks.map(points)).toEqual([34, 75, 117, 158, 206])
+    // The notes' attack power term isn't in the client: no bonus coefficient on the effect, for
+    // spell power or attack power (BonusCoefficientFromAP, written as bonusCoefficientFromAp).
+    for (const e of ranks) expect([e?.effectBonusCoefficient ?? 0, e?.bonusCoefficientFromAp ?? 0]).toEqual([0, 0])
+    expect(points(byAura(spell(rankId('warrior', 'Sunder Armor', 5)), 22))).toBe(-450)
   })
 
   it('Flurry gives 25% attack speed at 5/5 (warrior §2)', () => {

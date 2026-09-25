@@ -27,6 +27,7 @@ import {
   revengeWindowProcs,
   SHIELD_BLOCK,
   SHIELD_SLAM,
+  shieldSlam,
   SUNDER_ARMOR,
   sunderArmor,
   THUNDER_CLAP,
@@ -99,7 +100,9 @@ const PROT_MAX_RAGE = 100
  * and D28): Defensive keeps the tank's duties (Shield Block, Thunder Clap, Demoralizing Shout) and is
  * tuned on threat; Balanced, the default, keeps Shield Block and Sunder Armor's five stacks, drops
  * Thunder Clap and Demoralizing Shout, uses the Sunder Armor filler only from 60% of the rage bar,
- * and is tuned on threat and damage together; Max TPS drops the duties for threat, and keeps the rest, Shield Slam included. Defensive's
+ * and is tuned on threat and damage together; Max TPS drops the duties whose upkeep costs threat,
+ * Thunder Clap and Demoralizing Shout, and keeps the rest, Shield Block (whose blocks make threat
+ * since Sunder Armor's fell in 1.60.1.70009, D26's rule) and Shield Slam included. Defensive's
  * stored value is still `duties`, the old default's, so a setup that chose it loads as Defensive (D28).
  */
 export const PROTECTION_PRIORITY = { defensive: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
@@ -153,17 +156,17 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 /**
  * The presets' help, which the preset picker's info lists, and their short lines, which the picker
  * shows under it for the one picked (docs/ux.md "Rotation"): what each keeps and drops, with what it
- * measures against Defensive in the default setup (warrior.md §5.4 "Balanced" and "Max TPS"; seed
- * 31101, 100,000 paired fights).
+ * measures against Defensive in the default setup, and Max TPS against Balanced too, since the two
+ * share their rows (warrior.md §5.4 "Balanced", "Max TPS" and "Build 1.60.1.70009"; seed 31101,
+ * 100,000 paired fights).
  */
 const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
 const DEFENSIVE_HELP =
-  'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 1,133 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
-const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +10% TPS, +6% DPS, 21% more damage taken than Defensive.'
-const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: 9.5% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
-const MAX_TPS_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout dropped for threat: +14% TPS, 41% more damage taken than Defensive.'
-const MAX_TPS_HELP =
-  'Drops Shield Block, Thunder Clap and Demoralizing Shout for threat, and keeps Shield Slam. Against Defensive in the default setup: 13.9% more TPS, 6.9% more DPS and 41% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+  'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 926 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
+const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +6% DPS, 21% more damage taken than Defensive.'
+const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: 7.2% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
+const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +1% TPS over Balanced for the same damage taken.`
+const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (9 rage with the default talents) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rather than ${BALANCED_HS_PCT}%. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken; against Defensive, 8.3% more TPS, 6.9% more DPS and 21% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;
@@ -200,9 +203,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.sbEnabled,
     group: 'Cooldowns and buffs',
     label: 'Shield Block',
-    help: 'Use Shield Block on cooldown: +75% block chance for your next 2 blocks, up to 7 s. Each block gives 5 rage with Shield Specialization 5/5 and opens Revenge. Off by default with Max TPS.',
+    help: 'Use Shield Block on cooldown: +75% block chance for your next 2 blocks, up to 7 s. Each block gives 5 rage with Shield Specialization 5/5 and opens Revenge, so Max TPS keeps it too: its blocks make more threat than its rage would elsewhere.',
     default: true,
-    defaultWhen: [{ ...MAX_TPS, default: false }],
     requires: { shield: true },
   },
   rageOption(ID.sbMinRage, 'Shield Block from', 'Use it only at or above this much rage. It costs 10.', 10, ID.sbEnabled, 'Cooldowns and buffs'),
@@ -255,7 +257,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready, for its damage and threat. It stays on with Max TPS: its global cooldown and 17 rage make more threat as Sunder Armor and Heroic Strike only at Classic Era’s threat value, and Forever’s tooltip calls its threat very high.',
+    help: 'Use Shield Slam whenever it’s ready, for its damage and threat: the most threat a global cooldown makes, even at Classic Era’s threat value, and Forever’s tooltip calls its threat very high.',
     default: true,
     requires: { talent: 'Shield Slam', shield: true },
   },
@@ -301,7 +303,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.fillerSafe,
     group: 'Fillers',
     label: 'Sunder Armor filler waits for Shield Slam',
-    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it. Needs Shield Slam on. Off by default: the global cooldown makes more threat as a Sunder Armor.',
+    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it. Needs Shield Slam on. Off by default: it changes your threat by under 0.1%.',
     default: false,
     dependsOn: ID.fillerEnabled,
     alsoDependsOn: ID.slamEnabled,
@@ -552,8 +554,8 @@ export const PROTECTION_APL: AplDefinition = {
  * (PROTECTION_APL; absent: the default order). `talents` gates Shield Slam, follows Vanguard for
  * Charge's default and resolves costs, Improved Revenge and Improved Bloodrage; `context` gives the
  * race (its racial cooldown), the equipped on-use items, the selected consumables and the profile
- * (Thunder Clap's slow, Demoralizing Shout's attack power, Sunder Armor's threat, and the rage a
- * stance swap keeps). `_auraIndex` is unused: no Protection line reads a plan aura by id.
+ * (Thunder Clap's slow, Demoralizing Shout's attack power, Sunder Armor's and Shield Slam's threat,
+ * and the rage a stance swap keeps). `_auraIndex` is unused: no Protection line reads a plan aura by id.
  *
  * A row's conditions are its own wherever it sits: the filler stays GCD-safe for Shield Slam if you
  * move it above Shield Slam, so rows refer to each other's abilities by definition (`b.ability`),
@@ -572,10 +574,12 @@ export function protectionRotation(
   const b = new RotationBuilder(talents)
 
   const tcDef = thunderClap(ctx.profile)
-  // Its threat is the profile's: Forever's 1013, Classic Era's 261 (threat.md#warrior).
+  // Its threat is the profile's: Forever's 206 plus 5% of attack power, Classic Era's 261 (threat.md#warrior).
   const sunderDef = sunderArmor(ctx.profile)
+  // Its threat bonus is the profile's: Forever's "very high" 475 [?], Classic Era's 254 (threat.md#warrior).
+  const slamDef = shieldSlam(ctx.profile)
   /** Shield Slam's index, −1 when it isn't used (no talent, or off). */
-  const slam = () => (talents.has('Shield Slam') && v.on(ID.slamEnabled) ? b.ability(SHIELD_SLAM) : -1)
+  const slam = () => (talents.has('Shield Slam') && v.on(ID.slamEnabled) ? b.ability(slamDef) : -1)
 
   // Row 4: the Mighty Rage Potion (off the GCD), once, the first time rage ≤ maxRage; Juju Flurry on
   // cooldown. Each only when it's selected in Buffs. Spec-wide, above the list, and tried where §5.4
@@ -617,7 +621,7 @@ export function protectionRotation(
     },
     // Row 7: Shield Slam (the talent) whenever it's ready, at rage ≥ minRage.
     shieldSlam: () => {
-      if (slam() >= 0) b.add(SHIELD_SLAM, [minRage(toTenths(v.num(ID.slamMinRage)))])
+      if (slam() >= 0) b.add(slamDef, [minRage(toTenths(v.num(ID.slamMinRage)))])
     },
     // Row 8: Revenge whenever its window is open (the engine adds the window to the line); its openers
     // come with it: a block, dodge or parry of the boss's swings (§2.8).

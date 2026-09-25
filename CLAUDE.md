@@ -114,6 +114,13 @@ Discord. Its readers already know what the sim is, where it lives and how to rep
   isn't deployed yet, say it's coming in the next update, and list work in progress only
   under a short "Coming soon" line.
 
+**Coming soon** (`src/app/roadmap.ts`, the menu's Coming soon sheet) lists every agreed milestone
+from `docs/milestones.md`, in the order they're coming, in the same player voice: no internals, no
+milestone ids, nothing promised that isn't agreed. Keep it in step with the milestones: a new or
+reordered milestone updates it in the same commit, and shipped work moves into that release's entry.
+When the user asks for a Coming soon post for Discord, make it terse: the heading "## Coming soon",
+a **Next update** group, then an **After that** group with one short bullet a milestone.
+
 ## Working with agents: small slices, fresh contexts
 
 Large work is split into **slices** listed under each milestone in `docs/milestones.md`.

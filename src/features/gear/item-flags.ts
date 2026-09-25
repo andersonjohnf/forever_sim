@@ -24,6 +24,20 @@ export function unsimulatedEffects(item: Item, spec?: SpecId): string[] {
 }
 
 /**
+ * The row's stats line (docs/ux.md "Gear"): its key stats, or, for an item with none, its effects in
+ * the tooltip's own words, so a trinket whose worth is its proc says what earns its rank (Draconic
+ * Infused Emblem's spell damage, Earthstrike's attack power); "No stats" only when it has neither.
+ */
+export function statsLine(item: Item): string {
+  return summarizeItem(item) || effectsLine(item) || 'No stats'
+}
+
+/** The item's equip, chance-on-hit and use lines, as its tooltip words them, or '' for none. */
+export function effectsLine(item: Item): string {
+  return [...item.procs, ...item.otherEquip, ...item.useEffects].map((e) => e.raw).join(' ')
+}
+
+/**
  * What a screen reader hears for an item after its name: its details, stats, BiS rank and flags.
  * The row's button carries it (docs/ux.md "Gear"), since the visible text sits outside the button.
  */
@@ -33,7 +47,7 @@ export function itemDescription(
 ): string {
   return [
     meta,
-    summarizeItem(item) || 'No stats',
+    statsLine(item),
     bis ? (bis === 1 ? 'Best in slot' : `Best in slot, choice ${bis}`) : null,
     item.foreverData ? null : 'Classic stats: no Forever data yet',
     unsimulatedEffects(item, spec).length ? 'Has an effect the sim doesn’t simulate' : null,

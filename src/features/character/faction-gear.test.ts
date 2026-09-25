@@ -103,8 +103,9 @@ describe('the race change’s stat twins (docs/data/items.md#faction-twins, "Two
   })
 
   it('swap the Rank 7 to 10 leather, satin and silk and the Arathi Basin mail, whose sets differ (GV-1)', () => {
-    // The Alliance's Rank 7 to 10 pieces have no item set in Forever's rows; Highlander's Mail
-    // Pauldrons' 3-piece is spell crit where the Defilers' is melee crit.
+    // The Alliance's Rank 7 to 10 silk and satin, and the Horde's leather, have no item set in
+    // Forever's rows (1.60.1.70009); Highlander's Mail Pauldrons' 3-piece is spell crit where the
+    // Defilers' is melee crit.
     const cases: [number, 'Alliance' | 'Horde', ClassId, number][] = [
       [23257, 'Alliance', 'rogue', 23312], // Champion's → Lieutenant Commander's Leather Helm
       [22864, 'Alliance', 'rogue', 23284], // Blood Guard's → Knight-Lieutenant's Leather Grips

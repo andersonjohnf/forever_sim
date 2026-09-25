@@ -70,7 +70,7 @@ test.describe('faction gear on a race change', () => {
     // The Alliance's Rank 7 to 10 silk has the Horde pieces' stats but no item set.
     const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 3 items for their Alliance versions' })
     await expect(notice).toContainText('Sageclaw, with the same stats.')
-    await expect(notice).toContainText("Knight-Captain's Silk Legguards and Knight-Lieutenant's Silk Walkers, with the same stats but not the same set bonus.")
+    await expect(notice).toContainText("Knight-Captain's Silk Legguards and Knight-Lieutenant's Silk Walkers, with the same stats but no set bonus.")
 
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(page.getByRole('button', { name: "Legs: Knight-Captain's Silk Legguards" })).toBeVisible()

@@ -58,7 +58,7 @@ describe('migrateOlderCode', () => {
     expect(migrationNotice(ret)).toBe('Your talents were the Retribution default on the game’s old trees; they’re now today’s default.')
     // A notice that names the spec doesn't name the default's spec again (review TMV-2)...
     expect(migrationNotice(ret, { whose: 'Retribution Paladin', spec: 'paladin-retribution' })).toBe(
-      'Your Retribution Paladin talents were the default then; they’re now today’s default.',
+      'Your Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default.',
     )
     // ...unless it's another spec's default.
     expect(migrationNotice(ret, { whose: 'Protection Paladin', spec: 'paladin-protection' })).toBe(

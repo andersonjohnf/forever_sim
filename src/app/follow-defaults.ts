@@ -199,9 +199,9 @@ function whoseOf(specs: readonly SpecId[]): string {
  * "Updated to the new default gear and talents for Protection Paladin". What reading builds from
  * the game's older talent trees changed follows it, or stands on its own, by spec, the current spec
  * first: each shipped build read as its successor ("Your Retribution Paladin talents were the
- * default then; they’re now today’s default."), and every spec's refunds in one sentence, placed at
- * the first spec it names ("The game’s new talent trees refunded 16 of your Retribution Paladin and 2
- * of your Protection Paladin talent points: …"), under "Talent points refunded for …" or "Talents
+ * default on the game’s old trees; they’re now today’s default."), and every spec's refunds in one
+ * sentence, placed at the first spec it names ("The game’s new talent trees refunded 16 of your
+ * Retribution Paladin and 2 of your Protection Paladin talent points: …"), under "Talent points refunded for …" or "Talents
  * moved onto the game’s new trees for …". "Gear and talents you changed yourself are kept." opens
  * the notice when parts moved; when a successor replaced a build the player picked (a shipped code
  * their setup no longer followed), where that wouldn't hold, it's "Gear you changed yourself is

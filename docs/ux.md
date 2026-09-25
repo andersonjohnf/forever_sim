@@ -142,9 +142,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A race on the other side swaps the faction-bound gear (PvP, battleground and reputation
     rewards, [items.md](data/items.md#equipping-rules)) for the new faction's twin, which has
     the same stats, and keeps the slot's enchant. Where the other side's piece has the same stats
-    in another set or none (the Alliance's Rank 7 to 10 silk and leather have no set bonus), it
-    swaps too, and the notice says so: "…, with the same stats but not the same set bonus"
-    ([items.md "Faction twins"](data/items.md#faction-twins)). A twin's class restriction counts only as
+    in another set or none (the Alliance's Rank 7 to 10 silk and satin, and the Horde's leather, have
+    no set bonus), it
+    swaps too, and the notice says how: "…, with the same stats but in another set", "…, with the
+    same stats but no set bonus", or, going back to a piece in a set, "…, with the same stats, now
+    with a set bonus" ([items.md "Faction twins"](data/items.md#faction-twins)). A twin's class restriction counts only as
     whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
     and paladins) swap for First Sergeant's Plate Bracers (warriors). The swap happens out of
     sight, on the Gear tab, so a notice names the new items. An item with no twin stays, and the
@@ -240,7 +242,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
     so it stays a deliberate step away.
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
-    a one-line summary of its key stats, and an enchant chip. Empty slots have their own
+    a one-line summary of its key stats, and an enchant chip. An item with no stats, whose worth is
+    its effect (Draconic Infused Emblem, Earthstrike, a totem or idol), shows its effects in the
+    tooltip's own words there instead (`statsLine` in `src/features/gear/item-flags.ts`), on slot
+    and picker rows alike, so a proc trinket's BiS rank has its reason beside it; "No stats" is
+    left for an item with neither. Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
     widening the page, down to 320 px.
   - Choosing a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
@@ -330,7 +336,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     weapon)" for a warrior, "(one stone or poison per weapon)" for a rogue, "(one stone or oil per
     weapon)" for a Retribution paladin, "(one oil at a time)" for a caster; one the spec can't use
     says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
-    cooldown, so one is on at a time". So the switch that turns off isn't a surprise
+    cooldown, so one is on at a time". The air totems' (Windfury and Grace of Air) end "One air
+    totem at a time (even from different shamans)", and the two Thorns' (a raid druid's and a bear's
+    own) "Doesn't stack with the other Thorns", but only while the tab lists the rival and the spec
+    can use it: a warrior's Thorns, with no own Thorns beside it, and an Enhancement shaman's totems
+    while its Windfury Weapon locks Windfury off, have none (`src/features/buffs/rival-note.ts`). So
+    the switch that turns off isn't a surprise
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
   - EZ-Thro Dark Bomb's summary ends with what its 1 s throw costs your spec, in its own terms: "its
     1 s throw stops your melee swings" for a spec that swings, "holds your next cast" for a caster,
@@ -388,8 +399,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
-    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's Max TPS
-    against Balanced too, which it differs from by one setting), when to pick it, and the Buffs
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's and a
+    warrior's Max TPS against Balanced too, whose rows they share: a bear's differs by one setting,
+    a warrior's by two thresholds), when to pick it, and the Buffs
     tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
     the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
     most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken
@@ -1038,8 +1050,8 @@ Every view handles these states:
   default on the game’s old trees; they’re now today’s default." A link, a code or a Load says it
   among its changes, below. A visit says it in the defaults notice, naming the spec ("… 16 of your
   Retribution Paladin talent points: …", every spec's refunds in the one sentence; "Your
-  Retribution Paladin talents were the default then; they’re now today’s default."), by spec, the
-  current spec first, after what moved, or on its own under "Talent points refunded for
+  Retribution Paladin talents were the default on the game’s old trees; they’re now today’s
+  default."), by spec, the current spec first, after what moved, or on its own under "Talent points refunded for
   Retribution Paladin" (or "Talents moved onto the game’s new trees for …" when a shipped build is
   among them). When a shipped build replaced one you had picked yourself, the notice's opening
   reads "Gear you changed yourself is kept." rather than claiming your talents were. A build that
@@ -1063,13 +1075,19 @@ Every view handles these states:
   too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
   stone) did nothing, so it isn't mentioned.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
-  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A load's
-  notice that says more (its changes, a talent build's refunds) stays long enough to read at a
-  slow reader's pace: 4 s, then a second for every 3 words, up to 30 s (`noticeDuration` in
-  `src/app/load-notice.ts`). The longest, a visit's that moved parts of several specs and read
+  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A notice that
+  says more (a load's changes, a talent build's refunds, a race change's set bonus) stays long
+  enough to read at a slow reader's pace: 4 s, then a second for every 3 words, up to 30 s
+  (`noticeDuration` in `src/app/load-notice.ts`): a load's (a shared link, a setup loaded or
+  imported, a visit's) and a race change's that swapped faction gear. The longest, a visit's that moved parts of several specs and read
   several specs' builds from the older trees, reaches that 30 s cap; hovering over it, touching it or reaching it with
   Alt+T pauses it there too, so a reader who needs longer keeps it. A swipe sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
   never cover the header.
+  - **The load's own notices come one at a time.** The page's share link's and the visit's (newer
+    defaults, a build from the older trees) can both come as the page opens. The second waits until
+    the first has gone, then gets its own whole time in front (`src/app/held-toasts.ts`). Stacked,
+    the one behind would run out its time unread, and a phone can't hover to spread the stack.
+    They wait for What's New too ([What's new](#whats-new)). A link pasted in later says so at once.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
     (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, a

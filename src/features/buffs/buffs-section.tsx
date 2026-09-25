@@ -11,6 +11,7 @@ import { Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { buffSwitchId } from './ids'
+import { rivalNote } from './rival-note'
 import { weaponNote } from './weapon-note'
 import {
   buffCatalogueFor,
@@ -257,7 +258,10 @@ export function BuffsSection() {
                       const note = weaponNote(def, buffCatalogue, inert)
                       // A bomb's summary says what its throw holds for this spec (buffs doc §3.7).
                       const base = buffSummaryFor(def, meta.id)
-                      const summary = note ? `${base} ${note}` : base
+                      // One that turns off a rival its summary doesn't name says so (rival-note.ts).
+                      const rival = rivalNote(def, buffCatalogue, inert)
+                      const noted = note ? `${base} ${note}` : base
+                      const summary = rival ? `${noted}. ${rival}` : noted
                       let help = summary
                       if (talent) help = `${summary}. Your talents bring it (see Talents), so it isn’t added twice.`
                       else if (replacedBy && notCast) help = `${summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`

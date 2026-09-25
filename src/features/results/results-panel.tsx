@@ -1,8 +1,10 @@
-import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
+import { ChevronRight, ChevronsDown, IdCard, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type PointerEvent, type ReactNode, type RefObject, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
+import { CLASS_TEXT, useSpecMeta } from '@/app/specs'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -10,7 +12,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
-import { casterSheetRows, rangedSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
 import { type CharacterSheet as CharacterSheetData, computeSheet, type FightConfig, WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
@@ -19,7 +20,8 @@ import { ManaPerFight } from './mana-results'
 import { outcomeLines } from './outcomes'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
-import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
+import { isDefensive, type SheetRow, sheetGroups, sheetRows, WEAPON_SKILL_LABEL, weaponSkillValue } from './sheet-groups'
+import { avoidanceOf, CRIT_REDUCTION_LABEL } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
 import { simulateShortcutLabel } from './shortcut-label'
 import { useScrollEdges } from './use-scroll-edges'
@@ -105,11 +107,15 @@ function RunningBadge({ pct }: { pct: number | null }) {
   )
 }
 
-export function Headline({ compact = false }: { compact?: boolean }) {
+/**
+ * The headline values. `progress` false leaves a run's progress out: the wide panel shows it in Your
+ * setup's action row, beside Cancel (docs/ux.md#results).
+ */
+export function Headline({ compact = false, progress = true }: { compact?: boolean; progress?: boolean }) {
   const { result, previous, stale, running, rerunning, progressPct, dimmed, config } = useRunState()
   // A result shows the metrics of the spec it was run for; only this spec's result is shown.
   const metrics = metricsFor(result?.spec ?? config.spec)
-  if (running && !result) return <RunProgress pct={progressPct} compact={compact} />
+  if (running && !result) return progress ? <RunProgress pct={progressPct} compact={compact} /> : null
   const rows: MetricRow[] = metrics.map((key) => ({
     key,
     label: METRIC_LABEL[key],
@@ -125,7 +131,7 @@ export function Headline({ compact = false }: { compact?: boolean }) {
     ) : (
       <TankHeadline rows={rows} compact={compact} dimmed={dimmed} badge={badge} />
     )
-  if (compact || !running) return headline
+  if (compact || !running || !progress) return headline
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <RunProgress pct={progressPct} />
@@ -408,13 +414,14 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
 }
 
 /**
- * The wide layout's line under the setup summary (src/app/setup-summary.tsx), beside its Simulate:
- * what a run would do now, the first or one for a changed setup, and nothing once the result is
- * this setup's.
+ * The wide layout's status in Your setup's action row (src/app/setup-summary.tsx), beside its
+ * Simulate: what a run would do now, the first or one for a changed setup, a run's progress beside
+ * Cancel, and nothing once the result is this setup's or a failure says what happened.
  */
 export function SimulateNote() {
-  const { result, stale, running, error, metricLabel } = useRunState()
-  if (running || error !== null) return null
+  const { result, stale, running, error, metricLabel, progressPct } = useRunState()
+  if (running) return <RunProgress pct={progressPct} />
+  if (error !== null) return null
   if (!result) return <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
   if (stale) return <p className="text-sm text-muted-foreground">Your setup changed since this run. Simulate to update it.</p>
   return null
@@ -510,7 +517,8 @@ function WidePanel({ setup }: { setup: ReactNode }) {
   const { above, below } = useScrollEdges(scroller, content)
   const pinned = usePinned(panel, sheet, summary)
   const empty = result !== null && result.abilities.length === 0
-  const shown = result !== null || running || error !== null
+  // A run's progress is in Your setup's action row, so a first run shows nothing here yet.
+  const shown = result !== null || error !== null
   useRevealResult(scroller, results, pinned, running, result)
   return (
     // The panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops 24 px above
@@ -528,13 +536,21 @@ function WidePanel({ setup }: { setup: ReactNode }) {
         className="relative -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <div ref={content} className="flex flex-col">
-          <section ref={sheet} aria-labelledby={sheetHeadingId} className={cn('flex flex-col gap-3 bg-background pb-4', pinned.sheet && 'sticky top-0 z-10')}>
-            <h3 id={sheetHeadingId} className="text-sm font-medium">
-              Character sheet
-            </h3>
-            <LiveSheet />
+          <section ref={sheet} aria-labelledby={sheetHeadingId} className={cn('bg-background pt-px pb-2', pinned.sheet && 'sticky top-0 z-10')}>
+            <Card size="sm" className="gap-2">
+              <CardHeader className="flex items-center justify-between gap-3">
+                <h3 id={sheetHeadingId} className="flex items-center gap-2 text-sm font-medium">
+                  <IdCard className="size-4 text-muted-foreground" aria-hidden />
+                  Character sheet
+                </h3>
+                <SpecLine />
+              </CardHeader>
+              <CardContent>
+                <LiveSheet />
+              </CardContent>
+            </Card>
           </section>
-          <div ref={summary} className="sticky z-10 border-t bg-background py-4" style={{ top: pinned.sheet ? pinned.sheetHeight : 0 }}>
+          <div ref={summary} className="sticky z-10 bg-background pt-px pb-1" style={{ top: pinned.sheet ? pinned.sheetHeight : 0 }}>
             {setup}
             {/* The results scrolled under it: the fade marks that there's more above. With no result
                 it isn't there, since it would hang past the panel's end and make it scroll. */}
@@ -550,11 +566,11 @@ function WidePanel({ setup }: { setup: ReactNode }) {
             )}
           </div>
           {shown && (
-            <div ref={results} data-dimmed={dimmed} className={cn('flex flex-col border-t [&>*:last-child]:border-b-0', DIM_ROOT)}>
+            <div ref={results} data-dimmed={dimmed} className={cn('flex flex-col [&>*:last-child]:border-b-0', DIM_ROOT)}>
               <WideSection>
-                {(result !== null || running) && (
+                {result !== null && (
                   <div className="flex flex-col gap-2">
-                    <Headline />
+                    <Headline progress={false} />
                     {result && <RunSummary result={result} runConfig={runConfig} />}
                   </div>
                 )}
@@ -624,7 +640,17 @@ function LiveSheet() {
   if (!sheet) {
     return <p className="text-sm text-muted-foreground">This setup can’t be simulated, so it has no sheet. Simulate to see what to change.</p>
   }
-  return <SheetStats sheet={sheet} fight={config.fight} uptimes={result && !stale ? result.cooldowns : []} />
+  return <SheetStats sheet={sheet} fight={config.fight} uptimes={result && !stale ? result.cooldowns : []} grouped />
+}
+
+/** Whose sheet it is, "Fury Warrior", in the class's colour: the panel's one accent (docs/ux.md#visual-language). */
+function SpecLine() {
+  const meta = useSpecMeta()
+  return (
+    <span className={cn('truncate text-xs font-medium', CLASS_TEXT[meta.classId])}>
+      {meta.name} {meta.className}
+    </span>
+  )
 }
 
 /**
@@ -849,94 +875,55 @@ const AVOIDANCE_BASES = new Set(['base dodge', 'base parry', 'base block'])
  * The character sheet's stats (docs/ux.md#results): a result's, or in the wide panel the setup's own
  * (`LiveSheet`). `fight` is the fight for the boss's table; `uptimes`, a run's cooldowns and buffs,
  * gives the block buff's uptime that the table's line names, when there's a run to take it from.
+ * `grouped` is the wide panel's layout: the rows in groups as a player reads them (`sheetGroups`);
+ * otherwise they run in two columns of counterparts.
  */
-function SheetStats({ sheet: s, fight, uptimes }: { sheet: CharacterSheetData; fight: FightConfig | null; uptimes: SimResult['cooldowns'] }) {
+function SheetStats({
+  sheet: s,
+  fight,
+  uptimes,
+  grouped = false,
+}: {
+  sheet: CharacterSheetData
+  fight: FightConfig | null
+  uptimes: SimResult['cooldowns']
+  grouped?: boolean
+}) {
   const unknown = s.unknown ?? []
-  const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
   // A tank's sheet has the boss's table against it (docs/ux.md#results).
   const bossTable = s.bossTable ?? null
-  // A ranged spec's gear defense (Dal'Rend's Tribal Guardian's +7) doesn't make it a tank's sheet (docs/classes/hunter.md#9-implementation-notes).
-  const defensive = bossTable !== null || (!s.ranged && (s.defense > 300 || s.blockValue > 0))
   // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
   // (a tank's avoidance placeholders only with their rows).
+  const defensive = isDefensive(s)
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
-  // A paladin's spell stats and mana (docs/ux.md#results): two columns of counterparts, melee on the
-  // left and spells on the right, row by row (Attack power | Spell damage, Crit | Spell crit, …).
-  const spell = s.spell
-  const weaponSkill = dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)
-  // A caster's sheet (docs/mechanics/spells.md §12): spell damage by school, crit, hit, casting speed, mana.
-  const casterRows = casterSheetRows(s)
-  // A ranged spec's sheet (docs/classes/hunter.md#9-implementation-notes): its ranged weapon's numbers, then its mana.
-  const rangedRows = rangedSheetRows(s)
-  const rows: [string, string][] = rangedRows
-    ? rangedRows
-    : casterRows
-    ? casterRows
-    : spell
-    ? [
-        ['Attack power', formatInt(s.attackPower)],
-        // Holy: every paladin spell is (Champion of the Light's share of Intellect included).
-        ['Spell damage', formatInt(spell.holyDamage)],
-        ['Crit', formatPct(s.critPct)],
-        ['Spell crit', formatPct(spell.critPct)],
-        ['Hit', formatPct(s.hitPct)],
-        ['Spell hit', formatPct(spell.hitPct)],
-        ['Weapon skill', weaponSkill],
-        ['Expertise', formatInt(s.expertise)],
-        ['Strength', formatInt(s.strength)],
-        ['Agility', formatInt(s.agility)],
-        ['Stamina', formatInt(s.stamina)],
-        ['Intellect', formatInt(s.intellect)],
-        ['Health', formatInt(s.health)],
-        ['Mana', formatInt(s.mana ?? 0)],
-        ['Spirit', formatInt(s.spirit)],
-        ['Mana per 5 s', formatInt(spell.mp5)],
-        ['Haste', formatPct(s.hastePct)],
-      ]
-    : [
-        ['Attack power', formatInt(s.attackPower)],
-        ['Crit', formatPct(s.critPct)],
-        ['Hit', formatPct(s.hitPct)],
-        ['Haste', formatPct(s.hastePct)],
-        ['Weapon skill', weaponSkill],
-        ['Expertise', formatInt(s.expertise)],
-        ['Strength', formatInt(s.strength)],
-        ['Agility', formatInt(s.agility)],
-        ['Stamina', formatInt(s.stamina)],
-        ['Health', formatInt(s.health)],
-      ]
-  rows.push(
-    ['Armor', formatInt(s.armor)],
-    ...(defensive
-      ? ([
-          ['Defense', formatInt(s.defense)],
-          ...(bossTable ? ([[CRIT_REDUCTION_LABEL, formatCritReduction(s.critReductionPct)]] as [string, string][]) : []),
-          ['Dodge', formatPct(s.dodgePct)],
-          // A druid can neither parry nor block: no rows for them (BU15).
-          ...(s.canParry === false ? [] : ([['Parry', formatPct(s.parryPct)]] as [string, string][])),
-          ...(s.canBlock === false
-            ? []
-            : ([
-                ['Block', formatPct(s.blockPct)],
-                ['Block value', formatInt(s.blockValue)],
-              ] as [string, string][])),
-        ] as [string, string][])
-      : []),
+  const rows = sheetRows(s)
+  const unevenHands = weaponSkillValue(s.weaponSkill).spoken !== null
+  const stat =([label, value]: SheetRow, className?: string) => (
+    <div key={label} className={cn('flex justify-between gap-2', className)}>
+      <dt className="text-muted-foreground">
+        {/* In the wide panel's columns crit reduction's label takes two lines, broken before its "(boss's crits)". */}
+        {grouped && label === CRIT_REDUCTION_LABEL ? (
+          <>
+            {label.slice(0, label.indexOf(' ('))} <span className="whitespace-nowrap">{label.slice(label.indexOf(' (') + 1)}</span>
+          </>
+        ) : (
+          label
+        )}
+      </dt>
+      {label === WEAPON_SKILL_LABEL ? <WeaponSkill skill={s.weaponSkill} /> : <dd className="text-right tabular-nums">{value}</dd>}
+    </div>
   )
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-        {rows.map(([label, value]) => {
-          // Both hands' weapon skills, and crit reduction's longer label, need the row to themselves at the panel's width.
-          const wide = (label === 'Weapon skill' && dualWield) || label === CRIT_REDUCTION_LABEL
-          return (
-            <div key={label} className={cn('flex justify-between gap-2', wide && 'col-span-2')}>
-              <dt className="text-muted-foreground">{label}</dt>
-              <dd className="text-right tabular-nums">{value}</dd>
-            </div>
-          )
-        })}
-      </dl>
+      {grouped ? (
+        <SheetGroups rows={rows} stat={stat} />
+      ) : (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+          {/* Crit reduction's longer label, and both hands' weapon skills where they differ ("302 · 300", which a
+              column 9 rem wide can't hold beside its label), need the row to themselves at the panel's width. */}
+          {rows.map((row) => stat(row, row[0] === CRIT_REDUCTION_LABEL || (row[0] === WEAPON_SKILL_LABEL && unevenHands) ? 'col-span-2' : undefined))}
+        </dl>
+      )}
       {bossTable && (
         <BossTable
           // With the block buff the rotation keeps up (Holy Shield), the table as it is most of the fight.
@@ -964,6 +951,46 @@ function SheetStats({ sheet: s, fight, uptimes }: { sheet: CharacterSheetData; f
           Classic-based values until they’re measured: {placeholders.join(', ')}.
         </p>
       )}
+    </div>
+  )
+}
+
+/**
+ * Weapon skill as one number, "300", or "300 · 305" when the hands differ, which never wraps; a
+ * screen reader and the tooltip name the hands (docs/ux.md#results, `weaponSkillValue`).
+ */
+function WeaponSkill({ skill }: { skill: CharacterSheetData['weaponSkill'] }) {
+  const { text, spoken, title } = weaponSkillValue(skill)
+  if (!spoken) return <dd className="text-right tabular-nums">{text}</dd>
+  return (
+    <dd className="text-right whitespace-nowrap tabular-nums" title={title ?? undefined}>
+      <span aria-hidden>{text}</span>
+      <span className="sr-only">{spoken}</span>
+    </dd>
+  )
+}
+
+/**
+ * The wide panel's sheet in groups (docs/ux.md#results): Offense, Attributes and Defense for a melee
+ * spec, Spells and Mana for a caster, Melee beside Spells for a paladin. They flow in two columns in
+ * a 30 rem panel and three from 38 rem, each group kept whole. A tank's Defense spans the columns,
+ * its rows in the same columns, just above the boss's table in its two.
+ */
+function SheetGroups({ rows, stat }: { rows: SheetRow[]; stat: (row: SheetRow) => ReactNode }) {
+  const groups = sheetGroups(rows)
+  return (
+    <div className="-mb-2.5 columns-2 gap-x-6 text-sm @min-[38rem]/results:columns-3">
+      {groups.map((g) => {
+        const wide = g.rows.some(([label]) => label === CRIT_REDUCTION_LABEL)
+        return (
+          <div key={g.id} className={cn('flex break-inside-avoid flex-col gap-1 pb-2.5', wide && '[column-span:all]')}>
+            <h4 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{g.title}</h4>
+            <dl className={cn('grid gap-y-1', wide ? 'grid-cols-2 gap-x-6 @min-[38rem]/results:grid-cols-3' : 'grid-cols-1')}>
+              {g.rows.map((row) => stat(row))}
+            </dl>
+          </div>
+        )
+      })}
     </div>
   )
 }

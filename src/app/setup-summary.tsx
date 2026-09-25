@@ -1,15 +1,28 @@
+import { ChevronRight, ListOrdered, type LucideIcon, Network, Shield, SlidersHorizontal, Sparkles, Swords, UserRound } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { sectionSummaries } from '@/app/section-summary'
 import type { SectionTab } from '@/app/section-tabs'
 import { useSetup, type Section } from '@/app/setup-store'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+
+/** Each section's icon, beside its name in Your setup (docs/ux.md#results). */
+const SECTION_ICON: Record<Section, LucideIcon> = {
+  character: UserRound,
+  talents: Network,
+  gear: Shield,
+  buffs: Sparkles,
+  rotation: ListOrdered,
+  fight: Swords,
+}
 
 /**
- * "Your setup" in the wide layout's right panel (from 1440 px, D34; docs/ux.md#results): one line a
- * section, its name and what it holds (src/app/section-summary.ts), so the whole setup reads at a
- * glance. Each line is a button that opens its section's tab and moves focus there (`onOpen`, the
- * shell's own tab opening). `action` is Simulate, on the heading's right as a section's action sits
- * (docs/ux.md "Setup sections"), and `note` the line under the list that says what a run would do.
+ * "Your setup" in the wide layout's right panel (from 1440 px, D34; docs/ux.md#results), a card: one
+ * line a section, its icon and name over what it holds (src/app/section-summary.ts), so the whole
+ * setup reads at a glance. Each line is a button that opens its section's tab and moves focus there
+ * (`onOpen`, the shell's own tab opening); on hover its name gains a chevron and its value an
+ * underline. The card ends on its action row: `note` on the left (what a run would do, or its
+ * progress) and `action`, Simulate, on the right, sized to its label.
  */
 export function SetupSummary({
   sections,
@@ -26,30 +39,47 @@ export function SetupSummary({
   const summaries = useSetup(useShallow((s) => sectionSummaries(s.config)))
   const headingId = useId()
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <h3 id={headingId} className="text-sm font-medium">
-          Your setup
-        </h3>
-        {action}
-      </div>
-      {/* Two columns in a 30 rem panel (1440 px), three once the panel has room for the longest line (about 1,830 px). */}
-      <ul className="-mx-2 grid grid-cols-2 gap-x-2 @min-[38rem]/results:grid-cols-3">
-        {sections.map(({ id, label }) => (
-          <li key={id} className="min-w-0">
-            <button
-              type="button"
-              onClick={() => onOpen(id)}
-              className="flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <span className="text-xs text-muted-foreground">{label}</span>
-              {/* Its name reads "Talents 17/34/0": the space isn't drawn between flex items. */}{' '}
-              <span className="text-sm">{summaries[id]}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {note}
+    <section aria-labelledby={headingId}>
+      <Card size="sm" className="gap-2">
+        <CardHeader>
+          <h3 id={headingId} className="flex items-center gap-2 text-sm font-medium">
+            <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden />
+            Your setup
+          </h3>
+        </CardHeader>
+        <CardContent>
+          {/* Two columns in a 30 rem panel (1440 px), three once the panel has room for the longest line (about 1,830 px). */}
+          <ul className="-mx-2 grid grid-cols-2 gap-x-2 @min-[38rem]/results:grid-cols-3">
+            {sections.map(({ id, label }) => {
+              const Icon = SECTION_ICON[id]
+              return (
+                <li key={id} className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => onOpen(id)}
+                    className="group flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Icon className="size-3.5 shrink-0" aria-hidden />
+                      {label}
+                      <ChevronRight
+                        className="size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                        aria-hidden
+                      />
+                    </span>
+                    {/* Its name reads "Talents 17/34/0": the space isn't drawn between flex items. */}{' '}
+                    <span className="max-w-full truncate text-sm decoration-muted-foreground/60 underline-offset-4 group-hover:underline group-focus-visible:underline">{summaries[id]}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </CardContent>
+        <CardFooter className="justify-between gap-3 py-2">
+          <div className="min-w-0 flex-1">{note}</div>
+          <div className="shrink-0">{action}</div>
+        </CardFooter>
+      </Card>
     </section>
   )
 }

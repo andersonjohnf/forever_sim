@@ -98,8 +98,8 @@ test.describe('Destruction warlock', () => {
     await switchTo(page, 'Destruction')
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
-    // The sacrifice and the consumables above its priority list (D31, warlock.md §6.4).
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+    // The sacrifice (first, with no heading of its own) and the consumables above its priority list (D31, warlock.md §6.4).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
     await expect(tab.getByRole('radio', { name: 'Succubus', exact: true })).toBeChecked()
     const list = tab.getByRole('list', { name: 'Priority list' })
     await expect(list.locator('[data-apl-row="filler"]')).toContainText('Incinerate')

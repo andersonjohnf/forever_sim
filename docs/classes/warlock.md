@@ -350,9 +350,10 @@ its place in the priority changes.
 
 - **Pinned:** nothing. The pre-pull is Demonic Sacrifice (and Demonology's demon with its passives,
   §11.4), all spec-wide.
-- **Spec-wide, above the list:** Demonic Sacrifice, under Cooldowns and buffs (Demonology's under
-  Before the pull, with its Demon); the Major Mana Potion and Demonic Rune with their missing-mana
-  limits, under Consumables. The potion and the rune take
+- **Spec-wide, above the list:** Demonic Sacrifice, first and with no heading on Destruction and
+  Affliction (it picks the school their spells gain, and a heading holds at least two settings,
+  docs/ux.md "Rotation"), under Before the pull with its Demon on Demonology; the Major Mana Potion and
+  Demonic Rune with their missing-mana limits, under Consumables. The potion and the rune take
   their turn with Power Infusion's row, wherever it sits, as they did before the list.
 - **After the list, always last:** Life Tap whenever nothing on the list can be cast, as when the
   filler can't be paid for. It has no row: above the filler it would tap every global cooldown.

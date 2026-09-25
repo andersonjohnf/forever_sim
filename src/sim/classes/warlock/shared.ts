@@ -104,8 +104,11 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
       {
         kind: 'choice',
         id: ID.sacrifice,
-        // Spec-wide, above the priority list (warlockApl); Demonology's with its demon, before the pull.
-        group: spec === 'demonology' ? 'Before the pull' : 'Cooldowns and buffs',
+        // Spec-wide, above the priority list (warlockApl). Demonology's sits with its demon, before the
+        // pull; on the other two it's their only spec-wide setting that isn't a consumable, so it has no
+        // heading and comes first, as the few that shape the rest do (docs/ux.md "Rotation": a heading
+        // holds at least two settings).
+        ...(spec === 'demonology' ? { group: 'Before the pull' as const } : {}),
         label: 'Demonic Sacrifice',
         help:
           spec === 'demonology'

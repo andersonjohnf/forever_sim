@@ -93,6 +93,8 @@ test.describe('the wide shell', () => {
     test(`at ${width} px the results stay in the viewport and scroll inside`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
+      // Gear fits the window from 1440 px (docs/ux.md#gear), so scrolling needs a longer tab.
+      await page.getByRole('tab', { name: 'Talents' }).click()
       const results = page.getByRole('complementary', { name: 'Results' })
       await results.getByRole('button', { name: 'Simulate' }).click()
       await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
@@ -109,7 +111,11 @@ test.describe('the wide shell', () => {
       expect(fits.overflows).toBe(true)
       // Scrolling the page moves nothing: the pane is sticky.
       const top = await results.evaluate((el) => el.querySelector('div')!.getBoundingClientRect().top)
-      await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }))
+      // Halfway, short of the page's end, where the pane's own bottom would carry it up. The wide
+      // layout keeps sections close to the window's height, so there's little to scroll.
+      const room = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)
+      expect(room).toBeGreaterThan(20)
+      await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), Math.floor(room / 2))
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
       expect(await results.evaluate((el) => el.querySelector('div')!.getBoundingClientRect().top)).toBeCloseTo(top, 0)
       // It scrolls inside, and the fade under your setup shows once it has.

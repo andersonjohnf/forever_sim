@@ -4,7 +4,8 @@ import { linkFor } from './links.ts'
 
 // docs/architecture.md "Following the defaults"; docs/ux.md "Persistence and sharing" and "Gear".
 
-const toasts = (page: Page) => page.locator('[data-sonner-toast]')
+/** The notices up: not those sonner is animating out (data-removed), which a count would catch mid-exit (VF-2). */
+const toasts = (page: Page) => page.locator('[data-sonner-toast]:not([data-removed="true"])')
 
 /**
  * A Protection paladin saved before the threat set and today's talents: v1's defaults (the pre-raid

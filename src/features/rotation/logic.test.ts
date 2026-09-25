@@ -3,7 +3,7 @@
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
 import { defaultAplOrder, defaultConfig, getSpec, moveAplRow, normalizeConfig, type SimConfig, specs, unusedRotationSettings } from '@/sim'
-import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, withRotationOrder } from './logic'
+import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, UNIT_SINGULAR, unitFor, withRotationOrder } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
@@ -266,6 +266,27 @@ describe('rotation rows', () => {
     expect(formatSetting({ ...number, unit: 'mana' }, 1500)).toBe('1,500 mana')
     expect(formatSetting({ ...number, unit: 's left' }, 1.5)).toBe('1.5 s left')
     expect([groupsThousands({ ...number, unit: '', max: 5000 }), groupsThousands({ ...number, unit: '%' })]).toEqual([true, false])
+  })
+
+  it('reads a counted unit in the singular at exactly 1, and a measured one the same', () => {
+    const number = { kind: 'number', id: 'x', label: 'X', help: '', min: 0, max: 5, step: 1, default: 0 } as const
+    expect(formatSetting({ ...number, unit: 'combo points' }, 1)).toBe('1 combo point')
+    expect(formatSetting({ ...number, unit: 'combo points' }, 5)).toBe('5 combo points')
+    expect(formatSetting({ ...number, unit: 'combo points' }, 0)).toBe('0 combo points')
+    expect(formatSetting({ ...number, unit: 'stacks' }, 1)).toBe('1 stack')
+    expect(formatSetting({ ...number, unit: 'ticks' }, 1)).toBe('1 tick')
+    expect(formatSetting({ ...number, unit: 'casts' }, 1)).toBe('1 cast')
+    expect(formatSetting({ ...number, unit: 'stacks' }, 1.5)).toBe('1.5 stacks')
+    expect(formatSetting({ ...number, unit: 'mana' }, 1)).toBe('1 mana')
+    expect(formatSetting({ ...number, unit: 's left' }, 1)).toBe('1 s left')
+    expect(unitFor('Energy', 1)).toBe('Energy')
+  })
+
+  it('knows every number setting’s unit: counted ones have a singular, the rest read the same at 1', () => {
+    // A new unit fails here until it's added to one list or the other (UNIT_SINGULAR in logic.ts).
+    const same = new Set(['', '%', '% mana', 'mana', 'rage', 'Energy', 'Focus', 'AP', 's', 's left'])
+    const units = new Set(specs.flatMap((s) => s.rotationOptions.flatMap((o) => (o.kind === 'number' ? [o.unit] : []))))
+    for (const unit of units) expect(unit in UNIT_SINGULAR || same.has(unit), `unit "${unit}"`).toBe(true)
   })
 })
 

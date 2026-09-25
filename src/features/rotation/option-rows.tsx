@@ -15,7 +15,7 @@ import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import type { FixedRotationRow, RotationOption } from '@/sim'
 import { controlOf, INACTIVE_SWITCH, rowIds, type RowContext } from './ids'
-import { formatSetting, groupsThousands, type RowState } from './logic'
+import { formatSetting, groupsThousands, type RowState, unitFor } from './logic'
 
 /**
  * Settings in a card. A setting that depends on another under the same heading sits under it,
@@ -172,7 +172,7 @@ function OptionRow({
           min={option.min}
           max={option.max}
           step={option.step}
-          unit={option.unit}
+          unit={unitFor(option.unit, Number(row.value))}
           grouping={groupsThousands(option)}
           aria-label={option.label}
           aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}

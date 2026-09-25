@@ -158,12 +158,27 @@ export function rotationRows(
 
 const NUMBER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 
-/** A value as the row's default hint reads it: "on", "40 rage", "3 s left", "Battle", "65% mana", "1,500 mana". */
+/**
+ * The number settings' units that count something, each with its singular: "1 combo point",
+ * "1 stack". Every other unit (mana, rage, Energy, Focus, AP, s, s left, %) reads the same at 1.
+ */
+export const UNIT_SINGULAR: Readonly<Record<string, string>> = {
+  'combo points': 'combo point',
+  stacks: 'stack',
+  ticks: 'tick',
+  casts: 'cast',
+}
+
+/** A number setting's unit as it reads after `value`: singular at exactly 1 ("1 combo point", "2 combo points"). */
+export const unitFor = (unit: string, value: number) => (value === 1 ? (UNIT_SINGULAR[unit] ?? unit) : unit)
+
+/** A value as the row's default hint and summary read it: "on", "40 rage", "3 s left", "Battle", "65% mana", "1,500 mana", "1 combo point". */
 export function formatSetting(option: RotationOption, value: RotationValue): string {
   if (option.kind === 'toggle') return value ? 'on' : 'off'
   if (option.kind === 'choice') return option.choices.find((c) => c.value === value)?.label ?? String(value)
   // A percentage sits against its number; thousands are grouped, as the rest of the app writes them.
-  return `${NUMBER.format(Number(value))}${option.unit === '' || option.unit.startsWith('%') ? '' : ' '}${option.unit}`
+  const unit = unitFor(option.unit, Number(value))
+  return `${NUMBER.format(Number(value))}${unit === '' || unit.startsWith('%') ? '' : ' '}${unit}`
 }
 
 /** Whether a number setting's field groups thousands ("1,500"): one whose range reaches them. */

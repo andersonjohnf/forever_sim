@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { itemsById } from '@/lib/items'
-import { defaultConfig, fitsFaction, SPEC_IDS, type SimConfig } from '@/sim'
+import { itemData, itemsById } from '@/lib/items'
+import { defaultConfig, fitsFaction, itemFaction, SPEC_IDS, SPEC_META, type SimConfig, type SpecId } from '@/sim'
 import { changeRace, factionTwin } from './faction-gear'
 
 const item = (id: number) => itemsById.get(id)!
 
-describe('faction twins (docs/data/items.md#equipping-rules)', () => {
+describe('faction twins (docs/data/items.md#faction-twins)', () => {
   it('finds the other side’s PvP and battleground twin, both ways', () => {
     const twins: [number, number][] = [
       [23315, 23243], // Lieutenant Commander's / Champion's Plate Shoulders (rank 10)
@@ -22,8 +22,19 @@ describe('faction twins (docs/data/items.md#equipping-rules)', () => {
   })
 
   it('picks the twin whose name ends the same way when several share the stats', () => {
+    // Highlander's Chain Greaves matches Defiler's Chain and Mail Greaves, whose sets give the same bonuses.
+    expect(item(20050).twins).toEqual([20154, 20199])
     expect(factionTwin(item(20050), 'Horde', 'warrior')?.name).toBe("Defiler's Chain Greaves")
-    expect(factionTwin(item(20051), 'Horde', 'warrior')?.name).toBe("Defiler's Mail Greaves")
+    // Highlander's Mail Greaves has none: its set's 3-piece is spell crit, the Defilers' melee crit.
+    expect(item(20051).twins).toEqual([])
+    expect(factionTwin(item(20051), 'Horde', 'warrior')).toBeNull()
+  })
+
+  it('finds twins the old stat match missed: the Arathi Basin Ironbark Staff (DV2-1)', () => {
+    // Identical client rows but for the faction and price: The League of Arathor's and The Defilers'.
+    expect(item(20069).name).toBe(item(20220).name)
+    expect(factionTwin(item(20069), 'Horde', 'warlock')?.id).toBe(20220)
+    expect(factionTwin(item(20220), 'Alliance', 'mage')?.id).toBe(20069)
   })
 
   it('matches class restrictions by whether this class can wear both, not by the whole list', () => {
@@ -41,6 +52,37 @@ describe('faction twins (docs/data/items.md#equipping-rules)', () => {
     expect(factionTwin(item(23315), 'Alliance', 'warrior')).toBeNull()
     const neutral = defaultConfig('warrior-fury').gear.head!.itemId // Lionheart Helm
     expect(factionTwin(item(neutral), 'Horde', 'warrior')).toBeNull()
+  })
+})
+
+describe('the pre-raid lists’ faction twins (docs/data/items.md#faction-twins)', () => {
+  it('give every one-faction item on a list its other faction’s twin at the same rank, when the client has one', () => {
+    let checked = 0
+    for (const i of itemData.items) {
+      const own = itemFaction(i)
+      if (own === null) continue
+      const other = own === 'Alliance' ? 'Horde' : 'Alliance'
+      for (const e of i.preRaidBis) {
+        const twin = factionTwin(i, other, SPEC_META[e.spec as SpecId].classId)
+        if (!twin) continue
+        checked++
+        expect(twin.preRaidBis, `${e.spec} ${e.slot}: ${i.name} (${i.id}) → ${twin.name} (${twin.id})`).toContainEqual(e)
+      }
+    }
+    expect(checked).toBeGreaterThan(50)
+  })
+
+  it('pair twins both ways, with the same slot, level, stats, weapon and effects', () => {
+    let pairs = 0
+    for (const i of itemData.items)
+      for (const id of i.twins) {
+        const t = item(id)
+        pairs++
+        expect(t.twins, `${t.name} lists ${i.name}`).toContain(i.id)
+        const same = (x: typeof i) => [x.slot, x.itemLevel, x.quality, x.stats, x.weapon, x.procs.map((p) => p.spellId), x.useEffects.map((u) => u.cooldownSec ?? null)]
+        expect(same(t), `${i.name} (${i.id}) and ${t.name} (${t.id})`).toEqual(same(i))
+      }
+    expect(pairs).toBeGreaterThan(150)
   })
 })
 

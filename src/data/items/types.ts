@@ -423,8 +423,18 @@ export interface ItemDataMeta {
     specs: Partial<Record<PreRaidBisSpec, { name: string; source: PreRaidBisSource; note?: string }>>;
     /** Distinct item ids on the lists. */
     listedItems: number;
-    /** Pool items on at least one list. */
+    /**
+     * Items a list dropped, kept in the pool with no rank so saved setups and share links that wear
+     * them keep them (the file's `kept`).
+     */
+    kept: number[];
+    /** Listed pool items (each counted once): items on at least one list by their own id. */
     inPool: number;
+    /**
+     * Pool items that take a list's entry from a listed faction twin without being listed themselves
+     * (docs/data/items.md#faction-twins).
+     */
+    twinsListed: number;
     /** Pool items that are there only because of the lists (they fail the quality/level rule). */
     addedByList: number;
     /** Listed items with no row in either client. */
@@ -506,8 +516,17 @@ export interface Item {
   setId: string | null;
   /** Where the item drops. Always null: the client's Encounter Journal ships empty. */
   source: null;
-  /** Where this item appears on the curated Classic Era pre-raid BiS lists; [] if nowhere. */
+  /**
+   * Where this item appears on the curated Classic Era pre-raid BiS lists; [] if nowhere. A list
+   * names one side's item, and its faction twin takes the same entry (docs/data/items.md#faction-twins).
+   */
   preRaidBis: PreRaidBisEntry[];
+  /**
+   * The pool's items whose client rows match this one's on everything but their names, price and
+   * what binds them to a side or class (docs/data/items.md#faction-twins). `factionTwin`
+   * (src/features/character/faction-gear.ts) picks the other faction's from these.
+   */
+  twins: number[];
   /** Copper. */
   sellPrice: number | null;
   /** The item's flavor text. */

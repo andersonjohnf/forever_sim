@@ -59,6 +59,13 @@ const EXCLUDED_ITEMS = new Map([
   [20368, "Bland Bow of Steadiness: Classic test weapon, not obtainable"],
   [24071, "Bland Dagger: Classic test weapon, not obtainable"],
 ]);
+/**
+ * Items allowed to leave the pool, each with its reason (docs/data/items.md#pre-raid-bis-lists (Kept items)). Any other
+ * id in the committed pool that a run would drop fails the run: saved setups and share links that
+ * wear it would lose it on load. Keep such an item with the `kept` section of PRE_RAID_BIS_FILE, or
+ * name it here with why it may go.
+ */
+const REMOVED_ITEMS = new Map([]);
 /** Client rows that are developer items, not loot: test, deprecated and monster items. */
 const JUNK_NAME = /\b(?:test|deprecated)\b|^monster\b|\bplaceholder\b|\[dnt\]|\(dnt\)/i;
 /** Hand-curated Classic Era pre-raid BiS lists (scraper input); every listed item joins the pool. */
@@ -179,10 +186,18 @@ const classic = await load("classic", opts.baseline);
 // Pre-raid BiS lists
 // ---------------------------------------------------------------------------
 
-/** Read PRE_RAID_BIS_FILE: { specs, byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name> }. */
+/**
+ * Read PRE_RAID_BIS_FILE: { specs, byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name>,
+ * kept: Map<id, name> }. `kept` holds items a list dropped: they stay in the pool, with no rank, so
+ * saved setups and share links that wear them keep them (docs/data/items.md#pre-raid-bis-lists).
+ */
 function loadPreRaidBis() {
   const data = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, PRE_RAID_BIS_FILE), "utf8"));
-  const out = { specs: {}, byId: new Map(), names: new Map() };
+  const out = { specs: {}, byId: new Map(), names: new Map(), kept: new Map() };
+  for (const e of data.kept ?? []) {
+    if (!Number.isInteger(e.id) || !e.name || !e.notes) fail(`${PRE_RAID_BIS_FILE}: bad kept entry ${JSON.stringify(e)}`);
+    else out.kept.set(e.id, e.name);
+  }
   const specOrder = Object.keys(data.specs);
   for (const [spec, s] of Object.entries(data.specs)) {
     if (!s.name || !s.source?.url) fail(`${PRE_RAID_BIS_FILE}: spec ${spec} needs a name and source.url`);
@@ -303,7 +318,7 @@ async function write() {
   // Checks: the pre-raid BiS lists, names, SoD and the statsFrom flags.
   const byId = new Map(items.map((i) => [i.id, i]));
   const notInData = [];
-  for (const [id, name] of bis.names) {
+  for (const [id, name] of [...bis.names, ...bis.kept]) {
     const item = byId.get(id);
     const row = forever.ctx.sparse.get(id) ?? classic.ctx.sparse.get(id);
     if (!row) notInData.push({ id, name });
@@ -316,6 +331,13 @@ async function write() {
     if (i.weapon && (i.weapon.min === null || i.weapon.max === null)) fail(`${i.id} ${i.name}: weapon without damage`);
   }
   for (const [id, s] of Object.entries(sets)) if (!s.name) fail(`set ${id}: no ItemSet row in either client`);
+  // docs/data/items.md#pre-raid-bis-lists (Kept items): no item leaves the pool without a reason.
+  const committed = committedJson(REPO_ROOT, OUT_FILE, opts.against);
+  if (!committed) warn(`can't read the committed ${OUT_FILE} (${opts.against}), so items leaving the pool weren't checked`);
+  else
+    for (const old of committed.items)
+      if (!byId.has(old.id) && !REMOVED_ITEMS.has(old.id))
+        fail(`${old.id} ${old.name} would leave the pool, and saved setups and share links that wear it would lose it: keep it (the kept section of ${PRE_RAID_BIS_FILE}) or add it to REMOVED_ITEMS with a reason`);
   for (const w of noClientRow) console.log(`  still no client row: ${w.id} ${w.name}`);
   for (const [id, name] of WATCH_ITEMS)
     if (byId.has(id)) console.log(`NOTE: watched item ${id} ${name} now has a client row and is in the pool; remove it from WATCH_ITEMS`);
@@ -352,7 +374,9 @@ async function write() {
         file: PRE_RAID_BIS_FILE,
         specs: bis.specs,
         listedItems: bis.names.size,
-        inPool: items.filter((i) => i.preRaidBis.length).length,
+        kept: [...bis.kept.keys()].sort((a, b) => a - b),
+        inPool: items.filter((i) => bis.byId.has(i.id)).length,
+        twinsListed: items.filter((i) => i.preRaidBis.length && !bis.byId.has(i.id)).length,
         addedByList: report.addedByList.length,
         notInData,
       },
@@ -390,7 +414,8 @@ function printSummary(out, report) {
   console.log(`by quality: ${tally((i) => i.quality)}`);
   console.log(`excluded by name ${report.excludedByName.length}, by id ${report.excludedById.length}, SoD guard ${report.sod.length}, no Item row ${report.missingItemRow.length}`);
   for (const x of report.missingItemRow) warn(`${x.id} ${x.name}: an ItemSparse row but no Item row; left out`);
-  console.log(`pre-raid BiS: ${preRaidBis.listedItems} listed, ${preRaidBis.inPool} in the pool, ${preRaidBis.addedByList} only because listed, ${preRaidBis.notInData.length} with no row`);
+  console.log(`pre-raid BiS: ${preRaidBis.listedItems} listed, ${preRaidBis.inPool} in the pool, ${preRaidBis.twinsListed} more as a listed item's faction twin, ${preRaidBis.addedByList} only because listed, ${preRaidBis.notInData.length} with no row`);
+  console.log(`faction twins: ${out.items.filter((i) => i.twins.length).length} items have one (${report.twinsAddedByList} joined the pool as a listed item's)`);
   console.log(`no client row (watched): ${noClientRow.length}`);
   console.log(`descriptions: ${dc.rendered} rendered, ${dc.generated} generated, ${dc.fallback} fallback, ${dc.hidden} hidden`);
   const fe = out.meta.fallbackEffects;

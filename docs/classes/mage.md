@@ -625,16 +625,33 @@ nothing for a mage.
   heading into AQ40"), since Wowhead's Classic guide has no Fire list. A Troll wears: Spellweaver's
   Turban, Nacreous Shell Necklace, Champion's Silk Mantle, Crystalline Threaded Cape, Bloodvine Vest,
   Rockfury Bracers, Blood Guard's Silk Handwraps, Ban'thok Sash, Bloodvine Leggings, Bloodvine Boots,
-  Rune Band of Wizardry, Wrath of Cenarius, Briarwood Reed, Draconic Infused Emblem, Mindfang, Tome of
-  Fiery Arcana and Pyric Caduceus.
+  Rune Band of Wizardry, Flaming Band, Draconic Infused Emblem, Briarwood Reed, Mindfang, Tome of
+  Fiery Arcana and Pyric Caduceus. The list names each faction reward once, and its twin, read from the
+  client, takes the same rank ([items.md](../data/items.md#faction-twins)): Mindfang's is the League of
+  Arathor's Sageclaw, and the rank-1 two-hander Ironbark Staff's The Defilers' copy. The Alliance's
+  Rank 7 to 10 silk has the Horde pieces' stats but no item set in Forever's rows, so it isn't a twin
+  and is listed at the Horde piece's rank on its own. The guide's event-only Staff of Balzaphon is left
+  out ([items.md "Sources"](../data/items.md#sources-c)). **The rings and trinkets are re-ranked by the
+  sim** now that Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled (DV2-4,
+  [items.md](../data/items.md#modelled-item-effects); paired in the default set, 20,000 fights on seed
+  2701, 1.60.1.70009, among the list's own items): Rune Band of Wizardry, Flaming Band (−2.1 against
+  it), Don Mauricio's Band of Domination (−2.5), Wrath of Cenarius (−4.7);
+  Draconic Infused Emblem (+9.6 over Briarwood Reed), Briarwood Reed, Burst of Knowledge and Eye of the
+  Beast, whose uses count as zero (known gap E7). The default goes 542.1 → 544.7 DPS. Off the list,
+  Elemental Focus Band and Maiden's Circle would add +3.2 and +2.6 in the second ring; ranking the guide
+  lists in full is a known gap.
 - **Frost and Arcane**: [Wowhead's Classic mage pre-raid list][wh-prebis] (archived 2021-05-15), one
   list with no spec split, a Frost list by its picks; Arcane reuses it (Classic Era had no Arcane
   list). A Troll wears: Champion's Silk Cowl, Orb of the Darkmoon, Boreal Mantle, Amplifying Cloak, Robe
   of the Archmage, Rockfury Bracers, Hands of Power, Ban'thok Sash, Legionnaire's Silk Legguards, Blood
   Guard's Silk Walkers, Rune Band of Wizardry, Don Mauricio's Band of Domination, Briarwood Reed, Eye of
-  the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger is Sageclaw
-  (League of Arathor, Alliance) or its Horde twin Mindfang (The Defilers), so a Troll's main hand is
-  Mindfang (+8.8% Frost, +8.1% Arcane over the Witchblade it wore before; engine merge check EM-6).
+  the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger, Sageclaw,
+  needs the League of Arathor (Alliance); its Horde twin, Mindfang, read from the client, takes the
+  same rank (the Destruction gear review, DG-2; [items.md](../data/items.md#faction-twins)). Forever gave both +94 spell power (a `[?]` estimate from the derived
+  caster-weapon rule, [client.md](../data/client.md#weapon-damage); Classic Era +30), so a Troll's
+  default gains 8.9% (Frost, 410.9 → 447.3 DPS) and 8.1% (Arcane, 402.2 → 434.8) over the rank-2
+  Witchblade it wore (20,000 fights on seed 2701). A sim-ranked list for Frost and Arcane, as the
+  warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent more; it's a known gap.
 - **Random-suffix items** whose base item has no spell stats are dropped, and the entries below them
   move up; the lists' notes name them (`scripts/scrape/pre-raid-bis.json`).
 
@@ -664,7 +681,7 @@ at" defaults to **0%**; and **Pyroblast** goes at **1** Hot Streak stack (it was
 | Evocation at 10% / 20% (vs 0%) | −0.15 / −0.53 | −0.03% / −0.10% |
 | Mana gems off | −33.17 | −6.43% |
 
-**Frost**: baseline **411.01 ± 0.34 DPS**:
+**Frost**: baseline **411.01 ± 0.34 DPS** (on Witchblade, before the list's Mindfang; 447.3 since):
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |
@@ -673,7 +690,7 @@ at" defaults to **0%**; and **Pyroblast** goes at **1** Hot Streak stack (it was
 | Mana gems off | −12.37 | −3.01% |
 | Ice Barrier on | 0: the default build doesn't take it | — |
 
-**Arcane**: baseline **402.25 ± 0.23 DPS**:
+**Arcane**: baseline **402.25 ± 0.23 DPS** (on Witchblade, before the list's Mindfang; 434.8 since):
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |

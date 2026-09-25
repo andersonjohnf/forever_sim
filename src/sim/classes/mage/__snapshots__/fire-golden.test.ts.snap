@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
   "abilities": [
     [
       "ignite",
-      11085262.630994737,
+      11690297.281182257,
       15933,
       26459,
       0,
@@ -15,9 +15,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "scorch",
-      7075553.704958771,
-      12585,
-      7740,
+      7527062.508144429,
+      12586,
+      7741,
       4489,
       356,
       0,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblast",
-      16527961.847117364,
+      17460912.944918633,
       10761,
       7961,
       2488,
@@ -35,19 +35,19 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblastDot",
-      6218163.331312949,
+      6668752.208638072,
       10449,
-      26008,
-      7795,
+      26009,
+      7794,
       0,
       0,
       0,
     ],
     [
       "fireBlast",
-      19557422.459320687,
-      20215,
-      14630,
+      20320411.90193134,
+      20216,
+      14631,
       5029,
       556,
       0,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "fireball",
-      30772009.52719781,
+      32704784.845510997,
       22812,
       18206,
       3927,
@@ -75,14 +75,14 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
   ],
   "dps": {
-    "ci95": 2.300907014547109,
-    "mean": 514.5008876128951,
-    "stdev": 37.12367629007495,
+    "ci95": 2.4309975659389536,
+    "mean": 543.1032759103606,
+    "stdev": 39.22260488116309,
   },
   "durationSec": 179.690222,
   "mana": {
     "max": 5223,
-    "regeneratedPerFight": 9289.07205,
+    "regeneratedPerFight": 9289.1039,
     "restored": [
       {
         "id": "masterOfElements",
@@ -106,12 +106,12 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
       },
     ],
     "restoredPerFight": 7009.46055,
-    "spentPerFight": 20728.95,
+    "spentPerFight": 20729.44,
   },
   "tps": {
-    "ci95": 1.6807290009035287,
-    "mean": 379.6966306546274,
-    "stdev": 27.1174971289159,
+    "ci95": 1.7716455828850355,
+    "mean": 399.7183024628539,
+    "stdev": 28.584378553303168,
   },
 }
 `;

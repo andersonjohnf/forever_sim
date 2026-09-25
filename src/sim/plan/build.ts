@@ -1579,6 +1579,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (['crusader', 'fieryWeapon', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
   // Ironfoe's Forever chance is a reading of its equip aura, and its hands Classic Era's [?] (damage-and-timing §5.2, OQ 15).
   if (procIds.has('ironfoe') && 'pct' in profile.values.ironfoe.chance) notes.add('ironfoeChance')
+  // docs/data/items.md#modelled-item-effects: the client's 100% against the tooltip's "chance" [?].
+  if (procIds.has('draconicInfusedEmblem')) notes.add('draconicEmblemChance')
   if (chainBits.size > 0) notes.add('extraAttackChains')
   if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add(mainHandPoison ? 'windfuryPoison' : 'windfuryStone')

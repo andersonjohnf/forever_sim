@@ -5,9 +5,64 @@
 import { describe, expect, it } from "vitest";
 import spellsJson from "../../../src/data/client/spells.json";
 import itemJson from "../../../src/data/items/pre-bis.json";
+import { findTwins, twinKey } from "./item-pool.mjs";
 import { AURA_STAT, NOT_STAT_AURAS } from "./item-stats.mjs";
 
 const spells = spellsJson.spells;
+
+describe("faction twins (docs/data/items.md#faction-twins)", () => {
+  const row = (id, over = {}) => ({
+    ID: id,
+    Display_lang: `Item ${id}`,
+    SellPrice: id,
+    BuyPrice: id * 5,
+    MinFactionID: 0,
+    MinReputation: 0,
+    AllowableRace: -1,
+    AllowableClass: -1,
+    ItemSet: 0,
+    Flags: [0, 0, 0, 0],
+    ItemLevel: 63,
+    InventoryType: 17,
+    StatModifier_bonusStat: [5, 7, -1],
+    StatPercentEditor: [4000, 6000, 0],
+    ...over,
+  });
+  const ctxOf = (rows, effects = {}) => ({
+    sparse: new Map(rows.map((r) => [r.ID, r])),
+    item: new Map(rows.map((r) => [r.ID, { ID: r.ID, ClassID: 2, SubclassID: 10 }])),
+    itemEffects: new Map(Object.entries(effects).map(([id, list]) => [Number(id), list])),
+  });
+  const twinsIn = (rows, effects) => {
+    const ctx = ctxOf(rows, effects);
+    return findTwins(rows.map((r) => [r.ID, twinKey(ctx, "forever", r.ID), r]));
+  };
+
+  it("pairs rows that differ only in name, price, side and class binding, and the flags' faction bits", () => {
+    const alliance = row(20069, { Display_lang: "Ironbark Staff", MinFactionID: 509, MinReputation: 7, Flags: [0, 2, 0, 0] });
+    const horde = row(20220, { Display_lang: "Ironbark Staff", MinFactionID: 510, MinReputation: 7, Flags: [0, 1, 0, 0], AllowableClass: 256 });
+    expect([...twinsIn([alliance, horde])]).toEqual([
+      [20069, [20220]],
+      [20220, [20069]],
+    ]);
+  });
+
+  it("matches stats in any order, and a use by its cooldown, not its spell", () => {
+    const a = row(12543, { StatModifier_bonusStat: [5, 7, -1], StatPercentEditor: [4000, 6000, 0] });
+    const b = row(12545, { StatModifier_bonusStat: [7, 5, -1], StatPercentEditor: [6000, 4000, 0] });
+    const use = (spell) => [{ SpellID: spell, TriggerType: 0, CoolDownMSec: 1000, CategoryCoolDownMSec: 0, Charges: 0 }];
+    expect(twinsIn([a, b], { 12543: use(1), 12545: use(2) }).get(12543)).toEqual([12545]);
+  });
+
+  it("keeps apart rows whose stats, level or equip effects differ, and a same-name, same-side copy", () => {
+    const a = row(1);
+    expect(twinsIn([a, row(2, { ItemLevel: 65 })]).size).toBe(0);
+    expect(twinsIn([a, row(2, { StatPercentEditor: [5000, 5000, 0] })]).size).toBe(0);
+    const equip = (spell) => [{ SpellID: spell, TriggerType: 1, CoolDownMSec: 0, CategoryCoolDownMSec: 0, Charges: 0 }];
+    expect(twinsIn([a, row(2)], { 1: equip(10), 2: equip(11) }).size).toBe(0);
+    expect(twinsIn([a, row(2, { Display_lang: "Item 1" })]).size).toBe(0);
+  });
+});
 const APPLY_AURA = 6;
 
 /** Every spell the pool's stats, equip lines and set bonuses read: [spellId, where]. */

@@ -154,8 +154,11 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
   })
 
-  it('8. What the Succubus inherits: 253.8 attack power; your 9.65% melee crit (7.25% on its swings vs the boss) and 2% melee hit on its swings; 108.6 spell damage, your 11.73% spell crit and 13% spell miss on Lash of Pain, 144.46', () => {
-    const { plan } = buildPlan(fixed(SUCCUBUS))
+  it('8. What the Succubus inherits: 253.8 attack power; your 11.65% melee crit (9.25% on its swings vs the boss) and 5% melee hit on its swings; 123.4 spell damage, your 14.42% spell crit and 10% spell miss on Lash of Pain, 153.95', () => {
+    // Briarwood Reed in the first trinket, where the default wears Draconic Infused Emblem since DV2-4:
+    // its proc's +35 would be in the sheet only while it's up.
+    const d = defaultConfig('warlock-demonology')
+    const { plan } = buildPlan(fixed(SUCCUBUS, { gear: { ...d.gear, trinket1: { itemId: 12930 } } }))
     expect(plan.pet).toMatchObject({ crit: 0, spellCrit: 0, hit: 0, spellHit: 0, inherit: PET_INHERITANCE })
     const sim = new Sim(plan)
     sim.runFight(0)
@@ -174,24 +177,24 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(s.ap).toBe(138)
     expect(s.petAp).toBeCloseTo(253.8, 9)
     // Its swings: your melee crit and hit.
-    expect(s.derived.crit).toBeCloseTo(9.65, 9)
-    expect(s.petCritPct).toBeCloseTo(9.65, 9)
-    // − 0.6 for its skill of 300, − 1.8 as aura crit (combat-tables §4.4) = 7.25%.
-    expect(s.petSpecCrit).toBeCloseTo(7.25, 9)
-    // A special's miss against a level-63 boss: 8% − your 2% melee hit = 6%.
-    expect(s.derived.hit).toBe(2)
-    expect(s.petThrSpecial[0]).toBeCloseTo(6, 9)
+    expect(s.derived.crit).toBeCloseTo(11.65, 9)
+    expect(s.petCritPct).toBeCloseTo(11.65, 9)
+    // − 0.6 for its skill of 300, − 1.8 as aura crit (combat-tables §4.4) = 9.25%.
+    expect(s.petSpecCrit).toBeCloseTo(9.25, 9)
+    // A special's miss against a level-63 boss: 8% − your 5% melee hit = 3%.
+    expect(s.derived.hit).toBe(5)
+    expect(s.petThrSpecial[0]).toBeCloseTo(3, 9)
     // Its spells: your spell crit and spell hit, without the suppression.
-    expect(s.derived.spellCrit).toBeCloseTo(11.7325, 9)
-    expect(s.petSpellCritNow).toBeCloseTo(11.7325, 9)
-    expect(s.derived.spellHit).toBe(4)
-    expect(s.petSpellMissPct).toBe(13)
-    // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 486 Shadow (426 + your own 60).
-    expect(s.spSchool[SCHOOL.shadow]).toBe(486)
+    expect(s.derived.spellCrit).toBeCloseTo(14.419, 9)
+    expect(s.petSpellCritNow).toBeCloseTo(14.419, 9)
+    expect(s.derived.spellHit).toBe(7)
+    expect(s.petSpellMissPct).toBe(10)
+    // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 634 Shadow (574 + your own 60).
+    expect(s.spSchool[SCHOOL.shadow]).toBe(634)
     const lash = plan.pet!.abilities[0]
     const sp = plan.pet!.spellDamage + PET_INHERITANCE.spellDamage * s.spSchool[SCHOOL.shadow]
-    expect(sp).toBeCloseTo(108.6, 9)
-    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(144.455, 3)
+    expect(sp).toBeCloseTo(123.4, 9)
+    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(153.951, 3)
   })
 
   it('9. Improved Imp’s hidden effect as Firebolt’s cast time: 1.7 / 1.3 / 1 s', () => {
@@ -421,9 +424,9 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(off.length).toBe(1)
     expect(on.length).toBe(1)
     const [[melee, spell, crit, spellCrit, special]] = off
-    // Off: your 9.65% melee crit on its swings, your 11.73% spell crit on its spells; its specials lose
+    // Off: your 11.65% melee crit on its swings, your 14.42% spell crit on its spells; its specials lose
     // 0.6 (skill 300) and 1.8 (aura crit).
-    expect([melee, spell]).toEqual([9.65, 11.7325])
+    expect([melee, spell]).toEqual([11.65, 14.419])
     expect([crit, spellCrit]).toEqual([melee, spell])
     expect(special).toBeCloseTo(melee - 0.6 - 1.8, 6)
     // On: +5 melee and +10 spell on you, and on it the same way.
@@ -462,6 +465,11 @@ describe('golden runs (fixed config and seed)', () => {
   //   Succubus sacrificed and Soul Fire below 35% (§11.6): 499.89 → 530.79 here; 531.9 over 20,000 fights.
   // - H3's third round (DV2-4, D30): Improved Sayaad's one freeable point to Improved Shadow Bolt 4/5
   //   (`-0325003221120001351-0450305003`): 530.79 → 533.08 here; 531.92 → 534.22 over 20,000 fights.
+  // - The Destruction gear review (DG-1): Demonology wears its own sim-ranked list (§7.3), the same set
+  //   as Destruction's: 533.08 → 664.19 here; 534.2 → 663.7 over 20,000 fights on seed 2701.
+  // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Draconic Infused Emblem's
+  //   proc is modelled and leads the list's trinkets, in place of Briarwood Reed: 664.19 → 675.56 here;
+  //   663.7 → 675.0 over 20,000 fights on seed 2701.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

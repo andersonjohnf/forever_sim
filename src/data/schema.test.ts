@@ -84,6 +84,7 @@ const ITEM = {
   setId: true,
   source: true,
   preRaidBis: true,
+  twins: true,
   sellPrice: true,
   flavor: true,
   classic: true,

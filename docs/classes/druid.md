@@ -1045,6 +1045,45 @@ point where a Shred makes about 11. So the tuned cat Shreds whenever it can affo
 exactly 35–41 Energy, at 5 combo points, with Rip kept up in between; and a Tiger's Fury a little
 early is worth more than its lost Energy, since its cooldown starts sooner.
 
+#### The cat's priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`CAT_APL` in `cat.ts`), in this order, each with its switch, its own settings and the conditions
+above (ids `druid.cat.…`):
+
+| Row (`id`) | Switch | Its settings | When it's used |
+| --- | --- | --- | --- |
+| Berserk (`berserk`) | `berserk.enabled` | | On cooldown, with the talent (row 1) |
+| Racial cooldown (`racial`) | `racial.enabled` | | Elune's Light on cooldown, a Night Elf's (row 2) |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | | On cooldown, if worn (row 2) |
+| Tiger's Fury (`tigersFury`) | `tigersFury.enabled` | `tigersFury.maxEnergyLost` | At Energy ≤ 100 − its Energy + the loss allowed (row 3) |
+| Faerie Fire (`faerieFire`) | `faerieFire.enabled` | `faerieFire.refreshBelowSec` | When it's down; early while Energy is below the builder's cost (row 5) |
+| Clearcasting (`clearcasting`) | none | | Shred, or Claw where Shred can't be used, while Clearcasting is up (row 6) |
+| Rip (`rip`) | `rip.enabled` | `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec`, `rip.onlyWithoutOtherBleeds` | Row 7 |
+| Ferocious Bite (`ferociousBite`) | `ferociousBite.enabled` | `ferociousBite.minComboPoints`, `ferociousBite.shredFirstFrom`, `ferociousBite.anyEnergyLastSec`, `ferociousBite.onlyWhileRipUp` | Row 8, with its Shred first |
+| Rake (`rake`) | `rake.enabled` | `rake.onlyWithoutBleeds` | Row 9 |
+| Shred (`shred`) | `shred.enabled` | | Whenever it's affordable, from behind (row 10) |
+| Claw (`claw`) | `claw.enabled` | | Whenever it's affordable, where Shred can't be used: from the front, or with Shred off (row 10) |
+
+- **Nothing is pinned:** the cat has no pre-pull or opener. Its only preset is the implicit
+  Default, the tuned defaults above.
+- **Clearcasting** was always a step of the priority (row 6), so it's a row of its own. It has no
+  switch: a free builder is never worth skipping. **Shred's and Claw's switches** say which builder
+  the cat uses everywhere: in their own rows, in Clearcasting's, and in Ferocious Bite's "Shred
+  first".
+- **Spec-wide, above the list:** the Mighty Rage Potion and Juju Flurry, under Consumables (row 4).
+  They take their turn just before the first row on the global cooldown, wherever it sits: after
+  Tiger's Fury in the default order, as before the list.
+- **A row's conditions are its own wherever it sits:** Rake above Rip still waits for your Rip to
+  be off the boss, Ferocious Bite above Rip still waits for it with `onlyWhileRipUp`, Claw above
+  Shred still waits for Shred to be unusable, and Faerie Fire's early refresh still reads the
+  builder's cost. So Claw above Shred changes nothing.
+- **Byte-identical in the default order:** 200 random setups (settings, talents in every tree, race,
+  the items the rotation reads, Buffs, the raid's warriors, where you stand, the fight and the
+  rules) build the plans they built before the list (`cat-apl.test.ts`), fingerprinted on the code
+  before it.
+
 ### 6.3 Forever bear priority (TPS)
 
 This is derived for Forever [?]. Primal Bite and Lacerate have no Classic analogue. Primal Bite's threat is
@@ -2116,6 +2155,45 @@ common priority, with a first quick search".
 fights). The same search again, paired: the Wrath filler changes nothing (Starfire's mana is always
 there), no Eclipse weaving −25.34 (−5.9%), and no Eclipse with the Wrath filler −46.01 (−10.6%). So
 the defaults stand: Wrath is still worth only its Eclipse weave.
+
+#### Balance's priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`BALANCE_APL` in `balance.ts`), in this order, each with its switch, its own settings and the
+conditions in the table above (ids `druid.balance.…`):
+
+| Row (`id`) | Switch | Its settings | When it's used |
+| --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | none | | Moonkin Form (row 0) |
+| Racial cooldown (`racial`) | `racial.enabled` | | Elune's Light on cooldown, a Night Elf's (row 1) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | On cooldown, if worn (row 1) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | On cooldown, if a priest gives it in Buffs (row 1) |
+| Innervate yourself (`innervate`) | `innervate.enabled` | `innervate.maxManaPct` | At or below that share of your mana (row 3) |
+| Faerie Fire (`faerieFire`) | `faerieFire.enabled` | | When it's off the boss (row 4) |
+| Insect Swarm (`insectSwarm`) | `insectSwarm.enabled` | `dots.minFightLeftSec` | When it's off the boss, with the talent (row 5) |
+| Moonfire (`moonfire`) | `moonfire.enabled` | `dots.minFightLeftSec` | When it's off the boss (row 6) |
+| Clearcasting (`clearcasting`) | none | | Starfire while Clearcasting is up (row 7) |
+| Wrath for Eclipse (`eclipse`) | `eclipse.enabled` | | Starfire on its charges, otherwise Wrath, with the talent (row 8) |
+| Filler (`filler`) | none | `filler.spell` | Starfire, then Wrath without its mana; or Wrath (row 9) |
+
+- **Pinned:** only Moonkin Form before the pull, which has nothing to set. Its only preset is the
+  implicit Default, the first-pass defaults above.
+- **Clearcasting and the Filler** were always steps of the priority (rows 7 and 9), so they're rows
+  of their own, without a switch. The DoTs' `dots.minFightLeftSec` is one setting in both their rows.
+- **Spec-wide, above the list:** the Major Mana Potion and Demonic Rune with their "when missing"
+  mana, under Consumables (row 2). They take their turn just before the first row on the global
+  cooldown, wherever it sits: after Power Infusion in the default order, as before the list.
+- **A row that casts on every global cooldown:** Wrath for Eclipse (with the talent) and the Filler
+  each cast whenever there's the mana for Wrath. The higher of the two leaves the lower nothing, and
+  the lower says so: by default the filler, "not used while Wrath for Eclipse is on". A row on the
+  global cooldown moved below it gets a global cooldown only without the mana for Wrath, and says
+  "Below Wrath for Eclipse" (or "Below the Filler"). Nothing else reads the order: no row reads
+  another's spell.
+- **Byte-identical in the default order:** 200 random setups (settings, talents in every tree, race,
+  the on-use trinkets, the mana consumables, Power Infusion and Faerie Fire in Buffs, the raid's
+  priest, the fight and the rules) build the plans they built before the list
+  (`balance-apl.test.ts`), fingerprinted on the code before it.
 
 ### 11.6 Defaults
 

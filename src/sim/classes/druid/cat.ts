@@ -4,16 +4,18 @@
 // Weakness Analyzer), Tiger's Fury under the Energy cap, and the Mighty Rage Potion and Juju Flurry
 // when they're selected in Buffs. On the GCD: Faerie Fire's upkeep, a Clearcasting Shred, the
 // finishers (Rip, then Ferocious Bite, with a Shred first while there's Energy to spare), Rake, and
-// Shred, or Claw from the front. No powershifting: in Forever it gains nothing (§2.8). Setting ids
-// are `druid.cat.<ability>.<param>`; Energy thresholds are absolute Energy points.
+// Shred, or Claw from the front. No powershifting: in Forever it gains nothing (§2.8). The rows are a
+// priority list you reorder (CAT_APL, decision D31), each with its own settings. Setting ids are
+// `druid.cat.<ability>.<param>`; Energy thresholds are absolute Energy points.
 import type { OnUseSpec } from '../../effects/types'
 import { JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { COND, type RotationCondition } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
+import { compileAplRows } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, NO_CONTEXT, reader, seconds, timeLeftAtLeast, timeLeftAtMost } from '../warrior/shared'
-import { MAX_ENERGY_TENTHS, WOLFSHEAD_HELM } from './abilities'
+import { CLEARCASTING_ICON, MAX_ENERGY_TENTHS, WOLFSHEAD_HELM } from './abilities'
 import {
   BERSERK,
   CLAW,
@@ -30,7 +32,8 @@ import { DruidRotationBuilder } from './builder'
 import type { TalentRanks } from './modifiers'
 import type { AbilityDef } from './abilities'
 
-const ID = {
+/** The cat's setting ids (`druid.cat.<ability>.<param>`). */
+export const CAT_IDS = {
   berserk: 'druid.cat.berserk.enabled',
   racial: 'druid.cat.racial.enabled',
   items: 'druid.cat.onUseItems.enabled',
@@ -55,9 +58,13 @@ const ID = {
   potion: 'druid.cat.ragePotion.enabled',
   juju: 'druid.cat.jujuFlurry.enabled',
 }
+const ID = CAT_IDS
 
 /** Rake is used only with at least its bleed's 9 s of the fight left (druid.md §6.2 row 9). */
 const RAKE_MIN_FIGHT_LEFT_MS = 9000
+
+/** Tiger's Fury's icon, whatever its Energy, for its row. */
+const TIGERS_FURY_ICON = tigersFury(0, false).icon
 
 /** An Energy threshold input, 0 to the 100 cap, in its parent's group. */
 const energyOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: 'Cooldowns and buffs' | 'Core abilities', min = 0): RotationOption => ({
@@ -324,106 +331,219 @@ const auraUp = (a: number): RotationCondition => ({ code: COND.abilityAuraUp, a,
 const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
 
 /**
- * The cat priority list from the settings (druid.md §6.2). `talents` gates Berserk and resolves
- * costs, Savage Fury, Genesis, Predatory Instincts, Rend and Tear, Blood Frenzy and King of the
- * Jungle; `auraIndex` finds Clearcasting's aura; `context` gives the race (Elune's Light), the
- * equipped on-use items and Wolfshead Helm, the selected consumables, whether others keep the
- * boss bleeding (a raid with warriors), and whether you stand in front of the boss (no Shred).
+ * The cat's rotation as a priority list (decision D31; druid.md §6.2 "The priority list"): §6.2's
+ * rows in its order, each with its switch and its own settings. Clearcasting's free builder (row 6),
+ * a step the priority always had, is a row of its own without a switch; the builder (row 10) is two
+ * rows, Shred and Claw, whose switches also say which builder Clearcasting and Ferocious Bite's
+ * "Shred first" use. Nothing is pinned: the cat has no pre-pull. The consumables are spec-wide,
+ * above the list; they take their turn just before the first row on the global cooldown, wherever
+ * it sits (after Tiger's Fury in the default order, as before the list).
+ */
+export const CAT_APL: AplDefinition = {
+  rows: [
+    { id: 'berserk', label: 'Berserk', icon: BERSERK.icon, enabledId: ID.berserk, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'racial', label: 'Racial cooldown', icon: ELUNES_LIGHT.icon, enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'onUseItems', label: 'On-use items', icon: 'inv_jewelry_talisman_01', enabledId: ID.items, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'tigersFury',
+      label: 'Tiger’s Fury',
+      icon: TIGERS_FURY_ICON,
+      enabledId: ID.tfEnabled,
+      optionIds: [ID.tfWaste],
+      summary: [{ option: ID.tfWaste, text: 'up to {} over the cap', zeroText: 'none of its Energy over the cap' }],
+    },
+    {
+      id: 'faerieFire',
+      label: 'Faerie Fire',
+      icon: FAERIE_FIRE_CAT.icon,
+      enabledId: ID.ffEnabled,
+      optionIds: [ID.ffRefresh],
+      summary: [{ option: ID.ffRefresh, text: 'again with {}', zeroText: 'again once it runs out' }],
+    },
+    {
+      id: 'clearcasting',
+      label: 'Clearcasting',
+      icon: CLEARCASTING_ICON,
+      optionIds: [],
+      summary: [{ text: 'Shred or Claw first: it’s free' }],
+      help: 'With Clearcasting up, your builder (Shred, or Claw where you can’t Shred) costs nothing, so it comes here. Shred’s and Claw’s own rows turn them on and off.',
+    },
+    {
+      id: 'rip',
+      label: 'Rip',
+      icon: RIP.icon,
+      enabledId: ID.ripEnabled,
+      optionIds: [ID.ripCp, ID.ripLeft, ID.ripRefresh, ID.ripNoOtherBleeds],
+      summary: [
+        { option: ID.ripCp, text: 'at {}' },
+        { option: ID.ripLeft, text: 'while the fight has {}' },
+        { option: ID.ripRefresh, text: 'again with {}', hideWhen: 0 },
+        { option: ID.ripNoOtherBleeds, text: 'only when nothing else bleeds' },
+      ],
+    },
+    {
+      id: 'ferociousBite',
+      label: 'Ferocious Bite',
+      icon: FEROCIOUS_BITE.icon,
+      enabledId: ID.biteEnabled,
+      optionIds: [ID.biteCp, ID.biteShredFirst, ID.biteEnd, ID.biteRipUp],
+      summary: [
+        { option: ID.biteCp, text: 'at {}' },
+        { option: ID.biteShredFirst, text: 'Shred first from {}', alsoOn: [ID.shred] },
+        { option: ID.biteEnd, text: 'at any Energy in the last {}', hideWhen: 0 },
+        { option: ID.biteRipUp, text: 'only while Rip is up', alsoOn: [ID.ripEnabled] },
+      ],
+    },
+    {
+      id: 'rake',
+      label: 'Rake',
+      icon: RAKE.icon,
+      enabledId: ID.rakeEnabled,
+      optionIds: [ID.rakeNoBleed],
+      summary: [{ option: ID.rakeNoBleed, text: 'only when nothing else bleeds' }],
+    },
+    { id: 'shred', label: 'Shred', icon: SHRED.icon, enabledId: ID.shred, optionIds: [], summary: [{ text: 'from behind' }] },
+    { id: 'claw', label: 'Claw', icon: CLAW.icon, enabledId: ID.claw, optionIds: [], summary: [{ text: 'where you can’t Shred' }] },
+  ],
+  specWide: [ID.potion, ID.juju],
+  presets: [],
+}
+
+/**
+ * The cat priority list from the settings (druid.md §6.2), its rows in `order` (CAT_APL; absent: the
+ * default order). `talents` gates Berserk and resolves costs, Savage Fury, Genesis, Predatory
+ * Instincts, Rend and Tear, Blood Frenzy and King of the Jungle; `auraIndex` finds Clearcasting's
+ * aura; `context` gives the race (Elune's Light), the equipped on-use items and Wolfshead Helm, the
+ * selected consumables, whether others keep the boss bleeding (a raid with warriors), and whether you
+ * stand in front of the boss (no Shred).
+ *
+ * A row's conditions are its own wherever it sits: Claw still waits for Shred to be unusable, Rake
+ * still reads your Rip, and Faerie Fire's early refresh still reads the builder's cost. So rows refer
+ * to each other's abilities by definition (`b.ability`), which in the default order resolves to the
+ * index the earlier row gave it, as before the list.
  */
 export function catRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<ClassRotationContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx: ClassRotationContext = { ...NO_CONTEXT, equipped: new Set(), othersBleed: false, front: false, ...context }
   const v = reader(CAT_OPTIONS, values, talents)
   const b = new DruidRotationBuilder(talents)
   const index = (def: AbilityDef) => b.ability(def)
-
-  // --- Off the GCD (§6.2 rows 1–4) ----------------------------------------------------------------
-  // Row 1: Berserk on cooldown, with the talent.
-  const berserk = talents.has('Berserk') && v.on(ID.berserk) ? b.add(BERSERK, []) : -1
-  // Row 2: the racial cooldown (Elune's Light, §7.2) and on-use items (§7.3) on cooldown: all 3 min
-  // cooldowns, so they line up with Berserk from the pull.
-  if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
-  if (v.on(ID.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
-  // Row 3: Tiger's Fury at Energy ≤ the cap − its Energy + what may be lost (W8).
-  if (v.on(ID.tfEnabled)) {
-    const gain = tigersFuryEnergy(talents.get('King of the Jungle') ?? 0, ctx.equipped.has(WOLFSHEAD_HELM))
-    const tf = tigersFury(talents.get('King of the Jungle') ?? 0, ctx.equipped.has(WOLFSHEAD_HELM))
-    b.add(tf, [maxEnergyTenths(MAX_ENERGY_TENTHS - 10 * gain + 10 * v.num(ID.tfWaste))])
-  }
-  // Row 4: consumables selected in Buffs: the potion once, with Berserk (at the pull without it);
-  // Juju Flurry on cooldown.
-  const consumable = (id: string): OnUseSpec | undefined => ctx.consumables.find((c) => c.id === id)
-  const potion = consumable(MIGHTY_RAGE_POTION.id)
-  if (potion && v.on(ID.potion)) b.add({ ...onUseCast(potion), usesPerFight: 1 }, berserk >= 0 ? [auraUp(berserk)] : [])
-  const juju = consumable(JUJU_FLURRY.id)
-  if (juju && v.on(ID.juju)) b.add(onUseCast(juju), [])
-
-  // --- On the GCD -----------------------------------------------------------------------------------
-  // The builder: Shred from behind (the engine never uses it from the front), Claw where it can't.
+  const useBerserk = talents.has('Berserk') && v.on(ID.berserk)
   const shredOn = v.on(ID.shred)
-  const shred = shredOn ? index(SHRED) : -1
   const clawOn = v.on(ID.claw)
+  /** Rip, unless it's off or waits for a boss nothing else bleeds while others keep it bleeding (row 7). */
+  const ripUsed = v.on(ID.ripEnabled) && !(v.on(ID.ripNoOtherBleeds) && ctx.othersBleed)
+  const consumable = (id: string): OnUseSpec | undefined => ctx.consumables.find((c) => c.id === id)
+
+  // The builder: Shred from behind (the engine never uses it from the front), Claw where it can't.
   /** Claw only while Shred is off or can never be used (from the front: no cooldown ever ends). */
-  const clawWhen: RotationCondition[] = shred >= 0 ? [{ code: COND.cooldownAtLeast, a: shred, b: 1 }] : []
+  const clawWhen = (): RotationCondition[] => (shredOn ? [{ code: COND.cooldownAtLeast, a: index(SHRED), b: 1 }] : [])
   const builderLines = (conditions: RotationCondition[]) => {
     if (shredOn) b.add(SHRED, conditions)
-    if (clawOn) b.add(CLAW, [...clawWhen, ...conditions])
+    if (clawOn) b.add(CLAW, [...clawWhen(), ...conditions])
   }
-  // What the builder costs where you stand: Shred's from behind, Claw's where Shred can't be used
-  // (from the front, or with Shred off).
-  const builderCost = shredOn && !ctx.front ? b.cost(shred) : clawOn ? b.cost(index(CLAW)) : Infinity
+  /** What the builder costs where you stand, set before the first row on the GCD (below). */
+  let builderCost = Infinity
 
-  // Row 5: Faerie Fire when it's down, and from refreshBelowSec left while there's no Energy for the
-  // builder, so the GCD comes out of waiting time.
-  if (v.on(ID.ffEnabled)) {
-    const ff = b.add(FAERIE_FIRE_CAT, [refresh(index(FAERIE_FIRE_CAT), 0)])
-    const early = seconds(v, ID.ffRefresh)
-    if (early > 0 && builderCost !== Infinity) b.add(FAERIE_FIRE_CAT, [refresh(ff, early), maxEnergyTenths(builderCost - 1)])
-  }
-
-  // Row 6: with Clearcasting up, the builder first: it's free (§2.7).
-  const clearcasting = auraIndex('clearcasting')
-  if (clearcasting >= 0) builderLines([{ code: COND.windowOpen, a: clearcasting, b: 0 }])
-
-  // Row 7: Rip at ≥ ripMinCP when it's off the boss (or has ≤ refreshBelowSec left) and at least
-  // minFightLeftSec of the fight is left; not at all with onlyWithoutOtherBleeds while others keep
-  // the boss bleeding. Row 8: at ≥ biteMinCP, Ferocious Bite in the last anyEnergyLastSec, then a
-  // Shred first while Energy ≥ shredFirstFrom, and Ferocious Bite (only while Rip is up, or too
-  // late for one, with onlyWhileRipUp).
-  const ripLeft = seconds(v, ID.ripLeft)
-  let rip = -1
-  if (v.on(ID.ripEnabled) && !(v.on(ID.ripNoOtherBleeds) && ctx.othersBleed)) {
-    rip = index(RIP)
-    b.add(RIP, [minComboPoints(v.num(ID.ripCp)), refresh(rip, seconds(v, ID.ripRefresh)), timeLeftAtLeast(ripLeft)])
-  }
-  if (v.on(ID.biteEnabled)) {
-    const cp = minComboPoints(v.num(ID.biteCp))
-    // In the last anyEnergyLastSec, Bite ahead of the Shred first: its Energy has no time to become Shreds.
-    const endMs = seconds(v, ID.biteEnd)
-    if (endMs > 0) b.add(FEROCIOUS_BITE, [cp, timeLeftAtMost(endMs)])
-    builderLines([cp, minEnergy(v.num(ID.biteShredFirst))])
-    if (rip >= 0 && v.on(ID.biteRipUp)) {
-      b.add(FEROCIOUS_BITE, [cp, auraUp(rip)])
-      b.add(FEROCIOUS_BITE, [cp, timeLeftAtMost(ripLeft)])
-    } else b.add(FEROCIOUS_BITE, [cp])
-  }
-
-  // Row 9: Rake when it's off the boss and its bleed has time to run; with onlyWithoutBleeds, only
-  // while nothing else bleeds the boss (not your Rip, and no warriors' Deep Wounds).
-  if (v.on(ID.rakeEnabled)) {
-    const alone = v.on(ID.rakeNoBleed)
-    if (!(alone && ctx.othersBleed)) {
-      const rake = index(RAKE)
-      b.add(RAKE, [refresh(rake, 0), timeLeftAtLeast(RAKE_MIN_FIGHT_LEFT_MS), ...(alone && rip >= 0 ? [auraDown(rip)] : [])])
+  /**
+   * Before the first row on the GCD, wherever it sits (after Tiger's Fury in the default order):
+   * row 4, the consumables selected in Buffs, spec-wide settings that take their turn here (the
+   * potion once, with Berserk, at the pull without it; Juju Flurry on cooldown); then the builder's
+   * cost where you stand, Shred's from behind, Claw's where Shred can't be used (from the front, or
+   * with Shred off), which Faerie Fire's early refresh reads.
+   */
+  let gcdStarted = false
+  const onGcd = (emit: () => void) => () => {
+    if (!gcdStarted) {
+      gcdStarted = true
+      const potion = consumable(MIGHTY_RAGE_POTION.id)
+      if (potion && v.on(ID.potion)) b.add({ ...onUseCast(potion), usesPerFight: 1 }, useBerserk ? [auraUp(index(BERSERK))] : [])
+      const juju = consumable(JUJU_FLURRY.id)
+      if (juju && v.on(ID.juju)) b.add(onUseCast(juju), [])
+      const shred = shredOn ? index(SHRED) : -1
+      builderCost = shredOn && !ctx.front ? b.cost(shred) : clawOn ? b.cost(index(CLAW)) : Infinity
     }
+    emit()
   }
 
-  // Row 10: the builder whenever it's affordable.
-  builderLines([])
+  compileAplRows(CAT_APL, order, {
+    // --- Off the GCD (§6.2 rows 1–3) ----------------------------------------------------------------
+    // Row 1: Berserk on cooldown, with the talent.
+    berserk: () => {
+      if (useBerserk) b.add(BERSERK, [])
+    },
+    // Row 2: the racial cooldown (Elune's Light, §7.2) and on-use items (§7.3) on cooldown: all 3 min
+    // cooldowns, so they line up with Berserk from the pull.
+    racial: () => {
+      if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
+    },
+    onUseItems: () => {
+      if (v.on(ID.items)) for (const item of ctx.items) b.add(onUseCast(item), [])
+    },
+    // Row 3: Tiger's Fury at Energy ≤ the cap − its Energy + what may be lost (W8).
+    tigersFury: () => {
+      if (!v.on(ID.tfEnabled)) return
+      const gain = tigersFuryEnergy(talents.get('King of the Jungle') ?? 0, ctx.equipped.has(WOLFSHEAD_HELM))
+      const tf = tigersFury(talents.get('King of the Jungle') ?? 0, ctx.equipped.has(WOLFSHEAD_HELM))
+      b.add(tf, [maxEnergyTenths(MAX_ENERGY_TENTHS - 10 * gain + 10 * v.num(ID.tfWaste))])
+    },
+    // --- On the GCD -----------------------------------------------------------------------------------
+    // Row 5: Faerie Fire when it's down, and from refreshBelowSec left while there's no Energy for the
+    // builder, so the GCD comes out of waiting time.
+    faerieFire: onGcd(() => {
+      if (!v.on(ID.ffEnabled)) return
+      const ff = b.add(FAERIE_FIRE_CAT, [refresh(index(FAERIE_FIRE_CAT), 0)])
+      const early = seconds(v, ID.ffRefresh)
+      if (early > 0 && builderCost !== Infinity) b.add(FAERIE_FIRE_CAT, [refresh(ff, early), maxEnergyTenths(builderCost - 1)])
+    }),
+    // Row 6: with Clearcasting up, the builder first: it's free (§2.7).
+    clearcasting: onGcd(() => {
+      const clearcasting = auraIndex('clearcasting')
+      if (clearcasting >= 0) builderLines([{ code: COND.windowOpen, a: clearcasting, b: 0 }])
+    }),
+    // Row 7: Rip at ≥ ripMinCP when it's off the boss (or has ≤ refreshBelowSec left) and at least
+    // minFightLeftSec of the fight is left; not at all with onlyWithoutOtherBleeds while others keep
+    // the boss bleeding.
+    rip: onGcd(() => {
+      if (ripUsed) b.add(RIP, [minComboPoints(v.num(ID.ripCp)), refresh(index(RIP), seconds(v, ID.ripRefresh)), timeLeftAtLeast(seconds(v, ID.ripLeft))])
+    }),
+    // Row 8: at ≥ biteMinCP, Ferocious Bite in the last anyEnergyLastSec, then a Shred first while
+    // Energy ≥ shredFirstFrom, and Ferocious Bite (only while Rip is up, or too late for one, with
+    // onlyWhileRipUp).
+    ferociousBite: onGcd(() => {
+      if (!v.on(ID.biteEnabled)) return
+      const cp = minComboPoints(v.num(ID.biteCp))
+      // In the last anyEnergyLastSec, Bite ahead of the Shred first: its Energy has no time to become Shreds.
+      const endMs = seconds(v, ID.biteEnd)
+      if (endMs > 0) b.add(FEROCIOUS_BITE, [cp, timeLeftAtMost(endMs)])
+      builderLines([cp, minEnergy(v.num(ID.biteShredFirst))])
+      if (ripUsed && v.on(ID.biteRipUp)) {
+        b.add(FEROCIOUS_BITE, [cp, auraUp(index(RIP))])
+        b.add(FEROCIOUS_BITE, [cp, timeLeftAtMost(seconds(v, ID.ripLeft))])
+      } else b.add(FEROCIOUS_BITE, [cp])
+    }),
+    // Row 9: Rake when it's off the boss and its bleed has time to run; with onlyWithoutBleeds, only
+    // while nothing else bleeds the boss (not your Rip, and no warriors' Deep Wounds).
+    rake: onGcd(() => {
+      if (!v.on(ID.rakeEnabled)) return
+      const alone = v.on(ID.rakeNoBleed)
+      if (alone && ctx.othersBleed) return
+      const rake = index(RAKE)
+      b.add(RAKE, [refresh(rake, 0), timeLeftAtLeast(RAKE_MIN_FIGHT_LEFT_MS), ...(alone && ripUsed ? [auraDown(index(RIP))] : [])])
+    }),
+    // Row 10: the builder whenever it's affordable: Shred, then Claw where Shred can't be used.
+    shred: onGcd(() => {
+      if (shredOn) b.add(SHRED, [])
+    }),
+    claw: onGcd(() => {
+      if (clawOn) b.add(CLAW, clawWhen())
+    }),
+  })
 
   return b.result([
     ...ctx.items.map((i) => i.id),

@@ -40,6 +40,9 @@ export const PRIMAL_FURY_CP_CHANCE_PER_RANK = 0.5
  */
 export const CLEARCASTING: AuraSpec = { id: 'clearcasting', name: 'Clearcasting', durationMs: 15000, mods: {} }
 
+/** Clearcasting's icon (16870), for the priority lists' Clearcasting rows (cat.ts, balance.ts). */
+export const CLEARCASTING_ICON = 'spell_shadow_manaburn'
+
 /** Omen of Clarity's rate, 2 procs per minute [?]: only a secondary source gives it (druid.md §2.7, Q4). */
 export const OMEN_OF_CLARITY_PPM = 2
 

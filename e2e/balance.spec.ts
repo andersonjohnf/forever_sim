@@ -50,20 +50,25 @@ async function noSideScroll(page: Page, what = 'no horizontal page scroll') {
   expect(overflow, what).toBeLessThanOrEqual(0)
 }
 
-/** What the Balance Rotation tab shows by default, at any width. */
+/** What the Balance Rotation tab shows by default, at any width: its priority list (D31, druid.md §11.5 "Balance's priority list"). */
 async function expectRotation(tab: Locator) {
   await expect(tab.getByText(/^Which abilities the sim uses, and when\. The defaults are the common priority/)).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
-  for (const name of ['Innervate yourself', 'Insect Swarm', 'Moonfire', 'Wrath for Eclipse', 'Major Mana Potion']) {
-    await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+  const list = tab.getByRole('list', { name: 'Priority list' })
+  const row = (id: string) => list.locator(`[data-apl-row="${id}"]`)
+  for (const name of ['Innervate yourself', 'Insect Swarm', 'Moonfire', 'Wrath for Eclipse']) {
+    await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }
+  await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
   // Faerie Fire is a duty that costs a moonkin damage: off by default.
-  await expect(tab.getByRole('switch', { name: 'Faerie Fire', exact: true })).not.toBeChecked()
-  await expect(tab.getByText(/^Not used while “Wrath for Eclipse” is on/)).toBeVisible()
+  await expect(list.getByRole('switch', { name: 'Faerie Fire', exact: true })).not.toBeChecked()
+  await expect(row('filler')).toContainText('Not used while “Wrath for Eclipse” is on')
+  await expect(row('prepull')).toContainText('Moonkin Form')
+  // The thresholds are their rows' own.
+  await expect(row('innervate')).toContainText(/^Innervate yourselfAt or below \d+% mana$/)
+  await expect(row('moonfire')).toContainText(/When it’s off the boss · while the fight has \d+ s left/)
   await openAdvanced(tab)
-  for (const name of ['Innervate at or below', 'Damage over time while the fight has', 'Major Mana Potion when missing']) {
-    await expect(tab.getByRole('textbox', { name, exact: true })).toHaveValue(NUMBER)
-  }
+  await expect(tab.getByRole('textbox', { name: 'Major Mana Potion when missing', exact: true })).toHaveValue(NUMBER)
   await expect(tab).not.toContainText(OTHER)
 }
 
@@ -109,7 +114,9 @@ test.describe('Balance druid', () => {
     await expectRotation(tab)
     // Turning Eclipse off makes the filler count.
     await tab.getByRole('switch', { name: 'Wrath for Eclipse', exact: true }).click()
-    await expect(tab.getByText(/^Not used while “Wrath for Eclipse” is on/)).toHaveCount(0)
+    const filler = tab.locator('[data-apl-row="filler"]')
+    await expect(filler).not.toContainText('Not used')
+    await expect(filler).toContainText('Starfire')
   })
 
   test('its Buffs: the casters’ entries and its own Moonkin Aura, no attack power', async ({ page }) => {

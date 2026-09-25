@@ -361,11 +361,17 @@ for (const width of [1280, 390]) {
       await page.getByRole('button', { name: /^Spec: / }).click()
       await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()
       await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-      for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
-      await tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true }).fill('100')
-      await tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true }).press('Enter')
-      await expect(tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true })).toHaveValue('100')
-      await unitsClear(page, 6)
+      // The cat's thresholds are its rows' own (D31): Ferocious Bite's combo points, Energy and seconds.
+      await page.locator('#apl-ferociousBite-select').click()
+      const shredFirst = page.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true })
+      await shredFirst.fill('100')
+      await shredFirst.press('Enter')
+      await expect(shredFirst).toHaveValue('100')
+      await unitsClear(page, 3, scope)
+      if (width < 1024) {
+        await page.getByRole('button', { name: 'Close', exact: true }).click()
+        await expect(page.getByRole('dialog')).toHaveCount(0)
+      }
 
       // Fury's Fight tab: the execute phase's %, damage taken's /s, and the length variation's %.
       await page.getByRole('button', { name: /^Spec: / }).click()

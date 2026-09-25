@@ -36,7 +36,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     title: 'The Optimizer',
     when: 'Planned',
     items: [
-      'Tell it what you’re after, DPS, TPS, Defense or Balanced, and it finds your best talents, gear and rotation settings by simulating them.',
+      'Tell it what you’re after (DPS, TPS, Defense or Balanced), and it finds your best talents, gear and rotation settings by simulating them.',
       'Gear is searched slot by slot from the pre-raid pool, enchants included, within the item levels, sources and faction you pick, leaving the slots you lock alone.',
       'Keep or rule out talents, or ask for a minimum in a tree; tanks can also ask for an effective health floor, crit immunity or crush immunity.',
       'Every option runs the same fights, the clear losers drop out early, and the winner is checked again on fresh fights, so a lucky run doesn’t win.',
@@ -63,7 +63,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     when: 'Planned',
     items: [
       'See how your spec scales with gear that isn’t out yet: add up to 100% to the stats from your items, or a set amount of any one stat, and compare.',
-      'Every stat items carry, the tanks’ block and avoidance included; weapons hit harder with the percent, as better weapons would.',
+      'It covers every stat items carry, the tanks’ block and avoidance included, and the percent makes weapons hit harder too, as better weapons would.',
       'Off unless you turn it on, and the results say when a boost is on.',
     ],
   },
@@ -83,7 +83,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     when: 'Planned',
     items: [
       'The sim’s numbers compared with the guild’s logs and target dummy tests, and its best guesses replaced with measured values.',
-      'Every spec’s rotation tuned to the tanks’ standard.',
+      'Every spec’s rotation tuned as carefully as the tanks’ are.',
     ],
   },
   {

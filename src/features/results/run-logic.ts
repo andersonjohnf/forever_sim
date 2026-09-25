@@ -81,12 +81,12 @@ export function runError(sim: { status: string; error: string | null; errorKey: 
 }
 
 /**
- * Whether a failed run's message is the engine refusing the setup (a race or spec it can't
- * simulate yet). Those messages say what to change, so a retry would only fail again; any other
- * failure (a worker that stopped) may pass on a retry. A unit test ties this to the engine's
- * actual messages.
+ * Whether a failed run's message is the engine refusing the setup (a hunter with no ranged weapon,
+ * or a race or spec it can't simulate yet). Those messages say what to change, so a retry would
+ * only fail again; any other failure (a worker that stopped) may pass on a retry. A unit test ties
+ * this to the engine's actual messages.
  */
-export const isSetupError = (message: string) => /can[’']t be simulated|simulation isn[’']t available/i.test(message)
+export const isSetupError = (message: string) => /can[’']t be simulated|simulation isn[’']t available|to simulate this spec/i.test(message)
 
 /**
  * Whether a failed run's message already says what to do next, so the retry advice would repeat it:

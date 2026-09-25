@@ -248,7 +248,12 @@ the core's [OQ-1](../mechanics/ranged-and-pets.md#oq-1-hunter-base-attack-power)
 dodge and 3.6% base spell crit (RatingBuster's pre-SoD Classic Era table): each "[?] placeholder
 (D24); origin: …, not evidence". The rates are [F]: 2 ranged attack power per Agility, 1 attack power
 per Strength and per Agility (ChrClasses), 0.0189% crit per Agility, 0.0165% spell crit per
-Intellect, 1,720 base mana (PlayerExpectedStat). No Skyborne row: a Skyborne hunter can't be simulated.
+Intellect, 1,720 base mana (PlayerExpectedStat). A Skyborne hunter takes the class row, 55 / 125 / 90
+/ 65 / 70, with neutral race offsets, as the other Skyborne classes do: Skyborne's offsets are
+unknown, so it's a "[?] placeholder (D24); origin: the mangos class row, not evidence"
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25);
+[character-stats OQ-1](../mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes)).
+5 Agility either way is about 0.5% of Marksmanship DPS.
 
 ## 8. Rotation
 

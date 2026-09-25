@@ -9,8 +9,11 @@ import { Sim } from '../engine/sim'
 import { rotationOff } from '../engine/test-helpers'
 import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
+import { SPEC_IDS, SPEC_META } from '../specs'
 import type { SimConfig, SpecId } from '../types'
 import itemJson from '@/data/items/pre-bis.json'
+import raceJson from '@/data/races/races.json'
+import { racesForClass, type RaceData } from '@/data/races/types'
 import type { ItemData } from '@/data/items/types'
 import { buildPlan, setOf } from './build'
 import { STANCE, STANCE_ANY, TRIGGER } from './types'
@@ -582,17 +585,49 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
     expect(naked.sheet.dodgePct).toBeCloseTo(0.7 + 65 / 20, 9)
   })
 
-  it('blocks Skyborne warriors, whose base stats are unknown', () => {
-    const bundle = buildPlan({ ...defaultConfig('warrior-fury'), race: 'horde-skyborne-windshaper' })
-    expect(bundle.blockers[0]).toBe('Skyborne base stats at level 60 aren’t known yet, so a Skyborne warrior can’t be simulated. Pick another race.')
+  it('gives Skyborne warriors and hunters their class row, a placeholder named in the assumptions (D24, D36)', () => {
+    // docs/mechanics/character-stats.md#warrior-base-attributes: the warrior class row is the Human
+    // row 120/80/110/30/45; docs/classes/hunter.md#75-base-values: the hunter's is 55/125/90/65/70.
+    const cases = [
+      ['warrior-fury', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
+      ['warrior-protection', 'Str 120, Agi 80, Sta 110, Int 30, Spi 45'],
+      ['hunter-marksmanship', 'Str 55, Agi 125, Sta 90, Int 65, Spi 70'],
+    ] as const
+    for (const [spec, row] of cases) {
+      for (const race of ['alliance-skyborne-high-order', 'horde-skyborne-windshaper']) {
+        const bundle = buildPlan(defaultConfig(spec, race))
+        expect(bundle.blockers, `${spec} ${race}`).toEqual([])
+        expect(bundle.sheet.unknown).not.toContain('base attributes')
+        expect(bundle.sheet.placeholders).toContain('base attributes')
+        const ids = bundle.assumptions.map((a) => a.id)
+        expect(ids).not.toContain('unknownBaseAttributes')
+        expect(bundle.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toContain(
+          `base attributes ${row}, the class row with no race adjustment, as Skyborne’s is unknown;`,
+        )
+      }
+    }
+    // A measured warrior row is no placeholder: the Human's is [C].
+    expect(buildPlan(defaultConfig('warrior-fury', 'alliance-human')).sheet.placeholders).not.toContain('base attributes')
   })
 
-  it('names the class when a Skyborne hunter is blocked, as the warrior is', () => {
-    // docs/classes/hunter.md#75-base-values: the hunter has no Skyborne row and no class-row placeholder.
-    for (const race of ['horde-skyborne-windshaper', 'alliance-skyborne-high-order']) {
-      const bundle = buildPlan({ ...defaultConfig('hunter-marksmanship'), race })
-      expect(bundle.blockers).toEqual(['Skyborne base stats at level 60 aren’t known yet, so a Skyborne hunter can’t be simulated. Pick another race.'])
+  it('simulates every race each spec’s class can be: none reaches the missing-row blocker or leaves a base value out', () => {
+    for (const spec of SPEC_IDS) {
+      for (const race of racesForClass(raceJson as RaceData, SPEC_META[spec].classId)) {
+        const bundle = buildPlan(defaultConfig(spec, race.id))
+        expect(bundle.blockers, `${spec} ${race.id}`).toEqual([])
+        expect(bundle.sheet.unknown, `${spec} ${race.id}`).toEqual([])
+      }
     }
+  })
+
+  it('still refuses a race and class with no row, measured or placeholder, and names the class', () => {
+    // No such pair in Forever, so the UI never offers it: the guard for a pair the data adds first.
+    const paladin = buildPlan({ ...defaultConfig('paladin-retribution'), race: 'alliance-night-elf' })
+    expect(paladin.blockers).toEqual(['This race’s base stats at level 60 aren’t known yet, so this paladin can’t be simulated. Pick another race.'])
+    expect(paladin.sheet.unknown).toContain('base attributes')
+    expect(paladin.assumptions.map((a) => a.id)).toContain('unknownBaseAttributes')
+    const priest = buildPlan({ ...defaultConfig('priest-shadow'), race: 'horde-skyborne-windshaper' })
+    expect(priest.blockers).toEqual(['Skyborne base stats at level 60 aren’t known yet, so a Skyborne priest can’t be simulated. Pick another race.'])
   })
 })
 

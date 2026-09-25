@@ -125,8 +125,14 @@ describe('simulate', () => {
     await expect(run).rejects.toMatchObject({ name: 'AbortError' })
   })
 
-  it('explains setups it can’t simulate yet instead of guessing', async () => {
-    await expect(simulate(quick({ ...defaultConfig('warrior-arms'), race: 'alliance-skyborne-high-order' }))).rejects.toThrow(/Skyborne/)
+  it('explains setups it can’t simulate instead of guessing', async () => {
+    // A hunter with nothing in its ranged slot shoots nothing (docs/mechanics/ranged-and-pets.md §12).
+    await expect(simulate(quick({ ...defaultConfig('hunter-marksmanship'), gear: {} }))).rejects.toThrow(/Add a ranged weapon/)
+  })
+
+  it('simulates a Skyborne warrior on the class-row placeholder (D24, D36)', async () => {
+    const result = await simulate(quick({ ...defaultConfig('warrior-arms'), race: 'alliance-skyborne-high-order' }))
+    expect(result.dps.mean).toBeGreaterThan(100)
   })
 })
 

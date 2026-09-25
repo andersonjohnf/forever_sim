@@ -11,9 +11,15 @@ const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) =>
 
 describe('isSetupError', () => {
   it('recognises every way the engine refuses a setup, so those errors skip the retry advice', () => {
-    const skyborne = buildPlan(config('warrior-fury', (c) => ({ ...c, race: 'alliance-skyborne-high-order' }))).blockers
-    expect(skyborne.length).toBeGreaterThan(0)
-    for (const message of skyborne) expect(isSetupError(message), message).toBe(true)
+    // A hunter with no ranged weapon (build.ts); every race of every class has a base row now (D36).
+    const noRanged = buildPlan(config('hunter-marksmanship', (c) => ({ ...c, gear: {} }))).blockers
+    expect(noRanged.length).toBeGreaterThan(0)
+    for (const message of noRanged) expect(isSetupError(message), message).toBe(true)
+    // A race and class with no base row, measured or placeholder: none the UI offers (a saved setup
+    // is normalized to a race the class can be), but the engine keeps the refusal.
+    const noRow = buildPlan({ ...defaultConfig('paladin-retribution'), race: 'alliance-night-elf' }).blockers
+    expect(noRow.length).toBeGreaterThan(0)
+    for (const message of noRow) expect(isSetupError(message), message).toBe(true)
     // Every class simulates now; one without a class module would get build.ts's other blocker.
     expect(isSetupError('Paladin simulation isn’t available yet.')).toBe(true)
   })
@@ -118,22 +124,22 @@ describe('runOutcomeMessage', () => {
 })
 
 describe('runError', () => {
-  const skyborne = JSON.stringify(config('warrior-fury', (c) => ({ ...c, race: 'alliance-skyborne-high-order' })))
-  const failed = { status: 'error', error: 'This setup can’t be simulated.', errorKey: skyborne }
+  const noRanged = JSON.stringify(config('hunter-marksmanship', (c) => ({ ...c, gear: {} })))
+  const failed = { status: 'error', error: 'This setup can’t be simulated.', errorKey: noRanged }
 
   it('shows a failure while the setup is the one that failed', () => {
-    expect(runError(failed, skyborne)).toBe('This setup can’t be simulated.')
+    expect(runError(failed, noRanged)).toBe('This setup can’t be simulated.')
   })
 
   it('clears it once the setup changes or on another spec, and brings it back for the same setup', () => {
-    expect(runError(failed, JSON.stringify(config('warrior-fury')))).toBeNull()
-    expect(runError(failed, JSON.stringify(config('warrior-arms')))).toBeNull()
-    expect(runError(failed, skyborne)).toBe('This setup can’t be simulated.')
+    expect(runError(failed, JSON.stringify(config('hunter-marksmanship')))).toBeNull()
+    expect(runError(failed, JSON.stringify(config('hunter-beast-mastery', (c) => ({ ...c, gear: {} }))))).toBeNull()
+    expect(runError(failed, noRanged)).toBe('This setup can’t be simulated.')
   })
 
   it('shows nothing unless the last run failed', () => {
-    expect(runError({ ...failed, status: 'running' }, skyborne)).toBeNull()
-    expect(runError({ ...failed, status: 'done' }, skyborne)).toBeNull()
+    expect(runError({ ...failed, status: 'running' }, noRanged)).toBeNull()
+    expect(runError({ ...failed, status: 'done' }, noRanged)).toBeNull()
   })
 })
 

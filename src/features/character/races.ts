@@ -5,8 +5,10 @@ import type { FactionGearChange } from './faction-gear'
 const simulatable = new Map<string, boolean>()
 
 /**
- * Whether the sim knows the race's base attributes for the spec's class. Skyborne warriors' aren't
- * known yet (docs/mechanics/character-stats.md, OQ-1), so the engine refuses to simulate them.
+ * Whether the sim knows the race's base attributes for the spec's class, measured or a D24
+ * placeholder (docs/mechanics/character-stats.md, OQ-1). Every race a class can be in Forever has
+ * a row now, the Skyborne's as the class row (decision D36); one without would be refused by the
+ * engine, and its tile says so.
  */
 export function raceSimulatable(spec: SpecId, race: string): boolean {
   const key = `${spec}:${race}`

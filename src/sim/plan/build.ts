@@ -376,8 +376,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   } else {
     unknown.push('base attributes')
     notes.add('unknownBaseAttributes')
-    // Every class is simulated, so a missing row is the race's: Skyborne's are unknown (OQ-1) for
-    // the classes with no class-row placeholder (the warrior and the hunter).
+    // No simulated class reaches this today: every race a class can be has a row, measured or a D24
+    // placeholder (the Skyborne ones are the class row, decision D36). It stays for a race or class
+    // the data adds before its row does (character-stats OQ-1).
     const cls = meta.className.toLowerCase()
     blockers.push(
       config.race.includes('skyborne')
@@ -1564,7 +1565,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // OQ-3, OQ-5). Avoidance matters only when the boss attacks you.
   const standIns: string[] = []
   if (placeholders.includes('base attributes')) {
-    // The druid's Skyborne rows are the class row: Skyborne's race offsets are unknown (OQ-1).
+    // Every class's Skyborne rows are the class row: Skyborne's race offsets are unknown (OQ-1).
     const neutral = config.race.includes('skyborne') ? ', the class row with no race adjustment, as Skyborne’s is unknown' : ''
     standIns.push(`base attributes Str ${block.baseStr}, Agi ${block.baseAgi}, Sta ${block.baseSta}, Int ${block.baseInt}, Spi ${block.baseSpi}${neutral}`)
   }

@@ -317,13 +317,21 @@ test.describe('simulation', () => {
     await expect(results.getByRole('table').getByRole('row', { name: /^Overpower window \d+\.\d% none$/ })).toBeVisible()
   })
 
-  test('explains a setup it can’t simulate', async ({ page }) => {
+  test('simulates a Skyborne warrior on its class row, and names that placeholder in the assumptions (D24, D36)', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
-    await page.getByRole('radio', { name: /Skyborne \(High Order\)/ }).click()
+    const skyborne = page.getByRole('radio', { name: /Skyborne \(High Order\)/ })
+    await skyborne.click()
+    await expect(skyborne).not.toContainText('Can’t be simulated')
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate' }).click()
-    await expect(results.getByRole('alert')).toContainText('a Skyborne warrior can’t be simulated')
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await expect(results.getByRole('alert')).toHaveCount(0)
+    await expect(results.getByRole('group', { name: 'DPS' })).toBeVisible()
+    await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+    await expect(
+      results.getByText(/base attributes Str 120, Agi 80, Sta 110, Int 30, Spi 45, the class row with no race adjustment, as Skyborne’s is unknown;/),
+    ).toBeVisible()
   })
 })
 

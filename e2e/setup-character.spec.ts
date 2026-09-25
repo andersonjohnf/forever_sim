@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures.ts'
 
 // The Character tab (docs/ux.md "Character"): races grouped by faction in one radio group, the
-// Skyborne tiles that can't be simulated yet, and faction gear on a race change.
+// Skyborne tiles simulating like the rest (D36), and faction gear on a race change.
 
 test.describe('race picker', () => {
   test('groups races by faction, moves with the arrow keys, and is one tab stop', async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('race picker', () => {
     await expect(races.getByRole('radio', { name: 'Skyborne (Windshaper)' })).toBeFocused()
   })
 
-  test('marks the Skyborne tiles as not simulatable yet, with the reason in view', async ({ page }) => {
+  test('shows the Skyborne tiles like the others, with no refusal (D24, D36)', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     for (const [name, faction] of [
@@ -39,10 +39,9 @@ test.describe('race picker', () => {
       ['Skyborne (Windshaper)', 'Horde'],
     ]) {
       const tile = page.getByRole('radio', { name })
-      await expect(tile).toContainText('Can’t be simulated yet: its base stats at level 60 aren’t known.')
-      await expect(tile).toHaveAccessibleDescription(`${faction} Can’t be simulated yet: its base stats at level 60 aren’t known.`)
+      await expect(tile).not.toContainText('Can’t be simulated')
+      await expect(tile).toHaveAccessibleDescription(faction)
     }
-    await expect(page.getByRole('radio', { name: 'Human' })).not.toContainText('Can’t be simulated')
   })
 })
 

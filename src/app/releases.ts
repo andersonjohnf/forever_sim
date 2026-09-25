@@ -43,6 +43,7 @@ export const RELEASES: readonly Release[] = [
           'Balance: Wrath’s base damage up 50%, +5%. Fire Mage: Ignite no longer double-dips, Hot Streak lasts 20 s, and new trinkets, +3%.',
           'Gear re-ranked by the sim: Elemental +9%, Shadow Priest +8%, Frost and Arcane +1%.',
           'Gnome Eureka! is now a 10% cost cut for every class, down from 15 to 50%.',
+          'Undead Touch of the Grave is simulated: about +2% TPS for Undead tanks and +1.6% DPS for Undead casters.',
         ],
       },
       {

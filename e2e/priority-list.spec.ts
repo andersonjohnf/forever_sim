@@ -116,7 +116,6 @@ for (const width of [1280, 390]) {
       const list = await openRotation(page)
       const handle = list.getByRole('button', { name: /^Move Whirlwind/ })
       await handle.focus()
-      // A person's keys come slower than the list measures itself: wait for each step to be said.
       await page.keyboard.press('Space')
       await expect(liveRegion(page)).toContainText(/Whirlwind is over position 11 of 16|Picked up Whirlwind/)
       await page.keyboard.press('ArrowUp')
@@ -134,6 +133,19 @@ for (const width of [1280, 390]) {
       await page.keyboard.press('Escape')
       await expect(liveRegion(page)).toHaveText('Moving Whirlwind was cancelled. It’s still at position 10 of 16.')
       await expect.poll(() => order(page)).toEqual(moved('whirlwind', 'bloodthirst'))
+    })
+
+    test('moves a row with an arrow key pressed at once after the pick-up', async ({ page }) => {
+      // The arrow keys work from the pick-up on (keyboard-sensor.ts): no pause between Space and
+      // the arrow, here to the first place a row can go, just below the pinned pre-pull.
+      const list = await openRotation(page)
+      await list.getByRole('button', { name: 'Move Death Wish, position 3', exact: true }).focus()
+      await page.keyboard.press('Space')
+      await page.keyboard.press('ArrowUp')
+      await expect(liveRegion(page)).toHaveText('Death Wish is over position 2 of 16.')
+      await page.keyboard.press('Space')
+      await expect.poll(() => order(page)).toEqual(moved('deathWish', 'battleShout'))
+      await expect(liveRegion(page)).toHaveText('Death Wish dropped at position 2 of 16.')
     })
 
     test('reorders with Move up and Move down in a row’s settings, which stop at the ends', async ({ page }) => {

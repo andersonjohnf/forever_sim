@@ -71,8 +71,6 @@ for (const width of [1280, 390]) {
         await list.getByRole('button', { name: `Move ${keyLabel}, position ${from}`, exact: true }).focus()
         await page.keyboard.press('Space')
         await expect(liveRegion(page)).toContainText(new RegExp(`Picked up ${keyLabel}|${keyLabel} is over position ${from} of`))
-        // A person's keys come slower than the list measures itself after the pick-up.
-        await page.waitForTimeout(150)
         for (let at = from - 1; at >= to; at--) {
           await page.keyboard.press('ArrowUp')
           await expect(liveRegion(page)).toHaveText(`${keyLabel} is over position ${at} of ${defaults.length}.`)

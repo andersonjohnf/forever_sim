@@ -11,7 +11,6 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
-  KeyboardSensor,
   type Modifier,
   PointerSensor,
   useSensor,
@@ -49,6 +48,7 @@ import {
   storedAplOrder,
 } from '@/sim'
 import { APL_PRESET_TRIGGER_ID, hasNamedPresets, INACTIVE_SWITCH, type RowContext } from './ids'
+import { ImmediateKeyboardSensor } from './keyboard-sensor'
 import { aplRowChanged, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
@@ -234,7 +234,8 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
   const sensors = useSensors(
     // Only the handle starts a drag, so a few pixels of travel tell a drag from a tap.
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    // Listening for the arrow keys from the pick-up on (keyboard-sensor.ts).
+    useSensor(ImmediateKeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return

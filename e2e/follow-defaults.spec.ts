@@ -108,7 +108,7 @@ test.describe('a build from the game’s older talent trees (docs/data/talents.m
     await page.goto('./')
     const notice = toasts(page).filter({ hasText: 'Talents moved onto the game’s new trees for Retribution Paladin' })
     await expect(notice).toHaveCount(1)
-    await expect(notice).toContainText('Your Retribution Paladin talents were the default then; they’re now today’s default.')
+    await expect(notice).toContainText('Your Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default.')
     await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText('Using the default build.')).toBeVisible()
   })
 

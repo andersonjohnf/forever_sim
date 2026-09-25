@@ -205,13 +205,13 @@ export function refundNotice(builds: readonly { refunds: readonly TalentRefund[]
  * What a load says about a code the sim shipped on older trees, read as the build that succeeds it:
  * "Your talents were the Retribution default on the game’s old trees; they’re now today’s default."
  * With `whose`, the notice names the spec, and a default of that same spec isn't named twice: "Your
- * Retribution Paladin talents were the default then; they’re now today’s default." A paste speaks of
- * the code: "That code was the Retribution default on the game’s old trees; it’s now today’s
- * default." (review TMV-2).
+ * Retribution Paladin talents were the default on the game’s old trees; they’re now today’s
+ * default." ("then" said nothing of when, review FU-6.) A paste speaks of the code: "That code was
+ * the Retribution default on the game’s old trees; it’s now today’s default." (review TMV-2).
  */
 export function successorNotice(successor: TalentSuccessor, context: NoticeContext = {}): string {
   if (context.pasted) return `That code was ${successor.label} on the game’s old trees; it’s now ${successor.now}.`
-  if (context.whose && successor.spec && successor.spec === context.spec) return `Your ${context.whose} talents were the default then; they’re now ${successor.now}.`
+  if (context.whose && successor.spec && successor.spec === context.spec) return `Your ${context.whose} talents were the default on the game’s old trees; they’re now ${successor.now}.`
   return `Your ${context.whose ? `${context.whose} ` : ''}talents were ${successor.label} on the game’s old trees; they’re now ${successor.now}.`
 }
 

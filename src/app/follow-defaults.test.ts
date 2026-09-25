@@ -215,7 +215,7 @@ describe('the notice', () => {
     expect(defaultsUpdateNotice(updates, 'paladin-retribution')).toEqual({
       title: 'Talents moved onto the game’s new trees for Retribution Paladin and Protection Paladin',
       description:
-        'Your Retribution Paladin talents were the default then; they’re now today’s default. The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents.',
+        'Your Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default. The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents.',
     })
   })
 
@@ -229,7 +229,7 @@ describe('the notice', () => {
     expect(defaultsUpdateNotice(updates, PROT_PALADIN)).toEqual({
       title: 'Talents moved onto the game’s new trees for Protection Paladin and Retribution Paladin',
       description:
-        'The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents. Your Retribution Paladin talents were the default then; they’re now today’s default.',
+        'The game’s new talent trees refunded 2 of your Protection Paladin talent points: Improved Holy Strike left the game. Spend them again in Talents. Your Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default.',
     })
   })
 
@@ -241,7 +241,7 @@ describe('the notice', () => {
     ]
     expect(defaultsUpdateNotice(updates, PROT_PALADIN)).toEqual({
       title: 'Updated to the new default gear for Protection Paladin',
-      description: 'Gear you changed yourself is kept. Your Retribution Paladin talents were the default then; they’re now today’s default.',
+      description: 'Gear you changed yourself is kept. Your Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default.',
     })
   })
 })

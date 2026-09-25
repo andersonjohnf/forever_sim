@@ -1043,8 +1043,8 @@ Every view handles these states:
   default on the game’s old trees; they’re now today’s default." A link, a code or a Load says it
   among its changes, below. A visit says it in the defaults notice, naming the spec ("… 16 of your
   Retribution Paladin talent points: …", every spec's refunds in the one sentence; "Your
-  Retribution Paladin talents were the default then; they’re now today’s default."), by spec, the
-  current spec first, after what moved, or on its own under "Talent points refunded for
+  Retribution Paladin talents were the default on the game’s old trees; they’re now today’s
+  default."), by spec, the current spec first, after what moved, or on its own under "Talent points refunded for
   Retribution Paladin" (or "Talents moved onto the game’s new trees for …" when a shipped build is
   among them). When a shipped build replaced one you had picked yourself, the notice's opening
   reads "Gear you changed yourself is kept." rather than claiming your talents were. A build that

@@ -1,17 +1,22 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// docs/ux.md "Sections" (Character, Buffs, Fight): in the wide layout (D34) these three reflow by
-// the setup pane's own width, with container queries on `setup`. Buffs' groups flow into 2 columns
-// from a 53 rem pane and 3 from 84 rem (a window of about 2,140 px); Character puts the racials beside the races, and Fight puts
-// Advanced beside the fight, from 53 rem. A 1440 px window's pane is 55 rem, or 54 beside a
-// scrollbar that takes room, so all three apply from 1440. Under 1440 px the pane isn't a
-// container, so nothing changes there (the rest of the suite runs at 1280).
+// docs/ux.md "Sections" (Character, Buffs, Fight) and "Visual language" (segmented choices): in the
+// wide layout (D34, as amended) these reflow by the setup pane's own width, with container queries
+// on `setup`, and use the room to show more, never to stretch a control. Buffs' groups flow into 2
+// columns from a 53 rem pane and 3 from 72 rem (a window of about 1,850 px), and its presets stop at
+// 16 rem each; Character puts the racials beside the races, and Fight puts Advanced beside the fight,
+// from 53 rem; both show Advanced open, with no disclosure; and every segmented choice is as wide as
+// its options, left-aligned (Rotation's spec-wide choices too). A 1440 px window's pane is 55 rem, or
+// 54 beside a scrollbar that takes room, so all of it applies from 1440. Under 1440 px the pane isn't
+// a container, so nothing changes there (the rest of the suite runs at 1280).
 
 const REM = 16
 
 /** The setup pane's width, the container every query here measures. */
 const setupWidth = (page: Page) => page.evaluate(() => document.querySelector('main')!.firstElementChild!.getBoundingClientRect().width)
+/** The setup pane's left edge. */
+const setupLeft = (page: Page) => page.evaluate(() => document.querySelector('main')!.firstElementChild!.getBoundingClientRect().left)
 
 const noSidewaysScroll = async (page: Page) =>
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
@@ -20,6 +25,29 @@ async function openTab(page: Page, name: string): Promise<Locator> {
   await page.getByRole('tab', { name, exact: true }).click()
   return page.getByRole('tabpanel', { name })
 }
+
+/**
+ * Every segmented choice's option in `scope` that's stretched: wider than its words and its padding
+ * (1 rem a side and the border), or than the 7 rem floor a short name gets (CHOICE_ITEM_WIDE).
+ */
+const stretchedChoices = (scope: Locator) =>
+  scope.locator('[data-slot="toggle-group-item"]').evaluateAll((items) =>
+    items.flatMap((item) => {
+      // The words' own width: the widest line of its text, whatever box holds it.
+      const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT)
+      let words = 0
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        for (const rect of range.getClientRects()) words = Math.max(words, rect.width)
+      }
+      const width = item.getBoundingClientRect().width
+      return width > Math.max(7 * 16, words + 2 * 16 + 2) + 1 ? [`${item.textContent} (${Math.round(width)} px for ${Math.round(words)} px of words)`] : []
+    }),
+  )
+
+/** Every spec, as src/sim/specs.ts lists them. */
+const SPEC_IDS = ['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'druid-balance', 'paladin-retribution', 'paladin-protection', 'shaman-enhancement', 'shaman-elemental', 'rogue-combat', 'rogue-assassination', 'rogue-subtlety', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow', 'hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival']
 
 /** Each buff category's group cards: their boxes, and their switches' boxes. */
 const buffGroups = (panel: Locator) =>
@@ -51,19 +79,21 @@ const buffGroups = (panel: Locator) =>
 
 test.describe('the wide sections', () => {
   for (const width of [1440, 1600, 1920, 2560]) {
-    test(`at ${width} px, Buffs' groups flow into columns by the setup pane's width`, async ({ page }) => {
+    test(`at ${width} px, Buffs' groups flow into columns by the setup pane's width, and the presets aren't stretched`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Buffs')
       const pane = await setupWidth(page)
-      const columns = pane >= 84 * REM ? 3 : pane >= 53 * REM ? 2 : 1
-      // The wide layout's reflow starts with the wide layout itself.
+      const columns = pane >= 72 * REM ? 3 : pane >= 53 * REM ? 2 : 1
+      // The wide layout's reflow starts with the wide layout itself; three columns by 1920 px.
       expect(columns).toBeGreaterThanOrEqual(2)
+      if (width >= 1920) expect(columns).toBe(3)
       await noSidewaysScroll(page)
 
-      // The presets and "In your raid" stay full width above the groups.
-      const presets = await panel.getByRole('radiogroup', { name: 'Preset' }).boundingBox()
-      expect(presets!.width).toBeGreaterThan(pane - 4)
+      // The presets sit at the pane's left, each 16 rem at most, however wide the pane.
+      const presets = panel.getByRole('radiogroup', { name: 'Preset' })
+      expect((await presets.boundingBox())!.x).toBeCloseTo(await setupLeft(page), 0)
+      for (const preset of await presets.getByRole('radio').all()) expect((await preset.boundingBox())!.width).toBeLessThanOrEqual(16 * REM + 0.5)
 
       const categories = await buffGroups(panel)
       expect(categories.map((c) => c.category)).toEqual(['Raid buffs', 'Debuffs on the boss', 'Consumables'])
@@ -82,6 +112,8 @@ test.describe('the wide sections', () => {
           else expect(next.left).toBeGreaterThan(prev.left)
         }
         for (const card of cards) {
+          // A column is still wide enough for a buff's words: 23 rem or more.
+          expect(card.right - card.left).toBeGreaterThanOrEqual(23 * REM)
           // Every row, the switch's label, stays a target of 56 px or more.
           expect(card.rows.every((h) => h >= 56)).toBe(true)
           // Each switch sits at the end of its own card, not across the pane from its label.
@@ -93,68 +125,121 @@ test.describe('the wide sections', () => {
       }
     })
 
-    test(`at ${width} px, Character puts the racials beside the races from a 53 rem pane`, async ({ page }) => {
+    test(`at ${width} px, Character puts the racials beside the races and shows Advanced open, its choices unstretched`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Character')
       const pane = await setupWidth(page)
-      const beside = pane >= 53 * REM
-      expect(beside).toBe(true)
+      expect(pane).toBeGreaterThanOrEqual(53 * REM)
       await noSidewaysScroll(page)
 
       const races = (await panel.getByRole('radiogroup', { name: 'Race' }).boundingBox())!
       const racials = (await panel.getByRole('heading', { name: 'Human racials' }).boundingBox())!
-      const advanced = (await panel.getByRole('button', { name: 'Advanced' }).boundingBox())!
-      // The race tiles keep 3 to a row, on the left or across the pane.
+      // The race tiles keep 3 to a row, on the left.
       const human = (await panel.getByRole('radio', { name: 'Human' }).boundingBox())!
       const nightElf = (await panel.getByRole('radio', { name: 'Night Elf' }).boundingBox())!
       expect(nightElf.y).toBeCloseTo(human.y, 0)
-      if (beside) {
-        expect(racials.x).toBeGreaterThan(races.x + races.width)
-        expect(racials.y).toBeLessThan(races.y)
-        expect(races.width).toBeLessThan(pane * 0.7)
-      } else {
-        expect(racials.y).toBeGreaterThan(races.y + races.height)
-      }
-      // Advanced spans the pane below both, either way.
-      expect(advanced.width).toBeGreaterThan(pane - 4)
-      expect(advanced.y).toBeGreaterThan(races.y + races.height)
+      expect(racials.x).toBeGreaterThan(races.x + races.width)
+      expect(racials.y).toBeLessThan(races.y)
+      expect(races.width).toBeLessThan(pane * 0.7)
+
+      // Advanced is shown, not a disclosure: a heading over its settings, across the pane below both.
+      await expect(panel.getByRole('button', { name: /^Advanced/ })).toHaveCount(0)
+      const advanced = panel.getByRole('region', { name: 'Advanced' })
+      const box = (await advanced.boundingBox())!
+      expect(box.width).toBeGreaterThan(pane - 4)
+      expect(box.y).toBeGreaterThan(races.y + races.height)
+      const rules = advanced.getByRole('radiogroup', { name: 'Rules' })
+      await expect(rules).toBeVisible()
+      await expect(advanced.getByRole('switch', { name: 'Count untested ratings' })).toBeVisible()
+      // The rule profile is two buttons as wide as their names, at the pane's left, not two halves of it.
+      expect(await stretchedChoices(panel)).toEqual([])
+      const rulesBox = (await rules.boundingBox())!
+      expect(rulesBox.width).toBeLessThan(20 * REM)
     })
 
-    test(`at ${width} px, Fight puts Advanced beside the fight from a 53 rem pane`, async ({ page }) => {
+    test(`at ${width} px, Fight shows Advanced open beside the fight, and no choice is stretched`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Fight')
       const pane = await setupWidth(page)
-      const beside = pane >= 53 * REM
-      expect(beside).toBe(true)
-      const advanced = panel.getByRole('button', { name: 'Advanced' })
-      const position = panel.getByRole('radiogroup', { name: 'Position' })
+      expect(pane).toBeGreaterThanOrEqual(53 * REM)
       const length = (await panel.getByRole('slider', { name: 'Fight length' }).boundingBox())!
-      const before = (await position.boundingBox())!
-      const trigger = (await advanced.boundingBox())!
-      if (beside) {
-        expect(trigger.x).toBeGreaterThan(length.x + length.width)
-        expect(trigger.width).toBeLessThan(pane / 2)
-      } else {
-        expect(trigger.y).toBeGreaterThan(before.y + before.height)
-        expect(trigger.width).toBeGreaterThan(pane - 4)
-      }
 
-      // Still a disclosure: closed by default, and opening it pushes nothing on the left down.
-      await expect(advanced).toHaveAttribute('aria-expanded', 'false')
-      await advanced.click()
-      await expect(advanced).toHaveAttribute('aria-expanded', 'true')
-      const precision = (await panel.getByRole('radiogroup', { name: 'Precision' }).boundingBox())!
-      if (beside) {
-        expect((await position.boundingBox())!.y).toBe(before.y)
-        expect(precision.x).toBeGreaterThan(length.x + length.width)
-      }
+      // No disclosure to press: Advanced's settings are in view, in the right-hand column.
+      await expect(panel.getByRole('button', { name: /^Advanced/ })).toHaveCount(0)
+      const advanced = panel.getByRole('region', { name: 'Advanced' })
+      const box = (await advanced.boundingBox())!
+      expect(box.x).toBeGreaterThan(length.x + length.width)
+      expect(box.width).toBeLessThan(pane / 2)
+      const precision = (await advanced.getByRole('radiogroup', { name: 'Precision' }).boundingBox())!
+      expect(precision.x).toBeGreaterThan(length.x + length.width)
+      await expect(advanced.getByRole('combobox', { name: 'Creature type' })).toBeVisible()
+      await expect(advanced.getByRole('textbox', { name: 'Random seed' })).toBeVisible()
+
+      // Boss armor, position and precision are as wide as their options, not the column.
+      expect(await stretchedChoices(panel)).toEqual([])
+      const position = (await panel.getByRole('radiogroup', { name: 'Position' }).boundingBox())!
+      expect(position.width).toBeLessThan(20 * REM)
       await noSidewaysScroll(page)
     })
   }
 
-  test('under 1440 px the three sections stay one column', async ({ page }) => {
+  // Rotation's spec-wide cards share option-rows.tsx's choice with Character and Fight: in a card's
+  // column they sit under their label, as wide as their names, wrapping where the column is narrow.
+  for (const width of [1440, 1920]) {
+    test(`at ${width} px no spec's spec-wide Rotation choice is stretched across its column`, async ({ page }) => {
+      test.setTimeout(120_000)
+      await page.setViewportSize({ width, height: 1000 })
+      await page.goto('./')
+      const problems: string[] = []
+      for (const spec of SPEC_IDS) {
+        await page.evaluate(
+          (spec) => localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec }, bySpec: {}, section: 'rotation' }, version: 1 })),
+          spec,
+        )
+        await page.reload()
+        const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+        await expect(tab.getByRole('list', { name: 'Priority list' })).toBeVisible()
+        // No row is selected, so the only choices are the spec-wide ones above the list.
+        problems.push(...(await stretchedChoices(tab)).map((p) => `${spec}: ${p}`))
+      }
+      expect(problems).toEqual([])
+      await noSidewaysScroll(page)
+    })
+  }
+
+  test('at 1920 px, a tank’s Fight tab shows its boss melee settings in Advanced, with none stretched', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await page.goto('./')
+    await page.evaluate(() =>
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec: 'warrior-protection' }, bySpec: {}, section: 'fight' }, version: 1 })),
+    )
+    await page.reload()
+    const panel = page.getByRole('tabpanel', { name: 'Fight' })
+    const advanced = panel.getByRole('region', { name: 'Advanced' })
+    await expect(advanced.getByRole('heading', { name: 'Boss melee' })).toBeVisible()
+    await expect(advanced.getByRole('switch', { name: 'Crushing blows' })).toBeVisible()
+    expect(await stretchedChoices(panel)).toEqual([])
+    await noSidewaysScroll(page)
+  })
+
+  test('at 1440 px, Rotation’s “set Creature type” link lands on the creature type, with no disclosure to open', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('./')
+    await page.evaluate(() =>
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec: 'paladin-retribution' }, bySpec: {}, section: 'rotation' }, version: 1 })),
+    )
+    await page.reload()
+    const rotation = page.getByRole('tabpanel', { name: 'Rotation' })
+    await rotation.locator('[data-apl-row="exorcism"]').click()
+    const note = rotation.getByText(/Not used: set Creature type to Undead or Demon in/)
+    await note.getByRole('button', { name: 'Fight' }).click()
+    const creature = page.getByRole('tabpanel', { name: 'Fight' }).getByRole('combobox', { name: 'Creature type' })
+    await expect(creature).toBeFocused()
+  })
+
+  test('under 1440 px the three sections stay one column, with Advanced a disclosure and the choices sharing the width', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('./')
     const pane = await setupWidth(page)
@@ -164,14 +249,26 @@ test.describe('the wide sections', () => {
       expect(new Set(cards.map((c) => c.left)).size).toBe(1)
       for (const card of cards) expect(card.right - card.left).toBeGreaterThan(pane - 4)
     }
+    // The four presets share the pane's width.
+    expect((await buffs.getByRole('radiogroup', { name: 'Preset' }).boundingBox())!.width).toBeGreaterThan(pane - 4)
 
     const character = await openTab(page, 'Character')
     const races = (await character.getByRole('radiogroup', { name: 'Race' }).boundingBox())!
     const racials = (await character.getByRole('heading', { name: 'Human racials' }).boundingBox())!
     expect(racials.y).toBeGreaterThan(races.y + races.height)
+    const characterAdvanced = character.getByRole('button', { name: 'Advanced' })
+    await expect(characterAdvanced).toHaveAttribute('aria-expanded', 'false')
+    await characterAdvanced.click()
+    // The rule profile's two options share the pane, as they always have here.
+    expect((await character.getByRole('radiogroup', { name: 'Rules' }).boundingBox())!.width).toBeGreaterThan(pane - 4 - 2 * REM)
 
     const fight = await openTab(page, 'Fight')
-    const trigger = (await fight.getByRole('button', { name: 'Advanced' }).boundingBox())!
-    expect(trigger.width).toBeGreaterThan(pane - 4)
+    const trigger = fight.getByRole('button', { name: 'Advanced' })
+    expect((await trigger.boundingBox())!.width).toBeGreaterThan(pane - 4)
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    await expect(fight.getByRole('combobox', { name: 'Creature type' })).toHaveCount(0)
+    expect((await fight.getByRole('radiogroup', { name: 'Position' }).boundingBox())!.width).toBeGreaterThan(pane - 4)
+    // Here the options share the width, so the wide tests' check finds them wider than their words.
+    expect(await stretchedChoices(fight)).toEqual(expect.arrayContaining([expect.stringMatching(/^Behind /), expect.stringMatching(/^In front /)]))
   })
 })

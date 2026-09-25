@@ -1,5 +1,5 @@
 // The wide Talents tab's detail panel (decision D34, docs/ux.md "Talents"): beside the trees on a
-// setup pane of 80 rem or more (about 2,040 px), the talent under the pointer, or else the focused
+// setup pane of 73 rem or more (about 1,870 px, so every 1920 px window), the talent under the pointer, or else the focused
 // one, or else the last one either showed: its name, rank, texts, what it needs and why a point can't
 // move, so a mouse user reads it without chasing tooltips. While it shows, pointing at a talent no
 // longer opens its tooltip too (it would repeat the panel over the neighbours); focus still does, and
@@ -14,15 +14,17 @@ import { TalentDetails } from './talent-details'
 import type { TalentTracker } from './tracker'
 
 /*
- * The panel shows from an 80 rem setup pane (a container only from 1440 px): the three trees
- * with 52 px icons need about 17.9 rem each (four 60 px cells, their gaps, the last rank badge and the
- * card's padding), and 3 × 17.9 + 2 × 1 rem between them + 1 rem + the 22 rem panel is about 78.7
- * rem; 80 leaves a few pixels in each card. The pane is 80 rem in a window of about 2,040 px (2,060
- * beside a classic scrollbar, which takes 1 rem); at 1920 it's 75.
+ * The panel shows from a 73 rem setup pane (a container only from 1440 px): the three trees, with
+ * their 44 px icons, need 16.1 rem each (four 52 px cells and three 8 px gaps, the card's 12 px
+ * padding and its border; the last rank badge overhangs into the padding), and 3 × 16.1 + 2 × 1 rem
+ * between them + 1 rem + the 21 rem panel is about 72.4 rem; 73 leaves each card a few pixels. The
+ * pane is 73 rem in a window of about 1,870 px (1,895 beside a classic scrollbar, which takes 1 rem);
+ * at 1920 it's 75, or 74 with the scrollbar. At 1440 (55 rem) the panel would leave each tree 10 rem,
+ * which doesn't fit, so the trees keep the width there and each talent's tooltip shows its details.
  */
 
 /**
- * The panel. Hidden below an 80 rem setup pane (above), so the trees keep the width;
+ * The panel. Hidden below a 73 rem setup pane (above), so the trees keep the width;
  * sticky beside them, as the Rotation tab's settings panel is. `onShownChange` hears whether it's on
  * screen, which only the container query decides, so the talents can drop their hover tooltips.
  */
@@ -61,7 +63,7 @@ export function TalentDetailPanel({
       ref={ref}
       aria-label="Talent details"
       data-talent-detail={talent?.id}
-      className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] hidden max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] flex-col gap-4 overflow-y-auto rounded-xl border p-4 @min-[80rem]/setup:flex"
+      className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] hidden max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] flex-col gap-4 overflow-y-auto rounded-xl border p-4 @min-[73rem]/setup:flex"
     >
       {talent && tree ? (
         <>

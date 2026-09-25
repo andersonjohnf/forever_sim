@@ -11,7 +11,7 @@ import { buffSwitchId } from '@/features/buffs/ids'
 import { CREATURE_TYPES, openCreatureType } from '@/features/fight/ids'
 import { ChangedHint, LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus } from '@/features/refocus'
-import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
+import { CHOICE_GROUP_WIDE, CHOICE_ITEM, CHOICE_ITEM_INACTIVE, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import type { FixedRotationRow, RotationOption } from '@/sim'
 import { controlOf, INACTIVE_SWITCH, rowIds, type RowContext } from './ids'
@@ -193,8 +193,10 @@ function OptionRow({
           // Its options share the line equally while their names fit, and wrap to another line
           // where they don't (a phone, the desktop panel beside the list); four sit two to a line
           // on a phone, so a line never holds three and one. No name is ever clipped, nor the page
-          // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts).
-          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap', flowStack && '@min-[53rem]/setup:w-full @min-[53rem]/setup:flex-wrap')}
+          // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts). In a two-column
+          // card in the wide layout they sit under the label, as wide as their names and wrapping where
+          // the column is narrow, never stretched across it (docs/ux.md principle 4).
+          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap', flowStack && ['@min-[53rem]/setup:flex-wrap', CHOICE_GROUP_WIDE])}
         >
           {option.choices.map((choice) => (
             <ToggleGroupItem
@@ -204,7 +206,7 @@ function OptionRow({
                 'h-11 min-w-fit flex-1 px-4',
                 option.choices.length === 4 && 'max-[27rem]:basis-[calc(50%-0.25rem)]',
                 !stacked && 'sm:flex-none',
-                flowStack && '@min-[53rem]/setup:flex-1',
+                flowStack && CHOICE_ITEM_WIDE,
                 CHOICE_ITEM,
                 row.inactive && CHOICE_ITEM_INACTIVE,
               )}

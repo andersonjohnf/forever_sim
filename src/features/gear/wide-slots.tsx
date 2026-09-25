@@ -163,7 +163,7 @@ export function WideSlot({
         </div>
         {item && !place.enchantLine && flags}
         {/* At the row's inner end, toward the pane's middle on either side. */}
-        {info && <div className="ml-auto flex shrink-0">{info}</div>}
+        {info && <div className={cn('flex shrink-0', mirrored ? 'mr-auto' : 'ml-auto')}>{info}</div>}
       </div>
     </li>
   )

@@ -485,7 +485,8 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
 - **In turns** (`--turns`, `optimizeInTurns`): the talents with the setup's rotation, then the
   variants with the winning build, then the talents again with the winning variant, until a pass
   keeps its start or has no answer. Each pass spends the whole budget, within what the passes before
-  it left of the search's cap ([budgets](#budgets)). Every pass races its start,
+  it left of the search's cap, less a tenth of that held back for the passes after it (the last pass
+  may run all of it; [budgets](#budgets), OGV2-4). Every pass races its start,
   the last pass's winner, beside the new candidates, so a rotation pass whose variants are all
   worse keeps the talent pass's winner; the answer never gets worse from one pass to the next, up
   to the race's own error. Every pass holds every candidate to every constraint, the talent ones
@@ -561,8 +562,12 @@ round the caller asks for (`initialFights`, the CLI's `--first`; OGV2-1): a larg
 90% of what the cap leaves the race shrinks to fit it, and a note says so ("A first round of 2,000
 fights each over 504 plans … passes the 979,200 fights the search's cap leaves the race: it runs
 1,748 each"), rather than narrowing a space that fits at 50. A talent screen with more fights than the cap is
-refused before its first fight. In turns, a pass that no longer fits what the passes before it left
-ends the turns on the last answer, and the last report's `turnsStopped` says so.
+refused before its first fight. **In turns** (OGV2-4), each pass but the last runs at most 90% of what
+the passes before it left of the cap, holding back a tenth (`TURNS_RESERVE`) for the passes after it,
+so one pass can't spend the whole cap and leave the next nothing: a talent pass whose race ends on its
+budget used to spend all of it, and the rotation pass, which costs little, never ran. A pass's
+`budget.cap` is what it could run. A pass that no longer fits what it's given ends the turns on the
+last answer, and the last report's `turnsStopped` says so.
 
 So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough` 144,000; a
 larger one costs more than its budget (to 100 fights a plan) up to the cap, and past about 432,000
@@ -741,6 +746,10 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
 - **The confirmation within the cap** (OGV2-2). With 40,000 fights asked for, a search that left
   100,000 of its cap runs the CLI's two checks at 25,000 each; one that left fewer than 400 doesn't
   confirm (`optimize.test.ts`).
+- **In turns, a tenth held back** (OGV2-4). The bear in turns with a cap of 30,000 fights and a
+  budget far past it: the talent pass runs at most 27,000 and ends on that budget, and the rotation
+  pass runs on what's left; with nothing held back the talent pass spends all 30,000 and the turns
+  stop there (`optimize.test.ts`).
 - **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
   finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
   pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline

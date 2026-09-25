@@ -30,6 +30,7 @@
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
 //                         Every pass races its start too, and holds every candidate to every constraint.
+//                         Each pass but the last runs at most 90% of what's left of the cap (OGV2-4).
 //   --sweep id=a:b:step   rotation variants, as rotation.mjs's --sweep (id=a|b|c for a list); repeatable, the
 //                         cartesian product of all of them
 //   --rotation "a=1,b=2"  one rotation variant; repeatable
@@ -385,6 +386,9 @@ async function main() {
   console.log(
     `ceiling: at most ${plural(maxFights, 'fight')} for the whole search${args['max-fights'] === undefined ? ' (the cap, thorough’s budget)' : ' (--max-fights)'}; the budget ${count(budget.fights)} is ${duration(Math.min(budget.fights, maxFights) / (threads * perThread))} and the cap ${duration(maxFights / (threads * perThread))} ${rough}`,
   )
+
+  if (args.turns)
+    console.log(`in turns: each pass but the last runs at most ${Math.round(100 * (1 - engine.TURNS_RESERVE))}% of what's left of the cap, holding back the rest for the passes after it`)
 
   const runner = threadRunner(engine, bundle, threads)
   const started = performance.now()

@@ -778,27 +778,47 @@ function sameRotation(a: Record<string, RotationValue>, b: Record<string, Rotati
 }
 
 /**
+ * The share of what's left of the cap that each pass of a search in turns, but the last, holds back
+ * for the passes after it (OGV2-4, docs/optimizer.md#budgets): one pass can't spend the whole cap and
+ * leave the next nothing. A rotation pass is cheap, so a tenth is plenty for it.
+ */
+export const TURNS_RESERVE = 0.1
+
+/**
  * Talents and rotation in turns (docs/optimizer.md#talents-and-rotation-together): the talents with
  * the start's rotation, then the rotation variants with the winning talents, then the talents again
  * with the winning rotation, until a pass's winner is where it started, `passes` run out, or a pass
  * has no answer. Each pass spends the whole budget and holds every candidate to every constraint,
  * the talent ones included. The baseline is the setup itself throughout. The hard ceiling holds for
- * the whole search (OGV-2): each pass gets what the passes before it left of the cap, and when a
- * later pass no longer fits, the turns end there and the last report's `turnsStopped` says so.
+ * the whole search (OGV-2): each pass gets what the passes before it left of the cap, less `reserve`
+ * of it held back for the passes after it (all of it for the last pass; OGV2-4), and when a later
+ * pass no longer fits, the turns end there and the last report's `turnsStopped` says so.
  */
-export async function optimizeInTurns(options: OptimizeOptions & { passes?: number; onPass?: (report: OptimizeReport, pass: number) => void }): Promise<OptimizeReport[]> {
+export async function optimizeInTurns(
+  options: OptimizeOptions & {
+    passes?: number
+    /** The share of what's left each pass but the last holds back for the passes after it (default TURNS_RESERVE). */
+    reserve?: number
+    onPass?: (report: OptimizeReport, pass: number) => void
+  },
+): Promise<OptimizeReport[]> {
   if (!options.talents || !options.rotations?.length) throw new Error('Taking turns needs a talent search and rotation variants.')
   const reports: OptimizeReport[] = []
   let start: Candidate = options.start ?? setupCandidate(options.config)
   const passes = options.passes ?? 4
   const cap = options.maxFights ?? MAX_SEARCH_FIGHTS
+  const reserve = options.reserve ?? TURNS_RESERVE
   let spent = 0
   for (let pass = 0; pass < passes; pass++) {
     const talents = pass % 2 === 0
+    const left = cap - spent
+    // What this pass may run: what's left, less the share held back for the passes after it.
+    const share = pass < passes - 1 ? Math.floor(left * (1 - reserve)) : left
     const stop = (why: string) => {
-      reports[reports.length - 1].turnsStopped = `The cap of ${fmt(cap)} fights a search ended the turns after pass ${pass}, with ${fmt(cap - spent)} left: ${why}`
+      reports[reports.length - 1].turnsStopped =
+        `The cap of ${fmt(cap)} fights a search ended the turns after pass ${pass}, with ${fmt(left)} left${share < left ? ` (pass ${pass + 1} could run ${fmt(share)}, the rest held back for the passes after it)` : ''}: ${why}`
     }
-    if (pass > 0 && cap - spent <= 0) {
+    if (pass > 0 && share <= 0) {
       stop('none left for another pass.')
       break
     }
@@ -806,7 +826,7 @@ export async function optimizeInTurns(options: OptimizeOptions & { passes?: numb
     try {
       report = await optimize({
         ...options,
-        maxFights: cap - spent,
+        maxFights: share,
         start,
         // A talent pass screens under the rotation variants too, so a talent only they use counts; a
         // rotation pass keeps the start's build, held to the same talent constraints.

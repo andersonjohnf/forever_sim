@@ -28,6 +28,7 @@ import {
   type OptimizeProgress,
   type TalentSearch,
   setupCandidate,
+  TURNS_RESERVE,
 } from './optimize'
 import { SCREEN_JOB_FIGHTS, screenTalents } from './screen'
 import { brokenConstraints } from './talents'
@@ -641,14 +642,41 @@ describe('optimize', () => {
     const options = { config: bear, talents: { screenFights: 20, searchPartials: false }, rotations: [{ [MAUL]: 90 }], budget: { fights: 4_000, initialFights: 20 }, runner: localFightRunner(), top: 1 }
     // The first pass on its own: a talent pass, screened under the variant too.
     const first = await optimize({ ...options, rotations: [], screenRotations: options.rotations })
-    // A cap one fight over it leaves the rotation pass nothing to race with.
-    const passes = await optimizeInTurns({ ...options, maxFights: first.fights + 1 })
+    // A cap one fight over it, with no share held back for later passes, leaves the rotation pass
+    // nothing to race with.
+    const passes = await optimizeInTurns({ ...options, maxFights: first.fights + 1, reserve: 0 })
     expect(passes).toHaveLength(1)
     expect(passes[0].race.leader).toBe(first.race.leader)
     expect(passes[0].fights).toBeLessThanOrEqual(first.fights + 1)
     expect(passes[0].turnsStopped).toMatch(/^The cap of [\d,]+ fights a search ended the turns after pass 1, with [01] left/)
     // Without the cap the turns go on.
     expect(first.turnsStopped).toBeUndefined()
+  }, 120_000)
+
+  it('in turns, a pass holds back a tenth of what’s left for the passes after it, so one pass can’t spend the whole cap (OGV2-4)', async () => {
+    // A budget far past the cap: the talent pass would take all of it.
+    const maxFights = 30_000
+    const options = { config: bear, talents: { screenFights: 20, searchPartials: false }, rotations: [{ [MAUL]: 90 }], budget: { fights: 10_000_000, initialFights: 20 }, runner: localFightRunner(), top: 1, maxFights }
+    const passes = await optimizeInTurns(options)
+    const share = Math.floor(maxFights * (1 - TURNS_RESERVE))
+    expect(passes[0].budget.cap).toBe(share)
+    expect(passes[0].budget.fights).toBeLessThanOrEqual(share - passes[0].screen!.fights)
+    expect(passes[0].fights).toBeLessThanOrEqual(share)
+    // The rotation pass still runs, on what the first left, less its own share for the pass after it.
+    expect(passes.length).toBeGreaterThanOrEqual(2)
+    expect(passes[1].budget.cap).toBe(Math.floor((maxFights - passes[0].fights) * (1 - TURNS_RESERVE)))
+    expect(passes[1].race.spent).toBeGreaterThan(0)
+    expect(passes.reduce((n, r) => n + r.fights, 0)).toBeLessThanOrEqual(maxFights)
+    // The last pass allowed may run all that's left.
+    // Without it, the talent pass ends on its budget with the whole cap spent, and the turns stop there.
+    expect(passes[0].race.status).toBe('budget')
+    expect(passes[0].fights).toBe(share)
+    const none = await optimizeInTurns({ ...options, reserve: 0 })
+    expect(none).toHaveLength(1)
+    expect(none[0].fights).toBe(maxFights)
+    expect(none[0].turnsStopped).toMatch(/^The cap of 30,000 fights a search ended the turns after pass 1, with 0 left/)
+    const two = await optimizeInTurns({ ...options, passes: 2 })
+    expect(two[1].budget.cap).toBe(maxFights - two[0].fights)
   }, 120_000)
 
   it('applies a candidate on top of the setup, at a fixed seed', () => {

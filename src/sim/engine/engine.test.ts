@@ -570,6 +570,12 @@ describe('golden run (fixed config and seed)', () => {
   // - T3R-2 (buffs doc §1.2, §6.2): a raid druid's Thorns on the main tank is in every tank's raid and
   //   max presets, as Devotion Aura: 22 Nature damage on each boss swing that lands, a new `thorns` row.
   //   TPS 1,123.32 → 1,132.88, DPS 356.89 → 363.16; nothing else moves. Fury, Arms and the cat are unchanged.
+  // - 1.60.1.70009 (the paladin's slice; buffs doc §1.2): Thorns grows with its caster's spell damage,
+  //   22 + 0.08 × a raid druid's 389, dealt as 53 [?]. Only the Thorns rows move, in all four tank
+  //   snapshots here (the Protection warrior's and the bear's, default and Defensive): on this seed's
+  //   500 fights, the warrior's Balanced TPS 1,241.15 → 1,257.10 and DPS 385.89 → 396.35, Defensive
+  //   1,132.88 → 1,146.36 and 363.16 → 372.00; the bear's Balanced 1,114.45 → 1,128.97 and 547.00 →
+  //   557.95, Defensive 1,081.78 → 1,096.28 and 532.43 → 543.37. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

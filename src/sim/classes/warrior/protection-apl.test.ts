@@ -55,6 +55,8 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       expect(hashes).toMatchSnapshot()
     })
 
+    // Re-taken for 1.60.1.70009's Thorns (buffs doc §1.2: 22 + 0.08 × a raid druid's 389, dealt as
+    // 53): the whole setups' plans carry its damage, so every case with Thorns in its buffs moved.
     it(`gives 200 random whole setups the plan they had before the list: ${name}`, () => {
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)

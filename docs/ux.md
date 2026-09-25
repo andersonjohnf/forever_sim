@@ -894,23 +894,50 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25) as amended: `WidePanel`
   in `src/features/results/results-panel.tsx`, Your setup in `src/app/setup-summary.tsx`). Under
   1440 px the panel and the phone's bar and sheet are as this section describes elsewhere. From
-  1440 px the panel is one calm column, top to bottom:
+  1440 px the panel is one calm column, top to bottom. The sheet and Your setup are each a card
+  (shadcn's `Card`, its small size, on the neutral card surface), headed by a muted 16 px icon and
+  their name; the result under them isn't, so the cards read as context and the result as the
+  answer.
   - **Character sheet**, always shown, before any run too. It comes from your setup (the plan the
     sim builds), not from the fights, so it follows every change as you make it and is never
-    stale. It's the sheet described below, in its two columns, with a tank's Boss's attack table,
-    and it isn't collapsible here. The table's block-buff line gives the latest run's uptime while
-    that run is of this setup, and otherwise says "Your rotation keeps Holy Shield up most of the
-    fight."
+    stale. It isn't collapsible here. Its heading's right names whose sheet it is, "Fury Warrior",
+    in the class's colour (`CLASS_TEXT`): the panel's one accent. Its stats are grouped as a player
+    reads them (`sheetGroups` in `src/features/results/sheet-groups.ts`), each group under a small
+    muted uppercase heading, its values right-aligned in tabular numbers:
+    - a melee spec's **Offense** (attack power, crit, hit, haste, weapon skill, expertise),
+      **Attributes** (Strength, Agility, Stamina) and **Defense** (health, armor);
+    - a caster's **Spells** (spell damage, crit and hit with their schools, casting speed,
+      penetration), **Mana** (mana, mana per 5 s), **Attributes** and **Defense**;
+    - a paladin's **Melee** and **Spells** side by side, then Mana, Attributes and Defense; a
+      hunter's ranged numbers are its Offense;
+    - the defensive rows (Defense, crit reduction, dodge, parry, block, block value) join
+      **Defense**.
+
+    The groups flow down two columns in a 30 rem panel (1440 px) and three from a 38 rem one
+    (about 1,824 px), each kept whole, so a Fury warrior's reads Offense | Attributes and Defense,
+    and a Protection paladin's Melee | Spells and Mana | Attributes at 1920 px. A tank's Defense
+    spans the columns, its rows running across them (Health, Armor, Defense, …), just above its
+    Boss's attack table. The table's block-buff line gives the latest run's uptime while that run
+    is of this setup, and otherwise says "Your rotation keeps Holy Shield up most of the fight."
   - **Your setup**: a line a section (Character, Talents, Gear, Buffs, Rotation, Fight), each its
-    name in muted 12 px text over what it holds ([Your setup's lines](#layout)). Each line is a
-    44 px button, named "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a
-    tab does, and moves focus into it. The lines sit in two columns in a 30 rem panel (1440 px) and
-    three from a 38 rem one (about 1,824 px). **Simulate** (Run again after a run, Cancel during
-    one) sits on the heading's right, as a section's action does, sized to its label and never
-    stretched. Under the lines, "Your setup is ready. Simulate to see your DPS." before a first
-    run, and "Your setup changed since this run. Simulate to update it." when the result is stale.
-  - **The result**, once there's one, a run under way or a failure; before that there's no result
-    box at all. The headline (the values with their ± and change, then the run's summary), any
+    section's icon and name in muted 12 px text over what it holds ([Your setup's lines](#layout)):
+    a person for Character, a node tree for Talents, a shield for Gear, sparkles for Buffs, an
+    ordered list for Rotation, crossed swords for Fight. Each line is a 44 px button, named
+    "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a tab does, and
+    moves focus into it. It looks like one: on hover or keyboard focus its name gains a small
+    chevron and its value an underline, over the muted hover fill. The lines sit in two columns in
+    a 30 rem panel (1440 px) and three from a 38 rem one (about 1,824 px).
+  - **Your setup's action row** ends the card, on the muted footer surface: the status on the
+    left and **Simulate** on the right (Run again after a run, Cancel during one), in the primary
+    style, 44 px tall and sized to its label, never stretched. The status is "Your setup is ready.
+    Simulate to see your DPS." before a first run, "Your setup changed since this run. Simulate to
+    update it." when the result is stale, and during a run its progress, "Simulating… 45%" over a
+    bar, beside Cancel; nothing once the result is this setup's, or when a failure below says what
+    happened. The button keeps its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the
+    skip link's target (`[data-simulate]`).
+  - **The result**, once there's one or a failure; before that there's no result box at all, and
+    a first run shows only its progress in the action row. The headline (the values with their ±
+    and change, then the run's summary; a re-run's progress is in the action row, not above it), any
     failure or "no damage" message, then a tank's Damage taken, the breakdown (or Threat by
     ability), How the boss's swings landed, Mana per fight, **Cooldowns and buffs** and
     **Assumptions**. Each part is divided from the next by a rule with the same spacing, has a
@@ -927,11 +954,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     fade under Your setup once the result has scrolled under it. While it overflows it takes
     keyboard focus, so arrow keys scroll it. **The sheet and Your setup stay put** while the result
     scrolls under them, as long as together they take no more than 60% of the panel's height
-    (`PINNED_SHARE`), so the result keeps at least 40%. Measured after a run: at 1920×1080 every
-    DPS spec's stay put (42–52%) and no tank's (70–85%, with the boss's table); at 1440×900 the
-    shortest sheets do (a Fury warrior's, 57%) and the longer ones don't (a Fire mage's, 69%). A
-    sheet that doesn't fit scrolls away with the result instead, and Your setup, with Simulate,
-    stays at the top alone. Pinning more at 1440×900 would leave a DPS result about 230 px to
+    (`PINNED_SHARE`), so the result keeps at least 40%. Measured: at 1920×1080 every DPS spec's
+    stay put (47–57%) and no tank's (81–84%, with the boss's table); at 1440×900 none do, the
+    cards' edges and the action row taking a Fury warrior's from 57% to 64% (the others 66–82%).
+    A sheet that doesn't fit scrolls away with the result instead, and Your setup, with Simulate,
+    stays at the top alone. Pinning more at 1440×900 would leave a DPS result about 270 px to
     scroll in, too little to read the breakdown by. When a run starts or finishes and its headline
     is below the panel's edge, the panel scrolls down (smoothly, unless reduced motion is asked
     for) just far enough for the result to start under what stays put; it never scrolls on its own
@@ -1063,7 +1090,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   judged at the pull) shows a dash for its uptime, with "Before the pull, for its judgement" under
   its name.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
-  sim computed them. Under 1440 px it's a collapsed section of the result; from 1440 px it heads
+  sim computed them. Weapon skill is one number, "300", with one weapon or both hands at the same
+  skill, and "302 · 300" (main hand first) when they differ, which never wraps: a screen reader
+  hears "302 main hand, 300 off hand" and its tooltip names the hands. Where both hands differ
+  under 1440 px, it takes its row's width, since a 9 rem column can't hold it beside its label. Under 1440 px it's a collapsed section of the result; from 1440 px it heads
   the wide panel, always shown and live from the setup (above).
   - A paladin's add its spell stats, in two columns of counterparts, row by row: Attack power |
     Spell damage (its Holy spell damage, since every paladin spell is Holy, Champion of the

@@ -1,11 +1,13 @@
 import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
-import { Fragment, type ReactNode, useId, useRef } from 'react'
+import { Fragment, type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useIsWide } from '@/hooks/use-media-query'
 import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
@@ -34,13 +36,24 @@ export function SimulateButton({ className, iconClassName }: { className?: strin
     )
   }
   const again = result !== null && !stale
+  const label = again ? 'Run again' : 'Simulate'
+  // Ctrl+Enter or ⌘+Enter runs it from anywhere (docs/ux.md#accessibility, D34): named here for
+  // assistive tech and in the tooltip for a mouse.
   return (
-    <Button className={cn('h-11', className)} onClick={() => sim.run(config)}>
-      {again ? <RotateCw className={iconClassName} /> : <Play className={iconClassName} />}
-      {again ? 'Run again' : 'Simulate'}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button className={cn('h-11', className)} onClick={() => sim.run(config)} aria-keyshortcuts={SIMULATE_SHORTCUTS}>
+          {again ? <RotateCw className={iconClassName} /> : <Play className={iconClassName} />}
+          {label}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label} (Ctrl+Enter or ⌘+Enter)</TooltipContent>
+    </Tooltip>
   )
 }
+
+/** The Simulate button's keyboard shortcuts, as `aria-keyshortcuts` names them. */
+export const SIMULATE_SHORTCUTS = 'Control+Enter Meta+Enter'
 
 /** "Simulating… 45%", with a bar in the panel (docs/ux.md#states "Running"). */
 function RunProgress({ pct, compact = false }: { pct: number | null; compact?: boolean }) {
@@ -301,25 +314,59 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  */
 export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const { result, previous, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
+  const root = useRef<HTMLDivElement>(null)
+  // The wide layout's details open by default in the desktop pane, as the reader last left them
+  // (docs/ux.md#results); the phone's sheet and the narrower desktops keep them collapsed.
+  const wide = useIsWide() && variant === 'panel'
+  const threeColumns = useWidthAtLeast(root, THREE_COLUMNS_PX) && variant === 'panel'
   const empty = result !== null && result.abilities.length === 0
+  // What the result is made of: the left column in the extra-wide pane.
+  const madeOf = result !== null && (result.tank !== undefined || !empty || result.mana !== undefined)
   const body = result && (
-    <div data-dimmed={dimmed} className={cn('flex flex-col gap-5', DIM_ROOT)}>
-      {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
-          they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
-      {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
-      {!empty && <Breakdown result={result} />}
-      {result.tank && <SwingOutcomes tank={result.tank} />}
-      {result.mana && <ManaPerFight mana={result.mana} />}
-      {result.cooldowns.length > 0 && (
-        <Details title="Cooldowns and buffs">
-          <Cooldowns result={result} runConfig={runConfig} />
-        </Details>
+    // From 1920 px (a results pane of 40 rem or more) the details sit in two columns, and in three
+    // with Assumptions open from 64 rem; below that, the columns' wrappers are `contents`, so
+    // the sections stack as one list. The DOM keeps ux.md's order either way.
+    <div
+      data-dimmed={dimmed}
+      className={cn(
+        'flex flex-col gap-5 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-2 @min-[40rem]/results:items-start @min-[40rem]/results:gap-x-6 @min-[64rem]/results:grid-cols-3',
+        DIM_ROOT,
       )}
-      <Details title="Character sheet">
-        <CharacterSheet result={result} runConfig={runConfig} />
-      </Details>
+    >
+      {madeOf && (
+        <div data-results-column="made-of" className="contents @min-[40rem]/results:flex @min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-col @min-[40rem]/results:gap-5">
+          {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
+              they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
+          {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
+          {!empty && <Breakdown result={result} />}
+          {result.tank && <SwingOutcomes tank={result.tank} />}
+          {result.mana && <ManaPerFight mana={result.mana} />}
+        </div>
+      )}
+      {/* What explains it: the right column. With nothing on the left (no damage), it takes both. */}
+      <div
+        data-results-column="explains"
+        className={cn(
+          'contents @min-[40rem]/results:flex @min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-col @min-[40rem]/results:gap-5',
+          !madeOf && '@min-[40rem]/results:col-span-2',
+        )}
+      >
+        {result.cooldowns.length > 0 && (
+          <Details id="cooldowns" title="Cooldowns and buffs" remember={wide}>
+            <Cooldowns result={result} runConfig={runConfig} />
+          </Details>
+        )}
+        <Details id="sheet" title="Character sheet" remember={wide}>
+          <CharacterSheet result={result} runConfig={runConfig} />
+        </Details>
+      </div>
       {result.assumptions.length > 0 && (
-        <Details title={`Assumptions (${result.assumptions.length})`}>
+        <Details
+          id="assumptions"
+          title={`Assumptions (${result.assumptions.length})`}
+          remember={threeColumns}
+          className="@min-[40rem]/results:col-span-2 @min-[64rem]/results:col-span-1"
+        >
           <AssumptionList result={result} />
         </Details>
       )}
@@ -329,23 +376,57 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
   return (
     // The desktop panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops
     // 24 px above the viewport's bottom edge.
-    <div className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
-      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4">
-        <Headline />
-        {result && <RunSummary result={result} runConfig={runConfig} />}
-        {error !== null && <RunError message={error} />}
-        {result && !running && <NoDamage result={result} variant={variant} onNavigate={onNavigate} />}
+    <div ref={root} className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
+      {/* From 1920 px the headline card is a strip: the values and the run's summary on the left,
+          Simulate on the right, and any message under them (docs/ux.md#results). */}
+      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-[minmax(0,1fr)_auto] @min-[40rem]/results:items-center @min-[40rem]/results:gap-x-6">
+        <div className="flex min-w-0 flex-col gap-4 @min-[40rem]/results:flex-row @min-[40rem]/results:flex-wrap @min-[40rem]/results:items-end @min-[40rem]/results:gap-x-6 @min-[40rem]/results:gap-y-2">
+          <div className="min-w-0 @min-[40rem]/results:min-w-56">
+            <Headline />
+          </div>
+          {result && (
+            <div className="@min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-1 @min-[40rem]/results:pb-1">
+              <RunSummary result={result} runConfig={runConfig} />
+            </div>
+          )}
+        </div>
+        {error !== null && (
+          <div className="@min-[40rem]/results:col-span-full">
+            <RunError message={error} />
+          </div>
+        )}
+        {result && !running && (
+          <div className="empty:hidden @min-[40rem]/results:col-span-full">
+            <NoDamage result={result} variant={variant} onNavigate={onNavigate} />
+          </div>
+        )}
         {!result && !running && error === null && (
-          <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
+          <p className="text-sm text-muted-foreground @min-[40rem]/results:col-span-full">Your setup is ready. Simulate to see your {metricLabel}.</p>
         )}
         {stale && !running && error === null && (
-          <p className="text-sm text-muted-foreground">Your setup changed since this run. Simulate to update it.</p>
+          <p className="text-sm text-muted-foreground @min-[40rem]/results:col-span-full">Your setup changed since this run. Simulate to update it.</p>
         )}
-        <SimulateButton className="w-full" />
+        <SimulateButton className="w-full @min-[40rem]/results:col-start-2 @min-[40rem]/results:row-start-1 @min-[40rem]/results:w-auto @min-[40rem]/results:min-w-36" />
       </div>
       {body && (variant === 'panel' ? <ScrollBody>{body}</ScrollBody> : body)}
     </div>
   )
+}
+
+/** The results pane's width, in px, from which Assumptions is a third column, open (64 rem). */
+const THREE_COLUMNS_PX = 64 * 16
+
+/** Whether an element's content box is at least `px` wide, kept up to date as it resizes. */
+function useWidthAtLeast(ref: RefObject<HTMLElement | null>, px: number) {
+  const [atLeast, setAtLeast] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(([entry]) => setAtLeast(entry.contentRect.width >= px))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [ref, px])
+  return atLeast
 }
 
 /**
@@ -467,7 +548,7 @@ function Outcomes({ ability, fights, damageMetric }: { ability: SimResult['abili
   const { parts, average, uptime } = outcomeLines(ability, fights, damageMetric)
   if (parts.length === 0 && average === null && uptime === null) return null
   return (
-    <span className="flex flex-col text-xs text-muted-foreground tabular-nums">
+    <span data-outcomes className="flex flex-col text-xs text-muted-foreground tabular-nums">
       {(parts.length > 0 || average) && (
         <span>
           {/* It wraps only between parts, never inside one ("1,318 avg | hit"). */}
@@ -685,9 +766,53 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   )
 }
 
-function Details({ title, children }: { title: string; children: ReactNode }) {
+/** The details the wide pane opens by default (docs/ux.md#results). */
+type DetailsId = 'cooldowns' | 'sheet' | 'assumptions'
+
+/**
+ * The details a reader closed in the wide pane, remembered per browser, so they stay closed. The
+ * stored list is untrusted: anything but an array of strings reads as nothing closed.
+ */
+const CLOSED_KEY = 'forever-sim:results-closed'
+
+function readClosed(): Set<string> {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(CLOSED_KEY) ?? '[]')
+    return new Set(Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function writeClosed(id: DetailsId, closed: boolean) {
+  try {
+    const ids = readClosed()
+    if (closed) ids.add(id)
+    else ids.delete(id)
+    localStorage.setItem(CLOSED_KEY, JSON.stringify([...ids]))
+  } catch {
+    // Storage blocked or full: it stays as it is for this page.
+  }
+}
+
+/**
+ * A collapsible section of the details. Collapsed until opened, except where `remember` holds (the
+ * wide pane's Cooldowns and buffs and Character sheet, and Assumptions as a third column): there
+ * it's open unless the reader closed it, which this browser remembers.
+ */
+function Details({ id, title, remember, className, children }: { id: DetailsId; title: string; remember: boolean; className?: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const [wideOpen, setWideOpen] = useState(() => !readClosed().has(id))
   return (
-    <Collapsible className="rounded-xl border">
+    <Collapsible
+      open={remember ? wideOpen : open}
+      onOpenChange={(next) => {
+        if (!remember) return setOpen(next)
+        setWideOpen(next)
+        writeClosed(id, !next)
+      }}
+      className={cn('rounded-xl border', className)}
+    >
       <CollapsibleTrigger className="group flex min-h-11 w-full items-center gap-2 px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
         <ChevronRight className="size-4 transition-transform group-data-[state=open]:rotate-90" aria-hidden />
         {title}

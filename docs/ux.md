@@ -87,9 +87,24 @@ spec's name fits whole at 320 px ("Marksmanship", "Beast Mastery"), and a longer
 truncate rather than scroll the page sideways (an e2e test walks every spec at 320 px). Its menu lists
 the specs under their class's heading, each class a group named by it, so a screen reader tells a
 warrior's Protection from a paladin's too. Then
-**Share** (copies a link to this setup) and an overflow menu with Setups…
-([Setups](#setups)), About & data, Release history ([What's new](#whats-new)), Coming soon
-([Coming soon](#coming-soon)), Theme (system, light, dark) and Reset setup. Menu items are 44 px tall.
+**Share** (copies a link to this setup), then Setups ([Setups](#setups)), About & data, Release
+history ([What's new](#whats-new)), Coming soon ([Coming soon](#coming-soon)), Theme (system,
+light, dark) and Reset setup, in that order, all in one group named "Setup and app" that Tab walks
+left to right.
+- **Below 1440 px** everything after Share is in an overflow menu (`…`, named "More"), Setups…
+  with its ellipsis. Menu items are 44 px tall.
+- **From 1440 px** there's room, so there's no `…` ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)
+  as amended): each is its own ghost button, 44 px tall and as wide as its icon and label, never
+  stretched (`WideTools` in `src/app/header-tools.tsx`). At 1440 px the row, with the widest spec
+  ("Marksmanship Hunter"), leaves about 165 px free, so a classic scrollbar (up to 17 px) never crowds it; the
+  space between the switcher and Share is what grows with the window. **Theme** is a button that
+  opens its three choices, calmer than a three-way segmented control beside six labelled buttons.
+  **Reset setup** opens a one-item menu, "Reset Fury to defaults", so it takes a second, deliberate
+  click as it does in the overflow menu, and nothing prompts ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)).
+- Either way each opens the same sheet, which takes focus to its title and, when it closes, gives
+  focus back to the button that opened it: the toolbar's button from 1440 px, the menu's button
+  below. Release history opened from About's release stamp gives it back to About's opener; opened
+  from What's New's All releases, to Release history's.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 and TPS simulator for World of Warcraft: Forever", since Protection, the first tank spec, shipped; "A DPS

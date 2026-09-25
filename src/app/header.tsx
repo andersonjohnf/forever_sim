@@ -1,5 +1,4 @@
-import { CalendarClock, ChevronDown, FolderOpen, History, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { ChevronDown, Link2, MoreHorizontal, Moon, RotateCcw, Sun } from 'lucide-react'
 import { type Ref, useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -9,8 +8,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -19,36 +16,48 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { DecadesCrest } from '@/components/decades-crest'
 import { WowIcon } from '@/components/wow-icon'
+import { useIsWide } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
 import { ComingSoonSheet } from './coming-soon-sheet'
+import { HEADER_SHEETS, type HeaderSheet, useResetSetup } from './header-items'
+import { ThemeChoices, WideTools } from './header-tools'
 import { releaseToasts } from './held-toasts'
 import { onOpenReleaseHistory } from './release-history-request'
 import { ReleaseHistorySheet } from './release-history-sheet'
-import { resetTitle } from './load-notice'
 import { useSetup } from './setup-store'
 import { SetupsSheet } from './setups-sheet'
 import { shareUrl } from './share'
 import { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
 
-/** The sheets the overflow menu opens. */
-type MenuSheet = 'setups' | 'about' | 'history' | 'coming'
-
 export function Header() {
-  const [sheet, setSheet] = useState<MenuSheet | null>(null)
-  // Each sheet opens from the overflow menu, and focus goes back to the menu's button when it closes.
+  const [sheet, setSheet] = useState<HeaderSheet | null>(null)
+  // From 1440 px the menu's items are in the toolbar (docs/ux.md#layout, "Header"); below, in the menu.
+  const wide = useIsWide()
+  // Each sheet gives focus back to the button that opened it when it closes: its toolbar button, or
+  // the overflow menu's. `origin` is the sheet whose button opened it; About's release stamp opens
+  // Release history without changing it, so focus goes back to About's button (or the menu's) after
+  // the history. What's New's All releases makes it Release history's.
   const menuButton = useRef<HTMLButtonElement>(null)
-  const setupsFocus = useSheetFocus(() => menuButton.current)
-  const aboutFocus = useSheetFocus(() => menuButton.current)
-  const historyFocus = useSheetFocus(() => menuButton.current)
-  const comingFocus = useSheetFocus(() => menuButton.current)
-  const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
+  const toolButtons = useRef<Partial<Record<HeaderSheet, HTMLButtonElement | null>>>({})
+  const origin = useRef<HeaderSheet>('setups')
+  // Whichever is on the page: the toolbar's button from 1440 px, the menu's below.
+  const opener = () => toolButtons.current[origin.current] ?? menuButton.current
+  const setupsFocus = useSheetFocus(opener)
+  const aboutFocus = useSheetFocus(opener)
+  const historyFocus = useSheetFocus(opener)
+  const comingFocus = useSheetFocus(opener)
+  const open = (which: HeaderSheet) => {
+    origin.current = which
+    setSheet(which)
+  }
+  const openChange = (which: HeaderSheet) => (isOpen: boolean) => setSheet(isOpen ? which : null)
   // About's release stamp opens Release history in its place. About, closing, then leaves focus to
-  // the history sheet, which gives it back to the menu's button when it closes.
+  // the history sheet, which gives it back to About's opener when it closes.
   const toHistory = useRef(false)
   const aboutContentProps = {
     ...aboutFocus.contentProps,
@@ -64,7 +73,14 @@ export function Header() {
   }
   // What's New's All releases opens it too, in What's New's place, handing it the load's toasts it
   // held (src/app/held-toasts.ts): they come up once the history has closed and the page is heard again.
-  useEffect(() => onOpenReleaseHistory(() => setSheet('history')), [])
+  useEffect(
+    () =>
+      onOpenReleaseHistory(() => {
+        origin.current = 'history'
+        setSheet('history')
+      }),
+    [],
+  )
   const historyContentProps = {
     ...historyFocus.contentProps,
     onCloseAutoFocus: (event: Event) => {
@@ -83,9 +99,22 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 max-[360px]:gap-1 max-[360px]:px-3 wide:max-w-[160rem] wide:px-6">
         <Lockup />
         <SpecSwitcher />
-        <div className="ml-auto flex items-center gap-1 max-[360px]:-mr-1.5 max-[360px]:gap-0">
+        {/*
+         * Share, then the menu's items: from 1440 px each is its own button, as wide as its label;
+         * below, they're in the overflow menu. One named group, in the tab order left to right.
+         */}
+        <div role="group" aria-label="Setup and app" className="ml-auto flex items-center gap-1 max-[360px]:-mr-1.5 max-[360px]:gap-0">
           <ShareButton />
-          <MoreMenu onOpen={setSheet} triggerRef={menuButton} />
+          {wide ? (
+            <WideTools
+              onOpen={open}
+              opener={(which, button) => {
+                toolButtons.current[which] = button
+              }}
+            />
+          ) : (
+            <MoreMenu onOpen={open} triggerRef={menuButton} />
+          )}
         </div>
       </div>
       <SetupsSheet
@@ -223,13 +252,12 @@ function ShareButton() {
   )
 }
 
-function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; triggerRef: Ref<HTMLButtonElement> }) {
-  const reset = useSetup((s) => s.reset)
+function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: HeaderSheet) => void; triggerRef: Ref<HTMLButtonElement> }) {
   const meta = useSpecMeta()
-  const { theme, setTheme } = useTheme()
+  const resetSetup = useResetSetup()
   // A sheet opens once the menu has closed, so the menu doesn't hand focus back to its button
   // after the sheet has taken it.
-  const chosen = useRef<MenuSheet | null>(null)
+  const chosen = useRef<HeaderSheet | null>(null)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -248,68 +276,28 @@ function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; 
           onOpen(sheet)
         }}
       >
-        <DropdownMenuItem
-          onSelect={() => {
-            chosen.current = 'setups'
-          }}
-          className="min-h-11"
-        >
-          <FolderOpen /> Setups…
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => {
-            chosen.current = 'about'
-          }}
-          className="min-h-11"
-        >
-          <Info /> About &amp; data
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => {
-            chosen.current = 'history'
-          }}
-          className="min-h-11"
-        >
-          <History /> Release history
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => {
-            chosen.current = 'coming'
-          }}
-          className="min-h-11"
-        >
-          <CalendarClock /> Coming soon
-        </DropdownMenuItem>
+        {HEADER_SHEETS.map(({ sheet, menuLabel, icon: Icon }) => (
+          <DropdownMenuItem
+            key={sheet}
+            onSelect={() => {
+              chosen.current = sheet
+            }}
+            className="min-h-11"
+          >
+            <Icon /> {menuLabel}
+          </DropdownMenuItem>
+        ))}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="min-h-11">
             <Sun className="dark:hidden" />
             <Moon className="hidden dark:block" /> Theme
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              <DropdownMenuRadioItem value="system" className="min-h-11">
-                <Monitor /> System
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="light" className="min-h-11">
-                <Sun /> Light
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark" className="min-h-11">
-                <Moon /> Dark
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
+            <ThemeChoices />
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="min-h-11"
-          onSelect={() => {
-            const spec = useSetup.getState().config.spec
-            reset()
-            // Said, since it changes every tab, most of them out of sight, and with no prompt first
-            // (decision D21): whose setup it replaced.
-            toast(resetTitle(spec), { id: 'setup-reset' })
-          }}
-        >
+        <DropdownMenuItem className="min-h-11" onSelect={resetSetup}>
           <RotateCcw /> Reset {meta.name} to defaults
         </DropdownMenuItem>
       </DropdownMenuContent>

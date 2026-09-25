@@ -718,12 +718,20 @@ always in view; calm, single-column results. What changes from the design above:
     old "300 main hand / 300 off hand" wrapped. **The item picker** lists the equipped item first with
     an "Equipped" badge in place of a trailing check (review finding DB-8), at every width, since
     it reads better on a phone too. These two are the only changes under 1440 px.
-- **The panel's order, after the final review (user decision, 2026-09-25).** A 1440×900 window can't
-  show a tank's whole sheet, Your setup and a result together (Prot Warrior's sheet alone is 615 px).
-  So **Your setup, with Simulate, is pinned at the top** of the panel at every wide width; the
-  character sheet and then the result scroll beneath it. Once the sheet scrolls out of view, a
-  **one-line strip of its key stats** stays pinned under Your setup, so the sheet's numbers are always
-  in view. The tank's attack-table explanation is shortened to fit.
+- **The panel and Gear, after the user's look at the fixes (user decision, 2026-09-25).** This
+  replaces an earlier pinned-setup design:
+  - **The character sheet is at the top** of the right panel, **Your setup beneath it**, and
+    **nothing is pinned**: the sheet, the setup and the result scroll together. The headings "Character
+    sheet" and "Your setup" are larger, with no icons before them.
+  - **The result's headline sits in the setup card's action row**, beside Run again ("DPS 713.7 ±
+    1.8"), where a status line was; the breakdown follows beneath. Simulate is in that row before a
+    run. A tank's sheet is compact enough (its attack table without the paragraph) that Simulate is
+    in view on load at 1440×900.
+  - **Gear is two columns in the game's character-pane order**, so every slot is where a player
+    expects it: Head, Neck, Shoulders, Back, Chest and Wrist on the left; Hands, Waist, Legs, Feet,
+    both rings and both trinkets on the right, mirrored (icon on the outer edge); the weapons
+    (main hand, off hand, ranged or relic, a hunter's ammo and quiver) along the bottom. It still
+    fits 1440×900.
 
 ### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
 User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `forever-sim`

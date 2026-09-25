@@ -726,6 +726,11 @@ slice is worked:
   before the pull), and with Backstab chosen as the builder from the front or without a main-hand
   dagger, the Rotation tab doesn't say that Hemorrhage builds instead
   ([rogue.md §5.3, §6.3](classes/rogue.md#63-subtlety-shipped)).
+- **The Classic Era profile's rogue finishers use Forever's attack-power shares** (rogue guild-test
+  review RG-5, pre-existing): the rogue's abilities aren't split by profile, as the poisons are, so
+  under Classic Era Eviscerate gains the guild-tested 4% of attack power a point (Classic Era sims'
+  3%); Rupture's measured shares match Classic Era sims', so only Eviscerate differs. Low: the Classic Era profile is a comparison, and splitting the
+  rows needs a per-profile ability table ([rogue.md §3.4, §3.5](classes/rogue.md#34-eviscerate-r9-31016)).
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results and details"` opens the phone's results sheet.
 - **Arms tuning findings:** re-measured and adopted in M2.5a. The Arms defaults are now the best

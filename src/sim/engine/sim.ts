@@ -18,7 +18,7 @@
 // §2). For the paladin it adds damaging spells on their own tables, mp5 and a share of spirit
 // regeneration inside the five-second rule, Holy damage and threat multipliers, cooldown
 // categories and exclusive auras (seals; docs/classes/paladin.md). For the bear (druid.md §4) it
-// adds stacking bleeds (Lacerate), a cooldown an aura suspends (Berserk's Mangle) and an item-armor
+// adds stacking bleeds (Lacerate), a cooldown an aura suspends (Berserk's Primal Bite) and an item-armor
 // aura (Enrage). For the rogue it adds Energy regeneration from an aura, finishers that time a buff
 // or a bleed by their combo points, the combo point and Energy talents around finishers, an aura a
 // strike uses up, and poisons: their apply chance and damage from auras, and a stacking poison on
@@ -761,7 +761,7 @@ export class Sim {
   private readonly abResistSchool: Int32Array
   /** Weapon share per stack of its own bleed already on the target (Lacerate, §4.3). */
   private readonly abPctPerStack: Float64Array
-  /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
+  /** The aura while which it starts no cooldown (Berserk's Primal Bite, §4.6), or −1. */
   private readonly abNoCdAura: Int32Array
   /**
    * What the rogue's rows brought (docs/classes/rogue.md §8; plan/types.ts AbilityPlan), all 0 on
@@ -1731,7 +1731,7 @@ export class Sim {
       this.abDotSource[i] = a.dotSource ?? a.source
       this.abSpellHit[i] = a.spellHit ? 1 : 0
       // druid.md §4: the bear's Faerie Fire's resist (combat-tables §9: a binary spell's, at the boss's
-      // level-based resistance; Physical and Holy have none), Lacerate's per-stack hit, and Berserk's Mangle.
+      // level-based resistance; Physical and Holy have none), Lacerate's per-stack hit, and Berserk's Primal Bite.
       const school = a.spellSchool
       this.abResistSchool[i] = a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? school : -1
       this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
@@ -3205,7 +3205,7 @@ export class Sim {
       this.gcdEnd = this.now + gcd
       this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     }
-    // druid.md §4.6: while Berserk is up, Mangle starts no cooldown.
+    // druid.md §4.6: while Berserk is up, Primal Bite starts no cooldown.
     const noCd = this.abNoCdAura[a]
     const cd = noCd >= 0 && this.auraActive[noCd] ? 0 : this.abCd[a]
     if (this.abCdAfterAura[a] === 1) {

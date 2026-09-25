@@ -1,5 +1,5 @@
 // Talents that modify druid abilities (docs/classes/druid.md §2.3, §2.5, §5.1, §5.2): cost
-// reductions, damage and periodic-damage multipliers, the crit damage bonus and Primal Fury's
+// reductions, damage and periodic-damage multipliers, the crit damage bonus and Blood Frenzy's
 // combo point. The plan applies them once, when it resolves the rotation's abilities from the
 // build's talent ranks; the engine only sees the resolved numbers, as for the warrior
 // (classes/warrior/modifiers.ts).
@@ -14,7 +14,7 @@ export type TalentRanks = ReadonlyMap<string, number>
 
 const rank = (talents: TalentRanks, name: string) => talents.get(name) ?? 0
 
-/** Ferocity: −1 rage or Energy per rank on Maul, Mangle, Swipe, Claw and Rake [F] (druid.md §5.1). */
+/** Ferocity: −1 rage or Energy per rank on Maul, Primal Bite (`mangle`), Swipe, Claw and Rake [F] (druid.md §5.1). */
 export const FEROCITY: ReadonlySet<string> = new Set(['maul', 'mangle', 'swipe', 'claw', 'rake'])
 
 /** Shredding Attacks: −6 Energy per rank on Shred, −1 rage per rank on Lacerate [F] (druid.md §5.1). */
@@ -22,7 +22,7 @@ export const SHREDDING_ATTACKS: Readonly<Record<string, number>> = { shred: 6, l
 
 /**
  * Savage Fury: +5% damage per rank on Claw, Rake (its hit and its bleed), Shred, Maul and Swipe;
- * not Mangle, Rip, Ferocious Bite or Lacerate [F] (druid.md §2.3, §5.1; 16998's class masks).
+ * not Primal Bite, Rip, Ferocious Bite or Lacerate [F] (druid.md §2.3, §5.1; 16998's class masks).
  */
 export const SAVAGE_FURY: ReadonlySet<string> = new Set(['claw', 'rake', 'shred', 'maul', 'swipe'])
 export const SAVAGE_FURY_PCT_PER_RANK = 5
@@ -53,7 +53,7 @@ export const PREDATORY_INSTINCTS: ReadonlySet<string> = new Set([
   'lacerate',
 ])
 
-/** The cat combo-point builders: Primal Fury adds a point on their non-periodic crits [F] (druid.md §2.5). */
+/** The cat combo-point builders: Blood Frenzy (Primal Fury until 1.60.1.70009) adds a point on their non-periodic crits [F] (druid.md §2.5). */
 export const CP_BUILDERS: ReadonlySet<string> = new Set(['shred', 'claw', 'rake', 'ravage', 'pounce'])
 
 /**
@@ -103,7 +103,7 @@ export function abilityCritMultiplier(id: string, talents: TalentRanks): number 
 /**
  * The ability as this build uses it (druid.md §2.3, §2.5, §5): cost reductions (in the ability's
  * resource, tenths), Savage Fury and Feral Instinct on its hit and bleed, Genesis on its bleed,
- * Predatory Instincts' crit damage, Rend and Tear against a bleeding target, and Primal Fury's
+ * Predatory Instincts' crit damage, Rend and Tear against a bleeding target, and Blood Frenzy's
  * chance of an extra combo point on a builder's crit. Stacking: percentage modifiers from different talents multiply [?] (druid.md §2.3).
  */
 export function withDruidTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {

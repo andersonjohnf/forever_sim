@@ -462,7 +462,7 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D3 | Master of Defense → 23602 = 50 | matches | 23602 "Master of Defense" ENERGIZE 50 |
 | D3 | Enrage 5229 = 100 + 20/s | matches | ENERGIZE 100; periodic 20 per 1000 ms |
 | D3 | Furor 17057 = 100 | matches | ENERGIZE 100 |
-| D3 | Primal Fury 16959 = 50 | matches | ENERGIZE 50 |
+| D3 | Blood Frenzy (Primal Fury until 1.60.1.70009) 16959 = 50 | matches | ENERGIZE 50 |
 | D3 | Natural Reaction 417053 = 50 | matches | ENERGIZE 50 |
 | D3 | Heroic Strike 25286 +157 | matches | WEAPON_DAMAGE_NOSCHOOL (17) 157 |
 | D4 | Sunder Armor THREAT effect by rank: 1 / 405 / 608 / 810 / 1013 (11597); Classic has none | matches | 7386/7405/8380/11596/11597: 1/405/608/810/1013; armor -90/-180/-270/-360/-450; Classic THREAT effects: 0 |
@@ -539,7 +539,7 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D15 | Iron Creed 1311034 aura 108, modifier 2, 5…25 | matches | aura 108, modifier 2, curve 5/10/15/20/25 |
 | D15 | Salvation 1038 / 25895 −30 | matches | -30 / -30 |
 | D15 | Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | matches | Classic aura 107 mask 0x2000000; Forever 16947 is aura 107 (misc 3) on mask 0x4000 and aura 108 on 0,1048576,0,0 |
-| D16 | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144 | matches | 26/38/59/77 + 100% weapon; 200 (tenths) rage; 6000 ms; mask 144 |
+| D16 | Primal Bite (Mangle until 1.60.1.70009) 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144 | matches | 26/38/59/77 + 100% weapon; 200 (tenths) rage; 6000 ms; mask 144 |
 | D16 | Lacerate 1235827 15 per 3 s, 5 stacks | matches | 15 per 3000 ms, 5 stacks, 15000 ms |
 | D16 | Cat 3025: AP 12 + 2/level from 6; Faerie Fire cost −100%, CD +6,000, GCD −500; aura 598 = 100 on Agility | matches | AP 12 + 2/level from 6; modifiers (aura/op=value) 108/14=-100, 107/11=6000, 107/21=-500; aura 598 = 100 on stat 1 |
 | D16 | Forms 1/5/8 = 1,000/2,500/2,500 ms, variance 0.4; cat StartRecoveryTime 1,000 | matches | 1000/0.4, 2500/0.4, 2500/0.4 (swing ms/variance); Shred GCD 1000 ms |

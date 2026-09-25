@@ -681,7 +681,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     are one proc; its crit and avoided shares are over the swings. A fire whose swing becomes a
     queued Heroic Strike or Maul still counts, but that swing's damage lands on the Heroic
     Strike's or Maul's row. A row with a count of its own (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
-    of mana or rage (Shield Specialization, Primal Fury) shows none: one count a row.
+    of mana or rage (Shield Specialization, Blood Frenzy) shows none: one count a row.
   - **The average ends the line,** on the Damage metric only: the row's damage over its landed
     hits (hits, crits, glances and blocks; misses left out), "1,204 avg hit", or "412 avg tick"
     for a bleed's, a DoT's or a periodic effect's row. A cast whose every cast lands several times

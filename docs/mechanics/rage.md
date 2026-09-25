@@ -60,7 +60,7 @@ same number, the tooltip is the primary citation.
   rage ([refunds](#rage-refunds-on-avoided-abilities)).
 - **Flat and proc sources** ([sources](#warrior-rage-sources-and-sinks)): Bloodrage, Berserker
   Rage (+ Improved), Anger Management, Unbridled Wrath, Shield Specialization, Master of Defense,
-  Charge, Mighty Rage Potion. For bears ([bear](#bear-druid-rage)): Furor, Enrage, Primal Fury,
+  Charge, Mighty Rage Potion. For bears ([bear](#bear-druid-rage)): Furor, Enrage, Blood Frenzy,
   Natural Reaction.
 - **Stance changes**: rage becomes `min(rage, retain)`. In Forever, `retain = 10 + 3 × Improved
   Tactical Mastery rank` ([stances](#stance-changes-and-tactical-mastery)).
@@ -187,7 +187,7 @@ Attack-table probabilities, glancing, and a mob blocking your attacks are covere
 ### Yellow damage and on-next-swing attacks
 
 - **Yellow (special-attack) damage generates no rage.** This covers Bloodthirst, Mortal Strike,
-  Shield Slam, Revenge, Sunder, Thunder Clap, Swipe, Mangle, Lacerate ticks, Deep Wounds, Rend
+  Shield Slam, Revenge, Sunder, Thunder Clap, Swipe, Primal Bite, Lacerate ticks, Deep Wounds, Rend
   and procs. [C]: Classic sims add rage only for white swings (WarriorSim `addRage`: a `spell`
   path gives refunds only). The Forever measurements above use white swings only.
 - **Heroic Strike, Cleave and Maul replace the next main-hand white swing**. That swing becomes a
@@ -432,7 +432,7 @@ hit as in [open question 1](#open-questions)):
    mob's level alone, the attacker-level model does.
 2. **A level-60 tank against a level-63 mob**, which settles the value the sim uses directly.
 3. **20 or more bear autos with nothing else giving rage** (no hits taken, no Enrage, Furor or
-   Primal Fury), to confirm 11.25 or 8.65 per landed swing.
+   Blood Frenzy), to confirm 11.25 or 8.65 per landed swing.
 4. **Rend or other spell ticks alongside swings from the same mob**, to measure the periodic
    rate against the swing rate on one character.
 
@@ -598,19 +598,19 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever [?]: the [bear logs](#bear-logs-of-23-and-24-sep-) start each shift at 0, but each shift came before the pull, when it was likely 0 already (weak) |
 | Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
 | Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.46 × 2.5` = 8.65 per landed auto, crits no bonus. One logged auto gave 11.3 (`4.5 × 2.5`); not adopted, n = 1 | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-), [bear logs](#bear-logs-of-23-and-24-sep-)) |
-| Rage in Cat and caster form | Their power isn't rage | The sim gives no rage from white hits or hits taken outside bear; a hit taken still fires the damage-taken procs, and an energize adds rage in whatever form it fires in (outside bear, Natural Reaction and a Mighty Rage Potion; Furor's and Primal Fury's fire only in bear). A druid gains rage from hits taken only if its fight can be in bear (the plan's `rage.fromDamageTaken`), and then only while in bear | [?] (the sim's model; [druid.md §8](../classes/druid.md#8-implementation-notes) "Rage from hits", [§4.8](../classes/druid.md#48-bear-threat-and-druid-rage-numbers-summary-for-the-shared-docs)) |
+| Rage in Cat and caster form | Their power isn't rage | The sim gives no rage from white hits or hits taken outside bear; a hit taken still fires the damage-taken procs, and an energize adds rage in whatever form it fires in (outside bear, Natural Reaction and a Mighty Rage Potion; Furor's and Blood Frenzy's fire only in bear). A druid gains rage from hits taken only if its fight can be in bear (the plan's `rage.fromDamageTaken`), and then only while in bear | [?] (the sim's model; [druid.md §8](../classes/druid.md#8-implementation-notes) "Rage from hits", [§4.8](../classes/druid.md#48-bear-threat-and-druid-rage-numbers-summary-for-the-shared-docs)) |
 | Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93, and 49 hits on two known bears keep its division by maximum health, with a factor that rises with the mob's level (10.5–16.0; not adopted). Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), [bear logs](#bear-logs-of-23-and-24-sep-), open question 3) |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
 | Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; the instant 10 seen in the [bear logs](#bear-logs-of-23-and-24-sep-); [C] periodic only |
 | Improved Enrage | +5 / +10 instant | Removed (folded into Enrage) | [F] [class/druid](https://foreverchanges.pro/class/druid) |
 | Wolfshead Helm (item 8345) | +5 rage on shifting into bear | **+5 rage from Enrage** instead (the bonus on shifting is removed) | [F] per [druid.md](../classes/druid.md), which owns it |
-| Primal Fury (2 ranks) | 50% / 100% chance to gain 5 rage on any crit in bear form | Same bear effect (Cat part added) | [F][C] [client] (SpellEffect, 1.60.1.69913): 16959 energize 50 |
+| Blood Frenzy (2 ranks; Primal Fury until 1.60.1.70009, and in Classic Era) | 50% / 100% chance to gain 5 rage on any crit in bear form | Same bear effect (Cat part added) | [F][C] [client] (SpellEffect, 1.60.1.69913; unchanged in 1.60.1.70009): 16959 energize 50 |
 | Natural Reaction (new, 5 ranks) | — | +1% dodge per rank; 20% per rank to gain 5 rage on each dodge | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): 417051 curves 1…5 / 20…100, 417053 energize 50 |
-| Ferocity (5 ranks) | −1 per rank to Maul, Swipe, Claw, Rake | Also Mangle | [F] |
+| Ferocity (5 ranks) | −1 per rank to Maul, Swipe, Claw, Rake | Also Primal Bite (Mangle until 1.60.1.70009) | [F] |
 | Shredding Attacks (new) | — | −1 per rank to Lacerate (−3 at 3/3) | [F] |
 | Omen of Clarity | Talent | Baseline from level 20: "spells and attacks" can proc Clearcasting (your next ability is free) | [F]. Proc rate: see [classes/druid.md](../classes/druid.md). |
 | Frenzied Regeneration | 10 rage/s → 10 health each | 10 rage/s → **1% of maximum health** each | [F] |
-| Rage costs (max rank) | Maul 15, Swipe 20, Demoralizing Roar 10 | Plus Mangle (Bear) 20 rage with a 6 s CD, and Lacerate 15 | [F] [spellbook › druid](https://foreverchanges.pro/spellbook/druid) |
+| Rage costs (max rank) | Maul 15, Swipe 20, Demoralizing Roar 10 | Plus Primal Bite (Mangle (Bear) until 1.60.1.70009) 20 rage with a 6 s CD, and Lacerate 15 | [F] [spellbook › druid](https://foreverchanges.pro/spellbook/druid) |
 
 Feral Instinct no longer touches threat or rage in Forever. See [threat.md](threat.md#stance-and-form-modifiers).
 
@@ -642,7 +642,7 @@ flat: Anger Management 1/3 s · Bloodrage (10+10 per 60 s; ×1.5 with 2/2 Improv
 ```
 
 For a bear, replace `R_block` and `R_avoid` with Natural Reaction `P(dodge) × 5 × 0.2 × rank`, and
-add Primal Fury `P(crit on your attacks) × 5 × 0.5 × rank` for each attack you make.
+add Blood Frenzy `P(crit on your attacks) × 5 × 0.5 × rank` for each attack you make.
 
 **What this means.** A Forever prot warrior gets much of its rage from avoidance and blocks
 (5 per proc) and much less from damage taken: a 5,000 boss hit before armor gives a 7,000-health
@@ -670,7 +670,7 @@ For a Classic tank, rage income is dominated by damage taken.
 | Druid Enrage | 20 over 10 s | 10 now + 20 over 10 s | [F] |
 | Natural Reaction | — | 5 rage on dodge (100% at 5/5) | [F] |
 | Frenzied Regeneration | 10 health per rage | 1% of maximum health per rage | [F] |
-| Mighty Rage Potion, Charge, Bloodrage base, Furor, Primal Fury | — | No Forever change found | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Mighty Rage Potion, Charge, Bloodrage base, Furor, Blood Frenzy (Primal Fury) | — | No Forever change found | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Refunds, yellow attacks generate none, HS/Maul swing generates none | — | No Forever change found; the HS swing is observed to give 0 rage | [?] |
 
 ### Reconciliation with the warrior class doc

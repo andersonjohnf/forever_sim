@@ -409,7 +409,7 @@ describe('combo points and Clearcasting with the real abilities (druid.md §2.5,
     expect(trace.slice(0, 8)).toEqual([0, 1, 2, 3, 4, -1, 0, 1])
   })
 
-  it('Primal Fury: a critting Shred gives 2 points, so 3 Shreds make 5 (not 6)', () => {
+  it('Blood Frenzy: a critting Shred gives 2 points, so 3 Shreds make 5 (not 6)', () => {
     const plan = catPlan(20000, { crit: 200 })
     const shred = add(plan, SHRED)
     const r = add(plan, RIP)

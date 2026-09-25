@@ -29,7 +29,7 @@ export const START_ENERGY_TENTHS = 1000
 /** At most 5 combo points [C] (druid.md §2.5). */
 export const MAX_COMBO_POINTS = 5
 
-/** Primal Fury's chance of an extra combo point on a builder's non-periodic crit, per rank: 50% (100% at 2/2) [F] (druid.md §2.5, §5.1). */
+/** Blood Frenzy's (Primal Fury's until 1.60.1.70009) chance of an extra combo point on a builder's non-periodic crit, per rank: 50% (100% at 2/2) [F] (druid.md §2.5, §5.1). */
 export const PRIMAL_FURY_CP_CHANCE_PER_RANK = 0.5
 
 // --- Omen of Clarity and Clearcasting (druid.md §2.7) -------------------------------------------
@@ -159,9 +159,9 @@ export const WOLFSHEAD_HELM = 8345
 
 /**
  * Idol of Brutality (23198, spell 28855): −2 rage (aura 107, misc 14: −20 tenths) on class mask
- * [2048, 64, 0, 0], which is Maul and Swipe (0x800 in the first word) and Mangle (0x40 in the second)
+ * [2048, 64, 0, 0], which is Maul and Swipe (0x800 in the first word) and Primal Bite (0x40 in the second)
  * [F] [client] (SpellEffect, SpellClassOptions, 1.60.1.69913; druid.md §4.1, §4.2, §4.4). Its tooltip
- * names only Maul and Swipe, so Mangle's 2 rage is the client data's reading [?] (guild test G2).
+ * names only Maul and Swipe, so Primal Bite's 2 rage is the client data's reading [?] (guild test G2).
  */
 export const IDOL_OF_BRUTALITY = 23198
 export const IDOL_OF_BRUTALITY_RAGE_TENTHS = 20

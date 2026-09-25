@@ -117,7 +117,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Consumables', 'Priority list'])
     await expect(list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).not.toBeChecked()
     await expect(row(list, 'demoRoar')).toContainText('Off')
-    for (const name of ['Berserk', 'Enrage', 'Maul', 'Faerie Fire', 'Mangle', 'Lacerate', 'Faerie Fire filler']) {
+    for (const name of ['Berserk', 'Enrage', 'Maul', 'Faerie Fire', 'Primal Bite', 'Lacerate', 'Faerie Fire filler']) {
       await expect(list.getByRole('switch', { name, exact: true }), name).toBeChecked()
     }
     await expect(list.getByRole('switch', { name: 'Swipe', exact: true })).not.toBeChecked()
@@ -209,7 +209,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     await expect(ffRefresh).toHaveValue('6')
     await expect(ffRefresh).toHaveAccessibleDescription(/The default, 6 s \(its cooldown\), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off\./)
     await expect(faerieFire.getByRole('switch', { name: 'Use Faerie Fire', exact: true })).toHaveAccessibleDescription(/Every preset keeps it: it’s the raid’s armor debuff/)
-    // Moved below Mangle, it keeps the rule, and says so.
+    // Moved below Primal Bite, it keeps the rule, and says so.
     await faerieFire.getByRole('button', { name: 'Move down', exact: true }).click()
     await expect(row(list, 'faerieFire')).toContainText('Again with 6 s left')
     await list.getByRole('button', { name: 'Demoralizing Roar', exact: true }).click()
@@ -330,7 +330,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     const heard = (metric: string) => results.getByRole('group', { name: metric }).getByText(HEARD_CHANGE)
     await expect(heard('TPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
     await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
-    for (const name of ['Maul', 'Mangle', 'Faerie Fire', 'Demoralizing Roar']) await expect(threatRow(name).first()).toBeVisible()
+    for (const name of ['Maul', 'Primal Bite', 'Faerie Fire', 'Demoralizing Roar']) await expect(threatRow(name).first()).toBeVisible()
   })
 })
 
@@ -343,9 +343,9 @@ test.describe('Feral bear share link', () => {
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const defensive = await page.evaluate(() => navigator.clipboard.readText())
-    // Mangle up above the duties: Custom, and the order goes in the link too.
-    await list.getByRole('button', { name: 'Mangle', exact: true }).click()
-    const mangle = page.getByRole('complementary', { name: 'Mangle settings' })
+    // Primal Bite (row `mangle`) up above the duties: Custom, and the order goes in the link too.
+    await list.getByRole('button', { name: 'Primal Bite', exact: true }).click()
+    const mangle = page.getByRole('complementary', { name: 'Primal Bite settings' })
     await mangle.getByRole('button', { name: 'Move up', exact: true }).click()
     await mangle.getByRole('button', { name: 'Move up', exact: true }).click()
     const moved = ['prepull', 'berserk', 'enrage', 'racial', 'onUseItems', 'maul', 'mangle', 'demoRoar', 'faerieFire', 'lacerate', 'swipe', 'faerieFireFiller']
@@ -388,7 +388,7 @@ test.describe('Feral bear', () => {
     const breakdown = results.getByRole('region', { name: /by ability$/ })
     await expect(breakdown.getByRole('heading')).toHaveText('Threat by ability')
     // Faerie Fire deals no damage, so it's in the threat view only.
-    for (const name of ['Maul', 'Mangle', 'Lacerate', 'Faerie Fire']) {
+    for (const name of ['Maul', 'Primal Bite', 'Lacerate', 'Faerie Fire']) {
       await expect(breakdown.getByRole('listitem').filter({ hasText: name }).first()).toBeVisible()
     }
   })

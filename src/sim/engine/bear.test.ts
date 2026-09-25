@@ -1,12 +1,12 @@
 // The Feral bear in the engine against docs/classes/druid.md §4 and §9: worked examples W14–W16
 // and W19 as the engine deals them, Lacerate's stacks, hit and ticks, Faerie Fire's and
-// Demoralizing Roar's debuffs, Berserk's Mangle, Enrage before the pull, Rend and Tear, each
+// Demoralizing Roar's debuffs, Berserk's Primal Bite, Enrage before the pull, Rend and Tear, each
 // ability's threat against threat.md's closed form, rage from hits in bear, and determinism. The
 // rows and settings are src/sim/classes/druid/bear.test.ts's; the plans here are hand-built from
 // the default bear, one ability at a time, as the plan builder adds them.
 import { describe, expect, it } from 'vitest'
 import { BEAR_IDS, BEAR_PRIORITY, PREPULL_ENRAGE_MS } from '../classes/druid/bear'
-import { demoralizingRoar, enrage, FAERIE_FIRE_BEAR, LACERATE, MANGLE, MAUL, SWIPE } from '../classes/druid/bear-abilities'
+import { demoralizingRoar, enrage, FAERIE_FIRE_BEAR, LACERATE, PRIMAL_BITE, MAUL, SWIPE } from '../classes/druid/bear-abilities'
 import { BERSERK } from '../classes/druid/cat-abilities'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
 import { armorReduction } from '../core/formulas'
@@ -151,10 +151,10 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     expect(counter(s, row(poor, m), FIELD.casts)).toBe(1)
   })
 
-  it('W15: Mangle at 1200 AP deals 351.286 + 77 = 428.286 on average (no Savage Fury), at the form’s threat, every 6 s', () => {
+  it('W15: Primal Bite at 1200 AP deals 351.286 + 77 = 428.286 on average (no Savage Fury), at the form’s threat, every 6 s', () => {
     const plan = bearPlan(60000)
     setAttackPower(plan, 1200)
-    const mangle = addBearAbility(plan, MANGLE, { free: true })
+    const mangle = addBearAbility(plan, PRIMAL_BITE, { free: true })
     line(plan, mangle)
     expectMean(damages(plan, row(plan, mangle), 60), 428.286)
     const { sim, uses } = timeline(plan)
@@ -406,17 +406,17 @@ describe('Faerie Fire and Demoralizing Roar on the boss (druid.md §4.5, W18)', 
   })
 })
 
-describe('Berserk’s Mangle (druid.md §4.6)', () => {
-  it('while Berserk is up, Mangle starts no cooldown; one already running keeps running', () => {
+describe('Berserk’s Primal Bite (druid.md §4.6)', () => {
+  it('while Berserk is up, Primal Bite starts no cooldown; one already running keeps running', () => {
     const plan = bearPlan(40000)
     const berserk = addBearAbility(plan, BERSERK)
-    const mangle = addBearAbility(plan, MANGLE, { free: true })
+    const mangle = addBearAbility(plan, PRIMAL_BITE, { free: true })
     expect(plan.abilities[mangle].noCooldownAura).toBe(plan.abilities[berserk].aura)
     line(plan, berserk, [from(plan, 1000)])
     line(plan, mangle)
     const { uses } = timeline(plan)
-    // Mangle at 0 (cooldown to 6 s); Berserk at 1 s doesn't cut it short; then every GCD while
-    // Berserk is up, to 16 s; the first Mangle after it, at 16.5 s, starts its 6 s cooldown again.
+    // Primal Bite at 0 (cooldown to 6 s); Berserk at 1 s doesn't cut it short; then every GCD while
+    // Berserk is up, to 16 s; the first Primal Bite after it, at 16.5 s, starts its 6 s cooldown again.
     expect(uses[berserk]).toEqual([1000])
     expect(uses[mangle].slice(0, 10)).toEqual([0, 6000, 7500, 9000, 10500, 12000, 13500, 15000, 16500, 22500])
   })
@@ -578,7 +578,7 @@ describe('the default bear (druid.md §6.3)', () => {
       const agg = mergeChunk(emptyAggregate(bundle.plan.sources.length, bundle.plan.auras.length), runChunk(bundle.plan, 0, 50))
       return toResult(bundle, agg, 0).cooldowns.find((c) => c.id === 'clearcasting')!
     }
-    // Maul, Mangle and Lacerate spend it (and the roar, with Defensive): a few procs a fight, each spent soon after.
+    // Maul, Primal Bite and Lacerate spend it (and the roar, with Defensive): a few procs a fight, each spent soon after.
     const spent = clearcasting({})
     expect(spent.procsPerFight).toBeGreaterThan(5)
     expect(spent.uptimePct).toBeLessThan(15)

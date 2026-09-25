@@ -1,9 +1,9 @@
-// The Feral bear's abilities as data (docs/classes/druid.md §4): Maul, Swipe, Mangle, Lacerate,
-// Demoralizing Roar, Faerie Fire in Dire Bear Form and Enrage. Berserk is the cat's row
-// (cat-abilities.ts), usable in both forms; its bear part is Mangle's `noCooldownWhile`. Auto attack
-// is the form's weapon (forms.ts).
+// The Feral bear's abilities as data (docs/classes/druid.md §4): Maul, Swipe, Primal Bite (Mangle
+// until build 1.60.1.70009), Lacerate, Demoralizing Roar, Faerie Fire in Dire Bear Form and Enrage.
+// Berserk is the cat's row (cat-abilities.ts), usable in both forms; its bear part is Primal Bite's
+// `noCooldownWhile`. Auto attack is the form's weapon (forms.ts).
 //
-// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.69913), with the doc
+// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.70009), with the doc
 // value as fallback, written out here so the app bundle doesn't carry the client dataset;
 // bear.test.ts checks them against it. Rage is in tenths, times in ms. These are the base rows:
 // the build's talents (Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis,
@@ -88,15 +88,18 @@ export const SWIPE: AbilityDef = {
 }
 
 /**
- * Mangle, rank 4 at 60 (spells.json 1238073, the talent 407995): 20 rage, `categoryRecoveryTime`
+ * Primal Bite, rank 4 at 60 (spells.json 1238073, the talent 407995): 20 rage, `categoryRecoveryTime`
  * 6000, GCD 1500; `WEAPON_PERCENT_DAMAGE` 100 and `WEAPON_DAMAGE` +77: `1.00 × (W_b + 77)`, one
- * roll [F] (druid.md §4.2). Bear and Dire Bear only (shapeshift mask 144). Its threat is unknown:
- * one per damage [?] (Q15). While Berserk is up it starts no cooldown (§4.6).
+ * roll [F] (druid.md §4.2). Bear and Dire Bear only (shapeshift mask 144). Build 1.60.1.70009 renamed
+ * Mangle to Primal Bite and gave it a new icon (132278, `ability_racial_cannibalize`), and changed
+ * nothing else: the same ids, damage, cost, cooldown and class mask. Its tooltip has no threat words,
+ * so one per damage [?] (Q15). While Berserk is up it starts no cooldown (§4.6). Its id stays
+ * `mangle`, as its setting's and its priority-list row's do, so saved setups and links keep it.
  */
-export const MANGLE: AbilityDef = {
+export const PRIMAL_BITE: AbilityDef = {
   id: 'mangle',
-  name: 'Mangle',
-  icon: 'ability_druid_mangle2',
+  name: 'Primal Bite',
+  icon: 'ability_racial_cannibalize',
   kind: 'weaponStrike',
   ...BEAR_ATTACK,
   costTenths: 200,

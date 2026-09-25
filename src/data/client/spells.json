@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 580,
+      "docs": 585,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 0,
-    "seeds": 2833,
-    "spells": 3109
+    "seeds": 2837,
+    "spells": 3112
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -77597,7 +77597,7 @@
       "shapeshift": {
         "shapeshiftMask": [144, 0]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "16966": {
       "classOptions": {
@@ -116463,7 +116463,7 @@
       "shapeshift": {
         "shapeshiftMask": [144, 0]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "408120": {
       "categories": {
@@ -121596,6 +121596,177 @@
         "shapeshiftMask": [1073741826, 0]
       },
       "sources": ["spellbook"]
+    },
+    "1238069": {
+      "categories": {
+        "category": 971,
+        "defenseType": 2,
+        "preventionType": 2,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 64, 0, 0],
+        "spellClassSet": 7
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 6000,
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 58,
+          "effectBasePointsF": 38,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 31,
+          "effectBasePointsF": 100,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1238069,
+      "levels": {
+        "baseLevel": 36,
+        "spellLevel": 36
+      },
+      "misc": {
+        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132278
+      },
+      "name": "Primal Bite",
+      "nameSubtext": "Rank 2",
+      "power": [
+        {
+          "manaCost": 200,
+          "powerType": 1
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "shapeshift": {
+        "shapeshiftMask": [144, 0]
+      },
+      "sources": ["docs"]
+    },
+    "1238070": {
+      "categories": {
+        "category": 971,
+        "defenseType": 2,
+        "preventionType": 2,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 64, 0, 0],
+        "spellClassSet": 7
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 6000,
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 58,
+          "effectBasePointsF": 59,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 31,
+          "effectBasePointsF": 100,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1238070,
+      "levels": {
+        "baseLevel": 48,
+        "spellLevel": 48
+      },
+      "misc": {
+        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132278
+      },
+      "name": "Primal Bite",
+      "nameSubtext": "Rank 3",
+      "power": [
+        {
+          "manaCost": 200,
+          "powerType": 1
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "shapeshift": {
+        "shapeshiftMask": [144, 0]
+      },
+      "sources": ["docs"]
+    },
+    "1238073": {
+      "categories": {
+        "category": 971,
+        "defenseType": 2,
+        "preventionType": 2,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 64, 0, 0],
+        "spellClassSet": 7
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 6000,
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 58,
+          "effectBasePointsF": 77,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 31,
+          "effectBasePointsF": 100,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1238073,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132278
+      },
+      "name": "Primal Bite",
+      "nameSubtext": "Rank 4",
+      "power": [
+        {
+          "manaCost": 200,
+          "powerType": 1
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "shapeshift": {
+        "shapeshiftMask": [144, 0]
+      },
+      "sources": ["docs"]
     },
     "1238122": {
       "categories": {

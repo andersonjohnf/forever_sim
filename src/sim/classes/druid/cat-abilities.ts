@@ -6,7 +6,7 @@
 // value as fallback, written out here so the app bundle doesn't carry the client dataset;
 // cat.test.ts checks them against it. Energy is in tenths, times in ms. These are the base rows:
 // the build's talents (Ferocity, Shredding Attacks, Savage Fury, Genesis, Predatory Instincts,
-// Rend and Tear, Primal Fury) are applied by `withDruidTalents` (modifiers.ts) when the plan
+// Rend and Tear, Blood Frenzy) are applied by `withDruidTalents` (modifiers.ts) when the plan
 // resolves the rotation.
 import { CRIT_MULTIPLIER } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
@@ -188,7 +188,7 @@ export function tigersFury(kingOfTheJungleRank: number, wolfshead: boolean): Abi
 /**
  * Berserk (spells.json 417141, the talent): free, off the GCD, `RecoveryTime` 180000; for 15000 ms
  * the builders' crit (`auraCrit` on Shred, Claw and Rake) [F] (druid.md §3.7). Usable in cat and bear;
- * its bear part is Mangle's: no cooldown while it's up (`noCooldownWhile`, bear-abilities.ts, §4.6).
+ * its bear part is Primal Bite's: no cooldown while it's up (`noCooldownWhile`, bear-abilities.ts, §4.6).
  */
 export const BERSERK: AbilityDef = {
   id: 'berserk',

@@ -116,7 +116,7 @@ export async function checkClaims(ctx) {
     return verdict(energize(5229) === 100 && pts(p) === 20 && p.effectAuraPeriod === 1000, `ENERGIZE ${energize(5229)}; periodic ${pts(p)} per ${p.effectAuraPeriod} ms`);
   });
   claim("D3", "Furor 17057 = 100", () => verdict(energize(17057) === 100, `ENERGIZE ${energize(17057)}`));
-  claim("D3", "Primal Fury 16959 = 50", () => verdict(energize(16959) === 50, `ENERGIZE ${energize(16959)}`));
+  claim("D3", "Blood Frenzy (Primal Fury until 1.60.1.70009) 16959 = 50", () => verdict(energize(16959) === 50, `ENERGIZE ${energize(16959)}`));
   claim("D3", "Natural Reaction 417053 = 50", () => verdict(energize(417053) === 50, `ENERGIZE ${energize(417053)}`));
   claim("D3", "Heroic Strike 25286 +157", () => {
     const e = byType(f(25286), 17);
@@ -373,7 +373,7 @@ export async function checkClaims(ctx) {
   });
 
   // ---------------------------------------------------------------- D16 bear and forms
-  claim("D16", "Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144", () => {
+  claim("D16", "Primal Bite (Mangle until 1.60.1.70009) 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144", () => {
     const ids = [407995, 1238069, 1238070, 1238073];
     const v = ids.map((id) => pts(byType(f(id), 58)));
     const ok = list(v) === "26/38/59/77" && ids.every((id) => f(id).power[0]?.manaCost === 200 && cd(f(id)) === 6000 && f(id).shapeshift?.shapeshiftMask[0] === 144);

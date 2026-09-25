@@ -1160,7 +1160,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   // Crit an aura gives some abilities (Berserk's, druid.md §3.7), and the aura that suspends an
-  // ability's cooldown (Berserk's Mangle, §4.6), once every ability's aura is in; without an ability
+  // ability's cooldown (Berserk's Primal Bite, §4.6), once every ability's aura is in; without an ability
   // that puts it up, there's none.
   classRot.abilities.forEach((def, i) => {
     if (def.auraCrit) {
@@ -1692,7 +1692,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
     // druid.md §4.7 (Q19): Thick Hide's base armor under the form's multiplier.
     if (setup.form === 'bear' && setup.talents.has('Thick Hide')) notes.add('thickHide')
-    // druid.md §4.1 (Q37): the idol's Mangle, while the rotation uses Mangle.
+    // druid.md §4.1 (Q37): the idol's Primal Bite, while the rotation uses Primal Bite.
     if (bear && uses.mangle && Object.values(config.gear).some((e) => e?.itemId === IDOL_OF_BRUTALITY)) notes.add('idolOfBrutality')
   }
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.

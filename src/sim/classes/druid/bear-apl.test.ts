@@ -44,6 +44,9 @@ describe('the Feral bear’s priority list (D31)', () => {
     // default, tank duties first, is Defensive now. T5 then tuned Max TPS's Maul threshold, 20 → 14
     // (druid.md §6.3 "Max TPS"), a change to what it plays on purpose, so the cases that leave it
     // unset keep the old 20: the list itself changes nothing.
+    // Build 1.60.1.70009 renamed Mangle to Primal Bite and Primal Fury to Blood Frenzy, with new
+    // icons (druid.md §4.2): re-snapshotted, since the plans carry names and icons. Mapping the four
+    // strings back gives all 200 of the old fingerprints: nothing the rotation plays moved.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({
@@ -105,9 +108,9 @@ describe('the Feral bear’s priority list (D31)', () => {
     const none = bearRotation(values, TALENTS, noAura, CONTEXT)
     expect(bearRotation(values, TALENTS, noAura, CONTEXT, defaultAplOrder(BEAR_APL))).toEqual(none)
     // druid.md §6.3's order: Berserk, Enrage, the consumables with the on-use items, Maul, the duties,
-    // Mangle, Lacerate (two lines), Swipe and the filler.
+    // Primal Bite (row `mangle`), Lacerate (two lines), Swipe and the filler.
     expect(ids(none)).toEqual(['berserk', 'enrage', 'mightyRagePotion', 'jujuFlurry', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'swipe', 'faerieFire'])
-    // Maul after Lacerate, and Mangle above the duties: each keeps its own lines.
+    // Maul after Lacerate, and Primal Bite above the duties: each keeps its own lines.
     let order = moveAplRow(BEAR_APL, defaultAplOrder(BEAR_APL), 'maul', defaultAplOrder(BEAR_APL).indexOf('lacerate'))!
     order = moveAplRow(BEAR_APL, order, 'mangle', order.indexOf('demoRoar'))!
     const r = bearRotation(values, TALENTS, noAura, CONTEXT, order)

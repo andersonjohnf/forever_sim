@@ -219,7 +219,7 @@ talent; the Forever client has its spell 20218 but no talent or trainer row teac
 - **Warrior:** Victory Rush (new, level 20); Spearing Strike (new Arms talent). Tactical Mastery
   is trained at level 14 (10 rage kept; a talent in Classic). Slam has a new rank 1 at level 20,
   so every rank comes earlier.
-- **Druid:** Lacerate (new, level 42, 3 ranks) and Revive (new, 5 ranks). Mangle, Berserk and
+- **Druid:** Lacerate (new, level 42, 3 ranks) and Revive (new, 5 ranks). Primal Bite (Mangle until 1.60.1.70009), Berserk and
   Wild Growth are talent spells new in Forever (Wild Growth's ranks 2 and 3 are trained at 50 and
   60). Nature's Grasp and Omen of Clarity are trained.
 - **Paladin:** Holy Strike (new, 8 ranks), Seal of Fury (new, 7 ranks) and Hammer of the

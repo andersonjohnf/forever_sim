@@ -93,7 +93,7 @@ test.describe('the wide shell', () => {
     test(`at ${width} px the results stay in the viewport and scroll inside`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
-      // Gear fits the window from 1440 px (docs/ux.md#gear), so scrolling needs a longer tab.
+      // Gear fits the window from 1440 px (docs/ux.md "Sections"), so scrolling needs a longer tab.
       await page.getByRole('tab', { name: 'Talents' }).click()
       const results = page.getByRole('complementary', { name: 'Results' })
       await results.getByRole('button', { name: 'Simulate' }).click()

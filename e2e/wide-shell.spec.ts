@@ -40,7 +40,6 @@ test.describe('the wide shell', () => {
   for (const { width, results } of [
     { width: 1440, results: 30 * REM },
     { width: 1600, results: pane(1600) },
-    // Exactly 40 rem, where the results' strip and two columns have started (wide-results.spec.ts).
     { width: 1920, results: 40 * REM },
     { width: 2560, results: pane(2560) },
   ]) {
@@ -97,10 +96,11 @@ test.describe('the wide shell', () => {
       const results = page.getByRole('complementary', { name: 'Results' })
       await results.getByRole('button', { name: 'Simulate' }).click()
       await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
-      const details = results.getByRole('region', { name: 'Result details' })
+      // The sheet, your setup and the result scroll as one, inside the pane (docs/ux.md#results).
+      const panel = results.getByRole('region', { name: 'Sheet, setup and result' })
       // Open a long section, so there's more than the pane shows.
       await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
-      const fits = await details.evaluate((el) => ({
+      const fits = await panel.evaluate((el) => ({
         bottom: el.getBoundingClientRect().bottom,
         height: window.innerHeight,
         overflows: el.scrollHeight > el.clientHeight,
@@ -112,21 +112,22 @@ test.describe('the wide shell', () => {
       await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }))
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
       expect(await results.evaluate((el) => el.querySelector('div')!.getBoundingClientRect().top)).toBeCloseTo(top, 0)
-      // It scrolls inside, and its fade at the top shows once it has.
-      await details.evaluate((el) => el.scrollTo({ top: 400 }))
-      await expect.poll(() => details.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
-      await expect(details.locator('xpath=following-sibling::div[1]')).toHaveClass(/opacity-100/)
+      // It scrolls inside, and the fade under your setup shows once it has.
+      await panel.evaluate((el) => el.scrollTo({ top: 400 }))
+      await expect.poll(() => panel.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
+      await expect(results.locator('[data-fade-above]')).toHaveClass(/opacity-100/)
     })
   }
 
-  test('the section tabs keep their names and keyboard at 1440 px', async ({ page }) => {
+  // The tabs are the same at every width: their label, 44 px tall. What each section holds is the
+  // wide panel's setup summary (wide-results.spec.ts).
+  test('the section tabs keep their names, keyboard and height at 1440 px', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('./')
     const tabs = page.getByRole('tab')
-    // Each name is its label alone: the summary line under it is its description.
-    await expect(tabs).toHaveCount(6)
+    await expect(tabs).toHaveText(['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight'])
     for (const name of ['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight']) {
-      await expect(page.getByRole('tab', { name, exact: true })).toBeVisible()
+      await expect(page.getByRole('tab', { name, exact: true })).not.toHaveAttribute('aria-describedby')
     }
     const character = page.getByRole('tab', { name: 'Character', exact: true })
     await character.click()
@@ -147,52 +148,6 @@ test.describe('the wide shell', () => {
     await character.focus()
     await page.keyboard.press('ArrowLeft')
     await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toBeFocused()
-    // With its summary line, each tab is 56 px tall.
-    const heights = await tabs.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
-    expect(heights.every((h) => h === 56)).toBe(true)
-  })
-
-  // docs/ux.md "Section tabs": from 1440 px each tab carries a line on what its section holds
-  // (src/app/section-summary.ts), and the line follows the setup.
-  test('at 1440 px each tab summarises its section, and the summary follows the setup', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('./')
-    const tab = (name: string) => page.getByRole('tab', { name, exact: true })
-    // A Fury warrior's defaults.
-    for (const [name, summary] of [
-      ['Character', 'Human'],
-      ['Talents', '17/34/0'],
-      ['Gear', 'Pre-raid best in slot'],
-      ['Buffs', 'Standard raid'],
-      ['Rotation', 'Default'],
-      ['Fight', '3:00'],
-    ]) {
-      await expect(tab(name)).toHaveAccessibleDescription(summary)
-      await expect(tab(name).getByText(summary, { exact: true })).toBeVisible()
-    }
-    // A change in a section changes its tab's line: the boss's level, and a Buffs preset.
-    await tab('Fight').click()
-    await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
-    await page.getByRole('button', { name: 'Decrease Boss level' }).click()
-    await expect(tab('Fight')).toHaveAccessibleDescription('3:00 · level 62')
-    await tab('Buffs').click()
-    await page.getByRole('radio', { name: /^Self only/ }).click()
-    await expect(tab('Buffs')).toHaveAccessibleDescription('Self only')
-    // A buff switched off matches no preset.
-    await page.getByRole('radio', { name: /^Standard raid/ }).click()
-    await expect(tab('Buffs')).toHaveAccessibleDescription('Standard raid')
-    await page.getByRole('switch', { name: 'Blessing of Kings' }).click()
-    await expect(tab('Buffs')).toHaveAccessibleDescription('Custom')
-  })
-
-  test('under 1440 px the tabs have no summary, shown or described', async ({ page }) => {
-    await page.setViewportSize({ width: 1439, height: 900 })
-    await page.goto('./')
-    const tabs = page.getByRole('tab')
-    await expect(tabs).toHaveText(['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight'])
-    for (const name of ['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight']) {
-      await expect(page.getByRole('tab', { name, exact: true })).not.toHaveAttribute('aria-describedby')
-    }
     const heights = await tabs.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
     expect(heights.every((h) => h === 44)).toBe(true)
   })

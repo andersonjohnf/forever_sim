@@ -56,7 +56,7 @@ When a design decision isn't covered here, make it, then add it here.
 
 | Width | Layout |
 | --- | --- |
-| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. |
+| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. The results pane is the **right panel**: the character sheet, Your setup with Simulate, then the result, in one column ([Results](#results)). |
 | **1024–1439 px** | A header, then two columns, capped at 1280 px. **Left:** the setup, as section tabs. **Right:** a sticky results panel, 22 rem, with the Simulate button. |
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
@@ -170,15 +170,15 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
 (manual activation), so focus coming back from a toast never switches the tab. Opening a tab
 from further down the page scrolls up to the new section's top, just under the sticky tabs
 (smoothly, unless reduced motion is asked for), so its header and any note under it (Classic
-Era's) start in view rather than under the tabs. From 1440 px a tab can carry a **summary line**
-under its label, in muted 12 px text, and the tabs grow to 56 px; the tab's accessible name stays
-its label and the summary is its description (`src/app/section-tabs.tsx`).
+Era's) start in view rather than under the tabs. A tab is its label alone at every width
+(`src/app/section-tabs.tsx`): what each section holds is said by the wide panel's **Your setup**
+([Results](#results)), not under its tab (D34's amendment took the tabs' summary lines out).
 
-**Section tab summaries** (from 1440 px, decision D34): under each tab's name, a muted 12 px
-line says what its section holds, so the whole setup reads at a glance. The name stays the tab's
-label; the line is its description. Each line uses the rule its own tab uses to say the same
-thing (`src/app/section-summary.ts`), so it never disagrees with the tab, and stays within 24
-characters, about what fits under a tab at 1440 px:
+**Your setup's lines** (the wide panel, from 1440 px, decision D34): under each section's name,
+what it holds, so the whole setup reads at a glance. Each line uses the rule its own tab uses to
+say the same thing (`src/app/section-summary.ts`), so it never disagrees with the tab, and stays
+within 24 characters, about what fits on one line in a column of Your setup at 1440 px (two
+columns of a 30 rem panel):
 - **Character:** the race, and the rules when they aren't Forever's: "Human", "Orc · Classic
   Era". A Skyborne race drops its faction variant only when the rules would push it past the
   width: "Skyborne · Classic Era".
@@ -855,37 +855,56 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   tooltip that doesn't open on focus ([Accessibility](#accessibility)): what it says is the
   button's own name, which focus reads, and the shortcut, which `aria-keyshortcuts` gives
   assistive tech.
-- **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
-  put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
-  that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a
-  phone the results sheet scrolls as a whole.
-- **The wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)),
-  by container queries on the `results` pane ([Layout](#layout)), so nothing changes under 1440 px:
-  - **From 1440 px** (a 30 rem pane) **Cooldowns and buffs** and the **Character sheet** are open
-    by default. A reader who closes one keeps it closed, and one reopened stays open: each browser
-    remembers them (`forever-sim:results-closed` in `localStorage`, a list of the closed ones; a
-    value it can't read counts as none closed). **Assumptions** stays collapsed: it's long and read
-    rarely. The wider pane keeps each breakdown row's first outcome line on one line.
-  - **From 1920 px** the headline card is a **strip**: the values with their ± and change, then
-    the run's summary, then Simulate, on one row, with any message (ready, setup changed, no
-    damage, an error) under them across the card. A tank's TPS and DPS sit side by side in it as
-    usual. Each "·" part of the run's summary stays whole ("ran in 0.2 s" never splits); when the
-    longest part doesn't fit beside the values, the summary moves under them (review finding
-    DA-3). While a run is under way the headline, with its progress bar, takes the row's free
-    width (DA-6).
-  - The details sit in **two columns**: on the left what the result is made of (Damage taken, the
-    breakdown, How the boss's swings landed, Mana per fight), on the right what explains it
-    (Cooldowns and buffs, and the Character sheet with the Boss's attack table). The left column
-    takes 1.4 parts of the width to the right's 1, since the breakdown's rows carry the longest
-    lines (DA-1): at 1920 px most outcome lines fit on one, and at 2560 px all do. With nothing
-    on the left (no weapon, so no breakdown), the right takes both. **Assumptions** spans both
-    columns under them, collapsed, its text kept to 32 rem, about 75 characters a line (DA-8).
-  - The strip and the columns are container queries at 39.5 rem, just under the 40 rem the pane
-    measures at 1920 px, so they start at 1,896 px and 1920 always has them. Below that
-    (1440–1895 px) the card and the details keep the single column of the narrower pane.
-  - The DOM keeps the order this section gives, so a screen reader hears the same sequence at
-    every width: the columns are wrappers that are `display: contents` below 1920.
-  - The pane still never runs past the viewport, and scrolls inside with its fades.
+- **From 1024 to 1439 px the panel never runs past the viewport.** The headline card with
+  Simulate stays put, and everything under it scrolls inside the panel, with a fade and a chevron
+  at an edge that has more. While it overflows, that area takes keyboard focus so arrow keys
+  scroll it. On a phone the results sheet scrolls as a whole.
+- **The wide layout's right panel** (from 1440 px,
+  [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25) as amended: `WidePanel`
+  in `src/features/results/results-panel.tsx`, Your setup in `src/app/setup-summary.tsx`). Under
+  1440 px the panel and the phone's bar and sheet are as this section describes elsewhere. From
+  1440 px the panel is one calm column, top to bottom:
+  - **Character sheet**, always shown, before any run too. It comes from your setup (the plan the
+    sim builds), not from the fights, so it follows every change as you make it and is never
+    stale. It's the sheet described below, in its two columns, with a tank's Boss's attack table,
+    and it isn't collapsible here. The table's block-buff line gives the latest run's uptime while
+    that run is of this setup, and otherwise says "Your rotation keeps Holy Shield up most of the
+    fight."
+  - **Your setup**: a line a section (Character, Talents, Gear, Buffs, Rotation, Fight), each its
+    name in muted 12 px text over what it holds ([Your setup's lines](#layout)). Each line is a
+    44 px button, named "Talents 17/34/0", that opens its section's tab, scrolls it to its top as a
+    tab does, and moves focus into it. The lines sit in two columns in a 30 rem panel (1440 px) and
+    three from a 38 rem one (about 1,824 px). **Simulate** (Run again after a run, Cancel during
+    one) sits on the heading's right, as a section's action does, sized to its label and never
+    stretched. Under the lines, "Your setup is ready. Simulate to see your DPS." before a first
+    run, and "Your setup changed since this run. Simulate to update it." when the result is stale.
+  - **The result**, once there's one, a run under way or a failure; before that there's no result
+    box at all. The headline (the values with their ± and change, then the run's summary), any
+    failure or "no damage" message, then a tank's Damage taken, the breakdown (or Threat by
+    ability), How the boss's swings landed, Mana per fight, **Cooldowns and buffs** and
+    **Assumptions**. Each part is divided from the next by a rule with the same spacing, has a
+    plain heading, and starts at the same left edge: nothing sits beside the breakdown. A tank's
+    TPS and DPS sit side by side in the headline, as everywhere.
+  - **Cooldowns and buffs** is open by default. A reader who closes it keeps it closed, and one
+    reopened stays open: each browser remembers it (`forever-sim:results-closed` in
+    `localStorage`, a list of the closed ones; a value it can't read counts as none closed).
+    **Assumptions** stays collapsed: it's long and read rarely; in a panel wider than 32 rem (from
+    about 1,540 px) its text keeps to 32 rem, about 75 characters a line (review finding DA-8). The
+    30 rem panel keeps each breakdown row's first outcome line on one line.
+  - **Scrolling.** The panel never runs past the viewport: the sheet, Your setup and the result
+    scroll inside it as one, with a fade and a chevron at the bottom while there's more, and a
+    fade under Your setup once the result has scrolled under it. While it overflows it takes
+    keyboard focus, so arrow keys scroll it. **The sheet and Your setup stay put** while the result
+    scrolls under them, as long as together they take no more than 60% of the panel's height
+    (`PINNED_SHARE`), so the result keeps at least 40%. Measured after a run: at 1920×1080 every
+    DPS spec's stay put (42–52%) and no tank's (70–85%, with the boss's table); at 1440×900 the
+    shortest sheets do (a Fury warrior's, 57%) and the longer ones don't (a Fire mage's, 69%). A
+    sheet that doesn't fit scrolls away with the result instead, and Your setup, with Simulate,
+    stays at the top alone. Pinning more at 1440×900 would leave a DPS result about 230 px to
+    scroll in, too little to read the breakdown by. When a run starts or finishes and its headline
+    is below the panel's edge, the panel scrolls down (smoothly, unless reduced motion is asked
+    for) just far enough for the result to start under what stays put; it never scrolls on its own
+    otherwise. Keyboard focus scrolls clear of what stays put.
 - **A result with no damage** says why and what to do next: with no main-hand weapon, "Add a
   weapon in Gear", with a button that opens the tab (and closes the sheet on a phone). The
   button is left out beside the desktop panel when that tab is already open.
@@ -988,8 +1007,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the end" (never below 0). A line under it says what "Regenerated" counts: "Spirit and mana per
   5 s." It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
   against; the potion's and rune's casts per fight are under Cooldowns and buffs.
-- **Cooldowns and buffs:** a collapsed section, like the character sheet (open by default from
-  1440 px, above). It's a table with
+- **Cooldowns and buffs:** a collapsed section, like the character sheet under 1440 px (open by
+  default in the wide panel, above). It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
   then one per other buff on you (Holy Strength, Flurry, Enrage, the Overpower window) and per
@@ -1013,7 +1032,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   judged at the pull) shows a dash for its uptime, with "Before the pull, for its judgement" under
   its name.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
-  sim computed them.
+  sim computed them. Under 1440 px it's a collapsed section of the result; from 1440 px it heads
+  the wide panel, always shown and live from the setup (above).
   - A paladin's add its spell stats, in two columns of counterparts, row by row: Attack power |
     Spell damage (its Holy spell damage, since every paladin spell is Holy, Champion of the
     Light's share of Intellect included), Crit | Spell crit, Hit | Spell hit, Weapon skill |

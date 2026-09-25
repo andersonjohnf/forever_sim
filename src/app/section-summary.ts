@@ -1,7 +1,7 @@
-// The section tabs' summary lines at wide widths (decision D34; docs/ux.md "Section tabs"): under
-// each tab's name, what its section holds, in a player's words, so the whole setup reads at a
-// glance. Each line reuses the rule its own tab uses to say the same thing, so a summary never
-// disagrees with the tab it sits under. Short enough for a sixth of the setup pane at 12 px:
+// Your setup's lines in the wide panel (decision D34; docs/ux.md "Your setup's lines",
+// src/app/setup-summary.tsx): under each section's name, what it holds, in a player's words, so the
+// whole setup reads at a glance. Each line reuses the rule its own tab uses to say the same thing,
+// so a summary never disagrees with its section. Short enough for a line of Your setup at 1440 px:
 // SUMMARY_MAX_CHARS.
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
@@ -15,8 +15,8 @@ import type { Section } from './setup-store'
 const raceData = raceJson as unknown as RaceData
 
 /**
- * The longest a summary gets: about what fits under a tab at 12 px in a sixth of the setup pane at
- * 1440 px (912 px, D34's proposal), with room for the tab's padding.
+ * The longest a summary gets: about what fits on one line at 14 px in a column of Your setup at
+ * 1440 px (half the 30 rem panel, less the line's padding).
  */
 export const SUMMARY_MAX_CHARS = 24
 
@@ -31,7 +31,7 @@ const CUSTOM = 'Custom'
 
 /**
  * Character: the race, and the rules if they aren't Forever's ("Orc · Classic Era"). A Skyborne
- * race's full name with the rules would run past the tab ("Skyborne (High Order) · Classic Era"),
+ * race's full name with the rules would run past its line ("Skyborne (High Order) · Classic Era"),
  * so that one drops its faction variant ("Skyborne · Classic Era"); the Character tab shows which.
  */
 function characterSummary(config: Pick<SimConfig, 'race' | 'rules'>): string {
@@ -90,7 +90,7 @@ function fightSummary(config: Pick<SimConfig, 'fight'>): string {
   return bossLevel === RAID_BOSS_LEVEL ? length : `${length} · level ${bossLevel}`
 }
 
-/** Each section tab's summary line for a setup (decision D34). */
+/** Each section's line in Your setup, for a setup (decision D34). */
 export function sectionSummaries(config: SimConfig): Record<Section, string> {
   return {
     character: characterSummary(config),

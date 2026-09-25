@@ -285,6 +285,11 @@ export interface AuraSpec {
    * after their damage-taken procs; the aura drops when they run out.
    */
   takenCharges?: number
+  /**
+   * Charges consumed by your pet's landed attacks, its swings and abilities alike, after their procs
+   * (Demonic Brand: 6 at 3/3, docs/classes/warlock.md §11.3); the aura drops when they run out.
+   */
+  petLandedCharges?: number
   /** Auras in the same group exclude each other: one seal, one judgement debuff (paladin.md#seals). */
   group?: string
   /**
@@ -474,6 +479,14 @@ export type ProcAction =
    * docs/mechanics/character-stats.md#touch-of-the-grave).
    */
   | { kind: 'healthDrain'; pctOfMaxHealth: number; school: 'shadow' }
+  /**
+   * Damage your pet deals as its attack lands (Demonic Brand's, docs/classes/warlock.md §11.3): min–max
+   * plus `spCoefficient` × your spell damage of `school`, × the pet's damage multiplier and the boss's
+   * damage taken and average resist of that school; it never misses, and crits at the pet's spell crit
+   * (×1.5). On the pet's random stream, on its own row named for the pet, and none of your threat.
+   * Only on `petLanded`.
+   */
+  | { kind: 'petSpellDamage'; school: 'fire' | 'shadow'; min: number; max: number; spCoefficient: number }
 
 export interface ProcSpec {
   id: string

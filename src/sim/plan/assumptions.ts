@@ -905,6 +905,11 @@ const REGISTRY = {
     text: 'Decimation: below 35% health your Soul Fire casts 40% faster, costs no Soul Shard and cools down in 6 s from the moment the boss reaches 35% (in game a Shadow Bolt cast there starts it), and Shadow Bolt deals 6% more. Untested.',
     docRef: `${LOCK}#113-talents-in-the-sim`,
   },
+  demonicBrand: {
+    // docs/classes/warlock.md §11.3, Q21, Q23; the plan names the charges and the school ({detail}).
+    text: 'Demonic Brand: your Searing Pain brands the boss for 10 s, and your demon’s next {detail}, with its Unholy Power, Soul Link and Master Demonologist, at its spell crit and never missing, as the client’s formula reads. Untested.',
+    docRef: `${LOCK}#113-talents-in-the-sim`,
+  },
   warlockTalentStacking: {
     text: 'Talents that raise the same spell’s damage multiply with each other (Agonizing Flames and Aftermath on Immolate, Malediction and Shadow Mastery on the DoTs), as the modern client does; the additive reading would be under 1% lower. Untested.',
     docRef: `${LOCK}#4-talents`,

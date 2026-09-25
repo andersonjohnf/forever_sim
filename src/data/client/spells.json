@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 600,
+      "docs": 605,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2849,
-    "spells": 3124
+    "seeds": 2853,
+    "spells": 3128
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -81169,7 +81169,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "17924": {
       "castTime": {
@@ -132981,6 +132981,149 @@
       },
       "name": "Demonic Brand",
       "sources": ["docs", "talent"]
+    },
+    "1293696": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [139944, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [0, 0, 0, 1073741824],
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 1,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1293696,
+      "levels": {
+        "baseLevel": 26,
+        "maxLevel": 60,
+        "spellLevel": 26
+      },
+      "misc": {
+        "attributes": [262144, 1024, 0, 262144, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "schoolMask": 36,
+        "spellIconFileDataId": 4226151
+      },
+      "name": "Demonic Brand",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "1293697": {
+      "categories": {
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1293697,
+      "levels": {
+        "baseLevel": 26,
+        "maxLevel": 60,
+        "spellLevel": 26
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 135827
+      },
+      "name": "Demonic Brand",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "1293698": {
+      "categories": {
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1293698,
+      "levels": {
+        "baseLevel": 26,
+        "maxLevel": 60,
+        "spellLevel": 26
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135827
+      },
+      "name": "Demonic Brand",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "1293699": {
+      "categories": {
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1293699,
+      "levels": {
+        "baseLevel": 26,
+        "maxLevel": 60,
+        "spellLevel": 26
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135827
+      },
+      "name": "Demonic Brand",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "1293740": {
       "auraOptions": {

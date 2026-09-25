@@ -22,6 +22,7 @@ import {
   lifeTap,
   PREPULL_SACRIFICE_MS,
   type Sacrifice,
+  SEARING_PAIN,
   SHADOW_BOLT,
   SHADOW_TRANCE,
   shadowAndFlameProcs,
@@ -35,6 +36,8 @@ import {
   DECIMATION_BELOW_PCT,
   type Demon,
   DEMO_CURVE,
+  demonicBrandAura,
+  demonicBrandProc,
   demonicKnowledgeAura,
   demonPet,
   masterDemonologist,
@@ -76,6 +79,7 @@ export const warlockIds = (spec: WarlockSpec) => {
     // Demonology's (warlock.md §11.5).
     demon: `${S}.demon.summoned`,
     soulFire: `${S}.soulFire.enabled`,
+    searingPain: `${S}.searingPain.enabled`,
   }
 }
 
@@ -371,6 +375,15 @@ export function demonologyOptions(d: WarlockDefaults): RotationOption[] {
       default: d.soulFire ?? true,
       requires: { talent: 'Decimation' },
     },
+    {
+      kind: 'toggle',
+      id: ID.searingPain,
+      group: 'Core abilities',
+      label: 'Searing Pain for Demonic Brand',
+      help: 'Cast Searing Pain whenever your brand is off the boss: Demonic Brand makes your demon’s next 6 attacks deal 65–68 Fire (the Imp) or Shadow more, plus a little of your spell damage. Needs Demonic Brand and a demon out.',
+      default: true,
+      requires: { talent: 'Demonic Brand' },
+    },
     filler('demonology', d),
     ...tail,
   ]
@@ -407,6 +420,15 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
     },
     siphonLife: { id: 'siphonLife', label: 'Siphon Life', icon: SIPHON_LIFE.icon, enabledId: ID.siphonLife, optionIds: [], summary: recast },
     soulFire: { id: 'soulFire', label: 'Soul Fire', icon: SOUL_FIRE.icon, enabledId: ID.soulFire, optionIds: [], summary: [{ text: 'below 35% health, on cooldown' }] },
+    searingPain: {
+      id: 'searingPain',
+      label: 'Searing Pain',
+      icon: SEARING_PAIN.icon,
+      enabledId: ID.searingPain,
+      optionIds: [],
+      summary: [{ text: 'when your Demonic Brand is off the boss' }],
+      help: 'Searing Pain for Demonic Brand: it brands the boss, and your demon’s next 6 attacks deal extra damage. Needs the Demonic Brand talent and a demon out.',
+    },
     shadowTrance: {
       id: 'shadowTrance',
       label: 'Shadow Bolt on Shadow Trance',
@@ -428,7 +450,7 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
   const ids: Record<WarlockSpec, string[]> = {
     destruction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'conflagrate', 'shadowburn', 'corruption', 'bane', 'lifeTap', 'filler'],
     affliction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'corruption', 'bane', 'siphonLife', 'shadowTrance', 'lifeTap', 'filler'],
-    demonology: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
+    demonology: ['racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
   }
   return {
     rows: ids[spec].map((id) => row[id]),
@@ -579,6 +601,12 @@ export function warlockRotation(
     soulFire: () => {
       if (v.on(ID.soulFire) && rank(talents, 'Decimation') > 0) add(SOUL_FIRE, [{ code: COND.healthAtMost, a: DECIMATION_BELOW_PCT, b: 0 }])
     },
+    // Demonology's Searing Pain for Demonic Brand (§11.3): recast as its brand runs out (its charges, or its
+    // 10 s), with the talent and a demon out to use it.
+    searingPain: () => {
+      const brand = demonicBrandAura(talents)
+      if (spec === 'demonology' && pet && brand && v.on(ID.searingPain)) upkeep({ ...SEARING_PAIN, aura: brand })
+    },
     // An instant Shadow Bolt on Nightfall's Shadow Trance (its talent's proc, talents.ts, puts the aura in the plan).
     shadowTrance: () => {
       if (trance >= 0) rotation.push({ ability: shadowBolt(), conditions: [{ code: COND.auraUp, a: trance, b: 0 }], unqueueBelowTenths: 0 })
@@ -600,6 +628,9 @@ export function warlockRotation(
   const used = (id: string) => abilities.some((a) => a.id === id)
   const isb = rank(talents, 'Improved Shadow Bolt')
   if (isb > 0 && used('shadowBolt')) procs.push(improvedShadowBoltProc(isb))
+  // Demonic Brand's damage on your demon's attacks while Searing Pain's brand is up (§11.3).
+  const brandProc = used('searingPain') ? demonicBrandProc(demon, talents) : null
+  if (brandProc) procs.push(brandProc)
   const snf = rank(talents, 'Shadow and Flame')
   if (snf > 0) {
     const [shadow, fire] = shadowAndFlameProcs(snf)
@@ -623,6 +654,8 @@ export function warlockUnusedSettings(spec: WarlockSpec, values: Record<string, 
       else if (demon === values[ID.sacrifice]) out[ID.sacrifice] = 'Not used: summoning the demon you sacrificed cancels its buff.'
     }
   }
+  // Demonology's Searing Pain for Demonic Brand needs a demon out to use its brand (§11.3); the talent's lock is its `requires`.
+  if (spec === 'demonology' && rank(talents, 'Demonic Brand') > 0 && values[ID.demon] === 'none') out[ID.searingPain] = 'Not used: Demonic Brand needs your demon out.'
   // Every spec's filler choice (warlock.md §6.4): without the talent there's nothing to choose.
   if (rank(talents, 'Incinerate') === 0) out[ID.filler] = 'Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
   return out

@@ -47,7 +47,7 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     }
     expect(new Set(DEFAULT).size).toBe(DEFAULT.length)
     // warlock.md §11.5's order; nothing is pinned (the pre-pull is the sacrifice and the demon, spec-wide).
-    expect(DEFAULT).toEqual(['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
+    expect(DEFAULT).toEqual(['racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
     expect(DEMONOLOGY_APL.rows.filter((r) => r.pinned)).toEqual([])
     expect(DEMONOLOGY_APL.specWide).toEqual([ID.sacrifice, ID.demon, ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing])
     expect(DEMONOLOGY_APL.presets).toEqual([])
@@ -135,7 +135,13 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     expect(normalizeAplOrder(DEMONOLOGY_APL, DEFAULT.filter((id) => id !== 'soulFire'))).toEqual(DEFAULT)
     // With the Bane moved first, a missing Soul Fire follows it and the rows after it that come before it by default.
     const baneFirst = ['bane', ...DEFAULT.filter((id) => id !== 'bane' && id !== 'soulFire')]
-    expect(normalizeAplOrder(DEMONOLOGY_APL, baneFirst)).toEqual(['bane', 'racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'soulFire', 'lifeTap', 'filler'])
+    expect(normalizeAplOrder(DEMONOLOGY_APL, baneFirst)).toEqual(['bane', 'racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'soulFire', 'lifeTap', 'filler'])
+    // An order saved before Searing Pain's row (issue #17) gets it after Power Infusion, its default neighbour.
+    const before = ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler']
+    expect(normalizeAplOrder(DEMONOLOGY_APL, before)).toEqual(DEFAULT)
+    expect(normalizeAplOrder(DEMONOLOGY_APL, ['filler', ...before.filter((id) => id !== 'filler')])).toEqual(['filler', ...DEFAULT.filter((id) => id !== 'filler')])
+    // One that moved the curse first keeps it there; Searing Pain still follows Power Infusion.
+    expect(normalizeAplOrder(DEMONOLOGY_APL, ['curse', ...before.filter((id) => id !== 'curse')])).toEqual(['curse', 'racial', 'trinkets', 'powerInfusion', 'searingPain', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
   })
 
   it('builds the same plan with the default order stored as with none, and another reordered', () => {

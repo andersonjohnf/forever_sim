@@ -133,6 +133,11 @@ export const ACTION = {
    * health; never misses or crits (Touch of the Grave, docs/mechanics/character-stats.md#touch-of-the-grave).
    */
   healthDrain: 23,
+  /**
+   * Damage your pet deals as its attack lands: `a`–`b` + `spCoefficient` × your spell damage of
+   * `school`, with the pet's multipliers and crit (Demonic Brand, docs/classes/warlock.md §11.3).
+   */
+  petSpellDamage: 24,
 } as const
 
 /**
@@ -405,6 +410,8 @@ export interface AuraPlan {
   blockCharges?: number
   /** Hits taken that cost health and end it (Seal of Fury's absorb, 1; paladin.md#protection-tree); absent or 0 = none. */
   takenCharges?: number
+  /** Your pet's landed attacks that end it, after their procs (Demonic Brand, docs/classes/warlock.md §11.3); absent or 0 = none. */
+  petLandedCharges?: number
   /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */
   holy?: number
   /** Flat Holy damage the target takes (Judgement of the Crusader, paladin.md). */
@@ -509,6 +516,8 @@ export interface ProcPlan {
   b: number
   /** spellDamage: school code (`SCHOOL`: 0 fire, 1 frost, 2 shadow, 3 nature, 4 arcane, 5 holy). */
   school: number
+  /** petSpellDamage: the share of your spell damage of its school it adds (Demonic Brand's 0.078). Absent on every other proc. */
+  spCoefficient?: number
   /** Breakdown row for what it does, or −1. */
   source: number
   /** Chain bit for extra-attack procs (damage-and-timing §5.4), 0 otherwise. */

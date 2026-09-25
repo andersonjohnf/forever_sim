@@ -805,6 +805,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.damageTaken ? { damageTaken: spec.mods.damageTaken } : {}),
       ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
       ...(spec.takenCharges ? { takenCharges: spec.takenCharges } : {}),
+      // docs/classes/warlock.md §11.3: Demonic Brand's charges, which the pet's landed attacks use.
+      ...(spec.petLandedCharges ? { petLandedCharges: spec.petLandedCharges } : {}),
       // paladin.md: Vengeance's Holy damage, JotC's Holy damage taken, one seal at a time.
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
@@ -1009,6 +1011,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.school = SCHOOL[action.school]
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         sources[proc.source].certain = true
+        break
+      case 'petSpellDamage':
+        // docs/classes/warlock.md §11.3: Demonic Brand's damage, the pet's (its row takes the pet's name below).
+        proc.action = ACTION.petSpellDamage
+        proc.a = action.min
+        proc.b = action.max
+        proc.spCoefficient = action.spCoefficient
+        proc.school = SCHOOL[action.school]
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         break
     }
     if (spec.poison) {
@@ -1313,6 +1324,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (ranged) ranged.source = sourceIndex('autoShot', 'Auto Shot', 'ability_whirlwind')
   // The class's pet, with the buffs that reach it, its rows named for it and its abilities' auras.
   const pet = classRot.pet ? petPlan(classRot.pet, petBuffs, profile, fight.bossLevel, sources, auraIndex) : undefined
+  // Damage the pet deals from a proc (Demonic Brand, docs/classes/warlock.md §11.3) is on a row named for it.
+  if (pet) for (const p of procs) if (p.action === ACTION.petSpellDamage) sources[p.source].pet = pet.name
 
   // --- Fight ------------------------------------------------------------------------------------
   const schools = schoolPlan(c.schools, block.spellPen, fight.bossLevel, profile)

@@ -4,7 +4,7 @@
 import { FIVE_SECOND_RULE_MS, mp5TickTenths, spiritRegenTickTenths } from '../../core/formulas'
 import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
-import { type ManaPlan, type Plan, POWER_TICK_MS } from '../../plan/types'
+import { type ManaPlan, type Plan, POWER_TICK_MS, SCHOOL } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
 import { FIREBOLT } from './demons'
 import { type TalentRanks, warlockTalentEffects } from './talents'
@@ -46,6 +46,9 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   else if (plan.spec !== 'warlock-demonology') ids.push('warlockNoPet')
   if (has('masterDemonologist')) ids.push('masterDemonologist')
   if (has('soulFire')) ids.push('decimation')
+  // Demonic Brand's damage on the demon's attacks (§11.3), with Searing Pain's row casting it.
+  const brand = plan.procs.find((p) => p.id === 'demonicBrand')
+  if (brand) ids.push('demonicBrand')
   if (has('curseOfTheElements')) ids.push('curseOfTheElementsOwn')
   if (has('conflagrate')) ids.push('conflagrate')
   if (has('incinerate')) ids.push('incinerate')
@@ -64,8 +67,20 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
     improvedImpCast: String((firebolt?.castMs ?? 0) / 1000),
     ...(plan.pet ? demonDetails(plan.pet) : {}),
     ...(plan.pet ? { masterDemonologist: masterDemonologistDetail(plan) } : {}),
+    ...(brand && plan.pet ? { demonicBrand: demonicBrandDetail(plan, brand.school) } : {}),
   }
   return ids.map((id) => ({ id, detail: detail[id] }))
+}
+
+/**
+ * Demonic Brand's text (warlock.md §11.3): the brand's charges at the talent's rank, and the school of
+ * the demon out; the Felhunter's is Shadow, which the client doesn't name (Q23).
+ */
+function demonicBrandDetail(plan: Plan, school: number): string {
+  const charges = plan.auras.find((a) => a.id === 'demonicBrand')?.petLandedCharges ?? 0
+  const name = school === SCHOOL.fire ? 'Fire' : 'Shadow'
+  const felhunter = plan.pet?.id === 'felhunter' ? ' (the Felhunter’s school isn’t in the client: Shadow, the talent’s “Fire or Shadow”)' : ''
+  return `${charges} landed attacks, swings and spells alike, each deal 65–68 ${name} damage more, plus 7.8% of your ${name} spell damage${felhunter}`
 }
 
 /**

@@ -7,7 +7,7 @@
 // out as abilities.ts does; warlock.test.ts checks them. A demon's own stats aren't in either client:
 // they're D24 placeholders [?] (warlock.md §11.2, Q14).
 import { CRIT_MULTIPLIER } from '../../core/formulas'
-import type { AuraSpec } from '../../effects/types'
+import type { AuraSpec, ProcSpec } from '../../effects/types'
 import type { PetAbilityDef, PetDef } from '../../plan/pet'
 import { type AbilityDef, MAGIC_SCHOOLS, schoolMask, type SpellDef } from '../../plan/types'
 import { atLevel60, spread } from '../paladin/spells'
@@ -40,6 +40,8 @@ export const DEMO_CURVE = {
   demonicKnowledge: [33, 67, 100],
   /** Master Demonologist #0 (Imp: Fire damage %) and #2 (Succubus: Shadow damage %). */
   masterDemonologist: [2, 4, 6, 8, 10],
+  /** Demonic Brand #1 (aura 107, misc 4: charges on its brand 1293696): your demon's attacks the brand lasts. */
+  demonicBrandCharges: [2, 4, 6],
 } as const
 
 const at = (curve: readonly number[], r: number) => (r > 0 ? curve[Math.min(r, curve.length) - 1] : 0)
@@ -277,6 +279,53 @@ export const SOUL_FIRE: AbilityDef = {
 
 /** Decimation's threshold: the target below 35% health (440870 #2) [F] [client]. */
 export const DECIMATION_BELOW_PCT = 35
+
+// --- Demonic Brand (warlock.md §11.3) -----------------------------------------------------------------
+
+/**
+ * Demonic Brand's brand on the boss (1293696): 10 s (SpellDuration 1), or until your demon's next 2/4/6
+ * landed attacks, swings and spells alike, have used it (its proc mask is every attack the target takes)
+ * [F] [client] (SpellMisc, SpellDuration, SpellAuraOptions, the talent's #1 curve, 1.60.1.70009). Null
+ * without the talent.
+ */
+export function demonicBrandAura(talents: TalentRanks): AuraSpec | null {
+  const charges = talentValue(talents, 'Demonic Brand', DEMO_CURVE.demonicBrandCharges)
+  if (charges === 0) return null
+  return { id: 'demonicBrand', name: 'Demonic Brand', durationMs: 10000, petLandedCharges: charges, mods: {} }
+}
+
+/**
+ * What each of those attacks deals (1293698 Fire, the Imp's; 1293697 Shadow, the Succubus's): the client's
+ * formula, `(level − 26) × 1.5 + 14 … 17 + 0.078 × your spell damage of its school`, so 65–68 at 60, ×
+ * Master Demonologist's school % and Unholy Power (its description variables 1016–1018) [F] [client]
+ * (SpellXDescriptionVariables, SpellMisc, 1.60.1.70009). The school follows the demon: the Felhunter's
+ * isn't named, and the talent's "Fire or Shadow" makes it Shadow [?] (warlock.md Q23).
+ */
+export const DEMONIC_BRAND_HIT = { min: (60 - 26) * 1.5 + 14, max: (60 - 26) * 1.5 + 17, spCoefficient: 0.078 } as const
+
+/**
+ * The brand's damage as a proc of your demon's landed attacks while the brand is up (warlock.md §11.3):
+ * the pet core's damage (`petSpellDamage`: the demon's all-damage multiplier, Unholy Power and Soul Link,
+ * its spell crit, no miss roll: the spell's Always Hit, SpellMisc Attributes[3] 0x40000 [F]), with Master
+ * Demonologist's school % folded into its numbers, as a pet spell's is. Null without a demon or the talent.
+ */
+export function demonicBrandProc(demon: Demon, talents: TalentRanks): ProcSpec | null {
+  if (demon === 'none' || rank(talents, 'Demonic Brand') === 0) return null
+  const school = demon === 'imp' ? 'fire' : 'shadow'
+  const md = demon === 'felhunter' ? 0 : talentValue(talents, 'Master Demonologist', DEMO_CURVE.masterDemonologist)
+  const mult = 1 + md / 100
+  return {
+    id: 'demonicBrand',
+    name: 'Demonic Brand',
+    icon: 'ability_demonhunter_chaoticimprint_fire',
+    trigger: 'petLanded',
+    from: 'any',
+    chance: { pct: 100 },
+    requiresAura: 'demonicBrand',
+    action: { kind: 'petSpellDamage', school, min: DEMONIC_BRAND_HIT.min * mult, max: DEMONIC_BRAND_HIT.max * mult, spCoefficient: DEMONIC_BRAND_HIT.spCoefficient * mult },
+    docRef: `${DOC}#113-talents-in-the-sim`,
+  }
+}
 
 /** Doc anchors, for the procs and rows that cite them. */
 export const DEMONOLOGY_DOC = DEMO

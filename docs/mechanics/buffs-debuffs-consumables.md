@@ -187,15 +187,16 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Blessing / Greater Blessing of Sanctuary | 20914 / 25899 | **Not in Forever** (C: −24 damage taken per hit, 35 Holy on block) | — | — | Removed spell and talent | [F] | [fc-sb-paladin] (missing list) · [fc-changes] |
 | Tranquil Air Totem | 25908 | **Not in Forever** (C: −20% threat, party) | — | — | Removed | [F] | [fc-sb-shaman] (missing list) |
 | Devotion Aura (r7) | 10293 | +735 armor, party within 30 yd | Aura | One Aura per paladin on a player. **Improved Devotion Aura removed** (C: +25%) | Paladin | [F] | [fc-sb-paladin] · [fc-changes] |
-| Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
+| Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20), + 0.08 × its caster's spell damage since 1.60.1.70009 [?] (below) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
 | Stoneskin Totem (r6) | 10408 | −30 **Physical** damage taken per hit (C: melee damage) | **5 min**, 30 yd (C: 2 min, 20 yd) | Earth totem, so it excludes Strength of Earth from the same shaman | Shaman | [F] | [fc-sb-shaman] |
-| Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18) | 10 min | — | Druid. On the tank: a damage shield on the boss's swings (below) | [F] | [fc-sb-druid] · [client] (SpellEffect, 1.60.1.69913) |
+| Thorns (r6) | 9910 | **22** Nature damage to each melee attacker (C: 18), + 0.08 × its caster's spell damage since 1.60.1.70009 [?] (below) | 10 min | — | Druid. On the tank: a damage shield on the boss's swings (below) | [F] | [fc-sb-druid] · [client] (SpellEffect, 1.60.1.70009) |
 | Blessing of Wisdom (r6) / Greater (r2) | 25290 / 25918 | **40** mana per 5 s (C: 33) | **1 h** (C: 5 / 15 min) | One Blessing per paladin | Paladin. Only paladins use it | [F] | [fc-sb-paladin] |
 | Mana Spring Totem (r4) | 10497 | 10 mana per 2 s to the party | **5 min**, 30 yd (C: 1 min, 20 yd) | Water totem | Shaman. Only paladins, shamans and mages use it | [F] | [fc-sb-shaman] |
 
-**Thorns on the tank** (`thorns`; M5.6 T3, BR5). A damage shield (aura 15) of 22 Nature damage
-to the boss on each of its swings that lands on the tank, a hit, crit, crushing blow or block, as
+**Thorns on the tank** (`thorns`; M5.6 T3, BR5). A damage shield (aura 15) of 22 Nature damage,
+plus its caster's spell damage × 0.08 (below), to the boss on each of its swings that lands on the
+tank, a hit, crit, crushing blow or block, as
 Retribution Aura's is ([paladin](../classes/paladin.md#other-abilities)): it always lands and never
 crits [?], and as a pure Nature damage spell the boss's resistance takes its average share (6% at
 24 resistance, [spells §3](spells.md)). Its threat is its damage × the tank's threat multipliers
@@ -206,8 +207,28 @@ on itself before the pull (it lasts 10 min), so it's in every bear preset and Se
 raid presets have it, as they have Devotion Aura, when a druid is in the raid (T2's fix round, T3R-2;
 [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
 a known effect isn't left at zero). Only a tank takes the boss's swings, so for any other spec it does
-nothing, and the Buffs tab says so. About 10 TPS for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 9.1
-for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000 fights).
+nothing, and the Buffs tab says so. At the flat 22 it was about 10 TPS for a bear (+1.0%), 9.5 for a
+warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000
+fights); with the scaling below, 21.8 TPS for the paladin (+3.0%, its 1.60.1.70009 defaults, the
+same seed).
+
+**Damage shields that scale with spell power** (1.60.1.70009). The build's dev notes say Thorns and
+Retribution Aura "will now dynamically update [their] values based on the caster's spell power" (Thorns
+"reverts to its base values" when the caster can't be found or is too far away) [F]. The client
+carries no coefficient for either (9910 and 10301: `EffectBonusCoefficient` 0 on the damage-shield
+aura [F] [client] (SpellEffect, 1.60.1.70009)), so the server holds it, and the sim needs a default
+(D29):
+- **The coefficient, 0.08** [?]: Holy Shield's damage on each block (20928 effect 1, aura 43, 221 +
+  0.08 × spell damage), the Forever client's closest analog: a damage shield that deals its damage on
+  every attack it meets, with no internal cooldown. Lightning Shield's 0.267 a ball (26363) is the
+  other allowed reading, but its balls fire at most every few seconds and are used up. At 0.267,
+  Thorns on a Protection paladin would make about 52 TPS rather than 22 (paladin.md open question 29).
+- **The caster's spell damage.** Retribution Aura is your own, so it's your spell damage (a
+  Protection paladin's 379 in its default setup: 30 + 30.3 a swing). Thorns on a tank comes from a raid
+  druid in the raid presets, so the sim takes **389**, the sim's default Balance druid's Nature spell
+  damage [?]: 22 + 0.08 × 389 = 53.12, dealt as a whole **53** a swing [?], for every tank alike. A bear that casts its own,
+  with no spell damage, would deal the base 22; the sim gives every tank the raid druid's
+  (`THORNS_CASTER_SPELL_DAMAGE`, `DAMAGE_SHIELD_SP_COEFFICIENT` in `src/sim/effects/buffs.ts`).
 
 ### 1.3 Camp buffs (new Forever system)
 

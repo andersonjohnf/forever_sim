@@ -692,7 +692,8 @@ describe('assumptions', () => {
       for (const id of modified) expect(plan.abilities.find((a) => a.id === id)?.eureka ?? 0, `${spec} ${id}`).toBeGreaterThan(0)
       // Pyroblast and Incinerate are outside the masks; the racial itself too.
       for (const a of plan.abilities) if (['pyroblast', 'incinerate', 'eureka'].includes(a.id)) expect(a.eureka ?? 0, `${spec} ${a.id}`).toBe(0)
-      expect(assumptions.find((a) => a.id === 'eureka')?.text, spec).toContain(`${cut}% ${resource}`)
+      // Plain words (FU-8): the cut names the class's resource.
+      expect(assumptions.find((a) => a.id === 'eureka')?.text, spec).toContain(`cuts the next 3 covered abilities’ ${resource} cost ${cut}%, rounded down to a whole point`)
     }
     // Another race has none.
     for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) {

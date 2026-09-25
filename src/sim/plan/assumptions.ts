@@ -174,8 +174,9 @@ const REGISTRY = {
     docRef: `${ROGUE}#21-energy`,
   },
   eureka: {
-    // src/sim/classes/eureka.ts; the plan names the class's cut and its resource ({detail}).
-    text: 'Eureka! spends a charge on each of the next 3 abilities it modifies (the client’s spell masks) as you pay for it, landed or not, and cuts its cost by {detail}, rounded down to whole points; those its damage masks cover deal 10% more, their DoTs too. Untested.',
+    // src/sim/classes/eureka.ts; the plan names the class's resource and cut ({detail}: "mana cost 10%").
+    // "Covered" is the client's spell masks; Arcane Missiles is covered for its cost only, hence "most".
+    text: 'For 15 s, Eureka! cuts the next 3 covered abilities’ {detail}, rounded down to a whole point, and most of them deal 10% more damage, damage over time included. Each one uses up a charge when you pay for it, whether it lands or not. Untested.',
     docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {

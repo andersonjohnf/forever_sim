@@ -1567,7 +1567,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
   if (config.race === 'alliance-gnome' && classId === 'rogue' && (setup.talents.get('Vigor') ?? 0) > 0) notes.add('gnomeEnergy')
   // src/sim/classes/eureka.ts: Eureka!'s charges and cut, the class's own [?].
-  if (plan.eureka) notes.add('eureka', `${plan.eureka.costPct}% ${EUREKA_RESOURCE[classId as EurekaClass]}`)
+  if (plan.eureka) notes.add('eureka', `${EUREKA_RESOURCE[classId as EurekaClass]} cost ${plan.eureka.costPct}%`)
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
   // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
   if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')

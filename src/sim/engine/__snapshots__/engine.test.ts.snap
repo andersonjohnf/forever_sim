@@ -311,9 +311,9 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "deepWounds",
-      3536594.494124855,
+      22442526.14534188,
       61315,
-      37860,
+      57025,
       0,
       0,
       0,
@@ -411,15 +411,15 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
   ],
   "dps": {
-    "ci95": 2.9805270944051276,
-    "mean": 707.3436934578929,
-    "stdev": 48.088915513290594,
+    "ci95": 3.8858237772252124,
+    "mean": 812.5481101223396,
+    "stdev": 62.69530368413399,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 1.6998900768187029,
-    "mean": 400.5134494073064,
-    "stdev": 27.42664894389461,
+    "ci95": 2.202533591092881,
+    "mean": 459.4279227393964,
+    "stdev": 35.536483454913785,
   },
 }
 `;
@@ -734,9 +734,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "deepWounds",
-      1016088.0312856506,
+      20772120.36910164,
       115110,
-      17008,
+      58761,
       0,
       0,
       0,
@@ -814,15 +814,15 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
   ],
   "dps": {
-    "ci95": 2.5634664247355192,
-    "mean": 714.74104856159,
-    "stdev": 41.359905954777894,
+    "ci95": 3.1667232254961024,
+    "mean": 824.742298899112,
+    "stdev": 51.093072071284425,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 1.5834743371161737,
-    "mean": 423.68430705076804,
-    "stdev": 25.548354771873502,
+    "ci95": 1.9112734330246708,
+    "mean": 485.2850072397803,
+    "stdev": 30.83718541463702,
   },
 }
 `;

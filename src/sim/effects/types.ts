@@ -447,7 +447,12 @@ export type ProcAction =
   | { kind: 'spellDamage'; school: 'fire' | 'frost' | 'shadow' | 'nature' | 'arcane' | 'holy'; min: number; max: number; apCoefficient?: number }
   /** Rage from a spell effect (an energize: it makes threat, threat.md). */
   | { kind: 'rage'; amount: number }
-  /** A bleed of `share` × the main hand's average swing, recomputed each tick (Deep Wounds, warrior.md §2.5). */
+  /**
+   * Deep Wounds' bleed on a melee crit, `ticks` ticks every `periodMs` (warrior.md §2.5, W12): in a
+   * profile where it rolls (`combat.deepWoundsRolls`), each crit adds `share` × the critting weapon's
+   * average hit, snapshotted, to a pool the ticks pay out; otherwise each crit restarts it at `share`
+   * × the main hand's average swing, recomputed each tick.
+   */
   | { kind: 'weaponBleed'; share: number; ticks: number; periodMs: number }
   /** Casts a damaging spell on its own table (the paladin's seal procs, paladin.md#seals). */
   | { kind: 'spell'; spell: SpellDef }

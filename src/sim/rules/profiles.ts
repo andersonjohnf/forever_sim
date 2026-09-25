@@ -71,6 +71,13 @@ export interface RulesProfile {
      * (`forever`: the "Spell Vulnerability" tooltip) or not (`classicEra`): docs/mechanics/spells.md §3.
      */
     negativeResistance: boolean
+    /**
+     * Deep Wounds' bleed (the `weaponBleed` proc) rolls: each crit adds its amount, snapshotted, to a
+     * pool the next 4 ticks pay out, and the pending tick keeps its time (`forever`: the client's
+     * bleed is 412609, Season of Discovery's, [D36] [?]). Otherwise each crit restarts it, recomputed
+     * each tick from the main hand (`classicEra`: 12721 [C]). docs/classes/warrior.md#25-crits-impale-flurry-deep-wounds
+     */
+    deepWoundsRolls: boolean
   }
   armor: {
     /** Armor below 0 increases damage (`forever`) or is floored at 0 (docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration). */
@@ -186,6 +193,8 @@ export const FOREVER: RulesProfile = {
     periodicCrits: true,
     // docs/mechanics/spells.md#3-resistances: the SPELL_PENETRATION_TOOLTIP [F]; in combat [?]
     negativeResistance: true,
+    // docs/classes/warrior.md#25-crits-impale-flurry-deep-wounds: 412609 rolls, as in SoD (D36) [?]
+    deepWoundsRolls: true,
   },
   // docs/mechanics/damage-and-timing.md#1-armor
   armor: { allowNegative: true, cap: 0.75 },
@@ -257,6 +266,8 @@ export const CLASSIC_ERA: RulesProfile = {
     expertise: false,
     periodicCrits: false,
     negativeResistance: false,
+    // docs/classes/warrior.md#25-crits-impale-flurry-deep-wounds: 12721 restarts [C]
+    deepWoundsRolls: false,
   },
   armor: { allowNegative: false, cap: 0.75 },
   // Forever items still carry the old stats as ratings; they convert at the displayed ratios.

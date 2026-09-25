@@ -314,7 +314,7 @@ also deals **0.45% of attack power over its 12 s**, so **0.1125% of AP a tick** 
 to each stack's tick, `(23 + 0.001125 × AP) × stacks`, **reading attack power at each tick** [?]
 (Q16): the test doesn't say whether a stack keeps the attack power it was applied with, and Classic
 Era's poisons have no share to copy a rule from, so the sim takes the simpler reading, as the
-warrior's Deep Wounds reads it at each tick ([warrior §2.5](warrior.md#25-crits-impale-flurry-deep-wounds)).
+warrior's Rend reads its attack-power term at each tick ([warrior §3.1](warrior.md#31-damage-abilities)).
 Rupture fixes its share at the cast, but it's one finisher's bleed; fixing each of up to 5 stacks,
 applied at different moments, would need a value per stack. Vile Poisons and Venom
 multiply the share as they do the 23 [?]. Classic Era's poison has no share [C]
@@ -751,12 +751,12 @@ R11–R13 are in `subtlety.test.ts`.
 - **Q6 Cold Blood.** Used up only when the strike lands?
 - **Q7 Mutilate.** One roll for both strikes or one each; Seal Fate from either hand's crit.
 - **Q8 Deadly Poison's timer.** A new stack renews the duration without restarting the tick timer
-  (the modern engine's rule), and its ticks crit in Forever (the client flag). This conflicts
-  with the warrior's Deep Wounds, whose refresh restarts its tick timer (Classic Era's rule,
-  [warrior §2.5 and Q21](warrior.md#9-open-questions)); if Forever runs one rule for both, one of
-  the two models is wrong. Deep Wounds' test ([open-questions
-  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)) settles
-  which, and this one with it.
+  (the modern engine's rule), and its ticks crit in Forever (the client flag). The conflict with
+  the warrior's Deep Wounds is settled: since [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)
+  its crits keep the pending tick too ([warrior §2.5 and Q21](warrior.md#9-open-questions)).
+  Deep Wounds' test ([open-questions
+  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)) checks
+  that rule in game, and this one with it.
 - **Q9 Hack and Slash.** Whether a dagger or fist in one hand gives its crit to the other's attacks.
 - **Q10 Base values.** §7.6's placeholders (OQ-1 in character-stats); the rogue's crit per point is
   about 1.7% of Combat DPS, so a 0–1% base crit error is over D24's 1%: measure it first (a naked

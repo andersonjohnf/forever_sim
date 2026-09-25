@@ -122,7 +122,8 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   'Two-Handed Weapon Specialization': (r) => [{ kind: 'damage', pct: r, physicalOnly: true, when: { twoHand: true } }],
   // Arms 3·2: +1 rage every 3 s in combat (§2.3; a regen aura, so no threat)
   'Anger Management': () => [{ kind: 'periodicRage', periodMs: 3000, amount: 1 }],
-  // Arms 3·3: crits apply a bleed of 20%/rank of the main hand's average swing over 12 s (§2.5)
+  // Arms 3·3: each crit's bleed of 20%/rank of a weapon's average hit over 4 ticks, 3 s apart: in
+  // `forever` a rolling pool of the critting weapon's (D36 [?]), in `classicEra` a restart from the main hand's (§2.5, W12)
   'Deep Wounds': (r) => [
     {
       kind: 'proc',

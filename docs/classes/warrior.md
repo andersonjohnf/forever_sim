@@ -333,35 +333,38 @@ are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
   [client] (SpellEffect, CurvePoint, 1.60.1.69913); the leftover base value is Q7.
 
 **Deep Wounds** [F] [tal]; bleed spell and tick timing [F] [client] (SpellName, SpellEffect,
-SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
-[ws-spell]):
+SpellMisc, 1.60.1.69913); the rolling model [?] ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); [doctrine §2 item 4](../doctrine.md)):
 
-- **Trigger.** Every crit (white or yellow, main or off hand) applies or refreshes a bleed on
-  the target.
-- **Damage.** The bleed does `0.20 × rank × MH_avg` over **12 s** in **4 ticks, one every 3
-  s**, where `MH_avg = (MH_min + MH_max) / 2 + flat weapon damage + AP / 14 × MH_speed`. This
-  uses the **main hand's real speed (not normalized)**, and uses the main hand even when the
-  off hand crits [C].
-- **Ticks.** Each tick deals a quarter of the total, **recomputed at tick time** with current
-  AP and modifiers [C] (the pre-SoD commit's `DeepWounds.step` reads current AP and damage
-  modifiers at every tick, [ws-spell]). This is the documented exception to the snapshot
-  default in [damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds).
-- **Refresh.** A refresh restarts the 12 s, with the next tick 3 s after the refresh. Old
-  damage does not roll over. That rolling behaviour is WarriorSim's later SoD `DeepWounds`
-  class, which we don't use [C] [ws-spell]. Whether Forever's bleed restarts its tick timer is
-  [?] (Q21): a Fury warrior crits about every 1.6 s, so the default's 115 procs a fight give
-  about 17 ticks; a refresh that kept the timer would give about 60, worth about 2% of Fury's
-  DPS and 1.5% of Arms'. The results' assumptions say so.
-- **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
-  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick spell's flags may
-  say otherwise (Q36). It cannot crit (its Forever
-  bleed lacks the periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc
-  on-hit effects.
-- **Spell.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
+- **Trigger.** Every crit (white or yellow, main or off hand, extra attacks and Heroic Strike or
+  Cleave swings included) feeds the bleed on the target.
+- **Amount.** Each crit adds `0.20 × rank × avg` to the bleed's pool, where `avg` is the
+  **critting weapon's** average hit: `(min + max) / 2 + flat weapon damage + AP / 14 × its real
+  speed (not normalized)`, the attack power the crit had included (a Windfury attack's). An
+  off-hand crit's amount takes the off-hand modifier, `0.5 × (1 + 0.05 × Dual Wield
+  Specialization rank)` (0.625 at 5/5, as W8). The amount and the physical damage modifiers are
+  **snapshotted at the crit**.
+- **Rolling.** A crit sets the ticks left to **4** and doesn't move the pending tick: a bleed
+  that's running keeps its 3 s rhythm, and one that isn't starts, its first tick 3 s after the
+  crit. Each tick deals `pool ÷ ticks left` and takes it out of the pool, so nothing a crit adds
+  is lost; the pool empties with the 4th tick after the last crit. A tick due at a crit's very
+  millisecond keeps its time too, paying out of the pool as it stands when it runs (W12).
+- **Why rolling.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
   12,000 ms, 4 ticks); the talent 12834 triggers it server-side, with no trigger in the data.
   Classic's bleed 12721 doesn't exist in the Forever client (no `SpellName`, `SpellEffect` or
   `SpellMisc` row, and not encrypted) [F] [client] (SpellName, SpellEffect, SpellMisc,
-  1.60.1.69913).
+  1.60.1.69913). 412609 is the Season of Discovery spell, which the Classic Era 1.15.9 client
+  also carries, so SoD's behaviour for it is the closest analog for how Forever's server runs it
+  (the doctrine's second exception): it rolls, as WarriorSim's SoD `DeepWounds` class does
+  [ws-spell]. It's `[?]` until a guild test (Q21, [open-questions
+  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
+- **Modifiers.** The bleed ignores armor. The physical damage-done modifiers at the crit apply
+  (Death Wish, Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick
+  spell's flags may say otherwise (Q36). It cannot crit (its Forever bleed lacks the
+  periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc on-hit effects.
+- **`classicEra`** keeps Classic Era's 12721 [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
+  [ws-spell]): each crit **restarts** the bleed, its next tick 3 s later, with old damage lost;
+  each tick deals a quarter of `0.20 × rank × MH_avg`, **recomputed at tick time** from the
+  **main hand** (whichever hand crit) with the current AP and modifiers.
 
 ### 2.6 Enrage, Death Wish, Recklessness
 
@@ -2687,10 +2690,23 @@ Classic's break-even was 2000 at cost 10 [marrow].
 
 ### W12: Deep Wounds 3/3
 
-- **Two-hander T:** the total is `0.6 × (131 + 488.57) = 371.74`, so each of the 4 ticks is
-  `92.94`, or **95.72** with Two-Handed Weapon Specialization ×1.03 [C] [ws-spell].
-- **One-hander O in the main hand:** the total is `0.6 × 486.29 = 291.77`, and each tick is
-  `72.94`. The result is the same when the off hand is the one that crits.
+`forever` (rolling [?], [§2.5](#25-crits-impale-flurry-deep-wounds)), no damage modifiers:
+
+- **Two-hander T:** one crit adds `0.6 × (131 + 488.57) = 371.74`, so a lone crit's 4 ticks are
+  `92.94`, or **95.72** with Two-Handed Weapon Specialization ×1.03, snapshotted at the crit.
+- **Two crits 1 s apart, one-hander O in the main hand:** a white crit at 0 s adds
+  `0.6 × 486.29 = 291.77` and starts the bleed, its first tick at 3 s. A Bloodthirst crit at 1 s
+  adds the main hand's 291.77 again (the critting weapon's average hit, whatever the attack): the
+  pool is 583.54, the ticks left go back to 4, and the tick stays at 3 s. The ticks at 3 and 6 s
+  each deal `583.54 ÷ 4 = 145.89`.
+- **An off-hand crit between ticks** (one-hander O in the off hand, Dual Wield Specialization
+  5/5): at 6.5 s the pool holds the 291.77 the two ticks left. The crit adds
+  `291.77 × 0.625 = 182.36`, so 474.13 goes out over 4 ticks, at 9, 12, 15 and 18 s, of `118.53`
+  each.
+
+`classicEra` (restart [C] [ws-spell]): each tick is a quarter of the main hand's, recomputed at
+the tick: `92.94` with two-hander T (95.72 with ×1.03), `72.94` with one-hander O in the main
+hand, whichever hand crit.
 
 ### W13: Rend with Improved Rend 3/3
 
@@ -2942,20 +2958,25 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     taken is now `10 × the hit before mitigation ÷ max health` ([rage.md](../mechanics/rage.md#forever-)),
     and the multiplier stays ×1.0 [?]; a Forever sim's ×2 is its own guess. **Test:** equal hits
     with and without Berserker Rage ([rage.md open question 1](../mechanics/rage.md#open-questions)).
-21. **Deep Wounds implementation.** ✅ The spell and flags are resolved from client data
-    ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever client, and
-    Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit flag), which
-    the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit flag [F]
-    [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). Still to check in game: whether
-    the bleed recomputes on each tick (Classic: yes, [C]), its refresh behaviour, and whether
-    Rend's ticks really crit in combat, as the `forever` profile assumes [?] ([damage-and-timing
-    OQ 2](../mechanics/damage-and-timing.md#open-questions)). The refresh is the one that moves
-    the result most: restarting the tick timer on every crit (§2.5) costs Fury about 2% of its
-    DPS against a refresh that keeps it. The sim's rogue model assumes the other rule for Deadly
-    Poison, whose new stack renews the duration without restarting the tick timer ([rogue
-    Q8](rogue.md#10-open-questions)); the two can't both be the modern engine's one rule, so one
-    of them is wrong for Forever. The guild test is [open-questions
-    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer).
+21. **Deep Wounds implementation.** ✅ **Resolved by
+    [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25).** The spell and flags
+    come from client data ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever
+    client, and Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit
+    flag), which the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit
+    flag [F] [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). 412609 is the Season of
+    Discovery spell, also in the Classic Era 1.15.9 client, so under the doctrine's second
+    exception its SoD behaviour is the closest analog: the bleed **rolls** (each crit adds its
+    snapshotted amount to a pool the next 4 ticks pay out, and the pending tick keeps its time,
+    [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. It's the largest change D36 brought: the
+    earlier restart model, which lost what was left of the bleed at every crit, gave the default
+    Fury warrior about 13% less DPS (714.7 against 824.7 on the engine's golden run) and Arms
+    about 13% less (707.3 against 812.5). That settles the conflict this question
+    raised with the rogue model: Deadly Poison's new stack renews the duration without restarting
+    the tick timer ([rogue Q8](rogue.md#10-open-questions)), and the rolling bleed keeps its timer
+    too, so the two now agree. Still for the guild to check in game: the rolling itself and its
+    snapshot, and whether Rend's ticks really crit in combat, as the `forever` profile assumes [?]
+    ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions); [open-questions
+    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
 22. **Demoralizing Shout scaling.** The level-60 tooltip is **−204** [F]: the client data's −196
     plus −1.4 per level above 54, which its `SpellLevels` (54–64) don't cap below 60, is −204.4,
     shown as 204 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). The −196 this doc called

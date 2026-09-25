@@ -11,7 +11,7 @@ import { armorReduction, damageTakenRage, rageConversion } from '../core/formula
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types'
-import { FOREVER } from '../rules/profiles'
+import { CLASSIC_ERA, FOREVER, type RulesProfile } from '../rules/profiles'
 import type { DamageTakenRageModel, RuleProfileId, SimConfig, SpecId } from '../types'
 import { FIELD, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
 import { addAbility, addAura, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, rotationOff, setAttackPower, timeline } from './test-helpers'
@@ -103,11 +103,14 @@ describe('extra attacks (damage-and-timing §5.4)', () => {
 })
 
 describe('weapon bleeds (damage-and-timing §4 "Refresh", warrior.md §2.5)', () => {
-  it('a tick due at the refresh’s very millisecond lands first, as Rend’s does', () => {
-    // A 10 s main hand and a 6 s off hand (first swing at 3 s, the tick's moment): each landed
-    // swing refreshes a 4-tick, 3 s bleed. The off hand's swings at 3 s and 9 s were queued before
-    // the ticks due then.
+  /**
+   * A 10 s main hand and a 6 s off hand (first swing at 3 s, the tick's moment): each landed swing
+   * feeds a 4-tick, 3 s bleed (swings at 0, 3, 9, 10 and 15 s). The off hand's swings at 3 s and
+   * 9 s were queued before the ticks due then.
+   */
+  function bleedTicks(profile: RulesProfile): number[] {
     const plan = armsPlan(20000, 'warrior-fury')
+    plan.profile = profile
     alwaysLandNoCrit(plan)
     const mh = plan.weapons[0]!
     plan.weapons = [
@@ -115,8 +118,16 @@ describe('weapon bleeds (damage-and-timing §4 "Refresh", warrior.md §2.5)', ()
       { ...mh, speedSec: 6, twoHand: false, handMult: 0.5 },
     ]
     addProc(plan, { id: 'deepWounds', trigger: TRIGGER.whiteLanded, chance: [1, 1], hands: 3, action: ACTION.weaponBleed, amount: 4, a: 0.2, b: 3000, chainBit: 0, source: row(plan, 'deepWounds') })
-    const { ticks } = timeline(plan)
-    expect(ticks).toEqual([3000, 6000, 9000, 13000, 18000])
+    return timeline(plan).ticks
+  }
+
+  it('`classicEra`: a refresh restarts it, and a tick due at the refresh’s very millisecond lands first, as Rend’s does', () => {
+    expect(bleedTicks(CLASSIC_ERA)).toEqual([3000, 6000, 9000, 13000, 18000])
+  })
+
+  it('`forever`: it rolls, so a proc never moves the pending tick and the ticks keep their 3 s rhythm (D36)', () => {
+    // From the first at 3 s to the 4th after the last proc (15 s): 18 s.
+    expect(bleedTicks(FOREVER)).toEqual([3000, 6000, 9000, 12000, 15000, 18000])
   })
 })
 

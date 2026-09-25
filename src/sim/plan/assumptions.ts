@@ -233,9 +233,9 @@ const REGISTRY = {
     text: 'Magic weapon procs roll spell hit against a 24-resistance boss, then crit at your spell crit chance for 150% damage, as in Classic Era.',
     docRef: `${CT}#9-spell-hit-and-crit-generic`,
   },
-  // warrior.md §2.5 "Modifiers" and Q36: the tick spell's "ignore caster damage modifiers" flag against Classic Era's rules.
+  // warrior.md §2.5 (the rolling model, D36, Q21) and Q36: the tick spell's "ignore caster damage modifiers" flag.
   deepWounds: {
-    text: 'Deep Wounds follows Classic Era rules: recomputed each tick from current attack power, and it can’t crit. Death Wish, Enrage and Two-Handed Weapon Specialization raise its ticks, though the Forever client flags the tick to ignore them. Each crit restarts it with its next tick 3 s away, so while you crit more often than that it rarely ticks; if a crit kept its tick timer instead, Fury would do about 2% more DPS and Arms about 1.5%. Untested in Forever.',
+    text: 'Deep Wounds rolls, as the Season of Discovery bleed the Forever client carries does: each crit adds 60% of the critting weapon’s average hit (less for an off-hand crit) to a pool, and the next 4 ticks pay it out without the pending tick moving. Each crit’s share is fixed at the crit, from your attack power then and raised by Death Wish, Enrage and Two-Handed Weapon Specialization if they’re up, though the Forever client flags the tick to ignore them. It can’t crit. Under Classic Era rules each crit restarts it instead. Untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   angerManagement: {

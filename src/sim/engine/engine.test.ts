@@ -7,7 +7,7 @@ import { stdev } from '../core/welford'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, type ProcPlan, TRIGGER, TRIGGER_COUNT } from '../plan/types'
-import { FOREVER } from '../rules/profiles'
+import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
 import { type ChunkExecutor, drive } from '../run/driver'
 import { localExecutor } from '../run/local'
@@ -180,8 +180,10 @@ describe('timing worked examples in the engine', () => {
   })
 
   it('damage-and-timing WE-9: reapplying a bleed restarts its ticks; the tick due at 12 s is lost', () => {
+    // A weapon bleed restarts as a bleed ability does in `classicEra` (in `forever` it rolls, warrior.md §2.5).
     const bleed = proc({ action: ACTION.weaponBleed, amount: 7, a: 0.2, b: 3000, chainBit: 0, hands: 1 })
     const plan = timingPlan(10, null, [bleed], 20000)
+    plan.profile = CLASSIC_ERA
     const ticks = trace(plan).filter(([, hand]) => hand === -1).map(([, , t]) => t)
     expect(ticks).toEqual([3000, 6000, 9000, 13000, 16000, 19000])
   })

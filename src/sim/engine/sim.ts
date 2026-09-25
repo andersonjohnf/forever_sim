@@ -948,6 +948,16 @@ export class Sim {
   /** When each weapon bleed's next tick is due (for the refresh tie-break, damage-and-timing §4). */
   private readonly bleedNextAt: Float64Array
   private readonly bleedProc: Int32Array
+  /**
+   * A rolling weapon bleed's damage still to come (`deepWoundsRolls`, warrior.md §2.5): each crit
+   * adds its snapshotted amount, and each tick pays out the pool ÷ the ticks left.
+   */
+  private readonly bleedPool: Float64Array
+  /** Deep Wounds rolls in this profile (`combat.deepWoundsRolls`). */
+  private readonly bleedRolls: boolean
+  /** The hand and the extra attack power of the melee crit whose procs fire now (Deep Wounds' amount). */
+  private critHand = 0
+  private critBonusAp = 0
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
   /** `cast` rage ticks still to come, their generation (a recast restarts them), and when the next is due. */
@@ -1388,6 +1398,8 @@ export class Sim {
     this.bleedGen = new Int32Array(bleeds)
     this.bleedNextAt = new Float64Array(bleeds)
     this.bleedProc = new Int32Array(bleeds)
+    this.bleedPool = new Float64Array(bleeds)
+    this.bleedRolls = plan.profile.combat.deepWoundsRolls
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
     // docs/mechanics/spells.md §10: a spell proc's schools and spell.
     this.pSchools = Int32Array.from(procs, (p) => p.schools ?? 0)
@@ -2450,6 +2462,7 @@ export class Sim {
     this.stackCastCost = -1
     for (let i = 0; i < this.bleedTicksLeft.length; i++) {
       this.bleedTicksLeft[i] = 0
+      this.bleedPool[i] = 0
       this.bleedGen[i]++
     }
     this.dynStr = 0
@@ -2878,7 +2891,7 @@ export class Sim {
     this.gainRageFraction(this.normalizedRage ? this.wNormRageTenths[hand] : this.whiteDamageRageTenths(hand, damage))
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
-    if (crit) this.onCrit(hand)
+    if (crit) this.onCrit(hand, bonusAp)
     // paladin.md#implementation-notes: the damage seals' procs come after the swing's Vengeance.
     if (this.hasWhiteResolved) this.fireProcs(TRIGGER.whiteResolved, hand)
     if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
@@ -3608,7 +3621,7 @@ export class Sim {
     // rogue.md §5.3: a landed Backstab opens Cutthroat's Ambush window at its chance.
     if (main && this.abOpensAura[a] >= 0 && this.rngProc.next() < this.abOpensChance[a]) this.applyAura(this.abOpensAura[a])
     this.fireProcs(TRIGGER.meleeLanded, hand)
-    if (crit) this.onCrit(hand)
+    if (crit) this.onCrit(hand, bonusAp)
     // docs/mechanics/character-stats.md#touch-of-the-grave: only an attack that deals damage (not Sunder Armor).
     if (this.hasDamageLanded && this.abNoDamage[a] === 0) this.fireProcs(TRIGGER.damageLanded, -1)
   }
@@ -3751,7 +3764,9 @@ export class Sim {
    * A crit dealt, white or special: crit procs, then the charge of each aura a crit ends
    * (Weakness Analyzer: "until you deal a non-periodic critical effect", warrior.md §7).
    */
-  private onCrit(hand: number): void {
+  private onCrit(hand: number, bonusAp = 0): void {
+    this.critHand = hand
+    this.critBonusAp = bonusAp
     this.fireProcs(TRIGGER.meleeCrit, hand)
     this.useCritCharges(SCHOOL.physical)
   }
@@ -3916,14 +3931,18 @@ export class Sim {
         return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
-        // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
-        // §4 "Refresh"); the refresh then restarts the ticks, and old damage doesn't roll over
-        // (warrior.md §2.5).
+        this.counters[this.pSource[p] * FIELD_COUNT + FIELD.casts]++
+        if (this.bleedRolls) {
+          this.feedBleed(p, slot)
+          return
+        }
+        // `classicEra`: a tick due this very moment lands before the refresh, as Rend's does
+        // (damage-and-timing §4 "Refresh"); the refresh then restarts the ticks, and old damage
+        // doesn't roll over (warrior.md §2.5).
         if (this.bleedTicksLeft[slot] > 0 && this.bleedNextAt[slot] === this.now) this.onBleedTick(slot)
         this.bleedTicksLeft[slot] = this.pAmount[p]
         this.bleedNextAt[slot] = this.now + this.pB[p]
         this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
-        this.counters[this.pSource[p] * FIELD_COUNT + FIELD.casts]++
         return
       }
     }
@@ -4347,15 +4366,46 @@ export class Sim {
     this.poisonedDots--
   }
 
-  /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */
+  /**
+   * A crit feeds the rolling Deep Wounds (`forever`, warrior.md §2.5, W12): share × the critting
+   * weapon's average hit (its (min + max) / 2 + flat weapon damage + AP / 14 × its real speed, the
+   * crit's own extra attack power included), × that hand's multiplier (the off hand's 0.5 × (1 +
+   * 0.05 × Dual Wield Specialization)) and the physical damage multiplier now, joins the pool. The
+   * ticks left go back to `ticks`; a pending tick keeps its time, so a tick due this very moment,
+   * whichever event runs first, never moves. A bleed that isn't running starts, its first tick one
+   * period from now.
+   */
+  private feedBleed(p: number, slot: number): void {
+    const h = this.critHand
+    const average = this.hasWeapon[h]
+      ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + ((this.ap + this.critBonusAp) / 14) * this.wSpeedSec[h]
+      : 0
+    this.bleedPool[slot] += this.pA[p] * average * this.wHandMult[h] * this.physMult
+    if (this.bleedTicksLeft[slot] === 0) {
+      this.bleedNextAt[slot] = this.now + this.pB[p]
+      this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
+    }
+    this.bleedTicksLeft[slot] = this.pAmount[p]
+  }
+
+  /**
+   * A weapon bleed's tick, no armor, no crit, no procs (warrior.md §2.5). Rolling (`forever`): the
+   * pool ÷ the ticks left, taken out of the pool. Otherwise (`classicEra`): share × the main hand's
+   * average swing ÷ ticks, recomputed now with the current AP and physical multiplier.
+   */
   private onBleedTick(slot: number): void {
     const p = this.bleedProc[slot]
-    const ticks = this.pAmount[p]
-    const h = HAND.main
-    const average = this.hasWeapon[h]
-      ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + (this.ap / 14) * this.wSpeedSec[h]
-      : 0
-    const damage = ((this.pA[p] * average) / ticks) * this.physMult
+    let damage: number
+    if (this.bleedRolls) {
+      damage = this.bleedPool[slot] / this.bleedTicksLeft[slot]
+      this.bleedPool[slot] -= damage
+    } else {
+      const h = HAND.main
+      const average = this.hasWeapon[h]
+        ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + (this.ap / 14) * this.wSpeedSec[h]
+        : 0
+      damage = ((this.pA[p] * average) / this.pAmount[p]) * this.physMult
+    }
     const row = this.pSource[p] * FIELD_COUNT
     this.counters[row + FIELD.hits]++
     if (this.trace !== null) this.trace(this.pSource[p], -1, this.now)
@@ -4363,7 +4413,7 @@ export class Sim {
     if (--this.bleedTicksLeft[slot] > 0) {
       this.bleedNextAt[slot] = this.now + this.pB[p]
       this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, this.bleedGen[slot])
-    }
+    } else this.bleedPool[slot] = 0
   }
 
   // ------------------------------------------------------------------------------------------

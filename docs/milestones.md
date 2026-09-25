@@ -414,7 +414,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
             TPS's plans byte-identical to before the list for 200 random setups each, and a
             Defensive golden per tank equal to its old default's
             ([architecture.md](architecture.md), "Rotation as a priority list")
-      - [ ] The rest, one slice a class in parallel (user priority, 2026-09-25: "getting the true
+      - [x] The rest, one slice a class in parallel (user priority, 2026-09-25: "getting the true
             APL on all specs is priority"), each with a 200-setup plan snapshot taken before the
             move and byte-identical plans at the default order: Arms; Retribution; Feral cat and
             Balance; Enhancement and Elemental; the three rogues; the three hunters; the three

@@ -400,7 +400,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first, then the three tanks in A2; the rest follow in M5.65 A2)
+    Every spec is on the list (Fury first, then the three tanks, then the rest in M5.65 A2), and each
     shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
     stance, a pet, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first

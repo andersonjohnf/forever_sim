@@ -167,8 +167,8 @@ A spec is data plus small ability modules, never its own loop.
   of a few named values).
 - **Rotation as a priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
   A spec on the list declares its rotation as an `AplDefinition` (`sim/types.ts`, returned by
-  `rotationApl` in `sim/classes/rotation.ts`; Fury first, then the three tanks in A2, the rest in
-  M5.65 A2):
+  `rotationApl` in `sim/classes/rotation.ts`; Fury first, then the three tanks, then every other
+  spec in M5.65 A2, so every spec is on the list):
   - **Rows**, in the default order. Each has a stable `id`, a label and icon, the switch that turns
     it on (`enabledId`), its own settings (`optionIds`) and a summary built from them. Row settings
     are the spec's ordinary `RotationOption`s, so the resolver, `normalizeConfig`, the unused

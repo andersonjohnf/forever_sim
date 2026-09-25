@@ -114,8 +114,9 @@ export function rotationSetup(spec: SpecId, talents: TalentRanks, race: string |
 }
 
 /**
- * The spec's rotation as a priority list you reorder (decision D31), or undefined for a spec still
- * on switches (M5.65 A2 moves the rest): Fury, the pilot, and the three tanks, whose D28 rotations are its presets.
+ * The spec's rotation as a priority list you reorder (decision D31). Every spec has one since M5.65
+ * A2 (Fury was the pilot; the tanks' D28 rotations are their presets); undefined only for a spec id
+ * a later version adds before its list.
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL

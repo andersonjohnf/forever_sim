@@ -1,14 +1,14 @@
 import type { Locator, Page, Route } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// docs/ux.md#results, the wide layout's right panel (D34 as amended): from 1440 px it stacks the
-// character sheet (always shown, live from the setup, its stats in groups), Your setup (a line a
-// section, each opening its tab, and an action row with Simulate), each a card, then the result
-// once run, in one column: the headline, the breakdown, Cooldowns and buffs (open by default,
-// remembered per browser), then Assumptions (collapsed). It never runs past the viewport and scrolls
-// inside; the sheet and the summary stay put while the results scroll, unless they'd take more than
-// 60% of the panel, when the sheet scrolls with them. Under 1440 px nothing changes but weapon
-// skill's single number (results-states.spec.ts, and the last tests here).
+// docs/ux.md#results, the wide layout's right panel (D34 as amended): from 1440 px it stacks Your
+// setup (a line a section, each opening its tab, and an action row with Simulate), pinned at the
+// top, then the character sheet (always shown, live from the setup, its stats in groups), each a
+// card, then the result once run, in one column: the headline, the breakdown, Cooldowns and buffs
+// (open by default, remembered per browser), then Assumptions (collapsed). It never runs past the
+// viewport and scrolls inside, the sheet and the result under Your setup, with the sheet's key stats
+// in a strip under it once they've gone (wide-panel.spec.ts). Under 1440 px nothing changes but
+// weapon skill's single number (results-states.spec.ts, and the last tests here).
 
 const HEIGHT = 900
 
@@ -58,7 +58,7 @@ const UNEVEN_HANDS = { gear: { mainHand: { itemId: 19908 }, offHand: { itemId: 1
 test.describe('the wide right panel, 1440 px', () => {
   test.use({ viewport: { width: 1440, height: HEIGHT } })
 
-  test('before a run: the sheet and your setup with Simulate, and no empty result box', async ({ page }) => {
+  test('before a run: your setup with Simulate, then the sheet, and no empty result box', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     // The sheet shows before any run, whose it is in the class's colour, its stats in groups as a
@@ -181,7 +181,7 @@ test.describe('the wide right panel, 1440 px', () => {
         .map((n) => (n.matches('[role="group"]') ? `group ${n.querySelector('span')?.textContent}` : n.textContent?.trim()))
         .filter((t) => t && !/^(Threat|Damage)$/.test(t)),
     )
-    expect(order).toEqual(['Character sheet', 'Your setup', 'group DPS', 'Damage by ability', 'Cooldowns and buffs', expect.stringMatching(ASSUMPTIONS)])
+    expect(order).toEqual(['Your setup', 'Character sheet', 'group DPS', 'Damage by ability', 'Cooldowns and buffs', expect.stringMatching(ASSUMPTIONS)])
     // Nothing sits beside the breakdown: every section starts at the same left edge.
     const lefts = await Promise.all(
       [panel.getByRole('group', { name: 'DPS' }), panel.getByRole('heading', { name: 'Damage by ability' }), trigger(panel, 'Cooldowns and buffs')].map(async (l) => (await box(l)).x),
@@ -189,7 +189,7 @@ test.describe('the wide right panel, 1440 px', () => {
     for (const x of lefts) expect(x).toBeCloseTo(lefts[0], -1)
   })
 
-  test('at 1440×900 a DPS sheet scrolls away with the result, and your setup stays at the top', async ({ page }) => {
+  test('at 1440×900 the sheet scrolls away with the result, and your setup stays at the top', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
@@ -199,7 +199,7 @@ test.describe('the wide right panel, 1440 px', () => {
     expect(b.y + b.height).toBeLessThanOrEqual(HEIGHT)
     expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
     await expect(scroller).toHaveAttribute('tabindex', '0')
-    // Together they take more than 60% of the panel here (docs/ux.md#results "Scrolling").
+    // Your setup is pinned; the sheet scrolls under it (docs/ux.md#results "Scrolling").
     await scroller.evaluate((el) => el.scrollTo(0, el.scrollHeight))
     await expect(trigger(panel, ASSUMPTIONS)).toBeInViewport()
     await expect(sheetOf(panel).getByRole('heading', { name: 'Character sheet' })).not.toBeInViewport()
@@ -263,8 +263,8 @@ test.describe('the wide right panel, 1440 px', () => {
     await simulate(panel)
     // The run's own uptime, once it's this setup's.
     await expect(sheet.getByText(/Your rotation kept it up \d+\.\d% of the fight\./)).toBeAttached()
-    // The sheet is too long to stay put at 1440×900, so it scrolled away and the result came into
-    // view under your setup, which stays.
+    // The sheet is too long for the result to show under it at 1440×900, so the panel scrolled the
+    // result into view under your setup, which stays.
     await expect(panel.getByRole('group', { name: 'TPS' })).toBeInViewport()
     await expect(setupOf(panel).getByRole('button', { name: 'Run again' })).toBeInViewport()
     const scroller = scrollerOf(panel)
@@ -316,14 +316,15 @@ test.describe('the wide right panel, 1440 px', () => {
     await expect(panel.getByText(/^Simulating…/)).toHaveCount(0)
   })
 
-  test('each setup line shows its section’s icon, and a chevron and an underline on hover', async ({ page }) => {
+  test('each setup line shows its section’s icon and a faint chevron, and on hover a darker one and an underline', async ({ page }) => {
     await page.goto('./')
     const setup = setupOf(results(page))
     const line = setup.getByRole('button', { name: /^Gear / })
     await expect(line.locator('svg').first()).toBeVisible()
     const chevron = line.locator('svg').last()
     const value = line.getByText('Pre-raid best in slot', { exact: true })
-    await expect(chevron).toHaveCSS('opacity', '0')
+    // It looks like something to press before it's hovered (review finding DU2-3).
+    await expect(chevron).toHaveCSS('opacity', '0.6')
     await expect(value).toHaveCSS('text-decoration-line', 'none')
     await line.hover()
     await expect(chevron).toHaveCSS('opacity', '1')
@@ -410,11 +411,12 @@ test.describe('the wide right panel, 1920 px', () => {
       [panel.getByRole('group', { name: 'DPS' }), panel.getByRole('heading', { name: 'Damage by ability' }), trigger(panel, 'Cooldowns and buffs')].map(async (l) => (await box(l)).x),
     )
     for (const x of lefts) expect(x).toBeCloseTo(lefts[0], -1)
-    // The whole result's top is in view under the sheet and setup, which stay put.
+    // The whole result's top is in view under your setup and the sheet.
     await expect(panel.getByRole('group', { name: 'DPS' })).toBeInViewport()
+    await expect(sheetOf(panel).getByRole('heading', { name: 'Character sheet' })).toBeInViewport()
   })
 
-  test('the sheet and your setup stay put while the result scrolls under them', async ({ page }) => {
+  test('your setup stays put while the sheet and the result scroll under it', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)
     await simulate(panel)
@@ -422,11 +424,10 @@ test.describe('the wide right panel, 1920 px', () => {
     const b = await box(scroller)
     expect(b.y + b.height).toBeLessThanOrEqual(1080)
     expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
-    const sheet = await box(sheetOf(panel))
     const setup = await box(setupOf(panel))
     await scroller.evaluate((el) => el.scrollTo(0, el.scrollHeight))
     await expect(trigger(panel, ASSUMPTIONS)).toBeInViewport()
-    expect((await box(sheetOf(panel))).y).toBeCloseTo(sheet.y, 0)
+    await expect(sheetOf(panel).getByRole('heading', { name: 'Character sheet' })).not.toBeInViewport()
     expect((await box(setupOf(panel))).y).toBeCloseTo(setup.y, 0)
     expect(await page.evaluate(() => window.scrollY), 'the page itself didn’t scroll').toBe(0)
   })

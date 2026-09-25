@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronsDown, IdCard, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
+import { Check, ChevronRight, ChevronsDown, IdCard, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type PointerEvent, type ReactNode, type RefObject, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
@@ -20,7 +20,7 @@ import { ManaPerFight } from './mana-results'
 import { outcomeLines } from './outcomes'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
-import { isDefensive, type SheetRow, sheetGroups, sheetRows, WEAPON_SKILL_LABEL, weaponSkillValue } from './sheet-groups'
+import { isDefensive, type KeyStat, keyStats, type SheetRow, sheetGroups, sheetRows, WEAPON_SKILL_LABEL, weaponSkillValue } from './sheet-groups'
 import { avoidanceOf, CRIT_REDUCTION_LABEL } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
 import { simulateShortcutLabel } from './shortcut-label'
@@ -349,7 +349,7 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  * sheet, which scrolls as a whole; `onNavigate` closes it when a link opens a setup tab.
  *
  * `setup` makes it the wide layout's right panel (from 1440 px, D34; src/App.tsx passes it only
- * there): the character sheet and that setup summary, then the results in one column (`WidePanel`).
+ * there): that setup summary with Simulate, pinned, then the character sheet and the results in one column (`WidePanel`).
  */
 export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate; setup?: ReactNode }) {
   const { result, previous, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
@@ -415,72 +415,67 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
 
 /**
  * The wide layout's status in Your setup's action row (src/app/setup-summary.tsx), beside its
- * Simulate: what a run would do now, the first or one for a changed setup, a run's progress beside
- * Cancel, and nothing once the result is this setup's or a failure says what happened.
+ * Simulate, so the row always says where things stand: what a run would do now, the first or one
+ * for a changed setup; a run's progress beside Cancel; that the result is this setup's; or that the
+ * run didn't finish, whose message is under the row.
  */
 export function SimulateNote() {
   const { result, stale, running, error, metricLabel, progressPct } = useRunState()
   if (running) return <RunProgress pct={progressPct} />
-  if (error !== null) return null
+  if (error !== null) return <p className="text-sm text-muted-foreground">This run didn’t finish. See why below.</p>
   if (!result) return <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
   if (stale) return <p className="text-sm text-muted-foreground">Your setup changed since this run. Simulate to update it.</p>
-  return null
+  return (
+    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <Check className="size-4 shrink-0" aria-hidden />
+      Your result is up to date.
+    </p>
+  )
 }
 
 /**
- * How much of the wide panel's height the character sheet and the setup summary may take and still
- * both stay put (docs/ux.md#results): past it, the sheet scrolls with the results and only the
- * setup summary, with Simulate, stays, so the results always keep the rest.
+ * What stays put at the wide panel's top (docs/ux.md#results "Scrolling"): Your setup, always, and
+ * under it the sheet's key-stats strip while the sheet's key stats are scrolled away under it.
+ * `head` and `strip` are their heights, which keep focus and a revealed result clear of them.
+ * Measured, since Your setup's height depends on the panel's width and the sheet's on the spec.
  */
-const PINNED_SHARE = 0.6
-
-/**
- * Whether the wide panel's character sheet stays put above the setup summary, and the heights that
- * place the summary under it and keep focus clear of both: measured, since the sheet's length
- * depends on the spec (a tank's has the boss's table) and the panel's on the window.
- */
-function usePinned(panel: RefObject<HTMLElement | null>, sheet: RefObject<HTMLElement | null>, setup: RefObject<HTMLElement | null>) {
-  const [pinned, setPinned] = useState({ sheet: true, sheetHeight: 0, setupHeight: 0 })
+function usePanelHead(scroller: RefObject<HTMLElement | null>, head: RefObject<HTMLElement | null>, strip: RefObject<HTMLElement | null>, sheet: RefObject<HTMLElement | null>) {
+  const [state, setState] = useState({ head: 0, strip: 0, stripShown: false })
   useEffect(() => {
-    const p = panel.current
-    const s = sheet.current
-    const u = setup.current
-    if (!p || !s || !u) return
+    const el = scroller.current
+    const h = head.current
+    if (!el || !h) return
     const update = () => {
-      // The panel's most height, whatever its content: its max-height (the window's, less the header).
-      const room = Number.parseFloat(getComputedStyle(p).maxHeight) || p.clientHeight
-      const sheetHeight = s.offsetHeight
-      const setupHeight = u.offsetHeight
-      const next = { sheet: sheetHeight + setupHeight <= room * PINNED_SHARE, sheetHeight, setupHeight }
-      setPinned((prev) => (prev.sheet === next.sheet && prev.sheetHeight === sheetHeight && prev.setupHeight === setupHeight ? prev : next))
+      // The strip shows once the last of the sheet's key stats has gone under Your setup.
+      const keys = [...(sheet.current?.querySelectorAll('[data-key-stat]') ?? [])]
+      const bottom = h.getBoundingClientRect().bottom
+      const stripShown = keys.length > 0 && keys.every((k) => k.getBoundingClientRect().bottom <= bottom + 1)
+      const next = { head: h.offsetHeight, strip: strip.current?.offsetHeight ?? 0, stripShown }
+      setState((prev) => (prev.head === next.head && prev.strip === next.strip && prev.stripShown === next.stripShown ? prev : next))
     }
     update()
+    el.addEventListener('scroll', update, { passive: true })
     const observer = new ResizeObserver(update)
-    for (const el of [p, s, u]) observer.observe(el)
-    window.addEventListener('resize', update)
+    for (const target of [el, h, strip.current, sheet.current]) if (target) observer.observe(target)
     return () => {
+      el.removeEventListener('scroll', update)
       observer.disconnect()
-      window.removeEventListener('resize', update)
     }
-  }, [panel, sheet, setup])
-  return pinned
+  }, [scroller, head, strip, sheet])
+  return state
 }
 
 /**
  * When a run starts or finishes, the wide panel scrolls its result's headline into view if it isn't
  * already (docs/ux.md#results): under a tank's long sheet at 1440×900 it starts below the panel's
- * edge. It scrolls only down, just far enough for the result to start under what stays put, and
- * never on the first render, so a result waiting when the page opens leaves the sheet in view.
+ * edge, and deep in a long result it's gone up under Your setup. It scrolls just far enough for the
+ * result to start under what stays put (Your setup and the key-stats strip, which shows once the
+ * sheet above the result has gone), and never on the first render, so a result waiting when the
+ * page opens leaves the sheet in view.
  */
-function useRevealResult(
-  scroller: RefObject<HTMLElement | null>,
-  results: RefObject<HTMLElement | null>,
-  pinned: { sheet: boolean; sheetHeight: number; setupHeight: number },
-  running: boolean,
-  result: SimResult | null,
-) {
+function useRevealResult(scroller: RefObject<HTMLElement | null>, results: RefObject<HTMLElement | null>, stuck: number, running: boolean, result: SimResult | null) {
   const last = useRef({ running, result })
-  // A change of what stays put (a resize) isn't a run's: `changed` lets it pass.
+  // A change of what stays put (a resize, the strip showing) isn't a run's: `changed` lets it pass.
   useEffect(() => {
     const changed = last.current.running !== running || last.current.result !== result
     last.current = { running, result }
@@ -490,53 +485,70 @@ function useRevealResult(
     if (!el || !headline || !(running || result)) return
     const view = el.getBoundingClientRect()
     const box = headline.getBoundingClientRect()
-    if (box.bottom <= view.bottom) return
-    const stuck = (pinned.sheet ? pinned.sheetHeight : 0) + pinned.setupHeight
-    const top = el.scrollTop + box.top - view.top - stuck
+    if (box.bottom <= view.bottom && box.top >= view.top + stuck - 1) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollTo({ top: Math.max(el.scrollTop, top), behavior: reduced ? 'auto' : 'smooth' })
-  }, [scroller, results, pinned, running, result])
+    el.scrollTo({ top: el.scrollTop + box.top - view.top - stuck, behavior: reduced ? 'auto' : 'smooth' })
+  }, [scroller, results, stuck, running, result])
 }
 
 /**
- * The wide layout's right panel (from 1440 px, D34; docs/ux.md#results): the character sheet, always
- * shown and live from the setup; the setup summary with Simulate; then, once run, the result in one
- * column. It never runs past the viewport and scrolls inside as one. The sheet and the summary stay
- * put while the results scroll under them, unless together they'd take more than PINNED_SHARE of
- * the panel: then the sheet scrolls away with the results and the summary alone stays.
+ * The wide layout's right panel (from 1440 px, D34 as the final review left it; docs/ux.md#results):
+ * Your setup with Simulate, pinned at the top; the character sheet, always shown and live from the
+ * setup; then, once run, the result in one column. It never runs past the viewport and scrolls
+ * inside as one: the sheet and the result scroll under Your setup, and once the sheet's key stats
+ * have gone, a one-line strip of them stays under it (`KeyStatsStrip`).
  */
 function WidePanel({ setup }: { setup: ReactNode }) {
-  const { result, previous, runConfig, running, error, dimmed } = useRunState()
-  const panel = useRef<HTMLDivElement>(null)
+  const { config, result, previous, runConfig, running, error, dimmed } = useRunState()
   const scroller = useRef<HTMLDivElement>(null)
   const content = useRef<HTMLDivElement>(null)
+  const head = useRef<HTMLDivElement>(null)
+  const strip = useRef<HTMLDivElement>(null)
   const sheet = useRef<HTMLElement>(null)
-  const summary = useRef<HTMLDivElement>(null)
   const results = useRef<HTMLDivElement>(null)
   const sheetHeadingId = useId()
   const { above, below } = useScrollEdges(scroller, content)
-  const pinned = usePinned(panel, sheet, summary)
+  const sheetData = useMemo(() => computeSheet(config), [config])
+  const keys = useMemo(() => (sheetData ? keyStats(sheetRows(sheetData), (sheetData.bossTable ?? null) !== null) : []), [sheetData])
+  const pinned = usePanelHead(scroller, head, strip, sheet)
   const empty = result !== null && result.abilities.length === 0
   // A run's progress is in Your setup's action row, so a first run shows nothing here yet.
   const shown = result !== null || error !== null
-  useRevealResult(scroller, results, pinned, running, result)
+  // A revealed result starts under the strip too: with the sheet above it scrolled away, it shows.
+  useRevealResult(scroller, results, pinned.head + pinned.strip, running, result)
   return (
     // The panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops 24 px above
     // the viewport's bottom edge.
-    <div ref={panel} className="relative flex max-h-[calc(100svh-8rem)] flex-col">
+    <div className="relative flex max-h-[calc(100svh-8rem)] flex-col">
       <div
         ref={scroller}
         role="region"
         aria-label="Sheet, setup and result"
         tabIndex={above || below ? 0 : undefined}
         // Keyboard focus scrolls clear of what stays put above it (WCAG 2.4.11).
-        style={{ scrollPaddingTop: (pinned.sheet ? pinned.sheetHeight : 0) + pinned.setupHeight }}
+        style={{ scrollPaddingTop: pinned.head + (pinned.stripShown ? pinned.strip : 0) }}
         // Relative, so what's visually hidden inside (the links' "(opens in a new tab)") scrolls with
         // it rather than lengthening the page (results-assumptions-scroll.spec.ts).
         className="relative -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <div ref={content} className="flex flex-col">
-          <section ref={sheet} aria-labelledby={sheetHeadingId} className={cn('bg-background pt-px pb-2', pinned.sheet && 'sticky top-0 z-10')}>
+          <div ref={head} className="sticky top-0 z-10 bg-background pt-px pb-2">
+            {setup}
+            {/* Under Your setup, over what scrolls: the strip, and a fade that marks there's more
+                above. Neither takes room in the column, so showing the strip moves nothing. */}
+            <div className="pointer-events-none absolute inset-x-0 top-full">
+              <KeyStatsStrip ref={strip} keys={keys} shown={pinned.stripShown} />
+              <div
+                aria-hidden
+                data-fade-above
+                className={cn(
+                  'h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
+                  above ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+            </div>
+          </div>
+          <section ref={sheet} aria-labelledby={sheetHeadingId} className="pb-2">
             <Card size="sm" className="gap-2">
               <CardHeader className="flex items-center justify-between gap-3">
                 <h3 id={sheetHeadingId} className="flex items-center gap-2 text-sm font-medium">
@@ -546,25 +558,10 @@ function WidePanel({ setup }: { setup: ReactNode }) {
                 <SpecLine />
               </CardHeader>
               <CardContent>
-                <LiveSheet />
+                <LiveSheet sheet={sheetData} keys={keys} />
               </CardContent>
             </Card>
           </section>
-          <div ref={summary} className="sticky z-10 bg-background pt-px pb-1" style={{ top: pinned.sheet ? pinned.sheetHeight : 0 }}>
-            {setup}
-            {/* The results scrolled under it: the fade marks that there's more above. With no result
-                it isn't there, since it would hang past the panel's end and make it scroll. */}
-            {shown && (
-              <div
-                aria-hidden
-                data-fade-above
-                className={cn(
-                  'pointer-events-none absolute inset-x-0 top-full h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
-                  above ? 'opacity-100' : 'opacity-0',
-                )}
-              />
-            )}
-          </div>
           {shown && (
             <div ref={results} data-dimmed={dimmed} className={cn('flex flex-col [&>*:last-child]:border-b-0', DIM_ROOT)}>
               <WideSection>
@@ -630,17 +627,52 @@ function WideSection({ children }: { children: ReactNode }) {
 }
 
 /**
- * The wide panel's character sheet: live from the setup (it comes from the plan, not the fights), so
- * it shows before any run and follows every change. A block buff's uptime (Holy Shield's, for the
- * boss's table) is the latest run's while that run is of this setup.
+ * The wide panel's character sheet: live from the setup (`sheet`, computed from the plan, not the
+ * fights), so it shows before any run and follows every change. A block buff's uptime (Holy
+ * Shield's, for the boss's table) is the latest run's while that run is of this setup. `keys` are
+ * the stats the strip repeats once they've scrolled away.
  */
-function LiveSheet() {
+function LiveSheet({ sheet, keys }: { sheet: CharacterSheetData | null; keys: readonly KeyStat[] }) {
   const { config, result, stale } = useRunState()
-  const sheet = useMemo(() => computeSheet(config), [config])
+  const keyLabels = useMemo(() => new Set(keys.map((k) => k.label)), [keys])
   if (!sheet) {
     return <p className="text-sm text-muted-foreground">This setup can’t be simulated, so it has no sheet. Simulate to see what to change.</p>
   }
-  return <SheetStats sheet={sheet} fight={config.fight} uptimes={result && !stale ? result.cooldowns : []} grouped />
+  return <SheetStats sheet={sheet} fight={config.fight} uptimes={result && !stale ? result.cooldowns : []} grouped keys={keyLabels} />
+}
+
+/**
+ * The sheet's key stats on one line, "AP 1,455 · Crit 37.1% · Hit 9.0%" (docs/ux.md#results
+ * "Scrolling"), pinned under Your setup while they're scrolled away from the sheet, so its numbers
+ * are always in view. It's a visual echo of rows the sheet already holds, so it's hidden from
+ * assistive tech: a screen reader reads the sheet itself wherever it's scrolled, and would otherwise
+ * hear them twice, and a strip that comes and goes as the panel scrolls. A stat that doesn't fit on
+ * its line is left out whole, never cut.
+ */
+function KeyStatsStrip({ ref, keys, shown }: { ref: RefObject<HTMLDivElement | null>; keys: readonly KeyStat[]; shown: boolean }) {
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      data-key-stats
+      className={cn(
+        'bg-background pb-1 transition-[opacity,visibility] motion-reduce:transition-none',
+        shown ? 'pointer-events-auto opacity-100' : 'invisible opacity-0',
+      )}
+    >
+      <div className="flex items-center gap-2 rounded-lg bg-card px-3 py-1.5 text-xs ring-1 ring-foreground/10">
+        <IdCard className="size-3.5 shrink-0 text-muted-foreground" />
+        {/* One line tall: a stat that wraps to a second is out of sight, with its separator. */}
+        <div className="flex h-4 min-w-0 flex-1 flex-wrap gap-x-2 overflow-hidden leading-4">
+          {keys.map((k, i) => (
+            <span key={k.label} className={cn('whitespace-nowrap', i > 0 && 'before:mr-2 before:text-muted-foreground before:content-["·"]')}>
+              <span className="text-muted-foreground">{k.short}</span> <span className="font-medium tabular-nums">{k.value}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /** Whose sheet it is, "Fury Warrior", in the class's colour: the panel's one accent (docs/ux.md#visual-language). */
@@ -883,11 +915,14 @@ function SheetStats({
   fight,
   uptimes,
   grouped = false,
+  keys,
 }: {
   sheet: CharacterSheetData
   fight: FightConfig | null
   uptimes: SimResult['cooldowns']
   grouped?: boolean
+  /** The rows the wide panel's key-stats strip repeats, marked for it to watch (`usePanelHead`). */
+  keys?: ReadonlySet<string>
 }) {
   const unknown = s.unknown ?? []
   // A tank's sheet has the boss's table against it (docs/ux.md#results).
@@ -898,8 +933,8 @@ function SheetStats({
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
   const rows = sheetRows(s)
   const unevenHands = weaponSkillValue(s.weaponSkill).spoken !== null
-  const stat =([label, value]: SheetRow, className?: string) => (
-    <div key={label} className={cn('flex justify-between gap-2', className)}>
+  const stat = ([label, value]: SheetRow, className?: string) => (
+    <div key={label} data-key-stat={keys?.has(label) || undefined} className={cn('flex justify-between gap-2', className)}>
       <dt className="text-muted-foreground">
         {/* In the wide panel's columns crit reduction's label takes two lines, broken before its "(boss's crits)". */}
         {grouped && label === CRIT_REDUCTION_LABEL ? (
@@ -930,6 +965,7 @@ function SheetStats({
           table={s.bossTableUp?.table ?? bossTable}
           avoidance={avoidanceOf(s)}
           fight={fight}
+          brief={grouped}
           up={
             s.bossTableUp
               ? {
@@ -973,20 +1009,28 @@ function WeaponSkill({ skill }: { skill: CharacterSheetData['weaponSkill'] }) {
 /**
  * The wide panel's sheet in groups (docs/ux.md#results): Offense, Attributes and Defense for a melee
  * spec, Spells and Mana for a caster, Melee beside Spells for a paladin. They flow in two columns in
- * a 30 rem panel and three from 38 rem, each group kept whole. A tank's Defense spans the columns,
- * its rows in the same columns, just above the boss's table in its two.
+ * a 30 rem panel, three from 38 rem and four from 48 rem (about 2,300 px), so a column is never much
+ * wider than at 1920 px and a value never far from its label (review finding DU2-4); each group is
+ * kept whole. A tank's Defense spans the columns, its rows in the same columns, just above the boss's
+ * table. From three columns its crit reduction, whose label fills a column, takes two, its value in
+ * the second; the rows after it fill any cell that leaves.
  */
-function SheetGroups({ rows, stat }: { rows: SheetRow[]; stat: (row: SheetRow) => ReactNode }) {
+function SheetGroups({ rows, stat }: { rows: SheetRow[]; stat: (row: SheetRow, className?: string) => ReactNode }) {
   const groups = sheetGroups(rows)
   return (
-    <div className="-mb-2.5 columns-2 gap-x-6 text-sm @min-[38rem]/results:columns-3">
+    <div className="-mb-2.5 columns-2 gap-x-6 text-sm @min-[38rem]/results:columns-3 @min-[48rem]/results:columns-4">
       {groups.map((g) => {
         const wide = g.rows.some(([label]) => label === CRIT_REDUCTION_LABEL)
         return (
           <div key={g.id} className={cn('flex break-inside-avoid flex-col gap-1 pb-2.5', wide && '[column-span:all]')}>
             <h4 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{g.title}</h4>
-            <dl className={cn('grid gap-y-1', wide ? 'grid-cols-2 gap-x-6 @min-[38rem]/results:grid-cols-3' : 'grid-cols-1')}>
-              {g.rows.map((row) => stat(row))}
+            <dl
+              className={cn(
+                'grid gap-y-1',
+                wide ? 'grid-flow-row-dense grid-cols-2 gap-x-6 @min-[38rem]/results:grid-cols-3 @min-[48rem]/results:grid-cols-4' : 'grid-cols-1',
+              )}
+            >
+              {g.rows.map((row) => stat(row, row[0] === CRIT_REDUCTION_LABEL ? CRIT_REDUCTION_SPAN : undefined))}
             </dl>
           </div>
         )
@@ -994,6 +1038,9 @@ function SheetGroups({ rows, stat }: { rows: SheetRow[]; stat: (row: SheetRow) =
     </div>
   )
 }
+
+/** Crit reduction's row from three columns: two of them, its label in the first and its value in the second. */
+const CRIT_REDUCTION_SPAN = '@min-[38rem]/results:col-span-2 @min-[38rem]/results:grid @min-[38rem]/results:grid-cols-subgrid'
 
 /** The collapsible details. The sheet's is under 1440 px only: the wide panel shows it at its top. */
 type DetailsId = 'cooldowns' | 'sheet' | 'assumptions'

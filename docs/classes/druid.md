@@ -1045,6 +1045,45 @@ point where a Shred makes about 11. So the tuned cat Shreds whenever it can affo
 exactly 35–41 Energy, at 5 combo points, with Rip kept up in between; and a Tiger's Fury a little
 early is worth more than its lost Energy, since its cooldown starts sooner.
 
+#### The cat's priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`CAT_APL` in `cat.ts`), in this order, each with its switch, its own settings and the conditions
+above (ids `druid.cat.…`):
+
+| Row (`id`) | Switch | Its settings | When it's used |
+| --- | --- | --- | --- |
+| Berserk (`berserk`) | `berserk.enabled` | | On cooldown, with the talent (row 1) |
+| Racial cooldown (`racial`) | `racial.enabled` | | Elune's Light on cooldown, a Night Elf's (row 2) |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | | On cooldown, if worn (row 2) |
+| Tiger's Fury (`tigersFury`) | `tigersFury.enabled` | `tigersFury.maxEnergyLost` | At Energy ≤ 100 − its Energy + the loss allowed (row 3) |
+| Faerie Fire (`faerieFire`) | `faerieFire.enabled` | `faerieFire.refreshBelowSec` | When it's down; early while Energy is below the builder's cost (row 5) |
+| Clearcasting (`clearcasting`) | none | | Shred, or Claw where Shred can't be used, while Clearcasting is up (row 6) |
+| Rip (`rip`) | `rip.enabled` | `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec`, `rip.onlyWithoutOtherBleeds` | Row 7 |
+| Ferocious Bite (`ferociousBite`) | `ferociousBite.enabled` | `ferociousBite.minComboPoints`, `ferociousBite.shredFirstFrom`, `ferociousBite.anyEnergyLastSec`, `ferociousBite.onlyWhileRipUp` | Row 8, with its Shred first |
+| Rake (`rake`) | `rake.enabled` | `rake.onlyWithoutBleeds` | Row 9 |
+| Shred (`shred`) | `shred.enabled` | | Whenever it's affordable, from behind (row 10) |
+| Claw (`claw`) | `claw.enabled` | | Whenever it's affordable, where Shred can't be used: from the front, or with Shred off (row 10) |
+
+- **Nothing is pinned:** the cat has no pre-pull or opener. Its only preset is the implicit
+  Default, the tuned defaults above.
+- **Clearcasting** was always a step of the priority (row 6), so it's a row of its own. It has no
+  switch: a free builder is never worth skipping. **Shred's and Claw's switches** say which builder
+  the cat uses everywhere: in their own rows, in Clearcasting's, and in Ferocious Bite's "Shred
+  first".
+- **Spec-wide, above the list:** the Mighty Rage Potion and Juju Flurry, under Consumables (row 4).
+  They take their turn just before the first row on the global cooldown, wherever it sits: after
+  Tiger's Fury in the default order, as before the list.
+- **A row's conditions are its own wherever it sits:** Rake above Rip still waits for your Rip to
+  be off the boss, Ferocious Bite above Rip still waits for it with `onlyWhileRipUp`, Claw above
+  Shred still waits for Shred to be unusable, and Faerie Fire's early refresh still reads the
+  builder's cost. So Claw above Shred changes nothing.
+- **Byte-identical in the default order:** 200 random setups (settings, talents in every tree, race,
+  the items the rotation reads, Buffs, the raid's warriors, where you stand, the fight and the
+  rules) build the plans they built before the list (`cat-apl.test.ts`), fingerprinted on the code
+  before it.
+
 ### 6.3 Forever bear priority (TPS)
 
 This is derived for Forever [?]. Primal Bite and Lacerate have no Classic analogue. Primal Bite's threat is

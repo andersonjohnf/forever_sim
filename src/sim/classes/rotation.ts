@@ -6,7 +6,7 @@
 import type { WeaponType } from '@/data/items/types'
 import { NO_PREPULL } from '../plan/types'
 import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
-import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
+import { CAT_APL, CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
@@ -121,6 +121,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
   if (spec === 'warrior-protection') return PROTECTION_APL
   if (spec === 'druid-feral-bear') return BEAR_APL
+  // docs/classes/druid.md §6.2 "The priority list".
+  if (spec === 'druid-feral-cat') return CAT_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
   return undefined
@@ -320,7 +322,7 @@ export function classRotation(
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context, order)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context, order)
-  if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
+  if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context, order)
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Protection: model and rotation".

@@ -273,7 +273,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
   // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.
   if (spec === 'warrior-protection') Object.assign(out, protectionUnusedSettings(values, setup.talents ?? new Map(), setup.order))
-  // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
+  // docs/classes/paladin.md rows 5b and 7b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it; the lower Consecration row, when it never has the shared cooldown.
   if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
   // docs/classes/paladin.md rows 7 and 8: the lower of the two Consecration rows, when it never has the shared cooldown.
   if (spec === 'paladin-retribution') Object.assign(out, retributionUnusedSettings(values, setup.order))

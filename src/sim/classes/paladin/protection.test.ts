@@ -23,6 +23,7 @@ import {
   HOLY_SHIELD,
   HOLY_SHIELD_DAMAGE,
   PROTECTION_IDS as ID,
+  PROTECTION_APL,
   PROTECTION_OPTIONS,
   PROTECTION_PRIORITY,
   protectionRotation,
@@ -32,6 +33,7 @@ import {
 } from './protection'
 import { addPaladinAbility, examplePlan, setSp } from './test-helpers'
 import { hammerOfTheRighteousAbility, JUDGEMENT_OF } from './abilities'
+import { aplPresets, applyAplPreset, defaultAplOrder, moveAplRow } from '../apl'
 
 const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
@@ -934,6 +936,39 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
     const { gear: _, ...noGear } = hammer
     expect(unusedRotationSettings(noGear)).toEqual({})
     expect(option(ID.exorcism)).toMatchObject({ needsCreatureType: ['undead', 'demon'] })
+  })
+})
+
+describe('the two Consecration rows, which share a cooldown (paladin.md rows 7 and 7b)', () => {
+  const d = defaultConfig(PROT)
+  const rank5 = 'Not used: Consecration (Rank 1), above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration (Rank 1), or move it above.'
+  const rank1 = 'Not used: Consecration, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than Consecration, or move it above.'
+  const order = defaultAplOrder(PROTECTION_APL)
+  const rank1First = moveAplRow(PROTECTION_APL, order, 'consecrationRank1', order.indexOf('consecration'))!
+
+  it('say nothing in the default order and settings, with any preset', () => {
+    for (const preset of aplPresets(PROTECTION_APL)) {
+      const applied = applyAplPreset(PROTECTION_APL, {}, preset.id)!
+      expect(unusedRotationSettings({ ...d, rotation: applied.rotation, rotationOrder: applied.rotationOrder }), preset.id).toEqual({})
+    }
+  })
+
+  it('say when the lower row starts from as much mana as the higher, or more: it never has the cooldown', () => {
+    expect(rank1First.indexOf('consecrationRank1')).toBeLessThan(rank1First.indexOf('consecration'))
+    // Rank 1 (from 10%) above rank 5 (from 20%): rank 5 is never cast.
+    expect(unusedRotationSettings({ ...d, rotationOrder: rank1First })).toEqual({ [ID.consecration]: rank5 })
+    // …unless rank 1 needs more mana than rank 5.
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 30 }, rotationOrder: rank1First })).toEqual({})
+    // In the default order, rank 1 from as much mana as rank 5 is never cast.
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1Mana]: 20 } })).toEqual({ [ID.consecrationRank1]: rank1 })
+    // With either off, nothing to say.
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecrationRank1]: false }, rotationOrder: rank1First })).toEqual({})
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.consecration]: false, [ID.consecrationRank1Mana]: 20 } })).toEqual({})
+    // Alongside Hammer of the Righteous's note, each keeps its own.
+    expect(unusedRotationSettings({ ...d, rotation: { [ID.hammerOfTheRighteous]: true, [ID.consecrationRank1Mana]: 25 } })).toEqual({
+      [ID.consecrationRank1]: rank1,
+      [ID.holyStrike]: 'Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It’s used when you can’t pay Hammer’s 90 mana.',
+    })
   })
 })
 

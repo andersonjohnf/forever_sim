@@ -662,10 +662,34 @@ const hammerAbove = (order: readonly string[] | undefined): boolean => {
   return current.indexOf('hammerOfTheRighteous') < current.indexOf('holyStrike')
 }
 
+/** The two Consecration rows (paladin.md rows 7 and 7b), which share one cooldown. */
+const CONSECRATION_ROWS = [
+  { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
+  { row: 'consecrationRank1', label: 'Consecration (Rank 1)', on: ID.consecrationRank1, mana: ID.consecrationRank1Mana },
+] as const
+
 /**
- * What the Rotation tab says under Holy Strike or Hammer of the Righteous when the other takes its
- * place (docs/ux.md "Rotation"). They share a cooldown, so with both on, the higher row is used and
- * the lower only when you can't pay for the higher: Holy Strike under Hammer of the Righteous when
+ * What the Rotation tab says under a Consecration row that's never used (paladin.md rows 7 and 7b,
+ * as Retribution's): the ranks share one cooldown, so with both on, the higher row takes it whenever
+ * its mana is there, and the lower is used only below the higher's threshold. A lower row that starts
+ * from as much mana as the higher, or more, is never used.
+ */
+function consecrationUnused(v: ReturnType<typeof reader>, order: readonly string[] | undefined): Record<string, string> {
+  if (!CONSECRATION_ROWS.every((r) => v.on(r.on))) return {}
+  const current = normalizeAplOrder(PROTECTION_APL, order)
+  const [higher, lower] = [...CONSECRATION_ROWS].sort((a, b) => current.indexOf(a.row) - current.indexOf(b.row))
+  if (v.num(lower.mana) < v.num(higher.mana)) return {}
+  return {
+    [lower.on]: `Not used: ${higher.label}, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than ${higher.label}, or move it above.`,
+  }
+}
+
+/**
+ * What the Rotation tab says under a row that's never or rarely used (docs/ux.md "Rotation"): the
+ * lower of the two Consecration rows when it never has their cooldown (consecrationUnused), and
+ * Holy Strike or Hammer of the Righteous when the other takes its place. They share a cooldown, so
+ * with both on, the higher row is used and the lower only when you can't pay for the higher: Holy
+ * Strike under Hammer of the Righteous when
  * Hammer's 90 mana isn't there, and Hammer under Holy Strike never, since Holy Strike costs less.
  * Hammer of the Righteous needs a one-handed axe, mace or sword; with any other main hand it can't
  * be used, and Holy Strike is if it's on; with no main hand, neither is, and Holy Strike says so
@@ -677,6 +701,15 @@ export function protectionUnusedSettings(
   order?: readonly string[],
 ): Record<string, string> {
   const v = reader(PROTECTION_OPTIONS, values)
+  return { ...consecrationUnused(v, order), ...strikeUnused(v, mainHand, order) }
+}
+
+/** Holy Strike's and Hammer of the Righteous's notes (protectionUnusedSettings). */
+function strikeUnused(
+  v: ReturnType<typeof reader>,
+  mainHand: { twoHand: boolean; type?: WeaponType } | null | undefined,
+  order: readonly string[] | undefined,
+): Record<string, string> {
   const strike = v.on(ID.holyStrike)
   // No main hand: Holy Strike, a weapon strike, can't be used (TV-3), nor Hammer of the Righteous.
   const noWeapon = strike && mainHand === null ? { [ID.holyStrike]: 'Not used: needs a weapon in your main hand.' } : {}

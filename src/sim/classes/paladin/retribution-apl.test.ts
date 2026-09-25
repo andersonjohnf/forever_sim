@@ -38,8 +38,11 @@ describe('Retribution’s priority list (D31)', () => {
       for (const part of row.summary ?? []) if (part.option) expect([row.enabledId, ...row.optionIds], row.id).toContain(part.option)
       if (!row.enabledId) expect(row.help, row.id).toBeTruthy()
     }
-    // paladin.md's order: the opener pinned first (rows 0 and 2), then rows 1 and 3–8.
-    expect(DEFAULT_ORDER).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'exorcism', 'consecration', 'consecrationRank1'])
+    // paladin.md's order: the opener pinned first (rows 0 and 2), then rows 1 and 3–8, then the on-use
+    // trinkets, last, where their lines were before they had a row (UA-6), so the plan didn't move.
+    expect(DEFAULT_ORDER).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'exorcism', 'consecration', 'consecrationRank1', 'trinkets'])
+    // Juju Flurry and the mana consumables above the list, as every spec's.
+    expect(RETRIBUTION_APL.specWide).toEqual([ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing])
     expect(RETRIBUTION_APL.rows.filter((r) => r.pinned).map((r) => r.id)).toEqual(['prepull'])
     // No named rotations: the implicit Default only (D27's common priority, as Fury's).
     expect(aplPresets(RETRIBUTION_APL).map((p) => p.label)).toEqual(['Default'])
@@ -87,7 +90,7 @@ describe('Retribution’s priority list (D31)', () => {
   it('builds the list in the stored order, the opener and the pre-pull where they were, each row with its own conditions', () => {
     const none = retributionRotation({}, TALENTS, noAura, CONTEXT)
     const order = moved('consecration', 'seal', moved('holyStrike', 'hammerOfWrath'))
-    expect(order).toEqual(['prepull', 'consecration', 'seal', 'judgement', 'holyStrike', 'hammerOfWrath', 'exorcism', 'consecrationRank1'])
+    expect(order).toEqual(['prepull', 'consecration', 'seal', 'judgement', 'holyStrike', 'hammerOfWrath', 'exorcism', 'consecrationRank1', 'trinkets'])
     const r = retributionRotation({}, TALENTS, noAura, CONTEXT, order)
     expect(ids(r)).toEqual([
       'judgementOfTheCrusader',
@@ -133,11 +136,24 @@ describe('Retribution’s priority list (D31)', () => {
       'holyStrike',
       'exorcism',
       'consecrationRank1',
+      'trinkets',
     ])
     // A setup saved without a row (here Exorcism, with Holy Strike moved first): it follows Holy Strike,
     // its default predecessor, and the rows after it that come before Exorcism by default too.
     const withoutExorcism = DEFAULT_ORDER.filter((id) => id !== 'exorcism')
-    expect(normalizeAplOrder(RETRIBUTION_APL, moved('holyStrike', 'seal', withoutExorcism))).toEqual(['prepull', 'holyStrike', 'seal', 'judgement', 'hammerOfWrath', 'exorcism', 'consecration', 'consecrationRank1'])
+    expect(normalizeAplOrder(RETRIBUTION_APL, moved('holyStrike', 'seal', withoutExorcism))).toEqual([
+      'prepull',
+      'holyStrike',
+      'seal',
+      'judgement',
+      'hammerOfWrath',
+      'exorcism',
+      'consecration',
+      'consecrationRank1',
+      'trinkets',
+    ])
+    // A setup saved before the trinkets had a row: they go last, where their lines were.
+    expect(normalizeAplOrder(RETRIBUTION_APL, moved('consecration', 'seal', DEFAULT_ORDER.filter((id) => id !== 'trinkets'))).at(-1)).toBe('trinkets')
     // Unknown ids dropped; the pinned opener stays first; one row named alone keeps its default place.
     expect(normalizeAplOrder(RETRIBUTION_APL, ['nope', 'exorcism', 'prepull'])).toEqual(DEFAULT_ORDER)
   })

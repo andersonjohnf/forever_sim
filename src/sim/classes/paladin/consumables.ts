@@ -1,7 +1,8 @@
 // The on-use items and consumables a paladin rotation presses, both specs' (docs/classes/paladin.md
-// "Forever priority list (default)", the consumables rows; buffs doc §3.5): on-use trinkets and
-// Juju Flurry on cooldown from the pull, and the mana potion and rune whenever the most they
-// restore fits, a little early while another would still be ready before the fight ends.
+// "Forever priority list (default)", the consumables rows; buffs doc §3.5): on-use trinkets (their
+// own row in the priority list) and Juju Flurry on cooldown from the pull, and the mana potion and
+// rune whenever the most they restore fits, a little early while another would still be ready
+// before the fight ends.
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, type RotationCondition } from '../../plan/types'
 import type { Reader } from '../warrior/shared'
@@ -27,9 +28,17 @@ export const consumable = (use: OnUseSpec): AbilityDef => ({
   manaSpreadTenths: use.manaSpreadTenths ?? 0,
 })
 
+/**
+ * The on-use trinkets' row (paladin.md "The priority list (A2)"): each on-use trinket worn, off the
+ * GCD, on cooldown from the pull (nothing in either rotation is worth saving them for), in `add`'s
+ * order, while `trinkets` is on.
+ */
+export function paladinTrinkets(v: Reader, trinkets: string, ctx: PaladinContext, add: (def: AbilityDef, conditions: RotationCondition[]) => number): void {
+  if (v.on(trinkets)) for (const item of ctx.items) add(consumable(item), [])
+}
+
 /** A spec's setting ids for them: a switch each, and the potion's and rune's "when missing" and "early, when missing" mana. */
 export interface ConsumableSettings {
-  trinkets: string
   juju: string
   manaPotion: string
   manaPotionMissing: string
@@ -40,13 +49,13 @@ export interface ConsumableSettings {
 }
 
 /**
- * Adds the consumables' lines (`add`, in priority order, after the spec's own): each on-use trinket,
- * then Juju Flurry, off the GCD on cooldown from the pull (nothing in either rotation is worth
- * saving them for); then the mana potion and the rune, off the GCD, each once you're missing its
+ * Adds the consumables' lines (`add`, in priority order, after the spec's own): Juju Flurry, off
+ * the GCD on cooldown from the pull (nothing in either rotation is worth saving it for); then the
+ * mana potion and the rune, off the GCD, each once you're missing its
  * "when missing" mana, and before that once you're missing its "early" mana while another would be
  * ready before the fight ends (one more use in the fight). Returns what the rotation presses: the
- * on-use items and the selected consumables it has a line for, so the assumptions don't list them
- * as not simulated.
+ * on-use items (their row's) and the selected consumables it has a line for, so the assumptions
+ * don't list them as not simulated.
  */
 export function paladinConsumables(
   v: Reader,
@@ -55,8 +64,8 @@ export function paladinConsumables(
   maxManaTenths: number,
   add: (def: AbilityDef, conditions: RotationCondition[]) => number,
 ): string[] {
+  // The on-use trinkets are pressed by their row (`paladinTrinkets`), wherever it sits.
   const pressed: string[] = ctx.items.map((i) => i.id)
-  if (v.on(ids.trinkets)) for (const item of ctx.items) add(consumable(item), [])
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
   if (juju) {
     pressed.push(JUJU_FLURRY)

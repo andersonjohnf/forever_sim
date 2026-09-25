@@ -41,7 +41,7 @@ import {
   SEAL_OF_THE_CRUSADER,
 } from './abilities'
 import { consecrationUnused } from './consecration-rows'
-import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
+import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables, paladinTrinkets } from './consumables'
 import { EXORCISM_TARGETS, manaOption } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
 import { type JotcRule, withJotcRule } from './spells'
@@ -423,7 +423,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.juju,
-    group: 'Cooldowns and buffs',
+    group: 'Consumables',
     label: 'Juju Flurry',
     help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute. More swings are more threat from your auto attacks and Seal of Fury.',
     default: true,
@@ -729,8 +729,9 @@ const MAX_TPS_HELP = `Runs Retribution Aura instead of Devotion Aura for threat,
  * the aura, Righteous Fury and the opener, are one pinned row first: the aura is D26's duty, first
  * by its fixed rule, and the opener's judgement comes at the pull. The seal (row 1) has no switch:
  * there's always one. Hammer of the Righteous (5b) takes Holy Strike's place (5) when it's on and
- * the weapon allows; each says so when the other does. The consumables and on-use trinkets are
- * spec-wide, off the GCD, and always come after the list. The Priority choice is the preset
+ * the weapon allows; each says so when the other does. The on-use trinkets are a row, last, where
+ * their lines always were, so the default order plays as before; Juju Flurry and the mana
+ * consumables are spec-wide, off the GCD, and always come after the list. The Priority choice is the preset
  * picker: D28's Defensive, Balanced (the default) and Max TPS set it, so it isn't shown as a
  * control of its own.
  */
@@ -812,8 +813,9 @@ export const PROTECTION_APL: AplDefinition = {
       summary: [{ text: 'on cooldown, in Holy Strike’s place' }],
     },
     { id: 'holyStrike', label: 'Holy Strike', icon: HOLY_STRIKE_ABILITY.icon, enabledId: ID.holyStrike, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
   ],
-  specWide: [ID.trinkets, ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
+  specWide: [ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
   presets: [
     { id: 'defensive', label: 'Defensive', summary: DEFENSIVE_SUMMARY, help: DEFENSIVE_HELP, values: { [ID.priority]: PROTECTION_PRIORITY.duties } },
     { id: DEFAULT_APL_PRESET, label: 'Balanced', summary: BALANCED_SUMMARY, help: BALANCED_HELP, values: {} },
@@ -958,11 +960,13 @@ export function protectionRotation(
     hammerOfWrath: () => {
       if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
     },
+    // The on-use trinkets, off the GCD, on cooldown from the pull (consumables.ts, as Retribution's).
+    trinkets: () => paladinTrinkets(v, ID.trinkets, ctx, add),
   })
 
-  // After the list, off the GCD: on-use trinkets and Juju Flurry on cooldown from the pull, then the
-  // mana potion and rune, when selected in Buffs, whenever the most they restore fits
-  // (consumables.ts, as Retribution's).
+  // After the list, off the GCD: Juju Flurry on cooldown from the pull, then the mana potion and
+  // rune, when selected in Buffs, whenever the most they restore fits (consumables.ts, as
+  // Retribution's).
   const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C3)").
   const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))

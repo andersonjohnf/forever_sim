@@ -24,6 +24,7 @@ const DEFAULT_ORDER = [
   'consecrationRank1',
   'hammerOfTheRighteous',
   'holyStrike',
+  'trinkets',
 ]
 const BALANCED_LINE = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 
@@ -75,8 +76,13 @@ test.describe('Protection paladin rotation', () => {
     for (const name of ['Holy Shield', 'Judgement', 'Swift Judgement', 'Holy Strike', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
       await expect(list(tab).getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    await expect(tab.getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
-    await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+    // The on-use trinkets are a row, last, as every spec has them in its list (UA-6); Juju Flurry sits
+    // with the mana consumables above it, as every spec's.
+    await expect(list(tab).getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
+    await expect(row(tab, 'trinkets')).toContainText('On cooldown')
+    const consumables = tab.getByRole('region', { name: 'Consumables' })
+    await expect(consumables.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+    await expect(consumables.getByRole('switch', { name: 'Juju Flurry', exact: true })).toBeVisible()
     // Balanced keeps Holy Strike (D28); Hammer of the Righteous is off just above it. Turned on, it takes
     // Holy Strike's place with the default axe, and Holy Strike's row says it's only the fallback; moved below it, it says why it isn't used.
     const hammer = list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true })

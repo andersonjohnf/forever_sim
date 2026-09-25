@@ -7,7 +7,7 @@ import { expect, test } from './fixtures.ts'
 // link; a moved order runs to a result; and the lower of the two Consecration rows says when it's
 // never used.
 
-const DEFAULT_ORDER = ['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'exorcism', 'consecration', 'consecrationRank1']
+const DEFAULT_ORDER = ['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'exorcism', 'consecration', 'consecrationRank1', 'trinkets']
 
 async function openRetributionRotation(page: Page): Promise<Locator> {
   await page.goto('./')
@@ -55,6 +55,9 @@ for (const width of [1280, 390]) {
       await expect(row('hammerOfWrath')).toContainText('Execute phase')
       await expect(row('consecration')).toContainText('Rank 5 · from 20% mana')
       await expect(row('consecrationRank1')).toContainText('From 10% mana')
+      // The on-use trinkets are a row, last, as every spec has them in its list (UA-6).
+      await expect(row('trinkets')).toContainText('On cooldown')
+      await expect(list.getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeChecked()
       await expect(list.getByRole('button', { name: /^Move / })).toHaveCount(DEFAULT_ORDER.length - 1)
       for (const target of [
         list.getByRole('button', { name: 'Move Holy Strike, position 5' }),
@@ -72,11 +75,11 @@ for (const width of [1280, 390]) {
       const handle = list.getByRole('button', { name: /^Move Consecration, position/ })
       await handle.focus()
       await page.keyboard.press('Space')
-      await expect(liveRegion(page)).toContainText(/Consecration is over position 7 of 8|Picked up Consecration/)
+      await expect(liveRegion(page)).toContainText(/Consecration is over position 7 of 9|Picked up Consecration/)
       await page.keyboard.press('ArrowUp')
-      await expect(liveRegion(page)).toHaveText('Consecration is over position 6 of 8.')
+      await expect(liveRegion(page)).toHaveText('Consecration is over position 6 of 9.')
       await page.keyboard.press('ArrowUp')
-      await expect(liveRegion(page)).toHaveText('Consecration is over position 5 of 8.')
+      await expect(liveRegion(page)).toHaveText('Consecration is over position 5 of 9.')
       await page.keyboard.press('Space')
       await expect.poll(() => order(page)).toEqual(moved('consecration', 'holyStrike'))
       await expect(preset(page)).toHaveText('Custom')
@@ -84,10 +87,10 @@ for (const width of [1280, 390]) {
       // Move up and Move down in Holy Strike's settings; the seal can't pass the pinned opener.
       let settings = await openRow(page, list, 'Holy Strike')
       await settings.getByRole('button', { name: 'Move down', exact: true }).click()
-      expect(await order(page)).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'consecration', 'exorcism', 'holyStrike', 'consecrationRank1'])
+      expect(await order(page)).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'consecration', 'exorcism', 'holyStrike', 'consecrationRank1', 'trinkets'])
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
       await settings.getByRole('button', { name: 'Move up', exact: true }).click()
-      expect(await order(page)).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'consecration', 'exorcism', 'consecrationRank1'])
+      expect(await order(page)).toEqual(['prepull', 'seal', 'judgement', 'hammerOfWrath', 'holyStrike', 'consecration', 'exorcism', 'consecrationRank1', 'trinkets'])
       await closeRow(page)
       settings = await openRow(page, list, 'Seal')
       await expect(settings.getByRole('button', { name: 'Move up', exact: true })).toBeDisabled()

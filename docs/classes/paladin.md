@@ -667,13 +667,17 @@ The conditions are the table's rows above, and each row keeps its own wherever i
 | Exorcism (`exorcism`) | 6 | `exorcism.enabled` | `exorcism.minManaPct` | Undead or Demon, mana ≥ 20% |
 | Consecration (`consecration`) | 7 | `consecration.enabled` | `consecration.minManaPct` | rank 5, mana ≥ 20% |
 | Consecration (Rank 1) (`consecrationRank1`) | 8 | `consecrationRank1.enabled` | `consecrationRank1.minManaPct` | mana ≥ 10% |
+| On-use trinkets (`trinkets`) | — (the trinkets' line) | `trinkets.enabled` | | on cooldown, off the GCD |
 
 - **Pinned:** only the pre-pull and opener, first: its judgement comes at the pull. The seal has no
   switch, since there's always one, and its row holds the seal choice, as the Protection paladin's
   seal row does.
-- **Spec-wide, above the list:** the on-use trinkets and Juju Flurry (Cooldowns and buffs), and the
-  Major Mana Potion and Demonic Rune with their limits (Consumables). They're off the GCD and always
-  come after the list, as they did before it.
+- **The on-use trinkets are a row,** as every other spec's are, last by
+  default, where their lines always came, so the default order's plan didn't move; a setup saved
+  before the row puts it last too. Moved up, they're still off the GCD.
+- **Spec-wide, above the list:** Juju Flurry and the Major Mana Potion and Demonic Rune with their
+  limits, under Consumables, as every spec's Juju Flurry is. They're off the GCD and always come
+  after the list, as they did before it.
 - **No named presets:** the defaults are the implicit Default, as Fury's, and the tab still says how
   they were tuned (C2, then a quick search on 1.60.1.70009 under
   [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)). In the default order the plan is the
@@ -930,13 +934,15 @@ and Consecration (rows 6, 8, 7 and 7b) come before Holy Strike (row 5): Consecra
 then goes down on its cooldown rather than behind Holy Strike's, **+12.37 TPS (+1.67%, 95% CI +12.18
 to +12.55)** and +7.47 DPS (+1.63%) for 1.1 more damage taken a second, together with the refunded
 point's Holy Conduit 1 ([Protection defaults](#protection-defaults); seed 20260935, 100,000 paired
-fights, which no search used; Max TPS the same, +12.36 TPS, +1.56%). The on-use trinkets, Juju Flurry and the mana consumables
-are spec-wide, above the list, and always come after it: they're off the global cooldown. A row's
+fights, which no search used; Max TPS the same, +12.36 TPS, +1.56%). The on-use trinkets are the
+list's last row (`trinkets`), as Retribution's are, where their lines always came, so no plan moved;
+Juju Flurry and the mana consumables are spec-wide, above the list, under Consumables, and always
+come after it: they're all off the global cooldown. A row's
 conditions are its own wherever it sits: Swift Judgement still frees Judgement wherever it is.
 Hammer of the Righteous and Holy Strike share a cooldown, so with both on, the plan has both rows
 and the shared cooldown decides, as a real priority list would: the higher row is used whenever it
 can be, and the lower only when the higher can't be paid for. Hammer of the Righteous sits just
-above Holy Strike by default, the last two rows, off, so turning it on puts it in Holy Strike's place, with Holy Strike
+above Holy Strike by default, the last two ability rows, off, so turning it on puts it in Holy Strike's place, with Holy Strike
 as its fallback when Hammer's 90 mana isn't there (rarely, in the default setup); moving it below
 Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing, and the plan leaves Hammer out (and its weapon-DPS assumption with it). In the order before PR-1 the plan is the one the rotation gave before the list, fight for
 fight (`protection-apl.test.ts`, `PRE_LIST_ORDER`).

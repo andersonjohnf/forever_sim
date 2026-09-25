@@ -597,14 +597,14 @@ function WidePanel({ setup }: { setup: ReactNode }) {
         aria-hidden
         data-fade-above
         className={cn(
-          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-page to-transparent transition-opacity motion-reduce:transition-none',
           above ? 'opacity-100' : 'opacity-0',
         )}
       />
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-background via-background/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-page via-page/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
           below ? 'opacity-100' : 'opacity-0',
         )}
       >

@@ -6,7 +6,7 @@ import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type ManaPlan, type Plan, POWER_TICK_MS, SCHOOL } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
-import { FIREBOLT } from './demons'
+import { FIREBOLT, SOUL_LINK_PCT } from './demons'
 import { type TalentRanks, warlockTalentEffects } from './talents'
 
 /** The warlock's passive effects for this build (warlock.md §4). */
@@ -73,14 +73,31 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
 }
 
 /**
- * Demonic Brand's text (warlock.md §11.3): the brand's charges at the talent's rank, and the school of
- * the demon out; the Felhunter's is Shadow, which the client doesn't name (Q23).
+ * Demonic Brand's text (warlock.md §11.3), from the plan: the demon out, what its landed attacks are
+ * (its swings and spells, or its Firebolts), the brand's charges at the talent's rank and the demon's
+ * school; the Felhunter's, which the client doesn't name, in its own sentence (Q23); and only the
+ * multipliers the plan gives the hit: Unholy Power and Soul Link (the demon's all-damage multiplier,
+ * `SOUL_LINK_PCT` and the rest Unholy Power's, no raid buff raising a demon's damage) and Master
+ * Demonologist (folded into the brand's numbers, with the Imp or the Succubus only).
  */
 function demonicBrandDetail(plan: Plan, school: number): string {
+  const pet = plan.pet!
+  const has = (id: string) => plan.abilities.some((a) => a.id === id)
   const charges = plan.auras.find((a) => a.id === 'demonicBrand')?.petLandedCharges ?? 0
   const name = school === SCHOOL.fire ? 'Fire' : 'Shadow'
-  const felhunter = plan.pet?.id === 'felhunter' ? ' (the Felhunter’s school isn’t in the client: Shadow, the talent’s “Fire or Shadow”)' : ''
-  return `${charges} landed attacks, swings and spells alike, each deal 65–68 ${name} damage more, plus 7.8% of your ${name} spell damage${felhunter}`
+  const spells = pet.abilities.filter((a) => a.kind === 'spell' && (a.max > 0 || a.spCoefficient > 0))
+  const swings = pet.weapon !== null
+  const attacks = swings && spells.length > 0 ? 'landed attacks, swings and spells alike,' : swings ? 'landed swings' : `landed ${spells[0]?.name ?? 'spell'}s`
+  const sentences = [
+    `Your ${pet.name}’s next ${charges} ${attacks} each deal 65–68 ${name} damage more, plus 7.8% of your ${name} spell damage, never missing and critting at its spell crit, as the client’s formula reads.`,
+  ]
+  if (pet.id === 'felhunter') sentences.push('The client doesn’t name the Felhunter’s school: it’s taken as Shadow, the talent’s “Fire or Shadow”.')
+  const soulLink = has('soulLink') ? SOUL_LINK_PCT : 0
+  const unholyPower = Math.round((pet.damageMult / (1 + soulLink / 100) - 1) * 100)
+  const md = has('masterDemonologist') ? (plan.auras.find((a) => a.id === 'masterDemonologist')?.schoolDamage ?? 0) : 0
+  const mults = [unholyPower > 0 && `Unholy Power’s +${unholyPower}%`, soulLink > 0 && `Soul Link’s +${soulLink}%`, md > 0 && `Master Demonologist’s +${md}%`].filter((m) => m !== false)
+  if (mults.length > 0) sentences.push(`${mults.length > 1 ? `${mults.slice(0, -1).join(', ')} and ${mults.at(-1)}` : mults[0]} raise${mults.length > 1 ? '' : 's'} it.`)
+  return sentences.join(' ')
 }
 
 /**

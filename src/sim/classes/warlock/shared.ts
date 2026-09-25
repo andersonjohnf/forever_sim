@@ -383,7 +383,7 @@ export function demonologyOptions(d: WarlockDefaults): RotationOption[] {
       id: ID.searingPain,
       group: 'Core abilities',
       label: 'Searing Pain for Demonic Brand',
-      help: 'Cast Searing Pain whenever your brand is off the boss: Demonic Brand makes your demon’s next 6 attacks deal 65–68 Fire (the Imp) or Shadow more, plus a little of your spell damage. Needs Demonic Brand and a demon out.',
+      help: 'Cast Searing Pain whenever your brand is off the boss. Demonic Brand then makes your demon’s next 2, 4 or 6 attacks (by its rank) each deal 65–68 more, Fire from the Imp and Shadow from the Succubus or Felhunter, plus a little of your spell damage. Needs Demonic Brand and a demon out.',
       default: true,
       requires: { talent: 'Demonic Brand' },
     },
@@ -429,8 +429,8 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
       icon: SEARING_PAIN.icon,
       enabledId: ID.searingPain,
       optionIds: [],
+      // Its switch's help says what it does (a row's own help is for a row without a switch).
       summary: [{ text: 'when your Demonic Brand is off the boss' }],
-      help: 'Searing Pain for Demonic Brand: it brands the boss, and your demon’s next 6 attacks deal extra damage. Needs the Demonic Brand talent and a demon out.',
     },
     shadowTrance: {
       id: 'shadowTrance',
@@ -660,6 +660,12 @@ export function warlockUnusedSettings(spec: WarlockSpec, values: Record<string, 
   // Demonology's Searing Pain for Demonic Brand needs a demon out to use its brand (§11.3); the talent's lock is its `requires`.
   if (spec === 'demonology' && rank(talents, 'Demonic Brand') > 0 && values[ID.demon] === 'none') out[ID.searingPain] = 'Not used: Demonic Brand needs your demon out.'
   // Every spec's filler choice (warlock.md §6.4): without the talent there's nothing to choose.
-  if (rank(talents, 'Incinerate') === 0) out[ID.filler] = 'Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
+  // Incinerate chosen (Demonology's and Destruction's default) says it takes over once talented.
+  if (rank(talents, 'Incinerate') === 0) {
+    out[ID.filler] =
+      values[ID.filler] === 'incinerate'
+        ? 'Not used yet: Shadow Bolt is the filler until you take the Incinerate talent; from then on, Incinerate.'
+        : 'Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
+  }
   return out
 }

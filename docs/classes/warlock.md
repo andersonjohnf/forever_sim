@@ -376,7 +376,12 @@ its place in the priority changes.
 
   Affliction casts no Immolate, so its Incinerate never gets the +25% (§3.1), and its Shadow Bolt
   keeps Improved Shadow Bolt's debuff up. Demonology keeps Immolate up. Neither default build has Incinerate (it's 31 points into Destruction), so neither default plan
-  changes: Demonology's shows Incinerate with the note, and plays Shadow Bolt.
+  changes: Demonology's shows Incinerate, and plays Shadow Bolt. Its note says so: with Incinerate chosen
+  and not talented, "Not used yet: Shadow Bolt is the filler until you take the Incinerate talent; from
+  then on, Incinerate."; with Shadow Bolt chosen, "Not used: Incinerate isn't in your talents, so Shadow
+  Bolt is the filler." The row's summary reads Shadow Bolt while the choice can't apply. Its icon is
+  fixed per spec (Incinerate's on Destruction, Shadow Bolt's otherwise): a row's icon doesn't follow
+  the setup yet.
 - **Searing Pain's row** (issue #17) is Demonology's, for Demonic Brand (§11.3): on by default and
   locked without the talent, so every build without it plays as before, byte for byte (the 200
   fingerprinted setups never take the talent). It sits first on the global cooldown, after Power
@@ -804,7 +809,10 @@ it inherits is every pet's one rule
   row, named for the demon, and none of your threat. The Felhunter's school isn't named: Shadow, the
   talent's "Fire or Shadow" [?] (Q23). The sim recasts Searing Pain once the brand is gone (its charges
   or its 10 s) or has at most the cast's 1.5 s left, so the demon's attacks during that cast go
-  unbranded; recasting with a charge or two left isn't modelled.
+  unbranded; recasting with a charge or two left isn't modelled. The results' assumption is built from
+  the plan: the demon out and what its landed attacks are (the Imp's Firebolts, the Felhunter's swings),
+  the charges, the school (the Felhunter's in a sentence of its own), and only the multipliers the build
+  gives the hit (the Felhunter gets no Master Demonologist).
 
 ### 11.4 Your demon's passives
 

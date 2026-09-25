@@ -906,8 +906,8 @@ const REGISTRY = {
     docRef: `${LOCK}#113-talents-in-the-sim`,
   },
   demonicBrand: {
-    // docs/classes/warlock.md §11.3, Q21, Q23; the plan names the charges and the school ({detail}).
-    text: 'Demonic Brand: your Searing Pain brands the boss for 10 s, and your demon’s next {detail}, with its Unholy Power, Soul Link and Master Demonologist, at its spell crit and never missing, as the client’s formula reads. Untested.',
+    // docs/classes/warlock.md §11.3, Q21, Q23; the plan names the demon, the charges, the school and its multipliers ({detail}).
+    text: 'Demonic Brand: your Searing Pain brands the boss for 10 s. {detail} Untested.',
     docRef: `${LOCK}#113-talents-in-the-sim`,
   },
   warlockTalentStacking: {

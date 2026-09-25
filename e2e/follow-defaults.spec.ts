@@ -111,6 +111,20 @@ test.describe('a build from the game’s older talent trees (docs/data/talents.m
     await expect(notice).toContainText('Your Retribution Paladin talents were the default then; they’re now today’s default.')
     await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText('Using the default build.')).toBeVisible()
   })
+
+  // Review FU-1: two stacked, the one behind ran out its time unread, and a phone can't hover to spread them.
+  test.describe('on a phone', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+    test('a shared link opened over it: the link’s notice and the visit’s come one at a time', async ({ page }) => {
+      await page.clock.install()
+      await page.goto('about:blank')
+      const hash = await linkFor(page, { version: 1, spec: 'paladin-protection', talents: '2-4530513321301551-5' })
+      await seedOldRetribution(page, '250003-503-052052310012330311')
+      await page.goto(`./${hash}`)
+      await oneAtATime(page, ['Loaded a shared setup', 'Talent points refunded for Retribution Paladin'])
+    })
+  })
 })
 
 test.describe('a share link and the defaults notice (docs/ux.md "Persistence and sharing")', () => {
@@ -130,15 +144,45 @@ test.describe('a share link and the defaults notice (docs/ux.md "Persistence and
     await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/2\s*\/\s*42\s*\/\s*7/).first()).toBeVisible()
   })
 
-  test('a link for another spec leaves the notice for the spec that moved', async ({ page }) => {
+  test('a link for another spec leaves the notice for the spec that moved, and the two come one at a time', async ({ page }) => {
+    await page.clock.install()
     await page.goto('about:blank')
     const hash = await linkFor(page, { version: 1, spec: 'warrior-arms' })
     await seedOldPaladin(page)
     await page.goto(`./${hash}`)
-    await expect(toasts(page).filter({ hasText: 'Loaded a shared setup' })).toHaveCount(1)
-    await expect(toasts(page).filter({ hasText: 'Updated to the new default gear and talents for Protection Paladin' })).toHaveCount(1)
+    await oneAtATime(page, ['Loaded a shared setup', 'Updated to the new default gear and talents for Protection Paladin'])
   })
 })
+
+/**
+ * The load's notices `titles` come one at a time (docs/ux.md "Notices"): one is up alone, in either
+ * order, and the other comes once it has gone, with its own whole time to be read (10 s at least).
+ * The page's clock must be installed.
+ */
+async function oneAtATime(page: Page, titles: readonly [string, string]) {
+  await expect(toasts(page)).toHaveCount(1)
+  // Both have been raised by now; the second waits.
+  await page.waitForTimeout(1000)
+  await expect(toasts(page)).toHaveCount(1)
+  const firstText = await toasts(page).first().innerText()
+  const [first, second] = firstText.includes(titles[0]) ? titles : [titles[1], titles[0]]
+  expect(firstText).toContain(first)
+  // Its time runs out, a second at a time (30 s at the most), and only then does the second come.
+  const front = toasts(page).filter({ hasText: first })
+  const next = toasts(page).filter({ hasText: second })
+  for (let s = 0; s < 31 && (await front.count()) > 0; s++) {
+    await expect(next).toHaveCount(0)
+    await page.clock.runFor(1_000)
+  }
+  await expect(front).toHaveCount(0)
+  await expect(next).toBeVisible()
+  await expect(toasts(page)).toHaveCount(1)
+  // Its own time starts now: still up 9 s later.
+  await page.clock.runFor(9_000)
+  await expect(next).toBeVisible()
+  await page.clock.runFor(22_000)
+  await expect(toasts(page)).toHaveCount(0)
+}
 
 test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
   for (const width of [390, 1280]) {

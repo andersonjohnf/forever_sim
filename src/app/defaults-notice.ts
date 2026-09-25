@@ -44,8 +44,12 @@ export function useDefaultsNotice() {
     // The link's spec is read before useSharedLink's effect takes the link out of the URL.
     void linkedSpec().then((linked) => {
       const notice = defaultsUpdateNotice(withoutLinked(updates, linked), current)
-      // It waits while What's New is open (src/app/held-toasts.ts).
-      if (notice) showWhenClear(() => toast(notice.title, { id: 'defaults-update', description: notice.description, duration: noticeDuration(notice.title, notice.description) }))
+      // It waits while What's New is open, or another of the load's notices is up (src/app/held-toasts.ts).
+      if (!notice) return
+      showWhenClear((closed) => {
+        toast(notice.title, { id: 'defaults-update', description: notice.description, duration: noticeDuration(notice.title, notice.description), ...closed })
+        return true
+      })
     })
   }, [])
 }

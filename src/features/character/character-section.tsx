@@ -1,6 +1,7 @@
 import { Check, CircleAlert } from 'lucide-react'
 import { useMemo, useRef, type KeyboardEvent } from 'react'
 import { toast } from 'sonner'
+import { noticeDuration } from '@/app/load-notice'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { Switch } from '@/components/ui/switch'
@@ -97,9 +98,10 @@ export function CharacterSection() {
     const change = changeRace(config, race.id)
     update(() => change.config)
     // The swap happens on the Gear tab, out of sight, so a notice says what changed there. One at
-    // a time: the next race's replaces it.
+    // a time: the next race's replaces it. A set bonus's clause makes it long, so it stays for its
+    // reading time (docs/ux.md#persistence-and-sharing).
     const message = raceChangeMessage(change, race.faction)
-    if (message) toast(message.title, { id: 'race-gear', description: message.description })
+    if (message) toast(message.title, { id: 'race-gear', description: message.description, duration: noticeDuration(message.title, message.description) })
   }
 
   return (

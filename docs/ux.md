@@ -1063,13 +1063,19 @@ Every view handles these states:
   too." An entry turned off that was locked off for the spec anyway (an Enhancement shaman's second
   stone) did nothing, so it isn't mentioned.
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
-  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A load's
-  notice that says more (its changes, a talent build's refunds) stays long enough to read at a
-  slow reader's pace: 4 s, then a second for every 3 words, up to 30 s (`noticeDuration` in
-  `src/app/load-notice.ts`). The longest, a visit's that moved parts of several specs and read
+  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A notice that
+  says more (a load's changes, a talent build's refunds, a race change's set bonus) stays long
+  enough to read at a slow reader's pace: 4 s, then a second for every 3 words, up to 30 s
+  (`noticeDuration` in `src/app/load-notice.ts`): a load's (a shared link, a setup loaded or
+  imported, a visit's) and a race change's that swapped faction gear. The longest, a visit's that moved parts of several specs and read
   several specs' builds from the older trees, reaches that 30 s cap; hovering over it, touching it or reaching it with
   Alt+T pauses it there too, so a reader who needs longer keeps it. A swipe sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
   never cover the header.
+  - **The load's own notices come one at a time.** The page's share link's and the visit's (newer
+    defaults, a build from the older trees) can both come as the page opens. The second waits until
+    the first has gone, then gets its own whole time in front (`src/app/held-toasts.ts`). Stacked,
+    the one behind would run out its time unread, and a phone can't hover to spread the stack.
+    They wait for What's New too ([What's new](#whats-new)). A link pasted in later says so at once.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
     (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, a

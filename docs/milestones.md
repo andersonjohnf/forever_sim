@@ -439,6 +439,19 @@ where it changes) and updates only its own ux.md subsection.
 - [ ] **S6 Rotation and Talents** at width: the wider row panel, larger talent trees and a talent detail panel
 - [ ] **S7 Ctrl/Cmd+Enter runs Simulate** (no section shortcuts, D34)
 
+## M5.67: Item tooltips 💤 the update after next, before the optimizer
+
+A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
+2026-09-25: its own milestone, shipping in the update after the priority lists and the wide
+layout, ahead of the optimizer). It shows the item as the game does: name in its quality colour,
+slot and type, armor, weapon damage and speed, stats, equip and use effects, set and its bonuses, and
+the item level, plus the enchant on it. On desktop it opens on hover and on keyboard
+focus; on a phone, where nothing hovers (docs/ux.md), a tap on the item's info control or a long
+press opens it, and it closes on a tap outside or Escape.
+- [ ] **T1 Tooltip content:** a pure function from an item (and its enchant) to the tooltip's lines,
+      with tests against the client data, and the tooltip component
+- [ ] **T2 Where it shows:** the gear slots, the item picker and the character sheet, at every width
+
 ## M5.7: The optimizer (D30) 🚧 top priority
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
@@ -726,6 +739,11 @@ slice is worked:
   before the pull), and with Backstab chosen as the builder from the front or without a main-hand
   dagger, the Rotation tab doesn't say that Hemorrhage builds instead
   ([rogue.md §5.3, §6.3](classes/rogue.md#63-subtlety-shipped)).
+- **The Classic Era profile's rogue finishers use Forever's attack-power shares** (rogue guild-test
+  review RG-5, pre-existing): the rogue's abilities aren't split by profile, as the poisons are, so
+  under Classic Era Eviscerate gains the guild-tested 4% of attack power a point (Classic Era sims'
+  3%); Rupture's measured shares match Classic Era sims', so only Eviscerate differs. Low: the Classic Era profile is a comparison, and splitting the
+  rows needs a per-profile ability table ([rogue.md §3.4, §3.5](classes/rogue.md#34-eviscerate-r9-31016)).
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results and details"` opens the phone's results sheet.
 - **Arms tuning findings:** re-measured and adopted in M2.5a. The Arms defaults are now the best

@@ -179,7 +179,7 @@ export const eviscerateOptions = (ids: RogueIds, minCp: number): RotationOption[
     id: ids.eviscerate,
     group: 'Core abilities',
     label: 'Eviscerate',
-    help: 'Spend combo points on Eviscerate: 54–162 plus 170 per point, and a share of your attack power.',
+    help: 'Spend combo points on Eviscerate: 54–162, plus 170 and 4% of your attack power per point.',
     default: true,
   },
   comboPointOption(ids.eviscerateCp, 'Eviscerate at', 'Use it at or above this many combo points, once Slice and Dice is up.', minCp, ids.eviscerate),

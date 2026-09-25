@@ -24,17 +24,8 @@ function ReleaseEntry({ release, divided, latest }: { release: Release; divided:
     <NoteEntry
       divided={divided}
       headingClassName="tabular-nums"
-      heading={
-        <>
-          <time dateTime={time.toISOString()}>{formatReleaseTime(time)}</time>
-          {/* The comma is for screen readers: "…, 2026, Latest". */}
-          {latest && (
-            <Badge variant="secondary">
-              <span className="sr-only">, </span>Latest
-            </Badge>
-          )}
-        </>
-      }
+      heading={<time dateTime={time.toISOString()}>{formatReleaseTime(time)}</time>}
+      label={latest && <Badge variant="secondary">Latest</Badge>}
     >
       {release.groups.map((group) => (
         <section key={group.label} className="flex flex-col gap-1.5">

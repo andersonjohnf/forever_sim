@@ -28,7 +28,9 @@ When a design decision isn't covered here, make it, then add it here.
 7. **Provenance without noise.** Data sources, builds and tags live in an **About** sheet and
    in tooltips on flagged values, not on the main screen.
 8. **Only finished specs ship.** A spec appears in the spec picker only when its sim and UI
-   are complete. Nothing is visibly "coming soon". To see and test one before it ships, a dev
+   are complete. No spec or feature shows in the app as coming soon (no greyed-out entry, no
+   placeholder tab or button); what's planned is listed only in the menu's
+   [Coming soon](#coming-soon) sheet. To see and test one before it ships, a dev
    build, or a browser under automation (the e2e tests, `npm run snap`), offers it too when the
    URL names it: `?preview=<spec id>` (`src/app/preview-specs.ts`). A visitor's browser
    ignores the parameter.
@@ -519,7 +521,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
     order (warrior.md §5.2–§5.4). The spec gives each setting its heading
     (`RotationOption.group`). The few settings that shape the rest (Arms' stance, a tank's
-    priority, a Destruction or Affliction warlock's Demonic Sacrifice) have no heading and come first. A heading holds at least two settings: a spec
+    priority, a Destruction or Affliction warlock's Demonic Sacrifice) have no heading and come first. A heading holds at least two settings, and a
+    fixed row (`rotationFixed`, below) counts as one, since it shows under the heading: each
+    hunter's **Core abilities** holds Auto Shot and Pet, both fixed, and the pet's Claw threshold. A spec
     with only one for a phase files it under another heading, its help naming the phase
     (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
     Cooldowns and buffs).
@@ -1294,7 +1298,7 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   results, the item picker) also have a 44 px close button in the header's corner, as the
   About sheet and the desktop dialogs do.
 - When a sheet or dialog opens, focus moves into it: to its title when the content is long
-  (About, Setups, Release history, What's new, the phone's results, the phone's item picker, so the on-screen keyboard
+  (About, Setups, Release history, Coming soon, What's new, the phone's results, the phone's item picker, so the on-screen keyboard
   doesn't pop up over the list), or to its first field (the desktop item picker's search box).
   When it closes, however it closes, focus goes back to the control that opened it: the item
   picker gives it back to the slot's button after Escape, its close button or a pick. Radix does

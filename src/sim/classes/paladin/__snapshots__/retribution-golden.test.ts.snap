@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
     [
       "handOfJustice",
-      882076.573593058,
+      916751.8514687048,
       1237,
       300,
       359,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
   ],
   "dps": {
-    "ci95": 2.3449594315911657,
-    "mean": 624.3024158301496,
-    "stdev": 37.83443411722723,
+    "ci95": 2.348596857718911,
+    "mean": 624.4960196032757,
+    "stdev": 37.893121682279514,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -119,9 +119,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     "spentPerFight": 10359.602,
   },
   "tps": {
-    "ci95": 1.3141708298820993,
-    "mean": 364.6695828817427,
-    "stdev": 21.20331337596665,
+    "ci95": 1.3161717374064428,
+    "mean": 364.77800099469334,
+    "stdev": 21.235596750631718,
   },
 }
 `;

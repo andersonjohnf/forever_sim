@@ -213,7 +213,7 @@ const REGISTRY = {
     docRef: `${DT}#54-extra-attacks-and-chaining`,
   },
   windfuryIcd: {
-    text: 'Windfury can’t proc again within 100 ms of a proc, the internal cooldown the Forever client gives it; whether the server enforces it is untested.',
+    text: 'Windfury can’t proc again within 100 ms of a proc, the internal cooldown the Forever client gives it; whether the server enforces it is untested. Its +246 attack power lasts 1 s with 2 charges: the extra attack uses one and your next auto attack in that second the other, and your abilities in that second get it without using one; untested.',
     docRef: `${DT}#54-extra-attacks-and-chaining`,
   },
   windfuryStone: {

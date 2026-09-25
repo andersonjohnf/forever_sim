@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "offHand",
-      13249896.286740748,
+      13534910.923311852,
       177507,
       5885,
       49957,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "handOfJustice",
-      582552.0002490144,
+      596073.1628954748,
       2954,
       92,
       833,
@@ -75,7 +75,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "eviscerate",
-      1774319.421006029,
+      1779431.4455783989,
       1370,
       903,
       333,
@@ -85,7 +85,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "hemorrhage",
-      23663478.650264278,
+      23853242.504989535,
       59554,
       37065,
       16727,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
   ],
   "dps": {
-    "ci95": 1.2699170098967165,
-    "mean": 507.89072906563484,
-    "stdev": 20.489306040011805,
+    "ci95": 1.2843158740262428,
+    "mean": 510.63452660396956,
+    "stdev": 20.72162258627368,
   },
   "durationSec": 179.690222,
 }

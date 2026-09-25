@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "offHand",
-      13576212.310137719,
+      13832181.474067457,
       176891,
       11034,
       50032,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "handOfJustice",
-      629011.6683423221,
+      642030.0297013427,
       3099,
       201,
       888,
@@ -65,7 +65,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "eviscerate",
-      18809930.83054195,
+      18863421.802238487,
       11938,
       7238,
       3969,
@@ -75,7 +75,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "mutilate",
-      12111860.342333555,
+      12190229.768644061,
       30591,
       15330,
       13249,
@@ -85,7 +85,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "mutilateOffHand",
-      5697510.648308025,
+      5842672.962859914,
       30591,
       15420,
       13161,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
   ],
   "dps": {
-    "ci95": 1.4122950568429933,
-    "mean": 535.813346744149,
-    "stdev": 22.786485583656702,
+    "ci95": 1.4295488465923496,
+    "mean": 538.8518649494508,
+    "stdev": 23.064864545249897,
   },
   "durationSec": 179.690222,
 }
@@ -118,7 +118,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "offHand",
-      18476507.007173546,
+      18747800.15932539,
       131498,
       6865,
       41111,
@@ -128,7 +128,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "handOfJustice",
-      848106.1682181702,
+      867369.2123686721,
       2397,
       130,
       743,
@@ -138,7 +138,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "hackAndSlash",
-      4032270.4460364897,
+      4121532.9512490425,
       11602,
       629,
       3581,
@@ -148,7 +148,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "windfury",
-      9525390.35107965,
+      9524616.15535514,
       24058,
       1306,
       7594,
@@ -178,7 +178,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "eviscerate",
-      11259388.790503932,
+      11275587.266337123,
       6199,
       4029,
       1889,
@@ -188,7 +188,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "sinisterStrike",
-      27627181.89275722,
+      27728638.538545214,
       50925,
       32690,
       15977,
@@ -198,9 +198,9 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
   ],
   "dps": {
-    "ci95": 1.7137142816340905,
-    "mean": 587.5610794854235,
-    "stdev": 27.649693726360603,
+    "ci95": 1.7323372138883757,
+    "mean": 590.3273612559311,
+    "stdev": 27.95016293446381,
   },
   "durationSec": 179.690222,
 }

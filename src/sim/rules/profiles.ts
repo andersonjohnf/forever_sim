@@ -155,6 +155,13 @@ export interface RulesProfile {
     windfuryAp: number
     /** Windfury Totem's internal cooldown, ms (damage-and-timing §5.4). */
     windfuryIcdMs: number
+    /**
+     * Windfury Attack's attack-power aura (10610): its charges and duration, ms. Each auto attack while
+     * it's up gets the attack power and uses a charge, the extra attack first; abilities get it and
+     * use none (buffs doc, Windfury Totem; warrior.md §2.7; D36).
+     */
+    windfuryApCharges: number
+    windfuryApMs: number
     /** Hand of Justice's chance per landed melee hit against a non-Dwarf target, % (damage-and-timing §5.2). */
     handOfJusticePct: number
     /**
@@ -238,6 +245,9 @@ export const FOREVER: RulesProfile = {
     windfuryAp: 246,
     // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: 10612 ProcCategoryRecovery 100
     windfuryIcdMs: 100,
+    // docs/mechanics/buffs-debuffs-consumables.md#windfury-totem: 10610 ProcCharges 2, DurationIndex 36 (1000 ms)
+    windfuryApCharges: 2,
+    windfuryApMs: 1000,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 3, ÷ 3 unless the target is a Dwarf
     handOfJusticePct: 1,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: equip aura 1301046, ProcChance 6
@@ -307,6 +317,9 @@ export const CLASSIC_ERA: RulesProfile = {
     windfuryAp: 315,
     // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: none in Classic Era
     windfuryIcdMs: 0,
+    // docs/mechanics/buffs-debuffs-consumables.md#windfury-totem: 10610 ProcCharges 2, DurationIndex 65 (1500 ms) (1.15.9)
+    windfuryApCharges: 2,
+    windfuryApMs: 1500,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 2 (1.15.9)
     handOfJusticePct: 2,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: chance on hit (15494), 0.8 PPM

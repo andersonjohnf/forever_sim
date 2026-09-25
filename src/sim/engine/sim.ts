@@ -84,6 +84,8 @@ const EV_STACKING_DOT_TICK = 14
 const EV_SPELL_DOT_TICK = 15
 /** A channel ends, run out or cut off (docs/mechanics/spells.md §6; data = ability index). */
 const EV_CHANNEL_END = 16
+/** Windfury Totem's proc id (effects/buffs.ts `windfuryTotem`), whose attack power is an aura with charges (warrior.md §2.7). */
+export const WINDFURY_TOTEM_PROC = 'windfury'
 /** The mage's rolling Ignite ticks (docs/classes/mage.md#ignite; data = 0). */
 const EV_IGNITE_TICK = 17
 // The ranged and pet core (docs/mechanics/ranged-and-pets.md):
@@ -1290,6 +1292,19 @@ export class Sim {
   private exHead = 0
   private exCount = 0
   private chainMask = 0
+  /**
+   * Windfury Totem's attack-power aura (10610; buffs doc, Windfury Totem; warrior.md §2.7; D36): the
+   * plan's Windfury Attack proc (or −1), the aura's charges and duration from the profile, and its
+   * attack power, charges left and end while it's up. Each auto attack while it's up gets the
+   * attack power and uses a charge (its proc mask is auto attacks, 0x4), the extra attack first; an
+   * ability or an on-next-swing ability's swing gets it and uses none.
+   */
+  private readonly wfProc: number
+  private readonly wfMaxCharges: number
+  private readonly wfMs: number
+  private wfAp = 0
+  private wfCharges = 0
+  private wfEnd = 0
 
   constructor(plan: Plan) {
     this.plan = plan
@@ -1400,6 +1415,10 @@ export class Sim {
     this.bleedProc = new Int32Array(bleeds)
     this.bleedPool = new Float64Array(bleeds)
     this.bleedRolls = plan.profile.combat.deepWoundsRolls
+    // Windfury Totem's proc (effects/buffs.ts `windfuryTotem`), whose attack power is an aura with charges.
+    this.wfProc = procs.findIndex((p) => p.id === WINDFURY_TOTEM_PROC && p.action === ACTION.extraAttacks)
+    this.wfMaxCharges = plan.profile.values.windfuryApCharges
+    this.wfMs = plan.profile.values.windfuryApMs
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
     // docs/mechanics/spells.md §10: a spell proc's schools and spell.
     this.pSchools = Int32Array.from(procs, (p) => p.schools ?? 0)
@@ -2478,6 +2497,8 @@ export class Sim {
     this.exHead = 0
     this.exCount = 0
     this.chainMask = 0
+    this.wfCharges = 0
+    this.wfEnd = 0
     this.gcdEnd = 0
     this.castGcdEnd = 0
     this.swingsStopped = false
@@ -2829,6 +2850,8 @@ export class Sim {
    * (combat-tables §2, damage-and-timing §2, rage.md, threat.md).
    */
   private whiteSwing(hand: number, source: number, bonusAp: number): void {
+    // Windfury's attack-power aura: an auto attack gets it and uses a charge (warrior.md §2.7).
+    if (this.wfCharges > 0) bonusAp += this.windfuryAp(true)
     // Flurry-style charges: every white swing uses one before its own crit can refresh them.
     const charged = this.chargeAuras
     for (let i = 0; i < charged.length; i++) {
@@ -2936,6 +2959,19 @@ export class Sim {
     this.exHead = 0
     this.chainMask = 0
     this.scheduleSwing(HAND.main, this.now + this.swingMs[HAND.main])
+  }
+
+  /**
+   * Windfury Attack's attack power while its aura is up (it lasts `wfMs` from the proc, until its
+   * charges run out), 0 otherwise; `charge`: an auto attack, which uses a charge.
+   */
+  private windfuryAp(charge: boolean): number {
+    if (this.now >= this.wfEnd) {
+      this.wfCharges = 0
+      return 0
+    }
+    if (charge) this.wfCharges--
+    return this.wfAp
   }
 
   private dealDamage(source: number, damage: number): void {
@@ -3527,6 +3563,8 @@ export class Sim {
    * and it neither refunds nor spends rage (warrior.md §3.1).
    */
   private special(a: number, hand: number, bonusAp: number): void {
+    // Windfury's attack-power aura: an ability gets it and uses no charge (warrior.md §2.7).
+    if (this.wfCharges > 0) bonusAp += this.windfuryAp(false)
     const main = hand === HAND.main
     const source = main ? this.abSource[a] : this.abOffSource[a]
     const row = source * FIELD_COUNT
@@ -3872,10 +3910,18 @@ export class Sim {
         // This source is used up for the rest of the root swing's chain (damage-and-timing §5.4).
         this.chainMask |= this.pChainBit[p]
         const n = this.pAmount[p]
+        // Windfury Totem's attack power is an aura with charges (below), not the extra attack's own.
+        let bonusAp = this.pA[p]
+        if (p === this.wfProc) {
+          this.wfAp = bonusAp
+          this.wfCharges = this.wfMaxCharges
+          this.wfEnd = this.now + this.wfMs
+          bonusAp = 0
+        }
         for (let k = 0; k < n && this.exCount < EXTRA_QUEUE; k++) {
           const slot = (this.exHead + this.exCount) % EXTRA_QUEUE
           this.exSource[slot] = this.pSource[p]
-          this.exBonusAp[slot] = this.pA[p]
+          this.exBonusAp[slot] = bonusAp
           this.exMask[slot] = this.chainMask
           this.exCount++
         }

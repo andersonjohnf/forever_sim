@@ -433,6 +433,18 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
   - A queued Heroic Strike fires on the Windfury extra attack.
   - A Weaponmaster extra attack can proc Windfury, and a Windfury extra attack can proc
     Weaponmaster, as long as Weaponmaster's 200 ms internal cooldown is ready.
+  - **The attack power has a second charge** ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). A proc puts Windfury Attack's aura on you
+    (10610: +246 AP, **2 charges**, **1 s** in Forever and 1.5 s in Classic Era, proc mask 0x4,
+    auto attacks) [F] [client] (SpellAuraOptions, SpellMisc, SpellDuration, 1.60.1.70009 and
+    1.15.9.69722). Each auto attack while it's up (a white swing of either hand or an extra
+    attack) gets the attack power and uses a charge: the extra attack first, then the next auto
+    attack within the second, often the off hand's swing. An ability in that second (a Bloodthirst,
+    a Heroic Strike swing) gets the attack power too and uses no charge, since the mask is auto
+    attacks only [?]. An auto attack that misses still uses a charge, as with Flurry's [?]. An
+    extra attack held back by a cast (Slam without Improved Slam, [§7](#7-implementation-notes))
+    past the second gets none. Before D36 the attack power went to the extra attack only.
+    Windfury Weapon's own aura (16361: 3 charges, 1.5 s) isn't changed: its two extra attacks
+    take two charges, and the third isn't simulated ([shaman.md](shaman.md#weapon-imbues)).
 
 ### 2.8 Reactive abilities: Overpower, Bloodthrill, Revenge
 

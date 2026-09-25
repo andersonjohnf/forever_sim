@@ -6,6 +6,9 @@
 // dodge and parry rage, the block's procs after the damage-taken rage (rage.md), R13, R14, rage's
 // fractions of a tenth (rage.md#rounding, R27-R33), and energize threat (threat.md T15, T16).
 import { describe, expect, it } from 'vitest'
+import spellsJson from '@/data/client/spells.json'
+import type { ClientSpells } from '@/data/client/types'
+import { BUFFS_BY_ID } from '../effects/buffs'
 import { BERSERKER_RAGE, BLOODRAGE, EXECUTE, HAMSTRING, HEROIC_STRIKE, MORTAL_STRIKE } from '../classes/warrior/abilities'
 import { armorReduction, damageTakenRage, rageConversion } from '../core/formulas'
 import { defaultConfig } from '../defaults'
@@ -13,7 +16,7 @@ import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { CLASSIC_ERA, FOREVER, type RulesProfile } from '../rules/profiles'
 import type { DamageTakenRageModel, RuleProfileId, SimConfig, SpecId } from '../types'
-import { FIELD, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
+import { FIELD, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim, WINDFURY_TOTEM_PROC } from './sim'
 import { addAbility, addAura, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, rotationOff, setAttackPower, timeline } from './test-helpers'
 
 /** A breakdown row for a test proc. */
@@ -99,6 +102,89 @@ describe('extra attacks (damage-and-timing §5.4)', () => {
     rageAtPull(plan, 100)
     line(plan, addAbility(plan, MORTAL_STRIKE), at(plan, 100))
     expect(timeline(plan).swings[0]).toEqual([0, 0, 100, 3900, 3900])
+  })
+})
+
+describe('Windfury Attack’s attack-power aura: 2 charges (buffs doc, Windfury Totem; warrior.md §2.7; D36)', () => {
+  it('is the client’s 10610: 2 charges, auto attacks only, 1 s in Forever and 1.5 s in Classic Era', () => {
+    const wf = (spellsJson as unknown as ClientSpells).spells['10610']
+    expect(wf.auraOptions).toMatchObject({ procCharges: FOREVER.values.windfuryApCharges, procTypeMask: [4, 0] })
+    expect(wf.duration?.duration).toBe(FOREVER.values.windfuryApMs)
+    expect([FOREVER.values.windfuryApCharges, FOREVER.values.windfuryApMs]).toEqual([2, 1000])
+    expect([CLASSIC_ERA.values.windfuryApCharges, CLASSIC_ERA.values.windfuryApMs]).toEqual([2, 1500])
+    // The engine finds the totem's proc by the buff's proc id.
+    const totem = BUFFS_BY_ID.get('windfuryTotem')!
+    const effects = typeof totem.effects === 'function' ? totem.effects(FOREVER) : totem.effects
+    expect(effects.map((e) => (e.kind === 'proc' ? e.proc.id : null))).toEqual([WINDFURY_TOTEM_PROC])
+  })
+
+  /**
+   * One Windfury Attack (+246 AP) from the first main-hand swing at 0 s, at 1000 AP: 152-damage
+   * one-handers, the main hand every 2.6 s and the off hand every `offSpeedSec` (its first swing
+   * half of that in), against a level-59 target (no glancing) with no armor.
+   */
+  function windfuryPlan(profile: RulesProfile, offSpeedSec: number, durationMs = 2000) {
+    const plan = armsPlan(durationMs, 'warrior-fury')
+    plan.profile = profile
+    alwaysLandNoCrit(plan)
+    plan.fight.targetLevel = 59
+    const mh = plan.weapons[0]!
+    plan.weapons = [
+      { ...mh, min: 152, max: 152, speedSec: 2.6, twoHand: false, normalizedSpeed: 2.4 },
+      { ...mh, min: 152, max: 152, speedSec: offSpeedSec, twoHand: false, normalizedSpeed: 2.4, handMult: 0.5 },
+    ]
+    setAttackPower(plan, 1000)
+    const wf = addProc(plan, { id: WINDFURY_TOTEM_PROC, trigger: TRIGGER.meleeLanded, chance: [1, 1], hands: 1, action: ACTION.extraAttacks, amount: 1, a: 246, b: 0, chainBit: 1, icdMs: 60000, source: row(plan, 'windfury') })
+    return { plan, wf: plan.procs[wf].source }
+  }
+  const mainHand = (ap: number) => 152 + (ap / 14) * 2.6
+  const offHand = (ap: number, speed: number) => (152 + (ap / 14) * speed) * 0.5
+
+  it('the extra attack uses the first charge and the off hand’s swing 0.5 s later the second; the next swing gets none', () => {
+    const { plan, wf } = windfuryPlan(FOREVER, 1)
+    expect(timeline(plan).swings).toEqual([[0, 0], [500, 1500]])
+    expect(damages(plan, SOURCE_MAIN_HAND, 1)).toEqual([mainHand(1000)])
+    expect(damages(plan, wf, 1)[0]).toBeCloseTo(mainHand(1246), 9)
+    const off = damages(plan, SOURCE_OFF_HAND, 1)
+    expect(off[0]).toBeCloseTo(offHand(1246, 1), 9)
+    expect(off[1]).toBeCloseTo(offHand(1000, 1), 9)
+  })
+
+  it('lasts 1 s in `forever` and 1.5 s in `classicEra`: an off-hand swing at 1.2 s gets it only in the latter', () => {
+    const at12 = (profile: RulesProfile) => damages(windfuryPlan(profile, 2.4, 1500).plan, SOURCE_OFF_HAND, 1)
+    expect(at12(FOREVER)[0]).toBeCloseTo(offHand(1000, 2.4), 9)
+    // Classic Era's white damage differs only in the table, and neither glances nor misses here.
+    expect(at12(CLASSIC_ERA)[0]).toBeCloseTo(offHand(1246, 2.4), 9)
+  })
+
+  it('an ability in that second gets it and uses no charge: Mortal Strike at 0.2 s, and the off hand at 0.5 s still gets it', () => {
+    const { plan } = windfuryPlan(FOREVER, 1)
+    rageAtPull(plan, 100)
+    const ms = addAbility(plan, MORTAL_STRIKE)
+    line(plan, ms, at(plan, 200))
+    const plain = windfuryPlan(FOREVER, 1).plan
+    rageAtPull(plain, 100)
+    line(plain, addAbility(plain, MORTAL_STRIKE), at(plain, 200))
+    plain.procs = []
+    plain.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+    // Mortal Strike is normalized (2.4 s): 246 more AP is 246 / 14 × 2.4 more damage.
+    const withWf = damages(plan, plan.abilities[ms].source, 1)
+    const without = damages(plain, plain.abilities[ms].source, 1)
+    expect(withWf).toHaveLength(1)
+    expect(withWf[0] - without[0]).toBeCloseTo((246 / 14) * 2.4, 9)
+    expect(damages(plan, SOURCE_OFF_HAND, 1)[0]).toBeCloseTo(offHand(1246, 1), 9)
+  })
+
+  it('is the same with the same seed', () => {
+    const run = () => {
+      const { plan } = windfuryPlan(FOREVER, 1.6, 60000)
+      plan.procs[0].icdMs = 100
+      plan.procs[0].chance = [0.2, 0.2]
+      const sim = new Sim(plan)
+      sim.runFight(3)
+      return [counter(sim, SOURCE_MAIN_HAND, FIELD.damage), counter(sim, SOURCE_OFF_HAND, FIELD.damage)]
+    }
+    expect(run()).toEqual(run())
   })
 })
 

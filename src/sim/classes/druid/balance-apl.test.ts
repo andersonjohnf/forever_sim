@@ -113,7 +113,7 @@ describe('Balance’s priority list (D31)', () => {
     order = moved('innervate', 'filler', order)
     order = moved('faerieFire', 'filler', order)
     const below = 'Below Wrath for Eclipse: used only while you haven’t the mana for Wrath.'
-    expect(unused({}, order)).toEqual({ [ID.filler]: expect.stringMatching(/^Not used while “Wrath for Eclipse” is on/), [ID.moonfire]: below, [ID.innervate]: below })
+    expect(unused({}, order)).toEqual({ [ID.filler]: expect.stringMatching(/^Not used: Wrath for Eclipse is on\./), [ID.moonfire]: below, [ID.innervate]: below })
     // With Eclipse off, they're below the Filler instead.
     expect(unused({ [ID.eclipse]: false }, order)).toEqual({})
     expect(unused({ [ID.eclipse]: false }, moved('filler', 'moonfire', order))).toEqual({

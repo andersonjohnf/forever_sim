@@ -62,7 +62,8 @@ async function expectRotation(tab: Locator) {
   await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
   // Faerie Fire is a duty that costs a moonkin damage: off by default.
   await expect(list.getByRole('switch', { name: 'Faerie Fire', exact: true })).not.toBeChecked()
-  await expect(row('filler')).toContainText('Not used while “Wrath for Eclipse” is on')
+  await expect(row('filler')).toContainText('Not used: Wrath for Eclipse is on.')
+  await expect(row('filler')).toHaveAttribute('data-inactive')
   await expect(row('prepull')).toContainText('Moonkin Form')
   // The thresholds are their rows' own.
   await expect(row('innervate')).toContainText(/^Innervate yourselfAt or below \d+% mana$/)

@@ -141,3 +141,17 @@ for (const spec of SPECS) {
     })
   })
 }
+
+test('dims a row without a switch while its choice does nothing: the Shock at None (docs/ux.md "Rotation")', async ({ page }) => {
+  const list = await openRotation(page, SPECS[0])
+  const shock = list.locator('[data-apl-row="shock"]')
+  await expect(shock).toContainText('Earth Shock')
+  await expect(shock).not.toHaveAttribute('data-inactive')
+  // Its settings sit in the panel beside the list at the tests' 1280 px.
+  await page.locator('#apl-shock-select').click()
+  await page.getByRole('complementary').getByRole('radio', { name: 'None', exact: true }).click()
+  await expect(page.locator('#apl-shock-summary')).toHaveText('None')
+  await expect(shock).toHaveAttribute('data-inactive')
+  await page.getByRole('complementary').getByRole('radio', { name: 'Frost Shock', exact: true }).click()
+  await expect(shock).not.toHaveAttribute('data-inactive')
+})

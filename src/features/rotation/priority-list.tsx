@@ -49,7 +49,7 @@ import {
 } from '@/sim'
 import { APL_PRESET_TRIGGER_ID, hasNamedPresets, INACTIVE_SWITCH, type RowContext } from './ids'
 import { ImmediateKeyboardSensor } from './keyboard-sensor'
-import { aplRowChanged, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
+import { aplRowChanged, aplRowIdle, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
 /** Element ids of a list row's parts. */
@@ -388,7 +388,8 @@ function StretchRows({ stretch, render }: { stretch: { pinned?: AplRow; rows: Ap
 /**
  * A row on the list: its handle (a lock for a pinned row), then a button with its icon, name and
  * summary that selects it, then its switch. Each is a 44 px target. A row with a changed setting
- * shows a dot after its name; a row that's off, or can't apply, is dimmed by colour.
+ * shows a dot after its name; a row that's off, or can't apply, or without a switch does nothing,
+ * is dimmed by colour.
  */
 function ListRow({
   row,
@@ -414,7 +415,8 @@ function ListRow({
   const state = row.enabledId === undefined ? undefined : ctx.rows.get(row.enabledId)
   const locked = state?.missingBuff !== undefined || state?.unmet !== undefined
   const off = state !== undefined && !state.on
-  const dim = off || state?.inactive === true
+  // A row without a switch is dimmed while it does nothing: the Shock at None (aplRowIdle).
+  const dim = off || state?.inactive === true || aplRowIdle(row, options, ctx.rows, ctx.setup)
   const note = aplRowNote(row, ctx.rows)
   const summary = note ?? aplRowSummary(row, options, ctx.rows, ctx.setup)
   const changed = aplRowChanged(row, ctx.rows)

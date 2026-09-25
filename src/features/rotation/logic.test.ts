@@ -3,7 +3,7 @@
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
 import { defaultAplOrder, defaultConfig, getSpec, moveAplRow, normalizeConfig, type SimConfig, specs, unusedRotationSettings } from '@/sim'
-import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, UNIT_SINGULAR, unitFor, withRotationOrder } from './logic'
+import { aplRowChanged, aplRowIdle, aplRowNote, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, UNIT_SINGULAR, unitFor, withRotationOrder } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
@@ -356,6 +356,16 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(summary('berserkerRage')).toBe('Off')
   })
 
+  it('reads the warrior’s on-use trinkets as on cooldown unless they wait for Death Wish, as every spec’s do (UA-4)', () => {
+    expect(summary('trinkets')).toBe('With Death Wish')
+    expect(summary('trinkets', { 'warrior.fury.cooldowns.syncWithDeathWish': false })).toBe('On cooldown')
+    expect(summary('trinkets', { 'warrior.fury.deathWish.enabled': false })).toBe('On cooldown')
+    // The default Arms build hasn't the Death Wish talent, so Death Wish is off and nothing waits for it.
+    const arms = defaultConfig('warrior-arms')
+    const armsRow = getSpec('warrior-arms').rotationApl!.rows.find((r) => r.id === 'trinkets')!
+    expect(aplRowSummary(armsRow, getSpec('warrior-arms').rotationOptions, rows(arms))).toBe('On cooldown')
+  })
+
   it('reads a warlock’s filler as Shadow Bolt while Incinerate isn’t talented, whatever its choice says (issue #17)', () => {
     const filler = (config: SimConfig) => {
       const apl = getSpec(config.spec).rotationApl!
@@ -478,6 +488,51 @@ describe('a summary part a choice or the setup rules out (choiceIs, choiceIsNot,
     expect(summaryOf({ ...mm, talents: '' }, 'prepull')).toBe('Aspect of the Hawk')
     // Without the setup to read, the part is left out rather than guessed.
     expect(summaryOf(mm, 'prepull', {}, null)).toBe('Aspect of the Hawk')
+  })
+
+  it('dims a row without a switch that does nothing: a choice of nothing, a summary of None (UA-5)', () => {
+    const idle = (config: SimConfig, id: string, rotation: SimConfig['rotation'] = {}) => {
+      const row = getSpec(config.spec).rotationApl!.rows.find((r) => r.id === id)!
+      return aplRowIdle(row, getSpec(config.spec).rotationOptions, rows(config, rotation), config)
+    }
+    const use = 'shaman.elemental.chainLightning.use'
+    expect(idle(ele, 'chainLightning')).toBe(false)
+    expect(idle(ele, 'chainLightning', { [use]: 'cooldown' })).toBe(false)
+    expect(idle(ele, 'chainLightning', { [use]: 'never' })).toBe(true)
+    // With Clearcasting but without Elemental Focus it's never cast, and reads None.
+    expect(idle({ ...ele, talents: '' }, 'chainLightning')).toBe(true)
+    expect(idle(enh, 'shock')).toBe(false)
+    expect(idle(enh, 'shock', { 'shaman.enhancement.shock.spell': 'none' })).toBe(true)
+    expect(idle(mm, 'sharedShot', { [shot]: 'none' })).toBe(true)
+    const destro = defaultConfig('warlock-destruction')
+    expect(idle(destro, 'bane')).toBe(false)
+    expect(idle(destro, 'bane', { 'warlock.destruction.bane.spell': 'none' })).toBe(true)
+    // The pre-pull with every part off reads None.
+    const fury = defaultConfig('warrior-fury')
+    expect(idle(fury, 'prepull')).toBe(false)
+    expect(idle(fury, 'prepull', { 'warrior.fury.battleShout.enabled': false, 'warrior.fury.prepull.bloodrage': false })).toBe(true)
+    // A row with a switch dims by its switch, never by this.
+    expect(idle(enh, 'stormstrike')).toBe(false)
+  })
+
+  it('says why Balance’s Filler does nothing under Wrath for Eclipse, in place of its summary, and dims it; a warlock’s untalented filler still casts (UA-5)', () => {
+    const state = (config: SimConfig) => {
+      const options = getSpec(config.spec).rotationOptions
+      const apl = getSpec(config.spec).rotationApl!
+      const r = rotationRows(config, options, config.buffs.enabled, unusedRotationSettings(config))
+      const filler = apl.rows.find((row) => row.id === 'filler')!
+      return { note: aplRowNote(filler, r), idle: aplRowIdle(filler, options, r, config), summary: aplRowSummary(filler, options, r, config) }
+    }
+    const balance = defaultConfig('druid-balance')
+    const note = 'Not used: Wrath for Eclipse is on. Starfire and Wrath already take turns. Turn Wrath for Eclipse off to cast only the filler.'
+    expect(state(balance)).toMatchObject({ note, idle: true })
+    // Eclipse off, or the Filler moved above it: the filler casts.
+    expect(state({ ...balance, rotation: { 'druid.balance.eclipse.enabled': false } })).toEqual({ note: undefined, idle: false, summary: 'Starfire' })
+    const apl = getSpec('druid-balance').rotationApl!
+    const above = moveAplRow(apl, defaultAplOrder(apl), 'filler', defaultAplOrder(apl).indexOf('eclipse'))!
+    expect(state({ ...balance, rotationOrder: above })).toEqual({ note: undefined, idle: false, summary: 'Starfire' })
+    // Affliction's filler choice is unused without Incinerate, but the row casts Shadow Bolt: no note, not dimmed.
+    expect(state(defaultConfig('warlock-affliction'))).toEqual({ note: undefined, idle: false, summary: 'Shadow Bolt' })
   })
 
   it('says None for Chain Lightning with Clearcasting without Elemental Focus, which never casts it', () => {

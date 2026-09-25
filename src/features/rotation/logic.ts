@@ -185,20 +185,17 @@ export function formatSetting(option: RotationOption, value: RotationValue): str
 export const groupsThousands = (option: RotationOption) => option.kind === 'number' && option.max >= 1000
 
 /**
- * A priority-list row's one-line summary (docs/ux.md "Rotation"): "Off" while its switch is off;
- * otherwise its summary parts that apply ("From 40 rage · cancel below 20 rage"), a setting that
- * can't apply (its own switch is off) left out, and so is one a choice rules out (`choiceIs`,
- * `choiceIsNot`: no "between Auto Shots" with Neither) or the setup lacks what it `requires` (the
- * hunter's Trueshot Aura without its talent; without `setup`, such a part is left out); "None" for
- * a row without a switch that does nothing (the pre-pull with every part off).
+ * The parts of a priority-list row's summary that apply (`aplRowSummary`): a setting that can't
+ * apply (its own switch is off) left out, or read as its `inactiveText`, and so is one a choice rules
+ * out (`choiceIs`, `choiceIsNot`: no "between Auto Shots" with Neither) or the setup lacks what it
+ * `requires` (the hunter's Trueshot Aura without its talent; without `setup`, such a part is left out).
  */
-export function aplRowSummary(
+function summaryParts(
   row: AplRow,
   options: readonly RotationOption[],
   rows: ReadonlyMap<string, RowState>,
   setup?: Pick<SimConfig, 'spec' | 'talents' | 'gear'>,
-): string {
-  if (row.enabledId !== undefined && !rows.get(row.enabledId)?.on) return 'Off'
+): string[] {
   const byId = new Map(options.map((o) => [o.id, o]))
   const choiceIn = (choice: { option: string; values: readonly string[] }) => choice.values.includes(String(rows.get(choice.option)?.value))
   const parts: string[] = []
@@ -230,19 +227,75 @@ export function aplRowSummary(
       parts.push(part.text.replace('{}', formatSetting(option, state.value)))
     }
   }
-  const text = parts.join(' · ')
+  return parts
+}
+
+/**
+ * A priority-list row's one-line summary (docs/ux.md "Rotation"): "Off" while its switch is off;
+ * otherwise its summary parts that apply ("From 40 rage · cancel below 20 rage", `summaryParts`);
+ * "None" for a row without a switch that does nothing (the pre-pull with every part off).
+ */
+export function aplRowSummary(
+  row: AplRow,
+  options: readonly RotationOption[],
+  rows: ReadonlyMap<string, RowState>,
+  setup?: Pick<SimConfig, 'spec' | 'talents' | 'gear'>,
+): string {
+  if (row.enabledId !== undefined && !rows.get(row.enabledId)?.on) return 'Off'
+  const text = summaryParts(row, options, rows, setup).join(' · ')
   if (text === '') return row.enabledId === undefined ? 'None' : ''
   return text[0].toUpperCase() + text.slice(1)
+}
+
+/**
+ * The choice values that leave a row without a switch doing nothing while its lead setting is at
+ * one: the Shock at None, Chain Lightning at Never, a warlock's Bane at None, the hunter's Neither.
+ */
+const NOTHING_CHOICES: readonly string[] = ['none', 'never']
+
+/**
+ * Why a row without a switch does nothing, in its lead setting's (its first's) note: the setup
+ * leaves that setting unused, and no part of the summary says what the row does instead (a
+ * warlock's filler without Incinerate still casts Shadow Bolt). Balance's Filler under Wrath for
+ * Eclipse: "Not used: Wrath for Eclipse is on. …".
+ */
+function switchlessNote(row: AplRow, rows: ReadonlyMap<string, RowState>): string | undefined {
+  const lead = row.optionIds[0]
+  const notUsed = lead === undefined ? undefined : rows.get(lead)?.notUsed
+  if (notUsed === undefined || row.summary?.some((p) => p.option === lead && p.inactiveText !== undefined)) return undefined
+  return notUsed
+}
+
+/**
+ * Whether a row without a switch does nothing, so the list dims it as it does a row that's off
+ * (docs/ux.md "Rotation"): its note says why (`aplRowNote`: Balance's Filler under Wrath for
+ * Eclipse), its lead setting is a choice of nothing (`NOTHING_CHOICES`: the Shock at None), or no
+ * part of its summary applies (it reads "None": the pre-pull with every part off). False for a row
+ * with a switch, which dims itself by its switch.
+ */
+export function aplRowIdle(
+  row: AplRow,
+  options: readonly RotationOption[],
+  rows: ReadonlyMap<string, RowState>,
+  setup?: Pick<SimConfig, 'spec' | 'talents' | 'gear'>,
+): boolean {
+  if (row.enabledId !== undefined) return false
+  if (switchlessNote(row, rows) !== undefined) return true
+  const lead = options.find((o) => o.id === row.optionIds[0])
+  if (lead?.kind === 'choice' && NOTHING_CHOICES.includes(String(rows.get(lead.id)?.value))) return true
+  return summaryParts(row, options, rows, setup).length === 0
 }
 
 /**
  * What a priority-list row says in place of its summary when it's on but can't do anything
  * (docs/ux.md "Rotation"): the setup leaves it unused, it needs a consumable, a talent or a shield,
  * an execute phase or another creature type (the Fight tab), or a switch it depends on is off
- * ("Not used: Bloodthirst is off."). Undefined while it can apply, or while it's off.
+ * ("Not used: Bloodthirst is off."). A row without a switch says why the setup leaves it nothing to
+ * do (`switchlessNote`). Undefined while it can apply, or while it's off.
  */
 export function aplRowNote(row: AplRow, rows: ReadonlyMap<string, RowState>): string | undefined {
-  const state = row.enabledId === undefined ? undefined : rows.get(row.enabledId)
+  if (row.enabledId === undefined) return switchlessNote(row, rows)
+  const state = rows.get(row.enabledId)
   if (!state) return undefined
   if (state.notUsed !== undefined) return state.notUsed
   if (state.missingBuff) return `Not used: turn on ${state.missingBuff.name} in Buffs first.`

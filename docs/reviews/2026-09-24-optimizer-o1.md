@@ -375,3 +375,59 @@ Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run s
 passed; `npm test` 2,859 passed, the one-core Fury benchmark failing only under the machine's load
 (load average 23) and passing rerun alone; `scrape:check` matches. No UI changed, so no e2e run or
 screenshots.
+
+## Goals review (OG)
+
+A fresh logic review of the goals change (`9a98bacc` and its log), briefed with the user's words:
+"run all the possible iterations of talents, or gear, or rotation, and find the best outcome
+objectively". Its probes and logs are in the O1 worktree's `.cache/probes/o1-goals-review/`
+(`pair.mjs`, `partial.mjs`, `vt/pool-share.test.ts`); the fixes' probes and demo logs are in this
+worktree's `.cache/probes/og/`.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| OG-1 | medium | introduced | A constraint that can't bind still cost search space: the tanks' effective-health floor, on by default, never binds in a talent search (no candidate was left out), yet it made the talents it reads (Toughness, Sacred Duty, Heart of the Wild, Thick Hide) dimensions. The paladin's Balanced space was 23,841 builds against 1,254 without the floor, with the same leader. | fixed, `c0bf4b2f`: the space is built with those talents as fillers first, and only if some build in it (with any rotation variant) misses a sheet constraint is it rebuilt with them as dimensions. That's exact rather than the start build's sheet alone: the extra builds only give up objective points or tie-break for a limit every build already meets. The report's `space.notBinding` and the CLI name them. The floor binds in none of the default searches now; optimizer.md's space table is redone (`1fc0a868`). Test: a floor at half the bear's effective health gives the space with no constraint; the whole default's makes its two talents dimensions |
+| OG-2 | medium | introduced | Partial ranks were never searched by default: a talent whose max rank screens below zero never got points, so the warrior's Balanced search missed Booming Voice 3 with Boundless Rage 2, +0.42 ± 0.13 points over its leader, paired. | fixed, `52a3e29a` and `1fc0a868`: partial ranks are the default search (every rank of one talent a build; the fill still gives leftover points to the others' partial ranks), the choice that keeps "every legal build that could win" true without trusting a 400-fight screen to tell a rank curve from noise (optimizer.md says so, with the remaining limits: two partial ranks the fill wouldn't give, and a harmful talent's ranks). `--partials` becomes `--no-partials`. A space that passes the 200,000-build limit, or that the budget can't race at 50 fights a plan, races max ranks instead, with a note: the paladin's Defense space is 135,311 builds with partial ranks, and raced on `quick` at 20 fights each its leader took 0.75 ± 0.45 more damage a second than the max-rank search's (fresh seed, 20,000 fights). Tests: every rank of a talent screened below zero races; the fallbacks and their notes |
+| OG-3 | low | introduced | Maximality could shadow a high-value partial rank with a cheap raise of a low-value talent (`partial.mjs`: with 4 points outside Protection, Improved Rend 3 at 0.01 a point dropped Deflection 4 at 1 a point). | fixed, `52a3e29a`: a raise dominates only when it fits in the points the fill gives to fillers, not those it gives to objective partial ranks; the last tree's enumeration widens by the most a partial rank holds (a fill that gives more tops a talent up to max, the same build as that core). Not moot under OG-2: a searched partial beside a filled one still hit it. It grows the spaces (the warrior's Balanced 2,819 → 3,985 with partial ranks). Test: the toy keeps Deflection 4 with and without partial ranks, and a raise that fits in filler points still dominates |
+| OG-4 | low | introduced | Every goal but Defense read both DPS and TPS, so for DPS a talent that only adds threat (Iron Creed for Retribution) was objective, with an effect of 0 ± 0. | fixed, `e37efc3c`: `scoreReads` is DPS for DPS, TPS for TPS, both for Balanced, damage taken for Defense. Tests: each goal's reads, and Iron Creed is `none` for Retribution's DPS and objective for its TPS |
+| OG-5 | low | introduced (latent) | A cancelled run's `abandon` terminated every worker busy with its chunks and rejected all their jobs, the optimizer's (planId 0) included (`vt/pool-share.test.ts`). | fixed, `d213ba4f`: the optimizer's jobs on such a worker are sent again, to the worker that replaces it and the others, so AR-6's reason for terminating still holds. Tests: the repro (the search's job finishes on the replacement, with its plan), and a worker running only search jobs is left alone |
+| OG-6 | low | introduced (latent) | `fightRunner()` didn't count as a run, so searches whose workers failed to start never reached AR-10's fallback, and there was no local runner to fall back to. | fixed, `d213ba4f`: making a runner counts as a run, and `optimizerRunner()` (`src/sim/index.ts`) returns the pool's runner or `localFightRunner` when the pool is unsupported or `unstartable`, as `executorFor` does for runs. O3 calls it. Tests: two searches whose workers fail to start make the pool unstartable; after that the module's runner runs fights on this thread |
+| OG-7 | low | introduced | No tests for the worker handler's `fights` message, or for a cancel beside optimizer jobs. | fixed, `d213ba4f`: the handler builds an engine from the plan sent, reuses it by key (the same fights), transfers the three buffers, answers a missing or bad plan with an error and runs the next job, and keeps its engines apart from a run's plan; the cancel tests are OG-5's |
+| OG-8 | medium | pre-existing | Shield Slam's "very high" threat (the warrior's TPS search drops Shield Slam as harmful). | routed to the 70009 warrior slice, which owns warrior threat; nothing here changes it |
+| OG-9 | low | introduced | optimizer.md and this log called maximality "the one pruning rule", but harmful talents are pruned too (never taken, not even to fill a tier gate), and the tank tree's 31 points is a default constraint. | fixed, `52a3e29a`: optimizer.md's "What the space leaves out, and why" names all three, and the code's header comment says so; the log's earlier line stands as the record of what it said then |
+
+### The numbers after these fixes
+
+`quick`, seed 1, 8 threads, default constraints (the tanks' 31 points and effective-health floor);
+before is the goals change's code (`3ddfdc42`), from the review's logs and this worktree's
+`before-*.log`. Paired checks are `pair.mjs` on seed 2654435770, 20,000 fights.
+
+| Spec | Goal | Space before → after | Answer before | Answer after |
+| --- | --- | --- | --- | --- |
+| Protection warrior | Balanced | 2,087 (Toughness a dimension) → 3,985 (every rank of one talent; the floor doesn't bind) | `-55050000005-502300233300010531` (Booming Voice 5), +10.31 (+10.17 to +10.45) | `-35050002005-502300233300010531` (Booming Voice 3, Boundless Rage 2), the review's partial build: +10.71 (+10.66 to +10.76), separated after 12 rounds; on `standard` the same build, +10.70 |
+| Protection paladin | Balanced | 23,841 (Toughness and Sacred Duty dimensions) → 26,762 | `050003-0530510301301531-05205`, +8.04 | `050003-0530410301301541-05205` (Anticipation 4, Iron Creed 4: two partial ranks), +8.97 (+7.79 to +10.15), separated after 3 rounds at 200 fights; paired against the old answer **+0.30 ± 0.09** points |
+| Feral bear | Balanced | 303 (Heart of the Wild and Thick Hide dimensions) → 502 | `050022-5003032022132210051-505`, +6.61 | `050022-5003032023132210051-504` (Shredding Attacks 3, Naturalist 4), +7.42 (+6.88 to +7.95); paired against the old answer **+0.90 ± 0.15** points |
+| Protection warrior | TPS | 700 (Toughness a dimension) → 918 | `30305013-05-50240023330100053`, +65.2 TPS | `30305013002-03-50240023330100053` (Impale 2, Cruelty 5→3), +71.9 TPS (+69.7 to +74.1) |
+| Protection warrior | Defense | 222 → 2,326 | `3502-05-052531033331010501`, 32.4 less taken a second | `3501-05-052531033331110501`, 32.1 less; the budget ended with the old answer 0.01 behind (they differ in Improved Charge and Improved Shield Wall, which the model barely measures) |
+| Protection paladin | Defense | 15,135 → 9,006 max ranks (135,311 with partial ranks, `thorough` only) | 63.5 less taken a second | `255-5530513300001051-5002`, 64.4 less; the budget ended with 48 unseparated |
+| Fury warrior | DPS | 288 → 3,310 | `3200521-250500035152310051-`, +27.5 DPS | the same build, +27.2 DPS |
+
+**For the reviewers:**
+- **OG-1's check is exact only under maximality's own assumption** (talents' effects add up): a
+  build the dimensions would add is matched by a filler-space build with at least its objective
+  points. It costs one sheet a candidate, which the race's filter needed anyway (cached).
+- **OG-3's widened enumeration** assumes a fill that gives more than a talent's ranks less one to
+  objective talents is the same build as a core with that talent at max. A tier gate that makes the
+  fill skip a talent and come back could make one that isn't; such a build is left out.
+- **The budget fallback makes the space depend on the budget:** `quick` and `standard` race the
+  paladin's Defense at max ranks, `thorough` at every rank. The note says so.
+- **Test cost:** the optimize tests about other rules search max ranks only (`searchPartials:
+  false`); with partial ranks they took 40–60 s each.
+- **The paladin's Balanced answer on `quick`** separated at 200 fights over 26,762 builds; the
+  paired check on a fresh seed backs it (+0.30 ± 0.09 over the old answer), but O4's `thorough`
+  run and `--confirm` should decide it.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run src/worker` 197
+passed; `npm test` 2,863 passed and 6 skipped, the one-core Fury and Retribution benchmarks
+failing only under the machine's load (load average 16) and passing rerun alone. No UI changed, so
+no e2e run or screenshots.

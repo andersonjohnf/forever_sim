@@ -23,9 +23,6 @@ agent, for a verification pass by a fresh reviewer (D25). Probes: the review's
 | TM2-6 | — | pre-existing | The unit tests the class slices own fail on `build-70009` (25 tests in 12 files: client data, the paladin, bear, Balance, shaman and warrior data and goldens). | tracked by the class slices; the fix round adds no failure (the same 25, in the same files, before and after) |
 | TM2-7 | low | introduced | A tab of the old app, still open or cached, that loads a version-2 automatic save refuses it as a newer version and resets the specs. | waived: code shipped now can't change what an already-loaded old tab does. The release notes' draft asks players with the sim open in an old tab to reload it |
 | TM2-8 | low | introduced | No test reached the "now N ranks" refund branch (a lowered max rank), nor a talent refunded twice in one notice. | fixed in `61cb9eda`: synthetic tests in `talent-trees.test.ts` ("mapByName: branches no build has needed yet") lower Unbridled Wrath to 3 ranks; the notice names a talent refunded for its ranks and then its row once, and `follow-defaults.test.ts` names Improved Holy Strike once across two specs |
-| TM2-9 | — | — | Not in the fix round's brief. | for the lead to record |
-| TM2-10 | — | — | Not in the fix round's brief. | for the lead to record |
-| TM2-11 | — | — | Not in the fix round's brief. | for the lead to record |
 | TM2-12 | — | pre-existing | Environment: a nested `node_modules` symlink broke Playwright and made Vite load React twice. | fixed by the lead (the environment, not the repo) |
 
 ## Checks
@@ -35,3 +32,5 @@ setup-store, load-notice and paste test passes; the only failures are TM2-6's 25
 port: follow-defaults, share-links, share-link-refusals, setups, setups-transfer, setup-talents,
 paladin-protection, paladin-protection-rotation, retribution, notices, whats-new, setup-defaults and
 shell-sharing, all passing.
+
+TM2-9 to TM2-11 were not used by the review (its ids skip from TM2-8 to TM2-12).

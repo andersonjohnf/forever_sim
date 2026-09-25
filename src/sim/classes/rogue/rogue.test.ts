@@ -80,9 +80,10 @@ describe('rows against the Forever client (rogue.md §3)', () => {
     expect(SINISTER_STRIKE.normalized).toBe(true)
     expect(SINISTER_STRIKE.flatDamage).toBe(effect(11294, 0).effectBasePointsF)
     expect(effect(11294, 1).effect).toBe(30) // ENERGIZE combo points
-    expect(BACKSTAB.costTenths).toBe(10 * energyCost(25300))
-    expect(BACKSTAB.flatDamage).toBe(effect(25300, 0).effectBasePointsF)
-    expect(BACKSTAB.weaponPercent).toBe(effect(25300, 1).effectBasePointsF! / 100)
+    // Rank 8, the trainer's (rank 9, 25300, is an Ahn'Qiraj book: D36).
+    expect(BACKSTAB.costTenths).toBe(10 * energyCost(11281))
+    expect(BACKSTAB.flatDamage).toBe(effect(11281, 0).effectBasePointsF)
+    expect(BACKSTAB.weaponPercent).toBe(effect(11281, 1).effectBasePointsF! / 100)
     expect(BACKSTAB.behindOnly).toBe(true)
   })
 
@@ -157,7 +158,7 @@ describe('rows against the Forever client (rogue.md §3)', () => {
     expect(VENOM.aura!.mods.poisonChance).toBe(effect(1310703, 3).effectBasePointsF)
   })
 
-  it('the poisons: Instant Poison VI’s 20% for 76–100, Deadly Poison V’s 30% for 23 a stack, 5 stacks, every 3 s for 12 s', () => {
+  it('the poisons: Instant Poison VI’s 20% for 76–100, Deadly Poison IV’s 30% for 18 a stack, 5 stacks, every 3 s for 12 s', () => {
     const instant = catalogueEffects(BUFFS_BY_ID.get('instantPoisonMainHand')!, FOREVER)[0]
     const deadly = catalogueEffects(BUFFS_BY_ID.get('deadlyPoisonOffHand')!, FOREVER)[0]
     if (instant.kind !== 'tempEnchant' || deadly.kind !== 'tempEnchant') throw new Error('poisons are temporary enchants')
@@ -165,20 +166,20 @@ describe('rows against the Forever client (rogue.md §3)', () => {
     const ip = instant.proc!
     const dp = deadly.proc!
     expect(consumables['8928'].effects[0].spellId).toBe(11340)
-    expect(consumables['20844'].effects[0].spellId).toBe(25351)
+    expect(consumables['8985'].effects[0].spellId).toBe(11356)
     expect('pct' in ip.chance && ip.chance.pct).toBe(spell(11340).auraOptions!.procChance)
-    expect('pct' in dp.chance && dp.chance.pct).toBe(spell(25351).auraOptions!.procChance)
+    expect('pct' in dp.chance && dp.chance.pct).toBe(spell(11356).auraOptions!.procChance)
     const hit = effect(11337, 0)
     if (ip.action.kind !== 'spellDamage' || dp.action.kind !== 'stackingDot') throw new Error('poison actions')
     expect([ip.action.min, ip.action.max]).toEqual([Math.round(hit.effectBasePointsF! * (1 - hit.variance! / 2)), Math.round(hit.effectBasePointsF! * (1 + hit.variance! / 2))])
-    const tick = effect(25349, 0)
+    const tick = effect(11354, 0)
     expect([dp.action.tick, dp.action.periodMs, dp.action.durationMs, dp.action.maxStacks]).toEqual([
       tick.effectBasePointsF,
       tick.effectAuraPeriod,
-      spell(25349).duration!.duration,
-      spell(25349).auraOptions!.cumulativeAura,
+      spell(11354).duration!.duration,
+      spell(11354).auraOptions!.cumulativeAura,
     ])
-    expect(dp.action.periodicCanCrit).toBe(((spell(25349).misc!.attributes![8] ?? 0) & 0x200) !== 0)
+    expect(dp.action.periodicCanCrit).toBe(((spell(11354).misc!.attributes![8] ?? 0) & 0x200) !== 0)
     expect([ip.poison, dp.poison]).toEqual([true, true])
   })
 })
@@ -271,7 +272,7 @@ describe('talents against the client’s curves (rogue.md §5)', () => {
       [EXPOSE_ARMOR, 11198],
       [VENOM, 1310703],
       [SINISTER_STRIKE, 11294],
-      [BACKSTAB, 25300],
+      [BACKSTAB, 11281],
       [MUTILATE, 1241584],
     ]
     for (const [def, id] of rows) {
@@ -323,9 +324,9 @@ describe('worked examples (rogue.md §9)', () => {
     expect(plan.abilities.find((a) => a.id === 'sinisterStrike')!.critMultiplier).toBeCloseTo(2.2, 12)
   })
 
-  it('R2: Backstab with Aggression 3/3 and Opportunity 2/2, a 60–110 dagger at 1,000 AP: 623.4', () => {
+  it('R2: Backstab rank 8 with Aggression 3/3 and Opportunity 2/2, a 60–110 dagger at 1,000 AP: 605.9', () => {
     const bs = withRogueTalents(BACKSTAB, ranks([['Aggression', 3], ['Opportunity', 2]]))
-    expect(bs.weaponPercent * (85 + (1000 / 14) * 1.7 + bs.flatDamage)).toBeCloseTo(623.39, 1)
+    expect(bs.weaponPercent * (85 + (1000 / 14) * 1.7 + bs.flatDamage)).toBeCloseTo(605.9, 1)
   })
 
   it('R3: a 5-point Eviscerate at 1,000 AP, 1,404.3 to 1,541.7 (1,473.0 on average)', () => {
@@ -472,7 +473,7 @@ describe('worked examples (rogue.md §9)', () => {
     expect(JSON.stringify(classic)).not.toContain('apCoefficient')
   })
 
-  it('R10: Deadly Poison at 5 stacks ticks 115 every 3 s, before resists', () => {
+  it('R10: Deadly Poison IV at 5 stacks ticks 90 every 3 s, before resists', () => {
     const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } })
     const deadly = buildPlan({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } }).plan.procs.find((p) => p.id === 'deadlyPoison')!
     // Every main-hand hit applies it, and nothing crits.
@@ -485,17 +486,17 @@ describe('worked examples (rogue.md §9)', () => {
     setAttackPower(plan, 0)
     const ticks = damages(plan, row(plan, 'deadlyPoison'), 3)
     const top = Math.max(...ticks)
-    // 5 stacks × 23, less the boss's average partial resist (level 63: about 6%).
-    expect(top).toBeGreaterThan(115 * 0.9)
-    expect(top).toBeLessThan(115)
+    // 5 stacks × 18, less the boss's average partial resist (level 63: about 6%).
+    expect(top).toBeGreaterThan(90 * 0.9)
+    expect(top).toBeLessThan(90)
     for (const t of ticks) expect([1, 2, 3, 4, 5].some((k) => Math.abs(t - (k * top) / 5) < 1e-6)).toBe(true)
     expect(ticks.filter((t) => Math.abs(t - top) < 1e-6).length).toBeGreaterThan(ticks.length / 2)
   })
 
-  it('R10b: the guild’s 0.1125% of attack power per stack a tick: Deadly Poison at 5 stacks and 2,000 AP ticks 126.25, before resists', () => {
-    // docs/classes/rogue.md#42-deadly-poison-v: guild in-game test, 2026-09-25 (0.45% over its 4 ticks).
+  it('R10b: the guild’s 0.1125% of attack power per stack a tick: Deadly Poison at 5 stacks and 2,000 AP ticks 101.25, before resists', () => {
+    // docs/classes/rogue.md#42-deadly-poison-iv: guild in-game test, 2026-09-25 (0.45% over its 4 ticks).
     expect(DEADLY_POISON_AP_PER_TICK * 4).toBeCloseTo(0.0045, 12)
-    expect(5 * (23 + DEADLY_POISON_AP_PER_TICK * 2000)).toBeCloseTo(126.25, 9)
+    expect(5 * (18 + DEADLY_POISON_AP_PER_TICK * 2000)).toBeCloseTo(101.25, 9)
     const deadlyOnly = (ap: number) => {
       const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } })
       const deadly = buildPlan({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } }).plan.procs.find((p) => p.id === 'deadlyPoison')!
@@ -511,10 +512,10 @@ describe('worked examples (rogue.md §9)', () => {
     const base = deadlyOnly(0)
     const withAp = deadlyOnly(2000)
     expect(withAp.length).toBe(base.length)
-    // Tick for tick (the same stacks): 23 + 2.25 a stack in place of 23.
-    for (let i = 0; i < base.length; i++) expect(withAp[i] / base[i]).toBeCloseTo(25.25 / 23, 9)
-    // 5 stacks: 126.25 × the resist and school multipliers, which the AP-less 115 shows.
-    expect(Math.max(...withAp)).toBeCloseTo((Math.max(...base) / 115) * 126.25, 6)
+    // Tick for tick (the same stacks): 18 + 2.25 a stack in place of 18.
+    for (let i = 0; i < base.length; i++) expect(withAp[i] / base[i]).toBeCloseTo(20.25 / 18, 9)
+    // 5 stacks: 101.25 × the resist and school multipliers, which the AP-less 90 shows.
+    expect(Math.max(...withAp)).toBeCloseTo((Math.max(...base) / 90) * 101.25, 6)
     // Both hands' Deadly Poison carry it in the default plan; the Classic Era poison has none [C].
     const plan = buildPlan(defaultConfig('rogue-combat')).plan
     expect(plan.procs.filter((p) => p.id === 'deadlyPoison').every((p) => p.apCoefficient === DEADLY_POISON_AP_PER_TICK)).toBe(true)
@@ -587,7 +588,7 @@ describe('the poisons’ attack-power share in the engine (rogue.md §4.1, §4.2
     expect(ticks[1]).toBeCloseTo(ticks[0], 9)
     expect(ticks[3]).toBeCloseTo(ticks[2], 9)
     // A share fixed when the stack landed would tick the same all 12 s.
-    expect(ticks[0] / ticks[2]).toBeCloseTo((23 + DEADLY_POISON_AP_PER_TICK * 2000) / 23, 9)
+    expect(ticks[0] / ticks[2]).toBeCloseTo((18 + DEADLY_POISON_AP_PER_TICK * 2000) / 18, 9)
   })
 
   it('Instant Poison’s crit, ×1.5, multiplies the attack-power share with the rest (rogue.md §4, §4.1)', () => {
@@ -617,9 +618,9 @@ describe('the poisons’ attack-power share in the engine (rogue.md §4.1, §4.2
     expect(both.length).toBe(plain.length)
     expect(plain.length).toBeGreaterThan(20)
     for (let i = 0; i < plain.length; i++) expect(both[i] / plain[i]).toBeCloseTo(1.3 * CRIT_MULTIPLIER.spell, 9)
-    // And the share is in those ticks: the same ticks at no attack power are 23 / 25.25 of them.
+    // And the share is in those ticks: the same ticks at no attack power are 18 / 20.25 of them.
     const noAp = run(true, true, 0)
-    for (let i = 0; i < noAp.length; i++) expect(both[i] / noAp[i]).toBeCloseTo((23 + DEADLY_POISON_AP_PER_TICK * 2000) / 23, 9)
+    for (let i = 0; i < noAp.length; i++) expect(both[i] / noAp[i]).toBeCloseTo((18 + DEADLY_POISON_AP_PER_TICK * 2000) / 18, 9)
   })
 })
 
@@ -812,6 +813,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Poison 0.1125% a stack each tick, read at the tick and scaled by Vile Poisons and Venom [?]
   //   (rogue.md §4.1, §4.2). Combat 583.8 → 586.5 DPS (+0.5%), Assassination 529.6 → 534.1 (+0.8%),
   //   over 20,000 fights on seed 2701.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Deadly Poison IV (18 a tick) for V (23), Backstab r8 (+140) for r9, and
+  //   the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5). Combat 587.56 → 567.18, Assassination 535.81 → 515.48 DPS.
   it('keeps the default Assassination rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-assassination'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

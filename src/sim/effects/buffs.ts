@@ -87,11 +87,13 @@ const INSTANT_POISON = instantPoison(76, 100, INSTANT_POISON_AP)
 const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148, 0)
 
 /**
- * Deadly Poison V (item 20844 → 25351, enchant 2630; docs/classes/rogue.md §4.2): each hit of the
- * weapon it's on has a 30% chance of 25349, 23 Nature damage per stack every 3 s for 12 s, stacking
- * to 5, whose ticks carry the periodic-crit flag [F] [client] (SpellEffect, SpellAuraOptions,
- * SpellMisc, SpellItemEnchantment, 1.60.1.69913; Classic Era's 34 a tick), plus 0.1125% of attack
- * power per stack a tick, 0.45% over its 4 ticks [F] [guild-0925], read at each tick [?].
+ * Deadly Poison IV (item 8985 → 11356, enchant 627; docs/classes/rogue.md §4.2), the top rank before
+ * Ahn'Qiraj: Deadly Poison V's recipe (25347) is an Ahn'Qiraj book's (D36). Each hit of the weapon
+ * it's on has a 30% chance of 11354, 18 Nature damage per stack every 3 s for 12 s, stacking to 5,
+ * whose ticks carry the periodic-crit flag [F] [client] (SpellEffect, SpellAuraOptions, SpellMisc,
+ * SpellItemEnchantment, 1.60.1.70009; Classic Era's 27 a tick), plus 0.1125% of attack power per
+ * stack a tick, 0.45% over its 4 ticks [F] [guild-0925] (measured on rank V; the same share on rank
+ * IV is [?]), read at each tick [?].
  */
 const deadlyPoison = (tick: number, periodicCanCrit: boolean, apCoefficient: number): ProcSpec => ({
   id: 'deadlyPoison',
@@ -111,13 +113,13 @@ const deadlyPoison = (tick: number, periodicCanCrit: boolean, apCoefficient: num
     ...(apCoefficient ? { apCoefficient } : {}),
   },
   poison: true,
-  docRef: `${ROGUE_DOC}#42-deadly-poison-v`,
+  docRef: `${ROGUE_DOC}#42-deadly-poison-iv`,
 })
 /** docs/classes/rogue.md §4.2: Deadly Poison's share of attack power per stack a tick, 0.45% over 4 ticks [F] [guild-0925]. */
 export const DEADLY_POISON_AP_PER_TICK = 0.0045 / 4
-const DEADLY_POISON = deadlyPoison(23, true, DEADLY_POISON_AP_PER_TICK)
-/** Classic Era's 25349: 34 a tick, no periodic-crit flag (SpellMisc Attributes[8] 0) and no attack-power share [C]. */
-const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false, 0)
+const DEADLY_POISON = deadlyPoison(18, true, DEADLY_POISON_AP_PER_TICK)
+/** Classic Era's 11354: 27 a tick, no periodic-crit flag (SpellMisc Attributes[8] 0) and no attack-power share [C]. */
+const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(27, false, 0)
 
 /** A poison on one hand: a temporary enchant that beats a stone there, with its proc (docs/classes/rogue.md §4). */
 const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 'tempEnchant', id: `${proc.id}.${hand}`, priority: 10, hand, proc }]
@@ -464,12 +466,14 @@ export const BUFFS: BuffSpec[] = [
     icon: 'ability_warrior_battleshout',
     category: 'raidBuff',
     group: 'Attack power',
-    summary: '+139 attack power',
+    summary: '+115 attack power',
     providedBy: 'warrior',
     forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
-    effects: [{ kind: 'stat', stat: 'ap', value: 139 }],
-    classicEra: { summary: '+232 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 232 }] },
+    // Rank 6, the trainer's top (rank 7 is an Ahn'Qiraj book, D36): 11551 #0, aura 99, 111 + 0.6 a
+    // level from 52, truncated: 115 at 60; Classic Era's 184 + 1 + 8 = 193.
+    effects: [{ kind: 'stat', stat: 'ap', value: 115 }],
+    classicEra: { summary: '+193 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 193 }] },
     presets: { dungeon: 'all', raid: 'all', max: 'all' },
   },
   {
@@ -478,15 +482,17 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_holy_fistofjustice',
     category: 'raidBuff',
     group: 'Attack power',
-    summary: '+133 attack power',
+    summary: '+112 attack power',
     providedBy: 'paladin',
     // A paladin blesses itself with Might, so for one the raid needs no other; its other blessings
     // are another paladin's (one blessing per paladin on a player; buffs doc §6.1).
     selfCast: true,
     forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
-    effects: [{ kind: 'stat', stat: 'ap', value: 133 }],
-    classicEra: { summary: '+185 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 185 }] },
+    // Rank 6 and Greater rank 1, the trainer's (rank 7 is an Ahn'Qiraj libram, and Greater rank 2
+    // is taken to come with it, D36 [?]): 19838 #0 and 25782 #0, aura 99, 112; Classic Era's 154 + 1.
+    effects: [{ kind: 'stat', stat: 'ap', value: 112 }],
+    classicEra: { summary: '+155 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 155 }] },
     presets: { dungeon: 'dps', raid: 'all', max: 'all' },
   },
   {
@@ -639,15 +645,17 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_invisibilitytotem',
     category: 'raidBuff',
     group: 'Shaman totems',
-    summary: '+89 Agility',
+    summary: '+77 Agility',
     providedBy: 'shaman',
     // A shaman drops its own totems: one air, one earth and one water (docs/classes/shaman.md#totems).
     selfCast: true,
     exclusiveGroup: 'totem:air',
     forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
-    effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
-    classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
+    // Rank 2, the trainer's top (rank 3 is an Ahn'Qiraj tablet, D36): the totem 10627's aura 10626
+    // #0, aura 29 (Agility), 77; Classic Era's 66 + 1.
+    effects: [{ kind: 'stat', stat: 'agi', value: 77 }],
+    classicEra: { summary: '+67 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 67 }] },
     presets: { dungeon: SHAMAN, raid: [...SHAMAN, ...HUNTERS], max: [...SHAMAN, ...HUNTERS] },
   },
   {
@@ -656,14 +664,16 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_earthbindtotem',
     category: 'raidBuff',
     group: 'Shaman totems',
-    summary: '+53 Strength',
+    summary: '+42 Strength',
     providedBy: 'shaman',
     selfCast: true,
     exclusiveGroup: 'totem:earth',
     forSpecs: 'melee',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
-    effects: [{ kind: 'stat', stat: 'str', value: 53 }],
-    classicEra: { summary: '+77 Strength', effects: [{ kind: 'stat', stat: 'str', value: 77 }] },
+    // Rank 4, the trainer's top (rank 5 is an Ahn'Qiraj tablet, D36): the totem 10442's aura 10441
+    // #0, aura 29 (Strength), 42; Classic Era's 60 + 1.
+    effects: [{ kind: 'stat', stat: 'str', value: 42 }],
+    classicEra: { summary: '+61 Strength', effects: [{ kind: 'stat', stat: 'str', value: 61 }] },
     presets: { dungeon: SHAMAN, raid: 'all', max: 'all' },
   },
   {
@@ -737,14 +747,16 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_holy_sealofwisdom',
     category: 'raidBuff',
     group: 'Mana',
-    summary: '+40 mana every 5 s',
+    summary: '+36 mana every 5 s',
     providedBy: 'paladin',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,
-    // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
-    effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
-    classicEra: { summary: '+33 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
+    // Rank 5 and Greater rank 1, the trainer's (rank 6 is an Ahn'Qiraj libram, and Greater rank 2 is
+    // taken to come with it, D36 [?]): 19854 #0 and 25894 #0, aura 24, 36 every 5 s; the sim's mana
+    // ticks every 2 s, so 14.4 a tick. Classic Era's 29 + 1.
+    effects: [{ kind: 'stat', stat: 'mp5', value: 36 }],
+    classicEra: { summary: '+30 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 30 }] },
     presets: { raid: MANA_REGEN_SPECS, max: MANA_REGEN_SPECS },
   },
   {
@@ -1410,16 +1422,16 @@ export const BUFFS: BuffSpec[] = [
   },
   {
     id: 'deadlyPoisonMainHand',
-    name: 'Deadly Poison V (main hand)',
+    name: 'Deadly Poison IV (main hand)',
     icon: 'ability_rogue_dualweild',
     category: 'consumable',
     group: 'Weapon',
-    summary: '30% of main-hand hits: 23 Nature damage + a share of attack power every 3 s, stacking 5 times',
+    summary: '30% of main-hand hits: 18 Nature damage + a share of attack power every 3 s, stacking 5 times',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:mainHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('main', DEADLY_POISON),
-    classicEra: { summary: '30% of main-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('main', DEADLY_POISON_CLASSIC_ERA) },
+    classicEra: { summary: '30% of main-hand hits: 27 Nature damage every 3 s, stacking 5 times', effects: poisonOn('main', DEADLY_POISON_CLASSIC_ERA) },
     // Deadly on the main hand, Instant on the off hand: the rogue's best pair in the first-pass search (docs/classes/rogue.md §4.4).
     presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
   },
@@ -1439,16 +1451,16 @@ export const BUFFS: BuffSpec[] = [
   },
   {
     id: 'deadlyPoisonOffHand',
-    name: 'Deadly Poison V (off hand)',
+    name: 'Deadly Poison IV (off hand)',
     icon: 'ability_rogue_dualweild',
     category: 'consumable',
     group: 'Weapon',
-    summary: '30% of off-hand hits: 23 Nature damage + a share of attack power every 3 s, stacking 5 times',
+    summary: '30% of off-hand hits: 18 Nature damage + a share of attack power every 3 s, stacking 5 times',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:offHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
     effects: poisonOn('off', DEADLY_POISON),
-    classicEra: { summary: '30% of off-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('off', DEADLY_POISON_CLASSIC_ERA) },
+    classicEra: { summary: '30% of off-hand hits: 27 Nature damage every 3 s, stacking 5 times', effects: poisonOn('off', DEADLY_POISON_CLASSIC_ERA) },
     presets: {},
   },
   {

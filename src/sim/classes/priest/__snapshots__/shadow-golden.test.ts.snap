@@ -29,11 +29,11 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "mindFlay",
-      51924396.97183917,
-      46219,
-      106957,
-      15448,
-      4892,
+      51927035.01181605,
+      46217,
+      106960,
+      15450,
+      4890,
     ],
   ],
   "cooldowns": [
@@ -44,7 +44,7 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
     [
       "majorManaPotion",
-      1.144,
+      1.195,
       null,
     ],
     [
@@ -59,23 +59,23 @@ exports[`golden run (fixed config and seed) > keeps the default Shadow Priest’
     ],
   ],
   "dps": {
-    "ci95": 1.0601520965690305,
-    "mean": 565.3887768173032,
-    "stdev": 17.104882119288778,
+    "ci95": 1.06038582969282,
+    "mean": 565.4022656531183,
+    "stdev": 17.10865325509347,
   },
   "durationSec": 179.690222,
   "mana": {
     "max": 5506,
-    "regeneratedPerFight": 5397.1061,
+    "regeneratedPerFight": 5252.8542,
     "restored": [
       {
         "id": "majorManaPotion",
         "name": "Major Mana Potion",
-        "perFight": 2061.8663,
+        "perFight": 2153.7791,
       },
     ],
-    "restoredPerFight": 2061.8663,
-    "spentPerFight": 10617.63,
+    "restoredPerFight": 2153.7791,
+    "spentPerFight": 10617.426,
   },
 }
 `;

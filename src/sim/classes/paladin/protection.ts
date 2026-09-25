@@ -352,14 +352,16 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 752.62, dps: 466.6, damageTaken: 918.6 },
-  maxTps: { tpsPct: 6.76, dpsPct: 6.68, damageTakenPct: 5.72 },
-  hammerOfTheRighteous: { tpsPct: -1.64, dpsPct: 0.23, damageTakenPct: 4.92 },
+  defensive: { tps: 746.42, dps: 460.97, damageTaken: 918.9 },
+  maxTps: { tpsPct: 6.81, dpsPct: 6.76, damageTakenPct: 5.72 },
+  hammerOfTheRighteous: { tpsPct: -2.0, dpsPct: -0.13, damageTakenPct: 4.92 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
 /** A measured percent for the help, whole (7%) or to a tenth (0.2%), unsigned. */
 const helpPct = (x: number, digits = 0) => `${Math.abs(x).toFixed(digits)}%`
+/** A measured change for the help, to a tenth, with its direction: "0.2% more", "0.1% less". */
+const moreOrLess = (x: number) => `${helpPct(x, 1)} ${x < 0 ? 'less' : 'more'}`
 
 /**
  * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
@@ -497,7 +499,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfTheRighteous,
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
-    help: `Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so the higher of the two in the list is used, and the lower only when you can’t pay for the higher. It makes about ${helpPct(M.hammerOfTheRighteous.dpsPct, 1)} more DPS for ${helpPct(M.hammerOfTheRighteous.tpsPct, 1)} less TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used if it’s on.`,
+    help: `Use Hammer of the Righteous in Holy Strike’s place: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so the higher of the two in the list is used, and the lower only when you can’t pay for the higher. It makes about ${moreOrLess(M.hammerOfTheRighteous.dpsPct)} DPS and ${moreOrLess(M.hammerOfTheRighteous.tpsPct)} TPS in the default setup, and Iron Creed’s extra threat and 10% lower damage taken come only with Holy Strike, so it’s off by default in every preset. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used if it’s on.`,
     // paladin.md "Priority: Defensive, Balanced or Max TPS": its measured cost (PROTECTION_PRESET_MEASURES),
     // and Balanced keeps Holy Strike's Iron Creed as active mitigation (user decision, D28).
     default: false,
@@ -705,7 +707,7 @@ function strikeUnused(
 const DEFENSIVE_SUMMARY = 'Devotion Aura, Holy Shield and Holy Strike’s Iron Creed kept: the most survival. Tuned on threat.'
 const DEFENSIVE_HELP = `Keeps your Devotion Aura up, +735 armor, and Holy Shield, and uses Holy Strike, whose Iron Creed cuts your damage taken 10%. Tuned on threat. The most survival of the three: ${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second in the default setup.`
 const BALANCED_SUMMARY = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
-const BALANCED_HELP = `The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about ${helpPct(M.hammerOfTheRighteous.dpsPct, 1)} more DPS and ${helpPct(M.hammerOfTheRighteous.tpsPct, 1)} less TPS, and ${helpPct(M.hammerOfTheRighteous.damageTakenPct)} more damage taken without Iron Creed.`
+const BALANCED_HELP = `The default, as most tanks play fights short of progression. For a paladin it plays as Defensive: it keeps Devotion Aura and Holy Shield, and Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation. Hammer of the Righteous is a row, off, just above Holy Strike: turned on, it takes Holy Strike’s place for about ${moreOrLess(M.hammerOfTheRighteous.dpsPct)} DPS and ${moreOrLess(M.hammerOfTheRighteous.tpsPct)} TPS, and ${helpPct(M.hammerOfTheRighteous.damageTakenPct)} more damage taken without Iron Creed.`
 const MAX_TPS_SUMMARY = `Retribution Aura instead of Devotion Aura, for threat: +${helpPct(M.maxTps.tpsPct)} TPS and ${helpPct(M.maxTps.damageTakenPct)} more damage taken than Defensive.`
 const MAX_TPS_HELP = `Runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage plus some of your spell damage to the boss each time it hits you: ${helpPct(M.maxTps.tpsPct)} more TPS and ${helpPct(M.maxTps.dpsPct)} more DPS than Defensive, for ${helpPct(M.maxTps.damageTakenPct)} more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.`
 

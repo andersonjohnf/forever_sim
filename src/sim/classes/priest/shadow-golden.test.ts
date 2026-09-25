@@ -29,6 +29,8 @@ describe('golden run (fixed config and seed)', () => {
   // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Spirit of Aquementas lost its Forever
   //   row, so the list's off hand is re-ranked by the sim: Tome of Shadow Force. 559.43 → 565.39 here;
   //   559.7 → 565.7 over 20,000 fights on seed 2701.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Blessing of Wisdom r5 (36 mp5) for r6 (40): mana only, 565.39 → 565.40
+  //   DPS.
   it('keeps the default Shadow Priest’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('priest-shadow'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

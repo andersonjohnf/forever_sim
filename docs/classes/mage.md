@@ -1,8 +1,10 @@
 # Mage: Fire, Frost and Arcane
 
 WoW Forever keeps the Classic mage's spellbook and cuts its damage: Fireball, Scorch and Pyroblast
-lose about 30% of their base damage, Frostbolt 11%, and an Arcane Missile falls from 230 to 209 while
-its coefficient rises. It makes the old raid debuffs the mage's own: **Improved Scorch**'s Fire
+lose about 30% of their base damage, Frostbolt 11% (13% at rank 10), and an Arcane Missile falls from
+230 to 209 (rank 7: 196 to 175) while its coefficient rises. The sim casts the ranks a trainer teaches:
+Fireball r12, Frostbolt r11 and Arcane Missiles r8 are Ahn'Qiraj books, and Ahn'Qiraj comes long after
+launch ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); [Ranks](#ranks-what-a-trainer-teaches)). It makes the old raid debuffs the mage's own: **Improved Scorch**'s Fire
 Vulnerability counts only your Fire damage, and **Winter's Chill** raises only your Frostbolt's crit.
 **Ignite** pools into one two-tick DoT, **Combustion** lasts four crits, and new talents add
 **Hot Streak** (crits make Pyroblast faster), **Arcane Blast**, **Missile Barrage**, **Ice Lance** and
@@ -72,12 +74,12 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 
 | Area | Classic Era [C] | WoW Forever [F] | Source |
 | --- | --- | --- | --- |
-| Fireball r12 (25306) | 596–760, DoT 19 × 4 | **424.58–541.42** (483 ± 12.1%), DoT **15 × 4**; coefficient 1.0 both | [client] (SpellEffect; [f25306]); tooltip "425 to 541 … 60 Fire damage over 8 sec" |
+| Fireball r11 (10151) | 561–715, DoT 18 × 4 | **396.57–505.43** (451 ± 12.1%), DoT **14 × 4**; coefficient 1.0 both | [client] (SpellEffect, 1.60.1.70009; [f10151]); tooltip "397 to 505 … 56 Fire damage over 8 sec" |
 | Scorch r7 (10207) | 237–279 | **166.68–196.12**; 0.429 | [client] ([f10207]) |
 | Fire Blast r7 (10199) | 446–524 | **416.66–489.34**; 0.429 | [client] ([f10199]) |
 | Pyroblast r8 (18809) | 716–890, DoT 67 × 4 | **519.84–646.16**, DoT **53 × 4** (0.15 a tick); 1.0 | [client] ([f18809]) |
-| Frostbolt r11 (25304) | 515–555 | **457.24–492.76** (−11%); 0.814 | [client] ([f25304]) |
-| Arcane Missiles r8 (25345 → 25346) | 230 a missile, 0.24 | **209** a missile, **0.286** | [client] ([f25346]) |
+| Frostbolt r10 (10181) | 440.6–474.6 | **382.89–412.31** (−13%); 0.814 | [client] ([f10181]) |
+| Arcane Missiles r7 (10212 → 10274) | 195.6 a missile, 0.24 | **174.6** a missile, **0.286** | [client] ([f10274]) |
 | Improved Scorch (11095 → 22959) | Fire Vulnerability on the boss for everyone's Fire (aura 87) | **your own**: aura 270 on the boss, "+3% Fire damage from the Mage" a stack | [client] (SpellEffect, 1.60.1.69913); [Improved Scorch](#improved-scorch) |
 | Winter's Chill (11180 → 12579) | +2% crit a stack for anyone's Frost spells | **your own**: aura 308, class mask **Frostbolt and Ice Lance** only | [client] (SpellEffect); [Winter's Chill](#winters-chill) |
 | Combustion (11129) | ends after 3 Fire crits | ends after **4** non-periodic Fire crits (`ProcCharges` 4) | [client] (SpellAuraOptions) |
@@ -114,11 +116,22 @@ tooltip [F] [client] (SpellEffect, SpellMisc, SpellPower, SpellCastTimes, 1.60.1
 `src/data/spells/mage.json`). Every one is magic (DefenseType 1), on the GCD, and triggers procs.
 "SP" is the school's spell damage.
 
+### Ranks: what a trainer teaches
+
+Ahn'Qiraj comes long after launch, so the sim casts no rank an Ahn'Qiraj book teaches
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), a user decision, with no toggle
+until it's near). The Forever client still carries the three mage books, each an item whose
+`ItemEffect` (trigger 6, learn spell) teaches the rank [F] [client] (ItemSparse, ItemEffect,
+ItemXItemEffect, 1.60.1.70009): Tome of Fireball XII (21279 → 25306), Tome of Frostbolt XI (21214 →
+25304) and Tome of Arcane Missiles VIII (21280 → 25345). So Fireball is rank 11 (10151), Frostbolt
+rank 10 (10181) and Arcane Missiles rank 7 (10212), the top ranks a trainer teaches. Arcane Brilliance
+(Tome of Arcane Brilliance, a drop in the level-60 dungeons) isn't an Ahn'Qiraj book and stays.
+
 ### Fire spells
 
 | Spell (id) | Range at 60 | SP coefficient | Mana | Cast, cooldown |
 | --- | --- | --- | --- | --- |
-| Fireball r12 (25306) | 424.58–541.42, then a DoT of 15 every 2 s for 8 s (4 ticks, coefficient 0) | 1.0 | 410 | 3.5 s (3.0 with Improved Fireball 5/5) |
+| Fireball r11 (10151) | 396.57–505.43 (451 ± 12.07%), then a DoT of 14 every 2 s for 8 s (4 ticks, coefficient 0) | 1.0 | 395 | 3.5 s (3.0 with Improved Fireball 5/5) |
 | Scorch r7 (10207) | 166.68–196.12 (178 ± 8.27%, +1.7 a level from 58) | 0.429 | 150 | 1.5 s |
 | Fire Blast r7 (10199) | 416.66–489.34 (438 ± 8.30%, +3 a level from 54 to 59) | 0.429 | 340 | instant, 8 s (6 s with Wake of Fire 2/2) |
 | Pyroblast r8 (18809) | 519.84–646.16 (583 ± 10.83%), then 53 every 3 s for 12 s (4 ticks, 0.15 a tick) | 1.0 | 440 | 6 s (Hot Streak cuts it) |
@@ -126,7 +139,7 @@ tooltip [F] [client] (SpellEffect, SpellMisc, SpellPower, SpellCastTimes, 1.60.1
 - **DoTs** snapshot your side as they land and read the boss's at each tick
   ([spells §7](../mechanics/spells.md#7-dots)); a recast restarts one.
 - **Periodic crits.** The client flags both DoTs with the periodic-crit attribute (SpellMisc
-  Attributes[8] 0x200 on 25306 and 18809) [F], so by spells §7 their ticks crit in `forever`, at the
+  Attributes[8] 0x200 on 10151 and 18809) [F], so by spells §7 their ticks crit in `forever`, at the
   snapshot's crit, ×1.5 (`dotCanCrit`); in `classicEra` they never do. Whether flagged ticks crit in
   combat is spells.md's [OQ-S4](../mechanics/spells.md#open-questions) [?].
 - **Frostfire Bolt** (1237313, trained at 40: 270–314 Frostfire, 57 over 9 s, 370 mana, 3 s,
@@ -139,12 +152,13 @@ tooltip [F] [client] (SpellEffect, SpellMisc, SpellPower, SpellCastTimes, 1.60.1
 
 | Spell (id) | Range at 60 | SP coefficient | Mana | Cast |
 | --- | --- | --- | --- | --- |
-| Frostbolt r11 (25304) | 457.24–492.76 (475 ± 3.74%) | 0.814 | 290 (246 with Frost Channeling 3/3) | 3.0 s (2.5 with Improved Frostbolt 5/5) |
+| Frostbolt r10 (10181) | 382.89–412.31 (386 ± 3.81%, +2.9 a level from 56 to 60) | 0.814 | 260 (221 with Frost Channeling 3/3) | 3.0 s (2.5 with Improved Frostbolt 5/5) |
 
 #### Frostbolt
 
 Its tooltip multiplies effect 2's points by a description variable in both clients, which the scraper
-renders: "457 to 493" in Forever, "515 to 555" in Classic Era [F] [C]. Its slow makes it **binary**: resisted whole
+renders: "382 to 412" in Forever, "440 to 474" in Classic Era for rank 10 (rank 11: "457 to 493" and
+"515 to 555") [F] [C]. Its slow makes it **binary**: resisted whole
 at `miss + (1 − miss) × average resist`, and a landed one takes no partial resist
 ([spells §3](../mechanics/spells.md#3-resistances)) [C] ([R1][r1-mech] gives it no partials). Its
 travel time isn't simulated ([spells OQ-S13](../mechanics/spells.md#open-questions)). Ice Lance (1240047:
@@ -155,7 +169,7 @@ travel time isn't simulated ([spells OQ-S13](../mechanics/spells.md#open-questio
 
 | Spell (id) | Damage at 60 | SP coefficient | Mana | Cast |
 | --- | --- | --- | --- | --- |
-| Arcane Missiles r8 (25345 → missile 25346) | 5 missiles of 209, one a second from 1 s after the start (aura 23, period 1,000) | 0.286 a missile | 655 | a 5 s channel |
+| Arcane Missiles r7 (10212 → missile 10274) | 5 missiles of 174.6 (171 + 0.9 a level from 56; the tooltip truncates to 174), one a second from 1 s after the start (aura 23, period 1,000) | 0.286 a missile | 595 | a 5 s channel |
 | Arcane Blast r5 (1239700) | 364.25–423.75 (394 ± 7.55%) | 0.714 | 15% of base mana (181) | 2.5 s |
 
 - **Each missile is its own spell**, with its own hit, crit and partial resist, and fires its own
@@ -367,7 +381,7 @@ Evocation (12051) is an 8 s channel on the GCD, every 8 minutes, so once in a de
 it channels, the spirit regeneration is ×16 (+1,500%) and all of it goes on inside the five-second
 rule; its four power ticks bring most of its mana [F] [client]. The rotation channels it when mana
 falls to **Evocation at** (a share of maximum mana, default **0%**), or as soon as mana can't pay the
-spec's filler: Fireball (410), Frostbolt (246 with Frost Channeling 3/3) or Arcane Missiles (655).
+spec's filler: Fireball (395), Frostbolt (221 with Frost Channeling 3/3) or Arcane Missiles (595).
 So a low threshold never leaves the mage waiting on regeneration with Evocation ready. The filler
 check uses the base cost, not Arcane Power's.
 
@@ -376,8 +390,8 @@ check uses the base cost, not Arcane Power's.
 - **Mana Ruby and Mana Citrine**, once each, conjured before the pull [?] (`manaRegenMage`), each
   when all it can restore fits: missing 1,200 for the Ruby, 925 for the Citrine. Off the GCD.
   Whichever fits first goes first, and the Ruby when both fit at once. So the Citrine usually goes
-  first for Fire and Frost, whose mana falls a spell at a time past 925 before 1,200, and the Ruby
-  usually first for Arcane, whose Arcane Missiles (655) often carry it past both at once. The
+  first for Fire and Frost, whose mana falls a spell at a time past 925 before 1,200, and either about
+  as often for Arcane, whose Arcane Missiles (595) carry it past both at once about half the time. The
   sooner the first gem goes, the sooner their shared cooldown lets the second go, and neither
   restores more than is missing.
 - They share **category 1153**'s 2 min cooldown with the **Demonic Rune** [F] [client] (ItemEffect):
@@ -437,7 +451,7 @@ column ([data/talents.md](../data/talents.md#build-codes-verified)).
 | Elemental Precision (29438) | 5 | +5% hit with Fire and Frost spells (op 16) | Fire and Frost spell hit |
 | Ice Shards (11207) | 5 | +100% Frost crit bonus (×2.0) | Frost crit multiplier |
 | Piercing Ice (11151) | 3 | +6% Frost damage | Frostbolt |
-| Frost Channeling (11160) | 3 | −15% Frost mana (rounded down to whole mana: 290 → 246) | Frostbolt's cost |
+| Frost Channeling (11160) | 3 | −15% Frost mana (rounded down to whole mana: 260 → 221) | Frostbolt's cost |
 | Winter's Chill (11180) | 5 | 100% on a Frost hit: +2% Frostbolt crit a stack, 5 stacks | [Winter's Chill](#winters-chill) |
 | Ice Barrier (11426) | 1 | the ability (r4 13033) | off by default ([Frost priority](#frost-priority)) |
 
@@ -859,11 +873,11 @@ so a test failing after a beta measurement means a default changed, not a bug. E
 engine in `src/sim/classes/mage/mage.test.ts` ("worked examples"), in the `forever` profile.
 
 1. **A Fireball hit** (Fire Power 5/5, Arcane Instability 3/3, 5 Fire Vulnerability stacks, Curse of
-   the Elements): (483 + 1.0 × 400) × 1.10 × 1.03 × 1.15 × 1.10 × 0.94 = **1,189.62** at the middle of
-   its range (**1,110.92–1,268.32** over 424.58–541.42). Curse of the Elements' −75 can't take the
+   the Elements), rank 11: (451 + 1.0 × 400) × 1.10 × 1.03 × 1.15 × 1.10 × 0.94 = **1,146.51** at the
+   middle of its range (**1,073.18–1,219.84** over 396.57–505.43). Curse of the Elements' −75 can't take the
    boss below its own 0, so the level's 24 still resists.
-2. **A Frostbolt crit** (Ice Shards 5/5): (475 + 0.814 × 400) × 2.0 = (475 + 325.6) × 2.0 =
-   **1,601.2** (**1,565.69–1,636.71** over its range). It's binary, so a landed one takes no partial
+2. **A Frostbolt crit** (rank 10, Ice Shards 5/5): (397.6 + 0.814 × 400) × 2.0 = (397.6 + 325.6) ×
+   2.0 = **1,446.4** (**1,416.97–1,475.83** over its range). It's binary, so a landed one takes no partial
    resist.
 3. **Ignite from one 1,000 crit** (Ignite 5/5): 40% = **400** into the pool; **2 ticks of 200 × 0.94 =
    188**, 2 s and 4 s after the crit. With Fire Vulnerability or Curse of the Elements up, the crit
@@ -958,15 +972,18 @@ the default setups' DPS. Each names the results' assumption it's listed under.
 Browse links to the same rows on wago.tools' table pages, for reading by hand; the pages stay
 off-limits to scripts ([D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)).
 
+[f10151]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=10151
 [f25306]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=25306
 [f10207]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=10207
 [f10199]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=10199
 [f18809]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=18809
+[f10181]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=10181
 [f25304]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=25304
+[f10274]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=10274
 [f25346]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=25346
 
-- Fireball [f25306]; Scorch [f10207]; Fire Blast [f10199]; Pyroblast [f18809]; Frostbolt [f25304];
-  Arcane Missiles' missile [f25346]. The same `filter[SpellID]` works on SpellAuraOptions, SpellMisc,
+- Fireball [f10151] (r12 [f25306]); Scorch [f10207]; Fire Blast [f10199]; Pyroblast [f18809]; Frostbolt [f10181]
+  (r11 [f25304]); Arcane Missiles' missile [f10274] (r8 [f25346]). The same `filter[SpellID]` works on SpellAuraOptions, SpellMisc,
   SpellCategories, SpellCooldowns, SpellPower and SpellCastTimes, and for the other spell ids above
   (11119, 412538, 412545, 12654, 11095, 22959, 400624, 400625, 11129, 28682, 11180, 12579, 12043,
   12042, 12051, 12536, 22783, 18462, 10058, 10057, 13033, 1239700, 20554). The client scraper

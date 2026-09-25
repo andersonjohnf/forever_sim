@@ -47,6 +47,8 @@ describe('golden run (fixed config and seed)', () => {
   //   with the re-ranked list (DV2-4, GV-6). DPS 371.73 (casters alone) / 401.81 (gear alone) →
   //   403.17, TPS 265.11 / 285.36 → 286.27. Checked both ways: with either side's code reverted, the
   //   other side's snapshot reproduces exactly.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Blessing of Wisdom r5 (36 mp5) and the own totems' trainer ranks (Strength
+  //   of Earth r4, Grace of Air r2). 403.17 → 401.62 DPS.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

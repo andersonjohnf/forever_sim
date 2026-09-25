@@ -96,7 +96,7 @@ function runFights(plan: Plan, fights: number, sim = new Sim(plan)) {
 }
 
 describe('Protection worked examples in the engine (warrior.md W14, W15)', () => {
-  it('W14: Revenge with Improved Revenge 3/3, Bastion 5/5 and Defensive Stance averages 242.35, from 218.59 to 266.11', () => {
+  it('W14: Revenge rank 5 with Improved Revenge 3/3, Bastion 5/5 and Defensive Stance averages 191.66, from 172.66 to 210.67', () => {
     const plan = protPlan()
     plan.fight.targetArmor = 0
     const rev = addAbility(plan, REVENGE, TALENTS)
@@ -109,9 +109,9 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
     expect(plan.physicalMult * plan.damageMult).toBeCloseTo(0.99, 12)
     const hits = damages(plan, plan.abilities[rev].source, 40)
     expect(hits.length).toBeGreaterThan(400)
-    expect(Math.min(...hits)).toBeGreaterThanOrEqual(138 * 1.584 - 1e-9)
-    expect(Math.max(...hits)).toBeLessThanOrEqual(168 * 1.584 + 1e-9)
-    expectMean(hits, 153 * 1.584) // 242.35
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(109 * 1.584 - 1e-9)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(133 * 1.584 + 1e-9)
+    expectMean(hits, 121 * 1.584) // 191.66
   })
 
   it('W15: Shield Slam with block value 150 is (655 + 150) × 0.99 = 796.95, from 782.10 to 811.80; a crit ×2', () => {
@@ -503,10 +503,10 @@ describe('the Defensive Protection warrior (warrior.md §5.4)', () => {
     expect(plan.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
     const rows = {
       shieldSlam: [1, 475],
-      revenge: [2.25, 270],
+      revenge: [2.25, 243],
       thunderClap: [2.5, 0],
       demoralizingShout: [0, 43.2],
-      heroicStrike: [1, 173],
+      heroicStrike: [1, 145],
     } as const
     const landedOf = (row: number) => counter(sim, row, FIELD.hits) + counter(sim, row, FIELD.crits) + counter(sim, row, FIELD.blocks)
     for (const [id, [mult, bonus]] of Object.entries(rows)) {

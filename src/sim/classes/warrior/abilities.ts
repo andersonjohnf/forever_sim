@@ -128,9 +128,9 @@ export const WHIRLWIND: AbilityDef = {
 }
 
 /**
- * Heroic Strike rank 9 (spells.json 25286): cost 150, no cooldown or GCD, effect 17
- * `WEAPON_DAMAGE_NOSCHOOL` +157 at the real weapon speed (warrior.md §2.4, §3.1, W7). Threat
- * dmg + 173 [C] (threat.md#warrior).
+ * Heroic Strike rank 8 (spells.json 11567), the trainer's top rank: rank 9 is an Ahn'Qiraj book
+ * (D36; warrior.md §3.1). Cost 150, no cooldown or GCD, effect 17 `WEAPON_DAMAGE_NOSCHOOL` +138 at
+ * the real weapon speed (warrior.md §2.4, §3.1, W7). Threat dmg + 145 [C] (threat.md#warrior).
  */
 export const HEROIC_STRIKE: AbilityDef = {
   id: 'heroicStrike',
@@ -144,14 +144,14 @@ export const HEROIC_STRIKE: AbilityDef = {
   executePhaseOnly: false,
   weaponPercent: 1,
   normalized: false,
-  flatDamage: 157,
+  flatDamage: 138,
   apCoefficient: 0,
   damagePerExtraRage: 0,
   bonusCrit: 0,
   critMultiplier: CRIT_MULTIPLIER.melee,
   refundShare: REFUND,
   threatMult: 1,
-  threatBonus: 173,
+  threatBonus: 145,
   offHand: false,
   ...INSTANT,
   ...NO_CAST,
@@ -496,10 +496,12 @@ export const BLOODRAGE: AbilityDef = {
 }
 
 /**
- * Battle Shout rank 7 (spells.json 25289): cost `manaCost` 100, no cooldown, GCD 1500, any stance;
- * for 180000 ms aura 99 (melee attack power) at base 139 + 0.6 per level above `baseLevel` 60, so
- * 139 at 60 (warrior.md §1.1, §3.2). Focused Rage doesn't reduce it (§2.3). Its threat (60 per
- * party member buffed, threat.md) isn't counted: the party isn't modelled (warrior.md §7).
+ * Battle Shout rank 6 (spells.json 11551), the trainer's top rank: rank 7 is an Ahn'Qiraj book (D36;
+ * warrior.md §1.1). Cost `manaCost` 100, no cooldown, GCD 1500, any stance; for 180000 ms aura 99
+ * (melee attack power) at base 111 + 0.6 per level above `spellLevel` 52 (`maxLevel` 61), so
+ * 111 + trunc(4.8) = 115 at 60 (docs/data/items.md#per-level-values; warrior.md §1.1, §3.2).
+ * Focused Rage doesn't reduce it (§2.3). Its threat (52 per party member buffed at rank 6,
+ * threat.md) isn't counted: the party isn't modelled (warrior.md §7).
  * Forever's; `battleShout(profile)` picks the rule profile's.
  */
 export const BATTLE_SHOUT: AbilityDef = {
@@ -511,20 +513,20 @@ export const BATTLE_SHOUT: AbilityDef = {
   cooldownMs: 0,
   gcdMs: GCD_MS,
   stances: STANCE_ANY,
-  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 180000, mods: { ap: 139 } },
+  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 180000, mods: { ap: 115 } },
   ...NO_CAST_RAGE,
 }
 
 /**
- * Classic Era's Battle Shout rank 7 (25289 in 1.15.9.69722): the same cost, cooldown, GCD and
- * stances, and aura 99 at 231 + 1, +1 per level above 60, so 232 at 60, for 120000 ms
- * (`DurationIndex` 4) (warrior.md §1.1, §3.2) [C] [client] (SpellEffect, SpellLevels, SpellMisc,
- * SpellDuration, 1.15.9.69722). The catalogue's Classic Era Battle Shout has the same 232
+ * Classic Era's Battle Shout rank 6 (11551 in 1.15.9.69722), the same rank as Forever's (D36): the
+ * same cost, cooldown, GCD and stances, and aura 99 at 184 + 1, +1 per level above 52, so 193 at 60,
+ * for 120000 ms (`DurationIndex` 4) (warrior.md §1.1, §3.2) [C] [client] (SpellEffect, SpellLevels,
+ * SpellMisc, SpellDuration, 1.15.9.69722). The catalogue's Classic Era Battle Shout has the same 193
  * (buffs doc, Classic Era values).
  */
 export const BATTLE_SHOUT_CLASSIC_ERA: AbilityDef = {
   ...BATTLE_SHOUT,
-  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 120000, mods: { ap: 232 } },
+  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 120000, mods: { ap: 193 } },
 }
 
 /**
@@ -703,7 +705,7 @@ export const RACIAL_COOLDOWNS: Readonly<Partial<Record<string, AbilityDef>>> = {
 
 /**
  * The Revenge window (warrior.md §2.8): after the warrior blocks, dodges or parries, Revenge is
- * usable for 5 s [?] (Q12). The client gates it on the caster's aura state 1 (spells.json 25288
+ * usable for 5 s [?] (Q12). The client gates it on the caster's aura state 1 (spells.json 11601
  * `casterAuraState`), which the server sets. With a 5 s cooldown as long as the window, closing it
  * when Revenge is used changes nothing, so it reuses the Overpower window's mechanism (§7).
  */
@@ -726,11 +728,13 @@ export function revengeWindowProcs(): ProcSpec[] {
 }
 
 /**
- * Revenge rank 6 (spells.json 25288): cost 50, cooldown `categoryRecoveryTime` 5000, GCD 1500,
- * Defensive Stance only (`shapeshiftMask` 0x20000), `SCHOOL_DAMAGE` 153 with `Variance` 0.2, so
- * 153 ± 15.3; the tooltip's 138–168 [F] [sb] wins (doctrine §2), 153 ± 15 (warrior.md §3.1, W14). A
- * melee spell: two rolls (combat-tables §3). Needs the Revenge window. Improved Revenge adds 20% per
- * rank (modifiers.ts). Threat 2.25 × dmg + 270 [C] (threat.md#warrior).
+ * Revenge rank 5 (spells.json 11601), the trainer's top rank: rank 6 is an Ahn'Qiraj book (D36;
+ * warrior.md §3.1). Cost 50, cooldown `categoryRecoveryTime` 5000, GCD 1500, Defensive Stance only
+ * (`shapeshiftMask` 0x20000), `SCHOOL_DAMAGE` 121 with `Variance` 0.1971831, so 109.07–132.93, whole
+ * numbers 109–133 as the tooltip rounds them: 121 ± 12 (warrior.md §3.1, W14) [F] [client]
+ * (SpellEffect, 1.60.1.70009). A melee spell: two rolls (combat-tables §3). Needs the Revenge
+ * window. Improved Revenge adds 20% per rank (modifiers.ts). Threat 2.25 × dmg + 243 [C]
+ * (threat.md#warrior).
  */
 export const REVENGE: AbilityDef = {
   id: 'revenge',
@@ -744,15 +748,15 @@ export const REVENGE: AbilityDef = {
   executePhaseOnly: false,
   weaponPercent: 0,
   normalized: false,
-  flatDamage: 153,
-  flatSpread: 15,
+  flatDamage: 121,
+  flatSpread: 12,
   apCoefficient: 0,
   damagePerExtraRage: 0,
   bonusCrit: 0,
   critMultiplier: CRIT_MULTIPLIER.melee,
   refundShare: REFUND,
   threatMult: 2.25,
-  threatBonus: 270,
+  threatBonus: 243,
   offHand: false,
   ...INSTANT,
   ...NO_CAST,

@@ -513,8 +513,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B13. Warrior ability threat at low ranks
 **High · M3 · ≤20** (max ranks and Shield Slam: [C6](#c6-warrior-threat-at-max-rank))
 - **Assumes:** Classic Era values (Magey, 1.13.6) for everything except Sunder and Shield Slam
-  [?]: Heroic Strike dmg + 173 (r9), Revenge 2.25 × dmg + 270, Shield Bash 1.5 × dmg + 156,
-  Cleave dmg + 100 per target, Thunder Clap 2.5 × dmg, Battle Shout 60 per recipient,
+  [?]: Heroic Strike dmg + 145 (r8), Revenge 2.25 × dmg + 243 (r5), Shield Bash 1.5 × dmg + 156,
+  Cleave dmg + 100 per target, Thunder Clap 2.5 × dmg, Battle Shout 52 per recipient (r6),
   Demoralizing Shout 43.2, Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown. (Shield Slam's
   "very high" is the wording table's +475, [C6](#c6-warrior-threat-at-max-rank).)
 - **Build 1.60.1.70009:** Blizzard's notes retuned only Sunder Armor's threat among the warrior's
@@ -1520,8 +1520,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C6. Warrior threat at max rank
 **High · M3**
-- **Assumes:** Classic max-rank values [?]: Heroic Strike r9 + 173, Revenge r6 2.25 × dmg + 270,
-  Thunder Clap, Battle Shout r7, Demoralizing Shout r5; and Shield Slam dmg + **475** [?], the
+- **Assumes:** Classic values for the trainer's top ranks at 60 (D36: no Ahn'Qiraj book's rank) [?]:
+  Heroic Strike r8 + 145, Revenge r5 2.25 × dmg + 243, Thunder Clap, Battle Shout r6, Demoralizing
+  Shout r5; and Shield Slam dmg + **475** [?], the
   [wording table](mechanics/threat.md#threat-wording-table)'s "very high" (the tooltip's words since
   Forever; Classic's "high" was + 254, scaled by the ×1.871 damage Forever gave it with the words).
 - **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks. Shield Slam
@@ -1662,9 +1663,14 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C13. Rank availability at launch
 **Medium · M2**
-- **Assumes:** Heroic Strike r9, Battle Shout r7 and Revenge r6 are trainable at 60 (Classic
-  added them in the AQ patch) [?]; the trainer teaches Primal Bite ranks 2–4, and Ferocious Bite r5
-  is trainable (a book in Classic) [?].
+- **Resolved in part by [D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)** (user
+  decision): Ahn'Qiraj comes long after launch, so no class has an Ahn'Qiraj book's rank: Heroic
+  Strike r8, Battle Shout r6, Revenge r5, and every other class's and buff's rank below its AQ book
+  (the class docs' rank sections; [buffs §1.1](mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)).
+  Whether a trainer teaches the Greater Blessings' rank 2 without the libram is
+  [buffs OQ 22](mechanics/buffs-debuffs-consumables.md#open-questions).
+- **Assumes:** the trainer teaches Primal Bite ranks 2–4 [?]; Ferocious Bite r5 is there at launch,
+  from the trainer or its Upper Blackrock Spire book (not an Ahn'Qiraj one, so D36 keeps it) [?].
 - **Test:** trainer windows at 36, 48, 56 and 60, and the launch patch notes.
 - **Samples:** one check per rank.
 - **Changes:** ability values at 60.

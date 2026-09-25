@@ -52,25 +52,25 @@ describe('worked examples (docs/classes/hunter.md §10)', () => {
     expect(spellOf(p, 'serpentSting').critMultiplier).toBeCloseTo(1.65, 12)
   })
 
-  it('WE-H3: Efficiency 5/5: Aimed Shot 263, Multi-Shot 203, Arcane Shot 161, Serpent Sting 212; Hunter’s Mark and Sniper Shot stay', () => {
+  it('WE-H3: Efficiency 5/5: Aimed Shot 263, Multi-Shot 203, Arcane Shot 161, Serpent Sting 195; Hunter’s Mark and Sniper Shot stay', () => {
     const on = (id: string) => ({ [`hunter.marksmanship.${id}`]: true })
     const p = plan({ ...defaultConfig(MM), rotation: { ...on('arcaneShot.enabled'), ...on('sniperShot.enabled') } })
     const multi = plan({ ...defaultConfig(MM), rotation: { 'hunter.marksmanship.sharedCooldown.shot': 'multi' } })
-    expect([263, 161, 212, 60, 365]).toEqual(['aimedShot', 'arcaneShot', 'serpentSting', 'huntersMark', 'sniperShot'].map((id) => ability(p, id).costTenths / 10))
+    expect([263, 161, 195, 60, 365]).toEqual(['aimedShot', 'arcaneShot', 'serpentSting', 'huntersMark', 'sniperShot'].map((id) => ability(p, id).costTenths / 10))
     expect(ability(multi, 'multiShot').costTenths / 10).toBe(203)
   })
 
-  it('WE-H4: Improved Stings 3/3: Serpent Sting’s tick 111 × 1.20 = 133.2', () => {
+  it('WE-H4: Improved Stings 3/3: Serpent Sting r8’s tick 83 × 1.20 = 99.6', () => {
     const s = spellOf(plan(defaultConfig(MM)), 'serpentSting')
-    expect(s.dotTickDamage! * s.dotDamageMult!).toBeCloseTo(133.2, 9)
+    expect(s.dotTickDamage! * s.dotDamageMult!).toBeCloseTo(99.6, 9)
   })
 
-  it('WE-H5: a naked Orc hunter’s ranged attack power: 110 + 2 × 122 + 120 = 474; 536 with Careful Aim 5/5 (62 Intellect)', () => {
+  it('WE-H5: a naked Orc hunter’s ranged attack power: 110 + 2 × 122 + 90 = 444; 506 with Careful Aim 5/5 (62 Intellect)', () => {
     const naked = (talents: string) =>
       buildPlan({ ...defaultConfig(MM, 'horde-orc'), talents, gear: {}, buffs: { raid: [], enabled: [] } }).sheet.ranged!.rangedAttackPower
-    expect(naked('')).toBe(474)
+    expect(naked('')).toBe(444)
     // Lethal Attacks 5 opens tier 2; Careful Aim 5/5 adds 100% of Intellect.
-    expect(naked('-005005')).toBe(536)
+    expect(naked('-005005')).toBe(506)
   })
 
   it('WE-H6: Deadly Aspects 5/5 gives Quick Shots a 10% chance on an Auto Shot that lands: +30% ranged speed for 12 s', () => {
@@ -88,33 +88,33 @@ describe('worked examples (docs/classes/hunter.md §10)', () => {
     expect(p.pet!.crit).toBeCloseTo(15, 9)
   })
 
-  it('WE-H9: what the Beast Mastery cat inherits at the pull: 391 + 0.1 × 1,524 = 543.4 attack power, 15 + 23.20 = 38.20% crit, 35.80% on its specials against the boss, and your 6% hit: 8 − 6 = 2% miss', () => {
+  it('WE-H9: what the Beast Mastery cat inherits at the pull: 367 + 0.1 × 1,468 = 513.8 attack power, 15 + 22.96 = 37.96% crit, 35.56% on its specials against the boss, and your 6% hit: 8 − 6 = 2% miss', () => {
     const bundle = buildPlan(defaultConfig(BM))
     const p = bundle.plan
-    expect(p.pet).toMatchObject({ ap: 391, auraCrit: 0, hit: 0, inherit: PET_INHERITANCE })
+    expect(p.pet).toMatchObject({ ap: 367, auraCrit: 0, hit: 0, inherit: PET_INHERITANCE })
     expect(p.pet!.crit).toBeCloseTo(15, 9)
     const sheet = bundle.sheet
-    expect([sheet.attackPower, sheet.ranged!.rangedAttackPower]).toEqual([1155, 1524])
-    expect(sheet.ranged!.critPct).toBeCloseTo(23.2026, 9)
+    expect([sheet.attackPower, sheet.ranged!.rangedAttackPower]).toEqual([1118, 1468])
+    expect(sheet.ranged!.critPct).toBeCloseTo(22.9569, 9)
     // No casts or procs, so the fight ends with the stats it started with.
     const quiet: Plan = { ...p, rotation: [], procs: [], prepull: { ...p.prepull, casts: [] } }
     const sim = new Sim(quiet)
     sim.runFight(0)
     const s = sim as unknown as { petAp: number; petCritPct: number; petSpecCrit: number; derived: { hit: number }; rHitBonus: number; petThrWhite: Float64Array; petThrSpecial: Float64Array }
-    // 10% of the higher of 1,155 and 1,524 (ranged-and-pets.md §6).
-    expect(s.petAp).toBeCloseTo(543.4, 9)
-    expect(s.petCritPct).toBeCloseTo(38.2026, 9)
+    // 10% of the higher of 1,118 and 1,468 (ranged-and-pets.md §6).
+    expect(s.petAp).toBeCloseTo(513.8, 9)
+    expect(s.petCritPct).toBeCloseTo(37.9569, 9)
     // Against a level-63 boss: −0.6 for its 300 skill, −1.8 because the inherited crit is aura crit (combat-tables §4.4).
-    expect(s.petSpecCrit).toBeCloseTo(35.8026, 9)
+    expect(s.petSpecCrit).toBeCloseTo(35.5569, 9)
     // Your higher hit, melee or ranged (6%: the same here), off its 8% miss against a level-63 boss, white and special.
     expect([s.derived.hit, s.rHitBonus]).toEqual([6, 0])
     expect([s.petThrWhite[0], s.petThrSpecial[0]]).toEqual([2, 2])
-    // With 1,000 more melee attack power (2,155), the melee side is the higher one: 391 + 215.5.
+    // With 1,000 more melee attack power (2,118), the melee side is the higher one: 367 + 211.8.
     const stats = Object.assign(Object.create(Object.getPrototypeOf(p.stats) as object) as Plan['stats'], p.stats)
     stats.ap += 1000
     const melee = new Sim({ ...quiet, stats })
     melee.runFight(0)
-    expect((melee as unknown as { petAp: number }).petAp).toBeCloseTo(606.5, 9)
+    expect((melee as unknown as { petAp: number }).petAp).toBeCloseTo(578.8, 9)
   })
 
   it('its petInheritance text is every pet’s rule, worded for the cat: the higher of melee and ranged, the aura-crit loss, no spells', () => {
@@ -180,7 +180,7 @@ describe('the default hunters’ plans', () => {
     expect(p.procs.find((x) => x.id === 'frenzy')?.chance[0]).toBeCloseTo(1, 12)
   })
 
-  it('Aspect of the Hawk and Trueshot Aura are up from the pull: +120 and +50 ranged attack power on the sheet', () => {
+  it('Aspect of the Hawk and Trueshot Aura are up from the pull: +90 and +50 ranged attack power on the sheet', () => {
     const base = { ...defaultConfig(MM, 'horde-orc'), gear: {}, buffs: { raid: [], enabled: [] } }
     // The default 10/41/0 against the same without Trueshot Aura (and Sniper Shot, which needs it).
     const withAura = buildPlan(base).sheet.ranged!.rangedAttackPower

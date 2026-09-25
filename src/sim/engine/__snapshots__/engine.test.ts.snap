@@ -5,8 +5,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
   "abilities": [
     [
       "mainHand",
-      1942443.4414657834,
-      2575680.003383628,
+      1878248.4335465203,
+      2490557.4228826854,
       5926,
       0,
       1804,
@@ -16,8 +16,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
     [
       "handOfJustice",
-      138431.51943670303,
-      183560.1947730683,
+      134162.7571858176,
+      177899.81602839424,
       413,
       0,
       114,
@@ -49,8 +49,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
     [
       "windfury",
-      2483198.360747384,
-      3292721.026351026,
+      2411546.8649360035,
+      3197711.142905147,
       6693,
       0,
       1985,
@@ -93,8 +93,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
     [
       "maul",
-      24567940.475382566,
-      57009905.873125196,
+      23987467.826141685,
+      55662919.090562075,
       35653,
       11939,
       13019,
@@ -126,8 +126,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
     [
       "mangle",
-      10334752.241909318,
-      13703881.47277179,
+      10063615.564200245,
+      13344354.238129526,
       18198,
       5978,
       6751,
@@ -137,8 +137,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
     [
       "lacerate",
-      5206188.742490499,
-      13700427.243542464,
+      5036948.230258588,
+      13390618.399422942,
       24790,
       8562,
       8838,
@@ -159,14 +159,14 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     ],
   ],
   "dps": {
-    "ci95": 3.103164716486535,
-    "mean": 539.1060074749308,
-    "stdev": 35.403136517690186,
+    "ci95": 3.027598727982185,
+    "mean": 526.21025952303,
+    "stdev": 34.54102533393623,
   },
   "tps": {
-    "ci95": 6.5372578414599385,
-    "mean": 1094.4173375675937,
-    "stdev": 74.58174249757107,
+    "ci95": 6.383742115898116,
+    "mean": 1069.9499420929008,
+    "stdev": 72.8303246109205,
   },
 }
 `;
@@ -176,15 +176,15 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
   "abilities": [
     [
       "mainHand",
-      7168788.810315682,
-      10931686.056850407,
+      6933357.802584754,
+      10572677.313161507,
       2634,
       969,
     ],
     [
       "handOfJustice",
-      253118.2261301055,
-      385979.98302579793,
+      245143.3834272901,
+      373819.1453882747,
       81,
       31,
     ],
@@ -204,8 +204,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
     ],
     [
       "windfury",
-      4608537.983525743,
-      7027559.57107841,
+      4473603.740819484,
+      6821798.344375629,
       1593,
       567,
     ],
@@ -246,42 +246,42 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection war
     ],
     [
       "shieldSlam",
-      9426199.29095865,
-      22956567.846282847,
+      9419994.590690315,
+      22947106.298843656,
       1962,
       539,
     ],
     [
       "revenge",
-      3206932.480749325,
-      15870454.82076297,
+      2536196.9888124783,
+      13082405.648940325,
       2014,
       516,
     ],
     [
       "sunderArmor",
       0,
-      8688076.19647586,
+      8581539.43919922,
       3269,
       1226,
     ],
     [
       "heroicStrike",
-      7026728.707875354,
-      13501659.341739152,
+      6635194.778937327,
+      12453598.729901489,
       1736,
       600,
     ],
   ],
   "dps": {
-    "ci95": 2.082383829357685,
-    "mean": 367.8446875989159,
-    "stdev": 23.75733347356796,
+    "ci95": 2.0044708476199227,
+    "mean": 351.76015117565447,
+    "stdev": 22.8684461018124,
   },
   "tps": {
-    "ci95": 3.9570160791526985,
-    "mean": 933.1230046842647,
-    "stdev": 45.14448740302504,
+    "ci95": 3.736666880471423,
+    "mean": 882.7754881477106,
+    "stdev": 42.63058515316015,
   },
 }
 `;
@@ -291,7 +291,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
   "abilities": [
     [
       "mainHand",
-      29836682.437274784,
+      28987203.14527735,
       44561,
       8887,
       14815,
@@ -301,7 +301,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "handOfJustice",
-      998210.300923653,
+      970788.6698348187,
       1428,
       291,
       477,
@@ -311,7 +311,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "deepWounds",
-      22580328.44224474,
+      21953284.47736127,
       61315,
       57025,
       0,
@@ -321,7 +321,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "weaponmaster",
-      4953940.876999987,
+      4818346.60030857,
       7072,
       1440,
       2386,
@@ -331,7 +331,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "windfury",
-      17697145.33934419,
+      17240760.52847565,
       23874,
       4806,
       7969,
@@ -341,7 +341,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "rend",
-      5095343.416680193,
+      4960439.30923255,
       8874,
       34892,
       16096,
@@ -351,7 +351,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "slam",
-      8182457.668765697,
+      7979104.140001664,
       9114,
       5242,
       3269,
@@ -371,7 +371,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "mortalStrike",
-      22607670.271158945,
+      22116360.45524154,
       23668,
       14090,
       8068,
@@ -381,7 +381,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "overpower",
-      19448902.119581014,
+      18938544.55065256,
       16760,
       3165,
       13595,
@@ -391,7 +391,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "spearingStrike",
-      1433305.3827446029,
+      1393864.3128352794,
       4842,
       3035,
       1525,
@@ -411,15 +411,15 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
   ],
   "dps": {
-    "ci95": 3.921473345583036,
-    "mean": 816.4173141586815,
-    "stdev": 63.27048687373248,
+    "ci95": 3.8303419291495517,
+    "mean": 797.078220595016,
+    "stdev": 61.800139231631604,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 2.221816473092039,
-    "mean": 461.5005369467633,
-    "stdev": 35.84760053385292,
+    "ci95": 2.1733784948554282,
+    "mean": 451.0681368933437,
+    "stdev": 35.066084456569996,
   },
 }
 `;
@@ -429,8 +429,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
   "abilities": [
     [
       "mainHand",
-      1675519.7350418454,
-      2221739.1686654883,
+      1620182.7117257605,
+      2148362.275748361,
       5050,
       0,
       1556,
@@ -440,8 +440,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
     [
       "handOfJustice",
-      134421.7749702115,
-      178243.27361050044,
+      130242.73724250478,
+      172701.8695835614,
       385,
       0,
       116,
@@ -473,8 +473,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
     [
       "windfury",
-      2411208.9113420723,
-      3197263.0164395943,
+      2341775.7921991264,
+      3105194.70045604,
       6494,
       0,
       1931,
@@ -517,8 +517,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
     [
       "maul",
-      25407313.983730156,
-      58957672.0992455,
+      24806880.472834162,
+      57564366.137211956,
       36750,
       12319,
       13462,
@@ -539,8 +539,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
     [
       "mangle",
-      10754329.497763423,
-      14260240.914034273,
+      10472759.668881113,
+      13886879.320936352,
       18936,
       6218,
       6996,
@@ -550,8 +550,8 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
     [
       "lacerate",
-      5589859.480314197,
-      14673498.338096617,
+      5407792.753569055,
+      14340775.995832618,
       26578,
       9219,
       9438,
@@ -572,14 +572,14 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     ],
   ],
   "dps": {
-    "ci95": 3.088281260899788,
-    "mean": 553.6403409921295,
-    "stdev": 35.23333534432896,
+    "ci95": 3.0124137144376304,
+    "mean": 540.393205871477,
+    "stdev": 34.36778377035287,
   },
   "tps": {
-    "ci95": 6.365025502924693,
-    "mean": 1127.2460067720444,
-    "stdev": 72.61679201926448,
+    "ci95": 6.215297655478435,
+    "mean": 1102.0328784920077,
+    "stdev": 70.90858897239512,
   },
 }
 `;
@@ -589,7 +589,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
   "abilities": [
     [
       "mainHand",
-      34374109.629533984,
+      33298122.64801693,
       187428,
       39762,
       60733,
@@ -599,7 +599,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
     [
       "handOfJustice",
-      519215.3826674532,
+      503396.0941728715,
       2735,
       579,
       911,
@@ -609,7 +609,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
     [
       "windfury",
-      9700158.163669787,
+      9423866.323035222,
       47994,
       10243,
       15472,
@@ -619,7 +619,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
     [
       "shred",
-      35125151.68172878,
+      34385123.46957044,
       54388,
       28280,
       22649,
@@ -629,7 +629,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
     [
       "rip",
-      20825518.5442483,
+      20528156.616869632,
       11833,
       44678,
       21399,
@@ -639,7 +639,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
     [
       "ferociousBite",
-      2031465.2536886185,
+      2010741.416616012,
       1353,
       863,
       408,
@@ -676,15 +676,15 @@ exports[`golden run (fixed config and seed) > keeps the default Feral cat’s re
     ],
   ],
   "dps": {
-    "ci95": 1.361942093580706,
-    "mean": 570.530293146551,
-    "stdev": 21.974072436764224,
+    "ci95": 1.332714503843684,
+    "mean": 557.0351228203116,
+    "stdev": 21.50250380175362,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 0.6890015918680917,
-    "mean": 296.8632233741859,
-    "stdev": 11.116603973190974,
+    "ci95": 0.6745236747209202,
+    "mean": 290.1561237220443,
+    "stdev": 10.883011956595766,
   },
 }
 `;
@@ -694,7 +694,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
   "abilities": [
     [
       "mainHand",
-      26390999.324830506,
+      25561866.295701906,
       71004,
       673,
       24545,
@@ -704,7 +704,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "offHand",
-      23133266.541362073,
+      22406254.998893827,
       118738,
       12901,
       42390,
@@ -714,7 +714,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "handOfJustice",
-      942756.4408764844,
+      913957.5610824184,
       2436,
       23,
       856,
@@ -724,7 +724,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "ironfoe",
-      3314695.344527883,
+      3214604.443302641,
       8611,
       70,
       2941,
@@ -734,7 +734,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "deepWounds",
-      20905406.944625363,
+      20262277.229953047,
       115110,
       58761,
       0,
@@ -744,7 +744,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "windfury",
-      10214717.380075593,
+      9926143.76586895,
       24583,
       258,
       8518,
@@ -754,7 +754,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "bloodthirst",
-      16687551.551164467,
+      16008513.710601136,
       21894,
       13315,
       7160,
@@ -774,7 +774,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "whirlwind",
-      6327095.392468534,
+      6128319.391511525,
       12854,
       7501,
       4484,
@@ -784,7 +784,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "whirlwindOffHand",
-      3743858.1636097035,
+      3618344.230432685,
       12854,
       7493,
       4567,
@@ -794,7 +794,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "overpower",
-      7262510.339664452,
+      7055045.10876271,
       12206,
       7550,
       4656,
@@ -804,7 +804,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
     [
       "heroicStrike",
-      9497655.451426364,
+      8957398.265408246,
       13081,
       7135,
       5098,
@@ -814,15 +814,15 @@ exports[`golden run (fixed config and seed) > keeps the default Fury warrior’s
     ],
   ],
   "dps": {
-    "ci95": 3.198993641748809,
-    "mean": 829.656821023358,
-    "stdev": 51.613734783483274,
+    "ci95": 3.114890133363856,
+    "mean": 805.3536658064345,
+    "stdev": 50.256777983228936,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 1.9287115017766474,
-    "mean": 488.0219384965014,
-    "stdev": 31.118537601135472,
+    "ci95": 1.8740853959694272,
+    "mean": 473.50678988139214,
+    "stdev": 30.237180007737123,
   },
 }
 `;
@@ -832,15 +832,15 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
   "abilities": [
     [
       "mainHand",
-      5349143.114883114,
-      8156908.335885242,
+      5174381.833169656,
+      7890414.857400392,
       1966,
       748,
     ],
     [
       "handOfJustice",
-      221855.9208854833,
-      338308.0937582733,
+      214948.98597910197,
+      327775.70871953235,
       96,
       35,
     ],
@@ -860,8 +860,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     ],
     [
       "windfury",
-      4431436.439167374,
-      6757497.42608633,
+      4301898.495375811,
+      6559965.015598559,
       1463,
       498,
     ],
@@ -888,42 +888,42 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     ],
     [
       "shieldSlam",
-      9978516.258037817,
-      24275403.484381817,
+      9971532.502943773,
+      24264753.95623891,
       2101,
       603,
     ],
     [
       "revenge",
-      3405775.9811289855,
-      16853661.354653105,
+      2693442.474745669,
+      13892791.404014291,
       1985,
       575,
     ],
     [
       "sunderArmor",
       0,
-      10192696.62762053,
+      10067818.525634037,
       3924,
       1414,
     ],
     [
       "heroicStrike",
-      10666389.341496777,
-      20401418.03514844,
+      10073236.120699327,
+      18827469.289954428,
       2572,
       917,
     ],
   ],
   "dps": {
-    "ci95": 2.0666102996307454,
-    "mean": 391.42524747368384,
-    "stdev": 23.577377693804856,
+    "ci95": 1.992996407205373,
+    "mean": 373.372862365062,
+    "stdev": 22.737537427096495,
   },
   "tps": {
-    "ci95": 3.988314137411417,
-    "mean": 1002.1770131922237,
-    "stdev": 45.50155817770392,
+    "ci95": 3.7730085837334526,
+    "mean": 944.9788175212548,
+    "stdev": 43.045197460085234,
   },
 }
 `;

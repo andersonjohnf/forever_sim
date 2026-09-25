@@ -37,28 +37,28 @@ describe('worked examples (docs/classes/mage.md#worked-examples)', () => {
     // Curse of the Elements' −75 can't take the boss below its own 0: the level's 24 stays (spells.md §3).
     expect(plan.schools!.resistance[SCHOOL.fire]).toBe(24)
     expect(plan.schools!.taken[SCHOOL.fire]).toBeCloseTo(1.1, 12)
-    fixSpell(plan, 'fireball', 483)
+    fixSpell(plan, 'fireball', 451)
     const { damage, uses } = events(plan, ['fireVulnerability'])
     expect(uses('fireball')[0].stacks.fireVulnerability).toBe(5)
-    const expected = 883 * 1.1 * 1.03 * 1.15 * 1.1 * RESIST
-    expect(expected).toBeCloseTo(1189.622015, 5)
+    const expected = 851 * 1.1 * 1.03 * 1.15 * 1.1 * RESIST
+    expect(expected).toBeCloseTo(1146.510005, 5)
     for (const d of damage('fireball')) expect(d.value).toBeCloseTo(expected, 9)
-    // Its range: 424.58–541.42 base, so 1,110.92 to 1,268.32.
+    // Its range: 396.57–505.43 base, so 1,073.18 to 1,219.84.
     const fb = spellOf(examplePlan({ talents: { 'Fire Power': 5 } }), 'fireball')
-    expect(((fb.min + 400) * 1.1 * 1.03 * 1.15 * 1.1 * RESIST).toFixed(2)).toBe('1110.92')
-    expect(((fb.max + 400) * 1.1 * 1.03 * 1.15 * 1.1 * RESIST).toFixed(2)).toBe('1268.32')
+    expect(((fb.min + 400) * 1.1 * 1.03 * 1.15 * 1.1 * RESIST).toFixed(2)).toBe('1073.18')
+    expect(((fb.max + 400) * 1.1 * 1.03 * 1.15 * 1.1 * RESIST).toFixed(2)).toBe('1219.84')
   })
 
-  it('2. a Frostbolt crit with Ice Shards 5/5: (475 + 0.814 × 400) × 2.0 = 1,601.2; binary, so no partial resist', () => {
+  it('2. a Frostbolt r10 crit with Ice Shards 5/5: (397.6 + 0.814 × 400) × 2.0 = 1,446.4; binary, so no partial resist', () => {
     const plan = examplePlan({ spec: 'frost', talents: { 'Ice Shards': 5 }, sp: 400, spellCrit: 200 })
     expect(spellOf(plan, 'frostbolt').critMultiplier).toBeCloseTo(2, 12)
-    fixSpell(plan, 'frostbolt', 475)
+    fixSpell(plan, 'frostbolt', 397.6)
     const bolts = damagesOf(plan, 'frostbolt')
     expect(bolts.length).toBeGreaterThan(10)
-    for (const d of bolts) expect(d).toBeCloseTo(1601.2, 9)
+    for (const d of bolts) expect(d).toBeCloseTo(1446.4, 9)
     const fb = spellOf(examplePlan({ spec: 'frost' }), 'frostbolt')
-    expect(((fb.min + 325.6) * 2).toFixed(2)).toBe('1565.69')
-    expect(((fb.max + 325.6) * 2).toFixed(2)).toBe('1636.71')
+    expect(((fb.min + 325.6) * 2).toFixed(2)).toBe('1416.97')
+    expect(((fb.max + 325.6) * 2).toFixed(2)).toBe('1475.83')
   })
 
   it('3. Ignite from one 1,000 crit: 40% = 400 in the pool, 2 ticks of 200 × 0.94 = 188, 2 s and 4 s after it', () => {
@@ -165,7 +165,7 @@ describe('Improved Scorch (docs/classes/mage.md#improved-scorch)', () => {
       .forEach((d, k) => expect(d.value).toBeCloseTo(100 * RESIST * (1 + 0.03 * k), 9))
     // Fireballs and their DoT ticks at 5 stacks: ×1.15.
     for (const d of damage('fireball').filter((x) => x.t < 37000)) expect(d.value).toBeCloseTo(1000 * RESIST * 1.15, 9)
-    for (const d of damage('fireballDot').filter((x) => x.t < 37000)) expect(d.value).toBeCloseTo(15 * RESIST * 1.15, 9)
+    for (const d of damage('fireballDot').filter((x) => x.t < 37000)) expect(d.value).toBeCloseTo(14 * RESIST * 1.15, 9)
   })
 
   it('multiplies the crit that feeds Ignite, not Ignite’s ticks again: 1,621.5 crit, a first tick of 0.4 × 1,621.5 / 2 × 0.94 (1.60.1.70009’s no double dip)', () => {
@@ -393,18 +393,18 @@ describe('Winter’s Chill (docs/classes/mage.md#winters-chill)', () => {
 })
 
 describe('Arcane Power (docs/classes/mage.md#arcane-power)', () => {
-  it('for 15 s: every spell’s damage ×1.3 and mana cost ×1.3, to a tenth (Arcane Missiles 655 → 851.5)', () => {
+  it('for 15 s: every spell’s damage ×1.3 and mana cost ×1.3, to a tenth (Arcane Missiles 595 → 773.5)', () => {
     const plan = examplePlan({ spec: 'arcane', talents: { 'Arcane Power': 1 }, rotation: { [A.arcanePower]: true } })
     expect(plan.auras[auraOf(plan, 'arcanePower')]).toMatchObject({ durationMs: 15000, manaCostPct: 30 })
     const { uses, damage } = events(plan)
     expect(uses('arcanePower').map((u) => u.t)).toEqual([0])
     const am = uses('arcaneMissiles')
     expect(am.slice(0, 5).map((u) => u.t)).toEqual([0, 5000, 10000, 15000, 20000])
-    expect(spent(am).slice(0, 2)).toEqual([8515, 8515])
-    expect(spent(am)[3]).toBe(6550)
+    expect(spent(am).slice(0, 2)).toEqual([7735, 7735])
+    expect(spent(am)[3]).toBe(5950)
     const missiles = damage('arcaneMissiles')
     expect(missiles.length).toBeGreaterThan(20)
-    for (const d of missiles.filter((x) => x.t !== 15000)) expect(d.value, String(d.t)).toBeCloseTo(209 * RESIST * (d.t < 15000 ? 1.3 : 1), 9)
+    for (const d of missiles.filter((x) => x.t !== 15000)) expect(d.value, String(d.t)).toBeCloseTo(174.6 * RESIST * (d.t < 15000 ? 1.3 : 1), 9)
   })
 })
 
@@ -419,7 +419,7 @@ describe('Clearcasting (docs/classes/mage.md#talents): Arcane Concentration', ()
     p.chance = [1, 1]
     p.icdMs = 1e9
     const fb = events(plan, ['clearcasting']).uses('fireball')
-    expect(spent(fb).slice(0, 3)).toEqual([4100, 0, 4100])
+    expect(spent(fb).slice(0, 3)).toEqual([3950, 0, 3950])
     expect(fb.slice(0, 4).map((u) => u.stacks.clearcasting)).toEqual([0, 1, 0, 0])
     expect(examplePlan().freeCastAura).toBeUndefined()
   })
@@ -429,23 +429,23 @@ describe('Clearcasting (docs/classes/mage.md#talents): Arcane Concentration', ()
     const p = procOf(plan, 'arcaneConcentration')
     p.chance = [1, 1]
     p.icdMs = 1e9
-    expect(spent(events(plan).uses('arcaneMissiles')).slice(0, 3)).toEqual([6550, 0, 6550])
+    expect(spent(events(plan).uses('arcaneMissiles')).slice(0, 3)).toEqual([5950, 0, 5950])
   })
 })
 
 describe('Master of Elements (docs/classes/mage.md#talents)', () => {
-  it('a Fire or Frost crit returns 10% a rank of its spell’s cost: 123 of Fireball’s 410, 87 of Frostbolt’s 290 at 3/3; not an Arcane crit', () => {
+  it('a Fire or Frost crit returns 10% a rank of its spell’s cost: 118.5 of Fireball’s 395, 78 of Frostbolt’s 260 at 3/3; not an Arcane crit', () => {
     const fire = examplePlan({ talents: { 'Master of Elements': 3 }, spellCrit: 200 })
     const fb = events(fire)
-    expect(spent(fb.uses('fireball')).slice(0, 4)).toEqual([2870, 2870, 2870, 2870])
+    expect(spent(fb.uses('fireball')).slice(0, 4)).toEqual([2765, 2765, 2765, 2765])
     const crits = counter(fb.sim, fire, 'fireball', FIELD.crits)
-    expect(fb.sim.manaBySource[row(fire, 'masterOfElements')]).toBe(1230 * crits)
+    expect(fb.sim.manaBySource[row(fire, 'masterOfElements')]).toBe(1185 * crits)
     const frost = examplePlan({ spec: 'frost', talents: { 'Master of Elements': 3 }, spellCrit: 200 })
-    expect(spent(events(frost).uses('frostbolt')).slice(0, 3)).toEqual([2030, 2030, 2030])
+    expect(spent(events(frost).uses('frostbolt')).slice(0, 3)).toEqual([1820, 1820, 1820])
     const noCrit = examplePlan({ talents: { 'Master of Elements': 3 } })
-    expect(spent(events(noCrit).uses('fireball')).slice(0, 3)).toEqual([4100, 4100, 4100])
+    expect(spent(events(noCrit).uses('fireball')).slice(0, 3)).toEqual([3950, 3950, 3950])
     const arcane = examplePlan({ spec: 'arcane', talents: { 'Master of Elements': 3 }, spellCrit: 200 })
-    expect(spent(events(arcane).uses('arcaneMissiles')).slice(0, 3)).toEqual([6550, 6550, 6550])
+    expect(spent(events(arcane).uses('arcaneMissiles')).slice(0, 3)).toEqual([5950, 5950, 5950])
   })
 })
 
@@ -531,7 +531,7 @@ describe('mana gems (docs/classes/mage.md#mana)', () => {
       at.manaCitrine = []
       sim.runFight(i)
       expect([at.manaRuby.length, at.manaCitrine.length]).toEqual([1, 1])
-      expect(at.manaCitrine[0] - at.manaRuby[0]).toBeGreaterThanOrEqual(120000)
+      expect(Math.abs(at.manaCitrine[0] - at.manaRuby[0])).toBeGreaterThanOrEqual(120000)
       gains.manaRuby.push(sim.manaBySource[ruby] - before[0])
       gains.manaCitrine.push(sim.manaBySource[citrine] - before[1])
       before = [sim.manaBySource[ruby], sim.manaBySource[citrine]]
@@ -543,7 +543,7 @@ describe('mana gems (docs/classes/mage.md#mana)', () => {
     expect(new Set(gains.manaRuby).size).toBeGreaterThan(10)
   })
 
-  it('go whichever fits first, the Ruby on a tie: the default Fire mage’s Citrine first nearly always, the Arcane mage’s Ruby mostly (mage.md "Mana gems")', () => {
+  it('go whichever fits first, the Ruby on a tie: the default Fire mage’s Citrine first nearly always, the Arcane mage’s either about as often (mage.md "Mana gems")', () => {
     const firsts = (spec: MageSpec) => {
       const plan = buildPlan(defaultConfig(SPEC_ID[spec])).plan
       const sim = new Sim(plan)
@@ -562,7 +562,7 @@ describe('mana gems (docs/classes/mage.md#mana)', () => {
     const fire = firsts('fire')
     expect(fire.manaCitrine).toBeGreaterThan(90)
     const arcane = firsts('arcane')
-    expect(arcane.manaRuby).toBeGreaterThan(arcane.manaCitrine)
+    expect(Math.min(arcane.manaRuby, arcane.manaCitrine)).toBeGreaterThan(25)
   })
 
   it('share their cooldown with the Demonic Rune (category 1153): a Rune at the pull holds the Ruby for 2 min', () => {

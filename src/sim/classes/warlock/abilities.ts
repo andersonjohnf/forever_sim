@@ -58,9 +58,10 @@ const range = (base: number, variance: number, perLevel = 0, baseLevel = 60, max
 // --- Destruction (warlock.md §3.1) ----------------------------------------------------------------
 
 /**
- * Shadow Bolt r10 (25307): 268 base points, variance 0.10980392, so 253.29–282.71 (the tooltip's
- * 253–283; Classic Era's 482–538), coefficient 0.857, Shadow; 380 mana, a 3 s cast [F] [client]
- * (SpellEffect, SpellPower, SpellMisc, 1.60.1.69913). Its travel time isn't simulated.
+ * Shadow Bolt r9 (11661), the trainer's top rank (r10 is an Ahn'Qiraj book, D36; warlock.md §3.1): 251
+ * base points, variance 0.10810811, so 237.43–264.57 (the tooltip's 237–265; Classic Era's 455–507),
+ * coefficient 0.857, Shadow; 370 mana, a 3 s cast [F] [client] (SpellEffect, SpellPower, SpellMisc,
+ * 1.60.1.70009). Its travel time isn't simulated.
  */
 export const SHADOW_BOLT_SPELL: SpellDef = {
   ...SPELL,
@@ -68,18 +69,19 @@ export const SHADOW_BOLT_SPELL: SpellDef = {
   name: 'Shadow Bolt',
   icon: 'spell_shadow_shadowbolt',
   school: 'shadow',
-  ...range(268, 0.10980392),
+  ...range(251, 0.10810811),
   spCoefficient: 0.857,
 }
-export const SHADOW_BOLT: AbilityDef = { ...WARLOCK, id: 'shadowBolt', name: 'Shadow Bolt', icon: 'spell_shadow_shadowbolt', kind: 'spell', ...mana(380), castMs: 3000, castHasted: true, spellDef: SHADOW_BOLT_SPELL }
+export const SHADOW_BOLT: AbilityDef = { ...WARLOCK, id: 'shadowBolt', name: 'Shadow Bolt', icon: 'spell_shadow_shadowbolt', kind: 'spell', ...mana(370), castMs: 3000, castHasted: true, spellDef: SHADOW_BOLT_SPELL }
 
 /** Immolate's marker on the boss (its DoT's aura, docs/mechanics/spells.md §7): Conflagrate needs it, Incinerate reads it. */
 export const IMMOLATE_AURA: AuraSpec = { id: 'immolate', name: 'Immolate', durationMs: 15000, mods: {} }
 
 /**
- * Immolate r8 (25309): 158 Fire at coefficient 0.2 (#1), then 55 every 3 s for 15 s at 0.13 a tick (#0;
- * Classic Era 279 and 102), with the periodic-crit flag (SpellMisc Attributes[8] 0x200); 380 mana, a
- * 2 s cast [F] [client] (SpellEffect, SpellMisc, SpellDuration, 1.60.1.69913).
+ * Immolate r7 (11668), the trainer's top rank (r8 is an Ahn'Qiraj book, D36): 146 Fire at coefficient
+ * 0.2 (#1), then 52 every 3 s for 15 s at 0.13 a tick (#0; Classic Era 258 and 97), with the
+ * periodic-crit flag (SpellMisc Attributes[8] 0x200); 370 mana, a 2 s cast [F] [client] (SpellEffect,
+ * SpellMisc, SpellDuration, 1.60.1.70009).
  */
 export const IMMOLATE_SPELL: SpellDef = {
   ...SPELL,
@@ -87,12 +89,12 @@ export const IMMOLATE_SPELL: SpellDef = {
   name: 'Immolate',
   icon: 'spell_fire_immolation',
   school: 'fire',
-  min: 158,
-  max: 158,
+  min: 146,
+  max: 146,
   spCoefficient: 0.2,
   dotTicks: 5,
   dotTickMs: 3000,
-  dotTickDamage: 55,
+  dotTickDamage: 52,
   dotSpCoefficient: 0.13,
   dotCanCrit: true,
 }
@@ -102,7 +104,7 @@ export const IMMOLATE: AbilityDef = {
   name: 'Immolate',
   icon: 'spell_fire_immolation',
   kind: 'spell',
-  ...mana(380),
+  ...mana(370),
   castMs: 2000,
   castHasted: true,
   spellDef: IMMOLATE_SPELL,
@@ -195,9 +197,9 @@ export const SHADOWBURN: AbilityDef = { ...WARLOCK, id: 'shadowburn', name: 'Sha
 export const CORRUPTION_AURA: AuraSpec = { id: 'corruption', name: 'Corruption', durationMs: 18000, mods: {} }
 
 /**
- * Corruption r7 (25311): 73 Shadow every 3 s for 18 s at 0.2 a tick (Classic Era 137 at 0.167), with
- * the periodic-crit flag; 340 mana, a 2 s cast (Improved Corruption's −2 s makes it instant) [F]
- * [client] (SpellEffect, SpellMisc, SpellDuration, 1.60.1.69913).
+ * Corruption r6 (11672), the trainer's top rank (r7 is an Ahn'Qiraj book, D36): 57 Shadow every 3 s for
+ * 18 s at 0.2 a tick (Classic Era 111 at 0.167), with the periodic-crit flag; 290 mana, a 2 s cast (Improved Corruption's −2 s makes it instant) [F]
+ * [client] (SpellEffect, SpellMisc, SpellDuration, 1.60.1.70009).
  */
 export const CORRUPTION_SPELL: SpellDef = {
   ...SPELL,
@@ -207,7 +209,7 @@ export const CORRUPTION_SPELL: SpellDef = {
   school: 'shadow',
   dotTicks: 6,
   dotTickMs: 3000,
-  dotTickDamage: 73,
+  dotTickDamage: 57,
   dotSpCoefficient: 0.2,
   dotCanCrit: true,
 }
@@ -217,7 +219,7 @@ export const CORRUPTION: AbilityDef = {
   name: 'Corruption',
   icon: 'spell_shadow_abominationexplosion',
   kind: 'spell',
-  ...mana(340),
+  ...mana(290),
   castMs: 2000,
   castHasted: true,
   spellDef: CORRUPTION_SPELL,

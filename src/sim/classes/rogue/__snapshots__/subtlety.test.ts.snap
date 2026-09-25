@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
   "abilities": [
     [
       "mainHand",
-      25285976.16872126,
+      24528775.418948155,
       129072,
       4344,
       36459,
@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "offHand",
-      13534910.923311852,
+      13137428.614017084,
       177507,
       5885,
       49957,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "handOfJustice",
-      596073.1628954748,
+      578643.9982211221,
       2954,
       92,
       833,
@@ -35,7 +35,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "windfury",
-      6999044.151620828,
+      6813087.0533053875,
       31740,
       986,
       8903,
@@ -45,7 +45,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "deadlyPoison",
-      6222287.986405997,
+      4933906.445418618,
       54526,
       49782,
       6089,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "instantPoison",
-      2022330.8732967172,
+      2016122.408296714,
       25437,
       19166,
       2406,
@@ -65,7 +65,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "rupture",
-      11469554.127199046,
+      11248555.483099028,
       11470,
       47653,
       18652,
@@ -75,7 +75,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "eviscerate",
-      1779431.4455783989,
+      1762546.8469962704,
       1370,
       903,
       333,
@@ -85,7 +85,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "hemorrhage",
-      23853242.504989535,
+      23143469.963656493,
       59554,
       37065,
       16727,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
   ],
   "dps": {
-    "ci95": 1.2843158740262428,
-    "mean": 510.63452660396956,
-    "stdev": 20.72162258627368,
+    "ci95": 1.2437688838993814,
+    "mean": 490.5990104952156,
+    "stdev": 20.067422600576844,
   },
   "durationSec": 179.690222,
 }

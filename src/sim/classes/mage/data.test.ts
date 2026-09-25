@@ -79,13 +79,13 @@ const curve = (name: string, effectIndex = 0): number[] => {
 /** A talent's effect at each rank, 1..n. */
 const byRank = <T>(n: number, f: (r: number) => T) => Array.from({ length: n }, (_, i) => f(i + 1))
 
-const FB = 25306
+const FB = 10151
 const SC = 10207
 const FBL = 10199
 const PY = 18809
-const FRB = 25304
-const AM = 25345
-const AMM = 25346
+const FRB = 10181
+const AM = 10212
+const AMM = 10274
 const AB = 1239700
 /** Our damage spells, by plan id: the client row whose class mask the talents select. */
 const DAMAGE: Record<string, number> = { fireball: FB, scorch: SC, fireBlast: FBL, pyroblast: PY, frostbolt: FRB, arcaneMissiles: AMM, arcaneBlast: AB }
@@ -107,9 +107,9 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect(def).toMatchObject({ triggersProcs: true, weaponPercent: 0, critMultiplier: 1.5, alwaysHit: false, noActiveDefense: false })
   }
 
-  it('Fireball r12: 483 ± 12.09% (424.58–541.42), 1.0; its DoT 15 every 2 s for 8 s, coefficient 0; its DoT has the periodic-crit flag (Attributes[8] 0x200)', () => {
+  it('Fireball r11 (the trainer’s, D36): 451 ± 12.07% (396.57–505.43), 1.0; its DoT 14 every 2 s for 8 s, coefficient 0; its DoT has the periodic-crit flag (Attributes[8] 0x200)', () => {
     matches(FIREBALL_SPELL, FB, 0)
-    expect([FIREBALL_SPELL.min.toFixed(2), FIREBALL_SPELL.max.toFixed(2)]).toEqual(['424.58', '541.42'])
+    expect([FIREBALL_SPELL.min.toFixed(2), FIREBALL_SPELL.max.toFixed(2)]).toEqual(['396.57', '505.43'])
     const dot = effect(FB, 1)
     expect([dot.effectAura, dot.effectAuraPeriod, dot.effectBasePointsF, dot.effectBonusCoefficient ?? 0]).toEqual([3, FIREBALL_SPELL.dotTickMs, FIREBALL_SPELL.dotTickDamage, FIREBALL_SPELL.dotSpCoefficient])
     expect(spell(FB).duration!.duration! / dot.effectAuraPeriod!).toBe(FIREBALL_SPELL.dotTicks)
@@ -137,24 +137,24 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect(PYROBLAST_SPELL.dotCanCrit).toBe(true)
   })
 
-  it('Frostbolt r11: 475 ± 3.74% (457.24–492.76), 0.814; its slow (aura 33) makes it binary', () => {
+  it('Frostbolt r10 (the trainer’s, D36): 386 ± 3.81%, +2.9 a level from 56 to 60 (382.89–412.31), 0.814; its slow (aura 33) makes it binary', () => {
     matches(FROSTBOLT_SPELL, FRB, 1)
-    expect([FROSTBOLT_SPELL.min.toFixed(2), FROSTBOLT_SPELL.max.toFixed(2)]).toEqual(['457.24', '492.76'])
+    expect([FROSTBOLT_SPELL.min.toFixed(2), FROSTBOLT_SPELL.max.toFixed(2)]).toEqual(['382.89', '412.31'])
     expect(effect(FRB, 0)).toMatchObject({ effect: 6, effectAura: 33, effectBasePointsF: -40 })
     expect(FROSTBOLT_SPELL.binary).toBe(true)
     for (const def of [FIREBALL_SPELL, SCORCH_SPELL, FIRE_BLAST_SPELL, PYROBLAST_SPELL, ARCANE_MISSILE_SPELL, ARCANE_BLAST_SPELL]) expect(def.binary, def.id).toBeUndefined()
   })
 
-  it('Arcane Missiles r8: each missile (25346) 209, 0.286, no variance; Arcane Blast r5 (Forever’s): 394 ± 7.55% (364.25–423.75), 0.714', () => {
+  it('Arcane Missiles r7 (the trainer’s, D36): each missile (10274) 171 + 0.9 a level from 56, 174.6 at 60, 0.286, no variance; Arcane Blast r5 (Forever’s): 394 ± 7.55% (364.25–423.75), 0.714', () => {
     matches(ARCANE_MISSILE_SPELL, AMM, 0)
-    expect([ARCANE_MISSILE_SPELL.min, ARCANE_MISSILE_SPELL.max]).toEqual([209, 209])
+    expect([ARCANE_MISSILE_SPELL.min, ARCANE_MISSILE_SPELL.max]).toEqual([174.6, 174.6])
     matches(ARCANE_BLAST_SPELL, AB, 0)
     expect([ARCANE_BLAST_SPELL.min.toFixed(2), ARCANE_BLAST_SPELL.max.toFixed(2)]).toEqual(['364.25', '423.75'])
   })
 })
 
 describe('costs, cast times, cooldowns and the GCD against the client', () => {
-  it('Fireball 410 / 3.5 s, Scorch 150 / 1.5 s, Fire Blast 340 / instant / 8 s (category 19), Pyroblast 440 / 6 s, Frostbolt 290 / 3 s; all on the 1.5 s GCD (category 133)', () => {
+  it('Fireball 395 / 3.5 s, Scorch 150 / 1.5 s, Fire Blast 340 / instant / 8 s (category 19), Pyroblast 440 / 6 s, Frostbolt 260 / 3 s; all on the 1.5 s GCD (category 133)', () => {
     for (const [def, id] of [
       [FIREBALL, FB],
       [SCORCH, SC],
@@ -185,7 +185,7 @@ describe('costs, cast times, cooldowns and the GCD against the client', () => {
     expect(ARCANE_BLAST.castMs).toBe(spell(AB).castTime!.base)
   })
 
-  it('Arcane Missiles: a 5 s channel of 655 mana, a missile (25346) each second from 1 s (aura 23, period 1000)', () => {
+  it('Arcane Missiles: a 5 s channel of 595 mana, a missile (10274) each second from 1 s (aura 23, period 1000)', () => {
     const s = spell(AM)
     expect(mana(ARCANE_MISSILES)).toBe(s.power![0].manaCost)
     expect(effect(AM, 0)).toMatchObject({ effectAura: 23, effectAuraPeriod: ARCANE_MISSILES.rageTickMs, effectTriggerSpell: AMM })
@@ -431,9 +431,9 @@ describe('the talents’ rank curves (mage.md#talents)', () => {
     expect(byRank(5, (r) => withTalents(FIREBALL, ranks({ 'Improved Fireball': r })).castMs)).toEqual([3400, 3300, 3200, 3100, 3000])
     expect(byRank(5, (r) => withTalents(FROSTBOLT, ranks({ 'Improved Frostbolt': r })).castMs)).toEqual([2900, 2800, 2700, 2600, 2500])
     expect(byRank(2, (r) => withTalents(FIRE_BLAST, ranks({ 'Wake of Fire': r })).cooldownMs)).toEqual([7000, 6000])
-    // 290 × 0.95 = 275.5 → 275, × 0.9 = 261, × 0.85 = 246.5 → 246.
-    expect(byRank(3, (r) => mana(withTalents(FROSTBOLT, ranks({ 'Frost Channeling': r }))))).toEqual([275, 261, 246])
-    expect(mana(withTalents(FIREBALL, ranks({ 'Frost Channeling': 3 })))).toBe(410)
+    // Rank 10's 260 × 0.95 = 247, × 0.9 = 234, × 0.85 = 221.
+    expect(byRank(3, (r) => mana(withTalents(FROSTBOLT, ranks({ 'Frost Channeling': r }))))).toEqual([247, 234, 221])
+    expect(mana(withTalents(FIREBALL, ranks({ 'Frost Channeling': 3 })))).toBe(395)
   })
 
   it('the Forever rank tooltips say the same', () => {

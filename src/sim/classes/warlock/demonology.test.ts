@@ -470,6 +470,8 @@ describe('golden runs (fixed config and seed)', () => {
   // - the Destruction gear verification (DV2-4, on 1.60.1.70009, whose data left these defaults' results unchanged): Draconic Infused Emblem's
   //   proc is modelled and leads the list's trinkets, in place of Briarwood Reed: 664.19 → 675.56 here;
   //   663.7 → 675.0 over 20,000 fights on seed 2701.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Shadow Bolt r9 (237.43–264.57, 370 mana), Immolate r7 and Corruption r6
+  //   for the Ahn'Qiraj books' ranks. 675.56 → 663.04 DPS.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

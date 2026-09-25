@@ -223,7 +223,7 @@ export const battleShoutOptions = (ids: SharedIds, refreshBelowSec = 3): Rotatio
     group: 'Cooldowns and buffs',
     label: 'Battle Shout',
     // No number here: the options are the same in both rule profiles, and the shout isn't
-    // (+139 in Forever, +232 in Classic Era; the Buffs tab shows the setup's).
+    // (+115 in Forever, +193 in Classic Era; the Buffs tab shows the setup's).
     help: 'Keep your own Battle Shout up, for 10 rage a shout; the Buffs tab shows its attack power. While this is on, the Buffs tab’s Battle Shout adds nothing more, since it’s the same buff.',
     default: true,
     maintainsBuff: 'battleShout',
@@ -529,7 +529,7 @@ export class RotationBuilder {
 /**
  * Battle Shout's upkeep line: when it's down, or has at most `refreshBelowSec` left and would end
  * before the fight does (the engine wakes the rotation then). With it on, the plan leaves out the
- * Buffs switch's static +139 (`classicEra`: +232), so the buff counts once (warrior.md §5.2
+ * Buffs switch's static +115 (`classicEra`: +193), so the buff counts once (warrior.md §5.2
  * notes). The shout is the profile's (`battleShout`). True when it's on.
  */
 export function battleShoutLine(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext): boolean {

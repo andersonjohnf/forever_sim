@@ -99,7 +99,7 @@ describe('Subtlety talents against the client’s curves (rogue.md §5.3)', () =
     expect(10 * curve('Thousand Cuts')[0]).toBe(THOUSAND_CUTS_TENTHS_PER_STACK)
     expect(THOUSAND_CUTS_AURA.maxStacks).toBe(spell(1310723).auraOptions!.cumulativeAura)
     expect(THOUSAND_CUTS_AURA.durationMs).toBe(spell(1310723).duration!.duration)
-    expect([masks(1310723, 25300), masks(1310723, 16511), masks(1310723, 11294)]).toEqual([true, true, false])
+    expect([masks(1310723, 11281), masks(1310723, 16511), masks(1310723, 11294)]).toEqual([true, true, false])
   })
 
   it('resolves them onto the rows: Quietus on Sinister Strike, Ghostly Strike and Hemorrhage, Thousand Cuts on Rupture, Backstab and Hemorrhage', () => {
@@ -336,6 +336,8 @@ describe('golden run (fixed config and seed)', () => {
   // - Guild test (2026-09-25): the poisons gain attack power, Instant Poison 0.5% a hit and Deadly
   //   Poison 0.1125% a stack each tick [F], read at the tick and scaled by Vile Poisons [?] (rogue.md
   //   §4.1, §4.2). 505.2 → 508.1 DPS (+0.6%) over 20,000 fights on seed 2703 (505.3 → 508.1 on 2701).
+  // - D36, pre-Ahn'Qiraj ranks (W2): Deadly Poison IV (18 a tick) for V (23), Backstab r8 (+140) for r9, and
+  //   the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5). 507.89 → 487.86 DPS.
   it('keeps the default Subtlety rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-subtlety'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

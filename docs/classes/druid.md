@@ -503,10 +503,14 @@ the target. [F] [client] (SpellEffect, 1.60.1.69913); Ferocity [trait-f]
     increased by your Attack Power" [fc-book]; Q3).
   - "Consumes all Energy": [C] [wh-rot] ("Bite consumes the entirety of your Energy pool").
 - Cost 35 Energy (no Ferocity reduction). No Feral Aggression in Forever.
-- Rank availability: rank 5 is listed at level 60 [F] [fc-book]. If it turns out to be a book
-  (in Classic Era it's a book: [wh-rot] "once you acquire" it; that it arrives with AQ is
-  secondary [ws-fb]), the fallback rank 4 (22829) is
-  `uniform(45, 95) + 128×CP + 2.5/Energy` [F] [se-f] (Q17).
+- Rank availability: rank 5 is listed at level 60 [F] [fc-book]. In Classic Era it's a book
+  ([wh-rot] "once you acquire" it): Book of Ferocious Bite V (item 24101, whose `ItemEffect` learns
+  31018 [F] [client] (ItemSparse, ItemEffect, ItemXItemEffect, 1.60.1.70009)), which drops from The
+  Beast in **Upper Blackrock Spire** [C] [fb-v], not in Ahn'Qiraj, so
+  [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25) keeps it: a pre-raid dungeon's
+  book is there at launch (the secondary [ws-fb] had it arriving with Ahn'Qiraj). Whether Forever's
+  trainer teaches it outright is still Q17; if neither the trainer nor the book were there, rank 4
+  (22829) is `uniform(45, 95) + 128×CP + 2.5/Energy` [F] [se-f].
 
 ### 3.6 Tiger's Fury (5217)
 
@@ -1966,7 +1970,7 @@ ranks.
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
 | Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1. Lacerate's bonus is **+206 + 0.05 × AP per landed application** (about 274 at the default bear's ~1,355 AP when its Lacerates land), Forever's Sunder Armor r5 at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Leaving Lacerate out while warriors keep the boss bleeding costs 12.3% of TPS, and would lose even with no bonus at all (−6.0%) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick **G5:** the damage of the 1st to 5th applications against the weapon damage: 0/10/20/30/40% as modelled, or a 20% base (spell 414647) |
-| Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
+| Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, and Ferocious Bite rank 5 from the trainer or its book | [F] spellbook lists ranks. Rank 5's book, Book of Ferocious Bite V, drops in Upper Blackrock Spire [C] [fb-v], not Ahn'Qiraj, so D36 keeps rank 5 either way; the AQ books' ranks are out (D36, [open-questions C13](../open-questions.md#c13-rank-availability-at-launch)) | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
 | Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? Does Dire Bear Form multiply Thick Hide's base armor ("further increased by multipliers from those forms")? | [F] data only. The engine multiplies Thick Hide's base armor by the form's +360% with the item armor [?] (§4.7): 828 armor at 3/3 and 300 defense, where unmultiplied it would be 180 | Character-sheet armor in and out of Dire Bear with an armor buff, and in Dire Bear Form with 0 and 3 points in Thick Hide: a difference of 828 means the form multiplies it, 180 that it doesn't |
 | Q20 | Ferocious Bite under Clearcasting: all Energy converted? | Secondary only [?] [ws-fb]; that Bite empties the bar normally is [C] [wh-rot] | Bite with a proc at high Energy |
@@ -2006,8 +2010,8 @@ and `balance.ts`.
 SpellCastTimes, SpellLevels, SpellDuration, SpellAuraOptions, CurvePoint, 1.60.1.69913), against
 Classic Era's [C] [client] (1.15.9.69722)):
 
-- The nukes are far weaker at base and keep their coefficients: Starfire r7 350–412 (Classic Era
-  496–584), Wrath r8 92–102 at 60 (236–264), and Wrath costs 120 mana (180). Wrath's base damage
+- The nukes are far weaker at base and keep their coefficients: Starfire r6 314–369 at 60 (Classic Era
+  451–531; the Ahn'Qiraj book's r7 350–412 and 496–584), Wrath r8 92–102 at 60 (236–264), and Wrath costs 120 mana (180). Wrath's base damage
   rose about 50% on every rank in 1.60.1.70009 (rank 8 was 62–69; [development notes][dev-70009])
   [F] [client] (SpellEffect, 1.60.1.70009).
 - **Moonfire and Insect Swarm carry the periodic-crit flag** (SpellMisc Attributes[8] 0x200), so
@@ -2044,7 +2048,7 @@ base × (1 ± variance / 2) plus that growth (paladin.md#conventions-used-below)
 
 | Spell (id) | Damage at 60 | Coefficient | Cast, cost | Other | Tag |
 | --- | --- | --- | --- | --- | --- |
-| **Starfire** r7 (25298) | 381 base, variance 0.16296296: **349.96–412.04** | 1.0 | 3.5 s, 340 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
+| **Starfire** r6 (9876), the trainer's: r7 (25298, 349.96–412.04, 340 mana) is an Ahn'Qiraj book, Book of Starfire VII ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)) | 337 base, variance 0.16494845, +2.3 a level 58–64: **313.81–369.39** | 1.0 | 3.5 s, 315 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
 | **Wrath** r8 (9912) | 91 base, variance 0.112, +1 a level 54–60: **91.90–102.10** (61.78–68.62 until 1.60.1.70009) | 0.571 | 2.0 s, 120 mana | Nature; speed 20 (travel time not simulated, spells.md §4) | [F] [client] (1.60.1.70009) |
 | **Moonfire** r10 (9835) | hit 135, variance 0.15609756, +2.3 a level 58–63: **129.06–150.14**; DoT **60 every 3 s, 12 s** | 0.15; **0.13 a tick** | instant, 375 mana | Arcane; one hit roll for both parts; not binary; ticks flagged 0x200 | [F] [client] |
 | **Insect Swarm** r5 (24977) | DoT **31 every 2 s, 12 s** | **0.158 a tick** | instant, 160 mana | Nature; −2% hit on the target (#1, aura 54) makes it **binary** (spells.md §3); ticks flagged 0x200 | [F] [client] |
@@ -2219,8 +2223,8 @@ Common setup: level 60 against 63, 500 spell damage (Arcane and Nature), the bos
 resist of 24 (6% on average), averages of uniform rolls. Unit tests in
 `src/sim/classes/druid/balance.test.ts`.
 
-- **B1. Starfire.** (381 + 1.0 × 500) × Moonfury 1.10 × 0.94 = **910.95**; a crit with Vengeance
-  5/5 (×2.0): **1,821.91**.
+- **B1. Starfire** (rank 6, 341.6 at the middle of its range). (341.6 + 1.0 × 500) × Moonfury 1.10 ×
+  0.94 = **870.21**; a crit with Vengeance 5/5 (×2.0): **1,740.43**.
 - **B2. Wrath.** (97 + 0.571 × 500) × 1.10 × 0.94 = **395.51**; a crit: **791.01**.
 - **B3. Moonfire** with Improved Moonfire 2/2, Genesis 5/5, Nature's Splendor and Moonfury. Hit:
   (139.6 + 0.15 × 500) × 1.10 × 1.10 × 0.94 = **244.09**. Each tick: (60 × 1.05 + 0.13 × 1.05 × 500)
@@ -2231,15 +2235,15 @@ resist of 24 (6% on average), averages of uniform rolls. Unit tests in
 - **B5. Cast times and the GCD.** Starfire 3,500 − 500 = **3,000 ms**; under Nature's Grace 3,000 /
   1.1 = **2,727 ms**; with an Eclipse charge **2,500 ms**; both (3,000 − 500) / 1.1 = **2,273 ms**.
   Wrath 1,500 ms, under Nature's Grace **1,364 ms**, and the GCD **1,350 ms**.
-- **B6. Mana.** Starfire 340 × 0.75 = **255**; Wrath 120 × 0.5 × 0.75 = **45**; Moonfire 375 × 0.75
+- **B6. Mana.** Starfire 315 × 0.75 → **236**; Wrath 120 × 0.5 × 0.75 = **45**; Moonfire 375 × 0.75
   → **281**; Insect Swarm 160 × 0.75 = **120**; Innervate **62**.
 - **B7. Omen of Clarity** in Moonkin Form: Starfire 4 × 3.0 / 60 = **20%** of landed casts, Wrath,
   Moonfire and Insect Swarm 4 × 1.5 / 60 = **10%**, at most once every 5 s.
 - **B8. Innervate.** 200 Spirit: 15 + 40 = 55 a tick, ×5 = **275** a tick while casting, **2,750**
   over its 10 ticks.
 - **B9. Eclipse's cycle.** Wrath (1.5 s) then two Starfires at 2.5 s: **6.5 s** for one Wrath and two
-  Starfires, where two Starfires alone take 6.0 s. At B1 and B2's numbers that's 2,184.53 in 6.5 s
-  (336.1 a second) against 1,821.91 in 6.0 s (303.7), before crits and Nature's Grace.
+  Starfires, where two Starfires alone take 6.0 s. At B1 and B2's numbers that's 2,135.94 in 6.5 s
+  (328.6 a second) against 1,740.43 in 6.0 s (290.1), before crits and Nature's Grace.
 
 ### 11.8 Open questions
 
@@ -2362,6 +2366,7 @@ the same spell ids and was ignored except where Forever reuses the id with Forev
 [sdv-c]: https://wago.tools/db2/SpellDescriptionVariables?build=1.15.9.69722
 [ws-forms]: https://github.com/wowsims/classic/blob/master/sim/druid/forms.go
 [ws-rip]: https://github.com/wowsims/classic/blob/master/sim/druid/rip.go
+[fb-v]: https://warcraft.wiki.gg/wiki/Book_of_Ferocious_Bite_V
 [ws-fb]: https://github.com/wowsims/classic/blob/master/sim/druid/ferocious_bite.go
 [ws-shred]: https://github.com/wowsims/classic/blob/master/sim/druid/shred.go
 [ws-rake]: https://github.com/wowsims/classic/blob/master/sim/druid/rake.go

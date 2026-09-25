@@ -53,7 +53,7 @@ describe('damage-and-timing.md worked examples', () => {
     const ww = averageWeaponDamage(150, 230, 0, 1500, NORMALIZED_SPEED.twoHand)
     expect(ww).toBeCloseTo(543.571, 3)
     expect(ww + 160).toBeCloseTo(703.571, 3)
-    expect(averageWeaponDamage(150, 230, 0, 1500, 3.6) + 157).toBeCloseTo(732.714, 3)
+    expect(averageWeaponDamage(150, 230, 0, 1500, 3.6) + 138).toBeCloseTo(713.714, 3)
   })
 
   it('WE-5: haste stacking (the engine’s swing timer; its inputs in engine/mechanics.test.ts)', () => {
@@ -162,8 +162,8 @@ describe('threat.md worked examples (formula level)', () => {
     expect(threat(0, 1, 206 + 0.05 * 1400, 1.3)).toBeCloseTo(358.8, 3)
   })
   it('T4–T7: warrior abilities at ×1.495', () => {
-    expect(threat(500, 1, 173, 1.495)).toBeCloseTo(1006.135, 3)
-    expect(threat(150, 2.25, 270, 1.495)).toBeCloseTo(908.2125, 4)
+    expect(threat(500, 1, 145, 1.495)).toBeCloseTo(964.275, 3)
+    expect(threat(150, 2.25, 243, 1.495)).toBeCloseTo(867.8475, 4)
     expect(threat(90, 2.5, 0, 1.495)).toBeCloseTo(336.375, 3)
     expect(threat(45, 1.5, 156, 1.495)).toBeCloseTo(334.1325, 4)
   })

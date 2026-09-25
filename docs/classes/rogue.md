@@ -10,7 +10,7 @@ extra attack, daggers and fists crit, and maces ignore armor. **Weapon Expertise
 boss's dodge and parry. **Precision** gives only 3% hit, and **Dual Wield Specialization** half its
 Classic off-hand damage. Subtlety gains **Quietus**, **Cutthroat** and **Thousand Cuts**, and
 Hemorrhage now feeds Rupture. **Poisons** hit about a third less hard: Instant Poison VI deals
-76–100 (Classic Era 112–148), and Deadly Poison V ticks for 23 (34), though a guild test finds both
+76–100 (Classic Era 112–148), and Deadly Poison IV ticks for 18 (27), though a guild test finds both
 scale with attack power ([§4](#4-poisons)). This doc reads every value from
 the Forever client, compares it with Classic Era's, and gives the three specs' first-pass rotations
 and defaults under [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24).
@@ -77,7 +77,7 @@ Every row below compares the Forever and Classic Era client tables; the spellboo
 | Spell | Forever | Classic Era | Sim impact | Tag, source |
 | --- | --- | --- | --- | --- |
 | Sinister Strike r8 (spell 11294) | Normalized weapon + 68, 45 Energy, 1 CP | Same | None | [F] [client] (SpellEffect, SpellPower, 1.60.1.69913) |
-| Backstab r9 (spell 25300) | Rows unchanged: normalized weapon + 150, ×150%. The tooltip now reads "plus 150" | Tooltip "plus 225" (150 × 1.5) | The flat's place is Q2 | [F] [client] (SpellEffect); [C] tooltip [client] (Spell, 1.15.9.69722) |
+| Backstab r8 (spell 11281), the trainer's ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25): r9, 25300, is an Ahn'Qiraj book, Handbook of Backstab IX) | Rows unchanged: normalized weapon + 140, ×150% (r9: + 150). The tooltip reads the flat alone | Tooltip "plus 210" (140 × 1.5; r9 "plus 225") | The flat's place is Q2 | [F] [client] (SpellEffect); [C] tooltip [client] (Spell, 1.15.9.69722) |
 | Eviscerate r9 (spell 31016) | 108 ± 54 + 170 per CP (904–1012 at 5), 35 Energy; **+ 4% of AP per CP** | Same rows; Classic Era sims use 3% of AP per CP | **+1% of AP per CP**: +100 on a 5-point Eviscerate at 2,000 AP | [F] [client] (SpellEffect, 1.60.1.69913); AP share [F] [guild-0925] |
 | Slice and Dice r2 (spell 6774) | +30% melee attack speed (aura 319), 6 s + 3 s per CP, 25 Energy | Same speed (aura 138), same time | None | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913) |
 | **Rupture** r6 (spell 11275) | **35 + 4.73 per CP per tick**, 6 s + 2 s per CP: **469 at 5 CP**; + 1% of AP per CP per tick, 3% at 3 CP and above | 60 + 8 per CP: 800 at 5; the same AP share in Classic Era sims | **−41%** base damage | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913); [C] [client] (SpellEffect, 1.15.9.69722); AP share [F] [guild-0925] |
@@ -120,10 +120,13 @@ Every row below compares the Forever and Classic Era client tables; the spellboo
 ### 1.3 Poisons
 
 Instant Poison VI hits for **76–100** (spell 11337: 88 with `Variance` 0.2769; Classic Era 112–148)
-and Deadly Poison V ticks for **23** (spell 25349; Classic Era 34), both about a third weaker; their
-proc chances (20% and 30%) and 5 stacks are unchanged, their charges grow (175 and 180), and
+and Deadly Poison IV ticks for **18** (spell 11354; Classic Era 27), both about a third weaker; their
+proc chances (20% and 30%) and 5 stacks are unchanged, their charges grow (175 and 160), and
 Deadly Poison's ticks now carry the periodic-crit flag [F] [client] (SpellEffect, SpellItemEnchantment,
-SpellMisc, 1.60.1.69913). The guild measured an attack-power share on both: Instant Poison 0.5% of
+SpellMisc, 1.60.1.70009). Deadly Poison V (25349, 23 a tick) is made from Handbook of Deadly
+Poison V's recipe (item 21302 → 25347), an Ahn'Qiraj book, so the sim uses rank IV
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); §4.2). The guild measured an
+attack-power share on both: Instant Poison 0.5% of
 AP a hit, Deadly Poison 0.1125% of AP a tick per stack [F] [guild-0925], both in the sim. See
 [§4](#4-poisons).
 
@@ -196,11 +199,18 @@ table: weapon-damage ones once, the others (Eviscerate, Expose Armor) twice [?] 
 `(W_norm + 68) × Aggression`, 45 Energy − Improved Sinister Strike 5 = **40**, 1 CP; crit ×2.2 with
 Lethality 5/5 [F] [client] (SpellEffect, SpellPower, 1.60.1.69913).
 
-### 3.2 Backstab (r9, 25300)
+<a id="32-backstab-r9-25300"></a>
 
-`1.5 × (W_norm + 150) × Aggression × Opportunity`, 60 Energy, 1 CP, from behind, dagger in the main
-hand. The flat inside the percentage adds 225, as Classic Era's tooltip reads [C]; Forever's
-tooltip reads 150 (Q2). Forever's Mutilate tooltip multiplies its flat by its percentage
+### 3.2 Backstab (r8, 11281)
+
+`1.5 × (W_norm + 140) × Aggression × Opportunity`, 60 Energy, 1 CP, from behind, dagger in the main
+hand. Rank 8 is the trainer's top rank: rank 9 (25300, + 150) is taught by an Ahn'Qiraj book
+(Handbook of Backstab IX, item 21300 → 25300 [F] [client] (ItemSparse, ItemEffect, ItemXItemEffect,
+1.60.1.70009)), and Ahn'Qiraj comes long after launch
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Eviscerate r9 stays: its book
+(Manual of Eviscerate IX, 24102 → 31016) drops in Upper Blackrock Spire [C] ([evisc-ix]), not
+Ahn'Qiraj. The flat inside the percentage adds 210, as Classic Era's tooltip reads [C]; Forever's
+tooltip reads 140 (Q2). Forever's Mutilate tooltip multiplies its flat by its percentage
 (`${$m1*$m2/100}`), which supports the Classic rule. Puncturing Wounds: +30% crit, 45% of an extra point.
 
 ### 3.3 Slice and Dice (r2, 6774)
@@ -305,19 +315,25 @@ and the test doesn't separate the two. Classic Era's poison has no share [C]. Th
 effect (`src/sim/effects/buffs.ts`, `INSTANT_POISON_AP`) whose `spellDamage` action carries an
 `apCoefficient`.
 
-### 4.2 Deadly Poison V
+<a id="42-deadly-poison-v"></a>
 
-Item 20844 → spell 25351 → enchant 2630: 30% per hit of spell 25349, a stack of 23 Nature every 3 s
-for 12 s, up to 5 stacks (`CumulativeAura` 5) [F] [client]; Classic Era 34 a tick [C]. Each stack
-also deals **0.45% of attack power over its 12 s**, so **0.1125% of AP a tick** over its 4 ticks
-[F] [guild-0925]: 2.25 more a tick per stack at 2,000 AP, about +10% on the 23. The sim adds it
-to each stack's tick, `(23 + 0.001125 × AP) × stacks`, **reading attack power at each tick** [?]
+### 4.2 Deadly Poison IV
+
+Item 8985 → spell 11356 → enchant 627: 30% per hit of spell 11354, a stack of 18 Nature every 3 s
+for 12 s, up to 5 stacks (`CumulativeAura` 5) [F] [client] (ItemEffect, SpellEffect,
+SpellItemEnchantment, SpellAuraOptions, 1.60.1.70009); Classic Era 27 a tick [C]. It's the top rank
+before Ahn'Qiraj: Deadly Poison V (item 20844 → 25351 → enchant 2630, 23 a tick) needs its recipe
+(25347) from Handbook of Deadly Poison V (item 21302), an Ahn'Qiraj book
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Each stack also deals **0.45% of
+attack power over its 12 s**, so **0.1125% of AP a tick** over its 4 ticks [F] [guild-0925], measured
+on rank V; the same share on rank IV is [?] (Q16): 2.25 more a tick per stack at 2,000 AP, about
++12.5% on the 18. The sim adds it to each stack's tick, `(18 + 0.001125 × AP) × stacks`, **reading attack power at each tick** [?]
 (Q16): the test doesn't say whether a stack keeps the attack power it was applied with, and Classic
 Era's poisons have no share to copy a rule from, so the sim takes the simpler reading, as the
 warrior's Rend reads its attack-power term at each tick ([warrior §3.1](warrior.md#31-damage-abilities)).
 Rupture fixes its share at the cast, but it's one finisher's bleed; fixing each of up to 5 stacks,
 applied at different moments, would need a value per stack. Vile Poisons and Venom
-multiply the share as they do the 23 [?]. Classic Era's poison has no share [C]
+multiply the share as they do the 18 [?]. Classic Era's poison has no share [C]
 (`DEADLY_POISON_AP_PER_TICK`, the `stackingDot` action's `apCoefficient`). Each
 application rolls spell hit, adds a stack and renews the 12 s; the ticks keep their own timer [?]
 (Q8), and in `forever` may crit (SpellMisc Attributes[8] 0x200, set in Forever and not in Classic
@@ -566,7 +582,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list (D31; `SUBTLE
 | Hemorrhage on a bleeding boss (`hemorrhage`) | `hemorrhage.enabled` | | Rupture up and Hemorrhage's debuff down, with the talent; only while Rupture is on ([§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
 | Ambush (`ambush`) | `ambush.enabled` | | Cutthroat's window open; Backstab builder only ([§3.13](#313-ambush-r6-11269)) |
 | Ghostly Strike (`ghostlyStrike`) | `ghostlyStrike.enabled` | | On cooldown, with the talent ([§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
-| Builder (`builder`) | none: always there | `builder` (hemorrhage or backstab) | Affordable: Backstab from behind with a main-hand dagger when chosen, Hemorrhage otherwise, Sinister Strike without the talent ([§3.2](#32-backstab-r9-25300), [§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
+| Builder (`builder`) | none: always there | `builder` (hemorrhage or backstab) | Affordable: Backstab from behind with a main-hand dagger when chosen, Hemorrhage otherwise, Sinister Strike without the talent ([§3.2](#32-backstab-r8-11281), [§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
 
 - **Pinned:** nothing. **Spec-wide, above the list:** Thistle Tea (and its Energy limit) and Juju
   Flurry, which take their turn with the on-use items, wherever that row sits.
@@ -623,7 +639,7 @@ ranks it first; many of these items have no Forever client row yet and use their
 Enchants: Agility everywhere (head and legs Lesser Arcanum of Voracity, cloak, bracers, gloves,
 boots, necklace), chest Greater Stats, Crusader on both weapons
 ([buffs doc §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
-Standard raid consumables: Deadly Poison V (main hand), Instant Poison VI (off hand), Thistle Tea,
+Standard raid consumables: Deadly Poison IV (main hand), Instant Poison VI (off hand), Thistle Tea,
 Elixir of the Mongoose, Flank au Poivre; Max adds Juju Might, Juju Power, Ground Scorpok Assay,
 Juju Flurry and the Major Frenzy Potion, drunk on cooldown from the pull (about +1% DPS). Thistle Tea is Forever's item 7676 (usable by rogues and druids), +100 Energy, 5 min.
 
@@ -691,8 +707,8 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 
 - **R1 Sinister Strike.** A 100–150 one-hander at 1,000 AP: `(125 + 1000/14 × 2.4 + 68) × 1.06` =
   **386.3** on average before armor; ×2.2 on a crit with Lethality 5/5.
-- **R2 Backstab.** A 60–110 dagger at 1,000 AP: `1.5 × (85 + 1000/14 × 1.7 + 150) × 1.06 × 1.10`
-  = **623.4** (Aggression 3/3, Opportunity 2/2).
+- **R2 Backstab** (rank 8). A 60–110 dagger at 1,000 AP: `1.5 × (85 + 1000/14 × 1.7 + 140) × 1.06 ×
+  1.10` = **605.9** (Aggression 3/3, Opportunity 2/2).
 - **R3 Eviscerate.** 5 points at 1,000 AP: `(54…162 + 850 + 200) × 1.20 × 1.06` = **1,404.3 –
   1,541.7** (1,473.0 on average).
 - **R3b Eviscerate's attack power.** 5 points at 2,000 AP: `0.04 × 5 × 2000` = **400** (Classic Era
@@ -708,9 +724,9 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 - **R9 Instant Poison.** Improved Poisons 1/5 and Vile Poisons 0: 22% per hit, 76–100 Nature.
 - **R9b Instant Poison's attack power.** At 2,000 AP a proc gains `0.005 × 2000` = 10: **86–110**
   (98 on average) before resists; Vile Poisons 5/5 makes the share 12.
-- **R10 Deadly Poison.** 5 stacks: 115 every 3 s, 38.3 a second before resists.
-- **R10b Deadly Poison's attack power.** 5 stacks at 2,000 AP: `(23 + 0.001125 × 2000) × 5` =
-  **126.25** a tick before resists (2.25 more a stack).
+- **R10 Deadly Poison IV.** 5 stacks: 90 every 3 s, 30 a second before resists.
+- **R10b Deadly Poison's attack power.** 5 stacks at 2,000 AP: `(18 + 0.001125 × 2000) × 5` =
+  **101.25** a tick before resists (2.25 more a stack).
 - **R11 Hemorrhage.** The R2 dagger at 1,000 AP: `(85 + 1000/14 × 1.7) × 1.45` = **299.3**; with
   Quietus 5/5 below 35% health, **329.3**.
 - **R12 Ambush.** The same dagger with Opportunity 2/2: `2.5 × (85 + 1000/14 × 1.7 + 116) × 1.10` =
@@ -725,8 +741,8 @@ R11–R13 are in `subtlety.test.ts`.
 
 - **Q1 Energy.** The cap, a full bar at the pull, the tick's phase and the 80% refund are the cat's
   [?] (druid.md Q6, Q29). Test: a rogue's Energy bar on the beta, a missed Sinister Strike's cost.
-- **Q2 Backstab's flat bonus.** 225 (inside the 150%, the Classic Era rule, Mutilate's Forever
-  tooltip) or 150 (Forever's Backstab tooltip)? About 3% of a Backstab. Test: the average of 50
+- **Q2 Backstab's flat bonus.** Rank 8's 210 (inside the 150%, the Classic Era rule, Mutilate's
+  Forever tooltip) or 140 (Forever's Backstab tooltip)? About 3% of a Backstab. Test: the average of 50
   non-crit Backstabs with a known dagger and AP.
 - **Q3 Finishers' attack power. Measured 2026-09-25** by a guild test ([guild-0925]): Eviscerate
   4% of AP per point (Classic Era sims' 3%), Rupture 1% per point per tick up to 3 points (unchanged),
@@ -798,4 +814,5 @@ R11–R13 are in `subtlety.test.ts`.
 | mz-classlevelstats | <https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql> | Rogue base health 1,523 (D24 placeholder origin only) | **Forbidden** except as D24 placeholders |
 | rb-vanilla | <https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua> | Rogue base crit, spell crit and dodge 0 | Classic Era addon (pre-SoD); copies an emulator |
 | guild-0925 | Guild in-game test, 2026-09-25, reported by a guild tester (build and sample size not reported) | Eviscerate 4% of AP per CP; Rupture 1/2/3% of AP per tick at 1/2/3+ CP (manual tests); Instant Poison 0.5% of AP a proc; Deadly Poison 0.45% of AP per stack over its duration | Forever, measured (tier 2) |
+| evisc-ix | <https://warcraft.wiki.gg/wiki/Manual_of_Eviscerate_IX> | Manual of Eviscerate IX drops from Blackhand Assassins in Upper Blackrock Spire, so Eviscerate r9 isn't an Ahn'Qiraj rank (D36) | Classic Era [C] |
 | wsc-base | <https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go> | Rogue AP 2 × level − 20, health 1,523 | Secondary, SoD lineage |

@@ -65,9 +65,10 @@ export const SINISTER_STRIKE: AbilityDef = {
 }
 
 /**
- * Backstab rank 9 (spells.json 25300): 60 Energy, GCD 1000, `NORMALIZED_WEAPON_DMG` +150 and
- * `WEAPON_PERCENT_DAMAGE` 150, so 1.5 × (normalized weapon damage + 150) [F]; the flat inside the
- * percentage is [C] (the Classic Era tooltip's "plus 225"; rogue.md §3.2, Q2). From behind, with a
+ * Backstab rank 8 (spells.json 11281), the trainer's top rank (rank 9 is an Ahn'Qiraj book, D36;
+ * rogue.md §3.2): 60 Energy, GCD 1000, `NORMALIZED_WEAPON_DMG` +140 and `WEAPON_PERCENT_DAMAGE` 150,
+ * so 1.5 × (normalized weapon damage + 140) [F]; the flat inside the percentage is [C] (the Classic Era
+ * tooltip's "plus 210"; rogue.md §3.2, Q2). From behind, with a
  * dagger in the main hand; +1 combo point.
  */
 export const BACKSTAB: AbilityDef = {
@@ -79,7 +80,7 @@ export const BACKSTAB: AbilityDef = {
   costTenths: 600,
   weaponPercent: 1.5,
   normalized: true,
-  flatDamage: 150,
+  flatDamage: 140,
   refundShare: BUILDER_REFUND,
   comboPoints: 1,
   behindOnly: true,

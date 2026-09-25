@@ -38,6 +38,8 @@ describe('golden run (fixed config and seed)', () => {
   //   the Elements with the Turban (GV-4); both sides already had Mindfang. 435.33 (casters alone) /
   //   440.93 (gear alone) → 440.84 DPS. Checked both ways: with either side's code reverted, the
   //   other side's snapshot reproduces exactly.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Arcane Missiles r7 (10212: 595 mana, missiles of 174.6) for r8 (655,
+  //   209), Frostbolt r10 and Fireball r11, and Blessing of Wisdom r5 (36 mp5). 440.84 → 399.64 DPS.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

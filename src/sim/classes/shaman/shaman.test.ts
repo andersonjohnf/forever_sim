@@ -365,9 +365,9 @@ describe('worked example 8: Elemental Devastation', () => {
 })
 
 describe('worked example 9: mana ticks and the five-second rule', () => {
-  it('the default setup: 3,925 mana, Spirit 168 → 15 + 168 / 5 = 48.6 a tick, mp5 65 → 26 a tick', () => {
+  it('the default setup: 3,925 mana, Spirit 168 → 15 + 168 / 5 = 48.6 a tick, mp5 61 → 24.4 a tick', () => {
     const plan = buildPlan(defaultConfig(ENH)).plan
-    expect(plan.mana).toMatchObject({ maxTenths: 39250, regenTickTenths: 486, mp5TickTenths: 260, fiveSecondRuleMs: 5000 })
+    expect(plan.mana).toMatchObject({ maxTenths: 39250, regenTickTenths: 486, mp5TickTenths: 244, fiveSecondRuleMs: 5000 })
     // Improved Stormstrike's 50% inside the rule is its aura's mana hook (docs/mechanics/spells.md §8).
     expect(plan.auras.find((a) => a.id === 'improvedStormstrike')?.castingRegen).toBe(50)
   })
@@ -375,7 +375,7 @@ describe('worked example 9: mana ticks and the five-second rule', () => {
   /** Every mana tick of a fight with Stormstrike every 8 s, and the last Stormstrike before each. */
   function ticks(improved: number) {
     const plan = examplePlan({ talents: { Stormstrike: 1, 'Improved Stormstrike': improved }, rotation: { [ID.stormstrike]: true }, dropProcs: ['windfuryWeapon'], durationMs: 120000 })
-    Object.assign(plan.mana!, { regenTickTenths: 486, mp5TickTenths: 260 })
+    Object.assign(plan.mana!, { regenTickTenths: 486, mp5TickTenths: 244 })
     const { list } = events(plan)
     let last = -Infinity
     const out: { since: number; tenths: number }[] = []
@@ -386,14 +386,14 @@ describe('worked example 9: mana ticks and the five-second rule', () => {
     return out
   }
 
-  it('74.6 a tick outside the rule, 26 inside it, and 26 + 24.3 = 50.3 inside it with Improved Stormstrike’s 50%', () => {
+  it('73.0 a tick outside the rule, 24.4 inside it, and 24.4 + 24.3 = 48.7 inside it with Improved Stormstrike’s 50%', () => {
     for (const [improved, inside] of [
-      [0, 260],
-      [2, 260 + 243],
+      [0, 244],
+      [2, 244 + 243],
     ] as const) {
       const list = ticks(improved)
       expect(list.length).toBe(60)
-      for (const { since, tenths } of list) expect(tenths, `${since} ms after Stormstrike`).toBeCloseTo(since >= 5000 ? 746 : inside, 9)
+      for (const { since, tenths } of list) expect(tenths, `${since} ms after Stormstrike`).toBeCloseTo(since >= 5000 ? 730 : inside, 9)
       expect(list.some((x) => x.since < 5000)).toBe(true)
       expect(list.some((x) => x.since >= 5000)).toBe(true)
     }

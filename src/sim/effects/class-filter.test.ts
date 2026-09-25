@@ -164,8 +164,8 @@ describe('class-only catalogue entries', () => {
     const some = buildPlan({ ...ret, buffs: { ...ret.buffs, enabled: ['blessingOfWisdom', 'manaSpringTotem', 'greaterArcaneElixir', 'elixirOfHolyPower'] } }).plan
     expect(some.stats.spellDamage - none.stats.spellDamage).toBe(35)
     expect(some.stats.holySpellDamage - none.stats.holySpellDamage).toBe(40)
-    // 40 + 25 mana per 5 s: 26 mana a 2 s tick, in tenths.
-    expect(some.mana!.mp5TickTenths! - none.mana!.mp5TickTenths!).toBe(260)
+    // Blessing of Wisdom r5's 36 + 25 mana per 5 s: 24.4 mana a 2 s tick, in tenths.
+    expect(some.mana!.mp5TickTenths! - none.mana!.mp5TickTenths!).toBe(244)
     // Prayer of Spirit's +40 Spirit (+5% for a Human: 42) and Arcane Brilliance's +31 Intellect (+2%
     // from the default build's Divine Intellect 1: 32; 15 mana each, character-stats.md).
     const sheet = (enabled: string[]) => buildPlan({ ...ret, buffs: { ...ret.buffs, enabled } }).sheet

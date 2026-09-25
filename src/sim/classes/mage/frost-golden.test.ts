@@ -26,6 +26,8 @@ describe('golden run (fixed config and seed)', () => {
   // - The caster gear verification (GV-4): the head is re-ranked by the sim, so a Troll wears
   //   Spellweaver's Turban for Champion's Silk Cowl: 445.79 → 451.79 here; 447.3 → 453.0 over 20,000
   //   fights on seed 2701.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Frostbolt r10 (10181: 382.89–412.31, 260 mana) for r11 (457.24–492.76,
+  //   290), and Blessing of Wisdom r5 (36 mp5). 451.79 → 414.14 DPS.
   it('keeps the default Frost mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

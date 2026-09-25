@@ -257,12 +257,12 @@ describe('buffs-debuffs-consumables worked examples on the plan', () => {
     expect(warnings).toHaveLength(1)
     expect(buildPlan(config).plan.fight.targetArmor).toBe(3731 - 2250)
   })
-  it('5: Battle Shout + Blessing of Might = 272 attack power', () => {
+  it('5: Battle Shout r6 + Blessing of Might r6 = 227 attack power (the trainers’ ranks, D36)', () => {
     // Another warrior's shout: the rotation's own upkeep is off (warrior.md §5.2 row 1).
     const rotation = { 'warrior.fury.battleShout.enabled': false }
     const base = computeSheet(bare('warrior-fury', { rotation }))!.attackPower
     const buffed = computeSheet(bare('warrior-fury', { rotation, buffs: { raid: ['warrior', 'paladin'], enabled: ['battleShout', 'blessingOfMight'] } }))!
-    expect(buffed.attackPower - base).toBe(272)
+    expect(buffed.attackPower - base).toBe(227)
   })
   it('7: a Windfury extra attack gets +246 attack power (Classic: +315)', () => {
     const wf = (profile: 'forever' | 'classicEra') =>

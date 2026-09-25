@@ -47,7 +47,7 @@ const periodicCrit = (id: number) => ((spell(id).misc!.attributes![8] ?? 0) & 0x
 describe('rows against the Forever client (warlock.md §3)', () => {
   it('the direct spells: base points and variance, coefficients, costs, casts and cooldowns', () => {
     const rows: [typeof SHADOW_BOLT, number, number][] = [
-      [SHADOW_BOLT, 25307, 0],
+      [SHADOW_BOLT, 11661, 0],
       [CONFLAGRATE, 18932, 0],
       [INCINERATE, 1293813, 0],
       [SHADOWBURN, 18871, 1],
@@ -73,17 +73,17 @@ describe('rows against the Forever client (warlock.md §3)', () => {
 
   it('Immolate: its hit and ticks, the periodic-crit flag', () => {
     const s = IMMOLATE.spellDef!
-    expect([s.min, s.spCoefficient]).toEqual([effect(25309, 1).effectBasePointsF, effect(25309, 1).effectBonusCoefficient])
-    expect([s.dotTickDamage, s.dotSpCoefficient, s.dotTickMs]).toEqual([effect(25309, 0).effectBasePointsF, effect(25309, 0).effectBonusCoefficient, effect(25309, 0).effectAuraPeriod])
-    expect(s.dotTicks! * s.dotTickMs!).toBe(spell(25309).duration!.duration)
-    expect(s.dotCanCrit).toBe(periodicCrit(25309))
-    expect([IMMOLATE.costTenths, IMMOLATE.castMs]).toEqual([10 * manaCost(25309), spell(25309).castTime!.base])
-    expect(IMMOLATE.aura!.durationMs).toBe(spell(25309).duration!.duration)
+    expect([s.min, s.spCoefficient]).toEqual([effect(11668, 1).effectBasePointsF, effect(11668, 1).effectBonusCoefficient])
+    expect([s.dotTickDamage, s.dotSpCoefficient, s.dotTickMs]).toEqual([effect(11668, 0).effectBasePointsF, effect(11668, 0).effectBonusCoefficient, effect(11668, 0).effectAuraPeriod])
+    expect(s.dotTicks! * s.dotTickMs!).toBe(spell(11668).duration!.duration)
+    expect(s.dotCanCrit).toBe(periodicCrit(11668))
+    expect([IMMOLATE.costTenths, IMMOLATE.castMs]).toEqual([10 * manaCost(11668), spell(11668).castTime!.base])
+    expect(IMMOLATE.aura!.durationMs).toBe(spell(11668).duration!.duration)
   })
 
   it('the DoTs: ticks, periods, coefficients, costs and flags', () => {
     for (const [def, id] of [
-      [CORRUPTION, 25311],
+      [CORRUPTION, 11672],
       [BANE_OF_AGONY, 11713],
       [BANE_OF_DOOM, 603],
       [SIPHON_LIFE, 18881],
@@ -143,24 +143,24 @@ describe('talents against their curves (warlock.md §4)', () => {
 })
 
 describe('worked examples (warlock.md §10)', () => {
-  it('1. Shadow Bolt: 253.29–282.71, and 654.71 on average with 500 Shadow spell damage', () => {
+  it('1. Shadow Bolt r9: 237.43–264.57, and 638.73 on average with 500 Shadow spell damage', () => {
     const s = SHADOW_BOLT.spellDef!
-    expect(s.min).toBeCloseTo(253.2863, 3)
-    expect(s.max).toBeCloseTo(282.7137, 3)
-    expect(((s.min + s.max) / 2 + s.spCoefficient * 500) * 0.94).toBeCloseTo(654.71, 2)
+    expect(s.min).toBeCloseTo(237.4324, 3)
+    expect(s.max).toBeCloseTo(264.5676, 3)
+    expect(((s.min + s.max) / 2 + s.spCoefficient * 500) * 0.94).toBeCloseTo(638.73, 2)
   })
 
-  it('2. Immolate with Aftermath 5 and Agonizing Flames 3: its hit ×1.65, its ticks ×1.1', () => {
+  it('2. Immolate r7 with Aftermath 5 and Agonizing Flames 3: its hit ×1.65, its ticks ×1.1', () => {
     const s = spellWithTalents(IMMOLATE.spellDef!, DESTRUCTION)
     expect(s.damageMult).toBeCloseTo(1.65, 12)
     expect(s.dotDamageMult).toBeCloseTo(1.1, 12)
-    expect((158 + 0.2 * 400) * s.damageMult).toBeCloseTo(392.7, 9)
-    expect((55 + 0.13 * 400) * s.dotDamageMult!).toBeCloseTo(117.7, 9)
+    expect((146 + 0.2 * 400) * s.damageMult).toBeCloseTo(372.9, 9)
+    expect((52 + 0.13 * 400) * s.dotDamageMult!).toBeCloseTo(114.4, 9)
   })
 
   it('3. costs with Cataclysm 3/3, rounded down', () => {
     const cost = (d: typeof SHADOW_BOLT) => withTalents(d, DESTRUCTION).costTenths / 10
-    expect([cost(SHADOW_BOLT), cost(IMMOLATE), cost(CONFLAGRATE), cost(INCINERATE), cost(SHADOWBURN)]).toEqual([342, 342, 229, 292, 328])
+    expect([cost(SHADOW_BOLT), cost(IMMOLATE), cost(CONFLAGRATE), cost(INCINERATE), cost(SHADOWBURN)]).toEqual([333, 333, 229, 292, 328])
   })
 
   it('4. casts with Bane 5/5 and Improved Corruption 5/5', () => {
@@ -390,6 +390,9 @@ describe('golden runs (fixed config and seed)', () => {
   //   proc is modelled and leads both lists' trinkets, in place of Briarwood Reed (Destruction's third
   //   ring is Wrath of Cenarius, not worn). Affliction 503.79 → 514.05, Destruction 585.96 → 597.86 here;
   //   502.5 → 512.7 and 586.0 → 597.9 over 20,000 fights on seed 2701.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Shadow Bolt r9 (237.43–264.57, 370 mana), Immolate r7 (146, then 52 a
+  //   tick, 370 mana) and Corruption r6 (57 a tick, 290 mana) for the Ahn'Qiraj books' ranks. Destruction
+  //   597.86 → 590.44, Affliction 514.05 → 502.87 DPS.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

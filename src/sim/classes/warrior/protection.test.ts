@@ -81,10 +81,10 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(shieldSlam(CLASSIC_ERA).threatBonus).toBe(254)
   })
 
-  it('Revenge (25288): 5 rage, 5 s, the GCD, Defensive Stance, 153 ± 15 (the tooltip’s 138–168), two rolls, its window', () => {
-    const s = spells['25288']
+  it('Revenge rank 5 (11601): 5 rage, 5 s, the GCD, Defensive Stance, 121 ± 12 (the tooltip’s 109–133), two rolls, its window', () => {
+    const s = spells['11601']
     expect(s.name).toBe('Revenge')
-    expect([cost(25288), s.cooldowns?.categoryRecoveryTime, s.cooldowns?.startRecoveryTime]).toEqual([REVENGE.costTenths, REVENGE.cooldownMs, REVENGE.gcdMs])
+    expect([cost(11601), s.cooldowns?.categoryRecoveryTime, s.cooldowns?.startRecoveryTime]).toEqual([REVENGE.costTenths, REVENGE.cooldownMs, REVENGE.gcdMs])
     expect(s.shapeshift?.shapeshiftMask?.[0]).toBe(FORM.defensive)
     expect(REVENGE.stances).toBe(STANCE.defensive)
     // The window is the server's aura state 1, set on a block, dodge or parry (§2.8).
@@ -93,10 +93,10 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(REVENGE_WINDOW.durationMs).toBe(5000)
     const dmg = s.effects.find((e) => e.effect === 2)!
     expect(REVENGE.flatDamage).toBe(dmg.effectBasePointsF)
-    expect(Math.round(dmg.effectBasePointsF! * (1 - dmg.variance! / 2))).toBe(138)
-    expect(Math.round(dmg.effectBasePointsF! * (1 + dmg.variance! / 2))).toBe(168)
-    expect(REVENGE.flatSpread).toBe(15)
-    expect([REVENGE.kind, REVENGE.threatMult, REVENGE.threatBonus, REVENGE.shieldOnly ?? false]).toEqual(['meleeSpell', 2.25, 270, false])
+    expect(Math.round(dmg.effectBasePointsF! * (1 - dmg.variance! / 2))).toBe(109)
+    expect(Math.round(dmg.effectBasePointsF! * (1 + dmg.variance! / 2))).toBe(133)
+    expect(REVENGE.flatSpread).toBe(12)
+    expect([REVENGE.kind, REVENGE.threatMult, REVENGE.threatBonus, REVENGE.shieldOnly ?? false]).toEqual(['meleeSpell', 2.25, 243, false])
   })
 
   it('Sunder Armor (11597): 15 rage, the GCD, any stance; −450 armor, 5 stacks, 30 s, and a threat effect of 206 plus 5% of attack power; no damage', () => {
@@ -174,14 +174,14 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
 })
 
 describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () => {
-  it('Improved Revenge is +20% per rank (12797, curve 20 / 40 / 60) on its base and range: 244.8 ± 24 at 3/3', () => {
+  it('Improved Revenge is +20% per rank (12797, curve 20 / 40 / 60) on its base and range: 193.6 ± 19.2 at 3/3', () => {
     const s = spells['12797']
     expect(s.effects[0]).toMatchObject({ effectAura: 108, effectBasePointsF: 3 * IMPROVED_REVENGE_PCT_PER_RANK })
     const r = withTalents(REVENGE, TALENTS)
-    expect(r.flatDamage).toBeCloseTo(244.8, 12)
-    expect(r.flatSpread).toBeCloseTo(24, 12)
-    // W14 then takes Bastion's ×1.10 and Defensive Stance's ×0.90 in the plan: 242.35, 218.59–266.11.
-    expect(r.flatDamage * 1.1 * 0.9).toBeCloseTo(242.35, 2)
+    expect(r.flatDamage).toBeCloseTo(193.6, 12)
+    expect(r.flatSpread).toBeCloseTo(19.2, 12)
+    // W14 then takes Bastion's ×1.10 and Defensive Stance's ×0.90 in the plan: 191.66, 172.66–210.67.
+    expect(r.flatDamage * 1.1 * 0.9).toBeCloseTo(191.66, 2)
   })
 
   it('W26: threat per GCD and per rage, the default build (×1.495, block value 62, 1,400 attack power, average hits, no armor or crits)', () => {
@@ -195,7 +195,7 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
     }
     expect(threat(SUNDER_ARMOR)).toEqual([412.62, 9, 45.85])
     expect(threat(SHIELD_SLAM)).toEqual([1771.32, 17, 104.2])
-    expect(threat(REVENGE)).toEqual([1218.86, 2, 609.43])
+    expect(threat(REVENGE)).toEqual([1007.99, 2, 504])
     expect(threat(THUNDER_CLAP)).toEqual([381.11, 17, 22.42])
     expect(threat(DEMORALIZING_SHOUT)).toEqual([64.58, 7, 9.23])
   })

@@ -71,7 +71,7 @@ export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<stri
     slam: { spell: 1310200, bits: EUREKA_COST | EUREKA_DAMAGE },
     execute: { spell: 20662, bits: EUREKA_COST | EUREKA_DAMAGE },
     overpower: { spell: 11585, bits: EUREKA_COST | EUREKA_DAMAGE },
-    heroicStrike: { spell: 25286, bits: EUREKA_COST | EUREKA_DAMAGE },
+    heroicStrike: { spell: 11567, bits: EUREKA_COST | EUREKA_DAMAGE },
     hamstring: { spell: 7373, bits: EUREKA_COST | EUREKA_DAMAGE },
     shieldSlam: { spell: 23925, bits: EUREKA_COST | EUREKA_DAMAGE },
     thunderClap: { spell: 11581, bits: EUREKA_COST | EUREKA_DAMAGE },
@@ -79,7 +79,7 @@ export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<stri
   },
   rogue: {
     sinisterStrike: { spell: 11294, bits: EUREKA_COST | EUREKA_DAMAGE },
-    backstab: { spell: 25300, bits: EUREKA_COST | EUREKA_DAMAGE },
+    backstab: { spell: 11281, bits: EUREKA_COST | EUREKA_DAMAGE },
     ambush: { spell: 11269, bits: EUREKA_COST | EUREKA_DAMAGE },
     ghostlyStrike: { spell: 14278, bits: EUREKA_COST | EUREKA_DAMAGE },
     eviscerate: { spell: 31016, bits: EUREKA_COST | EUREKA_DAMAGE },
@@ -89,17 +89,17 @@ export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<stri
     bladeFlurry: { spell: 13877, bits: EUREKA_COST | EUREKA_DAMAGE },
   },
   mage: {
-    fireball: { spell: 25306, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
+    fireball: { spell: 10151, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
     scorch: { spell: 10207, bits: EUREKA_COST | EUREKA_DAMAGE },
     fireBlast: { spell: 10199, bits: EUREKA_COST | EUREKA_DAMAGE },
-    frostbolt: { spell: 25304, bits: EUREKA_COST | EUREKA_DAMAGE },
-    // The channel (25345) is in the masks, its missiles (25346) aren't: a cheaper channel, no more damage.
-    arcaneMissiles: { spell: 25345, damageSpell: 25346, bits: EUREKA_COST },
+    frostbolt: { spell: 10181, bits: EUREKA_COST | EUREKA_DAMAGE },
+    // The channel (10212) is in the masks, its missiles (10274) aren't: a cheaper channel, no more damage.
+    arcaneMissiles: { spell: 10212, damageSpell: 10274, bits: EUREKA_COST },
   },
   warlock: {
-    shadowBolt: { spell: 25307, bits: EUREKA_COST | EUREKA_DAMAGE },
-    corruption: { spell: 25311, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
-    immolate: { spell: 25309, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
+    shadowBolt: { spell: 11661, bits: EUREKA_COST | EUREKA_DAMAGE },
+    corruption: { spell: 11672, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
+    immolate: { spell: 11668, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
     baneOfAgony: { spell: 11713, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
     baneOfDoom: { spell: 603, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
     conflagrate: { spell: 1293818, bits: EUREKA_COST | EUREKA_DAMAGE },

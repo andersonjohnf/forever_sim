@@ -45,9 +45,10 @@ const range = (base: number, variance: number, perLevel = 0, spellLevel = 60, ma
 // --- Fire (mage.md#fire-spells) ---------------------------------------------------------------------
 
 /**
- * Fireball r12 (25306) [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913): 483 base points, variance
- * 0.24188791, so 424.58–541.42 at 60 (Classic Era 596–760), coefficient 1.0; its DoT 15 every 2 s for 8 s
- * (4 ticks, Classic Era 19), coefficient 0. Its DoT carries the periodic-crit flag (SpellMisc Attributes[8] 0x200), so its ticks can crit in `forever` (docs/mechanics/spells.md §7).
+ * Fireball r11 (10151), the trainer's top rank (r12 is an Ahn'Qiraj book, D36; mage.md#fire-spells)
+ * [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009): 451 base points, variance 0.2413793, so
+ * 396.57–505.43 at 60 (Classic Era 561–715), coefficient 1.0; its DoT 14 every 2 s for 8 s (4 ticks,
+ * Classic Era 18), coefficient 0. Its DoT carries the periodic-crit flag (SpellMisc Attributes[8] 0x200), so its ticks can crit in `forever` (docs/mechanics/spells.md §7).
  */
 export const FIREBALL_SPELL: SpellDef = {
   ...SPELL,
@@ -55,11 +56,11 @@ export const FIREBALL_SPELL: SpellDef = {
   name: 'Fireball',
   icon: 'spell_fire_flamebolt',
   school: 'fire',
-  ...range(483, 0.24188791),
+  ...range(451, 0.2413793),
   spCoefficient: 1,
   dotTicks: 4,
   dotTickMs: 2000,
-  dotTickDamage: 15,
+  dotTickDamage: 14,
   dotSpCoefficient: 0,
   dotCanCrit: true,
 }
@@ -108,8 +109,8 @@ export const PYROBLAST_SPELL: SpellDef = {
 // --- Frost (mage.md#frost-spells) --------------------------------------------------------------------
 
 /**
- * Frostbolt r11 (25304): 475 base points, variance 0.07476635, so 457.24–492.76 at 60 (Classic Era 515–555),
- * coefficient 0.814; its slow makes it binary: resisted whole or not at all (docs/mechanics/spells.md §3) [F] [client].
+ * Frostbolt r10 (10181), the trainer's top rank (r11 is an Ahn'Qiraj book, D36): 386 base points, variance
+ * 0.076233186, +2.9 a level from 56 to 60, so 382.89–412.31 at 60 (Classic Era 440.6–474.6), coefficient 0.814; its slow makes it binary: resisted whole or not at all (docs/mechanics/spells.md §3) [F] [client].
  */
 export const FROSTBOLT_SPELL: SpellDef = {
   ...SPELL,
@@ -117,7 +118,7 @@ export const FROSTBOLT_SPELL: SpellDef = {
   name: 'Frostbolt',
   icon: 'spell_frost_frostbolt02',
   school: 'frost',
-  ...range(475, 0.07476635),
+  ...range(386, 0.076233186, 2.9, 56, 60),
   spCoefficient: 0.814,
   binary: true,
 }
@@ -125,8 +126,9 @@ export const FROSTBOLT_SPELL: SpellDef = {
 // --- Arcane (mage.md#arcane-spells) ------------------------------------------------------------------
 
 /**
- * Arcane Missiles r8's missile (25346): 209 a missile (Classic Era 230), coefficient 0.286 (Classic Era
- * 0.24) [F] [client]. Each is its own spell, with its own hit, crit and resist (docs/mechanics/spells.md §6).
+ * Arcane Missiles r7's missile (10274), the trainer's top rank (r8 is an Ahn'Qiraj book, D36): 171 base
+ * points, +0.9 a level from 56 to 60, so 174.6 a missile at 60 (Classic Era 195.6), coefficient 0.286
+ * (Classic Era 0.24) [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009). Each is its own spell, with its own hit, crit and resist (docs/mechanics/spells.md §6).
  */
 export const ARCANE_MISSILE_SPELL: SpellDef = {
   ...SPELL,
@@ -134,8 +136,7 @@ export const ARCANE_MISSILE_SPELL: SpellDef = {
   name: 'Arcane Missiles',
   icon: 'spell_nature_starfall',
   school: 'arcane',
-  min: 209,
-  max: 209,
+  ...range(171, 0, 0.9, 56, 60),
   spCoefficient: 0.286,
 }
 
@@ -172,21 +173,21 @@ const spellAbility = (spell: SpellDef, manaCost: number, castMs: number, rest: P
   ...rest,
 })
 
-/** Fireball r12: 410 mana, a 3.5 s cast [F] [client] (SpellPower, SpellCastTimes). */
-export const FIREBALL = spellAbility(FIREBALL_SPELL, 410, 3500)
+/** Fireball r11: 395 mana, a 3.5 s cast [F] [client] (SpellPower, SpellCastTimes). */
+export const FIREBALL = spellAbility(FIREBALL_SPELL, 395, 3500)
 /** Scorch r7: 150 mana, a 1.5 s cast [F]. */
 export const SCORCH = spellAbility(SCORCH_SPELL, 150, 1500)
 /** Fire Blast r7: 340 mana, instant, an 8 s cooldown (category 19, "Quick Damage - Spell") [F]. */
 export const FIRE_BLAST = spellAbility(FIRE_BLAST_SPELL, 340, 0, { cooldownMs: 8000 })
 /** Pyroblast r8: 440 mana, a 6 s cast [F]. */
 export const PYROBLAST = spellAbility(PYROBLAST_SPELL, 440, 6000)
-/** Frostbolt r11: 290 mana, a 3 s cast [F]. */
-export const FROSTBOLT = spellAbility(FROSTBOLT_SPELL, 290, 3000)
+/** Frostbolt r10: 260 mana, a 3 s cast [F]. */
+export const FROSTBOLT = spellAbility(FROSTBOLT_SPELL, 260, 3000)
 /** Arcane Blast r5: 15% of base mana (181), a 2.5 s cast [F]. */
 export const ARCANE_BLAST = spellAbility(ARCANE_BLAST_SPELL, Math.floor(0.15 * MAGE_BASE_MANA), 2500)
 
 /**
- * Arcane Missiles r8 (25345): a 5 s channel, 655 mana, that fires a missile (ARCANE_MISSILE_SPELL) each
+ * Arcane Missiles r7 (10212): a 5 s channel, 595 mana, that fires a missile (ARCANE_MISSILE_SPELL) each
  * second, the first 1 s after the start (aura 23, period 1000) [F] [client]. Its missile count and
  * period are a channel's `rageTicks` and `rageTickMs` (plan/types.ts AbilityPlan). Casting speed
  * doesn't shorten a channel (docs/mechanics/spells.md §4 [?]).
@@ -201,7 +202,7 @@ export const ARCANE_MISSILES: AbilityDef = {
   icon: 'spell_nature_starfall',
   kind: 'channel',
   resource: 'mana',
-  ...mana(655),
+  ...mana(595),
   cooldownMs: 0,
   gcdMs: GCD_MS,
   castMs: 0,

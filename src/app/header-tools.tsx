@@ -30,8 +30,15 @@ export function ThemeChoices() {
   )
 }
 
+/**
+ * A ghost button on the header's navy (`.ink`, docs/ux.md#brand) takes the full hover fill in both
+ * themes, where the dark theme's ghost button would take half of it: the hover and open fills are
+ * then one colour, on which every text and class colour is measured.
+ */
+export const ON_INK = 'dark:hover:bg-muted'
+
 /** A toolbar button: 44 px tall, as wide as its label (docs/ux.md principle 4), never stretched. */
-const TOOL = 'h-11 gap-2 px-3'
+const TOOL = `h-11 gap-2 px-3 ${ON_INK}`
 
 /**
  * The overflow menu's items, listed in the header from 1440 px, where there's room (D34 as amended,

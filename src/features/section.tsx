@@ -104,7 +104,7 @@ export function Advanced({
   const headingId = shown ? (id ?? ownId) : ownId
   return (
     <Collapsible
-      className="rounded-lg border"
+      className="rounded-lg border bg-surface shadow-surface"
       open={shown || open}
       onOpenChange={setOpen}
       role={shown ? 'region' : undefined}

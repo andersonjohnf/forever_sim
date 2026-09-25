@@ -100,7 +100,7 @@ export default function App() {
   )
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh bg-page">
       {/*
        * First in the page from 1024 px, where the results sit beside the setup, and hidden until
        * focused (docs/ux.md#layout). It moves focus to the pane's Simulate button (Run again, or

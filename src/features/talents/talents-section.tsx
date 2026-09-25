@@ -257,7 +257,7 @@ function TreeGrid({
   const talents = tree.talents.filter((t) => t.inForeverTree)
   const rows = Math.max(...talents.map((t) => t.tier)) + 1
   return (
-    <section aria-label={`${tree.name} tree`} className="flex flex-col gap-3 rounded-xl border p-3">
+    <section aria-label={`${tree.name} tree`} className="flex flex-col gap-3 rounded-xl border bg-surface shadow-surface p-3">
       <header className="flex items-center gap-2">
         <WowIcon icon={tree.icon} size="xs" />
         <h3 className="text-sm font-medium">{tree.name}</h3>
@@ -373,7 +373,7 @@ function TalentCell({
         <TooltipTrigger asChild>{cell}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-72">
           <div className="flex flex-col gap-2">
-            <TalentDetails data={data} talent={talent} ranks={ranks} inverted />
+            <TalentDetails data={data} talent={talent} ranks={ranks} />
             <p className="border-t border-current/20 pt-2 text-xs opacity-80">
               Click or Enter adds a point. Right-click or Backspace removes one.
             </p>

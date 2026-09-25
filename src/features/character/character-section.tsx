@@ -402,7 +402,7 @@ function RacePicker({
                   tabIndex={active ? 0 : -1}
                   onClick={() => onPick(race)}
                   className={cn(
-                    'flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors outline-none',
+                    'flex min-h-14 items-center gap-3 rounded-lg border bg-surface px-3 py-2 text-left transition-colors outline-none',
                     'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
                     !available && 'col-span-2 border-dashed',
                     active && 'border-primary bg-muted',

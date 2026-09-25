@@ -249,7 +249,7 @@ export function BuffsSection() {
                 {groups.map((group) => (
                   <div
                     key={group}
-                    className="flex flex-col gap-1 rounded-xl border p-1 @min-[53rem]/setup:mb-4 @min-[53rem]/setup:break-inside-avoid"
+                    className="flex flex-col gap-1 rounded-xl border bg-surface shadow-surface p-1 @min-[53rem]/setup:mb-4 @min-[53rem]/setup:break-inside-avoid"
                   >
                     <span className="px-3 pt-2 text-xs font-medium text-muted-foreground">{group}</span>
                     {defs

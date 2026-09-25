@@ -55,6 +55,10 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    /* docs/ux.md#visual-language "Surfaces": the page behind the panels, and a panel's shadow. */
+    --color-page: var(--page);
+    --color-surface: var(--surface);
+    --shadow-surface: var(--surface-shadow);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -78,6 +82,17 @@
 }
 
 :root {
+    /*
+     * Surfaces (docs/ux.md#visual-language "Surfaces", user decision 2026-09-25): the page is a soft
+     * grey-blue (#f4f4fa, the guild's ink hue at a trace of chroma), and what sits on it is white:
+     * panels (bg-surface with shadow-surface), cards, sheets, popovers, and the controls' own fills
+     * (bg-background). So --page is the canvas behind everything (body, App, the sticky section tabs
+     * and the phone's sim bar) and --background stays white, as controls and the priority list's
+     * rows expect.
+     */
+    --page: oklch(0.968 0.009 285);
+    --surface: oklch(1 0 0);
+    --surface-shadow: 0 1px 2px 0 oklch(0.25 0.06 285 / 0.06), 0 1px 3px 0 oklch(0.25 0.06 285 / 0.1);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -86,24 +101,26 @@
     --popover-foreground: oklch(0.145 0 0);
     --primary: oklch(0.205 0 0);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
+    /* Muted rows and hover fills, a step below the page, so a hovered row shows on it and on white. */
+    --secondary: oklch(0.955 0.008 285);
     --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
+    --muted: oklch(0.955 0.008 285);
+    /* 5.8:1 on white, 5.3:1 on the page and 5.1:1 on muted rows (the stock oklch(0.556) was 4.3:1 on the page). */
+    --muted-foreground: oklch(0.51 0.012 285);
+    --accent: oklch(0.955 0.008 285);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
+    --border: oklch(0.91 0.008 285);
     /*
      * The edge of a control: text fields, selects, segmented choices and (below) outline buttons.
-     * Dark enough to meet 3:1 on the page and cards (3.6:1) and on muted rows (3.3:1), where the
-     * stock oklch(0.922) gave 1.26:1 (WCAG 1.4.11, docs/ux.md#accessibility, UX13).
+     * Dark enough to meet 3:1 on white (4.0:1), on the tinted page (3.6:1) and on muted rows
+     * (3.5:1), where the stock oklch(0.922) gave 1.26:1 (WCAG 1.4.11, docs/ux.md#accessibility, UX13).
      */
-    --input: oklch(0.62 0 0);
+    --input: oklch(0.6 0 0);
     /*
      * The focus ring. shadcn draws it at half strength (ring-ring/50), so the token is dark enough
      * that the ring clears 3:1 at 50% over the page, cards and muted rows (WCAG 1.4.11, U33): here
-     * about 3.7:1 over white, where the stock oklch(0.708) gave 1.5:1. At full strength it's also a
+     * about 3.6:1 over white, the tinted page and muted rows, where the stock oklch(0.708) gave 1.5:1. At full strength it's also a
      * focused field's border.
      */
     --ring: oklch(0.145 0 0);
@@ -122,35 +139,37 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
     /*
-     * App tokens (docs/ux.md#visual-language), each AA on the light surfaces it sits on:
-     * status text in Tailwind's -700 shades (emerald, red, amber), class colours darkened in
-     * OKLCH with the same hue (Warrior #C69B6D is 2.5:1 on white; this is 5.1:1), and the off
-     * switch track at 3:1 or more against the page and a hovered row (WCAG 1.4.11).
+     * App tokens (docs/ux.md#visual-language), each AA on every light surface it sits on: white,
+     * the tinted page and muted rows (4.6:1 or more on muted rows, the darkest). Status text near
+     * Tailwind's -700 shades (emerald, red, amber), class colours darkened in OKLCH with the same
+     * hue (Warrior #C69B6D is 2.5:1 on white; this is 5.3:1), and the off switch track at 3:1 or
+     * more against the page and a hovered row (WCAG 1.4.11).
      */
     --positive: oklch(0.508 0.118 165.612);
     --negative: oklch(0.505 0.213 27.518);
-    --notice: oklch(0.555 0.163 48.998);
-    --class-warrior: oklch(0.54 0.092 67.9);
-    --class-druid: oklch(0.56 0.187 50.9);
-    --class-paladin: oklch(0.55 0.136 352.8);
-    /* The shaman's blue, #0070dd, meets AA on light surfaces as it is (4.8:1). */
-    --class-shaman: #0070dd;
-    /* Rogue #FFF468 is 1.1:1 on white; this is 5.0:1. */
-    --class-rogue: oklch(0.54 0.11 102);
-    /* The mage's light blue, #3fc7eb, is 1.9:1 on light surfaces: they take a deeper cyan (4.6:1). */
-    --class-mage: #0a7fa3;
+    --notice: oklch(0.545 0.163 48.998);
+    --class-warrior: oklch(0.535 0.092 67.9);
+    --class-druid: oklch(0.545 0.187 50.9);
+    --class-paladin: oklch(0.545 0.136 352.8);
+    /* The shaman's blue, #0070dd, is 4.4:1 on the tinted page: a shade deeper, #016ad2, is 4.8:1. */
+    --class-shaman: oklch(0.535 0.18 255.6);
+    /* Rogue #FFF468 is 1.1:1 on white; this is 5.4:1. */
+    --class-rogue: oklch(0.525 0.11 102);
+    /* The mage's light blue, #3fc7eb, is 1.9:1 on light surfaces: they take a deeper cyan, #007497 (4.9:1 on the page). */
+    --class-mage: oklch(0.52 0.105 227.1);
     /* Warlock #8788EE is 3.3:1 on white; this is darker for AA. */
     --class-warlock: oklch(0.5 0.16 278);
-    /* Priest #FFFFFF is 1:1 on white; a neutral grey, 5.7:1. */
+    /* Priest #FFFFFF is 1:1 on white; a neutral grey, 6.0:1. */
     --class-priest: oklch(0.5 0 0);
     /* Hunter #AAD372 is 1.8:1 on white; a darker green for AA. */
     --class-hunter: oklch(0.5 0.12 130);
-    --switch-off: oklch(0.64 0 0);
+    /* 3.3:1 on the page, 3.2:1 on muted rows. */
+    --switch-off: oklch(0.62 0 0);
     /*
      * The Decades brand's antique gold (docs/ux.md#brand). The guild's #c4a75e is 2.3:1 on white,
-     * so light surfaces take it darker in OKLCH, near its hue: the crest's hourglass at 3.7:1 on the
-     * page (3.4:1 on muted rows; 3:1 for graphics), and the brand's lettering at 5.3:1 (4.9:1 on muted
-     * rows; AA for text). The hairlines draw it at 40–50%: dividers, like --border, not controls.
+     * so light surfaces take it darker in OKLCH, near its hue: the crest's hourglass at 3.7:1 on
+     * white (3.3:1 on the page, 3.2:1 on muted rows; 3:1 for graphics), and the brand's lettering at
+     * 5.3:1 on white (4.9:1 on the page, 4.7:1 on muted rows; AA for text). The hairlines draw it at 40–50%: dividers, like --border, not controls.
      */
     --brand-gold: oklch(0.62 0.1 85);
     --brand-gold-text: oklch(0.53 0.09 80);
@@ -163,6 +182,13 @@
  * control edge, the focus ring, the switch track, status and class colours).
  */
 .dark {
+    /*
+     * Dark panels stay as they were: bordered, with no fill of their own (so one inside a sheet takes
+     * the sheet's colour) and no shadow.
+     */
+    --page: oklch(0.145 0.018 285);
+    --surface: transparent;
+    --surface-shadow: 0 0 #0000;
     --background: oklch(0.145 0.018 285);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0.018 285);
@@ -221,12 +247,51 @@
     --brand-gold-text: #c4a75e;
 }
 
+/*
+ * The header's ink (docs/ux.md#brand, user decision 2026-09-25): the toolbar is the Decades guild's
+ * ink navy, #1f1c3d, in both themes, with near-white text, under the gold hairline. In the dark
+ * theme it sits a clear step above the page (0.25 against 0.145 lightness, and more chroma), the
+ * way an app bar is raised. `.ink` re-points the theme tokens for everything inside it, so the
+ * lockup, the spec switcher and the toolbar's ghost buttons need no colours of their own. Menus and
+ * sheets the header opens are portalled out of it and keep the page's theme. Measured on the navy
+ * and on the hover fill (#302e50, what a hovered or open button shows):
+ *   text 15.5:1 and 12.3:1; muted text 8.6:1 and 6.9:1; the half-strength white focus ring 5.0:1
+ *   and 4.5:1; the gold hourglass 7.0:1 and 5.5:1; every class colour 5.4:1 or more and 4.8:1 or
+ *   more (the dark theme's colours, with lighter tints of the shaman's blue and the warlock's
+ *   purple, which were 4.3:1 and 4.2:1 on the hover fill).
+ */
+.ink {
+    --ink: oklch(0.25 0.06 285);
+    --background: var(--ink);
+    --foreground: oklch(0.985 0 0);
+    --muted: oklch(0.32 0.06 285);
+    --muted-foreground: oklch(0.8 0.03 285);
+    --accent: var(--muted);
+    --accent-foreground: var(--foreground);
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 38%);
+    --ring: oklch(1 0 0);
+    --brand-gold: #c4a75e;
+    --brand-gold-text: #c4a75e;
+    --class-warrior: #c69b6d;
+    --class-druid: #ff7c0a;
+    --class-paladin: #f48cba;
+    --class-shaman: oklch(0.7 0.15 255);
+    --class-rogue: #fff468;
+    --class-mage: #3fc7eb;
+    --class-warlock: oklch(0.72 0.12 280);
+    --class-priest: #ffffff;
+    --class-hunter: #aad372;
+    color: var(--foreground);
+    background-color: var(--background);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-page text-foreground;
     }
   html {
     @apply font-sans;

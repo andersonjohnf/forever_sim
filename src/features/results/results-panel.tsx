@@ -380,7 +380,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
     // The desktop panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops
     // 24 px above the viewport's bottom edge.
     <div className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
-      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4">
+      <div className="flex shrink-0 flex-col gap-4 rounded-xl border bg-surface shadow-surface p-4">
         <div className="flex min-w-0 flex-col gap-4">
           <div className="min-w-0">
             <Headline />
@@ -539,7 +539,7 @@ function WidePanel({ setup }: { setup: ReactNode }) {
         {/* The 1 px top padding keeps the sheet card's ring inside the scroll area. */}
         <div ref={content} className="flex flex-col gap-2 pt-px">
           <section aria-labelledby={sheetHeadingId}>
-            <Card size="sm" className="gap-2">
+            <Card size="sm" className="gap-2 shadow-surface">
               <CardHeader className="flex items-center justify-between gap-3">
                 {/* A section heading's size, as Your setup's, with no icon (D34, after the user's look at the fixes). */}
                 <h3 id={sheetHeadingId} className="text-base font-semibold tracking-tight">
@@ -597,14 +597,14 @@ function WidePanel({ setup }: { setup: ReactNode }) {
         aria-hidden
         data-fade-above
         className={cn(
-          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-page to-transparent transition-opacity motion-reduce:transition-none',
           above ? 'opacity-100' : 'opacity-0',
         )}
       />
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-background via-background/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-page via-page/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
           below ? 'opacity-100' : 'opacity-0',
         )}
       >
@@ -664,14 +664,14 @@ function ScrollBody({ children }: { children: ReactNode }) {
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-background to-transparent transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-page to-transparent transition-opacity motion-reduce:transition-none',
           above ? 'opacity-100' : 'opacity-0',
         )}
       />
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-background via-background/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
+          'pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-linear-to-t from-page via-page/80 to-transparent pb-0.5 transition-opacity motion-reduce:transition-none',
           below ? 'opacity-100' : 'opacity-0',
         )}
       >
@@ -1066,7 +1066,7 @@ function Details({
         setWideOpen(next)
         writeClosed(id, !next)
       }}
-      className={flat ? 'border-b py-1.5' : 'rounded-xl border'}
+      className={flat ? 'border-b py-1.5' : 'rounded-xl border bg-surface shadow-surface'}
     >
       <CollapsibleTrigger
         className={cn(

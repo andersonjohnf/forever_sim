@@ -2,8 +2,8 @@
 
 DPS/TPS simulator for level-60 characters in **WoW Forever**: every DPS spec, and the Warrior,
 Feral Druid and Paladin tanks. It's a
-static Vite + React + TypeScript + shadcn/ui app on Firebase Hosting (GitHub Pages in parallel until
-the cutover, D35) with no server. It's built by
+static Vite + React + TypeScript + shadcn/ui app with no server, deployed to Firebase Hosting and
+GitHub Pages; Pages serves the domain until the DNS cutover (D35). It's built by
 the Decades guild (https://decades.gg) and carries its light branding (`docs/ux.md#brand`).
 
 **The bar:** the best Forever sim we can build with the data we have, with a clean, modern UX
@@ -215,8 +215,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
 - **UI** uses shadcn/ui: `npx shadcn@latest add <component>`. Avoid hand-editing
   `src/components/ui/*`. `cn` comes from the `cn` npm package (shadcn's official
   clsx + tailwind-merge replacement), not a typo.
-- **Firebase Hosting** (`decades-prod`/`decades-sim`, GitHub Pages in parallel until the cutover, D35) on the custom
-  domain https://sim.decades.gg/: the Vite `base` is `/`. Use
+- **Hosting** (D35): Firebase Hosting (`decades-prod`/`decades-sim`) and GitHub Pages get every build;
+  the custom domain https://sim.decades.gg/ stays on Pages until the DNS cutover: the Vite `base` is `/`. Use
   `import.meta.env.BASE_URL` for runtime asset URLs and hash routing if routing is ever needed.
 - **Scrapers** (`scripts/scrape/`) fetch only client files from the wago.tools API and table
   definitions from WoWDBDefs on GitHub, sequentially with delays. They cache under

@@ -688,8 +688,18 @@ User decision. The site moves to **Firebase Hosting**: project `decades-prod`, s
 (`https://decades-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
 the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover is a DNS change.
 - **Independent jobs.** The deploy workflow builds once; the Pages and Firebase jobs each deploy
-  that build, and a Firebase failure never blocks Pages during the transition. At the cutover the
-  Pages job and its setup go.
+  that build, and a Firebase failure never blocks Pages during the transition.
+- **The cutover, in order** (review FH-3, FH-5): check both hosts serve the same commit; add
+  `sim.decades.gg` to the Firebase site and pre-provision its certificate (the ACME record) before
+  moving DNS; switch the A records; keep Pages' custom-domain setting and decades.gg's domain
+  verification in GitHub until DNS has moved, so the name can't be claimed in between; once the
+  user confirms, drop the Pages deploy job. The Pages site itself may stay (with its custom domain)
+  for the old `github.io/forever_sim/` redirect.
+- **Permissions are project-wide** (review FH-2; user accepted, 2026-09-25): Firebase Hosting roles
+  cover every site in `decades-prod`, so the deploy account could also change `decades-web`. All
+  are the Decades umbrella's apps. The pipeline limits the exposure: only this repository's `main`
+  (the provider's condition, the `firebase` environment and the job's `if`), and the CLI pinned to
+  a major (`firebase-tools@15`), as decades_app pins it.
 - **Workload Identity Federation, no keys.** GitHub's OIDC token is exchanged for a short-lived
   token of the service account `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`, through
   a provider that trusts only this repository's `main` branch. No JSON key exists to leak.

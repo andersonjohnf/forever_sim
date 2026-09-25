@@ -5,8 +5,8 @@ community since 2005. Pick
 your spec, talents and gear, tune buffs and your rotation, and simulate. It works on your phone
 as well as your desktop.
 
-It runs entirely in your browser (no server) and is hosted on Firebase Hosting (and GitHub Pages
-until the move is complete):
+It runs entirely in your browser (no server). It's moving from GitHub Pages to Firebase Hosting;
+the address stays the same:
 **https://sim.decades.gg/**
 
 > **Status:** every DPS spec, and the Warrior, Feral (Bear) Druid and Protection Paladin tanks.

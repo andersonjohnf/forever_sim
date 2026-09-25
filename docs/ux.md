@@ -1326,7 +1326,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 - **Tooltips** take the popover's colours in both themes, with a border, a light shadow and an arrow
   of the same surface (`src/components/ui/tooltip.tsx`, one commented edit): shadcn's inverted box
   was a white box in the dark theme. The talent tooltip's reasons are in the notice colour, as in its
-  popover: 5.3:1 light, 10.4:1 dark.
+  popover: 5.3:1 light, 10.4:1 dark. Item tooltips are the exception, dark in both themes as the
+  game's are ([Item tooltips](#item-tooltips)).
 - **Color:**
   - Neutral tokens for surfaces and text. Muted text, `--muted-foreground`, is 5.8:1 on white,
     5.3:1 on the page and 5.1:1 on muted rows in the light theme.
@@ -1374,6 +1375,59 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
 - **Game icons:** WoW icons by icon name from Wowhead's CDN, lazy-loaded at a fixed size with
   a neutral placeholder on error. Nothing depends on them loading.
 - **Motion:** short and purposeful (sheets, disclosure). Respect `prefers-reduced-motion`.
+
+### Item tooltips
+
+Every item can show its tooltip as the game does (M5.67), built from the Forever client's own
+data: the lines by `itemTooltipLines` in `src/features/gear/item-tooltip-lines.ts`, the panel and
+its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx`.
+
+- **Content, top to bottom:** the name in its quality colour; binding ("Binds when picked up");
+  Unique or Unique-Equipped with its group; the slot, with the type on the right ("Two-Hand" and
+  "Axe"; none for jewelry, cloaks and held items); a weapon's damage with its speed on the right,
+  any extra damage and its damage per second; ammo's damage per second; armor (base and bonus armor
+  on one line, as Forever's tooltip adds them) and a Classic Era shield's block; primary stats and
+  resistances; **the enchant**; classes, races, "Requires Level", other requirements (reputation,
+  skill, PvP rank) and the item level; the **Equip** lines for the other stats, then the item's own
+  Equip, Chance on hit and Use lines; and the **set**: its name with the pieces worn ("(3/8)"), its
+  pieces and its bonuses as "(2) Set: …".
+- **Words come from the data, never invented.** Effect and set-bonus lines are the client's
+  rendered descriptions, as the item data carries them. The enchant is the client's enchant name
+  with its values filled in ("Strength +15", "Crusader"; `enchant-lines.ts`, held to the client by
+  its test); under Classic Era rules an enchant whose Classic Era number differs shows the
+  catalogue's Classic Era summary instead. Stats have no client text in the app's data, so they're
+  worded as the client words the same stat elsewhere: an item whose values are Forever's has stat
+  columns ("Equip: +28 Critical Strike Rating."), and a Classic Era one equip spells, in the words
+  the pool's set bonuses render for the same auras ("Equip: Improves your chance to hit by 1%.").
+  A fact the data doesn't carry is left out, not guessed: durability, sell price and flavor text
+  (the browser's data drops the last two), and a set piece outside the item pool, which has no name
+  in the data (the count still counts every piece).
+- **Colours, on a dark panel in both themes**, as the game's is (#0b0d1a, with a #565d7e border
+  and a shadow, so it stands off the dark page too; `TOOLTIP_PALETTE`). The one exception to
+  tooltips taking the popover's colours ([Visual language](#visual-language)): the game's colours
+  only read on dark. White for the item's own facts (19.3:1); green `#1EFF00` for Equip, Use and
+  Chance on hit, the enchant and a set bonus reached (14.1:1); gold `#FFD100` for the item level and
+  the set's name (13.2:1); pale yellow for a set piece worn (18.4:1) and grey `#9D9D9D` for one
+  not worn and a bonus not reached (7.1:1). The name takes its quality colour, the game's where it
+  reaches AA on the panel (Uncommon, Legendary 7.7:1) and the dark theme's otherwise (Rare
+  `#4DA3FF` 7.4:1, Epic `#C27EF7` 7.0:1; the game's own are 4.0:1). A unit test holds every colour
+  to 4.5:1 or more. Two-column rows put the right column flush right; set pieces are indented; a
+  gap sets off the set and its bonuses.
+- **Opening and closing, by device:**
+  - *Desktop:* a mouse or pen resting on the item for 150 ms opens it, and leaving the item closes
+    it. Keyboard focus on the item (`:focus-visible`, so a click's focus doesn't) opens it, and
+    blur closes it. Escape or a click outside closes it either way. It never takes focus and
+    returns none, and the pointer passes through it.
+  - *Phone*, where nothing hovers: a tap on the item's **info control** (a 44 px "i" button,
+    named "<item> details") opens it, and another tap closes it; so does a **long press** (500 ms,
+    moving under 10 px) on the item, whose release then doesn't also run the item's own tap (open
+    the picker) or bring up the system's callout. A tap outside or Escape closes it. Opened this
+    way it stays until then, and scrolls if it's taller than the room.
+  - Beside a hover or focus tooltip, the info control pins it open. While it's open the item (and
+    the info control) name it as their description, for screen readers.
+- **Placement:** beside the item from 640 px (right, flipping left), below it on a phone (flipping
+  above), 8 px clear of the window's edges, at most 20 rem wide (the window less 1 rem on a phone)
+  and as tall as the room, so it never makes the page scroll sideways at 390, 1280 or 1920 px.
 
 ## Brand
 

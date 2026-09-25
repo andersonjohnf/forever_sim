@@ -407,7 +407,7 @@ A spec is data plus small ability modules, never its own loop.
   Demoralizing Roar are spell-table rows, and a `spellSchool` on one makes it roll the boss's
   resistance with its hit (Faerie Fire, Nature). A marker aura with several stacks makes a bleed a
   stacking one, whose ticks and hit read the stacks (Lacerate). `noCooldownAura` suspends a
-  cooldown (Berserk's Mangle), and `itemArmorPct` joins the defensive aura mods (Enrage).
+  cooldown (Berserk's Primal Bite), and `itemArmorPct` joins the defensive aura mods (Enrage).
 - **The Shadow Priest's pieces** ([priest.md §8](classes/priest.md#8-implementation-notes)), each
   optional: the free-cast charge can carry crit to the spell that uses it
   (`Plan.freeCastCritPct`: Inner Focus); and condition `abilityReady` (50) waits until an ability

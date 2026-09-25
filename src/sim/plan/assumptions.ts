@@ -2,7 +2,7 @@
 //
 // The plan builder adds an assumption only when the setup actually relies on it, so the list
 // stays short and specific. Each links to the doc section that owns the value.
-import type { Assumption } from '../types'
+import type { Assumption, RuleProfileId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
 
 const CT = 'docs/mechanics/combat-tables.md'
@@ -425,9 +425,9 @@ const REGISTRY = {
     text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
-  // docs/classes/druid.md §4.1 (BR2, Q37): Idol of Brutality's class mask covers Mangle, which its tooltip doesn't name.
+  // docs/classes/druid.md §4.1 (BR2, Q37): Idol of Brutality's class mask covers Primal Bite, which its tooltip doesn't name.
   idolOfBrutality: {
-    text: 'Idol of Brutality takes 2 rage off Mangle as well as Maul and Swipe: its spell’s class mask covers Mangle, though the tooltip names only Maul and Swipe; untested.',
+    text: 'Idol of Brutality takes 2 rage off Primal Bite as well as Maul and Swipe: its spell’s class mask covers Primal Bite, though the tooltip names only Maul and Swipe; untested.',
     docRef: `${DRUID}#41-maul-r7-9881`,
   },
   sealOfCommandRate: {
@@ -558,7 +558,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Mangle makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era). None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
@@ -566,7 +566,7 @@ const REGISTRY = {
     docRef: `${DRUID}#43-lacerate-r3-1235827`,
   },
   bearTwoRolls: {
-    text: 'Swipe rolls to hit and then to crit, like Bloodthirst, since it deals no weapon damage; Maul, Mangle and Lacerate roll once. Untested for druids.',
+    text: 'Swipe rolls to hit and then to crit, like Bloodthirst, since it deals no weapon damage; Maul, Primal Bite and Lacerate roll once. Untested for druids.',
     docRef: `${DRUID}#44-swipe-r5-9908`,
   },
   bearRage: {
@@ -578,7 +578,7 @@ const REGISTRY = {
     docRef: `${DRUID}#45-other-bear-abilities`,
   },
   berserkMangle: {
-    text: 'Under Berserk a Mangle starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Mangle’s and Swipe’s extra targets add nothing.',
+    text: 'Under Berserk a Primal Bite starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Primal Bite’s and Swipe’s extra targets add nothing.',
     docRef: `${DRUID}#46-berserk-bear-use`,
   },
   enrageArmor: {
@@ -1067,19 +1067,23 @@ const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') 
  * (druid.md §8 "Uncertainty surfacing"). The registry's are the default bear's in Forever.
  */
 export const BEAR_TEXT = {
-  /** What its abilities' threat rests on, naming only the ones it uses. */
-  threat(uses: { maul: boolean; swipe: boolean; mangle: boolean; lacerate: boolean; faerieFire: boolean; roar: boolean }): string {
+  /** What its abilities' threat rests on, naming only the ones it uses, with Lacerate's in the profile's terms. */
+  threat(uses: { maul: boolean; swipe: boolean; mangle: boolean; lacerate: boolean; faerieFire: boolean; roar: boolean }, profile: RuleProfileId = 'forever'): string {
     const multiplied = [...(uses.maul ? ['Maul'] : []), ...(uses.swipe ? ['Swipe'] : [])]
     const flat = [...(uses.faerieFire ? ['Faerie Fire 108'] : []), ...(uses.roar ? ['Demoralizing Roar 39'] : [])]
     const known = [...(multiplied.length ? [`${prose(multiplied)} ${multiplied.length > 1 ? 'make' : 'makes'} 1.75 threat per damage`] : []), ...flat]
     if (multiplied.length === 0 && known.length > 0) known[0] = known[0].replace(/ (\d+)$/, ' makes $1 threat')
-    // threat.md#threat-wording-table (D29): Lacerate's "high amount of threat" is the warrior's.
+    // threat.md#threat-wording-table (D29): Lacerate's "high amount of threat" is the warrior's Sunder
+    // Armor's at its level, the profile's (bear-abilities.ts LACERATE_THREAT).
+    const lacerate = LACERATE_THREAT[profile]
     const sentences = [
       ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
-      ...(uses.mangle ? ['Mangle makes 1 threat per damage, since its threat is unknown.'] : []),
+      ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its threat is unknown.'] : []),
       ...(uses.lacerate
         ? [
-            `Lacerate makes 1 per damage and ${LACERATE_THREAT} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era).`,
+            lacerate.apCoefficient > 0
+              ? `Lacerate makes 1 per damage and ${lacerate.bonus} plus ${Math.round(100 * lacerate.apCoefficient)}% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (${lacerate.bonus} is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add).`
+              : `Lacerate makes 1 per damage and ${lacerate.bonus} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate.bonus} in Classic Era).`,
           ]
         : []),
       'None is measured in Forever.',
@@ -1119,9 +1123,9 @@ export const BEAR_TEXT = {
         : 'while the boss bleeds, which it doesn’t here: no warriors in your raid keep Deep Wounds on it, and you don’t use Lacerate'
     return `Rend and Tear adds ${o.pct}% to your abilities’ direct damage, not auto attacks or bleed ticks, ${when}. Untested.`
   },
-  /** Berserk's Mangle, and the extra targets the sim leaves out. */
+  /** Berserk's Primal Bite (Mangle until 1.60.1.70009; the id keeps the old name), and the extra targets the sim leaves out. */
   berserkMangle(swipe: boolean): string {
-    return `Under Berserk a Mangle starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Mangle’s${swipe ? ' and Swipe’s' : ''} extra targets add nothing.`
+    return `Under Berserk a Primal Bite starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Primal Bite’s${swipe ? ' and Swipe’s' : ''} extra targets add nothing.`
   },
 }
 

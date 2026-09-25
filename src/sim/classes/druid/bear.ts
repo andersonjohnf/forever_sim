@@ -10,10 +10,12 @@
 //
 // Off the GCD: Berserk, Enrage (before the pull, and in combat on cooldown), the racial cooldown
 // (Night Elf), on-use items, the Mighty Rage Potion and Juju Flurry when they're selected in Buffs,
-// and the Maul queue. On the GCD: Demoralizing Roar's and Faerie Fire's upkeep, Mangle, Lacerate's
-// stacks, Swipe with spare rage, and Faerie Fire as a filler. The sim has one target, so Swipe's
-// and Berserk's Mangle's extra targets don't count. Setting ids are `druid.bear.<ability>.<param>`;
-// rage thresholds are absolute rage points.
+// and the Maul queue. On the GCD: Demoralizing Roar's and Faerie Fire's upkeep, Primal Bite,
+// Lacerate's stacks, Swipe with spare rage, and Faerie Fire as a filler. The sim has one target, so
+// Swipe's and Berserk's Primal Bite's extra targets don't count. Setting ids are
+// `druid.bear.<ability>.<param>`; rage thresholds are absolute rage points. Primal Bite was Mangle
+// until build 1.60.1.70009, and its setting and row keep the id `mangle`, so saved setups and links
+// keep working.
 import { toTenths } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, type RotationCondition } from '../../plan/types'
@@ -33,7 +35,8 @@ import {
   FAERIE_FIRE_BEAR,
   LACERATE,
   LACERATE_MAX_STACKS,
-  MANGLE,
+  lacerate as lacerateFor,
+  PRIMAL_BITE,
   MAUL,
   SWIPE,
 } from './bear-abilities'
@@ -177,7 +180,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.berserk,
     group: 'Cooldowns and buffs',
     label: 'Berserk',
-    help: 'Use Berserk on cooldown: for 15 s Mangle has no cooldown, so it can fill every global cooldown your rage pays for. Needs the Berserk talent.',
+    help: 'Use Berserk on cooldown: for 15 s Primal Bite has no cooldown, so it can fill every global cooldown your rage pays for. Needs the Berserk talent.',
     default: true,
   },
   {
@@ -272,7 +275,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     ...rageOption(
       ID.maulMinRage,
       'Maul from',
-      `Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat. With Max TPS it’s ${MAX_TPS_MAUL_MIN_RAGE} by default: a little more threat for a little less damage.`,
+      `Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Primal Bite and Lacerate. In fights under a minute, 10 makes more threat. With Max TPS it’s ${MAX_TPS_MAUL_MIN_RAGE} by default: a little more threat for a little less damage.`,
       20,
       ID.maulEnabled,
       'Core abilities',
@@ -284,8 +287,8 @@ export const BEAR_OPTIONS: RotationOption[] = [
     kind: 'toggle',
     id: ID.mangleEnabled,
     group: 'Core abilities',
-    label: 'Mangle',
-    help: 'Use Mangle whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality). Needs the Primal Bite talent.',
+    label: 'Primal Bite',
+    help: 'Use Primal Bite whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality). Needs the Primal Bite talent (formerly Mangle).',
     default: true,
   },
   {
@@ -361,7 +364,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
 ]
 
 /**
- * An ability with Idol of Brutality equipped: 2 rage off Maul, Swipe and Mangle (abilities.ts
+ * An ability with Idol of Brutality equipped: 2 rage off Maul, Swipe and Primal Bite (abilities.ts
  * `IDOL_OF_BRUTALITY`; druid.md §4.1), before Ferocity's, which the plan takes off after.
  */
 export const withIdolOfBrutality = (def: AbilityDef, equipped: ReadonlySet<number>): AbilityDef =>
@@ -456,7 +459,7 @@ export const BEAR_APL: AplDefinition = {
       optionIds: [ID.ffRefresh],
       summary: [{ option: ID.ffRefresh, text: 'again with {}' }],
     },
-    { id: 'mangle', label: 'Mangle', icon: MANGLE.icon, enabledId: ID.mangleEnabled, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'mangle', label: 'Primal Bite', icon: PRIMAL_BITE.icon, enabledId: ID.mangleEnabled, optionIds: [], summary: [{ text: 'on cooldown' }] },
     {
       id: 'lacerate',
       label: 'Lacerate',
@@ -510,7 +513,7 @@ export const BEAR_APL: AplDefinition = {
 
 /**
  * The bear priority list from the settings (druid.md §6.3), its rows in `order` (BEAR_APL; absent:
- * the default order). `talents` gates Mangle and Berserk and resolves costs, Savage Fury, Feral
+ * the default order). `talents` gates Primal Bite and Berserk and resolves costs, Savage Fury, Feral
  * Instinct, Genesis, Predatory Instincts and Rend and Tear; `context` gives the race (Elune's Light),
  * the equipped on-use items, Wolfshead Helm and Idol of Brutality, the selected consumables and the
  * profile (Demoralizing Roar's attack power). `_auraIndex` is unused: no bear line reads a plan aura
@@ -526,10 +529,10 @@ export function bearRotation(
   const ctx: ClassRotationContext = { ...NO_CONTEXT, equipped: new Set(), othersBleed: false, front: true, ...context }
   const v = reader(BEAR_OPTIONS, values, talents)
   const b = new DruidRotationBuilder(talents)
-  // Idol of Brutality: 2 rage off Maul, Swipe and Mangle (druid.md §4.1).
+  // Idol of Brutality: 2 rage off Maul, Swipe and Primal Bite (druid.md §4.1).
   const maul = withIdolOfBrutality(MAUL, ctx.equipped)
   const swipe = withIdolOfBrutality(SWIPE, ctx.equipped)
-  const mangle = withIdolOfBrutality(MANGLE, ctx.equipped)
+  const mangle = withIdolOfBrutality(PRIMAL_BITE, ctx.equipped)
   const enrageDef = enrage(ctx.equipped.has(WOLFSHEAD_HELM))
   const consumable = (id: string): OnUseSpec | undefined => ctx.consumables.find((c) => c.id === id)
 
@@ -573,9 +576,9 @@ export function bearRotation(
     faerieFire: () => {
       if (v.on(ID.ffEnabled)) b.add(FAERIE_FIRE_BEAR, [refresh(b.ability(FAERIE_FIRE_BEAR), seconds(v, ID.ffRefresh))])
     },
-    // Row 7: Mangle (the talent) whenever it's ready.
+    // Row 7: Primal Bite (the talent; Mangle until 1.60.1.70009, docs/data/talents.md#tree-versions)
+    // whenever it's ready. The row keeps the id `mangle` that saved orders store.
     mangle: () => {
-      // The talent is Primal Bite since 1.60.1.70009 (Mangle before; docs/data/talents.md#tree-versions).
       if (talents.has('Primal Bite') && v.on(ID.mangleEnabled)) b.add(mangle, [])
     },
     // Row 8: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
@@ -583,9 +586,11 @@ export function bearRotation(
     // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
     lacerate: () => {
       if (!v.on(ID.lacerateEnabled) || lacerateWaits(v.on(ID.lacerateAlone), ctx)) return
-      const lacerate = b.ability(LACERATE)
-      b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
-      b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
+      // Its "high amount of threat" is the profile's (bear-abilities.ts `LACERATE_THREAT`).
+      const def = lacerateFor(ctx.profile)
+      const lacerate = b.ability(def)
+      b.add(def, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
+      b.add(def, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])
     },
     // Row 9: Swipe with spare rage (the sim has one target: §6.3's target count never applies).
     swipe: () => {

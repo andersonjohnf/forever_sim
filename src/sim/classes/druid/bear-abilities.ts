@@ -1,16 +1,16 @@
-// The Feral bear's abilities as data (docs/classes/druid.md §4): Maul, Swipe, Mangle, Lacerate,
-// Demoralizing Roar, Faerie Fire in Dire Bear Form and Enrage. Berserk is the cat's row
-// (cat-abilities.ts), usable in both forms; its bear part is Mangle's `noCooldownWhile`. Auto attack
-// is the form's weapon (forms.ts).
+// The Feral bear's abilities as data (docs/classes/druid.md §4): Maul, Swipe, Primal Bite (Mangle
+// until build 1.60.1.70009), Lacerate, Demoralizing Roar, Faerie Fire in Dire Bear Form and Enrage.
+// Berserk is the cat's row (cat-abilities.ts), usable in both forms; its bear part is Primal Bite's
+// `noCooldownWhile`. Auto attack is the form's weapon (forms.ts).
 //
-// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.69913), with the doc
+// Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.70009), with the doc
 // value as fallback, written out here so the app bundle doesn't carry the client dataset;
 // bear.test.ts checks them against it. Rage is in tenths, times in ms. These are the base rows:
 // the build's talents (Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis,
 // Predatory Instincts, Rend and Tear) are applied by `withDruidTalents` (modifiers.ts) when the plan
 // resolves the rotation. Threat values are threat.md's bear rows: Classic values that only a threat
-// library carries, and Lacerate's "high amount of threat" by threat.md's wording table (D29), so [?]
-// (Q15).
+// library carries, and Lacerate's "high amount of threat" by threat.md's wording table (D29): the
+// warrior's Sunder Armor's at the same level, so [?] (Q15).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import { type AbilityDef, SCHOOL, STANCE_ANY } from '../../plan/types'
 import type { RulesProfile } from '../../rules/profiles'
@@ -88,15 +88,18 @@ export const SWIPE: AbilityDef = {
 }
 
 /**
- * Mangle, rank 4 at 60 (spells.json 1238073, the talent 407995): 20 rage, `categoryRecoveryTime`
+ * Primal Bite, rank 4 at 60 (spells.json 1238073, the talent 407995): 20 rage, `categoryRecoveryTime`
  * 6000, GCD 1500; `WEAPON_PERCENT_DAMAGE` 100 and `WEAPON_DAMAGE` +77: `1.00 × (W_b + 77)`, one
- * roll [F] (druid.md §4.2). Bear and Dire Bear only (shapeshift mask 144). Its threat is unknown:
- * one per damage [?] (Q15). While Berserk is up it starts no cooldown (§4.6).
+ * roll [F] (druid.md §4.2). Bear and Dire Bear only (shapeshift mask 144). Build 1.60.1.70009 renamed
+ * Mangle to Primal Bite and gave it a new icon (132278, `ability_racial_cannibalize`), and changed
+ * nothing else: the same ids, damage, cost, cooldown and class mask. Its tooltip has no threat words,
+ * so one per damage [?] (Q15). While Berserk is up it starts no cooldown (§4.6). Its id stays
+ * `mangle`, as its setting's and its priority-list row's do, so saved setups and links keep it.
  */
-export const MANGLE: AbilityDef = {
+export const PRIMAL_BITE: AbilityDef = {
   id: 'mangle',
-  name: 'Mangle',
-  icon: 'ability_druid_mangle2',
+  name: 'Primal Bite',
+  icon: 'ability_racial_cannibalize',
   kind: 'weaponStrike',
   ...BEAR_ATTACK,
   costTenths: 200,
@@ -114,10 +117,10 @@ export const LACERATE_MAX_STACKS = 5
 export const LACERATE_WEAPON_PCT_PER_STACK = 0.1
 
 /**
- * "Causes a high amount of threat" on a special on the GCD: 4.5 threat per level of the spell, the
- * rule the warrior's abilities with those words fit in Classic Era (Sunder Armor r5, level 58: 261;
+ * "Causes a high amount of threat" on a special on the GCD in Classic Era: 4.5 threat per level of
+ * the spell, the rule the warrior's abilities with those words fit (Sunder Armor r5, level 58: 261;
  * Revenge r5, 54: 243, and r6, 60: 270) [C] (threat.md#threat-wording-table, D29). The flat bonus
- * lands with the ability, before the global multipliers.
+ * lands with the ability, before the global multipliers. `classicEra`'s Lacerate reads it.
  */
 export const HIGH_THREAT_PER_SPELL_LEVEL = 4.5
 export const highThreatBonus = (spellLevel: number) => HIGH_THREAT_PER_SPELL_LEVEL * spellLevel
@@ -126,11 +129,21 @@ export const highThreatBonus = (spellLevel: number) => HIGH_THREAT_PER_SPELL_LEV
 export const LACERATE_RANK_LEVELS = [42, 50, 58] as const
 
 /**
- * Lacerate's "high amount of threat", per landed application: 4.5 × the rank's level (189, 225 and
- * 261), no Forever effect carrying it [?] (druid.md §4.3, Q15; guild test G1). Rank 3's 261 is Sunder
- * Armor r5's in Classic Era: the same level, the same 15 rage, the same 5-stack debuff.
+ * Lacerate's "high amount of threat" per landed application, by rule profile (druid.md §4.3, Q15;
+ * threat.md#threat-wording-table, D29: the same words make the same threat). No Lacerate rank has a
+ * threat effect in the client, so it takes the value of the warrior's ability with those words at
+ * its level, Sunder Armor r5 (level 58, 15 rage, a 5-stack debuff, as rank 3 is):
+ * - `forever`: Forever's Sunder since build 1.60.1.70009, the client's **206** (effect 63) [F] plus
+ *   the attack power share Blizzard's notes add, which the client doesn't carry, **0.05 × AP** [?]
+ *   (threat.md#warrior, warrior.md Q1): about 274 at the default bear's ~1,355 attack power when its
+ *   Lacerates land (1,296 at the pull). It takes
+ *   the warrior's share as given; if that default moves, this one moves with it (guild test G1).
+ * - `classicEra`: Classic Era's rule, 4.5 × level 58 = **261** [C], Sunder's there.
  */
-export const LACERATE_THREAT = highThreatBonus(LACERATE_RANK_LEVELS[2])
+export const LACERATE_THREAT = {
+  forever: { bonus: 206, apCoefficient: 0.05 },
+  classicEra: { bonus: highThreatBonus(LACERATE_RANK_LEVELS[2]), apCoefficient: 0 },
+} as const satisfies Record<RulesProfile['id'], { bonus: number; apCoefficient: number }>
 
 /**
  * Lacerate rank 3 (spells.json 1235827): 15 rage, GCD 1500; a bleed of 15 every 3000 ms for 15000 ms
@@ -138,9 +151,10 @@ export const LACERATE_THREAT = highThreatBonus(LACERATE_RANK_LEVELS[2])
  * damage per stack already on the target, rolls once, can crit, adds a stack, and restarts and
  * re-snapshots the bleed for every stack [?] (druid.md §4.3, §2.9, Q16). Its ticks carry the
  * periodic-crit flag (SpellMisc Attributes[8] 0x200), so they crit in `forever` [?]. Its threat,
- * "high" in the tooltip: one per damage, plus `LACERATE_THREAT` (261) per landed application, a hit
- * or a block, the first one too, which deals no damage [?] (Q15). Clearcasting's class mask covers
- * it (§2.7).
+ * "high" in the tooltip: one per damage, plus the profile's `LACERATE_THREAT` per landed application
+ * (206 + 0.05 × the attack power as it lands in `forever`, 261 in `classicEra`), a hit or a block, the
+ * first one too, which deals no damage [?] (Q15). Clearcasting's class mask covers it (§2.7). This is
+ * the `forever` row; `lacerate(profile)` gives the profile's.
  */
 export const LACERATE: AbilityDef = {
   id: 'lacerate',
@@ -150,13 +164,22 @@ export const LACERATE: AbilityDef = {
   ...BEAR_ATTACK,
   costTenths: 150,
   weaponPercentPerStack: LACERATE_WEAPON_PCT_PER_STACK,
-  threatBonus: LACERATE_THREAT,
+  threatBonus: LACERATE_THREAT.forever.bonus,
+  threatApCoefficient: LACERATE_THREAT.forever.apCoefficient,
   clearcastable: true,
   dotTickDamage: 15,
   dotTicks: 5,
   dotTickMs: 3000,
   periodicCanCrit: true,
   aura: { id: 'lacerate', name: 'Lacerate', durationMs: 15000, maxStacks: LACERATE_MAX_STACKS, mods: {} },
+}
+
+/** Lacerate under a rule profile: its "high amount of threat" is the profile's (`LACERATE_THREAT`). */
+export function lacerate(profile: RulesProfile): AbilityDef {
+  const { bonus, apCoefficient } = LACERATE_THREAT[profile.id]
+  return bonus === LACERATE.threatBonus && apCoefficient === LACERATE.threatApCoefficient
+    ? LACERATE
+    : { ...LACERATE, threatBonus: bonus, threatApCoefficient: apCoefficient }
 }
 
 /**

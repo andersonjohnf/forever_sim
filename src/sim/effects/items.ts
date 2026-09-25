@@ -184,10 +184,11 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
     },
   },
   // Idol of Brutality (item 23198): "Equip: Reduces the Rage cost of Maul and Swipe by 2." (28855: aura
-  // 107, misc 14 (cost), −20 tenths of rage on class mask [2048, 64]: Maul and Swipe's 0x800 and Mangle's
-  // 0x40 in the second word) [F] [client] (SpellEffect, 1.60.1.69913). Nothing on its own: the bear's
-  // rotation takes 2 rage off Maul, Swipe and Mangle (docs/classes/druid.md §4.1, §4.2, §4.4; Mangle by
-  // the mask, which the tooltip doesn't name [?]). The cat's relic too, where it does nothing.
+  // 107, misc 14 (cost), −20 tenths of rage on class mask [2048, 64]: Maul and Swipe's 0x800 and Primal
+  // Bite's 0x40 in the second word) [F] [client] (SpellEffect, 1.60.1.69913; the same in 1.60.1.70009,
+  // which renamed Mangle to Primal Bite). Nothing on its own: the bear's rotation takes 2 rage off Maul,
+  // Swipe and Primal Bite (docs/classes/druid.md §4.1, §4.2, §4.4; Primal Bite by the mask, which the
+  // tooltip doesn't name [?]). The cat's relic too, where it does nothing.
   23198: {
     source: 'Forever client: spell 28855’s cost modifier and class mask (1.60.1.69913); the bear rotation takes the rage off',
     effects: [],

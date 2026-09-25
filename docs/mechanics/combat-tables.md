@@ -254,7 +254,7 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
 
 - **Weapon-damage specials: one roll** [C]. Abilities whose client effect is weapon damage
   (effects 17, 58, 121 or 31: Heroic Strike, Cleave, Mortal Strike, Whirlwind, Overpower,
-  Slam, Spearing Strike, Holy Strike, Shred, Claw, Maul, Mangle, …) roll once over
+  Slam, Spearing Strike, Holy Strike, Shred, Claw, Maul, Primal Bite, …) roll once over
   `miss → dodge → parry → block → crit → hit`, truncated like the white table (§2.1) but with no
   glancing slice. So they can't be blocked and crit at once. Source: in 2020 the Classic
   community's log analysis (Fight Club #dps-tc, relayed in

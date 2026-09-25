@@ -325,7 +325,7 @@ const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown
 
 /**
  * The cat priority list from the settings (druid.md §6.2). `talents` gates Berserk and resolves
- * costs, Savage Fury, Genesis, Predatory Instincts, Rend and Tear, Primal Fury and King of the
+ * costs, Savage Fury, Genesis, Predatory Instincts, Rend and Tear, Blood Frenzy and King of the
  * Jungle; `auraIndex` finds Clearcasting's aura; `context` gives the race (Elune's Light), the
  * equipped on-use items and Wolfshead Helm, the selected consumables, whether others keep the
  * boss bleeding (a raid with warriors), and whether you stand in front of the boss (no Shred).

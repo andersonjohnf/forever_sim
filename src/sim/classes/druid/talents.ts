@@ -4,7 +4,7 @@
 // passives that change stats, white swings, rage or threat are here. Those bound to a form carry
 // `when.form`: the plan builds each form's stat block with them. Talents that modify abilities
 // (costs, damage, crit damage, combo points) are in modifiers.ts; Furor and Natural Shapeshifter
-// act on shapeshifts (abilities.ts), and the rest (Mangle, Berserk, King of the Jungle) come with
+// act on shapeshifts (abilities.ts), and the rest (Primal Bite, Berserk, King of the Jungle) come with
 // the abilities they change.
 import { PLAYER_LEVEL } from '../../core/attack-table'
 import type { Effect } from '../../effects/types'
@@ -57,7 +57,8 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
       proc: {
         id: 'primalFury',
         name: 'Blood Frenzy',
-        icon: 'ability_racial_cannibalize',
+        // 16959's icon since 1.60.1.70009 (132152); its old one went to Primal Bite.
+        icon: 'ability_ghoulfrenzy',
         trigger: 'meleeCrit',
         from: 'any',
         chance: { pct: 50 * r },

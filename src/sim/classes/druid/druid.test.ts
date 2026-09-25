@@ -103,7 +103,7 @@ describe('Omen of Clarity, Furor and the druid rage sources against the client (
     expect(shapeshift('cat', 0).clearcastable).toBeUndefined()
   })
 
-  it('energizes: Furor 10 rage on bear (17057), Primal Fury 5 (16959), Natural Reaction 5 (417053)', () => {
+  it('energizes: Furor 10 rage on bear (17057), Blood Frenzy 5 (16959), Natural Reaction 5 (417053)', () => {
     expect(effect(17057, 0)).toMatchObject({ effect: 30, effectBasePointsF: 100 })
     expect(effect(16959, 0)).toMatchObject({ effect: 30, effectBasePointsF: 50 })
     expect(effect(417053, 0)).toMatchObject({ effect: 30, effectBasePointsF: 50 })
@@ -206,7 +206,7 @@ describe('ability modifiers (druid.md §2.3, §5.1)', () => {
     expect(6 * (rip.dotTickDamage + 5 * rip.dotTickPerComboPoint! + 4 * rip.dotApCoefficientPerComboPoint! * 1200)).toBeCloseTo(1200.15, 6)
   })
 
-  it('Primal Fury: a builder’s crit adds a combo point at 50% per rank; finishers and white swings get nothing', () => {
+  it('Blood Frenzy: a builder’s crit adds a combo point at 50% per rank; finishers and white swings get nothing', () => {
     expect(withDruidTalents(row('shred', {}), cat).critComboPointChance).toBe(1)
     expect(withDruidTalents(row('shred', {}), ranks('')).critComboPointChance).toBeUndefined()
     expect(withDruidTalents(row('ferociousBite', {}), cat).critComboPointChance).toBeUndefined()
@@ -445,7 +445,7 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(after.warrior.sheet.attackPower).toBe(before.warrior.sheet.attackPower)
   })
 
-  it('Primal Fury’s rage is left out of a cat plan and always rolled in a bear plan (no shapeshifts)', () => {
+  it('Blood Frenzy’s rage is left out of a cat plan and always rolled in a bear plan (no shapeshifts)', () => {
     const cat = buildPlan(bare(defaultConfig('druid-feral-cat'))).plan
     const bear = buildPlan(bare(defaultConfig('druid-feral-bear'))).plan
     expect(cat.procs.map((p) => p.id)).not.toContain('primalFury')

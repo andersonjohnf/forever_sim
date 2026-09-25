@@ -138,7 +138,7 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     [
       "lacerate",
       5174024.836812837,
-      13321144.295613844,
+      13641125.598813886,
       24790,
       8562,
       8838,
@@ -164,9 +164,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Feral bear’s
     "stdev": 35.25528082529335,
   },
   "tps": {
-    "ci95": 6.516962185558649,
-    "mean": 1081.7817188394533,
-    "stdev": 74.35019504771383,
+    "ci95": 6.518980837788443,
+    "mean": 1085.3417645012898,
+    "stdev": 74.3732252852302,
   },
 }
 `;
@@ -551,7 +551,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     [
       "lacerate",
       5555413.970934933,
-      14273663.313459743,
+      14609980.67145973,
       26578,
       9219,
       9438,
@@ -577,9 +577,9 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     "stdev": 35.03136480671116,
   },
   "tps": {
-    "ci95": 6.3381371034807605,
-    "mean": 1114.4523000887552,
-    "stdev": 72.310029806096,
+    "ci95": 6.3416326805899335,
+    "mean": 1118.1933672365972,
+    "stdev": 72.34990986561934,
   },
 }
 `;

@@ -332,8 +332,20 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         37.9; Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15, 21.9;
         Thorns 0.9%, 10; the rest (Primal Fury, Enrage, Hand of Justice, Natural Reaction, the
         Mighty Rage Potion) under 1% each. Maul alone is more than half, so the candidates are
-        what sets Maul's threat and how often the bear can pay for it. To test in game, in this
-        order:
+        what sets Maul's threat and how often the bear can pay for it.
+      - **Build 1.60.1.70009 (2026-09-24): still open, 1,119 TPS.** On seed 31101 (100,000 fights)
+        the default bear makes **1,119.09 TPS** (547.44 DPS, unchanged), up 0.34% from 1,115.34.
+        By ability (10,000 fights, share, TPS, casts a fight): Maul **58.6%, 657, 73.6**; Lacerate
+        14.5%, 163, 53.2, and its bleed 3.5%, 39; Primal Bite (Mangle before) 14.1%, 158, 37.9;
+        Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15; Thorns 0.9%, 10;
+        Blood Frenzy (Primal Fury before) 0.8%, 9; the rest under 0.5% each. Nothing in the build
+        explains or narrows the gap: Mangle's rename to Primal Bite and Primal Fury's to Blood
+        Frenzy change names and icons only (the same numbers before and after); Lacerate's "high
+        amount of threat" now follows Forever's new Sunder Armor (206 + 0.05 × AP for Classic
+        Era's 261, [druid.md §4.3](classes/druid.md#43-lacerate-r3-1235827)), which adds the 0.3%;
+        and Maul, more than half the threat, is untouched. Thorns now scales with the caster's
+        spell power (the paladin slice makes that shared change; it isn't in these numbers, where
+        Thorns at its base 22 is 0.9% of the threat). To test in game, in this order:
         - **Maul's threat modifier,** ×1.75 [?] from LibThreatClassic2 only (druid.md §4.8, Q15):
           threat on the boss from one Maul against its damage, with no other threat source
         - **Rage from damage dealt and taken,** both `forever` [?] models (rage.md): the rage bar

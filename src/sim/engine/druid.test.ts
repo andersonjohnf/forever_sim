@@ -272,7 +272,7 @@ describe('combo points (druid.md §2.5)', () => {
     expect(new Set(damages(plan, plan.abilities[finisher].source, 1))).toEqual(new Set([500]))
   })
 
-  it('Primal Fury: a builder’s crit adds one more, up to 5 (three critting builders make 5, not 6)', () => {
+  it('Blood Frenzy: a builder’s crit adds one more, up to 5 (three critting builders make 5, not 6)', () => {
     const { plan, builder, finisher } = builderAndFinisher(1, 200)
     const { uses } = timeline(plan)
     expect(uses[builder].slice(0, 4)).toEqual([0, 1000, 2000, 4000])

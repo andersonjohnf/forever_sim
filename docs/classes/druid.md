@@ -5,8 +5,10 @@ damage and Claw rises to 110%. Tiger's Fury becomes a free, off-GCD +15% physica
 and the new King of the Jungle makes it grant up to 60 Energy. Furor now **keeps** your Energy
 across a shift instead of setting it to 40, and Wolfshead Helm moved its 20 Energy onto Tiger's
 Fury, so **powershifting no longer gains anything**. Omen of Clarity is trained by every druid.
-Blood Frenzy's combo-point-on-crit effect moved into Primal Fury. Natural Weapons, Feral Aggression
-and Faerie Fire (Feral) are gone. The Forever tree adds Mangle (bear only), Berserk, Predatory
+Classic's Blood Frenzy (a combo point on a crit) and Primal Fury (rage on a crit) are one talent,
+named Blood Frenzy since build 1.60.1.70009 (Primal Fury before). Natural Weapons, Feral Aggression
+and Faerie Fire (Feral) are gone. The Forever tree adds Primal Bite (bear only; named Mangle until
+1.60.1.70009), Berserk, Predatory
 Instincts, Rend and Tear, Natural Reaction and Lacerate, and a feral can pick up +4% hit, +4% crit,
 +5% bleed damage and +5% all damage from the Balance and Restoration trees. Several diffs on
 foreverchanges are tooltip artefacts: Rip, Cat Form AP and Bear Form health. This doc sorts the
@@ -19,9 +21,10 @@ Clearcasting, shapeshifts, talents and defaults) · the cat's abilities and tune
 2026-09-23 ([§3](#3-feral-cat-sim-model), [§6.2](#62-forever-cat-priority)) · the bear's abilities
 and rotation in the engine 2026-09-23 ([§4](#4-feral-bear-sim-model), [§6.3](#63-forever-bear-priority-tps))
 · Balance on the caster core with first-pass defaults 2026-09-24 ([§11](#11-balance-moonkin-sim-model), slice K6)
-· ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+· the Feral bear and cat on build 1.60.1.70009 2026-09-24 (Primal Bite, Blood Frenzy, Lacerate's
+threat: [§6.3](#build-160170009)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
-Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
+Forever client build `1.60.1.69913` (the Feral changes of `1.60.1.70009` are marked where they apply), Classic Era client build `1.15.9.69722`. Source links use
 short labels, which are resolved under [Sources](#sources).
 
 > **Client data.** Values tagged **[F] [client] (Table, 1.60.1.69913)** come from the raw Forever
@@ -69,7 +72,7 @@ short labels, which are resolved under [Sources](#sources).
 
 - Energy: 10/s delivered in ~2 s ticks on a player-global timer, capped at 100 [?] (§2.4). Builders
   refund 80% on a miss, dodge or parry [?].
-- Combo points 0–5, with Primal Fury adding an extra point on a builder crit (§2.5).
+- Combo points 0–5, with Blood Frenzy adding an extra point on a builder crit (§2.5).
 - A 1.0 s cat GCD for abilities and 1.5 s for shapeshifts (§2.6).
 - Abilities: Shred, Claw, Rake (hit plus bleed), Rip (bleed: snapshot by default; its ticks may
   crit in the `forever` profile [?]), Ferocious Bite (converts
@@ -82,9 +85,9 @@ short labels, which are resolved under [Sources](#sources).
 **Bear**
 
 - Rage: see [rage.md](../mechanics/rage.md). This doc covers the druid-specific sources: Enrage,
-  Furor, Primal Fury, Natural Reaction and Wolfshead.
-- Maul on next swing, Mangle (6 s CD), Lacerate (5-stack bleed), Swipe (3 targets),
-  Demoralizing Roar, Faerie Fire (free, 6 s CD), and Berserk (Mangle hits 3 targets with no
+  Furor, Blood Frenzy, Natural Reaction and Wolfshead.
+- Maul on next swing, Primal Bite (6 s CD), Lacerate (5-stack bleed), Swipe (3 targets),
+  Demoralizing Roar, Faerie Fire (free, 6 s CD), and Berserk (Primal Bite hits 3 targets with no
   cooldown). Details in §4.
 - Threat: bear form ×1.3, and **no Feral Instinct threat in Forever**. Per-ability multipliers
   are in §4.8; [threat.md](../mechanics/threat.md) owns the shared rules.
@@ -129,8 +132,8 @@ foreverchanges tooltips; [client] marks the rows confirmed against the raw clien
 | **Frenzied Regeneration** | 1 rank: up to 10 Rage/s → 1% max HP per Rage, 10 s, 3 min CD | 3 ranks, 10 HP per Rage | Not simmed | [F] [fc-class] |
 | **Omen of Clarity** (16864) | **Trained at 20, passive**, procs from spells and attacks, 10 s proc cooldown in DB2 | Tier-3 Balance talent, 10 min self-buff, melee only | Every feral has it (§2.7) | [F] [client] (SpellAuraOptions, 1.60.1.69913) [spell-f]; [C] [sao-c] [wiki-ooc] |
 | **Lacerate** (new, r3 at 58: 1235827) | 15 Rage, 1.5 s GCD, bleed 15 per 3 s for 15 s, stacks to 5, "plus 10% weapon damage per existing application", "high threat" | n/a | New bear threat tool (§4.3) | [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913) [fc-book] |
-| **Mangle** (talent 407995; ranks 1238069/70/73) | **Bear/Dire Bear only** (shapeshift mask 144; wowsims/forever reads the same, [wsf-mangle]). 100% weapon + 26/38/59/**77** (levels 25/36/48/60), 20 Rage, **6 s CD**, 1.5 s GCD | Not in Classic (Classic's 407995 is SoD data) | New bear ability (§4.2) | [F] [client] (SpellEffect, SpellPower, SpellCooldowns, SpellShapeshift, 1.60.1.69913) |
-| **Berserk** (talent 417141) | 15 s, 3 min CD, no GCD: +100% crit chance to Claw/Rake/Shred/Ravage/Pounce, and Mangle loses its CD and hits up to 3 targets | n/a | Cat burst and bear AoE (§3.7, §4.6) | [F] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
+| **Primal Bite** (talent 407995; ranks 1238069/70/73; Mangle until 1.60.1.70009) | **Bear/Dire Bear only** (shapeshift mask 144; wowsims/forever reads the same, [wsf-mangle]). 100% weapon + 26/38/59/**77** (levels 25/36/48/60), 20 Rage, **6 s CD**, 1.5 s GCD. Build 1.60.1.70009 renamed all four ranks and gave them Primal Fury's old icon (`ability_racial_cannibalize`); their effects, cost, cooldown and class mask are unchanged, and the debuff Mangle's name promised was never in the data | Not in Classic (Classic's 407995 is SoD data) | New bear ability (§4.2) | [F] [client] (SpellEffect, SpellPower, SpellCooldowns, SpellShapeshift, 1.60.1.69913; SpellName, SpellMisc, 1.60.1.70009) |
+| **Berserk** (talent 417141) | 15 s, 3 min CD, no GCD: +100% crit chance to Claw/Rake/Shred/Ravage/Pounce, and Primal Bite loses its CD and hits up to 3 targets (its 1.60.1.70009 tooltip names Primal Bite; the effects are unchanged) | n/a | Cat burst and bear AoE (§3.7, §4.6) | [F] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
 | **Wolfshead Helm** (item 8345) | +5 Rage from Enrage, **+20 Energy from Tiger's Fury** | +20 Energy on shifting to cat, +5 Rage on shifting to bear | Powershift bonus removed | [F] [fc-wolf] [se-f]; [C] [fc-wolf] |
 
 ### 1.2 Talents (feral-relevant)
@@ -141,9 +144,9 @@ foreverchanges tooltips; [client] marks the rows confirmed against the raw clien
 | Sharpened Claws | 2 ranks: +6% crit in forms | 3 ranks: +6% | [F] [fc-tal] |
 | Savage Fury | 2 ranks: **+10%** Claw, Rake (incl. its bleed), **Shred**, Maul, Swipe | +20% Claw, Rake, Maul, Swipe | [F] [client] (SpellEffect class masks, CurvePoint, 1.60.1.69913) |
 | Shredding Attacks (was Improved Shred) | 3 ranks: Shred −18 Energy (→ 42), Lacerate −3 Rage | 2 ranks: Shred −12 | [F] [fc-tal] |
-| Ferocity | Maul, **Mangle**, Swipe −5 Rage; Claw, Rake −5 Energy | Same, without Mangle | [F] [fc-tal] |
+| Ferocity | Maul, **Primal Bite**, Swipe −5 Rage; Claw, Rake −5 Energy (its 1.60.1.70009 tooltip names Primal Bite; the curve and mask are unchanged) | Same, without Mangle | [F] [fc-tal]; [client] (Spell, 1.60.1.70009) |
 | Predatory Strikes | +150% of level as AP in forms (+90 at 60) | Same | [F]/[C] [fc-tal] |
-| Primal Fury | 100%: +5 Rage on a bear crit **and +1 CP on a non-periodic crit by a cat CP builder** | Rage part only (the CP part was Blood Frenzy) | [F] [fc-tal] |
+| Blood Frenzy (Primal Fury until 1.60.1.70009) | 100%: +5 Rage on a bear crit **and +1 CP on a non-periodic crit by a cat CP builder**. 1.60.1.70009 renamed it and swapped its icon for Blood Frenzy's (`ability_ghoulfrenzy`); its curves (50/100%) and 16959's 5 Rage are unchanged | Blood Frenzy: the rage part only (the CP part was Classic's Blood Frenzy) | [F] [fc-tal]; [client] (SpellName, SpellMisc, SpellEffect, 1.60.1.70009) |
 | Feral Instinct | 3 ranks: **Swipe +30% damage**, stealth. **No threat bonus** | 5 ranks: +15% bear threat | [F] [fc-tal]; no threat aura: [client] (SpellEffect, 1.60.1.69913) |
 | Thick Hide | 3 ranks: +3 base armor per level, +2.00 per defense point above 5×level, in forms | 5 ranks: +10% item armor | [F] [fc-tal] |
 | Leader of the Pack | +3% crit, **all crit** (aura 290), exclusive with Moonkin aura | +3% melee and ranged crit | [F] [client] (SpellEffect, 1.60.1.69913); [C] [se-c] |
@@ -154,12 +157,12 @@ foreverchanges tooltips; [client] marks the rows confirmed against the raw clien
 | **New:** King of the Jungle | Tiger's Fury grants **60 Energy** (20/40/60) | n/a | [F] [client] (CurvePoint, 1.60.1.69913) |
 | **New:** Rend and Tear | +10% damage by melee abilities on **bleeding** targets | n/a | [F] [fc-tal] |
 | **New:** Berserk | see §1.1 | n/a | [F] |
-| **New:** Mangle | see §1.1 | n/a | [F] |
+| **New:** Primal Bite (Mangle until 1.60.1.70009) | see §1.1 | n/a | [F] |
 | **New:** Natural Reaction | +5% dodge; 100% chance of +5 Rage on dodge | n/a | [F] [fc-tal]; curves and 417053 = 50 tenths [client] (CurvePoint, SpellEffect, 1.60.1.69913) |
 | **New (Balance):** Genesis | **+5% periodic damage**, incl. Rip, Rake bleed and Lacerate (class masks match) | n/a | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | **New (Balance):** Nature's Majesty | **+4% crit, spells and melee** (aura 290) | n/a | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Nature's Reach | **+4% melee hit** (aura 54) and +4% spell hit, +20% Balance range | Range only | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
-| **Removed:** Blood Frenzy, Feral Aggression, Natural Weapons, Faerie Fire (Feral), Improved Enrage, Omen of Clarity (now trained) | Not in the Forever trees | Feral Aggression: FB +15%, Demo Roar +40%; Natural Weapons: +10% physical damage. These Classic values are informational only (secondary source [ws-fb] [ws-talents]) | [F] [fc-class]; Classic values [?] |
+| **Removed:** Classic's Blood Frenzy as a talent of its own (its combo point is in Forever's Blood Frenzy, above), Feral Aggression, Natural Weapons, Faerie Fire (Feral), Improved Enrage, Omen of Clarity (now trained) | Not in the Forever trees | Feral Aggression: FB +15%, Demo Roar +40%; Natural Weapons: +10% physical damage. These Classic values are informational only (secondary source [ws-fb] [ws-talents]) | [F] [fc-class]; Classic values [?] |
 
 ---
 
@@ -247,8 +250,8 @@ shapeshift swaps in another form's block (§2.8).
 | Leader of the Pack | +3% crit (all crit) to the party, self included | Party-wide | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Nature's Majesty 2/2 | +4% crit (spells and melee) | Always | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Nature's Reach 2/2 | +4% melee hit, +4% spell hit | Always | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
-| Predatory Instincts 2/2 | Crit damage bonus ×1.2, so specials crit for **2.2×** instead of 2.0×. **White hits excluded** | Claw, Rake, Shred, Ravage, Pounce, Rip/FB, Maul, Swipe, Mangle, Lacerate (DB2 class masks) | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913); interpretation [?] |
-| Savage Fury 2/2 | ×1.10 damage | Claw, Rake (hit and bleed), Shred, Maul, Swipe. **Not** Mangle, Rip, FB, Lacerate | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
+| Predatory Instincts 2/2 | Crit damage bonus ×1.2, so specials crit for **2.2×** instead of 2.0×. **White hits excluded** | Claw, Rake, Shred, Ravage, Pounce, Rip/FB, Maul, Swipe, Primal Bite, Lacerate (DB2 class masks) | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913); interpretation [?] |
+| Savage Fury 2/2 | ×1.10 damage | Claw, Rake (hit and bleed), Shred, Maul, Swipe. **Not** Primal Bite, Rip, FB, Lacerate | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Feral Instinct 3/3 | ×1.30 damage | Swipe | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Genesis 5/5 | ×1.05 periodic damage | Rip, Rake bleed, Lacerate bleed | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Rend and Tear 5/5 | ×1.10 | "Melee abilities" vs a **bleeding** target | [F] [fc-tal]; scope [?] (Q9) |
@@ -291,7 +294,7 @@ a finisher, and nothing when Clearcasting paid (§2.7).
 - 0 to 5, awarded by builders on a hit: Shred, Claw, Rake, Ravage and Pounce give 1 each. Forever
   awards them through an energize effect on the spell (`Effect 30`, power type 4) instead of
   Classic's effect 328; the result is the same. [F] [se-f]
-- **Primal Fury 2/2:** a **non-periodic crit** from a cat CP builder adds **+1 more** (so a crit
+- **Blood Frenzy 2/2:** a **non-periodic crit** from a cat CP builder adds **+1 more** (so a crit
   Shred gives 2). With Berserk active every landed builder crits, so every landed builder gives
   2 CP. [F] [fc-tal] [se-f]
 - Finishers (Rip, Ferocious Bite) consume **all** points on a hit [C] (Classic tooltips scale
@@ -303,7 +306,7 @@ a finisher, and nothing when Clearcasting paid (§2.7).
 - **In the engine**, a finisher is usable only with a combo point. Its damage (per point, and
   attack power per point up to a cap: Rip's 4, §3.4) reads the points, then a landed hit spends
   them all; a bleed finisher snapshots them with its ticks (§2.9). A builder's extra point on a
-  crit rolls Primal Fury's chance (100% at 2/2). Points persist through a shapeshift.
+  crit rolls Blood Frenzy's chance (100% at 2/2). Points persist through a shapeshift.
 
 ### 2.6 Global cooldowns
 
@@ -313,7 +316,7 @@ a finisher, and nothing when Clearcasting paid (§2.7).
 | Faerie Fire in Cat Form | 1.0 s (1.5 − 0.5 from the cat passive) | [F] [client] (SpellEffect 3025, 1.60.1.69913) |
 | Faerie Fire in bear / caster | 1.5 s | [F] [scd-f] |
 | Shapeshift (Cat, Bear, Dire Bear) | 1.5 s | [F]/[C] [scd-f] |
-| Bear abilities (Swipe, Demo Roar, Mangle, Lacerate, Frenzied Regeneration) | 1.5 s | [F] [scd-f] |
+| Bear abilities (Swipe, Demo Roar, Primal Bite, Lacerate, Frenzied Regeneration) | 1.5 s | [F] [scd-f] |
 | Maul (on next swing), Tiger's Fury, Berserk, Enrage | **None** (no `StartRecoveryTime`) | [F] [scd-f] |
 
 The GCD is **not** shortened by haste [C] (Forever unverified;
@@ -435,7 +438,7 @@ Energy-neutral.
 Definitions: `W` = the cat weapon roll + AP/14 (§2.1); "SF" = Savage Fury multiplier (1.10 at 2/2).
 All abilities are yellow melee attacks, and
 [combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks) owns how they roll [C]:
-abilities that deal weapon damage (Shred, Claw, Ravage, Maul, Mangle) make **one** roll, which
+abilities that deal weapon damage (Shred, Claw, Ravage, Maul, Primal Bite) make **one** roll, which
 from behind is miss, dodge, crit, hit (no parry, no block, no glancing). Rake's initial hit,
 Ferocious Bite and Swipe have no weapon-damage effect, so by analogy with the warrior's
 Bloodthirst they roll twice: miss and dodge first, then crit on a landed hit [?] (Q33).
@@ -448,7 +451,7 @@ Bloodthirst they roll twice: miss and dodge first, then crit on a landed hit [?]
 | Requirement | Behind the target; cat | [F] [spell-f] |
 | Damage | `1.55 × (W + 80) × SF × (other multipliers)` | [F] [client] (SpellEffect, 1.60.1.69913); order of flat and % [C] (Q1) |
 | Crit | 2.2× with Predatory Instincts 2/2 | [F] |
-| CP | +1 (+1 more on a crit with Primal Fury) | [F] |
+| CP | +1 (+1 more on a crit with Blood Frenzy) | [F] |
 
 **The flat bonus is added before the percentage**, as in Classic. The Classic Era client's own
 Shred tooltip says "225% damage plus 180" at rank 5, and 180 = 80 (the flat `WEAPON_DAMAGE`
@@ -521,7 +524,7 @@ the target. [F] [client] (SpellEffect, 1.60.1.69913); Ferocity [trait-f]
 ### 3.7 Berserk (417141, cat use)
 
 15 s, 3 min cooldown, no GCD, usable in cat or bear. **+100% crit chance** on Claw, Rake, Shred,
-Ravage and Pounce (class mask 0x39000), so every landed builder crits and, with Primal Fury 2/2,
+Ravage and Pounce (class mask 0x39000), so every landed builder crits and, with Blood Frenzy 2/2,
 awards 2 CP. It also clears and grants immunity to fear. [F] [client] (SpellEffect, SpellCooldowns,
 1.60.1.69913)
 
@@ -580,7 +583,7 @@ Cat Form's threat modifier is **×0.71** (−29%). [F] [client] (SpellEffect 302
 - **Tiger's Fury:** a free cast off the GCD. Its Energy is an energize: 60 at King of the Jungle
   3/3, 80 with Wolfshead Helm, capped at 100, with 5 threat per Energy gained [?].
 - **Berserk:** a free cast off the GCD. While its 15 s aura is up, Shred, Claw and Rake get +100%
-  crit, so each landed builder crits and, with Primal Fury 2/2, gives 2 combo points (Q8 [?]).
+  crit, so each landed builder crits and, with Blood Frenzy 2/2, gives 2 combo points (Q8 [?]).
 - **Rend and Tear:** +10% on the direct damage of Shred, Claw, Rake and Ferocious Bite while the
   boss bleeds: from the druid's Rip or Rake, or all fight when the Buffs tab's raid has warriors,
   whose Deep Wounds count (Q9 [?]). Not on auto attacks or ticks.
@@ -599,12 +602,12 @@ are only the druid-specific numbers.
 
 **In the engine** (`src/sim/classes/druid/bear-abilities.ts`, checked against the client in
 `bear.test.ts`) each ability below is a row with the talents of §5 applied by `withDruidTalents`,
-and Rend and Tear (+2% a rank on the direct damage of Maul, Swipe, Mangle and Lacerate against a
+and Rend and Tear (+2% a rank on the direct damage of Maul, Swipe, Primal Bite and Lacerate against a
 bleeding target, §5.1) by the bear's rotation builder. A bear attack that's missed, dodged or
 parried refunds 80% of its rage, Swipe nothing (§4.4) [?]
 ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)).
-The sim has one target, so Swipe's and Berserk's Mangle's extra targets add nothing.
-Clearcasting pays for Maul, Swipe, Mangle, Lacerate and Demoralizing Roar: 16870's class mask
+The sim has one target, so Swipe's and Berserk's Primal Bite's extra targets add nothing.
+Clearcasting pays for Maul, Swipe, Primal Bite, Lacerate and Demoralizing Roar: 16870's class mask
 covers all five and leaves out Faerie Fire, which is free in form anyway [F] [client]
 (SpellEffect, SpellClassOptions, 1.60.1.69913).
 
@@ -617,9 +620,9 @@ when the swing lands. No GCD. [F] [se-f] [sp-f]
 **Idol of Brutality** (item 23198, the default relic): "Reduces the Rage cost of Maul and Swipe by
 2" (28855: aura 107, misc 14, −20 tenths of rage on class mask [2048, 64, 0, 0]) [F] [client]
 (SpellEffect, SpellClassOptions, 1.60.1.69913). The mask's first word, 0x800, is Maul's and
-Swipe's; its second, 0x40, is Mangle's (1238073), which the tooltip doesn't name. The engine takes
-2 rage off all three: Maul **8**, Swipe and Mangle **13** with Ferocity 5/5 (W21). Maul and Swipe
-[F]; Mangle by the class mask [F data, ?] (Q37, guild test G2). In the engine the bear's rotation
+Swipe's; its second, 0x40, is Primal Bite's (1238073), which the tooltip doesn't name. The engine takes
+2 rage off all three: Maul **8**, Swipe and Primal Bite **13** with Ferocity 5/5 (W21). Maul and Swipe
+[F]; Primal Bite by the class mask [F data, ?] (Q37, guild test G2). In the engine the bear's rotation
 reads it from the equipped items (`withIdolOfBrutality`, as Wolfshead Helm's Enrage), so the
 results don't list it as not simulated.
 
@@ -631,17 +634,30 @@ off the GCD, paid when its swing lands, one roll on the special table. The swing
 no rage, where a landed white swing would give 8.65 [?]
 ([rage.md](../mechanics/rage.md#yellow-damage-and-on-next-swing-attacks)).
 
-### 4.2 Mangle (bear only; 1238073 at level 60)
+### 4.2 Primal Bite (bear only; 1238073 at level 60)
 
 - `1.00 × (W_b + 77)`. Savage Fury does **not** apply (the mask excludes it); crits for 2.2×.
 - 20 − 5 = **15 Rage** (13 with Idol of Brutality, §4.1), **6 s cooldown**, 1.5 s GCD.
-- Requires Bear or Dire Bear (shapeshift mask 0x90). The Forever wiki page also lists the talent
-  as "Mangle (Bear)" [wiki-forever].
+- Requires Bear or Dire Bear (shapeshift mask 0x90). The Forever wiki page listed the talent as
+  "Mangle (Bear)" [wiki-forever], before the rename.
 - Rank ladder: 26 (talent rank, level 25), 38 (36), 59 (48), 77 (60). Assume the trainer teaches
   ranks 2–4 (Q17).
 - [F] [client] (SpellEffect, SpellCooldowns, SpellPower, SpellShapeshift, 1.60.1.69913)
-- Threat multiplier unknown; assume ×1.0 before the form modifier (Q15).
-- **In the engine**: one roll on the special table (it deals weapon damage, like Shred).
+- **Renamed in 1.60.1.70009.** Mangle became Primal Bite: "Its signature debuff has been removed,
+  so the former name no longer accurately represented the ability" (Blizzard's notes; the sim never
+  modelled a debuff, and the client never had one).
+  All four Primal Bite ranks (407995, 1238069, 1238070, 1238073) keep their ids; only the name,
+  the tooltip's verb ("Bite the target for 100% normal damage plus 26") and the icon changed (132278, `ability_racial_cannibalize`, Primal Fury's old
+  one). The effects, cost, cooldown, GCD, shapeshift mask and class mask are the same row for row,
+  so Ferocity, Idol of Brutality, Clearcasting, Predatory Instincts, Rend and Tear and Berserk reach
+  it as before [F] [client] (SpellName, Spell, SpellMisc, SpellEffect, SpellClassOptions,
+  1.60.1.69913 against 1.60.1.70009). The rename alone moves neither damage nor threat (§6.3
+  "Build 1.60.1.70009").
+- Its tooltip has no threat words, so ×1.0 before the form modifier (Q15; the
+  [wording table](../mechanics/threat.md#threat-wording-table)'s "no threat words" row).
+- **In the engine**: one roll on the special table (it deals weapon damage, like Shred). The
+  ability, its setting and its priority-list row keep the id `mangle`, so saved setups and links
+  still find it; everything a player sees says Primal Bite.
 
 ### 4.3 Lacerate (r3, 1235827)
 
@@ -652,12 +668,29 @@ no rage, where a landed white swing would give 8.65 [?]
 - **Assumption [?]:** each application also deals an immediate physical hit of
   `0.10 × W_b × (stacks already on the target)`, can crit, and refreshes the bleed's duration. A
   separate spell, 414647, carries a 20% weapon-damage effect whose role is unknown.
-- "Causes a high amount of threat": **+261 per landed application** [?], by
+- "Causes a high amount of threat": **+206 + 0.05 × AP per landed application** [?] (about
+  **274** at the default bear's ~1,355 attack power when its Lacerates land; 1,296 at the pull), by
   [threat.md's wording table](../mechanics/threat.md#threat-wording-table)
   ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)):
-  the warrior's GCD specials with those words carry 4.5 × the spell's level in Classic Era, and
-  rank 3 is level 58, as Sunder Armor r5 is (261 [C]); ranks 1 and 2 (levels 42 and 50) would be
-  189 and 225. No rank has a threat effect in the client, so it's server-side (Q15, guild test G1).
+  the same words make the same threat, and rank 3 is level 58, 15 rage and a 5-stack debuff, as
+  the warrior's Sunder Armor r5 is. No rank has a threat effect in the client, so it's server-side
+  (Q15, guild test G1).
+  - **Re-derived for build 1.60.1.70009.** Until then Lacerate took Classic Era's rule for the
+    words, 4.5 × the spell's level (Sunder r5's 261 [C]; Revenge's 243 and 270), because Forever's
+    only value, Sunder's 1013, was 2.25 × the armor it removes and so Sunder's alone. 1.60.1.70009
+    replaced it: Sunder's client threat is now 34/75/117/158/**206** at levels 10/22/34/46/58, about
+    3.4–3.55 × its level, no longer tied to its armor, plus "a small increase to threat generated
+    from Attack Power" by Blizzard's notes, which the client doesn't carry and the warrior's slice
+    defaults to **0.05 × AP** [?] ([threat.md § warrior](../mechanics/threat.md#warrior), warrior.md
+    Q1). A Forever value for the same words at the same level outranks Classic Era's (doctrine §2),
+    so rank 3 takes Sunder r5's whole: **206 [F] + 0.05 × AP [?]**, the attack power as the
+    application lands. Ranks 1 and 2 would take Sunder's ladder at their levels, about 144 (42) and
+    174 (50), plus the same share; the sim uses rank 3.
+  - **It depends on the warrior's Sunder.** The 0.05 is the warrior's default for the term Blizzard
+    didn't publish; if a test or a later build moves it, Lacerate's moves with it. Against Classic
+    Era's 261 it's +10 at the default bear's attack power: **+0.34% TPS** (1,115.34 → 1,119.09 on
+    seed 31101, 100,000 fights), and nothing else.
+  - `classicEra` keeps Classic Era's rule, 261 flat.
 - In `forever` its ticks may crit [?] (§2.9).
 - [F] [client] (SpellEffect, SpellDuration, SpellAuraOptions, 1.60.1.69913: period 3000 ms,
   15,000 ms, `CumulativeAura` 5)
@@ -673,8 +706,9 @@ no rage, where a landed white swing would give 8.65 [?]
     an application at that moment starts again from one stack.
   - Its ticks count on a row of their own, "Lacerate (bleed)", whose casts are the landed
     applications. Hit and ticks make one threat per damage (Q15), and each landed application
-    (a hit or a block, the first one too, which deals nothing) makes 261 more × the form's
-    multiplier, on the hit's row (`LACERATE_THREAT`; W20).
+    (a hit or a block, the first one too, which deals nothing) makes 206 + 0.05 × the attack power
+    as it lands more (261 in `classicEra`) × the form's multiplier, on the hit's row
+    (`LACERATE_THREAT`, `lacerate(profile)`, the engine's `threatApCoefficient`; W20).
 
 ### 4.4 Swipe (r5, 9908)
 
@@ -729,13 +763,13 @@ One target: 118.69 a Swipe with the default build (W16).
 
 ### 4.6 Berserk (bear use)
 
-For 15 s, Mangle has **no cooldown** and hits **up to 3 targets**. 3 min cooldown. The crit part
+For 15 s, Primal Bite has **no cooldown** and hits **up to 3 targets**. 3 min cooldown. The crit part
 doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (SpellEffect,
 1.60.1.69913)
 
-**In the engine** the no-cooldown part is 417141 #1's −100% cooldown modifier on Mangle's class
-mask: a Mangle used while Berserk is up starts no cooldown, and a cooldown already running when
-it starts keeps running [?] (Q36). So under Berserk Mangle can take every GCD the rage pays for.
+**In the engine** the no-cooldown part is 417141 #1's −100% cooldown modifier on Primal Bite's class
+mask: a Primal Bite used while Berserk is up starts no cooldown, and a cooldown already running when
+it starts keeps running [?] (Q36). So under Berserk Primal Bite can take every GCD the rage pays for.
 One target: the extra targets add nothing.
 
 ### 4.7 Bear armor (low priority: TPS doesn't need it)
@@ -777,14 +811,14 @@ One target: the extra targets add nothing.
 | Faerie Fire | 108 threat (rank 4) | [?] [ltc2] |
 | Demoralizing Roar | 39 threat per target (rank 5) | [?] [ltc2] |
 | Cower | −1208 (Forever) vs −608 (Classic) at 60 | [F] [client] (SpellEffect, 1.60.1.69913) |
-| Mangle | ×1.0 damage-to-threat (no threat words) | [?] Q15 |
-| Lacerate | ×1.0 on the hit and ticks, **+261** per landed application ("high threat": 4.5 × level 58, the [wording table](../mechanics/threat.md#threat-wording-table)) | [?] Q15, D29 |
+| Primal Bite | ×1.0 damage-to-threat (no threat words) | [?] Q15 |
+| Lacerate | ×1.0 on the hit and ticks, **+206 + 0.05 × AP** per landed application ("high threat": Forever's Sunder Armor r5 at the same level 58, the [wording table](../mechanics/threat.md#threat-wording-table); about 274 at the default bear's ~1,355 AP when its Lacerates land; `classicEra` 261) | 206 [F] (Sunder's client value); the rest [?] Q15, D29 |
 | Enrage | +10 Rage immediately, 20 over 10 s | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Furor 5/5 | +10 Rage on shifting into bear (100%) | [F] [client] (SpellEffect 17057, 1.60.1.69913) |
-| Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913) |
+| Blood Frenzy 2/2 (Primal Fury until 1.60.1.70009) | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913; unchanged in 1.60.1.70009) |
 | Natural Reaction 5/5 | +5% dodge; +5 Rage on each dodge (100%) | [F] [fc-tal]; [client] (SpellEffect 417053, 1.60.1.69913) |
 | Wolfshead Helm | +5 Rage from Enrage | [F] [fc-wolf] |
-| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; an energize adds rage in whatever form it fires in (Furor's and Primal Fury's fire only in bear) ([§8](#8-implementation-notes) "Rage from hits") | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
+| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; an energize adds rage in whatever form it fires in (Furor's and Blood Frenzy's fire only in bear) ([§8](#8-implementation-notes) "Rage from hits") | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
 
 ---
 
@@ -800,7 +834,7 @@ talents are skipped.
 
 | Talent (tier·col, 1-based) | Ranks: Forever tooltip (max rank) | Sim model | Tag |
 | --- | --- | --- | --- |
-| Ferocity (1·2) | 5: "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 5 Rage or Energy." | −1/rank cost | [F] |
+| Ferocity (1·2) | 5: "Reduces the cost of your Maul, Primal Bite, Swipe, Claw, and Rake abilities by 5 Rage or Energy." | −1/rank cost | [F] |
 | Heart of the Wild (1·3) | 5: "Increases your Intellect by 10%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 20% and while in Cat Form your Strength is increased by 10%." | Cat: Str ×(1 + 0.02·r); bear: Sta ×(1 + 0.04·r); Int ×(1 + 0.02·r) | [F] |
 | Feral Swiftness (2·1) | 2: "…movement speed while in Cat Form by 30%, and increases your chance to Dodge by 4%." | +2%/rank dodge (TPS: none) | [F] |
 | Feral Instinct (2·2) | 3: "Increases damage done by your Swipe ability by 30% …" | Swipe ×(1 + 0.10·r). **No threat** | [F] |
@@ -809,9 +843,9 @@ talents are skipped.
 | Feral Charge (3·3) | 1: bear charge plus cat leap | Not simmed | [F] |
 | Sharpened Claws (3·4) | 2: "…critical strike chance while in Bear Form, Dire Bear Form, or Cat Form by 6%." | +3%/rank crit in forms | [F] |
 | Shredding Attacks (4·1) | 3: "Reduces the Energy cost of your Shred ability by 18 and reduces the Rage cost of your Lacerate ability by 3." | −6 Energy / −1 Rage per rank | [F] |
-| Mangle (4·2, needs Savage Fury 2/2) | 1: "Mangle the target for 100% normal damage plus 26." | Teaches bear Mangle (§4.2) | [F] |
+| Primal Bite (4·2, needs Savage Fury 2/2; Mangle until 1.60.1.70009) | 1: "Bite the target for 100% normal damage plus 26." | Teaches bear Primal Bite (§4.2) | [F] |
 | Predatory Strikes (4·3) | 3: "…melee Attack Power in Cat Form, Bear Form, and Dire Bear Form by 150% of your level." | +0.5·level·r AP in forms | [F]/[C] |
-| Primal Fury (4·4, needs Sharpened Claws 2/2) | 2: "…100% chance to gain an additional 5 Rage any time you get a critical strike while in Bear Form or Dire Bear Form. In addition, your non-periodic critical strikes from Cat Form abilities that generate Combo Points have a 100% chance to add an additional Combo Point." | 50%·r chance: +5 Rage per bear crit (white or yellow); +1 CP per builder crit | [F] |
+| Blood Frenzy (4·4, needs Sharpened Claws 2/2; Primal Fury until 1.60.1.70009) | 2: "…100% chance to gain an additional 5 Rage any time you get a critical strike while in Bear Form or Dire Bear Form. In addition, your non-periodic critical strikes from Cat Form abilities that generate Combo Points have a 100% chance to add an additional Combo Point." | 50%·r chance: +5 Rage per bear crit (white or yellow); +1 CP per builder crit | [F] |
 | Predatory Instincts (5·1) | 2: "Increases the critical strike damage bonus of your melee abilities by 20%." | Special crits ×(2 + 0.1·r) … see note below | [F]; [?] interpretation |
 | Leader of the Pack (5·2) | 1: "…increases the critical strike chance of all party members within 45 yards by 3%, exclusive with Moonkin Aura." | +3% crit, party | [F] |
 | King of the Jungle (5·4) | 3: "Tiger's Fury now instantly grants you 60 Energy." | +20·r Energy on TF | [F] |
@@ -937,7 +971,7 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | `claw.enabled` | **on** | Claw builds where Shred can't: from the front, or with Shred off |
 | `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **8 s**, **0 s** | Rip policy. The doc's 10 s is `ripMinRemaining`; tuning prefers 8 |
 | `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in both profiles: in the sim Rip beats Bite even with a raid bleed, including in `classicEra`, where Rip's ticks can't crit. Turning it on in the default raid loses 55.72 DPS (−9.8%) in `forever` and 24.03 (−4.3%) in `classicEra` (W12, Q26) |
-| `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **5** | Bite threshold. The Era's 4 (Primal Fury's overflow) is the doc's first default; tuning prefers 5 |
+| `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **5** | Bite threshold. The Era's 4 (Blood Frenzy's overflow) is the doc's first default; tuning prefers 5 |
 | `ferociousBite.shredFirstFrom` | **35** | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred. The doc's first default was 67 (42 + 35 − 10) |
 | `ferociousBite.anyEnergyLastSec` | **4 s** | In the last this many seconds, Bite at the combo points without a Shred first: the Energy has no time left to become Shreds. 0 is never. Tuning's (below) |
 | `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down. With both thresholds at 5 it changes nothing |
@@ -1013,9 +1047,9 @@ early is worth more than its lost Energy, since its cooldown starts sooner.
 
 ### 6.3 Forever bear priority (TPS)
 
-This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue. Mangle's threat is
-assumed one per damage, and Lacerate's "high amount of threat" is +261 an application by the
-wording table (D29); neither is measured (Q15).
+This is derived for Forever [?]. Primal Bite and Lacerate have no Classic analogue. Primal Bite's threat is
+assumed one per damage, and Lacerate's "high amount of threat" is +206 + 0.05 × AP an application
+(about 274 at the AP it lands at) by the wording table (D29); neither is measured (Q15).
 
 **A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
 The bear's duties are its two raid debuffs on the boss: **Demoralizing Roar**, the attack-power
@@ -1078,15 +1112,15 @@ arrives, a cooldown or debuff runs out):
 
 **Off-GCD:**
 
-1. **Berserk** on cooldown, with the talent (one target: Mangle without a cooldown for 15 s).
+1. **Berserk** on cooldown, with the talent (one target: Primal Bite without a cooldown for 15 s).
 2. **Enrage** 1.5 s before the pull (`enrage.prepull`), and in combat on cooldown
    (`enrage.inCombat`), at rage ≤ `enrage.maxRage`.
 3. **Elune's Light** (Night Elf) and on-use items the sim models on cooldown; the **Mighty Rage
    Potion** once, the first time rage ≤ `ragePotion.maxRage`, and **Juju Flurry** on cooldown,
    when they're selected in Buffs.
 4. **Maul** queued on the next swing at rage ≥ `maul.minRage`. Classic practice is to Maul every
-   swing ([?], §6.1, Q31). §6.3 first proposed an automatic threshold (Maul's cost, plus Mangle's
-   when Mangle comes off cooldown within the swing); the sim takes a number, which the search
+   swing ([?], §6.1, Q31). §6.3 first proposed an automatic threshold (Maul's cost, plus Primal Bite's
+   when Primal Bite comes off cooldown within the swing); the sim takes a number, which the search
    tunes.
 
 **On the GCD:**
@@ -1097,7 +1131,7 @@ arrives, a cooldown or debuff runs out):
    so the roar would change nothing on the boss (§4.5). The Rotation tab says why it's not used,
    and the Buffs tab shows the roar off, the Shout being on the boss instead.
 6. **Faerie Fire** (duty) the same, with `faerieFire.refreshBelowSec` (6 s by the duty rule).
-7. **Mangle** whenever it's ready, with the talent.
+7. **Primal Bite** whenever it's ready, with the talent.
 8. **Lacerate** while it has fewer than 5 stacks, or at 5 with ≤ `lacerate.refreshBelowSec` of its
    bleed left. With `lacerate.onlyWithoutOtherBleeds` (off by default), only while nothing else
    keeps the boss bleeding (a raid without warriors, whose Deep Wounds Rend and Tear counts, §5.1);
@@ -1122,7 +1156,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | Maul (`maul`) | `maul.enabled` | `maul.minRage` |
 | Demoralizing Roar (`demoRoar`) | `demoRoar.enabled` | `demoRoar.refreshBelowSec` |
 | Faerie Fire (`faerieFire`) | `faerieFire.enabled` | `faerieFire.refreshBelowSec` |
-| Mangle (`mangle`) | `mangle.enabled` | |
+| Primal Bite (`mangle`, its id from when it was Mangle) | `mangle.enabled` | |
 | Lacerate (`lacerate`) | `lacerate.enabled` | `lacerate.refreshBelowSec`, `lacerate.onlyWithoutOtherBleeds` |
 | Swipe (`swipe`) | `swipe.enabled` | `swipe.minRage` |
 | Faerie Fire filler (`faerieFireFiller`) | `faerieFire.filler` | |
@@ -1140,8 +1174,8 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
   race, items, Buffs, raid, fight and rules) are fingerprinted against the code before it
   (`bear-apl.test.ts`).
 - **What reordering does,** in the default setup (Balanced, seed 28301, 20,000 paired fights):
-  Maul below the duties, Mangle or Lacerate changes nothing (±0.02%): it's off the GCD and checks
-  its rage as the swing lands. Lacerate above Mangle costs 2.9% of DPS and 0.2% of TPS; Mangle
+  Maul below the duties, Primal Bite or Lacerate changes nothing (±0.02%): it's off the GCD and checks
+  its rage as the swing lands. Lacerate above Primal Bite costs 2.9% of DPS and 0.2% of TPS; Primal Bite
   above Faerie Fire's upkeep 1.0% of TPS and 0.8% of DPS; the filler above Swipe nothing, with
   Swipe off.
 
@@ -1154,9 +1188,9 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; in every preset), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
 | `priority` | **Balanced** | The preset picker: Defensive (`duties`), Balanced (`balanced`) or Max TPS (`maxTps`), which move the defaults marked with their names |
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
-| `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Mangle and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
+| `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +261 threat an application [?] (about +274 since 1.60.1.70009, at the AP it lands at), leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1207,7 +1241,7 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   confirmed on seed 7474, with the robustness grid on seed 7475. The third set the duties' timing
   by the duty rule (PW4) and searched the threat abilities again around it, on seeds 12001–12004
   (100,000–400,000 fights a candidate), confirmed on seed 12101 (400,000): nothing moved (below).
-- **What the search may change.** Only the threat abilities: Maul, Mangle, Lacerate, Swipe,
+- **What the search may change.** Only the threat abilities: Maul, Primal Bite, Lacerate, Swipe,
   Enrage and the Faerie Fire filler. The duties' timing is the rule's. A change that costs a larger
   share of DPS than it gains in TPS isn't adopted, nor is dropping an ability whose gain rests on
   an untested threat value.
@@ -1240,7 +1274,7 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   The search seeds found the same (seed 12001, 100,000 fights: Maul from 10 to 40 in steps of 2,
   20 best with 18 and 22 level; seed 12002: Lacerate's refresh from 3 to 9 s, 6 s best with 6.5
   and 7 level, 7.5 s and later −1.0% or worse; seed 12003: Enrage's limit level from 50 up, Swipe
-  from 40 to 90 rage −1.29% to −0.01%, Mangle off −5.16%, the filler off −1.78%; seed 12004,
+  from 40 to 90 rage −1.29% to −0.01%, Primal Bite off −5.16%, the filler off −1.78%; seed 12004,
   400,000 fights, the closest again). Lacerate off gains TPS only for 7.3% of the DPS, and rests on
   its untested threat (below), so it isn't adopted.
 - **Enrage in combat** makes 3.8% more TPS and 2.3% more DPS for 0.14% more damage taken
@@ -1248,7 +1282,7 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   up 18% of the fight, and its armor loss is 16% of item armor (§4.5). Its limit,
   `enrage.maxRage`, is level from 40 up, since the bar is rarely that full (10: −0.21%, 0: −3.7%;
   seed 12). In a 30 s fight it never fires: the pre-pull Enrage's 1 min cooldown outlasts it.
-- **Maul from 20** leaves rage for Mangle's and Lacerate's global cooldowns. It's the default
+- **Maul from 20** leaves rage for Primal Bite's and Lacerate's global cooldowns. It's the default
   fight's best, not every fight's (seed 18, 100,000 fights, against 10): −2.07% at 30 s, −0.70% at
   60 s, −0.08% at 90 s, +0.68% at 180 s and +0.75% at 300 s. Its DPS gains from 60 s on
   (+1.2–2.3%). While Lacerate builds its stacks, their rage makes little threat, so in short
@@ -1272,7 +1306,7 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   the rage (above).
 - **Not adopted** in the second round (on search seeds, against the winner or its predecessor):
   the potion up to 0 rage (−3.3%; 10–50 is the same as 25: it's drunk at the pull); Berserk off
-  (−0.92%), Mangle off (−4.95%), the Faerie Fire filler off (−1.95%).
+  (−0.92%), Primal Bite off (−4.95%), the Faerie Fire filler off (−1.95%).
 - **The duty rule's cost** against the tuned timing it replaced (both debuffs refreshed from 3 s
   left, `dacd315`; seed 12104, above): nothing. It makes +0.25% TPS and +0.25% DPS for the same
   damage taken. From 1.5 s left the roar goes out 7.45 times a fight rather than 7.80, and its
@@ -1327,7 +1361,7 @@ which no search used:
 | Damage taken a second | 629.11 | 633.66 | +0.72% (± 0.01) |
 
 Max TPS drops the roar too, and differs by Maul's threshold ([Max TPS](#max-tps-b4)). The roar's −204 attack power takes 0.7% off
-the damage the boss's swings do; its 10 rage and a global cooldown every 30 s go to Maul, Mangle
+the damage the boss's swings do; its 10 rage and a global cooldown every 30 s go to Maul, Primal Bite
 and Lacerate instead.
 
 - **Method.** `scripts/tune/rotation.mjs --spec druid-feral-bear` in the default setup
@@ -1337,7 +1371,7 @@ and Lacerate instead.
   200,000 on seed 28005 around the best, confirmed on seed 28101 (400,000). The candidates:
   Maul's threshold from 10 to 30, Lacerate's refresh from 6 to 15 s, Swipe from 40, 60 and 80
   rage, Faerie Fire's refresh at 1.5 and 3 s, Enrage (in combat, its limit at 50 to 80, before
-  the pull), the potion's limit, Berserk, Mangle, Lacerate and the filler off; and the row
+  the pull), the potion's limit, Berserk, Primal Bite, Lacerate and the filler off; and the row
   orders under [The priority list](#the-priority-list-a2) above.
 - **Nothing else moved.** Maul's threshold is flat on the objective: from 15 to 18 rage it trades
   DPS for TPS, the best, 17, +0.11% TPS for −0.06% DPS (+0.05 on the objective, seed 28101).
@@ -1345,7 +1379,7 @@ and Lacerate instead.
   at 20. On TPS alone 12 to 15 gain about 0.2% (below). Lacerate's refresh peaks sharply at
   12 s (11 s −3.0 on the objective, 13 s −0.4). Swipe loses at every threshold (from 80 −0.02,
   from 40 −1.1); Faerie Fire's refresh, Enrage's limit and the potion's are level; everything
-  else loses (Mangle off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
+  else loses (Primal Bite off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
   Enrage in combat off −5.2).
 - **Max TPS differs by Maul's threshold** (T5, below): tuned on TPS alone, it Mauls from 14.
 
@@ -1381,7 +1415,7 @@ default (tank duties first), over 100,000 paired fights on seed 13010:
 
 What it costs is the roar's −204 attack power on the boss, which is small for a bear: its swings
 cost 0.45% more health a second. With no roar to pay for, its 10 rage and a global cooldown every
-30 s go to Maul, Mangle and Lacerate: that's the TPS and the DPS.
+30 s go to Maul, Primal Bite and Lacerate: that's the TPS and the DPS.
 
 | Setting | Tank duties first → Max TPS | In the winner, Δ TPS (95% CI) | Δ DPS |
 | --- | --- | --- | --- |
@@ -1395,7 +1429,7 @@ fights). Every other setting keeps the default's value.
   in the default setup ([Tuning the defaults](#tuning-the-defaults-b3)), on TPS, 20,000 fights on
   seed 13002 a candidate: Maul's threshold from 10 to 40 in steps of 2, Lacerate's refresh from 3
   to 9 s, Swipe from 30 to 90 rage, and each of Faerie Fire's upkeep, its filler, its refresh (3
-  and 10 s), Enrage (in combat, its limit, before the pull), Mangle and Lacerate. Lacerate's
+  and 10 s), Enrage (in combat, its limit, before the pull), Primal Bite and Lacerate. Lacerate's
   refresh from 3.5 to 5 s was checked on seed 13003 too.
 - **Faerie Fire stays** (D26: Max TPS drops a duty for threat, and this one makes threat). Its
   −505 armor makes every attack hit harder, and it's 108 threat for a free global cooldown.
@@ -1409,7 +1443,7 @@ fights). Every other setting keeps the default's value.
 - **Maul from 20** stays: 18 and 22 are level, 24 and up and 12 and down worse (−0.10% to
   −1.04%). **Swipe** stays off (from 90 rage level, below it −0.04% to −3.96%), as does everything
   else: Faerie Fire's refresh at 3 or 10 s and Enrage's limit at 50 are level; Enrage in combat
-  off −3.54%, Lacerate off −1.25%, Mangle off −7.71%, the filler off −1.84%.
+  off −3.54%, Lacerate off −1.25%, Primal Bite off −7.71%, the filler off −1.84%.
 - **The Buffs tab's Demoralizing Roar** is the bear's own and in no preset, so with Max TPS nobody
   keeps it up by default; turned on there, another druid's counts from the pull. Faerie Fire's
   switch there stays the bear's own, kept up by its rotation.
@@ -1417,7 +1451,7 @@ fights). Every other setting keeps the default's value.
 #### T3's re-check of the defaults
 
 M5.6's threat fixes (T3) changed what the rotation's settings trade: Lacerate's +261 threat an
-application [?] (Q15), Idol of Brutality's 2 rage off Maul, Swipe and Mangle (§4.1), and the
+application [?] (Q15), Idol of Brutality's 2 rage off Maul, Swipe and Primal Bite (§4.1), and the
 interim 9/42/0 build and gear (§7.1, §7.3a), whose haste and crit bring more rage. Per D27, one
 quick paired search on the settings those fixes touch (`scripts/tune/rotation.mjs --spec
 druid-feral-bear`, 40,000 fights a candidate), not a full re-tune. In T3's final setup, before
@@ -1437,6 +1471,36 @@ Thorns (seed 7541):
 - **Max TPS** drops the roar and keeps the default's 12 s refresh: +3.08% TPS, +2.8% DPS and 0.7%
   more damage taken than the default. Its old 4.5 s refresh lost to 6 s and later ones on every
   seed checked (−3.8% against 9 s on seed 7521, the threat review's set).
+
+#### Build 1.60.1.70009
+
+What the build changed for the Feral druid, and what it moves (seed 31101, 100,000 fights, the
+default setups; `scripts/tune/rotation.mjs`):
+
+- **Mangle is Primal Bite, Primal Fury is Blood Frenzy** (§4.2, §5.1). Names, tooltips and icons
+  only: the bear's Balanced 1,115.34 TPS and 547.44 DPS and the cat's 568.28 DPS are the same
+  before and after the rename, and bear-apl.test.ts's 200 random plans map back to their old
+  fingerprints. Ferocity's and Berserk's tooltips now name Primal Bite; their data didn't change.
+- **Lacerate's "high amount of threat"** follows Forever's new Sunder Armor, 206 + 0.05 × AP for
+  261 (§4.3): the bear's Balanced **1,115.34 → 1,119.09 TPS** (+0.34%), DPS 547.44 unchanged.
+- **Thorns** scales with the caster's spell power in 1.60.1.70009 (Blizzard's notes; the client's
+  9910 still reads 22). The shared change is the paladin slice's (`effects/buffs.ts`); the
+  numbers here are without it: Thorns at 22 a hit, 10.3 TPS of the bear's (0.9%).
+- **The presets, re-checked (D27 first pass).** Balanced's Maul from 20: 14 to 16 gain 0.13–0.14%
+  TPS for 0.12–0.23% of the DPS, 22 and up lose TPS, as before; Max TPS's 14: 12 and 16 are within
+  ±0.04% (not significant), 18 and 20 lose. Lacerate's 12 s refresh: 9 s −1.84%, 15 s −0.63%.
+  Defensive (Maul from 20): 16 +0.10% TPS for 0.25% of the DPS (40,000 fights a candidate).
+  Nothing moves, and the presets' lines in the Rotation tab still hold on their seed, 28401
+  (200,000 paired fights): Max TPS +0.18% TPS and −0.20% DPS against Balanced (1,119.25 →
+  1,121.22), Balanced +3.13% TPS and +2.83% DPS against Defensive (1,085.33 → 1,119.25). The cat's
+  finishers hold too: Ferocious Bite and Rip at 5 combo points beat every mix with 4 (−0.09% to
+  −0.82%).
+- **Plausibility (D29, milestones T6).** The default bear is still above the guild's 800–900 TPS for
+  a bear or a paladin: 1,119 TPS. By ability (10,000 fights): Maul 58.6% (657 TPS, 73.6 a fight),
+  Lacerate 14.5% (163, 53.2) and its bleed 3.5% (39), Primal Bite 14.1% (158, 37.9), Windfury
+  Attack 3.2%, the auto attack 2.2%, Faerie Fire 1.3%, Thorns 0.9%, Blood Frenzy 0.8%, the rest
+  under 0.5% each. Nothing in 1.60.1.70009 explains or narrows the gap: the rename moves nothing,
+  Lacerate's new value adds 0.3%, and Maul, more than half the threat, is untouched by the build.
 
 ---
 
@@ -1617,7 +1681,7 @@ the buffs doc as a per-spec entry.
   the results list the damage-taken rage assumptions only then. The engine gives a hit taken rage
   only when the switch is on and the druid is in bear. A hit that costs health fires the
   damage-taken procs in any form, and an energize adds rage in whatever form it fires in. Furor's
-  rage and Primal Fury's fire only in bear, so outside it that's Natural Reaction and a Mighty Rage
+  rage and Blood Frenzy's fire only in bear, so outside it that's Natural Reaction and a Mighty Rage
   Potion.
 - **Events for the cat APL:** GCD end, Energy tick, Clearcasting gained, a cooldown ready (Tiger's
   Fury, Berserk, Faerie Fire), a bleed or debuff expiring, and fight-time thresholds.
@@ -1652,7 +1716,7 @@ the buffs doc as a per-spec entry.
   aura (OQ-8). With the cat's abilities: Shred's and Claw's flat bonus (Q1), Rip's and Bite's
   attack power (Q3), the bleeds' snapshots and tick crits (Q21), the two rolls of Rake and Bite
   (Q33), Predatory Instincts' 2.2× (Q10), Rend and Tear's scope and others' bleeds (Q9), Berserk's
-  crits and Primal Fury (Q8), attack speed in form (Q28), and why the cat never powershifts
+  crits and Blood Frenzy (Q8), attack speed in form (Q28), and why the cat never powershifts
   (§2.8, an inference from the tooltips). The form weapon's and Omen of Clarity's lines give only
   the form's own figures: a cat's 1.0 s swing and 3.33% of landed hits. The bear's rotation adds
   its threat values (Q15), Lacerate's stacks and hit (Q16), Swipe's two rolls (Q33), Maul's swing
@@ -1668,7 +1732,7 @@ the buffs doc as a per-spec entry.
 **What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
 bear ability is a row with these fields, and its talents come from `withDruidTalents`
 (`modifiers.ts`: Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis, Predatory
-Instincts, Primal Fury's combo point):
+Instincts, Blood Frenzy's combo point):
 - `resource: 'energy' | 'rage' | 'mana'`: the pool its cost comes from, its refund goes back to,
   a `cast`'s gain goes to (Tiger's Fury's Energy), and `damagePerExtraRage` converts (Ferocious
   Bite's 2.7 per extra Energy, which also spends the pool on a landed hit).
@@ -1703,7 +1767,7 @@ takes off the boss (Demoralizing Roar's, §4.5; [warrior.md §7](warrior.md#7-im
 "Debuffs on the boss"); and `kind: 'spellTable'`, the spell table (warrior.md §7 "Spell-table
 abilities"), whose miss refunds a druid row's share of what it paid, as above (§2.4). A row with no
 damage of its own never crits (warrior.md §7), except a combo-point row: a finisher's damage is per
-point, and a builder's crit awards Primal Fury's point (§2.5). Warrior Protection's condition
+point, and a builder's crit awards Blood Frenzy's point (§2.5). Warrior Protection's condition
 "its stacks below n" (code 20) serves Lacerate as it does Sunder Armor.
 
 The bear's rotation added, on top of those (plan/types.ts `AbilityPlan`, `AuraPlan`; each field
@@ -1713,7 +1777,7 @@ optional, so no other row changes):
   (§3.8);
 - a stacking bleed (a marker aura with more than one stack) and a hit that grows with the stacks
   (`weaponPercentPerStack`; Lacerate, §4.3);
-- a cooldown an aura suspends (`noCooldownAura`; Berserk's Mangle, §4.6), and an item-armor aura
+- a cooldown an aura suspends (`noCooldownAura`; Berserk's Primal Bite, §4.6), and an item-armor aura
   (`itemArmorPct`; Enrage, §4.5).
 
 Swipe's extra targets (§4.4) aren't simulated: the sim has one target.
@@ -1733,8 +1797,8 @@ Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 an
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
 `src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19, W20, W21 and W22
 (`src/sim/classes/druid/bear.test.ts`, W22 in `druid.test.ts`, with W14–W16 and W19 also in the
-engine, `src/sim/engine/bear.test.ts`, whose default-bear test checks W20's +261 per landed
-application). W12 compares W6 and W7 by hand.
+engine, `src/sim/engine/bear.test.ts`, whose Lacerate tests check W20's 206 + 0.05 × AP per
+landed application, and Classic Era's 261). W12 compares W6 and W7 by hand.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1800,7 +1864,7 @@ application). W12 compares W6 and W7 by hand.
     **378.686**; average **351.286**.
 14. **Maul at 1200 AP.** (351.286 + 128) × 1.10 = **527.214**. Threat × 1.75 × 1.3 =
     **1199.41**. [F] damage, [?] threat (LibThreatClassic2 only)
-15. **Mangle at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat with an assumed
+15. **Primal Bite at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat with an assumed
     ×1.0 ability multiplier: × 1.3 = **556.77**. [?] threat
 16. **Swipe.** 83 × 1.10 × 1.30 = **118.69** per target; threat × 1.75 [?] × 1.3 = **270.02**
     per target.
@@ -1813,11 +1877,12 @@ application). W12 compares W6 and W7 by hand.
 19. **Lacerate at 5 stacks** (bleed only): 15 × 5 = **75 per 3 s** (25 DPS); with Genesis 5/5,
     **78.75** per tick. [F] bleed, [?] stack model
 20. **Lacerate's threat at 1200 AP** (`forever`, the boss bleeding, 4 stacks already on it): the
-    hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its threat (154.566 + 261)
-    × 1.3 = **540.235**. The first application of a run deals nothing and makes 261 × 1.3 =
-    **339.3**. [?] (the hit, Q16; the +261, Q15 and the wording table)
-21. **Idol of Brutality with Ferocity 5/5** (§4.1): Maul 15 − 5 − 2 = **8** rage, Mangle and Swipe
-    20 − 5 − 2 = **13**; Lacerate stays **15** (not in its mask). [F] Maul and Swipe, [?] Mangle (Q37)
+    hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its bonus 206 + 0.05 × 1200
+    = **266**, so its threat (154.566 + 266) × 1.3 = **546.735**. The first application of a run
+    deals nothing and makes 266 × 1.3 = **345.8**. In `classicEra` the bonus is 261: 540.235 and
+    339.3. [?] (the hit, Q16; the bonus, Q15 and the wording table)
+21. **Idol of Brutality with Ferocity 5/5** (§4.1): Maul 15 − 5 − 2 = **8** rage, Primal Bite and Swipe
+    20 − 5 − 2 = **13**; Lacerate stays **15** (not in its mask). [F] Maul and Swipe, [?] Primal Bite (Q37)
 22. **Thick Hide 3/3 at 60** (§4.7): (3 × 60 + 2.00 × (310 − 300)) = 200 base armor with 310
     defense; × 4.6 in Dire Bear Form = **920** (828 at 300 defense); 200 in Cat Form. [F] tooltip,
     [?] the form's multiplier (Q19)
@@ -1839,16 +1904,16 @@ ranks.
 | Q5 | Form base damage (cat 43.84–65.76, bear 109.6–164.4 at 60) | Secondary source only [?] [ws-forms]; the ±20% shape matches `DamageVariance` 0.4 [F]/[C] | At level 60 (or the highest available level), note the character-sheet damage in cat form and subtract AP/14 |
 | Q6 | Energy tick (2.0 vs 2.02 s; 20 vs 20.2) and whether haste speeds Energy | 20 per 2 s [C] [wh-rot]; 2.02 s / 20.2 only from a secondary source [?] [ws-energy] | Log Energy over time with an addon; with and without MCP/haste |
 | Q7 | King of the Jungle hidden value (5/10/15 per rank, dummy effect 1); does TF persist out of cat? | Curve [F] [client] (CurvePoint, 1.60.1.69913); what the dummy does is server-side | Compare TF damage bonus and duration with 0 vs 3 points |
-| Q8 | Berserk: do crits it forces trigger Primal Fury? | Expected yes [?] | Shred under Berserk and count CP |
+| Q8 | Berserk: do crits it forces trigger Blood Frenzy? | Expected yes [?] | Shred under Berserk and count CP |
 | Q9 | Rend and Tear scope: which bleeds count (others' Deep Wounds?), and does it affect white hits and periodic ticks? | Tooltip only (1223246 is a dummy aura). The sim counts any bleed, the druid's or others' (a raid with warriors), on abilities' direct damage only [?] | Shred damage on a mob with and without a warrior's Rend on it; white-hit averages; Rip ticks |
 | Q10 | Predatory Instincts: crit = 2.2×? | `SPELLMOD_CRIT_DAMAGE_BONUS` +20% [F] | Ratio of crit to non-crit Shred on a mob three levels above you |
 | Q11 | Genesis applies to Rip, Rake, Lacerate | Class masks match [F] [client] | Rip ticks with 0 vs 5 Genesis |
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle ×1? Lacerate's "high amount of threat" | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Mangle has no threat words: ×1. Lacerate's bonus is **+261 per landed application**, the [wording table](../mechanics/threat.md#threat-wording-table)'s 4.5 × its level 58 (D29), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, Forever Sunder's 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Leaving Lacerate out while warriors keep the boss bleeding costs 12.3% of TPS, and would lose even with no bonus at all (−6.0%) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Mangle 1.0 (divide by 1.02 more with the gloves' threat enchant) |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1. Lacerate's bonus is **+206 + 0.05 × AP per landed application** (about 274 at the default bear's ~1,355 AP when its Lacerates land), Forever's Sunder Armor r5 at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Leaving Lacerate out while warriors keep the boss bleeding costs 12.3% of TPS, and would lose even with no bonus at all (−6.0%) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick **G5:** the damage of the 1st to 5th applications against the weapon damage: 0/10/20/30/40% as modelled, or a 20% base (spell 414647) |
-| Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
+| Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
 | Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? Does Dire Bear Form multiply Thick Hide's base armor ("further increased by multipliers from those forms")? | [F] data only. The engine multiplies Thick Hide's base armor by the form's +360% with the item armor [?] (§4.7): 828 armor at 3/3 and 300 defense, where unmultiplied it would be 180 | Character-sheet armor in and out of Dire Bear with an armor buff, and in Dire Bear Form with 0 and 3 points in Thick Hide: a difference of 828 means the form multiplies it, 180 that it doesn't |
 | Q20 | Ferocious Bite under Clearcasting: all Energy converted? | Secondary only [?] [ws-fb]; that Bite empties the bar normally is [C] [wh-rot] | Bite with a proc at high Energy |
@@ -1858,7 +1923,7 @@ ranks.
 | Q24 | MCP charges and cooldown in Forever. **✅ Resolved from client data:** 3 charges and a 180 s cooldown in the Forever item effect | [F] [client] (ItemEffect 98990, 1.60.1.69913); foreverchanges' tooltip lists no charges [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s [?] [ws-apl] | Nothing left; a guild check of the tooltip would confirm it |
 | Q25 | Crusader, weapon stones and oils in form | Buffs doc. The sim: a stone's weapon damage does nothing in form (the Buffs tab locks it off, §7.5), an Elemental stone's crit does | Combat log in cat form |
 | Q26 | Rip vs Bite as default finisher. **✅ Answered by the sim:** Rip, in both profiles | With the default raid's bleed, Bite in Rip's place loses 9.8% in `forever` and 4.3% in `classicEra`, where Example 12's single finisher favoured Bite (§6.2, W12). The inputs are still [?] (Q3, Q9, Q10, Q21) | Nothing to test for this question; re-run the comparison (`scripts/tune/rotation.mjs --spec druid-feral-cat [--profile classicEra] rip.onlyWithoutOtherBleeds=true`) when Q3, Q9, Q10 or Q21 is answered |
-| Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Mangle, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |
+| Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Primal Bite, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |
 | Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |
 | Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |
 | Q30 | Druid base terms: the −20 AP offset and 0.9% base melee crit | [?] placeholders in use ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)); origin: [ws-base] and [rb-vanilla], which copy a private server's tables, not evidence. The AP offset is about 0.7% of cat DPS; the crit's plausible range, 0–1%, moves cat DPS by up to about 1.5%, over D24's 1%, so it's measured first. The conversions themselves (2 AP per Str, 20 Agi per 1% crit [F]; spirit regen 15 + Spirit/5 per 2 s [C]) come from [character-stats.md](../mechanics/character-stats.md) | Owned by character-stats ([OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit), [OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)): check character-sheet AP and crit at two Str/Agi levels |
@@ -1867,9 +1932,9 @@ ranks.
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
 | Q34 | Shapeshifting and the timers: does a shapeshift reset or keep the swing timer, and do Energy and mana regenerate on one shared 2 s tick? Does entering cat before ever leaving it in a fight keep a full bar under Furor? | The engine keeps the swing in progress and one power tick for both, running through shifts, and counts a full bar as the Energy last left in cat [?] (§2.4, §2.8) | Log swings and Energy and mana ticks with an addon around a powershift (Cat Form → Cat Form) and a cat → bear → cat shift |
 | Q35 | Enrage's armor loss: 16% of which armor, and how does it combine with Dire Bear Form's +360%? | Tooltip only [F]: the client's effect is a dummy. The engine takes 16% of item armor, added to the +360% (§4.5) [?]. The other reading, 16% of the whole form armor, loses about five times as much. It moves damage taken only, not rage (`forever`) or threat | Character-sheet armor in Dire Bear Form before and during Enrage, with and without an armor buff |
-| Q37 | Idol of Brutality on Mangle: does its −2 rage reach Mangle, as its class mask says, or only Maul and Swipe, as its tooltip says? | 28855's mask [2048, 64] covers Maul, Swipe (0x800) and Mangle (0x40, second word) [F] [client]; the tooltip names Maul and Swipe [F]. The engine takes 2 off all three [?]; Mangle's 2 rage is 2.4% of the default bear's TPS, the idol 6.6% in all (seed 424242, 20,000 fights) | **G2:** with the idol equipped, the costs on Maul's, Swipe's and Mangle's tooltips in Dire Bear Form: Mangle 13 means the mask applies, 15 that it doesn't |
+| Q37 | Idol of Brutality on Primal Bite: does its −2 rage reach Primal Bite, as its class mask says, or only Maul and Swipe, as its tooltip says? | 28855's mask [2048, 64] covers Maul, Swipe (0x800) and Primal Bite (0x40, second word) [F] [client]; the tooltip names Maul and Swipe [F]. The engine takes 2 off all three [?]; Primal Bite's 2 rage is 2.4% of the default bear's TPS, the idol 6.6% in all (seed 424242, 20,000 fights) | **G2:** with the idol equipped, the costs on Maul's, Swipe's and Primal Bite's tooltips in Dire Bear Form: Primal Bite 13 means the mask applies, 15 that it doesn't |
 | Q38 | Thorns on the tank: does every boss swing that lands (a block too) trigger it, does it never miss or crit, and is its threat its damage × the form's 1.3, with no bonus? | 9910 is a damage shield (aura 15) of 22 [F] [client]; the rest is Retribution Aura's model [?] (buffs doc §1.2). About 1% of the default bear's TPS | Alone on a mob with Thorns up and auto attack off (`/stopattack`), the threat macro before and after each of the mob's hits, blocked and not: the change ÷ 1.3 should be 22 less the mob's resist; a crit never |
-| Q36 | Berserk and a Mangle already on cooldown: does it reset the cooldown, or only stop new ones? | 417141 #1 is a −100% cooldown modifier on Mangle [F] [client]; the engine lets a running cooldown run (§4.6) [?] | Mangle, then Berserk 1 s later; see whether Mangle is ready at once |
+| Q36 | Berserk and a Primal Bite already on cooldown: does it reset the cooldown, or only stop new ones? | 417141 #1 is a −100% cooldown modifier on Primal Bite [F] [client]; the engine lets a running cooldown run (§4.6) [?] | Primal Bite, then Berserk 1 s later; see whether Primal Bite is ready at once |
 
 ---
 
@@ -2142,7 +2207,7 @@ only `/api/`, `/spell/`, `/search`, `/admin`).
 | scd-f / scd-c | <https://wago.tools/db2/SpellCooldowns?build=1.60.1.69913> / <https://wago.tools/db2/SpellCooldowns?build=1.15.9.69722> | GCDs (`StartRecoveryTime`), cooldowns | Forever / Classic Era |
 | sao-f / sao-c | <https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913> / <https://wago.tools/db2/SpellAuraOptions?build=1.15.9.69722> | Omen of Clarity proc mask and 10 s `ProcCategoryRecovery` | Forever / Classic Era |
 | ssf-f / ssf-c | <https://wago.tools/db2/SpellShapeshiftForm?build=1.60.1.69913> / <https://wago.tools/db2/SpellShapeshiftForm?build=1.15.9.69722> | Form swing times (1000/2500 ms), `DamageVariance` 0.4 | Forever / Classic Era |
-| ss-f | <https://wago.tools/db2/SpellShapeshift?build=1.60.1.69913> | Form requirements (Mangle bear-only, FF castable in forms) | Forever client |
+| ss-f | <https://wago.tools/db2/SpellShapeshift?build=1.60.1.69913> | Form requirements (Primal Bite bear-only, FF castable in forms) | Forever client |
 | sl-f | <https://wago.tools/db2/SpellLevels?build=1.60.1.69913> | Base/max levels for per-level scaling | Forever client |
 | sm-f | <https://wago.tools/db2/SpellMisc?build=1.60.1.69913> | Durations, passive flags | Forever client |
 | spell-f | <https://wago.tools/db2/Spell?build=1.60.1.69913> | Raw tooltip templates (e.g. hard-coded "plus 180") | Forever client |

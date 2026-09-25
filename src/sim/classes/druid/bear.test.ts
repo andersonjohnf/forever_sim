@@ -40,7 +40,8 @@ import {
   LACERATE_RANK_LEVELS,
   LACERATE_THREAT,
   LACERATE_WEAPON_PCT_PER_STACK,
-  MANGLE,
+  lacerate as lacerateFor,
+  PRIMAL_BITE,
   MAUL,
   MAUL_THREAT_MULT,
   SWIPE,
@@ -87,14 +88,32 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(SWIPE).toMatchObject({ kind: 'meleeSpell', weaponPercent: 0, apCoefficient: 0, refundShare: 0, threatMult: 1.75 })
   })
 
-  it('Mangle (1238073, level 60): 20 rage, 100% weapon damage + 77, a 6 s cooldown, GCD 1500', () => {
+  it('Primal Bite (1238073, level 60): 20 rage, 100% weapon damage + 77, a 6 s cooldown, GCD 1500', () => {
     const s = spell(1238073)
-    expect(s.power![0]).toMatchObject({ manaCost: MANGLE.costTenths, powerType: 1 })
-    expect(effect(1238073, 0)).toMatchObject({ effect: 58, effectBasePointsF: MANGLE.flatDamage })
-    expect(effect(1238073, 1)).toMatchObject({ effect: 31, effectBasePointsF: 100 * MANGLE.weaponPercent })
-    expect(s.cooldowns).toMatchObject({ categoryRecoveryTime: MANGLE.cooldownMs, startRecoveryTime: MANGLE.gcdMs })
+    expect(s.power![0]).toMatchObject({ manaCost: PRIMAL_BITE.costTenths, powerType: 1 })
+    expect(effect(1238073, 0)).toMatchObject({ effect: 58, effectBasePointsF: PRIMAL_BITE.flatDamage })
+    expect(effect(1238073, 1)).toMatchObject({ effect: 31, effectBasePointsF: 100 * PRIMAL_BITE.weaponPercent })
+    expect(s.cooldowns).toMatchObject({ categoryRecoveryTime: PRIMAL_BITE.cooldownMs, startRecoveryTime: PRIMAL_BITE.gcdMs })
     expect(s.shapeshift?.shapeshiftMask?.[0]).toBe(144)
-    expect(MANGLE).toMatchObject({ kind: 'weaponStrike', threatMult: 1, noCooldownWhile: 'berserk' })
+    expect(PRIMAL_BITE).toMatchObject({ kind: 'weaponStrike', threatMult: 1, noCooldownWhile: 'berserk' })
+  })
+
+  it('Primal Bite keeps all four ranks under its new name (Mangle until 1.60.1.70009): +26/38/59/77 at levels 25/36/48/60, the same cost, cooldown and class mask', () => {
+    const ranks = [407995, 1238069, 1238070, 1238073]
+    expect(ranks.map((id) => spell(id)?.name)).toEqual(ranks.map(() => PRIMAL_BITE.name))
+    expect(ranks.map((id) => effect(id, 0).effectBasePointsF)).toEqual([26, 38, 59, 77])
+    expect(ranks.map((id) => effect(id, 1).effectBasePointsF)).toEqual([100, 100, 100, 100])
+    expect(ranks.map((id) => spell(id).levels?.spellLevel)).toEqual([25, 36, 48, 60])
+    for (const id of ranks) {
+      expect(spell(id).power![0], String(id)).toMatchObject({ manaCost: 200, powerType: 1 })
+      expect(spell(id).cooldowns?.categoryRecoveryTime, String(id)).toBe(6000)
+      expect(mask(id), String(id)).toEqual(mask(1238073))
+      // 132278 is ability_racial_cannibalize, the icon 1.60.1.70009 gave it (Blood Frenzy's before).
+      expect(spell(id).misc?.spellIconFileDataId, String(id)).toBe(132278)
+    }
+    expect(PRIMAL_BITE.icon).toBe('ability_racial_cannibalize')
+    // Its tooltip names no threat, so no wording-table bonus (threat.md#threat-wording-table).
+    expect(PRIMAL_BITE.threatBonus ?? 0).toBe(0)
   })
 
   it('Lacerate r3 (1235827): 15 rage, 15 per 3 s for 15 s a stack, 5 stacks, 10% weapon damage a stack, ticks that may crit', () => {
@@ -112,17 +131,27 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(LACERATE).toMatchObject({ periodicCanCrit: true, weaponPercent: 0, weaponPercentPerStack: 0.1, gcdMs: 1500 })
   })
 
-  it('Lacerate’s “high amount of threat” (D29): 4.5 × each rank’s level, 189, 225 and 261, with no threat effect in the client', () => {
-    // threat.md#threat-wording-table: the warrior's GCD specials with those words fit 4.5 × the spell's
-    // level in Classic Era (Sunder Armor r5 at 58: 261; Revenge r5 at 54: 243, r6 at 60: 270).
-    expect([highThreatBonus(58), highThreatBonus(54), highThreatBonus(60)]).toEqual([261, 243, 270])
+  it('Lacerate’s “high amount of threat” (D29): Sunder Armor r5’s at the same level, 206 + 0.05 × AP in Forever and 261 in Classic Era, with no threat effect in the client', () => {
     const ranks = [414644, 1235826, 1235827]
     expect(ranks.map((id) => spell(id).levels?.spellLevel)).toEqual([...LACERATE_RANK_LEVELS])
-    expect(LACERATE_RANK_LEVELS.map(highThreatBonus)).toEqual([189, 225, 261])
     // No rank carries a THREAT effect (63): the bonus is the wording's, [?].
     for (const id of ranks) expect(spell(id).effects.some((e) => e.effect === 63), String(id)).toBe(false)
-    expect(LACERATE.threatBonus).toBe(LACERATE_THREAT)
-    expect(LACERATE_THREAT).toBe(261)
+    // threat.md#threat-wording-table: rank 3 is level 58, as Sunder Armor r5 is, and Forever's client
+    // gives that Sunder a THREAT effect of 206 (1.60.1.70009), plus the attack power share Blizzard's
+    // notes add and the client doesn't carry, 0.05 × AP [?] (the warrior's default, warrior.md Q1).
+    const sunder = effect(11597, 1)
+    expect(spell(11597).levels?.spellLevel).toBe(LACERATE_RANK_LEVELS[2])
+    expect(sunder).toMatchObject({ effect: 63, effectBasePointsF: LACERATE_THREAT.forever.bonus })
+    expect(LACERATE_THREAT.forever).toEqual({ bonus: 206, apCoefficient: 0.05 })
+    expect(LACERATE).toMatchObject({ threatBonus: 206, threatApCoefficient: 0.05 })
+    expect(lacerateFor(FOREVER)).toBe(LACERATE)
+    // At the default bear's 1,296 attack power in Dire Bear Form, that's 270.8.
+    expect(206 + 0.05 * 1296).toBeCloseTo(270.8, 9)
+    // Classic Era: the warrior's GCD specials with those words fit 4.5 × the spell's level (Sunder
+    // Armor r5 at 58: 261; Revenge r5 at 54: 243, r6 at 60: 270), with no attack power term.
+    expect([highThreatBonus(58), highThreatBonus(54), highThreatBonus(60)]).toEqual([261, 243, 270])
+    expect(LACERATE_THREAT.classicEra).toEqual({ bonus: 261, apCoefficient: 0 })
+    expect(lacerateFor(CLASSIC_ERA)).toMatchObject({ threatBonus: 261, threatApCoefficient: 0 })
   })
 
   it('Demoralizing Roar r5 (9898): 10 rage, GCD 1500, 30 s; W18: −193 − 1.4 × 8 = −204.2 at 60 (Classic −138)', () => {
@@ -161,7 +190,7 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(FAERIE_FIRE_BEAR.spellSchool).toBe(SCHOOL.nature)
   })
 
-  it('Berserk (417141): 15 s, 3 min, no GCD; its Mangle part is a −100% cooldown modifier on Mangle’s class mask', () => {
+  it('Berserk (417141): 15 s, 3 min, no GCD; its Primal Bite part is a −100% cooldown modifier on Primal Bite’s class mask', () => {
     const s = spell(417141)
     expect(s.cooldowns?.recoveryTime).toBe(BERSERK.cooldownMs)
     expect(s.duration?.duration).toBe(BERSERK.aura!.durationMs)
@@ -169,7 +198,7 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     const cooldown = effect(417141, 1)
     expect(cooldown).toMatchObject({ effectAura: 108, effectBasePointsF: -100, effectMiscValue: [11, 0] })
     expect(covers(cooldown.effectSpellClassMask!, 1238073)).toBe(true)
-    // Its crit part covers the cat's builders, not Maul, Swipe, Mangle or Lacerate (druid.md §4.6).
+    // Its crit part covers the cat's builders, not Maul, Swipe, Primal Bite or Lacerate (druid.md §4.6).
     const crit = effect(417141, 0).effectSpellClassMask!
     for (const id of [9881, 9908, 1238073, 1235827]) expect(covers(crit, id), String(id)).toBe(false)
     // The cat's row, usable in both forms (cat-abilities.ts).
@@ -187,14 +216,14 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(enrage(false).aura!.mods.itemArmorPct).toBe(ENRAGE_ITEM_ARMOR_PCT)
   })
 
-  it('Idol of Brutality (23198, 28855): −2 rage on its class mask, which covers Maul, Swipe and Mangle and nothing else of the bear’s', () => {
+  it('Idol of Brutality (23198, 28855): −2 rage on its class mask, which covers Maul, Swipe and Primal Bite and nothing else of the bear’s', () => {
     const idol = effect(28855, 0)
     expect(idol).toMatchObject({ effect: 6, effectAura: 107, effectBasePointsF: -IDOL_OF_BRUTALITY_RAGE_TENTHS, effectMiscValue: [14, 0] })
     const affected = idol.effectSpellClassMask!
     const rows = [
       [9881, MAUL],
       [9908, SWIPE],
-      [1238073, MANGLE],
+      [1238073, PRIMAL_BITE],
       [1235827, LACERATE],
       [9898, demoralizingRoar(FOREVER)],
       [9907, FAERIE_FIRE_BEAR],
@@ -209,7 +238,7 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     const rows = [
       [9881, MAUL],
       [9908, SWIPE],
-      [1238073, MANGLE],
+      [1238073, PRIMAL_BITE],
       [1235827, LACERATE],
       [9898, demoralizingRoar(FOREVER)],
     ] as const
@@ -223,13 +252,13 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
 describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', () => {
   const resolved = (def: Parameters<typeof withDruidTalents>[0]) => withDruidTalents(def, TALENTS)
 
-  it('Ferocity 5/5: Maul 10, Mangle 15, Swipe 15 rage; Lacerate stays 15 without Shredding Attacks', () => {
+  it('Ferocity 5/5: Maul 10, Primal Bite 15, Swipe 15 rage; Lacerate stays 15 without Shredding Attacks', () => {
     expect(TALENTS.get('Ferocity')).toBe(5)
     expect(TALENTS.has('Shredding Attacks')).toBe(false)
-    expect([MAUL, MANGLE, SWIPE, LACERATE].map((d) => resolved(d).costTenths)).toEqual([100, 150, 150, 150])
+    expect([MAUL, PRIMAL_BITE, SWIPE, LACERATE].map((d) => resolved(d).costTenths)).toEqual([100, 150, 150, 150])
   })
 
-  it('W21: with Idol of Brutality, the rotation’s Maul costs 15 − 5 − 2 = 8, Mangle and Swipe 13; Lacerate stays 15', () => {
+  it('W21: with Idol of Brutality, the rotation’s Maul costs 15 − 5 − 2 = 8, Primal Bite and Swipe 13; Lacerate stays 15', () => {
     const cost = (equipped: number[]) => {
       const r = bearRotation({ [BEAR_IDS.swipeEnabled]: true }, TALENTS, () => -1, { ...NO_CONTEXT, profile: FOREVER, equipped: new Set(equipped) })
       return Object.fromEntries(['maul', 'mangle', 'swipe', 'lacerate'].map((id) => [id, r.abilities.find((a) => a.id === id)!.costTenths / 10]))
@@ -243,7 +272,7 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(plan.abilities.find((a) => a.id === 'maul')!.costTenths).toBe(80)
     expect(plan.abilities.find((a) => a.id === 'mangle')!.costTenths).toBe(130)
     expect(assumptions.find((a) => a.id === 'unmodelledProcs')?.text ?? '').not.toContain('Idol of Brutality')
-    // Its Mangle part is the class mask's reading, listed while Mangle is used (Q37); without the idol, not.
+    // Its Primal Bite part is the class mask's reading, listed while Primal Bite is used (Q37); without the idol, not.
     expect(assumptions.map((a) => a.id)).toContain('idolOfBrutality')
     const noIdol = buildPlan({ ...d, gear: { ...d.gear, ranged: undefined } }).assumptions.map((a) => a.id)
     expect(noIdol).not.toContain('idolOfBrutality')
@@ -261,8 +290,8 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(maul.critMultiplier).toBeCloseTo(2.2, 12)
   })
 
-  it('W15: Mangle at 1200 AP is 351.286 + 77 = 428.286 (no Savage Fury); threat × 1.3 = 556.77', () => {
-    const mangle = resolved(MANGLE)
+  it('W15: Primal Bite at 1200 AP is 351.286 + 77 = 428.286 (no Savage Fury); threat × 1.3 = 556.77', () => {
+    const mangle = resolved(PRIMAL_BITE)
     const damage = ((109.6 + 164.4) / 2 + (1200 * 2.5) / 14 + mangle.flatDamage) * mangle.weaponPercent
     expect(damage).toBeCloseTo(428.286, 3)
     expect(damage * mangle.threatMult * 1.3).toBeCloseTo(556.77, 2)
@@ -282,17 +311,23 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(lacerate.weaponPercentPerStack).toBe(0.1)
   })
 
-  it('W20: Lacerate at 1200 AP onto 4 stacks, the boss bleeding, hits for 0.1 × 4 × 351.286 × 1.10 = 154.566; threat (154.566 + 261) × 1.3 = 540.235', () => {
+  it('W20: Lacerate at 1200 AP onto 4 stacks, the boss bleeding, hits for 0.1 × 4 × 351.286 × 1.10 = 154.566; threat (154.566 + 206 + 0.05 × 1200) × 1.3 = 546.735', () => {
     const lacerate = resolved(LACERATE)
     const wb = (109.6 + 164.4) / 2 + (1200 * 2.5) / 14
     const hit = lacerate.weaponPercentPerStack! * 4 * wb * (1 + lacerate.bleedingTargetPct! / 100)
     expect(hit).toBeCloseTo(154.566, 3)
-    expect((hit * lacerate.threatMult + lacerate.threatBonus) * 1.3).toBeCloseTo(540.235, 3)
-    // The first application deals nothing and still lands its bonus: 261 × 1.3 = 339.3.
-    expect(lacerate.threatBonus * 1.3).toBeCloseTo(339.3, 9)
+    const bonus = lacerate.threatBonus + lacerate.threatApCoefficient! * 1200
+    expect(bonus).toBeCloseTo(266, 9)
+    expect((hit * lacerate.threatMult + bonus) * 1.3).toBeCloseTo(546.735, 3)
+    // The first application deals nothing and still lands its bonus: 266 × 1.3 = 345.8.
+    expect(bonus * 1.3).toBeCloseTo(345.8, 9)
+    // Classic Era's 261: (154.566 + 261) × 1.3 = 540.235, and 339.3 for a first application.
+    const classic = withDruidTalents(lacerateFor(CLASSIC_ERA), TALENTS)
+    expect((hit * classic.threatMult + classic.threatBonus) * 1.3).toBeCloseTo(540.235, 3)
+    expect(classic.threatBonus * 1.3).toBeCloseTo(339.3, 9)
   })
 
-  it('Rend and Tear 5/5: +10% on Maul, Swipe, Mangle and Lacerate against a bleeding target, as the druid’s talents resolve it', () => {
+  it('Rend and Tear 5/5: +10% on Maul, Swipe, Primal Bite and Lacerate against a bleeding target, as the druid’s talents resolve it', () => {
     const rotation = bearRotation({ [BEAR_IDS.swipeEnabled]: true }, TALENTS, () => -1, { profile: FOREVER })
     const pct = Object.fromEntries(rotation.abilities.map((a) => [a.id, a.bleedingTargetPct ?? 0]))
     for (const id of REND_AND_TEAR) if (id in pct) expect(pct[id], id).toBe(10)
@@ -407,7 +442,7 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
     return { r, ids: r.rotation.map((e) => r.abilities[e.ability].id) }
   }
 
-  it('with Defensive: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
+  it('with Defensive: Berserk and Maul off the GCD, then the duties, Primal Bite, Lacerate and the Faerie Fire filler; no Swipe', () => {
     const all = ['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
     expect(lines(DEFENSIVE).ids).toEqual(all)
     // Balanced, the default, the same without the roar.
@@ -464,7 +499,7 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
       [BEAR_IDS.enrageInCombat]: false,
     }).ids
     expect(off).toEqual([])
-    // Without the talents, no Mangle and no Berserk.
+    // Without the talents, no Primal Bite and no Berserk.
     const bare = bearRotation({}, new Map(), () => -1, { ...NO_CONTEXT, profile: FOREVER })
     expect(bare.abilities.map((a) => a.id)).not.toContain('mangle')
     expect(bare.abilities.map((a) => a.id)).not.toContain('berserk')
@@ -524,7 +559,7 @@ describe('the default bear’s plan', () => {
     expect(prot.canBlock).toBeUndefined()
   })
 
-  it('Mangle’s cooldown stops under Berserk’s aura', () => {
+  it('Primal Bite’s cooldown stops under Berserk’s aura', () => {
     expect(plan.auras[ability('mangle').noCooldownAura!].id).toBe('berserk')
   })
 
@@ -552,26 +587,28 @@ describe('the default bear’s plan', () => {
       'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
-      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Mangle makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era). None is measured in Forever.',
+      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
     )
     expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
     expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
-    expect(forever.berserkMangle).toMatch(/so Mangle’s extra targets add nothing\.$/)
+    expect(forever.berserkMangle).toMatch(/so Primal Bite’s extra targets add nothing\.$/)
     // Classic Era: the roar's −138 [C], and white rage from damage.
     const classic = text({ ...d, rules: { profile: 'classicEra', unmeasuredRatings: 'apply' } })
     expect(classic.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 138, Classic Era’s rank 5 at level 60\./)
     expect(classic.bearRage).toContain('would give rage for its damage')
+    // Classic Era's Lacerate is its rule for the words: 4.5 × level 58, Sunder Armor's 261 there.
+    expect(classic.bearThreat).toContain('Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era).')
     // Swipe, no Lacerate and no roar, without warriors: each text names only what's used.
     const other = text({
       ...d,
       rotation: { [BEAR_IDS.swipeEnabled]: true, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false },
       buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') },
     })
-    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108, as a Classic Era threat library has them. Mangle makes 1 threat per damage, since its threat is unknown. None is measured in Forever.')
+    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. None is measured in Forever.')
     expect(other.bearRage).toContain('(Swipe nothing, like a warrior’s area attacks)')
     expect(other.demoralizingRoar).toMatch(/^Faerie Fire rolls to hit as a spell does;/)
     expect(other.rendAndTear).toContain('which it doesn’t here')
-    expect(other.berserkMangle).toContain('Mangle’s and Swipe’s extra targets')
+    expect(other.berserkMangle).toContain('Primal Bite’s and Swipe’s extra targets')
     expect(other.lacerate).toBeUndefined()
     expect(forever.bearThreat).not.toContain('Swipe')
     expect(forever.bearRage).not.toContain('Swipe')

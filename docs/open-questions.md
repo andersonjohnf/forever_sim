@@ -537,7 +537,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   already). None is adopted: one swing, and the bear is already above the guild's 800–900 TPS
   benchmark.
 - **Test:** bear form, auto attack only, no damage taken and nothing else giving rage (no Enrage,
-  Furor or Primal Fury): rage per landed swing. Then take hits as in B9, including hits fully
+  Furor or Blood Frenzy): rage per landed swing. Then take hits as in B9, including hits fully
   absorbed by Power Word: Shield (players report bears get none there). Shift out and back in at a
   known rage (no Furor) and read rage after the shift.
 - **Samples:** ≥50 landed autos (≥20 settles 11.25 against 8.65); ≥50 hits taken; 10 absorbed
@@ -547,12 +547,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [rage OQ 3, OQ 6](mechanics/rage.md#open-questions)
 
 #### B15. Bear ability threat
-**High · M4 · ≤20** (Mangle ≤30; Lacerate: [C8](#c8-lacerate))
+**High · M4 · ≤20** (Primal Bite ≤30; Lacerate: [C8](#c8-lacerate))
 - **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: threat-meter
   code (LibThreatClassic2) only, in Classic as well as Forever; a Classic guide repeats them
-  uncited]; Mangle dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
+  uncited]; Primal Bite (Mangle until 1.60.1.70009) dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
-  Swipe and Mangle; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
+  Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
 - **Samples:** ≥8 casts per ability.
 - **Changes:** bear TPS per ability.
@@ -1516,8 +1516,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C8. Lacerate
 **High · M4 (rank 1 at 42)**
 - **Assumes:** 15 per 3 s per stack, up to 5 stacks, plus an immediate hit of
-  `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 with no bonus, though the
-  tooltip says "a high amount of threat" [?]. The only numbers found are SoD values, refused.
+  `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 plus, for the tooltip's "a high
+  amount of threat", 206 + 0.05 × AP per landed application, Forever's Sunder Armor r5 at the same
+  level by the wording table (D29; 261, Classic Era's rule, before build 1.60.1.70009) [?]. The only
+  numbers found are SoD values, refused.
 - **Test:** apply 1 to 5 stacks, log hits and ticks, and read threat after each application.
 - **Samples:** ≥10 full stack cycles.
 - **Changes:** Lacerate damage and bear TPS.
@@ -1628,7 +1630,7 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C13. Rank availability at launch
 **Medium · M2**
 - **Assumes:** Heroic Strike r9, Battle Shout r7 and Revenge r6 are trainable at 60 (Classic
-  added them in the AQ patch) [?]; the trainer teaches Mangle ranks 2–4, and Ferocious Bite r5
+  added them in the AQ patch) [?]; the trainer teaches Primal Bite ranks 2–4, and Ferocious Bite r5
   is trainable (a book in Classic) [?].
 - **Test:** trainer windows at 36, 48, 56 and 60, and the launch patch notes.
 - **Samples:** one check per rank.
@@ -1814,7 +1816,7 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C28. Berserk and Primal Fury
 **Low · M4 (tier 7)**
-- **Assumes:** Berserk's forced crits trigger Primal Fury, so each landed builder gives 2 combo
+- **Assumes:** Berserk's forced crits trigger Blood Frenzy (Primal Fury until 1.60.1.70009), so each landed builder gives 2 combo
   points [?].
 - **Test:** Shred under Berserk and count combo points.
 - **Samples:** ≥10 Shreds.
@@ -1940,7 +1942,7 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 | D13 | Consumable mechanics | `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s); Frenzy potions aura 13 (school mask 1), no category; all-crit aura on Leader of the Pack 24932 and Mongoose 17538; Hyjal flasks = dummy + zero-valued aura | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ resolved from client data, with one correction: **Frenzy potions share the 120 s potion cooldown** (their spells are in category 4, though their item effects carry none; see [C12](#c12-new-elixirs-and-frenzy-potions)). The rest confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D14 | Periodic-crit flags and Deep Wounds (read so far only by wowsims/forever, a secondary source) | `SpellMisc` (Attributes[8], `PERIODIC_CAN_CRIT`), `SpellName`, `SpellEffect` · Forever | flag set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826 and Lacerate 1235827; not set on Deep Wounds and Consecration 20924 / 1280349; Forever's Deep Wounds bleed is spell 412609 (4 ticks, 3 s) | Medium · M2 | [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds), [OQ 2](mechanics/damage-and-timing.md#open-questions); [warrior Q21](classes/warrior.md#9-open-questions); [druid Q21](classes/druid.md#10-open-questions) | ✅ confirmed from client data (412609: every 3,000 ms for 12,000 ms; the flags are client values, whether ticks crit in combat stays [B22](#b22-dots-periodic-crits-snapshots-and-refresh)), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D15 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
-| D16 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Cower 9892 −1200 − 1/level (Demoralizing Roar's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)); `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D16 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Primal Bite (Mangle until 1.60.1.70009) 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Cower 9892 −1200 − 1/level (Demoralizing Roar's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)); `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D17 | Feral talent auras | `SpellEffect`, `CurvePoint` · Forever | Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; King of the Jungle 20/40/60 plus a hidden 5/10/15 | Medium · M4 | [druid Q7, Q27](classes/druid.md#10-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D18 | Paladin attributes, cooldowns and procs | `SpellMisc`, `SpellCategories`, `SpellAuraOptions`, `SpellCooldowns`, `SpellEffect` · Forever | JoC/JoR/JotC melee class with No Active Defense / Always Hit (20966, 20968, 20286, 20303 for 40 s); SoR and SoF proc attributes (25713, 20418); SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility); Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2; Holy Shield 20928 4 charges, 0.08; SoF 20418 35 at 0.1; JoF 20414 0.45; SotC 20308 +2.4/level; JoF scripted value 1607 + 42.3/level, coefficient 0.18 | Medium · M5 | [paladin OQ 17, 21](classes/paladin.md#open-questions), [threat OQ 6](mechanics/threat.md#open-questions) | ✅ resolved from client data, with one correction: **JoC's damage spell 20966 also has Always Hit**, so JoC can't miss; JoR 20286 and JoF 20414 can (see [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy)). The rest confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D19 | Item → buff spells | `ItemEffect`, `ItemXItemEffect` · Forever | the spell IDs after "→" in buffs §3; Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | Low · M2 | [buffs §3](mechanics/buffs-debuffs-consumables.md#3-consumables) | ✅ resolved from client data, with one correction: **Blessed Sunfruit 13810 casts 18124, which triggers the buff 18125**. The other 48 item → buff ids and both named items confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |

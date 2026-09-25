@@ -855,7 +855,7 @@ export interface AbilityPlan {
    */
   weaponPercentPerStack?: number
   /**
-   * While this plan aura is up, using it starts no cooldown (Berserk's Mangle, druid.md §4.6); a
+   * While this plan aura is up, using it starts no cooldown (Berserk's Primal Bite, druid.md §4.6); a
    * cooldown already running keeps running [?]. Absent or −1: none.
    */
   noCooldownAura?: number
@@ -1025,7 +1025,7 @@ export type AbilityDef = Omit<
    */
   auraCrit?: { aura: string; pct: number; consume?: boolean }
   /**
-   * The id of the aura while which it starts no cooldown (Berserk's Mangle, druid.md §4.6), resolved
+   * The id of the aura while which it starts no cooldown (Berserk's Primal Bite, druid.md §4.6), resolved
    * and dropped the same way.
    */
   noCooldownWhile?: string

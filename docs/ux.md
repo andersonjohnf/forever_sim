@@ -771,9 +771,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     breakdown, How the boss's swings landed, Mana per fight), on the right what explains it
     (Cooldowns and buffs, and the Character sheet with the Boss's attack table). With nothing on
     the left (no weapon, so no breakdown), the right takes both. **Assumptions** spans both
-    columns under them, collapsed. From a 64 rem pane it's a **third column**, open by default and
-    remembered like the others; with the page capped at 2560 px the pane reaches about 60 rem, so
-    that's for a wider pane later. In two columns at 1920 a long outcome line may wrap again, as
+    columns under them, collapsed. In two columns at 1920 a long outcome line may wrap again, as
     in the 22 rem panel; at 2560 each fits one line.
   - The DOM keeps the order this section gives, so a screen reader hears the same sequence at
     every width: the columns are wrappers that are `display: contents` below 1920.

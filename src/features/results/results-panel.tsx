@@ -1,5 +1,5 @@
 import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
-import { Fragment, type ReactNode, type RefObject, useEffect, useId, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useId, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
 import { Button } from '@/components/ui/button'
@@ -314,22 +314,20 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  */
 export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const { result, previous, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
-  const root = useRef<HTMLDivElement>(null)
   // The wide layout's details open by default in the desktop pane, as the reader last left them
   // (docs/ux.md#results); the phone's sheet and the narrower desktops keep them collapsed.
   const wide = useIsWide() && variant === 'panel'
-  const threeColumns = useWidthAtLeast(root, THREE_COLUMNS_PX) && variant === 'panel'
   const empty = result !== null && result.abilities.length === 0
   // What the result is made of: the left column in the extra-wide pane.
   const madeOf = result !== null && (result.tank !== undefined || !empty || result.mana !== undefined)
   const body = result && (
-    // From 1920 px (a results pane of 40 rem or more) the details sit in two columns, and in three
-    // with Assumptions open from 64 rem; below that, the columns' wrappers are `contents`, so
-    // the sections stack as one list. The DOM keeps ux.md's order either way.
+    // From 1920 px (a results pane of 40 rem or more) the details sit in two columns, Assumptions
+    // across both under them; below that, the columns' wrappers are `contents`, so the sections
+    // stack as one list. The DOM keeps ux.md's order either way.
     <div
       data-dimmed={dimmed}
       className={cn(
-        'flex flex-col gap-5 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-2 @min-[40rem]/results:items-start @min-[40rem]/results:gap-x-6 @min-[64rem]/results:grid-cols-3',
+        'flex flex-col gap-5 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-2 @min-[40rem]/results:items-start @min-[40rem]/results:gap-x-6',
         DIM_ROOT,
       )}
     >
@@ -364,8 +362,8 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
         <Details
           id="assumptions"
           title={`Assumptions (${result.assumptions.length})`}
-          remember={threeColumns}
-          className="@min-[40rem]/results:col-span-2 @min-[64rem]/results:col-span-1"
+          remember={false}
+          className="@min-[40rem]/results:col-span-2"
         >
           <AssumptionList result={result} />
         </Details>
@@ -376,7 +374,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
   return (
     // The desktop panel sticks 104 px from the top (src/App.tsx: top-20 plus pt-6), so it stops
     // 24 px above the viewport's bottom edge.
-    <div ref={root} className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
+    <div className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
       {/* From 1920 px the headline card is a strip: the values and the run's summary on the left,
           Simulate on the right, and any message under them (docs/ux.md#results). */}
       <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-[minmax(0,1fr)_auto] @min-[40rem]/results:items-center @min-[40rem]/results:gap-x-6">
@@ -411,22 +409,6 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
       {body && (variant === 'panel' ? <ScrollBody>{body}</ScrollBody> : body)}
     </div>
   )
-}
-
-/** The results pane's width, in px, from which Assumptions is a third column, open (64 rem). */
-const THREE_COLUMNS_PX = 64 * 16
-
-/** Whether an element's content box is at least `px` wide, kept up to date as it resizes. */
-function useWidthAtLeast(ref: RefObject<HTMLElement | null>, px: number) {
-  const [atLeast, setAtLeast] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(([entry]) => setAtLeast(entry.contentRect.width >= px))
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [ref, px])
-  return atLeast
 }
 
 /**
@@ -797,7 +779,7 @@ function writeClosed(id: DetailsId, closed: boolean) {
 
 /**
  * A collapsible section of the details. Collapsed until opened, except where `remember` holds (the
- * wide pane's Cooldowns and buffs and Character sheet, and Assumptions as a third column): there
+ * wide pane's Cooldowns and buffs and Character sheet): there
  * it's open unless the reader closed it, which this browser remembers.
  */
 function Details({ id, title, remember, className, children }: { id: DetailsId; title: string; remember: boolean; className?: string; children: ReactNode }) {

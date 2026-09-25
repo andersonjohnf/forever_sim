@@ -220,25 +220,6 @@ test.describe('the extra-wide results pane, 1920 px', () => {
   })
 })
 
-test('from a 64 rem results pane, Assumptions is a third column, open', async ({ page }) => {
-  // At 2560 px the pane is 38% of the page (about 60 rem), so a wider track stands in for the
-  // pane this layout is for.
-  await page.setViewportSize({ width: 2560, height: HEIGHT })
-  await page.goto('./')
-  await page.addStyleTag({ content: 'main { grid-template-columns: minmax(0, 1fr) 68rem !important }' })
-  const panel = results(page)
-  await simulate(panel)
-  const assumptions = trigger(panel, ASSUMPTIONS)
-  await expect(assumptions).toHaveAttribute('aria-expanded', 'true')
-  const a = await box(assumptions)
-  const cooldowns = await box(trigger(panel, 'Cooldowns and buffs'))
-  const breakdown = await box(panel.getByRole('heading', { name: 'Damage by ability' }))
-  expect(a.x).toBeGreaterThan(cooldowns.x + cooldowns.width)
-  expect(Math.abs(a.y - cooldowns.y)).toBeLessThan(2)
-  expect(cooldowns.x).toBeGreaterThan(breakdown.x)
-  await expectInsideViewport(page, panel)
-})
-
 test('under 1440 px the details stay collapsed, whatever the wide pane remembers', async ({ page }) => {
   await page.setViewportSize({ width: 1439, height: HEIGHT })
   await page.goto('./')

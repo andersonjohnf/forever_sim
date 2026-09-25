@@ -1,7 +1,7 @@
 // The item tooltip, WoW-style (docs/ux.md "Item tooltips"). Its lines come from item-tooltip-lines.ts
 // and when it opens from item-tooltip-open.ts. Built on shadcn's Popover, which a tap can open where
 // the Tooltip can't: on a phone nothing hovers, so a long press or the info control opens it.
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, cloneElement, Children, useId } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, cloneElement, Children, useId } from 'react'
 import type { Dispatch, FocusEvent, HTMLAttributes, MouseEvent, PointerEvent, ReactElement, ReactNode, RefObject } from 'react'
 import { Info } from 'lucide-react'
 import { Slot } from 'radix-ui'
@@ -17,6 +17,7 @@ import {
   LONG_PRESS_MS,
   LONG_PRESS_SLOP_PX,
   tooltipOpenReducer,
+  tooltipSide,
   type OpenedBy,
   type TooltipEvent,
 } from './item-tooltip-open'
@@ -102,6 +103,13 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
   const infoRef = useRef<HTMLButtonElement | null>(null)
   const anchorRef = useRef<HTMLElement | null>(null)
   const context = useMemo(() => ({ openedBy, dispatch, linesId, itemName: item.name, infoRef, anchorRef }), [openedBy, linesId, item.name])
+  // Beside the item where there's room, else the other side, else below it (a wide item): measured as it
+  // opens, before it's drawn, and kept while it closes.
+  const preferred = side ?? (wide ? 'right' : 'bottom')
+  const [placed, setPlaced] = useState(preferred)
+  useLayoutEffect(() => {
+    if (open) setPlaced(tooltipSide(preferred, anchorRef.current?.getBoundingClientRect(), document.documentElement.clientWidth))
+  }, [open, preferred])
   const within = (ref: RefObject<HTMLElement | null>, target: EventTarget | null) => target instanceof Node && !!ref.current?.contains(target)
   const { panel, border, tone } = TOOLTIP_PALETTE
   return (
@@ -110,7 +118,7 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
         {children}
         <PopoverContent
           role="tooltip"
-          side={side ?? (wide ? 'right' : 'bottom')}
+          side={placed}
           align={align}
           sideOffset={6}
           collisionPadding={8}

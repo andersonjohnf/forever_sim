@@ -57,3 +57,23 @@ export function tooltipOpenReducer(state: TooltipOpenState, event: TooltipEvent)
       return CLOSED
   }
 }
+
+export type TooltipSide = 'top' | 'right' | 'bottom' | 'left'
+
+/** The room a tooltip beside its item needs: its widest (20 rem), the 6 px gap and the 8 px clear of the edge. */
+export const BESIDE_ROOM_PX = 320 + 6 + 8
+
+/**
+ * Where the tooltip goes (docs/ux.md "Item tooltips"): beside the item on the side asked for, or the
+ * other side where that has no room, or below it where neither has, as for an item that spans the
+ * window (a gear card on a tablet, a picker row with little beside the dialog). The popover itself
+ * only flips to the opposite side, so beside a wide item it would run off the window.
+ */
+export function tooltipSide(preferred: TooltipSide, item: { left: number; right: number } | undefined, windowWidth: number): TooltipSide {
+  if (!item || preferred === 'top' || preferred === 'bottom') return preferred
+  const room = { right: windowWidth - item.right, left: item.left }
+  const other = preferred === 'right' ? 'left' : 'right'
+  if (room[preferred] >= BESIDE_ROOM_PX) return preferred
+  if (room[other] >= BESIDE_ROOM_PX) return other
+  return 'bottom'
+}

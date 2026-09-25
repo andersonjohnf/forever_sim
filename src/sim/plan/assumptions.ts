@@ -82,7 +82,7 @@ const REGISTRY = {
     docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
   },
   unbridledWrathSwings: {
-    text: 'Unbridled Wrath can also proc from Heroic Strike swings and extra attacks, as in Classic Era sims; the Forever data lists only auto attacks.',
+    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s proc mask says; untested in combat.',
     docRef: `${WAR}#23-rage-warrior-specific`,
   },
   ragingBlows: {

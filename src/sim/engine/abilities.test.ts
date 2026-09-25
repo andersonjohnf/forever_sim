@@ -632,7 +632,7 @@ describe('Unbridled Wrath (warrior.md §2.3, W22)', () => {
   function measure(config: SimConfig, heroicStrike: boolean) {
     const plan = buildPlan({ ...config, buffs: { raid: config.buffs.raid, enabled: [] } }).plan
     plan.procs = plan.procs.filter((p) => p.id === 'unbridledWrath')
-    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.swingLanded ? plan.procs.map((_p, i) => i) : []))
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.whiteLanded ? plan.procs.map((_p, i) => i) : []))
     plan.periodicRage = []
     plan.rage.maxTenths = 1e9
     const sim = new Sim(plan)
@@ -661,10 +661,10 @@ describe('Unbridled Wrath (warrior.md §2.3, W22)', () => {
     expectRate(rage, white, 2)
   })
 
-  it('also procs from Heroic Strike swings, the §2.3 default [?] (Q5)', () => {
+  it('doesn’t proc from Heroic Strike swings: its proc mask is auto attacks only (§2.3, D36)', () => {
     const { rage, white, hs } = measure({ ...defaultConfig('warrior-fury'), rotation: only('heroicStrike') }, true)
     expect(hs).toBeGreaterThan(white / 4)
-    expectRate(rage, white + hs, 1)
+    expectRate(rage, white, 1)
   })
 })
 
@@ -738,7 +738,8 @@ describe('Bloodrage (warrior.md §2.3, §5.2 row 5, W19)', () => {
     }
     let late = 0
     let afterSwap = 0
-    for (let fight = 0; fight < 40; fight++) {
+    // Fights until both kinds of late Bloodrage have come up (a few dozen), at most 400.
+    for (let fight = 0; fight < 400 && (late === 0 || afterSwap === 0); fight++) {
       casts = []
       drops = new Set()
       sim.runFight(fight)

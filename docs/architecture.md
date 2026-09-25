@@ -301,8 +301,8 @@ A spec is data plus small ability modules, never its own loop.
   hit and crit rolls, weapon bleeds such as Deep Wounds). Extra attacks follow one chain mask per
   root swing: an extra-attack source that procced from the swing, or from any extra attack after
   it, isn't rolled again in that chain (damage-and-timing §5.4).
-  Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
-  ability's swing), melee crit, the target's dodge of any attack (the Overpower window), and the
+  Triggers: melee landed, white landed (a white swing or an extra attack: the client's auto-attack
+  mask, not an on-next-swing ability's swing), melee crit, the target's dodge of any attack (the Overpower window), and the
   boss's swings on the tank: dodge or parry, dodge, parry, damage taken (a hit that cost health),
   melee taken (any landed swing), block and crit taken (combat-tables §8). A proc can need an aura to be up (Bloodthrill: your Rend on
   the target); it isn't rolled while the aura is down, and a plan without that aura leaves it out.

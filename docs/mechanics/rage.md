@@ -196,12 +196,12 @@ Attack-table probabilities, glancing, and a mob blocking your attacks are covere
   [Magey › Windfury Totem](https://github.com/magey/classic-warrior/wiki/Windfury-Totem) ("it
   converts the melee swing into a spell cast"). In Forever players see the same, "that specific
   auto attack generates zero rage" ([forum](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684)). [?]
-- **Unbridled Wrath** can proc on white hits, extra attacks and HS/Cleave swings, but not on
-  other yellow attacks. [C] Classic sims (WarriorSim, Aurana, tzcnt) all limit it to autos plus
-  HS/Cleave. In the Forever client data its proc mask is "melee auto attack" only ([F] [client]
-  (SpellAuraOptions, 1.60.1.69913)), so the HS and Cleave part is open. This default and question
-  Q5 are owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific). Confidence:
-  medium.
+- **Unbridled Wrath** procs on white hits and extra attacks only, not on HS/Cleave swings or
+  other yellow attacks: in the Forever client data its proc mask is "melee auto attack" only ([F]
+  [client] (SpellAuraOptions, 1.60.1.69913); [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)).
+  Classic sims (WarriorSim, Aurana, tzcnt) also let HS/Cleave swings proc it [C]. The rule and
+  question Q5 are owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific).
+  Confidence: medium.
 - Forever Heroic Strike rank 9 is "+157 damage", unchanged from Classic
   ([spellbook](https://foreverchanges.pro/spellbook/warrior); 25286 [client] (SpellEffect,
   1.60.1.69913)). Damage, the queue and swing timing are covered in
@@ -684,8 +684,8 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 - Tactical Mastery: 10 + 3 per rank.
 - Improved Bloodrage: 15 + 15 at 2/2.
 - Shield Specialization and Master of Defense: 5 rage per proc.
-- Unbridled Wrath: 12% per rank, 2 rage with a two-hander, default on white, extra-attack and
-  HS/Cleave swings.
+- Unbridled Wrath: 12% per rank, 2 rage with a two-hander, on white swings and extra attacks
+  (not HS/Cleave swings).
 - Boundless Rage: +10 per rank.
 - The Heroic Strike swing generates no rage.
 - Anger Management: 1 rage every 3 s.

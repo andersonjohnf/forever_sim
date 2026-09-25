@@ -2869,7 +2869,6 @@ export class Sim {
     }
     this.dealDamage(source, damage)
     this.gainRageFraction(this.normalizedRage ? this.wNormRageTenths[hand] : this.whiteDamageRageTenths(hand, damage))
-    this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
     if (crit) this.onCrit(hand)
@@ -3601,8 +3600,6 @@ export class Sim {
     if (main && this.abAura[a] >= 0 && this.abDotTicks[a] === 0) this.applyAura(this.abAura[a])
     // rogue.md §5.3: a landed Backstab opens Cutthroat's Ambush window at its chance.
     if (main && this.abOpensAura[a] >= 0 && this.rngProc.next() < this.abOpensChance[a]) this.applyAura(this.abOpensAura[a])
-    // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
-    if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
     if (crit) this.onCrit(hand)
     // docs/mechanics/character-stats.md#touch-of-the-grave: only an attack that deals damage (not Sunder Armor).

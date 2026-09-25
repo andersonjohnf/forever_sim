@@ -19,6 +19,10 @@ export const TRIGGER = {
   damageTaken: 3,
   block: 4,
   dodgeParry: 5,
+  /**
+   * Retired (D36): white swings and on-next-swing swings, for Unbridled Wrath, which now procs from
+   * auto attacks only (`whiteLanded`). Nothing fires it; the code stays so the others keep theirs.
+   */
   swingLanded: 6,
   /** The target dodged one of the player's attacks, white or special (the Overpower window, warrior.md §2.8). */
   targetDodge: 7,

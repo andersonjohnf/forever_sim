@@ -382,10 +382,11 @@ export interface AuraSpec {
 export type ProcTrigger =
   /** A white or special melee attack that landed: hit, crit, glance or block (damage-and-timing §5.3). */
   | 'meleeLanded'
-  /** A white swing (including extra attacks) that landed. */
+  /**
+   * A white swing (including extra attacks) that landed: the client's "melee auto attack" proc mask
+   * (0x4). An on-next-swing ability's swing isn't one (Unbridled Wrath, warrior.md §2.3).
+   */
   | 'whiteLanded'
-  /** A landed swing: a white swing, an extra attack, or an on-next-swing ability's replaced swing (warrior.md §2.4 item 3). */
-  | 'swingLanded'
   /** Any melee crit. */
   | 'meleeCrit'
   /** The player is hit by a damaging attack (not avoided). */

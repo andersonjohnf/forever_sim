@@ -687,8 +687,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B24. Unbridled Wrath from Heroic Strike, Cleave and extra attacks
 **Medium · M2 · ≤20 (Fury tier 2)**
-- **Assumes:** procs on white swings, extra attacks and HS/Cleave swings [C]; the Forever data's
-  proc mask is auto attacks only [F data], so the HS/Cleave part is [?].
+- **Assumes:** procs on white swings and extra attacks only, not HS/Cleave swings, as the Forever
+  data's proc mask (auto attacks) says [F data] ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25));
+  Classic sims also counted HS swings [C]. Unmeasured on the server.
 - **Test:** 5/5 Unbridled Wrath; spam Heroic Strike from a low-rage setup and log rage gains on
   HS swings vs white swings.
 - **Samples:** ≥300 Heroic Strike swings.

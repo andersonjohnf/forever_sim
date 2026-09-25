@@ -226,7 +226,7 @@ This section adds the warrior's own sources and sinks.
 | Source or modifier | Rule | Tag |
 | --- | --- | --- |
 | Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (aura 418, 100/200/300 tenths) |
-| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. The pre-SoD WarriorSim also lets Heroic Strike swings proc it (it has no Cleave). **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913) (mask 0x4, curve 12–60, energize 12964 = 10 tenths); HS/Cleave [C] [ws-player] [?] |
+| Unbridled Wrath | On every **auto attack** that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. Auto attacks are white swings of either hand and extra attacks; **Heroic Strike and Cleave swings don't proc it**, since the talent's proc mask is "melee auto attack" only and those swings are melee abilities ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). The pre-SoD WarriorSim let Heroic Strike swings proc it (it has no Cleave); the sim no longer does. Whether the server honours the mask is Q5 | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913) (12319 mask 0x4, curve 12–60, energize 12964 = 10 tenths) |
 | Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [client] (CurvePoint, 1.60.1.69913) |
 | Anger Management | +1 rage every 3 s in combat, on a fixed 3 s tick from combat start | [F] [tal]; [C] |
 | Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (2687 = 100, 29131 = 10 per s; 25/50) |
@@ -269,8 +269,8 @@ This section adds the warrior's own sources and sinks.
    [sb] [client] (SpellEffect, 1.60.1.69913) (effect 17 = non-normalized weapon damage). The
    swing rolls on the **special attack table**, so it cannot glance; see
    [combat-tables.md](../mechanics/combat-tables.md) [C] [marrow-mech].
-3. **Rage.** The replaced swing generates no damage rage [C] [marrow] [wh-fury]. It can still
-   proc Unbridled Wrath under the default in [§2.3](#23-rage-warrior-specific).
+3. **Rage.** The replaced swing generates no damage rage [C] [marrow] [wh-fury], and it doesn't
+   proc Unbridled Wrath, whose proc mask is auto attacks only ([§2.3](#23-rage-warrior-specific)).
 4. **Off-hand swings while queued.** While Heroic Strike or Cleave is queued, off-hand white
    swings use the **single-wield** miss chance: the 19% dual-wield penalty does not apply.
    Blizzard lists this as intended Classic Era behaviour ("Not a bug") [C] [bnet-hsq]
@@ -2314,9 +2314,9 @@ seed 12345). The enchants stay the spec's
   Tests check each talent's list of abilities against its client class mask. Cleave's own
   reductions (Improved Cleave, Raging Blows) arrive with Cleave, so W21's Cleave costs aren't
   tested yet.
-- **Unbridled Wrath on Heroic Strike swings** ([§2.3](#23-rage-warrior-specific) default, Q5)
-  uses a "swing landed" trigger: a landed white swing, extra attack, or on-next-swing ability's
-  swing.
+- **Unbridled Wrath from auto attacks** ([§2.3](#23-rage-warrior-specific), Q5) uses the "white
+  landed" trigger: a landed white swing of either hand or an extra attack, never an on-next-swing
+  ability's swing (D36).
 - **The execute phase.** One event at `t_exec`
   ([encounter.md implementation notes](../mechanics/encounter.md#implementation-notes)) switches
   the engine to the phase's priority list. The engine sorts the lines into two lists up front,
@@ -2824,10 +2824,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    (SpellEffect, SpellEquippedItems, 1.60.1.69913). **Test:** main-hand and off-hand miss counts
    separately over 500+ swings each, with and without the talent. Also record rage per off-hand
    hit.
-5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings and from extra
-   attacks? The data's mask is "auto attack". The pre-SoD WarriorSim counts Heroic Strike
-   swings [ws-player]. **Test:** rage gains logged while spamming Heroic Strike with a low-rage
-   setup.
+5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings? The data's mask is
+   "auto attack", so the sim procs it from white swings and extra attacks only
+   ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)); the pre-SoD WarriorSim
+   counted Heroic Strike swings [ws-player]. Nobody has checked the server. **Test:** rage gains
+   logged while spamming Heroic Strike with a low-rage setup.
 6. **Heroic Strike queue and off-hand miss.** Does a queued Heroic Strike still lift the
    dual-wield miss penalty from off-hand swings, as in Classic Era's "not a bug" [bnet-hsq]?
    A third-party beta test says yes (5.19% vs 18.27% off-hand miss over 77 and 394 swings,

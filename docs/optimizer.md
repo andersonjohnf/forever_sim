@@ -289,7 +289,7 @@ bear's effective health.
 `screenTalents` (`src/sim/optimize/screen.ts`) judges every talent the same way, by what it
 measurably does for the goal, never by its name. It takes each talent off (rank 0) and on (max
 rank) in a few contexts: the setup's own build, and a build with every talent at max, so a talent that
-acts only with another one shows up (Improved Revenge with Revenge, Berserk with Mangle); each with
+acts only with another one shows up (Improved Revenge with Revenge, Berserk with Primal Bite); each with
 the setup's rotation and every rotation variant the search tries. Then:
 
 1. If the plan is the same with and without it in every context, it changes nothing: the engine is

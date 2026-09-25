@@ -2230,6 +2230,7 @@ factions. The table is before a raid druid's Thorns joined every tank's Standard
 and nothing else moves; the paladin gained the same Thorns and its fix round's talents (823.6 TPS,
 seed 12345). The enchants stay the spec's
 ([buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
+
 ## 7. Implementation notes
 
 - **Where rank values come from.** Read talent ranks from `src/data/talents/warrior.json`.

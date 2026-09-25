@@ -3,7 +3,7 @@
 //
 // A talent is taken off (rank 0) and put on (max rank) in a few contexts: the setup's own build,
 // and a build with every talent at max (so a talent that only acts with another one, Improved
-// Revenge with Revenge or Berserk with Mangle, shows up), each with the setup's rotation and any
+// Revenge with Revenge or Berserk with Primal Bite, shows up), each with the setup's rotation and any
 // rotation variants the search tries. Then:
 // 1. If the plan is the same with and without it in every context, it changes nothing: the engine
 //    is a function of the plan alone. No fights are needed. (`none`)

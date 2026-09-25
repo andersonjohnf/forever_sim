@@ -575,7 +575,8 @@ the first round. The speeds are this machine's under load (80,000 a second on 12
 6,000 fights a second a thread; the engine does 6,000–10,000 per core by spec).
 
 **The estimate before it runs** (OGV-2). The CLI prints the ceiling before anything runs, with a
-rough time at 6,000 fights a second a thread. Once the space is known, before the race's first
+rough time at 6,000 fights a second a thread for 180-second fights, scaled by the fight's length
+(OGV2-3: a 900-second fight is 1,200 a second a thread). Once the space is known, before the race's first
 fight, the search reports `estimate` (in the `space` progress and the report): the screen's fights,
 run, and the race's budget, the most it can spend, with the time that budget takes at the pace the
 screen ran. The app's Optimize flow (O3) shows both before the player starts and before the race.

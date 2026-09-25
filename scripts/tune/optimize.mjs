@@ -198,9 +198,11 @@ const count = (n) => n.toLocaleString('en-US')
 const plural = (n, noun) => `${count(n)} ${noun}${n === 1 ? '' : 's'}`
 /**
  * A rough pace for estimates before anything has run: fights a second a thread on this machine
- * under load (docs/optimizer.md#budgets: about 80,000 a second on 12–15 threads).
+ * under load, at PACE_FIGHT_SEC-second fights (docs/optimizer.md#budgets: about 80,000 a second on
+ * 12–15 threads). A fight's cost grows with its length, so the estimate scales it (OGV2-3).
  */
 const PER_THREAD = 6000
+const PACE_FIGHT_SEC = 180
 /** Seconds as "about 40 s" or "about 5 min". */
 const duration = (seconds) => (seconds < 90 ? `about ${Math.max(1, Math.round(seconds))} s` : `about ${Math.round(seconds / 60)} min`)
 
@@ -376,9 +378,12 @@ async function main() {
     `goal: ${goal === scored ? goalText[goal] : `${goal}, which for a DPS spec is ${goalText[scored]}`}; budget ${args.budget} (${count(budget.fights)} fights)` +
       (constraints.length ? `; constraints ${constraints.map(engine.formatConstraint).join(', ')}` : ''),
   )
-  // The hard ceiling (D30, OGV-2), and roughly how long it could take, before anything runs.
+  // The hard ceiling (D30, OGV-2), and roughly how long it could take, before anything runs: the
+  // rough pace scaled by the fight's length (OGV2-3).
+  const perThread = Math.round((PER_THREAD * PACE_FIGHT_SEC) / fight.durationSec)
+  const rough = `at a rough ${count(perThread)} fights a second a thread${fight.durationSec === PACE_FIGHT_SEC ? '' : ` (${count(PER_THREAD)} at ${PACE_FIGHT_SEC} s fights, scaled to ${fight.durationSec} s)`}`
   console.log(
-    `ceiling: at most ${plural(maxFights, 'fight')} for the whole search${args['max-fights'] === undefined ? ' (the cap, thorough’s budget)' : ' (--max-fights)'}; the budget ${count(budget.fights)} is ${duration(Math.min(budget.fights, maxFights) / (threads * PER_THREAD))} and the cap ${duration(maxFights / (threads * PER_THREAD))} at a rough ${count(PER_THREAD)} fights a second a thread`,
+    `ceiling: at most ${plural(maxFights, 'fight')} for the whole search${args['max-fights'] === undefined ? ' (the cap, thorough’s budget)' : ' (--max-fights)'}; the budget ${count(budget.fights)} is ${duration(Math.min(budget.fights, maxFights) / (threads * perThread))} and the cap ${duration(maxFights / (threads * perThread))} ${rough}`,
   )
 
   const runner = threadRunner(engine, bundle, threads)
@@ -406,7 +411,7 @@ async function main() {
         for (const note of p.notes) console.log(`  note: ${note}`)
         // Before the race's first fight: the most it can run, and how long at the screen's pace (OGV-2).
         const e = p.estimate
-        const pace = e.seconds !== undefined ? `, ${duration(e.seconds)} at the screen's pace` : `, ${duration(e.raceFights / (threads * PER_THREAD))} at a rough ${count(PER_THREAD)} fights a second a thread`
+        const pace = e.seconds !== undefined ? `, ${duration(e.seconds)} at the screen's pace` : `, ${duration(e.raceFights / (threads * perThread))} ${rough}`
         console.log(`estimate: the race runs at most ${plural(e.raceFights, 'fight')}${pace}; the search at most ${plural(e.fights, 'fight')} with the screen's ${count(e.screenFights)} (the cap is ${count(p.budget.cap)})`)
       }
       if (p.phase === 'race' && p.jobsDone === p.jobs && p.round !== lastRound) {

@@ -20,7 +20,7 @@ import {
   protectionUnusedSettings as paladinProtectionUnusedSettings,
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
-import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
+import { ENHANCEMENT_APL, ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
 import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
@@ -123,6 +123,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
+  // docs/classes/shaman.md "Enhancement priority".
+  if (spec === 'shaman-enhancement') return ENHANCEMENT_APL
   return undefined
 }
 
@@ -329,7 +331,7 @@ export function classRotation(
   // docs/classes/druid.md §11.5.
   if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".
-  if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
+  if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context, order)
   // docs/classes/shaman.md "Elemental priority".
   if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context)
   // docs/classes/rogue.md §6.

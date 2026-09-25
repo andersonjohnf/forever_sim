@@ -45,24 +45,23 @@ async function noSideScroll(page: Page, what = 'no horizontal page scroll') {
   expect(overflow, what).toBeLessThanOrEqual(0)
 }
 
-/** What the Rotation tab shows by default, at any width. */
+/** What the Rotation tab shows by default, at any width: the imbue and consumables above the priority list (D31). */
 async function expectDefaultRotation(tab: Locator) {
   await expect(tab.getByText(/The defaults are the common priority\. There’s no totem twisting/)).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
   await expect(tab.getByRole('radio', { name: 'Windfury', exact: true })).toBeChecked()
   await expect(tab.getByRole('radio', { name: 'Rockbiter', exact: true })).not.toBeChecked()
-  for (const name of ['Racial cooldown', 'Rage of the Farseer', 'On-use trinkets', 'Stormstrike', 'Lightning Bolt', 'Major Mana Potion']) {
-    await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  const list = tab.getByRole('list', { name: 'Priority list' })
+  for (const name of ['Racial cooldown', 'Rage of the Farseer', 'On-use trinkets', 'Stormstrike', 'Lightning Bolt']) {
+    await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }
-  await expect(tab.getByRole('radio', { name: 'Earth Shock', exact: true })).toBeChecked()
+  await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
   // Juju Flurry and the rune wait for the Buffs tab, which the Standard raid preset leaves off.
   await expect(tab.getByRole('switch', { name: 'Juju Flurry', exact: true })).toHaveAccessibleDescription(/Not used: turn on Juju Flurry in Buffs first/)
   await expect(tab.getByRole('switch', { name: 'Demonic Rune', exact: true })).toHaveAccessibleDescription(/Not used: turn on Demonic Rune in Buffs first/)
-  // The thresholds wait behind Advanced: Lightning Bolt at 5 stacks, a shock from 10% mana.
-  const core = tab.getByRole('region', { name: 'Core abilities' })
-  await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-  await expect(core.getByRole('textbox', { name: 'Lightning Bolt at', exact: true })).toHaveValue('5')
-  await expect(core.getByRole('textbox', { name: 'Shock from', exact: true })).toHaveValue('10')
+  // The rows say their thresholds: Lightning Bolt at 5 stacks, Earth Shock from 10% mana.
+  await expect(list.locator('[data-apl-row="lightningBolt"]')).toContainText('At 5 stacks of Maelstrom Weapon')
+  await expect(list.locator('[data-apl-row="shock"]')).toContainText('Earth Shock · from 10% mana')
   const consumables = tab.getByRole('region', { name: 'Consumables' })
   await consumables.getByRole('button', { name: /^Advanced settings for Consumables/ }).click()
   await expect(consumables.getByRole('textbox', { name: 'Major Mana Potion when missing', exact: true })).toHaveValue('2,250')
@@ -130,7 +129,7 @@ test.describe('Enhancement shaman', () => {
     await expect(page.getByRole('dialog').getByText(/^Covers .+ · Shamans: Enhancement and Elemental · Rogues: .+\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: the common priority under the usual headings, its thresholds behind Advanced, and no other class’s words', async ({ page }) => {
+  test('its Rotation tab: the imbue and consumables above the common priority’s list, the rows’ thresholds in their summaries, and no other class’s words', async ({ page }) => {
     await switchToShaman(page)
     await expectDefaultRotation(await openTab(page, 'Rotation'))
   })
@@ -186,9 +185,12 @@ test.describe('Enhancement shaman', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await switchToShaman(page)
     const tab = await openTab(page, 'Rotation')
-    await tab.getByRole('radio', { name: 'Frost Shock', exact: true }).click()
+    // The shock is the Shock row's setting, beside the list on a desktop.
+    await tab.getByRole('button', { name: 'Shock', exact: true }).click()
+    const shock = page.getByRole('complementary', { name: 'Shock settings' })
+    await shock.getByRole('radio', { name: 'Frost Shock', exact: true }).click()
     await tab.getByRole('switch', { name: 'Rage of the Farseer', exact: true }).click()
-    await expect(tab.getByRole('radio', { name: 'Frost Shock', exact: true })).toBeChecked()
+    await expect(shock.getByRole('radio', { name: 'Frost Shock', exact: true })).toBeChecked()
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const url = await page.evaluate(() => navigator.clipboard.readText())
@@ -202,8 +204,7 @@ test.describe('Enhancement shaman', () => {
     await expect(other.getByRole('button', { name: SPEC })).toBeVisible()
     await other.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const shared = other.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(shared.getByRole('radio', { name: 'Frost Shock', exact: true })).toBeChecked()
-    await expect(shared.getByRole('radio', { name: 'Earth Shock', exact: true })).not.toBeChecked()
+    await expect(shared.locator('[data-apl-row="shock"]')).toContainText('Frost Shock · from 10% mana')
     await expect(shared.getByRole('switch', { name: 'Rage of the Farseer', exact: true })).not.toBeChecked()
     await expect(shared.getByRole('switch', { name: 'Stormstrike', exact: true })).toBeChecked()
     expect(new URL(other.url()).hash).toBe('')

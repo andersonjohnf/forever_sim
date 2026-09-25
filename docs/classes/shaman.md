@@ -432,8 +432,9 @@ All pre-August-2021 Wayback snapshots, [C]:
 ### Forever priority list (default)
 
 Evaluated top to bottom whenever the shaman is free. Setting ids are `shaman.enhancement.<x>`
-(written without the prefix below), in the Rotation tab's groups. A mana threshold is a share of
-maximum mana.
+(written without the prefix below). Rows 1–3 and 5–7 are the Rotation tab's priority list
+([below](#the-priority-list-a2)); the imbue and the consumables are its spec-wide settings. A mana
+threshold is a share of maximum mana.
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -441,7 +442,7 @@ maximum mana.
 | 1 | Blood Fury (Orc) or Berserking (Troll), off the GCD | `racial.enabled`; on cooldown from the pull | on |
 | 2 | Rage of the Farseer, off the GCD | `rageOfTheFarseer.enabled`, with the talent; on cooldown | on |
 | 3 | On-use trinkets (Earthstrike), off the GCD | `trinkets.enabled`; on cooldown | on |
-| 4 | Juju Flurry, off the GCD | `jujuFlurry.enabled`, with Juju Flurry selected in Buffs (Max consumables); on cooldown | on |
+| 4 | Juju Flurry, off the GCD, with row 3 | `jujuFlurry.enabled`, with Juju Flurry selected in Buffs (Max consumables); on cooldown | on |
 | 5 | Stormstrike | `stormstrike.enabled`, with the talent; ready | on |
 | 6 | Lightning Bolt | `lightningBolt.enabled`, with Maelstrom Weapon; at least `lightningBolt.minStacks` stacks (1–5) | on, 5 stacks |
 | 7 | The shock: Earth Shock, Frost Shock or none | `shock.spell`; ready and mana ≥ `shock.minManaPct` (0–100%) | Earth Shock, 10% |
@@ -450,6 +451,37 @@ maximum mana.
 
 The Rotation tab says: "The defaults are the common priority. There's no totem twisting: in
 Forever, Windfury Totem is an aura that ends with the totem."
+
+### The priority list (A2)
+
+Since M5.65 A2 rows 1–7 above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`ENHANCEMENT_APL` in `enhancement.ts`), in this order, each with its switch and its own settings.
+Each row keeps its conditions wherever you move it:
+
+| Row (`id`) | Switch | Its settings | Condition |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | on cooldown (row 1) |
+| Rage of the Farseer (`rageOfTheFarseer`) | `rageOfTheFarseer.enabled` | | with the talent, on cooldown (row 2) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown (row 3); Juju Flurry (row 4) takes its turn here |
+| Stormstrike (`stormstrike`) | `stormstrike.enabled` | | with the talent, on cooldown (row 5) |
+| Lightning Bolt (`lightningBolt`) | `lightningBolt.enabled` | `lightningBolt.minStacks` | with Maelstrom Weapon, at the stacks (row 6) |
+| Shock (`shock`) | — (`None` in its choice) | `shock.spell`, `shock.minManaPct` | ready, mana ≥ the share (row 7) |
+
+- **Pinned:** nothing. The imbue goes on 3 s before the pull whatever the order.
+- **Spec-wide, above the list:** the weapon imbue (row 0), and the consumables: Juju Flurry, the
+  Major Mana Potion and Demonic Rune with their mana limits, under Consumables. Juju Flurry takes its
+  turn in the list with the on-use trinkets' row, wherever that sits, as it did before the list;
+  the potion and rune come after the list, off the GCD once all they restore fits.
+- **No named rotations:** the implicit Default only, the common priority (D27).
+- **Equivalence:** in the default order every plan is the one it was before the list, byte for
+  byte: 200 random setups (settings, talents, race, relic, on-use trinkets, Buffs, fight and
+  rules) are fingerprinted against the code before it (`enhancement-apl.test.ts`).
+- **What reordering does:** the rows off the GCD (1–4) are pressed as soon as they're ready
+  wherever they sit, so their place matters only when two are ready at once. Rows 5–7 share the
+  GCD: a row moved up takes it first when both are ready (the shock above Stormstrike spends its
+  mana before Stormstrike does). Not measured yet: the tuning milestone searches the order (D27,
+  D30).
 
 ---
 

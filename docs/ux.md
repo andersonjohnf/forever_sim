@@ -39,9 +39,27 @@ When a design decision isn't covered here, make it, then add it here.
 
 | Width | Layout |
 | --- | --- |
-| **≥ 1024 px** | A header, then two columns. **Left:** the setup, as section tabs. **Right:** a sticky results panel with the Simulate button. |
+| **≥ 1920 px** | As wide, and the results pane is 38% of the page, between 46 and 68 rem (`3xl:`, a breakpoint of its own in `src/index.css`). The page stops growing at 2560 px and sits centred. |
+| **1440–1919 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`). The header spans the same width. The setup takes the rest and the results pane is 30 rem, 32 px from it. |
+| **1024–1439 px** | A header, then two columns, capped at 1280 px. **Left:** the setup, as section tabs. **Right:** a sticky results panel, 22 rem, with the Simulate button. |
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
+
+**From 1024 px, where the results sit beside the setup,** the first thing in the page is a **Skip to
+results** link, hidden until it has keyboard focus (then a 44 px button at the top left, over the
+header). It moves focus to the results pane, so the next Tab reaches Simulate; the pane takes focus
+only then. It moves focus in script, not by its `#results` hash, which share links own.
+
+**At every desktop width the results pane never runs past the viewport:** it's sticky, and its
+details scroll inside it, with a fade at each edge that has more past it ([Results](#results)).
+
+**Container queries, not breakpoints, lay out what's inside the panes.** From 1440 px the setup
+pane is the container `setup` and the results pane the container `results` (Tailwind's
+`@container/setup` and `@container/results`), so a section styles itself by the width it
+actually has (`@min-[56rem]/setup:…`). Below 1440 px neither is a container, so those queries
+match nothing and the layouts under 1440 px stay as they are. Only the shell (`src/App.tsx`, the
+header, the section tabs) uses the `wide:` and `3xl:` breakpoints; `useIsWide()` in
+`src/hooks/use-media-query.ts` is its script's twin.
 
 **Header:** the Decades lockup ([Brand](#brand)): the guild's crest, "Forever Sim" (the page's one
 `<h1>`) and "Decades" under it, one link to the guild's site; on phones only the crest shows,
@@ -134,7 +152,9 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
 (manual activation), so focus coming back from a toast never switches the tab. Opening a tab
 from further down the page scrolls up to the new section's top, just under the sticky tabs
 (smoothly, unless reduced motion is asked for), so its header and any note under it (Classic
-Era's) start in view rather than under the tabs.
+Era's) start in view rather than under the tabs. From 1440 px a tab can carry a **summary line**
+under its label, in muted 12 px text, and the tabs grow to 56 px; the tab's accessible name stays
+its label and the summary is its description (`src/app/section-tabs.tsx`).
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 Each opens with its title and a short intro. An action (Reset rotation, the gear menu) sits on the

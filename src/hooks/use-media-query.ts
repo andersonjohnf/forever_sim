@@ -14,3 +14,6 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export const useIsDesktop = () => useMediaQuery('(min-width: 1024px)')
+
+/** The wide desktop layout, from 1440 px (docs/ux.md#layout; the `wide:` breakpoint in src/index.css). */
+export const useIsWide = () => useMediaQuery('(min-width: 1440px)')

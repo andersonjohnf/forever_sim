@@ -77,9 +77,10 @@ export function Header() {
       {/*
        * Below 360 px the row's edge and gaps tighten, and the crest and the More button reach a little
        * into the edge, so the widest spec's name ("Marksmanship") still fits at 320 px; a longer one
-       * would truncate in the switcher. Never a sideways scroll (docs/ux.md#layout).
+       * would truncate in the switcher. Never a sideways scroll (docs/ux.md#layout). From 1440 px it
+       * spans the page's width, as the page does (src/App.tsx).
        */}
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 max-[360px]:gap-1 max-[360px]:px-3">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 max-[360px]:gap-1 max-[360px]:px-3 wide:max-w-[160rem] wide:px-6">
         <Lockup />
         <SpecSwitcher />
         <div className="ml-auto flex items-center gap-1 max-[360px]:-mr-1.5 max-[360px]:gap-0">

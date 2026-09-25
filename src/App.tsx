@@ -3,12 +3,12 @@ import { Announcer } from '@/app/announcer'
 import { DecadesCredit } from '@/app/decades-credit'
 import { useDefaultsNotice } from '@/app/defaults-notice'
 import { Header } from '@/app/header'
-import { useScrollFade } from '@/app/scroll-fade'
+import { SectionTabs } from '@/app/section-tabs'
 import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
 import { useSharedLink } from '@/app/shared-link'
 import { WhatsNew } from '@/app/whats-new'
 import { DataAttribution } from '@/components/data-attribution'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { BuffsSection } from '@/features/buffs/buffs-section'
 import { CharacterSection } from '@/features/character/character-section'
 import { FightSection } from '@/features/fight/fight-section'
@@ -53,30 +53,6 @@ function useSimBarHeight() {
 }
 
 /**
- * Keeps the bottom edge of the sticky section tabs (their sticky offset under the header, plus
- * their height) in --sticky-top, so keyboard focus scrolls clear of the header and the tabs
- * (WCAG 2.4.11; the page's scroll padding, src/index.css).
- */
-function useStickyTop() {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const bar = ref.current
-    if (!bar) return
-    const root = document.documentElement
-    const observer = new ResizeObserver(() => {
-      const top = Number.parseFloat(getComputedStyle(bar).top) || 0
-      root.style.setProperty('--sticky-top', `${top + bar.getBoundingClientRect().height}px`)
-    })
-    observer.observe(bar)
-    return () => {
-      observer.disconnect()
-      root.style.removeProperty('--sticky-top')
-    }
-  }, [])
-  return ref
-}
-
-/**
  * After a tab switch, the new section starts at its top, just under the sticky tabs, rather than
  * wherever the last one was scrolled to, which could leave its header and notes (the Classic Era
  * note) under the tabs (docs/ux.md#layout). It only ever scrolls up, smoothly unless reduced motion
@@ -95,17 +71,42 @@ function scrollToSectionTop(section: Section) {
 export default function App() {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
-  const { ref: tabsRef, fade } = useScrollFade<HTMLDivElement>(section)
   const simBar = useSimBarHeight()
-  const tabBar = useStickyTop()
+  const results = useRef<HTMLElement>(null)
   useDefaultsNotice()
   useSharedLink()
 
   return (
     <div className="min-h-svh bg-background">
+      {/*
+       * First in the page from 1024 px, where the results sit beside the setup, and hidden until
+       * focused (docs/ux.md#layout). It moves focus in script rather than by its hash, which the
+       * share links own (src/app/shared-link.ts).
+       */}
+      <a
+        href="#results"
+        onClick={(event) => {
+          event.preventDefault()
+          // Focusable only while the link sends focus there, so a click in the pane still leaves it on the page.
+          const pane = results.current
+          if (!pane) return
+          pane.tabIndex = -1
+          pane.addEventListener('blur', () => pane.removeAttribute('tabindex'), { once: true })
+          pane.focus()
+        }}
+        className="sr-only max-lg:hidden focus:not-sr-only focus:fixed focus:top-1.5 focus:left-4 focus:z-50 focus:inline-flex focus:h-11 focus:items-center focus:rounded-lg focus:border focus:bg-background focus:px-4 focus:text-sm focus:font-medium focus:shadow-md focus:ring-3 focus:ring-ring/50 focus:outline-none"
+      >
+        Skip to results
+      </a>
       <Header />
-      {/* The bottom padding clears the phone's sim bar. */}
-      <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12">
+      {/*
+       * The bottom padding clears the phone's sim bar. From 1440 px (the wide layout, D34) the page
+       * fills the window up to 2560 px, with 24 px gutters, and the results pane widens: 30 rem, and
+       * from 1920 px 38% of the page between 46 and 68 rem. Each pane is a named container from
+       * 1440 px (setup, results), so a section styles itself by its own width there, and container
+       * queries match nothing below it.
+       */}
+      <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12 wide:max-w-[160rem] wide:grid-cols-[minmax(0,1fr)_30rem] wide:gap-8 wide:px-6 3xl:grid-cols-[minmax(0,1fr)_clamp(46rem,38%,68rem)]">
         {/*
          * Manual activation: arrow keys move between tabs, Enter or Space opens one. Sonner hands
          * focus back to where it was when you leave the toasts, so with automatic activation a tab
@@ -120,30 +121,9 @@ export default function App() {
             requestAnimationFrame(() => scrollToSectionTop(v as Section))
           }}
           activationMode="manual"
-          className="min-w-0 gap-0"
+          className="min-w-0 gap-0 wide:@container/setup"
         >
-          <div
-            ref={tabBar}
-            data-sticky-tabs
-            className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0"
-          >
-            {/*
-             * On narrow screens the tabs scroll sideways, and a fade marks each edge with more past
-             * it. Tabs are 44 px tall (docs/ux.md principle 4), their underline on the bar's edge.
-             */}
-            <TabsList
-              ref={tabsRef}
-              variant="line"
-              data-fade={fade}
-              className="w-full justify-start gap-1 overflow-x-auto [scrollbar-width:none] group-data-horizontal/tabs:h-[50px] data-[fade=both]:[mask-image:linear-gradient(to_right,transparent,black_3rem,black_calc(100%-3rem),transparent)] data-[fade=left]:[mask-image:linear-gradient(to_left,black_calc(100%-3rem),transparent)] data-[fade=right]:[mask-image:linear-gradient(to_right,black_calc(100%-3rem),transparent)]"
-            >
-              {SECTIONS.map((s) => (
-                <TabsTrigger key={s.id} value={s.id} className="h-11 flex-none px-3 group-data-horizontal/tabs:after:bottom-[-3px]">
-                  {s.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+          <SectionTabs sections={SECTIONS} active={section} />
           {SECTIONS.map(({ id, content: Content }) => (
             // data-section: a control that opens this tab moves focus here (src/app/section-focus.ts).
             <TabsContent key={id} value={id} data-section={id} className="pt-6">
@@ -156,7 +136,8 @@ export default function App() {
             <DecadesCredit />
           </footer>
         </Tabs>
-        <aside className="hidden lg:block" aria-label="Results">
+        {/* The skip link's target: focus lands on the pane, and Tab goes on into it. */}
+        <aside ref={results} id="results" className="hidden outline-none lg:block wide:@container/results" aria-label="Results">
           <div className="sticky top-20 pt-6">
             <ResultsPanel />
           </div>

@@ -502,7 +502,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     53 rem setup pane (every width from 1440 px, whose pane is 55 rem, 54 beside a classic scrollbar;
     D34) each of their cards flows its rows into two columns, as the Buffs tab's groups do,
     reading across, with a rule between them; a last row alone on its line takes both, and a
-    dependent setting stays under its parent, in its cell. Under
+    dependent setting stays under its parent, in its cell. There a choice's options sit under its
+    label, sharing the cell's width (a warlock's Demon), so its help isn't squeezed beside them. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
   - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).

@@ -61,7 +61,7 @@ export function OptionList({
       <ul className="mb-2 ml-4 flex flex-col border-l">
         {children.map((child) => (
           <li key={child.id}>
-            <OptionRow option={child} ctx={ctx} nested stacked={stacked} rowSwitch={rowSwitch} />
+            <OptionRow option={child} ctx={ctx} nested stacked={stacked} flow={flow} rowSwitch={rowSwitch} />
             {renderChildren(child.id)}
           </li>
         ))}
@@ -76,7 +76,7 @@ export function OptionList({
         key: option.id,
         node: (
           <>
-            <OptionRow option={option} ctx={ctx} stacked={stacked} rowSwitch={rowSwitch} />
+            <OptionRow option={option} ctx={ctx} stacked={stacked} flow={flow} rowSwitch={rowSwitch} />
             {renderChildren(option.id)}
           </>
         ),
@@ -131,15 +131,23 @@ function OptionRow({
   ctx,
   nested = false,
   stacked = false,
+  flow = false,
   rowSwitch,
 }: {
   option: RotationOption
   ctx: RowContext
   nested?: boolean
   stacked?: boolean
+  /**
+   * In a card whose rows flow into two columns (OptionList's `flow`): there a choice's options go
+   * under its label, sharing the cell's width, since half the pane beside them would squeeze its
+   * help to a word a line (docs/ux.md "Rotation").
+   */
+  flow?: boolean
   rowSwitch?: string
 }) {
   const row = ctx.rows.get(option.id)!
+  const flowStack = flow && option.kind === 'choice'
   const pad = nested ? 'px-4 py-3' : 'p-4'
   if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} name={option.id === rowSwitch ? `Use ${option.label}` : undefined} />
   const ids = rowIds(option.id)
@@ -150,6 +158,7 @@ function OptionRow({
         // Number inputs and choices go under their label on a phone, and in a narrow panel.
         'flex flex-col gap-3',
         !stacked && 'sm:flex-row sm:items-center sm:justify-between',
+        flowStack && '@min-[53rem]/setup:flex-col @min-[53rem]/setup:items-stretch',
         pad,
         // Room for the Reset's hit area below its line, clear of the control under it on a phone
         // and of the next row (LINK_HIT_AREA).
@@ -185,7 +194,7 @@ function OptionRow({
           // where they don't (a phone, the desktop panel beside the list); four sit two to a line
           // on a phone, so a line never holds three and one. No name is ever clipped, nor the page
           // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts).
-          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap')}
+          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap', flowStack && '@min-[53rem]/setup:w-full @min-[53rem]/setup:flex-wrap')}
         >
           {option.choices.map((choice) => (
             <ToggleGroupItem
@@ -195,6 +204,7 @@ function OptionRow({
                 'h-11 min-w-fit flex-1 px-4',
                 option.choices.length === 4 && 'max-[27rem]:basis-[calc(50%-0.25rem)]',
                 !stacked && 'sm:flex-none',
+                flowStack && '@min-[53rem]/setup:flex-1',
                 CHOICE_ITEM,
                 row.inactive && CHOICE_ITEM_INACTIVE,
               )}

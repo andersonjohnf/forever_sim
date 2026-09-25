@@ -115,6 +115,52 @@ test.describe('the Rotation tab at wide widths', () => {
   }
 })
 
+/** Every spec, as src/sim/specs.ts lists them. */
+const SPEC_IDS = ['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'druid-balance', 'paladin-retribution', 'paladin-protection', 'shaman-enhancement', 'shaman-elemental', 'rogue-combat', 'rogue-assassination', 'rogue-subtlety', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow', 'hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival']
+
+test.describe('every spec’s spec-wide settings in two columns', () => {
+  // At 1440 px each column is about 27 rem, the narrowest: a choice's options go under its label
+  // there, sharing the cell, so no label or help is squeezed beside them, and no option is clipped.
+  for (const viewport of [1440, 1920]) {
+    test(`at ${viewport} px every row keeps room for its words, and every option fits its cell`, async ({ page }) => {
+      test.setTimeout(120_000)
+      await page.setViewportSize({ width: viewport, height: 1000 })
+      const problems: string[] = []
+      await page.goto('./')
+      for (const spec of SPEC_IDS) {
+        // Each spec's default setup, opened on its Rotation tab.
+        await page.evaluate(
+          (spec) => localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec }, bySpec: {}, section: 'rotation' }, version: 1 })),
+          spec,
+        )
+        await page.reload()
+        const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+        await expect(tab.getByRole('list', { name: 'Priority list' })).toBeVisible()
+        const found = await tab.evaluate((root) => {
+          const out: string[] = []
+          // The flowing cards: lists laid out as grids above the priority list.
+          const cells = [...root.querySelectorAll('ul')].filter((ul) => getComputedStyle(ul).display === 'grid').flatMap((ul) => [...ul.children])
+          for (const cell of cells) {
+            const box = cell.getBoundingClientRect()
+            for (const label of cell.querySelectorAll('label, [id$="-label"]')) {
+              const words = label.closest('div, span')!.getBoundingClientRect()
+              if (words.width < 12 * 16) out.push(`${label.textContent}: ${Math.round(words.width)} px for its words`)
+            }
+            for (const item of cell.querySelectorAll('[data-slot="toggle-group-item"]')) {
+              const r = item.getBoundingClientRect()
+              if (item.scrollWidth > item.clientWidth + 0.5 || r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`${item.textContent} clipped or outside its cell`)
+            }
+          }
+          return out
+        })
+        problems.push(...found.map((f) => `${spec}: ${f}`))
+      }
+      expect(problems).toEqual([])
+      await noSidewaysScroll(page)
+    })
+  }
+})
+
 test.describe('the Talents tab at wide widths', () => {
   /** The rendered size of a talent's icon. */
   const iconSize = (page: Page, name: string) =>

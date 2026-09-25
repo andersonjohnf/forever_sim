@@ -31,3 +31,17 @@ No UI changes, so no UX review; the verification pass loaded the 404 page in bot
 
 The gate passes for the hosting work: nothing the fixes introduced at medium or worse. The first
 deploy to `forever-sim` happens with this release; a failure there doesn't block Pages.
+
+## The cutover (5a449686, 487cb07f)
+
+The user checked the first Firebase deploy, pointed `sim.decades.gg` at the site and unpublished
+Pages; 5a449686 removes the Pages deploy job and the docs' Pages wording. A quick fresh check:
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| V7-1 | low | introduced | Three code comments still named Pages as the host. | Fixed, 487cb07f. |
+| V7-2 | low | introduced | One concurrency group for every ref let a hand-run from a branch cancel main's waiting run. | Fixed, 487cb07f: keyed by ref. |
+| V7-3 | low | pre-existing | An unused `github-pages` environment is left in the repository settings. | No change; harmless, the user may delete it. |
+
+A quick check of 487cb07f found nothing (actionlint clean). `https://sim.decades.gg/` serves from
+Firebase with its certificate.

@@ -40,9 +40,10 @@ export function OptionList({
   ctx: RowContext
   stacked?: boolean
   /**
-   * The tab's spec-wide settings above the list: from an 80 rem setup pane (1440 px and wider,
-   * where the pane is a container), their rows flow into two columns, so a switch isn't a whole
-   * pane's width from its name (docs/ux.md "Rotation").
+   * The tab's spec-wide settings above the list: from a 53 rem setup pane (every width from 1440 px,
+   * where the pane is a container and 55 rem, 54 beside a classic scrollbar), their rows flow into
+   * two columns, as the Buffs tab's groups do, so a switch isn't a whole pane's width from its name
+   * (docs/ux.md "Rotation", DB-5).
    */
   flow?: boolean
   /**
@@ -82,7 +83,7 @@ export function OptionList({
       })),
   ]
   return (
-    <ul className={cn('flex flex-col divide-y overflow-hidden rounded-xl border', flow && '@min-[80rem]/setup:grid @min-[80rem]/setup:grid-cols-2 @min-[80rem]/setup:divide-y-0')}>
+    <ul className={cn('flex flex-col divide-y overflow-hidden rounded-xl border', flow && '@min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-2 @min-[53rem]/setup:divide-y-0')}>
       {top.map(({ key, node }, i) => (
         <li key={key} className={flow ? flowCell(i, top.length) : undefined}>
           {node}
@@ -99,7 +100,7 @@ export function OptionList({
  */
 function flowCell(i: number, count: number): string {
   const spans = i === count - 1 && i % 2 === 0
-  return cn(i >= 2 && '@min-[80rem]/setup:border-t', spans ? '@min-[80rem]/setup:col-span-2' : i % 2 === 0 && '@min-[80rem]/setup:border-r')
+  return cn(i >= 2 && '@min-[53rem]/setup:border-t', spans ? '@min-[53rem]/setup:col-span-2' : i % 2 === 0 && '@min-[53rem]/setup:border-r')
 }
 
 /**

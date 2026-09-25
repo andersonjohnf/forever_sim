@@ -59,10 +59,12 @@ export function TalentsSection() {
   }, [meta.classId, meta.id])
   const isDesktop = useIsDesktop()
   // From 1440 px the talents report the pointer and focus to the detail panel beside the trees,
-  // which shows from a 90 rem setup pane (talent-detail-panel.tsx).
+  // which shows from an 80 rem setup pane (talent-detail-panel.tsx). While it shows, the pointer
+  // doesn't also open a talent's tooltip (DB-7); focus still does.
   const wide = useIsWide()
   const tracker = useTalentTracker()
   const finePointer = useMediaQuery('(hover: hover) and (pointer: fine)')
+  const [panelShown, setPanelShown] = useState(false)
   const [treeIndex, setTreeIndex] = useState(() => perTree.indexOf(Math.max(...perTree)))
   const [importOpen, setImportOpen] = useState(false)
   const presetsRef = useRef<HTMLButtonElement>(null)
@@ -155,10 +157,10 @@ export function TalentsSection() {
       </div>
 
       {isDesktop ? (
-        // From a 64 rem setup pane (1440 px and wider, where the pane is a container) each tree's
-        // card stops at 26 rem and the three sit centred; from 90 rem the detail panel sits beside
-        // them (docs/ux.md "Talents").
-        <div className="@min-[90rem]/setup:grid @min-[90rem]/setup:grid-cols-[minmax(0,1fr)_22rem] @min-[90rem]/setup:items-start @min-[90rem]/setup:gap-6">
+        // From a 64 rem setup pane (about 1,660 px; the pane is a container only from 1440 px) each
+        // tree's card stops at 26 rem and the three sit centred; from 80 rem (about 2,040 px) the
+        // detail panel sits beside them, a tree's gap away (docs/ux.md "Talents"; the fit is worked in talent-detail-panel.tsx).
+        <div className="@min-[80rem]/setup:grid @min-[80rem]/setup:grid-cols-[minmax(0,1fr)_22rem] @min-[80rem]/setup:items-start @min-[80rem]/setup:gap-4">
           <div className="grid grid-cols-3 gap-4 @min-[64rem]/setup:grid-cols-[repeat(3,minmax(0,26rem))] @min-[64rem]/setup:justify-center">
             {data.trees.map((tree, i) => (
               <TreeGrid
@@ -170,10 +172,11 @@ export function TalentsSection() {
                 setRanks={setRanks}
                 finePointer={finePointer}
                 tracker={wide ? tracker : undefined}
+                hoverTip={!panelShown}
               />
             ))}
           </div>
-          {wide && <TalentDetailPanel data={data} ranks={ranks} tracker={tracker} />}
+          {wide && <TalentDetailPanel data={data} ranks={ranks} tracker={tracker} onShownChange={setPanelShown} />}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -239,6 +242,7 @@ function TreeGrid({
   setRanks,
   finePointer,
   tracker,
+  hoverTip = true,
 }: {
   data: TalentData
   tree: TalentTree
@@ -247,6 +251,7 @@ function TreeGrid({
   setRanks: (ranks: TalentRanksById) => void
   finePointer: boolean
   tracker?: TalentTracker
+  hoverTip?: boolean
 }) {
   const talents = tree.talents.filter((t) => t.inForeverTree)
   const rows = Math.max(...talents.map((t) => t.tier)) + 1
@@ -260,7 +265,7 @@ function TreeGrid({
       <div className="grid grid-cols-4 gap-x-2 gap-y-3" style={{ gridTemplateRows: `repeat(${rows}, auto)` }}>
         {talents.map((talent) => (
           <div key={talent.id} className="flex justify-center" style={{ gridRow: talent.tier + 1, gridColumn: talent.col + 1 }}>
-            <TalentCell data={data} talent={talent} ranks={ranks} setRanks={setRanks} finePointer={finePointer} tracker={tracker} />
+            <TalentCell data={data} talent={talent} ranks={ranks} setRanks={setRanks} finePointer={finePointer} tracker={tracker} hoverTip={hoverTip} />
           </div>
         ))}
       </div>
@@ -275,6 +280,7 @@ function TalentCell({
   setRanks,
   finePointer,
   tracker,
+  hoverTip = true,
 }: {
   data: TalentData
   talent: Talent
@@ -283,6 +289,11 @@ function TalentCell({
   finePointer: boolean
   /** The wide tab's detail panel's, from 1440 px: this talent under the pointer, or focused. */
   tracker?: TalentTracker
+  /**
+   * Whether pointing at the talent opens its tooltip: not while the detail panel shows the same
+   * text (DB-7). Keyboard focus opens it either way.
+   */
+  hoverTip?: boolean
 }) {
   const rank = ranks[talent.id] ?? 0
   const addable = canAdd(data, ranks, talent)
@@ -312,6 +323,9 @@ function TalentCell({
       aria-keyshortcuts="Backspace"
       onClick={finePointer ? tryAdd : undefined}
       onPointerEnter={tracker && (() => tracker.enter(talent.id))}
+      // Radix's tooltip opens on pointermove unless the event's default is prevented, so this keeps
+      // the pointer from opening it while the panel shows the talent; focus still opens it.
+      onPointerMove={hoverTip ? undefined : (e) => e.preventDefault()}
       onPointerLeave={tracker && (() => tracker.leave(talent.id))}
       onFocus={tracker && (() => tracker.focus(talent.id))}
       onBlur={tracker && (() => tracker.blur(talent.id))}

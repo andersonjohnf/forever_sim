@@ -3,7 +3,7 @@ import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Sections" (Character, Buffs, Fight): in the wide layout (D34) these three reflow by
 // the setup pane's own width, with container queries on `setup`. Buffs' groups flow into 2 columns
-// from a 53 rem pane and 3 from 84 rem; Character puts the racials beside the races, and Fight puts
+// from a 53 rem pane and 3 from 84 rem (a window of about 2,140 px); Character puts the racials beside the races, and Fight puts
 // Advanced beside the fight, from 53 rem. A 1440 px window's pane is 55 rem, or 54 beside a
 // scrollbar that takes room, so all three apply from 1440. Under 1440 px the pane isn't a
 // container, so nothing changes there (the rest of the suite runs at 1280).

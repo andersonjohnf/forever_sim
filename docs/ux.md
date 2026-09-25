@@ -192,19 +192,28 @@ Era's) start in view rather than under the tabs. A tab is its label alone at eve
 **Your setup's lines** (the wide panel, from 1440 px, decision D34): under each section's name,
 what it holds, so the whole setup reads at a glance. Each line uses the rule its own tab uses to
 say the same thing (`src/app/section-summary.ts`), so it never disagrees with the tab, and stays
-within 24 characters, about what fits on one line in a column of Your setup at 1440 px (two
-columns of a 30 rem panel):
+within 30 characters, what fits on one line in a column of Your setup at 1440 px (two columns of a
+30 rem panel), beside a classic scrollbar: measured, the column holds 216 px and the longest real
+line, "Tauren · Classic Era · changed", about 195 (`e2e/wide-panel.spec.ts`). A Character or Fight
+line ends "· changed" when another of its tab's settings differs from the spec's default, by the
+tab's own test (review finding DL2-6): it says there's more to see there without listing it.
+Where a line would run long, what it names gives way to "changed", which is the one that says to
+look.
 - **Character:** the race, and the rules when they aren't Forever's: "Human", "Orc · Classic
-  Era". A Skyborne race drops its faction variant only when the rules would push it past the
-  width: "Skyborne · Classic Era".
+  Era"; "Human · changed" when the untested ratings, or a paladin's Judgement of the Crusader or
+  a Protection paladin's Hammer of the Righteous rule, aren't the default. A Skyborne race drops
+  its faction variant when the line would run long ("Skyborne · Classic Era"), then the rules
+  ("Night Elf · changed" in place of 33 characters).
 - **Talents:** the points in each tree, in tree order: "17/34/0".
 - **Gear:** "Pre-raid best in slot" (a tank's "Threat set") while every slot holds the default
   set, by the Gear tab's own comparison; "No gear" with every slot empty (after Remove all gear);
   otherwise "1 slot changed", "3 slots changed".
 - **Buffs:** the preset the Buffs tab's picker shows ("Standard raid"), or "Custom".
 - **Rotation:** the preset the Rotation tab's picker shows ("Default", "Balanced"), or "Custom".
-- **Fight:** the length as the Fight tab shows it ("3:00"), and the boss's level only when it
-  isn't a raid boss's 63: "3:00 · level 62".
+- **Fight:** the length as the Fight tab shows it ("3:00"), the boss's level only when it isn't
+  a raid boss's 63 ("3:00 · level 62"), and "changed" when any other setting the tab shows
+  differs from its default (armor, position, execute, Advanced's): "3:00 · changed", "15:00 ·
+  level 60 · changed".
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 Each opens with its title and a short intro. An action (Reset rotation, the gear menu) sits on the

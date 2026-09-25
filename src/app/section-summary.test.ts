@@ -146,6 +146,64 @@ describe('sectionSummaries', () => {
       expect(changedSections(base, lower)).toEqual(['fight'])
       expect(sectionSummaries(lower).fight).toBe('3:00 · level 62')
     })
+
+    // Review finding DL2-6: a setting the line doesn't name still shows it's been changed.
+    it('Fight: a setting the line doesn’t name adds "changed", with the level where it’s named', () => {
+      for (const fight of [{ bossArmor: base.fight.bossArmor + 1 }, { durationVariationPct: 0 }, { zone: base.fight.zone === 'other' ? ('hyjal' as const) : ('other' as const) }]) {
+        const after = { ...base, fight: { ...base.fight, ...fight } }
+        expect(changedSections(base, after), JSON.stringify(fight)).toEqual(['fight'])
+        expect(sectionSummaries(after).fight).toBe('3:00 · changed')
+      }
+      const seeded = { ...base, run: { ...base.run, seed: base.run.seed + 1 } }
+      expect(sectionSummaries(seeded).fight).toBe('3:00 · changed')
+      const lower = { ...seeded, fight: { ...seeded.fight, bossLevel: 62, durationSec: 900 } }
+      expect(sectionSummaries(lower).fight).toBe('15:00 · level 62 · changed')
+    })
+
+    it('Character: a rule the line doesn’t name adds "changed", after the rules profile', () => {
+      const ratings = { ...base, rules: { ...base.rules, unmeasuredRatings: base.rules.unmeasuredRatings === 'apply' ? ('ignore' as const) : ('apply' as const) } }
+      expect(changedSections(base, ratings)).toEqual(['character'])
+      expect(sectionSummaries(ratings).character).toBe(`${DEFAULTS[spec][0]} · changed`)
+      const classic = { ...ratings, rules: { ...ratings.rules, profile: 'classicEra' as const } }
+      expect(sectionSummaries(classic).character).toBe(`${DEFAULTS[spec][0]} · Classic Era · changed`)
+    })
+  })
+
+  it('counts a Fight setting only where the Fight tab shows it', () => {
+    // The execute phase is a warrior's or paladin's; a DPS warrior's damage taken; a tank's boss swings.
+    const mage = fresh('mage-fire')
+    expect(sectionSummaries({ ...mage, fight: { ...mage.fight, executePct: mage.fight.executePct > 0 ? 0 : 20 } }).fight).toBe('3:00')
+    expect(sectionSummaries({ ...mage, fight: { ...mage.fight, damageTakenPerSec: mage.fight.damageTakenPerSec + 100 } }).fight).toBe('3:00')
+    expect(sectionSummaries({ ...mage, fight: { ...mage.fight, boss: { ...mage.fight.boss, canCrush: !mage.fight.boss.canCrush } } }).fight).toBe('3:00')
+    const fury = fresh('warrior-fury')
+    expect(sectionSummaries({ ...fury, fight: { ...fury.fight, executePct: fury.fight.executePct > 0 ? 0 : 20 } }).fight).toBe('3:00 · changed')
+    expect(sectionSummaries({ ...fury, fight: { ...fury.fight, damageTakenPerSec: fury.fight.damageTakenPerSec + 100 } }).fight).toBe('3:00 · changed')
+    const prot = fresh('warrior-protection')
+    expect(sectionSummaries({ ...prot, fight: { ...prot.fight, damageTakenPerSec: prot.fight.damageTakenPerSec + 100 } }).fight).toBe('3:00')
+    expect(sectionSummaries({ ...prot, fight: { ...prot.fight, boss: { ...prot.fight.boss, canCrush: !prot.fight.boss.canCrush } } }).fight).toBe('3:00 · changed')
+    expect(sectionSummaries({ ...prot, fight: { ...prot.fight, boss: { ...prot.fight.boss, damageMax: prot.fight.boss.damageMax + 1 } } }).fight).toBe('3:00 · changed')
+    // Fixed precision's number of fights counts only while it's fixed, as the tab shows it.
+    expect(sectionSummaries({ ...mage, run: { ...mage.run, iterations: mage.run.iterations + 1 } }).fight).toBe('3:00')
+  })
+
+  it('counts a paladin’s untested rules as a Character change, only for a paladin', () => {
+    const ret = fresh('paladin-retribution')
+    expect(sectionSummaries({ ...ret, rules: { ...ret.rules, jotcBonus: 'flat' } }).character).toBe('Human · changed')
+    const prot = fresh('paladin-protection')
+    expect(sectionSummaries({ ...prot, rules: { ...prot.rules, hotrWeaponDps: 'weaponOnly' } }).character).toBe('Human · changed')
+    expect(sectionSummaries({ ...ret, rules: { ...ret.rules, hotrWeaponDps: 'weaponOnly' } }).character).toBe('Human')
+    const fury = fresh('warrior-fury')
+    expect(sectionSummaries({ ...fury, rules: { ...fury.rules, jotcBonus: 'flat' } }).character).toBe('Human')
+  })
+
+  it('lets a Skyborne race’s variant, then the rules, give way to "changed" where the line would run long', () => {
+    const base = fresh('warrior-fury')
+    const skyborne = changeRace(base, 'alliance-skyborne-high-order').config
+    const ratings = { ...skyborne.rules, unmeasuredRatings: skyborne.rules.unmeasuredRatings === 'apply' ? ('ignore' as const) : ('apply' as const) }
+    expect(sectionSummaries({ ...skyborne, rules: ratings }).character).toBe('Skyborne · changed')
+    expect(sectionSummaries({ ...skyborne, rules: { ...ratings, profile: 'classicEra' } }).character).toBe('Skyborne · changed')
+    const nightElf = changeRace(base, 'alliance-night-elf').config
+    expect(sectionSummaries({ ...nightElf, rules: { ...ratings, profile: 'classicEra' } }).character).toBe('Night Elf · changed')
   })
 
   it('names each Buffs preset the Buffs tab offers', () => {
@@ -190,8 +248,9 @@ describe('sectionSummaries', () => {
       const classId = SPEC_META[spec].classId
       for (const race of racesForClass(raceData, classId)) {
         for (const profile of ['forever', 'classicEra'] as const) {
-          const s = sectionSummaries({ ...base, race: race.id, rules: { ...base.rules, profile } })
-          lines.add(s.character)
+          for (const unmeasuredRatings of ['apply', 'ignore'] as const) {
+            lines.add(sectionSummaries({ ...base, race: race.id, rules: { ...base.rules, profile, unmeasuredRatings } }).character)
+          }
         }
       }
       for (const preset of talentPresets(classId)) lines.add(sectionSummaries({ ...base, talents: preset.code }).talents)
@@ -203,6 +262,7 @@ describe('sectionSummaries', () => {
       for (const preset of aplPresets(apl)) lines.add(preset.label)
       for (const preset of buffPresets) lines.add(preset.name)
       lines.add(sectionSummaries({ ...base, fight: { ...base.fight, durationSec: 900, bossLevel: 60 } }).fight)
+      lines.add(sectionSummaries({ ...base, fight: { ...base.fight, durationSec: 900, bossLevel: 60 }, run: { ...base.run, seed: base.run.seed + 1 } }).fight)
     }
     expect(GEAR_SLOTS.length).toBeLessThan(100) // "19 slots changed": two digits at most
     expect([...lines].filter((line) => line.length > SUMMARY_MAX_CHARS)).toEqual([])

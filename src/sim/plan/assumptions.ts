@@ -699,7 +699,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#21-energy`,
   },
   rogueFinisherTalents: {
-    text: 'A guild test measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1–3% a tick) without saying which talents the tester had. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
+    text: 'A guild test measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%) without saying which talents the tester had. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
     docRef: `${ROGUE}#10-open-questions`,
   },
   rogueTwoRolls: {

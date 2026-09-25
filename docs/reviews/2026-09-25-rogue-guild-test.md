@@ -33,3 +33,17 @@ each tick), from a guild tester's in-game measurements [F]; the fix commits 8d1b
 The V fixes are text, a doc and one e2e assertion, with no engine change. Checks: lint, typecheck,
 439 unit tests (rogue, plan, results, app) and the 15 rogue e2e tests pass. The gate passes for
 the rogue work: nothing the fixes introduced at medium or worse, every finding dispositioned.
+
+## Quick check of the V fixes
+
+A fresh reviewer checked 12e5beea: V-1 to V-4 fixed, nothing it introduced at medium or worse. Its
+own paired probe matched the corrected sizes (0.509%, 0.691%, 1.264%).
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| Q-1 | low | introduced | Q3 didn't note that Rupture's reported 1/2/3% argues against the tester having Serrated Blades (3/3 would show about 1.3/2.6/3.9%). | Fixed: one clause in Q3. |
+| Q-2 | low | introduced | The text's "Rupture (1–3% a tick)" was less exact than the doc. | Fixed: "1% per combo point a tick, up to 3%". |
+| Q-3 | info | pre-existing | The Assassination and Subtlety e2e don't check the row; `rogue.test.ts` checks all three defaults list it. | No change. |
+| Q-4 | info | pre-existing | The link lands on Open questions, not Q3, which has no anchor of its own, as the other classes' links do. | No change. |
+
+Q-1 and Q-2 are one clause and one phrase; the merged release's full reviews (D34) cover them.

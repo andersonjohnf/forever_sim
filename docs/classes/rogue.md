@@ -739,7 +739,9 @@ R11–R13 are in `subtlety.test.ts`.
   reported 4% (with Improved Eviscerate alone, 3.6%). Counted twice, the defaults read high by about
   0.5% (Combat: both talents), 0.7% (Assassination: Improved Eviscerate only) and 1.3% (Subtlety:
   Serrated Blades on Rupture, whose attack-power part is about 43% of its damage), measured with
-  paired same-seed runs of 20,000 fights. The values stay until the tester's talents are known.
+  paired same-seed runs of 20,000 fights. Rupture's reported 1/2/3% points away from Subtlety's case: with
+  Serrated Blades 3/3 the tester would have seen about 1.3/2.6/3.9%. The values stay until the
+  tester's talents are known.
   Test: the tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression
   and 20 Rupture ticks at 3 points without Serrated Blades, each at two attack-power levels.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee

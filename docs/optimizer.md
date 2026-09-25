@@ -519,9 +519,13 @@ iterations, we don't want to fire off a 10 billion iteration sim"; OGV-2). A sea
 more than **24,000,000 fights**, the screen's and the race's together, over every pass of a search
 in turns (`MAX_SEARCH_FIGHTS`, `thorough`'s budget), and never lists more than **200,000 builds**
 (`MAX_BUILDS`). Nothing raises the cap on its own: a caller raises it only by asking
-(`maxFights`, the CLI's `--max-fights`). A budget over it is cut to it. The confirmation
-([below](#confirmation)) is a separate check after the search, 160,000 fights with the CLI's
-defaults, and isn't counted in it.
+(`maxFights`, the CLI's `--max-fights`). A budget over it is cut to it. **The confirmation counts
+under it too** (OGV2-2; [below](#confirmation)): the CLI's check is two runs of the winner and the
+baseline, 4 × `--confirm-fights` (160,000 with the defaults), and it gets what the search left of
+the cap, and no more than asked for (`confirmFights`). A search that left less runs fewer fights
+each and says so ("the check runs 25,000 each rather than the 40,000 asked for"); one that left
+fewer than 100 each (`MIN_CONFIRM_FIGHTS`) doesn't confirm, and says to raise `--max-fights`. The
+search is the same with the check or without it: the check takes only what's left.
 
 The first round runs 30% of the budget over the plans that run it, between 50 and 1,000 fights
 each (`firstRound`): 20,000 plans get 90 each on `standard`, 129 get 1,000. `fitBudget` fits the
@@ -587,8 +591,9 @@ own), not on the page's thread.
 
 A search that compares thousands of candidates at 95% turns up false wins, so the winner is run
 again against the baseline on a **fresh master seed**, one the search never used (D23), with
-40,000 fights each by default (`confirm`, the CLI's `--confirm`). It's adopted only if its
-interval is still above zero. The CLI runs the check twice, with D12's unmeasured ratings applied
+40,000 fights each by default (`confirm`, the CLI's `--confirm`), within what the search left of
+its hard ceiling ([budgets](#budgets), OGV2-2). It's adopted only if its interval is still above
+zero. The CLI runs the check twice, with D12's unmeasured ratings applied
 and ignored, and says when the winner clears under one and not the other: then it rests on an
 untested rating.
 
@@ -732,6 +737,9 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
 - **A constraint's dimension at 0 or max** (OGV-1). The warrior under `ehp>=103%`, with the
   verification's screen: 46,814 builds (3,945 with max ranks only), among them Booming Voice 3 with
   Boundless Rage 2, which max ranks miss (`talents.test.ts`).
+- **The confirmation within the cap** (OGV2-2). With 40,000 fights asked for, a search that left
+  100,000 of its cap runs the CLI's two checks at 25,000 each; one that left fewer than 400 doesn't
+  confirm (`optimize.test.ts`).
 - **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
   finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
   pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline

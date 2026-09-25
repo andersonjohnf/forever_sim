@@ -81,7 +81,8 @@
 //   --confirm             D23's check: the winner against the setup on a fresh seed, and again with the
 //                         unmeasured ratings switched (D12), to say whether the winner depends on them; and
 //                         the [?] assumptions only the winner (or only the setup) relies on
-//   --confirm-fights <n>  fights each in the check (default 40000)
+//   --confirm-fights <n>  fights each in the check (default 40000; at least 100). The check counts under
+//                         --max-fights: with less left, it runs fewer each and says so
 //   --json <path>         the report (default .cache/optimize/<spec>-<seed>-<time>.json)
 //
 // The setup (as rotation.mjs): --race, --duration, --armor, --execute, --creature, --position,
@@ -535,7 +536,19 @@ async function main() {
   if (args.confirm && winner === null) console.log('\nconfirmation: no setup meets the constraints, so there is nothing to confirm')
   else if (args.confirm && engine.isSetup(config, winner)) console.log('\nconfirmation: the setup itself leads, so there is nothing to confirm')
   else if (args.confirm) {
-    const confirmFights = flagNumber('confirm-fights', args['confirm-fights'], { min: 100, whole: true })
+    const asked = flagNumber('confirm-fights', args['confirm-fights'], { min: engine.MIN_CONFIRM_FIGHTS, whole: true })
+    // The check counts under the cap (OGV2-2): its two runs, each the winner and the default, get what
+    // the search left of it, and no more than asked for.
+    const spent = reports.reduce((n, r) => n + r.fights, 0)
+    const fit = engine.confirmFights(asked, maxFights - spent, 2)
+    if (fit === null)
+      console.log(
+        `\nconfirmation: the search left ${plural(Math.max(0, maxFights - spent), 'fight')} of the cap's ${count(maxFights)}, fewer than the ${count(4 * engine.MIN_CONFIRM_FIGHTS)} the check needs at ${count(engine.MIN_CONFIRM_FIGHTS)} each; raise --max-fights to confirm`,
+      )
+    else await confirmWinner(fit.fights, fit.clamped ? `the search left ${plural(maxFights - spent, 'fight')} of the cap's ${count(maxFights)}, so the check runs ${count(fit.fights)} each rather than the ${count(asked)} asked for` : undefined)
+  }
+  async function confirmWinner(confirmFights, clampNote) {
+    if (clampNote) console.log(`\nnote: ${clampNote}`)
     // A seed the search never used.
     const fresh = (seed + 0x9e3779b9) >>> 0
     const runner2 = threadRunner(engine, bundle, threads)

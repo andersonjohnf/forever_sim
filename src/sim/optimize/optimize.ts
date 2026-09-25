@@ -749,6 +749,22 @@ export async function confirm(options: {
   return { seed, fights, vsBaseline: winner.vsBaseline, clears: lower(winner.vsBaseline.score) > 0, assumptions: assumptionChanges(config, candidate) }
 }
 
+/** The fewest fights each a confirmation runs (the CLI's `--confirm-fights` minimum); fewer left under the cap, and it doesn't run (OGV2-2). */
+export const MIN_CONFIRM_FIGHTS = 100
+
+/**
+ * A confirmation's fights each, within the search's hard ceiling (OGV2-2,
+ * docs/optimizer.md#budgets): the check counts under the cap like the screen and the race. Each of
+ * its `checks` runs (the CLI runs two: the unmeasured ratings applied and ignored) races the winner
+ * and the baseline, 2 × fights, so it gets what the search left (`left`), split among them, and no
+ * more than was asked for. Null when fewer than MIN_CONFIRM_FIGHTS each fit.
+ */
+export function confirmFights(requested: number, left: number, checks = 1): { fights: number; clamped: boolean } | null {
+  const fit = Math.floor(Math.max(0, left) / (2 * checks))
+  if (fit >= requested) return { fights: requested, clamped: false }
+  return fit >= MIN_CONFIRM_FIGHTS ? { fights: fit, clamped: true } : null
+}
+
 /** A candidate's identity: its talents and its whole rotation, on top of the setup's. */
 function candidateKey(config: SimConfig, c: Candidate): string {
   const rotation = { ...config.rotation, ...c.rotation }

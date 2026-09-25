@@ -14,11 +14,13 @@ import {
   applyCandidate,
   BUDGETS,
   confirm,
+  confirmFights,
   FIRST_ROUND_MIN,
   firstRound,
   fitBudget,
   isSetup,
   MAX_SEARCH_FIGHTS,
+  MIN_CONFIRM_FIGHTS,
   MIN_FIRST_ROUND,
   optimize,
   optimizeInTurns,
@@ -325,6 +327,19 @@ describe('optimize', () => {
     expect(new Set([...baselineOnly, ...shared].map((a) => a.id))).toEqual(new Set(buildPlan(bear).assumptions.map((a) => a.id)))
     expect(shared.length).toBeGreaterThan(0)
   }, 60_000)
+
+  it('a confirmation counts under the cap: it runs what the search left, and no more than asked (OGV2-2)', () => {
+    // The CLI's two checks (ratings applied and ignored), each the winner and the baseline: 4 × 40,000.
+    expect(confirmFights(40_000, 24_000_000 - 1_250_000, 2)).toEqual({ fights: 40_000, clamped: false })
+    expect(confirmFights(40_000, 160_000, 2)).toEqual({ fights: 40_000, clamped: false })
+    // A search that spent all but 100,000 of the cap: 25,000 each, 100,000 in all.
+    expect(confirmFights(40_000, 100_000, 2)).toEqual({ fights: 25_000, clamped: true })
+    expect(confirmFights(40_000, 100_000, 1)).toEqual({ fights: 40_000, clamped: false })
+    // Fewer than MIN_CONFIRM_FIGHTS each left: it doesn't run.
+    expect(confirmFights(40_000, 4 * MIN_CONFIRM_FIGHTS, 2)).toEqual({ fights: MIN_CONFIRM_FIGHTS, clamped: true })
+    expect(confirmFights(40_000, 4 * MIN_CONFIRM_FIGHTS - 1, 2)).toBeNull()
+    expect(confirmFights(40_000, -5, 2)).toBeNull()
+  })
 
   it('a tank’s talent search spends 31 points in its tank tree unless told otherwise (D30)', async () => {
     const run = (minPoints?: Record<string, number>) =>

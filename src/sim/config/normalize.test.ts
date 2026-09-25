@@ -435,13 +435,16 @@ describe('normalizeConfig', () => {
       expect(pinned.config.rotationOrder).toEqual(order)
     })
 
-    it('resets an order it can’t read, and drops one for a spec without a list', () => {
+    it('resets an order it can’t read, and reads another spec’s order as this one’s', () => {
       const bad = normalizeConfig({ ...d, rotationOrder: 'whirlwind' })
       expect('rotationOrder' in bad.config).toBe(false)
       expect(bad.warnings).toEqual(['The rotation’s priority order couldn’t be read, so the default order was used.'])
+      // Every spec has a list (M5.65 A2), so a Fury order given to Arms keeps the rows Arms has, drops
+      // the rest with the unknown-rows warning, and puts Arms's own missing rows back.
       const arms = normalizeConfig({ ...defaultConfig('warrior-arms'), rotationOrder: order })
-      expect('rotationOrder' in arms.config).toBe(false)
-      expect(arms.warnings).toEqual(['The rotation’s priority order doesn’t apply to this spec, so it was dropped.'])
+      const armsIds = defaultAplOrder(rotationApl('warrior-arms')!)
+      expect([...(arms.config.rotationOrder ?? armsIds)].sort()).toEqual([...armsIds].sort())
+      expect(arms.warnings).toEqual(['Abilities in the rotation’s priority order that this spec doesn’t have were dropped.'])
     })
   })
 

@@ -1,5 +1,5 @@
 import { ChevronRight, RotateCcw } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -9,6 +9,7 @@ import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { cn } from '@/lib/utils'
 import { type FixedRotationRow, getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption } from '@/sim'
+import { COLUMNS, useRotationLayout } from './layout'
 import { isAdvanced, rotationRows, withRotationOrder } from './logic'
 import { APL_PRESET_TRIGGER_ID, controlOf, hasNamedPresets, type RowContext } from './ids'
 import { OptionList } from './option-rows'
@@ -26,12 +27,18 @@ export function RotationSection() {
   const gear = useSetup((s) => s.config.gear)
   const rotationOrder = useSetup((s) => s.config.rotationOrder)
   const update = useSetup((s) => s.update)
+  // From 1440 px the tab lays itself out in columns by its width (layout.ts).
+  const rootRef = useRef<HTMLDivElement>(null)
+  const layout = useRotationLayout(rootRef)
+  const wide = layout !== 'narrow'
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // A priority-list spec (decision D31) shows its spec-wide settings under the headings, above the
   // list; the list's rows hold the rest.
   const apl = spec.rotationApl
   const headed = apl ? options.filter((o) => apl.specWide.includes(o.id)) : options
+  // D28's tanks, whose named rotations are the list's presets.
+  const namedPresets = apl !== undefined && hasNamedPresets(apl)
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
   // under Fight, Exorcism an Undead or Demon target, and Shield Slam its talent and a shield
@@ -68,7 +75,7 @@ export function RotationSection() {
       () => update((c) => withRotationOrder({ ...c, rotation: {} }, undefined)),
       // A tank's named rotations come first (the preset picker); a priority list with nothing above it: its first row.
       () =>
-        apl && hasNamedPresets(apl)
+        namedPresets
           ? document.getElementById(APL_PRESET_TRIGGER_ID)
           : first
             ? controlOf(first)
@@ -77,8 +84,25 @@ export function RotationSection() {
     announce('Rotation settings reset to their defaults.')
   }
 
+  // The spec-wide settings: the unheaded ones first (Arms' stance), then each heading's. From
+  // 1440 px they're a column of their own, a setting a line with its numbers and choices under its
+  // label, and every heading shows its thresholds: there's room, so there's no Advanced (docs/ux.md
+  // principle 4 and "Rotation").
+  const settings = (
+    <>
+      {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} stacked={wide} />}
+      {groups.map(({ group, options: grouped, fixed }) => (
+        // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
+        <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} fixed={fixed} ctx={ctx} wide={wide} />
+      ))}
+    </>
+  )
+  // D28's rotations as the list's presets: first on the tab, as a tank's priority choice always was;
+  // from 1440 px first in the list's column, so the settings beside it never push the list down.
+  const picker = namedPresets ? <AplPresetPicker apl={apl} wide={wide} /> : undefined
+
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       <SectionHeader
         title="Rotation"
         description={['Which abilities the sim uses, and when.', spec.rotationDefaults].filter(Boolean).join(' ')}
@@ -90,17 +114,19 @@ export function RotationSection() {
       />
       {options.length === 0 ? (
         <EmptyState title="No rotation options yet">{meta.name} options come with its simulation.</EmptyState>
+      ) : wide && apl ? (
+        // From 1440 px (D34 as amended): the settings in a column on the left, the list at the top of
+        // the next, and where a third fits, the selected row's settings beside the list (layout.ts).
+        <div className={cn('grid items-start gap-6', COLUMNS[layout === 'three' ? 'three' : 'two'])}>
+          <div className="flex min-w-0 flex-col gap-6">{settings}</div>
+          {/* Keyed by spec, so a switch of spec starts with no row selected. */}
+          <PriorityList key={meta.id} apl={apl} options={options} ctx={ctx} layout={layout} top={picker} />
+        </div>
       ) : (
         <>
-          {/* D28's rotations as the list's presets: first on the tab, as a tank's priority choice always was. */}
-          {apl && hasNamedPresets(apl) && <AplPresetPicker apl={apl} />}
-          {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} flow />}
-          {groups.map(({ group, options: grouped, fixed }) => (
-            // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
-            <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} fixed={fixed} ctx={ctx} />
-          ))}
-          {/* Keyed by spec, so a switch of spec starts with no row selected. */}
-          {apl && <PriorityList key={meta.id} apl={apl} options={options} ctx={ctx} />}
+          {picker}
+          {settings}
+          {apl && <PriorityList key={meta.id} apl={apl} options={options} ctx={ctx} layout={layout} />}
         </>
       )}
     </div>
@@ -108,20 +134,23 @@ export function RotationSection() {
 }
 
 /**
- * One heading's settings. Its switches are always in view; its thresholds wait behind the
- * heading's Advanced button and appear in place, under the switch they tune. A heading opens by
+ * One heading's settings. Its switches are always in view; under 1440 px its thresholds wait behind
+ * the heading's Advanced button and appear in place, under the switch they tune. A heading opens by
  * itself when one of them differs from its default, and its button counts them (docs/ux.md
- * principle 2 and "Rotation").
+ * principle 2 and "Rotation"). From 1440 px (`wide`) there's room, so every threshold shows and
+ * there's no Advanced (principle 4), and the settings are a column's width, so each number and
+ * choice goes under its label.
  */
-function GroupSection({ group, options, fixed, ctx }: { group: RotationGroup; options: RotationOption[]; fixed: FixedRotationRow[]; ctx: RowContext }) {
-  const advanced = options.filter(isAdvanced)
+function GroupSection({ group, options, fixed, ctx, wide }: { group: RotationGroup; options: RotationOption[]; fixed: FixedRotationRow[]; ctx: RowContext; wide: boolean }) {
+  const advanced = wide ? [] : options.filter(isAdvanced)
   const changed = advanced.filter((o) => ctx.rows.get(o.id)?.changed).length
   const [open, setOpen] = useState(changed > 0)
   const headingId = `rot-group-${group.toLowerCase().replace(/\W+/g, '-')}`
-  const shown = open ? options : options.filter((o) => !isAdvanced(o))
+  const shown = open || wide ? options : options.filter((o) => !isAdvanced(o))
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex min-h-11 items-center justify-between gap-3">
+      {/* The 44 px line holds the Advanced button, where there is one. */}
+      <div className={cn('flex items-center justify-between gap-3', !wide && 'min-h-11')}>
         <h3 id={headingId} className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {group}
         </h3>
@@ -144,7 +173,7 @@ function GroupSection({ group, options, fixed, ctx }: { group: RotationGroup; op
           </Button>
         )}
       </div>
-      <OptionList options={shown} all={options} fixed={fixed} ctx={ctx} flow />
+      <OptionList options={shown} all={options} fixed={fixed} ctx={ctx} stacked={wide} />
     </section>
   )
 }

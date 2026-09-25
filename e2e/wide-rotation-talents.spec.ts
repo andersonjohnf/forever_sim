@@ -24,8 +24,6 @@ const noSidewaysScroll = async (page: Page) => {
   expect(scroll).toBeLessThanOrEqual(client)
 }
 
-const width = async (locator: ReturnType<Page['locator']>) => (await locator.boundingBox())!.width
-
 test.describe('the Talents tab at wide widths', () => {
   /** The rendered size of a talent's icon. */
   const iconSize = (page: Page, name: string) =>

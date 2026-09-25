@@ -111,7 +111,7 @@ test.describe('the wide right panel, 1440 px', () => {
     const setup = setupOf(results(page))
     const line = (name: string) => setup.getByRole('button', { name: new RegExp(`^${name} `) })
     await page.getByRole('tab', { name: 'Fight', exact: true }).click()
-    await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
+    // Fight's Advanced settings are shown, not behind a disclosure, from 1440 px (docs/ux.md principle 4).
     await page.getByRole('button', { name: 'Decrease Boss level' }).click()
     await expect(line('Fight')).toHaveAccessibleName('Fight 3:00 · level 62')
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()

@@ -623,6 +623,7 @@ Setting ids are `mage.arcane.<x>`.
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): the caster core's **Curse of the Elements**, Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring Totem, Moonkin Aura (the casters' party crit aura). Nothing that changes only attacks (Battle Shout, Windfury Totem, Sunder Armor, …): those are the melee's, not listed for a mage ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)). **Power Infusion off** (another priest's cooldown; an option). **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |
 | Consumables | Standard raid: **Greater Arcane Elixir**, **Major Mana Potion**. Max adds **Flask of Supreme Power**, the **Demonic Rune**, **Nightfin Soup** (+22 spell damage) and **Brilliant Wizard Oil** (+36, +1% spell crit) | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset); [Wowhead consumables][wh-consumables] [C] |
 | Rotation | the priority lists above with their first-pass defaults | [First-pass defaults](#first-pass-defaults) |
+| DPS | Troll (a Human): **Fire 531.1** (531.6), **Frost 453.0** (441.9), **Arcane 440.4** (432.7), on 1.60.1.70009 (20,000 fights on seed 2701, each spec's default setup). [Races and gear](#races-and-gear)'s Fire 544.7 (545.2) and Arcane 440.5 (432.8) were measured before the sim took 1.60.1.70009's Ignite (no double dip) and Hot Streak (20 s) changes (Fire −2.5%, Arcane −0.1), and so were its gear ranks | measured on the integrated 1.60.1.70009 branch |
 
 Wowhead's Classic consumables list also has Brilliant Wizard Oil ("the best Weapon Oil in the game"),
 Elixir of Frost Power, Mageblood, Nightfin Soup and Runn Tum Tuber Surprise [C]
@@ -656,7 +657,8 @@ nothing for a mage.
   2701, 1.60.1.70009, among the list's own items): Rune Band of Wizardry, Flaming Band (−2.1 against
   it), Don Mauricio's Band of Domination (−2.5), Wrath of Cenarius (−4.7);
   Draconic Infused Emblem (+9.6 over Briarwood Reed), Briarwood Reed, Burst of Knowledge and Eye of the
-  Beast, whose uses count as zero (known gap E7). The default goes 542.1 → 544.7 DPS. Off the list,
+  Beast, whose uses count as zero (known gap E7). The default goes 542.1 → 544.7 DPS (531.1 since
+  the sim took 1.60.1.70009's Ignite and Hot Streak changes, [Defaults](#defaults)). Off the list,
   Elemental Focus Band and Maiden's Circle would add +3.2 and +2.6 in the second ring; ranking the guide
   lists in full is a known gap.
 - **Frost and Arcane**: [Wowhead's Classic mage pre-raid list][wh-prebis] (archived 2021-05-15), one

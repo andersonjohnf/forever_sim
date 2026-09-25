@@ -907,18 +907,26 @@ for 0.7–3.7% less threat without the rage potion or the mana potion (seed 1234
 
 **Major Frenzy Potion in Max consumables** where it beats the spec's current potion, each spec's
 Max consumables with its potion and then with the Frenzy potion in its place (seed 12345, 20,000
-fights for the close ones, 2,000 for the rest; the Frenzy potion drunk on cooldown from the pull):
+fights for the close ones, 2,000 for the rest; the Frenzy potion drunk on cooldown from the pull),
+**at the default 3 min fight**:
 
 | Spec | Its potion at Max before | With the Major Frenzy Potion | In Max |
 | --- | --- | --- | --- |
 | Rogue (Combat, Assassination, Subtlety) | none | +1.2%, +1.0%, +1.2% DPS | yes |
-| Enhancement shaman | Major Mana Potion (it never runs short) | +0.9% DPS | yes, in its place |
+| Enhancement shaman | Major Mana Potion (it rarely runs short in 3 min) | +0.9% DPS | yes, in its place |
 | Marksmanship, Survival hunter | Major Mana Potion | +0.9%, +0.6% DPS | yes, in its place |
 | Beast Mastery hunter | Major Mana Potion | −3.5% DPS: it needs the mana | no |
 | Feral cat | Mighty Rage Potion, with Berserk | +0.2% DPS, a tie | no: its rotation times the rage potion |
 | Fury, Arms | Mighty Rage Potion | −1.1%, −1.7% DPS | no |
 | Retribution | Major Mana Potion | −1.1% DPS | no |
 | Protection warrior, bear, Protection paladin | Mighty Rage Potion; the paladin's Major Mana Potion | −0.7%, −2.8%, −1.9% TPS | no |
+
+**The Frenzy potion's lead holds only for short fights.** In a 5 min fight the mana runs short and
+the Major Mana Potion wins for all three that swap it (Max consumables, seed 12345, 20,000 fights,
+paired): Enhancement −0.85% (638.9 against 644.3 DPS), Marksmanship −2.41% (537.2 against 550.4) and
+Survival −3.37% (490.8 against 507.9) with the Frenzy potion. The presets stay as the table says,
+since the default fight is 3 min; for a longer fight, swap the Frenzy potion for the Major Mana
+Potion in Buffs.
 
 The Standard raid keeps each spec's potion as it was; this check is Max consumables' (D29).
 

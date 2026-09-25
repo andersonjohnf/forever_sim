@@ -176,6 +176,8 @@ test.describe('the wide panel at 1440×900', () => {
     const dps = actionsOf(panel).getByRole('group', { name: 'DPS' })
     await expect(dps).toContainText(/^DPS[\d,]+\.\d± [\d.]+$/)
     await expect(actionsOf(panel)).toContainText(/fights of 180 s · Forever rules · ran in/)
+    // A screen reader hears it from the run's live region.
+    await expect(page.locator('[role="status"][aria-label="Simulation status"]')).toHaveText(/^Done: [\d,]+\.\d DPS$/)
     const after = await box(simulateOf(panel))
     expect(after.y).toBeCloseTo(before.y, 0)
     expect(after.x + after.width).toBeCloseTo(before.x + before.width, 0)

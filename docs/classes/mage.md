@@ -649,7 +649,8 @@ nothing for a mage.
   Champion's Arcanum bonuses and isn't a twin: **it's ranked on its own**, paired in a Human's default
   set (GV-4; 20,000 fights on seed 2701). Knight-Lieutenant's Silk Handwraps fall to rank 4, behind
   Inferno Gloves (+7.05) and Sandworm Skin Gloves (+2.50), so a Human wears Inferno Gloves
-  (538.2 → **545.2** DPS); Lieutenant Commander's Silk Mantle keeps rank 1 (Burial Shawl −3.6),
+  (538.2 → 545.2 DPS before the sim took 1.60.1.70009's Ignite and Hot Streak changes; **531.6**
+  since, [Defaults](#defaults)); Lieutenant Commander's Silk Mantle keeps rank 1 (Burial Shawl −3.6),
   Lieutenant Commander's Silk Cowl rank 2 and Knight-Captain's Silk Legguards rank 3. The guide's event-only Staff of Balzaphon is left
   out ([items.md "Sources"](../data/items.md#sources-c)). **The rings and trinkets are re-ranked by the
   sim** now that Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled (DV2-4,
@@ -676,8 +677,8 @@ nothing for a mage.
   Spellweaver's Turban leads, over the guide's rank-1 Champion's Silk Cowl (a Troll +5.7 in Frost and
   Arcane, set bonus and all) and its Alliance piece, Lieutenant Commander's Silk Cowl (a Human +6.3 and
   +5.7), which share rank 2; Sorcerer's Crown is third (−3.5 and −2.7 against the Alliance cowl). A
-  Troll goes 447.3 → **453.0** (Frost) and 434.8 → **440.5** (Arcane), a Human 435.6 → **441.9** and
-  427.1 → **432.8**. The Alliance's other silk keeps the Horde pieces' rank 1: Knight-Lieutenant's Silk
+  Troll goes 447.3 → **453.0** (Frost) and 434.8 → 440.5 (Arcane), a Human 435.6 → **441.9** and
+  427.1 → 432.8; Arcane is **440.4** and **432.7** since the sim took 1.60.1.70009's Ignite change. The Alliance's other silk keeps the Horde pieces' rank 1: Knight-Lieutenant's Silk
   Walkers lead the feet (Omnicast Boots −1.9 and −2.4), and Knight-Captain's Silk Legguards tie
   Skyshroud Leggings within the interval (+0.3 and −0.1 for Skyshroud over 40,000 fights), so the
   guide's order stands. A sim-ranked list for Frost and Arcane, as the warlocks'

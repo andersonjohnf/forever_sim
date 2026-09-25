@@ -4,7 +4,7 @@
 // doesn't, they open inline under the row. Which of the two also decides where the row's settings
 // render, which CSS alone can't, so the tab measures the setup pane's width (its own: the tab has no
 // side padding) rather than styling itself by a container query.
-import { type RefObject, useLayoutEffect, useState } from 'react'
+import { type FocusEvent, type RefObject, useLayoutEffect, useRef, useState } from 'react'
 import { useIsWide } from '@/hooks/use-media-query'
 
 /**
@@ -48,4 +48,55 @@ export function useRotationLayout(ref: RefObject<HTMLElement | null>): RotationL
     return () => observer.disconnect()
   }, [ref, wide])
   return !wide ? 'narrow' : three ? 'three' : 'two'
+}
+
+/** What can take focus with Tab, in the page's order. */
+const tabbables = (root: HTMLElement) =>
+  [...root.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], [tabindex]')].filter(
+    (el) => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled,
+  )
+
+/**
+ * Keeps focus on the same control when what holds it moves in the page as the layout changes under
+ * it: the selected row's settings, inline under the row where two columns fit and a panel in the
+ * third where three do, so a window crossing about 1,850 px (browser zoom, snapping a window) moves
+ * them to new elements (review finding DL2-3; Gear keeps its elements instead, docs/ux.md "Gear").
+ * Give `onFocus` and `onBlur` to each place the settings render. When `place` changes and the
+ * control that had focus went with the old place, focus goes to the control with its id in the new
+ * one (`container`), or else the one at its place in the tab order, or else `fallback`, the
+ * settings' heading.
+ */
+export function useFocusAcrossPlaces(place: string, container: () => HTMLElement | null, fallback: () => HTMLElement | null) {
+  const held = useRef<{ id: string; index: number } | null>(null)
+  const onFocus = (e: FocusEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement
+    held.current = { id: target.id, index: tabbables(e.currentTarget).indexOf(target) }
+  }
+  const onBlur = (e: FocusEvent<HTMLElement>) => {
+    const next = e.relatedTarget as Node | null
+    if (next) {
+      if (!e.currentTarget.contains(next)) held.current = null
+      return
+    }
+    // Focus went to no element: a click on the page, or the control's removal with its place. Only
+    // a click leaves the control in the page.
+    const target = e.target as HTMLElement
+    queueMicrotask(() => {
+      if (target.isConnected && document.activeElement !== target) held.current = null
+    })
+  }
+  // The effect of the render whose place changed, so `container` looks in the new place.
+  const last = useRef(place)
+  useLayoutEffect(() => {
+    if (last.current === place) return
+    last.current = place
+    const was = held.current
+    const active = document.activeElement
+    if (!was || (active && active !== document.body)) return
+    const root = container()
+    if (!root) return
+    const byId = was.id ? [...root.querySelectorAll<HTMLElement>('[id]')].find((el) => el.id === was.id) : undefined
+    ;(byId ?? (was.index >= 0 ? tabbables(root)[was.index] : undefined) ?? fallback())?.focus()
+  })
+  return { onFocus, onBlur }
 }

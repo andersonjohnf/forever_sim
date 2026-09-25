@@ -69,4 +69,33 @@ test.describe('focus through a change of layout', () => {
     await resize(page, 1440)
     await expect(ratings).toBeFocused()
   })
+
+  test('a Rotation row’s settings keep focus on the same control as they move between inline and the third column', async ({ page }) => {
+    const tab = await openSpec(page, 'warrior-fury', 'rotation', 1600, 1000)
+    const list = tab.getByRole('list', { name: 'Priority list' })
+    await list.getByRole('button', { name: 'Bloodrage', exact: true }).click()
+    const inline = page.locator('[data-apl-row="bloodrage"]').getByRole('region', { name: 'Bloodrage settings' })
+    const panel = page.getByRole('complementary', { name: 'Bloodrage settings' })
+
+    // Its switch: inline at 1600 px, then in the panel at 1920 px, and back.
+    await inline.getByRole('switch', { name: 'Use Bloodrage', exact: true }).focus()
+    await resize(page, 1920, 1000)
+    await expect(panel.getByRole('switch', { name: 'Use Bloodrage', exact: true })).toBeFocused()
+    await resize(page, 1600, 1000)
+    await expect(inline.getByRole('switch', { name: 'Use Bloodrage', exact: true })).toBeFocused()
+
+    // Move down, a button without an id: the same button by its place in the settings.
+    await inline.getByRole('button', { name: 'Move down' }).focus()
+    await resize(page, 1920, 1000)
+    await expect(panel.getByRole('button', { name: 'Move down' })).toBeFocused()
+    await resize(page, 1600, 1000)
+    await expect(inline.getByRole('button', { name: 'Move down' })).toBeFocused()
+
+    // Focus that left the settings stays where it went.
+    const row = list.getByRole('button', { name: 'Whirlwind', exact: true })
+    await list.getByRole('switch', { name: 'Whirlwind', exact: true }).focus()
+    await resize(page, 1920, 1000)
+    await expect(list.getByRole('switch', { name: 'Whirlwind', exact: true })).toBeFocused()
+    await expect(row).not.toBeFocused()
+  })
 })

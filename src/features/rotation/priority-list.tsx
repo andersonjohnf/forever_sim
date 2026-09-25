@@ -51,7 +51,7 @@ import {
 } from '@/sim'
 import { APL_PRESET_TRIGGER_ID, hasNamedPresets, INACTIVE_SWITCH, type RowContext } from './ids'
 import { ImmediateKeyboardSensor } from './keyboard-sensor'
-import type { RotationLayout } from './layout'
+import { type RotationLayout, useFocusAcrossPlaces } from './layout'
 import { aplRowChanged, aplRowIdle, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
@@ -233,6 +233,13 @@ export function PriorityList({
   const presetRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLElement>(null)
   const fade = useVerticalFade(panelRef, selected)
+  // The row's settings move between inline and the panel as the window crosses the third column's
+  // width; focus in them goes with them (layout.ts).
+  const keepFocus = useFocusAcrossPlaces(
+    place,
+    () => (place === 'inline' ? document.getElementById(INLINE_SETTINGS_ID) : panelRef.current),
+    () => document.getElementById(PANEL_HEADING_ID),
+  )
   const helpId = useId()
   // A spec with named rotations has its picker at the top of the tab (AplPresetPicker).
   const pickerAbove = hasNamedPresets(apl)
@@ -376,7 +383,14 @@ export function PriorityList({
               >
                 {place === 'inline' && selected === row.id && (
                   // Under the row, in its item; Escape goes back to the row, as from the panel.
-                  <section id={INLINE_SETTINGS_ID} aria-label={`${row.label} settings`} onKeyDown={escapeToRow} className="border-t bg-muted/40">
+                  <section
+                    id={INLINE_SETTINGS_ID}
+                    aria-label={`${row.label} settings`}
+                    onKeyDown={escapeToRow}
+                    onFocus={keepFocus.onFocus}
+                    onBlur={keepFocus.onBlur}
+                    className="border-t bg-muted/40"
+                  >
                     {settings(row, 'inline')}
                   </section>
                 )}
@@ -398,6 +412,8 @@ export function PriorityList({
       aria-label={selectedRow ? `${selectedRow.label} settings` : 'Ability settings'}
       data-fade={fade}
       onKeyDown={escapeToRow}
+      onFocus={keepFocus.onFocus}
+      onBlur={keepFocus.onBlur}
       className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] scroll-py-12 overflow-y-auto data-[fade=both]:[mask-image:linear-gradient(to_bottom,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)] data-[fade=bottom]:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] data-[fade=top]:[mask-image:linear-gradient(to_top,black_calc(100%-2.5rem),transparent)]"
     >
       {selectedRow ? (

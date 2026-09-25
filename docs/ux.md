@@ -596,6 +596,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       (`aria-expanded`), and the row already shows its icon and name, so its settings start with its
       place beside Move up and Move down; the name is their heading for screen readers, which takes
       focus as the panel's does, and Escape goes back to the row.
+    - **Focus goes with the settings** when the window crosses the third column's width (browser
+      zoom, snapping a window) and they move between inline and the panel: to the same control in
+      their new place, found by its id or else its place in the tab order, or else to their heading
+      (`useFocusAcrossPlaces`, review finding DL2-3). Focus elsewhere stays where it is.
     - **No Back to list:** the settings sit beside or inside the list, so it's only below 1440 px;
       Escape still goes back. Move up and Move down are as wide as their labels.
     - **Nothing stretches:** the settings and the panel run from 22 to 28 rem and the list from 24

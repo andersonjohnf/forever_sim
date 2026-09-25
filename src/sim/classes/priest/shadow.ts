@@ -13,7 +13,7 @@ import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { compileAplRows } from '../apl'
+import { compileAplRows, normalizeAplOrder } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { eurekaFor } from '../eureka'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
@@ -247,9 +247,10 @@ export const SHADOW_OPTIONS: RotationOption[] = [
 
 /**
  * The Shadow priority list's rows (decision D31; priest.md §6 "The priority list"), in the default
- * order. Shadowform before the pull is pinned first. Power Infusion and the mana consumables are
- * spec-wide, above the list, and take their turn with the on-use trinkets' row, wherever it sits, as
- * they did before the list. Shadow has no named rotations: its one preset is the implicit Default.
+ * order. Shadowform before the pull is pinned first. Power Infusion is a row, as on Balance and
+ * Elemental. The mana consumables are spec-wide, above the list, and take their turn just after
+ * Power Infusion's row, wherever it sits: in the default order, and in any order saved before it was
+ * a row, just where they were. Shadow has no named rotations: its one preset is the implicit Default.
  */
 export const SHADOW_APL: AplDefinition = {
   rows: [
@@ -258,12 +259,14 @@ export const SHADOW_APL: AplDefinition = {
       label: 'Before the pull',
       icon: 'spell_shadow_shadowform',
       optionIds: [],
-      summary: [{ text: 'Shadowform' }],
+      // Without the talent nothing is cast before the pull (priest.md §3.6), so the row reads "None".
+      summary: [{ text: 'Shadowform', requires: { talent: 'Shadowform' } }],
       help: 'Cast Shadowform before the pull, with the talent; it’s up all fight: +10% Shadow damage, Shadow spells at half their mana, and their crits deal double damage. It always comes first.',
       pinned: true,
     },
     { id: 'racial', label: 'Racial cooldown', icon: 'racial_troll_berserk', enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
     { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
     {
       id: 'darkSacrifice',
       label: 'Dark Sacrifice',
@@ -301,15 +304,55 @@ export const SHADOW_APL: AplDefinition = {
       summary: [{ text: 'filler' }, { option: ID.flayTicks, text: '{}' }],
     },
   ],
-  specWide: [ID.powerInfusion, ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+  specWide: [ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
   presets: [],
 }
 
-/** Settings that can't do anything for this race (docs/ux.md "Rotation"): Starshards and Dark Sacrifice are two races' own. */
-export function shadowUnusedSettings(race: string, raceName: string): Record<string, string> {
+/** The rows on the global cooldown with a switch, and any talent each needs: Mind Flay above them leaves them none (shadowUnusedSettings). */
+const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string }[] = [
+  { row: 'darkSacrifice', enabled: ID.sacrifice },
+  { row: 'shadowWordPain', enabled: ID.pain },
+  { row: 'devouringPlague', enabled: ID.plague },
+  { row: 'mindBlast', enabled: ID.blast },
+  { row: 'starshards', enabled: ID.starshards },
+  { row: 'vampiricEmbrace', enabled: ID.embrace, talent: 'Vampiric Embrace' },
+]
+
+/**
+ * The Shadow settings that do nothing in this setup, with why (docs/ux.md "Rotation"; priest.md §6
+ * "The priority list"):
+ * - Starshards and Dark Sacrifice are two races' own.
+ * - Mind Flay, the filler, takes every global cooldown there's the mana for, so a row on the global
+ *   cooldown moved below it gets one only without that mana, and so does Inner Focus, which waits
+ *   for Mind Blast to be ready, the global cooldown included.
+ * - Inner Focus below Mind Blast finds it ready only when Mind Blast can't be paid for: Mind Blast
+ *   goes first the moment it's ready.
+ * `values`, `talents` and `order` absent: the defaults, no talents and the default order.
+ */
+export function shadowUnusedSettings(
+  race: string,
+  raceName: string,
+  values: Record<string, RotationValue> = {},
+  talents: TalentRanks = new Map(),
+  order?: readonly string[],
+): Record<string, string> {
   const out: Record<string, string> = {}
   if (race !== STARSHARDS_RACE) out[ID.starshards] = `Not used: only Night Elf priests have Starshards, not ${raceName}.`
   if (race !== DARK_SACRIFICE_RACE) out[ID.sacrifice] = `Not used: only Undead priests have Dark Sacrifice, not ${raceName}.`
+  const v = reader(SHADOW_OPTIONS, values, talents)
+  const current = normalizeAplOrder(SHADOW_APL, order)
+  const below = (row: string, above: string) => current.indexOf(row) > current.indexOf(above)
+  const innerFocus = v.on(ID.innerFocus) && v.on(ID.blast) && rank(talents, 'Inner Focus') > 0
+  if (innerFocus && below('innerFocus', 'mindBlast')) {
+    out[ID.innerFocus] = 'Below Mind Blast: used only while you haven’t the mana for Mind Blast, which goes first the moment it’s ready.'
+  }
+  if (!v.on(ID.flay) || rank(talents, 'Mind Flay') === 0) return out
+  const note = 'Below Mind Flay: used only while you haven’t the mana for Mind Flay.'
+  for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
+    if (out[enabled] !== undefined || !below(row, 'mindFlay') || !v.on(enabled) || (talent !== undefined && rank(talents, talent) === 0)) continue
+    out[enabled] = note
+  }
+  if (innerFocus && out[ID.innerFocus] === undefined && below('innerFocus', 'mindFlay')) out[ID.innerFocus] = note
   return out
 }
 
@@ -383,10 +426,13 @@ export function shadowRotation(
     racial: () => {
       if (racial && v.on(ID.racial)) add(racial)
     },
-    // Power Infusion and the mana potion and rune (spec-wide) take their turn with the trinkets, as
-    // before the list; the potion and rune once the most they restore fits.
     trinkets: () => {
       if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+    },
+    // The mana potion and rune (spec-wide) take their turn just after Power Infusion, once the most
+    // they restore fits: in the default order, and in any order saved before Power Infusion was a row
+    // (it's placed just after the trinkets), where they were with the trinkets before.
+    powerInfusion: () => {
       if (infusion && v.on(ID.powerInfusion)) add(consumable(infusion))
       for (const { use, setting, amount } of manaUses) if (v.on(setting)) add(consumable(use), [missing(v.num(amount))])
     },

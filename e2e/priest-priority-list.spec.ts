@@ -1,15 +1,17 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // The Shadow Priest's Rotation tab as a priority list (decision D31, docs/classes/priest.md §6 "The
 // priority list"): its rows in the default order with Shadowform pinned first, a row moved by its
-// handle from the keyboard and with Move up and Move down, a row turned off, and an order that
-// survives a run, a share link and a reload.
+// handle from the keyboard and with Move up and Move down, a row turned off, the notes on a row a
+// reordered list leaves unused, and an order that survives a run, a share link and a reload.
 
 const DEFAULT_ORDER = [
   'prepull',
   'racial',
   'trinkets',
+  'powerInfusion',
   'darkSacrifice',
   'shadowWordPain',
   'devouringPlague',
@@ -71,13 +73,15 @@ for (const width of [1280, 390]) {
       await expect(list.locator('[data-apl-row="vampiricEmbrace"]')).toContainText('Off')
       await expect(list.locator('[data-apl-row="starshards"]')).toContainText('Not used: only Night Elf priests have Starshards, not Troll.')
       await expect(list.locator('[data-apl-row="darkSacrifice"]')).toContainText('Not used: only Undead priests have Dark Sacrifice, not Troll.')
-      // Power Infusion and the mana consumables sit above the list.
+      // Power Infusion is a row, waiting for another priest's in Buffs; the mana consumables sit
+      // above the list, under their one heading.
+      await expect(list.locator('[data-apl-row="powerInfusion"]')).toContainText('Not used: turn on Power Infusion in Buffs first.')
       const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-      await expect(tab.getByRole('switch', { name: 'Power Infusion', exact: true })).toHaveAccessibleDescription(/Not used: turn on Power Infusion in Buffs first/)
+      await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
       await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
       const blast = list.locator('[data-apl-row="mindBlast"]')
       for (const target of [
-        blast.getByRole('button', { name: 'Move Mind Blast, position 8' }),
+        blast.getByRole('button', { name: 'Move Mind Blast, position 9' }),
         blast.getByRole('button', { name: 'Mind Blast', exact: true }),
         blast.getByRole('switch', { name: 'Mind Blast', exact: true }).locator('..'),
       ]) {
@@ -118,18 +122,34 @@ for (const width of [1280, 390]) {
 test.describe('the Shadow Priest’s list from the keyboard, in a run and a share link', () => {
   test.use({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] })
 
-  test('moves Mind Blast above Inner Focus by its handle, and says where it went', async ({ page }) => {
+  test('moves Mind Blast above Inner Focus by its handle, says where it went, and Inner Focus says it’s then unused', async ({ page }) => {
     const list = await openRotation(page)
+    const focus = list.locator('[data-apl-row="innerFocus"]')
+    await expect(focus).toContainText('When Mind Blast is ready')
     const handle = list.getByRole('button', { name: /^Move Mind Blast/ })
     await handle.focus()
     await page.keyboard.press('Space')
-    await expect(liveRegion(page)).toContainText(new RegExp(`Mind Blast is over position 8 of ${COUNT}|Picked up Mind Blast`))
+    await expect(liveRegion(page)).toContainText(new RegExp(`Mind Blast is over position 9 of ${COUNT}|Picked up Mind Blast`))
     await page.keyboard.press('ArrowUp')
-    await expect(liveRegion(page)).toHaveText(`Mind Blast is over position 7 of ${COUNT}.`)
+    await expect(liveRegion(page)).toHaveText(`Mind Blast is over position 8 of ${COUNT}.`)
     await page.keyboard.press('Space')
     await expect.poll(() => order(page)).toEqual(moved('mindBlast', 'innerFocus'))
-    await expect(liveRegion(page)).toHaveText(`Mind Blast dropped at position 7 of ${COUNT}.`)
-    await expect(list.getByRole('button', { name: 'Move Mind Blast, position 7' })).toBeFocused()
+    await expect(liveRegion(page)).toHaveText(`Mind Blast dropped at position 8 of ${COUNT}.`)
+    await expect(list.getByRole('button', { name: 'Move Mind Blast, position 8' })).toBeFocused()
+    // Below Mind Blast, Inner Focus never finds it ready: its row is dimmed and says so.
+    await expect(focus).toContainText('Below Mind Blast: used only while you haven’t the mana for Mind Blast, which goes first the moment it’s ready.')
+    await expect(focus).toHaveAttribute('data-inactive', 'true')
+  })
+
+  test('says a row can’t reach Shadowform without the talent', async ({ page }) => {
+    await page.goto('about:blank')
+    const hash = await linkFor(page, { version: 2, spec: 'priest-shadow', talents: '' })
+    await page.goto(`./${hash}`)
+    await expect(page.getByRole('button', { name: /^Spec: Shadow Priest/ })).toBeVisible()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const prepull = page.getByRole('list', { name: 'Priority list' }).locator('[data-apl-row="prepull"]')
+    await expect(prepull).toContainText('None')
+    await expect(prepull).not.toContainText('Shadowform')
   })
 
   test('a run with Mind Flay first differs, and a share link and a reload keep the order', async ({ page }) => {
@@ -145,6 +165,13 @@ test.describe('the Shadow Priest’s list from the keyboard, in a run and a shar
     for (let i = 0; i < COUNT - 2; i++) await settings.getByRole('button', { name: 'Move up', exact: true }).click()
     const newOrder = moved('mindFlay', 'racial')
     expect(await order(page)).toEqual(newOrder)
+    // The rows on the global cooldown below it, and Inner Focus, are dimmed and say why; the racial,
+    // off the global cooldown, isn't.
+    for (const id of ['shadowWordPain', 'devouringPlague', 'innerFocus', 'mindBlast']) {
+      await expect(list.locator(`[data-apl-row="${id}"]`), id).toContainText('Below Mind Flay: used only while you haven’t the mana for Mind Flay.')
+      await expect(list.locator(`[data-apl-row="${id}"]`), id).toHaveAttribute('data-inactive', 'true')
+    }
+    await expect(list.locator('[data-apl-row="racial"]')).toContainText('On cooldown')
     await expect(results.getByRole('group', { name: 'DPS' })).toContainText('Setup changed')
     await results.getByRole('button', { name: 'Simulate', exact: true }).click()
     await expect(results.getByRole('group', { name: 'DPS' })).not.toContainText('Setup changed', { timeout: 30_000 })

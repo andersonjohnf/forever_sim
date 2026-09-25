@@ -12,7 +12,7 @@ import { type ChunkExecutor, drive } from '../../run/driver'
 import { localExecutor } from '../../run/local'
 import type { RotationValue, SimConfig } from '../../types'
 import { ROTATION_GROUPS, rotationDefaultsNote, rotationOptions } from '../rotation'
-import { ENHANCEMENT_IDS as ID, ENHANCEMENT_OPTIONS, enhancementRotation, PREPULL_IMBUE_MS, TOTEM_OF_RAGE } from './enhancement'
+import { ENHANCEMENT_APL, ENHANCEMENT_IDS as ID, ENHANCEMENT_OPTIONS, enhancementRotation, PREPULL_IMBUE_MS, TOTEM_OF_RAGE } from './enhancement'
 import { auraOf, ENH, talentCode } from './test-helpers'
 
 /** The default Enhancement setup, with these settings, race, buffs and fight. */
@@ -28,19 +28,24 @@ const counter = (plan: Plan, sim: Sim, id: string, field: number) => sim.counter
 const MAX_BUFFS = () => [...defaultConfig(ENH).buffs.enabled, 'jujuFlurry', 'demonicRune']
 
 describe('the Enhancement settings (shaman.md "Enhancement priority")', () => {
-  it('put every setting under a heading, a dependent one after its parent under the same heading, and no heading over one setting', () => {
+  it('put every setting but the imbue under a heading, a dependent one after its parent under the same heading, and no spec-wide heading over one setting', () => {
     expect(rotationOptions(ENH)).toBe(ENHANCEMENT_OPTIONS)
     for (const [i, option] of ENHANCEMENT_OPTIONS.entries()) {
       expect(option.id).toMatch(/^shaman\.enhancement\.\w+(\.\w+)?$/)
-      expect(ROTATION_GROUPS, option.id).toContain(option.group)
+      // The imbue shapes the rest (it turns off Windfury Totem), so it has no heading and comes first, as Arms' stance does (docs/ux.md "Rotation").
+      if (option.id === ID.imbue) expect(option.group).toBeUndefined()
+      else expect(ROTATION_GROUPS, option.id).toContain(option.group)
       if (option.dependsOn === undefined) continue
       const p = ENHANCEMENT_OPTIONS.findIndex((o) => o.id === option.dependsOn)
       expect(p, option.id).toBeGreaterThanOrEqual(0)
       expect(p, option.id).toBeLessThan(i)
       expect(ENHANCEMENT_OPTIONS[p].group, option.id).toBe(option.group)
     }
+    // The headings are the spec-wide settings', above the priority list (the rows hold the rest).
+    const specWide = ENHANCEMENT_OPTIONS.filter((o) => ENHANCEMENT_APL.specWide.includes(o.id))
+    expect(specWide[0].id).toBe(ID.imbue)
     for (const group of ROTATION_GROUPS) {
-      const n = ENHANCEMENT_OPTIONS.filter((o) => o.group === group).length
+      const n = specWide.filter((o) => o.group === group).length
       if (n > 0) expect(n, group).toBeGreaterThanOrEqual(2)
     }
     expect(new Set(ENHANCEMENT_OPTIONS.map((o) => o.id)).size).toBe(ENHANCEMENT_OPTIONS.length)

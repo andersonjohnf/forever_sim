@@ -1,10 +1,12 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // The shaman's Rotation tabs as priority lists (decision D31; docs/classes/shaman.md "The priority
 // list (A2)"): each spec's rows show in the default order, a row moves by its handle from the
 // keyboard and with Move up and Move down in its settings, the order survives a reload and a share
-// link, and a run with a moved row gives a result.
+// link, and a run with a moved row gives a result. Elemental's rows say when the setup or the order
+// leaves them unused.
 
 interface ShamanSpec {
   name: string
@@ -154,4 +156,51 @@ test('dims a row without a switch while its choice does nothing: the Shock at No
   await expect(shock).toHaveAttribute('data-inactive')
   await page.getByRole('complementary').getByRole('radio', { name: 'Frost Shock', exact: true }).click()
   await expect(shock).not.toHaveAttribute('data-inactive')
+})
+
+test.describe('the Elemental rows the setup leaves unused (docs/classes/shaman.md "Elemental priority list (A2)")', () => {
+  const ELEMENTAL = SPECS.find((s) => s.name === 'Elemental')!
+  const BELOW_BOLT = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+
+  for (const width of [1280, 390]) {
+    test(`Lightning Bolt first leaves the rows on the global cooldown below it unused, at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      const phone = width < 1024
+      const list = await openRotation(page, ELEMENTAL)
+      await list.getByRole('button', { name: 'Lightning Bolt', exact: true }).click()
+      const settings = phone ? page.getByRole('dialog', { name: 'Lightning Bolt' }) : page.getByRole('complementary', { name: 'Lightning Bolt settings' })
+      for (let i = 0; i < ELEMENTAL.order.length - 1; i++) await settings.getByRole('button', { name: 'Move up', exact: true }).click()
+      await expect(settings.getByRole('button', { name: 'Move up', exact: true })).toBeDisabled()
+      if (phone) {
+        await page.getByRole('button', { name: 'Close', exact: true }).click()
+        await expect(page.getByRole('dialog')).toHaveCount(0)
+      }
+      expect(await order(page)).toEqual(['lightningBolt', ...ELEMENTAL.order.filter((id) => id !== 'lightningBolt')])
+      for (const id of ['manaTide', 'flameShock', 'lavaBurst']) {
+        await expect(list.locator(`[data-apl-row="${id}"]`), id).toContainText(BELOW_BOLT)
+        await expect(list.locator(`[data-apl-row="${id}"]`), id).toHaveAttribute('data-inactive', 'true')
+      }
+      // Off the global cooldown, the racial isn't; Chain Lightning, a row without a switch, reads "Not used" and its setting says why.
+      await expect(list.locator('[data-apl-row="racial"]')).toContainText('On cooldown')
+      await expect(list.locator('[data-apl-row="chainLightning"]')).toContainText('Not used')
+      await list.getByRole('button', { name: 'Chain Lightning', exact: true }).click()
+      const chain = phone ? page.getByRole('dialog', { name: 'Chain Lightning' }) : page.getByRole('complementary', { name: 'Chain Lightning settings' })
+      await expect(chain.getByRole('radiogroup', { name: 'Chain Lightning' })).toHaveAccessibleDescription(new RegExp(BELOW_BOLT))
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    })
+  }
+
+  test('Chain Lightning with Clearcasting says it needs Elemental Focus without the talent', async ({ page }) => {
+    await page.goto('about:blank')
+    const hash = await linkFor(page, { version: 2, spec: 'shaman-elemental', talents: '' })
+    await page.goto(`./${hash}`)
+    await expect(page.getByRole('button', { name: /^Spec: Elemental Shaman/ })).toBeVisible()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const list = page.getByRole('list', { name: 'Priority list' })
+    await expect(list.locator('[data-apl-row="chainLightning"]')).toContainText('None')
+    await list.getByRole('button', { name: 'Chain Lightning', exact: true }).click()
+    const chain = page.getByRole('complementary', { name: 'Chain Lightning settings' })
+    await expect(chain.getByText('Not used: Clearcasting needs the Elemental Focus talent.', { exact: true })).toBeVisible()
+    await expect(chain.getByRole('radiogroup', { name: 'Chain Lightning' })).toHaveAccessibleDescription(/Not used: Clearcasting needs the Elemental Focus talent\./)
+  })
 })

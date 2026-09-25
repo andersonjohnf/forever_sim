@@ -46,8 +46,8 @@ async function expectDefaultRotation(tab: Locator) {
   await expect(
     tab.getByText('Which abilities the sim uses, and when. The defaults are the common priority, with a first quick search; they aren’t tuned yet.', { exact: true }),
   ).toBeVisible()
-  // Power Infusion and the mana consumables sit above the list, under their headings.
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+  // The mana consumables sit above the list, under their heading; Power Infusion is a row.
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
   const list = tab.getByRole('list', { name: 'Priority list' })
   // Shadowform is the pinned row before the pull: always on, no switch.
   await expect(list.locator('[data-apl-row="prepull"]')).toContainText('Shadowform')

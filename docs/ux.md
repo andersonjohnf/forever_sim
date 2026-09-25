@@ -529,7 +529,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
     order (warrior.md §5.2–§5.4). The spec gives each setting its heading
     (`RotationOption.group`). The few settings that shape the rest (Arms' stance, a tank's
-    priority, a Destruction or Affliction warlock's Demonic Sacrifice) have no heading and come first. A heading holds at least two settings, and a
+    priority, a Destruction or Affliction warlock's Demonic Sacrifice, Enhancement's weapon imbue)
+    have no heading and come first. A heading holds at least two settings, and a
     fixed row (`rotationFixed`, below) counts as one, since it shows under the heading: each
     hunter's **Core abilities** holds Auto Shot and Pet, both fixed, and the pet's Claw threshold. A spec
     with only one for a phase files it under another heading, its help naming the phase

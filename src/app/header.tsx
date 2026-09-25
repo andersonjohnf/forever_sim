@@ -1,4 +1,4 @@
-import { ChevronDown, FolderOpen, History, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
+import { CalendarClock, ChevronDown, FolderOpen, History, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { type Ref, useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
+import { ComingSoonSheet } from './coming-soon-sheet'
 import { releaseToasts } from './held-toasts'
 import { onOpenReleaseHistory } from './release-history-request'
 import { ReleaseHistorySheet } from './release-history-sheet'
@@ -35,7 +36,7 @@ import { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
 
 /** The sheets the overflow menu opens. */
-type MenuSheet = 'setups' | 'about' | 'history'
+type MenuSheet = 'setups' | 'about' | 'history' | 'coming'
 
 export function Header() {
   const [sheet, setSheet] = useState<MenuSheet | null>(null)
@@ -44,6 +45,7 @@ export function Header() {
   const setupsFocus = useSheetFocus(() => menuButton.current)
   const aboutFocus = useSheetFocus(() => menuButton.current)
   const historyFocus = useSheetFocus(() => menuButton.current)
+  const comingFocus = useSheetFocus(() => menuButton.current)
   const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
   // About's release stamp opens Release history in its place. About, closing, then leaves focus to
   // the history sheet, which gives it back to the menu's button when it closes.
@@ -103,6 +105,12 @@ export function Header() {
         onOpenChange={openChange('history')}
         titleRef={historyFocus.titleRef}
         contentProps={historyContentProps}
+      />
+      <ComingSoonSheet
+        open={sheet === 'coming'}
+        onOpenChange={openChange('coming')}
+        titleRef={comingFocus.titleRef}
+        contentProps={comingFocus.contentProps}
       />
     </header>
   )
@@ -262,6 +270,14 @@ function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; 
           className="min-h-11"
         >
           <History /> Release history
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => {
+            chosen.current = 'coming'
+          }}
+          className="min-h-11"
+        >
+          <CalendarClock /> Coming soon
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="min-h-11">

@@ -347,8 +347,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         notes [F]), and the sim doesn't invent threat to make up for it (D29 counts the benchmark as
         evidence only where a value is unknown). The default paladin (Balanced) makes **749.2 TPS** on
         seed 31101 (100,000 fights; 466.8 DPS), against 828.9 on 1.60.1.70009's data with the old
-        values, and the officers' 800–900; on the same build the warrior makes 993 (+32.5%) and the
-        bear 1,115 (+48.8%, before its own 1.60.1.70009 slice). Its threat by ability (seed 31101,
+        values, and the officers' 800–900; on the same build the warrior makes 993 (+32.5%; its own
+        1.60.1.70009 slice) and the bear 1,115 (+48.8%, before its slice), each before Thorns' new
+        spell-power scaling, which adds about 1.3% to either (+16.0 and +14.5 TPS on seed 31101 against
+        build-70009; about 1,009 and 1,130, +34.7% and +50.8%). Its threat by ability (seed 31101,
         10,000 fights, 750.3 TPS; share, TPS, casts a fight): Seal of Fury's procs **19.4%, 146,
         118.5**; Judgement of Fury 14.8%, 111, 25.2; Consecration 14.8%, 111, 18.8; Holy Shield's
         block damage 12.6%, 95, 32.9 blocks; Holy Strike 10.2%, 77, 17.8; the auto attack 10.1%, 76,

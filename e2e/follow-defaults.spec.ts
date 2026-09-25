@@ -162,8 +162,10 @@ test.describe('a share link and the defaults notice (docs/ux.md "Persistence and
  */
 async function oneAtATime(page: Page, titles: readonly [string, string]) {
   await expect(toasts(page)).toHaveCount(1)
-  // Both have been raised by now; the second waits.
-  await page.waitForTimeout(1000)
+  // From here only the test moves the clock: left running, it follows real time, and under a loaded
+  // machine the front notice could time out while an expect below waits (VF-2's second half).
+  // Pausing a second ahead is also the wait for both to be raised; the second waits.
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000)
   await expect(toasts(page)).toHaveCount(1)
   const firstText = await toasts(page).first().innerText()
   const [first, second] = firstText.includes(titles[0]) ? titles : [titles[1], titles[0]]

@@ -70,6 +70,19 @@ export function normalizeAplOrder(def: AplDefinition, stored: readonly unknown[]
   return out
 }
 
+/**
+ * What a row placed below the spec's filler says, on its setting and in the list, which dims it
+ * (docs/ux.md "Rotation"): "Below Mind Flay: cast only when Mind Flay can’t be." The filler takes
+ * every global cooldown it can, so a row below it gets one only when the filler can't be cast. The
+ * note claims nothing about why (mana, rage), so it's true whatever stops the filler. `above` is
+ * the filler as a sentence names it ("the Sunder Armor filler"). Shadow's Inner Focus below Mind
+ * Blast says the same of Mind Blast.
+ */
+export const belowRowNote = (above: string) => `Below ${above}: cast only when ${above} can’t be.`
+
+/** Whether a setting's note is `belowRowNote`'s, so a row without a switch shows it and is dimmed. */
+export const isBelowRowNote = (note: string) => /^Below (.+): cast only when \1 can’t be\.$/.test(note)
+
 /** What the config stores for an order: nothing while it's the default. */
 export function storedAplOrder(def: AplDefinition, order: readonly string[]): string[] | undefined {
   const normalized = normalizeAplOrder(def, order)

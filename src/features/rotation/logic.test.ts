@@ -535,6 +535,29 @@ describe('a summary part a choice or the setup rules out (choiceIs, choiceIsNot,
     expect(state(defaultConfig('warlock-affliction'))).toEqual({ note: undefined, idle: false, summary: 'Shadow Bolt' })
   })
 
+  it('shows the note of a row below the filler and dims it, even with a summary part’s inactiveText: Chain Lightning below Lightning Bolt (VA-3)', () => {
+    const options = getSpec('shaman-elemental').rotationOptions
+    const apl = getSpec('shaman-elemental').rotationApl!
+    const chain = apl.rows.find((row) => row.id === 'chainLightning')!
+    const state = (config: SimConfig) => {
+      const r = rotationRows(config, options, config.buffs.enabled, unusedRotationSettings(config))
+      return { note: aplRowNote(chain, r), idle: aplRowIdle(chain, options, r, config), setting: r.get('shaman.elemental.chainLightning.use')?.notUsed }
+    }
+    const note = 'Below Lightning Bolt: cast only when Lightning Bolt can’t be.'
+    const below = moveAplRow(apl, defaultAplOrder(apl), 'lightningBolt', defaultAplOrder(apl).indexOf('chainLightning'))!
+    // The row and its setting say the same, and the row is dimmed as Flame Shock's is below it.
+    expect(state({ ...ele, rotationOrder: below })).toEqual({ note, idle: true, setting: note })
+    expect(chain.summary!.some((p) => p.inactiveText !== undefined)).toBe(true)
+    const all = moveAplRow(apl, defaultAplOrder(apl), 'lightningBolt', 1)!
+    const boltFirst: SimConfig = { ...ele, rotationOrder: all }
+    const r = rotationRows(boltFirst, options, ele.buffs.enabled, unusedRotationSettings(boltFirst))
+    const flame = apl.rows.find((row) => row.id === 'flameShock')!
+    expect(aplRowNote(flame, r)).toBe(note)
+    expect(r.get(flame.enabledId!)?.inactive).toBe(true)
+    // In the default order: no note, not dimmed.
+    expect(state(ele)).toEqual({ note: undefined, idle: false, setting: undefined })
+  })
+
   it('says None for Chain Lightning with Clearcasting without Elemental Focus, which never casts it', () => {
     const use = 'shaman.elemental.chainLightning.use'
     const noFocus = { ...ele, talents: '' }

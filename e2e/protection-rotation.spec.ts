@@ -164,13 +164,13 @@ test.describe('Protection rotation', () => {
     await expect(page.getByRole('button', { name: 'Reset order' })).toBeDisabled()
   })
 
-  test('a duty moved below Defensive’s filler says it’s used only under the filler’s rage, dimmed, until the filler is off (TI-4, TV-1)', async ({ page }) => {
+  test('a duty moved below Defensive’s filler says it’s cast only when the filler can’t be, dimmed, until the filler is off (TI-4, TV-1, VA-2)', async ({ page }) => {
     await openProtectionRotation(page)
     await pick(page, 'Defensive')
     const ds = await openRow(page, 'Demoralizing Shout')
     for (let i = 0; i < 5; i++) await ds.getByRole('button', { name: 'Move down', exact: true }).click()
     await expect.poll(() => order(page)).toEqual([...DEFAULT_ORDER.slice(0, 6), ...DEFAULT_ORDER.slice(7, 12), 'demoShout', ...DEFAULT_ORDER.slice(12)])
-    const note = 'Below the Sunder Armor filler: used only while your rage is under its 9.'
+    const note = 'Below the Sunder Armor filler: cast only when the Sunder Armor filler can’t be.'
     await expect(row(page, 'demoShout')).toContainText(note)
     await expect(row(page, 'demoShout')).toHaveAttribute('data-inactive')
     await rowSwitch(page, 'sunderFiller').click()

@@ -3,6 +3,7 @@
 import {
   type AplRow,
   buffCatalogue,
+  isBelowRowNote,
   rotationValues,
   unmetRequirements,
   type BuffDefinition,
@@ -257,19 +258,22 @@ const NOTHING_CHOICES: readonly string[] = ['none', 'never']
  * Why a row without a switch does nothing, in its lead setting's (its first's) note: the setup
  * leaves that setting unused, and no part of the summary says what the row does instead (a
  * warlock's filler without Incinerate still casts Shadow Bolt). Balance's Filler under Wrath for
- * Eclipse: "Not used: Wrath for Eclipse is on. …".
+ * Eclipse: "Not used: Wrath for Eclipse is on. …". A row below the spec's filler always shows its
+ * note ("Below Lightning Bolt: cast only when Lightning Bolt can’t be.", `isBelowRowNote`), whatever
+ * its summary says it does instead, so the row and its setting say the same and the row is dimmed.
  */
 function switchlessNote(row: AplRow, rows: ReadonlyMap<string, RowState>): string | undefined {
   const lead = row.optionIds[0]
   const notUsed = lead === undefined ? undefined : rows.get(lead)?.notUsed
-  if (notUsed === undefined || row.summary?.some((p) => p.option === lead && p.inactiveText !== undefined)) return undefined
+  if (notUsed === undefined) return undefined
+  if (!isBelowRowNote(notUsed) && row.summary?.some((p) => p.option === lead && p.inactiveText !== undefined)) return undefined
   return notUsed
 }
 
 /**
  * Whether a row without a switch does nothing, so the list dims it as it does a row that's off
  * (docs/ux.md "Rotation"): its note says why (`aplRowNote`: Balance's Filler under Wrath for
- * Eclipse), its lead setting is a choice of nothing (`NOTHING_CHOICES`: the Shock at None), or no
+ * Eclipse, or Chain Lightning below Lightning Bolt, even with a summary part's `inactiveText`), its lead setting is a choice of nothing (`NOTHING_CHOICES`: the Shock at None), or no
  * part of its summary applies (it reads "None": the pre-pull with every part off). False for a row
  * with a switch, which dims itself by its switch.
  */

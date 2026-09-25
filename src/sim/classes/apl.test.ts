@@ -5,10 +5,12 @@ import {
   activeAplPreset,
   aplPresets,
   applyAplPreset,
+  belowRowNote,
   compileAplRows,
   CUSTOM_APL_PRESET,
   DEFAULT_APL_PRESET,
   defaultAplOrder,
+  isBelowRowNote,
   moveAplRow,
   normalizeAplOrder,
   storedAplOrder,
@@ -219,5 +221,15 @@ describe('every spec’s presets (decision D28, docs/ux.md "Rotation")', () => {
         expect(p.help, `${spec} ${p.id}`).toMatch(/The Buffs tab’s .* stays? off unless you turn (it|them) on there/)
       }
     }
+  })
+})
+
+describe('the note of a row below the filler (docs/ux.md "Rotation"; VA-2)', () => {
+  it('is one rule, with no claim about mana or rage, and the Rotation tab can tell it from other notes', () => {
+    expect(belowRowNote('Mind Flay')).toBe('Below Mind Flay: cast only when Mind Flay can’t be.')
+    expect(belowRowNote('the Sunder Armor filler')).toBe('Below the Sunder Armor filler: cast only when the Sunder Armor filler can’t be.')
+    for (const name of ['Mind Flay', 'Lightning Bolt', 'the Filler', 'Wrath for Eclipse', 'the Sunder Armor filler', 'Mind Blast']) expect(isBelowRowNote(belowRowNote(name)), name).toBe(true)
+    expect(isBelowRowNote('Not used: Clearcasting needs the Elemental Focus talent.')).toBe(false)
+    expect(isBelowRowNote('Below Mind Flay: cast only when Mind Blast can’t be.')).toBe(false)
   })
 })

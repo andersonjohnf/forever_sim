@@ -471,7 +471,7 @@ Each row keeps its conditions wherever you move it:
 - **Pinned:** nothing. The imbue goes on 3 s before the pull whatever the order.
 - **Spec-wide, above the list:** the weapon imbue (row 0), first and without a heading, since it
   shapes the rest (Windfury Weapon turns off Windfury Totem), as Arms' stance does
-  ([ux.md "Rotation"](../ux.md)); and the consumables: Juju Flurry, the Major Mana Potion and
+  ([ux.md "Rotation"](../ux.md#sections)); and the consumables: Juju Flurry, the Major Mana Potion and
   Demonic Rune with their mana limits, under Consumables. Juju Flurry takes its
   turn in the list with the on-use trinkets' row, wherever that sits, as it did before the list;
   the potion and rune come after the list, off the GCD once all they restore fits.
@@ -931,12 +931,14 @@ row keeps its conditions wherever you move it:
   - Chain Lightning with Clearcasting without Elemental Focus, the only source of Clearcasting,
     never casts: "Not used: Clearcasting needs the Elemental Focus talent."
   - A row on the global cooldown below Lightning Bolt (Mana Tide Totem, Flame Shock, Lava Burst,
-    Chain Lightning, Earth Shock), on and with its talent, gets a GCD only without the mana for the
-    bolt's last line: "Below Lightning Bolt: used only while you haven't the mana for Lightning
-    Bolt." (as Balance's "Below the Filler"). In the default setup, Lightning Bolt first casts none
-    of them. Chain Lightning's Elemental Focus note comes first.
-  - Chain Lightning's row has no switch, so it isn't dimmed: its summary reads "None" (without
-    Elemental Focus) or "Not used" (below Lightning Bolt), and its setting says why.
+    Chain Lightning, Earth Shock), on and with its talent, gets a GCD only when the bolt can't be
+    cast, and says so, dimmed, by the rule every filler's rows share ([ux.md "Rotation"](../ux.md#sections),
+    rows below the filler): "Below Lightning Bolt: cast only when Lightning Bolt can't be." In the
+    default setup, Lightning Bolt first casts none of them. Chain Lightning's Elemental Focus note
+    comes first.
+  - Chain Lightning's row has no switch. Without Elemental Focus it reads "None", dimmed, and its
+    setting says why. Below Lightning Bolt the row shows the same note as its setting, dimmed like
+    the rows with a switch (VA-3).
 
 ### Elemental defaults
 

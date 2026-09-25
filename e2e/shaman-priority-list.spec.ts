@@ -160,7 +160,7 @@ test('dims a row without a switch while its choice does nothing: the Shock at No
 
 test.describe('the Elemental rows the setup leaves unused (docs/classes/shaman.md "Elemental priority list (A2)")', () => {
   const ELEMENTAL = SPECS.find((s) => s.name === 'Elemental')!
-  const BELOW_BOLT = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+  const BELOW_BOLT = 'Below Lightning Bolt: cast only when Lightning Bolt can’t be.'
 
   for (const width of [1280, 390]) {
     test(`Lightning Bolt first leaves the rows on the global cooldown below it unused, at ${width} px`, async ({ page }) => {
@@ -180,9 +180,12 @@ test.describe('the Elemental rows the setup leaves unused (docs/classes/shaman.m
         await expect(list.locator(`[data-apl-row="${id}"]`), id).toContainText(BELOW_BOLT)
         await expect(list.locator(`[data-apl-row="${id}"]`), id).toHaveAttribute('data-inactive', 'true')
       }
-      // Off the global cooldown, the racial isn't; Chain Lightning, a row without a switch, reads "Not used" and its setting says why.
+      // Off the global cooldown, the racial isn't; Chain Lightning, a row without a switch, says the
+      // same as its setting and is dimmed with the rest (VA-3).
       await expect(list.locator('[data-apl-row="racial"]')).toContainText('On cooldown')
-      await expect(list.locator('[data-apl-row="chainLightning"]')).toContainText('Not used')
+      await expect(list.locator('[data-apl-row="racial"]')).not.toHaveAttribute('data-inactive')
+      await expect(list.locator('[data-apl-row="chainLightning"]')).toContainText(BELOW_BOLT)
+      await expect(list.locator('[data-apl-row="chainLightning"]')).toHaveAttribute('data-inactive', 'true')
       await list.getByRole('button', { name: 'Chain Lightning', exact: true }).click()
       const chain = phone ? page.getByRole('dialog', { name: 'Chain Lightning' }) : page.getByRole('complementary', { name: 'Chain Lightning settings' })
       await expect(chain.getByRole('radiogroup', { name: 'Chain Lightning' })).toHaveAccessibleDescription(new RegExp(BELOW_BOLT))

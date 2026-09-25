@@ -1580,11 +1580,12 @@ before any threat ability on the global cooldown, and their refresh stays the du
 you move them; a moved duty makes the list Custom. The rule says when a duty wants the global
 cooldown, not that it gets it: the filler takes the global cooldown first whenever rage is at its
 threshold, so Thunder Clap (with `maintainOnly`), Demoralizing Shout or Battle Shout moved below it
-is used only while rage is under that. The Rotation tab says so on the row, with the threshold (or
-Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your rage is
-under its 9." It says so whatever the threshold, even while the filler waits for Shield Slam: below
-Defensive's and Max TPS's 9, Demoralizing Shout gets under one cast a fight in the default setup;
-below Balanced's 60% of the bar, it gets every global cooldown with less rage than that. The consumables (row 4) are spec-wide, above
+is used only while rage is under that. The Rotation tab says so on the row, dimmed, by the rule
+every filler's rows share ([ux.md "Rotation"](../ux.md#sections), rows below the filler), which names no
+threshold: "Below the Sunder Armor filler: cast only when the Sunder Armor filler can't be." It says
+so whatever the threshold, even while the filler waits for Shield Slam: below Defensive's and Max
+TPS's 9, Demoralizing Shout gets under one cast a fight in the default setup; below Balanced's 60%
+of the bar, it gets every global cooldown with less rage than that. The consumables (row 4) are spec-wide, above
 the list, and take their turn with the on-use trinkets (row 3), wherever that row sits, which in
 the default order is where they always were: after rows 1–3, before Thunder Clap. A row keeps its
 own conditions wherever it sits: the filler moved above Shield Slam still waits for it (with its

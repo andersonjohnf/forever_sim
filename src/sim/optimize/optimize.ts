@@ -66,13 +66,16 @@ export const BUDGETS: Record<BudgetId, Budget> = {
   thorough: { fights: 24_000_000 },
 }
 
+/** The fewest first-round fights a candidate runs while the budget covers them (`firstRound`). */
+export const FIRST_ROUND_MIN = 50
+
 /**
  * The first round's fights: 30% of the budget spread over the plans that run it (the candidates and
- * the baseline, as `fitBudget` counts them), between 50 and 1,000 each.
+ * the baseline, as `fitBudget` counts them), between FIRST_ROUND_MIN and 1,000 each.
  */
 export function firstRound(budget: Budget, plans: number): number {
   if (budget.initialFights !== undefined) return budget.initialFights
-  return Math.max(50, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, plans))))
+  return Math.max(FIRST_ROUND_MIN, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, plans))))
 }
 
 /** The fewest first-round fights a candidate runs when a large space shrinks the first round (`fitBudget`). */
@@ -379,22 +382,29 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
         searchPartials: partials,
         limit: search.limit,
       })
-    let found = spaceWith(new Set())
+    // Past the limit, a space cut off in the middle would drop builds by where they fall in the
+    // enumeration; max ranks alone drop them by a rule the report can state. And a space the budget
+    // can't race at FIRST_ROUND_MIN fights each would be judged on too few fights to drop anything:
+    // max ranks raced properly beat every rank raced blind.
+    const plans = (n: number) => n * rotations.length + 2
+    const fitted = (constrained: ReadonlySet<string>) => {
+      const space = spaceWith(constrained)
+      const tooBig = options.budget.initialFights === undefined && fitBudget(options.budget, plans(space.builds.length)).initialFights < FIRST_ROUND_MIN
+      if (!partials || !(space.truncated || tooBig)) return space
+      const size = space.builds.length.toLocaleString('en-US')
+      const why = space.truncated ? `passes the limit of ${size} builds` : `makes ${size} builds, more than this budget races at ${FIRST_ROUND_MIN} fights each`
+      spaceNotes.push(
+        `Every rank of one talent a build ${why}, so this search tries max ranks only: leftover points still go to partial ranks, by score per point. ${space.truncated ? 'Keeping or excluding talents' : 'A larger budget, or keeping or excluding talents,'} searches partial ranks too.`,
+      )
+      partials = false
+      return spaceWith(constrained)
+    }
+    let found = fitted(new Set())
     const binds =
       readByConstraint.size > 0 &&
       (found.builds.length === 0 ||
         found.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
-    if (binds) found = spaceWith(readByConstraint)
-    // Past the limit, a space cut off in the middle would drop builds by where they fall in the
-    // enumeration; max ranks alone drop them by a rule the report can state.
-    if (found.truncated && partials) {
-      const cut = found.builds.length
-      partials = false
-      found = spaceWith(binds ? readByConstraint : new Set())
-      spaceNotes.push(
-        `Searching every rank of one talent a build passed ${cut.toLocaleString('en-US')} builds, so this search tries max ranks only: leftover points still go to partial ranks, by score per point. Keep or exclude talents to search partial ranks too.`,
-      )
-    }
+    if (binds) found = fitted(readByConstraint)
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
     space = {

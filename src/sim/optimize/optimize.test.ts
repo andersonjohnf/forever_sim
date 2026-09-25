@@ -173,7 +173,7 @@ describe('optimize', () => {
     expect(high.space!.builds).toBeGreaterThan(none.space!.builds)
   }, 60_000)
 
-  it('searches partial ranks by default, and max ranks only when that space passes the limit, saying so (OG-2)', async () => {
+  it('searches partial ranks by default, and max ranks only when that space passes the limit or the budget, saying so (OG-2)', async () => {
     const run = (talents: { minPoints: Record<string, number>; screenFights: number; searchPartials?: boolean; limit?: number }) =>
       optimize({ config: bear, talents, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
     const plain = await run(search)
@@ -188,8 +188,16 @@ describe('optimize', () => {
     expect(capped.space!.searchPartials).toBe(false)
     expect(capped.space!.truncated).toBe(false)
     expect(capped.space!.builds).toBe(plain.space!.builds)
-    expect(capped.notes[0]).toMatch(/tries max ranks only/)
-  }, 60_000)
+    expect(capped.notes[0]).toMatch(/passes the limit of .* tries max ranks only/)
+    // A budget that can't race the partial space at 50 fights each races max ranks instead.
+    const fights = Math.ceil((50 * (plain.space!.builds + 3)) / 0.9)
+    expect(partials.space!.builds * 50).toBeGreaterThan(0.9 * fights)
+    const small = await optimize({ config: bear, talents: byDefault, budget: { fights }, runner: localFightRunner(), top: 1 })
+    expect(small.space!.searchPartials).toBe(false)
+    expect(small.space!.builds).toBe(plain.space!.builds)
+    expect(small.notes[0]).toMatch(/more than this budget races at 50 fights each, so this search tries max ranks only/)
+    expect(small.budget.initialFights).toBeGreaterThanOrEqual(50)
+  }, 90_000)
 
   it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
     // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).

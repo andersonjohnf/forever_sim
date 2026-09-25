@@ -336,9 +336,13 @@ talent kept by default.
   whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
   for a bear), is never forced by the maximality rule below nor given leftover points: builds with
   and without it, and with each of its ranks, race. The CLI's `--no-partials` searches max ranks
-  only. A space with partial ranks that passes the limit (200,000 builds) is built with max ranks
-  only instead, and the report's notes say so: a space cut off in the middle would drop builds by
-  where they fall in the enumeration.
+  only. A space with partial ranks that passes the limit (200,000 builds), or that the budget can't
+  race at 50 fights a plan in its first round ([budgets](#budgets)), is built with max ranks only
+  instead, and the report's notes say so: a space cut off in the middle would drop builds by where
+  they fall in the enumeration, and one raced on 20 fights a build drops almost nothing and ends on
+  the budget. The Protection paladin's Defense space is the one that does: 135,311 builds with
+  partial ranks, 9,006 without, so `quick` and `standard` search its max ranks and `thorough` its
+  partial ranks.
 - **So is a talent a constraint reads, where the constraint could bind.** One that changes a sheet
   number a constraint reads (Toughness's armor, Sacred Duty's health, under the effective-health
   floor) is a dimension too, whatever its role, so builds with and without it both race, unless
@@ -409,29 +413,37 @@ Anticipation (OV4-1). That narrowing left out feasible builds with Toughness and
 first picks the Defense goal or sets a sheet constraint.
 
 The spaces at the default setups (tanks with 31 points in their tree and the effective-health
-floor, which makes a talent that changes health or armor a dimension), by goal, from the screens of
-2026-09-24 (`quick`, seed 1; the kept talents aren't dimensions, and there are none by default).
-The goal changes the space: for Defense a talent that only adds threat is a filler, and for TPS
-one the screen measures lowering threat (the warrior's Shield Slam, on this setup) is never taken.
+floor), by goal, from the screens of 2026-09-24 after the goals review's fixes (`quick`, seed 1; the
+kept talents aren't dimensions, and there are none by default). The floor binds in none of these
+talent searches (OG-1), so no talent is a dimension for it: the talents it reads (Toughness, Sacred
+Duty, Heart of the Wild, Thick Hide) stay fillers, or objective ones where the goal measures them
+(Toughness for Defense). The goal changes the space: for Defense a talent that only adds threat is a
+filler, and for TPS one the screen measures lowering threat (the warrior's Shield Slam, on this
+setup) is never taken. "Builds" is the default space, every rank of one talent a build (OG-2);
+"max ranks" is `--no-partials`'s, and what a budget too small for the default races.
 
-| Spec | Goal | Dimensions | Builds | Legal tree cores | Dominated |
-| --- | --- | --- | --- | --- | --- |
-| `warrior-protection` | Balanced | 23 objective + Toughness | 2,087 | 3,224 | 5,075 |
-| `warrior-protection` | TPS | 22 objective + Toughness | 700 | 1,688 | 2,055 |
-| `warrior-protection` | Defense | 17 objective (Toughness among them) | 222 | 416 | 381 |
-| `paladin-protection` | Balanced | 29 objective + Toughness, Sacred Duty | 23,841 | 5,504 | 7,706 |
-| `paladin-protection` | Defense | 23 objective + Sacred Duty | 15,135 | 2,416 | 2,442 |
-| `druid-feral-bear` | Balanced | 18 objective + Heart of the Wild, Thick Hide | 303 | 10,386 | 9,789 |
-| `warrior-fury` (no constraints) | DPS | 20 objective | 288 | 1,636 | 1,507 |
+| Spec | Goal | Dimensions | Builds | Max ranks | Legal tree cores | Dominated |
+| --- | --- | --- | --- | --- | --- | --- |
+| `warrior-protection` | Balanced | 23 objective | 3,985 | 465 | 18,384 | 20,615 |
+| `warrior-protection` | TPS | 22 objective | 918 | 119 | 9,808 | 10,040 |
+| `warrior-protection` | Defense | 17 objective (Toughness among them) | 2,326 | 222 | 3,720 | 3,740 |
+| `paladin-protection` | Balanced | 29 objective | 26,762 | 1,779 | 45,568 | 44,362 |
+| `paladin-protection` | Defense | 23 objective | 135,311 (`thorough` only) | 9,006 | 15,952 | 28,278 |
+| `druid-feral-bear` | Balanced | 18 objective | 502 | 56 | 26,022 | 25,738 |
+| `warrior-fury` (no constraints) | DPS | 20 objective | 3,310 | 369 | 19,146 | 19,111 |
 
-So on `quick` the warrior's Balanced space runs 215 fights each in the first round, the paladin's
-50 (its 23,841 plans fit 50 each in 90% of the budget; `standard` suits it better) and the bear's
-and Fury's 1,000. With the survival floor and the preferred filler (before D30's superseding
-paragraph) the warrior's space was 3,690 builds, the paladin's 6,833 and the bear's 129: the floor
-kept Deflection, the cooldowns and the bear's Heart of the Wild, Thick Hide and Feral Swiftness out
-of the search, and without it more builds are legal and different.
+So on `quick` the warrior's Balanced space runs 112 fights each in the first round, the paladin's
+50 (its 26,764 plans fit 50 each in 90% of the budget; `standard` suits it better), the bear's 892
+and Fury's 135. The paladin's Defense space fits only `thorough` at 50 fights a plan, so `quick` and
+`standard` race its 9,006 max-rank builds ([the talent space](#the-talent-space)). Before the goals
+review (OG-1, OG-2, OG-3) the floor made the talents it reads dimensions and only max ranks were
+searched: the warrior's Balanced space was 2,087 builds, its TPS 700, the paladin's Balanced 23,841,
+its Defense 15,135, the bear's 303 and Fury's 288. With the survival floor and the preferred filler
+(before D30's superseding paragraph) the warrior's space was 3,690 builds, the paladin's 6,833 and
+the bear's 129: the floor kept Deflection, the cooldowns and the bear's Heart of the Wild, Thick
+Hide and Feral Swiftness out of the search, and without it more builds are legal and different.
 
-Enumerating takes about a second. Before the tree-by-tree combination and the leftover-point rule,
+Enumerating takes about a second (two for the paladin's Defense space with partial ranks). Before the tree-by-tree combination and the leftover-point rule,
 the Protection warrior's space was 17,644 builds and took eight minutes to list; the paladin's
 passed 50,000.
 

@@ -88,6 +88,8 @@ async function expectSharedRotation(tab: Locator) {
   for (const name of ['Racial cooldown', 'On-use trinkets', 'Evocation', 'Mana gems']) {
     await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
   }
+  // Each gem goes once you're missing the most it restores (mage.md "Mana gems, potion and rune").
+  await expect(tab.locator('#apl-manaGems-summary')).toHaveText('Each when you’re missing all it restores')
   await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeVisible()
   // The rune waits for the Buffs tab, where the Standard raid preset leaves it off.
   await expect(tab.getByRole('switch', { name: 'Demonic Rune', exact: true })).toHaveAccessibleDescription(/Not used: turn on Demonic Rune in Buffs first/)

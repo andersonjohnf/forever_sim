@@ -15,7 +15,7 @@ import { rotationValues } from '../../index'
 import type { SimConfig } from '../../types'
 import { HUNTER_BASE_MANA } from './abilities'
 import { CAT_DAMAGE, HAPPY_DAMAGE } from './pet'
-import { hunterIds } from './rotation'
+import { hunterIds, hunterUnusedSettings } from './rotation'
 import { withCritBonus } from './talents'
 
 const MM = 'hunter-marksmanship'
@@ -203,6 +203,17 @@ describe('the default hunters’ plans', () => {
     const p = plan(defaultConfig(MM))
     const aimed = p.abilities.findIndex((a) => a.id === 'aimedShot')
     expect(p.rotation.find((l) => l.ability === aimed)!.conditions.map((c) => c.code)).toContain(62)
+  })
+
+  it('dims “Wait for Auto Shot” only while the shared cooldown’s shot is Neither (hunter.md §8.3, docs/ux.md “Rotation”)', () => {
+    for (const spec of [MM, BM, SV] as const) {
+      const ID = hunterIds(spec)
+      const values = rotationValues(defaultConfig(spec))
+      const talents = new Map<string, number>()
+      expect(hunterUnusedSettings(spec, values, talents)[ID.noClip], spec).toBeUndefined()
+      for (const shot of ['aimed', 'multi']) expect(hunterUnusedSettings(spec, { ...values, [ID.sharedShot]: shot }, talents)[ID.noClip]).toBeUndefined()
+      expect(hunterUnusedSettings(spec, { ...values, [ID.sharedShot]: 'none' }, talents)[ID.noClip]).toBe('Not used: at Neither there’s no shot to cast between Auto Shots.')
+    }
   })
 
   it('shows a ranged sheet: ranged attack power, crit, hit, shot speed, weapon skill and ammo', () => {

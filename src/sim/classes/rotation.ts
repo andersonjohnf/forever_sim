@@ -155,7 +155,7 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
 /** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
-  // docs/classes/hunter.md §8: Aspect of the Hawk, Trueshot Aura, the pet and Auto Shot.
+  // docs/classes/hunter.md §8.3: Auto Shot and the pet; Aspect of the Hawk and Trueshot Aura are the list's pinned first row.
   if (isHunterSpec(spec)) return hunterFixedRows(spec)
   return []
 }
@@ -293,8 +293,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
   // docs/classes/paladin.md rows 7 and 8: the lower of the two Consecration rows, when it never has the shared cooldown.
   if (spec === 'paladin-retribution') Object.assign(out, retributionUnusedSettings(values, setup.order))
-  // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
-  if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
+  // docs/classes/hunter.md §8.3: the pet's settings with Lone Wolf, and "Wait for Auto Shot" at Neither.
+  if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, values, setup.talents ?? new Map()))
   return out
 }
 

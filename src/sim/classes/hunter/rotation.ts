@@ -323,12 +323,15 @@ export const HUNTER_APL: Readonly<Record<HunterSpec, AplDefinition>> = {
 }
 
 /**
- * Settings that can't do anything in this setup (docs/ux.md "Rotation"): the pet's Claw threshold
- * and Bestial Wrath without a pet (Lone Wolf). The racial's note is every spec's (classes/rotation.ts).
+ * Settings that can't do anything in this setup (docs/ux.md "Rotation"; hunter.md §8.3): the pet's
+ * Claw threshold and Bestial Wrath without a pet (Lone Wolf), and "Wait for Auto Shot" while the
+ * shared cooldown's shot is Neither, with no shot to wait. The racial's note is every spec's
+ * (classes/rotation.ts).
  */
-export function hunterUnusedSettings(spec: HunterSpec, talents: TalentRanks): Record<string, string> {
+export function hunterUnusedSettings(spec: HunterSpec, values: Record<string, RotationValue>, talents: TalentRanks): Record<string, string> {
   const ID = hunterIds(spec)
   const out: Record<string, string> = {}
+  if (reader(hunterOptions(spec), values, talents).str(ID.sharedShot) === 'none') out[ID.noClip] = 'Not used: at Neither there’s no shot to cast between Auto Shots.'
   if (!hasPet(talents)) {
     out[ID.clawFocus] = 'Not used: with Lone Wolf you fight without a pet.'
     if (rank(talents, 'Bestial Wrath') > 0) out[ID.bestialWrath] = 'Not used: with Lone Wolf you fight without a pet.'

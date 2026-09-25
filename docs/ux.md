@@ -166,7 +166,8 @@ characters, about what fits under a tab at 1440 px:
   width: "Skyborne · Classic Era".
 - **Talents:** the points in each tree, in tree order: "17/34/0".
 - **Gear:** "Pre-raid best in slot" (a tank's "Threat set") while every slot holds the default
-  set, by the Gear tab's own comparison; otherwise "1 slot changed", "3 slots changed".
+  set, by the Gear tab's own comparison; "No gear" with every slot empty (after Remove all gear);
+  otherwise "1 slot changed", "3 slots changed".
 - **Buffs:** the preset the Buffs tab's picker shows ("Standard raid"), or "Custom".
 - **Rotation:** the preset the Rotation tab's picker shows ("Default", "Balanced"), or "Custom".
 - **Fight:** the length as the Fight tab shows it ("3:00"), and the boss's level only when it

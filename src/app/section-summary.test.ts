@@ -103,6 +103,12 @@ describe('sectionSummaries', () => {
       expect(sectionSummaries(two).gear).toBe('2 slots changed')
     })
 
+    it('Gear: every slot empty is "No gear", not a count of changed slots (DA-7)', () => {
+      expect(sectionSummaries({ ...base, gear: {} }).gear).toBe('No gear')
+      const cleared = Object.fromEntries(Object.keys(base.gear).map((slot) => [slot, undefined]))
+      expect(sectionSummaries({ ...base, gear: cleared }).gear).toBe('No gear')
+    })
+
     it('Buffs: another preset, then a buff off it', () => {
       const max = { ...base, buffs: { ...base.buffs, enabled: presetBuffs('max', spec, base.buffs.raid) } }
       expect(changedSections(base, max)).toEqual(['buffs'])
@@ -190,6 +196,9 @@ describe('sectionSummaries', () => {
       }
       for (const preset of talentPresets(classId)) lines.add(sectionSummaries({ ...base, talents: preset.code }).talents)
       lines.add(sectionSummaries({ ...base, gear: {} }).gear)
+      // The most slots a count names: all but one emptied (an empty set is "No gear").
+      const [kept] = Object.entries(base.gear).filter(([, item]) => item)
+      lines.add(sectionSummaries({ ...base, gear: Object.fromEntries([kept]) }).gear)
       const apl = getSpec(spec).rotationApl!
       for (const preset of aplPresets(apl)) lines.add(preset.label)
       for (const preset of buffPresets) lines.add(preset.name)

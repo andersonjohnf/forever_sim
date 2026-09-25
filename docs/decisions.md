@@ -714,8 +714,10 @@ always in view; calm, single-column results. What changes from the design above:
   - **The panel** is less sterile: the character sheet and Your setup are cards with headings, the
     sheet's stats grouped (Offense, Spells, Attributes, Defense), each setup line with its section's
     icon, and Simulate in an action row at the setup card's foot with the run's status beside it.
-  - **Weapon skill** is one number at every width ("302 · 300" when the hands differ): the one
-    change under 1440 px, since the old "300 main hand / 300 off hand" wrapped.
+  - **Weapon skill** is one number at every width ("302 · 300" when the hands differ), since the
+    old "300 main hand / 300 off hand" wrapped. **The item picker** lists the equipped item first with
+    an "Equipped" badge in place of a trailing check (review finding DB-8), at every width, since
+    it reads better on a phone too. These two are the only changes under 1440 px.
 - **The panel's order, after the final review (user decision, 2026-09-25).** A 1440×900 window can't
   show a tank's whole sheet, Your setup and a result together (Prot Warrior's sheet alone is 615 px).
   So **Your setup, with Simulate, is pinned at the top** of the panel at every wide width; the

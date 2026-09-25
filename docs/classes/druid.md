@@ -1619,15 +1619,16 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
 | Waist | Defiler's Leather Girdle (20190; Alliance: Highlander's, 20045) | | |
 
 At the defaults (seed 424242, 20,000 fights, with Thorns and Thick Hide), against the v1 list's
-gear and talents in today's model:
+gear and talents in today's model (re-measured 2026-09-25 on 1.60.1.70009; the v1 rows play
+Defensive, and v1's talents read onto today's trees with nothing refunded):
 
 | Setup | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
 | --- | --- | --- | --- | --- | --- | --- |
-| v1 talents and gear | 774.5 | 384.8 | 557.5 | 6,964 | 17,036 | 27,579 |
-| 9/42/0, v1 gear | 836.5 | 409.4 | 557.9 | 6,964 | 17,036 | 27,579 |
-| Defensive, the default before D28 (9/42/0, interim gear) | 1,081.9 | 532.6 | 628.9 | 7,038 | 14,608 | 24,903 (90.3%) |
-| **Default**, Balanced (and Max TPS) | **1,115.6** | **547.5** | 633.4 | 7,038 | 14,608 | 24,903 |
-| Defensive, Alliance (Night Elf) | 1,108.9 | 542.2 | 616.3 | 6,663 | 14,630 | 23,601 |
+| v1 talents and gear | 781.0 | 390.4 | 557.5 | 6,964 | 17,036 | 27,579 |
+| 9/42/0, v1 gear | 842.9 | 415.0 | 557.9 | 6,964 | 17,036 | 27,579 |
+| Defensive, the default before D28 (9/42/0, interim gear) | 1,093.0 | 538.2 | 628.9 | 7,038 | 14,608 | 24,903 (90.3%) |
+| **Default**, Balanced (and Max TPS) | **1,126.8** | **553.2** | 633.4 | 7,038 | 14,608 | 24,903 |
+| Defensive, Alliance (Night Elf) | 1,119.6 | 547.7 | 616.3 | 6,663 | 14,630 | 23,601 |
 
 The bear takes 12.8% more damage a second than in the v1 gear: less armor, and more of the
 boss's parries, which hasten its swings. A unit test holds the floor (`druid.test.ts`), for both

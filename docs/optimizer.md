@@ -21,6 +21,13 @@ app's Optimize flow O3, and defaults set from the results O4 ([milestones](miles
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
 
+**Data build.** O1 was built and reviewed on 1.60.1.69913's data and talent trees, then merged onto
+1.60.1.70009's: the paladin's Improved Holy Strike and Crusade gone, the shaman's Elemental swap,
+the Feral renames (Mangle is Primal Bite, Primal Fury Blood Frenzy), Shield Slam's "very high"
+threat, and the new default talents ([talents.md](data/talents.md#tree-versions)). The spaces and
+answers below are 70009's; a figure marked **(69913)** is the earlier build's, kept as the record of
+the review round that measured it.
+
 ## Contents
 
 1. [The steps](#the-steps)
@@ -155,7 +162,7 @@ Each candidate's fights are paired with the baseline's and with the leader's, fi
 two candidates _a_ and _b_ over _n_ shared fights, the difference is the mean of _aᵢ − bᵢ_ and its
 interval ± _z_ × the standard deviation of the differences ÷ √_n_ (`pairedInterval`). Every
 interval reported is 95% (_z_ = 1.96). Measured on the bear, its default against the build that
-won its search, 4,000 fights: the balanced score's per-fight standard deviation is 14.6 points
+won its search, 4,000 fights (69913): the balanced score's per-fight standard deviation is 14.6 points
 for each on its own and 14.1 for their paired difference, so the paired interval is ±0.44 points
 where two independent runs would give ±0.64. Pairing needs about half the fights, and it makes the
 candidates' differences the same fights' differences, which a race's round-by-round decisions
@@ -280,7 +287,7 @@ give up objective points or tie-break for a limit already met (the report's
 `space.notBinding`; the CLI lists them as "not searched for the constraints"). Otherwise they're dimensions
 (`space.constrained`). The Protection paladin's default floor never binds in a talent search, so
 Toughness and Sacred Duty stay fillers; searching them had made its space 23,841 builds for the
-same leader as 1,254. A bear's Thick Hide armor is modelled (BR6,
+same leader as 1,254 (69913). A bear's Thick Hide armor is modelled (BR6,
 [druid.md §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it)), so it's in the
 bear's effective health.
 
@@ -333,12 +340,13 @@ talent kept by default.
   **one talent a build may be at any rank** (`searchPartials`, the default; OG-2). A talent's ranks
   needn't add up to its max rank's effect: the warrior's Boundless Rage screened −0.18 points at
   3/3 for Balanced, so leftover points never went to it, yet Booming Voice 3 and Boundless Rage 2
-  beat the max-rank search's leader (Booming Voice 5) by +0.42 ± 0.13 points, paired. Searching
+  beat the max-rank search's leader (Booming Voice 5) by +0.42 ± 0.13 points, paired (69913). On
+  70009 it screens −0.69, and the answer is Booming Voice 4 with Boundless Rage 1. Searching
   every rank of one talent is what keeps "every legal build that could win" true without trusting
   the screen's per-point value; the alternative, screening each rank and searching the ranks of a
   talent whose effect isn't flat, would rest on 400 fights telling a small curve from noise. One
-  whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
-  for a bear), is never forced by the maximality rule below nor given leftover points: builds with
+  whose screened effect is below zero, though not clearly enough to be harmful (the warrior's
+  Anticipation for Balanced; the bear's Feral Swiftness (69913), harmful on 70009), is never forced by the maximality rule below nor given leftover points: builds with
   and without it, and with each of its ranks, race. The CLI's `--no-partials` searches max ranks
   only. Only objective talents' ranks are searched (OGV-1): a dimension only a constraint made has
   no screened value to search its ranks by (below). A space whose partial ranks pass the search's
@@ -354,8 +362,9 @@ talent kept by default.
   space that large fell back to max ranks everywhere, dropping the objective talents' partial ranks
   with them. The warrior under `ehp>=103%` is the case: 52,506 builds with Toughness's ranks
   searched, too many for `quick` then, so its max ranks raced and missed Booming Voice 3 with
-  Boundless Rage 2, +0.36 ± 0.10 points over the leader it found, paired; with Toughness at 0 or 5
-  it's 46,814 builds, and that build races. The fill can still give it leftover points, by its
+  Boundless Rage 2, +0.36 ± 0.10 points over the leader it found, paired (69913); with Toughness at
+  0 or 5 it's 46,814 builds, and that build races. 70009's screen makes the same 46,814, and its
+  answer has partial ranks too (Booming Voice 4, Boundless Rage 1, Toughness 5). The fill can still give it leftover points, by its
   tie-break (below). A harmful one (Heart of the Wild, for Balanced) is searched but never given
   leftover points.
 - **Leftover points go to partial ranks, then by the tie-break.** Points the core leaves go first
@@ -416,7 +425,7 @@ and must decode back to the same ranks.
 builds, keyed by their ranks, without encoding, validating or listing them, and stops counting past
 a limit. It's exact, and about a third of the listing's time (the warrior's `ehp>=103%` space:
 46,814 builds counted in 0.5 s, listed in 1 s; the paladin's `ehp>=100%` space with partial ranks,
-554,943 builds, would take seven seconds to list, and its count stops at 200,000 in two). The
+554,943 builds (69913), would take seven seconds to list, and its count stops at 200,000 in two). The
 search counts a space before listing it, so a space past the ceiling narrows without being built.
 
 **What changed with the talent rules' removal** (D30's superseding paragraph). Until then a tank's
@@ -429,15 +438,44 @@ Anticipation (OV4-1). That narrowing left out feasible builds with Toughness and
 first picks the Defense goal or sets a sheet constraint.
 
 The spaces at the default setups (tanks with 31 points in their tree and the effective-health
-floor), by goal, from the screens of 2026-09-24 after the goals review's fixes (`quick`, seed 1; the
-kept talents aren't dimensions, and there are none by default). The floor binds in none of these
-talent searches (OG-1), so no talent is a dimension for it: the talents it reads (Toughness, Sacred
-Duty, Heart of the Wild, Thick Hide) stay fillers, or objective ones where the goal measures them
-(Toughness for Defense). The goal changes the space: for Defense a talent that only adds threat is a
-filler, and for TPS one the screen measures lowering threat (the warrior's Shield Slam, on this
-setup) is never taken. "Builds" is the default space, every rank of one objective talent a build
-(OG-2); "max ranks" is `--no-partials`'s, and what a space past the ceiling races
-([budgets](#budgets)).
+floor), by goal, from the screens on 1.60.1.70009 (`quick`, seed 1; the kept talents aren't
+dimensions, and there are none by default). The floor binds in none of these talent searches
+(OG-1), so no talent is a dimension for it: the talents it reads (Toughness, Sacred Duty, Heart of
+the Wild, Thick Hide) stay fillers, or objective ones where the goal measures them (Toughness for
+Defense). The goal changes the space: for Defense a talent that only adds threat is a filler, and
+one the screen measures hurting the goal is never taken (for Defense the paladin's Reckoning and
+Instrument of Law; for Balanced the bear's Heart of the Wild and Feral Swiftness). "Builds" is the
+default space, every rank of one objective talent a build (OG-2); "max ranks" is `--no-partials`'s,
+and what a space past the ceiling races ([budgets](#budgets)).
+
+| Spec | Goal | Dimensions | Builds | Max ranks | Legal tree cores | Dominated |
+| --- | --- | --- | --- | --- | --- | --- |
+| `warrior-protection` | Balanced | 23 objective | 3,985 | 465 | 18,384 | 20,615 |
+| `warrior-protection` | TPS | 23 objective | 3,950 | 462 | 18,384 | 20,615 |
+| `warrior-protection` | Defense | 17 objective (Toughness among them) | 2,326 | 222 | 3,720 | 3,740 |
+| `paladin-protection` | Balanced | 28 objective | 14,758 | 945 | 43,328 | 43,397 |
+| `paladin-protection` | Defense | 20 objective | 1,553 | 193 | 6,870 | 7,166 |
+| `druid-feral-bear` | Balanced | 17 objective | 237 | 28 | 12,414 | 12,275 |
+| `warrior-fury` (no constraints) | DPS | 20 objective | 3,310 | 369 | 19,146 | 19,111 |
+
+So on `quick` the warrior's Balanced space runs 112 fights each in the first round, its TPS 113 and
+its Defense 193, the paladin's Balanced 50 (its 14,760 plans fit 50 each in 90% of the budget;
+`standard` suits it better) and its Defense 289, the bear's 1,000 and Fury's 135. None grows the
+budget.
+
+**What 70009 moved** (against the 69913 table below). The warrior's and Fury's trees didn't change,
+and neither did their Balanced, Defense and DPS spaces. The warrior's **TPS** space took Shield Slam
+back: on 69913 the screen measured it lowering TPS (−30.5 at max rank, harmful; OG-8), and with
+70009's "very high" Shield Slam threat (dmg + 475 [?],
+[threat.md](mechanics/threat.md#threat-wording-table)) it's the warrior's most valuable TPS talent
+(+175.3), so it's a dimension again (22 → 23 objective) and the space grows. The **paladin** lost
+Improved Holy Strike (29 → 28 objective for Balanced). Its Defense screen finds 20 talents
+objective (23 on 69913), eight threat talents tie-break only, and Reckoning and Instrument of Law
+harmful, so its Defense space is 1,553 builds where 69913's was 135,311. The **bear's** Feral
+Swiftness now screens harmful for Balanced (−1.03, beside Heart of the Wild's −3.21), where on 69913
+it was below zero but not clearly: 18 → 17 objective and 502 → 237 builds.
+
+On 1.60.1.69913's trees, after the goals review's fixes (69913):
 
 | Spec | Goal | Dimensions | Builds | Max ranks | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -449,22 +487,21 @@ setup) is never taken. "Builds" is the default space, every rank of one objectiv
 | `druid-feral-bear` | Balanced | 18 objective | 502 | 56 | 26,022 | 25,738 |
 | `warrior-fury` (no constraints) | DPS | 20 objective | 3,310 | 369 | 19,146 | 19,111 |
 
-So on `quick` the warrior's Balanced space runs 112 fights each in the first round, the paladin's
-50 (its 26,764 plans fit 50 each in 90% of the budget; `standard` suits it better), the bear's 892
-and Fury's 135. The paladin's Defense space races its partial ranks on every budget: 50 fights each
-over 135,313 plans is 6.8 million, so `quick`'s and `standard`'s budgets grow to 13.5 million, under
-the cap ([budgets](#budgets)); before the hard ceiling (OGV-2) they raced its 9,006 max-rank builds.
+There the paladin's Balanced space ran 50 fights each (26,764 plans) and the bear's 892, and the
+paladin's Defense space raced its partial ranks on every budget: 50 fights each over 135,313 plans
+is 6.8 million, so `quick`'s and `standard`'s budgets grew to 13.5 million, under the cap; before
+the hard ceiling (OGV-2) they raced its 9,006 max-rank builds.
 
 Where a constraint binds, the talents it reads are dimensions, at 0 or max (OGV-1):
 
 | Spec | Goal and constraint | Dimensions | Builds | Max ranks | What races |
 | --- | --- | --- | --- | --- | --- |
-| `warrior-protection` | Balanced, `ehp>=103%` | 23 objective + Toughness | 46,814 (52,506 with Toughness's ranks searched) | 3,945 | every rank; `quick`'s budget grows to 4.3 million |
-| `paladin-protection` | Balanced, `ehp>=100%` | 29 objective + Toughness, Sacred Duty | 554,943 | 31,755 | max ranks, narrowed: past 200,000 builds |
+| `warrior-protection` | Balanced, `ehp>=103%` | 23 objective + Toughness | 46,814 (52,506 with Toughness's ranks searched, 69913); 3,970 left out by the floor | 3,945 | every rank; `quick`'s budget grows to 4.3 million |
+| `paladin-protection` | Balanced, `ehp>=100%` | 28 objective + Toughness, Sacred Duty | past 200,000, where the count stops (554,943 on 69913's trees) | 12,358 (31,755, 69913); 945 left out by the floor | max ranks, narrowed: past 200,000 builds |
 
 Before the goals
 review (OG-1, OG-2, OG-3) the floor made the talents it reads dimensions and only max ranks were
-searched: the warrior's Balanced space was 2,087 builds, its TPS 700, the paladin's Balanced 23,841,
+searched (69913): the warrior's Balanced space was 2,087 builds, its TPS 700, the paladin's Balanced 23,841,
 its Defense 15,135, the bear's 303 and Fury's 288. With the survival floor and the preferred filler
 (before D30's superseding paragraph) the warrior's space was 3,690 builds, the paladin's 6,833 and
 the bear's 129: the floor kept Deflection, the cooldowns and the bear's Heart of the Wild, Thick
@@ -571,11 +608,14 @@ last answer, and the last report's `turnsStopped` says so.
 
 So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough` 144,000; a
 larger one costs more than its budget (to 100 fights a plan) up to the cap, and past about 432,000
-plans it narrows. The tanks' default spaces are in [the talent space](#the-talent-space): the
-paladin's Defense space, 135,311 builds with partial ranks, grows `quick`'s and `standard`'s budgets
-to 13.5 million; the paladin's Balanced space under `ehp>=100%`, where Toughness and Sacred Duty are
-dimensions, makes 554,943 builds with partial ranks and narrows to its 31,755 max-rank builds on
-every budget. A race usually stops long before its budget: most candidates are clearly worse after
+plans it narrows. The tanks' default spaces are in [the talent space](#the-talent-space): each fits
+`quick` without growing it (the largest, the paladin's Balanced, at 50 fights a plan); the
+warrior's Balanced space under `ehp>=103%`, 46,814 builds, grows `quick`'s budget to 4.3 million;
+the paladin's Balanced space under `ehp>=100%`, where Toughness and Sacred Duty are dimensions,
+passes 200,000 builds with partial ranks and narrows to its 12,358 max-rank builds on every budget.
+(69913: the paladin's Defense space, 135,311 builds with partial ranks, grew `quick`'s and
+`standard`'s budgets to 13.5 million, and its `ehp>=100%` space made 554,943 builds and narrowed to
+31,755.) A race usually stops long before its budget: most candidates are clearly worse after
 the first round. The speeds are this machine's under load (80,000 a second on 12–15 threads is about
 6,000 fights a second a thread; the engine does 6,000–10,000 per core by spec).
 
@@ -626,6 +666,24 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 4. Record the change, the numbers and the command in the spec's class doc, update the default
    build (`src/sim/defaults.ts`), and re-snapshot the goldens with the explanation.
 
+**The answers on 1.60.1.70009 so far** (`quick`, seed 1, the default goals and constraints; not
+O4's `thorough`, confirmed runs, so no default has changed). Each is against the spec's 70009
+default, paired over the leader's fights:
+
+| Spec | Goal | Default | Answer | Against the default | The race |
+| --- | --- | --- | --- | --- | --- |
+| Protection warrior | Balanced | `35-05-552101233301210531` | `-45050001005-502300233300010531`: Booming Voice 4, Boundless Rage 1, Unbridled Wrath 5, Enrage 5, Toughness 1→3; no Improved Heroic Strike, Deflection, Anticipation, Last Stand, Vanguard or Improved Shield Wall | **+11.61 points** (+11.39 to +11.82): TPS +47.0, DPS +27.1, taken +62.8 a second | separated after 8 rounds; 69913's answer (Booming Voice 3, Boundless Rage 2) is second, +11.45 |
+| Protection paladin | Balanced | `50003-0530213321301551-5021` | `50003-0530311301301541-05205`: Benediction 5, Conviction 5, Anticipation 2→3; Improved Righteous Fury 3→1, Iron Creed 5→4; no Sacred Duty, Deflection or Holy Conduit | **+6.49 points** (+6.45 to +6.54): TPS +21.9, DPS +16.7, taken +94.6 | the budget ended with 2 unseparated; the closest, 69913's answer (`…0530410301301541-05205`), is 0.00 (−0.03 to +0.04) behind: the same TPS and DPS, 14 more damage taken a second |
+| Feral bear | Balanced | `050022-5520032023132210551-` | `050022-5003032023132210051-504`, as on 69913: Feral Instinct 3, Nature's Focus 5, Naturalist 4; no Heart of the Wild, Feral Swiftness or Natural Reaction | **+7.57 points** (+7.07 to +8.07): TPS +38.0, DPS +23.2, taken +68.4 | separated after 2 rounds |
+| Fury warrior | DPS | `30305013002-050530035150010051-` | `3200521-250500035152310051-`, as on 69913: Precision 3, Improved Execute 2, Improved Overpower 2, Deflection 2, Booming Voice 2; no Deep Wounds, Impale, Improved Rend or Improved Cleave | **+27.2 DPS** (+25.3 to +29.2, +3.8%) | separated after 5 rounds |
+| Protection warrior | TPS | as above | the Balanced answer, `-45050001005-502300233300010531` | **+46.9 TPS** (+46.5 to +47.3), DPS +27.0 | separated after 10 rounds; 69913's TPS answer dropped Shield Slam (above) |
+| Protection warrior | Defense | as above | `3501-05-052531033331110501`, as on 69913 | **32.1 less damage taken a second**, TPS −163.1 | the budget ended with 2 unseparated (0.01 apart) |
+| Protection warrior | Balanced, `ehp>=103%` | as above | `-45050001005-500500233300010531` (the Balanced answer with Toughness 5 for Improved Bloodrage) | **+10.63 points** (+10.55 to +10.71), taken +48.6 | separated after 12 rounds |
+| Protection paladin | Balanced, `ehp>=100%` | as above | `50003-2530010321301541-05205`, narrowed to max ranks: Toughness 2, no Anticipation or Improved Righteous Fury, Sacred Duty kept | **+6.56 points** (+5.99 to +7.13), taken +116.9 | separated after 5 rounds |
+| Protection paladin | Defense | as above | `55000003-5530513300001051-51`: Toughness 5, Anticipation 5, Divine Intellect 5, Reverence 3; no Improved Seals, Reckoning, 1HWS or Swift Judgement | **64.1 less damage taken a second**, TPS −86.1 | the budget ended with 104 unseparated (Defense's top is flat) |
+
+The logs and reports are in `.cache/demos/70009/` of the merge's worktree.
+
 ## Reading the results
 
 The CLI prints the goal and the ceiling, the screen, the space (and, plainly, when the ceiling
@@ -655,7 +713,7 @@ compares the leader, the answer, with the default.
 
 - **Maximality assumes no raised talent lowers the score.** The screen calls a talent harmful
   only when its interval is below zero everywhere it acts; one whose screened mean is below zero
-  but whose interval reaches it (Feral Swiftness for a bear) isn't raised by maximality, so builds
+  but whose interval reaches it (the warrior's Anticipation for Balanced) isn't raised by maximality, so builds
   with and without it race. One whose mean is just above zero, though its true effect is
   negative, is still raised when it fits.
 - **Maximality counts only objective talents.** A dimension only a constraint made (Toughness
@@ -751,7 +809,7 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   pass runs on what's left; with nothing held back the talent pass spends all 30,000 and the turns
   stop there (`optimize.test.ts`).
 - **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
-  finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
+  finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points (69913), so the rotation
   pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline
   before the review's fix).
 - **Every pass holds the constraints.** The bear in turns with Ferocity excluded and Maul held for

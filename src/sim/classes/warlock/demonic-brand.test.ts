@@ -171,7 +171,10 @@ describe('Demonology’s Searing Pain row (warlock.md §6.4, §11.5)', () => {
     expect(proc).toMatchObject({ trigger: TRIGGER.petLanded, action: ACTION.petSpellDamage, school: SCHOOL.fire, requiresAura: sp.aura })
     expect(plan.sources[proc.source]).toMatchObject({ name: 'Demonic Brand', pet: 'Imp' })
     const brand = bundle.assumptions.find((a) => a.id === 'demonicBrand')!
-    expect(brand.text).toContain('your demon’s next 6 landed attacks, swings and spells alike, each deal 65–68 Fire damage more, plus 7.8% of your Fire spell damage')
+    // Short sentences, naming the demon, its Firebolts, and only the multipliers the plan gives it (LB-2).
+    expect(brand.text).toBe(
+      'Demonic Brand: your Searing Pain brands the boss for 10 s. Your Imp’s next 6 landed Firebolts each deal 65–68 Fire damage more, plus 7.8% of your Fire spell damage, never missing and critting at its spell crit, as the client’s formula reads. Unholy Power’s +10%, Soul Link’s +3% and Master Demonologist’s +10% raise it. Untested.',
+    )
 
     const sim = new Sim(plan)
     let agg = emptyAggregate(plan.sources.length, plan.auras.length)
@@ -190,6 +193,18 @@ describe('Demonology’s Searing Pain row (warlock.md §6.4, §11.5)', () => {
   it('with the Succubus out the brand is Shadow; with no demon out, or the row off, there’s no Searing Pain', () => {
     const succubus = buildPlan(config({ [ID.demon]: 'succubus', [ID.sacrifice]: 'imp' })).plan
     expect(succubus.procs.find((p) => p.id === 'demonicBrand')).toMatchObject({ school: SCHOOL.shadow })
+    const text = (rotation: SimConfig['rotation'], talents?: string) => buildPlan(config(rotation, talents)).assumptions.find((a) => a.id === 'demonicBrand')!.text
+    expect(text({ [ID.demon]: 'succubus', [ID.sacrifice]: 'imp' })).toContain('Your Succubus’s next 6 landed attacks, swings and spells alike, each deal 65–68 Shadow damage more')
+    // The Felhunter: its school in its own sentence, and no Master Demonologist, which it doesn't give the brand.
+    const felhunter = text({ [ID.demon]: 'felhunter', [ID.sacrifice]: 'imp' })
+    expect(felhunter).toContain('Your Felhunter’s next 6 landed swings each deal 65–68 Shadow damage more')
+    expect(felhunter).toContain('The client doesn’t name the Felhunter’s school: it’s taken as Shadow, the talent’s “Fire or Shadow”.')
+    expect(felhunter).toContain('Unholy Power’s +10% and Soul Link’s +3% raise it.')
+    expect(felhunter).not.toContain('Master Demonologist')
+    // Without Unholy Power, Soul Link or Master Demonologist, it names none; at Demonic Brand 1/3, 2 charges.
+    const bare = text({}, '-00000000000001-0450305003')
+    expect(bare).toContain('Your Imp’s next 2 landed Firebolts')
+    expect(bare).not.toMatch(/raises? it/)
     for (const rotation of [{ [ID.demon]: 'none' }, { [ID.searingPain]: false }]) {
       const { plan } = buildPlan(config(rotation))
       expect(plan.abilities.some((a) => a.id === 'searingPain')).toBe(false)

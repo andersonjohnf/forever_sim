@@ -159,9 +159,11 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     expect(DEMONOLOGY_OPTIONS.find((o) => o.id === ID.filler)?.default).toBe('incinerate')
     expect(filler(demonologyRotation({}, incinerate, noAura, CONTEXT))).toBe('incinerate')
     expect(filler(demonologyRotation({ [ID.filler]: 'shadowBolt' }, incinerate, noAura, CONTEXT))).toBe('shadowBolt')
-    // The default talents have no Incinerate: Shadow Bolt, and the note says why.
+    // The default talents have no Incinerate: Shadow Bolt, and the note says Incinerate takes over once
+    // it's talented (LB-5), or, with Shadow Bolt chosen, just why there's nothing to choose.
     expect(filler(demonologyRotation({}, TALENTS, noAura, CONTEXT))).toBe('shadowBolt')
-    expect(demonologyUnusedSettings({}, TALENTS)[ID.filler]).toBe('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')
+    expect(demonologyUnusedSettings({}, TALENTS)[ID.filler]).toBe('Not used yet: Shadow Bolt is the filler until you take the Incinerate talent; from then on, Incinerate.')
+    expect(demonologyUnusedSettings({ [ID.filler]: 'shadowBolt' }, TALENTS)[ID.filler]).toBe('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')
     expect(demonologyUnusedSettings({}, incinerate)[ID.filler]).toBeUndefined()
   })
 })

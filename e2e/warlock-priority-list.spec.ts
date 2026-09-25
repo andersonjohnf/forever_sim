@@ -122,6 +122,15 @@ test.describe('the warlock’s filler choice and Searing Pain row', () => {
     await expect(filler()).toContainText('Incinerate')
   })
 
+  test('Demonology: Incinerate is its filler once talented, and Shadow Bolt until then', async ({ page }) => {
+    const list = await openRotation(page, 'Demonology')
+    await expect(list.locator('[data-apl-row="filler"]')).toContainText('Shadow Bolt')
+    await list.getByRole('button', { name: 'Filler', exact: true }).click()
+    const settings = page.getByRole('complementary', { name: 'Filler settings' })
+    await expect(settings.getByRole('radio', { name: 'Incinerate', exact: true })).toBeChecked()
+    await expect(settings.getByText('Not used yet: Shadow Bolt is the filler until you take the Incinerate talent; from then on, Incinerate.')).toBeVisible()
+  })
+
   test('Demonology: Searing Pain’s row needs Demonic Brand, and is on with it', async ({ page }) => {
     let list = await openRotation(page, 'Demonology')
     const row = () => list.locator('[data-apl-row="searingPain"]')
@@ -134,6 +143,8 @@ test.describe('the warlock’s filler choice and Searing Pain row', () => {
     await list.getByRole('button', { name: 'Searing Pain', exact: true }).click()
     const settings = page.getByRole('complementary', { name: 'Searing Pain settings' })
     await expect(settings.getByRole('switch', { name: 'Searing Pain for Demonic Brand' })).toBeChecked()
+    // One help text, with the charges by rank (LB-2).
+    await expect(settings.getByText(/next 2, 4 or 6 attacks \(by its rank\)/)).toHaveCount(1)
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate', exact: true }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })

@@ -2,9 +2,10 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The themes' surfaces (docs/ux.md#visual-language "Surfaces" and "Tooltips", #brand; user decision
-// 2026-09-25): the header is the guild's ink navy in both themes, with every class colour AA on it
-// and on its hover fill; the light theme's page is a soft grey-blue under white panels; and tooltips
-// take the popover's colours in both themes rather than an inverted box.
+// 2026-09-25): the header is the guild's ink navy in the light theme and stays dark in the dark theme
+// (the page's own surface, as before the navy), with every class colour AA on it and on its hover
+// fill in both; the light theme's page is a soft grey-blue under white panels; and tooltips take the
+// popover's colours in both themes rather than an inverted box.
 
 /** An element's colour and the colour behind it (its own fill, or its nearest painted ancestor's), composited over white, as [r, g, b]. */
 const colours = (locator: Locator, what: 'text' | 'fill' = 'text') =>
@@ -44,13 +45,18 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(colorScheme, () => {
     test.use({ colorScheme })
 
-    test('the header is ink navy, and every class colour in the spec switcher is AA on it, at rest and hovered', async ({ page }) => {
+    test(`the header is ${colorScheme === 'light' ? 'ink navy' : 'the dark page’s surface, not navy'}, and every class colour in the spec switcher is AA on it, at rest and hovered`, async ({ page }) => {
       await page.goto('./')
       await noTransitions(page)
       const header = page.getByRole('banner')
       const { front } = await colours(header, 'fill')
-      expect(isNavy(front), `header fill ${front}`).toBe(true)
-      // Its text is near-white, 15:1 on the navy.
+      // Light: the navy. Dark: it stays dark, the page's own colour through its translucent fill (user decision).
+      expect(isNavy(front), `header fill ${front}`).toBe(colorScheme === 'light')
+      if (colorScheme === 'dark') {
+        const body = (await colours(page.locator('body'), 'fill')).front
+        for (const i of [0, 1, 2]) expect(Math.abs(front[i] - body[i]), `header fill ${front} against the page ${body}`).toBeLessThanOrEqual(2)
+      }
+      // Its text is near-white: 15:1 on the navy, 18:1 on the dark page.
       expect(ratio(await colours(page.getByRole('heading', { level: 1 })))).toBeGreaterThanOrEqual(12)
 
       const switcher = page.getByRole('button', { name: /^Spec: / })
@@ -69,18 +75,19 @@ for (const colorScheme of ['light', 'dark'] as const) {
         const rest = ratio(await colours(className))
         await switcher.hover()
         const hovered = ratio(await colours(className))
-        console.log(`${colorScheme} ${name}: ${rest.toFixed(2)}:1 on the navy, ${hovered.toFixed(2)}:1 hovered`)
+        console.log(`${colorScheme} ${name}: ${rest.toFixed(2)}:1 on the header, ${hovered.toFixed(2)}:1 hovered`)
         expect.soft(rest, `${name} at rest`).toBeGreaterThanOrEqual(4.5)
         expect.soft(hovered, `${name} hovered`).toBeGreaterThanOrEqual(4.5)
-        // Hovered is a visible fill, not the navy itself.
-        expect(isNavy((await colours(switcher, 'fill')).front), `${name}: a hover fill`).toBe(false)
+        // Hovered is a visible fill, not the header's own.
+        expect((await colours(switcher, 'fill')).front, `${name}: a hover fill`).not.toEqual(front)
       }
       expect(seen.size).toBe(9)
     })
 
-    test('a toolbar button’s focus ring is 3:1 on the navy, and its icon is the header’s text colour', async ({ page }) => {
+    test('a toolbar button’s focus ring is 3:1 on the header, and its icon is the header’s text colour', async ({ page }) => {
       await page.goto('./')
       await noTransitions(page)
+      const header = (await colours(page.getByRole('banner'), 'fill')).front
       const share = page.getByRole('banner').getByRole('button', { name: /Share/ })
       await page.keyboard.press('Shift')
       await share.focus()
@@ -92,18 +99,23 @@ for (const colorScheme of ['light', 'dark'] as const) {
         return found?.replace(/\s*-?[\d.]+px/g, '').trim() ?? ''
       })
       expect(ring).not.toBe('')
-      // The ring colour composited over the navy, against the navy.
-      const composited = await page.evaluate((css) => {
-        const canvas = document.createElement('canvas')
-        canvas.width = canvas.height = 1
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })!
-        ctx.fillStyle = '#1f1c3d'
-        ctx.fillRect(0, 0, 1, 1)
-        ctx.fillStyle = css
-        ctx.fillRect(0, 0, 1, 1)
-        return [...ctx.getImageData(0, 0, 1, 1).data.slice(0, 3)]
-      }, ring)
-      expect(ratio({ front: composited, behind: [0x1f, 0x1c, 0x3d] })).toBeGreaterThanOrEqual(3)
+      // The ring colour composited over the header's fill, against that fill.
+      const composited = await page.evaluate(
+        ([css, fill]) => {
+          const canvas = document.createElement('canvas')
+          canvas.width = canvas.height = 1
+          const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+          ctx.fillStyle = `rgb(${fill.join(' ')})`
+          ctx.fillRect(0, 0, 1, 1)
+          ctx.fillStyle = css
+          ctx.fillRect(0, 0, 1, 1)
+          return [...ctx.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+        },
+        [ring, header] as const,
+      )
+      const ringRatio = ratio({ front: composited, behind: header })
+      console.log(`${colorScheme} focus ring on the header: ${ringRatio.toFixed(2)}:1`)
+      expect(ringRatio).toBeGreaterThanOrEqual(3)
       expect(ratio(await colours(share.locator('svg')))).toBeGreaterThanOrEqual(12)
     })
 
@@ -165,13 +177,26 @@ test.describe('light', () => {
 test.describe('dark', () => {
   test.use({ colorScheme: 'dark' })
 
-  test('panels keep no fill of their own, and the header stands a step above the page', async ({ page }) => {
+  test('panels keep no fill of their own, and the header stays dark: the page’s surface, translucent, over a gold hairline', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
     const tree = page.getByRole('region', { name: 'Arms tree' })
     expect(await tree.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)')
-    const body = (await colours(page.locator('body'), 'fill')).front
-    const header = (await colours(page.getByRole('banner'), 'fill')).front
-    expect(lum(header)).toBeGreaterThan(lum(body))
+    const header = page.getByRole('banner')
+    // As before the light theme's navy: the page's --background at 70% (85% without backdrop-filter), blurred.
+    const style = await header.evaluate((el) => {
+      const probe = document.createElement('div')
+      probe.className = 'bg-background'
+      document.body.append(probe)
+      const background = getComputedStyle(probe).backgroundColor
+      probe.remove()
+      const s = getComputedStyle(el)
+      return { fill: s.backgroundColor, blur: s.backdropFilter, background, hairline: s.borderBottomColor }
+    })
+    expect(style.fill).not.toBe(style.background)
+    expect(style.fill).toMatch(/\/ 0\.7\)$|, 0\.7\)$/)
+    expect(style.blur).toMatch(/^blur\(/)
+    // The guild's gold at 40%.
+    expect(style.hairline).toMatch(/\/ 0\.4\)$|, 0\.4\)$/)
   })
 })

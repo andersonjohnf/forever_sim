@@ -248,19 +248,20 @@
 }
 
 /*
- * The header's ink (docs/ux.md#brand, user decision 2026-09-25): the toolbar is the Decades guild's
- * ink navy, #1f1c3d, in both themes, with near-white text, under the gold hairline. In the dark
- * theme it sits a clear step above the page (0.25 against 0.145 lightness, and more chroma), the
- * way an app bar is raised. `.ink` re-points the theme tokens for everything inside it, so the
- * lockup, the spec switcher and the toolbar's ghost buttons need no colours of their own. Menus and
- * sheets the header opens are portalled out of it and keep the page's theme. Measured on the navy
- * and on the hover fill (#302e50, what a hovered or open button shows):
+ * The header's ink (docs/ux.md#brand, user decisions 2026-09-25): in the light theme the toolbar is
+ * the Decades guild's ink navy, #1f1c3d, with near-white text, under the gold hairline. In the dark
+ * theme it stays dark: `.ink` doesn't apply there (`:not(.dark *)`, as the `dark` variant tests), so
+ * the header is the page's own surface, translucent over what scrolls under it, as it was before the
+ * navy. `.ink` re-points the theme tokens for everything inside it, so the lockup, the spec switcher
+ * and the toolbar's ghost buttons need no colours of their own. Menus and sheets the header opens
+ * are portalled out of it and keep the page's theme. Measured on the navy and on the hover fill
+ * (#302e50, what a hovered or open button shows):
  *   text 15.5:1 and 12.3:1; muted text 8.6:1 and 6.9:1; the half-strength white focus ring 5.0:1
  *   and 4.5:1; the gold hourglass 7.0:1 and 5.5:1; every class colour 5.4:1 or more and 4.8:1 or
  *   more (the dark theme's colours, with lighter tints of the shaman's blue and the warlock's
  *   purple, which were 4.3:1 and 4.2:1 on the hover fill).
  */
-.ink {
+.ink:not(.dark *) {
     --ink: oklch(0.25 0.06 285);
     --background: var(--ink);
     --foreground: oklch(0.985 0 0);

@@ -733,13 +733,15 @@ R11–R13 are in `subtlety.test.ts`.
   both in the sim (§3.4, §3.5). **Still open: the tester's talents.** The test reported totals
   without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
   and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
-  the results' assumptions (`rogueFinisherTalents`) whenever one of them is taken. If the tester had
-  them, the measurement already includes them and the sim counts them twice: Classic Era's 3% ×
-  Improved Eviscerate 1.20 × Aggression 1.06 = 3.82%, which rounds to the reported 4%. Counted twice,
-  the defaults read high by about 0.5% (Combat), 0.9% (Assassination) and 0.1% (Subtlety, through
-  Serrated Blades on Rupture). The values stay until the tester's talents are known. Test: the
-  tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression at two
-  attack-power levels.
+  the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of them
+  raises. If the tester had them, the measurement already includes them and the sim counts them
+  twice: Classic Era's 3% × Improved Eviscerate 1.20 × Aggression 1.06 = 3.82%, which rounds to the
+  reported 4% (with Improved Eviscerate alone, 3.6%). Counted twice, the defaults read high by about
+  0.5% (Combat: both talents), 0.7% (Assassination: Improved Eviscerate only) and 1.3% (Subtlety:
+  Serrated Blades on Rupture, whose attack-power part is about 43% of its damage), measured with
+  paired same-seed runs of 20,000 fights. The values stay until the tester's talents are known.
+  Test: the tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression
+  and 20 Rupture ticks at 3 points without Serrated Blades, each at two attack-power levels.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee
   spells; untested for rogues.
 - **Q5 Poison hit and crit.** Spell hit (with Precision's), partial resists and spell crit ×1.5

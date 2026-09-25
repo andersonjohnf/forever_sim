@@ -119,8 +119,10 @@ test.describe('Combat rogue', () => {
     await expect(results.getByText(/^Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick/)).toBeVisible()
     await expect(results.getByText(/^Poisons roll spell hit/)).toBeVisible()
     await expect(results.getByText(/^Instant Poison adds 0\.5% of your attack power a hit and Deadly Poison 0\.1125% a stack each tick/)).toBeVisible()
-    // Eviscerate's attack power is the guild's measurement, no longer an assumption (rogue.md Q3).
+    // Eviscerate's attack power is the guild's measurement; which talents the tester had is still
+    // an assumption (rogue.md Q3).
     await expect(results.getByText(/Eviscerate gains 3%/)).toHaveCount(0)
+    await expect(results.getByText(/^A guild test measured the attack-power part of Eviscerate/)).toBeVisible()
     await expect(results.getByText(/^The rogue’s 1 s global cooldown/)).toBeVisible()
     // Nothing of the warrior's or the druid's: rage, Execute, Clearcasting or Cat Form.
     await expect(results.getByText(/rage arrives|Execute|Clearcasting|Cat Form/)).toHaveCount(0)

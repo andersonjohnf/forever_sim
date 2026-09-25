@@ -699,8 +699,8 @@ const REGISTRY = {
     docRef: `${ROGUE}#21-energy`,
   },
   rogueFinisherTalents: {
-    text: 'Improved Eviscerate and Aggression raise the attack-power part of Eviscerate, and Serrated Blades the attack-power part of Rupture, as they raise the rest of the damage. A guild test measured those parts (Eviscerate 4% of your attack power a point, Rupture 1–3% a tick) without saying which talents the tester had: if its numbers already included these talents, the sim counts them twice. Untested.',
-    docRef: `${ROGUE}#34-eviscerate-r9-31016`,
+    text: 'A guild test measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1–3% a tick) without saying which talents the tester had. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
+    docRef: `${ROGUE}#10-open-questions`,
   },
   rogueTwoRolls: {
     text: 'Eviscerate and Expose Armor roll to hit and then to crit, since they deal no weapon damage; Sinister Strike and Backstab roll once. Untested for rogues.',

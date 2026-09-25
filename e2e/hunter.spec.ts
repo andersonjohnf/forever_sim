@@ -2,8 +2,8 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The hunters (docs/classes/hunter.md), shipped in H2: the switcher, the Talents presets, the Gear
-// tab's ammo and quiver, the Rotation tab (the common priority, Aspect of the Hawk and Auto Shot always
-// on), the Buffs tab's melee-only entries locked off, a run whose results show Auto Shot, the shots, the
+// tab's ammo and quiver, the Rotation tab (the common priority as a priority list, Aspect of the Hawk
+// pinned first and Auto Shot always on), the Buffs tab's melee-only entries locked off, a run whose results show Auto Shot, the shots, the
 // pet's rows and mana with the ranged sheet, and a share link, on a desktop and on a phone (docs/ux.md).
 
 /** Words a hunter screen must never show. */
@@ -47,19 +47,23 @@ async function expectDefaultRotation(tab: Locator) {
   await expect(
     tab.getByText('Which abilities the sim uses, and when. The defaults are the common priority, with a first quick search; they aren’t tuned yet.', { exact: true }),
   ).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Consumables'])
-  await expect(tab.getByRole('region', { name: 'Before the pull' })).toContainText(/Aspect of the Hawk.*Always on/s)
-  await expect(tab.getByRole('region', { name: 'Cooldowns and buffs' })).toContainText(/Auto Shot.*Always on/s)
-  for (const name of ['Racial cooldown', 'On-use trinkets', 'Rapid Fire', 'Hunter’s Mark', 'Wait for Auto Shot', 'Serpent Sting', 'Major Mana Potion']) {
-    await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  // Auto Shot and the pet above the priority list; Aspect of the Hawk its pinned first row (hunter.md §8.3).
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Core abilities', 'Consumables', 'Priority list'])
+  await expect(tab.getByRole('region', { name: 'Core abilities' })).toContainText(/Auto Shot.*Always on/s)
+  const list = tab.getByRole('list', { name: 'Priority list' })
+  await expect(list.locator('[data-apl-row="prepull"]')).toContainText('Aspect of the Hawk')
+  for (const name of ['Racial cooldown', 'On-use trinkets', 'Rapid Fire', 'Hunter’s Mark', 'Serpent Sting']) {
+    await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }
+  await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
   // The first-pass defaults: no Arcane Shot or Sniper Shot for Marksmanship; its build has no Bestial Wrath.
-  for (const name of ['Arcane Shot', 'Sniper Shot']) await expect(tab.getByRole('switch', { name, exact: true })).not.toBeChecked()
-  await expect(tab.getByRole('switch', { name: 'Bestial Wrath', exact: true })).toHaveAccessibleDescription(/Not used: needs the Bestial Wrath talent/)
-  await expect(tab.getByRole('radio', { name: 'Aimed Shot', exact: true })).toBeChecked()
+  for (const name of ['Arcane Shot', 'Sniper Shot']) await expect(list.getByRole('switch', { name, exact: true })).not.toBeChecked()
+  await expect(list.getByRole('switch', { name: 'Bestial Wrath', exact: true })).toHaveAccessibleDescription(/Not used: needs the Bestial Wrath talent/)
+  // Aimed Shot on the shared cooldown, waiting for Auto Shot; Serpent Sting until 6 s are left.
+  await expect(list.locator('[data-apl-row="sharedShot"]')).toContainText('Aimed Shot · between Auto Shots')
+  await expect(list.locator('[data-apl-row="serpentSting"]')).toContainText('While it’s off the boss · until 6 s are left')
   const core = tab.getByRole('region', { name: 'Core abilities' })
   await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-  await expect(core.getByRole('textbox', { name: 'Serpent Sting until', exact: true })).toHaveValue('6')
   // Lone Wolf: no pet, so its Claw threshold does nothing.
   await expect(core.getByRole('textbox', { name: 'Pet: Claw at', exact: true })).toHaveAccessibleDescription(/Not used: with Lone Wolf you fight without a pet/)
   await expect(tab).not.toContainText(OTHER_CLASS)
@@ -149,7 +153,9 @@ test.describe('Hunters', () => {
     await switchTo(page, /Marksmanship/, MM)
     const tab = await openTab(page, 'Rotation')
     await tab.getByRole('switch', { name: 'Arcane Shot', exact: true }).click()
-    await tab.getByRole('radio', { name: 'Multi-Shot', exact: true }).click()
+    // The shared cooldown's shot is a row's setting, in its panel beside the list.
+    await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Aimed Shot or Multi-Shot', exact: true }).click()
+    await page.getByRole('complementary', { name: 'Aimed Shot or Multi-Shot settings' }).getByRole('radio', { name: 'Multi-Shot', exact: true }).click()
     await expect(tab.getByRole('switch', { name: 'Arcane Shot', exact: true })).toBeChecked()
     await page.getByRole('button', { name: 'Share', exact: true }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
@@ -164,7 +170,7 @@ test.describe('Hunters', () => {
     await other.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const shared = other.getByRole('tabpanel', { name: 'Rotation' })
     await expect(shared.getByRole('switch', { name: 'Arcane Shot', exact: true })).toBeChecked()
-    await expect(shared.getByRole('radio', { name: 'Multi-Shot', exact: true })).toBeChecked()
+    await expect(shared.locator('[data-apl-row="sharedShot"]')).toContainText('Multi-Shot · between Auto Shots')
     await expect(shared.getByRole('switch', { name: 'Serpent Sting', exact: true })).toBeChecked()
     await other.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(other.getByRole('button', { name: 'Quiver: Gnoll Skin Bandolier' })).toBeVisible()

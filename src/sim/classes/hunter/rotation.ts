@@ -7,10 +7,13 @@
 // cooldown; Serpent Sting while it's off the boss; Sniper Shot with the talent. Auto Shot fires on its
 // own timer throughout. Setting ids are `hunter.<spec>.<ability>.<param>`. Abilities are resolved
 // with the build's talents (talents.ts). The defaults are the Classic Era common priority adapted to
-// Forever with a first quick search (decision D27; hunter.md "First-pass defaults").
+// Forever with a first quick search (decision D27; hunter.md "First-pass defaults"). Each spec's
+// rotation is a priority list you reorder (HUNTER_APL, decision D31; hunter.md §8.3), its rows the
+// lines above, each with its own settings.
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { FixedRotationRow, RotationOption, RotationValue, SpecId } from '../../types'
+import type { AplDefinition, FixedRotationRow, RotationOption, RotationValue, SpecId } from '../../types'
+import { compileAplRows } from '../apl'
 import type { PaladinContext } from '../paladin/setup'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
 import { AIMED_SHOT, ARCANE_SHOT, BESTIAL_WRATH, HUNTER_RACIALS, HUNTERS_MARK, MULTI_SHOT, RAPID_FIRE, SERPENT_STING, SNIPER_SHOT } from './abilities'
@@ -234,41 +237,86 @@ export function hunterOptions(spec: HunterSpec): RotationOption[] {
 }
 
 /**
- * What the Rotation tab shows without a control (docs/ux.md "Rotation"): Aspect of the Hawk and
- * Trueshot Aura, cast before the pull, the pet, and Auto Shot.
+ * What the Rotation tab shows without a control, above the priority list (docs/ux.md "Rotation"):
+ * Auto Shot and the pet, which fight all along beside the list. Aspect of the Hawk and Trueshot Aura
+ * are the list's pinned first row (HUNTER_APL).
  */
 export function hunterFixedRows(spec: HunterSpec): FixedRotationRow[] {
   const S = `hunter.${KEY[spec]}`
   return [
     {
-      id: `${S}.aspectOfTheHawk`,
-      label: 'Aspect of the Hawk',
-      group: 'Before the pull',
-      help: 'Cast before the pull and up all fight: +120 ranged attack power. With Deadly Aspects, your Auto Shots can give you Quick Shots: +30% ranged attack speed for 12 s.',
+      id: `${S}.autoShot`,
+      label: 'Auto Shot',
+      group: 'Core abilities',
+      help: 'Your ranged weapon fires on its own timer all fight. A cast that’s still going when a shot starts to aim holds that shot back.',
       value: 'Always on',
-    },
-    {
-      id: `${S}.trueshotAura`,
-      label: 'Trueshot Aura',
-      group: 'Before the pull',
-      help: `With the talent: cast before the pull and up all fight, +${TRUESHOT_AURA_RAP} ranged attack power for your party.`,
-      value: 'With the talent',
     },
     {
       id: `${S}.pet`,
       label: 'Pet',
-      group: 'Before the pull',
-      help: 'A happy cat, attacking from behind the boss. With Lone Wolf you fight without a pet for its +20% damage.',
+      group: 'Core abilities',
+      help: 'A happy cat, out before the pull and attacking from behind the boss. With Lone Wolf you fight without a pet for its +20% damage.',
       value: 'Cat, or none with Lone Wolf',
     },
-    {
-      id: `${S}.autoShot`,
-      label: 'Auto Shot',
-      group: 'Cooldowns and buffs',
-      help: 'Your ranged weapon fires on its own timer all fight. A cast that’s still going when a shot starts to aim holds that shot back.',
-      value: 'Always on',
-    },
   ]
+}
+
+/**
+ * A hunter spec's rotation as a priority list (decision D31; hunter.md §8.3 "The priority list"):
+ * §8.1's lines in its order, each with its switch and its own settings. Aspect of the Hawk and
+ * Trueshot Aura before the pull are pinned first. The shot on the shared cooldown is one row, whose
+ * choice picks Aimed Shot, Multi-Shot or neither, with its wait for Auto Shot. The pet's Claw
+ * threshold and the mana consumables are spec-wide, above the list; the consumables take their turn
+ * just before the list's first row on the global cooldown (hunterRotation).
+ */
+function hunterApl(spec: HunterSpec): AplDefinition {
+  const ID = hunterIds(spec)
+  const onCooldown = [{ text: 'on cooldown' }]
+  return {
+    rows: [
+      {
+        id: 'prepull',
+        label: 'Before the pull',
+        icon: 'spell_nature_ravenform',
+        optionIds: [],
+        summary: [{ text: 'Aspect of the Hawk' }, { text: 'Trueshot Aura with the talent' }],
+        help: `Aspect of the Hawk (+120 ranged attack power; with Deadly Aspects, your Auto Shots can give you Quick Shots), and Trueshot Aura with the talent (+${TRUESHOT_AURA_RAP} ranged attack power for your party), cast before the pull and up all fight. It always comes first.`,
+        pinned: true,
+      },
+      { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: onCooldown },
+      { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: onCooldown },
+      { id: 'rapidFire', label: 'Rapid Fire', icon: RAPID_FIRE.icon, enabledId: ID.rapidFire, optionIds: [], summary: onCooldown },
+      { id: 'bestialWrath', label: 'Bestial Wrath', icon: BESTIAL_WRATH.icon, enabledId: ID.bestialWrath, optionIds: [], summary: onCooldown },
+      { id: 'huntersMark', label: 'Hunter’s Mark', icon: HUNTERS_MARK.icon, enabledId: ID.mark, optionIds: [], summary: [{ text: 'while it’s off the boss' }] },
+      {
+        id: 'sharedShot',
+        label: 'Aimed Shot or Multi-Shot',
+        icon: AIMED_SHOT.icon,
+        optionIds: [ID.sharedShot, ID.noClip],
+        summary: [{ option: ID.sharedShot, text: '{}' }, { option: ID.noClip, text: 'between Auto Shots' }],
+        help: 'Which shot fills the shared cooldown, and whether it waits for Auto Shot. Neither leaves it empty.',
+      },
+      { id: 'arcaneShot', label: 'Arcane Shot', icon: ARCANE_SHOT.icon, enabledId: ID.arcane, optionIds: [], summary: onCooldown },
+      {
+        id: 'serpentSting',
+        label: 'Serpent Sting',
+        icon: SERPENT_STING.icon,
+        enabledId: ID.sting,
+        optionIds: [ID.stingTimeLeft],
+        summary: [{ text: 'while it’s off the boss' }, { option: ID.stingTimeLeft, text: 'until {} are left', hideWhen: 0 }],
+      },
+      { id: 'sniperShot', label: 'Sniper Shot', icon: SNIPER_SHOT.icon, enabledId: ID.sniper, optionIds: [], summary: onCooldown },
+    ],
+    specWide: [ID.clawFocus, ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+    presets: [],
+  }
+}
+
+/** Each hunter spec's priority list (hunterApl): one object per spec, so what reads it gets the same one. */
+export const HUNTER_APL: Readonly<Record<HunterSpec, AplDefinition>> = {
+  'hunter-marksmanship': hunterApl('hunter-marksmanship'),
+  'hunter-beast-mastery': hunterApl('hunter-beast-mastery'),
+  'hunter-survival': hunterApl('hunter-survival'),
 }
 
 /**
@@ -300,11 +348,22 @@ const consumable = (use: OnUseSpec): AbilityDef => ({
 })
 
 /**
- * The hunter's priority list from the settings (hunter.md §8). `context` gives the maximum mana (the
- * mana thresholds), the race (its racial cooldown), the equipped on-use items and the selected
- * consumables.
+ * The hunter's priority list from the settings (hunter.md §8), its rows in `order` (HUNTER_APL;
+ * absent: the default order). `context` gives the maximum mana (the mana thresholds), the race (its
+ * racial cooldown), the equipped on-use items and the selected consumables.
+ *
+ * A row's conditions are its own wherever it sits; no row reads another's ability. The mana
+ * consumables, spec-wide, are off the global cooldown and take their turn just before the list's
+ * first row on it (Hunter's Mark and the shots), wherever that sits: in the default order that's
+ * after Bestial Wrath, where they were before the list.
  */
-export function hunterRotation(spec: HunterSpec, values: Record<string, RotationValue>, talents: TalentRanks, context: Partial<PaladinContext> = {}): ClassRotation {
+export function hunterRotation(
+  spec: HunterSpec,
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  context: Partial<PaladinContext> = {},
+  order?: readonly string[],
+): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const ID = hunterIds(spec)
   const v = reader(hunterOptions(spec), values, talents)
@@ -325,48 +384,74 @@ export function hunterRotation(spec: HunterSpec, values: Record<string, Rotation
   const missing = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
   const pet = hasPet(talents)
 
-  // Off the GCD, on cooldown from the pull: the racial, on-use trinkets, Rapid Fire and Bestial Wrath.
-  const racial = HUNTER_RACIALS[ctx.race]
-  if (racial && v.on(ID.racial)) add(racial)
-  const pressed: string[] = ctx.items.map((i) => i.id)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
-  if (v.on(ID.rapidFire)) add(RAPID_FIRE)
-  if (pet && v.on(ID.bestialWrath) && rank(talents, 'Bestial Wrath') > 0) add(BESTIAL_WRATH)
-
-  // The mana potion and the rune, once the most they restore fits.
-  for (const [id, setting, amount] of [
+  // What the plan presses: the on-use items, then the mana consumables selected in Buffs.
+  const consumables = [
     [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
     [MANA_RUNE, ID.rune, ID.runeMissing],
-  ] as const) {
-    const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
-    pressed.push(id)
-    if (v.on(setting)) add(consumable(use), [missing(v.num(amount))])
+  ] as const
+  const pressed: string[] = [...ctx.items.map((i) => i.id), ...consumables.map(([id]) => id).filter((id) => ctx.consumables.some((c) => c.id === id))]
+
+  // The mana potion and the rune, once the most they restore fits: once, just before the first row on the GCD.
+  let consumablesDone = false
+  const manaConsumables = () => {
+    if (consumablesDone) return
+    consumablesDone = true
+    for (const [id, setting, amount] of consumables) {
+      const use = ctx.consumables.find((c) => c.id === id)
+      if (use && v.on(setting)) add(consumable(use), [missing(v.num(amount))])
+    }
+  }
+  const onGcd = (emit: () => void) => () => {
+    manaConsumables()
+    emit()
   }
 
-  // Hunter's Mark whenever it's off the boss.
-  if (v.on(ID.mark)) {
-    const mark = index(HUNTERS_MARK)
-    rotation.push({ ability: mark, conditions: [{ code: COND.abilityAuraRefresh, a: mark, b: 0 }], unqueueBelowTenths: 0 })
-  }
-
-  // The shot on the shared cooldown, started only when it ends before the next Auto Shot aims.
-  const shared = v.str(ID.sharedShot)
-  const clear = (a: number): RotationCondition[] => (v.on(ID.noClip) ? [{ code: COND.autoShotClear, a, b: 0 }] : [])
-  if (shared === 'aimed' || shared === 'multi') {
-    const shot = index(shared === 'aimed' ? AIMED_SHOT : MULTI_SHOT)
-    rotation.push({ ability: shot, conditions: clear(shot), unqueueBelowTenths: 0 })
-  }
-  if (v.on(ID.arcane)) add(ARCANE_SHOT)
-  if (v.on(ID.sting)) {
-    const sting = index(SERPENT_STING)
-    rotation.push({
-      ability: sting,
-      conditions: [{ code: COND.abilityAuraRefresh, a: sting, b: 0 }, timeLeftAtLeast(1000 * v.num(ID.stingTimeLeft))],
-      unqueueBelowTenths: 0,
-    })
-  }
-  if (v.on(ID.sniper) && rank(talents, 'Sniper Shot') > 0) add(SNIPER_SHOT)
+  compileAplRows(HUNTER_APL[spec], order, {
+    // Off the GCD, on cooldown from the pull: the racial, on-use trinkets, Rapid Fire and Bestial Wrath.
+    racial: () => {
+      const racial = HUNTER_RACIALS[ctx.race]
+      if (racial && v.on(ID.racial)) add(racial)
+    },
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+    },
+    rapidFire: () => {
+      if (v.on(ID.rapidFire)) add(RAPID_FIRE)
+    },
+    bestialWrath: () => {
+      if (pet && v.on(ID.bestialWrath) && rank(talents, 'Bestial Wrath') > 0) add(BESTIAL_WRATH)
+    },
+    // Hunter's Mark whenever it's off the boss.
+    huntersMark: onGcd(() => {
+      if (!v.on(ID.mark)) return
+      const mark = index(HUNTERS_MARK)
+      rotation.push({ ability: mark, conditions: [{ code: COND.abilityAuraRefresh, a: mark, b: 0 }], unqueueBelowTenths: 0 })
+    }),
+    // The shot on the shared cooldown, with "Wait for Auto Shot" started only when it ends before the next Auto Shot aims.
+    sharedShot: onGcd(() => {
+      const shared = v.str(ID.sharedShot)
+      if (shared !== 'aimed' && shared !== 'multi') return
+      const shot = index(shared === 'aimed' ? AIMED_SHOT : MULTI_SHOT)
+      rotation.push({ ability: shot, conditions: v.on(ID.noClip) ? [{ code: COND.autoShotClear, a: shot, b: 0 }] : [], unqueueBelowTenths: 0 })
+    }),
+    arcaneShot: onGcd(() => {
+      if (v.on(ID.arcane)) add(ARCANE_SHOT)
+    }),
+    // Serpent Sting whenever it's off the boss, while its ticks can finish.
+    serpentSting: onGcd(() => {
+      if (!v.on(ID.sting)) return
+      const sting = index(SERPENT_STING)
+      rotation.push({
+        ability: sting,
+        conditions: [{ code: COND.abilityAuraRefresh, a: sting, b: 0 }, timeLeftAtLeast(1000 * v.num(ID.stingTimeLeft))],
+        unqueueBelowTenths: 0,
+      })
+    }),
+    sniperShot: onGcd(() => {
+      if (v.on(ID.sniper) && rank(talents, 'Sniper Shot') > 0) add(SNIPER_SHOT)
+    }),
+  })
+  manaConsumables()
 
   return {
     abilities,

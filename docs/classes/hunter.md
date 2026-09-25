@@ -277,7 +277,7 @@ The sim's list, top first (settings `hunter.<spec>.<ability>.<param>`):
 | 10 | Sniper Shot on cooldown, with the talent | §8.2 |
 
 The pet walks its own list (§6). Melee weaving (Raptor Strike, Mongoose Bite) isn't simulated: the
-hunter stands at range.
+hunter stands at range. The Rotation tab shows these lines as a priority list you reorder (§8.3).
 
 ### 8.2 First-pass defaults
 
@@ -295,6 +295,46 @@ hunter runs dry; Beast Mastery, whose pet did a fifth of its damage, keeps Arcan
 cheaper Multi-Shot. The Rotation tab says these are the common priority, not tuned. Since the search,
 the pet inherits your attack power, crit and hit (§6): Beast Mastery's pet now does about a third of its
 damage and Survival's about a quarter, and the optimizer (D30) retakes these choices.
+
+### 8.3 The priority list
+
+Since M5.65 A2 §8.1's lines are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`HUNTER_APL` in `classes/hunter/rotation.ts`), one list per spec with the same rows, in this order,
+each with its switch and its own settings (`hunter.<spec>.…`):
+
+| Row (`id`) | Switch | Its settings | Its conditions, wherever it sits |
+| --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | — | | Aspect of the Hawk, and Trueshot Aura with the talent: static, up all fight (§3.9, §9) |
+| Racial cooldown (`racial`) | `racial.enabled` | | on cooldown, off the GCD: Blood Fury, Berserking or Elune's Light (§7.2) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown, off the GCD |
+| Rapid Fire (`rapidFire`) | `rapidFire.enabled` | | on cooldown, off the GCD (§3.7) |
+| Bestial Wrath (`bestialWrath`) | `bestialWrath.enabled` | | on cooldown, off the GCD, with the talent and a pet (§3.8) |
+| Hunter's Mark (`huntersMark`) | `huntersMark.enabled` | | while it's off the boss (§3.6) |
+| Aimed Shot or Multi-Shot (`sharedShot`) | — (its choice's Neither) | `sharedCooldown.shot`, `sharedCooldown.noClip` | on the shared cooldown; with "Wait for Auto Shot", only when its cast ends before the next Auto Shot aims (`autoShotClear`; §3.1, §3.2) |
+| Arcane Shot (`arcaneShot`) | `arcaneShot.enabled` | | on cooldown (§3.3) |
+| Serpent Sting (`serpentSting`) | `serpentSting.enabled` | `serpentSting.minTimeLeftSec` | while it's off the boss and at least that much of the fight is left (§3.4) |
+| Sniper Shot (`sniperShot`) | `sniperShot.enabled` | | on cooldown, with the talent (§3.5) |
+
+- **Pinned:** only the pre-pull. It casts nothing in the fight: Aspect of the Hawk and Trueshot Aura
+  are static ranged attack power (§9), so it's there to show what's up from the pull.
+- **Spec-wide, above the list:** the pet's Claw threshold (`pet.clawFocus`, §6), under Core
+  abilities with Auto Shot and the pet, which the tab shows without a control; and the Major Mana
+  Potion and Demonic Rune with their thresholds, under Consumables. The consumables are off the
+  global cooldown and take their turn **just before the list's first row on it** (Hunter's Mark or
+  a shot), wherever that row sits, even when it's off: in the default order that's after Bestial
+  Wrath, where they were before the list (§8.1 row 5).
+- **No named rotations:** the implicit Default preset only, the common priority (D27).
+- **Equivalence:** in the default order each spec's plan is the one it had before the list, byte for
+  byte: 200 random setups a spec (settings, talent builds with ranks taken off so Lone Wolf, Bestial
+  Wrath, Sniper Shot and Trueshot Aura come and go, race, on-use trinkets, the mana consumables, the
+  fight and the rules) are fingerprinted against the code before it (`hunter-apl.test.ts`).
+- **What reordering does,** in each default setup (seed 60301, 20,000 paired fights): Rapid Fire
+  anywhere changes nothing (it's off the GCD). Serpent Sting above the shared shot costs Survival
+  1.2% (its Aimed Shot doesn't wait for Auto Shot, so the sting takes its place) and Beast Mastery
+  0.1%, and changes nothing for Marksmanship; Arcane Shot above Multi-Shot costs Beast Mastery 0.3%.
+  Hunter's Mark last, so the pull opens with a shot, gives Marksmanship +0.6% and Beast Mastery
+  +0.1%, and costs Survival 0.1%: a lead for the optimizer (D30), not a change to the common priority.
 
 ## 9. Implementation notes
 

@@ -34,7 +34,7 @@ import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, d
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
-import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
+import { HUNTER_APL, hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
 import { type ClassRotation, maxRageOf } from './warrior/shared'
 import type { RotationSetup } from './options'
@@ -124,6 +124,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
+  // docs/classes/hunter.md §8.3: the three hunter specs, each its own list of the same rows.
+  if (isHunterSpec(spec)) return HUNTER_APL[spec]
   return undefined
 }
 
@@ -347,6 +349,6 @@ export function classRotation(
   // docs/classes/priest.md §6.
   if (spec === 'priest-shadow') return shadowRotation(values, talents, context)
   // docs/classes/hunter.md §7.
-  if (isHunterSpec(spec)) return hunterRotation(spec, values, talents, context)
+  if (isHunterSpec(spec)) return hunterRotation(spec, values, talents, context, order)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

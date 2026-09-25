@@ -1495,12 +1495,20 @@ default setups; `scripts/tune/rotation.mjs`):
   1,121.22), Balanced +3.13% TPS and +2.83% DPS against Defensive (1,085.33 → 1,119.25). The cat's
   finishers hold too: Ferocious Bite and Rip at 5 combo points beat every mix with 4 (−0.09% to
   −0.82%).
-- **Plausibility (D29, milestones T6).** The default bear is still above the guild's 800–900 TPS for
-  a bear or a paladin: 1,119 TPS. By ability (10,000 fights): Maul 58.6% (657 TPS, 73.6 a fight),
-  Lacerate 14.5% (163, 53.2) and its bleed 3.5% (39), Primal Bite 14.1% (158, 37.9), Windfury
-  Attack 3.2%, the auto attack 2.2%, Faerie Fire 1.3%, Thorns 0.9%, Blood Frenzy 0.8%, the rest
-  under 0.5% each. Nothing in 1.60.1.70009 explains or narrows the gap: the rename moves nothing,
-  Lacerate's new value adds 0.3%, and Maul, more than half the threat, is untouched by the build.
+- **Plausibility (D29, milestones T6).** D29 sets no numeric benchmark for a tank: the headlines
+  land where the cited mechanics put them, and a gap no cited mechanic explains goes to the
+  guild's in-game tests rather than moving a value. What the three tanks' defaults make on the
+  integrated 1.60.1.70009 branch (seed 31101, 20,000 fights, each tank's default setup), as
+  observations: the warrior **1,009 TPS**, the paladin **746** and the bear **1,134**. The order
+  has turned over: on 1.60.1.69913 the warrior's Balanced led (1,241 against the bear's 1,115),
+  and 1.60.1.70009's Sunder Armor (206 + 0.05 × AP) took the warrior below the bear, now 12%
+  ahead of it, while the bear itself moved little (Lacerate's new value +0.3%, Thorns' spell-power
+  scaling about +1.3%). **Maul is 59% of the bear's threat,** so the bear's headline rests on what
+  sets Maul's threat (its ×1.75 [?], §4.8, Q15, and whether Savage Fury's ×1.10 reaches it) and on
+  how often the bear can pay for it (rage from damage dealt and taken, both [?],
+  [rage.md](../mechanics/rage.md)); the build changed none of them. Those are T6's open in-game
+  tests ([milestones M5.6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), and
+  the model stays as the cited mechanics put it until they report.
 
 ---
 

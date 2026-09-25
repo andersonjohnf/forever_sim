@@ -723,10 +723,10 @@ build the item's stats come from:
 
 **Two tiers** (the step-6 narrowing of the caster gear verification, GV-1: the third round in a row
 with twin problems). The client-exact rule above missed pieces a race change had swapped before it:
-the Alliance's Rank 7 to 10 silk, satin and leather have the Horde pieces' rows but no item set, and
-the Arathi Basin mail's sets give other bonuses, so 138 swaps were lost (every Rank 7 to 10
-leather, satin and silk piece, and the Highlander's and Defiler's mail). So each tier gets the match
-its job needs:
+the Alliance's Rank 7 to 10 silk and satin and the Horde's leather have the other faction's rows but
+no item set, and the Arathi Basin mail's sets give other bonuses, so 138 swaps were lost (every
+Rank 7 to 10 leather, satin and silk piece, and the Highlander's and Defiler's mail). So each tier
+gets the match its job needs:
 
 - **The lists' ranks** use the exact twins, `twins`: a twin takes a list's rank only when its set
   bonuses match too, since a piece without its set isn't worth the same.
@@ -735,10 +735,10 @@ its job needs:
   set or none. `raceChangeTwin` (`src/features/character/faction-gear.ts`) takes, among the stat
   twins, the one whose set name ends the same way, so a set's pieces move to one set on the other
   side; then the exact twin, the name that ends the same way, and the lower id. It says when the set
-  bonus differs (the piece isn't an exact twin); the notice names those pieces ("…, with the same
-  stats but not the same set bonus"). The set comes first because an exact twin can sit in another
-  set: The Defiler's Fortitude's greaves have one in The Highlander's Determination (Highlander's
-  Chain Greaves), while its pauldrons and girdle only have stat twins in The Highlander's Fortitude,
+  bonus differs (the piece isn't an exact twin); the notice names those pieces and says how: "…, with
+  the same stats but no set bonus", "…, now with a set bonus" or "…, but in another set". The set
+  comes first because an exact twin can sit in another set: The Defiler's Fortitude's greaves have
+  one in The Highlander's Determination (Highlander's Chain Greaves), while its pauldrons and girdle only have stat twins in The Highlander's Fortitude,
   so taking the exact twin split the set and lost its 3-piece bonus on the way back (GC-1). Every
   piece now comes back to itself on a round trip. This is the match the app made before the step-6
   change, now read from the client: over the pool it gives the same piece for 772 of the old match's

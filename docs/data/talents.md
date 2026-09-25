@@ -314,7 +314,7 @@ written on it decodes against that order, and loading maps it onto today's trees
   The load says so in one line: "Your talents were the Retribution default on the game’s old
   trees; they’re now today’s default." ("…the Protection popular build…; they’re now its version
   for today’s trees."); a notice that already names the spec doesn't name its default again ("Your
-  Retribution Paladin talents were the default then; they’re now today’s default."), and a paste
+  Retribution Paladin talents were the default on the game’s old trees; they’re now today’s default."), and a paste
   speaks of the code ("That code was the Retribution default on the game’s old trees; it’s now
   today’s default.", review TMV-2). Nothing is said when the successor is what the name mapping
   gives (Elemental, and every class whose trees didn't change).

@@ -757,8 +757,11 @@ the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover i
 - **Workload Identity Federation, no keys.** GitHub's OIDC token is exchanged for a short-lived
   token of the service account `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`, through
   a provider that trusts only this repository's `main` branch. No JSON key exists to leak.
-- **Analytics are Firebase Hosting's request logs in Cloud Logging,** switched on in the console.
-  Nothing in the app: no script, cookie or beacon, and no change to the Content-Security-Policy.
+- **Analytics are Firebase Hosting's request logs in Cloud Logging,** once the site is linked in
+  the console (Project settings → Integrations → Cloud Logging, the `forever-sim` site). As of
+  2026-09-25 it isn't linked yet: `decades-prod` has only audit logs. Until then, Hosting's Usage
+  tab shows requests and bandwidth. Nothing in the app: no script, cookie or beacon, and no change
+  to the Content-Security-Policy.
 - **Security headers are real headers now** (`firebase.json`): the same policy as `index.html`'s
   meta tag plus `frame-ancestors 'none'`, which a meta tag can't set, with `nosniff`, a
   referrer policy and a restrictive Permissions-Policy. The meta tag stays, for `vite preview`, the

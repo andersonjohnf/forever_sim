@@ -146,6 +146,41 @@ test.describe('the wide Gear tab', () => {
     await expect(hands.locator('span[title]').nth(1)).toHaveCSS('text-align', 'right')
   })
 
+  test('on the mirrored side the chip and flags run outward from the icon in Tab’s order', async ({ page }) => {
+    // Review finding V4-3: the flags weren't mirrored, so Tab went chip, Classic stats, Effect while
+    // the screen read Classic stats, Effect, chip. A trinket with both flags, and every slot's order.
+    await openGear(page, 1440)
+    await page.getByRole('button', { name: /^Trinket 1: / }).press('Enter')
+    const picker = page.getByRole('dialog', { name: 'Choose trinket 1' })
+    await picker.getByLabel('Search items').fill('ragged john')
+    await picker.getByRole('button', { name: /^Ragged John's Neverending Cup\./ }).click()
+    const trinket = page.getByRole('button', { name: "Trinket 1: Ragged John's Neverending Cup" })
+    await expect(trinket).toBeFocused()
+    // The keyboard's way through it: the slot, then its flags, each further left than the last.
+    const xs: number[] = []
+    for (const name of ['Classic stats', 'Effect not simulated']) {
+      await page.keyboard.press('Tab')
+      const flag = page.locator('li').filter({ has: trinket }).getByRole('button', { name, exact: true })
+      await expect(flag).toBeFocused()
+      xs.push((await flag.boundingBox())!.x)
+    }
+    expect(xs[1]).toBeLessThan(xs[0])
+    // Every slot: its chip and flags in the document's (and so Tab's) order step away from the icon,
+    // leftward on the right side, rightward on the left.
+    const order = await page.locator('[data-gear-slot]').evaluateAll((slots) =>
+      slots.map((slot) => {
+        const li = slot.closest('li')!
+        const icon = li.querySelector('img')!.getBoundingClientRect()
+        const targets = [...li.querySelectorAll('button')].filter((b) => b !== slot).map((b) => b.getBoundingClientRect())
+        const mirrored = ['hands', 'waist', 'legs', 'feet', 'finger1', 'finger2', 'trinket1', 'trinket2'].includes((slot as HTMLElement).dataset.gearSlot!)
+        const distances = targets.map((t) => (mirrored ? icon.left - t.right : t.left - icon.right))
+        return { slot: (slot as HTMLElement).dataset.gearSlot!, count: targets.length, outward: distances.every((d, i) => i === 0 || d > distances[i - 1]) }
+      }),
+    )
+    expect(order.find((s) => s.slot === 'trinket1')!.count).toBe(2)
+    for (const s of order) expect(s.outward, s.slot).toBe(true)
+  })
+
   test('a hunter’s ammo and quiver take a second row of weapons, and still fit', async ({ page }) => {
     await openGear(page, 1440)
     await chooseSpec(page, 'Hunter', /Beast Mastery/)

@@ -344,6 +344,9 @@ export function GearSection() {
                 <ItemFlags
                   item={item}
                   idPrefix={`gear-${slot}`}
+                  // Mirrored, the flags run leftward from the chip or the text, as Tab takes them
+                  // (review finding V4-3: Tab zig-zagged).
+                  className={place.mirrored ? 'flex-row-reverse' : undefined}
                   fit={place.enchantLine ? `${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}` : undefined}
                 />
               )

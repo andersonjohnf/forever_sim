@@ -1081,13 +1081,20 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B52. Touch of the Grave
 **Low · M2 · ≤20**
-- **Assumes:** healing only, not simulated [?]; amount, school, and whether it can miss, crit or
-  cause threat are unknown. What procs it is narrower since 1.60.1.70009: only spells and
-  abilities with a damage component (Shadow Word: Pain on the cast, not its ticks) [F] (the build's
-  notes; [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)).
+- **Assumes:** it deals damage: its drain takes health from the target, and since 1.60.1.70009
+  only spells and abilities with a damage component proc it (Shadow Word: Pain on the cast, not its
+  ticks), so it no longer breaks crowd control [F] (the build's notes;
+  [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)). The amount (up to 5% of
+  maximum health), school, and whether it can miss, crit or cause threat are unknown [?].
+  **Not simulated, a known gap** ([milestones](milestones.md) A6; the `touchOfTheGrave`
+  assumption): its amount would follow maximum health, and it procs from every damaging spell and
+  attack behind an internal cooldown (5% for melee classes, 10% for casters; 1 s on the melee
+  classes' spell), a proc the engine has no
+  shape for yet. No default race is Undead, so no default headline moves; at 5% of maximum health
+  as Shadow damage a proc [?] it would be about +1.7% of a Protection paladin's TPS as Undead.
 - **Test:** Undead warrior or paladin: log 5 minutes of melee; count procs and read amounts.
 - **Samples:** ≥5 minutes.
-- **Changes:** whether it needs modelling.
+- **Changes:** its damage model (amount, school, threat), then modelling it.
 - **Docs:** [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave);
   [warrior Q16](classes/warrior.md#9-open-questions);
   [paladin OQ 15](classes/paladin.md#open-questions)

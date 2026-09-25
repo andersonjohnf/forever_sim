@@ -179,7 +179,7 @@ const REGISTRY = {
     docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {
-    text: 'Touch of the Grave isn’t simulated: whether it deals damage is unknown.',
+    text: 'Touch of the Grave isn’t simulated. Its drain takes health from the target, so it deals damage (since the 1.60.1.70009 patch notes, only spells and attacks that deal damage set it off, and it no longer breaks crowd control), but how much isn’t known yet. Leaving it out undercounts an Undead character a little.',
     docRef: `${WAR}#9-open-questions`,
   },
   classicItems: {

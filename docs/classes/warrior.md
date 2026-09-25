@@ -498,7 +498,7 @@ racials ([architecture](../architecture.md#rules-and-stats)). The warrior-releva
 | Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 10% less rage and deal +10% damage**, 15 s, 2 min cooldown (until 1.60.1.70009, 40% less) | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.70009) (1259802, 1259813) |
 | Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
 | Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (20550) |
-| Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health | Healing only, not simulated [?] (Q16) | [F] [rac]; 1260189 exists [client] (SpellEffect, 1.60.1.69913) |
+| Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health | A drain, so it deals damage: since 1.60.1.70009 only damaging spells and attacks proc it, and it no longer breaks crowd control [F] [notes-70009]. Its amount is unknown, and it isn't simulated yet [?] (Q16, a known gap) | [F] [rac]; 1260189 exists [client] (SpellEffect, 1.60.1.69913) |
 | Skyborne | Wind Blessed: **+1% haste**. Elemental Insight: +5% damage vs Elementals | ×1.01 haste; ×1.05 against Elementals | [F] [rac] [db-eff] (1259710) |
 
 ## 3. Abilities at level 60
@@ -2851,8 +2851,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     with a mace in the other hand: read the sheet's crit, and if it's unclear, log crits per
     hand. An Arms warrior with Weaponmaster, an axe in the off hand and a sword in the main hand,
     the same way.
-16. **Touch of the Grave (Undead).** Does it deal damage, or only heal? If it deals damage,
-    it should be modelled.
+16. **Touch of the Grave (Undead).** How much damage does it deal? The 1.60.1.70009 notes
+    imply it deals damage: only spells and abilities with a damage component proc it, so it no
+    longer breaks crowd control [notes-70009]. The sim doesn't model it yet (the `touchOfTheGrave`
+    assumption): its amount, up to 5% of maximum health, is unknown, and it procs from every
+    damaging spell and attack behind a 1 s cooldown, a proc the engine has no shape for. No
+    default race is Undead, so no default moves ([open-questions B52](../open-questions.md#b52-touch-of-the-grave),
+    [milestones](../milestones.md) A6).
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or
     100 × 1.05 + 30 = 135? How does the fraction round?
 18. **Eureka!.** How does the 10% cost cut round? Execute costs 15, and 10% of it is 1.5. Does

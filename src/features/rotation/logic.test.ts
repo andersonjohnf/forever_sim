@@ -463,4 +463,12 @@ describe('a summary part a choice or the setup rules out (choiceIs, choiceIsNot,
     // Without the setup to read, the part is left out rather than guessed.
     expect(summaryOf(mm, 'prepull', {}, null)).toBe('Aspect of the Hawk')
   })
+
+  it('says None for Chain Lightning with Clearcasting without Elemental Focus, which never casts it', () => {
+    const use = 'shaman.elemental.chainLightning.use'
+    const noFocus = { ...ele, talents: '' }
+    expect(summaryOf(noFocus, 'chainLightning')).toBe('None')
+    expect(summaryOf(noFocus, 'chainLightning', { [use]: 'cooldown' })).toBe('On cooldown')
+    expect(summaryOf(noFocus, 'chainLightning', { [use]: 'never' })).toBe('Never')
+  })
 })

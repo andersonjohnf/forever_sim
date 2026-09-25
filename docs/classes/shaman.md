@@ -905,7 +905,7 @@ row keeps its conditions wherever you move it:
 | Mana Tide Totem (`manaTide`) | `manaTide.enabled` | `manaTide.missingMana` | with the talent, missing the mana (row 4); the mana potion and rune (row 5) take their turn here |
 | Flame Shock (`flameShock`) | `flameShock.enabled` | | your Flame Shock isn't on the boss (row 6) |
 | Lava Burst (`lavaBurst`) | `lavaBurst.enabled` | `lavaBurst.withFlameShock` | with the talent, ready; waits for your Flame Shock only while Flame Shock's row is on (row 7) |
-| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8); its summary reads "With Clearcasting", "On cooldown" or "Never" |
+| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8); its summary reads "With Clearcasting", "On cooldown" or "Never", and "None" at With Clearcasting without Elemental Focus, which never casts it |
 | Earth Shock (`earthShock`) | `earthShock.enabled` | `earthShock.minManaPct` | mana ≥ the share (row 9) |
 | Lightning Bolt (`lightningBolt`) | — (always there: the filler) | `lightningBolt.downrank`, `lightningBolt.maxRankFromPct` | rank 10 with Clearcasting or from the share, rank 4 below it (rows 10 and 11) |
 

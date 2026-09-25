@@ -277,7 +277,8 @@ export const ELEMENTAL_APL: AplDefinition = {
       icon: CHAIN_LIGHTNING.icon,
       optionIds: [ID.chainLightning],
       summary: [
-        { text: 'with Clearcasting', choiceIs: { option: ID.chainLightning, values: ['clearcasting'] } },
+        // Clearcasting comes only from Elemental Focus: without it the row never casts, and reads "None".
+        { text: 'with Clearcasting', choiceIs: { option: ID.chainLightning, values: ['clearcasting'] }, requires: { talent: 'Elemental Focus' } },
         { option: ID.chainLightning, text: '{}', choiceIsNot: { option: ID.chainLightning, values: ['clearcasting'] } },
       ],
       help: 'Chain Lightning with Clearcasting, on cooldown, or never.',

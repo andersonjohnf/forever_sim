@@ -60,6 +60,22 @@ test.describe('faction gear on a race change', () => {
     await expect(page.getByRole('button', { name: 'Feet: Blood Guard\'s Plate Greaves' })).toBeVisible()
   })
 
+  test('swaps pieces whose set differs too, and the notice says so (GV-1)', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Frost/ }).click()
+    await expect(page.getByRole('button', { name: /^Spec: Frost Mage/ })).toBeVisible()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Human' }).click()
+    // The Alliance's Rank 7 to 10 silk has the Horde pieces' stats but no item set.
+    const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 3 items for their Alliance versions' })
+    await expect(notice).toContainText('Sageclaw, with the same stats.')
+    await expect(notice).toContainText("Knight-Captain's Silk Legguards and Knight-Lieutenant's Silk Walkers, with the same stats but not the same set bonus.")
+
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await expect(page.getByRole('button', { name: "Legs: Knight-Captain's Silk Legguards" })).toBeVisible()
+  })
+
   test('a race on the same side changes no gear and shows no toast', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()

@@ -629,8 +629,12 @@ nothing for a mage.
   Fiery Arcana and Pyric Caduceus. The list names each faction reward once, and its twin, read from the
   client, takes the same rank ([items.md](../data/items.md#faction-twins)): Mindfang's is the League of
   Arathor's Sageclaw, and the rank-1 two-hander Ironbark Staff's The Defilers' copy. The Alliance's
-  Rank 7 to 10 silk has the Horde pieces' stats but no item set in Forever's rows, so it isn't a twin
-  and is listed at the Horde piece's rank on its own. The guide's event-only Staff of Balzaphon is left
+  Rank 7 to 10 silk has the Horde pieces' stats but no item set in Forever's rows, so it misses the
+  Champion's Arcanum bonuses and isn't a twin: **it's ranked on its own**, paired in a Human's default
+  set (GV-4; 20,000 fights on seed 2701). Knight-Lieutenant's Silk Handwraps fall to rank 4, behind
+  Inferno Gloves (+7.05) and Sandworm Skin Gloves (+2.50), so a Human wears Inferno Gloves
+  (538.2 → **545.2** DPS); Lieutenant Commander's Silk Mantle keeps rank 1 (Burial Shawl −3.6),
+  Lieutenant Commander's Silk Cowl rank 2 and Knight-Captain's Silk Legguards rank 3. The guide's event-only Staff of Balzaphon is left
   out ([items.md "Sources"](../data/items.md#sources-c)). **The rings and trinkets are re-ranked by the
   sim** now that Wrath of Cenarius's and Draconic Infused Emblem's procs are modelled (DV2-4,
   [items.md](../data/items.md#modelled-item-effects); paired in the default set, 20,000 fights on seed
@@ -642,7 +646,7 @@ nothing for a mage.
   lists in full is a known gap.
 - **Frost and Arcane**: [Wowhead's Classic mage pre-raid list][wh-prebis] (archived 2021-05-15), one
   list with no spec split, a Frost list by its picks; Arcane reuses it (Classic Era had no Arcane
-  list). A Troll wears: Champion's Silk Cowl, Orb of the Darkmoon, Boreal Mantle, Amplifying Cloak, Robe
+  list). A Troll wears: Spellweaver's Turban, Orb of the Darkmoon, Boreal Mantle, Amplifying Cloak, Robe
   of the Archmage, Rockfury Bracers, Hands of Power, Ban'thok Sash, Legionnaire's Silk Legguards, Blood
   Guard's Silk Walkers, Rune Band of Wizardry, Don Mauricio's Band of Domination, Briarwood Reed, Eye of
   the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger, Sageclaw,
@@ -650,8 +654,18 @@ nothing for a mage.
   same rank (the Destruction gear review, DG-2; [items.md](../data/items.md#faction-twins)). Forever gave both +94 spell power (a `[?]` estimate from the derived
   caster-weapon rule, [client.md](../data/client.md#weapon-damage); Classic Era +30), so a Troll's
   default gains 8.9% (Frost, 410.9 → 447.3 DPS) and 8.1% (Arcane, 402.2 → 434.8) over the rank-2
-  Witchblade it wore (20,000 fights on seed 2701). A sim-ranked list for Frost and Arcane, as the
-  warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent more; it's a known gap.
+  Witchblade it wore (20,000 fights on seed 2701). **The head is re-ranked by the sim** among the
+  list's own items (GV-4, paired in each faction's default set, 20,000 fights on seed 2701):
+  Spellweaver's Turban leads, over the guide's rank-1 Champion's Silk Cowl (a Troll +5.7 in Frost and
+  Arcane, set bonus and all) and its Alliance piece, Lieutenant Commander's Silk Cowl (a Human +6.3 and
+  +5.7), which share rank 2; Sorcerer's Crown is third (−3.5 and −2.7 against the Alliance cowl). A
+  Troll goes 447.3 → **453.0** (Frost) and 434.8 → **440.5** (Arcane), a Human 435.6 → **441.9** and
+  427.1 → **432.8**. The Alliance's other silk keeps the Horde pieces' rank 1: Knight-Lieutenant's Silk
+  Walkers lead the feet (Omnicast Boots −1.9 and −2.4), and Knight-Captain's Silk Legguards tie
+  Skyshroud Leggings within the interval (+0.3 and −0.1 for Skyshroud over 40,000 fights), so the
+  guide's order stands. A sim-ranked list for Frost and Arcane, as the warlocks'
+  ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent more; it's a known gap, and so is
+  Draconic Infused Emblem, off their list: +10.8 (Frost) and +9.1 (Arcane) in a Troll's second trinket.
 - **Random-suffix items** whose base item has no spell stats are dropped, and the entries below them
   move up; the lists' notes name them (`scripts/scrape/pre-raid-bis.json`).
 
@@ -681,7 +695,7 @@ at" defaults to **0%**; and **Pyroblast** goes at **1** Hot Streak stack (it was
 | Evocation at 10% / 20% (vs 0%) | −0.15 / −0.53 | −0.03% / −0.10% |
 | Mana gems off | −33.17 | −6.43% |
 
-**Frost**: baseline **411.01 ± 0.34 DPS** (on Witchblade, before the list's Mindfang; 447.3 since):
+**Frost**: baseline **411.01 ± 0.34 DPS** (on Witchblade, before the list's Mindfang; 447.3 with it, 453.0 with Spellweaver's Turban since GV-4):
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |
@@ -690,7 +704,7 @@ at" defaults to **0%**; and **Pyroblast** goes at **1** Hot Streak stack (it was
 | Mana gems off | −12.37 | −3.01% |
 | Ice Barrier on | 0: the default build doesn't take it | — |
 
-**Arcane**: baseline **402.25 ± 0.23 DPS** (on Witchblade, before the list's Mindfang; 434.8 since):
+**Arcane**: baseline **402.25 ± 0.23 DPS** (on Witchblade, before the list's Mindfang; 434.8 with it, 440.5 with Spellweaver's Turban since GV-4):
 
 | Candidate | Δ DPS | Δ % |
 | --- | --- | --- |

@@ -37,6 +37,9 @@ describe('golden run (fixed config and seed)', () => {
   //   the sim (Spirit of Aquementas lost its Forever row): Wrath of Cenarius and Elemental Focus Band,
   //   Draconic Infused Emblem and Royal Seal of Eldre'Thalas, Therazane's Touch. DPS 370.30 → 401.07,
   //   TPS 264.16 → 284.89; 381.7 → 401.1 over 20,000 fights on seed 2701 for the re-rank alone.
+  // - The caster gear verification (GV-6): Sash of the Windreaver is event-only (an Elemental Invasion
+  //   boss's), so Ban'thok Sash is the belt: DPS 401.07 → 401.81, TPS 284.89 → 285.36 here; 401.1 →
+  //   400.9 over 20,000 fights on seed 2701 (within the interval).
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

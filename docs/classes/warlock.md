@@ -901,15 +901,16 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 - [wh-items] Wowhead Classic item pages, for the sim-ranked lists' sources that no guide gave (Classic
   Era [C]; the lists' `notes` carry each link), cited as Wayback Machine copies of the pre-Season of
   Mastery classic.wowhead.com pages, as the guides are: the live wowhead.com/classic pages have been
-  rewritten since (DV2-7). The year-only timestamp takes the copy nearest 2021; **each copy's date is
-  unchecked** (no network in the review round that switched the links), a known gap: Mantle of the
-  Timbermaw https://web.archive.org/web/2021/https://classic.wowhead.com/item=19050, Argent Shoulders
-  https://web.archive.org/web/2021/https://classic.wowhead.com/item=19059, Frostwolf Cloth Belt
-  https://web.archive.org/web/2021/https://classic.wowhead.com/item=19090, Leggings of Torment
-  https://web.archive.org/web/2021/https://classic.wowhead.com/item=22342, Ironbark Staff
-  https://web.archive.org/web/2021/https://classic.wowhead.com/item=20069; the Scourge Invasion's, left
-  out as event-only: Chains of the Lich https://web.archive.org/web/2021/https://classic.wowhead.com/item=23125
-  and Staff of Balzaphon https://web.archive.org/web/2021/https://classic.wowhead.com/item=23124.
+  rewritten since (DV2-7). The mid-2021 timestamp (`20210601000000`, GV-7) takes the copy nearest June
+  2021, before Season of Mastery; **each copy's date is unchecked** (no network in the review rounds
+  that set the links), a known gap: Mantle of the
+  Timbermaw https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=19050, Argent Shoulders
+  https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=19059, Frostwolf Cloth Belt
+  https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=19090, Leggings of Torment
+  https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=22342, Ironbark Staff
+  https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=20069; the Scourge Invasion's, left
+  out as event-only: Chains of the Lich https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=23125
+  and Staff of Balzaphon https://web.archive.org/web/20210601000000/https://classic.wowhead.com/item=23124.
 - [mangos-stats] https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql
   and `player_classlevelstats.sql` (D24 placeholders, not evidence).
 - [ws-base] https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go (placeholder origin).

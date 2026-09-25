@@ -214,9 +214,9 @@ describe('worked example 7: Clearcasting', () => {
 describe('worked example 8: mana', () => {
   const bundle = buildPlan(defaultConfig(ELE))
 
-  it('the default setup: 4,915 mana, 54 Spirit regeneration a tick (Spirit 195), 50% of it while casting (Mindfulness 3/3), 26 mp5', () => {
-    expect([bundle.sheet.mana, bundle.sheet.spirit]).toEqual([4915, 195])
-    expect(bundle.plan.mana).toEqual({ maxTenths: 49150, regenTickTenths: 540, fiveSecondRuleMs: 5000, mp5TickTenths: 260, inFsrShare: 0.5 })
+  it('the default setup: 4,975 mana, 52.6 Spirit regeneration a tick (Spirit 188), 50% of it while casting (Mindfulness 3/3), 26 mp5', () => {
+    expect([bundle.sheet.mana, bundle.sheet.spirit]).toEqual([4975, 188])
+    expect(bundle.plan.mana).toEqual({ maxTenths: 49750, regenTickTenths: 526, fiveSecondRuleMs: 5000, mp5TickTenths: 260, inFsrShare: 0.5 })
   })
 
   it('Mana Tide Totem restores 1,160 in 4 ticks of 290, 3 s apart, for 60 mana and a 1 s GCD', () => {
@@ -231,12 +231,12 @@ describe('worked example 8: mana', () => {
     expect(counter(sim, b.plan, 'manaTideTotem', FIELD.casts)).toBe(fights)
   })
 
-  it('downranks with the defaults: rank 10 with Clearcasting or at 10% mana (491.5) or more, rank 4 below', () => {
+  it('downranks with the defaults: rank 10 with Clearcasting or at 10% mana (497.5) or more, rank 4 below', () => {
     const p = bundle.plan
     const lines = p.rotation.filter((e) => p.abilities[e.ability].id.startsWith('lightningBolt')).map((e) => [p.abilities[e.ability].id, e.conditions])
     expect(lines).toEqual([
       ['lightningBolt', [{ code: COND.auraUp, a: auraOf(p, 'elementalClearcasting'), b: 0 }]],
-      ['lightningBolt', [{ code: COND.minMana, a: 4915, b: 0 }]],
+      ['lightningBolt', [{ code: COND.minMana, a: 4975, b: 0 }]],
       ['lightningBoltRank4', []],
     ])
   })
@@ -257,7 +257,7 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
       'lightningBoltRank4',
     ])
     const tide = p.rotation.find((e) => p.abilities[e.ability].id === 'manaTideTotem')!
-    expect(tide.conditions).toEqual([{ code: COND.maxMana, a: 49150 - 30000, b: 0 }])
+    expect(tide.conditions).toEqual([{ code: COND.maxMana, a: 49750 - 30000, b: 0 }])
     const fs = p.rotation.find((e) => p.abilities[e.ability].id === 'flameShock')!
     expect(fs.conditions).toEqual([{ code: COND.abilityAuraDown, a: abilityOf(p, 'flameShock'), b: 0 }])
   })
@@ -286,7 +286,9 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
   })
 
   it('counts Nature-only spell damage on gear for Nature spells only (Sash of the Windreaver’s 29)', () => {
-    const sheet = buildPlan(defaultConfig(ELE)).sheet.spell!.caster!.schoolDamage
+    // The sash is event-only (GV-6), so off the default; a player can still wear it.
+    const d = defaultConfig(ELE)
+    const sheet = buildPlan({ ...d, gear: { ...d.gear, waist: { itemId: 18676 } } }).sheet.spell!.caster!.schoolDamage
     expect(sheet.nature - sheet.fire).toBe(29)
     expect(sheet.frost).toBe(sheet.fire)
   })

@@ -155,14 +155,14 @@
     "preRaidBis": {
       "addedByList": 131,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 348,
-      "kept": [7553, 14106, 14107, 17719, 22074],
-      "listedItems": 348,
+      "inPool": 346,
+      "kept": [7553, 14106, 14107, 17719, 18674, 18676, 22074],
+      "listedItems": 346,
       "notInData": [],
       "specs": {
         "druid-balance": {
           "name": "Balance Druid",
-          "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2. It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+          "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2, except the trinkets, re-ranked by the sim among the list's own items now that Draconic Infused Emblem's proc is modelled (GV-3, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Draconic Infused Emblem (+16.1 over Eye of the Beast, +11.4 over Briarwood Reed), Briarwood Reed, Eye of the Beast (its use counts as zero, a known gap). It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde); the list names Mindfang, and its faction twin Sageclaw takes the same rank (docs/data/items.md#faction-twins). It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
             "snapshot": "2021-05-16",
@@ -220,7 +220,7 @@
         },
         "mage-arcane": {
           "name": "Arcane Mage",
-          "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins).",
+          "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins). Its head is re-ranked as mage-frost's note says (GV-4): Spellweaver's Turban, then Champion's Silk Cowl and Lieutenant Commander's Silk Cowl, then Sorcerer's Crown; its Alliance silk is ranked as Frost's (Knight-Captain's Silk Legguards keep rank 1: Skyshroud Leggings -0.1 over 40,000 fights).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-15",
@@ -230,7 +230,7 @@
         },
         "mage-fire": {
           "name": "Fire Mage",
-          "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear's Alliance faction twins take the same rank (docs/data/items.md#faction-twins); the Alliance's Rank 7 to 10 silk has the same stats but no item set in Forever's client, so it isn't a twin and is listed at the Horde piece's rank on its own. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rank-2 two-hander, Staff of Balzaphon, is left out as event-only (Balzaphon appears in Stratholme only during the Scourge Invasion; docs/data/items.md#sources-c), so Lord Valthalak's Staff of Command moves up. Its rings and trinkets are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Rune Band of Wizardry, Flaming Band (-2.1), Don Mauricio's Band of Domination (-2.5) and Wrath of Cenarius (-4.7, its proc modelled); Draconic Infused Emblem (+9.6 over Briarwood Reed, its proc modelled), Briarwood Reed, Burst of Knowledge and Eye of the Beast. Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's and Burst of Knowledge's uses).",
+          "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear's Alliance faction twins take the same rank (docs/data/items.md#faction-twins); the Alliance's Rank 7 to 10 silk has the same stats but no item set in Forever's client, so it isn't a twin (a race change still swaps it, as a stat twin) and is ranked on its own by paired runs in a Human's default set (GV-4, 20,000 fights on seed 2701): Knight-Lieutenant's Silk Handwraps rank 4, behind Inferno Gloves (+7.05) and Sandworm Skin Gloves (+2.50); Lieutenant Commander's Silk Mantle keeps rank 1 (Burial Shawl -3.6), Lieutenant Commander's Silk Cowl rank 2 and Knight-Captain's Silk Legguards rank 3. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rank-2 two-hander, Staff of Balzaphon, is left out as event-only (Balzaphon appears in Stratholme only during the Scourge Invasion; docs/data/items.md#sources-c), so Lord Valthalak's Staff of Command moves up. Its rings and trinkets are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Rune Band of Wizardry, Flaming Band (-2.1), Don Mauricio's Band of Domination (-2.5) and Wrath of Cenarius (-4.7, its proc modelled); Draconic Infused Emblem (+9.6 over Briarwood Reed, its proc modelled), Briarwood Reed, Burst of Knowledge and Eye of the Beast. Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's and Burst of Knowledge's uses).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear",
             "snapshot": "2021-02-15",
@@ -240,7 +240,7 @@
         },
         "mage-frost": {
           "name": "Frost Mage",
-          "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth's Alliance pieces, with the same stats, are listed at the same rank; they aren't the client's faction twins, since Forever's rows for the Alliance's Rank 7 to 10 silk have no item set (docs/data/items.md#faction-twins). Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins).",
+          "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth's Alliance pieces have the same stats but no item set in Forever's rows, so they aren't the client's faction twins (a race change still swaps them, as stat twins; docs/data/items.md#faction-twins) and are ranked on their own by paired runs in a Human's default set (GV-4, 20,000 fights on seed 2701): Knight-Lieutenant's Silk Walkers keep rank 1 (Omnicast Boots -1.9, -2.4 for Arcane), and Knight-Captain's Silk Legguards tie Skyshroud Leggings within the interval (+0.3 for Skyshroud in Frost, -0.1 in Arcane, over 40,000 fights), so they keep rank 1. The head is re-ranked by the sim among the list's own items (GV-4, paired in each faction's default set): Spellweaver's Turban leads, over Champion's Silk Cowl (a Troll +5.7, its set bonus counted) and Lieutenant Commander's Silk Cowl (a Human +6.3, +5.7 for Arcane), which share rank 2, and Sorcerer's Crown is third (-3.5 and -2.7 against the Alliance cowl). Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix. Its rank-1 dagger, Sageclaw, is the League of Arathor's; its faction twin, The Defilers' Mindfang, takes its rank for the Horde (docs/data/items.md#faction-twins).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-15",
@@ -250,7 +250,7 @@
         },
         "paladin-protection": {
           "name": "Protection Paladin",
-          "note": "The guide (a Phase 3 snapshot) lists no libram.",
+          "note": "The guide (a Phase 3 snapshot) lists no libram. Its rank-3 ring, Hardened Stone Band, is left out as event-only (GV-6: Avalanchion, who drops it in Azshara, is an Elemental Invasion boss; docs/data/items.md#sources-c), so Myrmidon's Signet moves up.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210505223134/https://classic.wowhead.com/guides/wow-classic-paladin-tank-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-05",
@@ -310,7 +310,7 @@
         },
         "shaman-elemental": {
           "name": "Elemental Shaman",
-          "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance faction twin a shaman can wear in the client (the Alliance's honor chain is the hunter's; docs/data/items.md#faction-twins), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rings, trinkets and off hand are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Wrath of Cenarius, Elemental Focus Band (a tie, -0.07), Rune Band of Wizardry (-0.6) and Maiden's Circle; Draconic Infused Emblem (+14.4 over Eye of the Beast), Royal Seal of Eldre'Thalas (+6.0), Briarwood Reed (+4.5) and Eye of the Beast; Therazane's Touch (+3.4 over Scepter of Interminable Focus), the Scepter, and Spirit of Aquementas (-2.1; it lost its Forever row in 1.60.1.70009). Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's use; Energetic Rod's mana proc).",
+          "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its rank-1 belt, Sash of the Windreaver, is left out as event-only (GV-6: The Windreaver is an Elemental Invasion boss; docs/data/items.md#sources-c), so Ban'thok Sash and Barrage Girdle move up. Its Horde honor mail has no Alliance faction twin a shaman can wear in the client (the Alliance's honor chain is the hunter's; docs/data/items.md#faction-twins), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; its faction twin, the League of Arathor's Sageclaw, takes its rank for the Alliance, as The Defilers' Ironbark Staff takes the League of Arathor's rank-1 two-hander's. Its rings, trinkets and off hand are re-ranked by the sim among the list's own items (DV2-4, 1.60.1.70009, paired in the default set, 20,000 fights on seed 2701; docs/data/items.md#modelled-item-effects): Wrath of Cenarius, Elemental Focus Band (a tie, -0.07), Rune Band of Wizardry (-0.6) and Maiden's Circle; Draconic Infused Emblem (+14.4 over Eye of the Beast), Royal Seal of Eldre'Thalas (+6.0), Briarwood Reed (+4.5) and Eye of the Beast; Therazane's Touch (+3.4 over Scepter of Interminable Focus), the Scepter, and Spirit of Aquementas (-2.1; it lost its Forever row in 1.60.1.70009). Item effects the sim doesn't model count as zero there, and each is listed in the milestones' known gaps (Eye of the Beast's use; Energetic Rod's mana proc).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-16",
@@ -4265,12 +4265,12 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "head",
           "spec": "mage-frost"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "head",
           "spec": "mage-arcane"
         }
@@ -4497,12 +4497,12 @@
           "spec": "mage-fire"
         },
         {
-          "rank": 3,
+          "rank": 1,
           "slot": "head",
           "spec": "mage-frost"
         },
         {
-          "rank": 3,
+          "rank": 1,
           "slot": "head",
           "spec": "mage-arcane"
         },
@@ -5452,12 +5452,12 @@
           "spec": "mage-fire"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "head",
           "spec": "mage-frost"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "head",
           "spec": "mage-arcane"
         }
@@ -6005,12 +6005,12 @@
           "spec": "mage-fire"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "head",
           "spec": "mage-frost"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "head",
           "spec": "mage-arcane"
         }
@@ -41867,7 +41867,7 @@
       ],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 4,
           "slot": "hands",
           "spec": "mage-fire"
         }
@@ -43809,7 +43809,7 @@
           "spec": "druid-balance"
         },
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "waist",
           "spec": "shaman-elemental"
         },
@@ -46563,13 +46563,7 @@
       "name": "Sash of the Windreaver",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 17819 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [
-        {
-          "rank": 1,
-          "slot": "waist",
-          "spec": "shaman-elemental"
-        }
-      ],
+      "preRaidBis": [],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -46664,7 +46658,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 3,
+          "rank": 2,
           "slot": "waist",
           "spec": "shaman-elemental"
         }
@@ -68474,7 +68468,7 @@
           "spec": "druid-feral-cat"
         },
         {
-          "rank": 4,
+          "rank": 3,
           "slot": "finger",
           "spec": "paladin-protection"
         }
@@ -70233,13 +70227,7 @@
       "name": "Hardened Stone Band",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7516 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [
-        {
-          "rank": 3,
-          "slot": "finger",
-          "spec": "paladin-protection"
-        }
-      ],
+      "preRaidBis": [],
       "procs": [],
       "quality": 2,
       "races": null,
@@ -73476,7 +73464,7 @@
       ],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "trinket",
           "spec": "druid-balance"
         },
@@ -74012,7 +74000,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "trinket",
           "spec": "druid-balance"
         },
@@ -76260,7 +76248,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 3,
+          "rank": 1,
           "slot": "trinket",
           "spec": "druid-balance"
         },

@@ -523,7 +523,24 @@ casters' (DV2-4, 1.60.1.70009 `[F]`):
 | Item | Effect | Client |
 | --- | --- | --- |
 | Wrath of Cenarius (21190) | 5% a landed harmful spell: +132 spell damage for 10 s, no internal cooldown | 25906 → 25907 |
-| Draconic Infused Emblem (22268) | 100% a landed harmful spell: +35 spell damage (+70 against Dragonkin) for 10 s, no internal cooldown; Forever made Classic Era's 75 s use this proc. The client's 100% against the tooltip's "Chance on harmful spellcast" is `[?]`: as read, it's up from the first landed spell | 1318931 → 1318930 |
+| Draconic Infused Emblem (22268) | 100% a landed harmful spell: +35 spell damage (+70 against Dragonkin) for 10 s, no internal cooldown; Forever made Classic Era's 75 s use this proc. The client's 100% against the tooltip's "Chance on harmful spellcast" is `[?]`: as read, it's up from the first landed spell (below) | 1318931 → 1318930 |
+
+**Draconic Infused Emblem's chance** `[?]` (GV-5). The sim reads the client's 100%. Both readings:
+
+- *For 100%:* the proc row is Forever's own, written when Forever turned Classic Era's use into this
+  proc, and it says 100% with no cooldown, where Wrath of Cenarius's proc row, read the same way, says
+  5%; the client is the first source (doctrine §2). And +35 always up is a modest trinket beside
+  Forever's others: Royal Seal of Eldre'Thalas and Briarwood Reed rank near it on flat stats.
+- *Against:* the tooltip says "Chance on harmful spellcast", the wording the client uses for procs
+  below 100%, and a 10 s buff that procs on every spell would more simply be a flat equip bonus.
+  Classic Era's use (27675: +100 spell damage for 15 s, 75 s cooldown) averaged +20.
+
+What it's worth: at 100% it leads the trinkets of every list that ranks it, +9.7 (Elemental) to +11.9
+(Destruction) DPS over the next-ranked trinket, and Balance's +16.1 over Eye of the Beast, whose use
+counts as zero. It **breaks even near a 12% chance** for Destruction, the Fire mage and Elemental and
+near 17% for Affliction and Demonology (paired against the next trinket, 20,000 fights on seed 2701,
+1.60.1.70009), so it stays in each default's pair of trinkets at any chance above about a fifth. The results' assumptions
+show it (`draconicEmblemChance`), and a guild test (its buff's uptime on a target dummy) is a known gap.
 
 Eye of the Beast's use (+7% spell hit for 20 s, 5 min) isn't modelled: the aura model has no spell-hit
 buff yet (known gap E7, [shaman.md](../classes/shaman.md)).
@@ -598,10 +615,14 @@ and the rest), crafting, quests, reputation, world drops and BoEs, and PvP ranks
 10. Raid drops (Molten Core, Onyxia, Zul'Gurub, AQ20, BWL and later) are left out, but tradeable
 crafted items made from raid materials (Bloodvine's Zandalar patterns and Zul'Gurub's Bloodvine,
 Flarecore's Molten Core materials) count as pre-raid: a crafter can make and sell them. Event-only
-items, such as the Scourge Invasion's (Chains of the Lich and Staff of Balzaphon, from Balzaphon in
-Stratholme, who appears only during the invasion), aren't pre-raid sources: **every list leaves them
+items aren't pre-raid sources: loot from a boss that appears only during a world event or an invasion,
+such as the Scourge Invasion's (Chains of the Lich and Staff of Balzaphon, from Balzaphon in
+Stratholme, who appears only during the invasion) and the Elemental Invasion bosses' (Sash of the
+Windreaver from The Windreaver, Hardened Stone Band from Avalanchion; GV-6). **Every list leaves them
 out, as it leaves out a raid drop**, the guide lists included, and the entries below move up (the
-Fire mage's guide ranked Staff of Balzaphon second among its two-handers; its note says it's out).
+Fire mage's guide ranked Staff of Balzaphon second among its two-handers, Elemental's guide the sash
+first among its belts, and the Protection paladin's guide the band third among its rings; each note
+says it's out).
 Doctrine §2
 allows only Classic Era guides, so every list comes from **Wowhead's WoW Classic pre-raid BiS
 guides as they stood in 2021, before Season of Mastery and TBC Classic**, with one exception:
@@ -668,8 +689,9 @@ proc adds nothing to a paired run), so each such effect on a candidate is listed
 **Kept items.** When a list change leaves an item on no list, and the level rule wouldn't keep it, the
 file's `kept` section keeps it in the pool with no rank (`meta.preRaidBis.kept`), so saved setups and
 share links that wear it keep it. So far that's the five items only Wowhead's warlock list had (Deathmist
-Mask, Felcloth Robe and Pants, Band of the Unicorn, Inventor's Focal Sword). **No item leaves the pool
-without a reason** (DV2-5): the scraper compares its pool with the committed one
+Mask, Felcloth Robe and Pants, Band of the Unicorn, Inventor's Focal Sword), and the two Elemental
+Invasion items the lists left out (Sash of the Windreaver, Hardened Stone Band; GV-6). **No item leaves
+the pool without a reason** (DV2-5): the scraper compares its pool with the committed one
 (`itemsLeavingPool` in [`lib/item-pool.mjs`](../../scripts/scrape/lib/item-pool.mjs), GV-11) and fails
 when an id would go, unless it's kept or named in `REMOVED_ITEMS` (`items-client.mjs`) with why it may go.
 
@@ -738,8 +760,10 @@ pairs the lists called twins that the client says aren't:
 
 - the Alliance's Rank 7 to 10 silk (Lieutenant Commander's Silk Cowl and Mantle, Knight-Captain's Silk
   Legguards, Knight-Lieutenant's Silk Handwraps and Walkers): the Horde pieces' stats, but no item set in
-  Forever's rows, so they miss the Champion's Arcanum bonuses. The mage lists name them on their own, at
-  the Horde piece's rank. They're each other's stat twins, so a race change still swaps them.
+  Forever's rows, so they miss the Champion's Arcanum bonuses. The mage lists name them on their own,
+  **ranked by paired runs in a Human's default set** (GV-4, [mage.md](../classes/mage.md#races-and-gear)):
+  without the set, Knight-Lieutenant's Silk Handwraps fall behind Inferno Gloves and Sandworm Skin
+  Gloves on the Fire list. They're each other's stat twins, so a race change still swaps them.
 - Highlander's Mail Pauldrons and Mail Greaves: the Defilers' stats, but a 3-piece bonus of spell crit
   where the Defilers' is melee crit. Enhancement names the pauldrons on their own; they're stat twins.
 - Knight-Lieutenant's Chain Greaves, which Enhancement listed as Blood Guard's Mail Greaves' twin, is the

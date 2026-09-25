@@ -310,7 +310,8 @@ describe('the Balance plan and priority (druid.md §11.1, §11.5, §11.6)', () =
     expect(plan.form).toBe(3)
     expect(plan.schools!.damage[4]).toBeCloseTo(1.1, 12) // Arcane
     expect(plan.schools!.damage[3]).toBeCloseTo(1.1, 12) // Nature
-    expect(plan.procs.map((p) => p.id).sort()).toEqual([ECLIPSE.id, NATURES_GRACE.id, 'omenOfClaritySpells'].sort())
+    // Draconic Infused Emblem, the rank-1 trinket since its proc is modelled (GV-3).
+    expect(plan.procs.map((p) => p.id).sort()).toEqual([ECLIPSE.id, NATURES_GRACE.id, 'omenOfClaritySpells', 'draconicInfusedEmblem'].sort())
     expect(sheet.spell?.caster).toBeDefined()
     // Moonkin Aura: the talent's, not the Buffs tab's too (+3% once), and no Leader of the Pack.
     const without = buildPlan({ ...defaultConfig(BALANCE), talents: talentCode({ 'Improved Wrath': 5, Genesis: 5, Moonglow: 3, 'Improved Moonfire': 2, "Nature's Majesty": 2, "Nature's Reach": 2, "Nature's Splendor": 1, 'Insect Swarm': 1, Vengeance: 5, 'Improved Starfire': 5, "Nature's Grace": 1, Eclipse: 3, Moonfury: 5, 'Heart of the Wild': 5 }) })
@@ -349,6 +350,9 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   // - K6: the default Balance druid (druid.md §11.5, §11.6): Tauren, 41/5/0, the Balance pre-raid BiS,
   //   the casters' Standard raid; Innervate at 40%, the DoTs while 10 s is left, the potion at 2,000
   //   missing. On this seed's 1,000 fights about 425 DPS.
+  // - The caster gear verification (GV-3): Draconic Infused Emblem's proc is modelled and the list's
+  //   trinkets are re-ranked by the sim, so the default wears it and Briarwood Reed for Eye of the
+  //   Beast: 426.56 → 442.54 here; 426.1 → 442.2 over 20,000 fights on seed 2701.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

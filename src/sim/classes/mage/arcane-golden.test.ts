@@ -22,6 +22,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Berserking on cooldown, Arcane Missiles, the mana gems and Evocation; the Standard raid's buffs.
   // - The Destruction gear review (DG-2): Mindfang, Sageclaw's Horde twin, replaces Witchblade for a
   //   Troll: 402.71 → 435.43 here; 402.2 → 434.8 over 20,000 fights on seed 2701 (+8.1%).
+  // - The caster gear verification (GV-4): the head is re-ranked by the sim, so a Troll wears
+  //   Spellweaver's Turban for Champion's Silk Cowl: 435.43 → 440.93 here; 434.8 → 440.5 over 20,000
+  //   fights on seed 2701.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

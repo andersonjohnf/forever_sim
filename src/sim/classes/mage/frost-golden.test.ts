@@ -23,6 +23,9 @@ describe('golden run (fixed config and seed)', () => {
   // - The Destruction gear review (DG-2): the list's rank-1 Sageclaw gets its Horde twin, Mindfang, so a
   //   Troll wears it instead of Witchblade: 409.75 → 445.79 here; 410.9 → 447.3 over 20,000 fights on
   //   seed 2701 (+8.9%).
+  // - The caster gear verification (GV-4): the head is re-ranked by the sim, so a Troll wears
+  //   Spellweaver's Turban for Champion's Silk Cowl: 445.79 → 451.79 here; 447.3 → 453.0 over 20,000
+  //   fights on seed 2701.
   it('keeps the default Frost mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

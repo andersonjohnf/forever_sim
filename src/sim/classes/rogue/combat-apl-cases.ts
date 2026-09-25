@@ -1,10 +1,11 @@
 // Random rogue setups for the priority lists' checks (decision D31, `<spec>-apl.test.ts`) that the
 // list in its default order plays each spec's rotation exactly as the rogue played it before the
 // list: the plan each setup builds, whole, is fingerprinted. A seeded generator, so the cases and
-// their snapshot are the same every run; not part of the app. This file holds the generator the
-// three specs share, and Combat's settings.
+// their snapshot are the same every run; not part of the app. This file holds the generator and the
+// list's shape check the three specs share, and Combat's settings.
+import { expect } from 'vitest'
 import { defaultConfig } from '../../defaults'
-import type { RotationOption, RotationValue, SimConfig, SpecId } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue, SimConfig, SpecId } from '../../types'
 import { fingerprint, planJson } from '../warrior/fury-apl-cases'
 
 export { fingerprint, planJson }
@@ -92,6 +93,27 @@ export function rogueCases(spec: SpecId, options: readonly RotationOption[], set
     })
   }
   return out
+}
+
+/**
+ * The list's shape, for each spec's test: every setting has one place, a row or spec-wide; each row's
+ * switch is a toggle, its summary names only its own settings, its id is unique, and nothing is
+ * pinned (a rogue has no pre-pull); a row without a switch says what it does.
+ */
+export function expectRowsCoverOptions(apl: AplDefinition, options: readonly RotationOption[]): void {
+  const known = new Set(options.map((o) => o.id))
+  const placed = [...apl.rows.flatMap((r) => [...(r.enabledId ? [r.enabledId] : []), ...r.optionIds]), ...apl.specWide]
+  expect([...known].filter((id) => !placed.includes(id))).toEqual([])
+  expect(placed.filter((id) => !known.has(id))).toEqual([])
+  expect(new Set(placed).size).toBe(placed.length)
+  for (const row of apl.rows) {
+    if (row.enabledId) expect(options.find((o) => o.id === row.enabledId)?.kind, row.id).toBe('toggle')
+    else expect(row.help, row.id).toBeDefined()
+    for (const part of row.summary ?? []) if (part.option) expect([row.enabledId, ...row.optionIds], row.id).toContain(part.option)
+    expect(row.pinned, row.id).toBeUndefined()
+  }
+  expect(new Set(apl.rows.map((r) => r.id)).size).toBe(apl.rows.length)
+  expect(apl.presets).toEqual([])
 }
 
 /** Combat's cases. */

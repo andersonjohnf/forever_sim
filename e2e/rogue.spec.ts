@@ -63,19 +63,15 @@ test.describe('Combat rogue', () => {
     await expect(
       tab.getByText('Which abilities the sim uses, and when. The defaults are the common priority, with a first quick search; they aren’t tuned yet.', { exact: true }),
     ).toBeVisible()
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
+    // The priority list (D31, rogue-priority-list.spec.ts), with the consumables above it.
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
     for (const name of ['Blade Flurry', 'Adrenaline Rush', 'Slice and Dice', 'Eviscerate', 'Thistle Tea']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     for (const name of ['Expose Armor', 'Rupture']) await expect(tab.getByRole('switch', { name, exact: true })).not.toBeChecked()
     await expect(tab.getByRole('switch', { name: 'Racial cooldown', exact: true })).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
-    const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-    await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
-    await expect(cooldowns.getByRole('textbox', { name: 'Slice and Dice at', exact: true })).toHaveValue('2')
-    await expect(cooldowns.getByRole('textbox', { name: 'Slice and Dice again with' })).toHaveValue('0.5')
-    const core = tab.getByRole('region', { name: 'Core abilities' })
-    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Eviscerate at', exact: true })).toHaveValue('5')
+    await expect(tab.locator('[data-apl-row="sliceAndDice"]')).toContainText('From 2 combo points · again with 0.5 s left')
+    await expect(tab.locator('[data-apl-row="eviscerate"]')).toContainText('From 5 combo points')
   })
 
   test('its Buffs tab offers a poison per hand, Deadly on the main hand and Instant on the off hand', async ({ page }) => {
@@ -148,7 +144,8 @@ test.describe('Combat rogue share link', () => {
     await openTab(page, 'Rotation')
     const rupture = page.getByRole('switch', { name: 'Rupture', exact: true })
     await expect(rupture).toBeChecked()
-    await expect(rupture).toHaveAccessibleDescription(/Changed\. Default: off/)
+    // Its row on the priority list is marked changed.
+    await expect(rupture).toHaveAccessibleDescription(/^Changed\. From 5 combo points/)
     // An Orc has Blood Fury, so the racial setting is in use.
     await expect(page.getByRole('switch', { name: 'Racial cooldown', exact: true })).not.toHaveAccessibleDescription(/Not used/)
   })

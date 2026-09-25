@@ -397,6 +397,35 @@ Points … If you are Energy starved, consider Thistle Tea."
 - Before that search, with Instant Poison on both weapons, the same settings gained +3.2 DPS over
   the first draft (1 point, 2 s, 10).
 
+#### The priority list (Combat)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`COMBAT_APL` in `combat.ts`), in this order, each with its switch, its own settings and the
+conditions it keeps wherever it sits (setting ids under `rogue.combat.…`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | On cooldown, off the GCD ([§7.2](#72-race)) |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | | On cooldown, off the GCD; then Thistle Tea and Juju Flurry (spec-wide, below) |
+| Slice and Dice (`sliceAndDice`) | `sliceAndDice.enabled` | `.minComboPoints`, `.refreshBelowSec` | Down or ≤ 0.5 s left, at ≥ 2 CP ([§3.3](#33-slice-and-dice-r2-6774)) |
+| Blade Flurry (`bladeFlurry`) | `bladeFlurry.enabled` | | On cooldown, with the talent ([§3.7](#37-blade-flurry-13877-and-adrenaline-rush-13750)) |
+| Adrenaline Rush (`adrenalineRush`) | `adrenalineRush.enabled` | | On cooldown, with the talent ([§3.7](#37-blade-flurry-13877-and-adrenaline-rush-13750)) |
+| Expose Armor (`exposeArmor`) | `exposeArmor.enabled` | | Down, at 5 CP ([§3.6](#36-expose-armor-r5-11198)) |
+| Rupture (`rupture`) | `rupture.enabled` | `.minComboPoints`, `.minFightLeftSec` | Off the boss, at ≥ 5 CP, ≥ 10 s of the fight left ([§3.5](#35-rupture-r6-11275)) |
+| Eviscerate (`eviscerate`) | `eviscerate.enabled` | `.minComboPoints` | At ≥ 5 CP ([§3.4](#34-eviscerate-r9-31016)) |
+| Sinister Strike (`sinisterStrike`) | none: always there | | Affordable ([§3.1](#31-sinister-strike-r8-11294)) |
+
+- **Pinned:** nothing. A rogue has no pre-pull or opener in the sim.
+- **Spec-wide, above the list:** Thistle Tea (and its Energy limit) and Juju Flurry, under
+  Consumables. They take their turn in the list with the on-use items, wherever that row sits, as
+  they did before the list.
+- **Presets:** none named; the defaults are the implicit Default, the common priority (D27).
+- **Equivalence:** in the default order the plan is the one Combat built before the list, byte for
+  byte: 200 random setups (settings, talents, race, trinkets and weapons, the Buffs switches the
+  rotation reads, the fight and rules) are fingerprinted against the code before it
+  (`combat-apl.test.ts`).
+
 ### 6.2 Assassination (shipped)
 
 The Classic Era Seal Fate Daggers priority [wh-rot] (Slice and Dice at 2, then 5 points; Cold

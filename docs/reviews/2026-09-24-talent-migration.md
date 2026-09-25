@@ -34,3 +34,22 @@ paladin-protection, paladin-protection-rotation, retribution, notices, whats-new
 shell-sharing, all passing.
 
 TM2-9 to TM2-11 were not used by the review (its ids skip from TM2-8 to TM2-12).
+
+## Verification pass (TMV)
+
+A fresh reviewer verified the fix round (`61cb9eda`) on the integrated branch. Its findings, all
+low, and their fixes on `build-70009` by a separate fix agent (for a quick fresh check of these
+commits, as a low finding's later fix gets):
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| TMV-1 | low | introduced | `successorOf` looked the code up exactly as written, so an old default with trailing zeros (`2500030-5030-052052310012330321`, `240003-0530213321301551-5020`), which decodes to the same build, missed its successor and was mapped by name with its refunds. | fixed in `843642d7`: the code is put in canonical form on its own frozen trees first (`canonicalFrozenCode` in `talent-trees.ts`: `decodeFrozenCode`, each tree's trailing zeros trimmed, always three segments). Tests: `talent-successors.test.ts` (the two codes above, a missing third segment, and every successor key already canonical), `logic.test.ts` (both pasted), e2e `setup-talents.spec.ts` (the Retribution code pasted) |
+| TMV-2 | low | introduced | Paste wording: a paste said "Your talents were…" of a code that isn't the player's yet, "Spend them again in Talents." while in Talents, and a visit's notice named the spec twice ("Your Retribution Paladin talents were the Retribution default…"). | fixed in `843642d7`: a paste says "That code was the Retribution default on the game’s old trees; it’s now today’s default." and its refunds end "Spend them again."; a notice that names the spec says "Your Retribution Paladin talents were the default then; they’re now today’s default." when the successor is that spec's own default (the successor now carries its spec), and keeps the default's name for another spec's. The notices take a context (`{ whose, spec, pasted }`). Tests: `talent-successors.test.ts`, `logic.test.ts`, `follow-defaults.test.ts`, e2e `setup-talents.spec.ts` and `follow-defaults.spec.ts`. Screens: `.cache/snaps/tmv-paste-390-dark.png` and `tmv-paste-refund-1280-light.png` |
+| TMV-3 | low | introduced | A visit's notice opened "Gear and talents you changed yourself are kept." even when a successor had replaced a build the player picked; and its talent sentences put every successor before the refunds, not by spec with the current spec first, as the docstring says. | fixed in `843642d7`: with a successor among them, the notice opens "Gear you changed yourself is kept." (a successor only ever replaces a build that wasn't following the default); the talent sentences go by spec, the current spec first, the one refund sentence at its first spec. Tests: `follow-defaults.test.ts` ("in spec order", "when a successor replaced one") |
+| TMV-4 | low | introduced | ux.md's Notices said the worst refund notice stays 24 s; the worst case reaches the 30 s cap, and hovering pauses it. | fixed in `843642d7`: ux.md says the longest (a visit that moved parts of several specs and read several specs' builds from the older trees) reaches the 30 s cap, and that hovering, touching or Alt+T pauses it there too |
+| TMV-5 | low | introduced | "Call of Thunder lost the talent its arrow needs" didn't name the talent. | fixed in `843642d7`: a refund for a lost arrow carries `needs`, today's prerequisite, and reads "Call of Thunder now needs Elemental Alacrity"; more than three are still counted. talents.md says so. Tests: `talent-trees.test.ts` |
+| TMV-6 | low | introduced (TM2-2's rule) | A code legal on both trees keeps today's reading silently, even when the two readings differ. | known gap in `843642d7`: the milestones' known gaps record it, with why it's low (the paste is still a legal build, a setup's version says which trees its code is on, and only a code copied from the older trees and never loaded since can hit it) |
+
+Checks: lint and typecheck clean; `npm test` (3,016 tests) and `npm run scrape:check` (zero
+requests) pass; e2e on port 4927: follow-defaults, setup-talents, share-links, notices, feral-bear
+and elemental, 65 passed.

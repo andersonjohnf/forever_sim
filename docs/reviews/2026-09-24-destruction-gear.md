@@ -203,7 +203,7 @@ bonuses). **What was cut:** the race change's use of the list twins. **What each
   out, which the scraper writes beside `twins`. `raceChangeTwin` takes the exact twin first, else the
   stat twin, and the notice says when the set bonus differs ("…, with the same stats but not the same
   set bonus"). That's the match the app made before step 6, read from the client: over the pool it gives
-  the old match's piece for 768 of its 770 (item, class) swaps, a different one for 4 (Defiler's Mail
+  the old match's piece for 768 of its 774 (item, class) swaps, a different one for 4 (Defiler's Mail
   Greaves now takes its exact twin, Highlander's Chain Greaves), and drops 2 (below).
 
 The owning doc is [items.md "Faction twins"](../data/items.md#faction-twins).
@@ -229,7 +229,7 @@ The owning doc is [items.md "Faction twins"](../data/items.md#faction-twins).
 - **The hunters' Rank 10 chain helms** (a known gap, low): Lieutenant Commander's Chain Helmet has a
   Forever row and Champion's Chain Headguard only Classic Era's, and a Forever row never matches a
   Classic Era one, so they no longer swap as the app's old match did. The one such pair among the
-  pool's 770 old swaps; the notice says the helm is kept.
+  pool's 774 old swaps; the notice says the helm is kept.
 - **Main's EM-6 twin entries at merge**: main had added Sageclaw and Mindfang by hand beside each
   other on the Elemental, Fire, Frost and Arcane lists; the merge drops them (the derived twins give the
   same ranks) and keeps main's corrected item notes (PQ2).
@@ -263,3 +263,26 @@ setup-defaults and follow-defaults specs ✓ (71).
 Every GV finding is fixed or recorded as a known gap. GV-1's fix changed the race change's logic and
 the scraper's twin output, and GV-3, GV-4 and GV-6 moved defaults, so a verification pass scoped to
 `0ddbbb58..` should confirm them: the two tiers, the notice, and the re-ranked slots.
+
+## Verification pass (GC)
+
+A fresh verifier checked the GV fixes (`0ddbbb58..`) on the integrated 1.60.1.70009 branch, with the
+caster verification's probes (the race change's round trip over the pool, set splits, and the Frenzy
+potion at other fight lengths). It found nothing at medium or worse; six lows, dispositions below.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| GC-1 | low (breaks ux.md "Character") | introduced (step 6) | The Defiler's Fortitude split on a race change: a Horde Enhancement shaman wearing 20203, 20195 and 20199 who went Dwarf got the greaves as Highlander's Chain Greaves (20050, The Highlander's Determination, their exact twin), the other two as The Highlander's Fortitude (set 470). The way back gave Defiler's Chain Greaves (20154), so the 3/3 bonus was lost silently. | fixed in `10963c67`: `raceChangeTwin` ranks the stat twins by the set name that ends the same way, then the exact twin, the item name that ends the same way, and the lower id; `setDiffers` is "not an exact twin". Over the pool only the four 20199 swaps (warrior, paladin, hunter, shaman) change, to 20051 with `setDiffers`, and no (item, class) round trip is asymmetric (8 were). items.md "Two tiers" says why the set comes first. Tests: 20199 ↔ 20051 for each mail class; the 3/3 set through `changeRace` and back; a round trip over every faction-bound item each class can wear |
+| GC-2 | low | introduced (step 6) | The count read "768 of the old match's 770"; it's 768 of 774 (768 same, 4 different, 2 dropped). | fixed: this log's step-6 text and the helms note say 774. items.md, rewritten in `10963c67`, gives the count after GC-1: the same piece for 772 of 774, 768 before GC-1, and the 2 dropped helms |
+| GC-3 | low | introduced (MC-3) | §6.3's Frenzy potion choice for Enhancement, Marksmanship and Survival holds only at a 3 min fight; at 5 min the Major Mana Potion wins, and "it never runs short" is wrong. | fixed in `e9663c28`: the table says it's measured at the default 3 min fight, and a paragraph gives the 5 min flip (seed 12345, 20,000 paired fights): Enhancement −0.85%, Marksmanship −2.41%, Survival −3.37% with the Frenzy potion. The presets stay, as the default fight is 3 min. shaman.md's Consumables row repeats "it never runs short"; it's a class doc, left to the class-doc figure pass |
+| GC-4 | low | introduced (MC-5) | Q36 recorded that the client flags Deep Wound's tick "ignore caster damage modifiers", yet the results' `deepWounds` assumption didn't say the sim applies them. | fixed in `79257a1c`: the assumption says Death Wish, Enrage and Two-Handed Weapon Specialization raise its ticks though the Forever client flags the tick to ignore them; its comment cites warrior.md §2.5 and Q36. No engine change |
+| GC-5 | low | pre-existing | character-stats.md's racial table said Eureka!'s "cut rounded down"; the engine rounds the reduced cost. | fixed in `909845b6`: "the cost rounded down" |
+| GC-6 | low | introduced | Class-doc headline figures (owned by the class-doc figure pass). | refreshed in the class-doc figure pass |
+
+Checks: lint ✓ · typecheck ✓ · `npm test` ✓ (3,011) · e2e: setup-character, gear-rules and shaman
+specs ✓ (16).
+
+### Verdict (GC)
+
+Every GC finding has a disposition. GC-1 changed the race change's logic, so a quick fresh check of
+`10963c67` should confirm it: the pool's round trips and the swap notice for the Fortitude set.

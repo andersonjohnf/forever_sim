@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { itemData, itemsById } from '@/lib/items'
-import { defaultConfig, fitsFaction, itemFaction, SPEC_IDS, SPEC_META, type ClassId, type GearSlot, type SimConfig, type SpecId } from '@/sim'
+import { canUse, defaultConfig, fitsFaction, itemFaction, SPEC_IDS, SPEC_META, type ClassId, type GearSlot, type SimConfig, type SpecId } from '@/sim'
 import { changeRace, factionTwin, raceChangeTwin } from './faction-gear'
 
 const item = (id: number) => itemsById.get(id)!
@@ -118,8 +118,39 @@ describe('the race change’s stat twins (docs/data/items.md#faction-twins, "Two
       const back = faction === 'Alliance' ? 'Horde' : 'Alliance'
       expect(raceChangeTwin(item(to), back, classId), item(to).name).toEqual({ twin: item(from), setDiffers: true })
     }
-    // A faction twin comes first, with the same set bonus.
+    // A faction twin comes first among pieces whose sets end the same way, with the same set bonus.
     expect(raceChangeTwin(item(20050), 'Horde', 'warrior')).toEqual({ twin: item(20154), setDiffers: false })
+  })
+
+  it('keep a set together: the set whose name ends the same way beats an exact twin in another set (GC-1)', () => {
+    // Defiler's Mail Greaves (The Defiler's Fortitude) has an exact twin in Highlander's Chain Greaves
+    // (The Highlander's Determination), but its pauldrons and girdle go to The Highlander's Fortitude.
+    expect(item(20199).twins).toContain(20050)
+    for (const classId of ['warrior', 'paladin', 'hunter', 'shaman'] as ClassId[]) {
+      expect(raceChangeTwin(item(20199), 'Alliance', classId), classId).toEqual({ twin: item(20051), setDiffers: true })
+      expect(raceChangeTwin(item(20051), 'Horde', classId), classId).toEqual({ twin: item(20199), setDiffers: true })
+    }
+  })
+
+  it('come back to the same piece on a round trip, for every faction-bound item a class can wear', () => {
+    const classes = [...new Set(Object.values(SPEC_META).map((m) => m.classId))]
+    let trips = 0
+    const asymmetric: string[] = []
+    for (const i of itemData.items) {
+      const own = itemFaction(i)
+      if (own === null) continue
+      const other = own === 'Alliance' ? 'Horde' : 'Alliance'
+      for (const classId of classes.filter((c) => canUse(c, i))) {
+        const there = raceChangeTwin(i, other, classId)
+        if (!there) continue
+        trips++
+        const back = raceChangeTwin(there.twin, own, classId)
+        if (back?.twin.id !== i.id || back.setDiffers !== there.setDiffers)
+          asymmetric.push(`${classId} ${i.name} (${i.id}) → ${there.twin.id} → ${back?.twin.id}`)
+      }
+    }
+    expect(asymmetric).toEqual([])
+    expect(trips).toBeGreaterThan(700)
   })
 })
 
@@ -142,6 +173,21 @@ describe('changing race', () => {
     const shaman = swap('shaman-enhancement', 'horde-orc', { shoulder: 20203 }, 'alliance-dwarf')
     expect(shaman.change.config.gear.shoulder?.itemId).toBe(20056)
     expect(shaman.of('shoulder')?.setDiffers).toBe(true)
+  })
+
+  it('moves a whole set to one set on the other side, and back (GC-1)', () => {
+    // 3/3 The Defiler's Fortitude on a Horde Enhancement shaman.
+    const d = defaultConfig('shaman-enhancement', 'horde-orc')
+    const fortitude = { shoulder: 20203, waist: 20195, feet: 20199 } as const
+    const c: SimConfig = { ...d, gear: { ...d.gear, ...Object.fromEntries(Object.entries(fortitude).map(([slot, id]) => [slot, { itemId: id }])) } }
+    const dwarf = changeRace(c, 'alliance-dwarf')
+    const pieces = (config: SimConfig) => (['shoulder', 'waist', 'feet'] as const).map((s) => config.gear[s]?.itemId)
+    expect(pieces(dwarf.config)).toEqual([20056, 20044, 20051]) // all The Highlander's Fortitude
+    expect(new Set(pieces(dwarf.config).map((id) => item(id!).setId)).size).toBe(1)
+    for (const slot of ['shoulder', 'waist', 'feet'] as const)
+      expect(dwarf.swapped.find((s) => s.slot === slot)?.setDiffers, slot).toBe(true)
+    const orc = changeRace(dwarf.config, 'horde-orc')
+    expect(pieces(orc.config)).toEqual([20203, 20195, 20199])
   })
 
   it.each(SPEC_IDS.filter((s) => s.startsWith('warrior')))('%s: gives the new faction’s twins, as its defaults would', (spec) => {

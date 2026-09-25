@@ -40,6 +40,21 @@ export function slotGroups(classId: ClassId): { label: string; slots: GearSlot[]
   return SLOT_GROUPS.map((g) => (g.label === 'Weapons' ? { ...g, slots: [...g.slots, 'ammo', 'quiver'] } : g))
 }
 
+/**
+ * The wide layout's slots (docs/ux.md "Gear", D34), in the game's character-pane order: its left
+ * side, its right side (mirrored, the icon on the outer edge), then the weapons along the bottom,
+ * with a hunter's ammo and quiver after the ranged weapon. Tab follows this order: down the left,
+ * down the right, then the weapons. Every slot of `slotGroups` is here once.
+ */
+export function paneGroups(classId: ClassId): { label: string; side: 'left' | 'right' | 'bottom'; slots: GearSlot[] }[] {
+  const weapons = slotGroups(classId).find((g) => g.label === 'Weapons')!.slots
+  return [
+    { label: 'Head to wrists', side: 'left', slots: ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist'] },
+    { label: 'Hands to trinkets', side: 'right', slots: ['hands', 'waist', 'legs', 'feet', 'finger1', 'finger2', 'trinket1', 'trinket2'] },
+    { label: 'Weapons', side: 'bottom', slots: weapons },
+  ]
+}
+
 /** Icon shown for an empty slot. */
 export const EMPTY_SLOT_ICON: Record<GearSlot, string> = {
   head: 'inv_helmet_03',

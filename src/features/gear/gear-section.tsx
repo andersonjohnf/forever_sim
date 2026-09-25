@@ -1,5 +1,5 @@
 import { Check, ChevronDown, ChevronRight, History, Info, MoreHorizontal } from 'lucide-react'
-import { useRef, useState, type CSSProperties } from 'react'
+import { useRef, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -9,6 +9,7 @@ import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
 import { ClassicEraNote, RULE_PROFILE_ID } from '@/features/character/classic-era-note'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
+import { useFocusAcrossPlaces } from '@/features/rotation/layout'
 import { SectionHeader } from '@/features/section'
 import { useIsWide } from '@/hooks/use-media-query'
 import { itemsById } from '@/lib/items'
@@ -18,8 +19,9 @@ import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
-import { itemDescription } from './item-flags'
+import { itemDescription, unsimulatedEffects } from './item-flags'
 import { ItemFlags, ItemSummary } from './item-row'
+import { WideSlot, WideSlotGrid } from './wide-slots'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
@@ -67,33 +69,12 @@ function slotList(slots: readonly GearSlot[]): string {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 }
 
-/**
- * How each group lays out in the wide grid (docs/ux.md "Gear"), whose three columns are 0.75 rem
- * apart: Armor spans two and has a column in each, filled down each one, left side then right, as
- * the character pane has them; Jewelry is the third; Weapons run across all three, their dividers
- * lined up with Armor's and with the middle of the gap beside Jewelry.
- */
-const WIDE_GRID: Record<string, { columns: number; down: boolean; span: string; template: string }> = {
-  Armor: { columns: 2, down: true, span: 'wide:col-span-2', template: 'wide:grid-cols-[repeat(2,minmax(0,1fr))]' },
-  Jewelry: { columns: 1, down: true, span: '', template: 'wide:grid-cols-[minmax(0,1fr)]' },
-  Weapons: {
-    columns: 3,
-    down: false,
-    span: 'wide:col-span-3',
-    template: 'wide:grid-cols-[calc((100%_-_1.5rem)/3_+_0.375rem)_calc((100%_-_1.5rem)/3_+_0.75rem)_minmax(0,1fr)]',
-  },
-}
-
-/**
- * An empty slot's icon and name, or why a two-hander leaves the off hand empty. At wide it has an
- * item's icon size and text block height (`ItemSummary`'s compact one), so emptying a slot doesn't
- * move the grid.
- */
-function EmptySlot({ slot, locked, wide }: { slot: GearSlot; locked: boolean; wide: boolean }) {
+/** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
+function EmptySlot({ slot, locked }: { slot: GearSlot; locked: boolean }) {
   return (
     <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
-      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size={wide ? 'md' : 'lg'} grayscale />
-      <div className="flex flex-col wide:min-h-13 wide:justify-center">
+      <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
+      <div className="flex flex-col">
         <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
         <span className="text-xs text-muted-foreground">{locked ? 'Your two-handed weapon uses both hands' : 'Empty'}</span>
       </div>
@@ -109,6 +90,7 @@ export function GearSection() {
   // Each slot's button, which takes focus back when the picker closes (docs/ux.md#accessibility).
   const slotButtons = useRef(new Map<GearSlot, HTMLButtonElement>())
   const statusRef = useRef<HTMLParagraphElement>(null)
+  const slotsRef = useRef<HTMLDivElement>(null)
 
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
@@ -144,6 +126,12 @@ export function GearSection() {
   const wide = useIsWide()
   const groups = slotGroups(meta.classId)
   const slotCount = groups.reduce((n, group) => n + group.slots.length, 0)
+  // Crossing 1440 px swaps the cards for the grid: focus stays on the same control (docs/ux.md "Gear").
+  const keepFocus = useFocusAcrossPlaces(
+    wide ? 'wide' : 'narrow',
+    () => slotsRef.current,
+    () => null,
+  )
 
   // The intro, and the line on how the gear compares with the default set, as the page says them
   // below 1440 px; from 1440 px each is one line, in shorter words (docs/ux.md "Gear").
@@ -185,6 +173,7 @@ export function GearSection() {
         if (el) slotButtons.current.set(slot, el)
         else slotButtons.current.delete(slot)
       }}
+      id={`gear-${slot}`}
       type="button"
       // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
       data-gear-slot={slot}
@@ -202,29 +191,21 @@ export function GearSection() {
     </button>
   )
 
-  // At wide the note takes the stats line's place, on one line with the whole on hover (docs/ux.md "Gear").
   const unusedNote = (unused: string | null) =>
-    unused &&
-    (wide ? (
-      <>
-        <Info className="size-3.5 shrink-0" aria-hidden />
-        <span title={unused} className="truncate">
-          {unused}
-        </span>
-      </>
-    ) : (
+    unused && (
       <>
         <Info className="mt-px size-3.5 shrink-0" aria-hidden />
         {unused}
       </>
-    ))
+    )
 
-  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined) => (
+  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined, className?: string) => (
     <EnchantPicker
       slot={slot}
       item={item}
       enchantId={enchantId}
       whole={wide}
+      className={className}
       // The slot's button, or the main hand's if a two-hander now locks this slot.
       fallbackFocus={() => {
         const button = slotButtons.current.get(slot)
@@ -350,89 +331,91 @@ export function GearSection() {
       {!wide && <ClassicEraNote what="Enchants" />}
 
       {/* Under 1440 px the groups stack, each a list of cards. From 1440 px (docs/ux.md "Gear", D34)
-          they're one grid, laid out like the character pane, that shows every slot without scrolling
-          at 1440×900: Armor in two columns (its left and right sides), Jewelry in a third, and the
-          Weapons in a row across the bottom. The same elements either way, in the same order, so
-          focus stays put as the window crosses 1440 px. */}
-      <div className="flex flex-col gap-6 wide:grid wide:grid-cols-3 wide:items-start wide:gap-3">
-        {groups.map((group) => {
-          const { columns, down, span, template } = WIDE_GRID[group.label] ?? WIDE_GRID.Jewelry
-          const rows = Math.ceil(group.slots.length / columns)
-          return (
-            <section key={group.label} className={cn('flex min-w-0 flex-col gap-2', span)}>
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase wide:sr-only">{group.label}</h3>
-              {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the
-                  page. At wide, one bordered list a group, with a divider between its slots. */}
-              <ul
-                style={down ? ({ '--rows': rows } as CSSProperties) : undefined}
-                className={cn(
-                  'grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]',
-                  'wide:gap-0 wide:overflow-hidden wide:rounded-xl wide:border',
-                  template,
-                  down && 'wide:grid-flow-col wide:grid-rows-[repeat(var(--rows),auto)]',
-                )}
-              >
-                {group.slots.map((slot, index) => {
-                  const [row, column] = down ? [index % rows, Math.floor(index / rows)] : [Math.floor(index / columns), index % columns]
+          they're one grid in the game's character-pane order that shows every slot without scrolling
+          at 1440×900. The two are different elements in a different order, so focus follows the
+          control that had it (a slot, its enchant chip or a flag, by id) as the window crosses 1440 px. */}
+      <div className="flex flex-col gap-6" ref={slotsRef} onFocus={keepFocus.onFocus} onBlur={keepFocus.onBlur}>
+        {wide ? (
+          <WideSlotGrid
+            classId={meta.classId}
+            renderSlot={(slot, place) => {
+              const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+              const flags = item && (
+                <ItemFlags
+                  item={item}
+                  idPrefix={`gear-${slot}`}
+                  fit={place.enchantLine ? `${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}` : undefined}
+                />
+              )
+              return (
+                <WideSlot
+                  key={slot}
+                  slot={slot}
+                  place={place}
+                  item={item}
+                  locked={lockedByTwoHand}
+                  bis={bis}
+                  note={unused}
+                  button={slotButton(
+                    slot,
+                    item,
+                    lockedByTwoHand,
+                    bis,
+                    unused,
+                    // Its ring inset, so the list's rounded edge doesn't clip it.
+                    'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed',
+                  )}
+                  // The chip's text lines up with the name above it: its focus ring's 4 px of room goes outside.
+                  chip={item && enchantable && enchantPicker(slot, item, equipped?.enchantId, place.mirrored ? '-mr-1' : '-ml-1')}
+                  flags={flags}
+                  flagged={Boolean(item && (!item.foreverData || unsimulatedEffects(item, meta.id).length > 0))}
+                />
+              )
+            }}
+          />
+        ) : (
+          groups.map((group) => (
+            <section key={group.label} className="flex min-w-0 flex-col gap-2">
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
+              {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+                {group.slots.map((slot) => {
                   const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
                   return (
-                    <li
-                      key={slot}
-                      className={cn(
-                        'flex min-w-0 flex-col rounded-xl border wide:relative wide:rounded-none wide:border-0',
-                        !lockedByTwoHand && 'wide:hover:bg-muted/60',
-                        // At wide, a divider under each slot but the last row's, and after each column but the last.
-                        row < rows - 1 && 'wide:border-b',
-                        column < columns - 1 && 'wide:border-r',
-                      )}
-                    >
-                      {/* The slot's button covers the row (at wide, the whole slot, action line and all); the
-                          flag badges and the enchant chip sit above it, so a tap on one explains it rather
-                          than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it over faded content
-                          too (an empty slot's icon), which opacity would lift above it. */}
+                    <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
+                      {/* The slot's button covers the row; the flag badges and the enchant chip sit above it, so a
+                          tap on one explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps
+                          it over faded content too (an empty slot's icon), which opacity would lift above it. */}
                       <div
                         className={cn(
-                          'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors wide:static wide:min-h-0 wide:rounded-none wide:hover:bg-transparent',
-                          enchantable ? 'wide:pt-1.5 wide:pb-0' : 'wide:py-1.5',
+                          'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
                           lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
                           enchantable && 'rounded-b-none',
                         )}
                       >
-                        {/* At wide its ring is inset, so the list's rounded edge doesn't clip it. */}
                         {slotButton(
                           slot,
                           item,
                           lockedByTwoHand,
                           bis,
                           unused,
-                          'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed wide:focus-visible:ring-inset',
+                          'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed',
                         )}
                         {item ? (
-                          <ItemSummary compact={wide} item={item} bis={bis} meta={wide ? null : SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
+                          <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} idPrefix={`gear-${slot}`} />
                         ) : (
-                          <EmptySlot slot={slot} locked={lockedByTwoHand} wide={wide} />
+                          <EmptySlot slot={slot} locked={lockedByTwoHand} />
                         )}
-                        {/* At wide the flags sit at the slot's right edge: here beside an item with no enchant,
-                            otherwise on the enchant chip's line. */}
-                        {wide && item && !enchantable && <ItemFlags item={item} className="mr-1" />}
-                        {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground wide:hidden" aria-hidden />}
+                        {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                       </div>
-                      {item && enchantable && (
-                        // At wide one 16 px line of 44 px hit areas, the chip's text cut short beside the
-                        // flags; the 4 px above holds the chip's focus ring, the slot's bottom padding the
-                        // hit areas, and the 12 px gap keeps the chip's clear of the first flag's.
-                        <div className="border-t wide:flex wide:items-center wide:gap-x-3 wide:border-t-0 wide:pt-1 wide:pr-4 wide:pb-3.5 wide:pl-2">
-                          {enchantPicker(slot, item, equipped?.enchantId)}
-                          {wide && <ItemFlags item={item} className="mr-1 ml-auto" fit={`${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}`} />}
-                        </div>
-                      )}
+                      {item && enchantable && <div className="border-t">{enchantPicker(slot, item, equipped?.enchantId)}</div>}
                     </li>
                   )
                 })}
               </ul>
             </section>
-          )
-        })}
+          ))
+        )}
       </div>
 
       {picking && (

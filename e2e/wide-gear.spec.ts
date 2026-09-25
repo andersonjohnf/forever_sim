@@ -2,11 +2,12 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Gear", the wide layout (D34, as amended): from 1440 px every slot shows at once, with
-// no scrolling at 1440×900 and up, in a grid laid out like the character pane: Armor in two
-// columns, Jewelry in a third, the Weapons in a row across the bottom. Each slot shows its icon, the
-// item in its quality colour with its rank, the stats and its enchant, each on a fixed budget of
-// lines; the flags are icons, or their words too where those fit. The item picker is the dialog, as
-// at 1280 px, and Gear's actions are buttons rather than a menu. That every slot fits whatever it
+// no scrolling at 1440×900 and up, in the game's character-pane order: head to wrists down the left,
+// hands to trinkets down the right (mirrored, the icon on the right edge), the weapons along the
+// bottom. Each slot shows its icon, the item in its quality colour with its rank, the stats and its
+// enchant, each on one line in a row of fixed height; the flags are icons, or their words too where
+// those fit. Tab goes down the left, then the right, then the weapons. The item picker is the dialog,
+// as at 1280 px, and Gear's actions are buttons rather than a menu. That every slot fits whatever it
 // holds is wide-gear-fit.spec.ts. Under 1440 px nothing changes (the other gear specs, at 1280).
 
 async function openGear(page: Page, width: number, height = 900) {
@@ -59,26 +60,90 @@ test.describe('the wide Gear tab', () => {
     await expectAllInView(page, 900)
   })
 
-  test('Armor is two columns, Jewelry a third, and the Weapons a row across the bottom', async ({ page }) => {
+  test('the slots are in the character pane’s order: two columns, the weapons along the bottom', async ({ page }) => {
     await openGear(page, 1440)
     const box = await slotBoxes(page)
-    // Armor's left side, then its right, as the character pane has them.
-    expect(box.shoulder.x).toBe(box.head.x)
-    expect(box.shoulder.y).toBeGreaterThan(box.head.y)
+    const left = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist']
+    const right = ['hands', 'waist', 'legs', 'feet', 'finger1', 'finger2', 'trinket1', 'trinket2']
+    // Each side one column, top to bottom in the game's order, the two starting and ending together.
+    for (const side of [left, right]) {
+      for (const [i, slot] of side.entries()) {
+        expect(box[slot].x, slot).toBe(box[side[0]].x)
+        if (i > 0) expect(box[slot].y, slot).toBeCloseTo(box[side[i - 1]].bottom, 0)
+      }
+    }
+    expect(box.hands.x).toBeGreaterThan(box.head.right)
     expect(box.hands.y).toBe(box.head.y)
-    expect(box.hands.x).toBeGreaterThan(box.head.x)
-    expect(box.feet.x).toBe(box.hands.x)
-    // Jewelry beside it, from the top.
-    expect(box.neck.x).toBeGreaterThan(box.hands.right)
-    expect(box.neck.y).toBe(box.head.y)
-    expect(box.trinket2.x).toBe(box.neck.x)
-    // The weapons across the bottom, under Armor, the main hand's divider under Armor's.
-    expect(box.mainHand.y).toBeGreaterThan(box.wrist.bottom)
+    expect(box.trinket2.bottom).toBeCloseTo(box.wrist.bottom, 0)
+    // The weapons across both, under them.
+    expect(box.mainHand.y).toBeGreaterThan(box.trinket2.bottom)
     expect(box.offHand.y).toBe(box.mainHand.y)
     expect(box.ranged.y).toBe(box.mainHand.y)
-    expect(Math.abs(box.offHand.x - box.hands.x)).toBeLessThanOrEqual(2)
-    expect(box.ranged.right).toBeCloseTo(box.neck.right, 0)
+    expect(box.mainHand.x).toBe(box.head.x)
+    expect(box.ranged.right).toBeCloseTo(box.hands.right, 0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  })
+
+  test('Tab goes down the left side, then the right, then the weapons', async ({ page }) => {
+    await openGear(page, 1440)
+    await page.getByRole('button', { name: 'Remove all gear' }).focus()
+    const order: string[] = []
+    for (let i = 0; i < 80 && order.length < 17; i++) {
+      await page.keyboard.press('Tab')
+      const slot = await page.evaluate(() => (document.activeElement as HTMLElement | null)?.dataset.gearSlot)
+      if (slot) order.push(slot)
+    }
+    expect(order).toEqual([
+      ...['head', 'neck', 'shoulder', 'back', 'chest', 'wrist'],
+      ...['hands', 'waist', 'legs', 'feet', 'finger1', 'finger2', 'trinket1', 'trinket2'],
+      ...['mainHand', 'offHand', 'ranged'],
+    ])
+  })
+
+  test('the right side is mirrored: the icon on the right edge, the text, chip and flags aligned toward it, none over it', async ({ page }) => {
+    await openGear(page, 1440)
+    const m = await page.evaluate(() =>
+      ['hands', 'legs', 'finger1', 'trinket2', 'head', 'chest'].map((slot) => {
+        const li = document.querySelector(`[data-gear-slot="${slot}"]`)!.closest('li')!
+        const rect = (el: Element) => el.getBoundingClientRect()
+        const icon = rect(li.querySelector('img')!)
+        const name = li.querySelector('span[title]')!
+        const chip = li.querySelector('[data-chip-text]')?.closest('button')
+        const flags = [...li.querySelectorAll('button[title]')].map(rect)
+        // Every target on the slot but its own button: the chip and the flags, by their hit areas.
+        const targets = [...li.querySelectorAll('button')].filter((b) => !b.dataset.gearSlot).map(rect)
+        return {
+          slot,
+          li: rect(li).toJSON() as DOMRect,
+          icon: icon.toJSON() as DOMRect,
+          name: rect(name).toJSON() as DOMRect,
+          chip: chip ? (rect(chip).toJSON() as DOMRect) : null,
+          flags: flags.map((f) => f.toJSON() as DOMRect),
+          clearOfIcon: targets.every((t) => t.right <= icon.left || t.left >= icon.right),
+        }
+      }),
+    )
+    for (const s of m) {
+      const mirrored = ['hands', 'legs', 'finger1', 'trinket2'].includes(s.slot)
+      expect(s.clearOfIcon, s.slot).toBe(true)
+      if (mirrored) {
+        // The icon 12 px in from the right edge, the name ending 12 px before it.
+        expect(s.li.right - s.icon.right, s.slot).toBeCloseTo(12, 0)
+        expect(s.icon.left - s.name.right, s.slot).toBeGreaterThanOrEqual(11)
+        expect(s.icon.left - s.name.right, s.slot).toBeLessThan(80)
+        // The chip against the text's edge, the flags toward the middle.
+        if (s.chip) expect(s.icon.left - s.chip.right, s.slot).toBeCloseTo(8, 0)
+        for (const flag of s.flags) expect(flag.right, s.slot).toBeLessThanOrEqual(s.chip?.left ?? s.name.left)
+      } else {
+        expect(s.icon.left - s.li.left, s.slot).toBeCloseTo(12, 0)
+        expect(s.name.left - s.icon.right, s.slot).toBeCloseTo(12, 0)
+        if (s.chip) expect(s.chip.left - s.icon.right, s.slot).toBeCloseTo(8, 0)
+        for (const flag of s.flags) expect(flag.left, s.slot).toBeGreaterThanOrEqual(s.chip?.right ?? s.name.right)
+      }
+    }
+    // The right side's name and stats are right-aligned.
+    const hands = page.locator('li').filter({ has: page.locator('[data-gear-slot="hands"]') })
+    await expect(hands.locator('span[title]').nth(1)).toHaveCSS('text-align', 'right')
   })
 
   test('a hunter’s ammo and quiver take a second row of weapons, and still fit', async ({ page }) => {
@@ -88,6 +153,7 @@ test.describe('the wide Gear tab', () => {
     expect(box.ammo.x).toBe(box.mainHand.x)
     expect(box.ammo.y).toBeGreaterThan(box.mainHand.y)
     expect(box.quiver.y).toBe(box.ammo.y)
+    expect(box.quiver.x).toBe(box.offHand.x)
     await expectAllInView(page, 900)
   })
 
@@ -176,14 +242,16 @@ test.describe('the wide Gear tab', () => {
   })
 
   test('the flags show their words where they fit beside the enchant, and icons where they don’t', async ({ page }) => {
-    // Review finding DU1-6. At 1920 px the wrists' flag fits in words beside "Superior Strength · +9
-    // Strength", about 45 px to spare, while the chest's two don't beside "Greater Stats · +4 all
-    // stats", some 75 px short; at 1440 px the wrists' don't either.
-    await openGear(page, 1920, 1080)
+    // Review finding DU1-6. At 1440 px the wrists' flag fits in words beside "Superior Strength · +9
+    // Strength", with some 60 px to spare, while the chest's two don't beside "Greater Stats · +4 all
+    // stats", some 50 px short; at 1920 px they do. A ranged weapon's flag, alone on its line, has room.
+    await openGear(page, 1440, 900)
     const slot = (name: string) => page.locator('li').filter({ has: page.locator(`[data-gear-slot="${name}"]`) })
     const wrists = slot('wrist').getByRole('button', { name: 'Classic stats', exact: true })
+    const chest = slot('chest').getByRole('button', { name: 'Classic stats', exact: true })
     await expect(wrists).toHaveText('Classic stats')
-    await expect(slot('chest').getByRole('button', { name: 'Classic stats', exact: true })).toHaveText('')
+    await expect(slot('ranged').getByRole('button', { name: 'Classic stats', exact: true })).toHaveText('Classic stats')
+    await expect(chest).toHaveText('')
     await expect(slot('chest').getByRole('button', { name: 'Effect not simulated', exact: true })).toHaveText('')
     // Words never cut the enchant short: every line showing them has its enchant whole.
     const cut = await page.locator('[data-chip-text]').evaluateAll((els) =>
@@ -197,9 +265,10 @@ test.describe('the wide Gear tab', () => {
     await expect(page.getByRole('dialog', { name: 'Classic stats' })).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(wrists).toBeFocused()
-    // Narrower, the same flag is its icon again, and the enchant keeps the room.
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await expect(wrists).toHaveText('')
+    // Wider, the chest's fit too.
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await expect(chest).toHaveText('Classic stats')
+    await expect(slot('chest').getByRole('button', { name: 'Effect not simulated', exact: true })).toHaveText('Effect not simulated')
   })
 
   test('a slot opens the item picker as a dialog; a pick equips the item and returns focus to the slot', async ({ page }) => {
@@ -265,7 +334,7 @@ test.describe('the wide Gear tab', () => {
     await expect(page.locator('#gear-default-status')).toBeFocused()
   })
 
-  test('crossing 1440 px keeps focus on the slot: the same elements, restyled', async ({ page }) => {
+  test('crossing 1440 px keeps focus on the same slot, enchant chip or flag, in its new place', async ({ page }) => {
     await openGear(page, 1440)
     const legs = page.getByRole('button', { name: /^Legs: / })
     await legs.focus()
@@ -277,6 +346,20 @@ test.describe('the wide Gear tab', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await expect(page.getByRole('button', { name: 'Remove all gear' })).toBeVisible()
     await expect(chip).toBeFocused()
+    // A flag, by its slot: the chest's second, not the first slot's.
+    const flag = page.locator('li').filter({ has: page.locator('[data-gear-slot="chest"]') }).getByRole('button', { name: 'Effect not simulated', exact: true })
+    await flag.focus()
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await expect(page.getByRole('button', { name: 'Gear options' })).toBeVisible()
+    await expect(flag).toBeFocused()
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(flag).toBeFocused()
+    // A click elsewhere lets it go: crossing back doesn't take focus to the slots.
+    await page.getByRole('heading', { name: 'Gear', level: 2 }).click()
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await expect(page.getByRole('button', { name: 'Gear options' })).toBeVisible()
+    // (The click focuses the tab's panel.)
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('tabpanel')
   })
 })
 

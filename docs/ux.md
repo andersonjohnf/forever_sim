@@ -636,8 +636,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       focus as the panel's does, and Escape goes back to the row.
     - **Focus goes with the settings** when the window crosses the third column's width (browser
       zoom, snapping a window) and they move between inline and the panel: to the same control in
-      their new place, found by its id or else its place in the tab order, or else to their heading
-      (`useFocusAcrossPlaces`, review finding DL2-3). Focus elsewhere stays where it is.
+      their new place, found by its id or else its role and name (a radio's with its group's
+      label), or else to their heading (`useFocusAcrossPlaces`, review finding DL2-3). Never by its
+      place in the tab order: a roving radio group that has just moved in doesn't join it until its
+      options register, so focus landed one control off, on Increase for Decrease (review finding
+      V2-1). Focus elsewhere stays where it is.
     - **No Back to list:** the settings sit beside or inside the list, so it's only below 1440 px;
       Escape still goes back. Move up and Move down are as wide as their labels.
     - **Nothing stretches:** the settings and the panel run from 22 to 28 rem and the list from 24

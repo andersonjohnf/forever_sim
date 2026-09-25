@@ -50,11 +50,26 @@ export function useRotationLayout(ref: RefObject<HTMLElement | null>): RotationL
   return !wide ? 'narrow' : three ? 'three' : 'two'
 }
 
-/** What can take focus with Tab, in the page's order. */
-const tabbables = (root: HTMLElement) =>
-  [...root.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], [tabindex]')].filter(
-    (el) => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled,
-  )
+/** What can take focus, whether or not Tab reaches it now (a roving group's other items). */
+const FOCUSABLE = 'button, input, select, textarea, a[href], [tabindex]'
+
+/**
+ * What a control is, the same in either place: its id, or else its role and name, with the group
+ * that labels it within `root` (a radio's). Never its place in the tab order, which a roving radio
+ * group that has just mounted doesn't join until its items register, after the layout effect that
+ * moves focus (review finding V2-1).
+ */
+const focusKey = (el: HTMLElement, root: HTMLElement) => {
+  if (el.id) return `#${el.id}`
+  const role = el.getAttribute('role') ?? el.tagName.toLowerCase()
+  const name = el.getAttribute('aria-label') ?? el.textContent?.trim() ?? ''
+  let group = ''
+  for (let at = el.parentElement; at && at !== root && !group; at = at.parentElement) group = at.getAttribute('aria-labelledby') ?? ''
+  return `${group}|${role}|${name}`
+}
+
+/** The controls in `root` that are `key`, in the page's order. */
+const withKey = (root: HTMLElement, key: string) => [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => focusKey(el, root) === key)
 
 /**
  * Keeps focus on the same control when what holds it moves in the page as the layout changes under
@@ -62,15 +77,20 @@ const tabbables = (root: HTMLElement) =>
  * third where three do, so a window crossing about 1,850 px (browser zoom, snapping a window) moves
  * them to new elements (review finding DL2-3; Gear keeps its elements instead, docs/ux.md "Gear").
  * Give `onFocus` and `onBlur` to each place the settings render. When `place` changes and the
- * control that had focus went with the old place, focus goes to the control with its id in the new
- * one (`container`), or else the one at its place in the tab order, or else `fallback`, the
+ * control that had focus went with the old place, focus goes to the same control in the new one
+ * (`container`), found by its id or else its role and name (`focusKey`), or else to `fallback`, the
  * settings' heading.
  */
 export function useFocusAcrossPlaces(place: string, container: () => HTMLElement | null, fallback: () => HTMLElement | null) {
-  const held = useRef<{ id: string; index: number } | null>(null)
+  const held = useRef<{ key: string; nth: number } | null>(null)
   const onFocus = (e: FocusEvent<HTMLElement>) => {
-    const target = e.target as HTMLElement
-    held.current = { id: target.id, index: tabbables(e.currentTarget).indexOf(target) }
+    // What holds focus now, not always the event's target: Tab into a roving radio group focuses
+    // the group, which hands focus on to its selected option within the same event, so this runs
+    // for the option and then again, last, for the group.
+    const active = document.activeElement
+    const target = active instanceof HTMLElement && e.currentTarget.contains(active) ? active : (e.target as HTMLElement)
+    const key = focusKey(target, e.currentTarget)
+    held.current = { key, nth: withKey(e.currentTarget, key).indexOf(target) }
   }
   const onBlur = (e: FocusEvent<HTMLElement>) => {
     const next = e.relatedTarget as Node | null
@@ -95,8 +115,7 @@ export function useFocusAcrossPlaces(place: string, container: () => HTMLElement
     if (!was || (active && active !== document.body)) return
     const root = container()
     if (!root) return
-    const byId = was.id ? [...root.querySelectorAll<HTMLElement>('[id]')].find((el) => el.id === was.id) : undefined
-    ;(byId ?? (was.index >= 0 ? tabbables(root)[was.index] : undefined) ?? fallback())?.focus()
+    ;((was.nth >= 0 ? withKey(root, was.key)[was.nth] : undefined) ?? fallback())?.focus()
   })
   return { onFocus, onBlur }
 }

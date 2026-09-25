@@ -98,4 +98,54 @@ test.describe('focus through a change of layout', () => {
     await expect(list.getByRole('switch', { name: 'Whirlwind', exact: true })).toBeFocused()
     await expect(row).not.toBeFocused()
   })
+
+  // Review finding V2-1: a control without an id was found by its place in the tab order, which a
+  // roving radio group in the new place hadn't joined yet when focus moved, so focus landed one
+  // control off (Decrease on Increase), and Enter then changed the value the wrong way. Now it's
+  // found by its name and role.
+  test('a Rotation row’s radios and steppers keep focus on the same control, both ways', async ({ page }) => {
+    const tab = await openSpec(page, 'paladin-protection', 'rotation', 1600, 1000)
+    await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Seal', exact: true }).click()
+    const inline = page.locator('[data-apl-row="seal"]').getByRole('region', { name: 'Seal settings' })
+    const panel = page.getByRole('complementary', { name: 'Seal settings' })
+    // Each control, and the keys that reach it from Move down, as a keyboard user does: Tab enters
+    // the radio group on its selected option, and an arrow moves to the other.
+    const controls: [(at: Locator) => Locator, string[]][] = [
+      [(at) => at.getByRole('radio', { name: 'Fury', exact: true }), ['Tab']],
+      [(at) => at.getByRole('radio', { name: 'Righteousness', exact: true }), ['Tab', 'ArrowRight']],
+      [(at) => at.getByRole('button', { name: 'Decrease Seal again with' }), ['Tab', 'Tab']],
+      [(at) => at.getByRole('button', { name: 'Increase Seal again with' }), ['Tab', 'Tab', 'Tab', 'Tab']],
+    ]
+    const reach = async (at: Locator, [control, keys]: (typeof controls)[number]) => {
+      await at.getByRole('button', { name: 'Move down' }).focus()
+      for (const key of keys) await page.keyboard.press(key)
+      await expect(control(at)).toBeFocused()
+    }
+    for (const entry of controls) {
+      const [control] = entry
+      // Inline at 1600 px to the panel at 1920 px, and back.
+      await reach(inline, entry)
+      await resize(page, 1920, 1000)
+      await expect(control(panel)).toBeFocused()
+      await resize(page, 1600, 1000)
+      await expect(control(inline)).toBeFocused()
+      // From the panel at 1920 px, to inline, and back.
+      await resize(page, 1920, 1000)
+      await reach(panel, entry)
+      await resize(page, 1600, 1000)
+      await expect(control(inline)).toBeFocused()
+      await resize(page, 1920, 1000)
+      await expect(control(panel)).toBeFocused()
+      await resize(page, 1600, 1000)
+    }
+    // Enter on the stepper that kept focus steps the way it says.
+    const value = inline.getByRole('textbox', { name: 'Seal again with' })
+    const before = await value.inputValue()
+    await reach(inline, controls[2])
+    await resize(page, 1920, 1000)
+    await page.keyboard.press('Enter')
+    await resize(page, 1600, 1000)
+    await expect(value).not.toHaveValue(before)
+    expect(Number.parseFloat(await value.inputValue())).toBeLessThan(Number.parseFloat(before))
+  })
 })

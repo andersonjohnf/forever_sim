@@ -456,6 +456,30 @@ Sinister Strike builds), and **Venom** is a setting for the poisons, off by defa
   1 s; 2 s −0.73. Thistle Tea at 10: level with 5 (+0.44) and 20.
 - Mutilate is worth +53.7 over Sinister Strike, Cold Blood +5.3.
 
+#### The priority list (Assassination)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list (D31; `ASSASSINATION_APL` in
+`assassination.ts`), in this order (setting ids under `rogue.assassination.…`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | On cooldown, off the GCD ([§7.2](#72-race)) |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | | On cooldown, off the GCD; then Thistle Tea and Juju Flurry (spec-wide) |
+| Slice and Dice (`sliceAndDice`) | `sliceAndDice.enabled` | `.minComboPoints`, `.refreshBelowSec` | Down or ≤ 0.5 s left, at ≥ 2 CP ([§3.3](#33-slice-and-dice-r2-6774)) |
+| Venom (`venom`) | `venom.enabled` | `.minComboPoints`, `.refreshBelowSec` | Down or ≤ 0 s left, at ≥ 3 CP, with the talent ([§4.3](#43-poison-talents)) |
+| Expose Armor (`exposeArmor`) | `exposeArmor.enabled` | | Down, at 5 CP ([§3.6](#36-expose-armor-r5-11198)) |
+| Cold Blood (`coldBlood`) | `coldBlood.enabled` | | At 5 CP with Eviscerate's Energy, off the GCD, with the talent; only while Eviscerate is on ([§3.8](#38-cold-blood-14177)) |
+| Eviscerate (`eviscerate`) | `eviscerate.enabled` | `.minComboPoints` | At ≥ 4 CP ([§3.4](#34-eviscerate-r9-31016)) |
+| Builder (`builder`) | none: always there | `mutilate.enabled` | Affordable: Mutilate with the talent and a dagger in each hand, else Sinister Strike ([§3.11](#311-mutilate-r4-1241584), [§3.1](#31-sinister-strike-r8-11294)) |
+
+- **Pinned:** nothing. **Spec-wide, above the list:** Thistle Tea (and its Energy limit) and Juju
+  Flurry, which take their turn with the on-use items, wherever that row sits.
+- **Cold Blood reads Eviscerate** by definition: its Energy threshold is Eviscerate's cost wherever
+  either row sits, and with Eviscerate off its row says it isn't used.
+- **Presets:** none named; the defaults are the implicit Default (D27).
+- **Equivalence:** in the default order the plan is the one Assassination built before the list,
+  byte for byte, for 200 random setups (`assassination-apl.test.ts`).
+
 ### 6.3 Subtlety (shipped)
 
 The Classic Era Hemorrhage priority [wh-rot], adapted to Forever's Subtlety: Rupture kept up

@@ -187,15 +187,15 @@ test.describe('Assassination rogue', () => {
     await openTab(page, 'Rotation')
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
-    for (const name of ['Slice and Dice', 'Cold Blood', 'Eviscerate', 'Mutilate', 'Thistle Tea']) {
+    for (const name of ['Slice and Dice', 'Cold Blood', 'Eviscerate', 'Thistle Tea']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    const venom = tab.getByRole('switch', { name: 'Venom', exact: true })
-    await expect(venom).not.toBeChecked()
-    await expect(venom).toHaveAccessibleDescription(/Off by default: its combo points do more in Eviscerate\./)
-    const core = tab.getByRole('region', { name: 'Core abilities' })
-    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Eviscerate at', exact: true })).toHaveValue('4')
+    // The priority list (D31, rogue-priority-list.spec.ts): Mutilate is the builder row's setting.
+    await expect(tab.locator('[data-apl-row="builder"]')).toContainText('Mutilate with a dagger in each hand, else Sinister Strike')
+    await expect(tab.locator('[data-apl-row="eviscerate"]')).toContainText('From 4 combo points')
+    await expect(tab.getByRole('switch', { name: 'Venom', exact: true })).not.toBeChecked()
+    await tab.getByRole('button', { name: 'Venom', exact: true }).click()
+    await expect(page.getByRole('complementary', { name: 'Venom settings' }).getByText(/Off by default: its combo points do more in Eviscerate\./)).toBeVisible()
   })
 
   test('simulates, and its results show Mutilate’s two strikes and its assumptions', async ({ page }) => {
@@ -232,7 +232,8 @@ test.describe('Assassination rogue share link', () => {
     await openTab(page, 'Rotation')
     const venom = page.getByRole('switch', { name: 'Venom', exact: true })
     await expect(venom).toBeChecked()
-    await expect(venom).toHaveAccessibleDescription(/Changed\. Default: off/)
+    // Its row on the priority list is marked changed.
+    await expect(venom).toHaveAccessibleDescription(/^Changed\. From 3 combo points/)
   })
 })
 
@@ -243,7 +244,7 @@ test.describe('Assassination rogue on a phone', () => {
     await switchTo(page, 'Assassination')
     await openTab(page, 'Rotation')
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByRole('switch', { name: 'Mutilate', exact: true })).toBeVisible()
+    await expect(tab.locator('[data-apl-row="builder"]')).toContainText('Mutilate')
     await noSideScroll(page)
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })

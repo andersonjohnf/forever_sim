@@ -28,7 +28,7 @@ import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, fury
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
 import { COMBAT_APL, COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
-import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
+import { ASSASSINATION_APL, ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
@@ -123,8 +123,9 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
-  // docs/classes/rogue.md §6.1 "The priority list".
+  // docs/classes/rogue.md §6.1 and §6.2, "The priority list".
   if (spec === 'rogue-combat') return COMBAT_APL
+  if (spec === 'rogue-assassination') return ASSASSINATION_APL
   return undefined
 }
 
@@ -336,7 +337,7 @@ export function classRotation(
   if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context)
   // docs/classes/rogue.md §6.
   if (spec === 'rogue-combat') return combatRotation(values, talents, context, order)
-  if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
+  if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context, order)
   if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
   // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
   if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context)

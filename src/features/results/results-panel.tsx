@@ -239,14 +239,22 @@ function RunError({ message }: { message: string }) {
   )
 }
 
+/** In the strip (from 1920 px), each of the summary's "·" parts stays on one line (review DA-3). */
+const PART = '@min-[39.5rem]/results:whitespace-nowrap'
+
 /** The run's size, length and rules, and how long it took. */
 function RunSummary({ result, runConfig }: { result: SimResult; runConfig: SimConfig | null }) {
   // The length you set, not the average of the varied fights (Fight → Advanced → Length variation).
   const seconds = runConfig?.fight.durationSec ?? Math.round(result.durationSec)
   return (
     <p className="text-xs text-muted-foreground tabular-nums">
-      {formatInt(result.iterations)} fights of {formatInt(seconds)} s · {result.profile === 'forever' ? 'Forever' : 'Classic Era'} rules · ran in{' '}
-      {result.elapsedMs < 50 ? 'under 0.1 s' : formatSeconds(result.elapsedMs)}
+      <span className={PART}>
+        {formatInt(result.iterations)} fights of {formatInt(seconds)} s
+      </span>
+      {' · '}
+      <span className={PART}>{result.profile === 'forever' ? 'Forever' : 'Classic Era'} rules</span>
+      {' · '}
+      <span className={PART}>ran in {result.elapsedMs < 50 ? 'under 0.1 s' : formatSeconds(result.elapsedMs)}</span>
     </p>
   )
 }
@@ -321,18 +329,20 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
   // What the result is made of: the left column in the extra-wide pane.
   const madeOf = result !== null && (result.tank !== undefined || !empty || result.mana !== undefined)
   const body = result && (
-    // From 1920 px (a results pane of 40 rem or more) the details sit in two columns, Assumptions
-    // across both under them; below that, the columns' wrappers are `contents`, so the sections
-    // stack as one list. The DOM keeps ux.md's order either way.
+    // From 1920 px the details sit in two columns, Assumptions across both under them; below that,
+    // the columns' wrappers are `contents`, so the sections stack as one list. The DOM keeps ux.md's
+    // order either way. The query is 39.5 rem, not the 40 rem the pane measures at 1920, so 1920
+    // gets it dependably: it starts at 1,896 px (src/App.tsx grows the pane a rem per 48 px).
+    // The left column, the breakdown with its outcome lines, gets the larger share (review DA-1).
     <div
       data-dimmed={dimmed}
       className={cn(
-        'flex flex-col gap-5 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-2 @min-[40rem]/results:items-start @min-[40rem]/results:gap-x-6',
+        'flex flex-col gap-5 @min-[39.5rem]/results:grid @min-[39.5rem]/results:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @min-[39.5rem]/results:items-start @min-[39.5rem]/results:gap-x-6',
         DIM_ROOT,
       )}
     >
       {madeOf && (
-        <div data-results-column="made-of" className="contents @min-[40rem]/results:flex @min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-col @min-[40rem]/results:gap-5">
+        <div data-results-column="made-of" className="contents @min-[39.5rem]/results:flex @min-[39.5rem]/results:min-w-0 @min-[39.5rem]/results:flex-col @min-[39.5rem]/results:gap-5">
           {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
               they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
           {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
@@ -345,8 +355,8 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
       <div
         data-results-column="explains"
         className={cn(
-          'contents @min-[40rem]/results:flex @min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-col @min-[40rem]/results:gap-5',
-          !madeOf && '@min-[40rem]/results:col-span-2',
+          'contents @min-[39.5rem]/results:flex @min-[39.5rem]/results:min-w-0 @min-[39.5rem]/results:flex-col @min-[39.5rem]/results:gap-5',
+          !madeOf && '@min-[39.5rem]/results:col-span-2',
         )}
       >
         {result.cooldowns.length > 0 && (
@@ -363,7 +373,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
           id="assumptions"
           title={`Assumptions (${result.assumptions.length})`}
           remember={false}
-          className="@min-[40rem]/results:col-span-2"
+          className="@min-[39.5rem]/results:col-span-2"
         >
           <AssumptionList result={result} />
         </Details>
@@ -376,35 +386,38 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
     // 24 px above the viewport's bottom edge.
     <div className={cn('flex flex-col gap-5', variant === 'panel' && 'max-h-[calc(100svh-8rem)]')}>
       {/* From 1920 px the headline card is a strip: the values and the run's summary on the left,
-          Simulate on the right, and any message under them (docs/ux.md#results). */}
-      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4 @min-[40rem]/results:grid @min-[40rem]/results:grid-cols-[minmax(0,1fr)_auto] @min-[40rem]/results:items-center @min-[40rem]/results:gap-x-6">
-        <div className="flex min-w-0 flex-col gap-4 @min-[40rem]/results:flex-row @min-[40rem]/results:flex-wrap @min-[40rem]/results:items-end @min-[40rem]/results:gap-x-6 @min-[40rem]/results:gap-y-2">
-          <div className="min-w-0 @min-[40rem]/results:min-w-56">
+          Simulate on the right, and any message under them (docs/ux.md#results). While a run is
+          under way the headline, with its progress bar, takes the row's free width (review DA-6).
+          The summary keeps each "·" part whole, and moves under the values if the longest part
+          doesn't fit beside them (DA-3). */}
+      <div className="flex shrink-0 flex-col gap-4 rounded-xl border p-4 @min-[39.5rem]/results:grid @min-[39.5rem]/results:grid-cols-[minmax(0,1fr)_auto] @min-[39.5rem]/results:items-center @min-[39.5rem]/results:gap-x-6">
+        <div className="flex min-w-0 flex-col gap-4 @min-[39.5rem]/results:flex-row @min-[39.5rem]/results:flex-wrap @min-[39.5rem]/results:items-end @min-[39.5rem]/results:gap-x-6 @min-[39.5rem]/results:gap-y-2">
+          <div className={cn('min-w-0 @min-[39.5rem]/results:min-w-56', running && '@min-[39.5rem]/results:flex-1')}>
             <Headline />
           </div>
           {result && (
-            <div className="@min-[40rem]/results:min-w-0 @min-[40rem]/results:flex-1 @min-[40rem]/results:pb-1">
+            <div className="@min-[39.5rem]/results:flex-1 @min-[39.5rem]/results:pb-1">
               <RunSummary result={result} runConfig={runConfig} />
             </div>
           )}
         </div>
         {error !== null && (
-          <div className="@min-[40rem]/results:col-span-full">
+          <div className="@min-[39.5rem]/results:col-span-full">
             <RunError message={error} />
           </div>
         )}
         {result && !running && (
-          <div className="empty:hidden @min-[40rem]/results:col-span-full">
+          <div className="empty:hidden @min-[39.5rem]/results:col-span-full">
             <NoDamage result={result} variant={variant} onNavigate={onNavigate} />
           </div>
         )}
         {!result && !running && error === null && (
-          <p className="text-sm text-muted-foreground @min-[40rem]/results:col-span-full">Your setup is ready. Simulate to see your {metricLabel}.</p>
+          <p className="text-sm text-muted-foreground @min-[39.5rem]/results:col-span-full">Your setup is ready. Simulate to see your {metricLabel}.</p>
         )}
         {stale && !running && error === null && (
-          <p className="text-sm text-muted-foreground @min-[40rem]/results:col-span-full">Your setup changed since this run. Simulate to update it.</p>
+          <p className="text-sm text-muted-foreground @min-[39.5rem]/results:col-span-full">Your setup changed since this run. Simulate to update it.</p>
         )}
-        <SimulateButton className="w-full @min-[40rem]/results:col-start-2 @min-[40rem]/results:row-start-1 @min-[40rem]/results:w-auto @min-[40rem]/results:min-w-36" />
+        <SimulateButton className="w-full @min-[39.5rem]/results:col-start-2 @min-[39.5rem]/results:row-start-1 @min-[39.5rem]/results:w-auto @min-[39.5rem]/results:min-w-36" />
       </div>
       {body && (variant === 'panel' ? <ScrollBody>{body}</ScrollBody> : body)}
     </div>

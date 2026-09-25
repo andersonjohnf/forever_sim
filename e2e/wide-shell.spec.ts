@@ -2,11 +2,15 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#layout: the wide desktop layout (D34). From 1440 px the page fills the window, up to
-// 2560 px and centred, with 24 px gutters; the results pane is 30 rem, and from 1920 px 38% of the
-// page between 46 and 68 rem. The results never run past the viewport and scroll inside. Under
+// 2560 px and centred, with 24 px gutters; the results pane grows smoothly with the window, 30 rem at
+// 1440 px and a rem for every 48 px past it (40 rem at 1920, 53.3 at 2560), up to 60 rem, with no
+// step (review finding DA-2). The results never run past the viewport and scroll inside. Under
 // 1440 px nothing changes: the rest of the suite runs at 1280.
 
 const REM = 16
+
+/** The results pane's width at a window width from 1440 px: `clamp()` in src/App.tsx. */
+const pane = (width: number) => Math.min(60 * REM, 30 * REM + (width - 1440) / 3)
 
 /** The page's layout boxes: the header's row, the main grid, the setup and results panes. */
 const shell = (page: Page) =>
@@ -35,10 +39,10 @@ const shell = (page: Page) =>
 test.describe('the wide shell', () => {
   for (const { width, results } of [
     { width: 1440, results: 30 * REM },
-    // 38% of the page inside its gutters, 1,872 px, is 711 px: under the 46 rem floor.
-    { width: 1920, results: 46 * REM },
-    // 38% of 2,512 px.
-    { width: 2560, results: 0.38 * (2560 - 48) },
+    { width: 1600, results: pane(1600) },
+    // Exactly 40 rem, where the results' strip and two columns have started (wide-results.spec.ts).
+    { width: 1920, results: 40 * REM },
+    { width: 2560, results: pane(2560) },
   ]) {
     test(`at ${width} px the page fills the width, with its results pane beside the setup`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
@@ -71,8 +75,8 @@ test.describe('the wide shell', () => {
     expect(s.main.left).toBeCloseTo((s.viewport - 2560) / 2, 0)
     expect(s.header.left).toBe(s.main.left)
     expect(s.header.width).toBe(2560)
-    // As at 2560: 38% of the capped page inside its gutters.
-    expect(s.results.width).toBeCloseTo(0.38 * (2560 - 48), 0)
+    // The pane follows the window, not the capped page, so here it's at its 60 rem cap.
+    expect(s.results.width).toBeCloseTo(60 * REM, 0)
   })
 
   test('under 1440 px the page keeps its 1280 px cap and 22 rem results', async ({ page }) => {

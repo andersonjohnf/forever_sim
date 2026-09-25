@@ -431,3 +431,66 @@ Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run s
 passed; `npm test` 2,863 passed and 6 skipped, the one-core Fury and Retribution benchmarks
 failing only under the machine's load (load average 16) and passing rerun alone. No UI changed, so
 no e2e run or screenshots.
+
+## OG verification (OGV)
+
+A fresh verification of the goals review's fixes (`e37efc3c` to `0e298014`). Its probes and logs are
+in the O1 worktree's `.cache/probes/og-verify/`. With it came a user decision on the budget, now
+D30's last paragraph: "There does need to be some reasonable limit to iterations, we don't want to
+fire off a 10 billion iteration sim." The fixes are `e2cd1ba1`, on a branch that merged the O1 branch
+onto main (`f8793c6b`, no conflicts: the pool, the worker and `src/sim/index.ts` merged cleanly,
+keeping main's watchdog, cancel-on-switch and AR-10 fallback beside the optimizer's jobs; no
+generated data changed). The fixes' probes and demo logs are in this worktree's `.cache/probes/ogv/`
+and `.cache/demos/ogv/`.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| OGV-1 | medium | introduced by OG-1/OG-2 (`c0bf4b2f`, `52a3e29a`) | A binding sheet constraint dropped partial ranks everywhere: the space was rebuilt with the constraint's talents as dimensions whose ranks were all searched, and the fallback then searched max ranks for the whole space. The warrior under `ehp>=103%` (52,506 builds, too many for `quick` at 50 fights each) missed Booming Voice 3 with Boundless Rage 2, +0.36 ± 0.10 points paired over the leader it found; the paladin under `ehp>=100%` never got partial ranks. | fixed, `e2cd1ba1`: only objective talents' partial ranks are searched; a dimension only a constraint made (Toughness, Sacred Duty, Heart of the Wild, Thick Hide) is at 0 or max in a core, and the fill still gives it leftover points by its tie-break. The warrior's space is 46,814 builds, and with OGV-2's budget `quick` races it: its answer is that build (+9.72 points; paired against the old answer on seed 2654435770, 20,000 fights, **+0.358 ± 0.102**). The paladin's `ehp>=100%` space is still 554,943 builds with partial ranks, past the 200,000-build ceiling the user's decision sets, so it narrows to max ranks and says so. Tests: a constraint's dimension at 0 or 5 while an objective one's ranks are searched; the warrior's space with the verification's screen (46,814 and 3,945 builds, the better build in it and not in max ranks); both fail without the fix |
+| OGV-2 | medium | introduced (user decision) | No ceiling on a search: `fitBudget` grew the budget without limit for a large space, and the budget fallback made the space depend on the budget. | fixed, `e2cd1ba1`: a search runs at most `MAX_SEARCH_FIGHTS` (thorough's 24,000,000), the screen's and the race's together, over every pass in turns, and lists at most `MAX_BUILDS` (200,000); nothing raises it but the caller (`maxFights`, `--max-fights`), and a budget over it is cut. Up to the cap the budget grows so every plan runs 50 fights first (to 50 a plan and as much again); beyond it the space narrows to max ranks (the constraints' dimensions are at max ranks already, OGV-1, so that's the one step), stated in `space.narrowed`, a "Narrowed to max ranks" note and the CLI's NARROWED line, all in the JSON. Past even that: fewer than 20 fights a plan, 200,000 max-rank builds, or a screen over the cap is refused (`SearchTooLargeError`) before the fights it can't afford; in turns, a pass that doesn't fit ends the turns (`turnsStopped`). The CLI prints the ceiling with a rough time before anything runs, and `estimate` (fights, and time at the screen's pace) before the race. optimizer.md's Budgets section documents it. Tests: `fitBudget`'s regimes and the cap; narrowing by builds and by fights; the grown budget, notes and estimate before the race; the refusals (no fight run for a screen over the cap); a budget cut to the cap; the turns stopped by it |
+| OGV-3 | low | pre-existing | optimizer.md's limits didn't say that with max ranks only a partial rank comes from the greedy fill alone, which never opens a tier gate for one. | fixed, `e2cd1ba1`: a limits line, and one for OGV-1's (a constraint's dimension takes a partial rank only from the fill) |
+| OGV-4 | low | introduced | optimizer.md called OG-1's check "exact", which holds only where talents' effects add up, and OG-3's fill "the same build", which a tier gate can make a different, at least as good build. | fixed, `e2cd1ba1`: both reworded, and the code's comment on OG-1 too |
+| OGV-5 | low | introduced | The space was listed before its size was known (the paladin's `ehp>=100%` space took seven seconds to reach the limit), and the search's own work would run on the page's thread in the app. | fixed, `e2cd1ba1`: `talentSpaceSize` counts a space exactly, keyed by ranks without encoding (a third of the listing's time), and stops past the limit, so a space past the ceiling is never built; O3's milestone and optimizer.md say to run `optimize()` in a worker. Test: the count equals the listing, and stops past a limit |
+
+### The numbers after these fixes
+
+Seed 1, 8 threads, the default constraints (31 points in the tank tree, the effective-health floor)
+unless named; logs and reports in `.cache/demos/ogv/`. Times are this machine's under load (load
+average 7–29).
+
+| Search | Space | Budget (the cap is 24M) | Estimate before the race | Answer | Fights, time |
+| --- | --- | --- | --- | --- | --- |
+| Protection warrior, Balanced, `quick` | 3,985 builds, every rank | 1.5M, first round 112 | 1.52M, ~38 s | `-35050002005-502300233300010531`, **+10.71** (+10.66 to +10.76), separated after 12 rounds (as before) | 1.25M, 19 s |
+| Protection paladin, Balanced, `quick` | 26,762 builds, every rank | 1.5M, first round 50 | 1.53M, ~47 s | `050003-0530410301301541-05205`, **+8.97** (+7.79 to +10.15), separated after 3 rounds (as before) | 1.46M, 35 s |
+| Feral bear, Balanced, `quick` | 502 builds, every rank | 1.5M, first round 892 | 1.52M, ~35 s | `050022-5003032023132210051-504`, **+7.42** (+6.88 to +7.95), separated after 2 rounds (as before) | 0.47M, 7 s |
+| Protection warrior, `ehp>=103%`, `quick` | 46,814 builds, every rank (Toughness at 0 or 5); 3,970 left out by the floor | grew to 4.28M, first round 50 | 4.31M, ~2 min | `-35050002005-500500233300010531` (Booming Voice 3, Boundless Rage 2, Toughness 5), **+9.72** (+9.58 to +9.87), separated after 10 rounds; before: the max-rank `-25050003005-…`, +9.51 | 2.33M, 44 s |
+| Protection warrior, `ehp>=103%`, `thorough` | the same | 23.98M (cut to what the screen left), first round 167 | 24.0M, ~10 min | the same build, **+9.73** (+9.57 to +9.88), separated after 8 rounds | 7.29M, 111 s |
+| Protection paladin, `ehp>=100%`, `quick` | 554,943 builds with every rank, past 200,000: **narrowed** to 31,755 max-rank builds (Toughness and Sacred Duty dimensions); 1,779 left out by the floor | grew to 3.0M, first round 50 | 3.03M, ~2 min | `050003-5530010301301531-05205` (Toughness 5, Anticipation 0, Iron Creed 3), **+7.71** (+7.39 to +8.02), separated after 7 rounds | 1.56M, 40 s |
+| Protection paladin, Defense, `standard` | 135,311 builds, every rank (max ranks before) | grew from 6M to 13.53M, first round 50 | 13.56M, ~7 min | `255-5530503300001051-5012`, **66.16** (62.98 to 69.33) less damage taken a second; the budget ended with 539 unseparated (Defense's space is flat near the top) | 13.56M, 265 s |
+
+**For the reviewers:**
+- **The fill still gives a constraint's dimension partial ranks.** OGV-1 keeps Toughness at 0 or 5
+  in a core; leftover points can still land on it by its tie-break (1,112 of the warrior's 46,814
+  builds hold Toughness 1–4 that way). That's the fill as it was, which doesn't grow the space; the
+  brief's "at 0 or max" is read as the searched ranks.
+- **One narrowing step, not two.** D30 says "max ranks first"; the brief's ladder was max ranks on
+  the constraints' dimensions, then everywhere. OGV-1 makes the first step permanent, so past the
+  ceiling the only step left is max ranks everywhere; optimizer.md says so.
+- **The paladin's `ehp>=100%` still races max ranks**, now because its partial space (554,943
+  builds) passes the user's 200,000-build ceiling, and the report says so. A tighter space (a kept
+  or excluded talent) searches its partial ranks.
+- **The cap counts the screen,** so `thorough` always notes that its 24M budget is cut to what the
+  screen left (23.98M). True, and harmless; a reviewer may prefer it silent.
+- **`quick` can now cost more than its name:** the paladin's Defense space grows `quick` and
+  `standard` to 13.5M (about 4.5 minutes here), where they used to race max ranks. That's the brief's
+  "grow the budget so every plan gets 50 fights, up to the cap"; the estimate says it before the
+  race, and O3 shows it.
+- **The estimate's time** is the race's budget at the screen's pace, which runs slower than the
+  race (plan building dominates small jobs): the warrior's `quick` said about 2 minutes for a budget
+  it spent half of in 44 s. It's an upper bound, as a budget is.
+- **Narrowing counts plans before the sheet constraints** leave any out (the sheets cost 0.3 ms a
+  build), so a space near the cap can narrow though its valid plans would fit; the final budget
+  counts the valid ones.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run src/worker` 203
+passed; `npm test` 2,932 passed; the results-states, results-keyed and app e2e specs 58 passed
+(port 4291, the merge touches the pool); `scrape:check` matches. No UI changed, so no screenshots.

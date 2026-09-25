@@ -154,19 +154,35 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 })
 
 /**
+ * What the presets' help and short lines say, measured in the default setup (warrior.md §5.4 "Build
+ * 1.60.1.70009"; seed 31101, 100,000 paired fights, 2026-09-25): Defensive's TPS, DPS and damage taken
+ * a second, Balanced and Max TPS against it in percent, and Max TPS against Balanced, since the two
+ * share their rows. protection-presets.test.ts measures them again, so a change that moves them fails
+ * until they're re-measured here.
+ */
+export const PROTECTION_PRESET_MEASURES = {
+  defensive: { tps: 933.23, dps: 367.63, damageTaken: 610.59 },
+  balanced: { tpsPct: 7.33, dpsPct: 6.52, damageTakenPct: 21.05 },
+  maxTps: { tpsPct: 8.41, dpsPct: 7.03, damageTakenPct: 21.11 },
+  maxTpsOverBalanced: { tpsPct: 1.01, dpsPct: 0.48, damageTakenPct: 0.05 },
+} as const
+
+const M = PROTECTION_PRESET_MEASURES
+/** A measured percent for the help, whole (7%) or to a tenth (7.3%), unsigned. */
+const helpPct = (x: number, digits = 0) => `${Math.abs(x).toFixed(digits)}%`
+
+/**
  * The presets' help, which the preset picker's info lists, and their short lines, which the picker
  * shows under it for the one picked (docs/ux.md "Rotation"): what each keeps and drops, with what it
  * measures against Defensive in the default setup, and Max TPS against Balanced too, since the two
- * share their rows (warrior.md §5.4 "Balanced", "Max TPS" and "Build 1.60.1.70009"; seed 31101,
- * 100,000 paired fights).
+ * share their rows (PROTECTION_PRESET_MEASURES).
  */
 const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
-const DEFENSIVE_HELP =
-  'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 926 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
-const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +6% DPS, 21% more damage taken than Defensive.'
-const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: 7.2% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
-const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +1% TPS over Balanced for the same damage taken.`
-const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (9 rage with the default talents) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rather than ${BALANCED_HS_PCT}%. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken; against Defensive, 8.3% more TPS, 6.9% more DPS and 21% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
+const DEFENSIVE_HELP = `Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: ${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second in the default setup. Pick it for progression fights.`
+const BALANCED_SUMMARY = `Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +${helpPct(M.balanced.tpsPct)} TPS, +${helpPct(M.balanced.dpsPct)} DPS, ${helpPct(M.balanced.damageTakenPct)} more damage taken than Defensive.`
+const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: ${helpPct(M.balanced.tpsPct, 1)} more TPS, ${helpPct(M.balanced.dpsPct, 1)} more DPS and ${helpPct(M.balanced.damageTakenPct)} more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
+const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +${helpPct(M.maxTpsOverBalanced.tpsPct)} TPS over Balanced for the same damage taken.`
+const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (9 rage with the default talents) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage rather than ${BALANCED_HS_PCT}% of your max rage. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: ${helpPct(M.maxTpsOverBalanced.tpsPct, 1)} more TPS, ${helpPct(M.maxTpsOverBalanced.dpsPct, 1)} more DPS and the same damage taken; against Defensive, ${helpPct(M.maxTps.tpsPct, 1)} more TPS, ${helpPct(M.maxTps.dpsPct, 1)} more DPS and ${helpPct(M.maxTps.damageTakenPct)} more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;

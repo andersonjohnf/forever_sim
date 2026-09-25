@@ -2039,18 +2039,21 @@ presets' thresholds (seed 31101, 20,000 paired fights a candidate):
   −12.85% in Max TPS and −13.37% in Balanced, whose headline +254 would put at 946.78 TPS (−4.7%;
   seed 31101, 6,000 fights; [Q34](#9-open-questions)).
 
-The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup:
+The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup,
+re-measured 2026-09-25 once Thorns scaled with spell power (the table before gave Defensive 926.27
+TPS, 363.06 DPS; Balanced 993.37; Max TPS 1,003.49). `PROTECTION_PRESET_MEASURES` holds these for the
+Rotation tab's help, and `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 926.27 | 363.06 | 610.59 |
-| Balanced (the default) | 993.37, **+7.24%** (+66.79 to +67.41) | 386.18, +6.37% | 739.10, +21.0% |
-| Max TPS | 1,003.49, **+8.34%** (+76.90 to +77.52) | 388.07, +6.89% | 739.50, +21.1% |
+| Defensive | 933.23 | 367.63 | 610.59 |
+| Balanced (the default) | 1,001.62, **+7.33%** (+68.08 to +68.70) | 391.59, +6.52% | 739.10, +21.0% |
+| Max TPS | 1,011.74, **+8.41%** (+78.20 to +78.82) | 393.48, +7.03% | 739.50, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (9) rather than 60% of the max
-rage, and Heroic Strike from 45 rather than 84% of it. On the same fights that's **+10.12 TPS
-(+1.02%, +9.90 to +10.33)**, +1.89 DPS (+0.49%, +1.77 to +2.01) and +0.40 damage taken a second
+rage, and Heroic Strike from 45 rage rather than 84% of the max rage. On the same fights that's
+**+10.12 TPS (+1.01%, +9.90 to +10.33)**, +1.89 DPS (+0.48%, +1.77 to +2.01) and +0.40 damage taken a second
 (+0.05%, +0.32 to +0.48): the same damage taken. The preset's line and help name that difference
 (`MAX_TPS_SUMMARY`, `MAX_TPS_HELP`), since against Defensive the two read alike.
 

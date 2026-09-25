@@ -357,7 +357,7 @@ function sharedRows(spec: Spec): { cooldowns: AplRow[]; mana: AplRow[] } {
       { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'whenever it’s ready' }] },
     ],
     mana: [
-      { id: 'manaGems', label: 'Mana gems', icon: MANA_RUBY.icon, enabledId: ID.gems, optionIds: [], summary: [{ text: 'each once all it restores fits' }] },
+      { id: 'manaGems', label: 'Mana gems', icon: MANA_RUBY.icon, enabledId: ID.gems, optionIds: [], summary: [{ text: 'each when you’re missing all it restores' }] },
       {
         id: 'evocation',
         label: 'Evocation',

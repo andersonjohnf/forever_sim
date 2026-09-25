@@ -630,7 +630,7 @@ has each row's cited conditions. A row's conditions are its own wherever it sits
 | Racial cooldown (`racial`) | `racial.enabled` | | 2: Berserking, Blood Fury or Eureka!, on cooldown |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | 3: on cooldown |
 | Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | 4: selected in Buffs, ready |
-| Mana gems (`manaGems`) | `manaGems.enabled` | | 5: each once all it restores fits; then 6 and 7, spec-wide |
+| Mana gems (`manaGems`) | `manaGems.enabled` | | 5: each when you're missing all it restores (1,200 for the Ruby, 925 for the Citrine); then 6 and 7, spec-wide |
 | Evocation (`evocation`) | `evocation.enabled` | `evocation.maxManaPct` | 8: at or below the share, or below Fireball's cost |
 | Scorch (`scorch`) | `scorch.enabled` | `scorch.refreshSec` | 9: under 5 stacks, or refresh in time (COND 44) |
 | Pyroblast (`pyroblast`) | `pyroblast.enabled` | `pyroblast.minStacks` | 10: Hot Streak stacks, waiting for its DoT's tick (COND 45) |

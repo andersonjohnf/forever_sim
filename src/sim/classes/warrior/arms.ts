@@ -26,6 +26,7 @@ import {
   overpowerWindowProcs,
   recklessness,
   REND,
+  rend,
   SLAM,
   SPEARING_STRIKE,
   stanceSwapKeepTenths,
@@ -541,9 +542,10 @@ export function armsRotation(
     // default with Bloodthrill, whose proc needs it.
     rend: () => {
       if (!v.on(ID.rendEnabled)) return
-      const rend = index(REND)
-      const to = danceTo(REND, STANCE.battle)
-      b.line(REND, to, [{ code: COND.abilityAuraRefresh, a: rend, b: seconds(v, ID.rendRefresh) }, ...(to ? [swapCap] : [])])
+      const def = rend(ctx.profile)
+      const at = index(def)
+      const to = danceTo(def, STANCE.battle)
+      b.line(def, to, [{ code: COND.abilityAuraRefresh, a: at, b: seconds(v, ID.rendRefresh) }, ...(to ? [swapCap] : [])])
     },
     // Row 16, with the talent: Death Wish, as Fury's row 2. By default it comes before row 3, whose
     // racial and trinkets wait for it wherever they sit (shared.ts).

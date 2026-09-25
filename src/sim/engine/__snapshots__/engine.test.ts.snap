@@ -341,7 +341,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
     [
       "rend",
-      2052888.5915996274,
+      5095343.416680193,
       8874,
       34892,
       16096,
@@ -411,15 +411,15 @@ exports[`golden run (fixed config and seed) > keeps the default Arms warrior’s
     ],
   ],
   "dps": {
-    "ci95": 2.9669226603957632,
-    "mean": 690.4044079349992,
-    "stdev": 47.8694165934819,
+    "ci95": 2.9805270944051276,
+    "mean": 707.3436934578929,
+    "stdev": 48.088915513290594,
   },
   "durationSec": 179.690222,
   "tps": {
-    "ci95": 1.6924041877654656,
-    "mean": 391.02744951448597,
-    "stdev": 27.30586886882039,
+    "ci95": 1.6998900768187029,
+    "mean": 400.5134494073064,
+    "stdev": 27.42664894389461,
   },
 }
 `;

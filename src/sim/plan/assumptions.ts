@@ -362,7 +362,7 @@ const REGISTRY = {
     docRef: `${WAR}#31-damage-abilities`,
   },
   rendTickCrits: {
-    text: 'Rend’s ticks can crit, at your special-attack crit chance when it landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
+    text: 'Each Rend tick adds 2% of your attack power as it lands, a coefficient another Forever sim measured at a low level that nobody has confirmed at 60. The ticks can crit, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   executeRageTenths: {

@@ -522,7 +522,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage. The 15 per rage is client data, not a server script: the damage effect's `EffectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 (ranks 1–5: 3, 6, 9, 12, 15) | [F] [sb] [client] (SpellEffect, 1.60.1.69913); rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
-| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
+| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. **In `forever` each tick adds 0.02 × AP**, read as the tick lands [?] ("Rend's attack power" below). Improved Rend multiplies the whole tick by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913); AP term [?] |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
 | Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
 | Revenge (6, 25288) | 5 | 5 s | yes | Defensive | **138–168** (153 ±10%) × (1 + 0.20 × Improved Revenge rank). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
@@ -564,6 +564,14 @@ Specialization's OH hit) and can crit (Impale applies) and proc on-hit effects [
 
 **Bloodthirst details.** The AP used is the warrior's full melee attack power after all
 buffs. It is physical, so armor applies, and it uses the special attack table [F] [sb].
+
+**Rend's attack power** [?] ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). In `forever` each Rend tick deals `21 + 0.02 × AP`, the
+attack power read as the tick lands, and the rest of the tick keeps the bleed's snapshot rules
+(the physical multipliers and crit chance at the application, [§7](#7-implementation-notes)
+"Rend is a bleed ability"). Improved Rend multiplies the whole tick. The client's 11574 has no
+attack-power term (one periodic-damage effect of 21), so the term is server-side: it comes from
+WarriorSim's Forever mode, measured there at a low level, and the coefficient at 60 is
+unconfirmed. `classicEra` has none [C]. The results' assumptions list it with Rend's tick crits.
 
 ### 3.2 Buffs, debuffs and cooldowns
 
@@ -1337,7 +1345,9 @@ Notes:
   (once Rend has run out) a Rend gets all 7 ticks (6.55 a cast against 5.74 at 3 s, counting the
   ones that miss) but leaves Bloodthrill's proc down until the next GCD. With the tuned defaults,
   1.5 s measured −0.32% and 2.5 s −0.12%, and 0 s −0.03%, its interval reaching zero (below).
-  So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks.
+  So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks (measured before
+  [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25) added 0.02 × AP a tick,
+  about 77 at 1800 AP; the re-tune revisits it).
 - **Heroic Strike** (row 13) is off by default. Its swing replaces a white swing that would have
   given 15.75 rage with the default 3.5 s two-hander, and is reported to give none
   ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 12 rage
@@ -2491,7 +2501,9 @@ seed 12345). The enchants stay the spec's
   [?] (Q32). A landed application snapshots the physical damage multiplier and the main hand's
   special-attack crit chance, crit suppression included [?]
   ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)), and ticks 7
-  times, every 3 s. The ticks ignore armor, never miss, make threat at dmg × 1 and no rage. In
+  times, every 3 s. In `forever` each tick adds 0.02 × the attack power as it lands, under the
+  snapshotted multipliers, Improved Rend's included ([§3.1](#31-damage-abilities)) [?]. The ticks
+  ignore armor, never miss, make threat at dmg × 1 and no rage. In
   `forever` each tick rolls crit at that chance and deals the ability's crit multiplier (×2.2
   with Impale 2/2, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. A tick crit fires no crit
   procs and doesn't end Weakness Analyzer: neither Flurry's nor Deep Wounds' proc mask (0x15554,
@@ -2682,7 +2694,10 @@ Classic's break-even was 2000 at cost 10 [marrow].
 
 ### W13: Rend with Improved Rend 3/3
 
-`147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
+- `classicEra`: `147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
+- `forever` at 1800 AP: each tick is `(21 + 0.02 × 1800) × 1.35 = 57 × 1.35 = 76.95`, so 538.65
+  over 7 ticks [?]. At 2000 AP a tick is `(21 + 40) × 1.35 = 82.35`: the attack power is read as
+  each tick lands.
 
 ### W14: Revenge rank 6, Protection
 

@@ -6,14 +6,15 @@
 // (damage-and-timing §4) and the "Rend missing or under x s" condition; refunds on avoidance
 // (rage.md#rage-refunds-on-avoided-abilities); stances; determinism.
 import { describe, expect, it } from 'vitest'
-import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
+import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, rend, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
 import { TALENT_EFFECTS } from '../classes/warrior/talents'
 import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
-import { CLASSIC_ERA } from '../rules/profiles'
+import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { CreatureType } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, Sim } from './sim'
 import {
   addAbility,
+  addAura,
   addProc,
   alwaysLandNoCrit,
   armsPlan,
@@ -304,6 +305,23 @@ describe('Rend (warrior.md §3.1, damage-and-timing §4)', () => {
     expect(d.length).toBe(9)
     for (const x of d) expect(x).toBeCloseTo(28.35, 9)
     expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits)]).toEqual([2, 9, 0])
+  })
+
+  it('W13 in `forever`: each tick adds 0.02 × AP read as it lands, × 1.35: 76.95 at 1800 AP, 82.35 once +200 AP is up', () => {
+    const plan = armsPlan(30000)
+    const r = addAbility(plan, rend(FOREVER), new Map([['Improved Rend', 3]]))
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    setAttackPower(plan, 1800)
+    line(plan, r, at(plan, 100))
+    // +200 AP from the first landed swing after Rend is up (3.8 s), for the rest of the fight: the
+    // tick at 3.1 s reads 1800, those from 6.1 s 2000; the multipliers stay the application's.
+    const up = addAura(plan, { id: 'apUp', name: 'AP up', durationMs: 60000, mods: { ap: 200 } })
+    addProc(plan, { trigger: TRIGGER.whiteLanded, chance: [1, 1], hands: 1, action: ACTION.aura, amount: up, b: 0, icdMs: 60000, requiresAura: plan.abilities[r].aura })
+    const d = damages(plan, plan.abilities[r].source, 1)
+    expect(d.length).toBe(7)
+    expect(d[0]).toBeCloseTo(76.95, 9)
+    for (const x of d.slice(1)) expect(x).toBeCloseTo(82.35, 9)
   })
 
   it('"under 3 s" reapplies it with 3 s left: the tick due then lands first, the next is lost (WE-9)', () => {

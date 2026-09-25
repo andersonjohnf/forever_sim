@@ -757,6 +757,12 @@ export interface AbilityPlan {
   dotTicks: number
   dotTickMs: number
   /**
+   * `bleed`: this share of the attack power as each tick lands, added to `dotTickDamage` and under
+   * the same snapshotted multipliers (Rend's 0.02 in `forever` [?], × Improved Rend's factor,
+   * warrior.md §3.1, W13). Absent: none.
+   */
+  dotTickApCoefficient?: number
+  /**
    * `bleed`: the spell's periodic-crit flag (SpellMisc Attributes[8] 0x200). Its ticks may crit
    * only in a profile whose periodic effects can crit (`forever`), at `critMultiplier`
    * (damage-and-timing §2.5, §4).

@@ -640,6 +640,8 @@ export class Sim {
    * whether a tick may crit (the spell's flag, in a profile whose periodic effects crit).
    */
   private readonly abDotTick: Float64Array
+  /** `bleed` abilities: attack power per tick, read as the tick lands (Rend in `forever`, warrior.md §3.1). */
+  private readonly abDotTickAp: Float64Array
   private readonly abDotTicks: Int32Array
   private readonly abDotTickMs: Float64Array
   private readonly abDotCanCrit: Uint8Array
@@ -961,6 +963,8 @@ export class Sim {
   private readonly dotGen: Int32Array
   private readonly dotNextAt: Float64Array
   private readonly dotDamage: Float64Array
+  /** The multipliers each bleed snapshotted at its application, for its ticks' attack-power part. */
+  private readonly dotMult: Float64Array
   private readonly dotCrit: Float64Array
   /** While an ability's cast runs, the GCD is held (gcdEnd = ∞); this is when the GCD would end on its own. */
   private castGcdEnd = 0
@@ -1658,6 +1662,7 @@ export class Sim {
     this.abTickMs = new Float64Array(nb)
     this.abRageSpread = new Int32Array(nb)
     this.abDotTick = new Float64Array(nb)
+    this.abDotTickAp = new Float64Array(nb)
     this.abDotTicks = new Int32Array(nb)
     this.abDotTickMs = new Float64Array(nb)
     this.abDotCanCrit = new Uint8Array(nb)
@@ -1665,6 +1670,7 @@ export class Sim {
     this.dotGen = new Int32Array(nb)
     this.dotNextAt = new Float64Array(nb)
     this.dotDamage = new Float64Array(nb)
+    this.dotMult = new Float64Array(nb)
     this.dotCrit = new Float64Array(nb)
     this.abUsesPerFight = new Int32Array(nb)
     this.abUses = new Int32Array(nb)
@@ -1849,6 +1855,7 @@ export class Sim {
       this.abTickMs[i] = a.rageTickMs
       this.abRageSpread[i] = a.rageSpreadTenths
       this.abDotTick[i] = a.dotTickDamage
+      this.abDotTickAp[i] = a.dotTickApCoefficient ?? 0
       this.abDotTicks[i] = a.dotTicks
       this.abDotTickMs[i] = a.dotTickMs
       // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
@@ -4231,7 +4238,9 @@ export class Sim {
     const ticks = this.abDotTicks[a] + (this.abFinisher[a] === 1 ? this.abDotTicksPerCp[a] * cp : 0)
     this.dotTicksLeft[a] = ticks
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
-    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult * (this.euA === a ? this.euDot : 1)
+    const mult = this.physMult * (this.euA === a ? this.euDot : 1)
+    this.dotMult[a] = mult
+    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * mult
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -4239,7 +4248,8 @@ export class Sim {
   }
 
   /**
-   * One tick of a `bleed` ability: the snapshotted damage, no armor, never a miss. In `forever` a
+   * One tick of a `bleed` ability: the snapshotted damage, plus its share of the attack power now
+   * under the snapshotted multipliers (Rend in `forever`), no armor, never a miss. In `forever` a
    * flagged tick rolls crit at the snapshotted chance and deals the ability's crit multiplier
    * (Impale on Rend, 2.2 at 2/2) [?]; a tick crit fires no crit procs, since Flurry's and Deep
    * Wounds' proc masks have no periodic bit (damage-and-timing §4, warrior.md §2.5, §7). Threat is
@@ -4248,8 +4258,9 @@ export class Sim {
   private onDotTick(a: number): void {
     const source = this.abDotSource[a]
     const row = source * FIELD_COUNT
-    // rogue.md §3.9: Hemorrhage's debuff raises your bleeds' ticks while it's on the target.
-    let damage = this.dotDamage[a] * this.bleedMult
+    // warrior.md §3.1, W13: Rend's share of the attack power as the tick lands, under the snapshotted
+    // multipliers. rogue.md §3.9: Hemorrhage's debuff raises your bleeds' ticks while it's on the target.
+    let damage = (this.dotDamage[a] + this.abDotTickAp[a] * this.ap * this.dotMult[a]) * this.bleedMult
     const chance = this.dotCrit[a]
     if (chance > 0 && this.rngTable.roll100() < chance) {
       damage *= this.abCritMult[a]

@@ -394,7 +394,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
         - **Thorns' and Retribution Aura's spell damage coefficient** (OQ 29): 0.08 [?]; Lightning
           Shield's 0.267 would make Thorns about 15 TPS more for the paladin
 
-## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
+## M5.65: The Rotation tab as a priority list (D31) ✅
 
 - [x] **A1 APL core and the Rotation tab:** rotation rows as data with their own options, a stored
       order, the plan compiler following it, pinned rows, D28's rotations as named presets and
@@ -403,7 +403,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
       Fury's plans are byte-identical at the default order (its golden run, and 400 random
       settings compared against the engine before the list); presets are built but only A2's
       tanks declare named ones
-- [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
+- [x] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
       default order
       - [x] The three tanks (Protection warrior, Feral bear, Protection paladin): their rows in
@@ -421,7 +421,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
             mages; the three warlocks (then issue #17's Incinerate filler and Searing Pain with
             Demonic Brand); Shadow
 
-## M5.66: The wide desktop layout (D34) 🚧 next update
+## M5.66: The wide desktop layout (D34) ✅
 
 From 1440 px the app becomes a power-user workspace; nothing under 1440 changes
 ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25); the audit's proposal
@@ -429,17 +429,18 @@ in `.cache/probes/desktop-audit/proposal.md`). Each slice keeps the phone and 10
 pixel-identical (before and after snaps at 390, 1024 and 1280), adds its own e2e at 1440 (and 1920
 where it changes) and updates only its own ux.md subsection.
 - [x] **S0:** opening Assumptions on desktop no longer adds blank page (the audit's bug)
-- [ ] **S1 Shell and tabs** (the foundation): the wide and extra-wide grid, the 2560 cap, the full-width
-      header, the `setup` and `results` named containers, a `3xl` breakpoint at 1920, the tabs as their
-      own component with a summary slot, the skip link; ux.md "Layout"
-- [ ] **S2 Section summaries:** each tab's summary line, a pure function with tests
-- [ ] **S3 Results pane:** details open at wide (remembered), the headline strip and two columns at 1920+
-- [ ] **S4 Gear list and inline picker**, staying on the slot after a pick
-- [ ] **S5 Buffs, Character and Fight** reflow by container width
-- [ ] **S6 Rotation and Talents** at width: the wider row panel, larger talent trees and a talent detail panel
-- [ ] **S7 Ctrl/Cmd+Enter runs Simulate** (no section shortcuts, D34)
+- [x] **S1 Shell:** the wide grid to 2560 px, the results pane growing smoothly, the `setup` and
+      `results` containers, the skip link, and the toolbar's items inline
+- [x] **The right panel** (amended twice by the user): the character sheet, then Your setup with
+      Simulate and the result's headline, then the breakdown in one column; nothing pinned
+- [x] **Gear** in the game's character-pane order, every slot in view at 1440×900, the picker a modal
+- [x] **Buffs, Character and Fight** in balanced columns with everything shown; **Rotation**'s
+      settings in a column beside the list; **Talents** at normal size with a detail panel
+- [x] **Ctrl/Cmd+Enter runs Simulate**; focus kept through every change of layout
+- [x] **The light theme's contrast** (user decision): a navy toolbar, white panels on a tinted page,
+      tooltips that follow the theme
 
-## M5.67: Item tooltips 💤 the update after next, before the optimizer
+## M5.67: Item tooltips 🚧 next update, before the optimizer
 
 A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
 2026-09-25: its own milestone, shipping in the update after the priority lists and the wide

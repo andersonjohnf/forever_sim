@@ -23,6 +23,41 @@ export interface Release {
 /** Every release, newest first. */
 export const RELEASES: readonly Release[] = [
   {
+    id: '2026-09-25.2',
+    time: '2026-09-25T23:00:00Z',
+    groups: [
+      {
+        label: 'DPS specs',
+        items: [
+          'Every DPS spec’s Rotation tab is now a priority list: drag a row or use Move up and Move down, turn any step off, and change its settings in place. Your order is saved and travels in share links.',
+          'Warlocks can pick Incinerate as their filler once it’s talented; Demonology then defaults to it (+3.9%).',
+          'Searing Pain and Demonic Brand are simulated: Demonology with Demonic Brand is about +12%, on untested values, so the default talents stay for now.',
+          'Rogue: Eviscerate gains 4% of attack power per combo point, up from 3%, and Instant and Deadly Poison gain from attack power, from a guild member’s in-game tests: about +0.5 to 1%.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'On a desktop window 1440 px and wider, the character sheet and Your setup sit beside every tab, with your DPS beside Run again.',
+          'Gear shows every slot at once, laid out as the game’s character pane; the item picker opens as a window.',
+          'Rotation’s settings sit beside the priority list, and Buffs, Fight and Character show every setting.',
+          'A new light theme: a navy toolbar and white panels. Tooltips follow your theme.',
+          'Ctrl+Enter (⌘+Enter on a Mac) runs Simulate from anywhere.',
+          'Weapon skill shows as one number, and both when your hands differ.',
+          'Coming soon, in the menu, lists what’s planned.',
+        ],
+      },
+      {
+        label: 'Fixes',
+        items: [
+          'Opening Assumptions on a wide screen no longer adds blank page below the results.',
+          'Moving a row with the keyboard no longer drops the first arrow press.',
+          'Choice buttons, such as Demonic Sacrifice’s demons, fit on narrow phones.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-09-25.1',
     time: '2026-09-25T06:13:25Z',
     groups: [

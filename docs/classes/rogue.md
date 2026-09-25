@@ -515,6 +515,35 @@ With Hemorrhage building, rows 7 and 8 do nothing, and the Rotation tab says so.
 - Slice and Dice at 1 point: level (+0.2); at 3 −0.6, at 4 −2.4. Renewing it at 0.5 s: level with
   0 and 1 s. Thistle Tea at 20: −1.0.
 
+#### The priority list (Subtlety)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list (D31; `SUBTLETY_APL` in
+`subtlety.ts`), in this order (setting ids under `rogue.subtlety.…`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | On cooldown, off the GCD ([§7.2](#72-race)) |
+| On-use items (`onUseItems`) | `onUseItems.enabled` | | On cooldown, off the GCD; then Thistle Tea and Juju Flurry (spec-wide) |
+| Premeditation (`premeditation`) | `premeditation.enabled` | | On cooldown at ≤ 3 CP, off the GCD, with the talent ([§3.10](#310-premeditation-14183)) |
+| Slice and Dice (`sliceAndDice`) | `sliceAndDice.enabled` | `.minComboPoints`, `.refreshBelowSec` | Down or ≤ 0.5 s left, at ≥ 2 CP ([§3.3](#33-slice-and-dice-r2-6774)) |
+| Expose Armor (`exposeArmor`) | `exposeArmor.enabled` | | Down, at 5 CP ([§3.6](#36-expose-armor-r5-11198)) |
+| Rupture (`rupture`) | `rupture.enabled` | `.minComboPoints`, `.minFightLeftSec` | Off the boss, at ≥ 3 CP, ≥ 10 s of the fight left ([§3.5](#35-rupture-r6-11275)) |
+| Eviscerate (`eviscerate`) | `eviscerate.enabled` | `.minComboPoints` | At ≥ 5 CP ([§3.4](#34-eviscerate-r9-31016)) |
+| Hemorrhage on a bleeding boss (`hemorrhage`) | `hemorrhage.enabled` | | Rupture up and Hemorrhage's debuff down, with the talent; only while Rupture is on ([§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
+| Ambush (`ambush`) | `ambush.enabled` | | Cutthroat's window open; Backstab builder only ([§3.13](#313-ambush-r6-11269)) |
+| Ghostly Strike (`ghostlyStrike`) | `ghostlyStrike.enabled` | | On cooldown, with the talent ([§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
+| Builder (`builder`) | none: always there | `builder` (hemorrhage or backstab) | Affordable: Backstab from behind with a main-hand dagger when chosen, Hemorrhage otherwise, Sinister Strike without the talent ([§3.2](#32-backstab-r9-25300), [§3.9](#39-hemorrhage-16511-and-ghostly-strike-14278)) |
+
+- **Pinned:** nothing. **Spec-wide, above the list:** Thistle Tea (and its Energy limit) and Juju
+  Flurry, which take their turn with the on-use items, wherever that row sits.
+- **The builder is a row with its choice as its setting,** not a spec-wide setting: it's the last
+  step of the priority. The Hemorrhage debuff and Ambush rows say they aren't used while Hemorrhage
+  builds, and the debuff row while Rupture is off: it reads Rupture's bleed by definition, wherever
+  either row sits. Backstab opens Cutthroat's window wherever Ambush sits.
+- **Presets:** none named; the defaults are the implicit Default (D27).
+- **Equivalence:** in the default order the plan is the one Subtlety built before the list, byte for
+  byte, for 200 random setups (settings, both builders, position, weapons; `subtlety-apl.test.ts`).
+
 ---
 
 ## 7. Sensible defaults

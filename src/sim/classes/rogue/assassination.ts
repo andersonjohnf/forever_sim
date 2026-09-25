@@ -139,7 +139,7 @@ export const ASSASSINATION_APL: AplDefinition = {
         { option: ID.mutilate, text: 'Mutilate with a dagger in each hand, else Sinister Strike' },
         { option: ID.mutilate, text: 'Sinister Strike', when: false },
       ],
-      help: 'What builds your combo points, whenever you have the Energy: Mutilate with a dagger in each hand, Sinister Strike otherwise. It has no switch: the rotation always builds.',
+      help: 'Builds your combo points whenever you have the Energy. It has no switch: the rotation always builds.',
     },
   ],
   specWide: rogueSpecWide(ID),

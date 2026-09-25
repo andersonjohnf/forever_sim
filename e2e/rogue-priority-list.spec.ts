@@ -27,6 +27,12 @@ const SPECS: RogueSpec[] = [
     keyboard: { id: 'eviscerate', label: 'Eviscerate', passes: 'coldBlood' },
     button: { id: 'venom', label: 'Venom', passes: 'sliceAndDice' },
   },
+  {
+    name: 'Subtlety',
+    order: ['racial', 'onUseItems', 'premeditation', 'sliceAndDice', 'exposeArmor', 'rupture', 'eviscerate', 'hemorrhage', 'ambush', 'ghostlyStrike', 'builder'],
+    keyboard: { id: 'eviscerate', label: 'Eviscerate', passes: 'rupture' },
+    button: { id: 'ghostlyStrike', label: 'Ghostly Strike', passes: 'ambush' },
+  },
 ]
 
 async function switchTo(page: Page, spec: RogueSpec['name']) {

@@ -246,12 +246,6 @@ export function onUseLines(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ct
   if (juju && v.on(ids.juju)) b.add(onUseCast(juju), [])
 }
 
-/** The off-GCD lines every spec has: the racial, on-use items, Thistle Tea and Juju Flurry (rogue.md §6). */
-export function offGcdLines(b: RogueRotationBuilder, v: Reader, ids: RogueIds, ctx: RogueContext): void {
-  racialLine(b, v, ids, ctx)
-  onUseLines(b, v, ids, ctx)
-}
-
 /** Slice and Dice's upkeep line: down, or about to run out, at enough combo points. Its index, or −1. */
 export function sliceAndDiceLine(b: RogueRotationBuilder, v: Reader, ids: RogueIds): number {
   if (!v.on(ids.snd)) return -1

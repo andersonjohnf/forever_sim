@@ -172,7 +172,6 @@ test.describe('the wide shell', () => {
     }
     // A change in a section changes its tab's line: the boss's level, and a Buffs preset.
     await tab('Fight').click()
-    await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
     await page.getByRole('button', { name: 'Decrease Boss level' }).click()
     await expect(tab('Fight')).toHaveAccessibleDescription('3:00 · level 62')
     await tab('Buffs').click()

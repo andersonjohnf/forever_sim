@@ -54,8 +54,8 @@ for (const { width, height } of [
 
     test('Ctrl+Enter in a number field runs Simulate with what was typed, and keeps focus there', async ({ page }) => {
       await page.getByRole('tab', { name: 'Fight', exact: true }).click()
-      // The boss's level is under Advanced.
-      await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
+      // The boss's level is under Advanced, a disclosure on a phone and shown open from 1440 px.
+      if (width < 1440) await page.getByRole('tabpanel', { name: 'Fight' }).getByRole('button', { name: 'Advanced' }).click()
       const level = page.getByRole('textbox', { name: 'Boss level' })
       await level.fill('61')
       await expect(level).toBeFocused()

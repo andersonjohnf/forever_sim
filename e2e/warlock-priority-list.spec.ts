@@ -19,6 +19,12 @@ const SPECS = [
     key: { id: 'siphonLife', label: 'Siphon Life', before: 'bane' },
     button: { id: 'shadowTrance', label: 'Shadow Bolt on Shadow Trance', before: 'curse' },
   },
+  {
+    name: 'Demonology',
+    order: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
+    key: { id: 'soulFire', label: 'Soul Fire', before: 'bane' },
+    button: { id: 'immolate', label: 'Immolate', before: 'curse' },
+  },
 ]
 
 /** The rows' ids in the list's order (by attribute: a sheet hides the list from the accessibility tree). */

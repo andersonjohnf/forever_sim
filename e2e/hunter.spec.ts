@@ -222,7 +222,7 @@ test.describe('Hunters on a phone', () => {
     await gear.getByRole('button', { name: /^Ranged: / }).click(onIcon)
     const ranged = page.getByRole('dialog', { name: 'Choose ranged' })
     await ranged.getByLabel('Search items').fill('riphook')
-    await ranged.getByRole('button', { name: /^Riphook/ }).click(onIcon)
+    await ranged.getByRole('button', { name: /^Riphook\./ }).click(onIcon)
     await expect(ranged).toBeHidden()
     await expect(gear.getByRole('button', { name: 'Ammo: Thorium Headed Arrow' })).toBeVisible()
     await expect(gear.getByRole('button', { name: 'Quiver: Harpy Hide Quiver' })).toBeVisible()

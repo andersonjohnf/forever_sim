@@ -377,7 +377,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     its effect (Draconic Infused Emblem, Earthstrike, a totem or idol), shows its effects in the
     tooltip's own words there instead (`statsLine` in `src/features/gear/item-flags.ts`), on slot
     and picker rows alike, so a proc trinket's BiS rank has its reason beside it; "No stats" is
-    left for an item with neither. Empty slots have their own
+    left for an item with neither. Every slot's and picker row's item has its **tooltip**, as the
+    game shows it: on hover or keyboard focus, or where nothing hovers an info control or a long
+    press ([Item tooltips](#item-tooltips)). Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
     widening the page, down to 320 px.
   - Choosing a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
@@ -1425,9 +1427,36 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
     way it stays until then, and scrolls if it's taller than the room.
   - Beside a hover or focus tooltip, the info control pins it open. While it's open the item (and
     the info control) name it as their description, for screen readers.
-- **Placement:** beside the item from 640 px (right, flipping left), below it on a phone (flipping
-  above), 8 px clear of the window's edges, at most 20 rem wide (the window less 1 rem on a phone)
-  and as tall as the room, so it never makes the page scroll sideways at 390, 1280 or 1920 px.
+- **Placement:** beside the item from 640 px (right, or left where the item asks: the wide grid's
+  mirrored right side), on the other side where that one lacks the room, and **below it where
+  neither side has 20 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens): a gear
+  card as wide as a tablet's window, or a picker row whose dialog leaves less than that beside it
+  (under about 1,330 px). On a phone it's below the item, flipping above. It keeps 8 px clear of
+  the window's edges, is at most 20 rem wide (the window less 1 rem on a phone) and as tall as the
+  room, so it never makes the page scroll sideways at 390, 1280 or 1920 px.
+- **Where it shows** (M5.67 T2): every item the page shows.
+  - **Gear's slots, at every width:** the cards below 1440 px and both sides of the wide grid, the
+    right side's opening to its left, into the pane. The slot's button is the item: hovering or
+    focusing it opens the tooltip, with the item worn, its enchant, and the set's pieces worn. Its
+    tap or click still opens the picker. An empty slot has none.
+  - **The item picker's rows,** in the dialog and the phone's sheet: the row's button is the item,
+    and its click or tap, Enter or Space still picks it; Tab still walks the rows. The row's
+    enchant line shows only on the item the slot holds, the one wearing it. Beside the dialog from
+    about 1,330 px, it covers nothing; below the row where there's less room, it covers rows under
+    it but lets the pointer through, so nothing it covers stops a pick, and Escape closes it before
+    the picker.
+  - **Not the character sheet,** which shows stats, not items.
+- **The info control shows only where nothing hovers** (the pointer isn't `(hover: hover) and
+  (pointer: fine)`): a phone, or a touch screen at any width. Where a mouse or pen hovers, desktop
+  included, it's left out: hover and keyboard focus already open the tooltip, so the control would
+  add a second way to the same panel, a tab stop on every slot and picker row, and width the
+  fixed-height slots don't have. Principle 4's "show it when there's room" is about what a menu or
+  disclosure hides, and nothing is hidden: the tooltip is one hover or focus away. Where it shows:
+  - on a gear card, at the row's end before the chevron, its 44 px target reaching from the text
+    to the chevron so it takes only 20 px of the row's width (the stats line keeps its one line at
+    390 px);
+  - in the wide grid, at the row's inner end, toward the pane's middle on either side;
+  - on a picker row, at its top right, level with the name.
 
 ## Brand
 

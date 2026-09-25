@@ -1,6 +1,7 @@
 import { Ban, Info, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
+import { useSetup } from '@/app/setup-store'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { SelectContent } from '@/components/select-content'
 import { Button } from '@/components/ui/button'
@@ -10,13 +11,14 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Item } from '@/data/items/types'
-import { useIsDesktop } from '@/hooks/use-media-query'
+import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
+import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
 import { ammoNote, bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
 type Filter = 'bis' | 'all'
@@ -135,6 +137,12 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
   const searchRef = useRef<HTMLInputElement>(null)
+  // Each row's item tooltip (docs/ux.md "Item tooltips"): the setup's rules for the enchant's numbers,
+  // the items worn for a set's count, and the info control only where nothing hovers.
+  const profile = useSetup((s) => s.config.rules.profile)
+  const enchantId = useSetup((s) => s.config.gear[slot]?.enchantId)
+  const wornIds = useMemo(() => Object.values(worn).flatMap((item) => (item ? [item.id] : [])), [worn])
+  const hovers = useMediaQuery('(hover: hover) and (pointer: fine)')
   const candidates = useMemo(
     () =>
       itemData.items
@@ -253,48 +261,53 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
           const details = itemDetails(item, moves)
           return (
             <li key={item.id}>
-              {/* The item's button covers the row, with the whole item as its name; the flag badges sit
-                  above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded content,
-                  which opacity would lift above it. A blocked item stays focusable (aria-disabled), so
-                  its reason is read out. */}
-              <div
-                className={cn(
-                  'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
-                  blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
-                  equipped && 'bg-muted',
-                )}
-              >
-                <button
-                  type="button"
-                  aria-current={equipped || undefined}
-                  aria-disabled={blocked ? true : undefined}
-                  onClick={() => !blocked && onPick(item)}
+              {/* The item's button covers the row, with the whole item as its name; the flag badges and the
+                  info control sit above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded
+                  content, which opacity would lift above it. A blocked item stays focusable (aria-disabled),
+                  so its reason is read out. Its tooltip shows the slot's enchant only on the item wearing it. */}
+              <ItemTooltip item={item} enchantId={equipped ? enchantId : null} profile={profile} worn={wornIds}>
+                <div
                   className={cn(
-                    'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-                    blocked && 'cursor-not-allowed',
+                    'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
+                    blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
+                    equipped && 'bg-muted',
                   )}
                 >
-                  <span className="sr-only">
-                    {item.name}. {itemDescription(item, { bis, meta: details, note, spec })}
-                    {equipped && '. Equipped'}
-                  </span>
-                </button>
-                <ItemSummary
-                  item={item}
-                  bis={bis}
-                  equipped={equipped}
-                  meta={details}
-                  dimmed={Boolean(note)}
-                  note={
-                    note && (
-                      <>
-                        {blocked ? <Ban className="mt-px size-3.5 shrink-0" aria-hidden /> : <Info className="mt-px size-3.5 shrink-0" aria-hidden />}
-                        {note}
-                      </>
-                    )
-                  }
-                />
-              </div>
+                  <ItemTooltipTrigger>
+                    <button
+                      type="button"
+                      aria-current={equipped || undefined}
+                      aria-disabled={blocked ? true : undefined}
+                      onClick={() => !blocked && onPick(item)}
+                      className={cn(
+                        'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                        blocked && 'cursor-not-allowed',
+                      )}
+                    >
+                      <span className="sr-only">
+                        {item.name}. {itemDescription(item, { bis, meta: details, note, spec })}
+                        {equipped && '. Equipped'}
+                      </span>
+                    </button>
+                  </ItemTooltipTrigger>
+                  <ItemSummary
+                    item={item}
+                    bis={bis}
+                    equipped={equipped}
+                    meta={details}
+                    dimmed={Boolean(note)}
+                    note={
+                      note && (
+                        <>
+                          {blocked ? <Ban className="mt-px size-3.5 shrink-0" aria-hidden /> : <Info className="mt-px size-3.5 shrink-0" aria-hidden />}
+                          {note}
+                        </>
+                      )
+                    }
+                  />
+                  {!hovers && <ItemTooltipInfoButton className="relative z-10 -my-1.5 -mr-2" />}
+                </div>
+              </ItemTooltip>
             </li>
           )
         })}

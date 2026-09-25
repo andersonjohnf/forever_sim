@@ -95,6 +95,7 @@ export function WideSlot({
   chip,
   flags,
   flagged,
+  info,
 }: {
   slot: GearSlot
   place: WidePlace
@@ -109,6 +110,8 @@ export function WideSlot({
   flags: ReactNode
   /** The item has a flag to show (`ItemFlags`), after its text or on its enchant line. */
   flagged: boolean
+  /** The item tooltip's info control, where nothing hovers (docs/ux.md "Item tooltips"). */
+  info?: ReactNode
 }) {
   const { mirrored } = place
   // The enchant line, where the row has one and there's a chip or a flag to put on it; else the text is centred.
@@ -159,6 +162,8 @@ export function WideSlot({
           </div>
         </div>
         {item && !place.enchantLine && flags}
+        {/* At the row's inner end, toward the pane's middle on either side. */}
+        {info && <div className="ml-auto flex shrink-0">{info}</div>}
       </div>
     </li>
   )

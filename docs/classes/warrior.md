@@ -671,6 +671,11 @@ ranks from `src/data/talents/warrior.json`**; the "Model" column says what each 
 | 6·3 | **Focused Rage (3), new** | "Reduces the Rage cost of your offensive abilities by 3." | −1 | The ability list is in [§2.3](#23-rage-warrior-specific) |
 | 7·2 | Shield Slam (1), needs Concussion Blow | "…causing 421 to 439 damage, increased by your Block Value…" (rank 1; rank 4 is 640–670) | Damage ×1.87 | Ability ([§3.1](#31-damage-abilities), W15); without it, Protection's row 7 is never used |
 
+**Bastion and Focused Rage's rows.** Blizzard's notes for 1.60.1.70009 say the two swapped rows
+[notes-70009], but that build's client data keeps Bastion at 5·4 and Focused Rage at 6·3. The sim
+follows the client, whose trees it reads, and the default build takes both at full rank, so no
+default moves either way ([open-questions B80](../open-questions.md#b80-bastion-and-focused-rage-which-row-is-which)).
+
 ### 4.4 Classic talents not in the Forever trees
 
 These are gone [cls]:

@@ -1420,6 +1420,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [rage § Rounding](mechanics/rage.md#rounding),
   [rage OQ 9](mechanics/rage.md#open-questions)
 
+#### B80. Bastion and Focused Rage: which row is which
+**Low · M3 · ≤20 (a look at the talent pane)**
+- **Contradiction:** Blizzard's development notes for 1.60.1.70009
+  ([notes](https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-%E2%80%93-updated-september-24/2360696))
+  say the Protection warrior's Bastion and Focused Rage swapped rows, but the build's client data
+  doesn't have the swap: Bastion stays at tier 5, column 4 and Focused Rage at tier 6, column 3, as
+  in 1.60.1.69913 [F] [client](data/client.md#talentsjson) (TraitNode, 1.60.1.70009).
+- **Assumes:** the client's rows, since the sim reads its trees from the client
+  ([talents.md](data/talents.md#tree-versions)). Either way the default Protection build takes both
+  at full rank, so no default or headline moves; a swap would move their build-code positions,
+  which the talent migration maps by name.
+- **Test:** open the Protection tree on the beta and read which row each is on.
+- **Samples:** one look.
+- **Changes:** the trees, once a client build carries the swap (the talent scraper reports it).
+- **Docs:** [warrior §4.3](classes/warrior.md#43-protection-18-talents)
+
 ---
 
 ## Route C: Forever at level 60

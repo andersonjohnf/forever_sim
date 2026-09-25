@@ -60,7 +60,7 @@ test.describe('Protection rotation', () => {
   test('is Balanced by default: the preset picker first on the tab, its line and info, and §5.4’s rows with only the pre-pull pinned', async ({ page }) => {
     const tab = await openProtectionRotation(page)
     await expect(
-      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.', {
+      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS were tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn’t been fully tuned yet.', {
         exact: true,
       }),
     ).toBeVisible()

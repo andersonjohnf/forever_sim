@@ -468,8 +468,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     common priority" for a spec until then. The cat's also says there's no powershifting, and why
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
-    which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS are
-    tuned for the default setup; Balanced, the default, hasn't been fully tuned yet." (the warrior);
+    which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS were
+    tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn't
+    been fully tuned yet." (the warrior, whose presets had a first-pass check on 1.60.1.70009);
     "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
     tuned yet." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
     default, plays as Defensive." (the paladin).

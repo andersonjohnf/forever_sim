@@ -187,7 +187,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   picks; the tanks' sets are like for like; no preset item may have lost its stats.
 - **Sanity-check the headline against the other specs (D29).** A tank below most DPS specs'
   threat, or one tank at twice another, is a finding until a cited mechanic explains it,
-  however well each formula matches its doc.
+  however well each formula matches its doc. There's no numeric target for any spec: a result
+  lands where the cited mechanics put it, and an unexplained gap goes to the guild's tests.
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).
 - **Docs and code stay in sync.** Mechanic constants in `src/sim` cite their doc section

@@ -12,7 +12,7 @@ import { unusedRotationSettings } from '../../index'
 import { buildPlan } from '../../plan/build'
 import { ACTION, COND, SCHOOL, TRIGGER } from '../../plan/types'
 import { CLASSIC_ERA } from '../../rules/profiles'
-import { DARK_SACRIFICE_MANA, SHADOW_FIXED_ROWS } from './shadow'
+import { DARK_SACRIFICE_MANA, SHADOW_APL } from './shadow'
 import { darkSacrifice } from './abilities'
 import { priestManaPlan } from './setup'
 import { abilityOf, damagesOf, events, examplePlan, ID, row, SHADOW, talentCode } from './test-helpers'
@@ -357,8 +357,8 @@ describe('the Shadow priority and its plan (docs/classes/priest.md §6, §8)', (
     expect(unused['priest.shadow.racial.enabled']).toBeUndefined()
   })
 
-  it('Shadowform shows as a fixed row, and Vampiric Embrace is off by default', () => {
-    expect(SHADOW_FIXED_ROWS.map((r) => r.label)).toEqual(['Shadowform'])
+  it('Shadowform is the priority list’s pinned row before the pull, and Vampiric Embrace is off by default', () => {
+    expect(SHADOW_APL.rows.filter((r) => r.pinned).map((r) => [r.id, r.summary?.map((p) => p.text)])).toEqual([['prepull', ['Shadowform']]])
     const embrace = examplePlan({ talents: { 'Vampiric Embrace': 1 }, rotation: { [ID.embrace]: true }, durationMs: 70000 })
     const uses = events(embrace).list.filter((e) => e.kind === 'use').map((e) => e.t)
     expect(uses).toEqual([0, 60000])

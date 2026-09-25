@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { INTERNAL_ID, INTERNAL_WORD, PICTOGRAPH, SENTENCE_END } from './player-voice'
 import { SAVED_SETUPS_KEY } from './saved-setups'
 import { useSetup } from './setup-store'
 import {
@@ -58,16 +59,13 @@ describe('the release notes (docs/architecture.md "Release notes")', () => {
 
   // CLAUDE.md "Release updates": plain text a player reads, and a Discord post is made from it.
   it('is written for players: no emoji, no internals, whole sentences', () => {
-    const banned = /\b(finding|findings|worker|workers|CSP|scraper|scrapers|review|reviews|reviewer|branch|commit|golden|goldens|e2e|milestone|slice)\b/i
-    // Decision, finding and milestone ids: D29, T2R-1, BR5, M2.4.
-    const internalId = /\b[A-Z]{1,3}\d+(\.\d+)?(-\d+)?\b/
     for (const r of RELEASES) {
       for (const text of texts(r)) {
-        expect(text, r.id).not.toMatch(/\p{Extended_Pictographic}/u)
-        expect(text, r.id).not.toMatch(banned)
-        expect(text, r.id).not.toMatch(internalId)
+        expect(text, r.id).not.toMatch(PICTOGRAPH)
+        expect(text, r.id).not.toMatch(INTERNAL_WORD)
+        expect(text, r.id).not.toMatch(INTERNAL_ID)
       }
-      for (const g of r.groups) for (const item of g.items) expect(item, `${r.id} ${g.label}`).toMatch(/[.!?]$/)
+      for (const g of r.groups) for (const item of g.items) expect(item, `${r.id} ${g.label}`).toMatch(SENTENCE_END)
     }
   })
 

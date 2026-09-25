@@ -89,8 +89,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "judgementOfFury",
-      12160594.146498531,
-      23567231.455914147,
+      12077246.631498527,
+      23405703.97184413,
       25126,
       22869,
       1987,
@@ -101,8 +101,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "holyStrike",
-      6273557.007287131,
-      15197691.850153212,
+      6235096.299287135,
+      15104520.785023164,
       17798,
       11165,
       1407,
@@ -113,8 +113,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "consecration",
-      12036041.84999657,
-      23325849.105310984,
+      11960066.83499866,
+      23178609.526233017,
       18151,
       114028,
       12841,
@@ -125,8 +125,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "consecrationRank1",
-      190379.25000000137,
-      368954.98649999965,
+      188485.42500000226,
+      365284.75364999654,
       592,
       2805,
       345,
@@ -137,8 +137,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "hammerOfWrath",
-      3543937.8462663153,
-      6868151.546064119,
+      3531438.5022663143,
+      6843927.817392117,
       4579,
       3989,
       324,
@@ -161,8 +161,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "sealOfFuryProc",
-      15848227.999040723,
-      30713865.86214589,
+      15760555.90904444,
+      30543957.351719532,
       118045,
       109029,
       9016,
@@ -173,8 +173,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "holyShieldProc",
-      8554531.799999075,
-      19894419.154080663,
+      8538989.879999343,
+      19858274.86492646,
       32379,
       32379,
       0,
@@ -247,9 +247,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
   ],
   "dps": {
-    "ci95": 1.1310080506784188,
-    "mean": 447.2089455662913,
-    "stdev": 18.248098028037305,
+    "ci95": 1.127701132065223,
+    "mean": 445.4539852018808,
+    "stdev": 18.19474299224588,
   },
   "dtps": {
     "ci95": 3.51462246619343,
@@ -281,9 +281,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     "spentPerFight": 20399.2,
   },
   "tps": {
-    "ci95": 2.1571770115008038,
-    "mean": 830.3920900497475,
-    "stdev": 34.80468379166981,
+    "ci95": 2.150051680433496,
+    "mean": 826.8537609163799,
+    "stdev": 34.6897210911652,
   },
 }
 `;
@@ -377,8 +377,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "judgementOfFury",
-      12160594.146498531,
-      23567231.455914147,
+      12077246.631498527,
+      23405703.97184413,
       25126,
       22869,
       1987,
@@ -389,8 +389,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "holyStrike",
-      6273557.007287131,
-      15197691.850153212,
+      6235096.299287135,
+      15104520.785023164,
       17798,
       11165,
       1407,
@@ -401,8 +401,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "consecration",
-      12036041.84999657,
-      23325849.105310984,
+      11960066.83499866,
+      23178609.526233017,
       18151,
       114028,
       12841,
@@ -413,8 +413,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "consecrationRank1",
-      190379.25000000137,
-      368954.98649999965,
+      188485.42500000226,
+      365284.75364999654,
       592,
       2805,
       345,
@@ -425,8 +425,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "hammerOfWrath",
-      3543937.8462663153,
-      6868151.546064119,
+      3531438.5022663143,
+      6843927.817392117,
       4579,
       3989,
       324,
@@ -449,8 +449,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "sealOfFuryProc",
-      15848227.999040723,
-      30713865.86214589,
+      15760555.90904444,
+      30543957.351719532,
       118045,
       109029,
       9016,
@@ -461,8 +461,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "holyShieldProc",
-      8554531.799999075,
-      19894419.154080663,
+      8538989.879999343,
+      19858274.86492646,
       32379,
       32379,
       0,
@@ -535,9 +535,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 1.1310080506784188,
-    "mean": 447.2089455662913,
-    "stdev": 18.248098028037305,
+    "ci95": 1.127701132065223,
+    "mean": 445.4539852018808,
+    "stdev": 18.19474299224588,
   },
   "dtps": {
     "ci95": 3.51462246619343,
@@ -569,9 +569,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 20399.2,
   },
   "tps": {
-    "ci95": 2.1571770115008038,
-    "mean": 830.3920900497475,
-    "stdev": 34.80468379166981,
+    "ci95": 2.150051680433496,
+    "mean": 826.8537609163799,
+    "stdev": 34.6897210911652,
   },
 }
 `;

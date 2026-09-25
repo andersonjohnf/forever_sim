@@ -252,10 +252,10 @@ export const rockbiterWeapon = (ap: number): AbilityDef => ({
 // --- Cooldowns and procs from talents (shaman.md#talents) --------------------------------------------
 
 /**
- * Rage of the Farseer (425336) [F] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913):
- * +30% melee attack speed (aura 342) and casting speed (aura 65) for 25 s, a 3 min cooldown, off the GCD
- * (no `StartRecoveryTime`), no cost. Its casting speed does nothing to an instant Lightning Bolt, and
- * shortens a cast one (docs/mechanics/spells.md §4).
+ * Rage of the Farseer (425336) [F] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.70009):
+ * +30% attack speed (aura 342) for 25 s, a 3 min cooldown, off the GCD (no `StartRecoveryTime`), no
+ * cost. Until 1.60.1.70009 it also gave +30% casting speed (aura 65); the build removed it ("no longer
+ * increases the Shaman's Spell Casting Speed"). Its other effect, aura 61, scales the model.
  */
 export const RAGE_OF_THE_FARSEER: AbilityDef = {
   ...SHAMAN,
@@ -265,7 +265,7 @@ export const RAGE_OF_THE_FARSEER: AbilityDef = {
   kind: 'cast',
   cooldownMs: 180000,
   gcdMs: 0,
-  aura: { id: 'rageOfTheFarseer', name: 'Rage of the Farseer', durationMs: 25000, mods: { haste: 30, castHaste: 30 } },
+  aura: { id: 'rageOfTheFarseer', name: 'Rage of the Farseer', durationMs: 25000, mods: { haste: 30 } },
 }
 
 /**
@@ -312,18 +312,18 @@ export const IMPROVED_STORMSTRIKE_AURA: AuraSpec = {
 // --- Elemental (shaman.md#elemental) ------------------------------------------------------------------
 
 /**
- * Lightning Bolt r4 (915), the Classic Era downrank: 50 base points, variance 0.13483146, +0.6 a level
- * from 20 to 25, so 49.63–56.37 at 60; coefficient 0.714, the same as rank 10's (the client gives
- * every rank from 3 up 0.714, and rank 4 is learned at 20, so no low-level penalty applies); 60 mana,
- * a 2.5 s cast [F] [client] (SpellEffect, SpellLevels, SpellPower, SpellCastTimes, 1.60.1.69913).
- * Whether Forever charges a downranking penalty the client doesn't show is [?] (shaman.md, open
- * questions).
+ * Lightning Bolt r4 (915), the Classic Era downrank: 56 base points (50 until 1.60.1.70009), variance
+ * 0.13483146, +0.6 a level from 20 to 25, so 55.22–62.78 at 60; coefficient 0.714, the same as rank
+ * 10's (the client gives every rank from 3 up 0.714, and rank 4 is learned at 20, so no low-level
+ * penalty applies); 60 mana, a 2.5 s cast [F] [client] (SpellEffect, SpellLevels, SpellPower,
+ * SpellCastTimes, 1.60.1.70009). Whether Forever charges a downranking penalty the client doesn't
+ * show is [?] (shaman.md, open questions).
  */
 export const LIGHTNING_BOLT_R4_SPELL: SpellDef = {
   ...LIGHTNING_BOLT_SPELL,
   id: 'lightningBoltRank4',
   name: 'Lightning Bolt (Rank 4)',
-  ...range(50, 0.13483146, 0.6, 20, 25),
+  ...range(56, 0.13483146, 0.6, 20, 25),
 }
 export const LIGHTNING_BOLT_R4 = spellAbility(LIGHTNING_BOLT_R4_SPELL, 60, { castMs: 2500, castHasted: true })
 
@@ -388,8 +388,8 @@ export const LAVA_BURST_FLAME_SHOCK_PCT = 20
  * Lava Burst r3 (1238300), the Elemental tree's tier-7 talent (408490 is its rank 1): 220 base points,
  * variance 0.25325885, +1.3 a level from 60, so 192.14–247.86 at 60; coefficient 0.714; Fire; "If
  * your Flame Shock is on the target, Lava Burst deals 20% increased damage" [F] [client] (SpellEffect,
- * SpellLevels, 1.60.1.69913; tooltip "192 to 248"). New in Forever: Classic Era has no Lava Burst. Its
- * travel time (speed 20) isn't simulated.
+ * SpellLevels, 1.60.1.70009; tooltip "192 to 248"). 1.60.1.70009 raised ranks 1 and 2, not this one.
+ * New in Forever: Classic Era has no Lava Burst. Its travel time (speed 20) isn't simulated.
  */
 export const LAVA_BURST_SPELL: SpellDef = {
   ...SPELL,

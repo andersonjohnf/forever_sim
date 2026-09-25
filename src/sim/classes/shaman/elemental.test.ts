@@ -79,15 +79,15 @@ describe('worked example 1: Lightning Bolt rank 10', () => {
 })
 
 describe('worked example 2: Lightning Bolt rank 4', () => {
-  it('deals (49.63–56.37 + 0.714 × SP) × 1.05 × 0.94 = 334.20 at SP 400 for 54 mana, in 2.0 s', () => {
+  it('deals (55.22–62.78 + 0.714 × SP) × 1.05 × 0.94 = 340.12 at SP 400 for 54 mana, in 2.0 s', () => {
     const plan = elementalPlan({ dropProcs: NO_PROCS, rotation: { [ID.boltDownrank]: true, [ID.boltMaxRank]: 100 } })
     // Rank 4 alone: the rank 10 lines out.
     plan.rotation = plan.rotation.filter((e) => plan.abilities[e.ability].id !== 'lightningBolt')
     expect(ability(plan, 'lightningBoltRank4')).toMatchObject({ costTenths: 540, castMs: 2000, castHasted: true })
     const r4 = damagesOf(plan, 'lightningBoltRank4', 20)
-    expect(Math.min(...r4)).toBeGreaterThanOrEqual((49.6292135 + 0.714 * SP) * 1.05 * RESIST - 1e-6)
-    expect(Math.max(...r4)).toBeLessThanOrEqual((56.3707865 + 0.714 * SP) * 1.05 * RESIST + 1e-6)
-    expectMean(r4, 334.1982)
+    expect(Math.min(...r4)).toBeGreaterThanOrEqual((55.2247191 + 0.714 * SP) * 1.05 * RESIST - 1e-6)
+    expect(Math.max(...r4)).toBeLessThanOrEqual((62.7752809 + 0.714 * SP) * 1.05 * RESIST + 1e-6)
+    expectMean(r4, 340.1202)
   })
 })
 
@@ -328,9 +328,9 @@ describe('the Elemental shaman’s buffs (buffs doc §6.2, §6.3)', () => {
 })
 
 describe('the Enhancement shaman on the caster core (shaman.md "Enhancement on the core")', () => {
-  it('hastes its Lightning Bolt, and Rage of the Farseer carries +30% casting speed', () => {
+  it('hastes its Lightning Bolt; Rage of the Farseer is attack speed only since 1.60.1.70009', () => {
     expect(withTalents(LIGHTNING_BOLT, new Map()).castHasted).toBe(true)
-    expect(RAGE_OF_THE_FARSEER.aura!.mods).toEqual({ haste: 30, castHaste: 30 })
+    expect(RAGE_OF_THE_FARSEER.aura!.mods).toEqual({ haste: 30 })
   })
 
   it('counts a Nature-only line on gear: the Sash of the Windreaver’s 29 for its Nature spells', () => {

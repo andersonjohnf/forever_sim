@@ -53,7 +53,7 @@ test('a mage’s oils: one at a time, and the potion stays beside the rune', asy
   await expect(brilliant).toBeChecked()
   await expect(wizard).not.toBeChecked()
   // A caster sees only oils, on its one weapon (docs/ux.md "Buffs").
-  await expect(wizard).toHaveAccessibleDescription('+30 spell damage, on your main hand (one oil at a time)')
+  await expect(wizard).toHaveAccessibleDescription('+24 spell damage, on your main hand (one oil at a time)')
   await wizard.click()
   await expect(wizard).toBeChecked()
   await expect(brilliant).not.toBeChecked()

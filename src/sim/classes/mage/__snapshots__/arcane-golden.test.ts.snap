@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
   "abilities": [
     [
       "ignite",
-      195274.08274052147,
+      177521.893400474,
       223,
       418,
       0,
@@ -45,9 +45,9 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     ],
   ],
   "dps": {
-    "ci95": 1.0912483696710984,
-    "mean": 435.4310266469636,
-    "stdev": 17.606600775962157,
+    "ci95": 1.0881337172228878,
+    "mean": 435.33375967618895,
+    "stdev": 17.556347832878224,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -79,9 +79,9 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     "spentPerFight": 15915.445,
   },
   "tps": {
-    "ci95": 0.7825349748200545,
-    "mean": 317.81361037453576,
-    "stdev": 12.62570582262305,
+    "ci95": 0.7803881405644428,
+    "mean": 317.74552349499356,
+    "stdev": 12.591068012642076,
   },
 }
 `;

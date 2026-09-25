@@ -177,7 +177,8 @@ Combat-relevant racials for warriors, feral druids and paladins (full texts belo
 - **Night Elf** (warrior, druid): new Elune's Light, +10% crit for 15 s, 3 min cooldown;
   Quickness adds 2% movement speed to +1% dodge.
 - **Gnome** (warrior): Expansive Mind is +5% maximum rage for warriors; new Eureka!: the next 3
-  damaging abilities cost 40% less rage and deal 10% more damage, 2 min cooldown.
+  damaging abilities cost 10% less rage (40% until 1.60.1.70009) and deal 10% more damage, 2 min
+  cooldown.
 - **Undead** (warrior, paladin): new Touch of the Grave, 5% chance on hit to drain health (up to
   5% of max health) for warriors and paladins.
 - **Skyborne** (warrior, druid): Wind Blessed +1% melee, ranged and spell haste; Elemental
@@ -282,7 +283,7 @@ Removed: Nature Resistance (20583).
 | Escape Artist _(Instant, 2 min cooldown)_ | Changed | Instantly escape the effects of any movement impairing effect and gain immunity to those effects for 3 sec. | _0.5 sec cast, 1 min cooldown._ Escape the effects of any immobilization or movement speed reduction effect. |
 | Expansive Mind | Changed | Priest, Mage, Warlock: Maximum Mana increased by 5%. / Rogue: Maximum Energy increased by 5%. / Warrior: Maximum Rage increased by 5%. | Intelligence increased by 5%. |
 | Engineering Specialization | Changed | Your gnomish ingenuity reduces the rate of engineering devices failing or backfiring when you use them by 20%. | Engineering skill increased by 15. |
-| Eureka! _(Instant, 2 min cooldown)_ | New | Rogue: Your next 3 damaging abilities have their Energy cost reduced by 20% and deal 10% more damage. / Warlock, Mage: Your next 3 damaging abilities have their Mana cost reduced by 50% and deal 10% more damage. / Priest: Your next 3 damaging or healing abilities have their Mana cost reduced by 15% and deal 10% more damage or healing. / Warrior: Your next 3 damaging abilities have their Rage cost reduced by 40% and deal 10% more damage. | — (not a Gnome racial in Classic Era) |
+| Eureka! _(Instant, 2 min cooldown)_ | New | Rogue: Your next 3 damaging abilities have their Energy cost reduced by 10% and deal 10% more damage. / Warlock, Mage: Your next 3 damaging abilities have their Mana cost reduced by 10% and deal 10% more damage. / Priest: Your next 3 damaging or healing abilities have their Mana cost reduced by 10% and deal 10% more damage or healing. / Warrior: Your next 3 damaging abilities have their Rage cost reduced by 10% and deal 10% more damage. (1.60.1.70009; until then 20%, 50%, 15% and 40%) | — (not a Gnome racial in Classic Era) |
 
 Removed: Arcane Resistance (20592).
 

@@ -32,7 +32,7 @@ export const CLEARCASTING: AuraSpec = { id: 'clearcasting', name: 'Clearcasting'
  * Improved Scorch's Fire Vulnerability (11095 → 22959) [F] [client] (SpellEffect, SpellAuraOptions,
  * 1.60.1.69913): +3% Fire damage the boss takes from you a stack (aura 270: the caster's own), up to 5,
  * 30 s; each landed Scorch has a 33 / 67 / 100% chance by rank to add one (Classic Era: anyone's Fire,
- * aura 87). It's read at each Ignite tick too (docs/classes/mage.md#improved-scorch).
+ * aura 87). Ignite's ticks don't read it again: the crit that fed them carries it (docs/classes/mage.md#ignite).
  */
 export const FIRE_VULNERABILITY: AuraSpec = {
   id: 'fireVulnerability',
@@ -44,11 +44,12 @@ export const FIRE_VULNERABILITY: AuraSpec = {
 const IMPROVED_SCORCH_CHANCE = [0, 33, 67, 100]
 
 /**
- * Hot Streak (400624 → 400625) [F] [client]: a non-periodic crit of Fireball, Fire Blast or Scorch
- * (and Frostfire Bolt) adds a stack, up to 3, 15 s; each cuts Pyroblast's cast time by 25%, and
- * Pyroblast uses them all (charges 1) [?] (docs/classes/mage.md#hot-streak).
+ * Hot Streak (400624 → 400625) [F] [client] (SpellDuration, SpellAuraOptions, 1.60.1.70009): a
+ * non-periodic crit of Fireball, Fire Blast or Scorch (and Frostfire Bolt) adds a stack, up to 3,
+ * 20 s (15 s before 1.60.1.70009); each cuts Pyroblast's cast time by 25%, and Pyroblast uses them
+ * all (charges 1) [?] (docs/classes/mage.md#hot-streak).
  */
-export const HOT_STREAK: AuraSpec = { id: 'hotStreak', name: 'Hot Streak', durationMs: 15000, maxStacks: 3, mods: {} }
+export const HOT_STREAK: AuraSpec = { id: 'hotStreak', name: 'Hot Streak', durationMs: 20000, maxStacks: 3, mods: {} }
 export const HOT_STREAK_CAST_PCT = 25
 
 /**

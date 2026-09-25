@@ -283,11 +283,14 @@ export const STARSHARDS: AbilityDef = {
 
 /**
  * Dark Sacrifice r5 (1277328), the Undead priest's, new in Forever [F] [client] (SpellEffect,
- * SpellCooldowns, SpellDuration, 1.60.1.69913): 320 mana every 3 s for 15 s (aura 24 at 320 + 1 a level
- * from 60), 1,600 in all, paid with the same health (aura 3), which the sim doesn't track; a 10 min
- * cooldown, on the GCD, no mana cost. Its mana comes as the cast's ticks (`rageTicks` into mana).
+ * SpellCooldowns, SpellDuration, Spell, 1.60.1.70009): 320 mana every 3 s for 15 s (aura 24 at 320 + 1 a
+ * level from 60), 1,600 in all before Spirit, paid with 1,600 health (aura 226, a periodic dummy since
+ * 1.60.1.70009, when it stopped breaking crowd control; aura 3 before), which the sim doesn't track; a
+ * 10 min cooldown, on the GCD, no mana cost. Its mana comes as the cast's ticks (`rageTicks` into mana).
+ * This constant is the Spirit-free spell; the rotation uses `darkSacrifice(spirit)`.
  */
 export const DARK_SACRIFICE_TICK = atLevel60(320, 1, 60, 68)
+export const DARK_SACRIFICE_TICKS = 5
 export const DARK_SACRIFICE: AbilityDef = {
   ...PRIEST,
   id: 'darkSacrifice',
@@ -296,7 +299,19 @@ export const DARK_SACRIFICE: AbilityDef = {
   kind: 'cast',
   cooldownMs: 600000,
   rageTickTenths: 10 * DARK_SACRIFICE_TICK,
-  rageTicks: 5,
+  rageTicks: DARK_SACRIFICE_TICKS,
   rageTickMs: 3000,
   aura: { id: 'darkSacrifice', name: 'Dark Sacrifice', durationMs: 15000, mods: {} },
 }
+
+/**
+ * Dark Sacrifice with your Spirit: 1.60.1.70009's tooltip gives "${$o2+$SPI} Mana", its 1,600 plus your
+ * Spirit [F] [client] (Spell.Description_lang, 1.60.1.70009; "the Mana gained from the ability scales
+ * with Spirit", the build's notes). The Spirit is the sheet's at the pull (as the warlock's Life Tap
+ * reads it), spread evenly over the 5 ticks and rounded down to a tenth of mana [?] (`darkSacrifice`):
+ * the aura's own per-tick amount is the server's.
+ */
+export const darkSacrifice = (spirit: number): AbilityDef => ({
+  ...DARK_SACRIFICE,
+  rageTickTenths: Math.floor((10 * (DARK_SACRIFICE_TICKS * DARK_SACRIFICE_TICK + Math.max(0, spirit))) / DARK_SACRIFICE_TICKS + 1e-9),
+})

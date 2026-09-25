@@ -3,9 +3,12 @@
 // 15 s, every 2 minutes. Off the GCD, no cost; every class presses it on cooldown from the pull.
 //
 // [F] [client] (SpellEffect, SpellAuraOptions, SpellDuration, SpellCooldowns, SpellClassOptions,
-// 1.60.1.69913): four effects on each variant, aura 108 (a % spell modifier) on the class's spell
-// family mask: misc 14 (cost) −40/−20/−50/−50/−15%, misc 0 (damage) +10%, misc 22 (periodic damage)
+// 1.60.1.70009): four effects on each variant, aura 108 (a % spell modifier) on the class's spell
+// family mask: misc 14 (cost) −10% for every class, misc 0 (damage) +10%, misc 22 (periodic damage)
 // +10% on a narrower mask, and aura 4 (a dummy); `ProcCharges` 3, 15,000 ms, `recoveryTime` 120,000.
+// Until 1.60.1.70009 the cost cut was the class's own: warrior −40% rage, rogue −20% Energy, mage and
+// warlock −50% mana, priest −15% ("Changed Eureka on every class to a 10% discount on Mana, Rage, or
+// Energy abilities", the build's development notes). The damage and periodic effects are unchanged.
 //
 // The model's rules are [?] (`eureka`): a charge goes to each use of an ability either modifier
 // covers, as it's paid (a cast-time spell's as it lands), whether it lands or not; the cost is cut,
@@ -32,15 +35,18 @@ export interface EurekaDef {
   cooldownMs: number
 }
 
-const def = (spellId: number, costPct: number): EurekaDef => ({ spellId, costPct, damagePct: 10, dotPct: 10, charges: 3, durationMs: 15000, cooldownMs: 120000 })
+/** Every class's cost cut since 1.60.1.70009 [F] [client]. */
+export const EUREKA_COST_PCT = 10
 
-/** Each class's variant [F] [client]. */
+const def = (spellId: number): EurekaDef => ({ spellId, costPct: EUREKA_COST_PCT, damagePct: 10, dotPct: 10, charges: 3, durationMs: 15000, cooldownMs: 120000 })
+
+/** Each class's variant [F] [client]: its own spell and masks, the same numbers. */
 export const EUREKA: Readonly<Record<EurekaClass, EurekaDef>> = {
-  warrior: def(1259813, 40),
-  rogue: def(1259812, 20),
-  mage: def(1259817, 50),
-  warlock: def(1259821, 50),
-  priest: def(1259823, 15),
+  warrior: def(1259813),
+  rogue: def(1259812),
+  mage: def(1259817),
+  warlock: def(1259821),
+  priest: def(1259823),
 }
 
 /** The resource each class's cut is of, for the results' assumption. */

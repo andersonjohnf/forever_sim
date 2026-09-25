@@ -45,7 +45,7 @@ exports[`golden run (fixed config and seed) > keeps the default Elemental shaman
     ],
     [
       "lightningBoltRank4",
-      17237515.3022236,
+      17483298.371117093,
       31550,
       22889,
       7422,
@@ -69,7 +69,7 @@ exports[`golden run (fixed config and seed) > keeps the default Elemental shaman
     ],
     [
       "lightningOverloadRank4",
-      825576.9839777482,
+      837358.1479977092,
       3038,
       2189,
       712,
@@ -77,9 +77,9 @@ exports[`golden run (fixed config and seed) > keeps the default Elemental shaman
     ],
   ],
   "dps": {
-    "ci95": 1.0289860554621595,
-    "mean": 370.2991140628833,
-    "stdev": 16.602037800079128,
+    "ci95": 1.027042984290962,
+    "mean": 371.7271838153964,
+    "stdev": 16.57068757831351,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -101,9 +101,9 @@ exports[`golden run (fixed config and seed) > keeps the default Elemental shaman
     "spentPerFight": 13994.348,
   },
   "tps": {
-    "ci95": 0.7098285900017334,
-    "mean": 264.1608895530935,
-    "stdev": 11.452634387249011,
+    "ci95": 0.7076753728636864,
+    "mean": 265.11481246724156,
+    "stdev": 11.417893593505623,
   },
 }
 `;

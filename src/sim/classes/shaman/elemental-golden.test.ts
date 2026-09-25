@@ -32,6 +32,9 @@ describe('golden run (fixed config and seed)', () => {
   //   +10% spell damage multiplier while it's up, no longer a flat 10% of the sheet's Nature spell
   //   damage fixed at the pull: DPS 370.34 → 370.30, TPS 264.19 → 264.16 (20,000 fights: 368.76 →
   //   368.72, ± 0.23, so no measurable change).
+  // - 1.60.1.70009 (September 2026): Lightning Bolt rank 4's base points 50 → 56 (55.22–62.78 at
+  //   60): DPS 370.30 → 371.73, TPS 264.16 → 265.11; rank 4's damage +1.4%, its Lightning Overload
+  //   copies with it. Lava Burst rank 3 and Rage of the Farseer (not in the build) are unchanged.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -1,9 +1,8 @@
 // The mage's spells, cooldowns and talents against the Forever client data (docs/classes/mage.md;
 // docs/data/client.md): every number abilities.ts, talents.ts and setup.ts write out, read back from
-// src/data/client/{spells,talents,items,gametables}.json. Three rows the datasets don't hold yet are
-// cited from the client in mage.md instead: Hot Streak's buff (400625: 3 stacks, 15 s) and the mana
-// gems' spells (10058, 10057) and items (8008, 8007); the gems' 2 min category 1153 is read from the
-// Demonic Rune's row, which shares it.
+// src/data/client/{spells,talents,items,gametables}.json. Two rows the datasets don't hold yet are
+// cited from the client in mage.md instead: the mana gems' spells (10058, 10057) and items (8008,
+// 8007); the gems' 2 min category 1153 is read from the Demonic Rune's row, which shares it.
 import { describe, expect, it } from 'vitest'
 import gametablesJson from '@/data/client/gametables.json'
 import itemsJson from '@/data/client/items.json'
@@ -304,9 +303,15 @@ describe('the procs’ auras against the client', () => {
     }
   })
 
-  it('Hot Streak (400624): on a crit (mask 0x10000) of Fireball, Fire Blast or Scorch; 3 stacks, 15 s, 25% of Pyroblast’s cast a stack, not its cost', () => {
+  it('Hot Streak (400624 → 400625): on a crit (mask 0x10000) of Fireball, Fire Blast or Scorch; 3 stacks, 20 s, 25% of Pyroblast’s cast a stack, not its cost', () => {
     expect(spell(400624).auraOptions!.procTypeMask).toEqual([0x10000, 0])
-    expect(HOT_STREAK).toMatchObject({ maxStacks: 3, durationMs: 15000 })
+    const buff = spell(400625)
+    expect(HOT_STREAK).toMatchObject({ maxStacks: buff.auraOptions!.cumulativeAura, durationMs: buff.duration!.duration })
+    expect(HOT_STREAK).toMatchObject({ maxStacks: 3, durationMs: 20000 })
+    expect(buff.auraOptions!.procCharges).toBe(1)
+    // aura 108 misc 10 (cast time), −25%, on Pyroblast's class mask.
+    expect(effect(400625, 0)).toMatchObject({ effectAura: 108, effectMiscValue: [10, 161], effectBasePointsF: -HOT_STREAK_CAST_PCT })
+    expect(effect(400625, 0).effectSpellClassMask![0] & spell(18809).classOptions!.spellClassMask![0]).toBe(0x400000)
     expect(HOT_STREAK_CAST_PCT).toBe(25)
     expect(TALENT_EFFECTS['Hot Streak'](1).map((e) => (e.kind === 'proc' ? [e.proc.trigger, e.proc.fromSpell] : []))).toEqual([
       ['spellCrit', 'fireball'],

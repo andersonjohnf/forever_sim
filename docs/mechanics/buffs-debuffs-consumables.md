@@ -7,8 +7,9 @@ Warrior's, Feral Druid's or Paladin's DPS or TPS. **WoW Forever changed a lot he
 long-duration buffs now last 1 hour. Battle Shout, Blessing of Might and Strength of Earth
 got weaker, and the talents that improved them are gone. Mark of the Wild, Grace of Air,
 Fortitude and Expose Armor got stronger. Trueshot Aura no longer gives melee attack power.
-Windfury Totem became a party aura, and Sanctity Aura, Tranquil Air, Blessing of Sanctuary
-and Faerie Fire (Feral) were removed. Food now gives flat attack power or crit, many glove
+Windfury Totem became a party aura, and Sanctity Aura, Blessing of Sanctuary and Faerie Fire
+(Feral) were removed. Windfury, Grace of Air and Tranquil Air don't stack, even from different
+shamans (1.60.1.70009). Food now gives flat attack power or crit, many glove
 and bracer enchants were buffed, and alchemy gained new elixirs. A new camping system
 gives weaker 1-hour copies of the class buffs. Both factions can field paladins and
 shamans. Class-specific self-buffs (seals, stances, forms, Seal of the
@@ -185,7 +186,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Blessing of Salvation | 1038 | −30% threat generated | **1 h** (C: 5 min) | One Blessing per paladin. **Default off for tanks** | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Greater Blessing of Salvation | 25895 | −30% threat, class-wide | **1 h** (C: 15 min) | Class-wide, so it also hits warrior/druid/paladin tanks of the same class unless they cancel it | Paladin | [F] | [fc-sb-paladin] |
 | Blessing / Greater Blessing of Sanctuary | 20914 / 25899 | **Not in Forever** (C: −24 damage taken per hit, 35 Holy on block) | — | — | Removed spell and talent | [F] | [fc-sb-paladin] (missing list) · [fc-changes] |
-| Tranquil Air Totem | 25908 | **Not in Forever** (C: −20% threat, party) | — | — | Removed | [F] | [fc-sb-shaman] (missing list) |
+| Tranquil Air Totem | 25908 → 25909 | −20% threat, party (aura 10 = −20) | 5 min | An air totem: doesn't stack with Windfury or Grace of Air, **even from another shaman** (1.60.1.70009) | Shaman, if it can be cast at all [?]; not in the catalogue: it only lowers threat, in the air slot Windfury or Grace of Air fills | [F] notes; [?] whether a shaman has it | [dev-70009] · [client] (SpellEffect, SpellMisc, SpellName, 1.60.1.70009): the aura 25909 is in the client and gains the air totems' shared `Attributes[11]` 0x400, but the totem spell 25908 isn't (no row, not an encrypted one), nor in the trainer data (SkillLineAbility). This doc read it as removed until the notes named it |
 | Devotion Aura (r7) | 10293 | +735 armor, party within 30 yd | Aura | One Aura per paladin on a player. **Improved Devotion Aura removed** (C: +25%) | Paladin | [F] | [fc-sb-paladin] · [fc-changes] |
 | Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
@@ -252,14 +253,18 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   attack with **246** extra melee attack power. Lasts 5 min." Windfury Weapon's Forever
   tooltip adds: "When applied to main hand, disables any benefit you personally receive
   from Windfury Totem" [[fc-sb-shaman]]. Client detail ([client] (SpellEffect,
-  SpellAuraOptions, 1.60.1.69913)): 10612 is now a party area aura (dummy aura, 20% proc
-  chance) that triggers 10610 directly, with a **100 ms internal cooldown**
-  (`ProcCategoryRecovery` 100). 10610 grants +246 AP and 1 extra attack; its AP aura has 2
-  charges and lasts 1 s. 10611, the spell that applied the weapon enchant, no longer exists.
+  SpellAuraOptions, SpellName, 1.60.1.70009)): 10612 is now a party area aura, a **proc-trigger
+  aura** (aura 42; a dummy, aura 4, until 1.60.1.70009, when it was also renamed "Windfury
+  Totem" from "Windfury Totem Passive") with a 20% proc chance that triggers 10610 directly, with
+  a **100 ms internal cooldown** (`ProcCategoryRecovery` 100). 10610 grants +246 AP and 1 extra
+  attack; its AP aura has 2 charges and lasts 1 s. 10611, the spell that applied the weapon
+  enchant, no longer exists. Nothing the sim does changes with the aura type: the proc was
+  already modelled as one.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
-  beta confirms. Twisting Windfury with Grace of Air probably no longer works, because the
-  aura disappears with the totem. See [Open questions](#open-questions).
+  beta confirms. Twisting Windfury with Grace of Air no longer works: the aura disappears with
+  the totem, and since 1.60.1.70009 the two don't stack even from different shamans
+  ([dev-70009]). See [Open questions](#open-questions).
 - **`classicEra` [C]:** the totem's enchant takes the main hand's temporary-enchant slot, so
   a main-hand stone does nothing while the totem is up; the off hand keeps its own (which is
   where Classic warriors put an Elemental Sharpening Stone). With a two-hander, no stone
@@ -401,7 +406,7 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Major Healing Potion | 13446 → 17534 | +1050–1750 health | 2 min, potion | Potion | Same | [F] | [fc-items] |
 | Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min (aura 22 with misc 1, the Physical resistance: armor) | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, SpellDuration, 1.60.1.69913) |
 | Free Action Potion | 5634 → 6615 | Immunity to stun and movement impairment for 30 s | 2 min, potion | Potion | Same (no DPS effect) | [F] | [fc-items] |
-| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | Tooltip: **+40 / +28 / +20 Attack Power** for 30 s. Client aura: +40/28/20 flat **physical damage done** (aura 13, school mask 1). No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] tooltip, category · [?] AP vs flat damage | [fc/250943](https://foreverchanges.pro/item/250943) · [client] (SpellEffect, SpellCategories, 1.60.1.69913) |
+| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | **+80 / +56 / +40 attack power and ranged attack power** for 30 s (auras 99 and 124; the tooltip "Increases Attack Power by $s1"). Until 1.60.1.70009 the client gave +40/28/20 flat **physical damage done** (aura 13, school mask 1) under a +40/+28/+20 AP tooltip; the build made them attack power and doubled the values. No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s). Not in the catalogue yet: a melee spec's potion is its own choice (a known gap) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] | [client] (SpellEffect, Spell, SpellCategories, 1.60.1.70009) |
 | Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Thistle Tea | 7676 → 9512 | +100 Energy | Its own 5 min, and the rune category's 2 min (1153) | Shares the runes' category | Rogues, and **druids in Forever** (AllowableClass 1032; C: rogues) | [F] | [client] (ItemEffect, ItemSparse, SpellEffect, 1.60.1.69913) |
 
@@ -466,7 +471,7 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
 | Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
-| Wizard Oil (`wizardOil`) | 20750 → 25121 → enchant 2627 → 25111 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above: the main hand's, one stone or oil at a time | Enchanting | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25111 #0 (aura 13, all magic schools) 30; Classic Era's 23 + 1 |
+| Wizard Oil (`wizardOil`) | 20750 → 25121 → enchant 2627 → 25111 | **+24 spell damage and healing**, Classic Era's value again: 1.60.1.70009 reverted it from +30 (the development notes: "Minor Wizard Oil has been reverted to Classic Era value of 8 spell power, Lesser Wizard Oil to 16, and Wizard Oil to 24"; the minor and lesser oils aren't in the catalogue) | 30 min | As above: the main hand's, one stone or oil at a time | Enchanting | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.70009 and 1.15.9.69722): 25111 #0 (aura 13, all magic schools) and #1 24 (30 in 1.60.1.69913); Classic Era's 23 + 1 |
 | Brilliant Wizard Oil (`brilliantWizardOil`) | 20749 → 25122 → enchant 2628 → 25113 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722): 25113 #0 36, #2 (aura 57) 1, the same in both |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
 | Instant Poison VI | 8928 → 11340 | Enchant 625: each hit of its weapon has a 20% chance of 76–100 Nature damage (spell 11337; C: 112–148); 175 charges | 30 min | One poison per weapon, in place of a stone there; rogues only | Poisons (rogue) | [F] | [client] (ItemEffect, SpellEffect, SpellItemEnchantment, 1.60.1.69913); [rogue §4.1](../classes/rogue.md#41-instant-poison-vi) |
@@ -954,7 +959,10 @@ the weapon's Crusader sits beside the imbue, which is the temporary enchant
   exclusive with the new all-crit Moonkin Aura.
 - Totems: 5 min, 30 yd. Strength of Earth 77 → **53**, Grace of Air 77 → **89**, Windfury
   315 → **246** AP and now a **party aura** instead of a weapon enchant. Enhancing Totems,
-  Improved Weapon Totems, Totemic Mastery and **Tranquil Air** removed.
+  Improved Weapon Totems and Totemic Mastery removed. The site listed **Tranquil Air** as removed
+  too; the 1.60.1.70009 development notes name it among the air totems that no longer stack
+  ([dev-70009]), and its aura 25909 is still in the client, though its totem spell 25908 isn't
+  (§1.2).
 - Sanctity Aura and Improved Devotion Aura removed. Retribution Aura 20 → 30.
 - Both factions have paladins and shamans ([F] client `CharBaseInfo`; the site's own list is
   community-reported).
@@ -1036,7 +1044,7 @@ stones, `buffUnusedReason`) did nothing, so it goes without a note.
 | `blessing:<type>` | Blessing and Greater Blessing of the same type; one Blessing per paladin (model it as one toggle per type) | [F] |
 | `party-crit-aura` | Leader of the Pack, Moonkin Aura, Camp Chair | [F] (Camp Chair vs LotP [?]) |
 | `camp:<copied buff>` | Each camp object and the class buff it copies (Lodestone / Might, Sharpening Wheel / Strength of Earth, Fish Bowl / Kings, Enchanted Lute / Mark of the Wild, First Aid Kit / Fortitude, …) | [F] |
-| `totem:air` (per shaman) | Windfury Totem, Grace of Air Totem | [F] |
+| `totem:air` (one per group, even from different shamans, since 1.60.1.70009) | Windfury Totem, Grace of Air Totem (and Tranquil Air, not in the catalogue) | [F] [dev-70009]; [client] (SpellMisc `Attributes[11]` 0x400 on 10612, 25360 and 25909, 1.60.1.70009) |
 | `totem:earth` (per shaman) | Strength of Earth Totem, Stoneskin Totem | [F] |
 | `flask` | All flasks | [F] |
 | `elixir:strength` | Elixir of Greater Strength (Giants), Juju Power; probably Brute Force, and maybe the new Str elixirs | [C] core, [?] rest |
@@ -1212,12 +1220,13 @@ tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSid
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
 to its `SpellItemEnchantment`, and an enchant to its equip spell. All **115** entries were
 compared (59 buffs, debuffs and consumables, the rogue's four poisons and Thistle Tea among them;
-56 enchants): **34 differ**, **18 are new in Forever**, and the other **63** are the same in both
+56 enchants): **34 differ** (33 since 1.60.1.70009, below), **18 are new in Forever**, and the other **63** (64) are the same in both
 clients. The caster core (2026-09-24, [spells §9](spells.md#9-caster-raid-buffs-and-debuffs))
 added three, the casters' own: Moonkin Aura and Curse of the Elements differ, Power Infusion is
 the same; and Minor Haste now differs, by Forever's casting speed. The Protection paladin's
 threat fixes (T2, 2026-09-24) added four: Nightfin Soup, Wizard Oil and Judgement of the Crusader
-differ, Brilliant Wizard Oil is the same. Two of the 34 differ only in the
+differ, Brilliant Wizard Oil is the same. Since 1.60.1.70009 Wizard Oil is the same too (Forever
+reverted it to +24), so **33** differ and **64** are the same. Two of the 33 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -1309,7 +1318,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Dense Sharpening Stone / Weightstone (`denseSharpeningStone`) | +8 weapon damage | same | 12404 → 16138 → enchant 1643: 8; 12643 → 16622 → 1703: 8 | [C] |
 | Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
 | Nightfin Soup (`nightfinSoup`) | +22 spell damage | **8 mana every 5 s** | 13931 → Mana Regeneration 18194 #0 (aura 24, period 5000): 7 + 1 (Forever: 1249513 #1, aura 227 = 22, to Well Fed 1249520, aura 13) | [C] |
-| Wizard Oil (`wizardOil`) | +30 spell damage | **+24 spell damage** | 20750 → 25121 → enchant 2627 → 25111 #0 (aura 13, all magic schools): 23 + 1 | [C] |
+| Wizard Oil (`wizardOil`) | +24 spell damage (+30 until 1.60.1.70009) | same | 20750 → 25121 → enchant 2627 → 25111 #0 (aura 13, all magic schools): 23 + 1 | [C] |
 | Brilliant Wizard Oil (`brilliantWizardOil`) | +36 spell damage, +1% spell crit | same | 20749 → 25122 → enchant 2628 → 25113 #0: 35 + 1; #2 (aura 57): 0 + 1 | [C] |
 | Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |
 | Major Mana Potion (`majorManaPotion`) | 1350–2250 mana | same | 13444 → 17531 #0: 1349 + 1d901 | [C] |
@@ -1441,12 +1450,12 @@ Each item says what was found and how the guild can check it on the Forever beta
 6. **Food exclusivity.** One Well Fed at a time is assumed. Dirge's ("Increased Stamina")
    and Blessed Sunfruit use different buffs. *Check:* eat Dumplings, then Dirge's or
    Sunfruit, and watch the buff bar.
-7. **Frenzy potions.** Tooltip: +X Attack Power. Client: +X flat physical damage done (aura
-   13, school mask 1) [F] [client] (SpellEffect, 1.60.1.69913). ✅ Cooldown resolved from
-   client data: their spells are in the potion category (4, 120 s), though the item effects
-   carry none ([client] (SpellCategories, 1.60.1.69913)). *Check:* drink one and compare the
-   character sheet AP and white-hit damage; confirm that a Mighty Rage Potion is blocked
-   afterwards.
+7. **Frenzy potions.** ✅ Resolved by 1.60.1.70009: the client now gives attack power and ranged
+   attack power (auras 99 and 124, +80 / +56 / +40), where 1.60.1.69913 gave flat physical damage
+   done (aura 13) under an attack power tooltip [F] [client] (SpellEffect, 1.60.1.70009). ✅
+   Cooldown resolved from client data: their spells are in the potion category (4, 120 s), though
+   the item effects carry none ([client] (SpellCategories, 1.60.1.69913)). *Check:* confirm that
+   a Mighty Rage Potion is blocked afterwards.
 8. **Enchant tooltip vs spell conflicts.** 2H Weapon – Lesser Agility (tooltip +15, spell
    19989 = +9); Bracer – Lesser Deflection and Necklace – Deflection (tooltip +5, spell
    13930 = +2). *Check:* apply the enchant and read the character sheet.
@@ -1576,6 +1585,7 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [fc-sb-paladin]: https://foreverchanges.pro/spellbook/paladin
 [fc-sb-druid]: https://foreverchanges.pro/spellbook/druid
 [fc-sb-shaman]: https://foreverchanges.pro/spellbook/shaman
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696
 [fc-sb-priest]: https://foreverchanges.pro/spellbook/priest
 [fc-sb-mage]: https://foreverchanges.pro/spellbook/mage
 [fc-sb-hunter]: https://foreverchanges.pro/spellbook/hunter

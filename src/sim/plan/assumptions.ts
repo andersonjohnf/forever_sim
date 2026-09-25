@@ -752,7 +752,7 @@ const REGISTRY = {
     docRef: `${MAGE}#open-questions`,
   },
   mageIgnite: {
-    text: 'Ignite pools: each Fire crit adds 40% of its damage to what’s still to come and gives it 2 more ticks, 2 s apart; a tick already due keeps its time. The boss’s Fire Vulnerability and Curse of the Elements apply again at each tick. Forever’s pooling rules are server-side and untested.',
+    text: 'Ignite pools: each Fire crit adds 40% of its damage to what’s still to come and gives it 2 more ticks, 2 s apart; a tick already due keeps its time. The boss’s Fire Vulnerability and Curse of the Elements are in the crit’s damage and don’t apply again at each tick (Forever’s Ignite no longer double dips); the average partial resist does, as it did in Classic. Forever’s pooling rules are server-side and untested.',
     docRef: `${MAGE}#ignite`,
   },
   mageImprovedScorch: {
@@ -926,7 +926,7 @@ const REGISTRY = {
     docRef: `${PRIEST}#35-inner-focus-14751`,
   },
   darkSacrifice: {
-    text: 'Dark Sacrifice’s 1,600 mana comes in 5 ticks over 15 s; the health it costs isn’t tracked.',
+    text: 'Dark Sacrifice’s mana, 1,600 plus your Spirit at the pull, comes in 5 even ticks over 15 s; the health it costs isn’t tracked.',
     docRef: `${PRIEST}#72-race-and-weapons`,
   },
   shadowfiendNotSimulated: {

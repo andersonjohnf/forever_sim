@@ -4483,12 +4483,15 @@ export class Sim {
     if (this.igAura >= 0) this.startAura(this.igAura, this.igNextAt + (this.igTicks - 1) * this.igTickMs)
   }
 
-  /** One tick of the rolling Ignite: the pool ÷ the ticks left, × the boss's damage taken and average resist now; no miss, no crit. */
+  /**
+   * One tick of the rolling Ignite: the pool ÷ the ticks left, × the average resist now; no miss, no
+   * crit. The boss's damage taken isn't applied again: the crit that fed the pool already carries it
+   * (docs/classes/mage.md#ignite, "no longer double dips", 1.60.1.70009).
+   */
   private igniteTick(): void {
     const share = this.igPool / this.igTicksLeft
     this.igPool -= share
-    const school = this.igSchool
-    const damage = share * this.schTaken[school] * this.resistFactor[school]
+    const damage = share * this.resistFactor[this.igSchool]
     this.counters[this.igSource * FIELD_COUNT + FIELD.hits]++
     if (this.trace !== null) this.trace(this.igSource, -1, this.now)
     this.addDamage(this.igSource, damage, damage * this.threatMult)

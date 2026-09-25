@@ -96,6 +96,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Anticipation's last three ranks, Holy Conduit and Conviction. On this seed's 1,000 fights, for
   //   Balanced and Defensive alike: TPS 821.34 → 830.39, DPS 445.72 → 447.21, damage taken 902.7 →
   //   917.4 a second (Max TPS: 855.29, 460.06, 969.9).
+  // - 1.60.1.70009 (September 2026): Wizard Oil, in the Standard raid, is +24 spell damage (was 30):
+  //   TPS 830.39 → 826.85, DPS 447.21 → 445.45 for Balanced and Defensive alike. The build's paladin
+  //   changes (Righteous Fury, Holy Strike, Vengeance) are the paladin slice's, not taken here.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

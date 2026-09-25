@@ -36,7 +36,7 @@
   },
   "counts": {
     "bySource": {
-      "buffsDoc": 48,
+      "buffsDoc": 49,
       "consumable": 82,
       "docs": 580,
       "enchant": 124,
@@ -47,7 +47,7 @@
       "trigger": 311
     },
     "encryptedSpellNameRecords": 884,
-    "notInClient": 0,
+    "notInClient": 1,
     "seeds": 2833,
     "spells": 3109
   },
@@ -55,7 +55,13 @@
     "15366": "Songflower Serenade",
     "22888": "Rallying Cry of the Dragonslayer"
   },
-  "notInClient": [],
+  "notInClient": [
+    {
+      "encrypted": false,
+      "id": 25908,
+      "sources": ["buffsDoc"]
+    }
+  ],
   "racials": {
     "alliance-dwarf": {
       "chrRacesId": 3,
@@ -111502,7 +111508,7 @@
       },
       "name": "Tranquil Air",
       "nameSubtext": "Rank 1",
-      "sources": ["docs"]
+      "sources": ["buffsDoc", "docs"]
     },
     "25916": {
       "categories": {

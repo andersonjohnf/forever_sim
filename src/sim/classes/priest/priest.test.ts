@@ -13,6 +13,7 @@ import { buildPlan } from '../../plan/build'
 import { ACTION, COND, SCHOOL, TRIGGER } from '../../plan/types'
 import { CLASSIC_ERA } from '../../rules/profiles'
 import { DARK_SACRIFICE_MANA, SHADOW_FIXED_ROWS } from './shadow'
+import { darkSacrifice } from './abilities'
 import { priestManaPlan } from './setup'
 import { abilityOf, damagesOf, events, examplePlan, ID, row, SHADOW, talentCode } from './test-helpers'
 
@@ -128,8 +129,12 @@ describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
     near(counter(many, r, FIELD.crits) / counter(many, r, FIELD.casts), 0.25, 2000)
   })
 
-  it('9. Dark Sacrifice: 5 ticks of 320, 1,600 mana over 15 s, once the Undead is missing that much', () => {
+  it('9. Dark Sacrifice: 5 ticks of 320 + Spirit ÷ 5, 1,600 mana plus your Spirit over 15 s, once the Undead is missing that much', () => {
     expect(DARK_SACRIFICE_MANA).toBe(1600)
+    // 1.60.1.70009's tooltip: ${$o2+$SPI}. At 250 Spirit, 5 ticks of 370: 1,850.
+    expect(darkSacrifice(250).rageTickTenths * darkSacrifice(250).rageTicks).toBe(18500)
+    expect(darkSacrifice(0).rageTickTenths).toBe(3200)
+    expect(darkSacrifice(251).rageTickTenths).toBe(3702)
     const plan = examplePlan({
       race: 'horde-undead',
       talents: { 'Mind Flay': 1 },
@@ -137,8 +142,10 @@ describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
       durationMs: 120000,
       manaTenths: 50000,
     })
+    const spirit = plan.abilities.find((a) => a.id === 'darkSacrifice')!.rageTickTenths * 5 - 16000
+    expect(spirit).toBeGreaterThan(0)
     const agg = runChunk(plan, 0, 1, new Sim(plan))
-    expect(agg.manaBySource[row(plan, 'darkSacrifice')]).toBe(16000)
+    expect(agg.manaBySource[row(plan, 'darkSacrifice')]).toBe(16000 + spirit)
   })
 })
 

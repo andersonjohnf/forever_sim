@@ -2,6 +2,8 @@
 // Mac, runs Simulate from anywhere on the page, a text or number field included, at every width. It
 // takes a modifier, so it never fires from typing alone (WCAG 2.1.4), and it stands aside while you're
 // filling in a sheet's or dialog's own form, or choosing from a menu or list, where Enter is theirs.
+// It listens in the capture phase and stops the key once it runs, so a focused control that also acts
+// on Enter (a Select's trigger opens, a drag handle picks its row up) never sees it (DL-3).
 import { useEffect } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSim } from '@/app/sim-store'
@@ -9,14 +11,14 @@ import { useSim } from '@/app/sim-store'
 /** The parts of a key event the shortcut reads; a KeyboardEvent has them all. */
 export type ShortcutEvent = Pick<
   KeyboardEvent,
-  'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey' | 'repeat' | 'isComposing' | 'defaultPrevented' | 'preventDefault'
+  'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey' | 'repeat' | 'isComposing' | 'defaultPrevented' | 'preventDefault' | 'stopPropagation'
 >
 
 /** The parts of the document the shortcut looks at; `document` has them all. */
 export type ShortcutDocument = Pick<Document, 'activeElement' | 'querySelector' | 'querySelectorAll'>
 
 /** Ctrl+Enter or ⌘+Enter, with no other modifier: not a key held down, nor Enter ending an IME's composition. */
-export function isSimulateShortcut(e: Omit<ShortcutEvent, 'defaultPrevented' | 'preventDefault'>): boolean {
+export function isSimulateShortcut(e: Omit<ShortcutEvent, 'defaultPrevented' | 'preventDefault' | 'stopPropagation'>): boolean {
   return e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && !e.repeat && !e.isComposing
 }
 
@@ -74,11 +76,13 @@ export interface SimulateTarget {
  * Runs Simulate for Ctrl+Enter or ⌘+Enter, as its button does, and says whether it did. Nothing while
  * a run is under way (the button is Cancel then), while a form is open over the page (formOpen), or
  * when something on the page already handled the key. A focused field commits its value first, so the
- * run takes what you typed.
+ * run takes what you typed. When it runs it takes the key, and stops it, so the focused control's own
+ * Enter doesn't also act (it's heard first, in the capture phase: useSimulateShortcut).
  */
 export function handleSimulateShortcut(event: ShortcutEvent, doc: ShortcutDocument, target: SimulateTarget): boolean {
   if (event.defaultPrevented || !isSimulateShortcut(event) || formOpen(doc) || target.busy()) return false
   event.preventDefault()
+  event.stopPropagation()
   commitField(doc.activeElement)
   target.run()
   return true
@@ -90,13 +94,17 @@ const SIMULATE: SimulateTarget = {
   run: () => void useSim.getState().run(useSetup.getState().config),
 }
 
-/** Mounts the shortcut on the window, once, in the app shell (src/App.tsx). */
+/**
+ * Mounts the shortcut on the window, once, in the app shell (src/App.tsx), in the capture phase: the
+ * window hears a key before anything on the page, React's handlers included, so stopping it there
+ * keeps it from the focused control.
+ */
 export function useSimulateShortcut(): void {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       handleSimulateShortcut(event, document, SIMULATE)
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', onKeyDown, { capture: true })
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
   }, [])
 }

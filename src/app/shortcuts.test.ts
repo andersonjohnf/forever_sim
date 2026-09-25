@@ -16,6 +16,7 @@ const key = (over: Partial<ShortcutEvent> = {}) => ({
   defaultPrevented: false,
   ...over,
   preventDefault: vi.fn<() => void>(),
+  stopPropagation: vi.fn<() => void>(),
 })
 
 interface FakeElement {
@@ -122,6 +123,8 @@ describe('handleSimulateShortcut', () => {
     expect(handleSimulateShortcut(event, doc({ active: element({ tagName: 'INPUT', type: 'text', log }) }), sim)).toBe(true)
     expect(log).toEqual(['blur', 'focus {"preventScroll":true}', 'run'])
     expect(event.preventDefault).toHaveBeenCalledOnce()
+    // Stopped, so a focused Select's trigger or drag handle doesn't also act on Enter (DL-3).
+    expect(event.stopPropagation).toHaveBeenCalledOnce()
   })
 
   it('runs from a button or the page too', () => {
@@ -145,6 +148,7 @@ describe('handleSimulateShortcut', () => {
       expect(handleSimulateShortcut(event, document, sim)).toBe(false)
       expect(sim.run).not.toHaveBeenCalled()
       expect(event.preventDefault).not.toHaveBeenCalled()
+      expect(event.stopPropagation).not.toHaveBeenCalled()
     }
   })
 })

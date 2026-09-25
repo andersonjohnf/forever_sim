@@ -1456,8 +1456,10 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
 - **Ctrl+Enter, or ⌘+Enter on a Mac, runs Simulate** from anywhere on the page at every width,
-  as the button does (decision D34, `src/app/shortcuts.ts`). In a text or number field the field
-  commits what you typed first and keeps focus, so the run takes the new value. It does nothing
+  as the button does (decision D34, `src/app/shortcuts.ts`). It's heard before the focused control
+  and taken when it runs, so a control that also acts on Enter doesn't: a focused select (the
+  Rotation preset) stays closed and a drag handle doesn't pick its row up. In a text or number field
+  the field commits what you typed first and keeps focus, so the run takes the new value. It does nothing
   while a run is under way, or while a sheet, dialog or popover with a form of its own (the item
   picker, Setups, a pasted build code, the enchant picker) or an open menu or list has the key;
   a sheet without one, such as the phone's results, leaves it on. It always takes a modifier, so

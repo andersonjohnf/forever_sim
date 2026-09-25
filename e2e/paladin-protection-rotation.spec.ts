@@ -18,12 +18,12 @@ const DEFAULT_ORDER = [
   'holyShield',
   'judgement',
   'swiftJudgement',
-  'hammerOfTheRighteous',
-  'holyStrike',
   'exorcism',
+  'hammerOfWrath',
   'consecration',
   'consecrationRank1',
-  'hammerOfWrath',
+  'hammerOfTheRighteous',
+  'holyStrike',
 ]
 const BALANCED_LINE = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 

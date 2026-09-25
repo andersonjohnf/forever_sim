@@ -209,7 +209,8 @@ every tree, talent and max rank, position by position.
 | Druid | `5532220115501351-05-` | Balance (druid.md) | 41/5/0 | yes | yes |
 | Druid | `05302001-05-5050035103113251` | Restoration (the old site's popular build) | 11/5/35 | yes | yes |
 | Paladin | `52003-503-05215331001330321` | Retribution default on 1.60.1.70009's trees, its refunded points placed by measured DPS ([paladin.md](../classes/paladin.md#retribution-defaults)) | 10/8/33 | new | yes |
-| Paladin | `50003-0530213321301551-50201` | Protection default, the guild's lead theorycrafter's build on 1.60.1.70009's trees, its refunded points placed by measured Balanced value ([paladin.md](../classes/paladin.md#protection-defaults)) | 8/35/8 | new | yes |
+| Paladin | `50003-0530213321301551-5021` | Protection default, the guild's lead theorycrafter's build on 1.60.1.70009's trees, its refunded points placed by measured Balanced value with the row order and thresholds (Holy Conduit 1; [paladin.md](../classes/paladin.md#protection-defaults)) | 8/35/8 | new | yes |
+| Paladin | `50003-0530213321301551-50201` | The 1.60.1.70009 slice's Protection default (Conviction 1), kept for saved setups | 8/35/8 | new | yes |
 | Paladin | `50003-503-05205331001330321` | The talent migration's interim Retribution default, 3 points unspent, kept for saved setups | 8/8/32 | new | yes |
 | Paladin | `50003-0530313321301551-502` | The talent migration's interim Protection default (Anticipation 3), kept for saved setups | 8/36/7 | new | yes |
 | Paladin | `-0530513321301551-50215` | The former Protection default (T2's fix round), kept for saved setups | 0/38/13 | yes | yes |

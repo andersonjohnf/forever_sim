@@ -118,6 +118,7 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
       [ID.exorcismMana]: 0,
       [ID.consecrationMana]: 20,
       [ID.consecrationRank1]: true,
+      [ID.consecrationRank1Mana]: 10,
       [ID.hammerOfWrath]: true,
       [ID.hammerOfWrathMana]: 0,
       [ID.trinkets]: true,
@@ -206,9 +207,10 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
   const ctx = { hasShield: true, maxMana: 2000, executePhase: true, mainHand: { speedSec: 1.5, twoHand: false } }
   const ids = (r: ReturnType<typeof protectionRotation>) => r.rotation.map((e) => r.abilities[e.ability].id)
 
-  it('the default without Judgement of the Crusader: the seal, Holy Shield, Judgement, Swift Judgement, Holy Strike, Consecration (ranks 5 and 1) and Hammer of Wrath', () => {
+  it('the default without Judgement of the Crusader: the seal, Holy Shield, Judgement, Swift Judgement, Hammer of Wrath, Consecration (ranks 5 and 1) and Holy Strike', () => {
     const r = protectionRotation(NO_JOTC, TALENTS, () => -1, ctx)
-    expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
+    // The paladin review's PR-1: Hammer of Wrath and Consecration above Holy Strike.
+    expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'hammerOfWrath', 'consecration', 'consecrationRank1', 'holyStrike'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
     // The duty first (D26's fixed rule): Devotion Aura 4.5 s before the pull, Righteous Fury at 3 s, then the seal.
@@ -246,7 +248,7 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
 
   it('needs the talents and a shield for Holy Shield, the talent for Swift Judgement, and Undead or Demons for Exorcism', () => {
     const none = protectionRotation(NO_JOTC, new Map(), () => -1, ctx)
-    expect(ids(none)).toEqual(['sealOfFury', 'judgementOfFury', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
+    expect(ids(none)).toEqual(['sealOfFury', 'judgementOfFury', 'hammerOfWrath', 'consecration', 'consecrationRank1', 'holyStrike'])
     expect(none.abilities[1].clearcastable).toBeUndefined()
     const noShield = protectionRotation(NO_JOTC, TALENTS, () => -1, { ...ctx, hasShield: false })
     expect(ids(noShield)).not.toContain('holyShield')
@@ -364,8 +366,9 @@ describe('Holy Shield’s charges (paladin.md#other-abilities; combat-tables §8
 
 describe('Swift Judgement (paladin.md#protection-tree)', () => {
   it('ends Judgement’s cooldown once a minute, right after a Judgement, and the Judgement it frees costs nothing', () => {
-    // Without buffs, Consecration off, so mana never delays a judgement.
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { ...NO_JOTC, [ID.consecration]: false } })
+    // Without buffs, Consecration off, so mana never delays a judgement; no execute phase, whose Hammer
+    // of Wrath casts (above Holy Strike since the paladin review's PR-1) hold Judgement for 1 s each.
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0, executePct: 0 }, rotation: { ...NO_JOTC, [ID.consecration]: false } })
     const judge = 1
     expect(plan.abilities.some((a) => a.id === SWIFT_JUDGEMENT.id)).toBe(true)
     expect(plan.freeCastAura).toBe(auraOf(plan, 'swiftJudgement'))

@@ -53,9 +53,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'paladin-retribution': '52003-503-05215331001330321',
   // docs/classes/paladin.md#protection-defaults: 8/35/8, the guild's lead theorycrafter's build (2026-09-24) on
   // 1.60.1.70009's trees, by name, with Improved Holy Strike's 2 refunded points placed by measured Balanced value
-  // (D28, D30): Divine Strength 5 (Improved Seals' row needs 5 points above it) and Conviction 1; the optimizer (O4)
-  // replaces it.
-  'paladin-protection': '50003-0530213321301551-50201',
+  // (D28, D30), searched with the row order and Consecration's thresholds (the paladin review's PR-1): Divine
+  // Strength 5 (Improved Seals' row needs 5 points above it) and Holy Conduit 1; the optimizer (O4) replaces it.
+  'paladin-protection': '50003-0530213321301551-5021',
   'shaman-enhancement': '050003-055030031005102251-05005', // docs/classes/shaman.md#talents
   'shaman-elemental': '5504301300103051-04-053250000001', // docs/classes/shaman.md#elemental-defaults
   // docs/classes/rogue.md#71-talents: Combat swords 18/33/0, Assassination daggers 38/11/2, Subtlety daggers 15/0/36

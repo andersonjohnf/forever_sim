@@ -116,6 +116,12 @@ describe('golden run (fixed config and seed)', () => {
   //   druid's, 200 spell damage [?], not the Balance druid's 389, and unrounded (PR-9): 38 a landed
   //   swing, was 53. Only the Thorns row moves: TPS 744.85 → 738.69, DPS 464.36 → 458.32, for Balanced
   //   and Defensive alike. With Thorns set back to 53, this snapshot reproduces exactly.
+  // - The paladin review's PR-1 (paladin.md "Protection defaults", "Priority"): the list's default order
+  //   puts Exorcism, Hammer of Wrath and Consecration (ranks 5 and 1) above Holy Strike, and the
+  //   refunded point Conviction 1 goes to Holy Conduit 1, searched together with the order and the
+  //   thresholds (which held, 20% and 10%). On this seed's 1,000 fights, Balanced and Defensive alike:
+  //   TPS 738.69 → 750.19, DPS 458.32 → 465.18, damage taken 917.2 → 918.7 a second; Consecration
+  //   goes down more often and Holy Strike a little less.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

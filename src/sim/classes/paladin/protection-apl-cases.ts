@@ -47,6 +47,25 @@ export const PRE_LIST_OPTIONS: readonly Frozen[] = [
   number('paladin.protection.rune.missingMana', 0, 5000, 50),
 ]
 
+/**
+ * The list's order before the paladin review's PR-1 moved Consecration and Hammer of Wrath above Holy
+ * Strike (and Exorcism with them): the rows as the rotation had them before the list, which each case
+ * keeps, so a change of the default order isn't a change to what the old rotation played.
+ */
+export const PRE_LIST_ORDER: readonly string[] = [
+  'prepull',
+  'seal',
+  'holyShield',
+  'judgement',
+  'swiftJudgement',
+  'hammerOfTheRighteous',
+  'holyStrike',
+  'exorcism',
+  'consecration',
+  'consecrationRank1',
+  'hammerOfWrath',
+]
+
 /** Talent builds: the default, the popular one, T2's, and one short of Holy Shield, Swift Judgement and Iron Creed. */
 const TALENTS = ['-0530513321301551-50215', '2-4530513321301551-502', '2-4530013321301551-50205', '-0530513321301-50215']
 const RACES = ['alliance-human', 'alliance-dwarf', 'horde-undead', 'horde-tauren']
@@ -92,6 +111,7 @@ export function protectionCases(count: number, seed = 20260924): SimConfig[] {
       gear,
       buffs: { ...base.buffs, enabled: [...base.buffs.enabled.filter((id) => !CONSUMABLES.includes(id)), ...consumables] },
       rotation,
+      rotationOrder: [...PRE_LIST_ORDER],
       fight: { ...base.fight, executePct: rnd() < 0.7 ? 20 : 0, creatureType: pick(CREATURES) },
       rules: { ...base.rules, jotcBonus: rnd() < 0.7 ? 'coefficient' : 'flat', hotrWeaponDps: rnd() < 0.7 ? 'withAttackPower' : 'weaponOnly' },
       run: { mode: 'fixed', iterations: 100, seed: 1 },

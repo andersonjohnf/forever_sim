@@ -50,8 +50,8 @@ truncate rather than scroll the page sideways (an e2e test walks every spec at 3
 the specs under their class's heading, each class a group named by it, so a screen reader tells a
 warrior's Protection from a paladin's too. Then
 **Share** (copies a link to this setup) and an overflow menu with Setups…
-([Setups](#setups)), About & data, Release history ([What's new](#whats-new)), Theme (system,
-light, dark) and Reset setup. Menu items are 44 px tall.
+([Setups](#setups)), About & data, Release history ([What's new](#whats-new)), Coming soon
+([Coming soon](#coming-soon)), Theme (system, light, dark) and Reset setup. Menu items are 44 px tall.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 and TPS simulator for World of Warcraft: Forever", since Protection, the first tank spec, shipped; "A DPS
@@ -108,6 +108,19 @@ Players hear what changed from the app itself, in the words of the Discord posts
 - Each release, in both, is headed by its time in the viewer's own zone, as the release stamp
   reads ("2:46 PM EDT · Sep 24, 2026"), then its groups: a small uppercase label in the muted text
   colour ("Tanks", "DPS specs", "Your setup") over a bulleted list. Releases are divided by a rule.
+
+### Coming soon
+
+Players see what's planned from the app too, in the same player voice as the release notes: every
+agreed milestone, in the order it's coming, from `src/app/roadmap.ts`
+([architecture, "Release notes"](architecture.md#release-notes)).
+- **Coming soon**, in the header's menu right after Release history, is Release history's pair: the
+  same side sheet (`src/app/notes-sheet.tsx`), full width on a phone, with a 44 px Close in the
+  corner, focus on its title, and back to the menu's button when it closes.
+- "Coming soon", then "What's planned, in the order it's coming. Plans can change." Then each
+  entry: its name as the heading, with when it's coming beside it as a small label. **Next update**
+  stands out as Release history's **Latest** does; **Planned** and **Later** are outlined in the
+  muted text colour. Under it, its plans as a bulleted list. Entries are divided by a rule.
 
 **Footer:** "Game data from" the wago.tools logo (decision D16, its logo exactly as its branding
 guidelines supply it), then "An app by" the Decades mark ([Brand](#brand)): side by side on a wide

@@ -27,6 +27,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     items: [
       'Every spec’s Rotation tab becomes a priority list, as Fury’s and the tanks’ already are: drag a row, or use Move up and Move down, to play the order you play.',
       'Turn any step off, and change its settings in place.',
+      'Your order is saved with your setup and travels in share links.',
       'Warlocks can pick Incinerate as their filler when it’s talented, and Searing Pain works with Demonic Brand.',
     ],
   },
@@ -37,8 +38,11 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     items: [
       'Tell it what you’re after, DPS, TPS, Defense or Balanced, and it finds your best talents, gear and rotation settings by simulating them.',
       'Gear is searched slot by slot from the pre-raid pool, enchants included, within the item levels, sources and faction you pick, leaving the slots you lock alone.',
-      'Tanks can ask for an effective health floor, crit immunity or crush immunity.',
+      'Keep or rule out talents, or ask for a minimum in a tree; tanks can also ask for an effective health floor, crit immunity or crush immunity.',
+      'Every option runs the same fights, the clear losers drop out early, and the winner is checked again on fresh fights, so a lucky run doesn’t win.',
       'It has its own screen in the menu, and a Find the best button on Talents, Gear and Rotation. It says how long a search will take before it starts, and you can cancel it.',
+      'Searches have a set limit, so none runs forever, and on a phone a search fits the time you pick.',
+      'The top results show their DPS, TPS and damage taken, and one tap applies the one you want.',
       'Every spec’s defaults then come from the Optimizer’s results.',
     ],
   },
@@ -47,7 +51,8 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     title: 'Multi-target',
     when: 'Planned',
     items: [
-      'Fight up to 5 enemies at once.',
+      'Fight up to 5 enemies at once, and set how long the extra ones are up.',
+      'Each enemy keeps its own debuffs, bleeds and threat.',
       'Cleave, Whirlwind, Sweeping Strikes and Thunder Clap for warriors, Swipe for bears, and Consecration for paladins.',
       'Results add up damage and threat across the enemies, and split them by enemy.',
     ],
@@ -58,6 +63,8 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     when: 'Planned',
     items: [
       'See how your spec scales with gear that isn’t out yet: add up to 100% to the stats from your items, or a set amount of any one stat, and compare.',
+      'Every stat items carry, the tanks’ block and avoidance included; weapons hit harder with the percent, as better weapons would.',
+      'Off unless you turn it on, and the results say when a boost is on.',
     ],
   },
   {
@@ -65,9 +72,9 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     title: 'Analysis tools',
     when: 'Planned',
     items: [
-      'Stat weights for your setup.',
+      'Stat weights measured by the sim for your exact setup.',
       'Compare two items, or two talent builds, side by side.',
-      'A chart of how your DPS spreads across fights, and a timeline of each fight.',
+      'A chart of how your DPS spreads across fights, a timeline of each fight, and a combat log.',
     ],
   },
   {
@@ -83,6 +90,6 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     id: 'raid-gear',
     title: 'Raid gear',
     when: 'Later',
-    items: ['Epic items from the raids in the gear picker.'],
+    items: ['Epic items from the raids in the gear picker and the Optimizer.'],
   },
 ]

@@ -350,7 +350,8 @@ SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWou
   about 17 ticks; a refresh that kept the timer would give about 60, worth about 2% of Fury's
   DPS and 1.5% of Arms'. The results' assumptions say so.
 - **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
-  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit (its Forever
+  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick spell's flags may
+  say otherwise (Q36). It cannot crit (its Forever
   bleed lacks the periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc
   on-hit effects.
 - **Spell.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
@@ -2860,6 +2861,19 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     Sunder threat (seed 12345, 20,000 fights; the defaults after P2's verification). **Test:** with a rogue's 5-point Expose Armor on a
     mob, use Sunder Armor and watch for the error, the debuff, and the threat macro
     ([open-questions B28](../open-questions.md#b28-sunder-armor-vs-expose-armor)).
+
+36. **Deep Wounds and your damage modifiers.** Each tick deals its damage through spell **412613**
+    ("Deep Wound", a school-damage effect), which carries the flags Ignite's tick 412545 took when
+    Ignite stopped double dipping ([mage.md](mage.md#ignite)): `Attributes[6]` 0x20000000 ("ignore
+    caster damage modifiers") since 1.60.1.69913, and `Attributes[10]` 0x2, which 412613 and 412545
+    alone gained in 1.60.1.70009 [F] [client] (SpellMisc, 1.60.1.69913 and 1.60.1.70009). If the
+    flag means what it says, Death Wish, Enrage, Two-Handed Weapon Specialization and the stance
+    don't raise the ticks, which [§2.5](#25-crits-impale-flurry-deep-wounds) applies to every one
+    [C] [ws-spell]; the sim keeps applying them [?] until a test settles it. Unlike Ignite, the
+    bleed is built from the weapon and attack power, not from a hit that already carried the
+    modifiers, so ignoring them would lower it rather than end a double count. **Test:** with and
+    without Death Wish (and Enrage up or not), read the Deep Wound ticks in the combat log against
+    the same weapon and attack power.
 
 ## 10. Sources
 

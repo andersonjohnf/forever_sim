@@ -39,16 +39,17 @@ When a design decision isn't covered here, make it, then add it here.
 
 | Width | Layout |
 | --- | --- |
-| **≥ 1920 px** | As wide, and the results pane is 38% of the page, between 46 and 68 rem (`3xl:`, a breakpoint of its own in `src/index.css`). The page stops growing at 2560 px and sits centred. |
-| **1440–1919 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`). The header spans the same width. The setup takes the rest and the results pane is 30 rem, 32 px from it. |
+| **≥ 1440 px** | The wide layout ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)): the page drops its 1280 px cap and fills the window, with 24 px gutters (`wide:`), up to 2560 px, past which it stops growing and sits centred. The header spans the same width. The results pane sits 32 px from the setup and **grows smoothly with the window**, with no step: 30 rem at 1440 px, then a rem for every 48 px past it, so 33.3 rem at 1600, 40 rem at 1920 and 53.3 rem at 2560, capped at 60 rem (`clamp()` in `src/App.tsx`, review finding DA-2). Past 2560 px the pane still follows the window, to that cap at 2,800 px, taking the width from the setup. The setup takes the rest: 55 rem at 1440, 75 at 1920, 101.7 at 2560. A classic scrollbar (Windows, 15–17 px) takes about 1 rem off the setup pane, never the results pane, which follows the window's width. |
 | **1024–1439 px** | A header, then two columns, capped at 1280 px. **Left:** the setup, as section tabs. **Right:** a sticky results panel, 22 rem, with the Simulate button. |
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. The bar's headline is only the value and the change's arrow, at every width; the ± and the change's amount are in the sheet. Below 360 px only the Details button's outline and chevron fit. The button's outline takes `--input`, like any outline button, and the Simulate button has no icon in the bar. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **From 1024 px, where the results sit beside the setup,** the first thing in the page is a **Skip to
 results** link, hidden until it has keyboard focus (then a 44 px button at the top left, over the
-header). It moves focus to the results pane, so the next Tab reaches Simulate; the pane takes focus
-only then. It moves focus in script, not by its `#results` hash, which share links own.
+header). It moves focus to the results pane's **Simulate** button (Run again after a run, Cancel
+during one), whose focus ring shows where it landed; the pane itself draws no ring, so focusing it
+changed nothing you could see (review finding DA-4). It moves focus in script, not by its
+`#results` hash, which share links own.
 
 **At every desktop width the results pane never runs past the viewport:** it's sticky, and its
 details scroll inside it, with a fade at each edge that has more past it ([Results](#results)).
@@ -58,7 +59,7 @@ pane is the container `setup` and the results pane the container `results` (Tail
 `@container/setup` and `@container/results`), so a section styles itself by the width it
 actually has (`@min-[56rem]/setup:…`). Below 1440 px neither is a container, so those queries
 match nothing and the layouts under 1440 px stay as they are. Only the shell (`src/App.tsx`, the
-header, the section tabs) uses the `wide:` and `3xl:` breakpoints; `useIsWide()` in
+header, the section tabs) uses the `wide:` breakpoint; `useIsWide()` in
 `src/hooks/use-media-query.ts` is its script's twin.
 
 **Header:** the Decades lockup ([Brand](#brand)): the guild's crest, "Forever Sim" (the page's one
@@ -828,9 +829,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the color says that on screen: "up 12.3 from the last run, better" (`Delta` in
   `src/features/results/delta.tsx`). Under it, one line says what was run: "2,750 fights of 180 s ·
   Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
-  varied fights; the run time is labelled. The Simulate button names its shortcut, Ctrl+Enter or
-  ⌘+Enter, in `aria-keyshortcuts` and in its tooltip ("Simulate (Ctrl+Enter or ⌘+Enter)", or "Run
-  again (…)" after a run).
+  varied fights; the run time is labelled. The Simulate button names its shortcut in
+  `aria-keyshortcuts` (both keys, `Control+Enter Meta+Enter`) and in a tooltip that names only the
+  platform's own key: "Simulate (⌘+Enter)" on a Mac, iPhone or iPad, "Simulate (Ctrl+Enter)"
+  elsewhere, or "Run again (…)" after a run (`src/features/results/shortcut-label.ts`). The
+  tooltip opens when a mouse or pen hovers the button, not on keyboard focus: there it stayed up
+  after a keyboard run and covered the pane's first line (review finding DA-5). It's the one
+  tooltip that doesn't open on focus ([Accessibility](#accessibility)): what it says is the
+  button's own name, which focus reads, and the shortcut, which `aria-keyshortcuts` gives
+  assistive tech.
 - **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
   put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
   that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a
@@ -842,16 +849,23 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     remembers them (`forever-sim:results-closed` in `localStorage`, a list of the closed ones; a
     value it can't read counts as none closed). **Assumptions** stays collapsed: it's long and read
     rarely. The wider pane keeps each breakdown row's first outcome line on one line.
-  - **From 1920 px** (a pane of 40 rem or more) the headline card is a **strip**: the values with
-    their ± and change, then the run's summary, then Simulate, on one row, with any message
-    (ready, setup changed, no damage, an error) under them across the card. A tank's TPS and DPS
-    sit side by side in it as usual.
+  - **From 1920 px** the headline card is a **strip**: the values with their ± and change, then
+    the run's summary, then Simulate, on one row, with any message (ready, setup changed, no
+    damage, an error) under them across the card. A tank's TPS and DPS sit side by side in it as
+    usual. Each "·" part of the run's summary stays whole ("ran in 0.2 s" never splits); when the
+    longest part doesn't fit beside the values, the summary moves under them (review finding
+    DA-3). While a run is under way the headline, with its progress bar, takes the row's free
+    width (DA-6).
   - The details sit in **two columns**: on the left what the result is made of (Damage taken, the
     breakdown, How the boss's swings landed, Mana per fight), on the right what explains it
-    (Cooldowns and buffs, and the Character sheet with the Boss's attack table). With nothing on
-    the left (no weapon, so no breakdown), the right takes both. **Assumptions** spans both
-    columns under them, collapsed. In two columns at 1920 a long outcome line may wrap again, as
-    in the 22 rem panel; at 2560 each fits one line.
+    (Cooldowns and buffs, and the Character sheet with the Boss's attack table). The left column
+    takes 1.4 parts of the width to the right's 1, since the breakdown's rows carry the longest
+    lines (DA-1): at 1920 px most outcome lines fit on one, and at 2560 px all do. With nothing
+    on the left (no weapon, so no breakdown), the right takes both. **Assumptions** spans both
+    columns under them, collapsed, its text kept to 32 rem, about 75 characters a line (DA-8).
+  - The strip and the columns are container queries at 39.5 rem, just under the 40 rem the pane
+    measures at 1920 px, so they start at 1,896 px and 1920 always has them. Below that
+    (1440–1895 px) the card and the details keep the single column of the narrower pane.
   - The DOM keeps the order this section gives, so a screen reader hears the same sequence at
     every width: the columns are wrappers that are `display: contents` below 1920.
   - The pane still never runs past the viewport, and scrolls inside with its fades.

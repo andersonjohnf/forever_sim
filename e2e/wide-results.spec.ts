@@ -4,8 +4,9 @@ import { expect, test } from './fixtures.ts'
 // docs/ux.md#results, the wide layout (D34): from 1440 px Cooldowns and buffs and the Character
 // sheet open by default, and a reader who closes one keeps it closed (per browser); Assumptions
 // stays collapsed. From 1920 px the headline card is a one-row strip and the details sit in two
-// columns (three from a 64 rem pane, Assumptions open), by container queries on the results pane.
-// The pane never runs past the viewport. Under 1440 px nothing changes (results-states.spec.ts).
+// columns, the left the wider, with Assumptions across both under them; by container queries on
+// the results pane at 39.5 rem, so they start at 1,896 px, just under 1920's 40 rem pane. The pane
+// never runs past the viewport. Under 1440 px nothing changes (results-states.spec.ts).
 
 const HEIGHT = 900
 
@@ -116,12 +117,37 @@ test.describe('the wide results pane, 1440 px', () => {
     for (const l of lines) if (l.text) expect(l.lines, l.text).toBe(1)
   })
 
-  test('Simulate names its keyboard shortcut, for assistive tech and in its tooltip', async ({ page }) => {
+  // Review finding DA-5: the tooltip names only this platform's key, and opens on hover alone.
+  for (const { platform, key } of [
+    { platform: 'Win32', key: 'Ctrl+Enter' },
+    { platform: 'MacIntel', key: '⌘+Enter' },
+  ]) {
+    test(`Simulate names its keyboard shortcut, for assistive tech and in its tooltip (${platform})`, async ({ page }) => {
+      await page.addInitScript((platform) => {
+        Object.defineProperty(Navigator.prototype, 'platform', { get: () => platform })
+        Object.defineProperty(Navigator.prototype, 'userAgentData', { get: () => undefined })
+      }, platform)
+      await page.goto('./')
+      const button = results(page).getByRole('button', { name: 'Simulate' })
+      await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter')
+      await button.hover()
+      await expect(page.getByRole('tooltip')).toHaveText(`Simulate (${key})`)
+    })
+  }
+
+  test('keyboard focus doesn’t open the Simulate tooltip, before or after a keyboard run', async ({ page }) => {
     await page.goto('./')
-    const button = results(page).getByRole('button', { name: 'Simulate' })
-    await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter')
-    await button.hover()
-    await expect(page.getByRole('tooltip')).toHaveText('Simulate (Ctrl+Enter or ⌘+Enter)')
+    const panel = results(page)
+    await panel.getByRole('button', { name: 'Simulate' }).focus()
+    await page.waitForTimeout(1000)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
+    await page.keyboard.press('Enter')
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await panel.getByRole('button', { name: 'Run again' }).focus()
+    await page.keyboard.press('ControlOrMeta+Enter')
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await page.waitForTimeout(1000)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
   })
 })
 
@@ -182,6 +208,39 @@ test.describe('the extra-wide results pane, 1920 px', () => {
     expect(order).toEqual(['Damage by ability', 'Cooldowns and buffs', 'Character sheet', expect.stringMatching(ASSUMPTIONS)])
   })
 
+  test('the left column, the breakdown, is the wider (1.4 to 1)', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    const [left, right] = await panel.locator('[data-results-column]').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width))
+    expect(left / right).toBeCloseTo(1.4, 1)
+  })
+
+  test('Assumptions, across both columns, keeps its lines to a readable measure', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    await trigger(panel, ASSUMPTIONS).click()
+    const list = panel.getByRole('region', { name: 'Result details' }).locator('p', { hasText: /^What this result takes on trust/ }).locator('..')
+    expect((await box(list)).width).toBeLessThanOrEqual(32 * 16)
+  })
+
+  test('a four-digit TPS leaves each part of the run’s summary whole', async ({ page }) => {
+    // A Protection warrior's default is over 1,000 TPS: the strip's widest headline (review finding
+    // DA-3), in the narrowest strip, at 1,897 px.
+    await page.setViewportSize({ width: 1897, height: HEIGHT })
+    await seed(page, { spec: 'warrior-protection' })
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    await expect(panel.getByRole('group', { name: 'TPS' })).toContainText(/\d,\d{3}\.\d/)
+    const lines = (els: Element[]) => els.map((e) => new Set([...e.getClientRects()].map((r) => Math.round(r.top))).size)
+    const parts = panel.locator('p', { hasText: /fights of \d+ s/ }).locator('span')
+    expect(await parts.evaluateAll(lines)).toEqual([1, 1, 1])
+    // Where the digits happen to wrap at a "·" anyway, the parts still may not break.
+    expect(await parts.evaluateAll((els) => els.map((e) => getComputedStyle(e).whiteSpace))).toEqual(['nowrap', 'nowrap', 'nowrap'])
+  })
+
   test('a tank: TPS and DPS in the strip, damage taken and the breakdown left, the boss’s table right', async ({ page }) => {
     await seed(page, { spec: 'paladin-protection' })
     await page.goto('./')
@@ -232,3 +291,46 @@ test('under 1440 px the details stay collapsed, whatever the wide pane remembers
   const run = await box(panel.getByRole('button', { name: 'Run again' }))
   expect(run.y).toBeGreaterThan(value.y + value.height)
 })
+
+// Review finding DA-6: while a run is under way, the strip's headline, with its progress bar, takes
+// the row's free width rather than 14 rem.
+test('at 1920 px a first run’s progress bar spans the strip', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: HEIGHT })
+  // 100,000 fights of 10 minutes: long enough to measure the bar.
+  await seed(page, { run: { mode: 'fixed', iterations: 100000, seed: 1 }, fight: { durationSec: 600 } })
+  await page.goto('./')
+  const panel = results(page)
+  await panel.getByRole('button', { name: 'Simulate' }).click()
+  const bar = await box(panel.getByRole('progressbar', { name: 'Simulation progress' }))
+  const cancel = await box(panel.getByRole('button', { name: 'Cancel' }))
+  expect(bar.width).toBeGreaterThan(400)
+  expect(cancel.x - (bar.x + bar.width)).toBeLessThanOrEqual(24 + 1)
+  await panel.getByRole('button', { name: 'Cancel' }).click()
+})
+
+// The strip and the two columns start at 1,896 px (a 39.5 rem pane), so 1920 always has them.
+for (const { width, columns } of [
+  { width: 1895, columns: false },
+  { width: 1897, columns: true },
+  { width: 1919, columns: true },
+  { width: 1920, columns: true },
+  { width: 2000, columns: true },
+]) {
+  test(`at ${width} px the details are ${columns ? 'in two columns, under a strip' : 'one column'}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: HEIGHT })
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    const cooldowns = await box(trigger(panel, 'Cooldowns and buffs'))
+    const breakdown = await box(panel.getByRole('heading', { name: 'Damage by ability' }))
+    const value = await box(panel.getByRole('group', { name: 'DPS' }))
+    const run = await box(panel.getByRole('button', { name: 'Run again' }))
+    if (columns) {
+      expect(cooldowns.x).toBeGreaterThan(breakdown.x + 200)
+      expect(run.y).toBeLessThan(value.y + value.height)
+    } else {
+      expect(cooldowns.x).toBeCloseTo(breakdown.x, -1)
+      expect(run.y).toBeGreaterThan(value.y + value.height)
+    }
+  })
+}

@@ -2,11 +2,15 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#layout: the wide desktop layout (D34). From 1440 px the page fills the window, up to
-// 2560 px and centred, with 24 px gutters; the results pane is 30 rem, and from 1920 px 38% of the
-// page between 46 and 68 rem. The results never run past the viewport and scroll inside. Under
+// 2560 px and centred, with 24 px gutters; the results pane grows smoothly with the window, 30 rem at
+// 1440 px and a rem for every 48 px past it (40 rem at 1920, 53.3 at 2560), up to 60 rem, with no
+// step (review finding DA-2). The results never run past the viewport and scroll inside. Under
 // 1440 px nothing changes: the rest of the suite runs at 1280.
 
 const REM = 16
+
+/** The results pane's width at a window width from 1440 px: `clamp()` in src/App.tsx. */
+const pane = (width: number) => Math.min(60 * REM, 30 * REM + (width - 1440) / 3)
 
 /** The page's layout boxes: the header's row, the main grid, the setup and results panes. */
 const shell = (page: Page) =>
@@ -35,10 +39,10 @@ const shell = (page: Page) =>
 test.describe('the wide shell', () => {
   for (const { width, results } of [
     { width: 1440, results: 30 * REM },
-    // 38% of the page inside its gutters, 1,872 px, is 711 px: under the 46 rem floor.
-    { width: 1920, results: 46 * REM },
-    // 38% of 2,512 px.
-    { width: 2560, results: 0.38 * (2560 - 48) },
+    { width: 1600, results: pane(1600) },
+    // Exactly 40 rem, where the results' strip and two columns have started (wide-results.spec.ts).
+    { width: 1920, results: 40 * REM },
+    { width: 2560, results: pane(2560) },
   ]) {
     test(`at ${width} px the page fills the width, with its results pane beside the setup`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
@@ -71,8 +75,8 @@ test.describe('the wide shell', () => {
     expect(s.main.left).toBeCloseTo((s.viewport - 2560) / 2, 0)
     expect(s.header.left).toBe(s.main.left)
     expect(s.header.width).toBe(2560)
-    // As at 2560: 38% of the capped page inside its gutters.
-    expect(s.results.width).toBeCloseTo(0.38 * (2560 - 48), 0)
+    // The pane follows the window, not the capped page, so here it's at its 60 rem cap.
+    expect(s.results.width).toBeCloseTo(60 * REM, 0)
   })
 
   test('under 1440 px the page keeps its 1280 px cap and 22 rem results', async ({ page }) => {
@@ -194,7 +198,7 @@ test.describe('the wide shell', () => {
   })
 
   for (const width of [1024, 1440]) {
-    test(`at ${width} px “Skip to results” is first, shows when focused, and moves focus to the results`, async ({ page }) => {
+    test(`at ${width} px “Skip to results” is first, shows when focused, and moves focus to Simulate`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       await page.keyboard.press('Tab')
@@ -205,13 +209,21 @@ test.describe('the wide shell', () => {
       expect(box.height).toBeGreaterThanOrEqual(44)
       await page.keyboard.press('Enter')
       const results = page.getByRole('complementary', { name: 'Results' })
-      await expect(results).toBeFocused()
+      // Focus lands on the pane's Simulate button, with its focus ring showing where (review
+      // finding DA-4: the pane draws no ring, so focusing it changed nothing you could see).
+      const simulate = results.getByRole('button', { name: 'Simulate' })
+      await expect(simulate).toBeFocused()
+      expect(await simulate.evaluate((el) => el.matches(':focus-visible'))).toBe(true)
+      await expect(results).not.toHaveAttribute('tabindex')
       // Its hash belongs to share links: following the link leaves the address alone.
       expect(new URL(page.url()).hash).toBe('')
-      // Tab goes on into the pane, and the pane isn't focusable after it.
-      await page.keyboard.press('Tab')
-      await expect(results.getByRole('button', { name: 'Simulate' })).toBeFocused()
-      await expect(results).not.toHaveAttribute('tabindex')
+      // After a run the button is Run again, and the link lands there.
+      await page.keyboard.press('Enter')
+      await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+      await page.getByRole('tab', { name: 'Gear', exact: true }).focus()
+      await skip.focus()
+      await page.keyboard.press('Enter')
+      await expect(results.getByRole('button', { name: 'Run again' })).toBeFocused()
       // Hidden again once focus has left it.
       const hidden = (await skip.boundingBox())!
       expect(hidden.width).toBeLessThanOrEqual(1)

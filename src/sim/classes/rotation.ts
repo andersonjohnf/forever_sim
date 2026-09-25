@@ -31,7 +31,7 @@ import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/c
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import { DESTRUCTION_APL, DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
-import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
+import { AFFLICTION_APL, AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
@@ -123,8 +123,9 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
-  // docs/classes/warlock.md §6.1.
+  // docs/classes/warlock.md §6.4.
   if (spec === 'warlock-destruction') return DESTRUCTION_APL
+  if (spec === 'warlock-affliction') return AFFLICTION_APL
   return undefined
 }
 
@@ -342,7 +343,7 @@ export function classRotation(
   if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context)
   // docs/classes/warlock.md §6.
   if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context, order)
-  if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
+  if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context, order)
   // docs/classes/warlock.md §11.5.
   if (spec === 'warlock-demonology') return demonologyRotation(values, talents, auraIndex, context)
   // docs/classes/priest.md §6.

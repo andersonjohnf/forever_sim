@@ -292,11 +292,11 @@ tuning milestone.
 
 Since M5.65 A2 each spec's priority above is the Rotation tab's priority list
 ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
-`warlockApl` in `shared.ts`, registered as `DESTRUCTION_APL`), in this order, each row with its
-switch and its own settings (setting ids are `warlock.destruction.…`). Each row keeps its own
-conditions wherever you move it; only its place in the priority changes.
+`warlockApl` in `shared.ts`), in this order, each row with its switch and its own settings. The
+rows have the same ids on every spec. Each row keeps its own conditions wherever you move it; only
+its place in the priority changes.
 
-**Destruction** (§6.1):
+**Destruction** (§6.1; setting ids `warlock.destruction.…`, `DESTRUCTION_APL`):
 
 | Row (`id`) | Switch | Its settings | Its conditions |
 | --- | --- | --- | --- |
@@ -312,6 +312,19 @@ conditions wherever you move it; only its place in the priority changes.
 | Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana (0: never here) |
 | Filler (`filler`) | — | `filler.spell` | Incinerate (with the talent) or Shadow Bolt, whenever it can be paid for |
 
+**Affliction** (§6.2; `warlock.affliction.…`, `AFFLICTION_APL`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`), On-use trinkets (`trinkets`), Power Infusion (`powerInfusion`) | as Destruction's | | as Destruction's |
+| Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
+| Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out; its ticks give Nightfall's Shadow Trance |
+| Bane (`bane`) | — | `bane.spell` | As Destruction's |
+| Siphon Life (`siphonLife`) | `siphonLife.enabled` | | Recast as it runs out; needs the talent |
+| Shadow Bolt on Shadow Trance (`shadowTrance`) | — | | An instant Shadow Bolt while Shadow Trance is up; nothing without Nightfall |
+| Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana |
+| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+
 - **Pinned:** nothing. The pre-pull is Demonic Sacrifice, a spec-wide setting.
 - **Spec-wide, above the list:** Demonic Sacrifice, under Cooldowns and buffs; the Major Mana Potion
   and Demonic Rune with their missing-mana limits, under Consumables. The potion and the rune take
@@ -319,9 +332,9 @@ conditions wherever you move it; only its place in the priority changes.
 - **After the list, always last:** Life Tap whenever nothing on the list can be cast, as when the
   filler can't be paid for. It has no row: above the filler it would tap every global cooldown.
 - **No named presets:** the defaults are the implicit Default (D27's common priority).
-- **Byte for byte:** in the default order the plans are the ones Destruction built before the list:
-  200 random setups (settings, talents, race, Buffs, fight and rules) are fingerprinted against the
-  code before it (`destruction-apl.test.ts`).
+- **Byte for byte:** in the default order the plans are the ones each spec built before the list:
+  200 random setups per spec (settings, talents, race, Buffs, fight and rules) are fingerprinted
+  against the code before it (`destruction-apl.test.ts`, `affliction-apl.test.ts`).
 - **A filler choice** is the Filler row's own setting, so a new filler (issue #17's) is a new value
   of `filler.spell`, or a new row with its own id that an old saved order places by its default
   neighbours.

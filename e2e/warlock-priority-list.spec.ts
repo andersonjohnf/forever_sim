@@ -13,6 +13,12 @@ const SPECS = [
     key: { id: 'corruption', label: 'Corruption', before: 'shadowburn' },
     button: { id: 'bane', label: 'Bane', before: 'immolate' },
   },
+  {
+    name: 'Affliction',
+    order: ['racial', 'trinkets', 'powerInfusion', 'curse', 'corruption', 'bane', 'siphonLife', 'shadowTrance', 'lifeTap', 'filler'],
+    key: { id: 'siphonLife', label: 'Siphon Life', before: 'bane' },
+    button: { id: 'shadowTrance', label: 'Shadow Bolt on Shadow Trance', before: 'curse' },
+  },
 ]
 
 /** The rows' ids in the list's order (by attribute: a sheet hides the list from the accessibility tree). */

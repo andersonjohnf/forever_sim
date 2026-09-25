@@ -294,6 +294,12 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   attack; its AP aura has 2 charges and lasts 1 s. 10611, the spell that applied the weapon
   enchant, no longer exists. Nothing the sim does changes with the aura type: the proc was
   already modelled as one.
+- **The attack-power aura's two charges** ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)): the sim puts 10610's aura up for its 1 s
+  (1.5 s in Classic Era, DurationIndex 65 in 1.15.9), and each auto attack while it's up gets the
+  +246 and uses a charge: the extra attack, then the next auto attack of either hand within the
+  second. Abilities in that second get it and use none (its proc mask is auto attacks, 0x4) [?].
+  [warrior.md §2.7](../classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury) owns the
+  details.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
   beta confirms. Twisting Windfury with Grace of Air no longer works: the aura disappears with
@@ -1505,8 +1511,8 @@ Each item says what was found and how the guild can check it on the Forever beta
 3. **Windfury Totem as a party aura.** Does a main-hand sharpening stone stay active with
    Windfury Totem up? Does twisting with Grace of Air still work, and does the totem proc on
    feral cat and bear attacks? Does 10610's AP aura (2 charges, 1 s in the client) give
-   +246 AP to a second attack inside that second? (That an extra attack can't proc Windfury is
-   Classic [C]; the internal cooldown is
+   +246 AP to a second attack inside that second, as the sim assumes since D36? (That an extra
+   attack can't proc Windfury is Classic [C]; the internal cooldown is
    [damage-and-timing OQ 9](damage-and-timing.md#open-questions).)
    *Check:* apply a stone to the main hand next to a Windfury Totem and watch the enchant;
    combat-log 500+ swings.

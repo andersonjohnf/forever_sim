@@ -373,19 +373,24 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B79. Deep Wounds' refresh: restart or keep the tick timer
 **High · M2 · ≤20 (Arms tier 3)**
-- **Assumes:** a crit that refreshes Deep Wounds restarts its 12 s and its tick timer, the next
-  tick 3 s after the crit, as Classic Era's WarriorSim does [C; ? in Forever]. A Fury warrior
-  crits about every 1.6 s, so it ticks about 17 times a fight from 115 procs; a refresh that
-  kept the timer would tick about 60 times, about **+2% Fury DPS** (+1.5% Arms). The rogue model
-  assumes the other rule for Deadly Poison's stacks (renew without a restart, [rogue
-  Q8](classes/rogue.md#10-open-questions)), so the two conflict.
+- **Assumes:** Deep Wounds **rolls**, as Season of Discovery's 412609 does, the bleed the Forever
+  client carries in place of Classic's 12721 ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25),
+  the doctrine's second exception) [?]: each crit adds `0.2 × rank ×` the critting weapon's
+  average hit (the off-hand modifier on an off-hand crit), snapshotted with the damage modifiers,
+  to a pool; the ticks left go back to 4 and the pending tick keeps its time; each tick pays
+  `pool ÷ ticks left`. Nobody has measured it. The Classic Era restart (the next tick 3 s after
+  each crit, old damage lost) gives the default Fury and Arms warriors about **13% less DPS**
+  (the engine's golden runs). Deadly Poison's stacks keep their
+  timer too ([rogue Q8](classes/rogue.md#10-open-questions)), so the two models now agree.
 - **Test:** with Deep Wounds (1/3 is enough) vs a mob three levels higher, crit it every 1–2 s
-  (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times from the
-  combat log. Restarting: ticks come 3 s after the latest crit, so a crit less than 3 s after the
-  last one pushes the tick back. Keeping: ticks come every 3 s from the first application,
-  whatever crits in between. Then apply Deadly Poison stacks on a rogue the same way.
+  (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times and amounts
+  from the combat log. Rolling: ticks come every 3 s from the first application, whatever crits
+  in between, and each tick grows after a crit. Restarting: ticks come 3 s after the latest crit,
+  so a crit less than 3 s after the last one pushes the tick back. Then apply Deadly Poison
+  stacks on a rogue the same way.
 - **Samples:** 10 refresh trials with at least 5 refreshes each, per spell.
-- **Changes:** the refresh rule of `weaponBleed` (Deep Wounds) or of Deadly Poison's stacks.
+- **Changes:** the rule of `weaponBleed` (Deep Wounds, `combat.deepWoundsRolls`) or of Deadly
+  Poison's stacks.
 - **Docs:** [warrior §2.5](classes/warrior.md#25-crits-impale-flurry-deep-wounds),
   [Q21](classes/warrior.md#9-open-questions); [rogue Q8](classes/rogue.md#10-open-questions);
   [damage §4 "Refresh"](mechanics/damage-and-timing.md#4-dots-and-bleeds)
@@ -687,8 +692,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B24. Unbridled Wrath from Heroic Strike, Cleave and extra attacks
 **Medium · M2 · ≤20 (Fury tier 2)**
-- **Assumes:** procs on white swings, extra attacks and HS/Cleave swings [C]; the Forever data's
-  proc mask is auto attacks only [F data], so the HS/Cleave part is [?].
+- **Assumes:** procs on white swings and extra attacks only, not HS/Cleave swings, as the Forever
+  data's proc mask (auto attacks) says [F data] ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25));
+  Classic sims also counted HS swings [C]. Unmeasured on the server.
 - **Test:** 5/5 Unbridled Wrath; spam Heroic Strike from a low-rage setup and log rage gains on
   HS swings vs white swings.
 - **Samples:** ≥300 Heroic Strike swings.

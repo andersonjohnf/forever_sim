@@ -84,6 +84,8 @@ const EV_STACKING_DOT_TICK = 14
 const EV_SPELL_DOT_TICK = 15
 /** A channel ends, run out or cut off (docs/mechanics/spells.md §6; data = ability index). */
 const EV_CHANNEL_END = 16
+/** Windfury Totem's proc id (effects/buffs.ts `windfuryTotem`), whose attack power is an aura with charges (warrior.md §2.7). */
+export const WINDFURY_TOTEM_PROC = 'windfury'
 /** The mage's rolling Ignite ticks (docs/classes/mage.md#ignite; data = 0). */
 const EV_IGNITE_TICK = 17
 // The ranged and pet core (docs/mechanics/ranged-and-pets.md):
@@ -640,6 +642,8 @@ export class Sim {
    * whether a tick may crit (the spell's flag, in a profile whose periodic effects crit).
    */
   private readonly abDotTick: Float64Array
+  /** `bleed` abilities: attack power per tick, read as the tick lands (Rend in `forever`, warrior.md §3.1). */
+  private readonly abDotTickAp: Float64Array
   private readonly abDotTicks: Int32Array
   private readonly abDotTickMs: Float64Array
   private readonly abDotCanCrit: Uint8Array
@@ -946,6 +950,16 @@ export class Sim {
   /** When each weapon bleed's next tick is due (for the refresh tie-break, damage-and-timing §4). */
   private readonly bleedNextAt: Float64Array
   private readonly bleedProc: Int32Array
+  /**
+   * A rolling weapon bleed's damage still to come (`deepWoundsRolls`, warrior.md §2.5): each crit
+   * adds its snapshotted amount, and each tick pays out the pool ÷ the ticks left.
+   */
+  private readonly bleedPool: Float64Array
+  /** Deep Wounds rolls in this profile (`combat.deepWoundsRolls`). */
+  private readonly bleedRolls: boolean
+  /** The hand and the extra attack power of the melee crit whose procs fire now (Deep Wounds' amount). */
+  private critHand = 0
+  private critBonusAp = 0
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
   /** `cast` rage ticks still to come, their generation (a recast restarts them), and when the next is due. */
@@ -961,6 +975,8 @@ export class Sim {
   private readonly dotGen: Int32Array
   private readonly dotNextAt: Float64Array
   private readonly dotDamage: Float64Array
+  /** The multipliers each bleed snapshotted at its application, for its ticks' attack-power part. */
+  private readonly dotMult: Float64Array
   private readonly dotCrit: Float64Array
   /** While an ability's cast runs, the GCD is held (gcdEnd = ∞); this is when the GCD would end on its own. */
   private castGcdEnd = 0
@@ -1276,6 +1292,19 @@ export class Sim {
   private exHead = 0
   private exCount = 0
   private chainMask = 0
+  /**
+   * Windfury Totem's attack-power aura (10610; buffs doc, Windfury Totem; warrior.md §2.7; D36): the
+   * plan's Windfury Attack proc (or −1), the aura's charges and duration from the profile, and its
+   * attack power, charges left and end while it's up. Each auto attack while it's up gets the
+   * attack power and uses a charge (its proc mask is auto attacks, 0x4), the extra attack first; an
+   * ability or an on-next-swing ability's swing gets it and uses none.
+   */
+  private readonly wfProc: number
+  private readonly wfMaxCharges: number
+  private readonly wfMs: number
+  private wfAp = 0
+  private wfCharges = 0
+  private wfEnd = 0
 
   constructor(plan: Plan) {
     this.plan = plan
@@ -1384,6 +1413,12 @@ export class Sim {
     this.bleedGen = new Int32Array(bleeds)
     this.bleedNextAt = new Float64Array(bleeds)
     this.bleedProc = new Int32Array(bleeds)
+    this.bleedPool = new Float64Array(bleeds)
+    this.bleedRolls = plan.profile.combat.deepWoundsRolls
+    // Windfury Totem's proc (effects/buffs.ts `windfuryTotem`), whose attack power is an aura with charges.
+    this.wfProc = procs.findIndex((p) => p.id === WINDFURY_TOTEM_PROC && p.action === ACTION.extraAttacks)
+    this.wfMaxCharges = plan.profile.values.windfuryApCharges
+    this.wfMs = plan.profile.values.windfuryApMs
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
     // docs/mechanics/spells.md §10: a spell proc's schools and spell.
     this.pSchools = Int32Array.from(procs, (p) => p.schools ?? 0)
@@ -1658,6 +1693,7 @@ export class Sim {
     this.abTickMs = new Float64Array(nb)
     this.abRageSpread = new Int32Array(nb)
     this.abDotTick = new Float64Array(nb)
+    this.abDotTickAp = new Float64Array(nb)
     this.abDotTicks = new Int32Array(nb)
     this.abDotTickMs = new Float64Array(nb)
     this.abDotCanCrit = new Uint8Array(nb)
@@ -1665,6 +1701,7 @@ export class Sim {
     this.dotGen = new Int32Array(nb)
     this.dotNextAt = new Float64Array(nb)
     this.dotDamage = new Float64Array(nb)
+    this.dotMult = new Float64Array(nb)
     this.dotCrit = new Float64Array(nb)
     this.abUsesPerFight = new Int32Array(nb)
     this.abUses = new Int32Array(nb)
@@ -1849,6 +1886,7 @@ export class Sim {
       this.abTickMs[i] = a.rageTickMs
       this.abRageSpread[i] = a.rageSpreadTenths
       this.abDotTick[i] = a.dotTickDamage
+      this.abDotTickAp[i] = a.dotTickApCoefficient ?? 0
       this.abDotTicks[i] = a.dotTicks
       this.abDotTickMs[i] = a.dotTickMs
       // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
@@ -2443,6 +2481,7 @@ export class Sim {
     this.stackCastCost = -1
     for (let i = 0; i < this.bleedTicksLeft.length; i++) {
       this.bleedTicksLeft[i] = 0
+      this.bleedPool[i] = 0
       this.bleedGen[i]++
     }
     this.dynStr = 0
@@ -2458,6 +2497,8 @@ export class Sim {
     this.exHead = 0
     this.exCount = 0
     this.chainMask = 0
+    this.wfCharges = 0
+    this.wfEnd = 0
     this.gcdEnd = 0
     this.castGcdEnd = 0
     this.swingsStopped = false
@@ -2809,6 +2850,8 @@ export class Sim {
    * (combat-tables §2, damage-and-timing §2, rage.md, threat.md).
    */
   private whiteSwing(hand: number, source: number, bonusAp: number): void {
+    // Windfury's attack-power aura: an auto attack gets it and uses a charge (warrior.md §2.7).
+    if (this.wfCharges > 0) bonusAp += this.windfuryAp(true)
     // Flurry-style charges: every white swing uses one before its own crit can refresh them.
     const charged = this.chargeAuras
     for (let i = 0; i < charged.length; i++) {
@@ -2869,10 +2912,9 @@ export class Sim {
     }
     this.dealDamage(source, damage)
     this.gainRageFraction(this.normalizedRage ? this.wNormRageTenths[hand] : this.whiteDamageRageTenths(hand, damage))
-    this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
-    if (crit) this.onCrit(hand)
+    if (crit) this.onCrit(hand, bonusAp)
     // paladin.md#implementation-notes: the damage seals' procs come after the swing's Vengeance.
     if (this.hasWhiteResolved) this.fireProcs(TRIGGER.whiteResolved, hand)
     if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
@@ -2917,6 +2959,19 @@ export class Sim {
     this.exHead = 0
     this.chainMask = 0
     this.scheduleSwing(HAND.main, this.now + this.swingMs[HAND.main])
+  }
+
+  /**
+   * Windfury Attack's attack power while its aura is up (it lasts `wfMs` from the proc, until its
+   * charges run out), 0 otherwise; `charge`: an auto attack, which uses a charge.
+   */
+  private windfuryAp(charge: boolean): number {
+    if (this.now >= this.wfEnd) {
+      this.wfCharges = 0
+      return 0
+    }
+    if (charge) this.wfCharges--
+    return this.wfAp
   }
 
   private dealDamage(source: number, damage: number): void {
@@ -3508,6 +3563,8 @@ export class Sim {
    * and it neither refunds nor spends rage (warrior.md §3.1).
    */
   private special(a: number, hand: number, bonusAp: number): void {
+    // Windfury's attack-power aura: an ability gets it and uses no charge (warrior.md §2.7).
+    if (this.wfCharges > 0) bonusAp += this.windfuryAp(false)
     const main = hand === HAND.main
     const source = main ? this.abSource[a] : this.abOffSource[a]
     const row = source * FIELD_COUNT
@@ -3601,10 +3658,8 @@ export class Sim {
     if (main && this.abAura[a] >= 0 && this.abDotTicks[a] === 0) this.applyAura(this.abAura[a])
     // rogue.md §5.3: a landed Backstab opens Cutthroat's Ambush window at its chance.
     if (main && this.abOpensAura[a] >= 0 && this.rngProc.next() < this.abOpensChance[a]) this.applyAura(this.abOpensAura[a])
-    // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
-    if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
-    if (crit) this.onCrit(hand)
+    if (crit) this.onCrit(hand, bonusAp)
     // docs/mechanics/character-stats.md#touch-of-the-grave: only an attack that deals damage (not Sunder Armor).
     if (this.hasDamageLanded && this.abNoDamage[a] === 0) this.fireProcs(TRIGGER.damageLanded, -1)
   }
@@ -3747,7 +3802,9 @@ export class Sim {
    * A crit dealt, white or special: crit procs, then the charge of each aura a crit ends
    * (Weakness Analyzer: "until you deal a non-periodic critical effect", warrior.md §7).
    */
-  private onCrit(hand: number): void {
+  private onCrit(hand: number, bonusAp = 0): void {
+    this.critHand = hand
+    this.critBonusAp = bonusAp
     this.fireProcs(TRIGGER.meleeCrit, hand)
     this.useCritCharges(SCHOOL.physical)
   }
@@ -3853,10 +3910,18 @@ export class Sim {
         // This source is used up for the rest of the root swing's chain (damage-and-timing §5.4).
         this.chainMask |= this.pChainBit[p]
         const n = this.pAmount[p]
+        // Windfury Totem's attack power is an aura with charges (below), not the extra attack's own.
+        let bonusAp = this.pA[p]
+        if (p === this.wfProc) {
+          this.wfAp = bonusAp
+          this.wfCharges = this.wfMaxCharges
+          this.wfEnd = this.now + this.wfMs
+          bonusAp = 0
+        }
         for (let k = 0; k < n && this.exCount < EXTRA_QUEUE; k++) {
           const slot = (this.exHead + this.exCount) % EXTRA_QUEUE
           this.exSource[slot] = this.pSource[p]
-          this.exBonusAp[slot] = this.pA[p]
+          this.exBonusAp[slot] = bonusAp
           this.exMask[slot] = this.chainMask
           this.exCount++
         }
@@ -3912,14 +3977,18 @@ export class Sim {
         return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
-        // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
-        // §4 "Refresh"); the refresh then restarts the ticks, and old damage doesn't roll over
-        // (warrior.md §2.5).
+        this.counters[this.pSource[p] * FIELD_COUNT + FIELD.casts]++
+        if (this.bleedRolls) {
+          this.feedBleed(p, slot)
+          return
+        }
+        // `classicEra`: a tick due this very moment lands before the refresh, as Rend's does
+        // (damage-and-timing §4 "Refresh"); the refresh then restarts the ticks, and old damage
+        // doesn't roll over (warrior.md §2.5).
         if (this.bleedTicksLeft[slot] > 0 && this.bleedNextAt[slot] === this.now) this.onBleedTick(slot)
         this.bleedTicksLeft[slot] = this.pAmount[p]
         this.bleedNextAt[slot] = this.now + this.pB[p]
         this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
-        this.counters[this.pSource[p] * FIELD_COUNT + FIELD.casts]++
         return
       }
     }
@@ -4234,7 +4303,9 @@ export class Sim {
     const ticks = this.abDotTicks[a] + (this.abFinisher[a] === 1 ? this.abDotTicksPerCp[a] * cp : 0)
     this.dotTicksLeft[a] = ticks
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
-    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult * (this.euA === a ? this.euDot : 1)
+    const mult = this.physMult * (this.euA === a ? this.euDot : 1)
+    this.dotMult[a] = mult
+    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * mult
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -4242,7 +4313,8 @@ export class Sim {
   }
 
   /**
-   * One tick of a `bleed` ability: the snapshotted damage, no armor, never a miss. In `forever` a
+   * One tick of a `bleed` ability: the snapshotted damage, plus its share of the attack power now
+   * under the snapshotted multipliers (Rend in `forever`), no armor, never a miss. In `forever` a
    * flagged tick rolls crit at the snapshotted chance and deals the ability's crit multiplier
    * (Impale on Rend, 2.2 at 2/2) [?]; a tick crit fires no crit procs, since Flurry's and Deep
    * Wounds' proc masks have no periodic bit (damage-and-timing §4, warrior.md §2.5, §7). Threat is
@@ -4251,8 +4323,9 @@ export class Sim {
   private onDotTick(a: number): void {
     const source = this.abDotSource[a]
     const row = source * FIELD_COUNT
-    // rogue.md §3.9: Hemorrhage's debuff raises your bleeds' ticks while it's on the target.
-    let damage = this.dotDamage[a] * this.bleedMult
+    // warrior.md §3.1, W13: Rend's share of the attack power as the tick lands, under the snapshotted
+    // multipliers. rogue.md §3.9: Hemorrhage's debuff raises your bleeds' ticks while it's on the target.
+    let damage = (this.dotDamage[a] + this.abDotTickAp[a] * this.ap * this.dotMult[a]) * this.bleedMult
     const chance = this.dotCrit[a]
     if (chance > 0 && this.rngTable.roll100() < chance) {
       damage *= this.abCritMult[a]
@@ -4339,15 +4412,46 @@ export class Sim {
     this.poisonedDots--
   }
 
-  /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */
+  /**
+   * A crit feeds the rolling Deep Wounds (`forever`, warrior.md §2.5, W12): share × the critting
+   * weapon's average hit (its (min + max) / 2 + flat weapon damage + AP / 14 × its real speed, the
+   * crit's own extra attack power included), × that hand's multiplier (the off hand's 0.5 × (1 +
+   * 0.05 × Dual Wield Specialization)) and the physical damage multiplier now, joins the pool. The
+   * ticks left go back to `ticks`; a pending tick keeps its time, so a tick due this very moment,
+   * whichever event runs first, never moves. A bleed that isn't running starts, its first tick one
+   * period from now.
+   */
+  private feedBleed(p: number, slot: number): void {
+    const h = this.critHand
+    const average = this.hasWeapon[h]
+      ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + ((this.ap + this.critBonusAp) / 14) * this.wSpeedSec[h]
+      : 0
+    this.bleedPool[slot] += this.pA[p] * average * this.wHandMult[h] * this.physMult
+    if (this.bleedTicksLeft[slot] === 0) {
+      this.bleedNextAt[slot] = this.now + this.pB[p]
+      this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
+    }
+    this.bleedTicksLeft[slot] = this.pAmount[p]
+  }
+
+  /**
+   * A weapon bleed's tick, no armor, no crit, no procs (warrior.md §2.5). Rolling (`forever`): the
+   * pool ÷ the ticks left, taken out of the pool. Otherwise (`classicEra`): share × the main hand's
+   * average swing ÷ ticks, recomputed now with the current AP and physical multiplier.
+   */
   private onBleedTick(slot: number): void {
     const p = this.bleedProc[slot]
-    const ticks = this.pAmount[p]
-    const h = HAND.main
-    const average = this.hasWeapon[h]
-      ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + (this.ap / 14) * this.wSpeedSec[h]
-      : 0
-    const damage = ((this.pA[p] * average) / ticks) * this.physMult
+    let damage: number
+    if (this.bleedRolls) {
+      damage = this.bleedPool[slot] / this.bleedTicksLeft[slot]
+      this.bleedPool[slot] -= damage
+    } else {
+      const h = HAND.main
+      const average = this.hasWeapon[h]
+        ? (this.wMin[h] + this.wMax[h]) / 2 + this.wFlat[h] + (this.ap / 14) * this.wSpeedSec[h]
+        : 0
+      damage = ((this.pA[p] * average) / this.pAmount[p]) * this.physMult
+    }
     const row = this.pSource[p] * FIELD_COUNT
     this.counters[row + FIELD.hits]++
     if (this.trace !== null) this.trace(this.pSource[p], -1, this.now)
@@ -4355,7 +4459,7 @@ export class Sim {
     if (--this.bleedTicksLeft[slot] > 0) {
       this.bleedNextAt[slot] = this.now + this.pB[p]
       this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, this.bleedGen[slot])
-    }
+    } else this.bleedPool[slot] = 0
   }
 
   // ------------------------------------------------------------------------------------------

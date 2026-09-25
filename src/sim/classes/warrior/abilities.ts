@@ -330,7 +330,8 @@ export const SPEARING_STRIKE: AbilityDef = {
  * `duration` 21000: 7 ticks, 147 in all, with the periodic-crit flag (SpellMisc Attributes[8]
  * 0x200) (warrior.md §3.1, W13; damage-and-timing §4). The application rolls miss, dodge and
  * parry and can't crit; a miss, dodge or parry refunds 80% [C]
- * (rage.md#rage-refunds-on-avoided-abilities). Improved Rend multiplies the ticks (modifiers.ts).
+ * (rage.md#rage-refunds-on-avoided-abilities). Improved Rend multiplies the ticks (modifiers.ts),
+ * their attack-power part in `forever` included (`rend(profile)`).
  * Its `aura` marks the bleed on the target for 21 s. Threat: each tick's dmg × 1 [C]
  * (threat.md#warrior).
  */
@@ -362,6 +363,21 @@ export const REND: AbilityDef = {
   periodicCanCrit: true,
   ...NO_CAST,
   aura: { id: 'rend', name: 'Rend', durationMs: 21000, mods: {} },
+}
+
+/**
+ * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend", W13;
+ * [D36](docs/decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)):
+ * - `forever`: 0.02 [?], WarriorSim's Forever mode from a low-level test; the coefficient at 60 is
+ *   unconfirmed, and the client's 11574 has no attack-power term.
+ * - `classicEra`: none [C], as Classic Era's Rend.
+ */
+export const REND_AP_PER_TICK = { forever: 0.02, classicEra: 0 } as const
+
+/** Rend in the rule profile: `classicEra`'s is `REND`; `forever`'s ticks add `REND_AP_PER_TICK`. */
+export function rend(profile: RulesProfile): AbilityDef {
+  const ap = REND_AP_PER_TICK[profile.id]
+  return ap > 0 ? { ...REND, dotTickApCoefficient: ap } : REND
 }
 
 /**

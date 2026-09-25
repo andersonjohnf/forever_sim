@@ -83,8 +83,8 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
       },
     },
   ],
-  // Fury 2·3: 12%/rank to gain 1 rage (2 with a two-hander) on a landed swing: white swings, extra
-  // attacks and, by the §2.3 default, Heroic Strike swings too ([?] Q5)
+  // Fury 2·3: 12%/rank to gain 1 rage (2 with a two-hander) on a landed auto attack: white swings of
+  // either hand and extra attacks, not Heroic Strike or Cleave swings (§2.3: 12319's proc mask 0x4, D36)
   'Unbridled Wrath': (r) =>
     [false, true].map(
       (twoHand): Effect => ({
@@ -94,7 +94,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
           id: 'unbridledWrath',
           name: 'Unbridled Wrath',
           icon: 'spell_nature_stoneclawtotem',
-          trigger: 'swingLanded',
+          trigger: 'whiteLanded',
           from: 'any',
           chance: { pct: 12 * r },
           action: { kind: 'rage', amount: twoHand ? 2 : 1 },
@@ -122,7 +122,8 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   'Two-Handed Weapon Specialization': (r) => [{ kind: 'damage', pct: r, physicalOnly: true, when: { twoHand: true } }],
   // Arms 3·2: +1 rage every 3 s in combat (§2.3; a regen aura, so no threat)
   'Anger Management': () => [{ kind: 'periodicRage', periodMs: 3000, amount: 1 }],
-  // Arms 3·3: crits apply a bleed of 20%/rank of the main hand's average swing over 12 s (§2.5)
+  // Arms 3·3: each crit's bleed of 20%/rank of a weapon's average hit over 4 ticks, 3 s apart: in
+  // `forever` a rolling pool of the critting weapon's (D36 [?]), in `classicEra` a restart from the main hand's (§2.5, W12)
   'Deep Wounds': (r) => [
     {
       kind: 'proc',

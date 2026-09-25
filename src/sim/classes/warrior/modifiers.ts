@@ -188,7 +188,10 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     resolved.rageTenths = def.rageTenths + 10 * IMPROVED_BERSERKER_RAGE_PER_RANK * rank(talents, 'Improved Berserker Rage')
   } else if (def.id === 'rend') {
     const r = Math.min(rank(talents, 'Improved Rend'), IMPROVED_REND_PCT.length - 1)
-    resolved.dotTickDamage = def.dotTickDamage * (1 + IMPROVED_REND_PCT[r] / 100)
+    // The whole tick: its base and, in `forever`, its attack-power part (W13).
+    const m = 1 + IMPROVED_REND_PCT[r] / 100
+    resolved.dotTickDamage = def.dotTickDamage * m
+    if (def.dotTickApCoefficient) resolved.dotTickApCoefficient = def.dotTickApCoefficient * m
   } else if (def.id === 'slam') {
     const r = rank(talents, 'Improved Slam')
     resolved.castMs = Math.max(0, def.castMs - IMPROVED_SLAM_MS_PER_RANK * r)

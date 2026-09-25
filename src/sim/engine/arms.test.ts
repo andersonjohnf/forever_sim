@@ -6,14 +6,15 @@
 // (damage-and-timing §4) and the "Rend missing or under x s" condition; refunds on avoidance
 // (rage.md#rage-refunds-on-avoided-abilities); stances; determinism.
 import { describe, expect, it } from 'vitest'
-import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
+import { BLOODRAGE, BLOODTHIRST, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, RECKLESSNESS, REND, rend, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
 import { TALENT_EFFECTS } from '../classes/warrior/talents'
-import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
-import { CLASSIC_ERA } from '../rules/profiles'
+import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, STANCE, STANCE_ANY, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
+import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { CreatureType } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, Sim } from './sim'
 import {
   addAbility,
+  addAura,
   addProc,
   alwaysLandNoCrit,
   armsPlan,
@@ -111,16 +112,19 @@ describe('Arms worked examples in the engine (1800 AP, pre-armor, two-hander T)'
 })
 
 describe('Deep Wounds 3/3 (warrior.md §2.5, W12)', () => {
-  /**
-   * White swings that always land, and Deep Wounds 3/3 as the talent defines it, from crits with
-   * the hands in `hands` (bit 0 main, bit 1 off). Returns its ticks' damage.
-   */
-  function ticks(weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null], hands: number, physicalMult = 1): number[] {
+  /** Deep Wounds 3/3 as the talent defines it: its share, 4 ticks, 3 s apart. */
+  function talentShare(): number {
     const effect = TALENT_EFFECTS['Deep Wounds'](3)[0]
     const action = effect.kind === 'proc' && effect.proc.action.kind === 'weaponBleed' ? effect.proc.action : null
     expect(action).toMatchObject({ ticks: 4, periodMs: 3000 })
     expect(action!.share).toBeCloseTo(0.6, 12)
-    const plan = armsPlan(30000)
+    return action!.share
+  }
+  /** A plan at 1800 AP whose attacks always land, with Deep Wounds 3/3 on crits with the hands in `hands`. */
+  function bleedPlan(weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null], hands: number, durationMs: number, rolls: boolean, physicalMult = 1) {
+    const share = talentShare()
+    const plan = armsPlan(durationMs)
+    plan.profile = rolls ? FOREVER : CLASSIC_ERA
     plan.weapons = [{ ...plan.weapons[0]!, ...weapons[0] }, weapons[1] ? { ...plan.weapons[0]!, name: 'Off hand', handMult: 0.5, ...weapons[1] } : null]
     plan.stats.hit = 100
     plan.fight.bossCanDodge = false
@@ -128,29 +132,126 @@ describe('Deep Wounds 3/3 (warrior.md §2.5, W12)', () => {
     setAttackPower(plan, 1800)
     plan.sources.push({ id: 'deepWounds', name: 'Deep Wounds', icon: 'x' })
     const row = plan.sources.length - 1
-    addProc(plan, { id: 'deepWounds', trigger: TRIGGER.meleeCrit, chance: [1, 1], hands, action: ACTION.weaponBleed, amount: 4, a: action!.share, b: 3000, source: row })
-    const out = damages(plan, row, 10)
-    expect(out.length).toBeGreaterThan(20)
-    return out
+    addProc(plan, { id: 'deepWounds', trigger: TRIGGER.meleeCrit, chance: [1, 1], hands, action: ACTION.weaponBleed, amount: 4, a: share, b: 3000, source: row })
+    return { plan, row }
   }
   const round2 = (x: number) => Math.round(x * 100) / 100
 
-  it('two-hander T: 0.6 × (131 + 488.57) = 371.74 over 4 ticks of 92.94, or 95.72 with Two-Handed Weapon Specialization ×1.03', () => {
-    const tick = (0.6 * (W + AP_REAL)) / 4
-    expect(round2(tick)).toBe(92.94)
-    expect(round2(tick * 1.03)).toBe(95.72)
-    for (const d of ticks([{ ...T, min: W, max: W }, null], 1)) expect(d).toBeCloseTo(tick, 9)
-    // The average swing, not a roll: the same with the weapon's real 105–157 range.
-    for (const d of ticks([T, null], 1)) expect(d).toBeCloseTo(tick, 9)
-    for (const d of ticks([T, null], 1, 1.03)) expect(d).toBeCloseTo(tick * 1.03, 9)
+  describe('`forever`: a rolling pool (D36) [?]', () => {
+    const MH_O = 0.6 * (152 + (1800 / 14) * 2.6) // 291.77
+    const OH_O = MH_O * 0.625 // 182.36 with Dual Wield Specialization 5/5
+
+    /** An aura of +300 crit whose `charges` crits use it up, as a cast with no cost or GCD. */
+    const critUp = (id: string, charges: number): AbilityDef => ({
+      ...RECKLESSNESS,
+      id,
+      gcdMs: 0,
+      stances: STANCE_ANY,
+      aura: { id, name: id, durationMs: 60000, critCharges: charges, mods: { crit: 300 } },
+    })
+
+    /**
+     * No crits but these, against a level-59 target (no glancing): the first `charges` attacks from
+     * the pull crit, and `later` more from `laterAt` ms.
+     */
+    function scripted(weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null], durationMs: number, charges: number, physicalMult = 1, later?: { at: number; charges: number }) {
+      const { plan, row } = bleedPlan(weapons, 3, durationMs, true, physicalMult)
+      plan.stats.crit = -100
+      plan.fight.targetLevel = 59
+      rageAtPull(plan, 100)
+      // addAbility's aura leaves out the crit charges, so they're set on the plan's aura.
+      const add = (id: string, n: number) => {
+        const a = addAbility(plan, critUp(id, n))
+        plan.auras[plan.abilities[a].aura].critCharges = n
+        return a
+      }
+      plan.prepull.casts.push({ ability: add('critUp', charges), atMs: -1000 })
+      if (later) line(plan, add('critLater', later.charges), at(plan, later.at))
+      return { plan, row }
+    }
+
+    it('W12: a white crit at 0 s and a Bloodthirst crit at 1 s pool 2 × 291.77; the first tick stays at 3 s; an off-hand crit at 6.5 s adds 182.36 to the 291.77 left', () => {
+      expect(round2(MH_O)).toBe(291.77)
+      expect(round2(OH_O)).toBe(182.36)
+      expect(round2((2 * MH_O) / 4)).toBe(145.89)
+      expect(round2((MH_O + OH_O) / 4)).toBe(118.53)
+      // Main hand at 0, 2.6, 5.2 s; off hand at 1.3, 3.9, 6.5 s; Bloodthirst at 1 s.
+      const { plan, row } = scripted([O, { ...O, handMult: 0.625 }], 13000, 2, 1, { at: 6000, charges: 1 })
+      line(plan, addAbility(plan, BLOODTHIRST), at(plan, 1000))
+      const { sim, ticks, uses } = timeline(plan)
+      expect(uses[plan.abilities.findIndex((a) => a.id === 'bloodthirst')]).toEqual([1000])
+      expect(ticks).toEqual([3000, 6000, 9000, 12000])
+      const d = damages(plan, row, 1)
+      expect(d).toHaveLength(4)
+      expect(d[0]).toBeCloseTo((2 * MH_O) / 4, 9)
+      expect(d[1]).toBeCloseTo((2 * MH_O) / 4, 9)
+      // After the ticks at 3 and 6 s, 291.77 is left; the off hand's crit brings it to 474.13 over 4 ticks.
+      expect(d[2]).toBeCloseTo((MH_O + OH_O) / 4, 9)
+      expect(d[3]).toBeCloseTo((MH_O + OH_O) / 4, 9)
+      // Three applications (the crits), four ticks; no tick crits.
+      expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits)]).toEqual([3, 4, 0])
+    })
+
+    it('a lone crit: two-hander T’s 371.74 over 4 ticks of 92.94, snapshotted with ×1.03 as 95.72; the average, not a roll', () => {
+      const lone = (weapon: Partial<WeaponPlan>, mult: number) => {
+        const { plan, row } = scripted([weapon, null], 13000, 1, mult)
+        return damages(plan, row, 1)
+      }
+      const tick = (0.6 * (W + AP_REAL)) / 4
+      expect(round2(tick)).toBe(92.94)
+      expect(round2(tick * 1.03)).toBe(95.72)
+      for (const [weapon, mult, expected] of [
+        [{ ...T, min: W, max: W }, 1, tick],
+        [T, 1, tick],
+        [T, 1.03, tick * 1.03],
+      ] as const) {
+        const d = lone(weapon, mult)
+        expect(d).toHaveLength(4)
+        for (const x of d) expect(x).toBeCloseTo(expected, 9)
+      }
+    })
+
+    it('is the same with the same seed, and a fight’s ticks never pay out more than its crits put in', () => {
+      const run = () => {
+        const { plan, row } = bleedPlan([O, { ...O, handMult: 0.625 }], 3, 60000, true)
+        plan.stats.crit = 30
+        const sim = new Sim(plan)
+        sim.runFight(7)
+        return [counter(sim, row, FIELD.damage), counter(sim, row, FIELD.casts)]
+      }
+      const [damage, crits] = run()
+      expect(crits).toBeGreaterThan(10)
+      expect(damage).toBeGreaterThan(0)
+      expect(damage).toBeLessThanOrEqual(crits * MH_O + 1e-6)
+      expect(run()).toEqual([damage, crits])
+    })
   })
 
-  it('one-hander O in the main hand: 0.6 × 486.29 = 291.77 over 4 ticks of 72.94, the same when the off hand crits', () => {
-    const tick = (0.6 * (152 + (1800 / 14) * 2.6)) / 4
-    expect(round2(tick)).toBe(72.94)
-    for (const d of ticks([O, null], 1)) expect(d).toBeCloseTo(tick, 9)
-    // Only the off hand's crits apply it; the ticks still use the main hand's swing.
-    for (const d of ticks([O, { ...O, min: 50, max: 60, speedSec: 1.5 }], 2)) expect(d).toBeCloseTo(tick, 9)
+  describe('`classicEra`: each crit restarts it, recomputed each tick from the main hand [C]', () => {
+    function ticks(weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null], hands: number, physicalMult = 1): number[] {
+      const { plan, row } = bleedPlan(weapons, hands, 30000, false, physicalMult)
+      const out = damages(plan, row, 10)
+      expect(out.length).toBeGreaterThan(20)
+      return out
+    }
+
+    it('two-hander T: 0.6 × (131 + 488.57) = 371.74 over 4 ticks of 92.94, or 95.72 with Two-Handed Weapon Specialization ×1.03', () => {
+      const tick = (0.6 * (W + AP_REAL)) / 4
+      expect(round2(tick)).toBe(92.94)
+      expect(round2(tick * 1.03)).toBe(95.72)
+      for (const d of ticks([{ ...T, min: W, max: W }, null], 1)) expect(d).toBeCloseTo(tick, 9)
+      // The average swing, not a roll: the same with the weapon's real 105–157 range.
+      for (const d of ticks([T, null], 1)) expect(d).toBeCloseTo(tick, 9)
+      for (const d of ticks([T, null], 1, 1.03)) expect(d).toBeCloseTo(tick * 1.03, 9)
+    })
+
+    it('one-hander O in the main hand: 0.6 × 486.29 = 291.77 over 4 ticks of 72.94, the same when the off hand crits', () => {
+      const tick = (0.6 * (152 + (1800 / 14) * 2.6)) / 4
+      expect(round2(tick)).toBe(72.94)
+      for (const d of ticks([O, null], 1)) expect(d).toBeCloseTo(tick, 9)
+      // Only the off hand's crits apply it; the ticks still use the main hand's swing.
+      for (const d of ticks([O, { ...O, min: 50, max: 60, speedSec: 1.5 }], 2)) expect(d).toBeCloseTo(tick, 9)
+    })
   })
 })
 
@@ -304,6 +405,23 @@ describe('Rend (warrior.md §3.1, damage-and-timing §4)', () => {
     expect(d.length).toBe(9)
     for (const x of d) expect(x).toBeCloseTo(28.35, 9)
     expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits)]).toEqual([2, 9, 0])
+  })
+
+  it('W13 in `forever`: each tick adds 0.02 × AP read as it lands, × 1.35: 76.95 at 1800 AP, 82.35 once +200 AP is up', () => {
+    const plan = armsPlan(30000)
+    const r = addAbility(plan, rend(FOREVER), new Map([['Improved Rend', 3]]))
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    setAttackPower(plan, 1800)
+    line(plan, r, at(plan, 100))
+    // +200 AP from the first landed swing after Rend is up (3.8 s), for the rest of the fight: the
+    // tick at 3.1 s reads 1800, those from 6.1 s 2000; the multipliers stay the application's.
+    const up = addAura(plan, { id: 'apUp', name: 'AP up', durationMs: 60000, mods: { ap: 200 } })
+    addProc(plan, { trigger: TRIGGER.whiteLanded, chance: [1, 1], hands: 1, action: ACTION.aura, amount: up, b: 0, icdMs: 60000, requiresAura: plan.abilities[r].aura })
+    const d = damages(plan, plan.abilities[r].source, 1)
+    expect(d.length).toBe(7)
+    expect(d[0]).toBeCloseTo(76.95, 9)
+    for (const x of d.slice(1)) expect(x).toBeCloseTo(82.35, 9)
   })
 
   it('"under 3 s" reapplies it with 3 s left: the tick due then lands first, the next is lost (WE-9)', () => {

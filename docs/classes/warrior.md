@@ -226,7 +226,7 @@ This section adds the warrior's own sources and sinks.
 | Source or modifier | Rule | Tag |
 | --- | --- | --- |
 | Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (aura 418, 100/200/300 tenths) |
-| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. The pre-SoD WarriorSim also lets Heroic Strike swings proc it (it has no Cleave). **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913) (mask 0x4, curve 12–60, energize 12964 = 10 tenths); HS/Cleave [C] [ws-player] [?] |
+| Unbridled Wrath | On every **auto attack** that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. Auto attacks are white swings of either hand and extra attacks; **Heroic Strike and Cleave swings don't proc it**, since the talent's proc mask is "melee auto attack" only and those swings are melee abilities ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). The pre-SoD WarriorSim let Heroic Strike swings proc it (it has no Cleave); the sim no longer does. Whether the server honours the mask is Q5 | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913) (12319 mask 0x4, curve 12–60, energize 12964 = 10 tenths) |
 | Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [client] (CurvePoint, 1.60.1.69913) |
 | Anger Management | +1 rage every 3 s in combat, on a fixed 3 s tick from combat start | [F] [tal]; [C] |
 | Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (2687 = 100, 29131 = 10 per s; 25/50) |
@@ -269,8 +269,8 @@ This section adds the warrior's own sources and sinks.
    [sb] [client] (SpellEffect, 1.60.1.69913) (effect 17 = non-normalized weapon damage). The
    swing rolls on the **special attack table**, so it cannot glance; see
    [combat-tables.md](../mechanics/combat-tables.md) [C] [marrow-mech].
-3. **Rage.** The replaced swing generates no damage rage [C] [marrow] [wh-fury]. It can still
-   proc Unbridled Wrath under the default in [§2.3](#23-rage-warrior-specific).
+3. **Rage.** The replaced swing generates no damage rage [C] [marrow] [wh-fury], and it doesn't
+   proc Unbridled Wrath, whose proc mask is auto attacks only ([§2.3](#23-rage-warrior-specific)).
 4. **Off-hand swings while queued.** While Heroic Strike or Cleave is queued, off-hand white
    swings use the **single-wield** miss chance: the 19% dual-wield penalty does not apply.
    Blizzard lists this as intended Classic Era behaviour ("Not a bug") [C] [bnet-hsq]
@@ -333,35 +333,38 @@ are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
   [client] (SpellEffect, CurvePoint, 1.60.1.69913); the leftover base value is Q7.
 
 **Deep Wounds** [F] [tal]; bleed spell and tick timing [F] [client] (SpellName, SpellEffect,
-SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
-[ws-spell]):
+SpellMisc, 1.60.1.69913); the rolling model [?] ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); [doctrine §2 item 4](../doctrine.md)):
 
-- **Trigger.** Every crit (white or yellow, main or off hand) applies or refreshes a bleed on
-  the target.
-- **Damage.** The bleed does `0.20 × rank × MH_avg` over **12 s** in **4 ticks, one every 3
-  s**, where `MH_avg = (MH_min + MH_max) / 2 + flat weapon damage + AP / 14 × MH_speed`. This
-  uses the **main hand's real speed (not normalized)**, and uses the main hand even when the
-  off hand crits [C].
-- **Ticks.** Each tick deals a quarter of the total, **recomputed at tick time** with current
-  AP and modifiers [C] (the pre-SoD commit's `DeepWounds.step` reads current AP and damage
-  modifiers at every tick, [ws-spell]). This is the documented exception to the snapshot
-  default in [damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds).
-- **Refresh.** A refresh restarts the 12 s, with the next tick 3 s after the refresh. Old
-  damage does not roll over. That rolling behaviour is WarriorSim's later SoD `DeepWounds`
-  class, which we don't use [C] [ws-spell]. Whether Forever's bleed restarts its tick timer is
-  [?] (Q21): a Fury warrior crits about every 1.6 s, so the default's 115 procs a fight give
-  about 17 ticks; a refresh that kept the timer would give about 60, worth about 2% of Fury's
-  DPS and 1.5% of Arms'. The results' assumptions say so.
-- **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
-  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick spell's flags may
-  say otherwise (Q36). It cannot crit (its Forever
-  bleed lacks the periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc
-  on-hit effects.
-- **Spell.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
+- **Trigger.** Every crit (white or yellow, main or off hand, extra attacks and Heroic Strike or
+  Cleave swings included) feeds the bleed on the target.
+- **Amount.** Each crit adds `0.20 × rank × avg` to the bleed's pool, where `avg` is the
+  **critting weapon's** average hit: `(min + max) / 2 + flat weapon damage + AP / 14 × its real
+  speed (not normalized)`, the attack power the crit had included (a Windfury attack's). An
+  off-hand crit's amount takes the off-hand modifier, `0.5 × (1 + 0.05 × Dual Wield
+  Specialization rank)` (0.625 at 5/5, as W8). The amount and the physical damage modifiers are
+  **snapshotted at the crit**.
+- **Rolling.** A crit sets the ticks left to **4** and doesn't move the pending tick: a bleed
+  that's running keeps its 3 s rhythm, and one that isn't starts, its first tick 3 s after the
+  crit. Each tick deals `pool ÷ ticks left` and takes it out of the pool, so nothing a crit adds
+  is lost; the pool empties with the 4th tick after the last crit. A tick due at a crit's very
+  millisecond keeps its time too, paying out of the pool as it stands when it runs (W12).
+- **Why rolling.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
   12,000 ms, 4 ticks); the talent 12834 triggers it server-side, with no trigger in the data.
   Classic's bleed 12721 doesn't exist in the Forever client (no `SpellName`, `SpellEffect` or
   `SpellMisc` row, and not encrypted) [F] [client] (SpellName, SpellEffect, SpellMisc,
-  1.60.1.69913).
+  1.60.1.69913). 412609 is the Season of Discovery spell, which the Classic Era 1.15.9 client
+  also carries, so SoD's behaviour for it is the closest analog for how Forever's server runs it
+  (the doctrine's second exception): it rolls, as WarriorSim's SoD `DeepWounds` class does
+  [ws-spell]. It's `[?]` until a guild test (Q21, [open-questions
+  B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
+- **Modifiers.** The bleed ignores armor. The physical damage-done modifiers at the crit apply
+  (Death Wish, Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick
+  spell's flags may say otherwise (Q36). It cannot crit (its Forever bleed lacks the
+  periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc on-hit effects.
+- **`classicEra`** keeps Classic Era's 12721 [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
+  [ws-spell]): each crit **restarts** the bleed, its next tick 3 s later, with old damage lost;
+  each tick deals a quarter of `0.20 × rank × MH_avg`, **recomputed at tick time** from the
+  **main hand** (whichever hand crit) with the current AP and modifiers.
 
 ### 2.6 Enrage, Death Wish, Recklessness
 
@@ -430,6 +433,18 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
   - A queued Heroic Strike fires on the Windfury extra attack.
   - A Weaponmaster extra attack can proc Windfury, and a Windfury extra attack can proc
     Weaponmaster, as long as Weaponmaster's 200 ms internal cooldown is ready.
+  - **The attack power has a second charge** ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). A proc puts Windfury Attack's aura on you
+    (10610: +246 AP, **2 charges**, **1 s** in Forever and 1.5 s in Classic Era, proc mask 0x4,
+    auto attacks) [F] [client] (SpellAuraOptions, SpellMisc, SpellDuration, 1.60.1.70009 and
+    1.15.9.69722). Each auto attack while it's up (a white swing of either hand or an extra
+    attack) gets the attack power and uses a charge: the extra attack first, then the next auto
+    attack within the second, often the off hand's swing. An ability in that second (a Bloodthirst,
+    a Heroic Strike swing) gets the attack power too and uses no charge, since the mask is auto
+    attacks only [?]. An auto attack that misses still uses a charge, as with Flurry's [?]. An
+    extra attack held back by a cast (Slam without Improved Slam, [§7](#7-implementation-notes))
+    past the second gets none. Before D36 the attack power went to the extra attack only.
+    Windfury Weapon's own aura (16361: 3 charges, 1.5 s) isn't changed: its two extra attacks
+    take two charges, and the third isn't simulated ([shaman.md](shaman.md#weapon-imbues)).
 
 ### 2.8 Reactive abilities: Overpower, Bloodthrill, Revenge
 
@@ -522,7 +537,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage. The 15 per rage is client data, not a server script: the damage effect's `EffectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 (ranks 1–5: 3, 6, 9, 12, 15) | [F] [sb] [client] (SpellEffect, 1.60.1.69913); rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
-| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
+| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. **In `forever` each tick adds 0.02 × AP**, read as the tick lands [?] ("Rend's attack power" below). Improved Rend multiplies the whole tick by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913); AP term [?] |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
 | Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
 | Revenge (6, 25288) | 5 | 5 s | yes | Defensive | **138–168** (153 ±10%) × (1 + 0.20 × Improved Revenge rank). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
@@ -564,6 +579,14 @@ Specialization's OH hit) and can crit (Impale applies) and proc on-hit effects [
 
 **Bloodthirst details.** The AP used is the warrior's full melee attack power after all
 buffs. It is physical, so armor applies, and it uses the special attack table [F] [sb].
+
+**Rend's attack power** [?] ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). In `forever` each Rend tick deals `21 + 0.02 × AP`, the
+attack power read as the tick lands, and the rest of the tick keeps the bleed's snapshot rules
+(the physical multipliers and crit chance at the application, [§7](#7-implementation-notes)
+"Rend is a bleed ability"). Improved Rend multiplies the whole tick. The client's 11574 has no
+attack-power term (one periodic-damage effect of 21), so the term is server-side: it comes from
+WarriorSim's Forever mode, measured there at a low level, and the coefficient at 60 is
+unconfirmed. `classicEra` has none [C]. The results' assumptions list it with Rend's tick crits.
 
 ### 3.2 Buffs, debuffs and cooldowns
 
@@ -1337,7 +1360,9 @@ Notes:
   (once Rend has run out) a Rend gets all 7 ticks (6.55 a cast against 5.74 at 3 s, counting the
   ones that miss) but leaves Bloodthrill's proc down until the next GCD. With the tuned defaults,
   1.5 s measured −0.32% and 2.5 s −0.12%, and 0 s −0.03%, its interval reaching zero (below).
-  So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks.
+  So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks (measured before
+  [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25) added 0.02 × AP a tick,
+  about 77 at 1800 AP; the re-tune revisits it).
 - **Heroic Strike** (row 13) is off by default. Its swing replaces a white swing that would have
   given 15.75 rage with the default 3.5 s two-hander, and is reported to give none
   ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 12 rage
@@ -2314,9 +2339,9 @@ seed 12345). The enchants stay the spec's
   Tests check each talent's list of abilities against its client class mask. Cleave's own
   reductions (Improved Cleave, Raging Blows) arrive with Cleave, so W21's Cleave costs aren't
   tested yet.
-- **Unbridled Wrath on Heroic Strike swings** ([§2.3](#23-rage-warrior-specific) default, Q5)
-  uses a "swing landed" trigger: a landed white swing, extra attack, or on-next-swing ability's
-  swing.
+- **Unbridled Wrath from auto attacks** ([§2.3](#23-rage-warrior-specific), Q5) uses the "white
+  landed" trigger: a landed white swing of either hand or an extra attack, never an on-next-swing
+  ability's swing (D36).
 - **The execute phase.** One event at `t_exec`
   ([encounter.md implementation notes](../mechanics/encounter.md#implementation-notes)) switches
   the engine to the phase's priority list. The engine sorts the lines into two lists up front,
@@ -2491,7 +2516,9 @@ seed 12345). The enchants stay the spec's
   [?] (Q32). A landed application snapshots the physical damage multiplier and the main hand's
   special-attack crit chance, crit suppression included [?]
   ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)), and ticks 7
-  times, every 3 s. The ticks ignore armor, never miss, make threat at dmg × 1 and no rage. In
+  times, every 3 s. In `forever` each tick adds 0.02 × the attack power as it lands, under the
+  snapshotted multipliers, Improved Rend's included ([§3.1](#31-damage-abilities)) [?]. The ticks
+  ignore armor, never miss, make threat at dmg × 1 and no rage. In
   `forever` each tick rolls crit at that chance and deals the ability's crit multiplier (×2.2
   with Impale 2/2, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. A tick crit fires no crit
   procs and doesn't end Weakness Analyzer: neither Flurry's nor Deep Wounds' proc mask (0x15554,
@@ -2675,14 +2702,30 @@ Classic's break-even was 2000 at cost 10 [marrow].
 
 ### W12: Deep Wounds 3/3
 
-- **Two-hander T:** the total is `0.6 × (131 + 488.57) = 371.74`, so each of the 4 ticks is
-  `92.94`, or **95.72** with Two-Handed Weapon Specialization ×1.03 [C] [ws-spell].
-- **One-hander O in the main hand:** the total is `0.6 × 486.29 = 291.77`, and each tick is
-  `72.94`. The result is the same when the off hand is the one that crits.
+`forever` (rolling [?], [§2.5](#25-crits-impale-flurry-deep-wounds)), no damage modifiers:
+
+- **Two-hander T:** one crit adds `0.6 × (131 + 488.57) = 371.74`, so a lone crit's 4 ticks are
+  `92.94`, or **95.72** with Two-Handed Weapon Specialization ×1.03, snapshotted at the crit.
+- **Two crits 1 s apart, one-hander O in the main hand:** a white crit at 0 s adds
+  `0.6 × 486.29 = 291.77` and starts the bleed, its first tick at 3 s. A Bloodthirst crit at 1 s
+  adds the main hand's 291.77 again (the critting weapon's average hit, whatever the attack): the
+  pool is 583.54, the ticks left go back to 4, and the tick stays at 3 s. The ticks at 3 and 6 s
+  each deal `583.54 ÷ 4 = 145.89`.
+- **An off-hand crit between ticks** (one-hander O in the off hand, Dual Wield Specialization
+  5/5): at 6.5 s the pool holds the 291.77 the two ticks left. The crit adds
+  `291.77 × 0.625 = 182.36`, so 474.13 goes out over 4 ticks, at 9, 12, 15 and 18 s, of `118.53`
+  each.
+
+`classicEra` (restart [C] [ws-spell]): each tick is a quarter of the main hand's, recomputed at
+the tick: `92.94` with two-hander T (95.72 with ×1.03), `72.94` with one-hander O in the main
+hand, whichever hand crit.
 
 ### W13: Rend with Improved Rend 3/3
 
-`147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
+- `classicEra`: `147 × 1.35 = 198.45` over 21 s, or 28.35 per tick for 7 ticks.
+- `forever` at 1800 AP: each tick is `(21 + 0.02 × 1800) × 1.35 = 57 × 1.35 = 76.95`, so 538.65
+  over 7 ticks [?]. At 2000 AP a tick is `(21 + 40) × 1.35 = 82.35`: the attack power is read as
+  each tick lands.
 
 ### W14: Revenge rank 6, Protection
 
@@ -2824,10 +2867,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    (SpellEffect, SpellEquippedItems, 1.60.1.69913). **Test:** main-hand and off-hand miss counts
    separately over 500+ swings each, with and without the talent. Also record rage per off-hand
    hit.
-5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings and from extra
-   attacks? The data's mask is "auto attack". The pre-SoD WarriorSim counts Heroic Strike
-   swings [ws-player]. **Test:** rage gains logged while spamming Heroic Strike with a low-rage
-   setup.
+5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings? The data's mask is
+   "auto attack", so the sim procs it from white swings and extra attacks only
+   ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)); the pre-SoD WarriorSim
+   counted Heroic Strike swings [ws-player]. Nobody has checked the server. **Test:** rage gains
+   logged while spamming Heroic Strike with a low-rage setup.
 6. **Heroic Strike queue and off-hand miss.** Does a queued Heroic Strike still lift the
    dual-wield miss penalty from off-hand swings, as in Classic Era's "not a bug" [bnet-hsq]?
    A third-party beta test says yes (5.19% vs 18.27% off-hand miss over 77 and 394 swings,
@@ -2926,20 +2970,25 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     taken is now `10 × the hit before mitigation ÷ max health` ([rage.md](../mechanics/rage.md#forever-)),
     and the multiplier stays ×1.0 [?]; a Forever sim's ×2 is its own guess. **Test:** equal hits
     with and without Berserker Rage ([rage.md open question 1](../mechanics/rage.md#open-questions)).
-21. **Deep Wounds implementation.** ✅ The spell and flags are resolved from client data
-    ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever client, and
-    Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit flag), which
-    the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit flag [F]
-    [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). Still to check in game: whether
-    the bleed recomputes on each tick (Classic: yes, [C]), its refresh behaviour, and whether
-    Rend's ticks really crit in combat, as the `forever` profile assumes [?] ([damage-and-timing
-    OQ 2](../mechanics/damage-and-timing.md#open-questions)). The refresh is the one that moves
-    the result most: restarting the tick timer on every crit (§2.5) costs Fury about 2% of its
-    DPS against a refresh that keeps it. The sim's rogue model assumes the other rule for Deadly
-    Poison, whose new stack renews the duration without restarting the tick timer ([rogue
-    Q8](rogue.md#10-open-questions)); the two can't both be the modern engine's one rule, so one
-    of them is wrong for Forever. The guild test is [open-questions
-    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer).
+21. **Deep Wounds implementation.** ✅ **Resolved by
+    [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25).** The spell and flags
+    come from client data ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever
+    client, and Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit
+    flag), which the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit
+    flag [F] [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). 412609 is the Season of
+    Discovery spell, also in the Classic Era 1.15.9 client, so under the doctrine's second
+    exception its SoD behaviour is the closest analog: the bleed **rolls** (each crit adds its
+    snapshotted amount to a pool the next 4 ticks pay out, and the pending tick keeps its time,
+    [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. It's the largest change D36 brought: the
+    earlier restart model, which lost what was left of the bleed at every crit, gave the default
+    Fury warrior about 13% less DPS (714.7 against 824.7 on the engine's golden run) and Arms
+    about 13% less (707.3 against 812.5). That settles the conflict this question
+    raised with the rogue model: Deadly Poison's new stack renews the duration without restarting
+    the tick timer ([rogue Q8](rogue.md#10-open-questions)), and the rolling bleed keeps its timer
+    too, so the two now agree. Still for the guild to check in game: the rolling itself and its
+    snapshot, and whether Rend's ticks really crit in combat, as the `forever` profile assumes [?]
+    ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions); [open-questions
+    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
 22. **Demoralizing Shout scaling.** The level-60 tooltip is **−204** [F]: the client data's −196
     plus −1.4 per level above 54, which its `SpellLevels` (54–64) don't cap below 60, is −204.4,
     shown as 204 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). The −196 this doc called

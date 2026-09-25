@@ -472,16 +472,19 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Retribution since C2), "the
-    common priority" for a spec until then. The cat's also says there's no powershifting, and why
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2), "the
+    common priority" for a spec until then. Retribution's, tuned in C2 and searched again only as a
+    first pass on 1.60.1.70009 (D27), says so: "The defaults were tuned on an earlier game build and
+    had a quick search on this one." The cat's also says there's no powershifting, and why
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
     which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS were
     tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn't
     been fully tuned yet." (the warrior, whose presets had a first-pass check on 1.60.1.70009);
     "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
-    tuned yet." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
-    default, plays as Defensive." (the paladin).
+    tuned yet." (the bear); "Defensive and Max TPS were tuned on an earlier game build and had a
+    quick search on this one; Balanced, the default, plays as Defensive." (the paladin, whose list,
+    talents and thresholds had a first-pass search on 1.60.1.70009, the paladin review's PR-6).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority

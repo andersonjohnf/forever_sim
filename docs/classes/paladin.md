@@ -223,6 +223,13 @@ and the docs it links; this list only summarizes them, with the same tags.
   SoR's and SoF's proc crits give its stacks; a periodic aura's ticks (Consecration's) don't, by its
   proc mask ([Retribution tree](#retribution-tree)). The attribute's reading is data; that
   Forever's server applies it this way is untested [?] ([open question 22](#open-questions)).
+  **Item spells stay out [?]:** an enchant's or item's damage proc (Fiery Weapon's 40 Fire) and an
+  item's own spell (EZ-Thro Dark Bomb) give no Vengeance, crit or not. They're the item's spells,
+  not your class's, so the sim keeps them outside your class's procs, as it keeps an item's spell
+  out of every class's spell procs
+  ([buffs §3.7](../mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)); whether Can Proc From Procs lets their
+  crits give stacks on Forever's server is a guild-test candidate (open question 22). Ranged shots
+  are the hunter's and never reach a paladin. `paladin.test.ts` holds both item paths.
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an
   [open question](#open-questions).
@@ -1623,7 +1630,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     DPS and 5.7% more TPS, mostly from Windfury's extra attacks and the Seal of Fury procs they
     bring (the Flurry Axe's are a sixth of it). *Test:* in a Windfury Totem group, count Windfury
     attacks per landed white swing with Seal of Fury up and with no seal (500+ swings each; the sim
-    expects the same 20%), and Vengeance stacks from SoR crits alone (the sim expects them). Two more that aren't minor:
+    expects the same 20%), and Vengeance stacks from SoR crits alone (the sim expects them), and
+    from a Fiery Weapon crit alone (the sim expects none). Two more that aren't minor:
     - **Hammer of Wrath's 1 s cast** (without Instrument of Law). The sim has it stop your white
       swings, which start again from a full swing when it ends, and hold everything else, the
       off-GCD Judgement too, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)

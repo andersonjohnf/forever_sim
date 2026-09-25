@@ -9,7 +9,7 @@ import { runChunk } from '../../engine/chunk'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { expectMean } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
-import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, TRIGGER } from '../../plan/types'
+import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, SCHOOL, TRIGGER } from '../../plan/types'
 import {
   CONSECRATION,
   CONSECRATION_RANK1,
@@ -28,6 +28,7 @@ import {
   manaCostOf,
   sealProcs,
 } from './abilities'
+import { EZ_THRO_DARK_BOMB_SPELL } from '../../effects/buffs'
 import { withTalents, withSpellTalents } from './talents'
 import { addPaladinAbility, addProcSpec, damagesOf, examplePlan, row } from './test-helpers'
 
@@ -566,6 +567,50 @@ describe('which seal procs trigger procs (paladin.md#seals, OQ 22)', () => {
     sim.runFight(0)
     expect(counter(sim, plan, 'consecration', FIELD.crits)).toBeGreaterThan(0)
     expect(sim.auraUpMs[plan.auras.findIndex((a) => a.id === 'vengeance')]).toBe(0)
+  })
+
+  it('an item’s spell gives no Vengeance even when it crits: PR-3’s procs from procs are the class’s own spells’ [?] (FL-4)', () => {
+    const vengeanceUpMs = (addItemProc: (plan: Plan) => string) => {
+      const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, durationMs: 30000 })
+      const id = addItemProc(plan)
+      const sim = new Sim(plan)
+      sim.runFight(0)
+      expect(counter(sim, plan, id, FIELD.crits), id).toBeGreaterThan(0)
+      return sim.auraUpMs[plan.auras.findIndex((a) => a.id === 'vengeance')]
+    }
+    // An item's damage proc (Fiery Weapon's 40 Fire, enchants.ts) on every landed swing; every one crits.
+    const fieryWeapon = (plan: Plan) => {
+      plan.sources.push({ id: 'fieryWeapon', name: 'Fiery Weapon', icon: 'spell_holy_greaterheal' })
+      plan.procs.push({ id: 'fieryWeapon', name: 'Fiery Weapon', trigger: TRIGGER.meleeLanded, chance: [1, 1], hands: 3, icdMs: 0, action: ACTION.spellDamage, amount: 0, a: 40, b: 40, school: SCHOOL.fire, source: plan.sources.length - 1, chainBit: 0, requiresAura: -1 })
+      plan.triggers[TRIGGER.meleeLanded].push(plan.procs.length - 1)
+      plan.stats.spellCrit = 1000
+      return 'fieryWeapon'
+    }
+    // An item's own spell (`itemSpell`, EZ-Thro Dark Bomb's), cast by a proc: as the item casts it
+    // (triggering procs), and as a triggered spell that triggers none, the path the seals' procs take.
+    const itemSpell = (triggersProcs: boolean) => (plan: Plan) => {
+      addProcSpec(plan, {
+        id: 'bombProc',
+        name: 'Bomb proc',
+        icon: EZ_THRO_DARK_BOMB_SPELL.icon,
+        trigger: 'meleeLanded',
+        from: 'any',
+        chance: { pct: 100 },
+        icdMs: 5000,
+        action: { kind: 'spell', spell: { ...EZ_THRO_DARK_BOMB_SPELL, triggersProcs, alwaysHit: true, bonusCrit: 1000 } },
+      })
+      return EZ_THRO_DARK_BOMB_SPELL.id
+    }
+    expect(vengeanceUpMs(fieryWeapon)).toBe(0)
+    expect(vengeanceUpMs(itemSpell(true))).toBe(0)
+    expect(vengeanceUpMs(itemSpell(false))).toBe(0)
+    // The same spell as your class's (no `itemSpell`), triggering nothing, does give it: Vengeance can proc from procs.
+    const classSpell = (plan: Plan) => {
+      itemSpell(false)(plan)
+      plan.spells!.find((x) => x.source === row(plan, EZ_THRO_DARK_BOMB_SPELL.id))!.itemSpell = false
+      return EZ_THRO_DARK_BOMB_SPELL.id
+    }
+    expect(vengeanceUpMs(classSpell)).toBeGreaterThan(0)
   })
 })
 

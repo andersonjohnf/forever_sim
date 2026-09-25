@@ -688,6 +688,27 @@ every dataset here is one build again. `spells.json` gained no spell and lost no
 and Crusade's spells stay, as paladin.md cites them): 7 racial spells whose doc citations had
 landed since the last run took their `docs` source.
 
+Adopted since, for the mage, shaman, Balance druid, races and consumables (each doc names
+1.60.1.70009 where its value moved): Ignite's ticks no longer take the boss's damage taken again
+(412545 gains `Attributes[6]` 0x20000000 and `Attributes[10]` 0x2) and Hot Streak's 400625 lasts
+20 s ([mage](../classes/mage.md#ignite)); Rage of the Farseer drops its casting speed (aura 65),
+Lightning Bolt r4 is 56 base points, and every rank of Windfury, Grace of Air and Flametongue
+Totem, and Tranquil Air, share a new `Attributes[11]` 0x400 (11 spells), the no-stacking rule the
+notes give ([shaman](../classes/shaman.md#totems));
+Windfury Totem's 10612 is a proc-trigger aura (42), as D12 now reads; Wrath is about 50% stronger
+on every rank ([druid §11.2](../classes/druid.md#112-spells)); Eureka! cuts 10% for every class
+([character-stats](../mechanics/character-stats.md#racials-that-matter-to-the-sim)); Wizard Oil is
++24 and the Frenzy potions give attack power (auras 99 and 124), as D13 now reads
+([buffs §3](../mechanics/buffs-debuffs-consumables.md#35-potions-and-runes)); Dark Sacrifice's
+tooltip adds your Spirit ([priest](../classes/priest.md#72-race-and-weapons)). Of the spells
+`spells.json` holds, 66 (77 effect rows) lost `EffectBonusCoefficient` 1, nearly all item and
+consumable spells (Mighty Rage 17528, the Nutritious Food spells, Hand of Justice 15600,
+Earthstrike 25891 and others), and one gained it: Twist of Light 1310735, whose effect became an
+aura 108 (the client as a whole: 875 spells, 1,043 rows). Every one is an aura or a non-damage
+effect, where the coefficient does nothing, so no simulated value moves. The docs' new citations
+since (the lower air-totem ranks and Flametongue Totem's auras, and Deep Wound's tick 412613,
+[warrior Q36](../classes/warrior.md#9-open-questions)) add 9 spells to `spells.json`.
+
 ### What the docs decide
 
 Part of the interest set comes from the docs rather than from the other datasets, so **a doc

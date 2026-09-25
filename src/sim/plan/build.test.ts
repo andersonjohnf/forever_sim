@@ -674,12 +674,13 @@ describe('assumptions', () => {
   })
 
   it('gives a Gnome of every class its Eureka!: the aura, its charges and cuts, the abilities it modifies, and the assumption with its cut (classes/eureka.ts)', () => {
+    // 1.60.1.70009: every class's cut is 10%.
     const cases = [
-      ['warrior-fury', 40, 'rage', ['bloodthirst', 'whirlwind', 'execute', 'heroicStrike']],
-      ['rogue-combat', 20, 'Energy', ['sinisterStrike', 'eviscerate']],
-      ['mage-fire', 50, 'mana', ['fireball', 'scorch', 'fireBlast']],
-      ['warlock-affliction', 50, 'mana', ['shadowBolt', 'corruption']],
-      ['priest-shadow', 15, 'mana', ['mindBlast', 'shadowWordPain', 'mindFlay']],
+      ['warrior-fury', 10, 'rage', ['bloodthirst', 'whirlwind', 'execute', 'heroicStrike']],
+      ['rogue-combat', 10, 'Energy', ['sinisterStrike', 'eviscerate']],
+      ['mage-fire', 10, 'mana', ['fireball', 'scorch', 'fireBlast']],
+      ['warlock-affliction', 10, 'mana', ['shadowBolt', 'corruption']],
+      ['priest-shadow', 10, 'mana', ['mindBlast', 'shadowWordPain', 'mindFlay']],
     ] as const
     for (const [spec, cut, resource, modified] of cases) {
       const { plan, assumptions } = buildPlan({ ...defaultConfig(spec), race: 'alliance-gnome' })

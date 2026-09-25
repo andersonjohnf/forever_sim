@@ -309,12 +309,12 @@ export async function checkClaims(ctx) {
   });
 
   // ---------------------------------------------------------------- D12 Windfury
-  claim("D12", "Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack); 10611 absent", () => {
+  claim("D12", "Forever: 10612 is a party proc-trigger aura (42; a dummy, 4, until 1.60.1.70009), 20% proc into 10610 (+246 AP, 1 extra attack); 10611 absent", () => {
     const p = f(10612);
     const e = eff(p, 0);
     const w = f(10610);
-    const ok = e.effect === 35 && e.effectAura === 4 && p.auraOptions?.procChance === 20 && pts(e) === 10610 && pts(byAura(w, 99)) === 246 && byType(w, 19) && !F.exists(10611);
-    return verdict(ok, `10612 AREA_AURA_PARTY aura 4, points ${pts(e)} (= the proc spell id), proc ${p.auraOptions?.procChance}% on mask ${hex(p.auraOptions?.procTypeMask[0])} with ProcCategoryRecovery ${p.auraOptions?.procCategoryRecovery} ms; 10610 +${pts(byAura(w, 99))} AP and EXTRA_ATTACKS ${pts(byType(w, 19))}, ${w.auraOptions?.procCharges} charges, ${w.duration?.duration} ms; 10611 ${F.exists(10611) ? "present" : "absent"}`);
+    const ok = e.effect === 35 && e.effectAura === 42 && p.auraOptions?.procChance === 20 && pts(e) === 10610 && pts(byAura(w, 99)) === 246 && byType(w, 19) && !F.exists(10611);
+    return verdict(ok, `10612 AREA_AURA_PARTY aura ${e.effectAura}, points ${pts(e)} (= the proc spell id), proc ${p.auraOptions?.procChance}% on mask ${hex(p.auraOptions?.procTypeMask[0])} with ProcCategoryRecovery ${p.auraOptions?.procCategoryRecovery} ms; 10610 +${pts(byAura(w, 99))} AP and EXTRA_ATTACKS ${pts(byType(w, 19))}, ${w.auraOptions?.procCharges} charges, ${w.duration?.duration} ms; 10611 ${F.exists(10611) ? "present" : "absent"}`);
   });
   claim("D12", "Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s)", () => {
     const p = eff(c(10612), 0);
@@ -330,16 +330,17 @@ export async function checkClaims(ctx) {
     const got = Object.entries(want).map(([item, [cat, ms]]) => [cons(item)?.spellCategoryId === cat && cons(item)?.categoryCoolDownMSec === ms, `${item}: ${cons(item)?.spellCategoryId} (${cons(item)?.categoryCoolDownMSec / 1000} s)`]);
     return verdict(got.every(([ok]) => ok), got.map(([, s]) => s).join("; "));
   });
-  claim("D13", "Frenzy potions: aura 13 (school mask 1), no cooldown category", () => {
+  claim("D13", "Frenzy potions: attack power and ranged attack power (auras 99 and 124) of 40 / 56 / 80 (1.60.1.70009; aura 13 before), no category on the items", () => {
     const ids = [1251937, 1251938, 1251940];
-    const auras = ids.map((id) => `${pts(byAura(f(id), 13))}/${byAura(f(id), 13)?.effectMiscValue[0]}`);
+    const want = [40, 56, 80];
+    const auras = ids.map((id) => `${pts(byAura(f(id), 99))}/${pts(byAura(f(id), 124))}`);
     const cats = ids.map((id) => `${f(id).categories?.category ?? 0}/${f(id).cooldowns?.categoryRecoveryTime ?? 0}`);
     const itemCats = [250941, 250942, 250943].map((i) => cons(i)?.spellCategoryId ?? 0);
-    const aurasOk = ids.every((id) => byAura(f(id), 13)?.effectMiscValue[0] === 1);
+    const aurasOk = ids.every((id, i) => pts(byAura(f(id), 99)) === want[i] && pts(byAura(f(id), 124)) === want[i] && !byAura(f(id), 13));
     const categorised = ids.some((id) => f(id).categories?.category);
-    if (!aurasOk) return [DIFF, `aura 13 = ${auras.join(", ")}`];
-    if (!categorised) return [OK, `aura 13 = ${auras.join(", ")}; no category on the items (${list(itemCats)}) or the spells`];
-    return [PART, `aura 13 = ${auras.join(", ")} (points/school mask) matches. But while the item effects carry no category (${list(itemCats)}), the potion spells ${ids.join("/")} are in SpellCategories category ${cats.join(", ")} (category/recovery ms): the potion category with its 2-minute shared cooldown`];
+    if (!aurasOk) return [DIFF, `aura 99/124 = ${auras.join(", ")}`];
+    if (!categorised) return [OK, `aura 99/124 = ${auras.join(", ")}; no category on the items (${list(itemCats)}) or the spells`];
+    return [PART, `aura 99/124 = ${auras.join(", ")} matches. But while the item effects carry no category (${list(itemCats)}), the potion spells ${ids.join("/")} are in SpellCategories category ${cats.join(", ")} (category/recovery ms): the potion category with its 2-minute shared cooldown`];
   });
   claim("D13", "All-crit aura (290) on Leader of the Pack 24932 and Mongoose 17538", () => verdict(pts(byAura(f(24932), 290)) === 3 && pts(byAura(f(17538), 290)) === 2, `24932 aura 290 = ${pts(byAura(f(24932), 290))}; 17538 aura 290 = ${pts(byAura(f(17538), 290))}`));
   claim("D13", "Hyjal flasks = dummy + zero-valued aura", () => {

@@ -1,6 +1,6 @@
 // The consumables every rotation uses the same way (buffs doc "On-use items and cooldown categories"):
-// Greater Stoneshield Potion and EZ-Thro Dark Bomb, each on its category's cooldown from the pull
-// (the bomb, for a spec that swings, from its first main-hand swing: §3.7).
+// Greater Stoneshield Potion, Major Frenzy Potion and EZ-Thro Dark Bomb, each on its category's
+// cooldown from the pull (the bomb, for a spec that swings, from its first main-hand swing: §3.7).
 // No spec times them around anything of its own, so the plan builder adds their lines to any
 // spec's priority list (plan/build.ts), ahead of the spec's own; a spec whose rotation already
 // presses one (its `onUse`) keeps its own line.
@@ -12,7 +12,7 @@ import { NO_STRIKE } from './warrior/abilities'
 import type { ClassRotation } from './warrior/shared'
 
 /** Buff catalogue ids of the consumables every rotation uses on cooldown (effects/buffs.ts). */
-export const SHARED_CONSUMABLES: readonly string[] = ['greaterStoneshieldPotion', 'ezThroDarkBomb']
+export const SHARED_CONSUMABLES: readonly string[] = ['greaterStoneshieldPotion', 'majorFrenzyPotion', 'ezThroDarkBomb']
 
 /**
  * A consumable as an ability: a `cast` that puts its buff on you (Greater Stoneshield's armor), or,

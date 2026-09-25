@@ -38,6 +38,7 @@ const MELEE = [
   'elementalSharpeningStone',
   'mightyRagePotion',
   'jujuFlurry',
+  'majorFrenzyPotion',
 ]
 
 /** Stats that only attacks read: a caster's spells use none of them (character-stats.md, spells.md §3–§5). */
@@ -63,8 +64,9 @@ function attacksOnly(e: Effect): boolean {
     case 'proc':
       return e.proc.trigger === 'meleeLanded'
     case 'onUse':
-      // An attack-speed or Strength buff, and rage (Juju Flurry, the Mighty Rage Potion).
-      return e.use !== undefined && !e.use.manaTenths && !e.use.spell && Object.keys(e.use.aura?.mods ?? {}).every((m) => m === 'haste' || m === 'str')
+      // An attack-speed, Strength or attack power buff, and rage (Juju Flurry, the Mighty Rage and
+      // Major Frenzy Potions).
+      return e.use !== undefined && !e.use.manaTenths && !e.use.spell && Object.keys(e.use.aura?.mods ?? {}).every((m) => m === 'haste' || m === 'str' || m === 'ap' || m === 'rap')
     default:
       return false
   }

@@ -133,6 +133,9 @@ const MANA_SPECS: readonly SpecId[] = [...new Set([...PALADINS, ...SHAMAN, ...CA
  * the spell damage ones aren't, since no hunter spell reads spell damage.
  */
 const HUNTERS: SpecId[] = ['hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival']
+/** The hunters whose Max potion is the Major Frenzy Potion; the Beast Mastery hunter's mana needs the Major Mana Potion. */
+const FRENZY_HUNTERS: SpecId[] = ['hunter-marksmanship', 'hunter-survival']
+const BEAST_MASTERY: SpecId[] = ['hunter-beast-mastery']
 const MANA_REGEN_CLASSES: readonly ClassId[] = [...MANA_CLASSES, 'hunter']
 const MANA_REGEN_SPECS: readonly SpecId[] = [...MANA_SPECS, ...HUNTERS]
 /**
@@ -165,7 +168,7 @@ export const TEMP_ENCHANT = 'temp-enchant'
  * each entry's group to its item's category.
  */
 export const COOLDOWN_GROUP = {
-  /** Category 4, 120 s: every potion (Mighty Rage, Major Mana, Greater Stoneshield). */
+  /** Category 4, 120 s: every potion (Mighty Rage, Major Mana, Greater Stoneshield, and Major Frenzy through its spell). */
   potion: 'cooldown:potion',
   /** Category 1153, 120 s: the Demonic and Dark Runes, and Thistle Tea (beside its own 5 min). */
   rune: 'cooldown:rune',
@@ -258,6 +261,23 @@ export const GREATER_STONESHIELD_POTION: OnUseSpec = {
   cooldownMs: 120000,
   gcdMs: 0,
   aura: { id: 'greaterStoneshield', name: 'Greater Stoneshield', durationMs: 120000, mods: { armor: 2000 } },
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+}
+
+/**
+ * Major Frenzy Potion (item 250943 → spell 1251940; buffs doc §3.5), new in Forever: +80 attack power
+ * (aura 99) and +80 ranged attack power (aura 124) for 30 s. No GCD; the item effect carries no
+ * cooldown, but the spell is in the potion category (4, 120 s), so it shares the potions' 2 min
+ * [F] [client] (SpellEffect, SpellDuration, SpellCategories, SpellCooldowns, 1.60.1.70009).
+ */
+export const MAJOR_FRENZY_POTION: OnUseSpec = {
+  id: 'majorFrenzyPotion',
+  name: 'Major Frenzy Potion',
+  icon: 'inv_potione_6',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: { id: 'majorFrenzy', name: 'Major Frenzy', durationMs: 30000, mods: { ap: 80, rap: 80 } },
   rageTenths: 0,
   rageSpreadTenths: 0,
 }
@@ -1273,18 +1293,15 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_104',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+30 spell damage, on your main hand',
+    summary: '+24 spell damage, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
     exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
-    // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 30 [F]; Classic Era's 24 [C]
-    // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
-    effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
-    classicEra: {
-      summary: '+24 spell damage, on your main hand',
-      effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
-    },
+    // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 24 [F], the same as Classic
+    // Era's since 1.60.1.70009 reverted it from 30 [client] (SpellItemEnchantment, SpellEffect,
+    // 1.60.1.70009 and 1.15.9.69722).
+    effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
     presets: { raid: PROTECTION_PALADIN },
   },
   {
@@ -1394,7 +1411,9 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
-    presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
+    // Max gives the Enhancement shaman and the Marksmanship and Survival hunters the Major Frenzy
+    // Potion instead, which is worth more to them (buffs doc §6.3).
+    presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS], max: [...PALADINS, ...CASTER_SPECS, ...BEAST_MASTERY] },
   },
   {
     id: 'demonicRune',
@@ -1471,6 +1490,26 @@ export const BUFFS: BuffSpec[] = [
     // In no preset: it shares the potion cooldown with the tanks' Mighty Rage Potion, whose rage
     // makes threat, and its armor only lowers the damage you take (buffs doc §6.3).
     presets: NOT_IN_PRESETS,
+  },
+  {
+    id: 'majorFrenzyPotion',
+    name: 'Major Frenzy Potion',
+    icon: 'inv_potione_6',
+    category: 'consumable',
+    group: 'Potions and bombs',
+    summary: '+80 attack power and ranged attack power for 30 s, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time',
+    // Attack power, so for the specs that attack (melee and hunters); any class may drink it.
+    forSpecs: 'melee',
+    exclusiveGroup: COOLDOWN_GROUP.potion,
+    docRef: `${DOC}#35-potions-and-runes`,
+    // Every rotation drinks it on cooldown from the pull (classes/shared-consumables.ts).
+    effects: [{ kind: 'onUse', id: 'majorFrenzyPotion', name: 'Major Frenzy Potion', use: MAJOR_FRENZY_POTION }],
+    // Max, where it beats the spec's current potion (buffs doc §6.3, measured at 20,000 fights): the
+    // rogues, who drink no other (about +1.0–1.2%), and over the Major Mana Potion the Enhancement
+    // shaman (+0.9%) and the Marksmanship (+0.9%) and Survival (+0.6%) hunters. Not the Beast Mastery
+    // hunter (−3.5%: its mana), the warriors, bear and paladins (−0.7% to −2.8% against their Mighty
+    // Rage or mana potion), or the cat (+0.2%, a tie with the Mighty Rage its rotation times).
+    presets: { max: [...ROGUES, ...SHAMAN, ...FRENZY_HUNTERS] },
   },
 ]
 

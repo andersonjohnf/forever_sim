@@ -310,7 +310,9 @@ tagged:
   Cannon Balls have no Forever row.
 - **Pets**: scaling auras with new aura types (amounts server-side); new abilities (Swipe, Pinch,
   Dismember, Savage Rend, Dust Cloud, Trickster's Dance, …); Furious Howl +136 melee attack power to
-  the party for 60 s (45–57 on the next attack); Lightning Breath 86–98 with no level scaling; a Fox
+  the party for 60 s (45–57 on the next attack), which 1.60.1.70009's [notes][dev-70009] cut by 40% ("Furious Howl
+  Attack Power bonus reduced 40%", about 82) though its client row, 24597, still reads 136 (the cut is
+  the server's [?]; the sim doesn't simulate the howl); Lightning Breath 86–98 with no level scaling; a Fox
   family. A reworked Beast Mastery tree (Unleashed Fury 3–15%, Ferocity 2–10%, Focused Fire, Lone
   Wolf) is the hunter's doc's.
 - **Demons**: Firebolt 44 ±11% (83–94), Lash of Pain 50 (100), Demonic Sacrifice's schools swapped.
@@ -465,3 +467,4 @@ Beast Mastery's cat it's worth 24.6 DPS, 4.4% (hunter.md §6). Test: a pet's she
 [fbugs]: https://github.com/ClassicWoWCommunity/forever-bugs
 [wiki-201]: https://warcraft.wiki.gg/wiki/Patch_2.0.1
 [wiki-steady]: https://warcraft.wiki.gg/wiki/Steady_Shot
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696

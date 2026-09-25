@@ -304,10 +304,11 @@ tuning milestone.
 **Orc** by default: Forever's Blood Fury adds 10% spell power for 15 s every 2 min. Troll's Berserking
 (+10% casting speed for 10 s every 3 min) is next; Gnome's Forever Expansive Mind is +5% maximum mana
 for a warlock [F] (20591, aura 178), and its Eureka! (1259821) makes the next 3 of Shadow Bolt,
-Corruption, Immolate, the Banes, Conflagrate, Shadowburn and Soul Fire cost 50% less mana and deal +10%
-(their DoTs +10%), pressed on cooldown from the pull (`src/sim/classes/eureka.ts`, [?] `eureka`; not
-Incinerate or Siphon Life, outside its masks): +2.19% Affliction, +0.94% Demonology, +1.36%
-Destruction (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights). Human and Undead have no racial
+Corruption, Immolate, the Banes, Conflagrate, Shadowburn and Soul Fire cost 10% less mana (50% until
+1.60.1.70009 made every class's cut 10%, [F] [client] (1.60.1.70009)) and deal +10% (their DoTs +10%),
+pressed on cooldown from the pull (`src/sim/classes/eureka.ts`, [?] `eureka`; not Incinerate or Siphon
+Life, outside its masks): +1.70% Affliction, +0.88% Demonology, +0.79% Destruction (Gnome, racial on vs
+off, the defaults, seed 12345, 20,000 fights; +2.19%, +0.94% and +1.36% at 50%). Human and Undead have no racial
 that adds damage. Classic Era had no Troll warlock; Forever does (CharBaseInfo) [F].
 
 ### 7.3 Gear

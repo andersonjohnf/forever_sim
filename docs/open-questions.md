@@ -1061,7 +1061,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B50. Gnome maximum rage and Eureka!
 **Low · M2 · ≤20**
 - **Assumes:** Expansive Mind +5% maximum rage; how it combines with Boundless Rage [?]; Eureka!'s
-  −40% cost rounding (down, to whole rage), that it cuts only Execute's base cost, and that a miss
+  −10% cost rounding (−40% until 1.60.1.70009; down, to whole rage), that it cuts only Execute's base cost, and that a miss
   spends a charge [?] (the `eureka` assumption; every class's variant models the same rules).
 - **Test:** Gnome warrior with Boundless Rage 1/3: maximum rage reads 115.5 or 115. Use Eureka!
   on abilities with known costs, and on an avoided ability.
@@ -1082,7 +1082,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B52. Touch of the Grave
 **Low · M2 · ≤20**
 - **Assumes:** healing only, not simulated [?]; amount, school, and whether it can miss, crit or
-  cause threat are unknown.
+  cause threat are unknown. What procs it is narrower since 1.60.1.70009: only spells and
+  abilities with a damage component (Shadow Word: Pain on the cast, not its ticks) [F] (the build's
+  notes; [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)).
 - **Test:** Undead warrior or paladin: log 5 minutes of melee; count procs and read amounts.
 - **Samples:** ≥5 minutes.
 - **Changes:** whether it needs modelling.
@@ -1583,12 +1585,15 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   20% per main-hand hit, +246 AP [F]; it can't proc itself or twice in one chain [C, Magey's
   2019 text; every doc agrees], which the sim applies to every extra-attack source over a root
   swing's whole chain, so two sources procced by one swing can't proc each other [?]; the
-  Forever client gives Windfury Totem Passive 10612 a
+  Forever client gives Windfury Totem's party aura 10612 (a proc-trigger aura, aura 42, since
+  1.60.1.70009) a
   **100 ms internal cooldown** (`ProcCategoryRecovery` 100) [F client `SpellAuraOptions`, found
   by the client-data check], which `forever` now models; whether the server applies it [?]; the
   SoD-era 1.5 s stays refused (forbidden source); the proc's +246 AP aura 10610 has 2 charges
   and lasts 1 s [F client], so does a second attack inside that second also get the AP [?];
-  twisting with Grace of Air and procs from feral attacks [?].
+  procs from feral attacks [?]. ✅ Twisting with Grace of Air is settled: it doesn't work, since the
+  1.60.1.70009 notes make Windfury, Grace of Air and Tranquil Air exclusive even across shamans
+  (buffs `totem:air`).
 - **Test:** a main-hand stone next to a Windfury Totem (does the enchant stay?); log Windfury
   procs, chains and the minimum gap between procs (expect ≥ 100 ms); compare the damage of an
   instant attack pressed right after a Windfury extra attack with the same attack without one;
@@ -1605,14 +1610,16 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C12. New elixirs and Frenzy potions
 **Medium · M2**
 - **Assumes:** the new elixirs (Grizzly, Ferocity, Cunning, Phalanx, Strength, Fortitude,
-  Greater Fortitude) default off until their stacking groups are known [?]; Frenzy potions give
-  +AP per the tooltip but flat physical damage per the data [?]; they **share the 120 s potion
+  Greater Fortitude) default off until their stacking groups are known [?]; ✅ Frenzy potions give
+  attack power and ranged attack power, +80 / +56 / +40 (auras 99 and 124): 1.60.1.70009 settled
+  the tooltip-versus-data split (it was flat physical damage, aura 13) [F client `SpellEffect`];
+  they **share the 120 s potion
   cooldown**: their spells 1251937/1251938/1251940 sit in cooldown category 4, although their
   item effects carry no category [F client `SpellCategories`, corrected by the client-data
   check (D13); whether the server enforces it ?].
-- **Test:** drink each pair and watch the buffs; with a Frenzy potion, compare sheet AP and
-  white-hit damage, and drink one after another potion to confirm the shared cooldown.
-- **Samples:** one per pair; ≥100 hits per Frenzy state.
+- **Test:** drink each pair and watch the buffs; drink a Frenzy potion after another potion to
+  confirm the shared cooldown.
+- **Samples:** one per pair.
 - **Changes:** consumable presets.
 - **Docs:** [buffs §3.2](mechanics/buffs-debuffs-consumables.md#32-elixirs),
   [§3.5](mechanics/buffs-debuffs-consumables.md#35-potions-and-runes),
@@ -1929,7 +1936,7 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 | D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 18 s CD on every rank (15 s in 1.60.1.69913), Improved Slam −1.5 s a rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4, no longer stacking (3 in 1.60.1.69913); Bloodthrill proc mask 0x14, main hand only, into 1282733 (4 in 1.60.1.69913); Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) | ✅ resolved from client data, with one correction: **Stoneform is on the GCD** (`StartRecoveryTime` 1500); Blood Fury, Berserking, Elune's Light and Eureka! are 0. Deep Wounds 12721 is absent from the client altogether (the Forever bleed is 412609). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D10 | Racials | `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellPower` · Forever | 20597 (+2% crit, aura 290), 20598, 20572 (+10% AP, RAP, SP; 15 s), 20574, 1259719, 1259721, 20594, 20582, 1259799 (+10%, 15 s), 1259802, 1259813 (15 s), 1260189, 20550 (+5% HP; +1% hit via auras 54 and 55), 20554 (10 s, no cost), 20557 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D11 | Race/class pairs | `CharBaseInfo`, `ChrRaces` · Forever | 56 pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
-| D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ Forever half confirmed; also found: 10612 has a 100 ms internal cooldown (`ProcCategoryRecovery` 100, see [C11](#c11-windfury-totem)). Classic half: 10612 pulses 10611 → enchant 564 as written, but Classic's `SpellItemEnchantment` has no duration column, so the 10 s is unverifiable there (Forever's row for 564 says 10 s). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party aura (a dummy in 1.60.1.69913, a proc-trigger aura, 42, in 1.60.1.70009), 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ Forever half confirmed; also found: 10612 has a 100 ms internal cooldown (`ProcCategoryRecovery` 100, see [C11](#c11-windfury-totem)). Classic half: 10612 pulses 10611 → enchant 564 as written, but Classic's `SpellItemEnchantment` has no duration column, so the 10 s is unverifiable there (Forever's row for 564 says 10 s). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D13 | Consumable mechanics | `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s); Frenzy potions aura 13 (school mask 1), no category; all-crit aura on Leader of the Pack 24932 and Mongoose 17538; Hyjal flasks = dummy + zero-valued aura | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ resolved from client data, with one correction: **Frenzy potions share the 120 s potion cooldown** (their spells are in category 4, though their item effects carry none; see [C12](#c12-new-elixirs-and-frenzy-potions)). The rest confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D14 | Periodic-crit flags and Deep Wounds (read so far only by wowsims/forever, a secondary source) | `SpellMisc` (Attributes[8], `PERIODIC_CAN_CRIT`), `SpellName`, `SpellEffect` · Forever | flag set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826 and Lacerate 1235827; not set on Deep Wounds and Consecration 20924 / 1280349; Forever's Deep Wounds bleed is spell 412609 (4 ticks, 3 s) | Medium · M2 | [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds), [OQ 2](mechanics/damage-and-timing.md#open-questions); [warrior Q21](classes/warrior.md#9-open-questions); [druid Q21](classes/druid.md#10-open-questions) | ✅ confirmed from client data (412609: every 3,000 ms for 12,000 ms; the flags are client values, whether ticks crit in combat stays [B22](#b22-dots-periodic-crits-snapshots-and-refresh)), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 | D15 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |

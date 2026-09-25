@@ -10,12 +10,13 @@ import spellsJson from '@/data/client/spells.json'
 import type { ClientItems, ClientSpells } from '@/data/client/types'
 import itemJson from '@/data/items/pre-bis.json'
 import type { ItemData, WeaponType } from '@/data/items/types'
+import { normalizeConfig } from '../config/normalize'
 import { defaultConfig } from '../defaults'
 import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { RuleProfileId, SimConfig } from '../types'
-import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
+import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_FRENZY_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
 import { PROFICIENCY } from '../equip'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { HAND_OF_JUSTICE_ICD_MS, ITEM_EFFECTS } from './items'
@@ -158,12 +159,35 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
   })
 })
 
+describe('the air totems don’t stack, even from different shamans (buffs doc `totem:air`, 1.60.1.70009)', () => {
+  it('every rank of Windfury, Grace of Air and Flametongue Totem, and Tranquil Air, carry the same new Attributes[11] 0x400 flag, and no other spell the dataset holds does (shaman.md#totems)', () => {
+    const flagged = Object.entries(spells).filter(([, s]) => ((s.misc?.attributes?.[11] ?? 0) & 0x400) !== 0)
+    const byName = (name: string) => flagged.filter(([, s]) => s.name === name).map(([id]) => Number(id)).sort((a, b) => a - b)
+    expect(byName('Windfury Totem')).toEqual([8515, 10609, 10612])
+    expect(byName('Grace of Air')).toEqual([8836, 10626, 25360])
+    // The notes: Flametongue Totem no longer stacks with Windfury. Not in the catalogue.
+    expect(byName('Flametongue Totem')).toEqual([8230, 8250, 10521, 15036])
+    expect(byName('Tranquil Air')).toEqual([25909])
+    expect(flagged).toHaveLength(11)
+  })
+
+  it('keeps one of Windfury Totem and Grace of Air Totem when a setup has both, and says why', () => {
+    const d = defaultConfig('warrior-fury')
+    const { config, warnings } = normalizeConfig({ ...d, buffs: { raid: d.buffs.raid, enabled: ['windfuryTotem', 'graceOfAir'] } })
+    expect(BUFFS_BY_ID.get('windfuryTotem')!.exclusiveGroup).toBe(BUFFS_BY_ID.get('graceOfAir')!.exclusiveGroup)
+    expect(config.buffs.enabled.filter((id) => id === 'windfuryTotem' || id === 'graceOfAir')).toHaveLength(1)
+    expect(warnings.some((w) => /Windfury Totem|Grace of Air Totem/.test(w))).toBe(true)
+  })
+})
+
 describe('Windfury Totem’s internal cooldown (spell 10612; damage-and-timing §5.4)', () => {
   const d = defaultConfig('warrior-fury')
   const config = (profile: RuleProfileId) => withRules({ ...d, buffs: { raid: ['shaman'], enabled: ['windfuryTotem'] } }, profile)
 
   it('is the Forever client’s ProcCategoryRecovery 100 in `forever`, and none in `classicEra`', () => {
     expect(spells['10612'].auraOptions).toMatchObject({ procChance: 20, procCategoryRecovery: 100 })
+    // A party proc-trigger aura (42) since 1.60.1.70009 (a dummy, 4, before), still pointing at 10610.
+    expect(spells['10612'].effects[0]).toMatchObject({ effect: 35, effectAura: 42, effectBasePointsF: 10610 })
     expect(FOREVER.values.windfuryIcdMs).toBe(100)
     expect(procOf(config('forever'), 'windfury')!.icdMs).toBe(100)
     expect(procOf(config('classicEra'), 'windfury')!.icdMs).toBe(0)
@@ -262,7 +286,10 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
     thistleTea: [7676],
     ezThroDarkBomb: [260817],
     jujuFlurry: [12450],
+    majorFrenzyPotion: [250943],
   }
+  /** The entries whose category is on the spell rather than the item effect. */
+  const BY_SPELL = new Set(['majorFrenzyPotion'])
   /** SpellCategory id → its exclusive group, and the category's shared cooldown. */
   const CATEGORY: Record<number, { group: string; ms: number }> = {
     4: { group: COOLDOWN_GROUP.potion, ms: 120000 },
@@ -272,7 +299,12 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
   const categoryOf = (id: string) => {
     const rows = ITEMS[id].flatMap((item) => consumables[String(item)].effects)
     expect(new Set(rows.map((r) => r.spellCategoryId)).size, id).toBe(1)
-    return rows[0]
+    const row = rows[0]
+    if (!BY_SPELL.has(id)) return row
+    // The Frenzy potion's item effect carries no category; its spell does (buffs doc §3.5).
+    expect(row.spellCategoryId, id).toBe(0)
+    const spell = spells[String(row.spellId)]
+    return { ...row, spellCategoryId: spell.categories?.category ?? 0, categoryCoolDownMSec: spell.cooldowns?.categoryRecoveryTime ?? 0, coolDownMSec: 0 }
   }
 
   it('lists every on-use consumable in the catalogue (Power Infusion is a raid buff, no item)', () => {
@@ -280,7 +312,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
     expect(onUse.sort()).toEqual(Object.keys(ITEMS).sort())
   })
 
-  it('puts each entry in its item’s category’s group: potions 4, runes and Thistle Tea 1153, explosives 24, Juju Flurry none', () => {
+  it('puts each entry in its item’s category’s group (or its spell’s: the Frenzy potion): potions 4, runes and Thistle Tea 1153, explosives 24, Juju Flurry none', () => {
     for (const id of Object.keys(ITEMS)) {
       const row = categoryOf(id)
       const category = CATEGORY[row.spellCategoryId]
@@ -293,6 +325,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
       expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBe(category.group)
     }
     expect(categoryOf('greaterStoneshieldPotion').spellCategoryId).toBe(categoryOf('majorManaPotion').spellCategoryId)
+    expect(categoryOf('majorFrenzyPotion').spellCategoryId).toBe(categoryOf('majorManaPotion').spellCategoryId)
     expect(categoryOf('demonicRune').spellCategoryId).not.toBe(categoryOf('majorManaPotion').spellCategoryId)
     expect(categoryOf('ezThroDarkBomb').spellCategoryId).not.toBe(categoryOf('demonicRune').spellCategoryId)
   })
@@ -304,6 +337,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
       ['demonicRune', DEMONIC_RUNE],
       ['greaterStoneshieldPotion', GREATER_STONESHIELD_POTION],
       ['ezThroDarkBomb', EZ_THRO_DARK_BOMB],
+      ['majorFrenzyPotion', MAJOR_FRENZY_POTION],
     ] as const) {
       const row = categoryOf(id)
       expect(use.cooldownMs, id).toBe(Math.max(row.categoryCoolDownMSec, row.coolDownMSec))

@@ -1031,7 +1031,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // assumption for Rend and Tear and the cat's Rip (druid.md §5.1, §6.2, Q9 [?]).
   const othersBleed = othersKeepBleeding(config.buffs.raid)
   const consumables = c.onUse.flatMap((u) => (u.use ? [u.use] : []))
-  // Greater Stoneshield Potion and EZ-Thro Dark Bomb go on cooldown from the pull in every rotation
+  // Greater Stoneshield Potion, Major Frenzy Potion and EZ-Thro Dark Bomb go on cooldown from the pull in every rotation
   // (buffs doc "On-use items and cooldown categories"; classes/shared-consumables.ts).
   const classRot = setup.simulated
     ? withSharedConsumables(classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {

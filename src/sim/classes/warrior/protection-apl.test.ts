@@ -59,6 +59,8 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
     })
 
     it(`gives 200 random whole setups the plan they had before the list: ${name}`, () => {
+      // Re-taken for 1.60.1.70009's Eureka! (a 10% cost cut for every class, was the warrior's 40%;
+      // classes/eureka.ts): 27 of the 200 cases moved, every one a Gnome's; no other case changed.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

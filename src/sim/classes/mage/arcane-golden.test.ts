@@ -22,6 +22,11 @@ describe('golden run (fixed config and seed)', () => {
   //   Berserking on cooldown, Arcane Missiles, the mana gems and Evocation; the Standard raid's buffs.
   // - Engine merge check EM-6: the list's rank-1 main hand gains its Horde twin, Mindfang, so the
   //   default Troll wears it in place of Witchblade (about +8%).
+  // - 1.60.1.70009 (September 2026): Ignite's ticks no longer take Curse of the Elements again (the
+  //   crit carries it). 402.71 → 402.62 DPS: Ignite, fed by Presence of Mind's Pyroblasts, −9.1%.
+  // - The 70009 casters merge (September 2026): both changes above together, re-taken on the merge.
+  //   Mindfang (EM-6) with Ignite's single Curse of the Elements (70009): 435.43 → 435.33 DPS,
+  //   Ignite 195,274 → 177,522 damage (−9.1%), as each side measured alone.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

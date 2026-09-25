@@ -136,7 +136,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Night Elf | Shadowmeld | now usable in combat (drops aggro, 2 min cooldown when used in combat) | 10 s cooldown, out of combat | ignore (see [threat.md](threat.md)) | [F] [racials][fc-racials] |
 | Night Elf | Nature Resistance | **removed** | +10 Nature resistance | — | [F] [racials][fc-racials] |
 | Gnome | Expansive Mind: one spell per class (`ClassMask`) | Warrior (1259802, mask 1): maximum Rage +5% (aura 178, misc 1 = Rage) → 105. Rogue (1259803, mask 8): maximum Energy +5% (aura 178, misc 3 = Energy) → 105. Priest, mage, warlock (20591, mask 400): maximum mana +5% (aura 178) | Intellect +5% (all classes) | stat: rage [rage.md](rage.md); Energy [rogue.md §2.1](../classes/rogue.md#21-energy); mana a multiplier on the sheet's maximum | [F] [client] (SpellEffect, SkillLineAbility, 1.60.1.69913) |
-| Gnome | Eureka!, one spell per class: warrior 1259813, rogue 1259812, mage 1259817, warlock 1259821, priest 1259823 | Next 3 damaging abilities cost 40% less Rage (rogue 20% Energy, mage and warlock 50% mana, priest 15% mana) and deal 10% more damage, their periodic damage 10% more (aura 108 misc 14, 0 and 22 on the class's spell masks); 3 charges, 15 s, 2 min cooldown, no cost | did not exist | CD (charges): every class presses it (`src/sim/classes/eureka.ts`); a charge per modified ability as it's paid, landed or not, the cut rounded down [?] (`eureka`) | [F] [client] (SpellEffect, SpellAuraOptions, SpellClassOptions, 1.60.1.69913) |
+| Gnome | Eureka!, one spell per class: warrior 1259813, rogue 1259812, mage 1259817, warlock 1259821, priest 1259823 | Next 3 damaging abilities cost **10% less** Rage, Energy or mana for every class (1.60.1.70009; until then warrior 40%, rogue 20%, mage and warlock 50%, priest 15%) and deal 10% more damage, their periodic damage 10% more (aura 108 misc 14, 0 and 22 on the class's spell masks); 3 charges, 15 s, 2 min cooldown, no cost | did not exist | CD (charges): every class presses it (`src/sim/classes/eureka.ts`); a charge per modified ability as it's paid, landed or not, the cut rounded down [?] (`eureka`) | [F] [client] (SpellEffect, SpellAuraOptions, SpellClassOptions, 1.60.1.70009) |
 | Gnome | Arcane Resistance | **removed** | +10 Arcane resistance | — | [F] [racials][fc-racials] |
 | Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura, as Human Sword Specialization (an axe in either hand) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913); Classic [C] [client] (SpellEffect, 1.15.9.69722: a dummy, 25) |
@@ -684,8 +684,8 @@ Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
    gave +25% base melee AP.
 5. **Berserking** is a flat +10% attack and cast speed for 10 s at no cost. Classic scaled 10–30%
    with missing health.
-6. **New racial cooldowns:** Elune's Light (+10% crit, 15 s), Eureka! (3 abilities at −40% Rage,
-   −20% Energy or −50%/−15% mana by class, and +10% damage), Shatter Curse, Will to Survive, Rapid Regeneration. Stoneform is now −10%
+6. **New racial cooldowns:** Elune's Light (+10% crit, 15 s), Eureka! (3 abilities at −10% Rage,
+   Energy or mana for every class since 1.60.1.70009, and +10% damage), Shatter Curse, Will to Survive, Rapid Regeneration. Stoneform is now −10%
    physical damage taken instead of +10% armor.
 7. **New passives:** Touch of the Grave (Undead drain proc), Big Game Hunter (Dwarf, +5% vs Beasts),
    Wind Blessed (Skyborne, +1% haste), Elemental Insight (Skyborne, +5% vs Elementals).
@@ -1131,6 +1131,11 @@ kept Classic's "base AP" behaviour.
 ### OQ-10: Touch of the Grave
 We don't know the drain amount (5% of whose health, and is "up to" a cap or a range), its school,
 whether it can miss, crit or cause threat, or whether auto-attacks and abilities proc it equally.
+**1.60.1.70009 narrowed what procs it** (the build's [development notes][dev-70009], [F]): only spells and
+abilities with a damage component, so it no longer breaks crowd control; Shadow Word: Pain procs it
+on the cast, not on its periodic damage, and Distract, Pick Pocket and Polymorph don't. The client
+still gives 1260189 a 5% chance with a 1 s internal cooldown (`ProcCategoryRecovery` 1000) on proc
+mask 0x11154 [F] [client] (SpellAuraOptions, 1.60.1.70009).
 **Route B:** combat log of an Undead warrior hitting mobs three levels above them for 5 minutes
 (the beta has no target dummies); count the procs and read their amounts.
 
@@ -1307,3 +1312,4 @@ was not fetched, because its `robots.txt` disallows Anthropic agents.
 [rb-vanilla]: https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
 [bnet-base]: https://us.forums.blizzard.com/en/wow/t/paladin-base-crit-and-dodge-should-be-5-base-at-max-weapon-and-defense-skill/419469
 [wsc-base]: https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696

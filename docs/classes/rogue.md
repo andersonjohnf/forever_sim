@@ -480,11 +480,12 @@ With Hemorrhage building, rows 7 and 8 do nothing, and the Rotation tab says so.
 and no racial cooldown. Orcs (Blood Fury), Trolls (Berserking) and Night Elves (Elune's Light) press
 theirs on cooldown. A Gnome's Expansive Mind raises the Energy cap by 5% ([§2.1](#21-energy)), and
 it presses Eureka! (1259812) on cooldown: the next 3 of Sinister Strike, Backstab, Ambush, Ghostly
-Strike, Eviscerate, Rupture, Mutilate and Blade Flurry cost 20% less Energy, rounded down, and deal
-+10% (Rupture's bleed +10%; Mutilate's cast, 1241584, is in the cost mask and its strikes, 1241586
-and 1241590, in the damage mask, so both hands' +10%; not Hemorrhage) [F] [client]
-(`src/sim/classes/eureka.ts`, [?] `eureka`): +0.75% Combat, +2.04% Assassination, +0.87% Subtlety
-(Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights).
+Strike, Eviscerate, Rupture, Mutilate and Blade Flurry cost 10% less Energy (20% until 1.60.1.70009
+made every class's cut 10%), rounded down, and deal +10% (Rupture's bleed +10%; Mutilate's cast,
+1241584, is in the cost mask and its strikes, 1241586 and 1241590, in the damage mask, so both hands'
++10%; not Hemorrhage) [F] [client] (1.60.1.70009; `src/sim/classes/eureka.ts`, [?] `eureka`):
++0.40% Combat, +1.17% Assassination, +0.74% Subtlety (Gnome, racial on vs off, the defaults, seed
+12345, 20,000 fights; +0.75%, +2.04% and +0.87% at 20%).
 
 ### 7.3 Weapons and gear
 
@@ -507,8 +508,8 @@ Enchants: Agility everywhere (head and legs Lesser Arcanum of Voracity, cloak, b
 boots, necklace), chest Greater Stats, Crusader on both weapons
 ([buffs doc §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
 Standard raid consumables: Deadly Poison V (main hand), Instant Poison VI (off hand), Thistle Tea,
-Elixir of the Mongoose, Flank au Poivre; Max adds Juju Might, Juju Power, Ground Scorpok Assay and
-Juju Flurry. Thistle Tea is Forever's item 7676 (usable by rogues and druids), +100 Energy, 5 min.
+Elixir of the Mongoose, Flank au Poivre; Max adds Juju Might, Juju Power, Ground Scorpok Assay,
+Juju Flurry and the Major Frenzy Potion, drunk on cooldown from the pull (about +1% DPS). Thistle Tea is Forever's item 7676 (usable by rogues and druids), +100 Energy, 5 min.
 
 ### 7.6 Base values
 

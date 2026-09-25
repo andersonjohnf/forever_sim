@@ -6,7 +6,7 @@ next Lightning Bolt, Chain Lightning or Earth Shock, so it's no longer a raid de
 turn Intellect into attack power (**Mental Dexterity**) and spell damage (**Mental Quickness**),
 let Earth Shock cost 45% less (**Shamanistic Focus**), give mana regeneration after a Stormstrike
 (**Improved Stormstrike**), stack **Maelstrom Weapon** from melee hits until a Lightning Bolt is
-instant and free, and add a 30% haste cooldown (**Rage of the Farseer**). Spell damage is roughly
+instant and free, and add a 30% attack speed cooldown (**Rage of the Farseer**). Spell damage is roughly
 halved (Lightning Bolt 190–211, Earth Shock 293–309), weapon imbues last an hour, totems 5 minutes,
 and Windfury Weapon disables Windfury Totem's benefit for the shaman who wears it. Two-handed axes
 and maces need no talent. Dwarves can be shamans, so both factions have them.
@@ -310,8 +310,18 @@ shaman in the raid and Self only brings them
 | Mana Spring | 10 mana every 2 s | on |
 | Windfury Totem | 20% on a main-hand hit, 1 extra attack with +246 AP | **off**: Windfury Weapon disables it for you |
 
-Values, durations (5 min, [F]) and exclusivity (one air totem at a time) are the
-[buffs doc](../mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)'s.
+Values, durations (5 min, [F]) and exclusivity are the
+[buffs doc](../mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)'s: one air
+totem, and since 1.60.1.70009 Windfury, Grace of Air and Tranquil Air don't stack **even from
+different shamans** in the group, so a second shaman can't add the other one, and Flametongue
+Totem no longer stacks with Windfury ([Forever development notes][dev-70009]). The client marks
+them all with the same new `Attributes[11]` flag, 0x400, on every rank's aura [F] [client]
+(SpellMisc, 1.60.1.70009):
+
+- Windfury Totem 8515, 10609 and 10612, and Grace of Air 8836, 10626 and 25360;
+- Flametongue Totem 8230, 8250, 10521 and 15036, and Tranquil Air 25909.
+
+The sim models the rank-3 Windfury and Grace of Air; Flametongue Totem isn't in the catalogue.
 
 - **Windfury Totem and Windfury Weapon.** Windfury Weapon's Forever tooltip: "When applied to main
   hand, disables any benefit you personally receive from Windfury Totem" [F]. So no preset gives
@@ -349,10 +359,11 @@ column ([data/talents.md](../data/talents.md#build-codes-verified)).
 | Mental Quickness (30812), new | 2 | spell damage equal to 15 / **30%** of Intellect (aura 174) | [Spell damage](#spell-damage) |
 | Improved Stormstrike (1223031), new | 2 | 50 / **100%** chance after a Stormstrike: 50% of mana regeneration while casting for 15 s; Stormstrike's cooldown resets on your dodge or parry | 2/2 only; [Mana](#mana) |
 | Maelstrom Weapon (408498), new | 5 | −4% a stack a rank to Lightning Bolt's cast time and cost, 5 stacks, 30 s | [Maelstrom Weapon](#maelstrom-weapon) |
-| Rage of the Farseer (425336), new, tier 7 | 1 | +30% melee attack and casting speed for 25 s; 3 min cooldown; off the GCD; free | a cooldown |
+| Rage of the Farseer (425336), new, tier 7 | 1 | +30% attack speed for 25 s; 3 min cooldown; off the GCD; free | a cooldown |
 
-Rage of the Farseer's casting speed does nothing to an instant Lightning Bolt and isn't simulated
-for a cast one [?].
+Rage of the Farseer lost its +30% casting speed in 1.60.1.70009 ("no longer increases the Shaman's
+Spell Casting Speed", [development notes][dev-70009]): the client's 425336 no longer carries aura 65
+[F] [client] (SpellEffect, 1.60.1.70009). So it no longer shortens a cast Lightning Bolt.
 
 ### Elemental and Restoration points
 
@@ -454,7 +465,7 @@ Forever, Windfury Totem is an aura that ends with the totem."
 | Imbue | Windfury Weapon | [First-pass defaults](#first-pass-defaults): Rockbiter loses 6.60% |
 | Totems | Strength of Earth, Grace of Air, Mana Spring (your own) | [Totems](#totems) |
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): no Windfury Totem; Prayer of Spirit, Arcane Brilliance and Blessing of Wisdom for your mana. **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |
-| Consumables | Standard raid: Elixir of the Mongoose, Elixir of Greater Strength, Smoked Desert Dumplings, Major Mana Potion. Max adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Greater Arcane Elixir, Flask of Supreme Power and Demonic Rune. **No weapon stone**: the imbue takes the temporary enchant | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
+| Consumables | Standard raid: Elixir of the Mongoose, Elixir of Greater Strength, Smoked Desert Dumplings, Major Mana Potion. Max adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Greater Arcane Elixir, Flask of Supreme Power and Demonic Rune, and drinks the Major Frenzy Potion on cooldown from the pull in place of the Major Mana Potion (+0.9% DPS: it never runs short). **No weapon stone**: the imbue takes the temporary enchant | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
 | Rotation | [the priority list](#forever-priority-list-default) with its first-pass defaults | [First-pass defaults](#first-pass-defaults) |
 
 ### Races and weapons
@@ -567,8 +578,8 @@ The class is data and rotation in `src/sim/classes/shaman/` (`abilities.ts`, `ta
   while it's up, 50% of the spirit regeneration continues inside the five-second rule.
 - **Mental Dexterity** is attack power per point of Intellect (`apPerInt`); **Mental Quickness** the
   paladin's spell damage from Intellect (`spellDamagePerIntPct`).
-- **Lightning Bolt** is `castHasted` (the caster core's casting speed, after Maelstrom Weapon's cut),
-  and Rage of the Farseer's aura carries `castHaste` 30.
+- **Lightning Bolt** is `castHasted` (the caster core's casting speed, after Maelstrom Weapon's cut).
+  Rage of the Farseer's aura is attack speed only (`haste` 30) since 1.60.1.70009.
 - **Elemental**: the spells are `spell` rows on the caster core; Flame Shock's DoT marks the boss
   with its ability's `aura`, which Lava Burst's `boost` reads and keeps (`SpellDef.boost.keep`);
   Elemental Focus's Clearcasting is the plan's `freeCastAura` and the damage spells are
@@ -673,23 +684,24 @@ shaman onto the caster core ([Enhancement on the core](#enhancement-on-the-core)
 
 ### Elemental: WoW Forever deviations
 
-Read from the Forever client (1.60.1.69913) against Classic Era's (1.15.9.69722) through the
-wago.tools API ([client data](../data/client.md)) [F] [C] [client] (SpellEffect, SpellMisc,
-SpellCastTimes, SpellPower, SpellCooldowns, SpellLevels, TraitDefinition, CurvePoint).
+Read from the Forever client (1.60.1.69913; Lightning Bolt r4 and Lava Burst from 1.60.1.70009)
+against Classic Era's (1.15.9.69722) through the wago.tools API ([client data](../data/client.md))
+[F] [C] [client] (SpellEffect, SpellMisc, SpellCastTimes, SpellPower, SpellCooldowns, SpellLevels,
+TraitDefinition, CurvePoint).
 
 | Area | Classic Era [C] | WoW Forever [F] |
 | --- | --- | --- |
 | Lightning Bolt r10 (15208) | 428–476 at 0.857, 3.0 s, 265 mana | **190.18–211.42 at 0.714, 2.5 s, 220 mana** |
-| Lightning Bolt r4 (915) | 88–100, 3.0 s, 75 mana | **49.63–56.37 at 0.714** (every rank from 3 up has 0.714), 2.5 s, 60 mana |
+| Lightning Bolt r4 (915) | 88–100, 3.0 s, 75 mana | **55.22–62.78 at 0.714** (every rank from 3 up has 0.714; 49.63–56.37 until 1.60.1.70009 raised ranks 3 and 4), 2.5 s, 60 mana |
 | Chain Lightning r4 (10605) | 505–563, 2.5 s, 605 mana, 6 s cooldown | **119.37–133.03 at 0.571**, 2.0 s, 485 mana, 6 s cooldown |
 | Flame Shock r6 (29228) | 292 + 320 over 12 s | **166 (0.214) + 4 × 44 (0.1 a tick)**, the **periodic-crit flag**, 410 mana |
-| Lava Burst r3 (1238300) | — (not in Classic Era) | **new tier-7 talent**: 192.14–247.86 Fire at 0.714, 2.5 s, 265 mana, 10 s cooldown, **+20% while your Flame Shock is on the target** |
+| Lava Burst r3 (1238300) | — (not in Classic Era) | **new tier-7 talent**: 192.14–247.86 Fire at 0.714, 2.5 s, 265 mana, 10 s cooldown, **+20% while your Flame Shock is on the target**. 1.60.1.70009 raised ranks 1 and 2 (408490 113 → 164, 1238299 179 → 196 base points), not rank 3 |
 | Elemental Mastery | 31-point talent | **gone** from the tree |
 | Call of Thunder (16120) | 5 ranks, +6% | **1 rank, +3%** to Lightning Bolt and Chain Lightning |
 | Elemental Fury (16089) | 1 rank, +100% crit bonus | **5 ranks**, +20% a rank: ×2.0 at 5/5 |
 | Call of Flame (16038) | Fire totems | **+5% a rank to Flame Shock** (its hit and ticks), **Lava Burst** and Fire Nova |
 | Lightning Overload (408438) | — | **new**: 3 / 7 / 10% a Lightning Bolt or Chain Lightning casts a second at half damage and no threat |
-| Elemental Alacrity (16578) | Lightning Mastery: 5 ranks, −1.0 s on Lightning Bolt and Chain Lightning | **renamed**, 3 ranks: −170 / 330 / 500 ms on Lightning Bolt, Chain Lightning **and Lava Burst** |
+| Elemental Alacrity (16578) | Lightning Mastery: 5 ranks, −1.0 s on Lightning Bolt and Chain Lightning | **renamed**, 3 ranks: −170 / 330 / 500 ms on Lightning Bolt, Chain Lightning **and Lava Burst**. 1.60.1.70009 swapped its place in the tree with Elemental Fury's (it's now tier 3, Elemental Fury tier 6); neither's values changed [F] [client] (TraitNode, TraitDefinitionEffectPoints, 1.60.1.70009) |
 | Convection (16039) | shocks, Lightning Bolt, Chain Lightning | the same **and Lava Burst**, −2% a rank |
 | Concussion (16035) | +1% to shocks, Lightning Bolt, Chain Lightning | Lightning Bolt, Chain Lightning and **Earth Shock only** |
 | Mindfulness (1223033), Restoration | — | **new**: 17 / 33 / **50%** of mana regeneration continues while casting (aura 134) |
@@ -706,7 +718,7 @@ Values at level 60; a range is base × (1 ± variance / 2) plus per-level points
 | Spell | Damage | Coefficient | Cast, cooldown | Mana (base → default) | Tag |
 | --- | --- | --- | --- | --- | --- |
 | Lightning Bolt r10 (15208), Nature | 190.18–211.42 | 0.714 | 2.5 s → **2.0 s** | 220 → **198** | [F] [client] ([f15208]) |
-| Lightning Bolt r4 (915), Nature | 49.63–56.37 | 0.714 | 2.5 s → **2.0 s** | 60 → **54** | [F] [client] ([f915]) |
+| Lightning Bolt r4 (915), Nature | 55.22–62.78 | 0.714 | 2.5 s → **2.0 s** | 60 → **54** | [F] [client] ([f915], 1.60.1.70009) |
 | Chain Lightning r4 (10605), Nature | 119.37–133.03 (the first target) | 0.571 | 2.0 s → **1.5 s**, 6 s | 485 → **436** | [F] [client] ([f10605]) |
 | Flame Shock r6 (29228), Fire | 166, then 4 × 44 every 3 s | 0.214, 0.1 a tick | instant, shocks' 6 s → **5.2 s** | 410 → **369** | [F] [client] ([f29228]) |
 | Lava Burst r3 (1238300), Fire | 192.14–247.86; ×1.2 with your Flame Shock up | 0.714 | 2.5 s → **2.0 s**, 10 s | 265 → **238** | [F] [client] ([f1238300]) |
@@ -723,8 +735,8 @@ Values at level 60; a range is base × (1 ± variance / 2) plus per-level points
   reads; it shares the shocks' cooldown category with Earth Shock and Frost Shock.
 - **Lava Burst's +20%** (1238300 #1, a dummy of 20) applies while your Flame Shock is on the boss,
   and doesn't use it up [F].
-- **Casting speed** (Berserking, Rage of the Farseer) shortens Lightning Bolt, Chain Lightning and
-  Lava Burst, not the 1.5 s GCD ([spells.md §4](../mechanics/spells.md#4-cast-times-casting-speed-and-the-gcd)).
+- **Casting speed** (Berserking) shortens Lightning Bolt, Chain Lightning and Lava Burst, not the
+  1.5 s GCD ([spells.md §4](../mechanics/spells.md#4-cast-times-casting-speed-and-the-gcd)).
 - **Chain Lightning** hits one boss: its jumps (3 targets, −30% each) wait for multi-target (M6).
 - **Rank 4 Lightning Bolt** is learned at 20, so Classic Era's penalty for spells below level 20
   doesn't touch it, and the client gives it rank 10's 0.714 [F]. Whether Forever charges a
@@ -778,9 +790,10 @@ mp5 always [C] [F]. A spell Clearcasting makes free spends nothing, so it starts
 | Totems | dropped before the pull, up all fight (5 min) | [F] |
 
 Mana is the Elemental shaman's limit: on the default setup a fight spends about three pools. Rank 10
-Lightning Bolt deals 2.4 damage per mana at SP 400 (480 for 198 mana without crits), rank 4 6.2
-(334 for 54), so the rotation casts rank 10 while mana lasts and rank 4 once it's low: +20.6%
-against rank 10 alone ([Elemental first-pass defaults](#elemental-first-pass-defaults)).
+Lightning Bolt deals 2.4 damage per mana at SP 400 (480 for 198 mana without crits), rank 4 6.3
+(340 for 54), so the rotation casts rank 10 while mana lasts and rank 4 once it's low: +20.6%
+against rank 10 alone, measured before 1.60.1.70009 raised rank 4 by 6 base points
+([Elemental first-pass defaults](#elemental-first-pass-defaults)).
 
 ### Elemental priority
 
@@ -894,9 +907,9 @@ build's talents. Each runs through the engine in `src/sim/classes/shaman/element
 
 1. **Lightning Bolt r10**: (190.18–211.42 + 0.714 × 400) × 1.05 (Concussion) × 0.94 =
    **469.60–490.56, 480.08** on average; a crit ×2.0 (Elemental Fury) = 960.15. Cost 220 × 0.9 =
-   **198**; cast 2,500 − 500 = **2,000 ms**, **1,818 ms** with Berserking (+10%), 1,538 with Rage of
-   the Farseer (+30%). With Totem of the Storm, +33 × 0.714 = 23.56 on the base: 503.33.
-2. **Lightning Bolt r4**: (49.63–56.37 + 285.6) × 1.05 × 0.94 = **330.87–337.53, 334.20**; 60 × 0.9
+   **198**; cast 2,500 − 500 = **2,000 ms**, **1,818 ms** with Berserking (+10%). With Totem of the
+   Storm, +33 × 0.714 = 23.56 on the base: 503.33.
+2. **Lightning Bolt r4**: (55.22–62.78 + 285.6) × 1.05 × 0.94 = **336.39–343.85, 340.12**; 60 × 0.9
    = **54** mana; 2,000 ms.
 3. **Chain Lightning** (one target): (119.37–133.03 + 0.571 × 400) × 1.05 × 0.94 = **343.25–356.73,
    349.99**; 485 × 0.9 = 436.5 → **436** mana; 2,000 − 500 = **1,500 ms**; 6 s cooldown.
@@ -907,7 +920,7 @@ build's talents. Each runs through the engine in `src/sim/classes/shaman/element
    Flame Shock on the boss ×1.2 = **655.86**, and Flame Shock stays. 265 × 0.9 = 238.5 → **238**
    mana; 2,000 ms; 10 s cooldown.
 6. **Lightning Overload** (3/3): 10% of landed bolts cast a copy for half: **240.04** on average
-   from rank 10, 167.10 from rank 4, 175.00 from Chain Lightning; the copy costs nothing, makes no
+   from rank 10, 170.06 from rank 4, 175.00 from Chain Lightning; the copy costs nothing, makes no
    threat and triggers nothing.
 7. **Clearcasting**: 10% of landed Fire, Frost and Nature spells; the next spell costs nothing and
    starts no five-second rule, and Chain Lightning with Clearcasting waits for it.
@@ -953,7 +966,7 @@ Each with its effect on the default setup's DPS, per
 - **E10: the core's [?]s** apply as spells.md has them: the level-based resistance (OQ-S2), DoT
   crits (OQ-S4), the GCD under casting speed (OQ-S7) and the partial resist on each tick (OQ-S3).
 
-[f915]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=915
+[f915]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=915
 [f10605]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=10605
 [f1238300]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=1238300
 
@@ -962,8 +975,9 @@ Each with its effect on the default setup's DPS, per
 K5 turns on the two switches the caster core left off for the Enhancement shaman
 ([milestones' known gaps](../milestones.md#known-gaps-and-follow-ups)):
 
-- **Its Lightning Bolt is hasted**, and Rage of the Farseer carries its +30% casting speed (aura
-  65), so a cast bolt (fewer than 5 Maelstrom Weapon stacks) is shorter while it's up.
+- **Its Lightning Bolt is hasted**: casting speed (Berserking) shortens a cast bolt (fewer than 5
+  Maelstrom Weapon stacks). Rage of the Farseer's +30% casting speed (aura 65) did the same until
+  1.60.1.70009 removed it.
 - **Nature-, Frost- and Fire-only spell damage on gear counts** for the spells of that school.
 - **Totem of the Storm** gives its 33 to the Enhancement shaman's Lightning Bolt too.
 
@@ -998,8 +1012,9 @@ the default setup's DPS unless stated.
    full, as Slam does. *Test:* a 2.5 s Lightning Bolt mid-swing; time the next white hit. *Effect:*
    none at the default (5 stacks, instant); it's most of why 3 and 4 stacks lose 3–7%. Two details
    go with it: the sim reads the Maelstrom Weapon stacks and spends them when the cast starts, and
-   casting speed (Rage of the Farseer's +30%) shortens a cast bolt after the stacks' cut (since K5).
-6. **Undead shamans.** Blizzard's 2026-09-22 article lists them; the 1.60.1.69913 client has no row.
+   casting speed (Berserking's +10%) shortens a cast bolt after the stacks' cut (since K5).
+6. **Undead shamans.** Blizzard's 2026-09-22 article lists them; the 1.60.1.69913 and 1.60.1.70009
+   clients have no row.
    *Test:* the character creation screen on a later build. *Effect:* none on the default (Orc); the
    race would need its placeholder row.
 7. **Base stats** ([Base stats](#base-stats)): the attributes, health, attack power and crits are D24
@@ -1043,6 +1058,7 @@ the default setup's DPS unless stated.
 | Source | What it covers | Ruleset |
 | --- | --- | --- |
 | Client DB2 tables and game tables, Forever 1.60.1.69913 and Classic Era 1.15.9.69722, via the wago.tools API, parsed into `src/data/client/*.json`, `src/data/spells/shaman.json`, `src/data/talents/shaman.json` ([client.md](../data/client.md)) | every [F] number: costs, cooldowns, ranges, coefficients, proc masks and cooldowns, charges, auras, talent curves, base mana, crit per stat, races | Forever [F] / Classic Era [C] |
+| [WoW Forever Beta Development Notes, updated September 24][dev-70009] (Blizzard, 2026-09-24), the 1.60.1.70009 build's | Rage of the Farseer's casting speed removed; Lightning Bolt ranks 3–4 and Lava Burst ranks 1–2 raised; Windfury, Grace of Air and Tranquil Air don't stack across shamans; Elemental Fury and Elemental Alacrity swapped | Forever [F] |
 | [Blizzard: Create the hero you want to be (2026-09-22)](https://news.blizzard.com/en-us/article/24304075/create-the-hero-you-want-to-be-in-world-of-warcraft-forever) | race and class combinations, Undead shamans | Forever (announcement) |
 | [Warcraft Tavern: Forever Shaman guide](https://www.warcrafttavern.com/forever/guides/shaman/) | Stormstrike's 8 s, Maelstrom Weapon's instant free bolt, two-handers without talents, Orc for Horde | Forever (community guide) [?] |
 | [Wowhead Classic: Enhancement rotation](http://web.archive.org/web/20210517045123/https://classic.wowhead.com/guides/enhancement-shaman-dps-rotation-abilities-classic-wow), [talents](http://web.archive.org/web/20210516030639/https://classic.wowhead.com/guides/enhancement-shaman-dps-talents-builds-classic-wow), [weapons](http://web.archive.org/web/20210516003347/https://classic.wowhead.com/guides/wow-classic-best-shaman-weapons), [overview](http://web.archive.org/web/20210516004127/https://classic.wowhead.com/guides/enhancement-shaman-dps-classic-wow), [pre-raid BiS](http://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear), [consumables](http://web.archive.org/web/20210515152931/https://classic.wowhead.com/guides/enhancement-shaman-dps-consumables-classic-wow) (Wayback, 2021) | the Classic Era priority, build, race, weapon, gear and consumables | Classic Era [C] |
@@ -1052,6 +1068,8 @@ the default setup's DPS unless stated.
 | [Icy Veins Classic: Elemental rotation](http://web.archive.org/web/20210508032115/https://www.icy-veins.com/wow-classic/elemental-shaman-dps-pve-rotation-cooldowns-abilities) (Wayback, 2021) | Lightning Bolt ranks 4 and 10, Chain Lightning on Elemental Focus's procs | Classic Era [C] |
 | [mangos player_levelstats](https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql), [player_classlevelstats](https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql) | the D24 attribute and health placeholders | **Forbidden** as evidence (an emulator); placeholders only, under D24 |
 | [wowsims/classic base_stats.go](https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go), [RatingBuster d11164cf](https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua) | base attack power, crit and spell crit placeholders | secondary (mixed lineage) [?] |
+
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696
 
 ### DB2 links (per spell)
 

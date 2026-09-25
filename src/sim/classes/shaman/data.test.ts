@@ -196,10 +196,11 @@ describe('the weapon imbues (shaman.md#weapon-imbues)', () => {
 })
 
 describe('Rage of the Farseer (425336)', () => {
-  it('+30% melee attack speed (aura 342) and casting speed (aura 65) for 25 s; a 3 min cooldown, off the GCD, free', () => {
+  it('+30% attack speed (aura 342) for 25 s, and no casting speed since 1.60.1.70009 (no aura 65); a 3 min cooldown, off the GCD, free', () => {
     const s = spell(425336)
     expect(effect(425336, 0)).toMatchObject({ effectAura: 342, effectBasePointsF: 30 })
-    expect(effect(425336, 2)).toMatchObject({ effectAura: 65, effectBasePointsF: 30 })
+    expect(s.effects.map((e) => e.effectAura)).toEqual([342, 61])
+    expect(RAGE_OF_THE_FARSEER.aura!.mods.castHaste).toBeUndefined()
     expect(s.duration!.duration).toBe(RAGE_OF_THE_FARSEER.aura!.durationMs)
     expect(s.cooldowns!.recoveryTime).toBe(RAGE_OF_THE_FARSEER.cooldownMs)
     expect(s.cooldowns!.startRecoveryTime ?? 0).toBe(RAGE_OF_THE_FARSEER.gcdMs)
@@ -415,9 +416,9 @@ describe('the Elemental spells against the client (shaman.md#elemental-abilities
     })
   }
 
-  it('Lightning Bolt r4 (915): 50 ± 6.7%, +0.6 a level from 20 to 25 (49.63–56.37), 0.714 as rank 10’s, 60 mana, 2.5 s', () => {
+  it('Lightning Bolt r4 (915): 56 ± 6.7%, +0.6 a level from 20 to 25 (55.22–62.78), 0.714 as rank 10’s, 60 mana, 2.5 s', () => {
     matches(LIGHTNING_BOLT_R4_SPELL, 915, 0)
-    expect([LIGHTNING_BOLT_R4_SPELL.min, LIGHTNING_BOLT_R4_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([49.63, 56.37])
+    expect([LIGHTNING_BOLT_R4_SPELL.min, LIGHTNING_BOLT_R4_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([55.22, 62.78])
     costs(LIGHTNING_BOLT_R4, 915)
     expect(classMask(915)).toBe(classMask(LB))
   })

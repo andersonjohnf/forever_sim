@@ -1599,8 +1599,8 @@ export interface PetPlan {
  * A pooled, rolling Ignite (docs/classes/mage.md#ignite) [?]: each crit that feeds it adds `pct`% of
  * its damage to the pool of damage still to come and gives it `ticks` ticks from now, the next tick
  * `tickMs` from now unless one is already due (that one keeps its time). Each tick deals the pool ÷
- * the ticks left, × the boss's damage taken of its school and its average resist at the tick; ticks
- * never miss and never crit.
+ * the ticks left, × its school's average resist at the tick; the boss's damage taken isn't applied
+ * again (the crit carries it). Ticks never miss and never crit.
  */
 export interface IgnitePlan {
   pct: number

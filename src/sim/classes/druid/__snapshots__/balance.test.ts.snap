@@ -37,7 +37,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     ],
     [
       "wrath",
-      10219935.425427705,
+      11351070.568151899,
       27216,
       22107,
       4583,
@@ -60,9 +60,9 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     "manaRegenBalance",
   ],
   "dps": {
-    "ci95": 1.34317717413468,
-    "mean": 426.56425650635003,
-    "stdev": 21.67131235531838,
+    "ci95": 1.331895340036936,
+    "mean": 432.83734224665716,
+    "stdev": 21.48928711294438,
   },
   "durationSec": 179.690222,
   "mana": {

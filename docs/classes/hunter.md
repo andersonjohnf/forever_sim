@@ -235,7 +235,10 @@ cloak, bracers, gloves and boots, Greater Stats and Forever's +5 Agility necklac
 catalogue has none yet. The Buffs tab gives a hunter the melee entries that reach its shots (Agility,
 crit, armor debuffs) and locks off what doesn't (stones, Windfury Totem, melee attack power and
 Strength), keeps Battle Shout for the pet, gives it the mana entries and Grace of Air as its group's
-air totem, and Juju Might's +40 ranged attack power (16329, aura 124) [F].
+air totem, and Juju Might's +40 ranged attack power (16329, aura 124) [F]. The Major Frenzy Potion's +80
+ranged attack power (aura 124) reaches its shots too: Max consumables gives it to the Marksmanship and
+Survival hunters in place of the Major Mana Potion (+0.9% and +0.6% DPS), and leaves the Beast Mastery
+hunter its mana potion (the Frenzy potion is −3.5% for it) ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
 
 ### 7.5 Base values
 None measured: attributes and base health 1,467 are D24 placeholders from the mangos emulator's 1.12

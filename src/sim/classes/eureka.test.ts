@@ -29,7 +29,8 @@ describe('Eureka! against the client (eureka.ts)', () => {
       expect([dot.effectAura, dot.effectMiscValue?.[0], dot.effectBasePointsF], cls).toEqual([108, 22, e.dotPct])
       expect([s.auraOptions?.procCharges, s.duration?.duration, s.cooldowns?.recoveryTime], cls).toEqual([e.charges, e.durationMs, e.cooldownMs])
     }
-    expect(Object.fromEntries(Object.entries(EUREKA).map(([c, e]) => [c, e.costPct]))).toEqual({ warrior: 40, rogue: 20, mage: 50, warlock: 50, priest: 15 })
+    // 1.60.1.70009: a flat 10% for every class (it was 40 / 20 / 50 / 50 / 15).
+    expect(Object.fromEntries(Object.entries(EUREKA).map(([c, e]) => [c, e.costPct]))).toEqual({ warrior: 10, rogue: 10, mage: 10, warlock: 10, priest: 10 })
   })
 
   it('the abilities each one modifies are its masks’: the cast spell’s for the cost, the damaging spell’s for the damage and DoT', () => {
@@ -98,7 +99,7 @@ describe('Eureka! against the client (eureka.ts)', () => {
 })
 
 describe('Eureka! in the engine (eureka.ts)', () => {
-  it('a Gnome mage: the next 3 Fireballs cost 205 mana, not 410, and deal +10%, their DoT’s ticks too; then the aura is gone', () => {
+  it('a Gnome mage: the next 3 Fireballs cost 369 mana, not 410, and deal +10%, their DoT’s ticks too; then the aura is gone', () => {
     const plan = examplePlan({ race: 'alliance-gnome', rotation: { [MAGE_IDS.fire.racial]: true } })
     fixSpell(plan, 'fireball', 1000)
     const { uses, damage, list } = events(plan, ['eureka'])
@@ -107,7 +108,7 @@ describe('Eureka! in the engine (eureka.ts)', () => {
     const casts = uses('fireball').slice(0, 5)
     expect(casts.map((u) => u.t)).toEqual([0, 3500, 7000, 10500, 14000])
     const spent = casts.slice(1).map((u, i) => casts[i].value - u.value)
-    expect(spent).toEqual([2050, 2050, 2050, 4100])
+    expect(spent).toEqual([3690, 3690, 3690, 4100])
     const hits = damage('fireball').slice(0, 5).map((d) => d.value)
     for (const k of [0, 1, 2]) expect(hits[k] / hits[3], `Fireball ${k + 1}`).toBeCloseTo(1.1, 12)
     expect(hits[4]).toBeCloseTo(hits[3], 12)
@@ -119,7 +120,7 @@ describe('Eureka! in the engine (eureka.ts)', () => {
     expect(list.filter((e) => e.kind === 'use' && e.id === 'fireball' && e.t === 7000)[0].stacks.eureka).toBe(1)
   })
 
-  it('a Gnome Fury warrior: the next 3 Bloodthirsts cost 18 rage, not 30, and deal +10% (the plain-rage rows pay through the cut)', () => {
+  it('a Gnome Fury warrior: the next 3 Bloodthirsts cost 27 rage, not 30, and deal +10% (the plain-rage rows pay through the cut)', () => {
     const d = defaultConfig('warrior-fury')
     // No buffs and no armor, so nothing but Eureka! changes Bloodthirst's damage.
     const plan = buildPlan({ ...d, race: 'alliance-gnome', buffs: { raid: d.buffs.raid, enabled: [] }, rotation: { 'warrior.fury.deathWish.enabled': false, 'warrior.fury.recklessness.enabled': false } }).plan
@@ -143,11 +144,11 @@ describe('Eureka! in the engine (eureka.ts)', () => {
     }
     sim.runFight(0)
     expect(plan.eureka?.aura).toBe(auraOf(plan, 'eureka'))
-    expect(paid.slice(0, 5)).toEqual([180, 180, 180, 300, 300])
+    expect(paid.slice(0, 5)).toEqual([270, 270, 270, 300, 300])
     for (const k of [0, 1, 2]) expect(dealt[k] / dealt[3], `Bloodthirst ${k + 1}`).toBeCloseTo(1.1, 9)
   })
 
-  it('a Gnome Combat rogue: the next 3 Sinister Strikes cost 20% less Energy, rounded down', () => {
+  it('a Gnome Combat rogue: the next 3 Sinister Strikes cost 10% less Energy, rounded down', () => {
     const d = defaultConfig('rogue-combat')
     const plan = buildPlan({ ...d, race: 'alliance-gnome', buffs: { raid: d.buffs.raid, enabled: [] } }).plan
     alwaysLandNoCrit(plan)
@@ -169,14 +170,14 @@ describe('Eureka! in the engine (eureka.ts)', () => {
       dealt.push(dmg)
     }
     sim.runFight(0)
-    const cut = 10 * Math.floor((full * 0.8) / 10)
+    const cut = 10 * Math.floor((full * 0.9) / 10)
     expect(paid.slice(0, 4)).toEqual([cut, cut, cut, full])
     // Its +10% is the strike's damage path, the warrior's above (Sinister Strike rolls the weapon).
     expect(dealt.length).toBeGreaterThan(3)
     expect(plan.abilities[ss].eureka).toBe(EUREKA_COST | EUREKA_DAMAGE)
   })
 
-  it('a Gnome Assassination rogue: the next 3 Mutilates cost 48 Energy, not 60, and both hands’ strikes deal +10%', () => {
+  it('a Gnome Assassination rogue: the next 3 Mutilates cost 54 Energy, not 60, and both hands’ strikes deal +10%', () => {
     const d = defaultConfig('rogue-assassination')
     const plan = buildPlan({ ...d, race: 'alliance-gnome', buffs: { raid: d.buffs.raid, enabled: [] } }).plan
     alwaysLandNoCrit(plan)
@@ -204,7 +205,7 @@ describe('Eureka! in the engine (eureka.ts)', () => {
       } else if (s === offHandSource) off.push(dmg)
     }
     sim.runFight(0)
-    expect(paid.slice(0, 4)).toEqual([480, 480, 480, 600])
+    expect(paid.slice(0, 4)).toEqual([540, 540, 540, 600])
     for (const hand of [main, off]) {
       for (const k of [0, 1, 2]) expect(hand[k] / hand[3], `strike ${k + 1}`).toBeCloseTo(1.1, 9)
     }

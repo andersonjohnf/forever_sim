@@ -63,9 +63,10 @@ export const STARFIRE_SPELL: SpellDef = {
 }
 
 /**
- * Wrath r8 (9912): 61 base points, variance 0.112, +0.7 a level from 54 to 60, so 61.78–68.62 at 60;
- * coefficient 0.571; Nature (Classic Era: 236–264) [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913;
- * §11.2). Its travel time (speed 20) isn't simulated (spells.md §4).
+ * Wrath r8 (9912): 91 base points, variance 0.112, +1 a level from 54 to 60, so 91.90–102.10 at 60;
+ * coefficient 0.571; Nature (Classic Era: 236–264) [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009;
+ * §11.2). 1.60.1.70009 raised every rank about 50% (rank 8 was 61 + 0.7 a level, 61.78–68.62). Its
+ * travel time (speed 20) isn't simulated (spells.md §4).
  */
 export const WRATH_SPELL: SpellDef = {
   ...SPELL,
@@ -73,7 +74,7 @@ export const WRATH_SPELL: SpellDef = {
   name: 'Wrath',
   icon: 'spell_nature_abolishmagic',
   school: 'nature',
-  ...range(61, 0.112, 0.7, 54, 60),
+  ...range(91, 0.112, 1, 54, 60),
   spCoefficient: 0.571,
 }
 

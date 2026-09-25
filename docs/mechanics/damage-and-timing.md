@@ -457,9 +457,10 @@ supports both.
   other's extra attack. The next root starts a new chain, even at the same millisecond (an
   instant attack pressed right after the swing), which is where Windfury's internal cooldown
   below matters.
-- **Windfury internal cooldown.** The Forever client gives Windfury Totem Passive 10612
+- **Windfury internal cooldown.** The Forever client gives Windfury Totem's party aura 10612 (a
+  proc-trigger aura since 1.60.1.70009, and named "Windfury Totem Passive" before it)
   `ProcCategoryRecovery` 100: a **100 ms internal cooldown** [F] [client] (SpellAuraOptions,
-  1.60.1.69913). `forever` models it, as data on the proc (§5.3). It is far shorter than any
+  SpellEffect, 1.60.1.70009). `forever` models it, as data on the proc (§5.3). It is far shorter than any
   swing timer, and the chain rule above already bars the proc's own extra attack, so it only
   blocks a main-hand hit that lands within 100 ms of a proc, such as an instant attack pressed
   in the same moment as the proccing swing. Whether the server applies it is [?].
@@ -484,7 +485,7 @@ supports both.
 | PPM table | 1–10 PPM rows | the same plus ID 479 = 2.3 PPM; no proc references a row | [F] [client] (SpellProcsPerMinute, SpellAuraOptions, 1.60.1.69913) |
 | Hand of Justice | 2% per landed hit, 2 s internal cooldown | 1% against non-Dwarves (`ProcChance` 3, ÷3), 2 s | [F] [client] (SpellAuraOptions, Spell, 1.60.1.69913); [C] [client] (1.15.9.69722) |
 | Ironfoe | chance on hit, 0.8 PPM, its own hits | equip aura: `ProcChance` 6 (read as 3% against non-Orcs), 100 ms internal cooldown; its own white and yellow hits, as in Classic Era | [F] [client] (ItemEffect, SpellAuraOptions, Spell, 1.60.1.69913); the 3% and the hands [?]; [C] [ws-gear] |
-| Windfury internal cooldown | none modelled | 100 ms (10612 `ProcCategoryRecovery`) | [F] [client] (SpellAuraOptions, 1.60.1.69913); in combat [?] |
+| Windfury internal cooldown | none modelled | 100 ms (10612 `ProcCategoryRecovery`) | [F] [client] (SpellAuraOptions, 1.60.1.70009); in combat [?] |
 | Crit multipliers, AP/14, 75% armor cap, parry haste 40%, GCD 1.5/1.0 | – | unchanged | [F] tooltips and client data |
 
 No Forever change found for: the armor formula itself (see the confidence note in §1.1),

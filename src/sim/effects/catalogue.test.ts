@@ -243,7 +243,8 @@ const ROWS: Record<string, Row> = {
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
   // The oils' enchants apply their equip spell (25111, 25113): its spell damage, then its spell crit.
-  wizardOil: { forever: [['wizardOil spellDamage', 30]], classicEra: [['wizardOil spellDamage', 24]], rows: [E(2627, 25121)] },
+  // 24 in both since 1.60.1.70009 reverted Forever's 30 to Classic Era's value.
+  wizardOil: { rows: [E(2627, 25121)] },
   brilliantWizardOil: { rows: [E(2628, 25122), S(25113, 2)] },
   mightyRagePotion: { rows: [S(17528, 0, { bound: 'min' }), S(17528, 0, { bound: 'max' }), S(17528, 1)] },
   // Mana in tenths: the energize's bounds × 10 (the health a rune costs isn't simulated).
@@ -279,6 +280,8 @@ const ROWS: Record<string, Row> = {
   ezThroDarkBomb: { foreverOnly: true, rows: [S(1269334, 0, { bound: 'min' }), S(1269334, 0, { bound: 'max' })] },
   // Aura 22 (armor), 2,000.
   greaterStoneshieldPotion: { rows: [S(17540)] },
+  // New in Forever: aura 99 (attack power) 80, then aura 124 (ranged attack power) 80.
+  majorFrenzyPotion: { foreverOnly: true, rows: [S(1251940, 0), S(1251940, 1)] },
   // Enchants
   crusader: { rows: [null, S(20007)] },
   weaponAgility: { rows: [E(2564, 23800)] },
@@ -353,7 +356,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(125)
+    expect(ENTRIES).toHaveLength(126)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {
@@ -542,9 +545,9 @@ describe('the wizard oils (buffs doc §3.6)', () => {
   const plan = (config: SimConfig, enabled: string[], profile: 'forever' | 'classicEra' = 'forever') => buildPlan(withRules({ ...config, buffs: { ...config.buffs, enabled } }, profile)).plan
   const sp = (p: ReturnType<typeof plan>) => p.stats.spellDamage
 
-  it('Wizard Oil is +30 spell damage on you (Classic Era 24), and the Protection paladin’s Standard raid brings it and Nightfin Soup’s +22', () => {
+  it('Wizard Oil is +24 spell damage on you (Classic Era’s too, since 1.60.1.70009), and the Protection paladin’s Standard raid brings it and Nightfin Soup’s +22', () => {
     expect(prot.buffs.enabled).toEqual(expect.arrayContaining(['wizardOil', 'nightfinSoup']))
-    expect(sp(plan(prot, [...noWeaponBuffs, 'wizardOil'])) - sp(plan(prot, noWeaponBuffs))).toBe(30)
+    expect(sp(plan(prot, [...noWeaponBuffs, 'wizardOil'])) - sp(plan(prot, noWeaponBuffs))).toBe(24)
     // Classic Era's Windfury Totem is the main hand's temporary enchant, so it takes the oil's place
     // (buffs doc, Windfury Totem); without it, the oil's 24.
     expect(sp(plan(prot, [...noWeaponBuffs, 'wizardOil'], 'classicEra')) - sp(plan(prot, noWeaponBuffs, 'classicEra'))).toBe(0)
@@ -572,7 +575,7 @@ describe('the wizard oils (buffs doc §3.6)', () => {
     const ret = defaultConfig('paladin-retribution')
     const retPlan = plan(ret, ['denseSharpeningStone', 'wizardOil'])
     expect(retPlan.weapons[0]!.flatDamage).toBe(0)
-    expect(sp(retPlan) - sp(plan(ret, ['denseSharpeningStone']))).toBe(30)
+    expect(sp(retPlan) - sp(plan(ret, ['denseSharpeningStone']))).toBe(24)
   })
 
   it('reaches a caster’s spells too: an Elemental shaman’s +36', () => {
@@ -584,11 +587,11 @@ describe('the wizard oils (buffs doc §3.6)', () => {
 
 // --- The cited client rows, when the raw client tables are cached locally -------------------------
 
-const FOREVER_BUILD = '1.60.1.69913'
+const FOREVER_BUILD = '1.60.1.70009'
 const CLASSIC_BUILD = '1.15.9.69722'
 const TABLES = import.meta.glob<string>(
   [
-    '/.cache/client/1.60.1.69913/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
+    '/.cache/client/1.60.1.70009/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
     '/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
   ],
   { query: '?raw', import: 'default' },

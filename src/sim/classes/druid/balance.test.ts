@@ -86,7 +86,7 @@ describe('the Balance spells against the Forever client (druid.md §11.2)', () =
     const [wMin, wMax] = spread(w.effectBasePointsF!, w.variance!)
     expect(WRATH_SPELL.min).toBeCloseTo(wMin + grow, 9)
     expect(WRATH_SPELL.max).toBeCloseTo(wMax + grow, 9)
-    expect([WRATH_SPELL.min, WRATH_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([61.78, 68.62])
+    expect([WRATH_SPELL.min, WRATH_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([91.9, 102.1])
     expect(WRATH_SPELL.spCoefficient).toBe(w.effectBonusCoefficient)
     expect([WRATH.castMs, WRATH.costTenths]).toEqual([spell(9912).castTime!.base, 10 * spell(9912).power![0].manaCost!])
     expect(spell(9912).misc!.schoolMask).toBe(8)
@@ -176,8 +176,8 @@ describe('worked examples (druid.md §11.7)', () => {
     expect(sf.critMultiplier).toBe(spellCritMultiplier(100))
     expect((mid(sf) + 500) * moonfury * resist * sf.critMultiplier).toBeCloseTo(1821.91, 2)
     const w = resolved(WRATH).spellDef!
-    expect((mid(w) + 0.571 * 500) * moonfury * resist).toBeCloseTo(362.62, 2)
-    expect((mid(w) + 0.571 * 500) * moonfury * resist * 2).toBeCloseTo(725.25, 2)
+    expect((mid(w) + 0.571 * 500) * moonfury * resist).toBeCloseTo(395.51, 2)
+    expect((mid(w) + 0.571 * 500) * moonfury * resist * 2).toBeCloseTo(791.01, 2)
   })
 
   it('B3: Moonfire with Improved Moonfire, Genesis, Nature’s Splendor and Moonfury', () => {
@@ -349,6 +349,8 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   // - K6: the default Balance druid (druid.md §11.5, §11.6): Tauren, 41/5/0, the Balance pre-raid BiS,
   //   the casters' Standard raid; Innervate at 40%, the DoTs while 10 s is left, the potion at 2,000
   //   missing. On this seed's 1,000 fights about 425 DPS.
+  // - 1.60.1.70009 (September 2026): Wrath r8's base 61 + 0.7 a level → 91 + 1 a level (about +50%,
+  //   91.90–102.10): 426.56 → 432.84 DPS, Wrath's damage +11.1% (it's the Eclipse weave, not the filler).
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

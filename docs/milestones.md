@@ -395,7 +395,15 @@ sets. Each spec's defaults are then its results.
       It shows the hard ceiling's estimate (fights and time) before the search and again before the
       race, and says when the space was narrowed (D30; [budgets](optimizer.md#budgets)). It calls
       `optimize()` in a worker, not on the page's thread: sizing and listing a space and building
-      every candidate's plan and sheet take seconds (OGV-5)
+      every candidate's plan and sheet take seconds (OGV-5). Two bounds the CLI doesn't need (OGV2-5):
+      - **A time ceiling a device, from a measured pace:** the fights a second this device runs (a
+        short calibration run, or the screen's pace) sets how many fights a search may take in the
+        time the player picked; the fight cap (`MAX_SEARCH_FIGHTS`) stays the outer limit.
+      - **A memory bound:** the race keeps about 24 bytes a fight a candidate (DPS, TPS and damage
+        taken, 8 bytes each), about 576 MB at the 24,000,000-fight cap, enough to run a phone's
+        browser out of memory. Cap the fights by the memory the device can spare too, or free a
+        dropped candidate's samples.
+      - Its confirmation counts under the cap, as the CLI's does (`confirmFights`, OGV2-2).
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 

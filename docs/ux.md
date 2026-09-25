@@ -242,7 +242,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
     so it stays a deliberate step away.
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
-    a one-line summary of its key stats, and an enchant chip. Empty slots have their own
+    a one-line summary of its key stats, and an enchant chip. An item with no stats, whose worth is
+    its effect (Draconic Infused Emblem, Earthstrike, a totem or idol), shows its effects in the
+    tooltip's own words there instead (`statsLine` in `src/features/gear/item-flags.ts`), on slot
+    and picker rows alike, so a proc trinket's BiS rank has its reason beside it; "No stats" is
+    left for an item with neither. Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
     widening the page, down to 320 px.
   - Choosing a slot opens the **item picker**: a full-height sheet on mobile, a dialog on

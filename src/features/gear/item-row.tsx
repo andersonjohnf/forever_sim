@@ -4,10 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
-import { QUALITY_CLASS, summarizeItem } from '@/lib/items'
+import { QUALITY_CLASS } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { useSpecMeta } from '@/app/specs'
-import { unsimulatedEffects } from './item-flags'
+import { statsLine, unsimulatedEffects } from './item-flags'
 
 /**
  * A badge that explains itself on tap, click or Enter (docs/ux.md "Gear": nothing is hover-only).
@@ -112,7 +112,7 @@ export function ItemSummary({
           </span>
         )}
         <span aria-hidden className={cn('line-clamp-2 text-xs text-muted-foreground tabular-nums', fade)}>
-          {summarizeItem(item) || 'No stats'}
+          {statsLine(item)}
         </span>
         {(bis || !item.foreverData || effects.length > 0) && (
           // A wrapped line starts 24 px lower, so the flags' 44 px hit areas never overlap.

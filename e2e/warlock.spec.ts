@@ -119,6 +119,20 @@ test.describe('Destruction warlock', () => {
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     await expectDestructionResult(results)
   })
+
+  // Review FU-9: its best trinket has no stats, only a proc, so the stats line quotes the proc.
+  test('the trinket picker’s best in slot says what earns its rank', async ({ page }) => {
+    await switchTo(page, 'Destruction')
+    await openTab(page, 'Gear')
+    await page.getByRole('button', { name: /^Trinket 1: / }).click({ position: { x: 24, y: 24 } })
+    const picker = page.getByRole('dialog', { name: 'Choose trinket 1' })
+    const effect = 'Equip: Chance on harmful spellcast to increase your spell damage and healing by up to 35 for 10 sec.'
+    const emblem = picker.getByRole('button', { name: /^Draconic Infused Emblem\. Item level 63 · Requires level 58\. Equip: Chance on harmful spellcast/ })
+    await expect(emblem).toBeVisible()
+    await expect(emblem).not.toHaveAccessibleName(/No stats/)
+    // The visible line, beside the button.
+    await expect(picker.getByText(effect).first()).toBeVisible()
+  })
 })
 
 test.describe('Affliction warlock', () => {

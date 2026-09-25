@@ -3,7 +3,7 @@ import type { GearSlot } from '@/sim'
 import { defaultConfig, fitsSlot } from '@/sim'
 import { itemData, itemsById } from '@/lib/items'
 import { buildPlan } from '@/sim/plan/build'
-import { unsimulatedEffects } from './item-flags'
+import { statsLine, unsimulatedEffects } from './item-flags'
 
 const SLOTS: GearSlot[] = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'finger1', 'trinket1', 'mainHand', 'offHand', 'ranged']
 
@@ -47,5 +47,23 @@ describe('gear-row badge for effects the sim leaves out', () => {
       checked++
     }
     expect(checked).toBeGreaterThan(100)
+  })
+})
+
+describe('the stats line (docs/ux.md "Gear"; review FU-9)', () => {
+  it('quotes the effects of an item with no stats, so a proc trinket says what earns its rank', () => {
+    expect(statsLine(itemsById.get(22268)!)).toBe(
+      'Equip: Chance on harmful spellcast to increase your spell damage and healing by up to 35 for 10 sec. This spell damage increase is doubled against Dragonkin.',
+    )
+    expect(statsLine(itemsById.get(21180)!)).toMatch(/^Use: Increases your melee and ranged attack power by 280\./)
+    expect(statsLine(itemsById.get(21190)!)).toMatch(/^Equip: Gives a chance when your harmful spells land/)
+  })
+
+  it('keeps an item’s stats when it has them', () => {
+    expect(statsLine(itemData.items.find((i) => i.name === 'Hand of Justice')!)).toBe('+20 AP')
+  })
+
+  it('never says "No stats" for an item with an effect', () => {
+    for (const i of itemData.items) if (i.procs.length || i.otherEquip.length || i.useEffects.length) expect(statsLine(i), i.name).not.toBe('No stats')
   })
 })

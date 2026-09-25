@@ -1,8 +1,7 @@
 name: Deploy
 
-# One build, published twice while hosting moves (docs/decisions.md, D35): to GitHub Pages, and to
-# Firebase Hosting (decades-prod, site forever-sim). The two deploy jobs are independent, so a
-# Firebase failure never holds up Pages until the user confirms the cutover.
+# Builds, runs the smoke suite, and publishes to Firebase Hosting (decades-prod, site forever-sim),
+# which serves https://sim.decades.gg/ (docs/decisions.md, D35; GitHub Pages retired at the cutover).
 
 on:
   push:
@@ -10,18 +9,18 @@ on:
   workflow_dispatch:
 
 # Least privilege: the build job (checkout, npm ci, tests, build) reads the repo and nothing else.
-# upload-pages-artifact stores dist/ as a workflow artifact through the runner's own artifact
-# token, not GITHUB_TOKEN, so it needs no extra scope. Only deploy-pages publishes, and it alone
-# gets Pages write and the OIDC token it proves the run with. upload-artifact keeps dist/ for
-# deploy-firebase the same way. deploy-firebase gets only the OIDC token, which Google's Workload
-# Identity Federation exchanges for a short-lived token of the deploy service account: no JSON key
-# is stored anywhere, and the provider trusts only this repository's main branch.
+# upload-artifact keeps dist/ for the deploy through the runner's own artifact token, not
+# GITHUB_TOKEN. Only the deploy job gets the OIDC token, which Google's Workload Identity
+# Federation exchanges for a short-lived token of the deploy service account: no JSON key is stored
+# anywhere, and the provider trusts only this repository's main branch.
 permissions:
   contents: read
 
+# One deploy at a time, and never cancelled midway; a newer push waits and then publishes its own
+# build. Re-run only the latest run: an older run's deploy would publish an older build.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: firebase-hosting
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -39,9 +38,6 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:smoke
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -51,19 +47,6 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-
-  deploy-firebase:
-    needs: build
     # The identity provider trusts main alone, so a run by hand from another branch skips this job.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -72,7 +55,7 @@ jobs:
       id-token: write
     environment:
       name: firebase
-      url: https://forever-sim.web.app
+      url: https://sim.decades.gg/
     steps:
       # firebase.json and .firebaserc: the site, its headers and the project.
       - uses: actions/checkout@v4

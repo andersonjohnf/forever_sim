@@ -734,6 +734,10 @@ always in view; calm, single-column results. What changes from the design above:
     fits 1440×900.
 
 ### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
+**Done 2026-09-25:** the first Firebase deploy went out with release 2026-09-25.2, the user checked
+it, pointed `sim.decades.gg` at the site (a CNAME to `forever-sim.web.app`) and unpublished Pages.
+The deploy workflow now publishes to Firebase alone. What follows is how the move was planned.
+
 User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `forever-sim`
 (`https://forever-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
 the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover is a DNS change.

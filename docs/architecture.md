@@ -8,12 +8,10 @@ simulation runs in the visitor's browser.
 - **Build:** Vite 8, React 19, TypeScript 6, Tailwind CSS v4, shadcn/ui (Radix base, Nova
   preset, Lucide icons), oxlint, Vitest.
 - **Hosting:** Firebase Hosting (project `decades-prod`, site `forever-sim`,
-  `https://forever-sim.web.app`), with GitHub Pages in parallel until the user confirms the
-  cutover (decision D35). `.github/workflows/deploy.yml` deploys every push to `main` to both.
-  The custom domain `https://sim.decades.gg/` is a CNAME to `andersonjohnf.github.io` until the
-  cutover moves it by DNS. The old `https://andersonjohnf.github.io/forever_sim/` redirects there, keeping a
-  shared link's `#s=` setup. The Vite `base` is `/`. Use `import.meta.env.BASE_URL` for runtime asset URLs. If routing is ever
-  needed, use hash routing: it needs no rewrites on either host, and Pages can't rewrite deep links.
+  `https://forever-sim.web.app`), on the custom domain `https://sim.decades.gg/`, a CNAME to the
+  site (decision D35). `.github/workflows/deploy.yml` deploys every push to `main`. GitHub Pages,
+  the first host, is unpublished, and its old `github.io/forever_sim/` address with it. The Vite `base` is `/`. Use `import.meta.env.BASE_URL` for runtime asset URLs. If routing is ever
+  needed, use hash routing: it needs no rewrites, and `firebase.json` has none.
 
 ## Layout
 
@@ -674,12 +672,10 @@ A spec is data plus small ability modules, never its own loop.
 ## Deployment
 
 1. Push to `main`. The deploy workflow runs lint → the smoke suite → build, then deploys
-   `dist/` twice, in independent jobs: to GitHub Pages (`deploy`) and to Firebase Hosting
-   (`deploy-firebase`), so a Firebase failure never holds up Pages until the cutover (D35). The
+   `dist/` to Firebase Hosting (D35), one deploy at a time and never cancelled midway. The
    full suite has passed locally before the push (CLAUDE.md), and Full regression runs it again
    beside the deploy, without holding it up.
-2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**, and for Firebase
-   the setup under [Firebase Hosting](#firebase-hosting).
+2. One-time setup: under [Firebase Hosting](#firebase-hosting).
 
 ### Firebase Hosting
 
@@ -687,7 +683,7 @@ A spec is data plus small ability modules, never its own loop.
 site `forever-sim` in the default project `decades-prod`. No rewrites or redirects: the app is one
 page with hash routing, and a missing file is a 404.
 
-- **Deploy.** `deploy-firebase` downloads the build job's `dist` artifact, authenticates with
+- **Deploy.** The `deploy` job downloads the build job's `dist` artifact, authenticates with
   `google-github-actions/auth` through Workload Identity Federation (the provider
   `projects/232648440272/locations/global/workloadIdentityPools/github/providers/forever-sim`,
   trusting only this repository's `main`; the service account
@@ -768,7 +764,7 @@ e2e fixtures read it too.
 
 ### Content-Security-Policy
 
-The policy is a `<meta http-equiv>` in `index.html`, since GitHub Pages sets no response headers,
+The policy is a `<meta http-equiv>` in `index.html`, which `vite preview` and the e2e suite serve,
 and Firebase Hosting also sends it as a header with `frame-ancestors 'none'` added
 ([Firebase Hosting](#firebase-hosting)):
 
@@ -782,10 +778,9 @@ and Firebase Hosting also sends it as a header with `frame-ancestors 'none'` add
 | `frame-ancestors` (header only) | `'none'` | No site may frame the app (clickjacking); a meta policy can't carry it |
 
 `worker-src` governs loading the worker, not what it does: a same-origin dedicated worker takes
-its own policy from its script's response headers. Pages sends none, so there nothing but
-`worker-src` applies to it; Firebase Hosting sends the same policy on the worker's script, which
-it satisfies, since it fetches and evaluates nothing. A meta policy can't carry reporting. `vite dev` strips the tag
+its own policy from its script's response headers. Firebase Hosting sends the same policy on the
+worker's script, which it satisfies, since it fetches and evaluates nothing. A meta policy can't carry reporting. `vite dev` strips the tag
 (`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
-forbids; `vite preview`, the e2e suite and both hosts serve the build with it. The e2e
+forbids; `vite preview`, the e2e suite and Firebase Hosting serve the build with it. The e2e
 fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so
 a new external resource shows up there first.

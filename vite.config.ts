@@ -80,7 +80,7 @@ function slimData(): Plugin {
 /**
  * The Content-Security-Policy in index.html is the built app's. The dev server needs what it
  * forbids (React Refresh's inline preamble, the HMR websocket), so `vite dev` serves the page
- * without it; `vite preview`, the e2e suite and GitHub Pages serve the build, which keeps it.
+ * without it; `vite preview`, the e2e suite and Firebase Hosting serve the build, which keeps it.
  */
 function devWithoutCsp(): Plugin {
   return {
@@ -112,10 +112,9 @@ export default defineConfig({
     __BUILD_TIME__: JSON.stringify(BUILD_TIME),
     __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
   },
-  // Served from the root of https://sim.decades.gg/, GitHub Pages' custom domain. The old
-  // https://andersonjohnf.github.io/forever_sim/ redirects there, keeping a link's #s= setup.
+  // Served from the root of https://sim.decades.gg/, Firebase Hosting's custom domain (D35).
   base: '/',
-  // No SPA fallback: like GitHub Pages, unknown paths 404 instead of serving index.html, so
+  // No SPA fallback: like Firebase Hosting (no rewrites), unknown paths 404 instead of serving index.html, so
   // dev, preview and e2e runs surface missing assets. Use hash routing if routing is needed.
   appType: 'mpa',
   plugins: [slimData(), devWithoutCsp(), react(), tailwindcss()],

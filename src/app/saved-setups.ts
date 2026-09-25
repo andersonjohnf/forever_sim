@@ -420,7 +420,7 @@ export function importSetups(
 
 /** A new save's id. */
 export function newSetupId(): string {
-  // randomUUID needs a secure context: GitHub Pages and localhost are; a dev server on a LAN IP isn't.
+  // randomUUID needs a secure context: the site (HTTPS) and localhost are; a dev server on a LAN IP isn't.
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }

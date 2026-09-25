@@ -16,10 +16,11 @@ on:
 permissions:
   contents: read
 
-# One deploy at a time, and never cancelled midway; a newer push waits and then publishes its own
-# build. Re-run only the latest run: an older run's deploy would publish an older build.
+# One run at a time per branch, never cancelled midway; a newer push waits and then publishes its
+# own build. Keyed by ref, so a run by hand from another branch (which skips the deploy) can't
+# cancel main's waiting run. Re-run only the latest run: an older run would publish an older build.
 concurrency:
-  group: firebase-hosting
+  group: firebase-hosting-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:

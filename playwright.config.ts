@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// End-to-end tests run against the production build served under the GitHub Pages base
+// End-to-end tests run against the production build served under the production base
 // path, so they exercise exactly what gets deployed. A dedicated port keeps them clear of a
 // dev or preview server you may already have running; E2E_PORT overrides it so two checkouts
 // (e.g. a git worktree) can run e2e at the same time.

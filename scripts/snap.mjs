@@ -1,7 +1,7 @@
 // Quick visual check of the production build in headless Chromium.
 //
 // Builds into its own folder, .cache/snap-dist (with --build, which `npm run snap` passes),
-// serves it under the GitHub Pages base path, opens a page, prints console errors and
+// serves it under the production base path, opens a page, prints console errors and
 // warnings, page errors and failed requests, and saves a full-page screenshot. Exits 1 if
 // anything went wrong. It never touches dist/, which `npm run test:e2e` builds and serves, so
 // the two can run at once.

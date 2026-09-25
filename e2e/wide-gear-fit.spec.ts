@@ -48,48 +48,79 @@ async function classicEra(page: Page) {
 
 const gearTab = (page: Page) => page.getByRole('tab', { name: 'Gear', exact: true }).click()
 
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 /**
- * Every slot gets the item with the longest name it offers (All items), and every enchant line the
+ * Every slot gets the item with the widest name it offers (All items), and every enchant line the
  * enchant with the longest name and effect: the worst case the slots' budget is built for.
+ *
+ * Review finding V4-1: the picker's item buttons are named by an sr-only span, not an aria-label,
+ * and ranking them by aria-label picked "Leave this slot empty" every time, so the test measured
+ * empty slots and no enchants. Each pick is now checked on its slot, and every enchant line too.
  */
 async function equipLongest(page: Page) {
   const slots = await page.locator('[data-gear-slot]').evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.gearSlot!))
+  let filled = 0
   for (const slot of slots) {
     const button = page.locator(`[data-gear-slot="${slot}"]`)
+    // An off hand beside a two-handed weapon.
     if (await button.isDisabled()) continue
     // From the keyboard: a click could land on a flag, which sits over the slot's button.
     await button.press('Enter')
     const picker = page.getByRole('dialog', { name: /^Choose / })
+    // Every item, not just the guides' picks: wait for the list to show them all.
     const all = picker.getByRole('radio', { name: 'All items' })
-    if (await all.count()) await all.click()
+    await all.click()
+    await expect(all).toBeChecked()
     const items = picker.getByRole('list', { name: 'Items' }).getByRole('listitem').getByRole('button')
     await expect(items.first()).toBeVisible()
-    // The accessible name starts with the item's name and a full stop.
+    // The widest name as the picker draws it: the text of its name line alone (not the button's
+    // whole name, which carries the stats too; not the line's box, which fills the row).
     const longest = await items.evaluateAll((buttons) => {
-      let best = -1
-      let length = -1
-      buttons.forEach((b, i) => {
+      let best = { index: -1, width: -1, name: '' }
+      buttons.forEach((b, index) => {
         if ((b as HTMLButtonElement).disabled || b.getAttribute('aria-disabled') === 'true') return
-        const label = b.getAttribute('aria-label') ?? ''
-        const name = label.split('.')[0]
-        // Not one that moves from the other slot of a pair, which would empty that slot.
-        if (name.length > length && !name.startsWith('Leave this slot empty') && !label.includes('moves from')) [best, length] = [i, name.length]
+        const name = b.parentElement?.querySelector<HTMLElement>('span.truncate')
+        // "Leave this slot empty" has no name line; one that moves from the other slot of a pair
+        // would empty that slot (its words joined by no-break spaces).
+        if (!name || /moves\sfrom/.test(b.textContent ?? '')) return
+        const range = document.createRange()
+        range.selectNodeContents(name)
+        const width = range.getBoundingClientRect().width
+        if (width > best.width) best = { index, width, name: name.textContent ?? '' }
       })
       return best
     })
-    await items.nth(longest).click()
+    expect(longest.index, `${slot}: an item to pick`).toBeGreaterThanOrEqual(0)
+    await items.nth(longest.index).click()
     await expect(picker).toHaveCount(0)
+    // The slot holds it now.
+    await expect(button, slot).toHaveAttribute('aria-label', new RegExp(`: ${escape(longest.name)}$`))
+    filled++
   }
+  expect(filled, 'slots filled').toBeGreaterThanOrEqual(16)
+  // None emptied by a later pick.
+  await expect(page.getByRole('button', { name: /: empty$/ })).toHaveCount(0)
   const chips = page.getByRole('button', { name: / enchant$|^Add an enchant, / })
-  for (let i = 0; i < (await chips.count()); i++) {
+  const count = await chips.count()
+  expect(count, 'enchant lines').toBeGreaterThanOrEqual(8)
+  for (let i = 0; i < count; i++) {
     await chips.nth(i).click()
     const list = page.getByRole('listbox')
     await expect(list).toBeVisible()
     const options = list.getByRole('option')
-    const longest = await options.evaluateAll((els) => els.reduce((best, el, i, all) => ((el.textContent ?? '').length > (all[best].textContent ?? '').length ? i : best), 0))
-    await options.nth(longest).click()
+    const longest = await options.evaluateAll((els) => {
+      // "Name · effect", as the chip shows it.
+      const text = (el: Element) => [...el.querySelectorAll('span > span')].map((s) => s.textContent).join(' · ')
+      const index = els.reduce((best, el, i, all) => (text(el).length > text(all[best]).length ? i : best), 0)
+      return { index, text: text(els[index]) }
+    })
+    await options.nth(longest.index).click()
     await expect(page.getByRole('listbox')).toHaveCount(0)
+    await expect(chips.nth(i)).toHaveAttribute('aria-label', new RegExp(`^${escape(longest.text)}, `))
   }
+  // Every enchant line holds one.
+  await expect(page.getByRole('button', { name: /^Add an enchant, / })).toHaveCount(0)
 }
 
 /**
@@ -156,9 +187,10 @@ test.describe('the wide Gear tab fits the window whatever it holds', () => {
     expect(hits.link.right).toBeLessThan(hits.equip.left)
   })
 
-  test('a bear tank, the longest intro, with the longest names and enchants', async ({ page }) => {
+  test('a bear tank, the longest intro, with the longest names and enchants, under Classic Era rules', async ({ page }) => {
     await open(page, 1440, 900)
     await chooseSpec(page, 'Druid', /Feral \(Bear\)/)
+    await classicEra(page)
     await gearTab(page)
     await equipLongest(page)
     await expectFits(page, 900)
@@ -182,9 +214,10 @@ test.describe('the wide Gear tab fits the window whatever it holds', () => {
     await expect(page.getByRole('radio', { name: 'Classic Era' })).toBeFocused()
   })
 
-  test('a caster, the longest names and enchants in cloth', async ({ page }) => {
+  test('a caster, the longest names and enchants in cloth, under Classic Era rules', async ({ page }) => {
     await open(page, 1440, 900)
     await chooseSpec(page, 'Mage', /Fire/)
+    await classicEra(page)
     await gearTab(page)
     await equipLongest(page)
     await expectFits(page, 900)

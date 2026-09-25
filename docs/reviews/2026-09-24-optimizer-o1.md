@@ -523,3 +523,12 @@ Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run s
 passed; `npm test` 2,929 passed, 6 skipped (a first run under load, average 7, failed three
 one-core benchmarks at 3,200–4,800 fights a second, which pass alone and on the rerun; the engine
 didn't change). No UI changed, so no screenshots.
+
+### Quick check of the OGV2 fixes
+
+OGV2-1 to OGV2-4 confirmed; the total never passes the cap, and pass 1 always gets at least 9% of it.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| OQ-1 | low | 7d5cc709 | In `--turns`, a pass's messages call its 90% share "the cap". | waived: the CLI's "in turns: … 90%" line explains it, and optimizer.md says a pass's `budget.cap` is what it could run |
+| OQ-2 | low | 7d5cc709 | `optimizeInTurns`'s `reserve` wasn't validated; a negative one let a pass run past the cap. | fixed by the lead: a `reserve` outside [0, 1) throws |

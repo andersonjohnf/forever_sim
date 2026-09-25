@@ -808,6 +808,8 @@ export async function optimizeInTurns(
   const passes = options.passes ?? 4
   const cap = options.maxFights ?? MAX_SEARCH_FIGHTS
   const reserve = options.reserve ?? TURNS_RESERVE
+  // A share outside [0, 1) would let a pass run past the cap, or leave the first nothing (OQ-2).
+  if (!(reserve >= 0 && reserve < 1)) throw new RangeError(`reserve must be in [0, 1), got ${reserve}`)
   let spent = 0
   for (let pass = 0; pass < passes; pass++) {
     const talents = pass % 2 === 0

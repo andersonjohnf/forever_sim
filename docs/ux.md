@@ -225,6 +225,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Human", "Default: Forever") and a **Reset** that moves focus back to its control. Advanced
     opens by itself while a setting in it differs from its default, and its button counts them
     ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
+    the races sit on the left, three to a row, and the chosen race's racials beside them on the right,
+    so a pick and what it brings are in view together. Advanced spans the pane below both. Narrower,
+    the racials come under the races, as at every width under 1440 px.
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
@@ -432,6 +437,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A preset matches on what you choose: a buff your rotation keeps up shows on whatever the
     preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
     under Max TPS, then going back to Defensive, leaves the preset as it was.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    each category's groups flow into columns by the setup pane's width, 2 from 53 rem (a 1,440 px
+    window, whose pane is 54 to 55 rem) and 3 from 84 rem (about 2,270 px), with CSS columns, so they
+    read top to bottom, then on to the next column, and no group splits between two. Each group is its
+    own narrower card with its switches at its end, not across the pane from their names. The category
+    headings, the presets and "In your raid" stay full width above them. Narrower, the groups are one
+    column, as at every width under 1440 px.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
@@ -696,6 +708,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
+    from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
+    two columns: the length, boss armor, position and execute phase on the left, and Advanced on the
+    right, still a disclosure (principle 2), so opening it pushes nothing down. Narrower, Advanced
+    comes under them, as at every width under 1440 px.
   - Advanced: precision and seed, then the fight's details. Every field is labelled, the
     Creature type and Zone menus included, and its accessible name contains its visible label
     ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their

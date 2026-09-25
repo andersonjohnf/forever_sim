@@ -229,83 +229,94 @@ export function BuffsSection() {
           return (
             <section key={category} className="flex flex-col gap-3">
               <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{CATEGORY_LABEL[category]}</h3>
-              {groups.map((group) => (
-                <div key={group} className="flex flex-col gap-1 rounded-xl border p-1">
-                  <span className="px-3 pt-2 text-xs font-medium text-muted-foreground">{group}</span>
-                  {defs
-                    .filter((d) => d.group === group)
-                    .map((def) => {
-                      const talent = !maintained.has(def.id) && fromTalents.has(def.id)
-                      const own = maintained.has(def.id) || talent
-                      // Another entry of its exclusive group is on, and only one applies in game: yours
-                      // stays in the rotation for its threat (Expose Armor over your Sunder Armor, warrior.md Q35).
-                      const replacedBy = maintained.has(def.id) && def.exclusiveGroup ? rivalOn(def) : undefined
-                      // Yours, but the rotation doesn't keep it up: the switch means another player's.
-                      const dropped = !own && ownBuffs.has(def.id)
-                      const dutyOf = own || dropped ? undefined : otherTanksDuty.get(def.id)
-                      // A buff you cast on yourself needs no one else (a druid's Mark of the Wild).
-                      const missing = !own && !buffProvided(def, buffs.raid, meta.id)
-                      const unused = own ? undefined : inert[def.id]
-                      const unavailable = missing || unused !== undefined
-                      const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
-                      // A debuff on the boss's swings changes only a tank's results (docs/ux.md "Buffs").
-                      const tankOnly = def.bossMelee === true && meta.role !== 'tank'
-                      // Replaced, and your rotation doesn't cast it then (a bear's roar under a Demoralizing
-                      // Shout: its Rotation setting says it isn't used; druid.md §6.3).
-                      const notCast = replacedBy !== undefined && notCastOwn.has(def.id)
-                      // A stone's or an oil's note names what this spec's weapons can take (weapon-note.ts).
-                      const note = weaponNote(def, buffCatalogue, inert)
-                      // A bomb's summary says what its throw holds for this spec (buffs doc §3.7).
-                      const base = buffSummaryFor(def, meta.id)
-                      // One that turns off a rival its summary doesn't name says so (rival-note.ts).
-                      const rival = rivalNote(def, buffCatalogue, inert)
-                      const noted = note ? `${base} ${note}` : base
-                      const summary = rival ? `${noted}. ${rival}` : noted
-                      let help = summary
-                      if (talent) help = `${summary}. Your talents bring it (see Talents), so it isn’t added twice.`
-                      else if (replacedBy && notCast) help = `${summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`
-                      else if (replacedBy) help = `${summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
-                      else if (own) help = `${summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
-                      else if (unused !== undefined) help = `${summary}. ${unused}.`
-                      // You're one of your class yourself, so a buff your class brings that you don't count
-                      // for needs another (a paladin's Blessing of Kings, a cat's Faerie Fire when its
-                      // rotation drops it; docs/ux.md "Buffs").
-                      else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
-                      else if (dropped) help = `${summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
-                      else if (dutyOf) help = `${summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
-                      else if (tankOnly) help = `${summary}. Only the tank takes the boss’s swings, so it changes nothing for you.`
-                      return (
-                        // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
-                        // colour, never opacity: its text turns to the muted colour (AA) and its icon to
-                        // gray (docs/ux.md "Buffs").
-                        <label
-                          key={def.id}
-                          data-unavailable={unavailable || undefined}
-                          className={cn(
-                            'flex min-h-14 items-center gap-3 rounded-lg px-3 py-2',
-                            unavailable ? 'cursor-not-allowed text-muted-foreground' : !own && 'hover:bg-muted',
-                          )}
-                        >
-                          <WowIcon icon={def.icon} size="sm" grayscale={unavailable} />
-                          <span className="flex min-w-0 flex-1 flex-col">
-                            <span className="text-sm font-medium">{def.name}</span>
-                            <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
-                              {help}
+              {/*
+               * In the wide layout the category's groups flow into columns by the setup pane's width
+               * (D34, docs/ux.md "Buffs"): 2 from 53 rem, 3 from 84 rem. CSS columns keep the reading
+               * order top to bottom, column by column, and no group splits across two. Below 1440 px
+               * the pane isn't a container, so this stays the one column of cards it always was.
+               */}
+              <div className="flex flex-col gap-3 @min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-4 @min-[84rem]/setup:columns-3">
+                {groups.map((group) => (
+                  <div
+                    key={group}
+                    className="flex flex-col gap-1 rounded-xl border p-1 @min-[53rem]/setup:mb-4 @min-[53rem]/setup:break-inside-avoid"
+                  >
+                    <span className="px-3 pt-2 text-xs font-medium text-muted-foreground">{group}</span>
+                    {defs
+                      .filter((d) => d.group === group)
+                      .map((def) => {
+                        const talent = !maintained.has(def.id) && fromTalents.has(def.id)
+                        const own = maintained.has(def.id) || talent
+                        // Another entry of its exclusive group is on, and only one applies in game: yours
+                        // stays in the rotation for its threat (Expose Armor over your Sunder Armor, warrior.md Q35).
+                        const replacedBy = maintained.has(def.id) && def.exclusiveGroup ? rivalOn(def) : undefined
+                        // Yours, but the rotation doesn't keep it up: the switch means another player's.
+                        const dropped = !own && ownBuffs.has(def.id)
+                        const dutyOf = own || dropped ? undefined : otherTanksDuty.get(def.id)
+                        // A buff you cast on yourself needs no one else (a druid's Mark of the Wild).
+                        const missing = !own && !buffProvided(def, buffs.raid, meta.id)
+                        const unused = own ? undefined : inert[def.id]
+                        const unavailable = missing || unused !== undefined
+                        const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
+                        // A debuff on the boss's swings changes only a tank's results (docs/ux.md "Buffs").
+                        const tankOnly = def.bossMelee === true && meta.role !== 'tank'
+                        // Replaced, and your rotation doesn't cast it then (a bear's roar under a Demoralizing
+                        // Shout: its Rotation setting says it isn't used; druid.md §6.3).
+                        const notCast = replacedBy !== undefined && notCastOwn.has(def.id)
+                        // A stone's or an oil's note names what this spec's weapons can take (weapon-note.ts).
+                        const note = weaponNote(def, buffCatalogue, inert)
+                        // A bomb's summary says what its throw holds for this spec (buffs doc §3.7).
+                        const base = buffSummaryFor(def, meta.id)
+                        // One that turns off a rival its summary doesn't name says so (rival-note.ts).
+                        const rival = rivalNote(def, buffCatalogue, inert)
+                        const noted = note ? `${base} ${note}` : base
+                        const summary = rival ? `${noted}. ${rival}` : noted
+                        let help = summary
+                        if (talent) help = `${summary}. Your talents bring it (see Talents), so it isn’t added twice.`
+                        else if (replacedBy && notCast) help = `${summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`
+                        else if (replacedBy) help = `${summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
+                        else if (own) help = `${summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
+                        else if (unused !== undefined) help = `${summary}. ${unused}.`
+                        // You're one of your class yourself, so a buff your class brings that you don't count
+                        // for needs another (a paladin's Blessing of Kings, a cat's Faerie Fire when its
+                        // rotation drops it; docs/ux.md "Buffs").
+                        else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
+                        else if (dropped) help = `${summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
+                        else if (dutyOf) help = `${summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
+                        else if (tankOnly) help = `${summary}. Only the tank takes the boss’s swings, so it changes nothing for you.`
+                        return (
+                          // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
+                          // colour, never opacity: its text turns to the muted colour (AA) and its icon to
+                          // gray (docs/ux.md "Buffs").
+                          <label
+                            key={def.id}
+                            data-unavailable={unavailable || undefined}
+                            className={cn(
+                              'flex min-h-14 items-center gap-3 rounded-lg px-3 py-2',
+                              unavailable ? 'cursor-not-allowed text-muted-foreground' : !own && 'hover:bg-muted',
+                            )}
+                          >
+                            <WowIcon icon={def.icon} size="sm" grayscale={unavailable} />
+                            <span className="flex min-w-0 flex-1 flex-col">
+                              <span className="text-sm font-medium">{def.name}</span>
+                              <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
+                                {help}
+                              </span>
                             </span>
-                          </span>
-                          <Switch
-                            id={buffSwitchId(def.id)}
-                            checked={notCast ? false : own || (!unavailable && buffs.enabled.includes(def.id))}
-                            disabled={own || unavailable}
-                            onCheckedChange={(on) => toggleBuff(def, on)}
-                            aria-label={def.name}
-                            aria-describedby={`${buffSwitchId(def.id)}-help`}
-                          />
-                        </label>
-                      )
-                    })}
-                </div>
-              ))}
+                            <Switch
+                              id={buffSwitchId(def.id)}
+                              checked={notCast ? false : own || (!unavailable && buffs.enabled.includes(def.id))}
+                              disabled={own || unavailable}
+                              onCheckedChange={(on) => toggleBuff(def, on)}
+                              aria-label={def.name}
+                              aria-describedby={`${buffSwitchId(def.id)}-help`}
+                            />
+                          </label>
+                        )
+                      })}
+                  </div>
+                ))}
+              </div>
             </section>
           )
         })

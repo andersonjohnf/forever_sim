@@ -108,36 +108,43 @@ export function CharacterSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader title="Character" description={`Level 60 ${meta.name} ${meta.className}.`} />
 
-      <div className="flex flex-col gap-2">
-        <span id="race-label" className="text-sm font-medium">
-          Race
-        </span>
-        <RacePicker races={races} selected={selected} onPick={pick} describedBy={raceChanged ? 'race-default' : undefined} />
-        {raceChanged && (
-          <ChangedHint
-            id="race-default"
-            label="Race"
-            value={defaultRace.name}
-            onReset={() => changeAndFocus(() => pick(defaultRace), selectedRace)}
-          />
-        )}
-      </div>
+      {/*
+       * In the wide layout, from a 53 rem setup pane, the races sit on the left and the chosen race's
+       * racials beside them, with Advanced full width below (D34, docs/ux.md "Character"). Below
+       * 1440 px the pane isn't a container, so this stays one column.
+       */}
+      <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
+        <div className="flex flex-col gap-2">
+          <span id="race-label" className="text-sm font-medium">
+            Race
+          </span>
+          <RacePicker races={races} selected={selected} onPick={pick} describedBy={raceChanged ? 'race-default' : undefined} />
+          {raceChanged && (
+            <ChangedHint
+              id="race-default"
+              label="Race"
+              value={defaultRace.name}
+              onReset={() => changeAndFocus(() => pick(defaultRace), selectedRace)}
+            />
+          )}
+        </div>
 
-      <div className="flex flex-col gap-3">
-        <h3 className="text-sm font-medium">{selected.name} racials</h3>
-        <ul className="flex flex-col gap-3">
-          {selected.racials.map((racial) => (
-            <li key={racial.id} className="flex gap-3">
-              <WowIcon icon={racial.icon} size="sm" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{racial.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {racialEffectForClass(racial, meta.classId) ?? 'No details yet.'}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-medium">{selected.name} racials</h3>
+          <ul className="flex flex-col gap-3">
+            {selected.racials.map((racial) => (
+              <li key={racial.id} className="flex gap-3">
+                <WowIcon icon={racial.icon} size="sm" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">{racial.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {racialEffectForClass(racial, meta.classId) ?? 'No details yet.'}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}

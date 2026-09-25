@@ -423,7 +423,7 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
       summary: [{ option: ID.lifeTap, text: 'at or below {}', zeroText: 'only when nothing can be paid for' }],
     },
     // Every spec's filler is a choice: Incinerate with the talent, or Shadow Bolt (issue #17).
-    filler: { id: 'filler', label: 'Filler', icon: spec === 'destruction' ? INCINERATE.icon : SHADOW_BOLT.icon, optionIds: [ID.filler], summary: [{ option: ID.filler, text: '{}' }] },
+    filler: { id: 'filler', label: 'Filler', icon: spec === 'destruction' ? INCINERATE.icon : SHADOW_BOLT.icon, optionIds: [ID.filler], summary: [{ option: ID.filler, text: '{}', inactiveText: 'Shadow Bolt' }] },
   }
   const ids: Record<WarlockSpec, string[]> = {
     destruction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'conflagrate', 'shadowburn', 'corruption', 'bane', 'lifeTap', 'filler'],

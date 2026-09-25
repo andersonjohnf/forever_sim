@@ -335,6 +335,22 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(summary('berserkerRage')).toBe('Off')
   })
 
+  it('reads a warlock’s filler as Shadow Bolt while Incinerate isn’t talented, whatever its choice says (issue #17)', () => {
+    const filler = (config: SimConfig) => {
+      const apl = getSpec(config.spec).rotationApl!
+      const options = getSpec(config.spec).rotationOptions
+      const state = rotationRows(config, options, config.buffs.enabled, unusedRotationSettings(config))
+      return aplRowSummary(apl.rows.find((r) => r.id === 'filler')!, options, state)
+    }
+    expect(filler(defaultConfig('warlock-destruction'))).toBe('Incinerate')
+    expect(filler(defaultConfig('warlock-affliction'))).toBe('Shadow Bolt')
+    // Demonology's choice is Incinerate by default (warlock.md §6.4), but its default talents have none.
+    const demo = defaultConfig('warlock-demonology')
+    expect(filler(demo)).toBe('Shadow Bolt')
+    expect(filler({ ...demo, talents: '-03050032011203-0550315103101051' })).toBe('Incinerate')
+    expect(filler({ ...defaultConfig('warlock-affliction'), talents: '255500100002--0550315103101051', rotation: { 'warlock.affliction.filler.spell': 'incinerate' } })).toBe('Incinerate')
+  })
+
   it('says which rows stop in the execute phase, and which wait for Bloodthirst and Whirlwind, while that holds', () => {
     const fillers = { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.slam.enabled': true }
     expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')

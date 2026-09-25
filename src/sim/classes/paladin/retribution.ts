@@ -6,12 +6,14 @@
 // Wrath in the execute phase (row 4), Holy Strike (row 5), Exorcism against Undead and Demons
 // (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), and the mana potion and rune.
 // Your own Blessing of Might is the Buffs tab's (its `selfCast`). Seal twisting (row 9) is off by
-// default and not simulated yet, nor is Holy Wrath. Setting ids are `paladin.retribution.<ability>.<param>`;
+// default and not simulated yet, nor is Holy Wrath. The rows are a priority list you reorder
+// (RETRIBUTION_APL, decision D31). Setting ids are `paladin.retribution.<ability>.<param>`;
 // mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) and the Judgement of the Crusader rule (spells.ts; Character → Advanced, OQ 5)
 // before their costs or spells feed anything.
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { CreatureType, RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, CreatureType, RotationOption, RotationValue } from '../../types'
+import { compileAplRows, normalizeAplOrder } from '../apl'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -277,16 +279,115 @@ export function retributionMaintainedBuffs(values: Record<string, RotationValue>
 }
 
 /**
- * The Retribution priority list from the settings (paladin.md "Forever priority list (default)").
- * `context` gives the main hand (Seal of Righteousness), the maximum mana (the mana thresholds are
- * shares of it), the creature type (Exorcism), and the selected consumables (the potion and rune).
- * Abilities 0 and 1 are the seal and its judgement, as in `paladinCore`.
+ * The Retribution rotation as a priority list (decision D31; paladin.md "Forever priority list
+ * (default)"): rows 1–8 in its order, each with its switch and its own settings. Rows 0 and 2, the
+ * opener and Judgement of the Crusader kept up, are one pinned row first, as the Protection
+ * paladin's: the opener's judgement comes at the pull. The seal (row 1) has no switch: there's
+ * always one, and its row holds the seal choice, as Protection's does. The on-use trinkets, Juju
+ * Flurry and the mana consumables are spec-wide, off the GCD, and always come after the list. No
+ * named presets: the defaults are the implicit Default.
+ */
+export const RETRIBUTION_APL: AplDefinition = {
+  rows: [
+    {
+      id: 'prepull',
+      label: 'Before the pull',
+      icon: SEAL_OF_THE_CRUSADER.icon,
+      optionIds: [ID.crusader],
+      summary: [
+        { option: ID.crusader, text: 'Seal of the Crusader, judged at the pull' },
+        { option: ID.crusader, text: 'Your seal', when: false },
+      ],
+      help: 'Your seal 1.5 s before the pull: Seal of the Crusader while Judgement of the Crusader is on, judged at the pull and again if the debuff ever drops, or your main seal while it’s off. It always comes first.',
+      pinned: true,
+    },
+    {
+      id: 'seal',
+      label: 'Seal',
+      icon: SEAL_OF_COMMAND.icon,
+      optionIds: [ID.seal, ID.sealRefresh],
+      summary: [
+        { option: ID.seal, text: 'Seal of {}' },
+        { option: ID.sealRefresh, text: 'again with {}' },
+      ],
+      help: 'Keep your seal up: cast it when it’s missing, or about to end.',
+    },
+    { id: 'judgement', label: 'Judgement', icon: JUDGEMENT_OF[SEAL_OF_COMMAND.id].icon, enabledId: ID.judgement, optionIds: [], summary: [{ text: 'on cooldown, off the global cooldown' }] },
+    {
+      id: 'hammerOfWrath',
+      label: 'Hammer of Wrath',
+      icon: HAMMER_OF_WRATH_ABILITY.icon,
+      enabledId: ID.hammerOfWrath,
+      optionIds: [ID.hammerOfWrathMana],
+      summary: [{ text: 'execute phase' }, { option: ID.hammerOfWrathMana, text: 'from {}', hideWhen: 0 }],
+    },
+    { id: 'holyStrike', label: 'Holy Strike', icon: HOLY_STRIKE_ABILITY.icon, enabledId: ID.holyStrike, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'exorcism',
+      label: 'Exorcism',
+      icon: EXORCISM_ABILITY.icon,
+      enabledId: ID.exorcism,
+      optionIds: [ID.exorcismMana],
+      summary: [{ text: 'Undead and Demons' }, { option: ID.exorcismMana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'consecration',
+      label: 'Consecration',
+      icon: CONSECRATION.icon,
+      enabledId: ID.consecration,
+      optionIds: [ID.consecrationMana],
+      summary: [{ text: 'rank 5' }, { option: ID.consecrationMana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'consecrationRank1',
+      label: 'Consecration (Rank 1)',
+      icon: CONSECRATION_RANK1.icon,
+      enabledId: ID.consecrationRank1,
+      optionIds: [ID.consecrationRank1Mana],
+      summary: [{ option: ID.consecrationRank1Mana, text: 'from {}', hideWhen: 0 }],
+    },
+  ],
+  specWide: [ID.trinkets, ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
+  presets: [],
+}
+
+/** The two Consecration rows, which share one cooldown (paladin.md rows 7 and 8). */
+const CONSECRATION_ROWS = [
+  { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
+  { row: 'consecrationRank1', label: 'Consecration (Rank 1)', on: ID.consecrationRank1, mana: ID.consecrationRank1Mana },
+] as const
+
+/**
+ * What the Rotation tab says under a Consecration row that's never used (docs/ux.md "Rotation"): the
+ * ranks share one cooldown, so with both on, the higher row takes it whenever its mana is there, and
+ * the lower is used only below the higher's mana threshold. A lower row that starts from as much mana
+ * as the higher, or more, is never used (rank 5 moved below rank 1, with the defaults).
+ */
+export function retributionUnusedSettings(values: Record<string, RotationValue>, order?: readonly string[]): Record<string, string> {
+  const v = reader(RETRIBUTION_OPTIONS, values)
+  if (!CONSECRATION_ROWS.every((r) => v.on(r.on))) return {}
+  const current = normalizeAplOrder(RETRIBUTION_APL, order)
+  const [higher, lower] = [...CONSECRATION_ROWS].sort((a, b) => current.indexOf(a.row) - current.indexOf(b.row))
+  if (v.num(lower.mana) < v.num(higher.mana)) return {}
+  return {
+    [lower.on]: `Not used: ${higher.label}, above it, takes the cooldown they share whenever this has its mana. Start this from less mana than ${higher.label}, or move it above.`,
+  }
+}
+
+/**
+ * The Retribution priority list from the settings (paladin.md "Forever priority list (default)"),
+ * its rows in `order` (RETRIBUTION_APL; absent: the default order). `context` gives the main hand
+ * (Seal of Righteousness), the maximum mana (the mana thresholds are shares of it), the creature
+ * type (Exorcism), and the selected consumables (the potion and rune). Abilities 0 and 1 are the
+ * seal and its judgement, as in `paladinCore`, then the opener's; the rest are indexed as their rows
+ * come, so the default order gives the plan the rotation gave before the list.
  */
 export function retributionRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   _auraIndex: (id: string) => number,
   context: Partial<PaladinContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(RETRIBUTION_OPTIONS, values, talents)
@@ -319,50 +420,67 @@ export function retributionRotation(
   const auraUp = (a: number): RotationCondition => ({ code: COND.abilityAuraUp, a, b: 0 })
   const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
 
-  // Abilities 0 and 1: the seal and its judgement.
+  // Abilities 0 and 1: the seal and its judgement; then the opener's seal and judgement, indexed
+  // after them, as before the list.
   const sealDef = retributionSeal(values)
   const seal = index(sealDef)
   const judge = index(JUDGEMENT_OF[sealDef.id])
   const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
-  let prepullSeal = seal
+  const crusader = v.on(ID.crusader)
+  const sotc = crusader ? index(SEAL_OF_THE_CRUSADER) : -1
+  const jotc = crusader ? index(JUDGE_CRUSADER) : -1
+  const prepullSeal = crusader ? sotc : seal
 
-  if (v.on(ID.crusader)) {
-    // Rows 0 and 2: Seal of the Crusader goes up 1.5 s before the pull; while it's up and Judgement
-    // of the Crusader is missing, judge it (at the pull, then only if the debuff ever drops: your
-    // landed auto attacks restart its 40 s). If it's missing without the seal, cast the seal first.
-    const sotc = index(SEAL_OF_THE_CRUSADER)
-    const jotc = index(JUDGE_CRUSADER)
-    add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
-    add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
-    // Row 1: the main seal when it's missing or about to end, but not over Seal of the Crusader
-    // before its judgement has landed.
-    add(sealDef, [refresh, auraDown(sotc)])
-    add(sealDef, [refresh, auraUp(jotc)])
-    prepullSeal = sotc
-  } else {
-    // Row 1.
-    add(sealDef, [refresh])
-  }
+  compileAplRows(RETRIBUTION_APL, order, {
+    // Rows 0 and 2: Seal of the Crusader goes up 1.5 s before the pull (the pre-pull below); while
+    // it's up and Judgement of the Crusader is missing, judge it (at the pull, then only if the
+    // debuff ever drops: your landed auto attacks restart its 40 s). If it's missing without the
+    // seal, cast the seal first.
+    prepull: () => {
+      if (!crusader) return
+      add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
+      add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
+    },
+    // Row 1: the main seal when it's missing or about to end; with the opener, not over Seal of the
+    // Crusader before its judgement has landed.
+    seal: () => {
+      if (!crusader) {
+        add(sealDef, [refresh])
+        return
+      }
+      add(sealDef, [refresh, auraDown(sotc)])
+      add(sealDef, [refresh, auraUp(jotc)])
+    },
+    // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
+    judgement: () => {
+      if (v.on(ID.judgement)) rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
+    },
+    // Row 4: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
+    hammerOfWrath: () => {
+      if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
+    },
+    // Row 5: Holy Strike on cooldown.
+    holyStrike: () => {
+      if (v.on(ID.holyStrike)) add(HOLY_STRIKE_ABILITY, [])
+    },
+    // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
+    exorcism: () => {
+      if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
+    },
+    // Rows 7 and 8: Consecration rank 5 at mana ≥ x%, rank 1 at mana ≥ y%. The ranks share one
+    // cooldown, so the higher row takes it whenever its mana is there, and the lower only when it
+    // isn't (retributionUnusedSettings says when that's never).
+    consecration: () => {
+      if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
+    },
+    consecrationRank1: () => {
+      if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
+    },
+  })
 
-  // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
-  if (v.on(ID.judgement)) rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
-
-  // Row 4: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
-  if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
-
-  // Row 5: Holy Strike on cooldown.
-  if (v.on(ID.holyStrike)) add(HOLY_STRIKE_ABILITY, [])
-
-  // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
-  if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
-
-  // Rows 7 and 8: Consecration rank 5 at mana ≥ x%, else rank 1 at mana ≥ y%. The ranks share
-  // one cooldown.
-  if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
-  if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
-
-  // On-use trinkets (Weakness Analyzer) and Juju Flurry on cooldown from the pull, then the mana
-  // potion and rune, when selected in Buffs, whenever the most they restore fits (consumables.ts).
+  // After the list, off the GCD: on-use trinkets (Weakness Analyzer) and Juju Flurry on cooldown
+  // from the pull, then the mana potion and rune, when selected in Buffs, whenever the most they
+  // restore fits (consumables.ts).
   const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
 
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C2)").

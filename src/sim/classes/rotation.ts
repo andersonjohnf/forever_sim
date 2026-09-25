@@ -10,7 +10,7 @@ import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from 
 import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
-import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
+import { RETRIBUTION_APL, RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation, retributionUnusedSettings } from './paladin/retribution'
 import {
   PROTECTION_APL as PALADIN_PROTECTION_APL,
   PROTECTION_FIXED_ROWS,
@@ -123,6 +123,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
+  // docs/classes/paladin.md "Forever priority list (default)", Retribution's.
+  if (spec === 'paladin-retribution') return RETRIBUTION_APL
   return undefined
 }
 
@@ -267,6 +269,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'warrior-protection') Object.assign(out, protectionUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
   if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
+  // docs/classes/paladin.md rows 7 and 8: the lower of the two Consecration rows, when it never has the shared cooldown.
+  if (spec === 'paladin-retribution') Object.assign(out, retributionUnusedSettings(values, setup.order))
   // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
   if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
   return out
@@ -322,7 +326,7 @@ export function classRotation(
   if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".
-  if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
+  if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context, order)
   // docs/classes/paladin.md "Protection: model and rotation".
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context, order)

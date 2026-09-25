@@ -283,8 +283,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'warlock-destruction') Object.assign(out, destructionUnusedSettings(values, setup.talents ?? new Map()))
   if (spec === 'warlock-affliction') Object.assign(out, afflictionUnusedSettings(values, setup.talents ?? new Map()))
   if (spec === 'warlock-demonology') Object.assign(out, demonologyUnusedSettings(values, setup.talents ?? new Map()))
-  // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
-  if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
+  // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's; a row below Mind Flay, and Inner Focus below Mind Blast.
+  if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName, values, setup.talents ?? new Map(), setup.order))
   // docs/classes/druid.md §11.5 "Balance's priority list": the filler below Wrath for Eclipse, or a row below whichever sits higher.
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.

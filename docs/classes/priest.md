@@ -241,6 +241,7 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
 | Before the pull (`prepull`), pinned first | — | | Shadowform, with the talent ([§3.6](#36-shadowform-15473)) |
 | Racial cooldown (`racial`) | `racial.enabled` | | on cooldown: Berserking, Elune's Light or Eureka! ([§3.8](#38-racial-spells)) |
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown, each the sim models |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs (another priest's), on cooldown; the mana potion and rune take their turn just after it |
 | Dark Sacrifice (`darkSacrifice`) | `darkSacrifice.enabled` | `darkSacrifice.missingMana` | Undead only; missing at least that much mana ([§3.8](#38-racial-spells)) |
 | Shadow Word: Pain (`shadowWordPain`) | `shadowWordPain.enabled` | `dots.minTimeLeftSec` | off the boss, and at least that much of the fight left ([§3.1](#31-shadow-word-pain-r8-10894)) |
 | Devouring Plague (`devouringPlague`) | `devouringPlague.enabled` | `dots.minTimeLeftSec` | on cooldown, at least that much left ([§3.4](#34-devouring-plague-r6-19280)) |
@@ -251,17 +252,34 @@ switch, its own settings and its own conditions, which it keeps wherever it sits
 | Mind Flay (`mindFlay`) | `mindFlay.enabled` | `mindFlay.ticks` | the filler, cut off after that many ticks; needs the talent ([§3.3](#33-mind-flay-r6-18807)) |
 
 - **Pinned:** only Shadowform before the pull. It has no switch: a build with the talent always
-  keeps it up ([§3.6](#36-shadowform-15473)).
-- **Spec-wide, above the list:** Power Infusion (under Cooldowns and buffs) and the Major Mana
-  Potion and Demonic Rune with their mana thresholds (under Consumables). They're Buffs entries
-  the rotation presses, and take their turn with the on-use trinkets' row, wherever it sits, as
-  they did before the list (the bear's consumables do the same, [druid.md §6.3](druid.md#the-priority-list-a2)).
+  keeps it up ([§3.6](#36-shadowform-15473)). Without the talent nothing is cast before the pull,
+  and the row reads "None".
+- **Power Infusion is a row,** as on Balance and Elemental. It was spec-wide, taking its turn with
+  the on-use trinkets, and alone under its heading, which [ux.md "Rotation"](../ux.md) rules out.
+- **Spec-wide, above the list:** the Major Mana Potion and Demonic Rune with their mana thresholds
+  (under Consumables). They're Buffs entries the rotation presses, and take their turn just after
+  Power Infusion's row, wherever it sits, whether it's on or off. That's where they were before it
+  was a row: an order saved then has no Power Infusion, which goes just after the on-use trinkets
+  (or the row after them that came before it by default), so it plays as it did.
 - **Presets:** Shadow has no named rotations, so the preset is the implicit Default, the order
   above with every setting at its default; the tab still says the defaults are the common priority
   (D27).
 - **Inner Focus keeps its own condition:** it's used once Mind Blast could start. Just above Mind
   Blast, the Mind Blast that follows takes its free, +25% crit cast; moved above the DoTs, the
-  charge can go to whatever the list casts next.
+  charge can go to whatever the list casts next. **Moved below Mind Blast it's never used** while
+  there's the mana for Mind Blast, which goes first the moment it's ready, so "Mind Blast ready"
+  never reaches Inner Focus (0 casts in the default setup). Its setting says so: "Below Mind Blast:
+  used only while you haven't the mana for Mind Blast, which goes first the moment it's ready."
+  (`shadowUnusedSettings`). Below Mind Flay
+  too, it's this note that shows.
+- **Rows below Mind Flay:** the filler takes every global cooldown there's the mana for, so a row on
+  the global cooldown moved below it (Dark Sacrifice, Shadow Word: Pain, Devouring Plague, Mind
+  Blast, Starshards, Vampiric Embrace) gets one only without that mana, and so does Inner Focus,
+  which waits for Mind Blast's. In the default setup, Mind Flay first casts none of them. Each
+  such row that's on (with its talent) says "Below Mind Flay: used only while you haven't the mana
+  for Mind Flay." (`shadowUnusedSettings`, as Balance's "Below the Filler"); a race's note ("only
+  Night Elf priests have Starshards") comes first. The racial, the trinkets, Power Infusion and the
+  consumables are off the global cooldown and pressed wherever they sit.
 - **Equivalence.** In the default order the plan is the one before the list, byte for byte: 200
   random setups (settings, talents, race, on-use items, the mana consumables and Power Infusion,
   fight length and rules) are fingerprinted against the code before it (`shadow-apl.test.ts`), and

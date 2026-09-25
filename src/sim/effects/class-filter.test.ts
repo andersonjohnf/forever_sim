@@ -166,8 +166,8 @@ describe('class-only catalogue entries', () => {
     expect(some.stats.holySpellDamage - none.stats.holySpellDamage).toBe(40)
     // 40 + 25 mana per 5 s: 26 mana a 2 s tick, in tenths.
     expect(some.mana!.mp5TickTenths! - none.mana!.mp5TickTenths!).toBe(260)
-    // Prayer of Spirit's +40 Spirit (+5% for a Human: 42) and Arcane Brilliance's +31 Intellect (+4%
-    // from the default build's Divine Intellect 2: 32; 15 mana each, character-stats.md).
+    // Prayer of Spirit's +40 Spirit (+5% for a Human: 42) and Arcane Brilliance's +31 Intellect (+2%
+    // from the default build's Divine Intellect 1: 32; 15 mana each, character-stats.md).
     const sheet = (enabled: string[]) => buildPlan({ ...ret, buffs: { ...ret.buffs, enabled } }).sheet
     const bare = sheet([])
     const both = sheet(['prayerOfSpirit', 'arcaneBrilliance'])

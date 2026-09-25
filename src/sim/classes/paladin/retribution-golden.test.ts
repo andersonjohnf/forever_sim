@@ -43,6 +43,10 @@ describe('golden run (fixed config and seed)', () => {
   //   2, Holy Conduit 1) and, re-checked on that setup (D27), Consecration from 40% (was 60%) and
   //   rank 1 from 20% (was 15%). On this seed's 1,000 fights: DPS 632.76 → 613.51, TPS 371.98 →
   //   361.01.
+  // - The paladin review's PR-2 (paladin.md "The 1.60.1.70009 re-check"): the refunded points and the
+  //   thresholds searched together, 51003-503-05225331001330321 (Divine Intellect 1, Holy Conduit 2),
+  //   Consecration from 20% and rank 1 from 10% (cheaper Consecrations, 282 and 67 mana). On this
+  //   seed's 1,000 fights: DPS 613.51 → 624.30, TPS 361.01 → 364.67.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

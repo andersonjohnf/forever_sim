@@ -208,7 +208,8 @@ every tree, talent and max rank, position by position.
 | Druid | `050012-5523032120132210551-` | The former Feral bear default, kept for saved setups (§7.1) | 8/43/0 | renamed¹ | yes |
 | Druid | `5532220115501351-05-` | Balance (druid.md) | 41/5/0 | yes | yes |
 | Druid | `05302001-05-5050035103113251` | Restoration (the old site's popular build) | 11/5/35 | yes | yes |
-| Paladin | `52003-503-05215331001330321` | Retribution default on 1.60.1.70009's trees, its refunded points placed by measured DPS ([paladin.md](../classes/paladin.md#retribution-defaults)) | 10/8/33 | new | yes |
+| Paladin | `51003-503-05225331001330321` | Retribution default on 1.60.1.70009's trees, its refunded points placed by measured DPS with Consecration's thresholds ([paladin.md](../classes/paladin.md#retribution-defaults)) | 10/8/33 | new | yes |
+| Paladin | `52003-503-05215331001330321` | The 1.60.1.70009 slice's Retribution default (Divine Intellect 2, Holy Conduit 1), kept for saved setups | 10/8/33 | new | yes |
 | Paladin | `50003-0530213321301551-5021` | Protection default, the guild's lead theorycrafter's build on 1.60.1.70009's trees, its refunded points placed by measured Balanced value with the row order and thresholds (Holy Conduit 1; [paladin.md](../classes/paladin.md#protection-defaults)) | 8/35/8 | new | yes |
 | Paladin | `50003-0530213321301551-50201` | The 1.60.1.70009 slice's Protection default (Conviction 1), kept for saved setups | 8/35/8 | new | yes |
 | Paladin | `50003-503-05205331001330321` | The talent migration's interim Retribution default, 3 points unspent, kept for saved setups | 8/8/32 | new | yes |
@@ -250,17 +251,19 @@ Worked decodes, one per class (each entry is `order` Talent rank/max):
   17 Rend and Tear 5/5, 18 Berserk 1/1.
 - `05` → Restoration: 1 Furor 5/5.
 
-**Paladin, Retribution 10/8/33: `52003-503-05215331001330321`**
+**Paladin, Retribution 10/8/33: `51003-503-05225331001330321`**
 
-- `52003` → Holy: 0 Divine Strength 5/5, 1 Divine Intellect 2/5, 4 Improved Seals 3/3.
+- `51003` → Holy: 0 Divine Strength 5/5, 1 Divine Intellect 1/5, 4 Improved Seals 3/3.
 - `503` → Protection: 0 Toughness 5/5, 2 Precision 3/3.
-- `05215331001330321` → Retribution: 1 Benediction 5/5, 2 Improved Judgement 2/2,
-  3 Holy Conduit 1/2, 4 Conviction 5/5, 5 Vindication 3/3, 6 Sanctified Judgement 3/3,
+- `05225331001330321` → Retribution: 1 Benediction 5/5, 2 Improved Judgement 2/2,
+  3 Holy Conduit 2/2, 4 Conviction 5/5, 5 Vindication 3/3, 6 Sanctified Judgement 3/3,
   7 Seal of Command 1/1, 10 Sacred Arbiter 1/1, 11 Two-Handed Weapon Specialization 3/3,
   12 Vengeance 3/3, 14 Champion of the Light 3/3, 15 Instrument of Law 2/2, 16 Twist of Light 1/1.
 
 The talent migration left it `50003-503-05205331001330321` (8/8/32) with 3 points unspent; the
-paladin's 1.60.1.70009 slice placed them in Divine Intellect 2 and Holy Conduit 1 by measured DPS.
+paladin's 1.60.1.70009 slice placed them in Divine Intellect 2 and Holy Conduit 1 by measured DPS
+(`52003-503-05215331001330321`), and the paladin review's joint search with Consecration's
+thresholds in Divine Intellect 1 and Holy Conduit 2.
 
 On 1.60.1.69913's trees the Retribution default was `250003-503-052052310012330321` (10/8/33):
 Improved Holy Strike 2/2 at Holy 0 and Crusade 2/2 at Retribution 11 as well, Vindication 2/3,

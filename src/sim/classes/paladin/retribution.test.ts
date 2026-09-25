@@ -89,9 +89,9 @@ describe('the Retribution settings (paladin.md "Forever priority list (default)"
     // Row 0: Seal of the Crusader before the pull (paladin.md row 0), free.
     expect(plan.prepull.casts).toEqual([{ ability: 2, atMs: -1500 }])
     // The default build's costs (paladin.md#mana-model), its percent cuts added [?]: Benediction 5/5,
-    // Twist of Light's −20% on the seals (SoC 147, SotC 112) and Holy Conduit 1/2's −20% on Hammer of
-    // Wrath and Consecration (297; 395 and 94).
-    expect(plan.abilities.map((a) => a.costTenths / 10)).toEqual([147, 81, 112, 81, 297, 18, 395, 94, 0])
+    // Twist of Light's −20% on the seals (SoC 147, SotC 112) and Holy Conduit 2/2's −40% on Hammer of
+    // Wrath and Consecration (212; 282 and 67).
+    expect(plan.abilities.map((a) => a.costTenths / 10)).toEqual([147, 81, 112, 81, 212, 18, 282, 67, 0])
   })
 
   it('choose Seal of Righteousness and its judgement as abilities 0 and 1, with its procs', () => {
@@ -425,19 +425,19 @@ describe('Exorcism against Undead and Demons (paladin.md row 6)', () => {
 })
 
 describe('Consecration by mana (paladin.md rows 7 and 8)', () => {
-  it('worked example 21: the default setup’s thresholds, in tenths of its 3,467 mana', () => {
+  it('worked example 21: the default setup’s thresholds, in tenths of its 3,422 mana', () => {
     const plan = planOf()
-    expect(plan.mana!.maxTenths).toBe(34670)
+    expect(plan.mana!.maxTenths).toBe(34220)
     const line = (id: string) => plan.rotation.filter((e) => plan.abilities[e.ability].id === id).map((e) => e.conditions)
-    expect(line('consecration')).toEqual([[{ code: COND.minMana, a: 13868, b: 0 }]])
-    expect(line('consecrationRank1')).toEqual([[{ code: COND.minMana, a: 6934, b: 0 }]])
-    // The potion: early from 1,500 missing (19,670 tenths or less) while 2 minutes are left, then from 2,250 (12,170).
+    expect(line('consecration')).toEqual([[{ code: COND.minMana, a: 6844, b: 0 }]])
+    expect(line('consecrationRank1')).toEqual([[{ code: COND.minMana, a: 3422, b: 0 }]])
+    // The potion: early from 1,500 missing (19,220 tenths or less) while 2 minutes are left, then from 2,250 (11,720).
     expect(line('majorManaPotion')).toEqual([
       [
-        { code: COND.maxMana, a: 19670, b: 0 },
+        { code: COND.maxMana, a: 19220, b: 0 },
         { code: COND.timeLeftAtLeast, a: 120000, b: 0 },
       ],
-      [{ code: COND.maxMana, a: 12170, b: 0 }],
+      [{ code: COND.maxMana, a: 11720, b: 0 }],
     ])
   })
 

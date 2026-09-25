@@ -49,8 +49,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'druid-balance': '5532220115501351-05-', // popular Balance 41/5/0 (docs/classes/druid.md §11.6)
   // docs/classes/paladin.md#retribution-defaults: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name:
   // of Improved Holy Strike's and Crusade's 4 refunded points, 1 to Vindication 3/3 for the deeper rows' gate, and 3
-  // placed by measured DPS: Divine Intellect 2 and Holy Conduit 1 (10/8/33)
-  'paladin-retribution': '52003-503-05215331001330321',
+  // placed by measured DPS with Consecration's thresholds (the paladin review's PR-2): Divine Intellect 1 and Holy
+  // Conduit 2 (10/8/33)
+  'paladin-retribution': '51003-503-05225331001330321',
   // docs/classes/paladin.md#protection-defaults: 8/35/8, the guild's lead theorycrafter's build (2026-09-24) on
   // 1.60.1.70009's trees, by name, with Improved Holy Strike's 2 refunded points placed by measured Balanced value
   // (D28, D30), searched with the row order and Consecration's thresholds (the paladin review's PR-1): Divine

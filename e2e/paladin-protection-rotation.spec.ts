@@ -104,16 +104,18 @@ test.describe('Protection paladin rotation', () => {
     expect(await order(page)).toEqual(DEFAULT_ORDER)
     await expect(row(tab, 'consecration')).toContainText('Rank 5 · from 20% mana')
 
-    // Righteous Fury is always on: a row with no switch, first under Cooldowns and buffs.
-    const buffs = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-    await expect(buffs.getByRole('listitem').first()).toContainText(/^Righteous Fury.*×1\.6 threat from your Holy damage.*Always on$/)
-    await expect(buffs.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
+    // Righteous Fury is always on: the pinned pre-pull row names it, and no heading above the list
+    // holds it alone (docs/ux.md "Rotation": a heading holds at least two settings).
+    await expect(tab.getByRole('region', { name: 'Cooldowns and buffs' })).toHaveCount(0)
+    await expect(tab.getByRole('switch', { name: 'Righteous Fury' })).toHaveCount(0)
+    await expect(row(tab, 'prepull')).toContainText('Righteous Fury')
     // Exorcism against a boss that isn't Undead or a Demon: dimmed, and it says why.
     await expect(row(tab, 'exorcism')).toContainText('Not used: needs another creature type (Fight tab).')
     await expect(row(tab, 'exorcism')).toHaveAttribute('data-inactive')
 
     // The pre-pull's settings: Devotion Aura, the duty, and the opener; mana thresholds read "% mana".
     const prepull = await openRow(page, tab, 'Before the pull')
+    await expect(prepull).toContainText('Righteous Fury stays up all fight: ×1.6 threat from your Holy damage.')
     await expect(prepull.getByRole('switch', { name: 'Devotion Aura', exact: true })).toBeChecked()
     await expect(prepull.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })).toBeChecked()
     await expect(prepull.getByRole('button', { name: /^Move (up|down)$/ })).toHaveCount(0)

@@ -904,8 +904,9 @@ with Max TPS; Exorcism counts only against Undead and Demons. Before PR-1 (750.3
 fights, a raid druid's Thorns at 53) Consecration was 14.8% and Holy Strike 10.2%. After T2's fix round, before 1.60.1.70009 (823.6 TPS, seed 12345), the shares were much the
 same (Consecration 19%, Holy Strike 9%, Thorns 1%); before T2 (C3's setup, 2026-09-23, 424.8 TPS)
 Holy Shield led with 24%.
-Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
-fixed row, always on, and the results list it up all fight.
+Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab's pinned
+**Before the pull** row names it and its help says it stays up all fight, and the results list it
+up all fight.
 
 ### Classic Era approach (baseline)
 
@@ -950,7 +951,7 @@ fight (`protection-apl.test.ts`, `PRE_LIST_ORDER`).
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 0 | Aura: Devotion Aura, the duty, or Retribution Aura instead (`devotionAura.enabled`) | 4.5 s before the pull, first: a duty comes before any threat ability (D26's fixed rule, [below](#priority-defensive-balanced-or-max-tps)). Free, and it lasts all fight. Retribution Aura deals 30 Holy + 0.08 × SP to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
-| 0b | Righteous Fury | up all fight, cast 3 s before the pull, a global cooldown after the aura and before the seal (free; the plan's ×1.6 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
+| 0b | Righteous Fury | up all fight, cast 3 s before the pull, a global cooldown after the aura and before the seal (free; the plan's ×1.6 Holy threat). The Rotation tab names it in the pinned Before the pull row, whose help says it stays up all fight; no switch, and no fixed row, since that would be a heading's only setting (the verification pass's VA-1) | on (forced, no setting) |
 | 0c | **The opener: Judgement of the Crusader** (`judgementOfTheCrusader.enabled`) | Seal of the Crusader 1.5 s before the pull (free) in the seal's place; judge it at the pull (off the GCD), placing JotC; then row 1 puts the main seal up. Your landed auto attacks restart JotC's 40 s, so it stays up; if it's ever missing (40 s with no landed swing), Seal of the Crusader and its judgement again, the same way. As Retribution's rows 0–2 | on (user, 2026-09-24) |
 | 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free) without the opener; then missing or with at most `seal.refreshBelowSec` (2.5 s) left, but not over Seal of the Crusader before its judgement has landed | Fury |
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
@@ -1424,7 +1425,8 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
 - **Protection** (`protection.ts`, [Protection: model and rotation](#protection-model-and-rotation)):
   - **Righteous Fury** is a `cast` 4.5 s before the pull, whose buff has no mods: its ×1.6 Holy
     threat is the plan's for the whole fight, and the buff lets the results list it up all fight.
-    The Rotation tab shows it as a fixed row with no switch (`fixedRotationRows`).
+    The Rotation tab names it in the pinned **Before the pull** row, whose help says it stays up
+    all fight; it has no switch and no fixed row of its own.
   - **Holy Shield** is a `cast` whose buff has +20% block and 4 block charges, the tank core's
     `blockCharges` ([combat-tables §8](../mechanics/combat-tables.md#8-boss--player-tanks)): each
     block uses one after its procs, so the 4th block still deals the damage. The damage is a proc on

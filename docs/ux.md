@@ -623,8 +623,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     one under another switch that needs it too (`alsoDependsOn` on a switch: "Sunder Armor filler
     waits for Shield Slam" while Shield Slam is off or can't be used).
   - Something the spec always does, with nothing to choose, is a row with no control, first under
-    its heading: its name, one line of help, and what it is where the switch would be ("Righteous
-    Fury", "Always on"; `SpecDefinition.rotationFixed`).
+    its heading: its name, one line of help, and what it is where the switch would be (a hunter's
+    "Auto Shot", "Always on"; `SpecDefinition.rotationFixed`). A fixed row that a pinned list row
+    already names isn't repeated above the list: a Protection paladin's Righteous Fury is in its
+    **Before the pull** row.
   - A threshold's unit says what it's a share of: "% mana" for a paladin's mana thresholds.
 - **Fight.**
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.

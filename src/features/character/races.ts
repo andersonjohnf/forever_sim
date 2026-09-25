@@ -22,10 +22,32 @@ export function raceSimulatable(spec: SpecId, race: string): boolean {
 const list = (names: string[]) =>
   names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 
+type Swap = FactionGearChange['swapped'][number]
+
+/**
+ * How a swapped piece's set bonus changed (docs/ux.md "Character"): 'same' for an exact twin or two
+ * pieces in no set, 'lost' when the new piece has none (the Alliance's Rank 7 to 10 silk and satin,
+ * the Horde's leather), 'gained' the way back, 'other' for a set with another bonus (Highlander's
+ * Mail Pauldrons' spell crit for the Defilers' melee crit).
+ */
+function setChange({ from, to, setDiffers }: Swap): 'same' | 'lost' | 'gained' | 'other' {
+  if (!setDiffers || (!from.setId && !to.setId)) return 'same'
+  if (!to.setId) return 'lost'
+  return from.setId ? 'other' : 'gained'
+}
+
+/** What each kind of swap says after the new pieces' names. */
+const SWAP_WORDS = {
+  same: 'with the same stats',
+  lost: 'with the same stats but no set bonus',
+  gained: 'with the same stats, now with a set bonus',
+  other: 'with the same stats but in another set',
+} as const
+
 /**
  * The toast after a race change that moved faction-bound gear, or null when nothing changed. Default
  * pieces that became the new race's own default, not their twin, say which set they come from, and
- * a piece whose set bonus isn't the old one's says so (docs/ux.md "Character").
+ * a piece whose set bonus isn't the old one's says how (docs/ux.md "Character").
  */
 export function raceChangeMessage(change: FactionGearChange, faction: Faction): { title: string; description: string } | null {
   const { swapped, defaulted, kept } = change
@@ -36,11 +58,12 @@ export function raceChangeMessage(change: FactionGearChange, faction: Faction): 
     : ''
   if (swapped.length === 0 && defaulted.length === 0) return { title: `Your gear includes items a ${faction} character can’t wear`, description: keptLine }
   const set = hasThreatSet(change.config.spec) ? `the ${faction} threat set` : `${faction} pre-raid best in slot`
-  const same = swapped.filter((s) => !s.setDiffers).map((s) => s.to.name)
-  const setDiffers = swapped.filter((s) => s.setDiffers).map((s) => s.to.name)
+  const swapLines = (Object.keys(SWAP_WORDS) as (keyof typeof SWAP_WORDS)[]).map((kind) => {
+    const names = swapped.filter((s) => setChange(s) === kind).map((s) => s.to.name)
+    return names.length ? `${list(names)}, ${SWAP_WORDS[kind]}.` : ''
+  })
   const lines = [
-    same.length ? `${list(same)}, with the same stats.` : '',
-    setDiffers.length ? `${list(setDiffers)}, with the same stats but not the same set bonus.` : '',
+    ...swapLines,
     defaulted.length ? `${list(defaulted.map((s) => s.to.name))}, from ${set}.` : '',
     keptLine,
   ]

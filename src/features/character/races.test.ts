@@ -21,11 +21,22 @@ describe('the race-change toast', () => {
     expect(message.description).toMatch(/Champion's Plate Shoulders.*, with the same stats\.$/)
   })
 
-  it('says when a piece’s set bonus differs (GV-1)', () => {
+  it('says how a piece’s set bonus differs: none, gained, or another set (GV-1, FU-7)', () => {
     const rogue = defaultConfig('rogue-combat', 'horde-orc')
     const helm: SimConfig = { ...rogue, gear: { ...rogue.gear, head: { itemId: 23257 } } }
-    const message = raceChangeMessage(changeRace(helm, 'alliance-human'), 'Alliance')!
-    expect(message.description).toContain("Lieutenant Commander's Leather Helm, with the same stats but not the same set bonus.")
+    const toAlliance = changeRace(helm, 'alliance-human')
+    // The Horde's Rank 7 to 10 leather is in no item set in Forever's rows; the Alliance's is.
+    expect(raceChangeMessage(toAlliance, 'Alliance')!.description).toContain("Lieutenant Commander's Leather Helm, with the same stats, now with a set bonus.")
+    // And back.
+    expect(raceChangeMessage(changeRace(toAlliance.config, 'horde-orc'), 'Horde')!.description).toContain(
+      "Champion's Leather Helm, with the same stats but no set bonus.",
+    )
+    // Highlander's Mail Pauldrons' 3-piece is spell crit where the Defilers' is melee crit.
+    const shaman = defaultConfig('shaman-enhancement', 'horde-orc')
+    const pauldrons: SimConfig = { ...shaman, gear: { ...shaman.gear, shoulder: { itemId: 20203 } } }
+    expect(raceChangeMessage(changeRace(pauldrons, 'alliance-dwarf'), 'Alliance')!.description).toContain(
+      "Highlander's Mail Pauldrons, with the same stats but in another set.",
+    )
   })
 
   it('says which items stayed, and says nothing within a faction', () => {

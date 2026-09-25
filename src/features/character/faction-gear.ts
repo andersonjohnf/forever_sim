@@ -56,8 +56,8 @@ function setName(item: Item): string {
  * together (The Defiler's Fortitude's greaves take The Highlander's Fortitude's, as its pauldrons and
  * girdle do, not their exact twin in The Highlander's Determination: GC-1); then its exact twin, the
  * name that ends the same way, and the lower id. `setDiffers` says the new piece isn't an exact twin,
- * so its set bonus isn't the old one's (the Alliance's Rank 7 to 10 silk and leather have no item
- * set, Highlander's Mail Pauldrons a spell-crit 3-piece bonus where the Defilers' is melee crit),
+ * so its set bonus isn't the old one's (the Alliance's Rank 7 to 10 silk and satin, and the Horde's
+ * leather, have no item set, Highlander's Mail Pauldrons a spell-crit 3-piece bonus where the Defilers' is melee crit),
  * which the race change's notice names. Null when the item isn't bound to the other side or nothing
  * there matches.
  */

@@ -14,7 +14,7 @@ import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { compileAplRows } from '../apl'
+import { compileAplRows, normalizeAplOrder } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
@@ -276,10 +276,18 @@ export const ELEMENTAL_APL: AplDefinition = {
       label: 'Chain Lightning',
       icon: CHAIN_LIGHTNING.icon,
       optionIds: [ID.chainLightning],
+      // Clearcasting comes only from Elemental Focus: without it the row never casts, and reads
+      // "None"; its setting says why (elementalUnusedSettings). Below Lightning Bolt, it reads "Not
+      // used", and its setting says why.
       summary: [
-        // Clearcasting comes only from Elemental Focus: without it the row never casts, and reads "None".
-        { text: 'with Clearcasting', choiceIs: { option: ID.chainLightning, values: ['clearcasting'] }, requires: { talent: 'Elemental Focus' } },
-        { option: ID.chainLightning, text: '{}', choiceIsNot: { option: ID.chainLightning, values: ['clearcasting'] } },
+        {
+          option: ID.chainLightning,
+          text: 'with Clearcasting',
+          choiceIs: { option: ID.chainLightning, values: ['clearcasting'] },
+          requires: { talent: 'Elemental Focus' },
+          inactiveText: 'not used',
+        },
+        { option: ID.chainLightning, text: '{}', choiceIsNot: { option: ID.chainLightning, values: ['clearcasting'] }, inactiveText: 'not used' },
       ],
       help: 'Chain Lightning with Clearcasting, on cooldown, or never.',
     },
@@ -302,6 +310,40 @@ export const ELEMENTAL_APL: AplDefinition = {
   ],
   specWide: [ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
   presets: [],
+}
+
+/** The rows on the global cooldown with a switch, and any talent each needs: Lightning Bolt above them leaves them none (elementalUnusedSettings). */
+const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string }[] = [
+  { row: 'manaTide', enabled: ID.manaTide, talent: 'Mana Tide Totem' },
+  { row: 'flameShock', enabled: ID.flameShock },
+  { row: 'lavaBurst', enabled: ID.lavaBurst, talent: 'Lava Burst' },
+  { row: 'earthShock', enabled: ID.earthShock },
+]
+
+/**
+ * The Elemental settings that do nothing in this setup, with why (docs/ux.md "Rotation"; shaman.md
+ * "Elemental priority list (A2)"):
+ * - Chain Lightning with Clearcasting needs Elemental Focus, the only source of Clearcasting.
+ * - Lightning Bolt, the filler, has a line with no condition but its mana (rank 4, or rank 10
+ *   without the downrank), so a row on the global cooldown moved below it gets one only without that
+ *   mana. The rows off the GCD (the racial, trinkets, Power Infusion and the consumables) are pressed
+ *   wherever they sit.
+ * `order` absent: the default order.
+ */
+export function elementalUnusedSettings(values: Record<string, RotationValue>, talents: TalentRanks, order?: readonly string[]): Record<string, string> {
+  const v = reader(ELEMENTAL_OPTIONS, values, talents)
+  const current = normalizeAplOrder(ELEMENTAL_APL, order)
+  const belowBolt = (row: string) => current.indexOf(row) > current.indexOf('lightningBolt')
+  const note = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+  const out: Record<string, string> = {}
+  const chain = v.str(ID.chainLightning)
+  if (chain === 'clearcasting' && rank(talents, 'Elemental Focus') === 0) out[ID.chainLightning] = 'Not used: Clearcasting needs the Elemental Focus talent.'
+  else if (chain !== 'never' && belowBolt('chainLightning')) out[ID.chainLightning] = note
+  for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
+    if (!belowBolt(row) || !v.on(enabled) || (talent !== undefined && rank(talents, talent) === 0)) continue
+    out[enabled] = note
+  }
+  return out
 }
 
 /** An on-use item or consumable as a shaman `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */

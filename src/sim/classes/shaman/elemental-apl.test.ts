@@ -10,9 +10,12 @@ import { ITEM_EFFECTS } from '../../effects/items'
 import { normalizeConfig } from '../../config/normalize'
 import { getSpec, rotationPreset } from '../../index'
 import { buildPlan } from '../../plan/build'
+import { runChunk } from '../../engine/chunk'
+import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
+import { emptyAggregate, mergeChunk } from '../../run/aggregate'
 import { COND } from '../../plan/types'
 import { CUSTOM_APL_PRESET, DEFAULT_APL_PRESET, defaultAplOrder, moveAplRow, normalizeAplOrder, storedAplOrder } from '../apl'
-import { ELEMENTAL_APL, ELEMENTAL_IDS as ID, ELEMENTAL_OPTIONS, elementalRotation } from './elemental'
+import { ELEMENTAL_APL, ELEMENTAL_IDS as ID, ELEMENTAL_OPTIONS, elementalRotation, elementalUnusedSettings } from './elemental'
 import { elementalCases, fingerprint, planJson } from './elemental-apl-cases'
 
 const SPEC = 'shaman-elemental'
@@ -159,5 +162,56 @@ describe('the Elemental shaman’s priority list (D31)', () => {
     const plan = buildPlan(saved).plan
     const at = (id: string) => plan.rotation.findIndex((e) => plan.abilities[e.ability].id === id)
     expect(at('earthShock')).toBeLessThan(at('flameShock'))
+  })
+})
+
+describe('the Elemental settings the setup leaves unused (docs/ux.md "Rotation"; shaman.md "Elemental priority list (A2)")', () => {
+  const BELOW_BOLT = 'Below Lightning Bolt: used only while you haven’t the mana for Lightning Bolt.'
+  const noFocus = new Map([...TALENTS].filter(([name]) => name !== 'Elemental Focus'))
+
+  it('has none in the default setup and order', () => {
+    expect(elementalUnusedSettings({}, TALENTS)).toEqual({})
+    expect(elementalUnusedSettings({}, TALENTS, defaultAplOrder(ELEMENTAL_APL))).toEqual({})
+  })
+
+  it('notes Chain Lightning with Clearcasting without Elemental Focus (UA-2); below Lightning Bolt its summary reads "Not used"', () => {
+    expect(elementalUnusedSettings({}, noFocus)).toEqual({ [ID.chainLightning]: 'Not used: Clearcasting needs the Elemental Focus talent.' })
+    // On cooldown or never, it needs no Clearcasting.
+    expect(elementalUnusedSettings({ [ID.chainLightning]: 'cooldown' }, noFocus)).toEqual({})
+    expect(elementalUnusedSettings({ [ID.chainLightning]: 'never' }, noFocus)).toEqual({})
+    // Its summary's parts read "not used" while its setting is unused below Lightning Bolt; without
+    // Elemental Focus the Clearcasting part is left out, so it reads "None".
+    const row = ELEMENTAL_APL.rows.find((r) => r.id === 'chainLightning')!
+    expect(row.summary!.map((p) => p.inactiveText)).toEqual(['not used', 'not used'])
+    expect(row.summary![0].requires).toEqual({ talent: 'Elemental Focus' })
+    // The plan has no Chain Lightning then, as the note says.
+    const auraless = () => -1
+    expect(ids(elementalRotation({}, noFocus, auraless, CONTEXT))).not.toContain('chainLightning')
+  })
+
+  it('notes each row on the global cooldown below Lightning Bolt, but not the rows off it (LA-2)', () => {
+    const order = moved('lightningBolt', 'racial')
+    const notes = elementalUnusedSettings({}, TALENTS, order)
+    expect(notes).toEqual({ [ID.manaTide]: BELOW_BOLT, [ID.flameShock]: BELOW_BOLT, [ID.lavaBurst]: BELOW_BOLT, [ID.chainLightning]: BELOW_BOLT })
+    // Earth Shock turned on gets it too; Chain Lightning set to never doesn't.
+    expect(elementalUnusedSettings({ [ID.earthShock]: true, [ID.chainLightning]: 'never' }, TALENTS, order)).toEqual({
+      [ID.manaTide]: BELOW_BOLT,
+      [ID.flameShock]: BELOW_BOLT,
+      [ID.lavaBurst]: BELOW_BOLT,
+      [ID.earthShock]: BELOW_BOLT,
+    })
+    // Only the rows below it: Lightning Bolt just above Chain Lightning.
+    expect(elementalUnusedSettings({}, TALENTS, moved('lightningBolt', 'chainLightning'))).toEqual({ [ID.chainLightning]: BELOW_BOLT })
+    // Without Elemental Focus, Chain Lightning's own note wins.
+    expect(elementalUnusedSettings({}, noFocus, order)[ID.chainLightning]).toBe('Not used: Clearcasting needs the Elemental Focus talent.')
+  })
+
+  it('says what the fights show: the noted rows are never cast in the default setup, the racial still is', () => {
+    const plan = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed' as const, iterations: 100, seed: 1 }, rotationOrder: moved('lightningBolt', 'racial') }).plan
+    const sim = new Sim(plan)
+    const agg = mergeChunk(emptyAggregate(plan.sources.length, plan.auras.length), runChunk(plan, 0, 100, sim))
+    const casts = (id: string) => agg.counters[plan.abilities.find((a) => a.id === id)!.source * FIELD_COUNT + FIELD.casts]
+    for (const id of ['manaTideTotem', 'flameShock', 'lavaBurst', 'chainLightning']) expect(casts(id), id).toBe(0)
+    expect(casts('bloodFury')).toBeGreaterThan(0)
   })
 })

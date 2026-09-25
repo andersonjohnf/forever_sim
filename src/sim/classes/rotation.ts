@@ -23,7 +23,7 @@ import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_APL, ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { mageApl, mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
-import { ELEMENTAL_APL, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
+import { ELEMENTAL_APL, ELEMENTAL_OPTIONS, elementalRotation, elementalUnusedSettings } from './shaman/elemental'
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
@@ -285,6 +285,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'warlock-demonology') Object.assign(out, demonologyUnusedSettings(values, setup.talents ?? new Map()))
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's; a row below Mind Flay, and Inner Focus below Mind Blast.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName, values, setup.talents ?? new Map(), setup.order))
+  // docs/classes/shaman.md "Elemental priority list (A2)": Chain Lightning's Clearcasting without Elemental Focus, and a row below Lightning Bolt.
+  if (spec === 'shaman-elemental') Object.assign(out, elementalUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/druid.md §11.5 "Balance's priority list": the filler below Wrath for Eclipse, or a row below whichever sits higher.
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.

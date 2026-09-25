@@ -907,7 +907,7 @@ row keeps its conditions wherever you move it:
 | Mana Tide Totem (`manaTide`) | `manaTide.enabled` | `manaTide.missingMana` | with the talent, missing the mana (row 4); the mana potion and rune (row 5) take their turn here |
 | Flame Shock (`flameShock`) | `flameShock.enabled` | | your Flame Shock isn't on the boss (row 6) |
 | Lava Burst (`lavaBurst`) | `lavaBurst.enabled` | `lavaBurst.withFlameShock` | with the talent, ready; waits for your Flame Shock only while Flame Shock's row is on (row 7) |
-| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8); its summary reads "With Clearcasting", "On cooldown" or "Never", and "None" at With Clearcasting without Elemental Focus, which never casts it |
+| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8); its summary reads "With Clearcasting", "On cooldown" or "Never"; "None" at With Clearcasting without Elemental Focus, which never casts it, and "Not used" below Lightning Bolt (its setting says why, below) |
 | Earth Shock (`earthShock`) | `earthShock.enabled` | `earthShock.minManaPct` | mana ≥ the share (row 9) |
 | Lightning Bolt (`lightningBolt`) | — (always there: the filler) | `lightningBolt.downrank`, `lightningBolt.maxRankFromPct` | rank 10 with Clearcasting or from the share, rank 4 below it (rows 10 and 11) |
 
@@ -927,6 +927,16 @@ row keeps its conditions wherever you move it:
   are ready, and Lightning Bolt above a row leaves that row almost no GCD, since the bolt's last
   line (rank 4, or rank 10 without the downrank) has no condition but its mana.
   Not measured yet: the tuning milestone searches the order (D27, D30).
+- **What the settings say is unused** (`elementalUnusedSettings`, docs/ux.md "Rotation"):
+  - Chain Lightning with Clearcasting without Elemental Focus, the only source of Clearcasting,
+    never casts: "Not used: Clearcasting needs the Elemental Focus talent."
+  - A row on the global cooldown below Lightning Bolt (Mana Tide Totem, Flame Shock, Lava Burst,
+    Chain Lightning, Earth Shock), on and with its talent, gets a GCD only without the mana for the
+    bolt's last line: "Below Lightning Bolt: used only while you haven't the mana for Lightning
+    Bolt." (as Balance's "Below the Filler"). In the default setup, Lightning Bolt first casts none
+    of them. Chain Lightning's Elemental Focus note comes first.
+  - Chain Lightning's row has no switch, so it isn't dimmed: its summary reads "None" (without
+    Elemental Focus) or "Not used" (below Lightning Bolt), and its setting says why.
 
 ### Elemental defaults
 

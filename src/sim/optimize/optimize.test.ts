@@ -252,6 +252,37 @@ describe('optimize', () => {
     expect(space!.estimate.seconds).toBeGreaterThan(0)
   }, 120_000)
 
+  it('a caller’s large first round never narrows the space: it shrinks to fit the cap (OGV2-1, the verification’s bear probe)', async () => {
+    // `--first 2000 --max-fights 1000000` on quick: 504 plans at 2,000 each pass the cap, but at 50
+    // each they fit, so every rank is searched and the first round shrinks. Stopped once the space is known.
+    const controller = new AbortController()
+    let space: Extract<OptimizeProgress, { phase: 'space' }> | undefined
+    const run = optimize({
+      config: bear,
+      talents: { minPoints: search.minPoints, screenFights: search.screenFights },
+      budget: { ...BUDGETS.quick, initialFights: 2_000 },
+      maxFights: 1_000_000,
+      runner: localFightRunner(),
+      signal: controller.signal,
+      onProgress: (p) => {
+        if (p.phase !== 'space') return
+        space = p
+        controller.abort()
+      },
+    })
+    await expect(run).rejects.toThrow(/cancelled/)
+    const plans = space!.candidates + 1
+    const raceCap = 1_000_000 - space!.screen!.fights
+    // The probe's case: at 2,000 fights each the plans pass 90% of what the cap leaves the race.
+    expect(2_000 * plans).toBeGreaterThan(0.9 * raceCap)
+    expect(space!.space!.searchPartials).toBe(true)
+    expect(space!.space!.narrowed).toBeUndefined()
+    expect(space!.notes.some((n) => n.startsWith('Narrowed'))).toBe(false)
+    expect(space!.budget).toEqual({ fights: raceCap, initialFights: Math.floor((0.9 * raceCap) / plans), cap: 1_000_000 })
+    expect(space!.budget.initialFights).toBeLessThan(2_000)
+    expect(space!.notes.at(-1)).toMatch(/^A first round of 2,000 fights each over [\d,]+ plans \(the baseline included\) passes the [\d,]+ fights the search's cap leaves the race: it runs [\d,]+ each\.$/)
+  }, 120_000)
+
   it('refuses a search too large for the cap even at its narrowest, before the fights it can’t afford (OGV-2)', async () => {
     let fights = 0
     const counting: FightRunner = {
@@ -342,6 +373,13 @@ describe('optimize', () => {
     expect(fitBudget({ fights: 50_000_000 }, 10)).toMatchObject({ fights: MAX_SEARCH_FIGHTS, initialFights: 1000, fits: true })
     expect(fitBudget({ fights: 50_000_000 }, 10).notes[0]).toMatch(/^The budget of 50,000,000 fights passes the 24,000,000 the search's cap leaves the race/)
     expect(fitBudget({ fights: 1_500_000 }, 50_000, 3_000_000)).toMatchObject({ fights: 3_000_000, initialFights: 50, fits: true })
+    // A caller's first round past the cap shrinks to fit it, and still fits: 504 plans at 2,000 each
+    // is 1,008,000, past 90% of 979,200; 1,748 each fit (OGV2-1).
+    const asked = fitBudget({ fights: 1_500_000, initialFights: 2_000 }, 504, 979_200)
+    expect(asked).toMatchObject({ fights: 979_200, initialFights: 1_748, fits: true })
+    expect(asked.notes.at(-1)).toBe('A first round of 2,000 fights each over 504 plans (the baseline included) passes the 979,200 fights the search\'s cap leaves the race: it runs 1,748 each.')
+    // One that can't shrink to FIRST_ROUND_MIN doesn't fit, as the usual one wouldn't.
+    expect(fitBudget({ fights: 1_500_000, initialFights: 2_000 }, 30_000, 979_200)).toMatchObject({ initialFights: 29, fits: false })
     // The cap is thorough's budget, never raised automatically.
     expect(MAX_SEARCH_FIGHTS).toBe(BUDGETS.thorough.fights)
   })

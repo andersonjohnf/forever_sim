@@ -73,7 +73,8 @@
 //   --max-fights <n>      the hard ceiling: the most fights the search runs, the screen's and the race's, over
 //                         every pass (default thorough's 24,000,000; never raised automatically). A space past it,
 //                         or past 200,000 builds, narrows to max ranks and says so; one past it even then isn't run
-//   --first <n>           fights each candidate runs in the first round (default: 30% of the budget, 50 to 1,000)
+//   --first <n>           fights each candidate runs in the first round (default: 30% of the budget, 50 to 1,000);
+//                         one past the cap shrinks to fit it, and never narrows the space
 //   --seed <n>            the master seed, 0 to 4294967295 (default 1)
 //   --threads <n>         worker threads (default: available cores − 1)
 //   --top <n>             standings to show (default 10)

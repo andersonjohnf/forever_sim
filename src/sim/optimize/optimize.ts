@@ -110,8 +110,10 @@ const fmt = (x: number) => x.toLocaleString('en-US')
  * past `cap` fights, what the search's hard ceiling leaves the race (D30, OGV-2). A budget over it
  * is cut to it. The first round is `firstRound`'s while it fits in 90% of the budget; past that the
  * budget grows, up to the cap, to a first round of FIRST_ROUND_MIN fights each and as much again.
- * Past the cap it doesn't fit (`fits` false): the caller narrows the space, and as a last resort
- * the first round shrinks to fit 90% of the cap.
+ * A caller's first round (`initialFights`) past the cap shrinks to fit 90% of it, and still fits
+ * while that's FIRST_ROUND_MIN or more (OGV2-1). Past the cap at FIRST_ROUND_MIN it doesn't fit
+ * (`fits` false): the caller narrows the space, and as a last resort the first round shrinks to fit
+ * 90% of the cap.
  */
 export function fitBudget(budget: Budget, plans: number, cap = MAX_SEARCH_FIGHTS): FittedBudget {
   const n = Math.max(1, plans)
@@ -133,6 +135,13 @@ export function fitBudget(budget: Budget, plans: number, cap = MAX_SEARCH_FIGHTS
     return { fights: grown, initialFights: wanted, notes, fits: true }
   }
   const fit = Math.floor((0.9 * cap) / n)
+  // The caller's first round passes the cap, but the usual one fits: it shrinks to fit (OGV2-1).
+  if (budget.initialFights !== undefined && fit >= FIRST_ROUND_MIN) {
+    notes.push(
+      `A first round of ${fmt(wanted)} fights each over ${fmt(n)} plans (the baseline included) passes the ${fmt(cap)} fights the search's cap leaves the race: it runs ${fmt(fit)} each.`,
+    )
+    return { fights: cap, initialFights: fit, notes, fits: true }
+  }
   notes.push(
     `${fmt(n)} plans (the baseline included) don't fit the ${fmt(cap)} fights the search's cap leaves the race at ${fmt(wanted)} fights each: the first round runs ${fmt(fit)} each, so it drops fewer, and the race may end on the budget. Narrowing the search (keep or exclude talents, fewer rotation variants) sharpens it.`,
   )
@@ -461,9 +470,12 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // plans (before the sheet constraints leave any out) than the cap races at FIRST_ROUND_MIN
     // fights each, narrows to max ranks, and says so. Cut off in the middle, a space would drop
     // builds by where they fall in the enumeration; max ranks drop them by a rule the report states.
+    // The rule is FIRST_ROUND_MIN fights a plan in 90% of what the cap leaves the race, whatever first
+    // round the caller asked for (OGV2-1): a caller's larger one shrinks to fit in the final
+    // `fitBudget`, and never narrows the space.
     const raceCap = cap - screen.fights
     const plans = (n: number) => n * rotations.length + 2
-    const fitsCap = (n: number) => fitBudget(options.budget, plans(n), raceCap).fits
+    const fitsCap = (n: number) => plans(n) * FIRST_ROUND_MIN <= 0.9 * raceCap
     const fitted = (constrained: ReadonlySet<string>) => {
       const notes: string[] = []
       let partials = search.searchPartials ?? true

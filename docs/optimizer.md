@@ -552,7 +552,11 @@ If even max ranks are past the ceiling, a last resort: past 200,000 builds, or w
 fights a plan (`MIN_FIRST_ROUND`) in 90% of the cap, the search doesn't run
 (`SearchTooLargeError`) and says how to narrow it (keep or exclude talents, a tree's minimum, fewer
 rotation variants); between 20 and 50 a plan, the first round shrinks to fit the cap, and the note
-says it drops fewer and may end on the budget. A talent screen with more fights than the cap is
+says it drops fewer and may end on the budget. The narrowing reads 50 fights a plan whatever first
+round the caller asks for (`initialFights`, the CLI's `--first`; OGV2-1): a larger one that passes
+90% of what the cap leaves the race shrinks to fit it, and a note says so ("A first round of 2,000
+fights each over 504 plans … passes the 979,200 fights the search's cap leaves the race: it runs
+1,748 each"), rather than narrowing a space that fits at 50. A talent screen with more fights than the cap is
 refused before its first fight. In turns, a pass that no longer fits what the passes before it left
 ends the turns on the last answer, and the last report's `turnsStopped` says so.
 
@@ -721,6 +725,10 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   fights did it, and the search runs no more than the cap; a builds' limit just over the max-rank
   space does the same for builds. A cap below the screen's fights is refused before any fight, and
   in turns a pass that doesn't fit ends the turns, saying so (`optimize.test.ts`).
+- **A large first round doesn't narrow** (OGV2-1). The bear on `quick` with a first round of 2,000
+  fights and a cap of 1,000,000: its 504 plans at 2,000 each pass 90% of what the cap leaves the
+  race, but at 50 each they fit, so every rank races and the first round shrinks to fit the cap
+  (`optimize.test.ts`).
 - **A constraint's dimension at 0 or max** (OGV-1). The warrior under `ehp>=103%`, with the
   verification's screen: 46,814 builds (3,945 with max ranks only), among them Booming Voice 3 with
   Boundless Rage 2, which max ranks miss (`talents.test.ts`).

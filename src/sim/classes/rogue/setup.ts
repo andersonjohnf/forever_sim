@@ -26,7 +26,7 @@ export function rogueEnergy(talents: ReadonlyMap<string, number>, maxMult = 1): 
 
 /**
  * The rogue's [?] this plan relies on (rogue.md §10), for the results' assumptions: Energy, the
- * two-roll abilities, Backstab's flat bonus, Lethality, the poisons,
+ * two-roll abilities, Backstab's flat bonus, Lethality, the poisons and their attack-power shares,
  * Hack and Slash, Slice and Dice's haste, Cold Blood and Subtlety's talents, each only when the plan uses it.
  */
 export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number>): AssumptionId[] {
@@ -40,6 +40,8 @@ export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number
   if (has('backstab')) ids.push('rogueFlatInside')
   if ((talents.get('Lethality') ?? 0) > 0 && plan.abilities.some((a) => LETHALITY.has(a.id))) ids.push('lethality')
   if (plan.procs.some((p) => p.poison)) ids.push('poisons')
+  // The poisons' attack-power shares are the guild's [F]; how Deadly Poison reads it and which bonuses scale it are [?] (rogue.md §4.1, §4.2).
+  if (plan.procs.some((p) => p.poison && (p.apCoefficient ?? 0) > 0)) ids.push('poisonAp')
   if (plan.procs.some((p) => p.action === ACTION.stackingDot)) ids.push('deadlyPoisonTicks')
   if ((talents.get('Hack and Slash') ?? 0) > 0 && plan.weapons.some((w) => w !== null)) ids.push('hackAndSlash')
   if (has('sliceAndDice') && plan.auras.filter((a) => a.haste).length > 1) ids.push('sliceAndDiceHaste')

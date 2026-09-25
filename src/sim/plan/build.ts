@@ -928,6 +928,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         // A rogue's poison takes Vile Poisons' damage (rogue.md §4.3).
         proc.a = action.min * poisonDamage
         proc.b = action.max * poisonDamage
+        // Instant Poison's share of attack power (rogue.md §4.1), which Vile Poisons scales too [?]; only when it has one.
+        if (action.apCoefficient) proc.apCoefficient = action.apCoefficient * poisonDamage
         proc.school = SCHOOL[action.school]
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         notes.add('magicProcs')
@@ -966,6 +968,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.action = ACTION.stackingDot
         proc.amount = action.maxStacks
         proc.a = action.tick * poisonDamage
+        // Deadly Poison's share of attack power per stack a tick (rogue.md §4.2), which Vile Poisons scales too [?].
+        if (action.apCoefficient) proc.apCoefficient = action.apCoefficient * poisonDamage
         proc.b = action.periodMs
         proc.school = SCHOOL[action.school]
         proc.durationMs = action.durationMs

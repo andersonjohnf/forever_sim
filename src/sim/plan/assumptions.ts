@@ -698,10 +698,6 @@ const REGISTRY = {
     text: 'Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick. The rest is untested: a cap of 100 (more with Vigor), a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back and keeps its combo points).',
     docRef: `${ROGUE}#21-energy`,
   },
-  rogueFinisherAp: {
-    text: 'Eviscerate gains 3% of your attack power per combo point, and Rupture 1% per point per tick (3 points at most), as Classic Era sims have it; the Forever client doesn’t carry the scaling.',
-    docRef: `${ROGUE}#34-eviscerate-r9-31016`,
-  },
   rogueTwoRolls: {
     text: 'Eviscerate and Expose Armor roll to hit and then to crit, since they deal no weapon damage; Sinister Strike and Backstab roll once. Untested for rogues.',
     docRef: `${ROGUE}#3-abilities`,
@@ -716,6 +712,10 @@ const REGISTRY = {
   },
   poisons: {
     text: 'Poisons roll spell hit (your hit, Precision’s too, lowers their misses), are partly resisted by the boss’s 24 resistance, and crit at your spell crit for 150%, since Malice’s Forever tooltip names poisons. Untested.',
+    docRef: `${ROGUE}#4-poisons`,
+  },
+  poisonAp: {
+    text: 'Instant Poison adds 0.5% of your attack power a hit and Deadly Poison 0.1125% a stack each tick, as a guild test measured. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
     docRef: `${ROGUE}#4-poisons`,
   },
   deadlyPoisonTicks: {

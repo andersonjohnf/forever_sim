@@ -45,7 +45,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "deadlyPoison",
-      5850209.85000057,
+      6222287.986405997,
       54526,
       49782,
       6089,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "instantPoison",
-      1883093.3027967075,
+      2022330.8732967172,
       25437,
       19166,
       2406,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
   ],
   "dps": {
-    "ci95": 1.2647733671948984,
-    "mean": 505.04567156329546,
-    "stdev": 20.406316625225877,
+    "ci95": 1.2699170098967165,
+    "mean": 507.89072906563484,
+    "stdev": 20.489306040011805,
   },
   "durationSec": 179.690222,
 }

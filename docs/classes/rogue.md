@@ -61,7 +61,8 @@ short labels, resolved under [Sources](#sources).
   Eviscerate, Slice and Dice (haste), Rupture, Expose Armor, Blade Flurry, Adrenaline Rush, Cold
   Blood, Premeditation, and Ambush in Cutthroat's window ([§3](#3-abilities)).
 - **Poisons**: Instant and Deadly Poison as temporary weapon enchants on one hand each, with a
-  proc chance per landed hit of that weapon; Deadly Poison stacks on the boss ([§4](#4-poisons)).
+  proc chance per landed hit of that weapon and a share of attack power; Deadly Poison stacks on
+  the boss ([§4](#4-poisons)).
 - **Thistle Tea**: 100 Energy, every 5 min ([§7.5](#75-enchants-and-consumables)).
 
 ---
@@ -123,8 +124,8 @@ and Deadly Poison V ticks for **23** (spell 25349; Classic Era 34), both about a
 proc chances (20% and 30%) and 5 stacks are unchanged, their charges grow (175 and 180), and
 Deadly Poison's ticks now carry the periodic-crit flag [F] [client] (SpellEffect, SpellItemEnchantment,
 SpellMisc, 1.60.1.69913). The guild measured an attack-power share on both: Instant Poison 0.5% of
-AP a hit, Deadly Poison 0.1125% of AP a tick per stack [F] [guild-0925], which the sim doesn't add
-yet. See [§4](#4-poisons).
+AP a hit, Deadly Poison 0.1125% of AP a tick per stack [F] [guild-0925], both in the sim. See
+[§4](#4-poisons).
 
 ### 1.4 Weapons
 
@@ -295,17 +296,27 @@ Item 8928 → spell 11340 → enchant 625: 20% per hit of spell 11337, 88 Nature
 Classic Era 112–148 [C]. Each proc also deals **0.5% of attack power** [F] [guild-0925] (the client
 carries no coefficient): 10 more at 2,000 AP, about +11% on the 88 average.
 
-**Not in the sim yet.** The poison procs are item effects (`src/sim/effects/buffs.ts`), whose
-`spellDamage` action carries no attack-power term, so the sim deals 76–100 without the 0.5%. Adding
-it needs the proc engine to read attack power (open question [Q16](#10-open-questions)).
+The sim adds the share to each proc at your attack power of that moment: `(76…100 + 0.005 × AP)`,
+then Vile Poisons, Venom, the resist and the crit roll as for the rest of the hit. That Vile Poisons
+and Venom multiply the share is [?] ([Q16](#10-open-questions)): they raise the poison's damage,
+and the test doesn't separate the two. Classic Era's poison has no share [C]. The proc is an item
+effect (`src/sim/effects/buffs.ts`, `INSTANT_POISON_AP`) whose `spellDamage` action carries an
+`apCoefficient`.
 
 ### 4.2 Deadly Poison V
 
 Item 20844 → spell 25351 → enchant 2630: 30% per hit of spell 25349, a stack of 23 Nature every 3 s
 for 12 s, up to 5 stacks (`CumulativeAura` 5) [F] [client]; Classic Era 34 a tick [C]. Each stack
 also deals **0.45% of attack power over its 12 s**, so **0.1125% of AP a tick** over its 4 ticks
-[F] [guild-0925]: 2.25 more a tick per stack at 2,000 AP, about +10% on the 23. Like Instant
-Poison's share, the sim doesn't add it yet (Q16). Each
+[F] [guild-0925]: 2.25 more a tick per stack at 2,000 AP, about +10% on the 23. The sim adds it
+to each stack's tick, `(23 + 0.001125 × AP) × stacks`, **reading attack power at each tick** [?]
+(Q16): the test doesn't say whether a stack keeps the attack power it was applied with, and Classic
+Era's poisons have no share to copy a rule from, so the sim takes the simpler reading, as the
+warrior's Deep Wounds reads it at each tick ([warrior §2.5](warrior.md#25-crits-impale-flurry-deep-wounds)).
+Rupture fixes its share at the cast, but it's one finisher's bleed; fixing each of up to 5 stacks,
+applied at different moments, would need a value per stack. Vile Poisons and Venom
+multiply the share as they do the 23 [?]. Classic Era's poison has no share [C]
+(`DEADLY_POISON_AP_PER_TICK`, the `stackingDot` action's `apCoefficient`). Each
 application rolls spell hit, adds a stack and renews the 12 s; the ticks keep their own timer [?]
 (Q8), and in `forever` may crit (SpellMisc Attributes[8] 0x200, set in Forever and not in Classic
 Era).
@@ -313,10 +324,10 @@ Era).
 ### 4.3 Poison talents
 
 - **Improved Poisons** 5/5: +10 points of apply chance (Instant 30%, Deadly 40%) [F].
-- **Vile Poisons** 5/5: +20% poison damage [F].
+- **Vile Poisons** 5/5: +20% poison damage [F], its attack-power share included [?] (Q16).
 - **Venom** (finisher): +30% poison damage and +10 points of apply chance for (6 + 3 × CP) s [F].
   Its first effect, a dummy on the target, is taken to add nothing, and its +30% multiplies with
-  Vile Poisons' +20% (×1.56) [?] (Q11).
+  Vile Poisons' +20% (×1.56) [?] (Q11), on the attack-power share too [?] (Q16).
 - **Malice**: +5% crit, poisons included [F].
 
 ### 4.4 Which poison where
@@ -652,6 +663,9 @@ byte-identical):
   (Improved Poisons, Vile Poisons) and aura mods (Venom); the `stackingDot` proc action (Deadly
   Poison): one stack count on the boss per poison, whichever weapon applies it.
 - COND 30 `maxComboPoints`; ACTION 8 `stackingDot` (after main's `manaFlat` 7).
+- A proc's `apCoefficient` (`spellDamage` and `stackingDot`): that share of your attack power, read
+  when it hits or ticks, added to each hit or each stack's tick, with Vile Poisons in it (the
+  poisons' shares, §4.1, §4.2). Absent when it's 0, so every other plan is unchanged.
 
 Subtlety (`subtlety.ts`) added four more, each absent-is-zero:
 
@@ -690,7 +704,11 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 - **R7 Adrenaline Rush.** 40 Energy a tick: 300 in its 15 s (7 or 8 ticks).
 - **R8 Off hand.** Dual Wield Specialization 5/5: 50% × 1.25 = **62.5%** of a hit.
 - **R9 Instant Poison.** Improved Poisons 1/5 and Vile Poisons 0: 22% per hit, 76–100 Nature.
+- **R9b Instant Poison's attack power.** At 2,000 AP a proc gains `0.005 × 2000` = 10: **86–110**
+  (98 on average) before resists; Vile Poisons 5/5 makes the share 12.
 - **R10 Deadly Poison.** 5 stacks: 115 every 3 s, 38.3 a second before resists.
+- **R10b Deadly Poison's attack power.** 5 stacks at 2,000 AP: `(23 + 0.001125 × 2000) × 5` =
+  **126.25** a tick before resists (2.25 more a stack).
 - **R11 Hemorrhage.** The R2 dagger at 1,000 AP: `(85 + 1000/14 × 1.7) × 1.45` = **299.3**; with
   Quietus 5/5 below 35% health, **329.3**.
 - **R12 Ambush.** The same dagger with Opportunity 2/2: `2.5 × (85 + 1000/14 × 1.7 + 116) × 1.10` =
@@ -743,12 +761,14 @@ R11–R13 are in `subtlety.test.ts`.
   refresh? Test: 200 Backstabs, the Ambushes allowed.
 - **Q15 Thousand Cuts.** Does a missed Backstab or Hemorrhage use up the stacks? Test: the Energy a
   dodged Hemorrhage costs with stacks up.
-- **Q16 Poisons' attack power.** A guild test ([guild-0925]) measured Instant Poison at 0.5% of AP a
-  proc and Deadly Poison at 0.45% of AP per stack over its 12 s (0.1125% a tick) [F]. The sim doesn't
-  add either yet: the poison procs' actions carry no attack-power term, which needs engine work
-  outside this doc's code. Until then the poisons are about 10% low at 2,000 AP. Also open: whether
-  a Deadly Poison stack's share is fixed when it's applied or read at each tick, and whether Vile
-  Poisons and Venom multiply it.
+- **Q16 Poisons' attack power. Resolved 2026-09-25** by a guild test ([guild-0925]): Instant Poison
+  0.5% of AP a proc and Deadly Poison 0.45% of AP per stack over its 12 s (0.1125% a tick) [F], both
+  modelled (§4.1, §4.2). The defaults gained 0.5–0.8% DPS (Combat 583.8 → 586.5, Assassination
+  529.6 → 534.1, Subtlety 505.3 → 508.1; 20,000 fights on seed 2701). Two modelling choices stay [?]
+  and are in the results' assumptions: a Deadly Poison stack's share is read at each tick, not fixed
+  when it's applied, and Vile Poisons and Venom multiply the share. Test: Deadly Poison's ticks with
+  5 stacks on the boss before and after an attack-power buff lands (a Juju Might), without a new
+  application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels.
 
 ---
 

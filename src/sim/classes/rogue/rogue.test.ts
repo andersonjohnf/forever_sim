@@ -10,7 +10,7 @@ import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
 import { CRIT_MULTIPLIER } from '../../core/formulas'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
-import { BUFFS_BY_ID } from '../../effects/buffs'
+import { BUFFS_BY_ID, DEADLY_POISON_AP_PER_TICK, INSTANT_POISON_AP } from '../../effects/buffs'
 import { catalogueEffects } from '../../effects/types'
 import { fitsSlot } from '../../equip'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
@@ -19,7 +19,7 @@ import { alwaysLandNoCrit, counter, damages, expectMean, setAttackPower, timelin
 import { buildPlan } from '../../plan/build'
 import { ACTION, type AbilityDef, COND, type Plan, TRIGGER_COUNT } from '../../plan/types'
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
-import { FOREVER } from '../../rules/profiles'
+import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { SimConfig } from '../../types'
 import { encodeTalentCode } from '@/data/talents/types'
 import { talentRanksByName } from '../index'
@@ -57,7 +57,7 @@ import {
   SEAL_FATE_PER_RANK,
   withRogueTalents,
 } from './modifiers'
-import { rogueEnergy } from './setup'
+import { rogueAssumptions, rogueEnergy } from './setup'
 import { ROGUE_TALENT_EFFECTS } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -436,6 +436,42 @@ describe('worked examples (rogue.md §9)', () => {
     expect([p.a, p.b]).toEqual([76 * 1.2, 100 * 1.2])
   })
 
+  it('R9b: the guild’s 0.5% of attack power a proc: Instant Poison at 2,000 AP hits for 86–110 (98 on average) before resists', () => {
+    // docs/classes/rogue.md#41-instant-poison-vi: guild in-game test, 2026-09-25.
+    expect(INSTANT_POISON_AP * 2000).toBeCloseTo(10, 12)
+    const instantOnly = (ap: number) => {
+      const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['instantPoisonMainHand'] } })
+      const instant = buildPlan({ ...combatWith({}), buffs: { raid: [], enabled: ['instantPoisonMainHand'] } }).plan.procs.find((p) => p.id === 'instantPoison')!
+      expect(instant.apCoefficient).toBe(INSTANT_POISON_AP)
+      // Every main-hand hit procs it; it always lands and never crits.
+      plan.procs = [{ ...instant, chance: [1, 1] }]
+      plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === instant.trigger ? [0] : []))
+      alwaysLandNoCrit(plan)
+      plan.stats.spellHit = 100
+      plan.stats.spellCrit = -100
+      setAttackPower(plan, ap)
+      return damages(plan, row(plan, 'instantPoison'), 5)
+    }
+    const base = instantOnly(0)
+    const withAp = instantOnly(2000)
+    expect(withAp.length).toBe(base.length)
+    // The same fights and rolls: each proc gains the same 10 × the resist and school multipliers (m).
+    const m = (withAp[0] - base[0]) / 10
+    expect(m).toBeGreaterThan(0.9)
+    expect(m).toBeLessThanOrEqual(1)
+    for (let i = 0; i < base.length; i++) {
+      expect(withAp[i] - base[i]).toBeCloseTo(10 * m, 6)
+      expect(withAp[i] / m).toBeGreaterThanOrEqual(86 - 1e-6)
+      expect(withAp[i] / m).toBeLessThanOrEqual(110 + 1e-6)
+    }
+    expectMean(withAp.map((x) => x / m), 98)
+    // Vile Poisons 5/5 scales the share as it does the rest (×1.2) [?]; the Classic Era poison has none [C].
+    const assassin = buildPlan({ ...defaultConfig('rogue-assassination'), buffs: { ...defaultConfig('rogue-assassination').buffs, enabled: ['instantPoisonMainHand'] } }).plan
+    expect(assassin.procs.find((x) => x.id === 'instantPoison')!.apCoefficient).toBeCloseTo(INSTANT_POISON_AP * 1.2, 12)
+    const classic = catalogueEffects(BUFFS_BY_ID.get('instantPoisonMainHand')!, CLASSIC_ERA)
+    expect(JSON.stringify(classic)).not.toContain('apCoefficient')
+  })
+
   it('R10: Deadly Poison at 5 stacks ticks 115 every 3 s, before resists', () => {
     const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } })
     const deadly = buildPlan({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } }).plan.procs.find((p) => p.id === 'deadlyPoison')!
@@ -445,6 +481,8 @@ describe('worked examples (rogue.md §9)', () => {
     alwaysLandNoCrit(plan)
     plan.stats.spellHit = 100
     plan.stats.spellCrit = -100
+    // No attack power, so no share of it (R10b).
+    setAttackPower(plan, 0)
     const ticks = damages(plan, row(plan, 'deadlyPoison'), 3)
     const top = Math.max(...ticks)
     // 5 stacks × 23, less the boss's average partial resist (level 63: about 6%).
@@ -452,6 +490,48 @@ describe('worked examples (rogue.md §9)', () => {
     expect(top).toBeLessThan(115)
     for (const t of ticks) expect([1, 2, 3, 4, 5].some((k) => Math.abs(t - (k * top) / 5) < 1e-6)).toBe(true)
     expect(ticks.filter((t) => Math.abs(t - top) < 1e-6).length).toBeGreaterThan(ticks.length / 2)
+  })
+
+  it('R10b: the guild’s 0.1125% of attack power per stack a tick: Deadly Poison at 5 stacks and 2,000 AP ticks 126.25, before resists', () => {
+    // docs/classes/rogue.md#42-deadly-poison-v: guild in-game test, 2026-09-25 (0.45% over its 4 ticks).
+    expect(DEADLY_POISON_AP_PER_TICK * 4).toBeCloseTo(0.0045, 12)
+    expect(5 * (23 + DEADLY_POISON_AP_PER_TICK * 2000)).toBeCloseTo(126.25, 9)
+    const deadlyOnly = (ap: number) => {
+      const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } })
+      const deadly = buildPlan({ ...combatWith({}), buffs: { raid: [], enabled: ['deadlyPoisonMainHand'] } }).plan.procs.find((p) => p.id === 'deadlyPoison')!
+      expect(deadly.apCoefficient).toBe(DEADLY_POISON_AP_PER_TICK)
+      plan.procs = [{ ...deadly, chance: [1, 1] }]
+      plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === deadly.trigger ? [0] : []))
+      alwaysLandNoCrit(plan)
+      plan.stats.spellHit = 100
+      plan.stats.spellCrit = -100
+      setAttackPower(plan, ap)
+      return damages(plan, row(plan, 'deadlyPoison'), 3)
+    }
+    const base = deadlyOnly(0)
+    const withAp = deadlyOnly(2000)
+    expect(withAp.length).toBe(base.length)
+    // Tick for tick (the same stacks): 23 + 2.25 a stack in place of 23.
+    for (let i = 0; i < base.length; i++) expect(withAp[i] / base[i]).toBeCloseTo(25.25 / 23, 9)
+    // 5 stacks: 126.25 × the resist and school multipliers, which the AP-less 115 shows.
+    expect(Math.max(...withAp)).toBeCloseTo((Math.max(...base) / 115) * 126.25, 6)
+    // Both hands' Deadly Poison carry it in the default plan; the Classic Era poison has none [C].
+    const plan = buildPlan(defaultConfig('rogue-combat')).plan
+    expect(plan.procs.filter((p) => p.id === 'deadlyPoison').every((p) => p.apCoefficient === DEADLY_POISON_AP_PER_TICK)).toBe(true)
+    const classic = catalogueEffects(BUFFS_BY_ID.get('deadlyPoisonMainHand')!, CLASSIC_ERA)
+    expect(JSON.stringify(classic)).not.toContain('apCoefficient')
+  })
+
+  it('lists the poisons’ attack-power choices in the assumptions only where the poisons carry a share (rogue.md Q16)', () => {
+    const config = defaultConfig('rogue-combat')
+    const forever = buildPlan(config).plan
+    expect(rogueAssumptions(forever, COMBAT)).toContain('poisonAp')
+    expect(rogueAssumptions(forever, COMBAT)).not.toContain('rogueFinisherAp')
+    const classic = buildPlan({ ...config, rules: { ...config.rules, profile: 'classicEra' } }).plan
+    expect(classic.procs.some((p) => p.poison)).toBe(true)
+    expect(rogueAssumptions(classic, COMBAT)).not.toContain('poisonAp')
+    const unpoisoned = buildPlan({ ...config, buffs: { ...config.buffs, enabled: [] } }).plan
+    expect(rogueAssumptions(unpoisoned, COMBAT)).not.toContain('poisonAp')
   })
 })
 
@@ -640,6 +720,10 @@ describe('golden run (fixed config and seed)', () => {
   // - Guild test (2026-09-25): Eviscerate gains 4% of attack power per point, not Classic Era sims'
   //   3% (rogue.md §3.4); Rupture's 1/2/3% a tick was confirmed and is unchanged. Combat 580.3 →
   //   583.8 DPS (+0.6%), Assassination 524.1 → 529.6 (+1.0%), over 20,000 fights on seed 2701.
+  // - Guild test (2026-09-25): the poisons gain attack power, Instant Poison 0.5% a hit and Deadly
+  //   Poison 0.1125% a stack each tick, read at the tick and scaled by Vile Poisons and Venom [?]
+  //   (rogue.md §4.1, §4.2). Combat 583.8 → 586.5 DPS (+0.5%), Assassination 529.6 → 534.1 (+0.8%),
+  //   over 20,000 fights on seed 2701.
   it('keeps the default Assassination rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-assassination'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

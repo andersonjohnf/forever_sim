@@ -518,6 +518,12 @@ export interface ProcPlan {
   school: number
   /** petSpellDamage: the share of your spell damage of its school it adds (Demonic Brand's 0.078). Absent on every other proc. */
   spCoefficient?: number
+  /**
+   * spellDamage, stackingDot: the share of your attack power each hit or each stack's tick adds, with
+   * the poison's damage bonus in it (Vile Poisons; the rogue's poisons, docs/classes/rogue.md §4.1,
+   * §4.2). Absent when there's none, so every other plan's JSON is unchanged.
+   */
+  apCoefficient?: number
   /** Breakdown row for what it does, or −1. */
   source: number
   /** Chain bit for extra-attack procs (damage-and-timing §5.4), 0 otherwise. */

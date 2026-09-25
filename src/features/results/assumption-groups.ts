@@ -112,7 +112,6 @@ export const ASSUMPTION_GROUP = {
   darkSacrifice: 'character',
   // The rogue's (docs/classes/rogue.md §9).
   energyTicksRogue: 'class',
-  rogueFinisherAp: 'class',
   rogueFlatInside: 'class',
   lethality: 'class',
   rogueTwoRolls: 'class',
@@ -153,6 +152,7 @@ export const ASSUMPTION_GROUP = {
   decimation: 'class',
   reactionTimeWarlock: 'combat',
   deadlyPoisonTicks: 'class',
+  poisonAp: 'class',
   rogueArmorPen: 'class',
   poisons: 'gear',
   rendAndTear: 'class',

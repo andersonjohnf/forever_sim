@@ -34,6 +34,8 @@ describe('the Combat rogue’s priority list (D31)', () => {
     // with no order stored; the default order stored gives the same plans.
     // Re-taken 2026-09-25 only for Eviscerate's attack power, 3% → 4% per point (a guild test, rogue.md
     // §3.4): the plan carries the coefficient, and with 0.03 the earlier snapshot still matched.
+    // Re-taken 2026-09-25 again only for the poisons' attack power (a guild test, rogue.md §4.1, §4.2):
+    // their procs carry `apCoefficient`, and without it the earlier snapshot still matched.
     const cases = combatCases(COMBAT_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan(config).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))

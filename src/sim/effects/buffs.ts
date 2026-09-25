@@ -67,42 +67,57 @@ const ROGUE_DOC = 'docs/classes/rogue.md'
  * Instant Poison VI (item 8928 → 11340, enchant 625; docs/classes/rogue.md §4.1): each hit of the
  * weapon it's on has a 20% chance of 11337's 88 Nature damage with `Variance` 0.2769, 75.8–100.2,
  * whole numbers 76–100 as its tooltip shows them [F] [client] (SpellEffect, SpellItemEnchantment,
- * 1.60.1.69913). Classic Era's is 112–148 (111 + 1d37) [C].
+ * 1.60.1.69913), plus 0.5% of attack power a proc [F] [guild-0925] (the client carries no
+ * coefficient). Classic Era's is 112–148 (111 + 1d37) with no attack-power share [C].
  */
-const instantPoison = (min: number, max: number): ProcSpec => ({
+const instantPoison = (min: number, max: number, apCoefficient: number): ProcSpec => ({
   id: 'instantPoison',
   name: 'Instant Poison',
   icon: 'ability_poisons',
   trigger: 'meleeLanded',
   from: 'weapon',
   chance: { pct: 20 },
-  action: { kind: 'spellDamage', school: 'nature', min, max },
+  action: { kind: 'spellDamage', school: 'nature', min, max, ...(apCoefficient ? { apCoefficient } : {}) },
   poison: true,
   docRef: `${ROGUE_DOC}#41-instant-poison-vi`,
 })
-const INSTANT_POISON = instantPoison(76, 100)
-const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148)
+/** docs/classes/rogue.md §4.1: Instant Poison's share of attack power a proc, 0.5% [F] [guild-0925]. */
+export const INSTANT_POISON_AP = 0.005
+const INSTANT_POISON = instantPoison(76, 100, INSTANT_POISON_AP)
+const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148, 0)
 
 /**
  * Deadly Poison V (item 20844 → 25351, enchant 2630; docs/classes/rogue.md §4.2): each hit of the
  * weapon it's on has a 30% chance of 25349, 23 Nature damage per stack every 3 s for 12 s, stacking
  * to 5, whose ticks carry the periodic-crit flag [F] [client] (SpellEffect, SpellAuraOptions,
- * SpellMisc, SpellItemEnchantment, 1.60.1.69913; Classic Era's 34 a tick).
+ * SpellMisc, SpellItemEnchantment, 1.60.1.69913; Classic Era's 34 a tick), plus 0.1125% of attack
+ * power per stack a tick, 0.45% over its 4 ticks [F] [guild-0925], read at each tick [?].
  */
-const deadlyPoison = (tick: number, periodicCanCrit: boolean): ProcSpec => ({
+const deadlyPoison = (tick: number, periodicCanCrit: boolean, apCoefficient: number): ProcSpec => ({
   id: 'deadlyPoison',
   name: 'Deadly Poison',
   icon: 'ability_rogue_dualweild',
   trigger: 'meleeLanded',
   from: 'weapon',
   chance: { pct: 30 },
-  action: { kind: 'stackingDot', school: 'nature', tick, periodMs: 3000, durationMs: 12000, maxStacks: 5, periodicCanCrit },
+  action: {
+    kind: 'stackingDot',
+    school: 'nature',
+    tick,
+    periodMs: 3000,
+    durationMs: 12000,
+    maxStacks: 5,
+    periodicCanCrit,
+    ...(apCoefficient ? { apCoefficient } : {}),
+  },
   poison: true,
   docRef: `${ROGUE_DOC}#42-deadly-poison-v`,
 })
-const DEADLY_POISON = deadlyPoison(23, true)
-/** Classic Era's 25349: 34 a tick, and no periodic-crit flag (SpellMisc Attributes[8] 0) [C]. */
-const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false)
+/** docs/classes/rogue.md §4.2: Deadly Poison's share of attack power per stack a tick, 0.45% over 4 ticks [F] [guild-0925]. */
+export const DEADLY_POISON_AP_PER_TICK = 0.0045 / 4
+const DEADLY_POISON = deadlyPoison(23, true, DEADLY_POISON_AP_PER_TICK)
+/** Classic Era's 25349: 34 a tick, no periodic-crit flag (SpellMisc Attributes[8] 0) and no attack-power share [C]. */
+const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false, 0)
 
 /** A poison on one hand: a temporary enchant that beats a stone there, with its proc (docs/classes/rogue.md §4). */
 const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 'tempEnchant', id: `${proc.id}.${hand}`, priority: 10, hand, proc }]
@@ -1385,7 +1400,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'ability_poisons',
     category: 'consumable',
     group: 'Weapon',
-    summary: '20% of main-hand hits: 76–100 Nature damage',
+    summary: '20% of main-hand hits: 76–100 Nature damage + a share of attack power',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:mainHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
@@ -1399,7 +1414,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'ability_rogue_dualweild',
     category: 'consumable',
     group: 'Weapon',
-    summary: '30% of main-hand hits: 23 Nature damage every 3 s, stacking 5 times',
+    summary: '30% of main-hand hits: 23 Nature damage + a share of attack power every 3 s, stacking 5 times',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:mainHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
@@ -1414,7 +1429,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'ability_poisons',
     category: 'consumable',
     group: 'Weapon',
-    summary: '20% of off-hand hits: 76–100 Nature damage',
+    summary: '20% of off-hand hits: 76–100 Nature damage + a share of attack power',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:offHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
@@ -1428,7 +1443,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'ability_rogue_dualweild',
     category: 'consumable',
     group: 'Weapon',
-    summary: '30% of off-hand hits: 23 Nature damage every 3 s, stacking 5 times',
+    summary: '30% of off-hand hits: 23 Nature damage + a share of attack power every 3 s, stacking 5 times',
     forClasses: ROGUE_ONLY,
     exclusiveGroup: 'poison:offHand',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,

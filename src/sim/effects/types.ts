@@ -438,8 +438,12 @@ export type ProcAction =
    * §11.3); absent, 1.
    */
   | { kind: 'aura'; aura: AuraSpec; durationMs?: number; stacks?: number }
-  /** Magic damage on the spell table with an average partial resist (combat-tables §9). */
-  | { kind: 'spellDamage'; school: 'fire' | 'frost' | 'shadow' | 'nature' | 'arcane' | 'holy'; min: number; max: number }
+  /**
+   * Magic damage on the spell table with an average partial resist (combat-tables §9). `apCoefficient`:
+   * that share of your attack power added to each hit (Instant Poison's 0.5%, docs/classes/rogue.md
+   * §4.1); absent, none.
+   */
+  | { kind: 'spellDamage'; school: 'fire' | 'frost' | 'shadow' | 'nature' | 'arcane' | 'holy'; min: number; max: number; apCoefficient?: number }
   /** Rage from a spell effect (an energize: it makes threat, threat.md). */
   | { kind: 'rage'; amount: number }
   /** A bleed of `share` × the main hand's average swing, recomputed each tick (Deep Wounds, warrior.md §2.5). */
@@ -456,9 +460,11 @@ export type ProcAction =
   /**
    * A poison that stacks on the target (Deadly Poison, docs/classes/rogue.md §4.2): each application
    * rolls spell hit and adds a stack, up to `maxStacks`, and the poison lasts `durationMs` from the
-   * last one; it ticks `tick` per stack every `periodMs`, on its own timer.
+   * last one; it ticks `tick` per stack every `periodMs`, on its own timer. `apCoefficient`: that share
+   * of your attack power added to each stack's tick, read at the tick (Deadly Poison's 0.1125%,
+   * rogue.md §4.2); absent, none.
    */
-  | { kind: 'stackingDot'; school: 'nature'; tick: number; periodMs: number; durationMs: number; maxStacks: number; periodicCanCrit: boolean }
+  | { kind: 'stackingDot'; school: 'nature'; tick: number; periodMs: number; durationMs: number; maxStacks: number; periodicCanCrit: boolean; apCoefficient?: number }
   /**
    * Adds `pct`% of the crit that fired it to the plan's pooled Ignite, dealt over its next `ticks`
    * ticks every `tickMs` (`Plan.ignite`; the mage's Ignite, docs/classes/mage.md#ignite). Only on

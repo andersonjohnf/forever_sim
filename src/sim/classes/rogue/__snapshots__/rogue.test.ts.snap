@@ -45,7 +45,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "deadlyPoison",
-      7520919.131999045,
+      7999398.081294665,
       63981,
       51316,
       6353,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "instantPoison",
-      4495100.232407923,
+      4826998.773167929,
       48723,
       38233,
       4692,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
   ],
   "dps": {
-    "ci95": 1.4054190980131138,
-    "mean": 531.3038433594085,
-    "stdev": 22.675546346142767,
+    "ci95": 1.4122950568429933,
+    "mean": 535.813346744149,
+    "stdev": 22.786485583656702,
   },
   "durationSec": 179.690222,
 }
@@ -158,7 +158,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "deadlyPoison",
-      5462563.250000301,
+      5827292.068081075,
       45159,
       47070,
       7012,
@@ -168,7 +168,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "instantPoison",
-      1707496.1915980023,
+      1839775.5084479982,
       21965,
       16927,
       2471,
@@ -198,9 +198,9 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
   ],
   "dps": {
-    "ci95": 1.7074431975529467,
-    "mean": 584.7941798603333,
-    "stdev": 27.548513759528245,
+    "ci95": 1.7137142816340905,
+    "mean": 587.5610794854235,
+    "stdev": 27.649693726360603,
   },
   "durationSec": 179.690222,
 }

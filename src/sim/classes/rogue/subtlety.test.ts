@@ -333,6 +333,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Rupture at 3, Eviscerate at 5, Ghostly Strike off; 504.7 DPS over 20,000 fights on seed 2703.
   // - Guild test (2026-09-25): Eviscerate gains 4% of attack power per point, not 3% (rogue.md §3.4);
   //   Rupture's 1/2/3% a tick unchanged. 504.7 → 505.2 DPS (+0.1%) over 20,000 fights on seed 2703.
+  // - Guild test (2026-09-25): the poisons gain attack power, Instant Poison 0.5% a hit and Deadly
+  //   Poison 0.1125% a stack each tick [F], read at the tick and scaled by Vile Poisons [?] (rogue.md
+  //   §4.1, §4.2). 505.2 → 508.1 DPS (+0.6%) over 20,000 fights on seed 2703 (505.3 → 508.1 on 2701).
   it('keeps the default Subtlety rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-subtlety'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

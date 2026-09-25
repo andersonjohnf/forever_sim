@@ -345,6 +345,8 @@ export class Sim {
   private readonly pPeriodicCrit: Uint8Array
   /** petSpellDamage: the share of your spell damage of its school it adds (Demonic Brand, docs/classes/warlock.md §11.3). */
   private readonly pSpCoef: Float64Array
+  /** A proc's share of attack power per hit or per stack's tick (the rogue's poisons, docs/classes/rogue.md §4.1, §4.2); 0 for none. */
+  private readonly pApCoef: Float64Array
   private readonly triggerLists: Int32Array[]
   /**
    * Per trigger, the procs that can proc from procs (ProcPlan.fromProcs: Vengeance), which a spell
@@ -1334,6 +1336,7 @@ export class Sim {
     this.pDuration = new Float64Array(np)
     this.pPeriodicCrit = new Uint8Array(np)
     this.pSpCoef = new Float64Array(np)
+    this.pApCoef = new Float64Array(np)
     this.procReadyAt = new Float64Array(np)
     let bleeds = 0
     let stackingDots = 0
@@ -1361,6 +1364,7 @@ export class Sim {
       // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
       this.pPeriodicCrit[i] = p.periodicCanCrit && plan.profile.combat.periodicCrits ? 1 : 0
       this.pSpCoef[i] = p.spCoefficient ?? 0
+      this.pApCoef[i] = p.apCoefficient ?? 0
       // One poison on the target whichever weapon applies it: the procs of one id share a slot.
       if (p.action === ACTION.stackingDot) {
         let slot = dotSlots.get(p.id)
@@ -4134,7 +4138,8 @@ export class Sim {
     }
     // docs/mechanics/spells.md §3, §9: its school's average resist (Holy has none) and multipliers, and crit.
     const school = this.pSchool[p]
-    let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
+    // docs/classes/rogue.md §4.1: Instant Poison adds its share of your attack power now [F].
+    let damage = (this.rngDamage.uniform(this.pA[p], this.pB[p]) + this.pApCoef[p] * this.ap) * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
     // paladin.md#conventions-used-below: Holy damage's own multiplier (Vengeance's), as a Holy spell's.
     if (school === SCHOOL.holy) damage *= this.holyMult
     // A rogue's poison: the auras' damage bonus (Venom, rogue.md §4.4).
@@ -4297,7 +4302,8 @@ export class Sim {
   }
 
   /**
-   * One tick of a stacking poison: its damage per stack × the stacks, the magic multiplier with its
+   * One tick of a stacking poison: its damage per stack, plus its share of your attack power at the
+   * tick (rogue.md §4.2), × the stacks, the magic multiplier with its
    * school's average partial resist and multipliers, as every spell's (docs/mechanics/spells.md §3,
    * §9), and the auras' poison bonus (rogue.md §4.2 [?]); in `forever` a flagged tick may crit at
    * spell crit with its school's, ×1.5, firing nothing. A tick that comes after its end finds it run
@@ -4311,7 +4317,8 @@ export class Sim {
     }
     const row = this.pSource[p] * FIELD_COUNT
     const school = this.pSchool[p]
-    let damage = this.pA[p] * this.dotStacks[slot] * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
+    // docs/classes/rogue.md §4.2: each stack adds its share of your attack power, read at the tick [?].
+    let damage = (this.pA[p] + this.pApCoef[p] * this.ap) * this.dotStacks[slot] * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
     if (this.pPoison[p] === 1) damage *= this.poisonMult
     if (this.pPeriodicCrit[p] === 1 && this.rngProc.roll100() < this.spellCritPct + this.schCrit[school]) {
       damage *= CRIT_MULTIPLIER.spell

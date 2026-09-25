@@ -371,19 +371,22 @@ export const POWER_INFUSION: OnUseSpec = {
 export const DAMAGE_SHIELD_SP_COEFFICIENT = 0.08
 
 /**
- * The spell damage of the druid whose Thorns is on a tank (buffs doc §1.2 "Thorns"): the sim's default
- * Balance druid's Nature spell damage, 389 (docs/classes/druid.md, its default setup; 2026-09-24) [?].
- * Thorns scales with its caster's spell power, and in a raid a druid puts it on the main tank; a bear
- * that casts its own, with no spell damage, gets its base 22.
+ * The spell damage of the raid druid whose Thorns is on a tank (buffs doc §1.2 "Thorns"): in a raid it's
+ * a Restoration druid's, whose healing gear carries spell damage at a third of its healing in Forever
+ * (character-stats; Whitesoul Helm: +35 healing, +12 spell damage) [F], so a pre-raid healer's +600
+ * healing gives about 200 [?] (D29: a reasoned estimate; the sim has no healer setups). Thorns scales
+ * with its caster's spell power; a bear that casts its own, with no spell damage, gets its base 22
+ * (`thornsOwn`).
  */
-export const THORNS_CASTER_SPELL_DAMAGE = 389
+export const THORNS_CASTER_SPELL_DAMAGE = 200
 
 /**
  * Thorns r6 (9910; buffs doc §1.2 "Thorns"): a damage shield (aura 15) of 22 Nature damage to each
  * melee attacker that hits its target, 10 min [F] [client] (SpellEffect, 1.60.1.70009), plus its
  * caster's spell damage × `DAMAGE_SHIELD_SP_COEFFICIENT` in Forever (a raid druid's
- * `THORNS_CASTER_SPELL_DAMAGE`: 22 + 0.08 × 389 = 53.12, dealt as 53) [?]; Classic Era's 18, with no
- * scaling [C].
+ * `THORNS_CASTER_SPELL_DAMAGE`: 22 + 0.08 × 200 = 38; the bear's own, with none, 22) [?]; Classic Era's
+ * 18, with no scaling [C]. Unrounded, as Retribution Aura's and Holy Shield's are: the engine rounds no
+ * spell's damage [?].
  * Like every damage shield it always lands and never crits [?], and each of the boss's swings that
  * lands on you (a hit, crit, crushing blow or block) triggers it, as Retribution Aura's does
  * (paladin.md#other-abilities). As a pure Nature damage spell the boss's resistance takes its average
@@ -412,9 +415,12 @@ const thornsDamage = (damage: number): SpellDef => ({
   threatBonus: 0,
   cannotCrit: true,
 })
-/** Thorns on the tank: its damage on each of the boss's swings that lands (the `meleeTaken` trigger). */
-const thorns = (damage: number): ProcSpec => ({
-  id: 'thorns',
+/**
+ * Thorns on the tank: its damage on each of the boss's swings that lands (the `meleeTaken` trigger).
+ * The raid druid's proc is `thorns`, the bear's own `thornsOwn`; both deal it on the `thorns` row.
+ */
+const thorns = (damage: number, id = 'thorns'): ProcSpec => ({
+  id,
   name: 'Thorns',
   icon: 'spell_nature_thorns',
   trigger: 'meleeTaken',
@@ -425,11 +431,13 @@ const thorns = (damage: number): ProcSpec => ({
 })
 /**
  * Thorns r6's damage per swing that lands (buffs doc §1.2): Forever's 22 [F] with its caster's spell
- * damage, 22 + 0.08 × 389 = 53.12, which the game deals as a whole 53 [?]; Classic Era's 18 [C].
+ * damage, a raid Restoration druid's, 22 + 0.08 × 200 = 38 [?], or 22 when it's the bear's own; Classic
+ * Era's 18 [C].
  */
 export const THORNS_BASE_DAMAGE = { forever: 22, classicEra: 18 } as const
 export const THORNS_DAMAGE = {
-  forever: Math.round(THORNS_BASE_DAMAGE.forever + DAMAGE_SHIELD_SP_COEFFICIENT * THORNS_CASTER_SPELL_DAMAGE),
+  forever: THORNS_BASE_DAMAGE.forever + DAMAGE_SHIELD_SP_COEFFICIENT * THORNS_CASTER_SPELL_DAMAGE,
+  own: THORNS_BASE_DAMAGE.forever,
   classicEra: THORNS_BASE_DAMAGE.classicEra,
 } as const
 
@@ -670,23 +678,43 @@ export const BUFFS: BuffSpec[] = [
     // keeps it, since any paladin in the raid runs an aura (buffs doc §6.2).
     presets: { raid: 'tank', max: 'tank' },
   },
-  // Thorns on the tank (buffs doc §1.2, §6.2): a bear casts it on itself before the pull, so every
-  // bear preset has it; in a raid a druid puts it on the main tank, so every tank's raid and max
-  // presets have it, as Devotion Aura (from a druid in the raid). Only a tank takes the boss's swings,
-  // so for any other spec it does nothing (the Buffs tab says so).
+  // Thorns on the tank (buffs doc §1.2, §6.2): in a raid a Restoration druid puts it on the main tank,
+  // so every tank's raid and max presets have it, as Devotion Aura (from a druid in the raid). A bear
+  // with no other druid casts its own before the pull (`thornsOwn`: its Self only and Dungeon presets,
+  // and its raid presets without a druid in the raid), with no spell damage, so the base 22; the two
+  // don't stack, and the raid druid's is the larger.
+  // Only a tank takes the boss's swings, so for any other spec they do nothing (the Buffs tab says so).
   {
     id: 'thorns',
     name: 'Thorns',
     icon: 'spell_nature_thorns',
     category: 'raidBuff',
     group: 'Threat and defense',
-    summary: '53 Nature damage to the boss each time it hits you, with a raid druid’s spell damage',
+    summary: '38 Nature damage to the boss each time it hits you: a raid Restoration druid’s, with its spell damage',
     providedBy: 'druid',
-    selfCast: true,
+    exclusiveGroup: 'thorns',
     docRef: `${DOC}#12-threat-defense-and-mana`,
     effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.forever) }],
     classicEra: { summary: '18 Nature damage to the boss each time it hits you', effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.classicEra) }] },
-    presets: { dungeon: ['druid-feral-bear'], raid: 'tank', max: 'tank' },
+    presets: { raid: 'tank', max: 'tank' },
+  },
+  {
+    id: 'thornsOwn',
+    name: 'Thorns (your own)',
+    icon: 'spell_nature_thorns',
+    category: 'raidBuff',
+    group: 'Threat and defense',
+    summary: '22 Nature damage to the boss each time it hits you: your own, with no spell damage, when no other druid casts it',
+    providedBy: 'druid',
+    selfCast: true,
+    forClasses: ['druid'],
+    exclusiveGroup: 'thorns',
+    docRef: `${DOC}#12-threat-defense-and-mana`,
+    effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.own, 'thornsOwn') }],
+    classicEra: { summary: '18 Nature damage to the boss each time it hits you', effects: [{ kind: 'proc', proc: thorns(THORNS_DAMAGE.classicEra, 'thornsOwn') }] },
+    // In the raid presets too, where the raid druid's comes first and takes the group: a raid with no
+    // druid leaves the bear its own.
+    presets: { dungeon: ['druid-feral-bear'], raid: ['druid-feral-bear'], max: ['druid-feral-bear'] },
   },
   {
     id: 'blessingOfWisdom',

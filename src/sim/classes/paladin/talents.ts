@@ -142,9 +142,10 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
   'Champion of the Light': (r) => [{ kind: 'stat', stat: 'spellDamagePerIntPct', value: [0, 33, 66, 100][r] }],
   // Retribution: a non-periodic crit (melee, special, seal proc, judgement or spell) gives a stack of
   // +1% Physical and Holy damage per rank for 30 s, up to 3 stacks (20050: aura 79, school mask 3,
-  // 3 stacks; 20049's proc mask has no periodic bit, 1.60.1.70009). A periodic tick fires `spellTick`,
-  // never `spellCrit`, so it gives none; nor do Seal of Righteousness's and Seal of Fury's procs,
-  // which trigger no procs (paladin.md#conventions-used-below) [?]
+  // 3 stacks; 20049's proc mask has no periodic bit, 1.60.1.70009). 20049 carries Attr3 0x4000000,
+  // Can Proc From Procs, so Seal of Righteousness's and Seal of Fury's procs, which trigger no other
+  // procs (no NOT_A_PROC), give stacks too (`fromProcs`) [?]; Consecration's ticks, a periodic aura's,
+  // and every periodic tick (`spellTick`, never `spellCrit`) give none (paladin.md#retribution-tree)
   Vengeance: (r) =>
     (['meleeCrit', 'spellCrit'] as const).map(
       (trigger): Effect => ({
@@ -156,6 +157,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
           trigger,
           from: 'any',
           chance: { pct: 100 },
+          fromProcs: true,
           action: { kind: 'aura', aura: { id: 'vengeance', name: 'Vengeance', durationMs: 30000, maxStacks: VENGEANCE_MAX_STACKS, mods: { damage: r, holy: r } } },
           docRef: `${DOC}#retribution-tree`,
         },

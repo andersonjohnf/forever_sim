@@ -18,12 +18,12 @@ const DEFAULT_ORDER = [
   'holyShield',
   'judgement',
   'swiftJudgement',
-  'hammerOfTheRighteous',
-  'holyStrike',
   'exorcism',
+  'hammerOfWrath',
   'consecration',
   'consecrationRank1',
-  'hammerOfWrath',
+  'hammerOfTheRighteous',
+  'holyStrike',
 ]
 const BALANCED_LINE = 'Plays as Defensive: Devotion Aura, Holy Shield and Holy Strike kept. Hammer of the Righteous is a row you can turn on.'
 
@@ -52,7 +52,7 @@ const openRow = async (page: Page, tab: Locator, name: string) => {
 test.describe('Protection paladin rotation', () => {
   test('puts the preset first, Balanced by default, and the list in paladin.md’s order', async ({ page }) => {
     const tab = await openRotation(page)
-    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.', { exact: true })).toBeVisible()
+    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS were tuned on an earlier game build and had a quick search on this one; Balanced, the default, plays as Defensive.', { exact: true })).toBeVisible()
     await expect(preset(page)).toHaveText('Balanced (default)')
     await expect(preset(page)).toHaveAccessibleDescription(BALANCED_LINE)
     // The info says why Balanced keeps Holy Strike (D28), with each preset's numbers.

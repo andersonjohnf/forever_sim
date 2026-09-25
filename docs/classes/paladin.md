@@ -136,11 +136,15 @@ carry the new values.
 
 The default builds lost their Improved Holy Strike and Crusade points; the sim places them by
 measurement ([Retribution defaults](#retribution-defaults), [Protection defaults](#protection-defaults)).
-In the default Protection setup (seed 31101, 100,000 fights) the build makes **749.2 TPS** and 466.8 DPS,
-against 828.9 and 448.0 on 1.60.1.70009's data with the old values: Righteous Fury's cut is most of
-it, which Holy Strike's 10 s and 50%, the scaling Thorns and Conviction 1 partly return. That's below
-the guild's 800–900, an open plausibility finding ([milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
-Retribution makes **612.7 DPS** (611.0 before on this data, with 3 points unspent).
+In the default Protection setup (seed 31101, 100,000 fights) the slice's build made **749.2 TPS** and
+466.8 DPS, against 828.9 and 448.0 on 1.60.1.70009's data with the old values: Righteous Fury's cut is
+most of it, which Holy Strike's 10 s and 50% and the scaling Thorns partly return. With the paladin
+review's order and Holy Conduit 1 (PR-1) and a raid Restoration druid's Thorns (PR-4) it makes
+**752.6 TPS** and 466.6 DPS. On the same seed the warrior makes 1,001.6 and the bear 1,126.6
+(+33.1% and +49.7%): observations for the guild's tests, not a target missed (D29 has no numeric
+target; [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
+Retribution makes **621.9 DPS** with the review's joint search (PR-2; 612.7 with the slice's
+placement, 611.0 on this data with 3 points unspent).
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -214,7 +218,10 @@ and the docs it links; this list only summarizes them, with the same tags.
   judgements' damage spells 20966, 20286 and 20414 carry it. Seal of Righteousness's proc 25713
   and Seal of Fury's 20418 (Attr3 `0x40000`, Always Hit only) and Consecration's ticks 1280345–1280349
   don't [F] [client] (SpellMisc, 1.60.1.70009). "Procs" means every kind: Windfury, Crusader, Hand
-  of Justice, Vengeance, Vindication and crit charges. The attribute's reading is data; that
+  of Justice, Vengeance, Vindication and crit charges, with one exception: an aura with Attr3
+  `0x4000000`, Can Proc From Procs, is procced by those spells too. Vengeance's (20049) has it, so
+  SoR's and SoF's proc crits give its stacks; a periodic aura's ticks (Consecration's) don't, by its
+  proc mask ([Retribution tree](#retribution-tree)). The attribute's reading is data; that
   Forever's server applies it this way is untested [?] ([open question 22](#open-questions)).
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an
@@ -407,7 +414,7 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 40% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 50% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.70009; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
@@ -455,7 +462,7 @@ DPS, TPS or mana effect are listed but not modelled.
 | Sacred Arbiter (1), new | "Increases the damage of your Holy Strike ability by 20% and causes it to refresh all Judgement effects on the target." ([F 1311087][f1311087]) | — | Holy Strike ×1.20 (×1.10 until 1.60.1.70009; aura 108 = 20, [client] (SpellEffect, 1.60.1.70009)); refreshes your judgement debuffs |
 | Crusade (2), new | "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets." ([F 1311083][f1311083]) | — | **Removed from the trees in 1.60.1.70009** ([data/talents.md](../data/talents.md#tree-versions)); was ×1.02 all damage and a further ×1.02 vs Undead/Demon |
 | Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 6%." ([F 20111][f20111]) | 6% | ×1.06 (2/4/6%; 3/6/9% until 1.60.1.70009, [client] (SpellEffect, 1.60.1.70009)) **Physical only** (school mask 1, [client] (SpellEffect, 1.60.1.70009)), with a 2H equipped. Holy Strike, SoC and judgements don't benefit |
-| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a non-periodic critical strike. Stacks up to 3 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 3 stacks (9% at 3/3)**, 30 s (5 stacks until 1.60.1.70009) ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.70009)). Each non-periodic crit that triggers procs adds a stack and refreshes the duration: white, special, SoC proc, judgement, spell. The talent's proc mask (69972) has no periodic bit since 1.60.1.70009 (1.60.1.69913's 332116 had 0x40000), so a periodic tick gives none. Its aura carries Attr3 `0x4000000`, which lets triggered spells with NOT_A_PROC proc it: SoC's proc does, **not** SoR's or SoF's procs or Consecration's ticks, which lack NOT_A_PROC [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
+| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a non-periodic critical strike. Stacks up to 3 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 3 stacks (9% at 3/3)**, 30 s (5 stacks until 1.60.1.70009) ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.70009)). Each non-periodic crit that triggers procs adds a stack and refreshes the duration: white, special, SoC proc, judgement, spell. The talent's proc mask (69972) has no periodic bit since 1.60.1.70009 (1.60.1.69913's 332116 had 0x40000), so a periodic tick gives none. Its aura carries Attr3 `0x4000000`, **Can Proc From Procs**, which lets triggered spells *without* NOT_A_PROC proc it: so **SoR's and SoF's proc crits give stacks too**, as SoC's do, though they trigger no other procs [?]. Consecration's ticks also lack NOT_A_PROC, but they're a periodic aura's, which the proc mask leaves out [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
 | Repentance (1) | incapacitate | same | not modelled |
 | Champion of the Light (3), new | "Increases your spell damage and healing by up to 100% of your Intellect." ([F 1311084][f1311084]) | — | **+Int to spell damage** (all magic schools) and healing, at 33/66/100% |
 | Instrument of Law (2), new | "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active." ([F 1311085][f1311085]) | — | HoW instant (still 1.0 s GCD); threat ×0.8 when RF is off (curves −500/−1000 ms and 10/20, [client] (TraitDefinitionEffectPoints, 1.60.1.70009)) |
@@ -514,7 +521,7 @@ and aren't modelled.
 | --- | --- | --- |
 | Base mana (60) | 1512 | [F] [client] (`PlayerExpectedStat`, `basemp.txt`, 1.60.1.70009); owned by character-stats ([conventions](#conventions-used-below)) |
 | Max mana | base + Int→mana, see character-stats | [C] |
-| Costs, Ret build (Benediction 5/5, Twist of Light, Holy Conduit 1/2; the cuts added [?]) | SoC 147, SoR 140, SotC 112 (seals −30%), Judgement 81, Holy Strike 18, Consecration r5 395 / r1 94, Exorcism 241, HoW 297 (instant with Instrument of Law, so Benediction applies; −30%). Benediction alone: SoC 189, SoR 180, SotC 144, Consecration 508 / 121, Exorcism 310, HoW 382. With Holy Conduit 2/2, Consecration r5 is 282 (additive) or 305 (multiplicative) [?] | [F] costs × talent |
+| Costs, Ret build (Benediction 5/5, Twist of Light, Holy Conduit 2/2; the cuts added [?]) | SoC 147, SoR 140, SotC 112 (seals −30%), Judgement 81, Holy Strike 18, Consecration r5 282 / r1 67, Exorcism 172, HoW 212 (instant with Instrument of Law, so Benediction applies; −50%). Benediction alone: SoC 189, SoR 180, SotC 144, Consecration 508 / 121, Exorcism 310, HoW 382. With Holy Conduit 1/2 (the default until the paladin review's PR-2), Consecration r5 395 / r1 94, Exorcism 241, HoW 297; multiplied rather than added, Holy Conduit 2/2's Consecration r5 would be 305 [?] | [F] costs × talent |
 | Costs, Prot build (no Benediction) | SoF 200, Judgement 90 (0 after Swift Judgement), Holy Strike 20, Holy Shield 240, Consecration r5 565, HotR 90, RF 453 | [F] |
 | Sanctified Judgement 3/3 | +126 per SoC judgement, +120 per SoR/SoF judgement | [F] |
 | Spirit regen | the class formula with the five-second rule; any mana spent starts a 5 s window with no spirit regen (Reverence lets some continue) | [C] → [character-stats.md](../mechanics/character-stats.md) |
@@ -602,8 +609,8 @@ rotation found for the default setup ([D23](../decisions.md#d23-the-default-rota
 | 4 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%). Dimmed on the Rotation tab without an execute phase | on |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (20%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
-| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (40%; 60% before 1.60.1.70009, [below](#the-160170009-re-check)) | on |
-| 8 | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (20%; 15% before 1.60.1.70009). The ranks share one 8 s cooldown | on |
+| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%, with Holy Conduit 2/2; 40% on the 1.60.1.70009 slice's build, 60% before it, [below](#the-160170009-re-check)) | on |
+| 8 | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%; 20% on the slice's build, 15% before 1.60.1.70009). The ranks share one 8 s cooldown | on |
 | 9 | Twist: SoR, then after the next swing SoC | talent taken and `mana% ≥ twistMinManaPct` (80). Cast SoR when the swing lands within `twistWindowMs` (≤ 1500 ms) so the echo is used at once; recast SoC after that swing | **off**; not simulated yet |
 | — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.earlyMissingMana` (1,500) while the fight has at least its 2 min cooldown left, so another will be ready before the end; after that, missing at least `manaPotion.missingMana` (2,250, its most, so none is lost) | on (Standard raid) |
 | — | Demonic Rune (a Dark Rune is the same) | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
@@ -639,14 +646,14 @@ Notes:
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`52003-503-05215331001330321`** (Holy 10 / Prot 8 / Ret 33): Divine Strength 5, **Divine Intellect 2**, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, **Holy Conduit 1**, Conviction 5, **Vindication 3**, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light. The popular build below on 1.60.1.70009's trees, talent by talent: that build removed Improved Holy Strike and Crusade ([data/talents.md](../data/talents.md#tree-versions)), and of their 4 points one goes to Vindication's third rank, which the 20-point row under Crusade needs, and the other 3 to Divine Intellect 2 and Holy Conduit 1, the best of the measured placements, +1.04% DPS ([the 1.60.1.70009 re-check](#the-160170009-re-check)). The talent migration's interim `50003-503-05205331001330321`, with those 3 unspent, stays decodable for saved setups | the most popular Forever Ret build when chosen, 2026-09-22, on 1.60.1.69913's trees: `250003-503-052052310012330321` (Holy 10 / Prot 8 / Ret 33: Improved Holy Strike 2, Divine Strength 5, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, Crusade 2, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light) ([talents](https://foreverchanges.pro/talents/paladin)); decoded by tier-then-column order ([data/talents.md](../data/talents.md#build-codes-verified)) [F] |
+| Talents | **`51003-503-05225331001330321`** (Holy 10 / Prot 8 / Ret 33): Divine Strength 5, **Divine Intellect 1**, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, **Holy Conduit 2**, Conviction 5, **Vindication 3**, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light. The popular build below on 1.60.1.70009's trees, talent by talent: that build removed Improved Holy Strike and Crusade ([data/talents.md](../data/talents.md#tree-versions)), and of their 4 points one goes to Vindication's third rank, which the 20-point row under Crusade needs, and the other 3 to Divine Intellect 1 and Holy Conduit 2, the best placement searched together with Consecration's thresholds, +1.45% DPS against the slice's Divine Intellect 2 and Holy Conduit 1 (the paladin review's PR-2, [the 1.60.1.70009 re-check](#the-160170009-re-check)). The slice's `52003-503-05215331001330321` and the talent migration's interim `50003-503-05205331001330321`, with those 3 unspent, stay decodable for saved setups | the most popular Forever Ret build when chosen, 2026-09-22, on 1.60.1.69913's trees: `250003-503-052052310012330321` (Holy 10 / Prot 8 / Ret 33: Improved Holy Strike 2, Divine Strength 5, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, Crusade 2, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light) ([talents](https://foreverchanges.pro/talents/paladin)); decoded by tier-then-column order ([data/talents.md](../data/talents.md#build-codes-verified)) [F] |
 | Race | **Human** (Alliance) with a 2H sword; **Undead** for Horde presets | Sword Spec +2% crit to everything [F] |
 | Weapon | slowest high-DPS pre-raid 2H (speed ≥ 3.4 preferred; ties → sword for Human) from `src/data/items` | SoC scales with weapon damage per swing; the 7 PPM normalizes procs/min, so a slow weapon gives bigger procs and more procs per swing |
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
 | Aura | Retribution Aura (no DPS effect unless you're hit); raid aura choice lives in the buffs doc | — |
 | Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions. Might is yours when no other paladin brings it: you bless yourself (the entry's `selfCast`, [buffs §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)), while Kings, Wisdom and Salvation need another paladin | [F] factions |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Elixir of Holy Power, an Elemental stone (in place of the Dense one: one stone at a time), Demonic/Dark Rune and Flask of Supreme Power. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 3,392 mana with the default gear. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
-| Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader from before the pull, Seal of Command, Consecration from 40% mana and rank 1 from 20% (re-checked on 1.60.1.70009, first pass, D27), Exorcism from 20%, Hammer of Wrath at any mana, the potion early from 1,500 missing, on-use trinkets and Juju Flurry on cooldown | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
+| Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader from before the pull, Seal of Command, Consecration from 20% mana and rank 1 from 10% (searched with the talents on 1.60.1.70009, first pass, D27), Exorcism from 20%, Hammer of Wrath at any mana, the potion early from 1,500 missing, on-use trinkets and Juju Flurry on cooldown | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
 
 #### Tuning the defaults (C2)
 
@@ -666,22 +673,34 @@ Brilliance (2,882 → 3,392 mana), which moved the Consecration thresholds.
 1.60.1.70009's changes ([what changed](#changes-in-160170009)) made Retribution's seals cheaper
 (Twist of Light) and moved its talents, so the thresholds were re-checked as a first pass (D27: one
 quick search, then a confirmation on a fresh seed; D23's grid by fight length waits for the tuning
-milestone), on the new default build ([Retribution defaults](#retribution-defaults): Divine Intellect 2 and Holy
-Conduit 1 give 3,467 mana and cheaper Consecrations).
+milestone), on the new default build ([Retribution defaults](#retribution-defaults): Divine Intellect 1 and Holy
+Conduit 2 give 3,422 mana and Consecrations at 282 and 67).
 
-- **The refunded points.** Improved Holy Strike's and Crusade's 4 points: one to Vindication's
-  third rank, which the 20-point row under Crusade needs; the other 3 by measured DPS (seed 777,
-  40,000 paired fights a build; confirmed on seed 20260927, 100,000): **Divine Intellect 2 and Holy
-  Conduit 1, +6.29 DPS (+1.04%, 95% CI +6.06 to +6.52)** against the 3 left unspent; Holy Conduit 2
-  and Divine Intellect 1 +1.00% (and 0.04% behind, +0.02 to +0.48 DPS); Divine Intellect 3 +0.47%;
-  Holy Conduit 2 alone +0.46%; Divine Intellect 2 and Reverence 1 +0.43%. Deflection gives no DPS.
-- **Consecration from 40%, rank 1 from 20%**: **+3.83 DPS (+0.63%, 95% CI +3.72 to +3.93)** against
-  60% and 15% (seed 20260928, 100,000 paired fights); the search (seed 777, 20,000 fights: 30 to 80%
-  by 10, rank 1 from 0 to 25% by 5; then 35 to 45% on seed 778) had 35% and 40% level. With cheaper
-  seals and Consecrations and more mana, rank 5 pays from a lower share of the pool.
-- **Held** (seed 779, 20,000 fights, on the new thresholds): the seal recast at 1.5 s (1 s +0.01%, 2 s
-  −0.02%: neither clears), Hammer of Wrath at any mana (10%: −0.05%), the early potion at 1,500 missing
-  (1,250 −0.07%, 1,750 −0.29%, never early −1.38%).
+- **The refunded points and the thresholds, searched together (the paladin review's PR-2,
+  2026-09-24).** The slice first placed the points, then tuned the thresholds on them; the review
+  found a better pair searched together. Improved Holy Strike's and Crusade's 4 points: one to
+  Vindication's third rank, which the 20-point row under Crusade needs; the other 3 among Divine
+  Intellect, Holy Conduit and Reverence (Divine Intellect 3; 2 and Holy Conduit 1; 1 and Holy Conduit
+  2; 2 and Reverence 1), each with Consecration from 10 to 50% by 5 and rank 1 from 0 to 25% by 5
+  (seed 777, 20,000 paired fights a candidate, 216 in all): **Divine Intellect 1 and Holy Conduit 2,
+  with Consecration from 20% and rank 1 from 10%**, +1.58%; the slice's Divine Intellect 2 and Holy
+  Conduit 1 was best at 35% and 20% (+0.04%), Divine Intellect 3 at 40% and 15% (−1.58%), Reverence
+  at 40% and 20% (−1.30%). **Confirmed** on seed 20260934 (100,000 paired fights, which the search
+  didn't use): **+8.90 DPS (+1.45%, 95% CI +8.66 to +9.14)** against the slice's defaults; the build
+  alone at the old thresholds +1.11%, the thresholds alone on the old build −0.96%. With Holy Conduit
+  2/2 Consecration costs 282 and rank 1 67, so both pay from a lower share of the pool. In the winner
+  (seed 779, 40,000 fights): rank 1 from 15% −0.03%, from 5% −0.05%, rank 5 from 15% −0.06%, from 25%
+  −0.06%, the slice's build −2.42%; the seal recast at 1.5 s (1 s +0.02%, 2 s −0.03%: neither
+  clears), Hammer of Wrath at any mana (10%: −0.10%) and the early potion at 1,500 missing (1,250
+  +0.03%, not clearing; 1,750 −0.17%) hold. On seed 31101 (100,000 fights): **621.93 DPS** (612.69
+  before).
+- **The slice's placement (until PR-2).** The other 3 points by measured DPS alone (seed 777,
+  40,000 paired fights a build; confirmed on seed 20260927, 100,000): Divine Intellect 2 and Holy
+  Conduit 1, +6.29 DPS (+1.04%, 95% CI +6.06 to +6.52) against the 3 left unspent; Holy Conduit 2
+  and Divine Intellect 1 +1.00% (and 0.04% behind, +0.02 to +0.48 DPS, at the thresholds before
+  1.60.1.70009); Divine Intellect 3 +0.47%; Holy Conduit 2 alone +0.46%; Divine Intellect 2 and
+  Reverence 1 +0.43%. Deflection gives no DPS. Then **Consecration from 40%, rank 1 from 20%**: +3.83
+  DPS (+0.63%, 95% CI +3.72 to +3.93) against 60% and 15% (seed 20260928, 100,000 paired fights).
 
 **Second round (C2's review), the defaults until 1.60.1.70009.** Against the first round's defaults on the new
 setup (Consecration from 65%, rank 1 from 20%), the result is **+1.63 DPS (+0.26%, 95% CI +1.55 to
@@ -808,16 +827,17 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
 
 ### Threat sources, in expected order of size
 
-Measured in the default setup on 1.60.1.70009 (2026-09-24: 180 s, the Standard raid with a druid's
-Thorns, your own Judgement of the Crusader from the opener, the interim gear, the default talents,
-379 Holy spell damage; 750.3 TPS and 467.4 DPS over 10,000 fights on seed 31101): Seal of Fury's
-procs (19.4% of TPS, 146 TPS), Judgement of Fury (14.8%, 111), Consecration (14.8%, 111, rank 1's
-0.2% with it), Holy Shield's block damage (12.6%, 95, ×1.92 threat), Holy Strike (10.2%, 77, ×2.0;
-17.8 a fight), white hits with their Windfury, Flurry Axe and Reckoning extra attacks (15.6%
-together, 117, ×1), Hammer of Wrath in the execute phase (4.3%, 33), the mana Shield
-Specialization, Improved Seal of Fury and the potion give (5.3%, 40, 0.5 a mana), and Thorns
-(2.9%, 22). Retribution Aura adds 6.8% with Max TPS; Exorcism counts only against Undead and
-Demons. After T2's fix round, before 1.60.1.70009 (823.6 TPS, seed 12345), the shares were much the
+Measured in the default setup on 1.60.1.70009 (2026-09-24, after the paladin review's PR-1 and PR-4:
+180 s, the Standard raid with a raid Restoration druid's Thorns, your own Judgement of the Crusader
+from the opener, the interim gear, the default talents and order, 379 Holy spell damage; 752.6 TPS
+and 466.6 DPS over 100,000 fights on seed 31101): Seal of Fury's procs (19.0% of TPS, 143 TPS),
+Consecration (16.9%, 127, rank 1's 0.1% with it; 21.3 a fight), Judgement of Fury (14.6%, 110),
+Holy Shield's block damage (12.3%, 93, ×1.92 threat), white hits with their Windfury, Flurry Axe
+and Reckoning extra attacks (15.3% together, 115, ×1), Holy Strike (9.7%, 73, ×2.0; 17.4 a fight),
+Hammer of Wrath in the execute phase (4.8%, 36), the mana Shield Specialization, Improved Seal of
+Fury and the potion give (5.2%, 39, 0.5 a mana), and Thorns (2.1%, 16). Retribution Aura adds 6.8%
+with Max TPS; Exorcism counts only against Undead and Demons. Before PR-1 (750.3 TPS, 10,000
+fights, a raid druid's Thorns at 53) Consecration was 14.8% and Holy Strike 10.2%. After T2's fix round, before 1.60.1.70009 (823.6 TPS, seed 12345), the shares were much the
 same (Consecration 19%, Holy Strike 9%, Thorns 1%); before T2 (C3's setup, 2026-09-23, 424.8 TPS)
 Holy Shield led with 24%.
 Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
@@ -845,16 +865,21 @@ The Rotation tab shows these rows as a priority list you reorder (D31, `PROTECTI
 (the aura, Righteous Fury and the opener; its settings are Devotion Aura and Judgement of the
 Crusader), since the aura is D26's duty with a fixed rule and the opener's judgement comes at the
 pull; then rows 1–8, each its own row with its switch and settings (the seal's row has no switch,
-since there's always one), in this order. The on-use trinkets, Juju Flurry and the mana consumables
+since there's always one), in this order. Since the paladin review's PR-1, Exorcism, Hammer of Wrath
+and Consecration (rows 6, 8, 7 and 7b) come before Holy Strike (row 5): Consecration from 20% mana
+then goes down on its cooldown rather than behind Holy Strike's, **+12.37 TPS (+1.67%, 95% CI +12.18
+to +12.55)** and +7.47 DPS (+1.63%) for 1.1 more damage taken a second, together with the refunded
+point's Holy Conduit 1 ([Protection defaults](#protection-defaults); seed 20260935, 100,000 paired
+fights, which no search used; Max TPS the same, +12.36 TPS, +1.56%). The on-use trinkets, Juju Flurry and the mana consumables
 are spec-wide, above the list, and always come after it: they're off the global cooldown. A row's
 conditions are its own wherever it sits: Swift Judgement still frees Judgement wherever it is.
 Hammer of the Righteous and Holy Strike share a cooldown, so with both on, the plan has both rows
 and the shared cooldown decides, as a real priority list would: the higher row is used whenever it
 can be, and the lower only when the higher can't be paid for. Hammer of the Righteous sits just
-above Holy Strike by default, off, so turning it on puts it in Holy Strike's place, with Holy Strike
+above Holy Strike by default, the last two rows, off, so turning it on puts it in Holy Strike's place, with Holy Strike
 as its fallback when Hammer's 90 mana isn't there (rarely, in the default setup); moving it below
-Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing, and the plan leaves Hammer out (and its weapon-DPS assumption with it). In the default order the plan is the one the rotation gave before the list, fight for
-fight (`protection-apl.test.ts`).
+Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing, and the plan leaves Hammer out (and its weapon-DPS assumption with it). In the order before PR-1 the plan is the one the rotation gave before the list, fight for
+fight (`protection-apl.test.ts`, `PRE_LIST_ORDER`).
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -865,12 +890,12 @@ fight (`protection-apl.test.ts`).
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
-| 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used whenever it can be: this one, while it's above Holy Strike and on, with Holy Strike when its 90 mana isn't there. The Rotation tab's Holy Strike row then says so ("Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It's used when you can't pay Hammer's 90 mana."); its own row says when the main hand can't use it (and that Holy Strike is used, or to turn Holy Strike on; with no main hand, neither is), or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
-| 5 | Holy Strike | `holyStrike.enabled`; ready; a weapon in the main hand (with none, the Rotation tab says "Not used: needs a weapon in your main hand.") | on |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
+| 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)). Dimmed on the Rotation tab without an execute phase | on |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
 | 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | on (T2) |
-| 8 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%); a 1 s cast, which stops auto attacks and holds Judgement ([Other abilities](#other-abilities)). Dimmed on the Rotation tab without an execute phase | on |
+| 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used whenever it can be: this one, while it's above Holy Strike and on, with Holy Strike when its 90 mana isn't there. The Rotation tab's Holy Strike row then says so ("Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It's used when you can't pay Hammer's 90 mana."); its own row says when the main hand can't use it (and that Holy Strike is used, or to turn Holy Strike on; with no main hand, neither is), or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
+| 5 | Holy Strike | `holyStrike.enabled`; ready; a weapon in the main hand (with none, the Rotation tab says "Not used: needs a weapon in your main hand.") | on |
 | — | On-use trinkets (Weakness Analyzer, Earthstrike) and Juju Flurry, off the GCD, on cooldown from the pull, as Retribution's (`consumables.ts`) | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs (no Protection preset selects it) | on; neither acts in the default setup |
 | — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.earlyMissingMana` (1,500) while the fight has at least its 2 min cooldown left, so another will be ready before the end; after that, missing at least `manaPotion.missingMana` (2,250, its most). Its mana makes threat, 0.5 a point. The early line rests on knowing the fight's end, which the results list (`knownFightEnd`, [below](#tuning-the-defaults-c3)) | on (Standard raid) |
 | — | Demonic Rune (a Dark Rune is the same) | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
@@ -941,6 +966,40 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
     within a first pass; 20% or off −0.10%), Swift Judgement's 4.5 s (4 s −0.47%), the seal's 2.5 s
     (2 s −0.04%, 3 s −1.15%), Hammer of Wrath from 0% (10% level) and the early potion at 1,500
     (1,250 level, 1,750 −0.08%).
+  - **The paladin review's joint search (PR-1, 2026-09-24):** the row order, the refunded point and
+    the thresholds together, on the Balanced objective (Δ TPS % + Δ DPS %).
+    - **The order.** Every order of the global-cooldown rows (the seal, Holy Shield, Holy Strike with
+      Hammer of the Righteous and Exorcism, Consecration ranks 5 and 1, Hammer of Wrath; rank 5 above
+      rank 1; 360 orders, seed 777, 20,000 paired fights each): the best put Consecration above Holy
+      Strike, +1.3 to +1.4% TPS and about +1.3% DPS; Hammer of Wrath above Consecration adds about
+      0.1%; where rank 1 sits doesn't matter. Consecration above Holy Shield (+1.20%) or the seal
+      (+1.09%) is worse than above Holy Strike. Against Undead, Exorcism above Consecration gains
+      +0.32% (seed 20260933, 40,000 fights), so it moved up with them; with no creature type it never
+      acts. The adopted order: the seal, Holy Shield, Judgement, Swift Judgement, Exorcism, Hammer of
+      Wrath, Consecration, rank 1, Hammer of the Righteous, Holy Strike.
+    - **The refunded point, with the order** (seed 777, 40,000 fights; one point must go to Divine
+      Strength 5 or Divine Intellect 1 for Improved Seals' row): **Holy Conduit 1** +0.26% TPS and
+      +0.31% DPS over Conviction 1; Divine Intellect 1 with Holy Conduit 1 +0.17%; Benediction 1
+      −0.38%; Divine Intellect 1 in Divine Strength 5's place with Conviction +0.01%; Anticipation 3,
+      Toughness 1 or the point unspent −0.65%. Without the new order Holy Conduit 1 loses 0.59% of TPS
+      to Conviction 1: Consecration's cheaper cost pays only once it's cast on its cooldown.
+    - **The thresholds, with both** (Consecration from 0 to 40% by 5, rank 1 from 0 to 20% by 5):
+      from 20% with rank 1 from 10% stays. Rank 5 from 0 to 10% with rank 1 from 0% measured +0.21 TPS
+      more (+0.03%, seed 20260935), within a first pass (D27), but spends the pool to nothing: with no
+      raid buffs the seal then lapses for want of mana (Seal of Fury up 96.8% of the fight, not 99.9%;
+      `protection.test.ts`'s opener check), so the 10% reserve stays. The seal's 2.5 s, Swift
+      Judgement's 4.5 s, Hammer of Wrath from 0% and the early potion at 1,500 hold (seed 778, 40,000
+      fights: the seal at 1.5 s +0.07%, confirmed on seed 20260931 at +0.53 TPS but not at 1 s
+      (−0.15%) or 0.5 s (+0.02%), a global-cooldown alignment rather than a threshold, left to the
+      tuning milestone).
+    - **Confirmed** on seed 20260935 (100,000 paired fights) against the order, talents and
+      thresholds before it: Balanced and Defensive **+12.37 TPS (+1.67%, 95% CI +12.18 to +12.55)**,
+      +7.47 DPS (+1.63%), +1.1 damage taken a second (+0.12%); Max TPS +12.36 TPS (+1.56%), +7.47
+      DPS. On seed 31101 (100,000 fights): **752.62 TPS, 466.60 DPS and 918.6 damage taken a second**
+      for Balanced and Defensive; Max TPS against it +6.76% TPS, +6.68% DPS and +5.72% damage taken;
+      Hammer of the Righteous turned on −1.64% TPS, +0.23% DPS and +4.92% damage taken. The presets'
+      help quotes these (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures
+      again).
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -985,7 +1044,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`50003-0530213321301551-50201`** (Holy 8 / Prot 35 / Ret 8): **the guild's lead theorycrafter's build on 1.60.1.70009's trees**, talent by talent: that build removed Improved Holy Strike ([data/talents.md](../data/talents.md#tree-versions)), and its 2 points go by measured Balanced value (D28's objective, Δ TPS % + Δ DPS %; D30's newest rule prefers no talent by name): one to Divine Strength's fifth rank, since Improved Seals' row needs 5 points above it and Divine Strength held 4 (Divine Intellect 1 in its place: −0.06% TPS and −0.15% DPS), and one to **Conviction 1**, **+4.90 TPS (+0.66%, 95% CI +4.77 to +5.04) and +3.54 DPS (+0.76%)**, for 6.5 more damage taken a second, against the migration's Anticipation 3 (seed 20260927, 100,000 paired fights; the search, seed 777, 40,000 fights: Holy Conduit 1 +0.07% and +0.32%, Benediction 1 +0.05% and +0.09%, Divine Intellect 1 +0.06% and +0.03%, Toughness 1 level). The migration's interim `50003-0530313321301551-502` (Anticipation 3) stays decodable for saved setups. On 1.60.1.69913's trees it was **`240003-0530213321301551-502`** (Holy 9 / Prot 35 / Ret 7), **the guild's lead theorycrafter's build** (the guild's lead theorycrafter, 2026-09-24; user decision; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): Improved Holy Strike 2, Divine Strength 4, Improved Seals 3; Redoubt 5, Precision 3, Anticipation 2, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2. It keeps the survival floor below. Against T2's fix-round build, the default before it (`-0530513321301551-50215`, [below](#the-interim-talents-t2s-fix-round)): **+8.27 TPS (+1.00%, 95% CI +8.05 to +8.48)**, +0.97 DPS (+0.22%) and 13.0 more damage taken a second (+1.4%) over 100,000 paired fights on seed 20260926 (the theorycrafter's own measurement: +8.19 TPS, +0.85 DPS, +12.8 taken, seed 777, 20,000 fights). Improved Seals' +15% to every seal proc and judgement and Divine Strength's Strength are worth more than Anticipation's last three ranks, Holy Conduit and Conviction. The rotation's thresholds hold on it (seed 777, 20,000 fights: Consecration from 10, 30 or 40% −0.02% to −0.15% of TPS, rank 1 from 0% +0.02%, the seal from 2 or 3 s, Swift Judgement from 4 or 5 s and Hammer of Wrath from 10% level or worse). T2's fix-round build stays decodable for saved setups, and so do the ones before it. The popular build stays a preset (it keeps the floor): `2-4530513321301551-502`, Improved Holy Strike 2 (on 1.60.1.70009's trees the same digits are Divine Strength 2, where the preset now puts those points); Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | the guild's lead theorycrafter, measured; [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
+| Talents | **`50003-0530213321301551-5021`** (Holy 8 / Prot 35 / Ret 8): **the guild's lead theorycrafter's build on 1.60.1.70009's trees**, talent by talent: that build removed Improved Holy Strike ([data/talents.md](../data/talents.md#tree-versions)), and its 2 points go by measured Balanced value (D28's objective, Δ TPS % + Δ DPS %; D30's newest rule prefers no talent by name): one to Divine Strength's fifth rank, since Improved Seals' row needs 5 points above it and Divine Strength held 4 (Divine Intellect 1 in its place: −0.06% TPS and −0.15% DPS), and one to **Holy Conduit 1**, searched together with the row order and the thresholds (the paladin review's PR-1, [above](#priority-defensive-balanced-or-max-tps)): with Consecration above Holy Strike it's +0.26% TPS and +0.31% DPS over Conviction 1, and the whole change +1.67% TPS and +1.63% DPS. The 1.60.1.70009 slice first put it in **Conviction 1** on the old order, +4.90 TPS (+0.66%, 95% CI +4.77 to +5.04) and +3.54 DPS (+0.76%) against the migration's Anticipation 3 (seed 20260927, 100,000 paired fights; the search, seed 777, 40,000 fights: Holy Conduit 1 +0.07% and +0.32%, Benediction 1 +0.05% and +0.09%, Divine Intellect 1 +0.06% and +0.03%, Toughness 1 level); that build, `50003-0530213321301551-50201`, and the migration's interim `50003-0530313321301551-502` (Anticipation 3) stay decodable for saved setups. On 1.60.1.69913's trees it was **`240003-0530213321301551-502`** (Holy 9 / Prot 35 / Ret 7), **the guild's lead theorycrafter's build** (the guild's lead theorycrafter, 2026-09-24; user decision; the optimizer's result replaces it, [D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24)): Improved Holy Strike 2, Divine Strength 4, Improved Seals 3; Redoubt 5, Precision 3, Anticipation 2, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2. It keeps the survival floor below. Against T2's fix-round build, the default before it (`-0530513321301551-50215`, [below](#the-interim-talents-t2s-fix-round)): **+8.27 TPS (+1.00%, 95% CI +8.05 to +8.48)**, +0.97 DPS (+0.22%) and 13.0 more damage taken a second (+1.4%) over 100,000 paired fights on seed 20260926 (the theorycrafter's own measurement: +8.19 TPS, +0.85 DPS, +12.8 taken, seed 777, 20,000 fights). Improved Seals' +15% to every seal proc and judgement and Divine Strength's Strength are worth more than Anticipation's last three ranks, Holy Conduit and Conviction. The rotation's thresholds hold on it (seed 777, 20,000 fights: Consecration from 10, 30 or 40% −0.02% to −0.15% of TPS, rank 1 from 0% +0.02%, the seal from 2 or 3 s, Swift Judgement from 4 or 5 s and Hammer of Wrath from 10% level or worse). T2's fix-round build stays decodable for saved setups, and so do the ones before it. The popular build stays a preset (it keeps the floor): `2-4530513321301551-502`, Improved Holy Strike 2 (on 1.60.1.70009's trees the same digits are Divine Strength 2, where the preset now puts those points); Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2, the most popular Forever Prot build on 2026-09-22 [F] | the guild's lead theorycrafter, measured; [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), D30 |
 | Survival floor | Talents no default or search drops ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24), user decisions, 2026-09-24): **Sacred Duty 2/2** (its minute off Divine Shield, Divine Protection and Templar's Bulwark: D30's "big cuts to defensive cooldowns"), **Templar's Bulwark**, **Holy Shield**, **Improved Righteous Fury 3/3** (−6% damage taken), and the avoidance talent **Deflection 5/5** (+5% parry): the model says an avoided hit costs a paladin Reckoning procs and Shield Specialization's mana, so a threat-first search would drop it, but tanks take it. **Anticipation isn't in the floor** (user decision, 2026-09-24, after the theorycrafter's build measured +1.0% TPS with Anticipation 2/5): it's the **preferred filler**, where a build's points left after its threat talents go before Toughness or other weaker talents; the default takes 2/5. **Toughness is optional** (user): the search sets its ranks, and the default takes none. And an **effective-health floor** for the gear (user decision): health ÷ (1 − armor's reduction against a level-63 boss) at least 90% of v1's preset with the same talents and race, for either faction's races (a unit test holds it, `defaults.test.ts`) | user, D30 |
 | Race | Human / Undead (Horde) | The default weapon is an axe (below), so Human's Sword Specialization (+2% crit, with a sword) doesn't apply, nor Dwarf's Mace Specialization; the race changes only base stats until you pick a sword or mace. Dwarf is a close choice for Stoneform |
 | Weapon | **Flurry Axe** (1.5 s, the weapon's +30 spell damage) and **Draconian Aegis of the Legion** (+20 spell damage). Of the pool's spell damage one-handers, Simone's Cultivating Hammer (the gear search's pick, 46 spell damage, 1.8 s) makes 8.7 TPS and 8.1 DPS less after T2's model fixes, and the Elderwild Construction Hammer (68, 2.4 s) 22.6 TPS less: a fast weapon's swings carry Seal of Fury's flat 35 and Windfury's chances. A 1H axe, mace or sword keeps Hammer of the Righteous usable | measured (20,000 fights, seed 12345) |
@@ -994,8 +1053,8 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Judgement of the Crusader | **Your own**, from the opener (row 0c): +161 Holy damage taken all fight, +84.7 TPS | user, 2026-09-24 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS ((30 + 0.08 × SP) × 1.6 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
-| Rotation | **Balanced** (D28): Defensive's list, Holy Strike kept (user decision); Defensive and Max TPS selectable | first pass (D27), [above](#priority-defensive-balanced-or-max-tps) |
-| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +46 spell damage in the Standard raid (+52, worth 5.8% of TPS (+25.9) in the default setup, until 1.60.1.70009 cut Wizard Oil from +30 to +24). The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a druid's Thorns on you, as every tank's raid preset does (+21.8 TPS, 3.0%, with its caster's spell damage since 1.60.1.70009; +9 TPS before; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
+| Rotation | **Balanced** (D28): Defensive's list, Holy Strike kept (user decision), with Exorcism, Hammer of Wrath and Consecration above it (PR-1); Defensive and Max TPS selectable | first pass (D27), [above](#priority-defensive-balanced-or-max-tps) |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +46 spell damage in the Standard raid (+52, worth 5.8% of TPS (+25.9) in the default setup, until 1.60.1.70009 cut Wizard Oil from +30 to +24). Wizard Oil's +24 is worth **12.4 TPS (1.7%)** and 7.3 DPS in today's default setup (seed 424242, 20,000 fights, 2026-09-24). The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a raid Restoration druid's Thorns on you, as every tank's raid preset does (+15.6 TPS, 2.1%, with its caster's 200 spell damage since 1.60.1.70009, seed 424242, 20,000 fights, after PR-1; +21.8 at the Balance druid's 389 until the paladin review's PR-4; +9 TPS before 1.60.1.70009; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
 
 #### The interim talents (T2's fix round)
 
@@ -1410,11 +1469,11 @@ default setup.
     with Twist of Light, a GCD). Judgement's 8 s cooldown started at 0, so the first Judgement of Command is at 8 s.
     Seal of the Crusader and its judgement come once a fight: every landed auto attack restarts
     the debuff's 40 s.
-21. **Mana thresholds** are shares of maximum mana, in tenths: at the default setup's 3,467
-    maximum mana (Divine Intellect 2), "Consecration from 40%" needs 1,386.8 mana (13,868 tenths)
-    and "rank 1 from 20%" 693.4 (6,934). A Major Mana Potion "early, when missing 1,500" goes at
-    1,967 mana or less (19,670) while the fight has at least 2 minutes left; "when missing 2,250",
-    at 1,217 or less (12,170).
+21. **Mana thresholds** are shares of maximum mana, in tenths: at the default setup's 3,422
+    maximum mana (Divine Intellect 1), "Consecration from 20%" needs 684.4 mana (6,844 tenths)
+    and "rank 1 from 10%" 342.2 (3,422). A Major Mana Potion "early, when missing 1,500" goes at
+    1,922 mana or less (19,220) while the fight has at least 2 minutes left; "when missing 2,250",
+    at 1,172 or less (11,720).
 22. **Major Mana Potion**: 1800 mana with variance 0.5, so 1,350–2,250, drawn as 13,500 + a
     whole 0…9,000 tenths, at most every 2 minutes. Early (missing 1,500, with 2 minutes left) up to
     750 of it can be lost to the cap; after that it waits until it's missing 2,250, so none is. A
@@ -1543,14 +1602,18 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 22. **Which spells trigger procs, and minor mechanics.** The sim follows the client's
     NOT_A_PROC attribute ([conventions](#conventions-used-below)): SoC's proc and the damage
     judgements trigger on-hit and crit procs (Windfury, Crusader, Hand of Justice, Vengeance,
-    Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?]. Vengeance's own
-    aura (20049) carries Attr3 `0x4000000`, the flag that lets triggered spells with NOT_A_PROC proc
-    it, which fits: SoC's proc gives stacks, SoR's and SoF's don't. This one isn't
+    Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?], but Vengeance.
+    Vengeance's own aura (20049) carries Attr3 `0x4000000`, Can Proc From Procs: the flag lets
+    triggered spells *without* NOT_A_PROC proc it (those with it proc everything anyway), so SoR's and
+    SoF's proc crits give stacks too, as SoC's do [?]. Consecration's ticks, which also lack NOT_A_PROC,
+    are a periodic aura's (20924's aura 23 triggering 1280345–1280349), so they stay out: the talent's
+    proc mask (69972) has no periodic bit [?]. It moves no default: Retribution runs Seal of Command
+    and Protection takes no Vengeance. This one isn't
     minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 8% more
     DPS and 5.7% more TPS, mostly from Windfury's extra attacks and the Seal of Fury procs they
     bring (the Flurry Axe's are a sixth of it). *Test:* in a Windfury Totem group, count Windfury
     attacks per landed white swing with Seal of Fury up and with no seal (500+ swings each; the sim
-    expects the same 20%), and Vengeance stacks from SoR crits alone. Two more that aren't minor:
+    expects the same 20%), and Vengeance stacks from SoR crits alone (the sim expects them). Two more that aren't minor:
     - **Hammer of Wrath's 1 s cast** (without Instrument of Law). The sim has it stop your white
       swings, which start again from a full swing when it ends, and hold everything else, the
       off-GCD Judgement too, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)
@@ -1596,10 +1659,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     judged while you already have top threat (so the taunt does nothing).
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy
-    Shield's 0.08 [?] and, for Thorns on another tank, a raid druid's 389 spell damage [?]
+    Shield's 0.08 [?] and, for Thorns on another tank, a raid Restoration druid's 200 spell damage
+    [?], both unrounded
     ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)). Lightning
-    Shield's 0.267 a ball is the other allowed analog: at 0.267, Thorns would be about 52 TPS for a
-    Protection paladin rather than 22. *Test:* Retribution Aura's damage on a mob with and without
+    Shield's 0.267 a ball is the other allowed analog: at 0.267, Thorns would be about 31 TPS for a
+    Protection paladin rather than 16. *Test:* Retribution Aura's damage on a mob with and without
     +100 spell damage; and Thorns' from a druid with known spell damage.
 30. **Twist of Light's cost cut with Benediction**: added (210 × 0.7 = 147, the sim's) or multiplied
     (210 × 0.9 × 0.8 = 151)? The same question as 19. *Test:* Seal of Command's cost with both.

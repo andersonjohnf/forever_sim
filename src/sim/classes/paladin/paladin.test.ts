@@ -533,7 +533,7 @@ describe('which seal procs trigger procs (paladin.md#seals, OQ 22)', () => {
     }
   })
 
-  it('their crits give no Vengeance [?]; a Seal of Command proc’s crit does', () => {
+  it('their crits give Vengeance, which can proc from procs (Attr3 0x4000000) [?], as a Seal of Command proc’s crit does', () => {
     const vengeanceUpMs = (seal: AbilityDef) => {
       const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, durationMs: 30000 })
       withSeal(plan, seal)
@@ -545,9 +545,27 @@ describe('which seal procs trigger procs (paladin.md#seals, OQ 22)', () => {
       expect(counter(sim, plan, `${seal.id}Proc`, FIELD.crits), seal.id).toBeGreaterThan(0)
       return sim.auraUpMs[plan.auras.findIndex((a) => a.id === 'vengeance')]
     }
-    expect(vengeanceUpMs(SEAL_OF_RIGHTEOUSNESS)).toBe(0)
-    expect(vengeanceUpMs(SEAL_OF_FURY)).toBe(0)
+    // PR-3: 20049's Can Proc From Procs lets the procs without NOT_A_PROC give stacks too.
+    expect(vengeanceUpMs(SEAL_OF_RIGHTEOUSNESS)).toBe(30000)
+    expect(vengeanceUpMs(SEAL_OF_FURY)).toBe(30000)
     expect(vengeanceUpMs(SEAL_OF_COMMAND)).toBe(30000)
+  })
+
+  it('Vengeance alone can proc from procs: the plan marks it, and nothing else of the default Retribution build', () => {
+    const plan = buildPlan(defaultConfig('paladin-retribution')).plan
+    expect(plan.procs.filter((p) => p.fromProcs).map((p) => p.id)).toEqual(['vengeance', 'vengeance'])
+  })
+
+  it('Consecration’s ticks, a periodic aura’s, give no Vengeance even when they crit [?]', () => {
+    const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, durationMs: 30000 })
+    line(plan, addPaladinAbility(plan, CONSECRATION))
+    plan.mana = { ...plan.mana!, maxTenths: 1e9 }
+    // Every tick crits; white swings never do.
+    plan.spells!.find((x) => x.source === row(plan, 'consecration'))!.bonusCrit = 1000
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(counter(sim, plan, 'consecration', FIELD.crits)).toBeGreaterThan(0)
+    expect(sim.auraUpMs[plan.auras.findIndex((a) => a.id === 'vengeance')]).toBe(0)
   })
 })
 

@@ -97,7 +97,8 @@ export const SEAL_PROC_BASE = 35
  * Forever's flat 35, plus the seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed`
  * with a one-hander [?] (OQ 4, OQ 10, guild test T1), plus 0.1 × SP: the same reading as Seal of
  * Fury's. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
- * It lacks NOT_A_PROC, so it triggers no procs: no Windfury, Crusader or Vengeance from it [?].
+ * It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives Vengeance a
+ * stack: Vengeance's aura can proc from procs (Attr3 0x4000000, paladin.md#retribution-tree) [?].
  */
 export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): SpellDef {
   const damage = SEAL_PROC_BASE + (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
@@ -150,7 +151,8 @@ export const SEAL_OF_FURY_VALUE = atLevel60(1607, 42, 58, 64) / 100
  * one-hander and `1.2 × …` with a two-hander [?] (OQ 10, guild test T1; D29: the aura carries the
  * value, so it gets a default; Seal of Righteousness's proc is read the same way), + 0.1 × SP. With the
  * default 1.5 s axe that's 35 + 21.56. With no main hand it's the flat 35. Melee class with No Active
- * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs [?].
+ * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs but
+ * Vengeance, which can proc from procs [?].
  */
 export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } | null): SpellDef {
   const value = mainHand ? (mainHand.twoHand ? 1.2 : 0.85) * SEAL_OF_FURY_VALUE * mainHand.speedSec : 0

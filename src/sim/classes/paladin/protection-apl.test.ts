@@ -42,20 +42,22 @@ describe('Protection paladin’s priority list (D31)', () => {
       if (!row.enabledId) expect(row.help, row.id).toBeTruthy()
     }
     expect(new Set(PROTECTION_APL.rows.map((r) => r.id)).size).toBe(PROTECTION_APL.rows.length)
-    // paladin.md's order: the pre-pull and opener pinned first (rows 0–0c), then rows 1–8, Hammer of
-    // the Righteous (5b, off) just above Holy Strike (5), so turning it on puts it in Holy Strike's place.
+    // paladin.md's order: the pre-pull and opener pinned first (rows 0–0c), then rows 1–8, with
+    // Exorcism, Hammer of Wrath and Consecration above Holy Strike since the paladin review's PR-1, and
+    // Hammer of the Righteous (5b, off) just above Holy Strike (5), so turning it on puts it in Holy
+    // Strike's place.
     expect(defaultAplOrder(PROTECTION_APL)).toEqual([
       'prepull',
       'seal',
       'holyShield',
       'judgement',
       'swiftJudgement',
-      'hammerOfTheRighteous',
-      'holyStrike',
       'exorcism',
+      'hammerOfWrath',
       'consecration',
       'consecrationRank1',
-      'hammerOfWrath',
+      'hammerOfTheRighteous',
+      'holyStrike',
     ])
     expect(PROTECTION_APL.rows.filter((r) => r.pinned).map((r) => r.id)).toEqual(['prepull'])
   })
@@ -77,7 +79,10 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Fury +60%, Holy Strike 50% every 10 s, Retribution Aura and Thorns with spell damage, Improved
     // Holy Strike's and Crusade's points refunded): each plan's values moved with them. The 70009
     // integration re-took it on the merge of the two: with Wizard Oil back at 30, the paladin slice's
-    // own snapshot reproduces exactly.
+    // own snapshot reproduces exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is a
+    // Restoration druid's, 22 + 0.08 × 200 = 38 unrounded (buffs doc §1.2); with it set back to 53,
+    // the snapshot before it reproduces exactly. PR-1 then moved the default order; each case keeps the
+    // order from before it (protection-apl-cases.ts PRE_LIST_ORDER), so the snapshot didn't move.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()
@@ -94,9 +99,9 @@ describe('Protection paladin’s priority list (D31)', () => {
       'holyShield',
       'judgementOfFury',
       'swiftJudgement',
-      'holyStrike',
-      'consecrationRank1',
       'hammerOfWrath',
+      'consecrationRank1',
+      'holyStrike',
     ])
     expect(r.prepull.casts.map((c) => r.abilities[c.ability].id)).toEqual(['devotionAura', 'righteousFury', 'sealOfTheCrusader'])
     // Abilities 0 and 1 are still the seal and its judgement.

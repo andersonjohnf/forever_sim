@@ -81,10 +81,10 @@ test.describe('Retribution', () => {
     await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury, Arms and Protection · Druids: .+ · Paladins: Retribution and Protection( · .+)?\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: tuned defaults under the usual headings, the rune waiting for Buffs, and no warrior words', async ({ page }) => {
+  test('its Rotation tab: first-pass defaults under the usual headings, the rune waiting for Buffs, and no warrior words', async ({ page }) => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
-    await expect(tab.getByText('The defaults are tuned for the default setup.')).toBeVisible()
+    await expect(tab.getByText('The defaults were tuned on an earlier game build and had a quick search on this one.')).toBeVisible()
     for (const heading of ['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
       await expect(tab.getByRole('heading', { name: heading, exact: true })).toBeVisible()
     }

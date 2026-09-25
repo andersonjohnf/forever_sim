@@ -202,16 +202,21 @@ Retribution Aura's is ([paladin](../classes/paladin.md#other-abilities)): it alw
 crits [?], and as a pure Nature damage spell the boss's resistance takes its average share (6% at
 24 resistance, [spells §3](spells.md)). Its threat is its damage × the tank's threat multipliers
 (stance, form; not Righteous Fury, which is Holy only) [?]: no tooltip gives it a threat of its
-own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). A bear casts it
-on itself before the pull (it lasts 10 min), so it's in every bear preset and Self only
-(`selfCast`). In a raid a druid puts it on the main tank, so every tank's Standard and Max-consumables
-raid presets have it, as they have Devotion Aura, when a druid is in the raid (T2's fix round, T3R-2;
+own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). It's two
+entries, by its caster (PR-4): **a raid druid's** (`thorns`), which a Restoration druid puts on the
+main tank, and **the bear's own** (`thornsOwn`, "Thorns (your own)", druids only), cast on itself
+before the pull (it lasts 10 min) where no other druid does. They don't stack (one `thorns` group),
+and the raid druid's is the larger. In a raid a druid puts it on the main tank, so every tank's
+Standard and Max-consumables raid presets have the raid druid's, as they have Devotion Aura, when a
+druid is in the raid; a bear's Self only and Dungeon presets have its own (`selfCast`), and so do its
+raid presets without a druid in the raid (T2's fix round, T3R-2;
 [D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
 a known effect isn't left at zero). Only a tank takes the boss's swings, so for any other spec it does
 nothing, and the Buffs tab says so. At the flat 22 it was about 10 TPS for a bear (+1.0%), 9.5 for a
 warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000
-fights); with the scaling below, 21.8 TPS for the paladin (+3.0%, its 1.60.1.70009 defaults, the
-same seed).
+fights); with the scaling below, a raid druid's 38 a swing is 15.6 TPS for the Protection paladin
+(+2.1%, after the paladin review's PR-1), 19.6 for the warrior (+2.0%) and 17.8 for the bear (+1.6%) in their default setups (seed
+424242, 20,000 fights, 2026-09-24; at the Balance druid's 389, 53 a swing, the paladin's was 21.8).
 
 **Damage shields that scale with spell power** (1.60.1.70009). The build's dev notes say Thorns and
 Retribution Aura "will now dynamically update [their] values based on the caster's spell power" (Thorns
@@ -223,13 +228,21 @@ aura [F] [client] (SpellEffect, 1.60.1.70009)), so the server holds it, and the 
   0.08 × spell damage), the Forever client's closest analog: a damage shield that deals its damage on
   every attack it meets, with no internal cooldown. Lightning Shield's 0.267 a ball (26363) is the
   other allowed reading, but its balls fire at most every few seconds and are used up. At 0.267,
-  Thorns on a Protection paladin would make about 52 TPS rather than 22 (paladin.md open question 29).
+  Thorns on a Protection paladin would make about 31 TPS rather than 16 (paladin.md open question 29).
 - **The caster's spell damage.** Retribution Aura is your own, so it's your spell damage (a
-  Protection paladin's 379 in its default setup: 30 + 30.3 a swing). Thorns on a tank comes from a raid
-  druid in the raid presets, so the sim takes **389**, the sim's default Balance druid's Nature spell
-  damage [?]: 22 + 0.08 × 389 = 53.12, dealt as a whole **53** a swing [?], for every tank alike. A bear that casts its own,
-  with no spell damage, would deal the base 22; the sim gives every tank the raid druid's
-  (`THORNS_CASTER_SPELL_DAMAGE`, `DAMAGE_SHIELD_SP_COEFFICIENT` in `src/sim/effects/buffs.ts`).
+  Protection paladin's 379 in its default setup: 30 + 30.3 a swing). Thorns on a tank in a raid comes
+  from a **Restoration druid**, the raid's healers, not its Balance druid: Forever's healing gear
+  carries spell damage at a third of its healing ([character-stats](character-stats.md); Whitesoul
+  Helm's +35 healing with +12 spell damage [F]), so a pre-raid healer's +600 or so healing gives about
+  **200** [?] (a reasoned estimate, D29: the sim has no healer setups; it was the default Balance
+  druid's 389 until the paladin review's PR-4): 22 + 0.08 × 200 = **38** a swing, for every tank
+  alike. **The bear's own** (`thornsOwn`) has no spell damage behind it, a bear's gear carrying almost
+  none, so it deals the base **22** (`THORNS_CASTER_SPELL_DAMAGE`, `DAMAGE_SHIELD_SP_COEFFICIENT` in
+  `src/sim/effects/buffs.ts`).
+- **No rounding** [?]: both damage shields deal their unrounded value, 30 + 0.08 × SP for
+  Retribution Aura (60.32 at 379) and 22 + 0.08 × SP for Thorns, as Holy Shield's 221 + 0.08 × SP and
+  every other spell-power damage in the engine are. The server deals a whole number each hit, but
+  whether it rounds or truncates is unknown, and either moves a swing by under one point (PR-9).
 
 ### 1.3 Camp buffs (new Forever system)
 
@@ -822,7 +835,8 @@ Mana Spring.
 | Strength of Earth Totem † | Sha (your own) | Enh | all | all |
 | Mana Spring Totem | Sha (your own) | Enh | Pal, Enh, Mage | Pal, Enh, Mage |
 | Devotion Aura | — | — | Tank (a Prot paladin's is its own duty: see below) | the same |
-| Thorns (on the tank) | Druid (your own: the bear) | Bear | Tank (a druid puts it on the main tank) | Tank |
+| Thorns (on the tank): a raid druid's (`thorns`) | — | — | Tank (a Restoration druid puts it on the main tank) | Tank |
+| Thorns (your own: the bear's, `thornsOwn`) | Druid (the bear) | Bear | Bear, without a druid in the raid (the raid druid's takes its place) | the same |
 | Sunder Armor ×5 † | — | DPS | all | all |
 | Faerie Fire † | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness † | — | — | all | all |
@@ -1332,7 +1346,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
 | Devotion Aura r7 (`devotionAura`) | +735 armor | same | 10293 #0: 734 + 1 | [C] |
-| Thorns r6 (`thorns`), on the tank | 22 Nature damage on each boss swing that lands | **18** | 9910 #0 (aura 15): 17 + 1 | [C] |
+| Thorns r6 (`thorns`, a raid druid's; `thornsOwn`, the bear's own), on the tank | 22 Nature damage on each boss swing that lands (+ 0.08 × its caster's spell damage in Forever) | **18** | 9910 #0 (aura 15): 17 + 1 | [C] |
 | Blessing of Wisdom r6 (`blessingOfWisdom`) | 40 mana every 5 s | **33 every 5 s** | 25290 #0 (aura 24, period 5000): 32 + 1 (Greater 25918 the same) | [C] |
 | Mana Spring Totem r4 (`manaSpringTotem`) | 10 mana every 2 s (25 per 5 s) | same | the totem's Mana Spring 10494 #0 (aura 24, period 2000): 9 + 1 | [C] |
 | Sunder Armor ×5 (`sunderArmor`) | −2250 armor | same | 11597 #0: −451 + 1, ×5 | [C] |

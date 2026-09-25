@@ -418,7 +418,11 @@ const REGISTRY = {
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
   thorns: {
-    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage, taken as 389 (Holy Shield’s coefficient; Forever’s is on the server), on every boss swing that lands on you, a blocked one too; it always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): 38 in all, its caster’s spell damage taken as a raid healer’s 200, a third of +600 healing on its gear, as Forever’s items give. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
+  },
+  thornsOwn: {
+    text: 'Your own Thorns deals its base 22 Nature damage: the 0.08 × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
@@ -452,7 +456,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {
-    text: 'Seal procs and judgements are melee attacks that crit for double at your melee crit. Seal of Command’s proc and the judgements trigger Windfury, Hand of Justice, Crusader, Vengeance and Vindication; Seal of Righteousness’s and Seal of Fury’s procs trigger none of them, as the client data marks them. Untested in game.',
+    text: 'Seal procs and judgements are melee attacks that crit for double at your melee crit. Seal of Command’s proc and the judgements trigger Windfury, Hand of Justice, Crusader, Vengeance and Vindication; Seal of Righteousness’s and Seal of Fury’s procs trigger none of them but Vengeance, whose aura the client data lets procs trigger; their crits give it stacks. Untested in game.',
     docRef: `${PAL}#open-questions`,
   },
   jotcBonus: {

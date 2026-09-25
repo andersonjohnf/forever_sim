@@ -151,9 +151,13 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS were
   // tuned on 1.60.1.69913 and had D27's first-pass check on 1.60.1.70009 (warrior.md §5.4 "Build 1.60.1.70009").
   if (spec === 'warrior-protection') return 'Defensive and Max TPS were tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn’t been fully tuned yet.'
-  if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'paladin-retribution') return 'The defaults are tuned for the default setup.'
-  // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it's Defensive's tuned list.
-  if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.'
+  if (spec === 'warrior-arms' || spec === 'warrior-fury') return 'The defaults are tuned for the default setup.'
+  // D27 (the paladin review's PR-6, the warrior's WR-11 wording): Retribution was tuned on 1.60.1.69913 and had a
+  // first-pass search with its talents on 1.60.1.70009 (paladin.md "The 1.60.1.70009 re-check").
+  if (spec === 'paladin-retribution') return 'The defaults were tuned on an earlier game build and had a quick search on this one.'
+  // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it plays as Defensive; both, and Max TPS,
+  // had a first-pass search on 1.60.1.70009 (paladin.md "Priority: Defensive, Balanced or Max TPS").
+  if (spec === 'paladin-protection') return 'Defensive and Max TPS were tuned on an earlier game build and had a quick search on this one; Balanced, the default, plays as Defensive.'
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }

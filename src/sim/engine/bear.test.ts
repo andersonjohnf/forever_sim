@@ -11,6 +11,7 @@ import { BERSERK } from '../classes/druid/cat-abilities'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
 import { armorReduction } from '../core/formulas'
 import { defaultConfig } from '../defaults'
+import { normalizeConfig } from '../config/normalize'
 import { buildPlan } from '../plan/build'
 import { type AbilityDef, COND, NO_PREPULL, type Plan, type RotationCondition, TRIGGER_COUNT } from '../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
@@ -525,7 +526,7 @@ describe('the default bear (druid.md §6.3)', () => {
     }
   })
 
-  it('Thorns (Buffs, BR5): 22 + 0.08 × a raid druid’s 389 spell damage (53) on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
+  it('Thorns (Buffs, BR5): 22 + 0.08 × a raid Restoration druid’s 200 spell damage (38) on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
     const { plan } = buildPlan(config())
     const sim = new Sim(plan)
     for (let i = 0; i < 30; i++) sim.runFight(i)
@@ -535,9 +536,9 @@ describe('the default bear (druid.md §6.3)', () => {
     const landed = o[BOSS_OUTCOME.hit] + o[BOSS_OUTCOME.crit] + o[BOSS_OUTCOME.crush] + o[BOSS_OUTCOME.block]
     expect(counter(sim, r, FIELD.casts)).toBe(landed)
     expect(counter(sim, r, FIELD.crits)).toBe(0)
-    // buffs doc §1.2: (22 + 0.08 × 389, dealt as 53) × (1 − 0.75 × 24 / 300), Nature's average resist
-    // against a level-63 boss; the spell damage is its caster's, a raid druid's (1.60.1.70009).
-    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(53 * 0.94, 9)
+    // buffs doc §1.2: (22 + 0.08 × 200, unrounded) × (1 − 0.75 × 24 / 300), Nature's average resist
+    // against a level-63 boss; the spell damage is its caster's, a raid Restoration druid's (PR-4).
+    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(38 * 0.94, 9)
     expect(counter(sim, r, FIELD.threat) / counter(sim, r, FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
     // Without it in Buffs, no row.
     const d = config()
@@ -556,6 +557,25 @@ describe('the default bear (druid.md §6.3)', () => {
     const wr = warrior.sources.findIndex((s) => s.id === 'thorns')
     expect(counter(ws, wr, FIELD.threat) / counter(ws, wr, FIELD.damage)).toBeCloseTo(warrior.threatMult, 12)
     expect(warrior.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
+  })
+
+  it('its own Thorns (Self only, Dungeon, or a raid with no other druid; PR-4): the base 22 on the same row, with its own note', () => {
+    const d = config()
+    const own = { ...d, buffs: { raid: d.buffs.raid.filter((c) => c !== 'druid'), enabled: [...d.buffs.enabled.filter((id) => id !== 'thorns'), 'thornsOwn'] } }
+    const { plan, assumptions } = buildPlan(own)
+    const sim = new Sim(plan)
+    for (let i = 0; i < 10; i++) sim.runFight(i)
+    const r = plan.sources.findIndex((s) => s.id === 'thorns')
+    const o = sim.bossOutcomes
+    const landed = o[BOSS_OUTCOME.hit] + o[BOSS_OUTCOME.crit] + o[BOSS_OUTCOME.crush] + o[BOSS_OUTCOME.block]
+    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(22 * 0.94, 9)
+    expect(assumptions.map((a) => a.id)).toContain('thornsOwn')
+    expect(assumptions.map((a) => a.id)).not.toContain('thorns')
+    // They don't stack: a stored setup with both keeps the raid druid's, the larger, and says so.
+    const both = normalizeConfig({ ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, 'thornsOwn'] } })
+    expect(both.config.buffs.enabled).toContain('thorns')
+    expect(both.config.buffs.enabled).not.toContain('thornsOwn')
+    expect(both.warnings).toContain('Thorns (your own) doesn’t stack with Thorns, so it was turned off.')
   })
 
   it('gains rage from the boss’s hits in bear (rage.md#forever-): none without them', () => {

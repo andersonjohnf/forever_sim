@@ -503,6 +503,12 @@ export interface ProcSpec {
    */
   schools?: readonly MagicSchool[]
   fromSpell?: string
+  /**
+   * It can proc from procs (SpellMisc Attr3 0x4000000 on its aura): a triggered spell that fires no
+   * other procs (no NOT_A_PROC) still fires this one, a periodic aura's tick excepted (Vengeance,
+   * paladin.md#retribution-tree) [?].
+   */
+  fromProcs?: boolean
   /** Doc section that owns the numbers. */
   docRef: string
 }

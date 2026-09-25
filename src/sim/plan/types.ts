@@ -530,6 +530,13 @@ export interface ProcPlan {
   schools?: number
   fromSource?: number
   /**
+   * It can proc from procs (its aura's SpellMisc Attr3 0x4000000, "Can Proc From Procs"): a triggered
+   * spell without NOT_A_PROC, which fires no other procs (`SpellDef.triggersProcs` false), still fires
+   * it, unless the spell is a periodic aura's tick (Vengeance from Seal of Righteousness's and Seal of
+   * Fury's procs, not Consecration's ticks; paladin.md#retribution-tree) [?].
+   */
+  fromProcs?: boolean
+  /**
    * On the spell triggers: its rate per minute of casting, instead of `chance`: each landed spell's
    * chance is this × its ability's cast time (`SpellPlan.procCastMs`, at least the GCD) / 60,000 (Omen
    * of Clarity's spells [?], docs/classes/druid.md §11.3). Absent or 0: `chance`.

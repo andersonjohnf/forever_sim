@@ -285,8 +285,9 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 The officers' review of v1 found the Protection paladin and the bear far behind the warrior:
 survival presets, known effects modelled as zero, and tank abilities treated differently for the
 same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
-until each slice logs its own review. The guild's benchmark (D29): a paladin and a bear at about
-800–900 TPS, a warrior no more than about 50% ahead.
+until each slice logs its own review. There's no numeric target for a tank (D29, user decision,
+2026-09-24, withdrawing the officers' earlier feel for one): results land where the cited mechanics
+put them, and a gap no mechanic explains is an observation for the guild's tests (T6).
 - [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
       armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
       presets built for threat (the gear review)
@@ -318,22 +319,31 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         off, above Holy Strike
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
-      - **Open plausibility finding (TI-2, the tank integration review, 2026-09-24): the bear is
-        above D29's benchmark, and the model stays as it is until a test explains it.** The default
-        bear (Balanced) makes **1,115 TPS** on seed 31101 (100,000 fights; 547 DPS), against the
-        officers' 800–900 for a paladin or a bear; on the same run the warrior's Balanced makes 1,241
-        and the paladin's 832 (D28; the review log's 1,240.98, 1,115.34 and 832.09). On build
+      - **The three tanks on build 1.60.1.70009 (the paladin review's PR-7, 2026-09-24),** with
+        every 1.60.1.70009 slice merged, a raid Restoration druid's Thorns (PR-4) and the paladin's
+        re-searched order and talents (PR-1): Balanced on seed 31101 (100,000 fights), **the
+        warrior 1,001.6 TPS** (391.6 DPS), **the bear 1,126.6** (553.1) and **the paladin 752.6**
+        (466.6; 746 at the integration, before PR-1 and PR-4). Recorded as observations, not
+        failures (D29 has no numeric target): the bear is 12.5% above the warrior and 49.7% above the
+        paladin, and the warrior 33.1% above the paladin. The paladin's gap is mostly 1.60.1.70009's
+        Righteous Fury, +60% Holy threat where it was +90% (client and dev notes [F]); the bear's
+        lead is mostly Maul (below). The model stays as it is: the tests below are what could
+        explain or close either gap.
+      - **Observation (TI-2, the tank integration review, 2026-09-24): the bear leads.** The default
+        bear (Balanced) made **1,115 TPS** on seed 31101 (100,000 fights; 547 DPS); on the same run
+        the warrior's Balanced made 1,241 and the paladin's 832 (D28; the review log's 1,240.98,
+        1,115.34 and 832.09). On build
         1.60.1.70009 the warrior's Balanced fell to 993 TPS with Sunder Armor's threat, so the
         bear, still 1,116 before its own 1.60.1.70009 pass (829 for the paladin; seed 31101,
-        20,000 fights), is now 12% above the warrior too: the druid slice re-measures it and keeps
-        this finding (the 70009 warrior review's WR-9, 2026-09-24). Its
+        20,000 fights), is now 12% above the warrior too: the druid slice re-measured it and kept
+        it open (the 70009 warrior review's WR-9, 2026-09-24). Its
         threat by ability (seed 31101, 10,000 fights, share of threat, TPS, casts a fight): Maul
         **58.8%, 657, 73.6**; Lacerate 14.2%, 159, 53.2, and its bleed 3.5%, 39; Mangle 14.1%, 158,
         37.9; Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15, 21.9;
         Thorns 0.9%, 10; the rest (Primal Fury, Enrage, Hand of Justice, Natural Reaction, the
         Mighty Rage Potion) under 1% each. Maul alone is more than half, so the candidates are
         what sets Maul's threat and how often the bear can pay for it.
-      - **Build 1.60.1.70009 (2026-09-24): still open, 1,119 TPS.** On seed 31101 (100,000 fights)
+      - **Build 1.60.1.70009 (2026-09-24): 1,119 TPS** (1,126.6 with every slice merged, above). On seed 31101 (100,000 fights)
         the default bear makes **1,119.09 TPS** (547.44 DPS, unchanged), up 0.34% from 1,115.34.
         By ability (10,000 fights, share, TPS, casts a fight): Maul **58.6%, 657, 73.6**; Lacerate
         14.5%, 163, 53.2, and its bleed 3.5%, 39; Primal Bite (Mangle before) 14.1%, 158, 37.9;
@@ -357,23 +367,20 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         - **Rage logs:** two bears' logs of 23–24 Sep suggest more rage for it (rage from hits taken
           rises with the mob's level; one auto at the two-hander's rate), not adopted until the logs
           listed in [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-) settle it
-      - **Open plausibility finding (the paladin's 1.60.1.70009 slice, 2026-09-24): the Protection
-        paladin is below D29's benchmark, and the model stays as it is until a test explains it.**
+      - **Observation (the paladin's 1.60.1.70009 slice, 2026-09-24): the Protection paladin trails.**
         1.60.1.70009 cut Righteous Fury from +90% to Classic Era's +60% Holy threat (client and dev
-        notes [F]), and the sim doesn't invent threat to make up for it (D29 counts the benchmark as
-        evidence only where a value is unknown). The default paladin (Balanced) makes **749.2 TPS** on
-        seed 31101 (100,000 fights; 466.8 DPS), against 828.9 on 1.60.1.70009's data with the old
-        values, and the officers' 800–900; on the same build the warrior makes 993 (+32.5%; its own
-        1.60.1.70009 slice) and the bear 1,115 (+48.8%, before its slice), each before Thorns' new
-        spell-power scaling, which adds about 1.3% to either (+16.0 and +14.5 TPS on seed 31101 against
-        build-70009; about 1,009 and 1,130, +34.7% and +50.8%). Its threat by ability (seed 31101,
-        10,000 fights, 750.3 TPS; share, TPS, casts a fight): Seal of Fury's procs **19.4%, 146,
-        118.5**; Judgement of Fury 14.8%, 111, 25.2; Consecration 14.8%, 111, 18.8; Holy Shield's
-        block damage 12.6%, 95, 32.9 blocks; Holy Strike 10.2%, 77, 17.8; the auto attack 10.1%, 76,
-        and Windfury, Reckoning and the Flurry Axe's extra swings 5.5%, 41; Hammer of Wrath 4.3%, 33;
-        Thorns 2.9%, 22; the mana Shield Specialization, Improved Seal of Fury and the potion give
-        5.3%, 40. Holy damage is about 76% of it, all × Righteous Fury, so its multiplier moves the
-        headline most. To test in game, in this order (paladin.md open questions):
+        notes [F]), and the sim doesn't invent threat to make up for it (D29). The default paladin
+        (Balanced) made **749.2 TPS** on seed 31101 (100,000 fights; 466.8 DPS), against 828.9 on
+        1.60.1.70009's data with the old values; with the paladin review's order and Holy Conduit 1
+        (PR-1) and a raid Restoration druid's Thorns (PR-4), **752.6** (above). Its threat by
+        ability now (seed 31101, 100,000 fights, 752.6 TPS; share, TPS, casts a fight): Seal of
+        Fury's procs **19.0%, 143, 117.7**; Consecration 16.9%, 127, 21.3 (rank 1 0.1%); Judgement
+        of Fury 14.6%, 110, 25.2; Holy Shield's block damage 12.3%, 93, 32.4 blocks; the auto attack
+        9.9%, 75, and Windfury, Reckoning and the Flurry Axe's extra swings 5.3%, 40; Holy Strike
+        9.7%, 73, 17.4; Hammer of Wrath 4.8%, 36; Thorns 2.1%, 16; the mana Shield Specialization,
+        Improved Seal of Fury and the potion give 5.2%, 39. Holy damage is about 77% of it, all ×
+        Righteous Fury, so its multiplier moves the headline most. To test in game, in this order
+        (paladin.md open questions):
         - **Righteous Fury's multiplier** (25780): threat on the boss from one Holy hit (a Judgement of
           Fury while you already have top threat) ÷ its damage: 1.6 as the client says, or more
         - **Seal of Fury's per-swing damage** (T1, OQ 10): 35 flat, or 35 plus the seal value the sim
@@ -385,7 +392,7 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         - **Holy Strike's formula** (T2, OQ 6): 50% of the weapon plus 81–105, or 50% of both, and its
           third effect's threat (T4, OQ 27)
         - **Thorns' and Retribution Aura's spell damage coefficient** (OQ 29): 0.08 [?]; Lightning
-          Shield's 0.267 would make Thorns about 30 TPS more
+          Shield's 0.267 would make Thorns about 15 TPS more for the paladin
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 
@@ -578,7 +585,8 @@ slice is worked:
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),
   each under 2% of TPS, kept as they are until a guild test or the optimizer settles them:
-  - **P9:** Holy Shield's 20% more threat multiplies Righteous Fury's (×2.28, not ×2.1) and its
+  - **P9:** Holy Shield's 20% more threat multiplies Righteous Fury's (×2.28, not ×2.1, with Righteous
+    Fury's +90% then; ×1.92, not ×1.8, since 1.60.1.70009's +60%) and its
     damage never misses: both [?] lean high, about −1.9% and −3.4% the other way (guild test T6,
     paladin.md OQ 16).
   - **P10:** Consecration's ticks miss at the spell rate (14% against a boss); never missing would be

@@ -65,7 +65,9 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // classes/eureka.ts): 27 of the 200 cases moved, every one a Gnome's; no other case changed.
       // The 70009 integration re-took it on the merge of the Thorns (paladin slice), Eureka! (casters)
       // and Sunder Armor and Shield Slam (warrior) changes: with Thorns set back to its flat 22, the
-      // pre-merge snapshot reproduces exactly.
+      // pre-merge snapshot reproduces exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is
+      // a Restoration druid's, 22 + 0.08 × 200 = 38 unrounded (buffs doc §1.2); with Thorns set back to
+      // 53, the snapshot before it reproduces exactly.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

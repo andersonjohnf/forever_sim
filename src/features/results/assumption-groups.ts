@@ -172,6 +172,7 @@ export const ASSUMPTION_GROUP = {
   bearArmor: 'class',
   thickHide: 'class',
   thorns: 'class',
+  thornsOwn: 'class',
   idolOfBrutality: 'class',
   shapeshifts: 'class',
   jotcBonus: 'class',

@@ -101,16 +101,32 @@
     }
   },
   "paladin": {
+    "51003-503-05225331001330321": {
+      "note": "Retribution default (10/8/33), paladin.md Retribution defaults: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name; of Improved Holy Strike's and Crusade's 4 refunded points, 1 goes to Vindication 3/3, which the deeper talents' 20-point row needs, and 3 to Divine Intellect 1 and Holy Conduit 2, searched with Consecration's thresholds by measured DPS (the paladin review's PR-2)",
+      "ranks": [
+        "Divine Strength 5, Divine Intellect 1, Improved Seals 3",
+        "Toughness 5, Precision 3",
+        "Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Sacred Arbiter 1, Two-Handed Weapon Specialization 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light 1"
+      ]
+    },
     "52003-503-05215331001330321": {
-      "note": "Retribution default (10/8/33), paladin.md Retribution defaults: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name; of Improved Holy Strike's and Crusade's 4 refunded points, 1 goes to Vindication 3/3, which the deeper talents' 20-point row needs, and 3 to Divine Intellect 2 and Holy Conduit 1, by measured DPS",
+      "note": "The 1.60.1.70009 slice's Retribution default (10/8/33), kept for saved setups: the popular build of 2026-09-22 on 1.60.1.70009's trees, by name; of the 4 refunded points, 1 to Vindication 3/3 and 3 to Divine Intellect 2 and Holy Conduit 1, until the paladin review's joint search (PR-2)",
       "ranks": [
         "Divine Strength 5, Divine Intellect 2, Improved Seals 3",
         "Toughness 5, Precision 3",
         "Benediction 5, Improved Judgement 2, Holy Conduit 1, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Sacred Arbiter 1, Two-Handed Weapon Specialization 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light 1"
       ]
     },
+    "50003-0530213321301551-5021": {
+      "note": "Protection default (8/35/8), the guild's lead theorycrafter's build (2026-09-24) on 1.60.1.70009's trees, by name: Improved Holy Strike's 2 refunded points to Divine Strength 5/5 (Improved Seals' row needs 5 points) and Holy Conduit 1, searched with the row order and Consecration's thresholds by measured Balanced value (the paladin review's PR-1), paladin.md Protection defaults",
+      "ranks": [
+        "Divine Strength 5, Improved Seals 3",
+        "Redoubt 5, Precision 3, Anticipation 2, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+        "Deflection 5, Improved Judgement 2, Holy Conduit 1"
+      ]
+    },
     "50003-0530213321301551-50201": {
-      "note": "Protection default (8/35/8), the guild's lead theorycrafter's build (2026-09-24) on 1.60.1.70009's trees, by name: Improved Holy Strike's 2 refunded points to Divine Strength 5/5 (Improved Seals' row needs 5 points) and Conviction 1, by measured Balanced value, paladin.md Protection defaults",
+      "note": "The 1.60.1.70009 slice's Protection default (8/35/8), kept for saved setups: the guild's lead theorycrafter's build on 1.60.1.70009's trees, Improved Holy Strike's 2 refunded points to Divine Strength 5/5 and Conviction 1, until the paladin review's joint search with the row order (PR-1)",
       "ranks": [
         "Divine Strength 5, Improved Seals 3",
         "Redoubt 5, Precision 3, Anticipation 2, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",

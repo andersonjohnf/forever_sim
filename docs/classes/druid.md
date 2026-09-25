@@ -729,7 +729,7 @@ One target: 118.69 a Swipe with the default build (W16).
 | Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?] [ltc2] |
 | Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [client] (SpellEffect 9635 #4, #5, 1.60.1.69913: Dire Bear Form (Passive), −100% cost and +6000 ms cooldown on its class mask) [se-f]; threat [?] [ltc2] |
 | Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
-| Thorns (on yourself) | 22 Nature damage to the boss on each of its swings that lands, 10 min; a Buffs entry, on in every bear preset ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)); threat at the form's multiplier | [F] [client] (SpellEffect 9910, 1.60.1.69913); the model [?] (Q38) |
+| Thorns (on yourself) | 22 Nature damage to the boss on each of its swings that lands, 10 min; a Buffs entry, "Thorns (your own)" (`thornsOwn`), on in the Self only and Dungeon presets and in a raid with no other druid; in a raid with one, a Restoration druid's (`thorns`, 22 + 0.08 × its 200 spell damage = 38 [?]) takes its place ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)); threat at the form's multiplier | [F] [client] (SpellEffect 9910, 1.60.1.69913); the model [?] (Q38) |
 | Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf]; the armor part is a dummy effect (server-side), so only the tooltip gives it |
 | Frenzied Regeneration | Not simmed (TPS only) | [F] |
 | Bash | Not simmed | |
@@ -1485,7 +1485,9 @@ default setups; `scripts/tune/rotation.mjs`):
   261 (§4.3): the bear's Balanced **1,115.34 → 1,119.09 TPS** (+0.34%), DPS 547.44 unchanged.
 - **Thorns** scales with the caster's spell power in 1.60.1.70009 (Blizzard's notes; the client's
   9910 still reads 22). The shared change is the paladin slice's (`effects/buffs.ts`); the
-  numbers here are without it: Thorns at 22 a hit, 10.3 TPS of the bear's (0.9%).
+  numbers here are without it: Thorns at 22 a hit, 10.3 TPS of the bear's (0.9%). Since the
+  paladin review's PR-4 a raid's Thorns is a Restoration druid's, 38 a hit, and the bear's own, in
+  its Self only and Dungeon presets, the base 22 (buffs doc §1.2).
 - **The presets, re-checked (D27 first pass).** Balanced's Maul from 20: 14 to 16 gain 0.13–0.14%
   TPS for 0.12–0.23% of the DPS, 22 and up lose TPS, as before; Max TPS's 14: 12 and 16 are within
   ±0.04% (not significant), 18 and 20 lose. Lacerate's 12 s refresh: 9 s −1.84%, 15 s −0.63%.
@@ -1497,18 +1499,21 @@ default setups; `scripts/tune/rotation.mjs`):
   −0.82%).
 - **Plausibility (D29, milestones T6).** D29 sets no numeric benchmark for a tank: the headlines
   land where the cited mechanics put them, and a gap no cited mechanic explains goes to the
-  guild's in-game tests rather than moving a value. What the three tanks' defaults make on the
-  integrated 1.60.1.70009 branch (seed 31101, 20,000 fights, each tank's default setup), as
-  observations: the warrior **1,009 TPS**, the paladin **746** and the bear **1,134**. The order
-  has turned over: on 1.60.1.69913 the warrior's Balanced led (1,241 against the bear's 1,115),
-  and 1.60.1.70009's Sunder Armor (206 + 0.05 × AP) took the warrior below the bear, now 12%
-  ahead of it, while the bear itself moved little (Lacerate's new value +0.3%, Thorns' spell-power
-  scaling about +1.3%). **Maul is 59% of the bear's threat,** so the bear's headline rests on what
-  sets Maul's threat (its ×1.75 [?], §4.8, Q15, and whether Savage Fury's ×1.10 reaches it) and on
-  how often the bear can pay for it (rage from damage dealt and taken, both [?],
-  [rage.md](../mechanics/rage.md)); the build changed none of them. Those are T6's open in-game
-  tests ([milestones M5.6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), and
-  the model stays as the cited mechanics put it until they report.
+  guild's in-game tests rather than moving a value. What the three tanks' defaults make with every
+  1.60.1.70009 slice merged (seed 31101, 100,000 fights, each tank's default setup; the paladin
+  review's PR-7), as observations: the bear **1,126.6 TPS**, the warrior **1,001.6** and the paladin
+  **752.6**. The order has turned over: on 1.60.1.69913 the warrior's Balanced led (1,241 against
+  the bear's 1,115), and 1.60.1.70009's Sunder Armor (206 + 0.05 × AP) took the warrior below the
+  bear, now about 12.5% ahead of it, while the bear itself moved little (Lacerate's new value
+  +0.3%, Thorns from a raid Restoration druid's spell damage about +1%). By ability (10,000
+  fights): Maul 58.6% (657 TPS, 73.6 a fight), Lacerate 14.5% (163, 53.2) and its bleed 3.5% (39),
+  Primal Bite 14.1% (158, 37.9), Windfury Attack 3.2%, the auto attack 2.2%, Faerie Fire 1.3%,
+  Thorns 0.9%, Blood Frenzy 0.8%, the rest under 0.5% each. **Maul is 59% of the bear's threat,**
+  so the bear's headline rests on what sets Maul's threat (its ×1.75 [?], §4.8, Q15, and whether
+  Savage Fury's ×1.10 reaches it) and on how often the bear can pay for it (rage from damage dealt
+  and taken, both [?], [rage.md](../mechanics/rage.md)); the build changed none of them. Those are
+  T6's open in-game tests ([milestones M5.6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)),
+  and the model stays as the cited mechanics put it until they report.
 
 ---
 

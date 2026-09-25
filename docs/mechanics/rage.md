@@ -417,11 +417,12 @@ and a bear auto 8.65 until the logs below settle them, because:
 
 - The data is two characters at about level 20, and the two models disagree on the effect at 60
   by more than tenfold (+0.4% or +4.9% Protection warrior TPS).
-- The bear already runs above the guild's benchmark: 1,081.9 TPS by default
-  ([druid.md §7.3a](../classes/druid.md#73a-interim-gear-m56-t3)), against 800–900
-  ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24),
-  logged under [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
-  Both changes would raise it further.
+- The bear already leads the tanks: 1,126.6 TPS by default on 1.60.1.70009 (seed 31101), 12.5%
+  above the warrior's 1,001.6 and 49.7% above the paladin's 752.6. There's no numeric target
+  ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)),
+  so that's an observation for the guild's tests
+  ([milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), but either
+  change would widen the lead on one level-20 sample, so the logs decide.
 
 **Logs that would settle it** (advanced combat logging and `UNIT_POWER_UPDATE`, recording each
 hit as in [open question 1](#open-questions)):
@@ -888,8 +889,8 @@ sample size (doctrine §2, tier 2).
    Bear Form as in item 1. **Partly answered** by the
    [bear logs of 23–24 Sep](#bear-logs-of-23-and-24-sep-): 49 hits on two known bears fit the
    damage-taken formula's shape, with a factor that rises with the mob's level; one clean bear
-   auto gave 11.3 rage, the two-hander's `4.5 × 2.5`. Not adopted (n = 1; the bear is already
-   above the guild's benchmark); log 20 or more autos with nothing else giving rage.
+   auto gave 11.3 rage, the two-hander's `4.5 × 2.5`. Not adopted (n = 1, and the bear already
+   leads the tanks); log 20 or more autos with nothing else giving rage.
 4. **Refunds in Forever**: miss/dodge/parry refund percentage, and which abilities are exempt.
    Specifically:
    - Does Cleave refund? Magey says no; WarriorSim says yes.

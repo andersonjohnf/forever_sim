@@ -62,9 +62,10 @@ test.describe('Protection paladin rotation', () => {
     await expect(info).toContainText('Holy Strike too, since Iron Creed’s 10% lower damage taken is active mitigation')
     await expect(info).toContainText('7% more TPS and 7% more DPS than Defensive, for 6% more damage taken')
     await page.keyboard.press('Escape')
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Cooldowns and buffs', 'Consumables', 'Priority list'])
+    // No Cooldowns and buffs heading: its only setting was Righteous Fury, which the pinned pre-pull row names (VA-1).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Consumables', 'Priority list'])
     // The preset comes before everything else on the tab, as a tank's priority choice always did.
-    expect((await preset(page).boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
+    expect((await preset(page).boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Consumables' }).boundingBox())!.y)
     await preset(page).click()
     await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
     await page.keyboard.press('Escape')

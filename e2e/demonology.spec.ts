@@ -81,11 +81,13 @@ test.describe('Demonology warlock', () => {
     await switchToDemonology(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Consumables'])
+    // The demons and the consumables above its priority list (D31, warlock.md §6.4).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Consumables', 'Priority list'])
     await expect(choice(tab, 'Demonic Sacrifice', 'Succubus')).toBeChecked()
     await expect(choice(tab, 'Demon', 'Imp')).toBeChecked()
-    await expect(choice(tab, 'Bane', 'Doom')).toBeChecked()
-    for (const name of ['Curse of the Elements', 'Immolate', 'Corruption', 'Racial cooldown', 'Soul Fire below 35%']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    const list = tab.getByRole('list', { name: 'Priority list' })
+    await expect(list.locator('[data-apl-row="bane"]')).toContainText('Doom')
+    for (const name of ['Curse of the Elements', 'Immolate', 'Corruption', 'Racial cooldown', 'Soul Fire']) await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab).not.toContainText(OTHER_CLASS)
     // With the Imp out, the boss's armor debuffs meet nothing of yours: locked off, saying why.
     let buffs = await openTab(page, 'Buffs')

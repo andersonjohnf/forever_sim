@@ -30,9 +30,9 @@ import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protecti
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
-import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
-import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
-import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
+import { DESTRUCTION_APL, DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
+import { AFFLICTION_APL, AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
+import { DEMONOLOGY_APL, DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
 import { SHADOW_APL, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { HUNTER_APL, hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
@@ -136,6 +136,10 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'shaman-elemental') return ELEMENTAL_APL
   // docs/classes/mage.md "The priority lists": Fire, Frost and Arcane.
   if (SPEC_META[spec].classId === 'mage') return mageApl(spec)
+  // docs/classes/warlock.md §6.4.
+  if (spec === 'warlock-destruction') return DESTRUCTION_APL
+  if (spec === 'warlock-affliction') return AFFLICTION_APL
+  if (spec === 'warlock-demonology') return DEMONOLOGY_APL
   return undefined
 }
 
@@ -351,10 +355,10 @@ export function classRotation(
   // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
   if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context, order)
   // docs/classes/warlock.md §6.
-  if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context)
-  if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
+  if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context, order)
+  if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context, order)
   // docs/classes/warlock.md §11.5.
-  if (spec === 'warlock-demonology') return demonologyRotation(values, talents, auraIndex, context)
+  if (spec === 'warlock-demonology') return demonologyRotation(values, talents, auraIndex, context, order)
   // docs/classes/priest.md §6.
   if (spec === 'priest-shadow') return shadowRotation(values, talents, context, order)
   // docs/classes/hunter.md §7.

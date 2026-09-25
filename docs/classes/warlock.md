@@ -241,6 +241,9 @@ adapted, and §6.3's search picks the biggest settings.
 
 Dark Pact isn't in Forever, so Life Tap is the mana ability.
 
+Both lists are the Rotation tab's priority list, rows you reorder
+([§6.4](#64-the-priority-list-a2)).
+
 ### 6.3 First-pass defaults (D27)
 
 One search over the biggest settings, 20,000 fights on seed 2701 each, the default setup otherwise
@@ -287,6 +290,73 @@ So Affliction defaults to Bane of Doom (its coefficient 4 makes it worth more th
 Siphon Life on, the Imp and Life Tap at 10%. Keeping Immolate up too would add about 2.2% (410.8
 against 402.1 in the K3 review's probe, 6,000 fights); its rotation has no Immolate yet, left for the
 tuning milestone.
+
+### 6.4 The priority list (A2)
+
+Since M5.65 A2 each spec's priority above is the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`warlockApl` in `shared.ts`), in this order, each row with its switch and its own settings. The
+rows have the same ids on every spec. Each row keeps its own conditions wherever you move it; only
+its place in the priority changes.
+
+**Destruction** (§6.1; setting ids `warlock.destruction.…`, `DESTRUCTION_APL`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | Off the GCD, on cooldown |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | Off the GCD, on cooldown (none of the modelled ones is a caster's yet) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | Off the GCD, on cooldown, with a priest's in Buffs. The mana potion and rune take their turn here |
+| Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
+| Immolate (`immolate`) | `immolate.enabled` | | Recast as it runs out (from its cast time before its end) |
+| Conflagrate (`conflagrate`) | `conflagrate.enabled` | | On cooldown while Immolate is up; needs the talent and Immolate's row on |
+| Shadowburn (`shadowburn`) | `shadowburn.enabled` | | On cooldown; needs the talent |
+| Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out |
+| Bane (`bane`) | — | `bane.spell` | Doom while at least 61 s are left, then Agony for the last minute once the last Doom has landed; or Agony kept up, or none |
+| Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana (0: never here) |
+| Filler (`filler`) | — | `filler.spell` | Incinerate (with the talent) or Shadow Bolt, whenever it can be paid for |
+
+**Affliction** (§6.2; `warlock.affliction.…`, `AFFLICTION_APL`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`), On-use trinkets (`trinkets`), Power Infusion (`powerInfusion`) | as Destruction's | | as Destruction's |
+| Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
+| Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out; its ticks give Nightfall's Shadow Trance |
+| Bane (`bane`) | — | `bane.spell` | As Destruction's |
+| Siphon Life (`siphonLife`) | `siphonLife.enabled` | | Recast as it runs out; needs the talent |
+| Shadow Bolt on Shadow Trance (`shadowTrance`) | — | | An instant Shadow Bolt while Shadow Trance is up; nothing without Nightfall |
+| Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana |
+| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+
+**Demonology** (§11.5; `warlock.demonology.…`, `DEMONOLOGY_APL`):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`), On-use trinkets (`trinkets`), Power Infusion (`powerInfusion`) | as Destruction's | | as Destruction's |
+| Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
+| Immolate (`immolate`) | `immolate.enabled` | | Recast as it runs out |
+| Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out |
+| Bane (`bane`) | — | `bane.spell` | As Destruction's |
+| Soul Fire (`soulFire`) | `soulFire.enabled` | | Below 35% health, on cooldown; needs Decimation (§11.3) |
+| Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana; with Demonic Energies it feeds your demon |
+| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+
+- **Pinned:** nothing. The pre-pull is Demonic Sacrifice (and Demonology's demon with its passives,
+  §11.4), all spec-wide.
+- **Spec-wide, above the list:** Demonic Sacrifice, under Cooldowns and buffs (Demonology's under
+  Before the pull, with its Demon); the Major Mana Potion and Demonic Rune with their missing-mana
+  limits, under Consumables. The potion and the rune take
+  their turn with Power Infusion's row, wherever it sits, as they did before the list.
+- **After the list, always last:** Life Tap whenever nothing on the list can be cast, as when the
+  filler can't be paid for. It has no row: above the filler it would tap every global cooldown.
+- **No named presets:** the defaults are the implicit Default (D27's common priority).
+- **Byte for byte:** in the default order the plans are the ones each spec built before the list:
+  200 random setups per spec (settings, talents, race, Buffs, fight and rules) are fingerprinted
+  against the code before it (`destruction-apl.test.ts`, `affliction-apl.test.ts`,
+  `demonology-apl.test.ts`; `apl-cases.ts` makes the setups).
+- **A filler choice** is the Filler row's own setting, so a new filler (issue #17's) is a new value
+  of `filler.spell`, or a new row with its own id that an old saved order places by its default
+  neighbours.
 
 ## 7. Sensible defaults
 
@@ -722,6 +792,9 @@ the demon and its passives added:
 
 The demon walks its own list: the Imp casts Firebolt whenever it has the mana; the Succubus swings and
 casts Lash of Pain on cooldown.
+
+Steps 2–7 are the Rotation tab's priority list, rows you reorder; the sacrifice and the demon are
+spec-wide, above it ([§6.4](#64-the-priority-list-a2)).
 
 ### 11.6 Defaults
 

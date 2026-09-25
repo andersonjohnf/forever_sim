@@ -98,12 +98,14 @@ test.describe('Destruction warlock', () => {
     await switchTo(page, 'Destruction')
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
+    // The sacrifice and the consumables above its priority list (D31, warlock.md §6.4).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
     await expect(tab.getByRole('radio', { name: 'Succubus', exact: true })).toBeChecked()
-    await expect(tab.getByRole('radio', { name: 'Incinerate', exact: true })).toBeChecked()
-    await expect(tab.getByRole('radio', { name: 'Doom', exact: true })).toBeChecked()
+    const list = tab.getByRole('list', { name: 'Priority list' })
+    await expect(list.locator('[data-apl-row="filler"]')).toContainText('Incinerate')
+    await expect(list.locator('[data-apl-row="bane"]')).toContainText('Doom')
     for (const name of ['Curse of the Elements', 'Immolate', 'Conflagrate', 'Shadowburn', 'Corruption', 'Racial cooldown']) {
-      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+      await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab).not.toContainText(OTHER_CLASS)
     // Its own curse: the Buffs tab's is on and locked, kept up by the rotation.
@@ -140,8 +142,9 @@ test.describe('Affliction warlock', () => {
     await switchTo(page, 'Affliction')
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByRole('radio', { name: 'Imp', exact: true })).toBeChecked()
-    await expect(tab.getByRole('radio', { name: 'Doom', exact: true })).toBeChecked()
-    for (const name of ['Curse of the Elements', 'Corruption', 'Siphon Life']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    const list = tab.getByRole('list', { name: 'Priority list' })
+    await expect(list.locator('[data-apl-row="bane"]')).toContainText('Doom')
+    for (const name of ['Curse of the Elements', 'Corruption', 'Siphon Life']) await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab).not.toContainText(OTHER_CLASS)
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate' }).click()
@@ -160,7 +163,9 @@ test.describe('Warlock share link', () => {
     await openTab(page, 'Character')
     await page.getByRole('radio', { name: /Troll/ }).click()
     const rotation = await openTab(page, 'Rotation')
-    await rotation.getByRole('radio', { name: 'Shadow Bolt', exact: true }).click()
+    // The filler is its priority-list row's setting (warlock.md §6.4).
+    await rotation.getByRole('list', { name: 'Priority list' }).getByRole('button', { name: 'Filler', exact: true }).click()
+    await page.getByRole('complementary', { name: 'Filler settings' }).getByRole('radio', { name: 'Shadow Bolt', exact: true }).click()
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const link = await page.evaluate(() => navigator.clipboard.readText())
@@ -174,7 +179,7 @@ test.describe('Warlock share link', () => {
     await openTab(page, 'Character')
     await expect(page.getByRole('radio', { name: /Troll/ })).toHaveAttribute('aria-checked', 'true')
     const back = await openTab(page, 'Rotation')
-    await expect(back.getByRole('radio', { name: 'Shadow Bolt', exact: true })).toBeChecked()
+    await expect(back.locator('[data-apl-row="filler"]')).toContainText('Shadow Bolt')
   })
 })
 

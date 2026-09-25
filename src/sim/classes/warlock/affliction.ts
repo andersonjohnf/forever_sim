@@ -5,16 +5,18 @@
 import type { RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import type { ClassRotation } from '../warrior/shared'
-import { afflictionOptions, CURSE_BUFF, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
+import { afflictionOptions, CURSE_BUFF, warlockApl, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
 import type { TalentRanks } from './talents'
 
 /** The first-pass defaults (warlock.md §6.3). */
 export const AFFLICTION_DEFAULTS: WarlockDefaults = { sacrifice: 'imp', filler: 'shadowBolt', shadowburn: false, lifeTapPct: 10, corruption: true, bane: 'doom' }
 export const AFFLICTION_OPTIONS = afflictionOptions(AFFLICTION_DEFAULTS)
 export const AFFLICTION_IDS = warlockIds('affliction')
+/** Its rotation as a priority list (decision D31; warlock.md §6.2). */
+export const AFFLICTION_APL = warlockApl('affliction')
 
-export function afflictionRotation(values: Record<string, RotationValue>, talents: TalentRanks, auraIndex: (id: string) => number, context: Partial<ClassRotationContext> = {}): ClassRotation {
-  return warlockRotation('affliction', AFFLICTION_OPTIONS, values, talents, auraIndex, context)
+export function afflictionRotation(values: Record<string, RotationValue>, talents: TalentRanks, auraIndex: (id: string) => number, context: Partial<ClassRotationContext> = {}, order?: readonly string[]): ClassRotation {
+  return warlockRotation('affliction', AFFLICTION_OPTIONS, values, talents, auraIndex, context, order)
 }
 
 /** Its own Curse of the Elements, while the rotation keeps it up. */

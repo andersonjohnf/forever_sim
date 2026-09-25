@@ -4,7 +4,8 @@
 // Abilities are resolved with the build's talents (talents.ts) before their costs or spells feed anything.
 import type { ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, AplRow, AplSummaryPart, RotationOption, RotationValue } from '../../types'
+import { compileAplRows } from '../apl'
 import type { PaladinContext } from '../paladin/setup'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
@@ -99,13 +100,13 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
       {
         kind: 'choice',
         id: ID.sacrifice,
-        group: 'Cooldowns and buffs',
+        // Spec-wide, above the priority list (warlockApl); Demonology's with its demon, before the pull.
+        group: spec === 'demonology' ? 'Before the pull' : 'Cooldowns and buffs',
         label: 'Demonic Sacrifice',
         help:
           spec === 'demonology'
             ? 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. With Demonic Pact you keep its buff when you then summon a different demon.'
             : 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. This spec fights with no demon out; to keep one, see Demonology.',
-        ...(spec === 'demonology' ? { group: 'Before the pull' as const } : {}),
         choices: [
           { value: 'imp', label: 'Imp' },
           { value: 'succubus', label: 'Succubus' },
@@ -362,6 +363,76 @@ export function demonologyOptions(d: WarlockDefaults): RotationOption[] {
   ]
 }
 
+/**
+ * The spec’s rotation as a priority list (decision D31; warlock.md §6.4): its rows, in
+ * the default order, each with its switch and its own settings. The demons (the sacrifice, and
+ * Demonology's demon) and the consumables are spec-wide, above the list; the potion and the rune take
+ * their turn with Power Infusion's row. Nothing is pinned: the pre-pull is the sacrifice and the
+ * demon, both spec-wide. After the list, always last, Life Tap whenever nothing on it can be cast.
+ * The same row ids on every spec, so a row a spec gains later (a filler choice) keeps its id.
+ */
+export function warlockApl(spec: WarlockSpec): AplDefinition {
+  const ID = warlockIds(spec)
+  const onCooldown: AplSummaryPart[] = [{ text: 'on cooldown' }]
+  const recast: AplSummaryPart[] = [{ text: 'recast as it runs out' }]
+  const row: Record<string, AplRow> = {
+    racial: { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: onCooldown },
+    trinkets: { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: onCooldown },
+    powerInfusion: { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: onCooldown },
+    curse: { id: 'curse', label: 'Curse of the Elements', icon: CURSE_OF_THE_ELEMENTS.icon, enabledId: ID.curse, optionIds: [], summary: [{ text: 'kept up' }] },
+    immolate: { id: 'immolate', label: 'Immolate', icon: IMMOLATE.icon, enabledId: ID.immolate, optionIds: [], summary: recast },
+    conflagrate: { id: 'conflagrate', label: 'Conflagrate', icon: CONFLAGRATE.icon, enabledId: ID.conflagrate, optionIds: [], summary: [{ text: 'on cooldown, while Immolate is up' }] },
+    shadowburn: { id: 'shadowburn', label: 'Shadowburn', icon: SHADOWBURN.icon, enabledId: ID.shadowburn, optionIds: [], summary: onCooldown },
+    corruption: { id: 'corruption', label: 'Corruption', icon: CORRUPTION.icon, enabledId: ID.corruption, optionIds: [], summary: recast },
+    bane: {
+      id: 'bane',
+      label: 'Bane',
+      icon: BANE_OF_DOOM.icon,
+      optionIds: [ID.bane],
+      summary: [{ option: ID.bane, text: '{}' }],
+      help: 'Your one Bane on the boss. Bane of Doom is cast while a minute is left, then Bane of Agony for the last minute.',
+    },
+    siphonLife: { id: 'siphonLife', label: 'Siphon Life', icon: SIPHON_LIFE.icon, enabledId: ID.siphonLife, optionIds: [], summary: recast },
+    soulFire: { id: 'soulFire', label: 'Soul Fire', icon: SOUL_FIRE.icon, enabledId: ID.soulFire, optionIds: [], summary: [{ text: 'below 35% health, on cooldown' }] },
+    shadowTrance: {
+      id: 'shadowTrance',
+      label: 'Shadow Bolt on Shadow Trance',
+      icon: 'spell_shadow_twilight',
+      optionIds: [],
+      summary: [{ text: 'instant, with Nightfall' }],
+      help: 'An instant Shadow Bolt while Nightfall’s Shadow Trance is up. Needs the Nightfall talent.',
+    },
+    lifeTap: {
+      id: 'lifeTap',
+      label: 'Life Tap',
+      icon: 'spell_shadow_burningspirit',
+      optionIds: [ID.lifeTap],
+      summary: [{ option: ID.lifeTap, text: 'at or below {}', zeroText: 'only when nothing can be paid for' }],
+    },
+    filler:
+      spec === 'destruction'
+        ? { id: 'filler', label: 'Filler', icon: INCINERATE.icon, optionIds: [ID.filler], summary: [{ option: ID.filler, text: '{}' }] }
+        : {
+            id: 'filler',
+            label: 'Filler',
+            icon: SHADOW_BOLT.icon,
+            optionIds: [],
+            summary: [{ text: 'Shadow Bolt' }],
+            help: 'Shadow Bolt between the rest. When you can’t pay for it, you Life Tap.',
+          },
+  }
+  const ids: Record<WarlockSpec, string[]> = {
+    destruction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'conflagrate', 'shadowburn', 'corruption', 'bane', 'lifeTap', 'filler'],
+    affliction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'corruption', 'bane', 'siphonLife', 'shadowTrance', 'lifeTap', 'filler'],
+    demonology: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
+  }
+  return {
+    rows: ids[spec].map((id) => row[id]),
+    specWide: [ID.sacrifice, ...(spec === 'demonology' ? [ID.demon] : []), ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+    presets: [],
+  }
+}
+
 /** The on-use trinkets the warlock presses: none of the modelled ones are a caster's yet (effects/items.ts). */
 const CASTER_TRINKETS = new Set<string>()
 
@@ -380,6 +451,8 @@ export function warlockRotation(
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<PaladinContext & { spirit: number }> = {},
+  /** The rows' order (`SimConfig.rotationOrder`, `warlockApl`); absent: the default. */
+  order?: readonly string[],
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const ID = warlockIds(spec)
@@ -425,73 +498,98 @@ export function warlockRotation(
     }
   }
 
-  // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion.
+  // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion; then the
+  // Major Mana Potion and Demonic Rune (off the GCD) once the most they restore fits. What the Buffs tab
+  // selects is pressed (`onUse`), whether or not its row is on.
   const racial = eurekaFor(ctx.race, 'warlock') ?? CASTER_RACIALS[ctx.race]
-  if (racial && v.on(ID.racial)) add(racial)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) if (CASTER_TRINKETS.has(item.id)) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION)
-  if (infusion) {
-    pressed.push(POWER_INFUSION)
-    if (v.on(ID.powerInfusion)) add(consumable(infusion))
-  }
-  // The mana potion and rune (off the GCD), when selected in Buffs: once the most they restore fits.
-  for (const [id, setting, missing] of [
-    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
-    [MANA_RUNE, ID.rune, ID.runeMissing],
-  ] as const) {
+  if (infusion) pressed.push(POWER_INFUSION)
+  const potions = (
+    [
+      [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
+      [MANA_RUNE, ID.rune, ID.runeMissing],
+    ] as const
+  ).flatMap(([id, setting, missing]) => {
     const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
+    if (!use) return []
     pressed.push(id)
-    if (v.on(setting)) add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
-  }
+    return [{ use, setting, missing }]
+  })
 
-  // Your curse, then the DoTs, each recast as it runs out.
-  if (v.on(ID.curse)) upkeep(CURSE_OF_THE_ELEMENTS)
   const shadowBolt = () => index({ ...SHADOW_BOLT, ...(rank(talents, 'Nightfall') > 0 && spec === 'affliction' ? { stackAuraId: SHADOW_TRANCE.id, stackCastPct: 100, stackCostPct: 0 } : {}) })
-  /** Corruption, then the Bane: Doom while a minute is left, then Agony for the last minute; or Agony kept up. */
-  const dotsAndBane = () => {
-    if (v.on(ID.corruption)) upkeep(CORRUPTION)
-    const bane = v.str(ID.bane)
-    if (bane === 'agony') upkeep(BANE_OF_AGONY)
-    if (bane === 'doom') {
-      const doom = upkeep(BANE_OF_DOOM, [{ code: COND.timeLeftAtLeast, a: DOOM_MIN_LEFT_MS, b: 0 }])
-      // Then Agony for the last minute, once the last Doom has landed.
-      upkeep(BANE_OF_AGONY, [
-        { code: COND.timeLeftAtMost, a: DOOM_MIN_LEFT_MS, b: 0 },
-        { code: COND.abilityAuraDown, a: doom, b: 0 },
-      ])
-    }
-  }
-  if (spec === 'demonology') {
-    if (v.on(ID.immolate)) upkeep(IMMOLATE)
-    dotsAndBane()
-    // Decimation's Soul Fire below 35% health (§11.3): 40% faster, no Soul Shard, a 6 s cooldown.
-    if (v.on(ID.soulFire) && rank(talents, 'Decimation') > 0) add(SOUL_FIRE, [{ code: COND.healthAtMost, a: DECIMATION_BELOW_PCT, b: 0 }])
-  } else if (spec === 'destruction') {
-    const immolate = v.on(ID.immolate)
-    if (immolate) upkeep(IMMOLATE)
-    if (immolate && v.on(ID.conflagrate) && rank(talents, 'Conflagrate') > 0) add(CONFLAGRATE)
-    if (v.on(ID.shadowburn) && rank(talents, 'Shadowburn') > 0) add(SHADOWBURN)
-    dotsAndBane()
-  } else {
-    dotsAndBane()
-    if (v.on(ID.siphonLife) && rank(talents, 'Siphon Life') > 0) upkeep(SIPHON_LIFE)
-  }
-
-  // An instant Shadow Bolt on Nightfall's Shadow Trance (its talent's proc, talents.ts, puts the aura
-  // in the plan) comes before the rest of the fillers.
   const trance = auraIndex(SHADOW_TRANCE.id)
-  if (spec === 'affliction' && trance >= 0) rotation.push({ ability: shadowBolt(), conditions: [{ code: COND.auraUp, a: trance, b: 0 }], unqueueBelowTenths: 0 })
-
-  // Life Tap at x% mana, then the filler, then Life Tap whenever the filler can't be paid for.
+  // Life Tap's mana (§3.3); with Demonic Energies (§11.3) your demon gains its share, if it has mana.
   const tapped = lifeTap(context.spirit ?? 0, rank(talents, 'Improved Life Tap'))
-  // Demonic Energies (§11.3): your demon gains the share of Life Tap's mana, if it has mana.
   const energies = pet?.power ? talentValue(talents, 'Demonic Energies', DEMO_CURVE.demonicEnergies) : 0
   const tap = energies > 0 ? { ...tapped, petPowerTenths: Math.floor(((tapped.manaTenths ?? 0) * energies) / 100 + 1e-9) } : tapped
-  const tapPct = v.num(ID.lifeTap)
-  if (tapPct > 0) add(tap, [{ code: COND.maxMana, a: Math.floor((tapPct / 100) * maxManaTenths), b: 0 }])
-  const filler = spec === 'destruction' && v.str(ID.filler) === 'incinerate' && rank(talents, 'Incinerate') > 0 ? index(INCINERATE) : shadowBolt()
-  rotation.push({ ability: filler, conditions: [], unqueueBelowTenths: 0 })
+
+  // The rows in the list's order (warlock.md §6.1, §6.2, §11.5; `warlockApl`). Each keeps its own
+  // conditions wherever it sits: Conflagrate still needs Immolate's switch, and the Bane's row still
+  // holds its Bane of Agony for the last minute behind the last Doom.
+  compileAplRows(warlockApl(spec), order, {
+    racial: () => {
+      if (racial && v.on(ID.racial)) add(racial)
+    },
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) if (CASTER_TRINKETS.has(item.id)) add(consumable(item))
+    },
+    // Power Infusion, then the potion and the rune, which take their turn with it wherever it sits.
+    powerInfusion: () => {
+      if (infusion && v.on(ID.powerInfusion)) add(consumable(infusion))
+      for (const { use, setting, missing } of potions) if (v.on(setting)) add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
+    },
+    // Your curse and the DoTs, each recast as it runs out.
+    curse: () => {
+      if (v.on(ID.curse)) upkeep(CURSE_OF_THE_ELEMENTS)
+    },
+    immolate: () => {
+      if (v.on(ID.immolate)) upkeep(IMMOLATE)
+    },
+    // Conflagrate needs your Immolate on the boss, so it needs Immolate's row on too.
+    conflagrate: () => {
+      if (v.on(ID.immolate) && v.on(ID.conflagrate) && rank(talents, 'Conflagrate') > 0) add(CONFLAGRATE)
+    },
+    shadowburn: () => {
+      if (v.on(ID.shadowburn) && rank(talents, 'Shadowburn') > 0) add(SHADOWBURN)
+    },
+    corruption: () => {
+      if (v.on(ID.corruption)) upkeep(CORRUPTION)
+    },
+    // The Bane: Doom while a minute is left, then Agony for the last minute; or Agony kept up.
+    bane: () => {
+      const bane = v.str(ID.bane)
+      if (bane === 'agony') upkeep(BANE_OF_AGONY)
+      if (bane === 'doom') {
+        const doom = upkeep(BANE_OF_DOOM, [{ code: COND.timeLeftAtLeast, a: DOOM_MIN_LEFT_MS, b: 0 }])
+        // Then Agony for the last minute, once the last Doom has landed.
+        upkeep(BANE_OF_AGONY, [
+          { code: COND.timeLeftAtMost, a: DOOM_MIN_LEFT_MS, b: 0 },
+          { code: COND.abilityAuraDown, a: doom, b: 0 },
+        ])
+      }
+    },
+    siphonLife: () => {
+      if (v.on(ID.siphonLife) && rank(talents, 'Siphon Life') > 0) upkeep(SIPHON_LIFE)
+    },
+    // Decimation's Soul Fire below 35% health (§11.3): 40% faster, no Soul Shard, a 6 s cooldown.
+    soulFire: () => {
+      if (v.on(ID.soulFire) && rank(talents, 'Decimation') > 0) add(SOUL_FIRE, [{ code: COND.healthAtMost, a: DECIMATION_BELOW_PCT, b: 0 }])
+    },
+    // An instant Shadow Bolt on Nightfall's Shadow Trance (its talent's proc, talents.ts, puts the aura in the plan).
+    shadowTrance: () => {
+      if (trance >= 0) rotation.push({ ability: shadowBolt(), conditions: [{ code: COND.auraUp, a: trance, b: 0 }], unqueueBelowTenths: 0 })
+    },
+    // Life Tap at x% mana.
+    lifeTap: () => {
+      const tapPct = v.num(ID.lifeTap)
+      if (tapPct > 0) add(tap, [{ code: COND.maxMana, a: Math.floor((tapPct / 100) * maxManaTenths), b: 0 }])
+    },
+    filler: () => {
+      const filler = spec === 'destruction' && v.str(ID.filler) === 'incinerate' && rank(talents, 'Incinerate') > 0 ? index(INCINERATE) : shadowBolt()
+      rotation.push({ ability: filler, conditions: [], unqueueBelowTenths: 0 })
+    },
+  })
+  // After the list, always last: Life Tap whenever nothing on it can be cast, as when the filler can't be paid for.
   add(tap)
 
   // Improved Shadow Bolt's debuff and Shadow and Flame's buffs, with the spells that fire them (warlock.md §4.1).

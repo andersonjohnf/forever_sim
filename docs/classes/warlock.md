@@ -69,6 +69,7 @@ Top ranks, before spell damage, from the rendered tooltips and SpellEffect [F] [
 | Conflagrate (6, 18932) | 251–313, 10 s cooldown, 255 mana | 18932 is rank 4: 447–557 | 0.429 / 0.429 |
 | Incinerate (3, 1293813) | 201–233, +25% on your Immolate, 2.5 s, 325 mana | none (new) | 0.714 |
 | Shadowburn (6, 18871) | 258–288, 15 s cooldown, 365 mana | 462–514 | 0.429 / 0.429 |
+| Searing Pain (6, 17923) | 107–126 at 60 (114 ± 8.1%, +1.2 a level from 58), 1.5 s, 168 mana | 208–244 | 0.429 / 0.429 |
 | Corruption (7, 25311) | 73 × 6 (3 s), 2 s, 340 mana | 137 × 6 | 0.2 / 0.167 a tick |
 | Bane of Agony (6, 11713) | 46 × 12 (2 s), 552 in all, 215 mana | Curse of Agony: 87 × 12 | 0.133 / 0.083 a tick |
 | Bane of Doom (603) | 1742 after 60 s, 1 min cooldown, 300 mana | Curse of Doom: 3200 | **4.0** / 1.0 |
@@ -111,6 +112,10 @@ Mana only (§5). The warlock pays for a spell with a cast time as it lands (the 
   A miss leaves Immolate [?].
 - **Incinerate** deals 25% more to a target with your Immolate (#1, a dummy of 25; its tooltip) [F],
   and doesn't use Immolate up. The sim multiplies the rest of its damage by it [?] (Q3).
+- **Searing Pain** (1.5 s, Fire, "causes a high amount of threat") is cast only for Demonology's Demonic
+  Brand (§11.3; its row, §6.4); as a filler for every spec it's a separate request. The warlock's threat
+  isn't a DPS result, so its damage makes plain damage threat, and Demonic Brand's −50% on it isn't
+  applied.
 - **Shadowburn** costs a Soul Shard in game; the sim doesn't track shards (Q6), and Shadow and Flame
   at 5/5 refunds it anyway.
 
@@ -165,10 +170,10 @@ spells it names come from its class mask (§8). Different talents' percentages o
 | --- | --- | --- |
 | Improved Shadow Bolt (17793) | +4% Shadow damage taken from you, 12 s, after a Shadow Bolt crit | Shadow Vulnerability (17794, aura 270), the boss's; read at each hit and tick |
 | Bane (17788) | −0.1 s cast (Shadow Bolt, Immolate, Incinerate), −0.4 s Soul Fire | cast times |
-| Cataclysm (17778) | −3/6/10% mana cost of Destruction spells | Shadow Bolt, Immolate, Conflagrate, Incinerate, Shadowburn; rounded down [?] |
+| Cataclysm (17778) | −3/6/10% mana cost of Destruction spells | Shadow Bolt, Immolate, Conflagrate, Incinerate, Shadowburn, Searing Pain (mask 256); rounded down [?] |
 | Aftermath (18119) | +10% Immolate's hit | Immolate's direct part only |
-| Ruin (17959) | +20% crit bonus (×2.0 at 5/5) | the same five spells, Immolate's ticks too |
-| Agonizing Flames (17927) | +3/7/10% damage of Destruction spells | the five spells' hits and Immolate's ticks |
+| Ruin (17959) | +20% crit bonus (×2.0 at 5/5) | the same five spells and Searing Pain, Immolate's ticks too |
+| Agonizing Flames (17927) | +3/7/10% damage of Destruction spells (#1, mask [421, 8388800]); +3/7/10% crit with Searing Pain (#0, mask 256), Improved Searing Pain's old part | the five spells' and Searing Pain's hits, Immolate's ticks; Searing Pain's crit |
 | Fire and Brimstone (412751) | +8/17/25% Conflagrate crit | Conflagrate |
 | Shadow and Flame (426316) | Conflagrate: +2% Shadow damage for 20 s; Shadowburn: +2% Fire for 20 s; 20% not to consume Immolate | auras (1293816 for Shadow); Q8 |
 | Conflagrate, Shadowburn, Incinerate | the spells of §3.1 | |
@@ -237,7 +242,8 @@ adapted, and §6.3's search picks the biggest settings.
    the last minute once the last Doom has landed; or Bane of Agony kept up.
 6. Siphon Life, recast as it runs out.
 7. An instant Shadow Bolt on Shadow Trance.
-8. Life Tap at or below 10% mana; Shadow Bolt; Life Tap when Shadow Bolt can't be paid for.
+8. Life Tap at or below 10% mana; Shadow Bolt (or Incinerate with the talent, §6.4); Life Tap when
+   the filler can't be paid for.
 
 Dark Pact isn't in Forever, so Life Tap is the mana ability.
 
@@ -326,26 +332,28 @@ its place in the priority changes.
 | Siphon Life (`siphonLife`) | `siphonLife.enabled` | | Recast as it runs out; needs the talent |
 | Shadow Bolt on Shadow Trance (`shadowTrance`) | — | | An instant Shadow Bolt while Shadow Trance is up; nothing without Nightfall |
 | Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana |
-| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+| Filler (`filler`) | — | `filler.spell` | Shadow Bolt by default, or Incinerate with the talent, whenever it can be paid for |
 
 **Demonology** (§11.5; `warlock.demonology.…`, `DEMONOLOGY_APL`):
 
 | Row (`id`) | Switch | Its settings | Its conditions |
 | --- | --- | --- | --- |
 | Racial cooldown (`racial`), On-use trinkets (`trinkets`), Power Infusion (`powerInfusion`) | as Destruction's | | as Destruction's |
+| Searing Pain (`searingPain`) | `searingPain.enabled` | | Recast as its Demonic Brand runs out (its charges or its 10 s); needs Demonic Brand and a demon out (§11.3) |
 | Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
 | Immolate (`immolate`) | `immolate.enabled` | | Recast as it runs out |
 | Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out |
 | Bane (`bane`) | — | `bane.spell` | As Destruction's |
 | Soul Fire (`soulFire`) | `soulFire.enabled` | | Below 35% health, on cooldown; needs Decimation (§11.3) |
 | Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana; with Demonic Energies it feeds your demon |
-| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+| Filler (`filler`) | — | `filler.spell` | Incinerate by default when it's talented, or Shadow Bolt, whenever it can be paid for |
 
 - **Pinned:** nothing. The pre-pull is Demonic Sacrifice (and Demonology's demon with its passives,
   §11.4), all spec-wide.
-- **Spec-wide, above the list:** Demonic Sacrifice, under Cooldowns and buffs (Demonology's under
-  Before the pull, with its Demon); the Major Mana Potion and Demonic Rune with their missing-mana
-  limits, under Consumables. The potion and the rune take
+- **Spec-wide, above the list:** Demonic Sacrifice, first and with no heading on Destruction and
+  Affliction (it picks the school their spells gain, and a heading holds at least two settings,
+  docs/ux.md "Rotation"), under Before the pull with its Demon on Demonology; the Major Mana Potion and
+  Demonic Rune with their missing-mana limits, under Consumables. The potion and the rune take
   their turn with Power Infusion's row, wherever it sits, as they did before the list.
 - **After the list, always last:** Life Tap whenever nothing on the list can be cast, as when the
   filler can't be paid for. It has no row: above the filler it would tap every global cooldown.
@@ -354,8 +362,29 @@ its place in the priority changes.
   200 random setups per spec (settings, talents, race, Buffs, fight and rules) are fingerprinted
   against the code before it (`destruction-apl.test.ts`, `affliction-apl.test.ts`,
   `demonology-apl.test.ts`; `apl-cases.ts` makes the setups).
-- **A filler choice** is the Filler row's own setting, so a new filler (issue #17's) is a new value
-  of `filler.spell`, or a new row with its own id that an old saved order places by its default
+- **The filler choice is every spec's** (issue #17): the Filler row's `filler.spell`, Shadow Bolt or
+  Incinerate. Without the Incinerate talent there's nothing to choose: Shadow Bolt is the filler
+  whatever it says, and the Rotation tab says so under it. Each spec's default is measured on a build
+  that has Incinerate, paired against Shadow Bolt (20,000 fights on seed 2701, the spec's default setup
+  otherwise, 1.60.1.70009):
+
+  | Spec, build with Incinerate | Shadow Bolt | Incinerate | Default |
+  | --- | --- | --- | --- |
+  | Destruction, its default (§6.3, its list as first ranked) | −10.8% | **586.0** | **Incinerate** |
+  | Affliction 20/0/31 (`255500100002--0550315103101051`) | **477.9** ±0.4 | 413.0 (−13.6%; the paired Δ ±0.4) | **Shadow Bolt** |
+  | Demonology 0/20/31 (`-03050032011203-0550315103101051`), the Imp out (no Demonic Pact, so no sacrifice) | 540.9 ±0.4 | **561.8** (+3.9%; the paired Δ ±0.5) | **Incinerate** |
+
+  Affliction casts no Immolate, so its Incinerate never gets the +25% (§3.1), and its Shadow Bolt
+  keeps Improved Shadow Bolt's debuff up. Demonology keeps Immolate up. Neither default build has Incinerate (it's 31 points into Destruction), so neither default plan
+  changes: Demonology's shows Incinerate with the note, and plays Shadow Bolt.
+- **Searing Pain's row** (issue #17) is Demonology's, for Demonic Brand (§11.3): on by default and
+  locked without the talent, so every build without it plays as before, byte for byte (the 200
+  fingerprinted setups never take the talent). It sits first on the global cooldown, after Power
+  Infusion, by a quick search on the brand build (§11.6): 759.0 there, 758.3 just after the curse,
+  752.9 just above Soul Fire and 750.4 just above Life Tap (paired, 20,000 fights, seed 2701). An order
+  saved before it gets it after Power Infusion, its default neighbour.
+- **A new filler** (Searing Pain as a filler, a separate request) would be a new value of
+  `filler.spell`, or a new row with its own id that an old saved order places by its default
   neighbours.
 
 ## 7. Sensible defaults
@@ -652,7 +681,7 @@ The tree, talent by talent, with its Forever values per rank from the Trait curv
 | Improved Sayaad (18754) | Lash of Pain and Soothing Kiss +10% (#0, aura 108, mask 8192) | the same | Lash of Pain |
 | Demonic Sacrifice (18788) | §3.4: tier 3, schools swapped | tier 5 | §3.4 |
 | Decimation (440870, new) | Soul Fire's cooldown −45% (#1); below 35% health (#2) a Shadow Bolt or Searing Pain gives 10 s of Soul Fire −20% cast time and no Soul Shard (Decimation 440873), and they deal +3% (#3, mask 257) | none | §11.3 |
-| Demonic Brand (1293695, new) | Searing Pain brands the target: your demon's next 6 attacks deal 65–68 Fire or Shadow | none | not cast (Q21) |
+| Demonic Brand (1293695, new) | Searing Pain brands the target for 10 s (1293696): your demon's next 2/4/6 attacks (#1, charges) deal 65–68 Fire (the Imp's, 1293698) or Shadow (the Succubus's, 1293697) + 0.078 × your spell damage of that school; Searing Pain −17/33/50% threat (#0) | none | §11.3: Searing Pain's row (§6.4) |
 | Soul Link (19028) | aura 25228: all damage +3% (#0), you and your demon; 30% of your damage taken to it | the same, tier 7 | §11.4 |
 | Demonic Knowledge (412732, new) | spell damage +33/67/100% of your level, you and your demon, while it's out (its aura 1243120) | none | §11.4 |
 | Master Demonologist (23785) | while your demon is out, you and it: Imp +2% Fire (23759), Succubus +2% Shadow (23761), Voidwalker −2% physical taken, Felhunter −2% magic taken | Imp −4% threat, Succubus +2% all damage, Felhunter resistances | §11.4 |
@@ -757,8 +786,25 @@ it inherits is every pet's one rule
   60 s × (1 − 0.9) = **6 s**; below 35% health a Soul Fire's cast is Bane's 6 − 2 = 4 s × (1 − 0.4) =
   **2.4 s** and costs no Soul Shard, from the moment the boss reaches 35% (`COND.healthAtMost` 70); in
   game a Shadow Bolt cast there starts the buff, and each one refreshes it for 10 s [?] (Q20). Below
-  35%, Shadow Bolt deals **+6%** (#3, `SpellDef.lowHealthPct`). Ruin, Cataclysm and Agonizing Flames
-  cover Soul Fire (their masks, 997 and [0, 128]) [F].
+  35%, Shadow Bolt deals **+6%** (#3, `SpellDef.lowHealthPct`), and so does Searing Pain (mask 257).
+  Ruin, Cataclysm and Agonizing Flames cover Soul Fire (their masks, 997 and [0, 128]) [F].
+- **Demonic Brand** (the setting **Searing Pain for Demonic Brand**, Searing Pain's row, §6.4): a
+  landed Searing Pain puts the brand on the boss for **10 s** (Demonic Brand 1293696, SpellDuration 1)
+  with **2/4/6 charges** (the talent's #1, a charges mod on the brand) [F]. Each of your demon's next
+  landed attacks, its swings and its spells alike (the brand's proc mask is every attack the target
+  takes, 139944), uses a charge and deals `(60 − 26) × 1.5 + 14 … 17` = **65–68 + 0.078 × your spell
+  damage** of its school, × Master Demonologist's school % and Unholy Power, the client's formula
+  (description variables 1016–1018) [F] [client] (SpellXDescriptionVariables, SpellMisc,
+  SpellAuraOptions, SpellDuration, 1.60.1.70009; the formula isn't in `src/data/client`, read from the
+  cached tables). The hit is Demonic Brand 1293698 (Fire) with the Imp and Demonic Brand 1293697
+  (Shadow) with the Succubus, following their Master Demonologist schools. It's the demon's damage:
+  its all-damage multiplier (Unholy Power and Soul Link [?]: the formula names Unholy Power, and Soul
+  Link raises all the demon's damage), the boss's damage taken and average resist, **no miss roll**
+  (Attributes[3] 0x40000, Always Hit) [F], and a crit roll at the demon's spell crit, ×1.5 [?]; its own
+  row, named for the demon, and none of your threat. The Felhunter's school isn't named: Shadow, the
+  talent's "Fire or Shadow" [?] (Q23). The sim recasts Searing Pain once the brand is gone (its charges
+  or its 10 s) or has at most the cast's 1.5 s left, so the demon's attacks during that cast go
+  unbranded; recasting with a charge or two left isn't modelled.
 
 ### 11.4 Your demon's passives
 
@@ -788,7 +834,10 @@ the demon and its passives added:
 4. Immolate, recast as it runs out.
 5. Corruption, then the Bane: Bane of Doom while a minute is left, then Bane of Agony (§6.2).
 6. Soul Fire below 35% (on by default, §11.6).
-7. Life Tap at or below 10% mana; Shadow Bolt; Life Tap when Shadow Bolt can't be paid for.
+   With Demonic Brand, Searing Pain first on the global cooldown whenever the brand is off the boss
+   (§11.3).
+7. Life Tap at or below 10% mana; the filler, Shadow Bolt (Incinerate by default when it's talented,
+   §6.4); Life Tap when the filler can't be paid for.
 
 The demon walks its own list: the Imp casts Firebolt whenever it has the mana; the Succubus swings and
 casts Lash of Pain on cooldown.
@@ -865,9 +914,13 @@ tiers above it and the first pass's 0/32/19 (`-0325003231120001351-0350305003`) 
 point could leave them: with the Imp out, Improved Sayaad's 3rd point did nothing (Lash of Pain is the
 Succubus's), and Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes it, **+0.4%** (531.9 →
 534.2, on the guide's list). The Succubus build gains from the same point too (499.5 → 502.2).
-The other Demonology points add no DPS in the sim (Demonic Embrace, Master Summoner; Demonic Brand is
-Q21's, not cast), so they only fill the tiers, and the optimizer's talent search (O4) takes up the
-rest.
+Demonic Embrace's 2 and Master Summoner's 1 add no DPS in the sim; they only fill the tiers.
+**Demonic Brand would do more:** moved into Demonic Brand 3/3 (`-0305003221020301351-0450305003`),
+with Searing Pain's row, the default deals **759.0** against 675.0, **+12.4%** (paired, 20,000 fights
+on seed 2701, 1.60.1.70009); the Succubus build gains +7.3% (632.7 → 678.7). The default talents
+stay as they are until the optimizer's talent search (O4) and the guild's test of the brand (Q21)
+confirm it: most of its gain rides on Q19's 1 s Firebolt, which spends the brand's 6 charges in about
+7 s.
 
 **Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, its own sim-ranked
 pre-raid list (§7.3; the same set as Destruction's), the caster enchants, the Standard raid's elixirs and
@@ -911,11 +964,21 @@ Each with its estimated effect on Demonology's DPS.
   Firebolt's cast bar with Improved Imp 0/3 and 3/3.
 - **Q20 Decimation's buff** comes from a Shadow Bolt cast below 35%; the sim takes it as up from the
   moment the boss reaches 35%. Under 0.2% with Soul Fire on.
-- **Q21 Demonic Brand and Searing Pain** aren't simulated: Searing Pain (1.5 s, 116 Fire at 0.429)
-  deals less a second than Shadow Bolt, but its brand's 6 × 66.5 on the demon's next attacks is
-  about 400 damage every 10 s. A Searing Pain each 10 s in place of Shadow Bolt nets about +15 damage a
-  second, **about +3%**, for 3 points the default spends on Demonic Embrace and Master Summoner.
-  Whether the brand's damage takes your or the demon's multipliers is unknown. The tuning milestone's.
+- **Q21 Demonic Brand** (§11.3) is simulated since issue #17, from the client's formula: 65–68 + 0.078
+  × your spell damage a charge, with the demon's multipliers and spell crit. With Demonic Brand 3/3 for
+  the 3 points the default spends on Demonic Embrace and Master Summoner, the default gains **+12.4%**
+  (675.0 → 759.0, §11.6), far above the first estimate's +3%: the Imp's 1 s Firebolt (Q19) spends the 6
+  charges in about 7 s, so Searing Pain goes out about every 8 s and each lands about 5 brand hits,
+  each scaling with your spell damage and the demon's multipliers: about 12% of the damage, and
+  Searing Pain itself 10%. Unknown: whether a charge goes with every Firebolt (the proc mask says any
+  attack the target takes), whether the brand's hit can crit (×1.5 at the demon's spell crit here;
+  with no crits, about −0.9%) and whether Soul Link raises it (about 0.4%). Test: 20 Searing Pains
+  with the Imp out, counting the brand's hits and their size in the combat log.
+- **Q23 The Felhunter's brand.** The talent says "Fire or Shadow damage based on the pet"; the client
+  has a Shadow hit (Demonic Brand 1293697), a Fire one (1293698) and a Physical one of 1 damage
+  (Demonic Brand 1293699), and doesn't say which demon deals which. The Imp's Fire and the Succubus's
+  Shadow follow their Master Demonologist schools; the Felhunter's is Shadow [?]. If it's the 1-damage
+  Physical one, the Felhunter build loses the brand: nothing on the default.
 - **Q22 The pet's glancing and table** (ranged-and-pets OQ-7).
 
 ### 11.8 Implementation notes and worked examples
@@ -925,7 +988,10 @@ Each with its estimated effect on Demonology's DPS.
   `demonology.ts` is its spec. A pet spell's own damage % (Improved Imp, Master Demonologist) is folded
   into its base damage and coefficient alike, the same product.
 - Each engine addition is optional, so no other plan changes: `AbilityPlan.petPowerTenths` (Demonic
-  Energies), `SpellDef.lowHealthPct` (Decimation's Shadow Bolt) and `COND.healthAtMost` (70).
+  Energies), `SpellDef.lowHealthPct` (Decimation's Shadow Bolt) and `COND.healthAtMost` (70); for
+  Demonic Brand, `AuraSpec.petLandedCharges` (charges the demon's landed attacks use up, after their
+  procs) and the proc action `petSpellDamage` (24: damage the demon deals, with its multipliers and
+  spell crit, from a share of your spell damage; ranged-and-pets §9).
 
 Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 
@@ -956,6 +1022,11 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    wears Draconic Infused Emblem since DV2-4: its proc adds its +35 only while it's up. On the guide's
    list it was 9.65% and 2% hit, 486 Shadow, 108.6, 144.46, 11.73% and 13%.)
 9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
+10. **Demonic Brand with the Imp** (§11.3; `demonic-brand.test.ts`): 600 Fire spell damage and the Imp's
+    Master Demonologist 5/5: `((65 + 68) / 2 + 0.078 × 600) × 1.1` = **124.63** a hit on average; ×
+    Unholy Power 1.1 × Soul Link 1.03 = **141.21**, before the boss's resist, Curse of the Elements and
+    crits. Searing Pain itself, with the default's Agonizing Flames 3/3: `(116.4 + 0.429 × 600) × 1.1`
+    = **411.18**, costing 151 mana (Cataclysm 3/3), its crits ×2.0 (Ruin) at +10% (Agonizing Flames #0).
 
 ---
 

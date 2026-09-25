@@ -8,7 +8,10 @@ import type { ClassRotation } from '../warrior/shared'
 import { afflictionOptions, CURSE_BUFF, warlockApl, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
 import type { TalentRanks } from './talents'
 
-/** The first-pass defaults (warlock.md §6.3). */
+/**
+ * The first-pass defaults (warlock.md §6.3). The filler stays Shadow Bolt even with Incinerate talented:
+ * Affliction casts no Immolate for its +25%, and it loses 13.6% there (§6.4).
+ */
 export const AFFLICTION_DEFAULTS: WarlockDefaults = { sacrifice: 'imp', filler: 'shadowBolt', shadowburn: false, lifeTapPct: 10, corruption: true, bane: 'doom' }
 export const AFFLICTION_OPTIONS = afflictionOptions(AFFLICTION_DEFAULTS)
 export const AFFLICTION_IDS = warlockIds('affliction')

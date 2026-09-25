@@ -233,7 +233,13 @@ the only place it's stated, and the class docs point here. All of it is [?] unti
 | `petLanded` (25) | the pet's attack landed, white or special | the sim's |
 | `petCrit` (26) | the pet's attack crit: Frenzy, Ferocious Inspiration | the sim's |
 
-The action `petPower` (22) gives the pet power. Ranged attacks fire no melee procs (Hand of Justice,
+The action `petPower` (22) gives the pet power. The action `petSpellDamage` (24) is damage the pet
+deals as its attack lands: a roll plus a share of **your** spell damage of its school, × the pet's
+damage multiplier and the boss's damage taken and average resist, no miss roll, a crit roll at the
+pet's spell crit (×1.5), on the pet's stream and its own row named for the pet; and an aura's
+`petLandedCharges` are used up by the pet's landed attacks, after their procs (Demonic Brand,
+[warlock §11.3](../classes/warlock.md#113-talents-in-the-sim)). Both are optional: a plan without them
+is unchanged. Ranged attacks fire no melee procs (Hand of Justice,
 a weapon enchant's) [?]. A PPM proc on a ranged trigger takes its chance from the ranged weapon's
 speed ([damage-and-timing §5.1](damage-and-timing.md#51-ppm-formula)); the pet's triggers roll their
 chances on the pet's random stream ([Implementation notes](#implementation-notes)).

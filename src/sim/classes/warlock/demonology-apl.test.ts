@@ -12,7 +12,7 @@ import { COND } from '../../plan/types'
 import { defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { rotationApl } from '../rotation'
 import { fingerprint, planJson } from './apl-cases'
-import { DEMONOLOGY_APL, DEMONOLOGY_IDS as ID, DEMONOLOGY_OPTIONS, demonologyRotation } from './demonology'
+import { DEMONOLOGY_APL, DEMONOLOGY_IDS as ID, DEMONOLOGY_OPTIONS, demonologyRotation, demonologyUnusedSettings } from './demonology'
 import { demonologyCases } from './demonology-apl-cases'
 
 const TALENTS = talentRanksByName(TALENT_DATA.warlock, defaultConfig('warlock-demonology').talents)
@@ -47,7 +47,7 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     }
     expect(new Set(DEFAULT).size).toBe(DEFAULT.length)
     // warlock.md §11.5's order; nothing is pinned (the pre-pull is the sacrifice and the demon, spec-wide).
-    expect(DEFAULT).toEqual(['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
+    expect(DEFAULT).toEqual(['racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
     expect(DEMONOLOGY_APL.rows.filter((r) => r.pinned)).toEqual([])
     expect(DEMONOLOGY_APL.specWide).toEqual([ID.sacrifice, ID.demon, ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing])
     expect(DEMONOLOGY_APL.presets).toEqual([])
@@ -135,7 +135,13 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     expect(normalizeAplOrder(DEMONOLOGY_APL, DEFAULT.filter((id) => id !== 'soulFire'))).toEqual(DEFAULT)
     // With the Bane moved first, a missing Soul Fire follows it and the rows after it that come before it by default.
     const baneFirst = ['bane', ...DEFAULT.filter((id) => id !== 'bane' && id !== 'soulFire')]
-    expect(normalizeAplOrder(DEMONOLOGY_APL, baneFirst)).toEqual(['bane', 'racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'soulFire', 'lifeTap', 'filler'])
+    expect(normalizeAplOrder(DEMONOLOGY_APL, baneFirst)).toEqual(['bane', 'racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'soulFire', 'lifeTap', 'filler'])
+    // An order saved before Searing Pain's row (issue #17) gets it after Power Infusion, its default neighbour.
+    const before = ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler']
+    expect(normalizeAplOrder(DEMONOLOGY_APL, before)).toEqual(DEFAULT)
+    expect(normalizeAplOrder(DEMONOLOGY_APL, ['filler', ...before.filter((id) => id !== 'filler')])).toEqual(['filler', ...DEFAULT.filter((id) => id !== 'filler')])
+    // One that moved the curse first keeps it there; Searing Pain still follows Power Infusion.
+    expect(normalizeAplOrder(DEMONOLOGY_APL, ['curse', ...before.filter((id) => id !== 'curse')])).toEqual(['curse', 'racial', 'trinkets', 'powerInfusion', 'searingPain', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'])
   })
 
   it('builds the same plan with the default order stored as with none, and another reordered', () => {
@@ -144,5 +150,18 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     expect(buildPlan({ ...config, rotationOrder: DEFAULT }).plan).toEqual(none)
     const fillerFirst = buildPlan({ ...config, rotationOrder: moved('filler', 'racial') }).plan
     expect(fingerprint(planJson(fillerFirst))).not.toBe(fingerprint(planJson(none)))
+  })
+
+  it('offers the filler choice, Incinerate by default when it’s talented (issue #17)', () => {
+    // warlock.md §6.4: a 0/20/31 build with Incinerate, where it's measured ahead of Shadow Bolt.
+    const incinerate = talentRanksByName(TALENT_DATA.warlock, '-03050032011203-0550315103101051')
+    const filler = (r: Rot) => ids(r).at(-2)
+    expect(DEMONOLOGY_OPTIONS.find((o) => o.id === ID.filler)?.default).toBe('incinerate')
+    expect(filler(demonologyRotation({}, incinerate, noAura, CONTEXT))).toBe('incinerate')
+    expect(filler(demonologyRotation({ [ID.filler]: 'shadowBolt' }, incinerate, noAura, CONTEXT))).toBe('shadowBolt')
+    // The default talents have no Incinerate: Shadow Bolt, and the note says why.
+    expect(filler(demonologyRotation({}, TALENTS, noAura, CONTEXT))).toBe('shadowBolt')
+    expect(demonologyUnusedSettings({}, TALENTS)[ID.filler]).toBe('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')
+    expect(demonologyUnusedSettings({}, incinerate)[ID.filler]).toBeUndefined()
   })
 })

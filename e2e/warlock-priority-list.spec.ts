@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // The warlock's Rotation tab as a priority list (decision D31, docs/classes/warlock.md §6.4): each
 // spec's rows in their default order, a row moved by its handle from the keyboard and with Move up
@@ -21,7 +22,7 @@ const SPECS = [
   },
   {
     name: 'Demonology',
-    order: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
+    order: ['racial', 'trinkets', 'powerInfusion', 'searingPain', 'curse', 'immolate', 'corruption', 'bane', 'soulFire', 'lifeTap', 'filler'],
     key: { id: 'soulFire', label: 'Soul Fire', before: 'bane' },
     button: { id: 'immolate', label: 'Immolate', before: 'curse' },
   },
@@ -88,6 +89,57 @@ for (const spec of SPECS) {
     })
   })
 }
+
+// Issue #17: every spec's filler is a choice once Incinerate is talented, and Demonology casts
+// Searing Pain for Demonic Brand (docs/classes/warlock.md §6.4, §11.3).
+test.describe('the warlock’s filler choice and Searing Pain row', () => {
+  /** Opens a shared setup of `spec` with these talents, on the Rotation tab. */
+  async function openWith(page: Page, spec: string, talents: string) {
+    await page.goto('about:blank')
+    const hash = await linkFor(page, { version: 2, spec, talents })
+    await page.goto(`./${hash}`)
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    return page.getByRole('list', { name: 'Priority list' })
+  }
+
+  test('Affliction: the filler is Shadow Bolt without Incinerate, and a choice once it’s talented', async ({ page }) => {
+    let list = await openRotation(page, 'Affliction')
+    const filler = () => list.locator('[data-apl-row="filler"]')
+    await expect(filler()).toContainText('Shadow Bolt')
+    await list.getByRole('button', { name: 'Filler', exact: true }).click()
+    let settings = page.getByRole('complementary', { name: 'Filler settings' })
+    await expect(settings.getByText('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')).toBeVisible()
+    await expect(settings.getByRole('radio', { name: 'Shadow Bolt', exact: true })).toBeChecked()
+
+    // 20/0/31 with Incinerate (warlock.md §6.4): the choice applies, Shadow Bolt by default.
+    list = await openWith(page, 'warlock-affliction', '255500100002--0550315103101051')
+    await list.getByRole('button', { name: 'Filler', exact: true }).click()
+    settings = page.getByRole('complementary', { name: 'Filler settings' })
+    await expect(settings.getByText(/^Not used/)).toHaveCount(0)
+    await expect(settings.getByRole('radio', { name: 'Shadow Bolt', exact: true })).toBeChecked()
+    await settings.getByRole('radio', { name: 'Incinerate', exact: true }).click()
+    await expect(settings.getByRole('radio', { name: 'Incinerate', exact: true })).toBeChecked()
+    await expect(filler()).toContainText('Incinerate')
+  })
+
+  test('Demonology: Searing Pain’s row needs Demonic Brand, and is on with it', async ({ page }) => {
+    let list = await openRotation(page, 'Demonology')
+    const row = () => list.locator('[data-apl-row="searingPain"]')
+    await expect(row()).toContainText('Searing Pain')
+    await expect(row()).toContainText('Not used: needs the Demonic Brand talent.')
+
+    // Demonic Brand 3/3 for Demonic Embrace's and Master Summoner's points (warlock.md §11.6).
+    list = await openWith(page, 'warlock-demonology', '-0305003221020301351-0450305003')
+    await expect(row()).toContainText('When your Demonic Brand is off the boss')
+    await list.getByRole('button', { name: 'Searing Pain', exact: true }).click()
+    const settings = page.getByRole('complementary', { name: 'Searing Pain settings' })
+    await expect(settings.getByRole('switch', { name: 'Searing Pain for Demonic Brand' })).toBeChecked()
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate', exact: true }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await expect(results.getByRole('group', { name: 'DPS' })).toContainText(/\d/)
+  })
+})
 
 test.describe('the warlock’s priority list, a run and a share link', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })

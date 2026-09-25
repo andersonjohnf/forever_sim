@@ -72,10 +72,16 @@ export function warlockTalentEffects(talents: TalentRanks): Effect[] {
   return out
 }
 
-/** The spells each talent names (their class masks, warlock.md §4): Ruin's and Cataclysm's mask 997 covers Soul Fire (64) too (§11.3). */
-const DESTRUCTION = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire'])
-/** Agonizing Flames' damage: its #1 mask (Shadow Bolt, Immolate's hit, Shadowburn, Incinerate, Conflagrate, Soul Fire's [0, 128]); #2 Immolate's ticks. */
-const AGONIZING = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire'])
+/**
+ * The spells each talent names (their class masks, warlock.md §4): Ruin's and Cataclysm's mask 997 covers
+ * Soul Fire (64) and Searing Pain (256) too (§11.3).
+ */
+const DESTRUCTION = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire', 'searingPain'])
+/**
+ * Agonizing Flames' damage: its #1 mask (Shadow Bolt, Immolate's hit, Shadowburn, Searing Pain, Incinerate,
+ * Conflagrate, Soul Fire's: [421, 8388800]); #2 Immolate's ticks. Its #0 is Searing Pain's crit (mask 256).
+ */
+const AGONIZING = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire', 'searingPain'])
 /** Malediction's periodic damage (#0): Corruption, Immolate's ticks, the Banes, Siphon Life. */
 const MALEDICTION = new Set(['corruption', 'immolate', 'baneOfAgony', 'baneOfDoom', 'siphonLife'])
 /** Shadow Mastery: direct damage (#0: Shadow Bolt, Shadowburn) and periodic (#1: Corruption, the Banes, Siphon Life). */
@@ -110,9 +116,11 @@ export function spellWithTalents(spell: SpellDef, talents: TalentRanks): SpellDe
   let bonusCrit = spell.bonusCrit
   if (MALEVOLENCE.has(id)) bonusCrit += at(CURVE.malevolence, rank(talents, 'Malevolence'))
   if (id === 'conflagrate') bonusCrit += at(CURVE.fireAndBrimstone, rank(talents, 'Fire and Brimstone'))
+  // Agonizing Flames #0 (aura 107, mask 256): +3/7/10% crit with Searing Pain, Improved Searing Pain's old part.
+  if (id === 'searingPain') bonusCrit += at(CURVE.agonizingFlames, rank(talents, 'Agonizing Flames'))
   const hasDot = (spell.dotTicks ?? 0) > 0
   // Decimation #3 (mask 257: Shadow Bolt, Searing Pain): +3% a rank below 35% health (warlock.md §11.3).
-  const decimation = id === 'shadowBolt' ? at(CURVE.decimationDamage, rank(talents, 'Decimation')) : 0
+  const decimation = id === 'shadowBolt' || id === 'searingPain' ? at(CURVE.decimationDamage, rank(talents, 'Decimation')) : 0
   return {
     ...spell,
     ...(decimation > 0 ? { lowHealthPct: decimation, lowHealthBelowPct: 35 } : {}),

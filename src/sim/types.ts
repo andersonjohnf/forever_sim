@@ -325,6 +325,11 @@ export interface AplSummaryPart {
   /** A number's part reads this instead at 0 (Battle Shout's refresh: "again once it runs out"). */
   zeroText?: string
   /**
+   * What the part reads while its setting can't apply (it's unused: a warlock's filler choice without
+   * Incinerate reads "Shadow Bolt", docs/classes/warlock.md §6.4). Absent: the part is left out.
+   */
+  inactiveText?: string
+  /**
    * Switches of other rows that must be on and apply too, for a part about them (Fury's fillers:
    * "while Bloodthirst and Whirlwind cool down").
    */

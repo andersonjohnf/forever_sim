@@ -343,6 +343,8 @@ export class Sim {
   private readonly pDotSlot: Int32Array
   private readonly pDuration: Float64Array
   private readonly pPeriodicCrit: Uint8Array
+  /** petSpellDamage: the share of your spell damage of its school it adds (Demonic Brand, docs/classes/warlock.md §11.3). */
+  private readonly pSpCoef: Float64Array
   private readonly triggerLists: Int32Array[]
   /**
    * Per trigger, the procs that can proc from procs (ProcPlan.fromProcs: Vengeance), which a spell
@@ -422,6 +424,13 @@ export class Sim {
   private readonly auraTakenCharges: Int32Array
   /** Each taken-charged aura's `auraGen` as a hit that costs health lands, before its procs (`onDamageTaken`). */
   private readonly takenChargeGen: Int32Array
+  /**
+   * Charges your pet's landed attacks use up (Demonic Brand's, docs/classes/warlock.md §11.3), the
+   * auras that have them, and each active one's charges left.
+   */
+  private readonly aPetCharges: Int32Array
+  private readonly petChargeAuras: Int32Array
+  private readonly auraPetCharges: Int32Array
   /**
    * At most one white-swing charge used per this many ms (the shaman's Flurry, 500: docs/classes/shaman.md#flurry),
    * and when each aura's next one can go; 0 for every other aura, which loses one per white swing.
@@ -1324,6 +1333,7 @@ export class Sim {
     this.pDotSlot = new Int32Array(np).fill(-1)
     this.pDuration = new Float64Array(np)
     this.pPeriodicCrit = new Uint8Array(np)
+    this.pSpCoef = new Float64Array(np)
     this.procReadyAt = new Float64Array(np)
     let bleeds = 0
     let stackingDots = 0
@@ -1350,6 +1360,7 @@ export class Sim {
       this.pDuration[i] = p.durationMs ?? 0
       // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
       this.pPeriodicCrit[i] = p.periodicCanCrit && plan.profile.combat.periodicCrits ? 1 : 0
+      this.pSpCoef[i] = p.spCoefficient ?? 0
       // One poison on the target whichever weapon applies it: the procs of one id share a slot.
       if (p.action === ACTION.stackingDot) {
         let slot = dotSlots.get(p.id)
@@ -1485,6 +1496,9 @@ export class Sim {
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
     this.auraTakenCharges = new Int32Array(na)
     this.takenChargeGen = new Int32Array(this.takenChargeAuras.length)
+    this.aPetCharges = Int32Array.from(auras, (a) => a.petLandedCharges ?? 0)
+    this.petChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.petLandedCharges ?? 0) > 0 ? [i] : [])))
+    this.auraPetCharges = new Int32Array(na)
     this.aChargeIcd = Float64Array.from(auras, (a) => a.whiteSwingChargeIcdMs ?? 0)
     this.auraChargeReadyAt = new Float64Array(na)
     // The rogue's: Adrenaline Rush's Energy, Venom's poison damage and chance (rogue.md §3.7, §4.4).
@@ -2473,6 +2487,7 @@ export class Sim {
     // paladin.md: another paladin's Judgement of the Crusader is on the boss from the pull (buffs doc §4.2).
     this.holyTaken = this.plan.holyTaken ?? 0
     this.auraTakenCharges.fill(0)
+    this.auraPetCharges.fill(0)
     // docs/mechanics/spells.md: no spell DoTs, no channel, and the schools' static numbers.
     this.spDotTicksLeft.fill(0)
     for (let i = 0; i < this.spDotGen.length; i++) this.spDotGen[i]++
@@ -3888,6 +3903,9 @@ export class Sim {
       case ACTION.healthDrain:
         this.healthDrain(p)
         return
+      case ACTION.petSpellDamage:
+        if (this.hasPet) this.petSpellProc(p)
+        return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
         // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
@@ -3936,6 +3954,7 @@ export class Sim {
     if (!wasActive || this.aKeepsCharges[a] === 0) this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
     this.auraTakenCharges[a] = this.aTakenCharges[a]
+    this.auraPetCharges[a] = this.aPetCharges[a]
     this.q.push(end, EV_AURA_EXPIRE, a, ++this.auraGen[a])
     if (this.watchStart[a] !== this.watchStart[a + 1]) this.watchAura(a, end)
     if (stacks !== oldStacks || !wasActive) this.auraChanged(a, stacks - (wasActive ? oldStacks : 0))
@@ -4151,6 +4170,40 @@ export class Sim {
     this.counters[row + FIELD.hits]++
     const damageThreat = damage * (school === SCHOOL.holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(this.pSource[p], damage, damageThreat + healingThreat(damage, this.threatMult, ENEMIES_IN_COMBAT))
+  }
+
+  /**
+   * Damage your pet deals as its attack lands (Demonic Brand's, docs/classes/warlock.md §11.3): its
+   * roll plus the proc's share of your spell damage of its school, × the pet's damage multiplier and
+   * the boss's damage taken and average resist of that school; no miss roll (the client's Always Hit)
+   * [F], a crit roll at the pet's spell crit, ×1.5 [?]. Rolled on the pet's stream, so it changes none
+   * of your rolls; the pet's damage, so none of your threat (docs/mechanics/ranged-and-pets.md §10).
+   */
+  private petSpellProc(p: number): void {
+    const source = this.pSource[p]
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    const rng = this.rngPet
+    const school = this.pSchool[p]
+    c[row + FIELD.casts]++
+    const roll = this.pA[p] === this.pB[p] ? this.pA[p] : rng.uniform(this.pA[p], this.pB[p])
+    let damage = (roll + this.pSpCoef[p] * this.spSchool[school]) * this.petDamageMult * this.schTaken[school] * this.resistFactor[school]
+    if (rng.roll100() < this.petSpellCritNow) {
+      damage *= CRIT_MULTIPLIER.spell
+      c[row + FIELD.crits]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    this.addPetDamage(source, damage)
+  }
+
+  /** A charge of each aura your pet's landed attacks use up (Demonic Brand's, docs/classes/warlock.md §11.3), after their procs. */
+  private usePetCharges(): void {
+    const list = this.petChargeAuras
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i]
+      if (this.auraActive[a] && --this.auraPetCharges[a] <= 0) this.removeAura(a)
+    }
   }
 
   /**
@@ -5018,6 +5071,7 @@ export class Sim {
     this.addPetDamage(source, damage)
     this.fireProcs(TRIGGER.petLanded, -1)
     if (crit) this.fireProcs(TRIGGER.petCrit, -1)
+    if (this.petChargeAuras.length > 0) this.usePetCharges()
   }
 
   /**
@@ -5154,6 +5208,7 @@ export class Sim {
     if (this.pabAura[a] >= 0) this.applyAura(this.pabAura[a])
     this.fireProcs(TRIGGER.petLanded, -1)
     if (crit) this.fireProcs(TRIGGER.petCrit, -1)
+    if (this.petChargeAuras.length > 0) this.usePetCharges()
   }
 
   // ------------------------------------------------------------------------------------------

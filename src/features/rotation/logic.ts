@@ -216,7 +216,12 @@ export function aplRowSummary(
     }
     const option = byId.get(part.option)
     const state = rows.get(part.option)
-    if (!option || !state || state.inactive) continue
+    if (!option || !state) continue
+    if (state.inactive) {
+      // A setting that can't apply says what happens instead, if its part knows (a warlock's filler without Incinerate).
+      if (part.inactiveText !== undefined) parts.push(part.inactiveText)
+      continue
+    }
     if (option.kind === 'toggle') {
       if (Boolean(state.value) === (part.when ?? true)) parts.push(part.text)
     } else if (option.kind === 'number' && part.zeroText !== undefined && state.value === 0) {

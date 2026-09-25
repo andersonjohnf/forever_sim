@@ -180,8 +180,9 @@ const REGISTRY = {
     docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {
-    text: 'Touch of the Grave isn’t simulated. Its drain takes health from the target, so it deals damage (since the 1.60.1.70009 patch notes, only spells and attacks that deal damage set it off, and it no longer breaks crowd control), but how much isn’t known yet. Leaving it out undercounts an Undead character a little.',
-    docRef: `${WAR}#9-open-questions`,
+    // docs/mechanics/character-stats.md#touch-of-the-grave; the plan gives the chance and the drain ({detail}).
+    text: 'Touch of the Grave: each attack or spell you land that deals damage has a {detail}, as Shadow damage. Its tooltip says “up to 5%”, and how much it really drains isn’t known, so the sim uses the most. The drain never misses or crits, takes your Shadow damage bonuses and the boss’s average partial resist, and makes normal damage threat; the health it gives you makes no healing threat. Damage over time sets it off as it lands, not on its ticks. Untested.',
+    docRef: `${STATS}#touch-of-the-grave`,
   },
   classicItems: {
     text: 'Some of your items have no Forever data yet and use their Classic Era stats.',

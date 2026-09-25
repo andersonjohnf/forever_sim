@@ -62,8 +62,15 @@ export const TRIGGER = {
   petLanded: 25,
   /** The pet's attack crit, white or special (Frenzy, Ferocious Inspiration). */
   petCrit: 26,
+  /**
+   * One of your attacks or spells that deals damage landed: a white swing, a damaging special, a
+   * bleed's or DoT's application, a damaging spell-table strike, a spell or shot that fires your
+   * procs; never a tick or a proc's spell. Hand −1 (Touch of the Grave,
+   * docs/mechanics/character-stats.md#touch-of-the-grave).
+   */
+  damageLanded: 27,
 } as const
-export const TRIGGER_COUNT = 27
+export const TRIGGER_COUNT = 28
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -121,6 +128,11 @@ export const ACTION = {
   // The ranged and pet core's (docs/mechanics/ranged-and-pets.md §9):
   /** The pet's power (Focus, Energy or mana): `amount` tenths, capped at its maximum. */
   petPower: 22,
+  /**
+   * Drains health from the target as damage of `school`: `a` per proc, a share of your maximum
+   * health; never misses or crits (Touch of the Grave, docs/mechanics/character-stats.md#touch-of-the-grave).
+   */
+  healthDrain: 23,
 } as const
 
 /**
@@ -491,7 +503,7 @@ export interface ProcPlan {
   action: number
   /** extraAttacks: count; rage: tenths; aura: aura index; weaponBleed: ticks. */
   amount: number
-  /** extraAttacks: bonus AP; spellDamage: min; weaponBleed: share. */
+  /** extraAttacks: bonus AP; spellDamage: min; weaponBleed: share; healthDrain: damage per proc. */
   a: number
   /** spellDamage: max; weaponBleed: tick period in ms. */
   b: number

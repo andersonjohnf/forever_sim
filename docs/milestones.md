@@ -624,9 +624,11 @@ slice is worked:
     (O1) searches them all.
   - **P12:** mana-gain threat (Shield Specialization, Improved Seal of Fury, the potion) skips the
     Threat gloves' 1.02 (sim.ts's mana threat); about 0.1%.
-  - **A6:** Undead's Touch of the Grave (5% of maximum health as Shadow damage a proc, [?]) isn't
-    simulated for any Undead spec, the paladin, rogue, mage, warlock and priest alike: about +1.7%
-    of a Protection paladin's TPS as Undead; the default race is Human.
+  - **A6 (resolved: modelled with a `[?]` default):** Undead's Touch of the Grave is simulated for
+    every Undead class: 5% of maximum health as Shadow damage a proc, the client's 5% or 10% chance
+    and 1 s cooldown, never missing or critting, with damage threat
+    ([character-stats](mechanics/character-stats.md#touch-of-the-grave)). +1.5% of a Protection
+    paladin's TPS as Undead; the default race is Human, so no default moves.
   - **A7:** Eye for an Eye (Holy damage × Righteous Fury [?]) isn't simulated; no default build
     takes it.
   - **A10 (survival only):** Seal of Fury's absorb isn't taken off the hit it absorbs (~20 damage,

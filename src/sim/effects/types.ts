@@ -414,6 +414,14 @@ export type ProcTrigger =
   /** The pet's attack landed; the pet's attack crit (docs/mechanics/ranged-and-pets.md §9). */
   | 'petLanded'
   | 'petCrit'
+  /**
+   * One of the player's own attacks or spells that deals damage landed: a white swing, a special
+   * that deals damage (not Sunder Armor), a bleed's or DoT's application, a spell-table strike that
+   * deals damage (Thunder Clap), a spell or shot that fires your procs; never a periodic tick, a
+   * proc's own spell or an item's spell (Touch of the Grave's proc mask, 0x11154, which has no
+   * periodic bit; docs/mechanics/character-stats.md#touch-of-the-grave).
+   */
+  | 'damageLanded'
 
 export type ProcAction =
   /** Extra main-hand swings, immediately (damage-and-timing §5.4); `bonusAp` applies to them only. */
@@ -459,6 +467,13 @@ export type ProcAction =
   | { kind: 'manaOfCost'; pct: number }
   /** Power for the pet: Focus, Energy or mana (docs/mechanics/ranged-and-pets.md §7, §9). */
   | { kind: 'petPower'; amount: number }
+  /**
+   * Drains `pctOfMaxHealth`% of your maximum health (the plan's, at the pull) from the target as
+   * `school` damage: no miss or crit roll, your and the boss's multipliers of that school and its
+   * average partial resist, damage threat (Touch of the Grave [?],
+   * docs/mechanics/character-stats.md#touch-of-the-grave).
+   */
+  | { kind: 'healthDrain'; pctOfMaxHealth: number; school: 'shadow' }
 
 export interface ProcSpec {
   id: string

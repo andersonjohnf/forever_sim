@@ -54,7 +54,10 @@ describe('the Feral bear’s priority list (D31)', () => {
     // its buffs carries: with Thorns set back to its flat 22, the druid slice's snapshot reproduces
     // exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is a Restoration druid's, 22 +
     // 0.08 × 200 = 38 unrounded (buffs doc §1.2); with it set back to 53, the snapshot before it
-    // reproduces exactly (no case turns on the bear's own Thorns, `thornsOwn`).
+    // reproduces exactly (no case turns on the bear's own Thorns, `thornsOwn`). Re-taken for Touch of
+    // the Grave's trigger (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries
+    // one more trigger list, empty, since a druid can't be Undead; with the lists held at the 27 codes
+    // before it, the snapshot before it reproduces exactly.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

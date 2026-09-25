@@ -259,3 +259,33 @@ export function docSpellMentions(markdown, spellName) {
   }
   return found;
 }
+
+/**
+ * Spell ids the docs cited in the previous `spells.json` (a record whose `sources` include
+ * "docs") that a new generation no longer extracts at all. A rename is the usual cause: an id
+ * cited by its name alone ("Mangle (407995, …)") stops matching when the client renames the
+ * spell, and the spell leaves the data without a word (the druid review's DR2-3, when Mangle
+ * became Primal Bite in 1.60.1.70009). The client scraper warns on each one
+ * (docs/data/client.md#what-the-docs-decide).
+ * @param {{ spells?: Record<string, { name?: string, sources?: string[] }> } | null} previous
+ * @param {Set<number>} keptIds the ids the new generation extracts
+ * @param {(id: number) => string | null | undefined} spellName the new build's name for an id
+ * @returns {{ id: number, name: string | null, nameNow: string | null }[]} by id
+ */
+export function droppedDocCitations(previous, keptIds, spellName) {
+  const dropped = [];
+  for (const [key, rec] of Object.entries(previous?.spells ?? {})) {
+    const id = Number(key);
+    if (!rec?.sources?.includes("docs") || keptIds.has(id)) continue;
+    dropped.push({ id, name: rec.name ?? null, nameNow: spellName(id) ?? null });
+  }
+  return dropped.sort((a, b) => a.id - b.id);
+}
+
+/** The scraper's warning for one droppedDocCitations entry; `build` is the previous data's. */
+export function droppedDocCitationWarning({ id, name, nameNow }, build) {
+  const was = `spell ${id}${name ? ` (${name})` : ""} was cited by the docs at ${build ?? "the previous build"} and is no longer in spells.json`;
+  if (!nameNow) return `${was}: it isn't in this build's client`;
+  if (name && nameNow !== name) return `${was}: the client now calls it "${nameNow}", so cite it by that name or with a marker ("spell ${id}")`;
+  return `${was}: no doc cites it by name or marker any more`;
+}

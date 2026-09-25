@@ -2,7 +2,7 @@
 // (docs/data/client.md#what-the-docs-decide), so every ID-cell shape the doc uses has a case here,
 // and a shape the parser can't read is reported rather than dropped.
 import { describe, expect, it } from "vitest";
-import { parseBuffsDoc } from "./docrefs.mjs";
+import { droppedDocCitations, droppedDocCitationWarning, parseBuffsDoc } from "./docrefs.mjs";
 
 /** A §3 table with one row per ID cell. */
 const consumablesDoc = (...rows) =>
@@ -139,5 +139,46 @@ describe("parseBuffsDoc tables", () => {
   it("skips the tables with no ids by design (§1.3's camp buffs) and §2's world buffs", () => {
     expect(parseBuffsDoc(table("## 1. Raid and party buffs", "| Camp object (profession) | Buff at level 60 | Tag |")).problems).toEqual([]);
     expect(parseBuffsDoc(table("## 2. World buffs", "| Name | Spell | Effect |")).problems).toEqual([]);
+  });
+});
+
+// A spell the docs cited at the previous build must not leave the data without a word: the
+// druid review's DR2-3, when Mangle's rename to Primal Bite stopped its ids matching by name.
+describe("droppedDocCitations", () => {
+  const previous = {
+    spells: {
+      407995: { name: "Mangle", sources: ["docs"] },
+      1238073: { name: "Mangle", sources: ["docs", "spellbook"] },
+      12966: { name: "Flurry", sources: ["docs"] },
+      9881: { name: "Maul", sources: ["spellbook"] },
+      555: { name: "Gone", sources: ["docs", "trigger"] },
+    },
+  };
+  const names = { 407995: "Primal Bite", 1238073: "Primal Bite", 12966: "Flurry", 9881: "Maul" };
+  const spellName = (id) => names[id] ?? null;
+
+  it("lists only the docs' ids the new generation drops, with the new build's name", () => {
+    // 1238073 stays through the spellbook, and 9881 was never the docs', so neither is listed.
+    expect(droppedDocCitations(previous, new Set([1238073, 9881]), spellName)).toEqual([
+      { id: 555, name: "Gone", nameNow: null },
+      { id: 12966, name: "Flurry", nameNow: "Flurry" },
+      { id: 407995, name: "Mangle", nameNow: "Primal Bite" },
+    ]);
+  });
+
+  it("says why: a rename, an id gone from the client, or a citation the docs dropped", () => {
+    const [gone, uncited, renamed] = droppedDocCitations(previous, new Set([1238073]), spellName);
+    expect(droppedDocCitationWarning(renamed, "1.60.1.69913")).toBe(
+      'spell 407995 (Mangle) was cited by the docs at 1.60.1.69913 and is no longer in spells.json: the client now calls it "Primal Bite", so cite it by that name or with a marker ("spell 407995")',
+    );
+    expect(droppedDocCitationWarning(gone, "1.60.1.69913")).toMatch(/^spell 555 \(Gone\) .*: it isn't in this build's client$/);
+    expect(droppedDocCitationWarning(uncited, undefined)).toBe(
+      "spell 12966 (Flurry) was cited by the docs at the previous build and is no longer in spells.json: no doc cites it by name or marker any more",
+    );
+  });
+
+  it("lists nothing without previous data, or when every cited id is kept", () => {
+    expect(droppedDocCitations(null, new Set(), spellName)).toEqual([]);
+    expect(droppedDocCitations(previous, new Set([407995, 1238073, 12966, 555]), spellName)).toEqual([]);
   });
 });

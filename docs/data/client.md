@@ -722,6 +722,16 @@ edit can change `src/data/client`**:
 | the same, §4's `item N → S` cells (Annihilator, Rivenspike, Nightfall) | the weapon's `items.json` consumable record (item effects, doc name and section) and its proc spell `S` (`consumable` source), checked against the item's effects like a §3 item's spell | `parseBuffsDoc` |
 | `docs/classes/*.md`, `docs/mechanics/*.md`, `docs/open-questions.md` | every spell id cited with a marker or after its client name (`docs` source) | `docSpellMentions` |
 
+A spell id cited only by its name drops out when the client renames the spell: in 1.60.1.70009,
+Mangle's rename to Primal Bite dropped three of its four ranks until druid.md listed them with a
+marker. So the client scraper **warns on every spell the docs cited in the `spells.json` it
+replaces (or checks against) that the new generation no longer extracts**, with the previous
+build and the reason: the client's new name for it, "it isn't in this build's client", or "no doc
+cites it by name or marker any more" (`droppedDocCitations`; the druid review's DR2-3). It's a
+warning, not a failure: a citation the docs dropped on purpose is fine. On 1.60.1.70009 it names
+one spell, Adaptation 1253389, which left the client; the docs cite it as 1.60.1.69913's, and
+nothing the sim models reads it.
+
 Both parsers are in [`lib/docrefs.mjs`](../../scripts/scrape/lib/docrefs.mjs). A §3 ID cell is a
 chain: the item ids, then optionally the item's spell, spells it triggers, `enchant N` and the
 enchant's own spells (`18262 → enchant 2506`, `20750 → 25121 → enchant 2627 → 25111`,

@@ -41,7 +41,7 @@ import { createFetcher } from "./lib/http.mjs";
 import { buildRecord, createClientSource, latestBuild, CLASSIC_BASELINE, DOC_TABLES_BUILD, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib/spells.mjs";
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
-import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
+import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions, droppedDocCitations, droppedDocCitationWarning } from "./lib/docrefs.mjs";
 import { stableStringify } from "./lib/json.mjs";
 import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 
@@ -386,6 +386,19 @@ const missingList = [...missing.entries()]
   .map(([id, reasons]) => ({ id, sources: [...reasons].sort(), encrypted: encryptedSpellIds.has(id) }));
 for (const m of missingList) {
   if (m.sources.includes("spellbook") || m.sources.includes("talent")) fail(`spell ${m.id} (${m.sources.join(", ")}) is not in the client`);
+}
+// A spell the docs cited in the spells.json this run replaces (or checks against) that the run
+// no longer extracts: a rename usually stops the docs' name-on-the-line match (DR2-3).
+const previousSpells = readJsonOrNull(path.join(outDir, "spells.json"));
+for (const d of droppedDocCitations(previousSpells, new Set(Object.keys(spellRecords).map(Number)), (id) => spells.name(id))) {
+  warn(droppedDocCitationWarning(d, previousSpells?.meta?.build));
+}
+function readJsonOrNull(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------

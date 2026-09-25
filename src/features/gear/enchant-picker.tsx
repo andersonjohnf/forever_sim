@@ -28,12 +28,20 @@ export function EnchantPicker({
   enchantId,
   onChange,
   fallbackFocus,
+  stacked = false,
 }: {
   slot: GearSlot
   item: Item
   enchantId: string | undefined
   onChange: (enchantId: string | undefined) => void
   fallbackFocus: () => HTMLElement | null | undefined
+  /**
+   * The wide layout's chip, in its own cell at the row's end (docs/ux.md "Gear"): the enchant's
+   * whole name on up to two lines, then its effect, rather than one truncated line. Many names
+   * share a start ("Lesser Arcanum of Voracity (Strength)", "(Agility)", "(Stamina)"; review
+   * finding DB-2).
+   */
+  stacked?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const profile = useSetup((s) => s.config.rules.profile)
@@ -81,8 +89,23 @@ export function EnchantPicker({
         current ? 'text-positive' : 'text-muted-foreground',
       )}
     >
-      <Sparkles className="size-3.5 shrink-0" aria-hidden />
-      <span className="truncate">{current ? `${current.name} · ${current.summary}` : 'Add an enchant'}</span>
+      {stacked && current ? (
+        // The icon beside the name's first line. The whole text on hover too, should the effect be
+        // cut short (review finding DB-2); on the text, not the button, whose name is its aria-label:
+        // a title there would be read out a second time.
+        <span title={`${current.name} · ${current.summary}`} className="flex min-w-0 items-start gap-2 py-2">
+          <Sparkles className="mt-px size-3.5 shrink-0" aria-hidden />
+          <span className="flex min-w-0 flex-col">
+            <span className="line-clamp-2 break-words">{current.name}</span>
+            <span className="line-clamp-2 break-words">{current.summary}</span>
+          </span>
+        </span>
+      ) : (
+        <>
+          <Sparkles className="size-3.5 shrink-0" aria-hidden />
+          <span className="truncate">{current ? `${current.name} · ${current.summary}` : 'Add an enchant'}</span>
+        </>
+      )}
     </button>
   )
 
@@ -93,6 +116,8 @@ export function EnchantPicker({
         <PopoverContent
           align="start"
           aria-labelledby={titleId}
+          // Its slot, whose button takes focus if the Gear layout changes under it (gear-section.tsx).
+          data-gear-row={slot}
           onOpenAutoFocus={focusList}
           onCloseAutoFocus={(event) => {
             // Its trigger takes focus back, unless the chip has gone.

@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
-import { useRef, type KeyboardEvent, type RefObject } from 'react'
+import { useLayoutEffect, useRef, type KeyboardEvent, type RefObject } from 'react'
 import { Button } from '@/components/ui/button'
 import { PickerBody, type PickerBodyProps } from './item-picker'
 import { pickerDescription, pickerTitle } from './picker-text'
@@ -13,6 +13,38 @@ export const PICKER_HEADING_ID = 'gear-picker-heading'
  * "Rotation"). App keeps the sticky edge in --sticky-top.
  */
 const STICKY = 'sticky top-[calc(var(--sticky-top,7rem)+1rem)]'
+
+/**
+ * Keeps the panel's bottom at or above the slot list's, so its head never goes under the tabs
+ * (review finding DB-1). A sticky panel can't pass the end of the list beside it, and scrolled to
+ * the page's end the footer is under the list: a panel as tall as the window was pushed up under
+ * the header and tabs. Its height follows the room from its top (the sticky edge, or the list's
+ * top while that's lower) to the list's bottom instead, which only bites as the list's end comes
+ * into view. The list is at least the panel's full height (gear-section.tsx), so it never shrinks
+ * it otherwise.
+ */
+function useFitBeside(panelRef: RefObject<HTMLElement | null>, listRef: RefObject<HTMLElement | null>) {
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const list = listRef.current
+    if (!panel || !list) return
+    const fit = () => {
+      const top = Number.parseFloat(getComputedStyle(panel).top) || 0
+      const box = list.getBoundingClientRect()
+      panel.style.maxHeight = `${Math.max(0, Math.floor(box.bottom - Math.max(top, box.top)))}px`
+    }
+    fit()
+    window.addEventListener('scroll', fit, { passive: true })
+    window.addEventListener('resize', fit)
+    const observer = new ResizeObserver(fit)
+    observer.observe(list)
+    return () => {
+      window.removeEventListener('scroll', fit)
+      window.removeEventListener('resize', fit)
+      observer.disconnect()
+    }
+  }, [panelRef, listRef])
+}
 
 /** Whether a key press is typing in a field, where `/` is a character rather than a shortcut. */
 function typing(target: EventTarget | null) {
@@ -29,13 +61,18 @@ function typing(target: EventTarget | null) {
 export function PickerPanel({
   slot,
   onBack,
+  listRef,
   ...body
 }: Omit<PickerBodyProps, 'slot' | 'autoFocus' | 'searchRef' | 'fadeEdges'> & {
   slot: PickerBodyProps['slot'] | null
   /** Back to the slot's row on the list. */
   onBack: () => void
+  /** The slot list beside it, whose bottom the panel's never passes. */
+  listRef: RefObject<HTMLElement | null>
 }) {
   const searchRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  useFitBeside(panelRef, listRef)
   if (slot === null) {
     return (
       <aside aria-label="Item picker" className={STICKY}>
@@ -45,7 +82,10 @@ export function PickerPanel({
   }
   return (
     <aside
+      ref={panelRef}
       aria-labelledby={PICKER_HEADING_ID}
+      // Its slot, whose button takes focus if the layout changes under it (gear-section.tsx).
+      data-gear-row={slot}
       onKeyDown={(e) => panelKeys(e, onBack, searchRef)}
       className={`${STICKY} flex h-[calc(100svh-var(--sticky-top,7rem)-2rem)] min-h-96 flex-col overflow-hidden rounded-xl border`}
     >

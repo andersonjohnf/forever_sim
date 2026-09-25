@@ -28,7 +28,7 @@ export function EnchantPicker({
   enchantId,
   onChange,
   fallbackFocus,
-  stacked = false,
+  whole = false,
 }: {
   slot: GearSlot
   item: Item
@@ -36,12 +36,13 @@ export function EnchantPicker({
   onChange: (enchantId: string | undefined) => void
   fallbackFocus: () => HTMLElement | null | undefined
   /**
-   * The wide layout's chip, in its own cell at the row's end (docs/ux.md "Gear"): the enchant's
-   * whole name on up to two lines, then its effect, rather than one truncated line. Many names
-   * share a start ("Lesser Arcanum of Voracity (Strength)", "(Agility)", "(Stamina)"; review
-   * finding DB-2).
+   * The wide layout's chip, a line of text under the item in its slot of the grid (docs/ux.md
+   * "Gear"): sized to its text, which is the enchant's whole name and effect, wrapping rather than
+   * cut short, since many names share a start ("Lesser Arcanum of Voracity (Strength)", "(Agility)",
+   * "(Stamina)"; review finding DB-2). Like a flag badge, it takes a line's height in the layout and
+   * a 44 px hit area, 12 px past it each way, and sits above the slot's button.
    */
-  stacked?: boolean
+  whole?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const profile = useSetup((s) => s.config.rules.profile)
@@ -86,18 +87,17 @@ export function EnchantPicker({
       className={cn(
         'flex min-h-11 w-full items-center gap-2 rounded-b-xl px-3 text-left text-xs outline-none',
         'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        whole && 'group/chip relative z-10 -my-3 w-auto min-w-0 rounded-md px-1 py-3 hover:bg-transparent',
         current ? 'text-positive' : 'text-muted-foreground',
       )}
     >
-      {stacked && current ? (
-        // The icon beside the name's first line. The whole text on hover too, should the effect be
-        // cut short (review finding DB-2); on the text, not the button, whose name is its aria-label:
-        // a title there would be read out a second time.
-        <span title={`${current.name} · ${current.summary}`} className="flex min-w-0 items-start gap-2 py-2">
+      {whole && current ? (
+        // The whole text on hover too (review finding DB-2): on the text, not the button, whose name
+        // is its aria-label: a title there would be read out a second time.
+        <span title={`${current.name} · ${current.summary}`} className="flex min-w-0 items-start gap-1.5 group-hover/chip:underline">
           <Sparkles className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span className="flex min-w-0 flex-col">
-            <span className="line-clamp-2 break-words">{current.name}</span>
-            <span className="line-clamp-2 break-words">{current.summary}</span>
+          <span className="min-w-0 break-words">
+            {current.name} · {current.summary}
           </span>
         </span>
       ) : (
@@ -116,8 +116,6 @@ export function EnchantPicker({
         <PopoverContent
           align="start"
           aria-labelledby={titleId}
-          // Its slot, whose button takes focus if the Gear layout changes under it (gear-section.tsx).
-          data-gear-row={slot}
           onOpenAutoFocus={focusList}
           onCloseAutoFocus={(event) => {
             // Its trigger takes focus back, unless the chip has gone.

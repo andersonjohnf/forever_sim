@@ -403,3 +403,86 @@ function textContrast(target: Locator) {
     return (hi + 0.05) / (lo + 0.05)
   })
 }
+
+/**
+ * How far Your setup's card paints past the scroller's clip, in px (0 when it all shows): its ring
+ * and shadow (box-shadows, drawn outside its box) at the bottom and sides, against the area the
+ * scroller can scroll to (scrollHeight) and, while it has nothing to scroll, its visible box. `below`
+ * is how far the ring and shadow reach under the card.
+ */
+function setupCardClip(panel: Locator) {
+  return scrollerOf(panel).evaluate((scroller) => {
+    const card = scroller.querySelector('[data-setup-actions]')!.closest('[data-slot="card"]')!
+    // Each outer box-shadow's reach: below, offset-y + blur + spread; to the side, |offset-x| + blur + spread.
+    const shadows = getComputedStyle(card)
+      .boxShadow.split(/,(?![^(]*\))/)
+      .filter((s) => s.trim() !== 'none' && !/\binset\b/.test(s))
+      .map((s) => (s.replace(/[a-z]+\([^)]*\)/g, '').match(/-?[\d.]+px/g) ?? []).map(Number.parseFloat))
+    const below = Math.max(0, ...shadows.map(([, y = 0, blur = 0, spread = 0]) => y + blur + spread))
+    const side = Math.max(0, ...shadows.map(([x = 0, , blur = 0, spread = 0]) => Math.abs(x) + blur + spread))
+    const s = scroller.getBoundingClientRect()
+    const c = card.getBoundingClientRect()
+    const top = s.top + scroller.clientTop
+    const left = s.left + scroller.clientLeft
+    const paintBottom = c.bottom + below - top + scroller.scrollTop
+    const clips = [
+      paintBottom - scroller.scrollHeight,
+      left - (c.left - side),
+      c.right + side - (left + scroller.clientWidth),
+      scroller.scrollHeight <= scroller.clientHeight ? paintBottom - scroller.scrollTop - scroller.clientHeight : 0,
+    ]
+    return { clip: Math.max(0, ...clips), below }
+  })
+}
+
+/** Your setup's card, its ring and shadow whole, and its action row's bottom corners rounded. */
+async function setupCardWhole(panel: Locator, state: string) {
+  const { clip, below } = await setupCardClip(panel)
+  expect(below, `${state}: the card draws a ring or shadow under it`).toBeGreaterThan(0)
+  expect(clip, `${state}: px of the card's edge clipped`).toBeLessThanOrEqual(0.5)
+  const radii = await actionsOf(panel).evaluate((el) => [getComputedStyle(el).borderBottomLeftRadius, getComputedStyle(el).borderBottomRightRadius].map(Number.parseFloat))
+  for (const r of radii) expect(r, `${state}: the action row's bottom corner`).toBeGreaterThan(0)
+}
+
+// The user's report from the preview: before a run Your setup's bottom edge, rounded corners and
+// shadow were cut off at the panel's foot, since the card's ring and shadow paint outside its box and
+// the scroller clipped them. The panel's content keeps room for them under its last card
+// (docs/ux.md#results "The wide layout's right panel").
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const [width, height] of [
+    [1440, 900],
+    [1920, 1080],
+  ] as const) {
+    test.describe(`Your setup’s card at ${width}×${height}, ${colorScheme}`, () => {
+      test.use({ viewport: { width, height }, colorScheme })
+
+      test('its whole edge, corners and shadow show before, during and after a run, and once stale', async ({ page }) => {
+        await seed(page, { spec: 'warrior-protection' })
+        const release = await holdWorkers(page)
+        await page.goto('./')
+        const panel = results(page)
+        await expect(simulateOf(panel)).toHaveAccessibleName('Simulate')
+        await setupCardWhole(panel, 'ready')
+        await simulateOf(panel).click()
+        await expect(setupOf(panel).getByText(/^Simulating…/)).toBeVisible()
+        await setupCardWhole(panel, 'running')
+        await release()
+        await expect(simulateOf(panel)).toHaveAccessibleName('Run again', { timeout: 60_000 })
+        await setupCardWhole(panel, 'done')
+        await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+        await page.getByRole('radio', { name: /^Self only/ }).click()
+        await expect(actionsOf(panel).getByText('Setup changed', { exact: true })).toBeVisible()
+        await setupCardWhole(panel, 'stale')
+      })
+
+      test('its whole edge shows after a run that fails', async ({ page }) => {
+        await seed(page, { race: 'alliance-skyborne-high-order' })
+        await page.goto('./')
+        const panel = results(page)
+        await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
+        await expect(panel.getByRole('alert')).toBeVisible()
+        await setupCardWhole(panel, 'failed')
+      })
+    })
+  }
+}

@@ -1089,8 +1089,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     overflows it takes keyboard focus, so arrow keys scroll it. Measured at 1440×900 (a 772 px
     panel): Your setup takes 245 px before a run and a tank's sheet 470–492 (a bear's, a Protection
     warrior's, a Protection paladin's), so before a run every spec's sheet and setup fit whole, with
-    nothing to scroll: a tank's Simulate ends 58–80 px above the window's bottom edge, 26–48 px
-    inside the panel's room.
+    nothing to scroll: a tank's Simulate ends 53–75 px above the window's bottom edge, 21–43 px
+    inside the panel's room. The cards' ring and the light theme's shadow paint outside their
+    boxes, and the panel clips at its edges, so it keeps room for them: 2 px above the sheet, 4 px
+    under the last card and 4 px at the sides. Your setup's whole edge, rounded corners and shadow
+    show in every state, before a run too, when it's the last thing in the panel (a user report).
     - **Keeping the action row in view.** When a run starts, finishes or fails, the panel keeps Your
       setup's action row in view, since it holds the progress, the headline or the failure (and on a
       failure, the message under the card too). A row already in view stays where it is; otherwise

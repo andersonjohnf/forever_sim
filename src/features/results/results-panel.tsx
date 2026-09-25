@@ -536,8 +536,13 @@ function WidePanel({ setup }: { setup: ReactNode }) {
         // it rather than lengthening the page (results-assumptions-scroll.spec.ts).
         className="relative -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        {/* The 1 px top padding keeps the sheet card's ring inside the scroll area. */}
-        <div ref={content} className="flex flex-col gap-2 pt-px">
+        {/*
+         * The cards' ring (1 px) and the light theme's shadow (shadow-surface: 2 px above, 4 px below,
+         * 3 px to the sides) paint outside their boxes, and the scroller clips at its padding box: so
+         * 2 px above the sheet and 4 px under the last card (Your setup, before a run) keep them
+         * whole, as the scroller's px-1 does at the sides.
+         */}
+        <div ref={content} className="flex flex-col gap-2 pt-0.5 pb-1">
           <section aria-labelledby={sheetHeadingId}>
             <Card size="sm" className="gap-2 shadow-surface">
               <CardHeader className="flex items-center justify-between gap-3">

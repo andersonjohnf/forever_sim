@@ -363,7 +363,7 @@ function ScrollBody({ children }: { children: ReactNode }) {
         role="region"
         aria-label="Result details"
         tabIndex={above || below ? 0 : undefined}
-        className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 py-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-lg px-1 py-1 outline-none [scrollbar-width:thin] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <div ref={content}>{children}</div>
       </div>

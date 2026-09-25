@@ -123,11 +123,11 @@ export function FightSection() {
       />
 
       {/*
-       * In the wide layout, from a 60 rem setup pane, two columns: the fight on the left, Advanced on
+       * In the wide layout, from a 53 rem setup pane, two columns: the fight on the left, Advanced on
        * the right, still a disclosure, so opening it pushes nothing down (D34, docs/ux.md "Fight").
        * Below 1440 px the pane isn't a container, so this stays one column.
        */}
-      <div className="flex flex-col gap-6 @min-[60rem]/setup:grid @min-[60rem]/setup:grid-cols-2 @min-[60rem]/setup:items-start @min-[60rem]/setup:gap-8">
+      <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-2 @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
         <div className="flex flex-col gap-6">
           <Field
             label={

@@ -109,11 +109,11 @@ export function CharacterSection() {
       <SectionHeader title="Character" description={`Level 60 ${meta.name} ${meta.className}.`} />
 
       {/*
-       * In the wide layout, from a 60 rem setup pane, the races sit on the left and the chosen race's
+       * In the wide layout, from a 53 rem setup pane, the races sit on the left and the chosen race's
        * racials beside them, with Advanced full width below (D34, docs/ux.md "Character"). Below
        * 1440 px the pane isn't a container, so this stays one column.
        */}
-      <div className="flex flex-col gap-6 @min-[60rem]/setup:grid @min-[60rem]/setup:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[60rem]/setup:items-start @min-[60rem]/setup:gap-8">
+      <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
         <div className="flex flex-col gap-2">
           <span id="race-label" className="text-sm font-medium">
             Race

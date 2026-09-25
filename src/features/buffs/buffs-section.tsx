@@ -232,15 +232,15 @@ export function BuffsSection() {
               <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{CATEGORY_LABEL[category]}</h3>
               {/*
                * In the wide layout the category's groups flow into columns by the setup pane's width
-               * (D34, docs/ux.md "Buffs"): 2 from 56 rem, 3 from 84 rem. CSS columns keep the reading
+               * (D34, docs/ux.md "Buffs"): 2 from 53 rem, 3 from 84 rem. CSS columns keep the reading
                * order top to bottom, column by column, and no group splits across two. Below 1440 px
                * the pane isn't a container, so this stays the one column of cards it always was.
                */}
-              <div className="flex flex-col gap-3 @min-[56rem]/setup:block @min-[56rem]/setup:columns-2 @min-[56rem]/setup:gap-4 @min-[84rem]/setup:columns-3">
+              <div className="flex flex-col gap-3 @min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-4 @min-[84rem]/setup:columns-3">
                 {groups.map((group) => (
                   <div
                     key={group}
-                    className="flex flex-col gap-1 rounded-xl border p-1 @min-[56rem]/setup:mb-4 @min-[56rem]/setup:break-inside-avoid"
+                    className="flex flex-col gap-1 rounded-xl border p-1 @min-[53rem]/setup:mb-4 @min-[53rem]/setup:break-inside-avoid"
                   >
                     <span className="px-3 pt-2 text-xs font-medium text-muted-foreground">{group}</span>
                     {defs

@@ -3,9 +3,10 @@ import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Sections" (Character, Buffs, Fight): in the wide layout (D34) these three reflow by
 // the setup pane's own width, with container queries on `setup`. Buffs' groups flow into 2 columns
-// from a 56 rem pane and 3 from 84 rem; Character puts the racials beside the races, and Fight puts
-// Advanced beside the fight, from 60 rem. Under 1440 px the pane isn't a container, so nothing
-// changes there (the rest of the suite runs at 1280).
+// from a 53 rem pane and 3 from 84 rem; Character puts the racials beside the races, and Fight puts
+// Advanced beside the fight, from 53 rem. A 1440 px window's pane is 55 rem, or 54 beside a
+// scrollbar that takes room, so all three apply from 1440. Under 1440 px the pane isn't a
+// container, so nothing changes there (the rest of the suite runs at 1280).
 
 const REM = 16
 
@@ -55,7 +56,9 @@ test.describe('the wide sections', () => {
       await page.goto('./')
       const panel = await openTab(page, 'Buffs')
       const pane = await setupWidth(page)
-      const columns = pane >= 84 * REM ? 3 : pane >= 56 * REM ? 2 : 1
+      const columns = pane >= 84 * REM ? 3 : pane >= 53 * REM ? 2 : 1
+      // The wide layout's reflow starts with the wide layout itself.
+      expect(columns).toBeGreaterThanOrEqual(2)
       await noSidewaysScroll(page)
 
       // The presets and "In your raid" stay full width above the groups.
@@ -90,12 +93,13 @@ test.describe('the wide sections', () => {
       }
     })
 
-    test(`at ${width} px, Character puts the racials beside the races from a 60 rem pane`, async ({ page }) => {
+    test(`at ${width} px, Character puts the racials beside the races from a 53 rem pane`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Character')
       const pane = await setupWidth(page)
-      const beside = pane >= 60 * REM
+      const beside = pane >= 53 * REM
+      expect(beside).toBe(true)
       await noSidewaysScroll(page)
 
       const races = (await panel.getByRole('radiogroup', { name: 'Race' }).boundingBox())!
@@ -117,12 +121,13 @@ test.describe('the wide sections', () => {
       expect(advanced.y).toBeGreaterThan(races.y + races.height)
     })
 
-    test(`at ${width} px, Fight puts Advanced beside the fight from a 60 rem pane`, async ({ page }) => {
+    test(`at ${width} px, Fight puts Advanced beside the fight from a 53 rem pane`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const panel = await openTab(page, 'Fight')
       const pane = await setupWidth(page)
-      const beside = pane >= 60 * REM
+      const beside = pane >= 53 * REM
+      expect(beside).toBe(true)
       const advanced = panel.getByRole('button', { name: 'Advanced' })
       const position = panel.getByRole('radiogroup', { name: 'Position' })
       const length = (await panel.getByRole('slider', { name: 'Fight length' }).boundingBox())!

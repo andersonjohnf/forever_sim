@@ -156,17 +156,17 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 /**
  * The presets' help, which the preset picker's info lists, and their short lines, which the picker
  * shows under it for the one picked (docs/ux.md "Rotation"): what each keeps and drops, with what it
- * measures against Defensive in the default setup (warrior.md §5.4 "Balanced" and "Max TPS"; seed
- * 31101, 100,000 paired fights).
+ * measures against Defensive in the default setup, and Max TPS against Balanced too, since the two
+ * share their rows (warrior.md §5.4 "Balanced", "Max TPS" and "Build 1.60.1.70009"; seed 31101,
+ * 100,000 paired fights).
  */
 const DEFENSIVE_SUMMARY = 'Shield Block, Thunder Clap and Demoralizing Shout kept up: the least damage taken. Tuned on threat.'
 const DEFENSIVE_HELP =
   'Keeps Shield Block up, and Thunder Clap’s slow and Demoralizing Shout on the boss from the pull, so you take the least damage, and is tuned on threat: 926 TPS, 363 DPS and 611 damage taken a second in the default setup. Pick it for progression fights.'
 const BALANCED_SUMMARY = 'Shield Block and 5 Sunders kept, no Thunder Clap or Shout: +7% TPS, +6% DPS, 21% more damage taken than Defensive.'
 const BALANCED_HELP = `The default, as most tanks play fights short of progression. Keeps Shield Block and Sunder Armor’s 5 stacks; drops Thunder Clap and Demoralizing Shout; uses Sunder Armor as a filler only from ${BALANCED_FILLER_PCT}% of your max rage (${BALANCED_FILLER_PCT} rage without Boundless Rage), and Heroic Strike from ${BALANCED_HS_PCT}%. Against Defensive in the default setup: 7.2% more TPS, 6.4% more DPS and 21% more damage taken. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
-const MAX_TPS_SUMMARY = 'Thunder Clap and Demoralizing Shout dropped for threat, Shield Block kept: +8% TPS, 21% more damage taken than Defensive.'
-const MAX_TPS_HELP =
-  'Drops Thunder Clap and Demoralizing Shout for threat, and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Defensive in the default setup: 8.3% more TPS, 6.9% more DPS and 21% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.'
+const MAX_TPS_SUMMARY = `Sunder Armor filler from its cost, Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rage: about +1% TPS over Balanced for the same damage taken.`
+const MAX_TPS_HELP = `Balanced’s rotation spending more rage on threat: the Sunder Armor filler from its cost (9 rage with the default talents) rather than ${BALANCED_FILLER_PCT}% of your max rage, and Heroic Strike from ${MAX_TPS_HS_MIN_RAGE} rather than ${BALANCED_HS_PCT}%. Like Balanced, it drops Thunder Clap and Demoralizing Shout and keeps Shield Block and Shield Slam, which make more threat than they cost. Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken; against Defensive, 8.3% more TPS, 6.9% more DPS and 21% more damage taken. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.`
 
 /**
  * Defaults from warrior.md §5.4's table, in priority order. The duties' timing is D26's fixed rule;

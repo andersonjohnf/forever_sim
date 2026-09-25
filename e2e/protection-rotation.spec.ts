@@ -80,6 +80,8 @@ test.describe('Protection rotation', () => {
     await expect(info.getByRole('term')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
     await expect(info).toContainText('7.2% more TPS, 6.4% more DPS and 21% more damage taken')
     await expect(info).toContainText('8.3% more TPS, 6.9% more DPS and 21% more damage taken')
+    // Max TPS names what it changes from Balanced, whose rows it shares (WR-1).
+    await expect(info).toContainText('Against Balanced in the default setup: 1.0% more TPS, 0.5% more DPS and the same damage taken')
     await page.keyboard.press('Escape')
     await expect(tab.getByRole('button', { name: 'About the presets' })).toBeFocused()
     // The preset first, then the consumables, spec-wide, above the list; nothing else is.
@@ -324,7 +326,7 @@ test.describe('Protection rotation on a phone', () => {
     for (const option of await page.getByRole('option').all()) await expect.poll(async () => (await option.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await page.getByRole('option', { name: 'Max TPS', exact: true }).tap()
     // The line under the picker fits in three lines at 390 px.
-    const line = page.getByText(/^Thunder Clap and Demoralizing Shout dropped for threat, Shield Block kept/)
+    const line = page.getByText(/^Sunder Armor filler from its cost, Heroic Strike from 45 rage: about \+1% TPS over Balanced/)
     expect((await line.boundingBox())!.height).toBeLessThanOrEqual(3 * 20 + 1)
     await expect(preset(page)).toHaveText('Max TPS')
     await expect(rowSwitch(page, 'thunderClap')).not.toBeChecked()

@@ -1557,7 +1557,10 @@ puts the list's settings at that preset's defaults and keeps the consumables' se
   It keeps Shield Block (row 1) since build 1.60.1.70009, whose lower Sunder Armor threat left its
   blocks worth more threat than its rage (D26's rule: Max TPS drops a duty only when its upkeep
   costs TPS; [Build 1.60.1.70009](#build-160170009-protection)), and Shield Slam (row 7), which
-  now makes the most threat of any global cooldown ([Max TPS](#max-tps-p2)). The Buffs tab's Thunder Clap and Demoralizing
+  now makes the most threat of any global cooldown ([Max TPS](#max-tps-p2)). So it now keeps
+  Balanced's rows and differs in its thresholds, the Sunder Armor filler from its cost and Heroic
+  Strike from 45: about +1% TPS over Balanced for the same damage taken, which its line under the
+  picker says ([Build 1.60.1.70009](#build-160170009-protection)). The Buffs tab's Thunder Clap and Demoralizing
   Shout are the tank's own too, so no preset turns them on for a Protection warrior (the buffs
   doc's [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): with
   Max TPS the boss goes unslowed and at full attack power, unless you turn them on there because
@@ -2037,6 +2040,13 @@ The presets against Defensive, on seed 31101 (100,000 paired fights), in the def
 | Defensive | 926.27 | 363.06 | 610.59 |
 | Balanced (the default) | 993.37, **+7.24%** (+66.79 to +67.41) | 386.18, +6.37% | 739.10, +21.0% |
 | Max TPS | 1,003.49, **+8.34%** (+76.90 to +77.52) | 388.07, +6.89% | 739.50, +21.1% |
+
+**Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
+in thresholds: Max TPS uses the Sunder Armor filler from its cost (9) rather than 60% of the max
+rage, and Heroic Strike from 45 rather than 84% of it. On the same fights that's **+10.12 TPS
+(+1.02%, +9.90 to +10.33)**, +1.89 DPS (+0.49%, +1.77 to +2.01) and +0.40 damage taken a second
+(+0.05%, +0.32 to +0.48): the same damage taken. The preset's line and help name that difference
+(`MAX_TPS_SUMMARY`, `MAX_TPS_HELP`), since against Defensive the two read alike.
 
 Before the build, Balanced made 1,240.98 TPS and Max TPS 1,290.09 (41% more damage taken, without
 Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D29):** Balanced's

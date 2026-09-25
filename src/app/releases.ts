@@ -31,18 +31,18 @@ export const RELEASES: readonly Release[] = [
         items: [
           'Sunder Armor’s threat drops to 206 plus a little from attack power, and Shield Slam’s “very high” threat is modelled: Protection Warrior about 1,240 to 1,000 TPS.',
           'Righteous Fury drops to +60% Holy threat and Holy Strike is a 10 s cooldown at 50% weapon damage; a new priority order and talents: Protection Paladin about 830 to 750 TPS.',
-          'Mangle is now Primal Bite (same numbers), and Lacerate follows the new Sunder: Feral Bear about 1,125 TPS.',
+          'Mangle is now Primal Bite (same numbers), and Lacerate follows the new Sunder: Feral Bear about 1,120 to 1,130 TPS.',
           'Thorns scales with a raid Restoration druid’s spell power; a bear casting its own keeps the base damage.',
         ],
       },
       {
         label: 'DPS specs',
         items: [
-          'Warlock gear ranked by the sim, with Fire gear for Destruction: Destruction about 450 to 600 DPS, Affliction 400 to 510, Demonology 535 to 675.',
-          'Arms: Bloodthrill doubles on main-hand attacks, +6.7%. Retribution: Vengeance, Crusade and its talents changed, −1.4%.',
-          'Balance: Wrath hits 50% harder, +5%. Fire Mage: Ignite no longer double-dips, Hot Streak lasts 20 s, and new trinkets, +3%.',
+          'Warlock gear ranked by the sim: Destruction about 450 to 600 DPS, Affliction 400 to 510, Demonology 535 to 675.',
+          'Arms: Bloodthrill’s Overpower chance doubles, from main-hand attacks only, +6.7%. Retribution: Vengeance, Crusade and its talents changed, −1.4%.',
+          'Balance: Wrath’s base damage up 50%, +5%. Fire Mage: Ignite no longer double-dips, Hot Streak lasts 20 s, and new trinkets, +3%.',
           'Gear re-ranked by the sim: Elemental +9%, Shadow Priest +8%, Frost and Arcane +1%.',
-          'Gnome Eureka! is a 10% cost cut for every class.',
+          'Gnome Eureka! is now a 10% cost cut for every class, down from 15 to 50%.',
         ],
       },
       {

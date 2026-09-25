@@ -1084,17 +1084,20 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** it deals damage: its drain takes health from the target, and since 1.60.1.70009
   only spells and abilities with a damage component proc it (Shadow Word: Pain on the cast, not its
   ticks), so it no longer breaks crowd control [F] (the build's notes;
-  [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)). The amount (up to 5% of
-  maximum health), school, and whether it can miss, crit or cause threat are unknown [?].
-  **Not simulated, a known gap** ([milestones](milestones.md) A6; the `touchOfTheGrave`
-  assumption): its amount would follow maximum health, and it procs from every damaging spell and
-  attack behind an internal cooldown (5% for melee classes, 10% for casters; 1 s on the melee
-  classes' spell), a proc the engine has no
-  shape for yet. No default race is Undead, so no default headline moves; at 5% of maximum health
-  as Shadow damage a proc [?] it would be about +1.7% of a Protection paladin's TPS as Undead.
+  [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave)). Its chance (5% for the
+  warrior, paladin and rogue, 10% for the priest, mage and warlock) and 1 s internal cooldown are
+  the client's [F]. **Simulated with a default** (the `touchOfTheGrave` assumption;
+  [stats: Touch of the Grave](mechanics/character-stats.md#touch-of-the-grave)): 5% of maximum
+  health, the tooltip's "up to", as Shadow damage a proc, which never misses or crits and makes
+  damage threat; the health it drains heals you for as much, all of it effective (the sim keeps no
+  health pool to overheal), and makes healing threat, 0.5 a point × the global multiplier [C] with
+  no paladin ×0.5 or Righteous Fury [?]. No default race is Undead, so no default headline moves.
+  As Undead, over 20,000 fights, it adds +2.3% to a Protection paladin's TPS, +1.9% to a
+  Protection warrior's and +1.6% to a Shadow Priest's DPS.
 - **Test:** Undead warrior or paladin: log 5 minutes of melee; count procs and read amounts.
 - **Samples:** ≥5 minutes.
-- **Changes:** its damage model (amount, school, threat), then modelling it.
+- **Changes:** its default: the amount, school, crit, miss and threat (and whether its heal makes
+  threat).
 - **Docs:** [stats OQ-10](mechanics/character-stats.md#oq-10-touch-of-the-grave);
   [warrior Q16](classes/warrior.md#9-open-questions);
   [paladin OQ 15](classes/paladin.md#open-questions)

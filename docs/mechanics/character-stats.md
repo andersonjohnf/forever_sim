@@ -142,7 +142,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913); Classic [C] [client] (SpellEffect, 1.15.9.69722: a dummy, 25) |
 | Orc | Shatter Curse (1299026) | removes curses; −15% magic damage taken for 8 s; 3 min cooldown | did not exist | tank CD | [F] [racials][fc-racials] |
 | Orc | Hardiness, Command | stun duration −20%; Command **removed** | stun resist; pet damage | ignore | [F] [racials][fc-racials] |
-| Undead | Touch of the Grave (1260189, warrior/paladin/rogue version) | Spells and attacks have a 5% chance to drain health from the target, up to 5% of your maximum health | did not exist | proc; damage model [?] ([OQ-10](#oq-10-touch-of-the-grave)) | [F] text [racials][fc-racials]; [client] (SpellEffect, 1.60.1.69913: dummy aura, 5) |
+| Undead | Touch of the Grave: 1260189 (warrior, paladin, rogue: mask 11), 1260201 (priest, mage, warlock: mask 400) | Spells and attacks have a 5% chance (10% for priests, mages and warlocks) to drain health from the target, up to 5% of your maximum health; 1 s internal cooldown | did not exist | proc: 5% of maximum health as Shadow damage [?] ([Touch of the Grave](#touch-of-the-grave), [OQ-10](#oq-10-touch-of-the-grave)) | [F] text [racials][fc-racials]; [client] (SpellEffect: dummy aura, 5; SpellAuraOptions: chance, `ProcCategoryRecovery` 1000, proc mask 0x11154; 1.60.1.70009) |
 | Undead | Will of the Forsaken, Cannibalize, Underwater Breathing; Shadow Resistance | utility; resistance **removed** | utility; +10 Shadow resistance | ignore | [F] [racials][fc-racials] |
 | Tauren | Endurance (20550) | total health +5% (aura 133) **and +1% chance to hit** with melee and ranged attacks (aura 54) and spells (aura 55) | total health +5% | stat | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Tauren | War Stomp | unchanged: 2 s AoE stun | same | ignore | [F] [racials][fc-racials] |
@@ -186,6 +186,32 @@ Consequences for the rest of the sim:
   [Example 1](#example-1-naked-human-warrior) variant 1c) it's suppressed like any other.
 - The wowsims Forever sim still implements the TBC racials (Human Spirit ×1.10, weapon skill as
   expertise, level-scaled Blood Fury) [wsf-racials]. Don't copy them.
+
+### Touch of the Grave
+
+The Undead passive is a proc on every class Undead can be in Forever. Its drain is server-side, so
+the sim gives it a default and lists it in the results' assumptions (`touchOfTheGrave`; decision
+D29). Code: `src/sim/effects/racials.ts` (`TOUCH_OF_THE_GRAVE`), the `damageLanded` trigger and
+the `healthDrain` action in `src/sim/engine/sim.ts`.
+
+| Part | The sim | Tag · source |
+| --- | --- | --- |
+| Chance | 5% for the warrior, paladin and rogue (1260189, class mask 11); 10% for the priest, mage and warlock (1260201, mask 400) | [F] [client] (SpellAuraOptions `ProcChance`, SkillLineAbility, 1.60.1.70009); the tooltips agree [racials] |
+| Internal cooldown | 1 s, both spells | [F] [client] (SpellAuraOptions `ProcCategoryRecovery` 1000, 1.60.1.70009) |
+| What procs it | A landed attack or spell of yours that deals damage: white swings (extra attacks too), specials that deal damage, a bleed's or DoT's application (Shadow Word: Pain as it lands), spell-table strikes that deal damage (Thunder Clap), direct spells, and each missile of a channel that fires your procs (Arcane Missiles). Not a periodic tick, an attack that deals no damage (Sunder Armor, Demoralizing Shout), an avoided one, a proc's own spell (a seal's damage, Holy Shield's) or an item's spell | [F] the build's notes: only spells and abilities with a damage component, SW:P on the cast and not its ticks [dev-70009]; proc mask 0x11154 has no periodic bit [client]; a triggered spell procs nothing, as for every other proc ([paladin.md](../classes/paladin.md#conventions-used-below)) |
+| Amount | 5% of your maximum health, the sheet's at the pull | [?] the tooltip's "up to 5%" upper bound, which the dummy aura's base points (5) match; no allowed source gives a range or a formula |
+| School | Shadow | [?] a drain of health, as the Shadow drains are; the passive aura's own school (Physical, `SchoolMask` 1) is the dummy's, not the drain's |
+| Hit and crit | It always lands and never crits | [?] the engine has no racial damage proc that rolls; a drain in Classic rolls no crit |
+| Damage multipliers | As a magic proc's (a weapon enchant's): your damage and Shadow damage bonuses (Shadowform, a stance's −10%), the boss's Shadow damage taken (Shadow Weaving, Curse of Shadow) and its average partial resist ([spells §3](spells.md#3-resistances)) | [?] |
+| Threat | Damage threat, 1 per point, × the global threat multiplier (stance, Defiance, Threat gloves); Righteous Fury's only on Holy, so not on it | [?] as every other damage proc ([threat.md](threat.md#base-rule-and-how-modifiers-stack)) |
+| Healing | The health it drains heals you for as much, all of it effective, and makes healing threat: 0.5 a point × the global threat multiplier (stance, Defiance, Threat gloves), split across the enemies you're in combat with (the one boss). Not a paladin spell, so no paladin heal's extra ×0.5; not a Holy heal, so no Righteous Fury. With the damage threat, a drain makes 1.5 threat a point × the global multiplier | Healing threat's rule [C] ([threat.md](threat.md#threat-from-healing-power-gains-and-buffs)); the heal equal to the drain [?] (a drain's leech heals for what it takes); all of it effective [?]: the engine keeps no health pool, so it can't tell overhealing, and a tank on a boss is rarely at full health ([OQ-10](#oq-10-touch-of-the-grave)) |
+
+**Worked example.** An Undead warrior with 5,000 maximum health drains 5% × 5,000 = 250 a proc
+before the multipliers above, with no roll: every proc deals the same. In Defensive Stance with
+Defiance 5/5 (× 1.3 × 1.15 = 1.495), a 250-point drain on the one boss makes 250 × 1.495 = 373.75
+damage threat and 0.5 × 250 × 1.495 = 186.875 healing threat, 560.625 in all. The 1 s cooldown caps it at
+one proc a second, so at 5% a landed hit it procs about once every 20 landed hits while they come
+more than a second apart.
 
 ---
 
@@ -1129,15 +1155,24 @@ gain is 10% of total AP if the modern aura applies, or 10% of level-plus-Strengt
 kept Classic's "base AP" behaviour.
 
 ### OQ-10: Touch of the Grave
-We don't know the drain amount (5% of whose health, and is "up to" a cap or a range), its school,
-whether it can miss, crit or cause threat, or whether auto-attacks and abilities proc it equally.
+**Modelled with a `[?]` default** ([Touch of the Grave](#touch-of-the-grave)): 5% of maximum
+health as Shadow damage a proc, always landing, never critting, with damage threat, and the health
+it drains healing you for as much, all of it effective, with healing threat (0.5 a point × the
+global multiplier [C], no paladin ×0.5, no Righteous Fury). Unknown still: the drain amount (is "up
+to 5%" a cap, a range, or the target's health?), its school, whether it can miss, crit or cause
+threat, whether its heal equals the drain and makes healing threat (the sim counts it all as
+effective, since it keeps no health pool to overheal), and whether auto-attacks and abilities proc
+it equally.
 **1.60.1.70009 narrowed what procs it** (the build's [development notes][dev-70009], [F]): only spells and
 abilities with a damage component, so it no longer breaks crowd control; Shadow Word: Pain procs it
 on the cast, not on its periodic damage, and Distract, Pick Pocket and Polymorph don't. The client
-still gives 1260189 a 5% chance with a 1 s internal cooldown (`ProcCategoryRecovery` 1000) on proc
-mask 0x11154 [F] [client] (SpellAuraOptions, 1.60.1.70009).
+gives 1260189 (warrior, paladin, rogue) a 5% chance and 1260201 (priest, mage, warlock) 10%, both
+with a 1 s internal cooldown (`ProcCategoryRecovery` 1000) on proc mask 0x11154 [F] [client]
+(SpellAuraOptions, 1.60.1.70009).
 **Route B:** combat log of an Undead warrior hitting mobs three levels above them for 5 minutes
-(the beta has no target dummies); count the procs and read their amounts.
+(the beta has no target dummies); count the procs and read their amounts, their school, and
+whether any crit, miss or are partly resisted. The sheet's maximum health at the time tells
+whether it's 5% of yours.
 
 ### OQ-11: Feral Swiftness dodge scope
 **Route B, if the talent is reachable under the cap:** the sheet's dodge in Bear Form with

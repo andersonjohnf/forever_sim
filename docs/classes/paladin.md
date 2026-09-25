@@ -72,7 +72,7 @@ per row.
 | --- | --- | --- | --- | --- |
 | Human | Alliance | yes | yes [F] | Sword Specialization: **+2% crit with all spells and attacks** while a sword or 2H sword is equipped (was +5 weapon skill) [F] ([racials](https://foreverchanges.pro/racials); [client] (SpellEffect 20597, 1.60.1.70009)) |
 | Dwarf | Alliance | yes | yes [F] | Mace Specialization (new to Dwarves): +1% crit with spells and attacks with a mace; Stoneform −10% physical damage taken for 8 s [F] [client] (SpellEffect, SpellDuration, 1.60.1.70009; 1259719, 20594) |
-| Undead | Horde | no | **yes (new)** [F] | Touch of the Grave: 5% chance on spell or attack hit to drain health from the target, up to 5% of max health [F]; the client spell 1260189 is a dummy (5), so the drain formula is server-side and unknown [?] |
+| Undead | Horde | no | **yes (new)** [F] | Touch of the Grave: 5% chance on spell or attack hit to drain health from the target, up to 5% of max health, 1 s internal cooldown [F]; the client spell 1260189 is a dummy (5), so the drain formula is server-side. Simulated as 5% of maximum health as Shadow damage a proc, never missing or critting, with damage threat and its heal's healing threat, not Righteous Fury's (Holy only) [?] ([character-stats](../mechanics/character-stats.md#touch-of-the-grave)) |
 
 "Both factions have access to all nine classes in Forever"
 ([racials](https://foreverchanges.pro/racials)). Horde raids therefore have Blessings, and
@@ -1281,7 +1281,13 @@ its Consecration and seal values; Swift Judgement's held.
 - **Level scaling**: store per-rank `base`, `variance`, `perLevel`, `baseLevel`,
   `maxLevel` from the spell data, so the numbers at 60 follow the formula in
   [Conventions](#conventions-used-below).
-- Skipped (under 0.5%): Touch of the Grave until its formula is known, SotC's own
+- Touch of the Grave (Undead) is simulated with a `[?]` default: 5% of maximum health as Shadow
+  damage a proc, from every damaging attack or spell that lands (seal procs and Holy Shield's damage
+  fire no procs, so not them), with damage threat and its heal's healing threat (0.5 a point, not
+  a paladin spell's ×0.25, and no Righteous Fury), +2.3% of the default Protection paladin's TPS
+  as Undead
+  ([character-stats](../mechanics/character-stats.md#touch-of-the-grave)).
+- Skipped (under 0.5%): SotC's own
   attack-speed swap during the 1.5 s pre-pull, Eye for an Eye, the damage the Seal of Fury absorb
   takes off a hit (tank survival only; its mana is modelled), JoW/JoL healing and mana to others.
 
@@ -1578,7 +1584,10 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 13. **Seal of Wisdom / Judgement of Wisdom** proc rates in Forever.
 14. **Level-based partial resists** on melee-class Holy (SoC, judgements, Holy Strike) vs a
     level-63 target. See [combat-tables.md](../mechanics/combat-tables.md).
-15. **Touch of the Grave** (Undead) drain amount.
+15. **Touch of the Grave** (Undead) drain amount, school and threat. Modelled as 5% of maximum
+    health as Shadow damage, damage threat and its heal's healing threat (0.5 a point, all of it
+    effective), neither with Righteous Fury [?]
+    ([open-questions B52](../open-questions.md#b52-touch-of-the-grave)).
 16. **Righteous Fury and healing threat**; Holy Shield's 20% additive vs multiplicative with
     RF ([threat.md](../mechanics/threat.md)); **whether Holy Shield's block damage can miss or
     crit**. Righteous Fury is ×1.6 since 1.60.1.70009, so the two readings are ×1.92 and ×1.8. The

@@ -3,10 +3,43 @@
 // Passive racials only. Cooldown racials are rotation actions the class rotation presses: Blood
 // Fury, Berserking and Elune's Light are `cast` abilities of the Fury rotation
 // (classes/warrior/abilities.ts, warrior.md §5.2 row 3); Eureka! is each class's (classes/eureka.ts);
-// Touch of the Grave, Stoneform and Shatter Curse aren't simulated (warrior.md §2.9, Q16).
+// Touch of the Grave is a proc (below); Stoneform and Shatter Curse aren't simulated (warrior.md §2.9).
 import type { WeaponType } from '@/data/items/types'
 import type { ClassId } from '../types'
-import type { Effect } from './types'
+import type { Effect, ProcSpec } from './types'
+
+/**
+ * Touch of the Grave (docs/mechanics/character-stats.md#touch-of-the-grave). The client's two spells
+ * [F] [client] (SpellAuraOptions, SkillLineAbility, 1.60.1.70009): 1260189 for the warrior, paladin
+ * and rogue (class mask 11) procs 5% of the time, 1260201 for the priest, mage and warlock (mask 400)
+ * 10%; both have a 1 s internal cooldown (`ProcCategoryRecovery` 1000) and proc mask 0x11154, which
+ * has no periodic bit. The drain is server-side: 5% of your maximum health, the top of the tooltip's
+ * "up to 5%" (the dummy aura's base points, 5), as Shadow damage [?] (OQ-10).
+ */
+export const TOUCH_OF_THE_GRAVE = {
+  meleeChancePct: 5,
+  casterChancePct: 10,
+  icdMs: 1000,
+  healthPct: 5,
+} as const
+
+/** The Undead classes' Touch of the Grave, or null for a class without a version (the client's masks 11 and 400). */
+export function touchOfTheGrave(classId: ClassId): ProcSpec | null {
+  const melee = classId === 'warrior' || classId === 'paladin' || classId === 'rogue'
+  const caster = classId === 'priest' || classId === 'mage' || classId === 'warlock'
+  if (!melee && !caster) return null
+  return {
+    id: 'touchOfTheGrave',
+    name: 'Touch of the Grave',
+    icon: 'spell_shadow_fingerofdeath',
+    trigger: 'damageLanded',
+    from: 'any',
+    chance: { pct: melee ? TOUCH_OF_THE_GRAVE.meleeChancePct : TOUCH_OF_THE_GRAVE.casterChancePct },
+    icdMs: TOUCH_OF_THE_GRAVE.icdMs,
+    action: { kind: 'healthDrain', pctOfMaxHealth: TOUCH_OF_THE_GRAVE.healthPct, school: 'shadow' },
+    docRef: 'docs/mechanics/character-stats.md#touch-of-the-grave',
+  }
+}
 
 /**
  * Sword, Axe and Mace Specialization (aura 290): +`value`% crit with all spells and attacks while a
@@ -81,6 +114,11 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
     case 'horde-troll':
       // Beast Slaying (20557): +5% damage vs Beasts [F]
       return [{ kind: 'damage', pct: 5, when: { creature: ['beast'] } }]
+    case 'horde-undead': {
+      // Touch of the Grave (character-stats.md#touch-of-the-grave) [F] chance and cooldown; drain [?].
+      const proc = touchOfTheGrave(classId)
+      return proc ? [{ kind: 'proc', proc }] : []
+    }
     case 'alliance-skyborne-high-order':
     case 'horde-skyborne-windshaper':
       return SKYBORNE

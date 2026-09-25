@@ -67,7 +67,10 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // and Sunder Armor and Shield Slam (warrior) changes: with Thorns set back to its flat 22, the
       // pre-merge snapshot reproduces exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is
       // a Restoration druid's, 22 + 0.08 × 200 = 38 unrounded (buffs doc §1.2); with Thorns set back to
-      // 53, the snapshot before it reproduces exactly.
+      // 53, the snapshot before it reproduces exactly. Re-taken for Touch of the Grave's trigger
+      // (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries one more trigger
+      // list, empty, since no case is Undead; with the lists held at the 27 codes before it, the
+      // snapshot before it reproduces exactly.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

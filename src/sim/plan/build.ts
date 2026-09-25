@@ -30,7 +30,7 @@ import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
-import { racialEffects } from '../effects/racials'
+import { racialEffects, TOUCH_OF_THE_GRAVE } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand, PROFICIENCY } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
@@ -1001,6 +1001,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.action = ACTION.petPower
         proc.amount = toTenths(action.amount)
         break
+      case 'healthDrain':
+        // docs/mechanics/character-stats.md#touch-of-the-grave: a share of the sheet's maximum health
+        // at the pull [?], which neither misses nor crits, so its row shows neither share.
+        proc.action = ACTION.healthDrain
+        proc.a = (derived.health * action.pctOfMaxHealth) / 100
+        proc.school = SCHOOL[action.school]
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        sources[proc.source].certain = true
+        break
     }
     if (spec.poison) {
       // Improved Poisons' apply chance, in points on each hand's chance (rogue.md §4.3).
@@ -1568,7 +1577,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (config.race === 'alliance-gnome' && classId === 'rogue' && (setup.talents.get('Vigor') ?? 0) > 0) notes.add('gnomeEnergy')
   // src/sim/classes/eureka.ts: Eureka!'s charges and cut, the class's own [?].
   if (plan.eureka) notes.add('eureka', `${EUREKA_RESOURCE[classId as EurekaClass]} cost ${plan.eureka.costPct}%`)
-  if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
+  // docs/mechanics/character-stats.md#touch-of-the-grave: its chance and drain, the class's [?].
+  const grave = procs.find((p) => p.action === ACTION.healthDrain && p.id === 'touchOfTheGrave')
+  if (grave) {
+    const pct = Math.round(grave.chance[0] * 100)
+    const detail = `${pct}% chance, at most once a second, to drain ${Math.round(grave.a).toLocaleString('en-US')} health (${TOUCH_OF_THE_GRAVE.healthPct}% of your ${derived.health.toLocaleString('en-US')} maximum health)`
+    notes.add('touchOfTheGrave', detail)
+  }
   // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
   if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))

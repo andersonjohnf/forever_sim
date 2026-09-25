@@ -78,13 +78,17 @@ describe('the plan’s code tables', () => {
   it('the ranged and pet core’s codes (docs/mechanics/ranged-and-pets.md §9, §11): conditions 62–65, triggers 22–26 and action petPower 22, past main’s highest', () => {
     expect([COND.autoShotClear, COND.autoShotWithin, COND.petPowerAtLeast, COND.petPowerAtMost]).toEqual([62, 63, 64, 65])
     expect([TRIGGER.rangedLanded, TRIGGER.autoShotLanded, TRIGGER.rangedCrit, TRIGGER.petLanded, TRIGGER.petCrit]).toEqual([22, 23, 24, 25, 26])
-    expect(TRIGGER_COUNT).toBe(27)
     expect(ACTION.petPower).toBe(22)
   })
 
   it('the Demonology warlock’s code (docs/classes/warlock.md §11): healthAtMost takes 70, the first of its 70–73, and adds no trigger or action', () => {
     expect(COND.healthAtMost).toBe(70)
     for (const [key, code] of Object.entries(COND)) if (code >= 70 && code <= 73) expect(key).toBe('healthAtMost')
-    expect(TRIGGER_COUNT).toBe(27)
+  })
+
+  it('Touch of the Grave’s codes (docs/mechanics/character-stats.md#touch-of-the-grave): trigger damageLanded 27, after the ranged and pet core’s, and action healthDrain 23', () => {
+    expect(TRIGGER.damageLanded).toBe(27)
+    expect(TRIGGER_COUNT).toBe(28)
+    expect(ACTION.healthDrain).toBe(23)
   })
 })

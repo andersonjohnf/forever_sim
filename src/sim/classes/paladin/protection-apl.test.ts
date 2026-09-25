@@ -83,6 +83,9 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Restoration druid's, 22 + 0.08 × 200 = 38 unrounded (buffs doc §1.2); with it set back to 53,
     // the snapshot before it reproduces exactly. PR-1 then moved the default order; each case keeps the
     // order from before it (protection-apl-cases.ts PRE_LIST_ORDER), so the snapshot didn't move.
+    // Re-taken for Touch of the Grave (character-stats.md#touch-of-the-grave): every plan carries one
+    // more trigger list (`damageLanded`), and an Undead's its proc and row. With the lists held at the
+    // 27 codes before it, exactly the 49 Undead cases move, and the other 151 reproduce the snapshot.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 599,
+      "docs": 600,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -126325,7 +126325,7 @@
       },
       "name": "Touch of the Grave",
       "nameSubtext": "Racial Passive",
-      "sources": ["racial"]
+      "sources": ["docs", "racial"]
     },
     "1260270": {
       "cooldowns": {

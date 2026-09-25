@@ -46,6 +46,7 @@ import {
   executePhaseStart,
   furorCatEnergyTenths,
   hastedCastMs,
+  healingThreat,
   parryHasteRemaining,
   ppmChance,
   rageConversion,
@@ -174,6 +175,13 @@ const EXTRA_QUEUE = 16
 
 /** Threat per rage from a spell effect (threat.md#threat-from-healing-power-gains-and-buffs). */
 const THREAT_PER_RAGE_TENTH = 0.5
+
+/**
+ * Enemies with the player on their threat list, across which a heal's threat splits
+ * (threat.md#threat-from-healing-power-gains-and-buffs): the one boss, since the engine fights one
+ * target (encounter.md#4-targets-and-position).
+ */
+const ENEMIES_IN_COMBAT = 1
 
 /** The boss's swing outcomes, in its table's roll order (combat-tables §8): `Sim.bossOutcomes` columns. */
 export const BOSS_OUTCOME = { miss: 0, dodge: 1, parry: 2, block: 3, crit: 4, crush: 5, hit: 6 } as const
@@ -550,6 +558,8 @@ export class Sim {
   private readonly pFromSource: Int32Array
   /** Some proc listens for landed spells, or for spell DoT ticks (§10). */
   private readonly hasSpellLanded: boolean
+  /** Any proc on `damageLanded` (Touch of the Grave, docs/mechanics/character-stats.md#touch-of-the-grave). */
+  private readonly hasDamageLanded: boolean
   private readonly hasSpellTick: boolean
 
   // Abilities and the rotation, flattened.
@@ -1982,6 +1992,7 @@ export class Sim {
       spells.some((x) => x.defense === DEFENSE.melee || x.defense === DEFENSE.ranged)
     this.hasWhiteResolved = (plan.triggers[TRIGGER.whiteResolved] ?? []).length > 0
     this.hasSpellLanded = (plan.triggers[TRIGGER.spellLanded] ?? []).length > 0
+    this.hasDamageLanded = (plan.triggers[TRIGGER.damageLanded] ?? []).length > 0
     this.hasSpellTick = (plan.triggers[TRIGGER.spellTick] ?? []).length > 0
     // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
     const shift = plan.shapeshift
@@ -2845,6 +2856,7 @@ export class Sim {
     if (crit) this.onCrit(hand)
     // paladin.md#implementation-notes: the damage seals' procs come after the swing's Vengeance.
     if (this.hasWhiteResolved) this.fireProcs(TRIGGER.whiteResolved, hand)
+    if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
   }
 
   /** A landed white swing's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4). */
@@ -3517,6 +3529,8 @@ export class Sim {
       // druid.md §2.5: a bleed that builds or finishes moves combo points once it's snapshotted.
       if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, false)
       this.fireProcs(TRIGGER.meleeLanded, hand)
+      // docs/mechanics/character-stats.md#touch-of-the-grave: a bleed's application deals damage, as SW:P's cast does.
+      if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
       return
     }
     const blocked = !unavoidable && r < th[o + 4]
@@ -3572,6 +3586,8 @@ export class Sim {
     if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
     if (crit) this.onCrit(hand)
+    // docs/mechanics/character-stats.md#touch-of-the-grave: only an attack that deals damage (not Sunder Armor).
+    if (this.hasDamageLanded && this.abNoDamage[a] === 0) this.fireProcs(TRIGGER.damageLanded, -1)
   }
 
   /**
@@ -3679,6 +3695,8 @@ export class Sim {
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a] + this.abThreatApCoef[a] * this.ap) * this.threatMult)
     if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
     if (crit) this.useCritCharges(SCHOOL.physical)
+    // docs/mechanics/character-stats.md#touch-of-the-grave: Thunder Clap, not Demoralizing Shout.
+    if (this.hasDamageLanded && damages) this.fireProcs(TRIGGER.damageLanded, -1)
   }
 
   /**
@@ -3866,6 +3884,9 @@ export class Sim {
       // docs/mechanics/ranged-and-pets.md §7: power for the pet.
       case ACTION.petPower:
         if (this.hasPet) this.gainPetPower(this.pAmount[p])
+        return
+      case ACTION.healthDrain:
+        this.healthDrain(p)
         return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
@@ -4111,6 +4132,28 @@ export class Sim {
   }
 
   /**
+   * Touch of the Grave's drain (docs/mechanics/character-stats.md#touch-of-the-grave) [?]: its share of
+   * maximum health (`pA`, from the plan) as damage of its school, with the multipliers a magic proc's
+   * damage takes (spellProc's: the average partial resist, your and the boss's school multipliers),
+   * but no miss or crit roll, so it uses no random number. Damage threat × the global multiplier
+   * (stance, form); Righteous Fury's only for Holy. The health it drains heals you for as much [?],
+   * all of it effective, since the engine keeps no health pool to overheal [?]: healing threat,
+   * 0.5 a point × the global multiplier, split across the enemies in combat [C]
+   * (threat.md#threat-from-healing-power-gains-and-buffs). A racial, so no paladin heal's extra ×0.5,
+   * and not a Holy heal, so no Righteous Fury.
+   */
+  private healthDrain(p: number): void {
+    const row = this.pSource[p] * FIELD_COUNT
+    const school = this.pSchool[p]
+    let damage = this.pA[p] * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
+    if (school === SCHOOL.holy) damage *= this.holyMult
+    this.counters[row + FIELD.casts]++
+    this.counters[row + FIELD.hits]++
+    const damageThreat = damage * (school === SCHOOL.holy ? this.holyThreatMult : 1) * this.threatMult
+    this.addDamage(this.pSource[p], damage, damageThreat + healingThreat(damage, this.threatMult, ENEMIES_IN_COMBAT))
+  }
+
+  /**
    * A `bleed` ability lands (Rend; damage-and-timing §4): its ticks snapshot the physical damage
    * multiplier and the main hand's special-attack crit chance now, and come every `dotTickMs` from
    * now; its marker aura is up until the last one. Reapplying restarts it and re-snapshots: a
@@ -4350,7 +4393,10 @@ export class Sim {
         if (shot && this.splHasDirect[s] === 0) {
           // ranged-and-pets.md §5: a sting (a pure DoT) lands its DoT and rolls no crit.
           this.applySpellDot(s, euDot)
-          if (this.splTriggersProcs[s] === 1) this.fireProcs(TRIGGER.rangedLanded, -1)
+          if (this.splTriggersProcs[s] === 1) {
+            this.fireProcs(TRIGGER.rangedLanded, -1)
+            if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
+          }
           return true
         }
         crit = canCrit && this.rngTable.roll100() < critChance
@@ -4398,6 +4444,8 @@ export class Sim {
       if (this.splHasDirect[s] === 0) {
         this.applySpellDot(s, euDot)
         if (this.hasSpellLanded && this.splTriggersProcs[s] === 1) this.spellProcs(TRIGGER.spellLanded, s)
+        // docs/mechanics/character-stats.md#touch-of-the-grave: a DoT procs it as it lands (SW:P's cast), never on its ticks.
+        if (this.hasDamageLanded && this.splTriggersProcs[s] === 1 && this.splItem[s] === 0) this.fireProcs(TRIGGER.damageLanded, -1)
         return true
       }
       // §5: spell crit, the spell's own and its school's (Critical Mass, Combustion), and an aura's
@@ -4508,6 +4556,8 @@ export class Sim {
         this.useCritCharges(school)
       }
     }
+    // docs/mechanics/character-stats.md#touch-of-the-grave: a landed spell or shot that deals damage.
+    if (this.hasDamageLanded && damage > 0) this.fireProcs(TRIGGER.damageLanded, -1)
     return true
   }
 
@@ -4790,6 +4840,7 @@ export class Sim {
       this.fireProcs(TRIGGER.rangedCrit, -1)
       this.useCritCharges(SCHOOL.physical)
     }
+    if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
   }
 
   /**

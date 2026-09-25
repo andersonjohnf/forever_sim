@@ -127,6 +127,11 @@ test.describe('a hunter’s priority list on a phone', () => {
     await expect(sheet.getByRole('switch', { name: 'Wait for Auto Shot', exact: true })).toBeChecked()
     // At Neither there's no shot to wait for, so the row says just that, not "between Auto Shots".
     await sheet.getByRole('radio', { name: 'Neither', exact: true }).click()
+    // Its "Wait for Auto Shot" does nothing then: dimmed with a note (docs/ux.md "Rotation").
+    await expect(sheet.getByRole('switch', { name: 'Wait for Auto Shot', exact: true })).toHaveAccessibleDescription(/Not used: at Neither there’s no shot to cast between Auto Shots/)
+    await sheet.getByRole('radio', { name: 'Multi-Shot', exact: true }).click()
+    await expect(sheet.getByRole('switch', { name: 'Wait for Auto Shot', exact: true })).not.toHaveAccessibleDescription(/Not used/)
+    await sheet.getByRole('radio', { name: 'Neither', exact: true }).click()
     await sheet.getByRole('button', { name: 'Close', exact: true }).click()
     await expect(list.locator('#apl-sharedShot-summary')).toHaveText('Neither')
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)

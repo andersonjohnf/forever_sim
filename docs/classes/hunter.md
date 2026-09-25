@@ -320,7 +320,9 @@ each with its switch and its own settings (`hunter.<spec>.…`):
   are static ranged attack power (§9), so it's there to show what's up from the pull. Its summary
   names Trueshot Aura only with the talent ("Aspect of the Hawk · Trueshot Aura").
 - **The shared shot's summary** is the choice, with "between Auto Shots" while it waits for Auto
-  Shot; at Neither it reads just "Neither", since there's no shot to wait.
+  Shot; at Neither it reads just "Neither", since there's no shot to wait. At Neither the row's
+  "Wait for Auto Shot" is dimmed with the note "Not used: at Neither there's no shot to cast between
+  Auto Shots" (docs/ux.md "Rotation"; `hunterUnusedSettings`).
 - **Spec-wide, above the list:** the pet's Claw threshold (`pet.clawFocus`, §6), under Core
   abilities with Auto Shot and the pet, which the tab shows without a control; and the Major Mana
   Potion and Demonic Rune with their thresholds, under Consumables. The consumables are off the

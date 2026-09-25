@@ -288,6 +288,8 @@ export const ASSUMPTION_GROUP = {
   hasteNextSwing: 'combat',
   whiteThreat: 'combat',
   whiteThreatPaladin: 'combat',
+  sunderThreat: 'class',
+  shieldSlamThreat: 'class',
   bossMelee: 'combat',
   bossSlow: 'combat',
   bossApDebuff: 'combat',

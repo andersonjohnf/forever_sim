@@ -168,9 +168,9 @@ describe('Slam’s cast and the swing timers (warrior.md §3.1 "Slam", damage-an
     const { plan, slam } = slamPlan(0, 25000)
     const { sim, swings, uses } = timeline(plan)
     // Slam at 0 s after the first swing lands at 1.5 s: the swing due at 3.8 s moves to 1.5 + 3.8.
-    // Its 15 s cooldown ends at 16.5 s, so the swing due at 16.7 s moves to 18.0 + 3.8.
-    expect(uses[slam]).toEqual([0, 16500])
-    expect(swings[0]).toEqual([0, 5300, 9100, 12900, 21800])
+    // Its 18 s cooldown ends at 19.5 s, so the swing due at 20.5 s moves to 21.0 + 3.8.
+    expect(uses[slam]).toEqual([0, 19500])
+    expect(swings[0]).toEqual([0, 5300, 9100, 12900, 16700, 24800])
     expect(counter(sim, plan.abilities[slam].source, FIELD.casts)).toBe(2)
   })
 

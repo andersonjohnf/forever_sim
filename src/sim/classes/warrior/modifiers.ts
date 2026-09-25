@@ -93,11 +93,18 @@ export const IMPROVED_REND_PCT = [0, 12, 23, 35]
 
 /**
  * Improved Slam: −250 ms per rank on Slam's cast time and on its GCD (its effects 0 and 1, aura
- * 107 on the cast-time and GCD modifiers, curve −250 / −500) [F] [tal] [client] (SpellEffect,
- * CurvePoint, 1.60.1.69913), and with any rank Slam no longer interrupts the swing timers
+ * 107 on the cast-time and GCD modifiers, curve −250 / −500), and with any rank Slam no longer
+ * interrupts or delays the swing timers [F] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.70009)
  * (warrior.md §3.1 "Slam", §4.1, W4).
  */
 export const IMPROVED_SLAM_MS_PER_RANK = 250
+
+/**
+ * Improved Slam's cooldown cut, −1500 ms per rank on Slam's 18 s (its effect 2, aura 107 on the
+ * cooldown modifier, misc 11, curve −1500 / −3000) [F] [client] (SpellEffect, CurvePoint,
+ * 1.60.1.70009): 15 s at 2/2 (warrior.md §4.1, W4).
+ */
+export const IMPROVED_SLAM_COOLDOWN_MS_PER_RANK = 1500
 
 /**
  * Rage the build's talents take off an ability's cost, in rage points. All reductions are flat
@@ -164,7 +171,7 @@ export const IMPROVED_REVENGE_PCT_PER_RANK = 20
  * The ability as this build uses it: cost reductions, Impale's crit multiplier, Raging Blows'
  * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), the rage of
  * Improved Bloodrage and Improved Berserker Rage (§2.3), Improved Rend's bleed, Improved
- * Slam's cast, GCD and swing timers, and Improved Overpower's crit (§4.1), and Improved Revenge's
+ * Slam's cast, GCD, cooldown and swing timers, and Improved Overpower's crit (§4.1), and Improved Revenge's
  * damage (§4.3).
  */
 export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
@@ -186,6 +193,7 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     const r = rank(talents, 'Improved Slam')
     resolved.castMs = Math.max(0, def.castMs - IMPROVED_SLAM_MS_PER_RANK * r)
     resolved.gcdMs = Math.max(0, def.gcdMs - IMPROVED_SLAM_MS_PER_RANK * r)
+    resolved.cooldownMs = Math.max(0, def.cooldownMs - IMPROVED_SLAM_COOLDOWN_MS_PER_RANK * r)
     resolved.castStopsSwings = def.castStopsSwings && r === 0
   } else if (def.id === 'overpower') {
     resolved.bonusCrit = def.bonusCrit + IMPROVED_OVERPOWER_CRIT_PER_RANK * rank(talents, 'Improved Overpower')

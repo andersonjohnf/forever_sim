@@ -177,7 +177,8 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
         if (c.t + 1000 < Math.min(f.ms, reck)) expect(f.swaps.find((s) => s.t > c.t)).toMatchObject({ to: STANCE.battle, t: c.t + 1000 })
       }
     }
-    expect(count).toBeGreaterThan(50 * 3)
+    // About 3 a fight before Recklessness; Bloodthrill's Overpowers (20% at 5/5) take some of the GCDs.
+    expect(count).toBeGreaterThan(50 * 2.5)
   })
 
   it('row 11: Spearing Strike on cooldown against Dragonkin, only with rage to spare against anything else', () => {

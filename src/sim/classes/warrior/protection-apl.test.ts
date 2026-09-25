@@ -45,7 +45,10 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
     it(`gives 200 random setups the rotation they had before the list: ${name}`, () => {
       // The snapshot is of the rotation before the priority list (ee171d2a): a change to it is a
       // change to what Protection plays. Re-taken once for Gnome Eureka! (engine issues EI-2, merged
-      // onto main): 27 of the 200 cases moved, every one a Gnome's; no other case changed.
+      // onto main): 27 of the 200 cases moved, every one a Gnome's; no other case changed. Re-taken for
+      // 1.60.1.70009 (warrior.md §1, threat.md#warrior): Sunder Armor's threat (206 + 5% of attack power,
+      // 1,013 before) and Shield Slam's (dmg + 475, 254) are in every plan that uses either, and Max TPS
+      // keeps Shield Block (D26's rule), so 191 to 196 of the 200 cases moved in each snapshot.
       const hashes = CASES.map(({ values, talents, context }) => {
         const none = protectionRotation(withPriority(values, priority), talents, noAura, context)
         expect(protectionRotation(withPriority(values, priority), talents, noAura, context, defaultAplOrder(PROTECTION_APL))).toEqual(none)

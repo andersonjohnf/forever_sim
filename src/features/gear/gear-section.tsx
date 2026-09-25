@@ -1,5 +1,5 @@
 import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -68,6 +68,16 @@ function slotList(slots: readonly GearSlot[]): string {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 }
 
+/**
+ * The slot whose row, enchant or item picker holds focus. Each carries `data-gear-row`: the slot
+ * rows, the inline panel, and the dialog, sheet and popover, which sit in portals.
+ */
+function focusedSlot(): GearSlot | null {
+  const active = document.activeElement
+  const row = active instanceof Element ? active.closest<HTMLElement>('[data-gear-row]') : null
+  return (row?.dataset.gearRow as GearSlot | undefined) ?? null
+}
+
 /** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
 function EmptySlot({ slot, locked }: { slot: GearSlot; locked: boolean }) {
   return (
@@ -122,12 +132,31 @@ export function GearSection() {
   // chosen in one layout doesn't carry into the other: the dialog doesn't pop up when the window
   // narrows past it.
   const rootRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const inline = useInlinePicker(rootRef)
   const [wasInline, setWasInline] = useState(inline)
   if (wasInline !== inline) {
     setWasInline(inline)
     setPicking(null)
   }
+  // The two layouts are different element trees, so focus in a slot's row, its enchant or its
+  // picker would fall to the page as the window crosses 1440 px (browser zoom, snapping a window).
+  // The slot that had it gets it back, on its button (review finding DL-1).
+  const focusedRow = useRef<GearSlot | null>(null)
+  useEffect(() => {
+    const track = () => {
+      focusedRow.current = focusedSlot()
+    }
+    document.addEventListener('focusin', track)
+    return () => document.removeEventListener('focusin', track)
+  }, [])
+  useLayoutEffect(() => {
+    const slot = focusedRow.current
+    const active = document.activeElement
+    if (!slot || (active && active !== document.body)) return
+    const button = slotButtons.current.get(slot)
+    ;(button && !button.disabled ? button : slotButtons.current.get('mainHand'))?.focus()
+  }, [inline])
   // The off hand can't be chosen while a two-hander locks it, so the panel lets it go.
   const panelSlot = inline && picking && !(picking === 'offHand' && twoHanded) ? picking : null
   const groups = slotGroups(meta.classId)
@@ -208,11 +237,12 @@ export function GearSection() {
       </>
     )
 
-  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined) => (
+  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined, stacked = false) => (
     <EnchantPicker
       slot={slot}
       item={item}
       enchantId={enchantId}
+      stacked={stacked}
       // The slot's button, or the main hand's if a two-hander now locks this slot.
       fallbackFocus={() => {
         const button = slotButtons.current.get(slot)
@@ -250,7 +280,7 @@ export function GearSection() {
         {group.slots.map((slot) => {
           const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
           return (
-            <li key={slot} onKeyDown={(e) => slotKeys(e, slot)} className="relative flex min-h-14 min-w-0">
+            <li key={slot} data-gear-row={slot} onKeyDown={(e) => slotKeys(e, slot)} className="relative flex min-h-14 min-w-0">
               {/* The chosen slot: a bar in the primary colour on its leading edge, as a Rotation row's. */}
               {panelSlot === slot && <span aria-hidden className="absolute inset-y-0 left-0 z-2 w-[3px] bg-primary" />}
               <div
@@ -268,9 +298,10 @@ export function GearSection() {
                 )}
               </div>
               {item && enchantable && (
-                // The chip fills its cell, square-cornered and with an inset ring, beside the item.
-                <div className="flex w-[min(34%,13rem)] shrink-0 border-l [&>button]:rounded-none [&>button]:focus-visible:ring-inset">
-                  {enchantPicker(slot, item, equipped?.enchantId)}
+                // The chip fills its cell, square-cornered and with an inset ring, beside the item. It
+                // shows the enchant's whole name, on up to two lines, with its effect under it.
+                <div className="flex w-[min(34%,15rem)] shrink-0 border-l [&>button]:rounded-none [&>button]:focus-visible:ring-inset">
+                  {enchantPicker(slot, item, equipped?.enchantId, true)}
                 </div>
               )}
             </li>
@@ -339,15 +370,19 @@ export function GearSection() {
 
       {inline ? (
         // The wide layout (docs/ux.md "Gear", D34): the slots as a compact list, and the item picker
-        // in a panel beside it. The panel widens with the pane, and from 84 rem the slots take two
-        // columns beside it: Armor, then Jewelry and Weapons.
-        <div className="grid grid-cols-[minmax(0,1fr)_24rem] items-start gap-6 @min-[68rem]/setup:grid-cols-[minmax(0,1fr)_30rem]">
-          <div className="grid min-w-0 gap-6 @min-[84rem]/setup:grid-cols-2 @min-[84rem]/setup:items-start">
-            <div className="flex min-w-0 flex-col gap-6">{groups.slice(0, 1).map(compactGroup)}</div>
-            <div className="flex min-w-0 flex-col gap-6">{groups.slice(1).map(compactGroup)}</div>
+        // in a panel beside it. The panel is 24 rem, 30 rem from a 64.5 rem pane (about 1,670 px, or
+        // 1,690 px where a scrollbar takes room: review findings DB-4, DL-2), and 40% of the pane
+        // from 75 rem (1,920 px), about 41 rem at 2,560 px. The list stays one column: two columns
+        // were each narrower than the one column at 1,920 px, and names truncated (DB-6).
+        // The list is at least as tall as the panel, so the panel keeps its height beside it
+        // (picker-panel.tsx).
+        <div className="grid grid-cols-[minmax(0,1fr)_24rem] items-start gap-6 @min-[64.5rem]/setup:grid-cols-[minmax(0,1fr)_max(30rem,40%)]">
+          <div ref={listRef} className="flex min-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] min-w-0 flex-col gap-6">
+            {groups.map(compactGroup)}
           </div>
           <PickerPanel
             key={panelSlot ?? 'none'}
+            listRef={listRef}
             slot={panelSlot}
             spec={config.spec}
             race={config.race}
@@ -366,7 +401,7 @@ export function GearSection() {
               {group.slots.map((slot) => {
                 const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
                 return (
-                  <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
+                  <li key={slot} data-gear-row={slot} className="flex min-w-0 flex-col rounded-xl border">
                     {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
                         explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
                         over faded content too (an empty slot's icon), which opacity would lift above it. */}

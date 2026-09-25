@@ -14,12 +14,14 @@ export const INLINE_PICKER_MIN_REM = 53
 
 /**
  * Whether the element (the Gear tab's body, as wide as the setup pane) is wide enough for the inline
- * picker. It measures before the first paint, so the wide layout never flashes the narrow one.
- * Under 1440 px it's always false: the dialog and the phone's drawer are as they were.
+ * picker. Under 1440 px it's always false: the dialog and the phone's drawer are as they were.
+ * From 1440 px the pane always fits, so the first render follows the media query alone and Gear
+ * mounts the wide layout straight away, rather than the narrow one and then a swap (review finding
+ * DL-6). It measures before the first paint all the same, for a pane some other rule has narrowed.
  */
 export function useInlinePicker(ref: RefObject<HTMLElement | null>): boolean {
   const wide = useIsWide()
-  const [fits, setFits] = useState(false)
+  const [fits, setFits] = useState(true)
   useLayoutEffect(() => {
     const el = ref.current
     if (!wide || !el) return

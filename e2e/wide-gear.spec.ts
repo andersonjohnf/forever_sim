@@ -4,8 +4,8 @@ import { expect, test } from './fixtures.ts'
 // docs/ux.md "Gear", the wide layout (D34): from 1440 px the slots are one compact list, and the
 // item picker opens inline in a sticky panel beside it rather than in a dialog. Picking an item
 // keeps the panel on the slot; Back to list or Escape returns focus to the slot's row. Up and Down
-// move between slots, Enter opens one, and `/` in the panel focuses its search. From 84 rem of setup
-// pane the slots take two columns. Under 1440 px the dialog is as it was (the other gear specs, at 1280).
+// move between slots, Enter opens one, and `/` in the panel focuses its search. The slots stay one
+// column. Under 1440 px the dialog is as it was (the other gear specs, at 1280).
 
 async function openGear(page: Page, width: number, height = 900) {
   await page.setViewportSize({ width, height })
@@ -182,22 +182,125 @@ test.describe('the wide Gear tab', () => {
     await expect(page.getByRole('dialog', { name: 'Choose head' })).toBeVisible()
   })
 
-  test('at 1920 px the panel widens; at 2560 px the slots take two columns', async ({ page }) => {
-    await openGear(page, 1920)
+  test('the panel is 24 rem, 30 rem from about 1,700 px and 40% of the pane from 1,920 px; the slots stay one column', async ({ page }) => {
+    // Review findings DB-4, DL-2 and DB-6: the pane is 61.7 rem at 1600 px, 65.8 at 1700, 75 at 1920
+    // and 101.7 at 2560.
+    const panelRem = async () => (await panel(page).boundingBox())!.width / 16
+    await openGear(page, 1600)
+    await page.getByRole('button', { name: /^Head: / }).click()
+    expect(await panelRem()).toBeCloseTo(24, 1)
+    for (const [width, rem] of [
+      [1700, 30],
+      [1920, 30],
+      [2560, 0.4 * 101.67],
+    ]) {
+      await page.setViewportSize({ width, height: 1200 })
+      await expect.poll(panelRem, { message: `at ${width} px` }).toBeCloseTo(rem, 1)
+      // Armor, then Jewelry and Weapons under it, in one column.
+      const head = (await page.getByRole('button', { name: /^Head: / }).boundingBox())!
+      const neck = (await page.getByRole('button', { name: /^Neck: / }).boundingBox())!
+      expect(neck.y).toBeGreaterThan(head.y)
+      expect(neck.x).toBe(head.x)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  })
+
+  test('with a scrollbar’s room taken, the panel is still 30 rem at 1,700 px', async ({ page }) => {
+    await openGear(page, 1700)
+    // Headless Chromium hides scrollbars; a wider gutter takes the same 17 px from the setup pane.
+    await page.addStyleTag({ content: 'main { padding-right: 41px !important }' })
     await page.getByRole('button', { name: /^Head: / }).click()
     expect((await panel(page).boundingBox())!.width).toBeCloseTo(30 * 16, 0)
-    const head = (await page.getByRole('button', { name: /^Head: / }).boundingBox())!
-    const neck = (await page.getByRole('button', { name: /^Neck: / }).boundingBox())!
-    expect(neck.y).toBeGreaterThan(head.y)
-    expect(neck.x).toBe(head.x)
+  })
 
-    await page.setViewportSize({ width: 2560, height: 1200 })
-    // Armor on the left; Jewelry and Weapons beside it, from the top.
-    const head2 = (await page.getByRole('button', { name: /^Head: / }).boundingBox())!
-    const neck2 = (await page.getByRole('button', { name: /^Neck: / }).boundingBox())!
-    expect(neck2.x).toBeGreaterThan(head2.x + head2.width)
-    expect(neck2.y).toBeCloseTo(head2.y, 0)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  for (const [width, height] of [
+    [1440, 900],
+    [1920, 1080],
+    [2560, 1440],
+  ]) {
+    test(`scrolled to the page's end at ${width}×${height}, the panel's head stays under the tabs`, async ({ page }) => {
+      // Review finding DB-1: the footer under the list pushed a window-tall panel up under the tabs.
+      await openGear(page, width, height)
+      // The last slots are the ones you choose down there.
+      await page.getByRole('button', { name: /^Ranged: / }).click({ position: { x: 24, y: 24 } })
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+      await expect.poll(() => page.evaluate(() => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1)).toBe(true)
+      const stickyTop = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')))
+      const back = panel(page).getByRole('button', { name: 'Back to list' })
+      await expect.poll(async () => (await back.boundingBox())!.y).toBeGreaterThanOrEqual(stickyTop)
+      expect((await panel(page).getByRole('heading', { name: 'Choose ranged' }).boundingBox())!.y).toBeGreaterThan(stickyTop)
+      // Its bottom stops at the list's end, above the footer, and its items still scroll inside it.
+      const box = (await panel(page).boundingBox())!
+      const footer = (await page.getByText('Game data from').boundingBox())!
+      expect(box.y + box.height).toBeLessThan(footer.y)
+      await expect(panel(page).getByRole('list', { name: 'Items' })).toBeVisible()
+    })
+  }
+
+  test('an enchant chip shows the whole name, with the effect under it', async ({ page }) => {
+    // Review finding DB-2: "Lesser Arcanum of…" could have been any of the three Voracity arcanums.
+    await openGear(page, 1440)
+    const chip = page.getByRole('button', { name: /, Head enchant$/ })
+    await expect(chip).toContainText('Lesser Arcanum of Voracity (Strength)')
+    await expect(chip).toContainText('+8 Strength')
+    // Nothing is cut short, on any chip; the whole text is its title too.
+    const cut = await page.getByRole('button', { name: / enchant$/ }).evaluateAll((els) =>
+      els.flatMap((el) => [...el.querySelectorAll('span span span')].filter((s) => s.scrollHeight > s.clientHeight + 1).map((s) => s.textContent)),
+    )
+    expect(cut.filter((text) => !text?.startsWith('Chance on hit'))).toEqual([])
+    await expect(chip.locator('[title]')).toHaveAttribute('title', 'Lesser Arcanum of Voracity (Strength) · +8 Strength')
+    const box = (await chip.boundingBox())!
+    expect(box.height).toBeGreaterThanOrEqual(44)
+  })
+
+  test('the Best in slot filter lists the equipped item, first, marked Equipped', async ({ page }) => {
+    // Review finding DB-8: a tank's threat set holds items no guide ranks, which the filter hid.
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: Fury Warrior/ }).click()
+    await page.getByRole('group', { name: 'Paladin' }).getByRole('menuitem', { name: /Protection/ }).click()
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    const chest = page.getByRole('button', { name: /^Chest: / })
+    const worn = (await chest.getAttribute('aria-label'))!.replace('Chest: ', '')
+    await chest.click({ position: { x: 24, y: 24 } })
+    const picker = panel(page)
+    await expect(picker.getByRole('radio', { name: 'Best in slot' })).toBeChecked()
+    const items = picker.getByRole('list', { name: 'Items' }).getByRole('listitem')
+    // After "Leave this slot empty".
+    const escaped = worn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    await expect(items.nth(1).getByRole('button').first()).toHaveAccessibleName(new RegExp(`^${escaped}\\..*Equipped$`))
+    await expect(items.nth(1)).toContainText('Equipped')
+    // A search that doesn't match it leaves it out.
+    await picker.getByRole('textbox', { name: 'Search items' }).fill('zzzz')
+    await expect(picker.getByText('No items match')).toBeVisible()
+  })
+
+  test('crossing 1440 px either way keeps focus on the slot', async ({ page }) => {
+    // Review finding DL-1: the two layouts are different element trees, and focus fell to the page.
+    await openGear(page, 1440)
+    const legs = page.getByRole('button', { name: /^Legs: / })
+    // From an enchant chip, to the narrow layout.
+    await page.getByRole('button', { name: /, Legs enchant$/ }).focus()
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await expect(page.getByRole('complementary', { name: 'Item picker' })).toHaveCount(0)
+    await expect(legs).toBeFocused()
+    // From a slot's button, back to the wide one.
+    const feet = page.getByRole('button', { name: /^Feet: / })
+    await feet.focus()
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(page.getByRole('complementary', { name: 'Item picker' })).toBeVisible()
+    await expect(feet).toBeFocused()
+    // From the panel's search.
+    await page.getByRole('button', { name: /^Hands: / }).press('Enter')
+    await panel(page).getByRole('textbox', { name: 'Search items' }).focus()
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await expect(page.getByRole('button', { name: /^Hands: / })).toBeFocused()
+    // From the dialog, as the window widens.
+    await page.getByRole('button', { name: /^Wrists: / }).press('Enter')
+    await expect(page.getByRole('dialog', { name: 'Choose wrists' })).toBeVisible()
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Wrists: / })).toBeFocused()
   })
 })
 

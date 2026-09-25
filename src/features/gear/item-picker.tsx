@@ -1,4 +1,4 @@
-import { Ban, Check, Info, Search, X } from 'lucide-react'
+import { Ban, Info, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState, type RefObject } from 'react'
 import { DrawerCloseButton } from '@/app/drawer-close-button'
 import { useSheetFocus } from '@/app/sheet-focus'
@@ -89,6 +89,8 @@ export function ItemPicker(props: PickerProps) {
         <DialogContent
           showCloseButton={false}
           className="flex h-[min(85vh,52rem)] max-w-2xl flex-col gap-0 p-0 sm:max-w-2xl"
+          // Its slot, whose button takes focus if the window widens past 1440 px (gear-section.tsx).
+          data-gear-row={props.slot}
           {...contentProps}
         >
           <DialogHeader className="border-b p-4 pr-14">
@@ -176,9 +178,13 @@ export function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFoc
 
   const words = deferredQuery.toLowerCase().split(/\s+/).filter(Boolean)
   const searching = words.length > 0
+  // The equipped item is always listed (review finding DB-8): the Best in slot filter doesn't hide
+  // it, and where it would have, it comes first. A search that doesn't match it leaves it out, as
+  // the count and "No items match" say.
+  const pinned = (c: Candidate) => c.item.id === equippedId && !searching && filter === 'bis' && !c.bis
   const shown = candidates
-    .filter((c) => (searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w)))
-    .sort((a, b) => Number(Boolean(a.unused)) - Number(Boolean(b.unused)) || COMPARE[sort](a, b))
+    .filter((c) => pinned(c) || ((searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w))))
+    .sort((a, b) => Number(pinned(b)) - Number(pinned(a)) || Number(Boolean(a.unused)) - Number(Boolean(b.unused)) || COMPARE[sort](a, b))
   const clearSearch = () => {
     setQuery('')
     searchRef.current?.focus()
@@ -305,6 +311,7 @@ export function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFoc
                   <ItemSummary
                     item={item}
                     bis={bis}
+                    equipped={equipped}
                     meta={details}
                     dimmed={Boolean(note)}
                     note={
@@ -316,7 +323,6 @@ export function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFoc
                       )
                     }
                   />
-                  {equipped && <Check className="mt-1 size-4 shrink-0" aria-hidden />}
                 </div>
               </li>
             )

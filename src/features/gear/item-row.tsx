@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react'
+import { Check, Info } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -86,6 +86,7 @@ export function ItemSummary({
   note,
   dimmed = false,
   compact = false,
+  equipped = false,
   className,
 }: {
   item: Item
@@ -96,6 +97,11 @@ export function ItemSummary({
   note?: ReactNode
   /** Fades the icon, name and stats (an item the picker can't equip here, or ammo the ranged weapon doesn't fire). */
   dimmed?: boolean
+  /**
+   * The item the slot holds, in the picker: "Equipped", with a check, leads the badges (review
+   * finding DB-8: the Best in slot filter can list it first, out of its order).
+   */
+  equipped?: boolean
   /**
    * The wide layout's slot list (docs/ux.md "Gear"): the name and its BiS rank on one line, then
    * `meta` and the stats on the next, with the flags beside them, so a row is about 56 px.
@@ -158,9 +164,15 @@ export function ItemSummary({
         <span aria-hidden className={cn('line-clamp-2 text-xs text-muted-foreground tabular-nums', fade)}>
           {statsLine(item)}
         </span>
-        {(bis || !item.foreverData || effects.length > 0) && (
+        {(equipped || bis || !item.foreverData || effects.length > 0) && (
           // A wrapped line starts 24 px lower, so the flags' 44 px hit areas never overlap.
           <span className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-6">
+            {equipped && (
+              <span aria-hidden className="mr-1 inline-flex items-center gap-1 text-xs font-medium">
+                <Check className="size-3.5" />
+                Equipped
+              </span>
+            )}
             {bis ? (
               <span aria-hidden className={cn(fade)}>
                 <BisBadge rank={bis} />

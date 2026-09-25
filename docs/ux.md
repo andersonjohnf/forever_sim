@@ -327,20 +327,35 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
     parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
     shows none.
+  - The item in the slot is always listed, marked **Equipped** with a check at the start of its
+    badges (review finding DB-8). The **Best in slot** filter doesn't hide it: where it isn't one
+    of the spec's BiS items (a tank's threat set holds items no guide ranks), it comes first,
+    ahead of the ranked items; otherwise it keeps its place in the order. A search that doesn't
+    match it leaves it out, as the count and "No items match" say. This is the picker's one body,
+    so it holds in the dialog, the phone's sheet and the wide layout's panel alike.
   - **From 1440 px** (the wide layout, [D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)),
     once the setup pane is 53 rem or more (it's 55 at 1440 px, about 54 where a scrollbar takes
     room), the slots become **one compact list**, and the picker opens **inline** in a panel beside
     it rather than in a dialog, as the Rotation tab's row settings do:
     - Each slot is one row of 56 px or more in one bordered list per group: the icon, the item in
       its quality colour with its BiS rank, then the slot and its stats on the next line (up to two
-      lines), the flags beside them (under them when they'd squeeze them), and the enchant chip in
-      its own cell at the row's end. The slot's button and the chip are 44 px targets or more; their
-      focus rings sit inside the row. An empty slot shows its faded icon, name and "Empty".
+      lines), the flags beside them (under them, together on one line, when they'd squeeze them),
+      and the enchant chip in its own cell at the row's end. The chip shows the enchant's whole name,
+      on up to two lines, with its effect under it (up to two lines), rather than one truncated line:
+      "Lesser Arcanum of…" could have been any of three (review finding DB-2); the whole text is its
+      hover title too. The slot's button and the chip are 44 px targets or more; their focus rings
+      sit inside the row. An empty slot shows its faded icon, name and "Empty". Only near 1440 px
+      (up to about 1,500 px), where a row's text is narrowest, can two flags not share a line: the
+      second wraps 24 px lower, so their 44 px hit areas never overlap.
     - The panel is the dialog's body exactly (the search, filters, sort, rows, rules and messages
       above, one component for the dialog, the phone's sheet and the panel) under **Back to list**,
       the title ("Choose chest") and its description. It stays in view as the list scrolls: it sits
       1 rem under the sticky tabs and reaches down to 1 rem above the window's bottom, its items
       scrolling inside it with a fade on each edge that has more past it (as the Rotation panel).
+      It never reaches past the list's end: as the end comes into view (scrolled to the page's
+      bottom, with the footer under the list) the panel's bottom rises with it, so its head stays
+      under the tabs, where the weapon and trinket slots are chosen (review finding DB-1). The list
+      is at least as tall as the panel, so it doesn't cut the panel short otherwise.
       Until a slot is chosen it says "Choose a slot to see the items you can equip there."
     - The chosen slot has a bar in the primary colour on its leading edge and is the list's current
       one (`aria-current`). Choosing a slot moves focus to the panel's heading. **Picking an item
@@ -353,11 +368,19 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       **Down** move to the slot above or below, across the groups and past an off hand a two-hander
       locks; **Enter** opens the slot in the panel. **/** in the panel, outside the search box,
       focuses the search.
-    - The panel is 24 rem, and 30 rem from a 68 rem pane (1920 px). From an 84 rem pane (about
-      2,270 px) the slots take two columns beside it: Armor, then Jewelry and Weapons.
+    - The panel is 24 rem, and 30 rem from a 64.5 rem pane: from about 1,670 px of window, or
+      1,690 px where a classic scrollbar takes room (review findings DB-4, DL-2). From 1,920 px
+      (a 75 rem pane) it's 40% of the pane, growing with it to about 41 rem at 2,560 px. The slots
+      stay one column at every width: the page stops growing at 2,560 px (a 101.7 rem pane), and
+      two columns there were each narrower than the one column at 1,920 px, so names truncated
+      (review finding DB-6).
     - The enchant picker stays a popover, and the default set's row and **Gear options** are as
       above. A slot chosen in one layout doesn't carry into the other, so narrowing the window past
-      1440 px never pops the dialog up.
+      1440 px never pops the dialog up. Focus does carry: crossing 1440 px either way (browser
+      zoom, snapping a window) with focus in a slot's row, its enchant chip or popover, the panel
+      or the dialog moves it to that slot's button in the new layout (the main hand's, if a
+      two-hander now locks the off hand), rather than dropping it on the page (review finding
+      DL-1). Opened at 1440 px or wider, Gear mounts the wide layout straight away (DL-6).
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.

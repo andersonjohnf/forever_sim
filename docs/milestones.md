@@ -963,6 +963,25 @@ slice is worked:
     Queued with the gear search ([O2](#m57-the-optimizer-d30--top-priority)); low because it's the
     picker's ranking, not a result, and the picker still offers every item.
 
+- **From the priority-list reviews (M5.65 A2, 2026-09-25), low, waived for the release:**
+  - **A demon's Shadow damage takes your Shadow Vulnerability** (LB-1): Demonic Brand's Shadow hits
+    and the Succubus's Lash of Pain are multiplied by Improved Shadow Bolt's debuff, which is Shadow
+    damage taken *from you* (warlock.md §4). About +0.4% on a Demonic Brand build and +3% on Lash of
+    Pain; no default has a Shadow-damage demon out. The fix flags caster-only school-taken auras in
+    the plan (`effects/types.ts`, `plan/types.ts`, `plan/build.ts`) and gives pets a product without
+    them, which changes the plan format and so every warlock fingerprint: done with the next engine
+    slice that re-snapshots them anyway.
+  - **The warlock Filler row's icon is fixed** (UB-3, LB-5's icon half): Demonology shows Shadow
+    Bolt while its setting is Incinerate, and Destruction without the talent shows Incinerate. The
+    note under the setting says which is cast. An icon that follows the setup needs `AplRow` and
+    the list's renderer.
+  - **Arrow presses during a row's 200 ms move animation are dropped** (UB-10, pre-existing, dnd-kit):
+    four presses 30 ms apart move three places; what's announced stays right.
+  - **The Felhunter's `demonOut` assumption says Master Demonologist is up** (pre-existing): the
+    Felhunter has none.
+  - **A warlock marks every worn on-use item as pressed** (pre-existing), so none is ever listed as
+    not simulated; check against the other casters' on-use handling.
+
 ## Later
 
 - Raid gear (Epic quality): widen the scraper filter

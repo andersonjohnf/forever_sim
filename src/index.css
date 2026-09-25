@@ -8,14 +8,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * The wide desktop layout's breakpoints (docs/ux.md#layout, D34): `wide:` from 1440 px, where the
- * page drops its 1280 px cap, and `3xl:` from 1920 px, where the results pane grows. Only the shell
- * (src/App.tsx, the header, the section tabs) uses them; sections and results style themselves by
+ * The wide desktop layout's breakpoint (docs/ux.md#layout, D34): `wide:` from 1440 px, where the page
+ * drops its 1280 px cap and the results pane starts to grow with the window. Only the shell
+ * (src/App.tsx, the header, the section tabs) uses it; sections and results style themselves by
  * container queries on the setup and results panes.
  */
 @theme {
     --breakpoint-wide: 90rem;
-    --breakpoint-3xl: 120rem;
 }
 
 @theme inline {

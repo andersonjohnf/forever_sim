@@ -1515,7 +1515,10 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   and renaming a save. Radix hides the page from screen readers while a sheet is open, but leaves
   live regions alone, so it's heard from a sheet too.
 - The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
-- Nothing is hover-only: every tooltip's content is reachable by tap or focus.
+- Nothing is hover-only: every tooltip's content is reachable by tap or focus. The one exception is
+  the Simulate button's shortcut hint (D34), which opens on pointer hover only so it doesn't cover
+  the results after a keyboard run; its content is the button's `aria-keyshortcuts`, which assistive
+  tech announces, and the shortcut is described in this section.
 
 ## UX review checklist
 

@@ -604,7 +604,8 @@ so check it between GCD actions too. Setting ids are `paladin.retribution.<abili
 (written without the prefix below), in the Rotation tab's groups. A mana threshold is a share
 of maximum mana: "mana ≥ 65%" is mana ≥ 0.65 × the sheet's maximum. The defaults are the best
 rotation found for the default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-[Tuning the defaults](#tuning-the-defaults-c2) below).
+[Tuning the defaults](#tuning-the-defaults-c2) below). The Rotation tab shows these rows as a
+priority list you reorder ([The priority list (A2)](#the-priority-list-a2) below).
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -648,6 +649,47 @@ Notes:
   about 47 base DPS from SoC vs about 33 from SoR at 1200 AP, 3.5 speed, 250 weapon average.
   In the default setup SoR in SoC's place makes 31.0 DPS less (−4.9%; 20,000 fights, seed 777;
   −51.6, −8.2%, before SoR's proc had Forever's flat 35).
+
+#### The priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`RETRIBUTION_APL` in `retribution.ts`), in this order, each with its switch and its own settings.
+The conditions are the table's rows above, and each row keeps its own wherever it sits.
+
+| Row (`id`) | Table row | Switch | Its settings | Condition |
+| --- | --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | 0 and 2 | — | `judgementOfTheCrusader.enabled` | Seal of the Crusader 1.5 s before the pull and judged at the pull; judged again whenever the debuff is missing. Off: the main seal 1.5 s before the pull |
+| Seal (`seal`) | 1 | — (always) | `seal.primary`, `seal.refreshBelowSec` | missing or at most 1.5 s left; with the opener, not over Seal of the Crusader before its judgement |
+| Judgement (`judgement`) | 3 | `judgement.enabled` | | ready, with the seal up; off the GCD |
+| Hammer of Wrath (`hammerOfWrath`) | 4 | `hammerOfWrath.enabled` | `hammerOfWrath.minManaPct` | execute phase, mana ≥ 0% |
+| Holy Strike (`holyStrike`) | 5 | `holyStrike.enabled` | | ready |
+| Exorcism (`exorcism`) | 6 | `exorcism.enabled` | `exorcism.minManaPct` | Undead or Demon, mana ≥ 20% |
+| Consecration (`consecration`) | 7 | `consecration.enabled` | `consecration.minManaPct` | rank 5, mana ≥ 20% |
+| Consecration (Rank 1) (`consecrationRank1`) | 8 | `consecrationRank1.enabled` | `consecrationRank1.minManaPct` | mana ≥ 10% |
+
+- **Pinned:** only the pre-pull and opener, first: its judgement comes at the pull. The seal has no
+  switch, since there's always one, and its row holds the seal choice, as the Protection paladin's
+  seal row does.
+- **Spec-wide, above the list:** the on-use trinkets and Juju Flurry (Cooldowns and buffs), and the
+  Major Mana Potion and Demonic Rune with their limits (Consumables). They're off the GCD and always
+  come after the list, as they did before it.
+- **No named presets:** the defaults are the implicit Default, as Fury's, and the tab still says how
+  they were tuned (C2, then a quick search on 1.60.1.70009 under
+  [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)). In the default order the plan is the
+  one the rotation gave before the list, byte for byte: 200 random setups (settings, talents,
+  race, main hand, on-use trinkets, consumables, execute phase, creature type and the JotC rule)
+  are fingerprinted against the code before it (`retribution-apl.test.ts`), and the Retribution
+  golden is unchanged.
+- **The two Consecration rows share one cooldown,** so with both on, the higher takes it whenever
+  its mana is there, and the lower only below that. A lower row that starts from as much mana as
+  the higher, or more, is never cast; the Rotation tab says so under it ("Not used: Consecration
+  (Rank 1), above it, takes the cooldown they share…", `retributionUnusedSettings`), and the plan
+  keeps its line, which never fires.
+- **What reordering does,** in the default setup (seed 28301, 20,000 paired fights, 622.0 DPS):
+  Consecration above Holy Strike −0.33% (95% CI −0.42 to −0.23%), unlike the Protection paladin's,
+  where it gains ([its priority list](#forever-priority-list-default-1) below); Consecration above Hammer of Wrath −0.31%; Holy Strike above Hammer of Wrath −0.06%; Holy Strike
+  above the seal −0.32%; rank 1 above rank 5 −5.12%, since rank 5 is then never cast.
 
 ### Retribution defaults
 

@@ -28,6 +28,24 @@ async function simulate(scope: Locator | Page) {
   await expect(scope.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
 }
 
+/**
+ * A priority-list row's settings (D31), beside the list on a desktop or in a sheet on a phone;
+ * `close` closes the sheet.
+ */
+async function rowSettings(page: Page, tab: Locator, name: string) {
+  await tab.getByRole('list', { name: 'Priority list' }).getByRole('button', { name, exact: true }).click()
+  const sheet = page.getByRole('dialog', { name })
+  const phone = (await sheet.count()) > 0
+  return {
+    scope: phone ? sheet : page.getByRole('complementary', { name: `${name} settings` }),
+    close: async () => {
+      if (!phone) return
+      await page.getByRole('button', { name: 'Close', exact: true }).click()
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+    },
+  }
+}
+
 /** Opens a collapsed results section ("Character sheet") if it isn't open. */
 async function openDetails(scope: Locator, title: RegExp) {
   const trigger = scope.getByRole('button', { name: title })
@@ -81,19 +99,21 @@ test.describe('Retribution', () => {
     await expect(page.getByRole('dialog').getByText(/^Covers Warriors: Fury, Arms and Protection · Druids: .+ · Paladins: Retribution and Protection( · .+)?\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: first-pass defaults under the usual headings, the rune waiting for Buffs, and no warrior words', async ({ page }) => {
+  test('its Rotation tab: the defaults’ note, the spec-wide settings above the priority list, the rune waiting for Buffs, and no warrior words', async ({ page }) => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText('The defaults were tuned on an earlier game build and had a quick search on this one.')).toBeVisible()
-    for (const heading of ['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
-      await expect(tab.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+    // The trinkets, Juju Flurry and the mana consumables are spec-wide, above the list (D31).
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+    for (const name of ['On-use trinkets', 'Major Mana Potion']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    const list = tab.getByRole('list', { name: 'Priority list' })
+    for (const name of ['Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath']) {
+      await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    // Your own Blessing of Might is the Buffs tab's, so nothing's left before the pull to set.
-    await expect(tab.getByRole('heading', { name: 'Before the pull', exact: true })).toHaveCount(0)
-    for (const name of ['Judgement of the Crusader', 'On-use trinkets', 'Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
-      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
-    }
-    await expect(tab.getByRole('radio', { name: 'Command' })).toBeChecked()
+    await expect(list.locator('[data-apl-row="seal"]')).toContainText('Seal of Command · again with 1.5 s left')
+    const prepull = await rowSettings(page, tab, 'Before the pull')
+    await expect(prepull.scope.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })).toBeChecked()
+    await prepull.close()
     // The rune isn't in the Standard raid preset, so its row says so and links to Buffs.
     await expect(tab.getByText(/Not used: turn on Demonic Rune in/)).toBeVisible()
     await expect(tab).not.toContainText(OTHER_CLASS)
@@ -102,9 +122,10 @@ test.describe('Retribution', () => {
   test('Exorcism waits for an Undead or Demon target, and its note opens Fight on the creature type (RU7)', async ({ page }) => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
-    const note = tab.getByText(/Not used: set Creature type to Undead or Demon in/)
+    await expect(tab.locator('[data-apl-row="exorcism"]')).toContainText('Not used: needs another creature type (Fight tab).')
+    const exorcism = await rowSettings(page, tab, 'Exorcism')
+    const note = exorcism.scope.getByText(/Not used: set Creature type to Undead or Demon in/)
     await expect(note).toBeVisible()
-    await expect(tab.getByRole('switch', { name: 'Exorcism', exact: true })).toHaveAccessibleDescription(/Not used: set Creature type to Undead or Demon in Fight/)
     await note.getByRole('button', { name: 'Fight' }).click()
     const fight = page.getByRole('tabpanel', { name: 'Fight' })
     const creature = fight.getByRole('combobox', { name: 'Creature type' })
@@ -113,7 +134,7 @@ test.describe('Retribution', () => {
     await page.getByRole('option', { name: 'Undead' }).click()
     await expect(creature).toHaveText('Undead')
     const rotation = await openTab(page, 'Rotation')
-    await expect(rotation.getByText(/Not used: set Creature type/)).toHaveCount(0)
+    await expect(rotation.locator('[data-apl-row="exorcism"]')).toContainText('Undead and Demons · from 20% mana')
   })
 
   test('Judgement of the Crusader’s bonus is an untested switch under Character → Advanced (RU1)', async ({ page }) => {
@@ -131,7 +152,10 @@ test.describe('Retribution', () => {
     // With Judgement of the Crusader off in Rotation, it changes nothing, and says so.
     const rotation = await openTab(page, 'Rotation')
     await expect(rotation.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
-    await rotation.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    const prepull = await rowSettings(page, rotation, 'Before the pull')
+    await prepull.scope.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    await expect(rotation.locator('[data-apl-row="prepull"]')).toContainText('Your seal')
+    await prepull.close()
     const again = await openTab(page, 'Character')
     await again.getByRole('button', { name: /^Advanced/ }).click()
     await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
@@ -145,7 +169,9 @@ test.describe('Retribution', () => {
     await expect(jotc).toBeDisabled()
     await expect(jotc).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\), so it isn’t added twice\./)
     const rotation = await openTab(page, 'Rotation')
-    await rotation.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    const prepull = await rowSettings(page, rotation, 'Before the pull')
+    await prepull.scope.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    await prepull.close()
     const again = await openTab(page, 'Buffs')
     const off = again.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })
     await expect(off).not.toBeChecked()
@@ -237,7 +263,8 @@ test.describe('Retribution on a phone', () => {
     const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(await overflow(), 'no horizontal page scroll').toBeLessThanOrEqual(0)
     // Every number fits its field, its unit after it, never over it: a grouped mana value too
-    // ("1,500 mana", RU6), as rotation-tab.spec.ts checks the other specs' (CU1).
+    // ("1,500 mana", RU6), as rotation-tab.spec.ts checks the other specs' (CU1). The consumables'
+    // limits are spec-wide; the rows' thresholds are in their sheets (below).
     for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
     await expect(tab.getByRole('textbox', { name: 'Major Mana Potion early, when missing', exact: true })).toHaveValue('1,500')
     const fields = await page.evaluate(() =>
@@ -249,9 +276,16 @@ test.describe('Retribution on a phone', () => {
           return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: unit.getBoundingClientRect().left >= input.getBoundingClientRect().right - 1 }
         }),
     )
-    expect(fields.length).toBeGreaterThanOrEqual(9)
+    expect(fields.length).toBeGreaterThanOrEqual(4)
     for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true })
     expect(await overflow(), 'no horizontal page scroll with Advanced open').toBeLessThanOrEqual(0)
+    // A row's threshold in its sheet, the same way.
+    const consecration = await rowSettings(page, tab, 'Consecration')
+    const threshold = consecration.scope.getByRole('textbox', { name: 'Consecration from', exact: true })
+    await expect(threshold).toHaveValue('20')
+    const box = await threshold.evaluate((input) => ({ fits: input.scrollWidth <= input.clientWidth }))
+    expect(box.fits).toBe(true)
+    await consecration.close()
 
     await simulate(page)
     const bar = page.getByRole('button', { name: 'Show results' })

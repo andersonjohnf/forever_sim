@@ -6,8 +6,8 @@ import { expect, test } from './fixtures.ts'
 // 1600, 75 at 1920, 80 at 2040 and about 102 at 2560 (e2e/wide-shell.spec.ts has the shell).
 // Rotation: the row settings panel is 24 rem from a 53 rem pane and 28 rem from 64 rem (about
 // 1,660 px); it names the ability once, with its place; the spec-wide settings above the list flow
-// into two columns from 53 rem, every width from 1440 px, and their choices are as wide as their
-// options, never stretched across a column. Talents: icons stay 44 px at every width, each tree's card
+// into two columns from 53 rem, every width from 1440 px (their choices' widths are checked in
+// e2e/wide-sections.spec.ts). Talents: icons stay 44 px at every width, each tree's card
 // stops at 18 rem, left-aligned; from a 73 rem pane (about 1,870 px, so every 1920 px window) a detail
 // panel beside the trees shows the talent under the pointer or focused, and then the pointer no longer
 // opens a talent's tooltip (focus still does). Under 1440 px nothing changes (the rest of the suite
@@ -150,12 +150,6 @@ test.describe('every spec’s spec-wide settings in two columns', () => {
             for (const item of cell.querySelectorAll('[data-slot="toggle-group-item"]')) {
               const r = item.getBoundingClientRect()
               if (item.scrollWidth > item.clientWidth + 0.5 || r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`${item.textContent} clipped or outside its cell`)
-              // Not stretched either: as wide as its name and padding (1 rem a side, the border), or
-              // the 7 rem floor a short name gets (docs/ux.md principle 4, CHOICE_ITEM_WIDE).
-              const range = document.createRange()
-              range.selectNodeContents(item)
-              const words = Math.max(0, ...[...range.getClientRects()].map((rect) => rect.width))
-              if (r.width > Math.max(7 * 16, words + 2 * 16 + 2) + 1) out.push(`${item.textContent} stretched to ${Math.round(r.width)} px`)
             }
           }
           return out

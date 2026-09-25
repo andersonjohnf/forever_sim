@@ -7,9 +7,9 @@ import { expect, test } from './fixtures.ts'
 // columns from a 53 rem pane and 3 from 72 rem (a window of about 1,850 px), and its presets stop at
 // 16 rem each; Character puts the racials beside the races, and Fight puts Advanced beside the fight,
 // from 53 rem; both show Advanced open, with no disclosure; and every segmented choice is as wide as
-// its options, left-aligned. A 1440 px window's pane is 55 rem, or 54 beside a scrollbar that takes
-// room, so all of it applies from 1440. Under 1440 px the pane isn't a container, so nothing changes
-// there (the rest of the suite runs at 1280).
+// its options, left-aligned (Rotation's spec-wide choices too). A 1440 px window's pane is 55 rem, or
+// 54 beside a scrollbar that takes room, so all of it applies from 1440. Under 1440 px the pane isn't
+// a container, so nothing changes there (the rest of the suite runs at 1280).
 
 const REM = 16
 
@@ -45,6 +45,9 @@ const stretchedChoices = (scope: Locator) =>
       return width > Math.max(7 * 16, words + 2 * 16 + 2) + 1 ? [`${item.textContent} (${Math.round(width)} px for ${Math.round(words)} px of words)`] : []
     }),
   )
+
+/** Every spec, as src/sim/specs.ts lists them. */
+const SPEC_IDS = ['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'druid-balance', 'paladin-retribution', 'paladin-protection', 'shaman-enhancement', 'shaman-elemental', 'rogue-combat', 'rogue-assassination', 'rogue-subtlety', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow', 'hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival']
 
 /** Each buff category's group cards: their boxes, and their switches' boxes. */
 const buffGroups = (panel: Locator) =>
@@ -178,6 +181,30 @@ test.describe('the wide sections', () => {
       expect(await stretchedChoices(panel)).toEqual([])
       const position = (await panel.getByRole('radiogroup', { name: 'Position' }).boundingBox())!
       expect(position.width).toBeLessThan(20 * REM)
+      await noSidewaysScroll(page)
+    })
+  }
+
+  // Rotation's spec-wide cards share option-rows.tsx's choice with Character and Fight: in a card's
+  // column they sit under their label, as wide as their names, wrapping where the column is narrow.
+  for (const width of [1440, 1920]) {
+    test(`at ${width} px no spec's spec-wide Rotation choice is stretched across its column`, async ({ page }) => {
+      test.setTimeout(120_000)
+      await page.setViewportSize({ width, height: 1000 })
+      await page.goto('./')
+      const problems: string[] = []
+      for (const spec of SPEC_IDS) {
+        await page.evaluate(
+          (spec) => localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config: { version: 1, spec }, bySpec: {}, section: 'rotation' }, version: 1 })),
+          spec,
+        )
+        await page.reload()
+        const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+        await expect(tab.getByRole('list', { name: 'Priority list' })).toBeVisible()
+        // No row is selected, so the only choices are the spec-wide ones above the list.
+        problems.push(...(await stretchedChoices(tab)).map((p) => `${spec}: ${p}`))
+      }
+      expect(problems).toEqual([])
       await noSidewaysScroll(page)
     })
   }

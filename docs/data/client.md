@@ -444,7 +444,7 @@ which reads the Forever tables and, for the "(Classic …)" halves, the Classic 
 **Nothing in the docs was edited**; the lead updates them from this list.
 
 <!-- claims:start -->
-Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) raw client files: 129 claims, 123 match, 6 partly, 0 differ.
+Checked against build `1.60.1.70009` (Forever) and `1.15.9.69722` (Classic Era) raw client files: 129 claims, 124 match, 5 partly, 0 differ.
 
 | Row | Doc claim | Result | Raw client value |
 | --- | --- | --- | --- |
@@ -465,7 +465,7 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D3 | Blood Frenzy (Primal Fury until 1.60.1.70009) 16959 = 50 | matches | ENERGIZE 50 |
 | D3 | Natural Reaction 417053 = 50 | matches | ENERGIZE 50 |
 | D3 | Heroic Strike 25286 +157 | matches | WEAPON_DAMAGE_NOSCHOOL (17) 157 |
-| D4 | Sunder Armor THREAT effect by rank: 1 / 405 / 608 / 810 / 1013 (11597); Classic has none | matches | 7386/7405/8380/11596/11597: 1/405/608/810/1013; armor -90/-180/-270/-360/-450; Classic THREAT effects: 0 |
+| D4 | Sunder Armor THREAT effect by rank: 34 / 75 / 117 / 158 / 206 (11597), with no attack power coefficient; Classic has none | matches | 7386/7405/8380/11596/11597: 34/75/117/158/206, bonus coefficient 0/0/0/0/0, from AP 0/0/0/0/0; armor -90/-180/-270/-360/-450; Classic THREAT effects: 0 |
 | D5 | PlayerExpectedStat level 60 BaseMana 1512 (paladin), 1244 (druid) | matches | paladin 1512, druid 1244; basemp.txt 1512 / 1244 |
 | D5 | CritPerAgility 0.0005 / 0.000506 / 0.0005 (warrior / paladin / druid); SpellCritPerIntellect 0.000167 | matches | 0.0005 / 0.000506 / 0.0005; spell crit per Int paladin 0.000167, druid 0.000167 |
 | D5 | Two unnamed PlayerExpectedStat columns read 10 and 287 at level 60 | matches | warrior, paladin, druid: 10/287, 10/287, 10/287 (same for every class) |
@@ -479,9 +479,9 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D6 | Tiger's Fury 5217 15%, 30,000 ms, no GCD | matches | aura 4 = 15, recovery 30000 ms, GCD 0, lasts 6000 ms |
 | D7 | SoC proc 20424 70% weapon, 0.29 | matches | WEAPON_PERCENT_DAMAGE 70, SP 0.29 |
 | D7 | JoC 20966 0.429; JoR 20286 0.5; SoR proc 25713 0.1 | matches | SP coefficients 0.429/0.5/0.1 |
-| D7 | Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429 | matches | e0 121 93 (variance 0.25, +3.2/level), e1 31 40%, SP 0.429 |
+| D7 | Holy Strike 10333 effect 121 (+93) then 31 (50% since 1.60.1.70009), 0.429 | matches | e0 121 93 (variance 0.25, +3.2/level), e1 31 50%, SP 0.429 |
 | D7 | Consecration 1280349 12 + 27 at 0.095 | matches | 12 + 27 (SP 0.095) |
-| D7 | Vengeance 20050 5 stacks, 30 s | matches | 5 stacks, 30000 ms, +3% per stack (curve 1/2/3) |
+| D7 | Vengeance 20050 3 stacks (5 until 1.60.1.70009), 30 s | matches | 3 stacks, 30000 ms, +3% per stack (curve 1/2/3) |
 | D7 | Two-Handed 20111 / One-Handed 20196 Weapon Specialization: Physical only | matches | aura 79 school mask 1/1 (1 = Physical) |
 | D7 | Improved Seals 20224 spell masks | matches | aura 108 (3%, curve 5/10/15), mask 33555456,536873472,64,0 |
 | D8 | Boundless Rage 1310236 aura 418 = 100/200/300 | matches | aura 418, curve 100/200/300 |
@@ -491,12 +491,12 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D8 | Improved Tactical Mastery 12295 = 3/6/9/12/15; Tactical Mastery 1310185 dummy 10 | matches | 3/6/9/12/15; 1310185 DUMMY aura 10 |
 | D8 | Furor 20…100 | matches | 20/40/60/80/100 and 20/40/60/80/100 |
 | D8 | Natural Reaction 417051 | matches | spell 417051, curves 1/2/3/4/5 · 20/40/60/80/100 |
-| D9 | Slam 15 s cooldown on every rank | matches | 1240193/1464/8820/11604/11605: 15/15/15/15/15 s (category 2412), cast 1500 ms |
+| D9 | Slam 18 s cooldown on every rank; Improved Slam's effect 2 cuts it by 1500 / 3000 ms | matches | 1240193/1464/8820/11604/11605: 18/18/18/18/18 s (category 2412), cast 1500 ms; Improved Slam effect 2 aura 107 misc 11, curve -1500/-3000 |
 | D9 | Stance swap 1.0 s shared, off the GCD | matches | category:recovery:GCD 47:1000:0, 47:1000:0, 47:1000:0 |
 | D9 | Racial StartRecoveryTime 0 | **partly** | Blood Fury 0, Berserking 0, Elune's Light 0, Eureka! 0, Stoneform 1500 (ms) |
 | D9 | Thunder Clap defense type 1, usable in Defensive Stance | matches | defense type 1; stance mask 0x30000 (Battle + Defensive) |
-| D9 | Overpower window 1282733 = 5,000 ms; second cost power type 4, stacking to 3 | matches | window 5000 ms, 3 stacks; Overpower 11585 costs type 1 50 + type 4 1 |
-| D9 | Bloodthrill proc mask 4; Enrage proc mask 0x222A8 | matches | Bloodthrill 0x4; Enrage 0x222A8 (30%) |
+| D9 | Overpower window 1282733 = 5,000 ms, not stacking; second cost power type 4 | matches | window 5000 ms, no stacks; Overpower 11585 costs type 1 50 + type 4 1 |
+| D9 | Bloodthrill proc mask 0x14, main hand only (Attributes[3] 0x400), aura 42 into 1282733; Enrage proc mask 0x222A8 | matches | Bloodthrill 0x14, Attributes[3] 0x400, aura 42 → 1282733; Enrage 0x222A8 (30%) |
 | D9 | Berserker Stance aura 290 (Classic 52) plus an empty aura 166 | matches | Forever 7381 auras 290=3, 87=10, 10=-20, 166=0; Classic 52=3, 87=10, 10=-20 |
 | D9 | Recklessness has its own recovery | matches | recovery 1800000 ms, category 0 |
 | D9 | Improved Slam spells 1310196–1310200 | matches | 1310196 Slam Rank 1, 1310197 Slam Rank 2, 1310198 Slam Rank 3, 1310199 Slam Rank 4, 1310200 Slam Rank 5 |
@@ -515,16 +515,16 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D10 | Racial 20582 exists | matches | "Quickness": aura 49 1, aura 31 2 |
 | D10 | Racial 1259799 +10%, 15 s | matches | "Elune's Light": aura 290 10; 15000 ms; cooldown 180 s |
 | D10 | Racial 1259802 exists | matches | "Expansive Mind": aura 178 5 |
-| D10 | Racial 1259813 15 s | matches | "Eureka!": aura 108 -40, aura 108 10, aura 108 10, aura 4 1; 15000 ms; cooldown 120 s |
+| D10 | Racial 1259813 15 s | matches | "Eureka!": aura 108 -10, aura 108 10, aura 108 10, aura 4 1; 15000 ms; cooldown 120 s |
 | D10 | Racial 1260189 exists | matches | "Touch of the Grave": aura 4 5 |
 | D10 | Racial 20550 +5% HP; +1% hit via auras 54 and 55 | matches | "Endurance": aura 133 5, aura 54 1, aura 55 1 |
 | D10 | Racial 20554 10 s, no cost | matches | "Berserking": aura 319 10, aura 140 10, aura 65 10; 10000 ms; cooldown 180 s |
 | D10 | Racial 20557 exists | matches | "Beast Slaying": aura 168 5 |
 | D11 | CharBaseInfo: 56 race/class pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | matches | 56 pairs (Classic Era 40); Undead paladin present; 95 = High Order Skyborne, 96 = Windshaper Skyborne |
-| D12 | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack); 10611 absent | matches | 10612 AREA_AURA_PARTY aura 4, points 10610 (= the proc spell id), proc 20% on mask 0x14 with ProcCategoryRecovery 100 ms; 10610 +246 AP and EXTRA_ATTACKS 1, 2 charges, 1000 ms; 10611 absent |
+| D12 | Forever: 10612 is a party proc-trigger aura (42; a dummy, 4, until 1.60.1.70009), 20% proc into 10610 (+246 AP, 1 extra attack); 10611 absent | matches | 10612 AREA_AURA_PARTY aura 42, points 10610 (= the proc spell id), proc 20% on mask 0x14 with ProcCategoryRecovery 100 ms; 10610 +246 AP and EXTRA_ATTACKS 1, 2 charges, 1000 ms; 10611 absent |
 | D12 | Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | **partly** | 10612 periodic trigger 10611 every 5000 ms; 10611 ENCHANT_HELD_ITEM 564; the Classic SpellItemEnchantment layout has no Duration column (Forever's row for 564 says 10 s) |
 | D13 | Cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s) | matches | 8410: 103 (3600 s); 10646: 24 (60 s); 12662: 1153 (120 s); 13442: 4 (120 s); 13452: 79 (3 s) |
-| D13 | Frenzy potions: aura 13 (school mask 1), no cooldown category | **partly** | aura 13 = 20/1, 28/1, 40/1 (points/school mask) matches. But while the item effects carry no category (0/0/0), the potion spells 1251937/1251938/1251940 are in SpellCategories category 4/120000, 4/120000, 4/120000 (category/recovery ms): the potion category with its 2-minute shared cooldown |
+| D13 | Frenzy potions: attack power and ranged attack power (auras 99 and 124) of 40 / 56 / 80 (1.60.1.70009; aura 13 before), no category on the items | **partly** | aura 99/124 = 40/40, 56/56, 80/80 matches. But while the item effects carry no category (0/0/0), the potion spells 1251937/1251938/1251940 are in SpellCategories category 4/120000, 4/120000, 4/120000 (category/recovery ms): the potion category with its 2-minute shared cooldown |
 | D13 | All-crit aura (290) on Leader of the Pack 24932 and Mongoose 17538 | matches | 24932 aura 290 = 3; 17538 aura 290 = 2 |
 | D13 | Hyjal flasks = dummy + zero-valued aura | matches | 1293741: dummy 4 + aura 290=0; 1293740: dummy 5 + aura 54=0, aura 55=0; 1293742: dummy 5 + aura 240=0; 1293743: dummy 5 + aura 342=0, aura 65=0 (1293743 is the Swiftness flask's spell but is named "Flask of Natural Accuracy") |
 | D14 | PERIODIC_CAN_CRIT (Attributes[8] 0x200) set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826, Lacerate 1235827 | matches | 11574 0x1200, 9904 0x1200, 9896 0x1200, 9826 0x1200, 1235827 0x1200 |
@@ -533,7 +533,7 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D15 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30 | matches | -20 / -20 / 30 |
 | D15 | Bear Passive2 21178 +30; Cat 3025 −29 | matches | 30 / -29 |
 | D15 | Defiance 12792 curve 5/10/15 | matches | 5/10/15 |
-| D15 | Righteous Fury 25780 = 60 (90 until 1.60.1.70009; Classic 59+1), school mask 2 | matches on 1.60.1.70009 (this row read by hand from the committed `spells.json`, since `--claims` has no offline mode; the report is otherwise 1.60.1.69913's, where it was 90, ×1.9) | Forever 60 on school mask 2 (×1.6); Classic 59+1 |
+| D15 | Righteous Fury 25780 = 60 (90 until 1.60.1.70009; Classic 59+1), school mask 2 | matches | Forever 60 on school mask 2 (×1.6); Classic 59+1 |
 | D15 | Improved Righteous Fury 20468 −2/−4/−6 (curve 82954) | matches | curve 82954: -2/-4/-6 |
 | D15 | Instrument of Law 1311085 10/20 | matches | 10/20 (effect 1); effect 0 -500/-1000 |
 | D15 | Iron Creed 1311034 aura 108, modifier 2, 5…25 | matches | aura 108, modifier 2, curve 5/10/15/20/25 |
@@ -552,12 +552,12 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D18 | Judgements are melee class with No Active Defense; debuff judgements (JotC 20303) Always Hit and 40 s; JoC 20966/20968 | **partly** | 20966 def 2 NAD AH; 20286 def 2 NAD; 20414 def 2 NAD; 20968 def 2 NAD; 20303 def 2 NAD AH; 20355 def 2 NAD AH; 20346 def 2 NAD AH (def 2 = melee, NAD = Attr0 0x200000, AH = Attr3 0x40000); debuff judgements last 40000 ms. JoC's damage spell 20966 also carries Always Hit, so unlike JoR and JoF it can't miss |
 | D18 | SoR and SoF proc attributes (25713, 20418) | matches | 25713 def 2 NAD AH; 20418 def 2 NAD AH |
 | D18 | SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility) | matches | SoC ICD 1000 ms; SoC/SoR/SoF 0x4/0x4/0x4; SoW/SoL/SoJ 0x14/0x14/0x14 |
-| D18 | Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2 | matches | 10333 2404 12000 ms school 2; 407632 2404 6000 ms |
+| D18 | Holy Strike and HotR category 2404 (10 s since 1.60.1.70009 / 6 s); Holy Strike SpellMisc school 2 | matches | 10333 2404 10000 ms school 2; 407632 2404 6000 ms |
 | D18 | Holy Shield 20928 4 charges, 0.08 | matches | 4 charges, block +20%, 221 damage at 0.08 |
 | D18 | SoF 20418 35 at 0.1; JoF 20414 0.45 | matches | 20418 35 at 0.1; 20414 153 (variance 0.087591, +3.69/level) at 0.45 |
 | D18 | SotC 20308 +2.4/level | matches | aura 99 306 + 2.4/level (levels 52–60) |
 | D18 | JoF scripted value 1607 + 42.3/level, coefficient 0.18 | matches | 20414 effect 2 DUMMY 1607 + 42.3/level at 0.18 (the SoF aura 20423 carries 1607 + 42/level) |
-| D19 | The item → buff spell ids in buffs §3 (and §4 item procs) | **partly** | 48 of 49 match. Blessed Sunfruit 13810: the item casts 18124, which triggers 18125 (the doc's buff id, reached through the trigger) |
+| D19 | The item → buff spell ids in buffs §3 (and §4 item procs) | matches | 60 of 60 match.  |
 | D19 | Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | matches | 246948 → 17038 ("Winterfall Firewater"); 20452 → 1248401 ("Nutritious Food", which grants Well Fed 1248422 after 10000 ms) |
 | D20 | Enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930 (+2 defense) | matches | 2618 "Agility +15" → 19989 (+9); 925 "Defense +5" → 13930 (+2 skill 95) |
 | D20 | Rivenspike 17315 −100 per stack | matches | -100 × 3 stacks |
@@ -668,8 +668,11 @@ The warrior's four are adopted (Sunder Armor 206 at rank 5, Slam 18 s and Improv
 rank, the unstacked Overpower window, Bloodthrill's 0x14 main-hand mask at 4% a rank:
 [warrior.md §1](../classes/warrior.md#1-wow-forever-deviations),
 [threat.md](../mechanics/threat.md#warrior)), and `lib/claims.mjs`'s D4 and D9 checks now expect
-1.60.1.70009's values, checked against the committed `spells.json` and `talents.json`; the report
-below is still 1.60.1.69913's until the next `--claims` run.
+1.60.1.70009's values, checked against the committed `spells.json` and `talents.json`. The report
+above was regenerated on 1.60.1.70009 on 2026-09-25 with 0 requests: this scraper with
+`--version=1.60.1.70009 --claims`, run with its fetcher held offline, since `--claims` can't be
+combined with `--check`. It reads 124 match, 5 partly, 0 differ, and the `src/data/client` it
+wrote alongside is byte-identical to the committed files.
 
 The talent trees then took 1.60.1.70009 (2026-09-24, 0 requests: `npm run scrape:talents --
 --version=1.60.1.70009 --accept-code-changes`, then this scraper), once the app read codes from both

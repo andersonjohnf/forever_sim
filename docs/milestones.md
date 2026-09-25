@@ -439,6 +439,19 @@ where it changes) and updates only its own ux.md subsection.
 - [ ] **S6 Rotation and Talents** at width: the wider row panel, larger talent trees and a talent detail panel
 - [ ] **S7 Ctrl/Cmd+Enter runs Simulate** (no section shortcuts, D34)
 
+## M5.67: Item tooltips 💤 the update after next, before the optimizer
+
+A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
+2026-09-25: its own milestone, shipping in the update after the priority lists and the wide
+layout, ahead of the optimizer). It shows the item as the game does: name in its quality colour,
+slot and type, armor, weapon damage and speed, stats, equip and use effects, set and its bonuses, and
+the item level, plus the enchant on it. On desktop it opens on hover and on keyboard
+focus; on a phone, where nothing hovers (docs/ux.md), a tap on the item's info control or a long
+press opens it, and it closes on a tap outside or Escape.
+- [ ] **T1 Tooltip content:** a pure function from an item (and its enchant) to the tooltip's lines,
+      with tests against the client data, and the tooltip component
+- [ ] **T2 Where it shows:** the gear slots, the item picker and the character sheet, at every width
+
 ## M5.7: The optimizer (D30) 🚧 top priority
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player

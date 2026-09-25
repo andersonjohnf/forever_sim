@@ -32,6 +32,15 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     ],
   },
   {
+    id: 'item-tooltips',
+    title: 'Item tooltips',
+    when: 'Planned',
+    items: [
+      'Hover over any item, or tap it on a phone, to see its tooltip as the game shows it: stats, effects and set bonuses.',
+      'In your gear, the item picker and the character sheet.',
+    ],
+  },
+  {
     id: 'optimizer',
     title: 'The Optimizer',
     when: 'Planned',

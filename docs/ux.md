@@ -428,8 +428,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
       short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
-      or can't apply (no execute phase, a talent the build lacks, a race without a racial), is
-      dimmed by colour and its icon turns gray. A row that's on but can't do anything shows why
+      or can't apply (no execute phase, a talent the build lacks, a race without a racial), or a
+      row without a switch that does nothing (its first setting at None, Never or Neither, a
+      summary of "None", or a note in its place: Balance's Filler, "Not used: Wrath for Eclipse
+      is on."), is dimmed by colour and its icon turns gray. A row that's on but can't do anything shows why
       in place of the summary, in full: its note ("Not used: needs the Improved Berserker Rage
       talent."), "Not used: needs an execute phase (Fight tab)." without one, or "Not used:
       Bloodthirst is off." when a switch it depends on is off. Neither is ever cut short: a

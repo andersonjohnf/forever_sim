@@ -219,7 +219,7 @@ export function balanceUnusedSettings(values: Record<string, RotationValue>, tal
   const at = current.indexOf(stopper)
   const out: Record<string, string> = {}
   if (stopper === 'eclipse') {
-    out[ID.filler] = 'Not used while “Wrath for Eclipse” is on: Starfire and Wrath already take turns. Turn “Wrath for Eclipse” off to cast only the filler.'
+    out[ID.filler] = 'Not used: Wrath for Eclipse is on. Starfire and Wrath already take turns. Turn Wrath for Eclipse off to cast only the filler.'
   }
   const note = `Below ${stopper === 'eclipse' ? 'Wrath for Eclipse' : 'the Filler'}: used only while you haven’t the mana for Wrath.`
   for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
@@ -317,11 +317,9 @@ export const BALANCE_APL: AplDefinition = {
       label: 'Filler',
       icon: STARFIRE.icon,
       optionIds: [ID.filler],
-      // While Wrath for Eclipse above it is on, the filler is never reached, and its setting says so.
-      summary: [
-        { option: ID.filler, text: '{}' },
-        { text: 'not used while “Wrath for Eclipse” is on', alsoOn: [ID.eclipse] },
-      ],
+      // While Wrath for Eclipse above it is on, the filler is never reached: the row says so in
+      // place of this, from its setting's note (balanceUnusedSettings), dimmed.
+      summary: [{ option: ID.filler, text: '{}' }],
       help: 'What you cast the rest of the time, and Wrath when there isn’t the mana for Starfire.',
     },
   ],

@@ -156,10 +156,24 @@ function OptionRow({
           aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
           value={String(row.value)}
           onValueChange={(v) => v && ctx.set(option.id, v)}
-          className={cn('w-full shrink-0', !stacked && 'sm:w-auto')}
+          // Its options share the line equally while their names fit, and wrap to another line
+          // where they don't (a phone, the desktop panel beside the list); four sit two to a line
+          // on a phone, so a line never holds three and one. No name is ever clipped, nor the page
+          // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts).
+          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap')}
         >
           {option.choices.map((choice) => (
-            <ToggleGroupItem key={choice.value} value={choice.value} className={cn('h-11 flex-1 px-4', !stacked && 'sm:flex-none', CHOICE_ITEM, row.inactive && CHOICE_ITEM_INACTIVE)}>
+            <ToggleGroupItem
+              key={choice.value}
+              value={choice.value}
+              className={cn(
+                'h-11 min-w-fit flex-1 px-4',
+                option.choices.length === 4 && 'max-[27rem]:basis-[calc(50%-0.25rem)]',
+                !stacked && 'sm:flex-none',
+                CHOICE_ITEM,
+                row.inactive && CHOICE_ITEM_INACTIVE,
+              )}
+            >
               {choice.label}
             </ToggleGroupItem>
           ))}

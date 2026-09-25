@@ -395,9 +395,9 @@ describe('the feral specs are as they were', () => {
 describe('the Rotation tab’s notes (docs/ux.md "Rotation")', () => {
   it('says the filler isn’t used while Wrath for Eclipse is on, and is used without it or without the talent', () => {
     const unused = (values: Record<string, RotationValue>, talents = DEFAULT_TALENTS) => balanceUnusedSettings(values, talents)[ID.filler]
-    expect(unused({})).toMatch(/^Not used while “Wrath for Eclipse” is on/)
+    expect(unused({})).toMatch(/^Not used: Wrath for Eclipse is on\./)
     // It names the switch to turn off, not an unclear "it" (BD3).
-    expect(unused({})).toMatch(/Turn “Wrath for Eclipse” off to cast only the filler\.$/)
+    expect(unused({})).toMatch(/Turn Wrath for Eclipse off to cast only the filler\.$/)
     expect(unused({ [ID.eclipse]: false })).toBeUndefined()
     expect(unused({}, new Map())).toBeUndefined()
   })

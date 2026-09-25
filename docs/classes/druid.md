@@ -2186,7 +2186,7 @@ conditions in the table above (ids `druid.balance.…`):
   cooldown, wherever it sits: after Power Infusion in the default order, as before the list.
 - **A row that casts on every global cooldown:** Wrath for Eclipse (with the talent) and the Filler
   each cast whenever there's the mana for Wrath. The higher of the two leaves the lower nothing, and
-  the lower says so: by default the filler, "not used while Wrath for Eclipse is on". A row on the
+  the lower says so, dimmed: by default the filler, "Not used: Wrath for Eclipse is on." A row on the
   global cooldown moved below it gets a global cooldown only without the mana for Wrath, and says
   "Below Wrath for Eclipse" (or "Below the Filler"). Nothing else reads the order: no row reads
   another's spell.

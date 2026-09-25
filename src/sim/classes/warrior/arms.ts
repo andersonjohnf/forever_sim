@@ -370,7 +370,11 @@ export const ARMS_APL: AplDefinition = {
       icon: 'inv_jewelry_talisman_01',
       enabledId: ID.trinketsEnabled,
       optionIds: [ID.cdSync],
-      summary: [{ option: ID.cdSync, text: 'with Death Wish' }],
+      // On cooldown without the sync: its switch off, or Death Wish off or untalented (the default Arms build's).
+      summary: [
+        { option: ID.cdSync, text: 'with Death Wish', inactiveText: 'on cooldown' },
+        { option: ID.cdSync, text: 'on cooldown', when: false },
+      ],
     },
     {
       id: 'recklessness',

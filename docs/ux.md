@@ -18,6 +18,23 @@ When a design decision isn't covered here, make it, then add it here.
 4. **Mobile and desktop are both first-class.** Every screen is designed and reviewed at
    **390 px**, **1280 px** and **1920 px** (the wide layout, D34). No horizontal page scroll. Touch targets are at least 44 px.
    Everything works with a keyboard.
+   **They're designed differently, not scaled** (user decision, D34's amendment):
+   - **Mobile scrolls; desktop shows.** A phone embraces vertical scrolling rather than cramming
+     data or shrinking it. A desktop uses its space to avoid scrolling: a screen's primary view (all
+     your gear, the talent trees, your setup and result) fits the window where it can (1440×900 is
+     the bar), and scrolls only when the content truly doesn't fit.
+   - **Show it when there's room.** Overflow `…` menus, "Advanced" disclosures and collapsed panels
+     are narrow-screen tools; on a wide screen what fits is shown. (Principle 2's disclosure holds
+     where space is short.)
+   - **Never enlarge to fill.** Buttons, choices and icons keep their natural size, and a button is
+     sized by its label, with a sensible maximum width. Extra width buys more columns or more
+     visible content, never bigger controls or stretched buttons.
+   - **Transient tasks go in a modal.** A brief task (picking an item) opens over the page, so the
+     persistent view keeps the full width for what you look at all the time.
+   - **Context stays in view.** On a wide screen your character sheet and a summary of your setup
+     are always on screen, and each part of the summary takes you to its section.
+   - **Results stay calm.** One column with a clear hierarchy; nothing competes side by side with
+     the breakdown.
 5. **Calm, modern, consistent.** Use shadcn/ui components and one type scale. Surfaces are
    neutral; color is reserved for meaning: class, item quality, better or worse. The brand makes
    two exceptions ([Brand](#brand)): the Decades gold, on the brand's own marks alone, and the dark

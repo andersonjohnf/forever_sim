@@ -205,6 +205,13 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   the scraper and re-run it, or add a documented override in the engine.
 - **Engine (`src/sim`) is pure TypeScript.** No React/DOM, no `Math.random()`/`Date.now()`;
   use the seeded RNG so runs are reproducible. Time is integer milliseconds.
+- **Mobile and desktop are designed differently, not scaled (user decision, D34's amendment).**
+  Mobile embraces vertical scrolling instead of cramming or shrinking. Desktop uses its space to
+  avoid scrolling: a screen's primary view fits the window where it can (1440×900 is the bar), what
+  fits is shown (no `…` menus, "Advanced" disclosures or collapsed panels when there's room), and
+  extra width buys more columns or content, never bigger icons or stretched buttons. Brief tasks
+  (picking an item) are modals. The character sheet and a clickable setup summary stay in view;
+  results are one calm column. Details: ux.md principle 4.
 - **Verify UI changes in a real browser before calling them done:** run `npm run test:e2e`,
   then `npm run snap` (light, desktop) and `npm run snap -- --dark --width 390` (dark, phone),
   and look at the screenshots in `.cache/snaps/`. Add an e2e test for each new user-facing

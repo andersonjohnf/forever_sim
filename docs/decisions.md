@@ -685,3 +685,24 @@ recommended, to land in the next update:
 - **Two sections side by side** at 1920+ isn't in this cut; look again once it ships (and with the
   Optimizer's screen).
 - **The review gate adds 1920 px** to its screenshot widths, beside 390 and 1280.
+
+**Amended after the user's review of the preview (2026-09-25): designed for desktop, not scaled.**
+The first build widened things to fill the space rather than using it to show more. The user's rules,
+now ux.md principle 4 and a CLAUDE.md rule: mobile scrolls and desktop shows; show what fits (no
+overflow menus or Advanced disclosures when there's room); never enlarge to fill (no stretched
+buttons, no bigger icons); brief tasks in modals; the character sheet and a clickable setup summary
+always in view; calm, single-column results. What changes from the design above:
+- **The right panel** stacks the character sheet (always shown), then **Your setup** (race, talents,
+  gear, buffs, rotation and fight, each line going to its section) with Simulate, then the results
+  once run, in **one column**: the breakdown, then Cooldowns and buffs, then Assumptions. The
+  headline strip and the two result columns go, and the tabs lose their summary lines, which the
+  setup summary carries.
+- **Gear shows every slot with no scrolling** at 1440×900 and up: a wide grid (armor in two
+  columns, jewelry and weapons beside), each item with its enchant. The item picker is a **modal**
+  again, and Gear's actions (Remove all gear, the default set) are visible buttons, not a `…` menu.
+- **Buttons and choices** keep a sensible maximum width. **Buffs** runs to three columns. **Fight**
+  shows Advanced open. **Talent icons** go back to their normal size (the detail panel stays).
+- **The header** lists Setups, About, Release history, Coming soon and Theme in the toolbar when
+  there's room; `…` only on narrow widths.
+- **Kept:** nothing changes under 1440; the smooth results-pane growth; the Rotation list as one
+  scrolled list; the talent detail panel; Ctrl/Cmd+Enter; the skip link.

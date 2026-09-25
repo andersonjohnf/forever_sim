@@ -213,6 +213,14 @@ damage threat and 0.5 × 250 × 1.495 = 186.875 healing threat, 560.625 in all. 
 one proc a second, so at 5% a landed hit it procs about once every 20 landed hits while they come
 more than a second apart.
 
+**Measured** (Undead with the proc against without, same setup; 5,000 fights, 2026-09-25, the final
+pre-release verification): Protection paladin +2.3% TPS, Protection warrior +1.8% TPS; Fury +2.4%,
+Combat rogue +2.3%, Affliction +2.0%, Destruction +1.9%, Shadow Priest +1.6%, Frost +1.6%, Fire
++1.2% DPS; **Arcane +4.2%**, since each Arcane Missiles missile can proc it (about 16.5 procs a
+fight). At this default, Undead beats a Horde caster's default race: Arcane +4.3% and Fire +1.5%
+over Troll, Destruction +0.9% over Orc. No default race changes on the strength of a `[?]` default;
+the guild test in [OQ-10](#oq-10-touch-of-the-grave) settles the amount first.
+
 ---
 
 ## Base stats at level 60

@@ -33,6 +33,7 @@ export const RELEASES: readonly Release[] = [
           'Righteous Fury drops to +60% Holy threat and Holy Strike is a 10 s cooldown at 50% weapon damage; a new priority order and talents: Protection Paladin about 830 to 750 TPS.',
           'Mangle is now Primal Bite (same numbers), and Lacerate follows the new Sunder: Feral Bear about 1,120 to 1,130 TPS.',
           'Thorns scales with a raid Restoration druid’s spell power; a bear casting its own keeps the base damage.',
+          'Undead Touch of the Grave is simulated: about +2% TPS for Undead tanks.',
         ],
       },
       {
@@ -43,7 +44,7 @@ export const RELEASES: readonly Release[] = [
           'Balance: Wrath’s base damage up 50%, +5%. Fire Mage: Ignite no longer double-dips, Hot Streak lasts 20 s, and new trinkets, +3%.',
           'Gear re-ranked by the sim: Elemental +9%, Shadow Priest +8%, Frost and Arcane +1%.',
           'Gnome Eureka! is now a 10% cost cut for every class, down from 15 to 50%.',
-          'Undead Touch of the Grave is simulated: about +2% TPS for Undead tanks and +1.6% DPS for Undead casters.',
+          'Undead Touch of the Grave is simulated: about +1 to 2.5% DPS, and +4% for Arcane Mages, each of whose missiles can proc it.',
         ],
       },
       {

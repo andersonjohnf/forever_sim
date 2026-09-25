@@ -10,7 +10,7 @@ import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { activeBuffPreset } from './active-preset'
+import { activeBuffPreset, maintainedBuffIds } from './active-preset'
 import { buffSwitchId } from './ids'
 import { rivalNote } from './rival-note'
 import { weaponNote } from './weapon-note'
@@ -67,16 +67,11 @@ export function BuffsSection() {
   const update = useSetup((s) => s.update)
   const setBuffs = (patch: Partial<typeof buffs>) => update((c) => ({ ...c, buffs: { ...c.buffs, ...patch } }))
   // Buffs the rotation keeps up itself (your own Battle Shout, warrior.md §5.2 row 1): the switch
-  // shows them on and locked, since the Buffs version would be the same buff. Read through the same
-  // resolver as the plan, so a default that follows the talents or another setting counts.
+  // shows them on and locked, since the Buffs version would be the same buff. The preset picker's
+  // own rule (maintainedBuffIds), read through the same resolver as the plan, so a default that
+  // follows the talents or another setting counts.
   const values = useMemo(() => rotationValues({ spec: meta.id, talents, rotation }), [meta.id, talents, rotation])
-  const maintained = useMemo(
-    () =>
-      new Set(
-        getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && Boolean(values[o.id]) ? [o.maintainsBuff] : [])),
-      ),
-    [meta.id, values],
-  )
+  const maintained = useMemo(() => maintainedBuffIds({ spec: meta.id, talents, rotation }), [meta.id, talents, rotation])
   // Buffs the talents bring (a druid's Leader of the Pack): on and locked the same way, since the
   // plan leaves the Buffs copy out too (druid.md §2.3).
   const fromTalents = useMemo(() => new Set(talentBuffs({ spec: meta.id, talents })), [meta.id, talents])

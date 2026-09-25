@@ -198,7 +198,7 @@ test.describe('the wide shell', () => {
   })
 
   for (const width of [1024, 1440]) {
-    test(`at ${width} px “Skip to results” is first, shows when focused, and moves focus to the results`, async ({ page }) => {
+    test(`at ${width} px “Skip to results” is first, shows when focused, and moves focus to Simulate`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       await page.keyboard.press('Tab')
@@ -209,13 +209,21 @@ test.describe('the wide shell', () => {
       expect(box.height).toBeGreaterThanOrEqual(44)
       await page.keyboard.press('Enter')
       const results = page.getByRole('complementary', { name: 'Results' })
-      await expect(results).toBeFocused()
+      // Focus lands on the pane's Simulate button, with its focus ring showing where (review
+      // finding DA-4: the pane draws no ring, so focusing it changed nothing you could see).
+      const simulate = results.getByRole('button', { name: 'Simulate' })
+      await expect(simulate).toBeFocused()
+      expect(await simulate.evaluate((el) => el.matches(':focus-visible'))).toBe(true)
+      await expect(results).not.toHaveAttribute('tabindex')
       // Its hash belongs to share links: following the link leaves the address alone.
       expect(new URL(page.url()).hash).toBe('')
-      // Tab goes on into the pane, and the pane isn't focusable after it.
-      await page.keyboard.press('Tab')
-      await expect(results.getByRole('button', { name: 'Simulate' })).toBeFocused()
-      await expect(results).not.toHaveAttribute('tabindex')
+      // After a run the button is Run again, and the link lands there.
+      await page.keyboard.press('Enter')
+      await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+      await page.getByRole('tab', { name: 'Gear', exact: true }).focus()
+      await skip.focus()
+      await page.keyboard.press('Enter')
+      await expect(results.getByRole('button', { name: 'Run again' })).toBeFocused()
       // Hidden again once focus has left it.
       const hidden = (await skip.boundingBox())!
       expect(hidden.width).toBeLessThanOrEqual(1)

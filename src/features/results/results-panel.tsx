@@ -1,5 +1,5 @@
 import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
-import { Fragment, type ReactNode, useId, useRef, useState } from 'react'
+import { Fragment, type PointerEvent, type ReactNode, useId, useRef, useState } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
 import { Button } from '@/components/ui/button'
@@ -22,32 +22,58 @@ import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
 import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
+import { simulateShortcutLabel } from './shortcut-label'
 import { useScrollEdges } from './use-scroll-edges'
 import { type Metric, METRIC_LABEL, metricsFor, useBreakdownMetric, useRunState } from './use-run-state'
 
 /** `iconClassName` lets the phone bar drop the icon where the headline needs the room. */
 export function SimulateButton({ className, iconClassName }: { className?: string; iconClassName?: string }) {
   const { config, sim, result, stale, running } = useRunState()
+  const [tip, setTip] = useState(false)
+  const hovered = useRef(false)
+  // Ctrl+Enter or ⌘+Enter runs it from anywhere (docs/ux.md#accessibility, D34): named here for
+  // assistive tech, and in the tooltip for a mouse, with only this platform's key. The tooltip opens
+  // on a mouse or pen hovering, never on keyboard focus, where it stayed up over the pane's first
+  // line after a run (review finding DA-5). Cancel tracks the pointer too, as it takes the button's place.
+  const hover = (on: boolean) => (e: PointerEvent) => {
+    if (e.pointerType === 'touch') return
+    hovered.current = on
+    if (!on) setTip(false)
+  }
   if (running) {
     return (
-      <Button variant="outline" className={cn('h-11', className)} onClick={sim.cancel}>
+      <Button
+        variant="outline"
+        data-simulate
+        className={cn('h-11', className)}
+        onClick={sim.cancel}
+        onPointerEnter={hover(true)}
+        onPointerLeave={hover(false)}
+      >
         <Square className={iconClassName} /> Cancel
       </Button>
     )
   }
   const again = result !== null && !stale
   const label = again ? 'Run again' : 'Simulate'
-  // Ctrl+Enter or ⌘+Enter runs it from anywhere (docs/ux.md#accessibility, D34): named here for
-  // assistive tech and in the tooltip for a mouse.
   return (
-    <Tooltip>
+    <Tooltip open={tip} onOpenChange={(open) => setTip(open && hovered.current)}>
       <TooltipTrigger asChild>
-        <Button className={cn('h-11', className)} onClick={() => sim.run(config)} aria-keyshortcuts={SIMULATE_SHORTCUTS}>
+        <Button
+          data-simulate
+          className={cn('h-11', className)}
+          onClick={() => sim.run(config)}
+          onPointerEnter={hover(true)}
+          onPointerLeave={hover(false)}
+          aria-keyshortcuts={SIMULATE_SHORTCUTS}
+        >
           {again ? <RotateCw className={iconClassName} /> : <Play className={iconClassName} />}
           {label}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">{label} (Ctrl+Enter or ⌘+Enter)</TooltipContent>
+      <TooltipContent side="bottom">
+        {label} ({simulateShortcutLabel(typeof navigator === 'undefined' ? undefined : navigator)})
+      </TooltipContent>
     </Tooltip>
   )
 }

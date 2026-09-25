@@ -88,19 +88,16 @@ export default function App() {
     <div className="min-h-svh bg-background">
       {/*
        * First in the page from 1024 px, where the results sit beside the setup, and hidden until
-       * focused (docs/ux.md#layout). It moves focus in script rather than by its hash, which the
-       * share links own (src/app/shared-link.ts).
+       * focused (docs/ux.md#layout). It moves focus to the pane's Simulate button (Run again, or
+       * Cancel while a run is under way), whose focus ring shows where it landed: the pane itself
+       * draws none (review finding DA-4). It moves focus in script rather than by its hash, which
+       * the share links own (src/app/shared-link.ts).
        */}
       <a
         href="#results"
         onClick={(event) => {
           event.preventDefault()
-          // Focusable only while the link sends focus there, so a click in the pane still leaves it on the page.
-          const pane = results.current
-          if (!pane) return
-          pane.tabIndex = -1
-          pane.addEventListener('blur', () => pane.removeAttribute('tabindex'), { once: true })
-          pane.focus()
+          results.current?.querySelector<HTMLElement>('[data-simulate]')?.focus()
         }}
         className="sr-only max-lg:hidden focus:not-sr-only focus:fixed focus:top-1.5 focus:left-4 focus:z-50 focus:inline-flex focus:h-11 focus:items-center focus:rounded-lg focus:border focus:bg-background focus:px-4 focus:text-sm focus:font-medium focus:shadow-md focus:ring-3 focus:ring-ring/50 focus:outline-none"
       >
@@ -145,7 +142,7 @@ export default function App() {
             <DecadesCredit />
           </footer>
         </Tabs>
-        {/* The skip link's target: focus lands on the pane, and Tab goes on into it. */}
+        {/* The skip link's target: focus lands on its Simulate button. */}
         <aside ref={results} id="results" className="hidden outline-none lg:block wide:@container/results" aria-label="Results">
           <div className="sticky top-20 pt-6">
             <ResultsPanel />

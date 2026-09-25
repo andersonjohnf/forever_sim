@@ -46,8 +46,10 @@ When a design decision isn't covered here, make it, then add it here.
 
 **From 1024 px, where the results sit beside the setup,** the first thing in the page is a **Skip to
 results** link, hidden until it has keyboard focus (then a 44 px button at the top left, over the
-header). It moves focus to the results pane, so the next Tab reaches Simulate; the pane takes focus
-only then. It moves focus in script, not by its `#results` hash, which share links own.
+header). It moves focus to the results pane's **Simulate** button (Run again after a run, Cancel
+during one), whose focus ring shows where it landed; the pane itself draws no ring, so focusing it
+changed nothing you could see (review finding DA-4). It moves focus in script, not by its
+`#results` hash, which share links own.
 
 **At every desktop width the results pane never runs past the viewport:** it's sticky, and its
 details scroll inside it, with a fade at each edge that has more past it ([Results](#results)).
@@ -795,9 +797,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the color says that on screen: "up 12.3 from the last run, better" (`Delta` in
   `src/features/results/delta.tsx`). Under it, one line says what was run: "2,750 fights of 180 s ·
   Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
-  varied fights; the run time is labelled. The Simulate button names its shortcut, Ctrl+Enter or
-  ⌘+Enter, in `aria-keyshortcuts` and in its tooltip ("Simulate (Ctrl+Enter or ⌘+Enter)", or "Run
-  again (…)" after a run).
+  varied fights; the run time is labelled. The Simulate button names its shortcut in
+  `aria-keyshortcuts` (both keys, `Control+Enter Meta+Enter`) and in a tooltip that names only the
+  platform's own key: "Simulate (⌘+Enter)" on a Mac, iPhone or iPad, "Simulate (Ctrl+Enter)"
+  elsewhere, or "Run again (…)" after a run (`src/features/results/shortcut-label.ts`). The
+  tooltip opens when a mouse or pen hovers the button, not on keyboard focus: there it stayed up
+  after a keyboard run and covered the pane's first line (review finding DA-5). It's the one
+  tooltip that doesn't open on focus ([Accessibility](#accessibility)): what it says is the
+  button's own name, which focus reads, and the shortcut, which `aria-keyshortcuts` gives
+  assistive tech.
 - **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
   put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
   that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a

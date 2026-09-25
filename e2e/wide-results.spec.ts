@@ -117,12 +117,37 @@ test.describe('the wide results pane, 1440 px', () => {
     for (const l of lines) if (l.text) expect(l.lines, l.text).toBe(1)
   })
 
-  test('Simulate names its keyboard shortcut, for assistive tech and in its tooltip', async ({ page }) => {
+  // Review finding DA-5: the tooltip names only this platform's key, and opens on hover alone.
+  for (const { platform, key } of [
+    { platform: 'Win32', key: 'Ctrl+Enter' },
+    { platform: 'MacIntel', key: '⌘+Enter' },
+  ]) {
+    test(`Simulate names its keyboard shortcut, for assistive tech and in its tooltip (${platform})`, async ({ page }) => {
+      await page.addInitScript((platform) => {
+        Object.defineProperty(Navigator.prototype, 'platform', { get: () => platform })
+        Object.defineProperty(Navigator.prototype, 'userAgentData', { get: () => undefined })
+      }, platform)
+      await page.goto('./')
+      const button = results(page).getByRole('button', { name: 'Simulate' })
+      await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter')
+      await button.hover()
+      await expect(page.getByRole('tooltip')).toHaveText(`Simulate (${key})`)
+    })
+  }
+
+  test('keyboard focus doesn’t open the Simulate tooltip, before or after a keyboard run', async ({ page }) => {
     await page.goto('./')
-    const button = results(page).getByRole('button', { name: 'Simulate' })
-    await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter')
-    await button.hover()
-    await expect(page.getByRole('tooltip')).toHaveText('Simulate (Ctrl+Enter or ⌘+Enter)')
+    const panel = results(page)
+    await panel.getByRole('button', { name: 'Simulate' }).focus()
+    await page.waitForTimeout(1000)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
+    await page.keyboard.press('Enter')
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await panel.getByRole('button', { name: 'Run again' }).focus()
+    await page.keyboard.press('ControlOrMeta+Enter')
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await page.waitForTimeout(1000)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
   })
 })
 

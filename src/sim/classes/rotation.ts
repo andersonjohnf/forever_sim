@@ -33,7 +33,7 @@ import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUn
 import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
-import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
+import { SHADOW_APL, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
 import { type ClassRotation, maxRageOf } from './warrior/shared'
@@ -123,6 +123,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
+  // docs/classes/priest.md §6 "The priority list".
+  if (spec === 'priest-shadow') return SHADOW_APL
   return undefined
 }
 
@@ -130,8 +132,6 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
   if (spec === 'shaman-elemental') return ELEMENTAL_FIXED_ROWS
-  // docs/classes/priest.md §6: Shadowform, up all fight.
-  if (spec === 'priest-shadow') return SHADOW_FIXED_ROWS
   // docs/classes/hunter.md §8: Aspect of the Hawk, Trueshot Aura, the pet and Auto Shot.
   if (isHunterSpec(spec)) return hunterFixedRows(spec)
   return []
@@ -344,7 +344,7 @@ export function classRotation(
   // docs/classes/warlock.md §11.5.
   if (spec === 'warlock-demonology') return demonologyRotation(values, talents, auraIndex, context)
   // docs/classes/priest.md §6.
-  if (spec === 'priest-shadow') return shadowRotation(values, talents, context)
+  if (spec === 'priest-shadow') return shadowRotation(values, talents, context, order)
   // docs/classes/hunter.md §7.
   if (isHunterSpec(spec)) return hunterRotation(spec, values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }

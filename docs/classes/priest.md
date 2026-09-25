@@ -125,7 +125,7 @@ cleared once its spell resolves, and at every fight's start, so fights stay repr
 ### 3.6 Shadowform (15473)
 
 Cast before the pull, it lasts until cancelled; the sim keeps it up all fight whenever the build has
-the talent (a fixed row on the Rotation tab). Its effects [F]:
+the talent (the priority list's pinned row before the pull on the Rotation tab). Its effects [F]:
 
 | Effect | Value | In the sim |
 | --- | --- | --- |
@@ -217,7 +217,7 @@ fits. On the GCD, first usable line wins:
 
 | # | Line | Condition |
 | --- | --- | --- |
-| 0 | Shadowform | before the pull, always on (a fixed row) |
+| 0 | Shadowform | before the pull, always on (the list's pinned row) |
 | 1 | Shadow Word: Pain | missing from the boss, and at least 6 s of the fight left |
 | 2 | Devouring Plague | on cooldown, at least 6 s left |
 | 3 | Inner Focus (off the GCD) | Mind Blast could start now |
@@ -228,6 +228,44 @@ fits. On the GCD, first usable line wins:
 
 Shadow Weaving needs no line: every Shadow spell that lands stacks it. Settings are
 `priest.shadow.<ability>.<param>`; the Rotation tab says "the common priority".
+
+#### The priority list (A2)
+
+Since M5.65 A2 the lines above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`SHADOW_APL` in [`shadow.ts`](../../src/sim/classes/priest/shadow.ts)), in this order, each with its
+switch, its own settings and its own conditions, which it keeps wherever it sits:
+
+| Row (`id`) | Switch (`priest.shadow.…`) | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | — | | Shadowform, with the talent ([§3.6](#36-shadowform-15473)) |
+| Racial cooldown (`racial`) | `racial.enabled` | | on cooldown: Berserking, Elune's Light or Eureka! ([§3.8](#38-racial-spells)) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown, each the sim models |
+| Dark Sacrifice (`darkSacrifice`) | `darkSacrifice.enabled` | `darkSacrifice.missingMana` | Undead only; missing at least that much mana ([§3.8](#38-racial-spells)) |
+| Shadow Word: Pain (`shadowWordPain`) | `shadowWordPain.enabled` | `dots.minTimeLeftSec` | off the boss, and at least that much of the fight left ([§3.1](#31-shadow-word-pain-r8-10894)) |
+| Devouring Plague (`devouringPlague`) | `devouringPlague.enabled` | `dots.minTimeLeftSec` | on cooldown, at least that much left ([§3.4](#34-devouring-plague-r6-19280)) |
+| Inner Focus (`innerFocus`) | `innerFocus.enabled` | | Mind Blast could start now; needs the talent and Mind Blast on ([§3.5](#35-inner-focus-14751)) |
+| Mind Blast (`mindBlast`) | `mindBlast.enabled` | | on cooldown ([§3.2](#32-mind-blast-r9-10947)) |
+| Starshards (`starshards`) | `starshards.enabled` | | Night Elf only; on cooldown ([§3.8](#38-racial-spells)) |
+| Vampiric Embrace (`vampiricEmbrace`) | `vampiricEmbrace.enabled` | | off the boss; needs the talent; off by default ([§3.7](#37-vampiric-embrace-15286)) |
+| Mind Flay (`mindFlay`) | `mindFlay.enabled` | `mindFlay.ticks` | the filler, cut off after that many ticks; needs the talent ([§3.3](#33-mind-flay-r6-18807)) |
+
+- **Pinned:** only Shadowform before the pull. It has no switch: a build with the talent always
+  keeps it up ([§3.6](#36-shadowform-15473)).
+- **Spec-wide, above the list:** Power Infusion (under Cooldowns and buffs) and the Major Mana
+  Potion and Demonic Rune with their mana thresholds (under Consumables). They're Buffs entries
+  the rotation presses, and take their turn with the on-use trinkets' row, wherever it sits, as
+  they did before the list (the bear's consumables do the same, [druid.md §6.3](druid.md#the-priority-list-a2)).
+- **Presets:** Shadow has no named rotations, so the preset is the implicit Default, the order
+  above with every setting at its default; the tab still says the defaults are the common priority
+  (D27).
+- **Inner Focus keeps its own condition:** it's used once Mind Blast could start. Just above Mind
+  Blast, the Mind Blast that follows takes its free, +25% crit cast; moved above the DoTs, the
+  charge can go to whatever the list casts next.
+- **Equivalence.** In the default order the plan is the one before the list, byte for byte: 200
+  random setups (settings, talents, race, on-use items, the mana consumables and Power Infusion,
+  fight length and rules) are fingerprinted against the code before it (`shadow-apl.test.ts`), and
+  the golden run is unchanged.
 
 ### 6.1 First-pass defaults
 

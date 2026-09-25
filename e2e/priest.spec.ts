@@ -41,29 +41,30 @@ async function noSideScroll(page: Page, what = 'no horizontal page scroll') {
   expect(overflow, what).toBeLessThanOrEqual(0)
 }
 
-/** What the Rotation tab shows by default (a Troll), at any width. */
+/** What the Rotation tab shows by default (a Troll), at any width: the priority list (D31; priest-priority-list.spec.ts moves its rows). */
 async function expectDefaultRotation(tab: Locator) {
   await expect(
     tab.getByText('Which abilities the sim uses, and when. The defaults are the common priority, with a first quick search; they aren’t tuned yet.', { exact: true }),
   ).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
-  // Shadowform is a fixed row: always on, no control.
-  await expect(tab.getByRole('region', { name: 'Before the pull' })).toContainText(/Shadowform.*Always on/s)
-  for (const name of ['Racial cooldown', 'On-use trinkets', 'Inner Focus', 'Shadow Word: Pain', 'Devouring Plague', 'Mind Blast', 'Mind Flay', 'Major Mana Potion']) {
-    await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  // Power Infusion and the mana consumables sit above the list, under their headings.
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+  const list = tab.getByRole('list', { name: 'Priority list' })
+  // Shadowform is the pinned row before the pull: always on, no switch.
+  await expect(list.locator('[data-apl-row="prepull"]')).toContainText('Shadowform')
+  await expect(list.locator('[data-apl-row="prepull"]').getByRole('switch')).toHaveCount(0)
+  for (const name of ['Racial cooldown', 'On-use trinkets', 'Inner Focus', 'Shadow Word: Pain', 'Devouring Plague', 'Mind Blast', 'Mind Flay']) {
+    await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }
-  await expect(tab.getByRole('switch', { name: 'Vampiric Embrace', exact: true })).not.toBeChecked()
+  await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+  await expect(list.getByRole('switch', { name: 'Vampiric Embrace', exact: true })).not.toBeChecked()
   // A Troll has neither the Night Elf's Starshards nor the Undead's Dark Sacrifice.
-  await expect(tab.getByRole('switch', { name: 'Starshards', exact: true })).toHaveAccessibleDescription(/Not used: only Night Elf priests have Starshards, not Troll\./)
-  await expect(tab.getByRole('switch', { name: 'Dark Sacrifice', exact: true })).toHaveAccessibleDescription(/Not used: only Undead priests have Dark Sacrifice, not Troll\./)
+  await expect(list.getByRole('switch', { name: 'Starshards', exact: true })).toHaveAccessibleDescription(/Not used: only Night Elf priests have Starshards, not Troll\./)
+  await expect(list.getByRole('switch', { name: 'Dark Sacrifice', exact: true })).toHaveAccessibleDescription(/Not used: only Undead priests have Dark Sacrifice, not Troll\./)
   // Power Infusion waits for another priest's, in Buffs.
   await expect(tab.getByRole('switch', { name: 'Power Infusion', exact: true })).toHaveAccessibleDescription(/Not used: turn on Power Infusion in Buffs first/)
-  const fillers = tab.getByRole('region', { name: 'Fillers' })
-  await fillers.getByRole('button', { name: /^Advanced settings for Fillers/ }).click()
-  await expect(fillers.getByRole('textbox', { name: 'Mind Flay ticks', exact: true })).toHaveValue('3')
-  const core = tab.getByRole('region', { name: 'Core abilities' })
-  await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-  await expect(core.getByRole('textbox', { name: 'Damage over time until', exact: true })).toHaveValue('6')
+  // The rows' own settings, in their summaries.
+  await expect(list.locator('[data-apl-row="mindFlay"]')).toContainText('Filler · 3 ticks')
+  await expect(list.locator('[data-apl-row="devouringPlague"]')).toContainText('On cooldown · until 6 s left')
   await expect(tab).not.toContainText(OTHER_CLASS)
 }
 
@@ -124,7 +125,7 @@ test.describe('Shadow Priest', () => {
     await expect(page.getByRole('dialog').getByText(/ · Priests: Shadow( · .+)?\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: the common priority, Shadowform always on, and the other races’ spells marked unused', async ({ page }) => {
+  test('its Rotation tab: the common priority as a priority list, Shadowform pinned first, and the other races’ spells marked unused', async ({ page }) => {
     await switchToPriest(page)
     await expectDefaultRotation(await openTab(page, 'Rotation'))
   })

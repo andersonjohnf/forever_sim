@@ -1,7 +1,8 @@
 // Touch of the Grave, the Undead proc (docs/mechanics/character-stats.md#touch-of-the-grave): its
 // client values, which classes and races get it, and how the engine runs it. The engine tests use
 // hand-built plans (a warrior plan from test-helpers with no weapon and spells added), as the caster
-// core's do (engine/caster.test.ts); their numbers are test inputs.
+// core's do (engine/caster.test.ts); their numbers are test inputs. What procs it is tested on the
+// real abilities, in each class's default plan with only those rotation lines and no other proc.
 import racesJson from '@/data/races/races.json'
 import spellsJson from '@/data/client/spells.json'
 import { describe, expect, it } from 'vitest'
@@ -11,10 +12,11 @@ import { defaultConfig } from '../defaults'
 import { CHUNK_SIZE, runChunk } from '../engine/chunk'
 import { FIELD, Sim } from '../engine/sim'
 import { addAbility, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, line, rageAtPull } from '../engine/test-helpers'
-import { demoralizingShout, sunderArmor, thunderClap } from '../classes/warrior/abilities'
+import { demoralizingShout, MORTAL_STRIKE, REND, sunderArmor, thunderClap } from '../classes/warrior/abilities'
+import { EZ_THRO_DARK_BOMB } from './buffs'
 import { buildPlan } from '../plan/build'
 import { PROFILES } from '../rules/profiles'
-import { ACTION, type AbilityPlan, CASTER_ROW, DEFENSE, type Plan, SCHOOL, SCHOOL_COUNT, type SpellPlan, TRIGGER } from '../plan/types'
+import { ACTION, type AbilityPlan, CASTER_ROW, DEFENSE, type Plan, SCHOOL, SCHOOL_COUNT, type SpellPlan, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
 import type { ClassId, SimConfig, SpecId } from '../types'
 import { TOUCH_OF_THE_GRAVE, touchOfTheGrave } from './racials'
@@ -332,6 +334,151 @@ describe('Healing threat (threat.md#threat-from-healing-power-gains-and-buffs)',
     const landed = (['hits', 'crits', 'glances', 'blocks'] as const).reduce((n, f) => n + counter(sim, white, FIELD[f]), 0)
     expect(landed).toBeGreaterThan(10)
     expect(counter(sim, row, FIELD.casts)).toBe(landed)
+  })
+})
+
+// --- What procs it, on the real abilities (character-stats.md#touch-of-the-grave "What procs it") --------
+
+/** A row's landed events: hits, crits, glances and blocks (a DoT's or bleed's are its ticks). */
+const landed = (sim: Sim, row: number) => (['hits', 'crits', 'glances', 'blocks'] as const).reduce((n, f) => n + counter(sim, row, FIELD[f]), 0)
+/** A row's uses that landed: its casts less its misses, dodges and parries (a DoT's or bleed's applications). */
+const applied = (sim: Sim, row: number) => counter(sim, row, FIELD.casts) - (['misses', 'dodges', 'parries'] as const).reduce((n, f) => n + counter(sim, row, FIELD[f]), 0)
+const rowOf = (plan: Plan, id: string) => {
+  const i = plan.sources.findIndex((s) => s.id === id)
+  expect(i, id).toBeGreaterThanOrEqual(0)
+  return i
+}
+
+/**
+ * `spec`'s default plan for `race` (a fight of exactly `durationSec`, these buffs), with only the
+ * rotation lines of these abilities, no prepull casts, and no proc but a Touch of the Grave of
+ * 100 a drain at 100% with `icdMs`, on its own row: each landing that procs it counts one cast.
+ */
+function realPlan(spec: SpecId, race: string | undefined, lines: string[], o: { durationSec?: number; icdMs?: number; enabled?: string[] } = {}) {
+  const d = defaultConfig(spec, race)
+  const plan = buildPlan({ ...d, buffs: { raid: d.buffs.raid, enabled: o.enabled ?? d.buffs.enabled }, fight: { ...d.fight, durationSec: o.durationSec ?? 60, durationVariationPct: 0 } }).plan
+  for (const id of lines) expect(plan.rotation.some((r) => plan.abilities[r.ability].id === id), `${spec} ${id}`).toBe(true)
+  plan.rotation = plan.rotation.filter((r) => lines.includes(plan.abilities[r.ability].id))
+  plan.prepull = { ...plan.prepull, casts: [] }
+  plan.procs = []
+  plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+  return { plan, row: addGrave(plan, 100, 1, o.icdMs ?? 0) }
+}
+
+describe('What procs Touch of the Grave, on the real abilities (character-stats.md#touch-of-the-grave)', () => {
+  it('a dodged or parried special doesn’t proc it, nor a dodged or parried swing; a landed one does', () => {
+    const plan = armsPlan(120000)
+    plan.stats.hit = 100
+    plan.stats.crit = -100
+    Object.assign(plan.fight, { front: true, bossCanDodge: true, bossCanParry: true, bossCanBlock: false })
+    rageAtPull(plan, 100)
+    const ms = addAbility(plan, MORTAL_STRIKE)
+    line(plan, ms)
+    const row = addGrave(plan, 100)
+    const sim = run(plan, 3)
+    const strike = plan.abilities[ms].source
+    const white = rowOf(plan, 'mainHand')
+    for (const r of [strike, white]) {
+      expect(counter(sim, r, FIELD.dodges), plan.sources[r].id).toBeGreaterThan(0)
+      expect(counter(sim, r, FIELD.parries), plan.sources[r].id).toBeGreaterThan(0)
+    }
+    expect(counter(sim, strike, FIELD.misses)).toBe(0)
+    expect(landed(sim, strike)).toBeGreaterThan(10)
+    expect(counter(sim, row, FIELD.casts)).toBe(landed(sim, strike) + landed(sim, white))
+  })
+
+  it('a bleed procs it as it’s applied, never on its ticks (Rend)', () => {
+    const plan = armsPlan(24000)
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    const rend = addAbility(plan, REND)
+    line(plan, rend, at(plan, 0))
+    const row = addGrave(plan, 100)
+    const sim = run(plan, 1)
+    const r = plan.abilities[rend].source
+    // One application, its 7 ticks 3 s apart; the swings land and proc it too.
+    expect([counter(sim, r, FIELD.casts), counter(sim, r, FIELD.hits)]).toEqual([1, 7])
+    const whites = landed(sim, rowOf(plan, 'mainHand'))
+    expect(whites).toBeGreaterThan(0)
+    expect(counter(sim, row, FIELD.casts)).toBe(1 + whites)
+  })
+
+  it('an Undead rogue’s Rupture procs it as it’s applied, never on its ticks; Hemorrhage and the swings each proc it', () => {
+    const { plan, row } = realPlan('rogue-subtlety', UNDEAD, ['hemorrhage', 'rupture'])
+    const sim = run(plan, 3)
+    const rupture = rowOf(plan, 'rupture')
+    const strike = rowOf(plan, 'hemorrhage')
+    const whites = landed(sim, rowOf(plan, 'mainHand')) + landed(sim, rowOf(plan, 'offHand'))
+    const ruptures = applied(sim, rupture)
+    expect(ruptures).toBeGreaterThan(3)
+    expect(landed(sim, rupture)).toBeGreaterThan(2 * ruptures)
+    expect(counter(sim, row, FIELD.casts)).toBe(whites + landed(sim, strike) + ruptures)
+  })
+
+  it.each([
+    ['priest-shadow', 'shadowWordPain'],
+    ['warlock-affliction', 'corruption'],
+  ] as const)('an Undead %s’s %s procs it as it lands, never on its ticks', (spec, id) => {
+    const { plan, row } = realPlan(spec, UNDEAD, [id])
+    const sim = run(plan, 3)
+    const dot = rowOf(plan, id)
+    const applications = applied(sim, dot)
+    expect(applications).toBeGreaterThan(3)
+    expect(landed(sim, dot)).toBeGreaterThan(3 * applications)
+    expect(counter(sim, row, FIELD.casts)).toBe(applications)
+  })
+
+  it('EZ-Thro Dark Bomb, an item’s spell, doesn’t proc it; the same bomb as a spell of yours would', () => {
+    const bomb = (itemSpell: boolean) => {
+      const { plan, row } = realPlan('mage-fire', UNDEAD, [EZ_THRO_DARK_BOMB.id], { durationSec: 180, enabled: [EZ_THRO_DARK_BOMB.id] })
+      const spell = plan.spells!.find((s) => plan.sources[s.source].id === EZ_THRO_DARK_BOMB.id)!
+      expect(spell.itemSpell).toBe(true)
+      spell.itemSpell = itemSpell
+      const sim = run(plan, 20)
+      return [landed(sim, spell.source), counter(sim, row, FIELD.casts)]
+    }
+    const [thrown, procs] = bomb(true)
+    expect(thrown).toBeGreaterThan(20)
+    expect(procs).toBe(0)
+    const [yours, yourProcs] = bomb(false)
+    expect(yourProcs).toBe(yours)
+  })
+
+  it('each Arcane Missiles missile procs it, subject to its 1 s cooldown', () => {
+    const missiles = (icdMs: number, tickMs?: number) => {
+      const { plan, row } = realPlan('mage-arcane', UNDEAD, ['arcaneMissiles'], { durationSec: 30, icdMs })
+      const a = plan.abilities.findIndex((x) => x.id === 'arcaneMissiles')
+      if (tickMs) plan.abilities[a].rageTickMs = tickMs
+      const sim = run(plan, 3)
+      return [landed(sim, rowOf(plan, 'arcaneMissiles')), counter(sim, row, FIELD.casts)]
+    }
+    // No cooldown: every missile that lands procs it.
+    const [n, procs] = missiles(0)
+    expect(n).toBeGreaterThan(3 * 20)
+    expect(procs).toBe(n)
+    // The 1 s cooldown: missiles 1 s apart all proc it, as the cooldown is over when the next lands.
+    expect(missiles(TOUCH_OF_THE_GRAVE.icdMs)).toEqual([n, n])
+    // Missiles 0.5 s apart: the cooldown lets about every other one proc it.
+    const [fast, fastProcs] = missiles(TOUCH_OF_THE_GRAVE.icdMs, 500)
+    expect(missiles(0, 500)).toEqual([fast, fast])
+    expect(fastProcs).toBeLessThan(0.6 * fast)
+    expect(fastProcs).toBeGreaterThan(0.45 * fast)
+  })
+
+  it('a hunter’s landed Auto Shots, shots and Serpent Sting’s application each proc it, not the sting’s ticks or the pet’s attacks (the engine’s trigger; no hunter is Undead)', () => {
+    const { plan, row } = realPlan('hunter-beast-mastery', undefined, ['multiShot', 'arcaneShot', 'serpentSting'])
+    const sim = run(plan, 3)
+    const auto = rowOf(plan, 'autoShot')
+    const sting = rowOf(plan, 'serpentSting')
+    const shots = landed(sim, rowOf(plan, 'arcaneShot')) + landed(sim, rowOf(plan, 'multiShot'))
+    expect(landed(sim, auto)).toBeGreaterThan(3 * 15)
+    expect(shots).toBeGreaterThan(3 * 5)
+    expect(applied(sim, sting)).toBeGreaterThan(3)
+    expect(landed(sim, sting)).toBeGreaterThan(2 * applied(sim, sting))
+    const pet = plan.sources.flatMap((s, i) => (s.pet ? [i] : []))
+    expect(pet.length).toBeGreaterThan(0)
+    expect(pet.reduce((n, i) => n + counter(sim, i, FIELD.damage), 0)).toBeGreaterThan(0)
+    expect(counter(sim, row, FIELD.casts)).toBe(landed(sim, auto) + shots + applied(sim, sting))
   })
 })
 

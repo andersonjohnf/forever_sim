@@ -962,12 +962,6 @@ slice is worked:
   - **The fix:** label each rank with its list, and rank the Frost and Arcane two-handers by sim.
     Queued with the gear search ([O2](#m57-the-optimizer-d30--top-priority)); low because it's the
     picker's ranking, not a result, and the picker still offers every item.
-- **Touch of the Grave's untested triggers** (V2-3, the final pre-release verification for
-  1.60.1.70009, introduced, low): the unit tests cover ticks, spells that fire no procs, white
-  swings, Sunder and Thunder Clap, but not a dodged or parried special, a bleed's application, the
-  EZ-Thro bomb (an item spell), Arcane Missiles' per-missile procs or Auto Shot. The verifier's
-  probes checked each by hand and found them right; waived for the release since no default race is
-  Undead, and queued to add as tests with the next racial or proc work.
 
 ## Later
 

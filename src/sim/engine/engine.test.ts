@@ -588,6 +588,12 @@ describe('golden run (fixed config and seed)', () => {
   //   1,132.71 and 547.00 → 557.95, Defensive 1,085.34 → 1,099.84 and 532.43 → 543.37. With Thorns set
   //   back to its flat 22 (no caster spell damage), the pre-merge snapshot reproduces exactly. Fury,
   //   Arms and the cat are unchanged.
+  // - The paladin review's PR-4 (buffs doc §1.2): a raid's Thorns on the tank is a Restoration
+  //   druid's, 200 spell damage [?], not the Balance druid's 389, and unrounded (PR-9): 22 + 16 = 38 a
+  //   landed swing, was 53. Only the Thorns rows move: the warrior's Balanced TPS 1,009.36 → 1,001.65
+  //   and DPS 396.35 → 391.29, Defensive 939.19 → 932.66 and 372.00 → 367.72; the bear's Balanced
+  //   1,132.71 → 1,125.69 and 557.95 → 552.65, Defensive 1,099.84 → 1,092.83 and 543.37 → 538.08. With
+  //   Thorns set back to 53, this snapshot reproduces exactly. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

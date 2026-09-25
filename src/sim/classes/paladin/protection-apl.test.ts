@@ -77,7 +77,9 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Fury +60%, Holy Strike 50% every 10 s, Retribution Aura and Thorns with spell damage, Improved
     // Holy Strike's and Crusade's points refunded): each plan's values moved with them. The 70009
     // integration re-took it on the merge of the two: with Wizard Oil back at 30, the paladin slice's
-    // own snapshot reproduces exactly.
+    // own snapshot reproduces exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is a
+    // Restoration druid's, 22 + 0.08 × 200 = 38 unrounded (buffs doc §1.2); with it set back to 53,
+    // the snapshot before it reproduces exactly.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

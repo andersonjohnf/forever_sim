@@ -52,7 +52,9 @@ describe('the Feral bear’s priority list (D31)', () => {
     // rotation's lines are the same. The 70009 integration re-took it for the paladin slice's Thorns
     // (22 + 0.08 × a raid druid's 389, dealt as 53; buffs doc §1.2), which every case with Thorns in
     // its buffs carries: with Thorns set back to its flat 22, the druid slice's snapshot reproduces
-    // exactly.
+    // exactly. Re-taken for the paladin review's PR-4: a raid's Thorns is a Restoration druid's, 22 +
+    // 0.08 × 200 = 38 unrounded (buffs doc §1.2); with it set back to 53, the snapshot before it
+    // reproduces exactly (no case turns on the bear's own Thorns, `thornsOwn`).
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
       buildPlan({

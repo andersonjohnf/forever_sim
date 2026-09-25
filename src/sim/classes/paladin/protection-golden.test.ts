@@ -112,6 +112,10 @@ describe('golden run (fixed config and seed)', () => {
   //   (paladin alone) → 744.85, DPS 445.45 / 466.13 → 464.36, damage taken 917.2 a second, for
   //   Balanced and Defensive alike. With Wizard Oil back at 30, the paladin slice's snapshot
   //   reproduces exactly.
+  // - The paladin review's PR-4 (buffs doc §1.2): a raid's Thorns on the tank is a Restoration
+  //   druid's, 200 spell damage [?], not the Balance druid's 389, and unrounded (PR-9): 38 a landed
+  //   swing, was 53. Only the Thorns row moves: TPS 744.85 → 738.69, DPS 464.36 → 458.32, for Balanced
+  //   and Defensive alike. With Thorns set back to 53, this snapshot reproduces exactly.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

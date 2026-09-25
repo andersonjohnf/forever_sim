@@ -1372,7 +1372,7 @@ export class Sim {
     this.fromProcsLists = []
     for (let t = 0; t < TRIGGER_COUNT; t++) {
       const list = plan.triggers[t] ?? []
-      this.fromProcsLists.push(Int32Array.from(list.filter((p) => procs[p].fromProcs === true)))
+      this.fromProcsLists.push(Int32Array.from(list.filter((p) => procs[p]?.fromProcs === true)))
       // A proc that needs an aura or a form (druid.md §2.8), or names a spell's schools or row
       // (docs/mechanics/spells.md §10), is gated; the rest roll with no check.
       const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0 || this.pSchools[p] !== 0 || this.pFromSource[p] >= 0 || this.pPpmCast[p] > 0

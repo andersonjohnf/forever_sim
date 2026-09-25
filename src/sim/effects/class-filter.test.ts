@@ -75,6 +75,8 @@ describe('class-only catalogue entries', () => {
         HUNTER_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock', 'priest', 'hunter'] : SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock', 'priest'] : ['paladin'],
       )
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
+      // A bear's own Thorns: only a druid casts it on itself (buffs doc §1.2).
+      ['thornsOwn', ['druid']],
       ['elixirOfShadowPower', ['warlock', 'priest']],
       ['instantPoisonMainHand', ['rogue']],
       ['deadlyPoisonMainHand', ['rogue']],

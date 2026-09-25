@@ -214,7 +214,10 @@ and the docs it links; this list only summarizes them, with the same tags.
   judgements' damage spells 20966, 20286 and 20414 carry it. Seal of Righteousness's proc 25713
   and Seal of Fury's 20418 (Attr3 `0x40000`, Always Hit only) and Consecration's ticks 1280345–1280349
   don't [F] [client] (SpellMisc, 1.60.1.70009). "Procs" means every kind: Windfury, Crusader, Hand
-  of Justice, Vengeance, Vindication and crit charges. The attribute's reading is data; that
+  of Justice, Vengeance, Vindication and crit charges, with one exception: an aura with Attr3
+  `0x4000000`, Can Proc From Procs, is procced by those spells too. Vengeance's (20049) has it, so
+  SoR's and SoF's proc crits give its stacks; a periodic aura's ticks (Consecration's) don't, by its
+  proc mask ([Retribution tree](#retribution-tree)). The attribute's reading is data; that
   Forever's server applies it this way is untested [?] ([open question 22](#open-questions)).
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an
@@ -455,7 +458,7 @@ DPS, TPS or mana effect are listed but not modelled.
 | Sacred Arbiter (1), new | "Increases the damage of your Holy Strike ability by 20% and causes it to refresh all Judgement effects on the target." ([F 1311087][f1311087]) | — | Holy Strike ×1.20 (×1.10 until 1.60.1.70009; aura 108 = 20, [client] (SpellEffect, 1.60.1.70009)); refreshes your judgement debuffs |
 | Crusade (2), new | "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets." ([F 1311083][f1311083]) | — | **Removed from the trees in 1.60.1.70009** ([data/talents.md](../data/talents.md#tree-versions)); was ×1.02 all damage and a further ×1.02 vs Undead/Demon |
 | Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 6%." ([F 20111][f20111]) | 6% | ×1.06 (2/4/6%; 3/6/9% until 1.60.1.70009, [client] (SpellEffect, 1.60.1.70009)) **Physical only** (school mask 1, [client] (SpellEffect, 1.60.1.70009)), with a 2H equipped. Holy Strike, SoC and judgements don't benefit |
-| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a non-periodic critical strike. Stacks up to 3 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 3 stacks (9% at 3/3)**, 30 s (5 stacks until 1.60.1.70009) ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.70009)). Each non-periodic crit that triggers procs adds a stack and refreshes the duration: white, special, SoC proc, judgement, spell. The talent's proc mask (69972) has no periodic bit since 1.60.1.70009 (1.60.1.69913's 332116 had 0x40000), so a periodic tick gives none. Its aura carries Attr3 `0x4000000`, which lets triggered spells with NOT_A_PROC proc it: SoC's proc does, **not** SoR's or SoF's procs or Consecration's ticks, which lack NOT_A_PROC [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
+| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a non-periodic critical strike. Stacks up to 3 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 3 stacks (9% at 3/3)**, 30 s (5 stacks until 1.60.1.70009) ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.70009)). Each non-periodic crit that triggers procs adds a stack and refreshes the duration: white, special, SoC proc, judgement, spell. The talent's proc mask (69972) has no periodic bit since 1.60.1.70009 (1.60.1.69913's 332116 had 0x40000), so a periodic tick gives none. Its aura carries Attr3 `0x4000000`, **Can Proc From Procs**, which lets triggered spells *without* NOT_A_PROC proc it: so **SoR's and SoF's proc crits give stacks too**, as SoC's do, though they trigger no other procs [?]. Consecration's ticks also lack NOT_A_PROC, but they're a periodic aura's, which the proc mask leaves out [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
 | Repentance (1) | incapacitate | same | not modelled |
 | Champion of the Light (3), new | "Increases your spell damage and healing by up to 100% of your Intellect." ([F 1311084][f1311084]) | — | **+Int to spell damage** (all magic schools) and healing, at 33/66/100% |
 | Instrument of Law (2), new | "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active." ([F 1311085][f1311085]) | — | HoW instant (still 1.0 s GCD); threat ×0.8 when RF is off (curves −500/−1000 ms and 10/20, [client] (TraitDefinitionEffectPoints, 1.60.1.70009)) |
@@ -1543,14 +1546,18 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 22. **Which spells trigger procs, and minor mechanics.** The sim follows the client's
     NOT_A_PROC attribute ([conventions](#conventions-used-below)): SoC's proc and the damage
     judgements trigger on-hit and crit procs (Windfury, Crusader, Hand of Justice, Vengeance,
-    Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?]. Vengeance's own
-    aura (20049) carries Attr3 `0x4000000`, the flag that lets triggered spells with NOT_A_PROC proc
-    it, which fits: SoC's proc gives stacks, SoR's and SoF's don't. This one isn't
+    Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?], but Vengeance.
+    Vengeance's own aura (20049) carries Attr3 `0x4000000`, Can Proc From Procs: the flag lets
+    triggered spells *without* NOT_A_PROC proc it (those with it proc everything anyway), so SoR's and
+    SoF's proc crits give stacks too, as SoC's do [?]. Consecration's ticks, which also lack NOT_A_PROC,
+    are a periodic aura's (20924's aura 23 triggering 1280345–1280349), so they stay out: the talent's
+    proc mask (69972) has no periodic bit [?]. It moves no default: Retribution runs Seal of Command
+    and Protection takes no Vengeance. This one isn't
     minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 8% more
     DPS and 5.7% more TPS, mostly from Windfury's extra attacks and the Seal of Fury procs they
     bring (the Flurry Axe's are a sixth of it). *Test:* in a Windfury Totem group, count Windfury
     attacks per landed white swing with Seal of Fury up and with no seal (500+ swings each; the sim
-    expects the same 20%), and Vengeance stacks from SoR crits alone. Two more that aren't minor:
+    expects the same 20%), and Vengeance stacks from SoR crits alone (the sim expects them). Two more that aren't minor:
     - **Hammer of Wrath's 1 s cast** (without Instrument of Law). The sim has it stop your white
       swings, which start again from a full swing when it ends, and hold everything else, the
       off-GCD Judgement too, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)

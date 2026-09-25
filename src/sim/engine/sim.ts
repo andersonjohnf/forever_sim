@@ -336,6 +336,12 @@ export class Sim {
   private readonly pDuration: Float64Array
   private readonly pPeriodicCrit: Uint8Array
   private readonly triggerLists: Int32Array[]
+  /**
+   * Per trigger, the procs that can proc from procs (ProcPlan.fromProcs: Vengeance), which a spell
+   * without NOT_A_PROC still fires (paladin.md#retribution-tree) [?]; `hasFromProcs` if any has one.
+   */
+  private readonly fromProcsLists: Int32Array[]
+  private readonly hasFromProcs: boolean
 
   // Auras, flattened.
   private readonly aDuration: Float64Array
@@ -451,6 +457,8 @@ export class Sim {
   private readonly splNoActive: Uint8Array
   private readonly splAlwaysHit: Uint8Array
   private readonly splTriggersProcs: Uint8Array
+  /** 1 for a spell an ability's periodic aura ticks (Consecration's ticks): never a proc-from-procs trigger. */
+  private readonly splTick: Uint8Array
   private readonly splMin: Float64Array
   private readonly splMax: Float64Array
   private readonly splWeaponPct: Float64Array
@@ -1361,14 +1369,17 @@ export class Sim {
     for (const x of plan.spells ?? []) if (x.procCastMs !== undefined) this.srcProcCastMs[x.source] = x.procCastMs
     this.triggerLists = []
     this.gatedLists = []
+    this.fromProcsLists = []
     for (let t = 0; t < TRIGGER_COUNT; t++) {
       const list = plan.triggers[t] ?? []
+      this.fromProcsLists.push(Int32Array.from(list.filter((p) => procs[p].fromProcs === true)))
       // A proc that needs an aura or a form (druid.md §2.8), or names a spell's schools or row
       // (docs/mechanics/spells.md §10), is gated; the rest roll with no check.
       const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0 || this.pSchools[p] !== 0 || this.pFromSource[p] >= 0 || this.pPpmCast[p] > 0
       this.triggerLists.push(Int32Array.from(list.filter((p) => !gated(p))))
       this.gatedLists.push(Int32Array.from(list.filter(gated)))
     }
+    this.hasFromProcs = this.fromProcsLists.some((l) => l.length > 0)
 
     const auras = plan.auras
     const na = auras.length
@@ -1685,6 +1696,8 @@ export class Sim {
     this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
+    this.splTick = new Uint8Array(spells.length)
+    for (const t of this.abTickSpell) if (t >= 0) this.splTick[t] = 1
     this.abManaReturn = Float64Array.from(abilities, (a) => a.manaReturnTenths ?? 0)
     this.abManaReturnChance = Float64Array.from(abilities, (a) => a.manaReturnChance ?? 0)
     this.abManaGain = Float64Array.from(abilities, (a) => a.manaTenths ?? 0)
@@ -3746,7 +3759,32 @@ export class Sim {
    * (Bloodthrill: your Rend) and in its forms (Primal Fury's rage: bear).
    */
   private fireGatedProcs(trigger: number, hand: number, rng: Rng): void {
-    const list = this.gatedLists[trigger]
+    this.rollProcList(this.gatedLists[trigger], hand, rng)
+  }
+
+  /**
+   * A landed spell s that triggers no procs fires those that can proc from procs (Vengeance), on the
+   * triggers its class would fire: a melee-class spell's on-hit and melee crit, another's spell
+   * landed and spell crit (paladin.md#retribution-tree) [?]. No crit charge is used.
+   */
+  private fireFromProcs(s: number, defense: number, crit: boolean): void {
+    if (defense === DEFENSE.melee) {
+      this.rollProcList(this.fromProcsLists[TRIGGER.meleeLanded], HAND.main, this.rngProc)
+      if (crit) this.rollProcList(this.fromProcsLists[TRIGGER.meleeCrit], HAND.main, this.rngProc)
+      return
+    }
+    const outerSchool = this.procSchool
+    const outerSource = this.procSource
+    this.procSchool = this.splSchool[s]
+    this.procSource = this.splSource[s]
+    this.rollProcList(this.fromProcsLists[TRIGGER.spellLanded], -1, this.rngProc)
+    if (crit) this.rollProcList(this.fromProcsLists[TRIGGER.spellCrit], -1, this.rngProc)
+    this.procSchool = outerSchool
+    this.procSource = outerSource
+  }
+
+  /** Rolls each proc of `list` with every check a proc can need (an aura, a form, schools, a spell, a rate per cast). */
+  private rollProcList(list: Int32Array, hand: number, rng: Rng): void {
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
@@ -4273,7 +4311,8 @@ export class Sim {
    * Fury for Holy × the global multiplier. A landed melee-class spell fires on-hit procs, and its
    * crit the melee crit procs (Vengeance) [?]; another spell's crit fires the spell crit procs. A
    * spell that doesn't trigger procs (a triggered spell without NOT_A_PROC: Seal of Righteousness's
-   * and Seal of Fury's procs, Consecration's ticks) fires none and uses no crit charge [?].
+   * and Seal of Fury's procs, Consecration's ticks) fires none but those that can proc from procs
+   * (Vengeance; not from a periodic aura's tick), and uses no crit charge [?].
    * `countCast`: count a cast on its row (a proc's spell; an ability counts its own).
    */
   private castSpell(s: number, countCast: boolean): boolean {
@@ -4435,8 +4474,13 @@ export class Sim {
     this.addDamage(source, damage, threat)
     // docs/mechanics/spells.md §7: a hybrid's DoT starts as its direct part lands (Fireball, Immolate).
     if (this.splDotTicks[s] > 0) this.applySpellDot(s, euDot)
-    // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
-    if (this.splTriggersProcs[s] === 0) return true
+    // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?],
+    // but the auras that can proc from procs (Vengeance: Seal of Righteousness's and Seal of Fury's
+    // procs), unless it's a periodic aura's tick (Consecration's), paladin.md#retribution-tree [?].
+    if (this.splTriggersProcs[s] === 0) {
+      if (this.hasFromProcs && this.splTick[s] === 0 && this.splItem[s] === 0 && !shot) this.fireFromProcs(s, defense, crit)
+      return true
+    }
     // buffs doc §3.7: an item's spell fires none of your spell procs, which name your class's spells
     // (Ignite, Combustion's stacks, Master of Elements) [?]; its crit uses a charge that any crit ends
     // (Weakness Analyzer's), not one a school's spells end (Combustion's).

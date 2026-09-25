@@ -1011,6 +1011,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (spec.counts && proc.source >= 0) sources[proc.source].counts = spec.counts
     // docs/mechanics/spells.md §10: a spell proc's schools.
     if (spec.schools && spec.schools.length > 0) proc.schools = schoolMask(spec.schools)
+    // paladin.md#retribution-tree: an aura that can proc from procs (Vengeance) [?].
+    if (spec.fromProcs) proc.fromProcs = true
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
     procForms.push(spec.forms)

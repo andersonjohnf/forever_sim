@@ -1277,12 +1277,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** Seal of the Crusader divides weapon damage per swing by 1.4 [?]; Eye for an Eye's
   school and threat [?]; following the client's NOT_A_PROC attribute, Seal of Command's proc and
   the damage judgements trigger Windfury, Hand of Justice, Crusader, Vengeance and Vindication,
-  and Seal of Righteousness's and Seal of Fury's procs trigger none [?] (not minor: the other
+  and Seal of Righteousness's and Seal of Fury's procs trigger none but Vengeance, whose aura can
+  proc from procs (Attr3 `0x4000000`), so their crits give its stacks [?] (not minor: the other
   reading adds about 11% to default Protection TPS); mana regenerates on 2 s ticks from a random
   phase, and a seal cast before the pull costs nothing [?].
 - **Test:** swing damage with and without SotC; crits taken with Eye for an Eye; Windfury attacks
   per landed white swing with Seal of Fury up and with no seal, and item procs from SoC hits and
-  judgements; a paladin's mana over the first 20 s of a pull.
+  judgements; Vengeance stacks from Seal of Righteousness's crits alone; a paladin's mana over the first 20 s of a pull.
 - **Samples:** ≥50 of each.
 - **Changes:** minor Ret and Prot details.
 - **Docs:** [paladin OQ 22, 24](classes/paladin.md#open-questions)

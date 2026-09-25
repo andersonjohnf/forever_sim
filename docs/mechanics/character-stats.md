@@ -263,7 +263,7 @@ row cancels out). **[C]** for Str, Agi, Sta and Int ([WarriorSim `races.js` at p
 | Undead | −1 | −2 | +1 | −2 | +5 | — |
 | Tauren | +5 | −5 | +2 | −5 | +2 | (health ×1.05, see Endurance) |
 | Troll | +1 | +2 | +1 | −4 | +1 | — |
-| Skyborne (both) | ? | ? | ? | ? | ? | new race: [?] ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
+| Skyborne (both) | ? | ? | ? | ? | ? | new race: [?] ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)); the sim takes them as 0, the class row, a D24 placeholder |
 
 The additive decomposition itself is an inference from the Classic data (**[C]**, inferred). Two
 naked Classic Era sheets per class, from different races, confirm it
@@ -288,11 +288,18 @@ raw value (column **Spi raw**) and applies ×1.05 as a multiplier.
 | Undead | 119 | 78 | 111 | 28 | 50 | 50 |
 | Tauren | 125 | 75 | 112 | 25 | 47 | 47 |
 | Troll | 121 | 82 | 111 | 26 | 46 | 46 |
-| Skyborne (both) | ? | ? | ? | ? | ? | ? |
+| Skyborne (both) | *120* | *80* | *110* | *30* | *45* | *45* |
 
 - Gnome Int: Classic sheets showed 35 (33 × 1.05, rounded). Forever removed the Int racial, so the
   Forever value is 33. **[C]** row + **[F]** racial change.
-- Skyborne rows are unknown. **[?]** [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)
+- **Skyborne rows are unknown, so the sim uses the warrior class row** (the Human row, whose race
+  offset is 0) with neutral race offsets, as it does for every class a Skyborne can be: "[?] placeholder
+  ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23),
+  [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)); origin: the [C] rows above,
+  not a Skyborne measurement". The results' assumptions name it. The [C] offsets span ±5 Strength
+  and Agility: 5 Strength is about 0.4% of the default Fury warrior's DPS and 0.2% of the
+  Protection warrior's TPS, 5 Agility about 0.2% and 0.1%, within D24 rule 1's 1%.
+  [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)
 
 ### Paladin and druid base attributes
 
@@ -1011,6 +1018,19 @@ not evidence) and its estimated effect:
 
 The sheets below still settle them all.
 
+**Skyborne warriors and hunters (2026-09-25).** Under
+[D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), a Skyborne warrior or hunter
+takes its class row with neutral race offsets, as Skyborne druids, shamans, rogues and mages already did,
+instead of being refused. The warrior's class row is the Human row of the [C] table
+([Warrior base attributes](#warrior-base-attributes)); the hunter's is the mangos class row, Str 55,
+Agi 125, Sta 90, Int 65, Spi 70 ([hunter §7.5](../classes/hunter.md#75-base-values)). Both are
+[?] placeholders (D24), named in the results' assumptions.
+
+| Value | Placeholder | Origin | Effect if wrong |
+| --- | --- | --- | --- |
+| Skyborne warrior attributes | 120 / 80 / 110 / 30 / 45 | the warrior class row ([C], Spirit [?]) | Each 5 points of Str: about ±0.4% of Fury DPS, ±0.2% of Protection TPS; Agi about half that |
+| Skyborne hunter attributes | 55 / 125 / 90 / 65 / 70 | the hunter class row ([mangos][mz-levelstats]) | Each 5 points of Agi: about ±0.5% of Marksmanship DPS |
+
 **Paladins (2026-09-23).** Every paladin base value in use is a [?] placeholder under D24, not
 evidence, in the same way. The Human and Dwarf rows are the [mangos][mz-levelstats] emulator's
 1.12 rows (D24 rule 2: they agree exactly with the [C] race offsets); ClassicSim's pre-SoD rows
@@ -1042,7 +1062,7 @@ The Human and Dwarf paladin sheets below settle them.
 
 - **Undead paladin:** Classic Era doesn't have one. Derive it as the paladin class row plus the
   Undead offset [C], and confirm on Forever (Route C).
-- **Skyborne warriors and druids:** Route C only.
+- **Skyborne warriors, hunters and druids** (and every other Skyborne class): Route C only.
 
 *Found in a vanilla emulator database [mz-levelstats]. Under D24 these rows may stand in, tagged
 "[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them. The druid and

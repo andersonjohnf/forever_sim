@@ -1749,10 +1749,13 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C21. Undead paladin and Skyborne sheets
 **Medium · M5**
 - **Assumes:** Undead paladin = paladin class row + Undead offset [C, derived]; Skyborne base
-  attributes unknown [?].
-- **Test:** standard naked sheets at 60.
+  attributes unknown [?], so every class a Skyborne can be uses its class row with neutral race
+  offsets, a D24 placeholder (the warrior and hunter since
+  [D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). 5 Strength is about 0.4% of
+  Fury DPS; 5 Agility about 0.5% of Marksmanship DPS.
+- **Test:** standard naked sheets at 60, including a Skyborne warrior and hunter.
 - **Samples:** one sheet per race/class.
-- **Changes:** the Horde paladin default and Skyborne rows.
+- **Changes:** the Horde paladin default and the Skyborne placeholder rows.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes)
 
 #### C35. Fallback items with Forever effects

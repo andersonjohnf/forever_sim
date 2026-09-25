@@ -499,7 +499,7 @@ racials ([architecture](../architecture.md#rules-and-stats)). The warrior-releva
 | Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
 | Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (20550) |
 | Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health; 1 s internal cooldown | A drain, so it deals damage: since 1.60.1.70009 only damaging spells and attacks proc it, and it no longer breaks crowd control [F] [notes-70009]. Simulated: 5% of maximum health as Shadow damage a proc, never missing or critting, with damage threat and its heal's healing threat × the stance's and Defiance's [?] (Q16; [character-stats](../mechanics/character-stats.md#touch-of-the-grave)) | [F] [rac]; [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009) (1260189) |
-| Skyborne | Wind Blessed: **+1% haste**. Elemental Insight: +5% damage vs Elementals | ×1.01 haste; ×1.05 against Elementals | [F] [rac] [db-eff] (1259710) |
+| Skyborne | Wind Blessed: **+1% haste**. Elemental Insight: +5% damage vs Elementals | ×1.01 haste; ×1.05 against Elementals. Base attributes: the warrior class row, a [?] placeholder, as Skyborne's own are unknown ([character-stats](../mechanics/character-stats.md#warrior-base-attributes), [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)) | [F] [rac] [db-eff] (1259710) |
 
 ## 3. Abilities at level 60
 

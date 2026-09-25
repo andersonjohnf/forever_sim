@@ -19,9 +19,10 @@ export interface Attributes {
 /**
  * Warrior base attributes by race: Str/Agi/Sta/Int [C] (WarriorSim races.js at pre-SoD commit
  * 180a3cc); raw Spirit [?] (post-SoD levelstats.js only; the Human Spirit racial multiplies it).
- * Skyborne rows are unknown (OQ-1). docs/mechanics/character-stats.md#warrior-base-attributes
+ * The Skyborne rows aren't measured: WARRIOR_SKYBORNE_ROWS below, placeholders.
+ * docs/mechanics/character-stats.md#warrior-base-attributes
  */
-const WARRIOR_ROWS: Record<string, Attributes | null> = {
+const WARRIOR_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-human': { str: 120, agi: 80, sta: 110, int: 30, spi: 45 },
   'alliance-dwarf': { str: 122, agi: 76, sta: 113, int: 29, spi: 44 },
   'alliance-night-elf': { str: 117, agi: 85, sta: 109, int: 30, spi: 45 },
@@ -31,8 +32,19 @@ const WARRIOR_ROWS: Record<string, Attributes | null> = {
   'horde-undead': { str: 119, agi: 78, sta: 111, int: 28, spi: 50 },
   'horde-tauren': { str: 125, agi: 75, sta: 112, int: 25, spi: 47 },
   'horde-troll': { str: 121, agi: 82, sta: 111, int: 26, spi: 46 },
-  'alliance-skyborne-high-order': null,
-  'horde-skyborne-windshaper': null,
+}
+
+/**
+ * Skyborne warrior base attributes, [?] placeholders (D24; decision D36;
+ * docs/mechanics/character-stats.md#warrior-base-attributes, OQ-1). Both rows are the warrior class
+ * row, the Human row above (the Human's [C] race offset is zero), with neutral race offsets, as the
+ * Skyborne druid's, rogue's and mage's are: Skyborne's own offsets are unknown. Origin: WarriorSim's
+ * [C] rows, not a Skyborne measurement. The [C] offsets span ±5 Strength and Agility; 5 Strength is
+ * about 0.4% of Fury DPS and 0.2% of Protection TPS, 5 Agility about 0.2% and 0.1% (D24 rule 1).
+ */
+const WARRIOR_SKYBORNE_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-skyborne-high-order': { str: 120, agi: 80, sta: 110, int: 30, spi: 45 },
+  'horde-skyborne-windshaper': { str: 120, agi: 80, sta: 110, int: 30, spi: 45 },
 }
 
 /**
@@ -171,7 +183,9 @@ const PRIEST_ROWS: Readonly<Record<string, Attributes>> = {
  * evidence: the class row Str 55, Agi 125, Sta 90, Int 65, Spi 70 plus the [C] race offsets (Orc 58,
  * 122, 92, 62, 73; Dwarf 57, 121, 93, 64, 69; Night Elf 52, 130, 89, 65, 70; Tauren 60, 120, 92, 60, 72;
  * Troll 56, 127, 91, 61, 71). The Human, a hunter only in Forever, is the class row, Spirit raw (its
- * +5% is a racial). No Skyborne row: their base stats aren't known.
+ * +5% is a racial). Both Skyborne rows are the class row, with neutral race offsets (Skyborne's are
+ * unknown, OQ-1; decision D36), as the Skyborne druid's, rogue's and mage's are: 5 Agility either way
+ * is about 0.5% of Marksmanship DPS.
  */
 const HUNTER_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-human': { str: 55, agi: 125, sta: 90, int: 65, spi: 70 },
@@ -180,6 +194,9 @@ const HUNTER_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-orc': { str: 58, agi: 122, sta: 92, int: 62, spi: 73 },
   'horde-tauren': { str: 60, agi: 120, sta: 92, int: 60, spi: 72 },
   'horde-troll': { str: 56, agi: 127, sta: 91, int: 61, spi: 71 },
+  // [?] placeholder (D24): the class row, neutral race offsets (Skyborne's are unknown, OQ-1).
+  'alliance-skyborne-high-order': { str: 55, agi: 125, sta: 90, int: 65, spi: 70 },
+  'horde-skyborne-windshaper': { str: 55, agi: 125, sta: 90, int: 65, spi: 70 },
 }
 
 export interface ClassBase {
@@ -222,6 +239,7 @@ export interface ClassBase {
 
 export const CLASS_BASE: Record<ClassId, ClassBase> = {
   warrior: {
+    // The [C] rows; the Skyborne rows are placeholders, in BASE_PLACEHOLDERS below.
     attributes: (race) => WARRIOR_ROWS[race] ?? null,
     // docs/mechanics/character-stats.md#other-base-values-at-level-60: 3 × 60 − 20 [C]
     baseAp: 160,
@@ -460,7 +478,8 @@ export interface BasePlaceholders {
  * (D24); origin: …, not evidence".
  */
 export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
-  warrior: { baseHealth: 1689 },
+  // The Skyborne rows only: every other warrior row is [C], in CLASS_BASE.
+  warrior: { attributes: WARRIOR_SKYBORNE_ROWS, baseHealth: 1689 },
   paladin: {
     attributes: PALADIN_ROWS,
     baseHealth: 1381,

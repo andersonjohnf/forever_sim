@@ -1086,11 +1086,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **Scrolling.** The panel sticks beside the page and never runs past the viewport: the sheet,
     Your setup and the result scroll inside it as one, nothing pinned, with a fade at the top once
     anything has scrolled up and a fade and a chevron at the bottom while there's more. While it
-    overflows it takes keyboard focus, so arrow keys scroll it. Measured at 1440×900 (a 772 px
-    panel): Your setup takes 245 px before a run and a tank's sheet 470–492 (a bear's, a Protection
-    warrior's, a Protection paladin's), so before a run every spec's sheet and setup fit whole, with
-    nothing to scroll: a tank's Simulate ends 53–75 px above the window's bottom edge, 21–43 px
-    inside the panel's room. The cards' ring and the light theme's shadow paint outside their
+    overflows it takes keyboard focus, so arrow keys scroll it. At 1440×900, before a run, every
+    spec's sheet and setup fit whole with nothing to scroll, the tanks' (the tallest sheets) with
+    Simulate about 70 px above the window's bottom edge; `e2e/wide-panel.spec.ts` checks every spec. The cards' ring and the light theme's shadow paint outside their
     boxes, and the panel clips at its edges, so it keeps room for them: 2 px above the sheet, 4 px
     under the last card and 4 px at the sides. Your setup's whole edge, rounded corners and shadow
     show in every state, before a run too, when it's the last thing in the panel (a user report).

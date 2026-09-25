@@ -16,7 +16,7 @@ import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { RuleProfileId, SimConfig } from '../types'
-import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
+import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_FRENZY_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
 import { PROFICIENCY } from '../equip'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { HAND_OF_JUSTICE_ICD_MS, ITEM_EFFECTS } from './items'
@@ -286,7 +286,10 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
     thistleTea: [7676],
     ezThroDarkBomb: [260817],
     jujuFlurry: [12450],
+    majorFrenzyPotion: [250943],
   }
+  /** The entries whose category is on the spell rather than the item effect. */
+  const BY_SPELL = new Set(['majorFrenzyPotion'])
   /** SpellCategory id → its exclusive group, and the category's shared cooldown. */
   const CATEGORY: Record<number, { group: string; ms: number }> = {
     4: { group: COOLDOWN_GROUP.potion, ms: 120000 },
@@ -296,7 +299,12 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
   const categoryOf = (id: string) => {
     const rows = ITEMS[id].flatMap((item) => consumables[String(item)].effects)
     expect(new Set(rows.map((r) => r.spellCategoryId)).size, id).toBe(1)
-    return rows[0]
+    const row = rows[0]
+    if (!BY_SPELL.has(id)) return row
+    // The Frenzy potion's item effect carries no category; its spell does (buffs doc §3.5).
+    expect(row.spellCategoryId, id).toBe(0)
+    const spell = spells[String(row.spellId)]
+    return { ...row, spellCategoryId: spell.categories?.category ?? 0, categoryCoolDownMSec: spell.cooldowns?.categoryRecoveryTime ?? 0, coolDownMSec: 0 }
   }
 
   it('lists every on-use consumable in the catalogue (Power Infusion is a raid buff, no item)', () => {
@@ -304,7 +312,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
     expect(onUse.sort()).toEqual(Object.keys(ITEMS).sort())
   })
 
-  it('puts each entry in its item’s category’s group: potions 4, runes and Thistle Tea 1153, explosives 24, Juju Flurry none', () => {
+  it('puts each entry in its item’s category’s group (or its spell’s: the Frenzy potion): potions 4, runes and Thistle Tea 1153, explosives 24, Juju Flurry none', () => {
     for (const id of Object.keys(ITEMS)) {
       const row = categoryOf(id)
       const category = CATEGORY[row.spellCategoryId]
@@ -317,6 +325,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
       expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBe(category.group)
     }
     expect(categoryOf('greaterStoneshieldPotion').spellCategoryId).toBe(categoryOf('majorManaPotion').spellCategoryId)
+    expect(categoryOf('majorFrenzyPotion').spellCategoryId).toBe(categoryOf('majorManaPotion').spellCategoryId)
     expect(categoryOf('demonicRune').spellCategoryId).not.toBe(categoryOf('majorManaPotion').spellCategoryId)
     expect(categoryOf('ezThroDarkBomb').spellCategoryId).not.toBe(categoryOf('demonicRune').spellCategoryId)
   })
@@ -328,6 +337,7 @@ describe('shared cooldown categories of the on-use consumables (ItemEffect; buff
       ['demonicRune', DEMONIC_RUNE],
       ['greaterStoneshieldPotion', GREATER_STONESHIELD_POTION],
       ['ezThroDarkBomb', EZ_THRO_DARK_BOMB],
+      ['majorFrenzyPotion', MAJOR_FRENZY_POTION],
     ] as const) {
       const row = categoryOf(id)
       expect(use.cooldownMs, id).toBe(Math.max(row.categoryCoolDownMSec, row.coolDownMSec))

@@ -406,7 +406,7 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Major Healing Potion | 13446 → 17534 | +1050–1750 health | 2 min, potion | Potion | Same | [F] | [fc-items] |
 | Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min (aura 22 with misc 1, the Physical resistance: armor) | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, SpellDuration, 1.60.1.69913) |
 | Free Action Potion | 5634 → 6615 | Immunity to stun and movement impairment for 30 s | 2 min, potion | Potion | Same (no DPS effect) | [F] | [fc-items] |
-| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | **+80 / +56 / +40 attack power and ranged attack power** for 30 s (auras 99 and 124; the tooltip "Increases Attack Power by $s1"). Until 1.60.1.70009 the client gave +40/28/20 flat **physical damage done** (aura 13, school mask 1) under a +40/+28/+20 AP tooltip; the build made them attack power and doubled the values. No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s). Not in the catalogue yet: a melee spec's potion is its own choice (a known gap) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] | [client] (SpellEffect, Spell, SpellCategories, 1.60.1.70009) |
+| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | **+80 / +56 / +40 attack power and ranged attack power** for 30 s (auras 99 and 124; the tooltip "Increases Attack Power by $s1"). Until 1.60.1.70009 the client gave +40/28/20 flat **physical damage done** (aura 13, school mask 1) under a +40/+28/+20 AP tooltip; the build made them attack power and doubled the values. No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s). The catalogue has the Major one (`majorFrenzyPotion`, for the specs that attack: melee and hunters); every rotation drinks it on cooldown from the pull, below. The Superior and Greater are lower ranks of the same, so they aren't catalogued | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] | [client] (SpellEffect, Spell, SpellCategories, 1.60.1.70009) |
 | Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Thistle Tea | 7676 → 9512 | +100 Energy | Its own 5 min, and the rune category's 2 min (1153) | Shares the runes' category | Rogues, and **druids in Forever** (AllowableClass 1032; C: rogues) | [F] | [client] (ItemEffect, ItemSparse, SpellEffect, 1.60.1.69913) |
 
@@ -435,6 +435,14 @@ DPS spec it changes nothing: the damage it takes isn't mitigated by armor
 summary, that only the tank takes the boss's swings, as it does for Elixir of Greater Defense, Devotion
 Aura and the Boss damage debuffs (`bossMelee`; [ux](../ux.md#sections)): turning it on still turns off the
 spec's own potion (a Fire mage's Major Mana Potion: 513 → 446 DPS at its defaults) for no gain.
+
+**Major Frenzy Potion in the sim.** Every rotation drinks it on cooldown from the pull as well, at
+0 s and 120 s in a 3 min fight, off the GCD, so its +80 attack power and +80 ranged attack power are
+up for 60 s of 180 (`classes/shared-consumables.ts`). No spec times it around a cooldown of its own
+[?]: its 30 s outlasts most, and a timed potion is a tuning question
+([D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)). The
+Buffs tab lists it for the specs that attack (`forSpecs: 'melee'`, which a hunter sees too), and
+Max consumables gives it to the specs it serves best ([§6.3](#63-consumables-by-spec-and-preset)).
 
 ### 3.6 Weapon enhancements (temporary)
 
@@ -858,9 +866,9 @@ their stacking group is verified; the UI offers them as options.
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum. Keeps the Mighty Rage Potion (below) |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
-| Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
+| Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune; Major Frenzy Potion (replaces Major Mana Potion, below) |
 | Elemental shaman | — | Greater Arcane Elixir; Nightfin Soup; Brilliant Wizard Oil; Major Mana Potion. No stones: a caster never swings, and the melee entries leave its Buffs tab ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
-| Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
+| Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use); Major Frenzy Potion (below) |
 | Warlock (all three) | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
 | Shadow Priest | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([priest](../classes/priest.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
 | Balance druid | — | Greater Arcane Elixir; Major Mana Potion ([druid](../classes/druid.md#11-balance-moonkin-sim-model)) | Flask of Supreme Power; Demonic / Dark Rune; Brilliant Wizard Oil |
@@ -875,6 +883,23 @@ tab turns the rage potion off; the rotation then drinks Stoneshield on cooldown 
 Max consumables it lowers a Protection warrior's damage taken from 609 to 531 a second, a bear's
 from 627 to 554 and a Protection paladin's (in place of its Major Mana Potion) from 904 to 788,
 for 0.7–3.7% less threat without the rage potion or the mana potion (seed 12345, 2,000 fights).
+
+**Major Frenzy Potion in Max consumables** where it beats the spec's current potion, each spec's
+Max consumables with its potion and then with the Frenzy potion in its place (seed 12345, 20,000
+fights for the close ones, 2,000 for the rest; the Frenzy potion drunk on cooldown from the pull):
+
+| Spec | Its potion at Max before | With the Major Frenzy Potion | In Max |
+| --- | --- | --- | --- |
+| Rogue (Combat, Assassination, Subtlety) | none | +1.2%, +1.0%, +1.2% DPS | yes |
+| Enhancement shaman | Major Mana Potion (it never runs short) | +0.9% DPS | yes, in its place |
+| Marksmanship, Survival hunter | Major Mana Potion | +0.9%, +0.6% DPS | yes, in its place |
+| Beast Mastery hunter | Major Mana Potion | −3.5% DPS: it needs the mana | no |
+| Feral cat | Mighty Rage Potion, with Berserk | +0.2% DPS, a tie | no: its rotation times the rage potion |
+| Fury, Arms | Mighty Rage Potion | −1.1%, −1.7% DPS | no |
+| Retribution | Major Mana Potion | −1.1% DPS | no |
+| Protection warrior, bear, Protection paladin | Mighty Rage Potion; the paladin's Major Mana Potion | −0.7%, −2.8%, −1.9% TPS | no |
+
+The Standard raid keeps each spec's potion as it was; this check is Max consumables' (D29).
 
 **No bomb in Max consumables.** EZ-Thro Dark Bomb deals 7–8 damage a second over a 3 min fight.
 For a spec that swings its 1 s throw restarts both swings and holds the next GCD, so white damage and
@@ -1056,7 +1081,7 @@ stones, `buffUnusedReason`) did nothing, so it goes without a note.
 | `health-elixir` | Lesser Fortitude, Fortitude, Greater Fortitude | [?] |
 | `temp-enchant` | Dense and Elemental Sharpening Stones, Wizard Oil, Brilliant Wizard Oil: one stone on each weapon, or one oil on the only weapon of a class that can use oils ([§3.6](#36-weapon-enhancements-temporary)); Windfury Totem takes the main hand's in Classic only | [C] |
 | `poison:mainHand`, `poison:offHand` | The rogue's poisons, one per hand, each in place of a stone there ([rogue §4](../classes/rogue.md#4-poisons)) | [C] |
-| `cooldown:potion` | Mighty Rage, Major Mana and Greater Stoneshield Potions: ItemEffect category 4, 120 s | [F] |
+| `cooldown:potion` | Mighty Rage, Major Mana, Greater Stoneshield and Major Frenzy Potions: ItemEffect category 4, 120 s (the Frenzy potion's on its spell, 1251940) | [F] |
 | `cooldown:rune` | Demonic Rune (a Dark Rune is the same) and Thistle Tea: category 1153, 120 s | [F] |
 | `cooldown:explosive` | EZ-Thro Dark Bomb: category 24, 60 s | [F] |
 | `armor-major` | Sunder Armor ×5, Expose Armor | [C] / [?] |
@@ -1082,7 +1107,7 @@ SpellCategories, 1.60.1.69913).
 has at most one potion, one rune and one explosive on, and each is used on its category's
 cooldown. That's how the rotations use them: a warrior or a bear drinks its Mighty Rage Potion once
 a fight, anyone who spends mana drinks their Major Mana Potion whenever they're short of it, and
-Greater Stoneshield Potion is drunk whenever it's ready, each on the 2 min cooldown, so a second kind
+Greater Stoneshield and Major Frenzy Potions are drunk whenever they're ready, each on the 2 min cooldown, so a second kind
 of potion would only take the first one's turns; the rune, on a cooldown of its own, goes beside the
 potion. That holds while no entry of a category has a cooldown of its own longer than the
 category's. One that does (the Sapper's 300 s, Thistle Tea's 300 s) leaves the category's cooldown
@@ -1101,7 +1126,7 @@ potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldow
 the pull too (more swings, more Seal of Command procs), and drinks the Major Mana Potion and uses
 a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD and
 each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. Every
-rotation uses Greater Stoneshield Potion and EZ-Thro Dark Bomb, when they're selected, on their
+rotation uses Greater Stoneshield Potion, Major Frenzy Potion and EZ-Thro Dark Bomb, when they're selected, on their
 categories' cooldowns from the pull, ahead of its own lines, and a spec that swings throws the bomb
 first just after its first main-hand swing (`classes/shared-consumables.ts`;
 [§3.5](#35-potions-and-runes), [§3.7](#37-engineering-and-explosives)). An
@@ -1329,6 +1354,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Thistle Tea (`thistleTea`) | +100 Energy | same | 7676 → 9512 #0: 99 + 1 | [C] |
 | EZ-Thro Dark Bomb (`ezThroDarkBomb`) | 225–675 Fire, a 1 s throw, every 60 s ([§3.7](#37-engineering-and-explosives)) | none: new in Forever (260817) | — | [F] |
 | Greater Stoneshield Potion (`greaterStoneshieldPotion`) | +2,000 armor for 2 min ([§3.5](#35-potions-and-runes)) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
+| Major Frenzy Potion (`majorFrenzyPotion`) | +80 attack power and ranged attack power for 30 s ([§3.5](#35-potions-and-runes)) | none: new in Forever (250943) | — | [F] |
 
 **Enchants**
 

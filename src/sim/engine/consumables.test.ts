@@ -5,8 +5,9 @@
 // 11 and 12.
 import { describe, expect, it } from 'vitest'
 import { armorReduction, bossHitHealthLost } from '../core/formulas'
-import { defaultConfig } from '../defaults'
-import { EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION } from '../effects/buffs'
+import { defaultConfig, FULL_RAID } from '../defaults'
+import { EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_FRENZY_POTION } from '../effects/buffs'
+import { presetBuffIds } from '../effects/presets'
 import { buildPlan } from '../plan/build'
 import { COND, SCHOOL, type Plan } from '../plan/types'
 import { FOREVER } from '../rules/profiles'
@@ -269,6 +270,45 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
       // Three throws each 3 min fight, a bear's too, whose GCD is rarely free (review QC-1).
       expect(row?.casts, spec).toBe(60)
       expect(row!.damage, spec).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('Major Frenzy Potion (buffs doc §3.5)', () => {
+  it('is drunk at the pull and again as the potions’ 2 min cooldown ends: +80 attack power and ranged attack power for 30 s each time', () => {
+    for (const spec of ['rogue-combat', 'hunter-marksmanship', 'warrior-fury'] as const) {
+      const { plan } = buildPlan(config(spec, ['majorFrenzyPotion'], { rotation: rotationOff(spec) }))
+      const a = plan.abilities.findIndex((x) => x.id === MAJOR_FRENZY_POTION.id)
+      expect(a, spec).toBeGreaterThanOrEqual(0)
+      expect(plan.abilities[a].gcdMs, spec).toBe(0)
+      const aura = plan.auras[plan.abilities[a].aura]
+      expect([aura.durationMs, aura.ap, aura.rap], spec).toEqual([30000, 80, 80])
+      expect(timeline(plan).uses[a], spec).toEqual([0, 120000])
+      expect(aggregate(plan, 20).auraUpMs[plan.abilities[a].aura], spec).toBe(20 * 60000)
+    }
+  })
+
+  it('is in Max consumables where it beats the spec’s potion: the rogues’, and in place of the Major Mana Potion the Enhancement shaman’s and the Marksmanship and Survival hunters’ (buffs doc §6.3)', () => {
+    const max = (spec: SpecId) => presetBuffIds('max', spec, FULL_RAID)
+    for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety', 'shaman-enhancement', 'hunter-marksmanship', 'hunter-survival'] as const) {
+      expect(max(spec), spec).toContain('majorFrenzyPotion')
+      expect(max(spec), spec).not.toContain('majorManaPotion')
+      expect(presetBuffIds('raid', spec, FULL_RAID), spec).not.toContain('majorFrenzyPotion')
+    }
+    // Each of the others keeps its potion: the rage potion's rage, or the mana.
+    const kept: [SpecId, string][] = [
+      ['hunter-beast-mastery', 'majorManaPotion'],
+      ['warrior-fury', 'mightyRagePotion'],
+      ['warrior-arms', 'mightyRagePotion'],
+      ['warrior-protection', 'mightyRagePotion'],
+      ['druid-feral-cat', 'mightyRagePotion'],
+      ['druid-feral-bear', 'mightyRagePotion'],
+      ['paladin-retribution', 'majorManaPotion'],
+      ['paladin-protection', 'majorManaPotion'],
+    ]
+    for (const [spec, potion] of kept) {
+      expect(max(spec), spec).toContain(potion)
+      expect(max(spec), spec).not.toContain('majorFrenzyPotion')
     }
   })
 })

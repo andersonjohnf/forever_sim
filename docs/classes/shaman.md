@@ -465,7 +465,7 @@ Forever, Windfury Totem is an aura that ends with the totem."
 | Imbue | Windfury Weapon | [First-pass defaults](#first-pass-defaults): Rockbiter loses 6.60% |
 | Totems | Strength of Earth, Grace of Air, Mana Spring (your own) | [Totems](#totems) |
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): no Windfury Totem; Prayer of Spirit, Arcane Brilliance and Blessing of Wisdom for your mana. **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |
-| Consumables | Standard raid: Elixir of the Mongoose, Elixir of Greater Strength, Smoked Desert Dumplings, Major Mana Potion. Max adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Greater Arcane Elixir, Flask of Supreme Power and Demonic Rune. **No weapon stone**: the imbue takes the temporary enchant | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
+| Consumables | Standard raid: Elixir of the Mongoose, Elixir of Greater Strength, Smoked Desert Dumplings, Major Mana Potion. Max adds Juju Power, Juju Might, R.O.I.D.S., Juju Flurry, Greater Arcane Elixir, Flask of Supreme Power and Demonic Rune, and drinks the Major Frenzy Potion on cooldown from the pull in place of the Major Mana Potion (+0.9% DPS: it never runs short). **No weapon stone**: the imbue takes the temporary enchant | [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset) |
 | Rotation | [the priority list](#forever-priority-list-default) with its first-pass defaults | [First-pass defaults](#first-pass-defaults) |
 
 ### Races and weapons

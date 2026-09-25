@@ -508,8 +508,8 @@ Enchants: Agility everywhere (head and legs Lesser Arcanum of Voracity, cloak, b
 boots, necklace), chest Greater Stats, Crusader on both weapons
 ([buffs doc §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
 Standard raid consumables: Deadly Poison V (main hand), Instant Poison VI (off hand), Thistle Tea,
-Elixir of the Mongoose, Flank au Poivre; Max adds Juju Might, Juju Power, Ground Scorpok Assay and
-Juju Flurry. Thistle Tea is Forever's item 7676 (usable by rogues and druids), +100 Energy, 5 min.
+Elixir of the Mongoose, Flank au Poivre; Max adds Juju Might, Juju Power, Ground Scorpok Assay,
+Juju Flurry and the Major Frenzy Potion, drunk on cooldown from the pull (about +1% DPS). Thistle Tea is Forever's item 7676 (usable by rogues and druids), +100 Energy, 5 min.
 
 ### 7.6 Base values
 

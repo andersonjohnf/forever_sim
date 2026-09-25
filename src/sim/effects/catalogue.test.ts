@@ -280,6 +280,8 @@ const ROWS: Record<string, Row> = {
   ezThroDarkBomb: { foreverOnly: true, rows: [S(1269334, 0, { bound: 'min' }), S(1269334, 0, { bound: 'max' })] },
   // Aura 22 (armor), 2,000.
   greaterStoneshieldPotion: { rows: [S(17540)] },
+  // New in Forever: aura 99 (attack power) 80, then aura 124 (ranged attack power) 80.
+  majorFrenzyPotion: { foreverOnly: true, rows: [S(1251940, 0), S(1251940, 1)] },
   // Enchants
   crusader: { rows: [null, S(20007)] },
   weaponAgility: { rows: [E(2564, 23800)] },
@@ -354,7 +356,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(125)
+    expect(ENTRIES).toHaveLength(126)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

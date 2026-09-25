@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 589,
+      "docs": 590,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -125225,7 +125225,7 @@
         "spellIconFileDataId": 463931
       },
       "name": "Major Frenzy Potion",
-      "sources": ["consumable"]
+      "sources": ["consumable", "docs"]
     },
     "1257049": {
       "effects": [

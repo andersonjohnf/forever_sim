@@ -155,8 +155,8 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
       {
         kind: 'number',
         id: ID.lifeTap,
-        // Destruction's filler is a choice, under Fillers with it; Affliction's is always Shadow Bolt.
-        group: spec === 'destruction' ? 'Fillers' : 'Core abilities',
+        // Under Fillers with the filler: Life Tap is what you cast when it can't be paid for.
+        group: 'Fillers',
         label: 'Life Tap at',
         help: 'Life Tap when your mana is at or below this share of your maximum: 424 mana plus your Spirit, more with Improved Life Tap. You also Life Tap whenever you can’t pay for your filler.',
         unit: '% mana',
@@ -278,20 +278,31 @@ export function destructionOptions(d: WarlockDefaults): RotationOption[] {
       requires: { talent: 'Shadowburn' },
     },
     ...dots('destruction', d),
-    {
-      kind: 'choice',
-      id: ID.filler,
-      group: 'Fillers',
-      label: 'Filler',
-      help: 'Cast between the rest: Shadow Bolt, whose crits put Improved Shadow Bolt on the boss, or Incinerate (a talent), a shorter Fire cast with 25% more damage on a target with your Immolate.',
-      choices: [
-        { value: 'shadowBolt', label: 'Shadow Bolt' },
-        { value: 'incinerate', label: 'Incinerate' },
-      ],
-      default: d.filler,
-    },
+    filler('destruction', d),
     ...tail,
   ]
+}
+
+/**
+ * The filler, every spec's (warlock.md §6.4): Shadow Bolt, or Incinerate with the talent. Each spec's
+ * default is its measured one (§6.3, §6.4); without the talent Shadow Bolt is the filler whatever it says.
+ */
+function filler(spec: WarlockSpec, d: WarlockDefaults): RotationOption {
+  return {
+    kind: 'choice',
+    id: warlockIds(spec).filler,
+    group: 'Fillers',
+    label: 'Filler',
+    help:
+      spec === 'affliction'
+        ? 'Cast between the rest: Shadow Bolt, whose crits put Improved Shadow Bolt on the boss, or Incinerate (a talent), a shorter Fire cast. Its 25% more on a target with your Immolate needs an Immolate, which Affliction doesn’t cast.'
+        : 'Cast between the rest: Shadow Bolt, whose crits put Improved Shadow Bolt on the boss, or Incinerate (a talent), a shorter Fire cast with 25% more damage on a target with your Immolate.',
+    choices: [
+      { value: 'shadowBolt', label: 'Shadow Bolt' },
+      { value: 'incinerate', label: 'Incinerate' },
+    ],
+    default: d.filler,
+  }
 }
 
 /** Affliction's settings, in priority order (warlock.md §6.2). */
@@ -310,6 +321,7 @@ export function afflictionOptions(d: WarlockDefaults): RotationOption[] {
       default: true,
       requires: { talent: 'Siphon Life' },
     },
+    filler('affliction', d),
     ...tail,
   ]
 }
@@ -359,6 +371,7 @@ export function demonologyOptions(d: WarlockDefaults): RotationOption[] {
       default: d.soulFire ?? true,
       requires: { talent: 'Decimation' },
     },
+    filler('demonology', d),
     ...tail,
   ]
 }
@@ -409,17 +422,8 @@ export function warlockApl(spec: WarlockSpec): AplDefinition {
       optionIds: [ID.lifeTap],
       summary: [{ option: ID.lifeTap, text: 'at or below {}', zeroText: 'only when nothing can be paid for' }],
     },
-    filler:
-      spec === 'destruction'
-        ? { id: 'filler', label: 'Filler', icon: INCINERATE.icon, optionIds: [ID.filler], summary: [{ option: ID.filler, text: '{}' }] }
-        : {
-            id: 'filler',
-            label: 'Filler',
-            icon: SHADOW_BOLT.icon,
-            optionIds: [],
-            summary: [{ text: 'Shadow Bolt' }],
-            help: 'Shadow Bolt between the rest. When you can’t pay for it, you Life Tap.',
-          },
+    // Every spec's filler is a choice: Incinerate with the talent, or Shadow Bolt (issue #17).
+    filler: { id: 'filler', label: 'Filler', icon: spec === 'destruction' ? INCINERATE.icon : SHADOW_BOLT.icon, optionIds: [ID.filler], summary: [{ option: ID.filler, text: '{}' }] },
   }
   const ids: Record<WarlockSpec, string[]> = {
     destruction: ['racial', 'trinkets', 'powerInfusion', 'curse', 'immolate', 'conflagrate', 'shadowburn', 'corruption', 'bane', 'lifeTap', 'filler'],
@@ -585,7 +589,7 @@ export function warlockRotation(
       if (tapPct > 0) add(tap, [{ code: COND.maxMana, a: Math.floor((tapPct / 100) * maxManaTenths), b: 0 }])
     },
     filler: () => {
-      const filler = spec === 'destruction' && v.str(ID.filler) === 'incinerate' && rank(talents, 'Incinerate') > 0 ? index(INCINERATE) : shadowBolt()
+      const filler = v.str(ID.filler) === 'incinerate' && rank(talents, 'Incinerate') > 0 ? index(INCINERATE) : shadowBolt()
       rotation.push({ ability: filler, conditions: [], unqueueBelowTenths: 0 })
     },
   })
@@ -619,6 +623,7 @@ export function warlockUnusedSettings(spec: WarlockSpec, values: Record<string, 
       else if (demon === values[ID.sacrifice]) out[ID.sacrifice] = 'Not used: summoning the demon you sacrificed cancels its buff.'
     }
   }
-  if (spec === 'destruction' && rank(talents, 'Incinerate') === 0 && values[ID.filler] === 'incinerate') out[ID.filler] = 'Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
+  // Every spec's filler choice (warlock.md §6.4): without the talent there's nothing to choose.
+  if (rank(talents, 'Incinerate') === 0) out[ID.filler] = 'Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
   return out
 }

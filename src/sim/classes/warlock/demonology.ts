@@ -17,7 +17,9 @@ import type { TalentRanks } from './talents'
 export const DEMONOLOGY_DEFAULTS: WarlockDefaults = {
   sacrifice: 'succubus',
   demon: 'imp',
-  filler: 'shadowBolt',
+  // Incinerate, when it's talented: +3.9% over Shadow Bolt on a 0/20/31 build with Immolate up (warlock.md
+  // §6.4); the default talents have none, so Shadow Bolt stays their filler.
+  filler: 'incinerate',
   shadowburn: false,
   lifeTapPct: 10,
   corruption: true,

@@ -12,7 +12,7 @@ import { COND } from '../../plan/types'
 import { defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { rotationApl } from '../rotation'
 import { fingerprint, planJson } from './apl-cases'
-import { DEMONOLOGY_APL, DEMONOLOGY_IDS as ID, DEMONOLOGY_OPTIONS, demonologyRotation } from './demonology'
+import { DEMONOLOGY_APL, DEMONOLOGY_IDS as ID, DEMONOLOGY_OPTIONS, demonologyRotation, demonologyUnusedSettings } from './demonology'
 import { demonologyCases } from './demonology-apl-cases'
 
 const TALENTS = talentRanksByName(TALENT_DATA.warlock, defaultConfig('warlock-demonology').talents)
@@ -144,5 +144,18 @@ describe('the Demonology warlock’s priority list (D31)', () => {
     expect(buildPlan({ ...config, rotationOrder: DEFAULT }).plan).toEqual(none)
     const fillerFirst = buildPlan({ ...config, rotationOrder: moved('filler', 'racial') }).plan
     expect(fingerprint(planJson(fillerFirst))).not.toBe(fingerprint(planJson(none)))
+  })
+
+  it('offers the filler choice, Incinerate by default when it’s talented (issue #17)', () => {
+    // warlock.md §6.4: a 0/20/31 build with Incinerate, where it's measured ahead of Shadow Bolt.
+    const incinerate = talentRanksByName(TALENT_DATA.warlock, '-03050032011203-0550315103101051')
+    const filler = (r: Rot) => ids(r).at(-2)
+    expect(DEMONOLOGY_OPTIONS.find((o) => o.id === ID.filler)?.default).toBe('incinerate')
+    expect(filler(demonologyRotation({}, incinerate, noAura, CONTEXT))).toBe('incinerate')
+    expect(filler(demonologyRotation({ [ID.filler]: 'shadowBolt' }, incinerate, noAura, CONTEXT))).toBe('shadowBolt')
+    // The default talents have no Incinerate: Shadow Bolt, and the note says why.
+    expect(filler(demonologyRotation({}, TALENTS, noAura, CONTEXT))).toBe('shadowBolt')
+    expect(demonologyUnusedSettings({}, TALENTS)[ID.filler]).toBe('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')
+    expect(demonologyUnusedSettings({}, incinerate)[ID.filler]).toBeUndefined()
   })
 })

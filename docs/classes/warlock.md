@@ -237,7 +237,8 @@ adapted, and §6.3's search picks the biggest settings.
    the last minute once the last Doom has landed; or Bane of Agony kept up.
 6. Siphon Life, recast as it runs out.
 7. An instant Shadow Bolt on Shadow Trance.
-8. Life Tap at or below 10% mana; Shadow Bolt; Life Tap when Shadow Bolt can't be paid for.
+8. Life Tap at or below 10% mana; Shadow Bolt (or Incinerate with the talent, §6.4); Life Tap when
+   the filler can't be paid for.
 
 Dark Pact isn't in Forever, so Life Tap is the mana ability.
 
@@ -326,7 +327,7 @@ its place in the priority changes.
 | Siphon Life (`siphonLife`) | `siphonLife.enabled` | | Recast as it runs out; needs the talent |
 | Shadow Bolt on Shadow Trance (`shadowTrance`) | — | | An instant Shadow Bolt while Shadow Trance is up; nothing without Nightfall |
 | Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana |
-| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+| Filler (`filler`) | — | `filler.spell` | Shadow Bolt by default, or Incinerate with the talent, whenever it can be paid for |
 
 **Demonology** (§11.5; `warlock.demonology.…`, `DEMONOLOGY_APL`):
 
@@ -339,7 +340,7 @@ its place in the priority changes.
 | Bane (`bane`) | — | `bane.spell` | As Destruction's |
 | Soul Fire (`soulFire`) | `soulFire.enabled` | | Below 35% health, on cooldown; needs Decimation (§11.3) |
 | Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana; with Demonic Energies it feeds your demon |
-| Filler (`filler`) | — | | Shadow Bolt, whenever it can be paid for |
+| Filler (`filler`) | — | `filler.spell` | Incinerate by default when it's talented, or Shadow Bolt, whenever it can be paid for |
 
 - **Pinned:** nothing. The pre-pull is Demonic Sacrifice (and Demonology's demon with its passives,
   §11.4), all spec-wide.
@@ -354,8 +355,23 @@ its place in the priority changes.
   200 random setups per spec (settings, talents, race, Buffs, fight and rules) are fingerprinted
   against the code before it (`destruction-apl.test.ts`, `affliction-apl.test.ts`,
   `demonology-apl.test.ts`; `apl-cases.ts` makes the setups).
-- **A filler choice** is the Filler row's own setting, so a new filler (issue #17's) is a new value
-  of `filler.spell`, or a new row with its own id that an old saved order places by its default
+- **The filler choice is every spec's** (issue #17): the Filler row's `filler.spell`, Shadow Bolt or
+  Incinerate. Without the Incinerate talent there's nothing to choose: Shadow Bolt is the filler
+  whatever it says, and the Rotation tab says so under it. Each spec's default is measured on a build
+  that has Incinerate, paired against Shadow Bolt (20,000 fights on seed 2701, the spec's default setup
+  otherwise, 1.60.1.70009):
+
+  | Spec, build with Incinerate | Shadow Bolt | Incinerate | Default |
+  | --- | --- | --- | --- |
+  | Destruction, its default (§6.3, its list as first ranked) | −10.8% | **586.0** | **Incinerate** |
+  | Affliction 20/0/31 (`255500100002--0550315103101051`) | **477.9** ±0.4 | 413.0 (−13.6%; the paired Δ ±0.4) | **Shadow Bolt** |
+  | Demonology 0/20/31 (`-03050032011203-0550315103101051`), the Imp out (no Demonic Pact, so no sacrifice) | 540.9 ±0.4 | **561.8** (+3.9%; the paired Δ ±0.5) | **Incinerate** |
+
+  Affliction casts no Immolate, so its Incinerate never gets the +25% (§3.1), and its Shadow Bolt
+  keeps Improved Shadow Bolt's debuff up. Demonology keeps Immolate up. Neither default build has Incinerate (it's 31 points into Destruction), so neither default plan
+  changes: Demonology's shows Incinerate with the note, and plays Shadow Bolt.
+- **A new filler** (Searing Pain as a filler, a separate request) would be a new value of
+  `filler.spell`, or a new row with its own id that an old saved order places by its default
   neighbours.
 
 ## 7. Sensible defaults
@@ -788,7 +804,8 @@ the demon and its passives added:
 4. Immolate, recast as it runs out.
 5. Corruption, then the Bane: Bane of Doom while a minute is left, then Bane of Agony (§6.2).
 6. Soul Fire below 35% (on by default, §11.6).
-7. Life Tap at or below 10% mana; Shadow Bolt; Life Tap when Shadow Bolt can't be paid for.
+7. Life Tap at or below 10% mana; the filler, Shadow Bolt (Incinerate by default when it's talented,
+   §6.4); Life Tap when the filler can't be paid for.
 
 The demon walks its own list: the Imp casts Firebolt whenever it has the mana; the Succubus swings and
 casts Lash of Pain on cooldown.

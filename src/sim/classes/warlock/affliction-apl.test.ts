@@ -11,7 +11,7 @@ import { COND } from '../../plan/types'
 import { defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { rotationApl } from '../rotation'
 import { SHADOW_TRANCE } from './abilities'
-import { AFFLICTION_APL, AFFLICTION_IDS as ID, AFFLICTION_OPTIONS, afflictionRotation } from './affliction'
+import { AFFLICTION_APL, AFFLICTION_IDS as ID, AFFLICTION_OPTIONS, afflictionRotation, afflictionUnusedSettings } from './affliction'
 import { afflictionCases } from './affliction-apl-cases'
 import { fingerprint, planJson } from './apl-cases'
 
@@ -145,5 +145,18 @@ describe('the Affliction warlock’s priority list (D31)', () => {
     expect(buildPlan({ ...config, rotationOrder: DEFAULT }).plan).toEqual(none)
     const fillerFirst = buildPlan({ ...config, rotationOrder: moved('filler', 'racial') }).plan
     expect(fingerprint(planJson(fillerFirst))).not.toBe(fingerprint(planJson(none)))
+  })
+
+  it('offers the filler choice: Incinerate with the talent, Shadow Bolt without it (issue #17)', () => {
+    // warlock.md §6.4: a 20/0/31 build with Incinerate; the default stays Shadow Bolt (measured).
+    const incinerate = talentRanksByName(TALENT_DATA.warlock, '255500100002--0550315103101051')
+    const filler = (r: Rot) => ids(r).at(-2)
+    expect(AFFLICTION_OPTIONS.find((o) => o.id === ID.filler)?.default).toBe('shadowBolt')
+    expect(filler(afflictionRotation({}, incinerate, trance, CONTEXT))).toBe('shadowBolt')
+    expect(filler(afflictionRotation({ [ID.filler]: 'incinerate' }, incinerate, trance, CONTEXT))).toBe('incinerate')
+    // Without the talent Shadow Bolt is the filler whatever the choice says, and the tab says so.
+    expect(filler(afflictionRotation({ [ID.filler]: 'incinerate' }, TALENTS, trance, CONTEXT))).toBe('shadowBolt')
+    expect(afflictionUnusedSettings({}, TALENTS)[ID.filler]).toBe('Not used: Incinerate isn’t in your talents, so Shadow Bolt is the filler.')
+    expect(afflictionUnusedSettings({ [ID.filler]: 'incinerate' }, incinerate)[ID.filler]).toBeUndefined()
   })
 })

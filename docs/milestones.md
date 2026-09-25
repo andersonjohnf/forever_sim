@@ -449,7 +449,7 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
       Rend's ticks add 0.02 × AP; Windfury's attack-power buff keeps its second charge
 - [ ] **W2 Pre-AQ ranks:** every class's abilities and the buff catalogue drop the AQ books' ranks;
       Gift of Arthas joins the boss debuffs
-- [ ] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
+- [x] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
 - [ ] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
 
 ## M5.67: Item tooltips 🚧 in progress, after the WarriorSim update

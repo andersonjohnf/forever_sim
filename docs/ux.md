@@ -226,8 +226,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Race: only races that can be the selected class in Forever, grouped by faction (Alliance,
     then Horde) in one radio group. Arrow keys move between races and pick them, and the
     selected race is the group's only tab stop. Level is fixed at 60 and not shown.
-  - A race the sim can't simulate yet (a Skyborne warrior or hunter: its level-60 base stats aren't
-    known, [character-stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes))
+  - A race the sim can't simulate (none today: since D36 every race a class can be has base stats,
+    the Skyborne's a placeholder, [character-stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes);
+    the guard is for a race a new client build adds before its stats are known)
     stays in the list with a dashed border and the reason in its tile, which is also its
     description for screen readers: "Can't be simulated yet: its base stats at level 60 aren't
     known." It can still be picked, to see its racials, and a run then says why it can't go
@@ -1483,7 +1484,7 @@ Every view handles these states:
     specs anyway.
 - **Error:** the worker failed or a shared link is invalid. Show a plain message and a way
   forward (retry, or reset to defaults).
-  - A setup the engine refuses (a Skyborne warrior or hunter) is titled "This setup can't be simulated",
+  - A setup the engine refuses (a hunter with no ranged weapon) is titled "This setup can't be simulated",
     and its message says what to change, so no retry advice follows it. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec, except a
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so

@@ -226,8 +226,8 @@ A spec is data plus small ability modules, never its own loop.
   use as an `OnUseSpec`, which the rotation turns into a cast; any it doesn't press are listed
   as not simulated.
 - It also collects the **assumptions**: every `[?]` the setup relies on, each with a doc link
-  (`sim/plan/assumptions.ts`), and the setups it refuses to guess (Skyborne warriors and hunters
-  until their base stats are known).
+  (`sim/plan/assumptions.ts`), and the setups it refuses to run (a race with no base stats, which
+  no race the picker offers reaches since D36, and a hunter with no ranged weapon).
 
 ### Rules and stats
 

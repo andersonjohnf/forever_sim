@@ -33,7 +33,7 @@ export const COMBAT_SETTINGS_BEFORE = [
   'rogue.combat.jujuFlurry.enabled',
 ]
 
-/** Every race a rogue can be but Skyborne, whose base stats the sim doesn't guess. */
+/** The races these cases cover: every race a rogue can be but Skyborne, whose base stats are only a placeholder. */
 const RACES = ['horde-orc', 'horde-undead', 'horde-troll', 'alliance-human', 'alliance-dwarf', 'alliance-night-elf', 'alliance-gnome']
 /** Buffs switches the rotations read, or that decide what they use: the consumables, the armor debuffs and the poisons. */
 const BUFFS = ['thistleTea', 'jujuFlurry', 'exposeArmor', 'sunderArmor', 'deadlyPoisonMainHand', 'instantPoisonOffHand']

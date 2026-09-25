@@ -31,11 +31,14 @@ import {
   COLD_BLOOD,
   ENERGY_PER_TICK_TENTHS,
   EVISCERATE,
+  EVISCERATE_AP_PER_CP,
   EXPOSE_ARMOR,
   EXPOSE_ARMOR_PER_CP,
   MUTILATE,
   ROGUE_GCD_MS,
   RUPTURE,
+  RUPTURE_AP_CP_CAP,
+  RUPTURE_AP_PER_CP_PER_TICK,
   SINISTER_STRIKE,
   SLICE_AND_DICE,
   SLICE_AND_DICE_HASTE,
@@ -325,14 +328,28 @@ describe('worked examples (rogue.md §9)', () => {
     expect(bs.weaponPercent * (85 + (1000 / 14) * 1.7 + bs.flatDamage)).toBeCloseTo(623.39, 1)
   })
 
-  it('R3: a 5-point Eviscerate at 1,000 AP, 1,340.7 to 1,478.1 (1,409.4 on average)', () => {
+  it('R3: a 5-point Eviscerate at 1,000 AP, 1,404.3 to 1,541.7 (1,473.0 on average)', () => {
     const plan = quiet(combatWith({ 'rogue.combat.eviscerate.enabled': true }))
     alwaysLandNoCrit(plan)
     setAttackPower(plan, 1000)
     const hits = damages(plan, row(plan, 'eviscerate'), 20)
-    expect(Math.min(...hits)).toBeGreaterThanOrEqual(1340.6)
-    expect(Math.max(...hits)).toBeLessThanOrEqual(1478.1)
-    expectMean(hits, 1.272 * (108 + 850 + 150))
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(1404.2)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(1541.7)
+    expectMean(hits, 1.272 * (108 + 850 + 200))
+  })
+
+  it('R3b: the guild’s 4% of attack power per point: a 5-point Eviscerate at 2,000 AP adds 400 (1,727.4 on average with Combat’s talents)', () => {
+    // docs/classes/rogue.md#34-eviscerate-r9-31016: guild in-game test, 2026-09-25 (Classic Era sims' 3%).
+    expect(EVISCERATE.apCoefficientPerComboPoint).toBe(0.04)
+    expect(EVISCERATE_AP_PER_CP * 5 * 2000).toBeCloseTo(400, 9)
+    const plan = quiet(combatWith({ 'rogue.combat.eviscerate.enabled': true }))
+    alwaysLandNoCrit(plan)
+    setAttackPower(plan, 2000)
+    const hits = damages(plan, row(plan, 'eviscerate'), 20)
+    // Improved Eviscerate 3/3 and Aggression 3/3: × 1.20 × 1.06 = 1.272, on the AP share too.
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(1.272 * (54 + 850 + 400) - 1e-6)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(1.272 * (162 + 850 + 400) + 1e-6)
+    expectMean(hits, 1.272 * (108 + 850 + 400))
   })
 
   it('R4: Slice and Dice with Improved Slice and Dice 3/3, 17.4 s at 2 points and 30.45 s at 5', () => {
@@ -352,6 +369,32 @@ describe('worked examples (rogue.md §9)', () => {
     // Every application but the fight's last runs its 8 ticks.
     expect(counter(sim, r, FIELD.hits)).toBeGreaterThanOrEqual(8 * (counter(sim, r, FIELD.casts) - 1))
     expect(counter(sim, r, FIELD.hits)).toBeLessThanOrEqual(8 * counter(sim, r, FIELD.casts))
+  })
+
+  it('R5b: the guild’s Rupture AP share per tick, 1% at 1 point, 2% at 2, 3% at 3 and above; a 3-point Rupture at 2,000 AP ticks 109.19, 655.1 in all', () => {
+    // docs/classes/rogue.md#35-rupture-r6-11275: guild in-game test, 2026-09-25.
+    expect([1, 2, 3, 4, 5].map((cp) => RUPTURE_AP_PER_CP_PER_TICK * Math.min(cp, RUPTURE_AP_CP_CAP))).toEqual([0.01, 0.02, 0.03, 0.03, 0.03])
+    const tick = (cp: number) => 35 + 4.73 * cp + 0.01 * Math.min(cp, 3) * 2000
+    expect(tick(3)).toBeCloseTo(109.19, 9)
+    expect(6 * tick(3)).toBeCloseTo(655.14, 9)
+    // The engine: the fight's first Rupture goes out at exactly its setting (one point a landed
+    // Sinister Strike, no finisher before it), so its first tick is that many points' tick.
+    for (const cp of [1, 2, 3, 5]) {
+      const plan = quiet(combatWith({ 'rogue.combat.rupture.enabled': true, 'rogue.combat.rupture.minComboPoints': cp }))
+      alwaysLandNoCrit(plan)
+      setAttackPower(plan, 2000)
+      const r = row(plan, 'rupture')
+      const sim = new Sim(plan)
+      for (let f = 0; f < 3; f++) {
+        const ticks: number[] = []
+        sim.damageTrace = (s, damage) => {
+          if (s === r) ticks.push(damage)
+        }
+        sim.runFight(f)
+        // 3 ticks + 1 per point, all of the first application's.
+        for (const t of ticks.slice(0, 3 + cp)) expect(t, `${cp} points`).toBeCloseTo(tick(cp), 6)
+      }
+    }
   })
 
   it('R6: Relentless Strikes restores 25 Energy for certain at 5 points and 40% of the time at 2', () => {
@@ -594,6 +637,9 @@ describe('golden run (fixed config and seed)', () => {
   // - R1: the default Assassination rogue (rogue.md §6.2, §7): daggers, the same poisons, Mutilate,
   //   Slice and Dice at 2 points, Cold Blood at 5, Eviscerate at 4, Venom off; 524.1 DPS over 20,000
   //   fights on seed 2701.
+  // - Guild test (2026-09-25): Eviscerate gains 4% of attack power per point, not Classic Era sims'
+  //   3% (rogue.md §3.4); Rupture's 1/2/3% a tick was confirmed and is unchanged. Combat 580.3 →
+  //   583.8 DPS (+0.6%), Assassination 524.1 → 529.6 (+1.0%), over 20,000 fights on seed 2701.
   it('keeps the default Assassination rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-assassination'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

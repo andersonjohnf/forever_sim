@@ -331,6 +331,8 @@ describe('golden run (fixed config and seed)', () => {
   // - R1: the default Subtlety rogue (rogue.md §6.3, §7): daggers, Deadly Poison V on the main hand and
   //   Instant Poison VI on the off hand, Hemorrhage building, Premeditation, Slice and Dice at 2 points,
   //   Rupture at 3, Eviscerate at 5, Ghostly Strike off; 504.7 DPS over 20,000 fights on seed 2703.
+  // - Guild test (2026-09-25): Eviscerate gains 4% of attack power per point, not 3% (rogue.md §3.4);
+  //   Rupture's 1/2/3% a tick unchanged. 504.7 → 505.2 DPS (+0.1%) over 20,000 fights on seed 2703.
   it('keeps the default Subtlety rogue’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('rogue-subtlety'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

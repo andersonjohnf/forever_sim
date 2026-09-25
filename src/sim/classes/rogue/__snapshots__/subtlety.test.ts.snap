@@ -75,7 +75,7 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
     [
       "eviscerate",
-      1679672.1470244383,
+      1774319.421006029,
       1370,
       903,
       333,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Subtlety rogueâ€
     ],
   ],
   "dps": {
-    "ci95": 1.261718404583891,
-    "mean": 504.5175441901868,
-    "stdev": 20.357026739831856,
+    "ci95": 1.2647733671948984,
+    "mean": 505.04567156329546,
+    "stdev": 20.406316625225877,
   },
   "durationSec": 179.690222,
 }

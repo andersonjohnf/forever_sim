@@ -65,7 +65,7 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
     [
       "eviscerate",
-      17816646.040054582,
+      18809930.83054195,
       11938,
       7238,
       3969,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Assassination ro
     ],
   ],
   "dps": {
-    "ci95": 1.3813351317920437,
-    "mean": 525.7733325546991,
-    "stdev": 22.28696681636629,
+    "ci95": 1.4054190980131138,
+    "mean": 531.3038433594085,
+    "stdev": 22.675546346142767,
   },
   "durationSec": 179.690222,
 }
@@ -178,7 +178,7 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
     [
       "eviscerate",
-      10635287.76893301,
+      11259388.790503932,
       6199,
       4029,
       1889,
@@ -198,9 +198,9 @@ exports[`golden run (fixed config and seed) > keeps the default Combat rogue’s
     ],
   ],
   "dps": {
-    "ci95": 1.6930466789976424,
-    "mean": 581.320068433326,
-    "stdev": 27.31623505761974,
+    "ci95": 1.7074431975529467,
+    "mean": 584.7941798603333,
+    "stdev": 27.548513759528245,
   },
   "durationSec": 179.690222,
 }

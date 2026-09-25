@@ -26,7 +26,7 @@ export function rogueEnergy(talents: ReadonlyMap<string, number>, maxMult = 1): 
 
 /**
  * The rogue's [?] this plan relies on (rogue.md §10), for the results' assumptions: Energy, the
- * finishers' attack power, the two-roll abilities, Backstab's flat bonus, Lethality, the poisons,
+ * two-roll abilities, Backstab's flat bonus, Lethality, the poisons,
  * Hack and Slash, Slice and Dice's haste, Cold Blood and Subtlety's talents, each only when the plan uses it.
  */
 export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number>): AssumptionId[] {
@@ -34,7 +34,8 @@ export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number
   const ids: AssumptionId[] = []
   const has = (id: string) => plan.abilities.some((a) => a.id === id)
   if (plan.abilities.some((a) => a.resource === 'energy' && a.costTenths > 0)) ids.push('energyTicksRogue')
-  if (has('eviscerate') || has('rupture')) ids.push('rogueFinisherAp')
+  // Eviscerate's and Rupture's attack-power shares are the guild's measurements [F] since 2026-09-25
+  // (rogue.md §3.4, §3.5), so they're no longer an assumption.
   if (has('eviscerate') || has('exposeArmor')) ids.push('rogueTwoRolls')
   if (has('backstab')) ids.push('rogueFlatInside')
   if ((talents.get('Lethality') ?? 0) > 0 && plan.abilities.some((a) => LETHALITY.has(a.id))) ids.push('lethality')

@@ -9,7 +9,7 @@ New talents raise Mind Flay's damage 20% (**Improved Mind Flay**) and periodic d
 Disciplines**), and **Meditation** keeps 50% of regeneration while casting. Base damage is lower,
 the coefficients the same or higher. **Shadowfiend** is baseline, and each race has two priest
 spells: the Night Elf's **Starshards** is a 30 s channel for 1,800 Arcane damage, and the Undead's
-**Dark Sacrifice** trades health for 1,600 mana.
+**Dark Sacrifice** trades health for 1,600 mana plus your Spirit.
 
 This doc is the engine contract for the Shadow Priest (slice K4, landed in the 90/10 mode of
 [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24) on the

@@ -1425,26 +1425,43 @@ its open and close rules by `ItemTooltip` in `src/features/gear/item-tooltip.tsx
     moving under 10 px) on the item, whose release then doesn't also run the item's own tap (open
     the picker) or bring up the system's callout. A tap outside or Escape closes it. Opened this
     way it stays until then, and scrolls if it's taller than the room.
+  - **A tap outside only closes it** when it was opened this way (the info control or a long
+    press): the slot or picker row the tap lands on doesn't also act, as in the game and most phone
+    popovers, so a player reading one item's tooltip doesn't pick another by closing it. The next
+    tap acts. A press outside that turns into a scroll leaves it open. (A hover or focus tooltip lets
+    the pointer through, so a click beside it acts at once.)
   - Beside a hover or focus tooltip, the info control pins it open. While it's open the item (and
     the info control) name it as their description, for screen readers.
 - **Placement:** beside the item from 640 px (right, or left where the item asks: the wide grid's
   mirrored right side), on the other side where that one lacks the room, and **below it where
-  neither side has 20 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens): a gear
-  card as wide as a tablet's window, or a picker row whose dialog leaves less than that beside it
-  (under about 1,330 px). On a phone it's below the item, flipping above. It keeps 8 px clear of
-  the window's edges, is at most 20 rem wide (the window less 1 rem on a phone) and as tall as the
-  room, so it never makes the page scroll sideways at 390, 1280 or 1920 px.
+  neither side has 16 rem** (`tooltipSide` in `item-tooltip-open.ts`, measured as it opens), flipping
+  above where there's more room there: a gear card as wide as a tablet's window, or a picker row
+  whose dialog leaves less than that beside it. On a phone it's below the item, flipping above. It's
+  at most 20 rem wide, narrowing to the room beside the item down to 16 rem (the window less 1 rem on
+  a phone), keeps 8 px clear of the window's edges and is as tall as the room, so it never makes the
+  page scroll sideways at 390, 1280 or 1920 px.
+- **What it sits beside** (`anchorBox`): the item's own element, except where that's wider than
+  what the player points at. In the wide Gear grid, whose slot buttons cover the whole row, it's the
+  slot's **icon, name and rank** (`WIDE_TOOLTIP_ANCHOR`), so the tooltip opens right beside them: the
+  left side's to their right, over the rest of its own row (stats, enchant, flags) and reaching the
+  right side's slots only where a long name leaves too little of the row; the mirrored right side's
+  to their left. In the item picker it's the **dialog's side**, level with the row, so from about
+  1,210 px, where the centred 42 rem dialog leaves 16 rem beside it, it covers none of the list; under
+  that it opens below the row (or above it) as the rule above says. Hover and focus are still on the
+  whole slot or row; only where the tooltip sits changes. A virtual anchor (Radix's `virtualRef`), so
+  the item's own element stays the trigger.
 - **Where it shows** (M5.67 T2): every item the page shows.
-  - **Gear's slots, at every width:** the cards below 1440 px and both sides of the wide grid, the
-    right side's opening to its left, into the pane. The slot's button is the item: hovering or
+  - **Gear's slots, at every width:** the cards below 1440 px and both sides of the wide grid, beside
+    the slot's icon and name there, the right side's to their left. The slot's button is the item: hovering or
     focusing it opens the tooltip, with the item worn, its enchant, and the set's pieces worn. Its
     tap or click still opens the picker. An empty slot has none.
   - **The item picker's rows,** in the dialog and the phone's sheet: the row's button is the item,
     and its click or tap, Enter or Space still picks it; Tab still walks the rows. The row's
     enchant line shows only on the item the slot holds, the one wearing it. Beside the dialog from
-    about 1,330 px, it covers nothing; below the row where there's less room, it covers rows under
-    it but lets the pointer through, so nothing it covers stops a pick, and Escape closes it before
-    the picker.
+    about 1,210 px, it covers nothing; below or above the row where there's less room, it covers
+    rows but a hover or focus tooltip lets the pointer through, so nothing it covers stops a pick.
+    Escape closes it before the picker. On a phone, a tap on another row while one is open only
+    closes it (above).
   - **Not the character sheet,** which shows stats, not items.
 - **The info control shows only where nothing hovers** (the pointer isn't `(hover: hover) and
   (pointer: fine)`): a phone, or a touch screen at any width. Where a mouse or pen hovers, desktop

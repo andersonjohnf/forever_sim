@@ -30,6 +30,12 @@ async function wornName(slot: Locator) {
 /** The picker's first item the slot doesn't hold that can be picked: its row's button, not its info control. */
 const candidate = (picker: Locator) => picker.locator('li > div > button:has(.sr-only):not([aria-current]):not([aria-disabled])').first()
 
+/** The wide grid's edge of a slot's icon, name and rank toward the tooltip: their right, or on the mirrored side their left. */
+const nameRight = (slot: Locator) =>
+  slot.evaluate((el) => Math.max(...[...el.parentElement!.querySelectorAll('.item-tooltip-anchor')].map((part) => part.getBoundingClientRect().right)))
+const nameLeft = (slot: Locator) =>
+  slot.evaluate((el) => Math.min(...[...el.parentElement!.querySelectorAll('.item-tooltip-anchor')].map((part) => part.getBoundingClientRect().left)))
+
 const tooltip = (page: Page) => page.locator('[role="tooltip"][data-state="open"]')
 /** A stat, armor or weapon line, the way the game words them. */
 const STAT_LINE = /\+\d+ (Strength|Agility|Stamina|Intellect|Spirit)|\d+ Armor|Damage/
@@ -49,9 +55,18 @@ for (const width of [1280, 1920]) {
       await expect(tooltip(page)).toContainText(STAT_LINE)
       // While it's open, the slot names it as its description.
       await expect(head).toHaveAccessibleDescription(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
-      // Beside the slot, never over it.
-      const [slotBox, tipBox] = [await head.boundingBox(), await tooltip(page).boundingBox()]
-      expect(tipBox!.x).toBeGreaterThanOrEqual(slotBox!.x + slotBox!.width)
+      const [slotBox, tipBox] = [(await head.boundingBox())!, (await tooltip(page).boundingBox())!]
+      if (width < 1440) {
+        // Beside the card, never over it.
+        expect(tipBox.x).toBeGreaterThanOrEqual(slotBox.x + slotBox.width)
+      } else {
+        // Beside the slot's icon, name and rank, where the pointer is, not at the row's far edge: it covers
+        // some of its own row, and none of the right side.
+        const nameEnd = await nameRight(head)
+        expect(tipBox.x).toBeGreaterThanOrEqual(nameEnd)
+        expect(tipBox.x).toBeLessThanOrEqual(nameEnd + 12)
+        expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(slotBox.x + slotBox.width)
+      }
       // The mouse leaving closes it.
       await page.mouse.move(0, 0)
       await expect(tooltip(page)).toHaveCount(0)
@@ -71,13 +86,42 @@ for (const width of [1280, 1920]) {
 test.describe('1920 px, the mirrored right side', () => {
   test.use({ viewport: { width: 1920, height: 1080 } })
 
-  test('a right-side slot’s tooltip opens to its left, into the pane', async ({ page }) => {
+  test('a right-side slot’s tooltip opens to the left of its name, into the pane', async ({ page }) => {
     await openGear(page)
     const hands = page.getByRole('button', { name: /^Hands: / })
-    await hands.hover({ position: { x: 20, y: 20 } })
+    // On its icon, at the slot's right edge.
+    const box = (await hands.boundingBox())!
+    await hands.hover({ position: { x: box.width - 20, y: 20 } })
     await expect(tooltip(page)).toContainText(await wornName(hands))
-    const [slotBox, tipBox] = [await hands.boundingBox(), await tooltip(page).boundingBox()]
-    expect(tipBox!.x + tipBox!.width).toBeLessThanOrEqual(slotBox!.x)
+    const tipBox = (await tooltip(page).boundingBox())!
+    const nameStart = await nameLeft(hands)
+    expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(nameStart)
+    expect(tipBox.x + tipBox.width).toBeGreaterThanOrEqual(nameStart - 12)
+  })
+
+  test('a tooltip drawn under the resting pointer stays open: the pointer passes through it to the slot', async ({ page }) => {
+    await openGear(page)
+    const hands = page.getByRole('button', { name: /^Hands: / })
+    // At the slot's inner end, where its tooltip, beside the name, is drawn.
+    await hands.hover({ position: { x: 150, y: 20 } })
+    await expect(tooltip(page)).toContainText(await wornName(hands))
+    const tipBox = (await tooltip(page).boundingBox())!
+    const slotBox = (await hands.boundingBox())!
+    expect(tipBox.x).toBeLessThanOrEqual(slotBox.x + 150)
+    await page.waitForTimeout(600)
+    await expect(tooltip(page)).toBeVisible()
+    await expect(page.locator('[role="tooltip"]')).toHaveCount(1)
+  })
+
+  test('a weapon’s tooltip opens beside its icon and name', async ({ page }) => {
+    await openGear(page)
+    const mainHand = page.getByRole('button', { name: /^Main hand: / })
+    await mainHand.hover({ position: { x: 20, y: 20 } })
+    await expect(tooltip(page)).toContainText(await wornName(mainHand))
+    const tipBox = (await tooltip(page).boundingBox())!
+    const nameEnd = await nameRight(mainHand)
+    expect(tipBox.x).toBeGreaterThanOrEqual(nameEnd)
+    expect(tipBox.x).toBeLessThanOrEqual(nameEnd + 12)
   })
 })
 
@@ -123,6 +167,16 @@ test.describe('390 px phone', () => {
     await page.getByRole('heading', { name: 'Gear', level: 2 }).tap()
     await expect(tooltip(page)).toHaveCount(0)
     await expect(info).toHaveAttribute('aria-expanded', 'false')
+
+    // A tap on another slot while it's open only closes it; the next tap opens that slot's picker.
+    await info.tap()
+    await expect(tooltip(page)).toContainText(name)
+    const back = page.getByRole('button', { name: /^Back: / })
+    await back.tap({ position: { x: 24, y: 24 } })
+    await expect(tooltip(page)).toHaveCount(0)
+    await expect(page.getByRole('dialog', { name: 'Choose back' })).toHaveCount(0)
+    await back.tap({ position: { x: 24, y: 24 } })
+    await expect(page.getByRole('dialog', { name: 'Choose back' })).toBeVisible()
   })
 
   test('the picker’s rows have an info control too, and a row’s tap still picks it', async ({ page }) => {
@@ -136,6 +190,28 @@ test.describe('390 px phone', () => {
     await picker.getByRole('button', { name: `${name} details` }).tap()
     await expect(tooltip(page)).toHaveCount(0)
     await row.tap({ position: { x: 24, y: 24 } })
+    await expect(picker).toHaveCount(0)
+    await expect(page.getByRole('button', { name: `Head: ${name}` })).toBeVisible()
+  })
+
+  test('with a picker row’s tooltip open, a tap on another row only closes it; the next tap picks', async ({ page }) => {
+    await openGear(page)
+    const worn = await wornName(page.getByRole('button', { name: /^Head: / }))
+    await page.getByRole('button', { name: /^Head: / }).tap({ position: { x: 24, y: 24 } })
+    const picker = page.getByRole('dialog', { name: 'Choose head' })
+    // The worn item's tooltip, then a tap on another item's row.
+    await picker.getByRole('button', { name: `${worn} details` }).tap()
+    await expect(tooltip(page)).toContainText(worn)
+    const row = candidate(picker)
+    const name = (await row.locator('.sr-only').textContent())!.split('. ')[0]
+    // Its bottom right, clear of the tooltip below the worn row and of the row's own info control.
+    const box = (await row.boundingBox())!
+    const clear = { position: { x: box.width - 12, y: box.height - 8 } }
+    await row.tap(clear)
+    await expect(tooltip(page)).toHaveCount(0)
+    await expect(picker).toBeVisible()
+    await expect(picker.locator('[aria-current]')).toContainText(worn)
+    await row.tap(clear)
     await expect(picker).toHaveCount(0)
     await expect(page.getByRole('button', { name: `Head: ${name}` })).toBeVisible()
   })
@@ -154,6 +230,10 @@ test.describe('the item picker', () => {
     await expect(tooltip(page)).toBeVisible()
     await expect(tooltip(page)).toContainText(name)
     await expect(tooltip(page)).toContainText(STAT_LINE)
+    // Beside the dialog, which leaves 16 rem at 1280 px: it covers none of the list.
+    const [dialogBox, tipBox] = [(await picker.boundingBox())!, (await tooltip(page).boundingBox())!]
+    expect(tipBox.x).toBeGreaterThanOrEqual(dialogBox.x + dialogBox.width)
+    expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(1280)
     // The tooltip lets the pointer through, so the row under it still picks.
     await row.click()
     await expect(picker).toHaveCount(0)
@@ -178,5 +258,23 @@ test.describe('the item picker', () => {
     await page.keyboard.press('Enter')
     await expect(picker).toHaveCount(0)
     await expect(page.getByRole('button', { name: `Head: ${name}` })).toBeFocused()
+  })
+})
+
+test.describe('the item picker at 1024 px', () => {
+  test.use({ viewport: { width: 1024, height: 900 } })
+
+  test('with too little room beside the dialog, a row’s tooltip opens below or above it', async ({ page }) => {
+    await openGear(page)
+    await page.getByRole('button', { name: /^Head: / }).click({ position: { x: 20, y: 20 } })
+    const picker = page.getByRole('dialog', { name: 'Choose head' })
+    const row = candidate(picker)
+    await row.hover({ position: { x: 20, y: 20 } })
+    await expect(tooltip(page)).toBeVisible()
+    // Below the row, or above it where there's more room: level with it, never beside the dialog.
+    const [rowBox, tipBox] = [(await row.boundingBox())!, (await tooltip(page).boundingBox())!]
+    expect(tipBox.y >= rowBox.y + rowBox.height || tipBox.y + tipBox.height <= rowBox.y).toBe(true)
+    expect(tipBox.x).toBeLessThan((await picker.boundingBox())!.x + (await picker.boundingBox())!.width)
+    expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(1024)
   })
 })

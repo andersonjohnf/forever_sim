@@ -264,8 +264,9 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
               {/* The item's button covers the row, with the whole item as its name; the flag badges and the
                   info control sit above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded
                   content, which opacity would lift above it. A blocked item stays focusable (aria-disabled),
-                  so its reason is read out. Its tooltip shows the slot's enchant only on the item wearing it. */}
-              <ItemTooltip item={item} enchantId={equipped ? enchantId : null} profile={profile} worn={wornIds}>
+                  so its reason is read out. Its tooltip shows the slot's enchant only on the item wearing it, and
+                  opens beside the dialog where there's room, else below the row (docs/ux.md "Item tooltips"). */}
+              <ItemTooltip item={item} enchantId={equipped ? enchantId : null} profile={profile} worn={wornIds} besideClosest='[role="dialog"]'>
                 <div
                   className={cn(
                     'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',

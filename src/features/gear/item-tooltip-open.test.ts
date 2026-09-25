@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BESIDE_ROOM_PX, CLOSED, tooltipOpenReducer, tooltipSide, type TooltipEvent, type TooltipOpenState } from './item-tooltip-open'
+import { anchorBox, BESIDE_ROOM_PX, CLOSED, tooltipOpenReducer, tooltipSide, type TooltipEvent, type TooltipOpenState } from './item-tooltip-open'
 
 const run = (...events: TooltipEvent['type'][]): TooltipOpenState =>
   events.reduce<TooltipOpenState>((state, type) => tooltipOpenReducer(state, { type } as TooltipEvent), CLOSED)
@@ -63,9 +63,35 @@ describe('where an item tooltip goes (docs/ux.md "Item tooltips")', () => {
     expect(tooltipSide('right', { left: 0, right: 1000 - BESIDE_ROOM_PX }, 1000)).toBe('right')
   })
 
+  it('beside the picker’s dialog where it leaves 16 rem: at 1280 px, not at 1024', () => {
+    // The dialog is 42 rem wide, centred.
+    expect(tooltipSide('right', { left: 304, right: 976 }, 1280)).toBe('right')
+    expect(tooltipSide('right', { left: 176, right: 848 }, 1024)).toBe('bottom')
+  })
+
   it('above or below stays as asked, and with no item measured nothing moves', () => {
     expect(tooltipSide('bottom', { left: 0, right: 390 }, 390)).toBe('bottom')
     expect(tooltipSide('top', { left: 0, right: 390 }, 390)).toBe('top')
     expect(tooltipSide('right', undefined, 390)).toBe('right')
+  })
+})
+
+describe('the box an item tooltip sits beside (docs/ux.md "Item tooltips")', () => {
+  const row = { left: 24, top: 230, right: 617, bottom: 306 }
+  const icon = { left: 36, top: 237, right: 72, bottom: 273 }
+  const name = { left: 84, top: 236, right: 186, bottom: 254 }
+  const badge = { left: 192, top: 237, right: 226, bottom: 253 }
+
+  it('the item itself, with no parts named', () => {
+    expect(anchorBox(row)).toEqual(row)
+  })
+
+  it('the wide grid’s icon and name (and rank): it opens next to them, not at the row’s far edge', () => {
+    expect(anchorBox(row, [icon, name, badge])).toEqual({ left: 36, top: 236, right: 226, bottom: 273 })
+  })
+
+  it('beside a container: its sides, with the item’s top and bottom', () => {
+    const dialog = { left: 304, top: 68, right: 976, bottom: 832 }
+    expect(anchorBox(row, [], dialog)).toEqual({ left: 304, top: 230, right: 976, bottom: 306 })
   })
 })

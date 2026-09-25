@@ -22,7 +22,7 @@ import { ItemPicker } from './item-picker'
 import { itemDescription, unsimulatedEffects } from './item-flags'
 import { ItemFlags, ItemSummary } from './item-row'
 import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
-import { WideSlot, WideSlotGrid } from './wide-slots'
+import { WIDE_TOOLTIP_ANCHOR, WideSlot, WideSlotGrid } from './wide-slots'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
@@ -207,17 +207,26 @@ export function GearSection() {
 
   /**
    * A slot's row inside its item's tooltip (docs/ux.md "Item tooltips"): `trigger` wraps the slot's
-   * button, which the tooltip describes and sits beside, and `info` is the info control where nothing
-   * hovers. An empty slot has neither.
+   * button, which the tooltip describes and sits beside (in the wide grid, `wide`, beside its icon and
+   * name), and `info` is the info control where nothing hovers. An empty slot has neither.
    */
   const withTooltip = (
     slot: GearSlot,
     item: Item | undefined,
     row: (tooltip: { trigger: (button: ReactElement<HTMLAttributes<HTMLElement>>) => ReactNode; info: ReactNode }) => ReactNode,
-    side?: 'left',
+    wide?: { mirrored: boolean },
   ) =>
     item ? (
-      <ItemTooltip key={slot} item={item} enchantId={config.gear[slot]?.enchantId} profile={profile} worn={wornIds} side={side}>
+      <ItemTooltip
+        key={slot}
+        item={item}
+        enchantId={config.gear[slot]?.enchantId}
+        profile={profile}
+        worn={wornIds}
+        // In the wide grid it opens beside the slot's icon and name, the mirrored right side's to their left.
+        side={wide?.mirrored ? 'left' : undefined}
+        anchorParts={wide ? `.${WIDE_TOOLTIP_ANCHOR}` : undefined}
+      >
         {row({
           trigger: (button) => <ItemTooltipTrigger>{button}</ItemTooltipTrigger>,
           info: hovers ? null : <ItemTooltipInfoButton className="relative z-10" />,
@@ -378,7 +387,6 @@ export function GearSection() {
                   fit={place.enchantLine ? `${item.id}:${equipped?.enchantId ?? ''}:${config.rules.profile}` : undefined}
                 />
               )
-              // The mirrored right side's tooltips open to the left, into the pane.
               return withTooltip(
                 slot,
                 item,
@@ -409,7 +417,7 @@ export function GearSection() {
                     info={info}
                   />
                 ),
-                place.mirrored ? 'left' : undefined,
+                { mirrored: place.mirrored },
               )
             }}
           />

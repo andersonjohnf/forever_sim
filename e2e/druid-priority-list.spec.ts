@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The druid's DPS specs on the Rotation tab's priority list (decision D31, docs/classes/druid.md
-// §6.2 "The cat's priority list"): the rows in their default order, a row moved from the keyboard
+// §6.2 "The cat's priority list" and §11.5 "Balance's priority list"): the rows in their default order, a row moved from the keyboard
 // with its handle and with Move up and Move down in its settings, the order kept by a reload and a
 // share link, and a run with it.
 
@@ -10,6 +10,8 @@ interface Spec {
   name: string
   menu: RegExp
   order: string[]
+  /** Rows pinned in place, with no handle. */
+  pinned: number
   /** A row to move up one place from the keyboard, and the row it passes. */
   keyboard: { label: string; id: string; passes: string }
   /** A row to move up one place with Move up. */
@@ -23,10 +25,22 @@ const SPECS: Spec[] = [
     name: 'Feral (Cat)',
     menu: /Feral \(Cat\)/,
     order: ['berserk', 'racial', 'onUseItems', 'tigersFury', 'faerieFire', 'clearcasting', 'rip', 'ferociousBite', 'rake', 'shred', 'claw'],
+    pinned: 0,
     keyboard: { label: 'Ferocious Bite', id: 'ferociousBite', passes: 'rip' },
     button: { label: 'Rake', id: 'rake' },
     // Off, and its "only when nothing else bleeds" meets the default raid's warriors.
     unused: { id: 'rake', text: 'Not used in this raid: its warriors keep the boss bleeding.' },
+  },
+  {
+    name: 'Balance',
+    menu: /^Balance/,
+    order: ['prepull', 'racial', 'trinkets', 'powerInfusion', 'innervate', 'faerieFire', 'insectSwarm', 'moonfire', 'clearcasting', 'eclipse', 'filler'],
+    // Moonkin Form before the pull.
+    pinned: 1,
+    keyboard: { label: 'Moonfire', id: 'moonfire', passes: 'insectSwarm' },
+    button: { label: 'Innervate yourself', id: 'innervate' },
+    // The default Tauren has no racial cooldown.
+    unused: { id: 'racial', text: 'Not used: Tauren has no racial cooldown that adds damage.' },
   },
 ]
 
@@ -61,8 +75,9 @@ for (const spec of SPECS) {
         const list = await openRotation(page, spec)
         expect(await order(page)).toEqual(spec.order)
         await expect(preset(page)).toHaveText('Default')
-        // Nothing is pinned: every row has a handle.
-        await expect(list.getByRole('button', { name: /^Move / })).toHaveCount(count)
+        // Every row has a handle but a pinned one.
+        await expect(list.getByRole('button', { name: /^Move / })).toHaveCount(count - spec.pinned)
+        await expect(list.getByText('Fixed in place:')).toHaveCount(spec.pinned)
         const unused = list.locator(`[data-apl-row="${spec.unused.id}"]`)
         await expect(unused).toContainText(spec.unused.text)
         await expect(unused).toHaveAttribute('data-inactive')

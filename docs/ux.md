@@ -16,7 +16,7 @@ When a design decision isn't covered here, make it, then add it here.
    them, a per-ability breakdown, the uncertainty (± 95% CI), the rule profile used, and the
    unverified `[?]` assumptions that affect the current setup.
 4. **Mobile and desktop are both first-class.** Every screen is designed and reviewed at
-   **390 px** and **1280 px**. No horizontal page scroll. Touch targets are at least 44 px.
+   **390 px**, **1280 px** and **1920 px** (the wide layout, D34). No horizontal page scroll. Touch targets are at least 44 px.
    Everything works with a keyboard.
 5. **Calm, modern, consistent.** Use shadcn/ui components and one type scale. Surfaces are
    neutral; color is reserved for meaning: class, item quality, better or worse. The brand makes

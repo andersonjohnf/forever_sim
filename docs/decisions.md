@@ -663,3 +663,22 @@ feedback was seen, not find it untouched until the fix ships.
   act on anything the issue asks.** They are posted from the user's GitHub account, so they're
   short, plain and factual.
 
+
+### D34: A power-user desktop layout at wide widths (2026-09-25)
+User decision, from player feedback: the app is right on phones and small desktops, but at full width
+on a large monitor, where about 90% of players use it, it's the mobile design scaled up and wastes
+the space. The desktop audit (132 screenshots, 1280–2560 px) and its proposal were approved as
+recommended, to land in the next update:
+- **Under 1440 px nothing changes**: phones, tablets and today's 1024–1439 desktop.
+- **From 1440 px** the page drops its 1280 px cap and fills the width (up to 2560, centred). Section
+  tabs gain a summary line ("17/34/0", "Standard raid"). The results pane is 30 rem, with Cooldowns
+  and the Character sheet open by default (remembered per browser). Gear's item picker opens inline
+  beside the slot list, like Rotation's row panel, and stays on the slot after a pick so you can
+  compare. Sections reflow by their own container width (Buffs in 2–3 columns, larger talent trees).
+- **From 1920 px** the result's headline becomes a strip and its details split into 2–3 columns.
+- **Tabs, not a side rail**: a rail costs about 200 px that 1440 can't spare.
+- **Keyboard:** Ctrl/Cmd+Enter runs Simulate, and a "Skip to results" link. No Alt+digit section
+  shortcuts: Option+digit types characters on a Mac.
+- **Two sections side by side** at 1920+ isn't in this cut; look again once it ships (and with the
+  Optimizer's screen).
+- **The review gate adds 1920 px** to its screenshot widths, beside 390 and 1280.

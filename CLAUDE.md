@@ -29,7 +29,7 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
      effect modelled as zero; a gear preset built for the wrong stats (D29)
    - performance, data integrity, and test gaps
 3. **Adversarial UX review.** An independent reviewer inspects `npm run snap` screenshots of
-   every changed screen at **390 px and 1280 px, light and dark**. It covers the default,
+   every changed screen at **390 px, 1280 px and 1920 px, light and dark** (1920 since D34). It covers the default,
    empty, long-content, running and error states, and tries to find:
    - confusing copy or flows, and unclear defaults
    - unreachable controls, horizontal scroll or broken layout

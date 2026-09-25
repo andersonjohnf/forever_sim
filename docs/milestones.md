@@ -421,6 +421,24 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
             mages; the three warlocks (then issue #17's Incinerate filler and Searing Pain with
             Demonic Brand); Shadow
 
+## M5.66: The wide desktop layout (D34) 🚧 next update
+
+From 1440 px the app becomes a power-user workspace; nothing under 1440 changes
+([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25); the audit's proposal
+in `.cache/probes/desktop-audit/proposal.md`). Each slice keeps the phone and 1024–1439 layouts
+pixel-identical (before and after snaps at 390, 1024 and 1280), adds its own e2e at 1440 (and 1920
+where it changes) and updates only its own ux.md subsection.
+- [x] **S0:** opening Assumptions on desktop no longer adds blank page (the audit's bug)
+- [ ] **S1 Shell and tabs** (the foundation): the wide and extra-wide grid, the 2560 cap, the full-width
+      header, the `setup` and `results` named containers, a `3xl` breakpoint at 1920, the tabs as their
+      own component with a summary slot, the skip link; ux.md "Layout"
+- [ ] **S2 Section summaries:** each tab's summary line, a pure function with tests
+- [ ] **S3 Results pane:** details open at wide (remembered), the headline strip and 2–3 columns at 1920+
+- [ ] **S4 Gear list and inline picker**, staying on the slot after a pick
+- [ ] **S5 Buffs, Character and Fight** reflow by container width
+- [ ] **S6 Rotation and Talents** at width: the wider row panel, larger talent trees and a talent detail panel
+- [ ] **S7 Ctrl/Cmd+Enter runs Simulate** (no section shortcuts, D34)
+
 ## M5.7: The optimizer (D30) 🚧 top priority
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player

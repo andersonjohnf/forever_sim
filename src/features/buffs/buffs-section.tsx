@@ -195,7 +195,17 @@ export function BuffsSection() {
       </Field>
 
       <Field label="In your raid" help="Raid buffs follow who’s in the raid. In Forever, both factions can bring paladins and shamans.">
-        <div className="flex flex-wrap gap-2">
+        {/*
+         * In the wide layout, where the full raid's chips don't fit one line (a setup pane under
+         * 72 rem), two even rows of equal chips, as many columns as half the classes, each as wide as
+         * the widest name, rather than a row that leaves the last one alone (review finding DU1-8);
+         * from 72 rem they're one line. Below 1440 px the pane isn't a container, so they wrap as
+         * they always have and the columns do nothing.
+         */}
+        <div
+          className="flex flex-wrap gap-2 @min-[53rem]/setup:grid @min-[53rem]/setup:w-fit @min-[72rem]/setup:flex @min-[72rem]/setup:w-auto"
+          style={{ gridTemplateColumns: `repeat(${Math.ceil(FULL_RAID.length / 2)}, 1fr)` }}
+        >
           {FULL_RAID.map((cls) => {
             const on = buffs.raid.includes(cls)
             return (
@@ -205,7 +215,7 @@ export function BuffsSection() {
                 aria-pressed={on}
                 onClick={() => toggleClass(cls, !on)}
                 className={cn(
-                  'flex min-h-11 items-center gap-2 rounded-full border px-3 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'flex min-h-11 items-center justify-center gap-2 rounded-full border px-3 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                   on ? 'border-primary bg-muted font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >

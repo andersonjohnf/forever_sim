@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
-import { Advanced, Field, SectionHeader } from '@/features/section'
+import { Advanced, Field, FLOW_CONTENTS, FLOW_ITEM, SectionHeader } from '@/features/section'
 import { CREATURE_TYPES, FIGHT_ADVANCED_ID } from './ids'
 import { CHOICE_GROUP_WIDE, CHOICE_HINT, CHOICE_ITEM, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { useIsWide } from '@/hooks/use-media-query'
@@ -65,6 +65,13 @@ const DAMAGE_TAKEN_HELP: Partial<Record<ClassId, string>> = {
 
 /** What else the creature type decides, per spec: Retribution's Exorcism (paladin.md#other-abilities). */
 const CREATURE_NOTE: Partial<Record<SpecId, string>> = { 'paladin-retribution': ' Exorcism can only be cast on Undead and Demons.' }
+
+/**
+ * The fight's four settings in the wide layout: two balanced columns (docs/ux.md "Fight"), each
+ * setting whole in one, 1.5 rem apart as in the one column below 1440 px. The space goes before a
+ * setting, never after it, so a column's top and the columns' foot carry none.
+ */
+const BASIC_ITEM = '@min-[53rem]/setup:mt-6 @min-[53rem]/setup:break-inside-avoid @min-[53rem]/setup:first:mt-0'
 
 const number = (n: number) => n.toLocaleString('en-US')
 
@@ -126,13 +133,16 @@ export function FightSection() {
       />
 
       {/*
-       * In the wide layout, from a 53 rem setup pane, two columns: the fight on the left, and Advanced
-       * on the right, shown open, with no disclosure (D34, docs/ux.md "Fight"). Below 1440 px the pane
-       * isn't a container, so this stays one column, with Advanced a disclosure under the fight.
+       * In the wide layout, from a 53 rem setup pane, the fight's four settings in two columns, the
+       * length and boss armor over the position and execute phase; then Advanced across the pane,
+       * shown open, with no disclosure, its settings flowing into balanced columns (D34, docs/ux.md
+       * "Fight"; review finding DU1-2: beside the fight, Advanced ran long in one column while the
+       * other stood empty). Below 1440 px the pane isn't a container, so this stays one column, with
+       * Advanced a disclosure under the fight.
        */}
-      <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-2 @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
-        <div className="flex flex-col gap-6">
-          <Field
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 @min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-8">
+          <Field className={BASIC_ITEM}
             label={
               <span className="flex items-baseline justify-between">
                 <span id="fight-length-label">Fight length</span>
@@ -153,7 +163,7 @@ export function FightSection() {
             />
           </Field>
 
-          <Field
+          <Field className={BASIC_ITEM}
             label="Boss armor"
             help="Before armor debuffs such as Sunder Armor, which you set under Buffs."
             changed={hint('armor', 'Boss armor', changed.armor, number(def.bossArmor), () => set({ bossArmor: def.bossArmor }), () => selectedOption(ids('armor').control))}
@@ -185,7 +195,7 @@ export function FightSection() {
 
           {/* No "Enemies" control until multi-target is simulated (warrior.md §5.5, docs/ux.md "Fight"): the
               sim has one target. The config keeps `extraTargets`, so saved setups still load. */}
-          <Field
+          <Field className={BASIC_ITEM}
             label="Position"
             // Follows the chosen position, so a DPS spec moved in front hears what that changes.
             help={
@@ -217,7 +227,7 @@ export function FightSection() {
           </Field>
 
           {usesExecute && (
-            <div className="flex flex-col gap-2">
+            <div className={cn('flex flex-col gap-2', BASIC_ITEM)}>
               {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
               <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
                 <span className="flex flex-col gap-1">
@@ -240,8 +250,8 @@ export function FightSection() {
           )}
         </div>
 
-        <Advanced shown={wide} changed={advancedChanged} id={FIGHT_ADVANCED_ID}>
-          <Field
+        <Advanced shown={wide} flow={3} changed={advancedChanged} id={FIGHT_ADVANCED_ID}>
+          <Field className={FLOW_ITEM}
             label="Precision"
             help={
               run.mode === 'adaptive'
@@ -270,7 +280,7 @@ export function FightSection() {
           </Field>
           {run.mode === 'fixed' && (
             // Its own labelled field, with its own help and default (TU8); its name is its visible label.
-            <Field
+            <Field className={FLOW_ITEM}
               label="Number of fights"
               htmlFor={ids('iterations').control}
               help="From 100 to 100,000. More fights give a narrower ± range, and take longer."
@@ -289,7 +299,7 @@ export function FightSection() {
               />
             </Field>
           )}
-          <Field
+          <Field className={FLOW_ITEM}
             label="Seed"
             htmlFor={ids('seed').control}
             help="The same setup and seed give exactly the same result on any device."
@@ -307,8 +317,8 @@ export function FightSection() {
               aria-describedby={describedBy(changed.seed, 'seed')}
             />
           </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field
+          <div className={cn('grid gap-5 sm:grid-cols-2', FLOW_CONTENTS)}>
+            <Field className={FLOW_ITEM}
               label="Length variation"
               htmlFor={ids('variation').control}
               help="Each simulated fight varies by up to this much."
@@ -327,7 +337,7 @@ export function FightSection() {
             </Field>
             {usesExecute && fight.executePct > 0 && (
               // Its accessible name is its visible label (WCAG 2.5.3); the steppers read better shorter.
-              <Field
+              <Field className={FLOW_ITEM}
                 label="Execute phase starts at"
                 htmlFor={ids('executePct').control}
                 help="Boss health remaining."
@@ -346,7 +356,7 @@ export function FightSection() {
                 />
               </Field>
             )}
-            <Field
+            <Field className={FLOW_ITEM}
               label="Boss level"
               htmlFor={ids('bossLevel').control}
               changed={hint('bossLevel', 'Boss level', changed.bossLevel, String(def.bossLevel), () => set({ bossLevel: def.bossLevel }))}
@@ -361,7 +371,7 @@ export function FightSection() {
                 aria-describedby={describedBy(changed.bossLevel, 'bossLevel')}
               />
             </Field>
-            <Field
+            <Field className={FLOW_ITEM}
               label="Creature type"
               htmlFor={ids('creatureType').control}
               help={`Some racials and items only work against certain types.${CREATURE_NOTE[meta.id] ?? ''}`}
@@ -381,7 +391,7 @@ export function FightSection() {
                 </SelectContent>
               </Select>
             </Field>
-            <Field
+            <Field className={FLOW_ITEM}
               label="Zone"
               htmlFor={ids('zone').control}
               help="Some Forever consumables only work in certain zones."
@@ -402,7 +412,7 @@ export function FightSection() {
             </Field>
             {damageTakenHelp !== undefined && (
               // Its accessible name is its visible label (WCAG 2.5.3).
-              <Field
+              <Field className={FLOW_ITEM}
                 label="Damage you take"
                 htmlFor={ids('damageTaken').control}
                 help={damageTakenHelp}
@@ -425,66 +435,70 @@ export function FightSection() {
           </div>
 
           {tank && (
-            <div className="flex flex-col gap-5">
-              <h3 className="text-sm font-medium">Boss melee</h3>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Field
-                  label="Swing speed"
-                  changed={hint('swingSpeed', 'Swing speed', changed.swingSpeed, `${def.boss.swingSpeedSec} s`, () => setBoss({ swingSpeedSec: def.boss.swingSpeedSec }))}
-                >
-                  <NumberField
-                    id={ids('swingSpeed').control}
-                    value={fight.boss.swingSpeedSec}
-                    onChange={(v) => setBoss({ swingSpeedSec: v })}
-                    min={1}
-                    max={4}
-                    step={0.1}
-                    unit="s"
-                    aria-label="Boss swing speed"
-                    aria-describedby={describedBy(changed.swingSpeed, 'swingSpeed')}
-                  />
-                </Field>
-                <Field
-                  label="Damage per swing"
-                  help="Before your armor."
-                  changed={hint(
-                    'swingDamage',
-                    'Damage per swing',
-                    changed.swingDamage,
-                    `${number(def.boss.damageMin)} to ${number(def.boss.damageMax)}`,
-                    () => setBoss({ damageMin: def.boss.damageMin, damageMax: def.boss.damageMax }),
-                  )}
-                >
-                  <div className="flex flex-wrap items-center gap-2">
+            // In the wide layout's columns, the heading keeps to the swing's settings under it, and
+            // each switch flows on its own (FLOW_ITEM).
+            <div className={cn('flex flex-col gap-5', FLOW_CONTENTS)}>
+              <div className={cn('flex flex-col gap-5', FLOW_ITEM)}>
+                <h3 className="text-sm font-medium">Boss melee</h3>
+                <div className="grid gap-5 sm:grid-cols-2 @min-[53rem]/setup:grid-cols-1">
+                  <Field
+                    label="Swing speed"
+                    changed={hint('swingSpeed', 'Swing speed', changed.swingSpeed, `${def.boss.swingSpeedSec} s`, () => setBoss({ swingSpeedSec: def.boss.swingSpeedSec }))}
+                  >
                     <NumberField
-                      id={ids('swingDamage').control}
-                      value={fight.boss.damageMin}
-                      onChange={(v) => setBoss({ damageMin: Math.min(v, fight.boss.damageMax) })}
-                      min={0}
-                      max={20000}
-                      step={100}
-                      grouping
-                      aria-label="Minimum damage per swing"
-                      aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
+                      id={ids('swingSpeed').control}
+                      value={fight.boss.swingSpeedSec}
+                      onChange={(v) => setBoss({ swingSpeedSec: v })}
+                      min={1}
+                      max={4}
+                      step={0.1}
+                      unit="s"
+                      aria-label="Boss swing speed"
+                      aria-describedby={describedBy(changed.swingSpeed, 'swingSpeed')}
                     />
-                    <span className="text-muted-foreground">to</span>
-                    <NumberField
-                      value={fight.boss.damageMax}
-                      onChange={(v) => setBoss({ damageMax: Math.max(v, fight.boss.damageMin) })}
-                      min={0}
-                      max={20000}
-                      step={100}
-                      grouping
-                      aria-label="Maximum damage per swing"
-                      aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
-                    />
-                  </div>
-                </Field>
+                  </Field>
+                  <Field
+                    label="Damage per swing"
+                    help="Before your armor."
+                    changed={hint(
+                      'swingDamage',
+                      'Damage per swing',
+                      changed.swingDamage,
+                      `${number(def.boss.damageMin)} to ${number(def.boss.damageMax)}`,
+                      () => setBoss({ damageMin: def.boss.damageMin, damageMax: def.boss.damageMax }),
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <NumberField
+                        id={ids('swingDamage').control}
+                        value={fight.boss.damageMin}
+                        onChange={(v) => setBoss({ damageMin: Math.min(v, fight.boss.damageMax) })}
+                        min={0}
+                        max={20000}
+                        step={100}
+                        grouping
+                        aria-label="Minimum damage per swing"
+                        aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
+                      />
+                      <span className="text-muted-foreground">to</span>
+                      <NumberField
+                        value={fight.boss.damageMax}
+                        onChange={(v) => setBoss({ damageMax: Math.max(v, fight.boss.damageMin) })}
+                        min={0}
+                        max={20000}
+                        step={100}
+                        grouping
+                        aria-label="Maximum damage per swing"
+                        aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
+                      />
+                    </div>
+                  </Field>
+                </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={cn('grid gap-3 sm:grid-cols-2', FLOW_CONTENTS)}>
                 {BOSS_SWITCHES.map(([key, label]) => (
                   // Room for the Reset's hit area, clear of the switch above and the next row (LINK_HIT_AREA).
-                  <div key={key} className={cn('flex flex-col', changed[key] ? 'gap-2 pb-2' : 'gap-1')}>
+                  <div key={key} className={cn('flex flex-col @min-[53rem]/setup:mb-3 @min-[53rem]/setup:break-inside-avoid', changed[key] ? 'gap-2 pb-2' : 'gap-1')}>
                     <label className="flex min-h-11 items-center justify-between gap-4 text-sm">
                       {label}
                       <Switch

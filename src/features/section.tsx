@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
@@ -51,13 +51,36 @@ export function Field({
 }
 
 /**
+ * In the wide layout, from a 53 rem setup pane, an `Advanced` card with `flow` lays its settings out
+ * in balanced columns, 2 from 53 rem and 3 from 72 rem (the Buffs tab's widths, docs/ux.md "Buffs"),
+ * read top to bottom and then on to the next column (D34, docs/ux.md "Fight" and "Character"). Each
+ * setting is a `FLOW_ITEM`, which never splits between two columns; a wrapper that groups settings
+ * below 1440 px is `FLOW_CONTENTS` in the columns, so its settings flow on their own. CSS columns
+ * balance whatever the settings are, so the card is as short as its content allows, whichever spec
+ * and settings it holds, rather than tuned to today's. Below 1440 px the pane isn't a container, so
+ * none of this applies.
+ */
+export const FLOW_ITEM = '@min-[53rem]/setup:mb-5 @min-[53rem]/setup:break-inside-avoid'
+export const FLOW_CONTENTS = '@min-[53rem]/setup:contents'
+const FLOW = {
+  2: '@min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-8 @min-[72rem]/setup:columns-3',
+  3: '@min-[53rem]/setup:block @min-[53rem]/setup:columns-3 @min-[53rem]/setup:gap-6 @min-[72rem]/setup:columns-4',
+} as const
+
+/**
  * The "Advanced" disclosure (docs/ux.md principle 2): depth one level down, never removed. Like the
  * Rotation tab's headings, it opens by itself when `changed` settings inside it differ from their
  * defaults, and counts them even while closed.
  *
  * `shown` is for a wide screen, where there's room (docs/ux.md principle 4, "Show it when there's
  * room"): the same card, headed "Advanced", open, with no disclosure to press. Each setting inside
- * still marks its own change, so no count is needed. `id` then names the heading.
+ * still marks its own change, so no count is needed. `id` names the heading then, and the
+ * disclosure's button otherwise.
+ *
+ * Both are the same elements, the disclosure held open and its button hidden while shown, so a
+ * window crossing 1440 px (browser zoom, snapping a window) keeps focus on the setting that had it
+ * (review finding DL2-3). Once shown, the disclosure stays open if the window narrows: what you
+ * were looking at doesn't fold away under you.
  */
 export function Advanced({
   children,
@@ -65,30 +88,34 @@ export function Advanced({
   changed = 0,
   id,
   shown = false,
+  flow,
 }: {
   children: ReactNode
   label?: string
   changed?: number
   id?: string
   shown?: boolean
+  /** Its settings flow into columns in the wide layout, each a `FLOW_ITEM`: this many from 53 rem, one more from 72. */
+  flow?: 2 | 3
 }) {
-  const content = 'flex flex-col gap-5 border-t px-4 py-4'
+  const [open, setOpen] = useState(changed > 0)
+  if (shown && !open) setOpen(true)
   const ownId = useId()
-  if (shown) {
-    const headingId = id ?? ownId
-    return (
-      <section aria-labelledby={headingId} className="rounded-lg border">
-        <h3 id={headingId} className="flex min-h-11 items-center px-4 text-sm font-medium">
-          {label}
-        </h3>
-        <div className={content}>{children}</div>
-      </section>
-    )
-  }
+  const headingId = shown ? (id ?? ownId) : ownId
   return (
-    <Collapsible className="rounded-lg border" defaultOpen={changed > 0}>
+    <Collapsible
+      className="rounded-lg border"
+      open={shown || open}
+      onOpenChange={setOpen}
+      role={shown ? 'region' : undefined}
+      aria-labelledby={shown ? headingId : undefined}
+    >
+      <h3 id={headingId} hidden={!shown} className="flex min-h-11 items-center px-4 text-sm font-medium">
+        {label}
+      </h3>
       <CollapsibleTrigger
-        id={id}
+        id={shown ? undefined : id}
+        hidden={shown}
         aria-label={changed > 0 ? `${label}, ${changed} changed` : undefined}
         className="group flex min-h-11 w-full items-center gap-2 px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
@@ -101,7 +128,7 @@ export function Advanced({
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className={content}>{children}</CollapsibleContent>
+      <CollapsibleContent className={cn('flex flex-col gap-5 border-t px-4 py-4', flow && FLOW[flow])}>{children}</CollapsibleContent>
     </Collapsible>
   )
 }

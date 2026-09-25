@@ -266,9 +266,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     so a pick and what it brings are in view together. Advanced spans the pane below both, **shown
     open** (principle 4, "Show it when there's room"): a card headed "Advanced" with its settings in
     view and no disclosure to press, so each changed setting's own "Default: …" line marks it, with no
-    count. Its choices (the rule profile, a paladin's two untested rules) are as wide as their options,
+    count. Its settings flow into balanced columns, read top to bottom and then on (CSS columns, each
+    setting whole in one): 2 from 53 rem and 3 from 72 rem, the Buffs tab's widths, so a paladin's
+    four settings take two short columns rather than one long one (review finding DU1-7: at
+    1440×900 Prot Paladin's tab ends at 971 px, from 1,115; every other spec's fits the window). Its
+    choices (the rule profile, a paladin's two untested rules) are as wide as their options,
     left-aligned ([Visual language](#visual-language)), not two halves of the pane. Narrower, the
     racials come under the races and Advanced is a disclosure, as at every width under 1440 px.
+    Shown and disclosure are the same elements, the disclosure held open and its button hidden, so a
+    window crossing 1440 px keeps focus on the setting that had it, and Advanced stays open when the
+    window narrows under it (review finding DL2-3).
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
@@ -550,9 +557,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     own narrower card with its switches at its end, not across the pane from their names. The category
     headings, the presets and "In your raid" stay above them. Three columns wait for 72 rem because a
     column under about 23 rem squeezes a buff's help beside its switch (at 1440 px three would be
-    17.7 rem). The four presets stop at 16 rem each, left-aligned, rather than each taking a quarter of
-    the pane (principle 4: at 1440 px a quarter is under 16 rem anyway). Narrower, the groups are one
-    column and the presets share the width, as at every width under 1440 px.
+    17.7 rem, 17.3 beside a classic scrollbar: (55 − 2 gaps of 1 rem) ÷ 3). So Buffs is the one
+    section that scrolls at 1440×900, and by design (review finding DU1-8, waived): it's every raid
+    buff, debuff and consumable, some 60 switches, about 2,750 px of page in two columns and 2,240 in
+    three at 1920×1080, and a third column at 1440 px would buy height with lines of help too narrow
+    to read. "In your raid" is two even rows of equal chips at 53 rem, as many columns as half the
+    classes (5 and 4, each chip as wide as the widest name), rather than a row that leaves one class
+    alone, and one line from 72 rem, where all nine fit. The four presets stop at 16 rem each,
+    left-aligned, rather than each taking a quarter of the pane (principle 4: at 1440 px a quarter is
+    under 16 rem anyway). Narrower, the groups are one column, the chips wrap and the presets share
+    the width, as at every width under 1440 px.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
@@ -846,13 +860,23 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
   - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
     from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
-    two columns: the length, boss armor, position and execute phase on the left, and Advanced on the
-    right, **shown open** (principle 4, "Show it when there's room"): a card headed "Advanced" with
-    every setting in view and no disclosure to press, so each changed setting's own "Default: …" line
-    marks it, with no count, and Rotation's "set Creature type" link lands straight on the menu. Boss
+    the fight's four settings in two balanced columns (the length and boss armor, then the position
+    and execute phase), and Advanced across the pane below them, **shown open** (principle 4, "Show
+    it when there's room"): a card headed "Advanced" with every setting in view and no disclosure to
+    press, so each changed setting's own "Default: …" line marks it, with no count, and Rotation's
+    "set Creature type" link lands straight on the menu. Its settings flow into balanced columns,
+    read top to bottom and then on (CSS columns, each setting whole in one; Boss melee's heading
+    keeps to its swing settings and each switch flows on its own): 3 from 53 rem, whose columns of
+    about 16 rem hold a stepper, a menu or Precision's two options, and 4 from 72 rem. Balanced
+    columns fit whatever the spec shows, rather than a split tuned to today's settings (review
+    finding DU1-2: Advanced beside the fight ran long in one column while the other stood empty).
+    At 1440×900 a DPS spec's tab fits the window (Fury ends at 891 px, from 943); a tank's, with
+    Boss melee's seven settings, ends at 1,083 (from 1,323) and fits from 1920×1080 (927). Boss
     armor, position and precision are as wide as their options, left-aligned
     ([Visual language](#visual-language)). Narrower, Advanced is a disclosure under them, as at every
-    width under 1440 px.
+    width under 1440 px. Shown and disclosure are the same elements, the disclosure held open and
+    its button hidden, so a window crossing 1440 px keeps focus on the setting that had it, and
+    Advanced stays open when the window narrows under it (review finding DL2-3).
   - Advanced: precision and seed, then the fight's details. Every field is labelled, the
     Creature type and Zone menus included, and its accessible name contains its visible label
     ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their

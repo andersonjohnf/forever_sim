@@ -55,36 +55,37 @@ test.describe('Feral cat', () => {
         { exact: true },
       ),
     ).toBeVisible()
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
-    for (const name of ['Berserk', 'Tiger’s Fury', 'Faerie Fire', 'Shred', 'Rip', 'Ferocious Bite']) {
-      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    // The rotation is a priority list (D31, druid.md §6.2 "The cat's priority list"), the consumables above it.
+    const list = page.getByRole('list', { name: 'Priority list' })
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+    for (const name of ['Berserk', 'Tiger’s Fury', 'Faerie Fire', 'Shred', 'Claw', 'Rip', 'Ferocious Bite']) {
+      await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
     }
-    await expect(tab.getByRole('switch', { name: 'Rake', exact: true })).not.toBeChecked()
+    await expect(list.getByRole('switch', { name: 'Rake', exact: true })).not.toBeChecked()
     // What the rest of the setup leaves unused says why, dimmed: the Tauren's racial, and Rake in a
     // raid whose warriors keep the boss bleeding, whose note names the way to use it anyway.
-    const racial = tab.getByRole('switch', { name: 'Racial cooldown', exact: true })
+    const racial = list.getByRole('switch', { name: 'Racial cooldown', exact: true })
     await expect(racial).toHaveAccessibleDescription(/Not used: Tauren has no racial cooldown that adds damage\./)
-    const inactiveRow = (name: string) => tab.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name, exact: true }) })
-    await expect(inactiveRow('Racial cooldown')).toHaveCount(1)
-    const rake = tab.getByRole('switch', { name: 'Rake', exact: true })
+    const row = (id: string) => list.locator(`[data-apl-row="${id}"]`)
+    await expect(row('racial')).toHaveAttribute('data-inactive')
+    const rake = list.getByRole('switch', { name: 'Rake', exact: true })
     await rake.click()
     await expect(rake).toBeChecked()
     await expect(rake).toHaveAccessibleDescription(/Not used in this raid: its warriors keep the boss bleeding\. Turn off “Rake only when nothing else bleeds” to use it anyway\./)
-    await expect(inactiveRow('Rake')).toHaveCount(1)
-    await expect(inactiveRow('Rake only when nothing else bleeds')).toHaveCount(0)
-    await tab.getByRole('switch', { name: 'Rake only when nothing else bleeds' }).click()
+    await expect(row('rake')).toHaveAttribute('data-inactive')
+    await list.getByRole('button', { name: 'Rake', exact: true }).click()
+    const rakeSettings = page.getByRole('complementary', { name: 'Rake settings' })
+    await rakeSettings.getByRole('switch', { name: 'Rake only when nothing else bleeds' }).click()
     await expect(rake).not.toHaveAccessibleDescription(/Not used/)
-    await expect(inactiveRow('Rake')).toHaveCount(0)
+    await expect(row('rake')).not.toHaveAttribute('data-inactive')
 
-    // The tuned thresholds wait behind Advanced, in Energy and combo points (druid.md §6.2).
-    const core = tab.getByRole('region', { name: 'Core abilities' })
-    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Ferocious Bite at', exact: true })).toHaveValue('5')
-    await expect(core.getByRole('textbox', { name: 'Shred before Ferocious Bite from' })).toHaveValue('35')
-    await expect(core.getByRole('textbox', { name: 'Ferocious Bite at any Energy in the last' })).toHaveValue('4')
-    const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-    await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
-    const tigersFury = cooldowns.getByRole('textbox', { name: 'Tiger’s Fury losing up to' })
+    // The tuned thresholds are each row's own, in Energy and combo points (druid.md §6.2).
+    await expect(row('ferociousBite')).toContainText('At 5 combo points · Shred first from 35 Energy · at any Energy in the last 4 s')
+    await expect(row('rip')).toContainText('At 5 combo points · while the fight has 8 s left')
+    await expect(row('tigersFury')).toContainText('Up to 20 Energy over the cap')
+    await expect(row('clearcasting')).toContainText('Shred or Claw first: it’s free')
+    await list.getByRole('button', { name: 'Tiger’s Fury', exact: true }).click()
+    const tigersFury = page.getByRole('complementary', { name: 'Tiger’s Fury settings' }).getByRole('textbox', { name: 'Tiger’s Fury losing up to' })
     await expect(tigersFury).toHaveValue('20')
     await expect(tigersFury).toHaveAccessibleDescription(/at most this much of its Energy would be lost at the 100 cap/)
   })
@@ -214,7 +215,8 @@ test.describe('Feral cat share link', () => {
     await openTab(page, 'Rotation')
     const rake = page.getByRole('switch', { name: 'Rake', exact: true })
     await expect(rake).toBeChecked()
-    await expect(rake).toHaveAccessibleDescription(/Changed\. Default: off/)
+    // Its row is marked changed; the default raid's warriors leave it unused, and it says why.
+    await expect(rake).toHaveAccessibleDescription(/^Changed\. Not used in this raid/)
   })
 })
 

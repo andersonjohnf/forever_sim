@@ -414,9 +414,9 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
  * The wide layout's status in Your setup's action row (src/app/setup-summary.tsx), beside its
  * Simulate (docs/ux.md#results), so the row always says where things stand: before a first run, what
  * a run would do; during one, its progress beside Cancel; after it, the result's headline, "DPS
- * 713.7 ± 1.8" (a tank's TPS over its DPS), with the run's size small under it, marked "Setup
- * changed" and dimmed once the setup has changed since; or that the run didn't finish, whose message
- * is under the card.
+ * 713.7 ± 1.8" large (a tank's TPS over its DPS), with the run's size small to its right ("2,250
+ * runs, 0.2 s", user decision), marked "Setup changed" and dimmed once the setup has changed since;
+ * or that the run didn't finish, whose message is under the card.
  */
 export function WideRunStatus() {
   const { result, previous, runConfig, stale, running, error, metricLabel, progressPct } = useRunState()
@@ -424,17 +424,31 @@ export function WideRunStatus() {
   if (error !== null) return <p className="text-sm text-muted-foreground">This run didn’t finish. See why below.</p>
   if (!result) return <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
   return (
-    <div className="flex min-w-0 flex-col gap-0.5">
+    <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-1">
       <div data-dimmed={stale} className={cn('flex flex-col', DIM_ROOT)}>
         {metricsFor(result.spec).map((key) => (
           <RowMetric key={key} label={METRIC_LABEL[key]} value={result[key]} previous={previous ? previous[key].mean : null} />
         ))}
       </div>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+      <div className="flex flex-col items-start gap-0.5 pb-1.5 text-xs">
         {stale && <StaleBadge />}
-        <RunSummary result={result} runConfig={runConfig} />
+        <WideRunSummary result={result} runConfig={runConfig} />
       </div>
     </div>
+  )
+}
+
+/**
+ * The run's size and how long it took, short, beside the wide headline: "2,250 runs, 0.2 s". The
+ * fight's length is in Your setup's Fight line; the rules are said only when they're Classic Era's.
+ */
+function WideRunSummary({ result }: { result: SimResult; runConfig: SimConfig | null }) {
+  const took = result.elapsedMs < 50 ? 'under 0.1 s' : formatSeconds(result.elapsedMs)
+  return (
+    <p className="text-muted-foreground tabular-nums">
+      {formatInt(result.iterations)} runs, {took}
+      {result.profile !== 'forever' && ' · Classic Era rules'}
+    </p>
   )
 }
 
@@ -449,7 +463,7 @@ function RowMetric({ label, value, previous }: { label: string; value: Summary; 
       <span id={labelId} className="text-xs font-medium text-muted-foreground">
         {label}
       </span>
-      <span className="text-2xl font-semibold tracking-tight tabular-nums">{formatOne(value.mean)}</span>
+      <span className="text-4xl font-semibold tracking-tight tabular-nums">{formatOne(value.mean)}</span>
       <span className="text-sm text-muted-foreground tabular-nums">± {formatOne(value.ci95)}</span>
       <Delta value={value.mean} previous={previous} className="text-sm" />
     </div>

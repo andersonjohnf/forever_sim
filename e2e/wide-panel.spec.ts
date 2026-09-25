@@ -122,7 +122,7 @@ test.describe('the wide panel at 1440×900', () => {
     const [tps, dps] = [actions.getByRole('group', { name: 'TPS' }), actions.getByRole('group', { name: 'DPS' })]
     await expect(tps).toContainText(/^TPS[\d,]+\.\d± [\d.]+/)
     await expect(dps).toContainText(/^DPS[\d,]+\.\d± [\d.]+/)
-    await expect(actions).toContainText(/[\d,]+ fights of 180 s/)
+    await expect(actions).toContainText(/[\d,]+ runs, (under )?\d+\.\d s/)
     // TPS over DPS, both left of Run again.
     const [t, d, run] = await Promise.all([box(tps), box(dps), box(setupOf(panel).getByRole('button', { name: 'Run again' }))])
     expect(d.y).toBeGreaterThan(t.y)
@@ -172,10 +172,16 @@ test.describe('the wide panel at 1440×900', () => {
     await expect(setup.getByText('Your setup is ready. Simulate to see your DPS.')).toBeVisible()
     const before = await box(simulateOf(panel))
     await simulate(panel)
-    // After a run: the headline, "DPS 713.7 ± 1.8", with the run's size under it.
+    // After a run: the headline, "DPS 713.7 ± 1.8", large, with the run's size short to its right
+    // (user decision): no fight length or rules at Forever's.
     const dps = actionsOf(panel).getByRole('group', { name: 'DPS' })
     await expect(dps).toContainText(/^DPS[\d,]+\.\d± [\d.]+$/)
-    await expect(actionsOf(panel)).toContainText(/fights of 180 s · Forever rules · ran in/)
+    const size = actionsOf(panel).getByText(/^[\d,]+ runs, (under 0\.1|\d+\.\d) s$/)
+    await expect(size).toBeVisible()
+    await expect(actionsOf(panel)).not.toContainText(/fights of|Forever rules/)
+    const [value, sizeBox] = await Promise.all([box(dps.locator('span.text-4xl')), box(size)])
+    expect(value.height).toBeGreaterThanOrEqual(36)
+    expect(sizeBox.x).toBeGreaterThan(value.x + value.width)
     // A screen reader hears it from the run's live region.
     await expect(page.locator('[role="status"][aria-label="Simulation status"]')).toHaveText(/^Done: [\d,]+\.\d DPS$/)
     const after = await box(simulateOf(panel))
@@ -325,8 +331,12 @@ test.describe('the wide panel beside a classic scrollbar', () => {
       .locator('dl > div > dt')
       .evaluateAll((dts) => dts.filter((dt) => dt.getBoundingClientRect().height > Number.parseFloat(getComputedStyle(dt).lineHeight) * 1.5).map((dt) => dt.textContent))
     expect(wrapped).toEqual([])
-    // Each value on its line: TPS and DPS each one line tall.
-    for (const name of ['TPS', 'DPS']) expect((await box(actionsOf(panel).getByRole('group', { name }))).height).toBeLessThan(40)
+    // Each value on its line: TPS and DPS each one line of the large value tall, not wrapped.
+    for (const name of ['TPS', 'DPS']) {
+      const group = actionsOf(panel).getByRole('group', { name })
+      const line = await group.locator('span.text-4xl').evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight))
+      expect((await box(group)).height).toBeLessThan(line * 1.5)
+    }
   })
 })
 

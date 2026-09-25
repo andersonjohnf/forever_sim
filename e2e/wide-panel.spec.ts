@@ -331,10 +331,13 @@ test.describe('the wide panel beside a classic scrollbar', () => {
       .locator('dl > div > dt')
       .evaluateAll((dts) => dts.filter((dt) => dt.getBoundingClientRect().height > Number.parseFloat(getComputedStyle(dt).lineHeight) * 1.5).map((dt) => dt.textContent))
     expect(wrapped).toEqual([])
-    // Each value on its line: TPS and DPS each one line of the large value tall, not wrapped.
+    // Each value on its line: TPS and DPS each one line of its value tall, not wrapped; TPS leads,
+    // its DPS a step smaller (review finding V5-4).
+    const size = (name: string) => actionsOf(panel).getByRole('group', { name }).locator('span.font-semibold').first().evaluate((el) => Number.parseFloat(getComputedStyle(el).fontSize))
+    expect(await size('TPS')).toBeGreaterThan(await size('DPS'))
     for (const name of ['TPS', 'DPS']) {
       const group = actionsOf(panel).getByRole('group', { name })
-      const line = await group.locator('span.text-4xl').evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight))
+      const line = await group.locator('span.font-semibold').first().evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight))
       expect((await box(group)).height).toBeLessThan(line * 1.5)
     }
   })

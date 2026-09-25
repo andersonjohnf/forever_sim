@@ -30,15 +30,15 @@ export const RELEASES: readonly Release[] = [
         label: 'DPS specs',
         items: [
           'Every DPS spec’s Rotation tab is now a priority list: drag a row or use Move up and Move down, turn any step off, and change its settings in place. Your order is saved and travels in share links.',
-          'Warlocks can pick Incinerate as their filler once it’s talented; Demonology then defaults to it (+3.9%).',
+          'Warlocks can pick Incinerate as their filler once it’s talented: a Demonology build with it gains about 3.9% (the default talents don’t take it).',
           'Searing Pain and Demonic Brand are simulated: Demonology with Demonic Brand is about +12%, on untested values, so the default talents stay for now.',
-          'Rogue: Eviscerate gains 4% of attack power per combo point, up from 3%, and Instant and Deadly Poison gain from attack power, from a guild member’s in-game tests: about +0.5 to 1%.',
+          'Rogue: Eviscerate gains 4% of attack power per combo point, up from 3%, and Instant and Deadly Poison gain from attack power, from a guild member’s in-game tests: Combat +1%, Assassination +2%, Subtlety +0.7%.',
         ],
       },
       {
         label: 'Your setup',
         items: [
-          'On a desktop window 1440 px and wider, the character sheet and Your setup sit beside every tab, with your DPS beside Run again.',
+          'On a desktop window 1440 px and wider, the character sheet and Your setup sit beside every tab, with your result beside Run again.',
           'Gear shows every slot at once, laid out as the game’s character pane; the item picker opens as a window.',
           'Rotation’s settings sit beside the priority list, and Buffs, Fight and Character show every setting.',
           'A new light theme: a navy toolbar and white panels. Tooltips follow your theme.',

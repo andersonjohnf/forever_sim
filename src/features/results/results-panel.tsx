@@ -426,8 +426,8 @@ export function WideRunStatus() {
   return (
     <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-1">
       <div data-dimmed={stale} className={cn('flex flex-col', DIM_ROOT)}>
-        {metricsFor(result.spec).map((key) => (
-          <RowMetric key={key} label={METRIC_LABEL[key]} value={result[key]} previous={previous ? previous[key].mean : null} />
+        {metricsFor(result.spec).map((key, i) => (
+          <RowMetric key={key} label={METRIC_LABEL[key]} value={result[key]} previous={previous ? previous[key].mean : null} secondary={i > 0} />
         ))}
       </div>
       <div className="flex flex-col items-start gap-0.5 pb-1.5 text-xs">
@@ -456,14 +456,15 @@ function WideRunSummary({ result }: { result: SimResult; runConfig: SimConfig | 
  * One value of the action row's headline on a line: its label, the value, its ± and its change,
  * named by its label for assistive tech as the headline's are ("DPS").
  */
-function RowMetric({ label, value, previous }: { label: string; value: Summary; previous: number | null }) {
+function RowMetric({ label, value, previous, secondary = false }: { label: string; value: Summary; previous: number | null; secondary?: boolean }) {
   const labelId = useId()
   return (
     <div role="group" aria-labelledby={labelId} className="flex min-w-0 flex-wrap items-baseline gap-x-2">
       <span id={labelId} className="text-xs font-medium text-muted-foreground">
         {label}
       </span>
-      <span className="text-4xl font-semibold tracking-tight tabular-nums">{formatOne(value.mean)}</span>
+      {/* A tank's TPS leads; its DPS, second, is a step smaller (review finding V5-4). */}
+      <span className={cn('font-semibold tracking-tight tabular-nums', secondary ? 'text-2xl' : 'text-4xl')}>{formatOne(value.mean)}</span>
       <span className="text-sm text-muted-foreground tabular-nums">± {formatOne(value.ci95)}</span>
       <Delta value={value.mean} previous={previous} className="text-sm" />
     </div>

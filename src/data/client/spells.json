@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 49,
       "consumable": 82,
-      "docs": 580,
+      "docs": 589,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2833,
-    "spells": 3109
+    "seeds": 2842,
+    "spells": 3118
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -32889,6 +32889,44 @@
       ],
       "sources": ["spellbook"]
     },
+    "8230": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [67108864, 0, 0, -2147483648],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectBasePointsF": 8253,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 8230,
+      "levels": {
+        "baseLevel": 28,
+        "maxLevel": 36,
+        "spellLevel": 28
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 136040
+      },
+      "name": "Flametongue Totem",
+      "nameSubtext": "Rank 1",
+      "sources": ["docs"]
+    },
     "8232": {
       "categories": {
         "defenseType": 1,
@@ -33025,6 +33063,43 @@
         }
       ],
       "sources": ["spellbook"]
+    },
+    "8250": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [67108864, 0, 0, -2147483648],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 8250,
+      "levels": {
+        "baseLevel": 38,
+        "maxLevel": 46,
+        "spellLevel": 38
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 136040
+      },
+      "name": "Flametongue Totem",
+      "nameSubtext": "Rank 2",
+      "sources": ["docs"]
     },
     "8288": {
       "auraOptions": {
@@ -35016,6 +35091,40 @@
       ],
       "sources": ["spellbook"]
     },
+    "8515": {
+      "auraOptions": {
+        "procCategoryRecovery": 100,
+        "procChance": 20,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectBasePointsF": 8516,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 8515,
+      "levels": {
+        "maxLevel": 40,
+        "spellLevel": 32
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136114
+      },
+      "name": "Windfury Totem",
+      "nameSubtext": "Rank 1",
+      "sources": ["docs"]
+    },
     "8621": {
       "categories": {
         "category": 40,
@@ -36346,6 +36455,40 @@
         }
       ],
       "sources": ["spellbook"]
+    },
+    "8836": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [131072, 0, 0, 16777216],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 29,
+          "effectBasePointsF": 49,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 8836,
+      "levels": {
+        "baseLevel": 42,
+        "spellLevel": 42
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136046
+      },
+      "name": "Grace of Air",
+      "nameSubtext": "Rank 1",
+      "sources": ["docs"]
     },
     "8903": {
       "castTime": {
@@ -49360,6 +49503,44 @@
       ],
       "sources": ["buffsDoc", "docs", "spellbook"]
     },
+    "10521": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [67108864, 0, 0, -2147483648],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectBasePointsF": 10523,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 10521,
+      "levels": {
+        "baseLevel": 48,
+        "maxLevel": 56,
+        "spellLevel": 48
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 136040
+      },
+      "name": "Flametongue Totem",
+      "nameSubtext": "Rank 3",
+      "sources": ["docs"]
+    },
     "10526": {
       "categories": {
         "defenseType": 1,
@@ -49820,6 +50001,40 @@
       },
       "sources": ["docs", "spellbook"]
     },
+    "10609": {
+      "auraOptions": {
+        "procCategoryRecovery": 100,
+        "procChance": 20,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectBasePointsF": 10608,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 10609,
+      "levels": {
+        "maxLevel": 50,
+        "spellLevel": 42
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136114
+      },
+      "name": "Windfury Totem",
+      "nameSubtext": "Rank 2",
+      "sources": ["docs"]
+    },
     "10610": {
       "auraOptions": {
         "procChance": 100,
@@ -50099,6 +50314,40 @@
         "rangeMax": [40, 40]
       },
       "sources": ["spellbook"]
+    },
+    "10626": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [131072, 0, 0, 16777216],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 29,
+          "effectBasePointsF": 77,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 10626,
+      "levels": {
+        "baseLevel": 56,
+        "spellLevel": 56
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136046
+      },
+      "name": "Grace of Air",
+      "nameSubtext": "Rank 2",
+      "sources": ["docs"]
     },
     "10627": {
       "categories": {
@@ -71254,6 +71503,44 @@
       },
       "name": "Vigor",
       "sources": ["talent"]
+    },
+    "15036": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [67108864, 0, 0, -2147483648],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 42,
+          "effectBasePointsF": 16389,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15036,
+      "levels": {
+        "baseLevel": 58,
+        "maxLevel": 66,
+        "spellLevel": 58
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 136040
+      },
+      "name": "Flametongue Totem",
+      "nameSubtext": "Rank 4",
+      "sources": ["docs"]
     },
     "15058": {
       "classOptions": {
@@ -117309,6 +117596,38 @@
       },
       "misc": {
         "attributes": [16, 0, 4, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132090
+      },
+      "name": "Deep Wound",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
+    },
+    "412613": {
+      "categories": {
+        "mechanic": 15
+      },
+      "classOptions": {
+        "spellClassMask": [0, 16, 0, 0],
+        "spellClassSet": 4
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [25, 0]
+        }
+      ],
+      "id": 412613,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [8388624, 0, 536870916, 33554432, 0, 0, 536870912, 0, 0, 0, 2, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132090
       },

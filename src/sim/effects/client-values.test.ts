@@ -160,9 +160,15 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
 })
 
 describe('the air totems don’t stack, even from different shamans (buffs doc `totem:air`, 1.60.1.70009)', () => {
-  it('Windfury (10612), Grace of Air (25360) and Tranquil Air (25909) carry the same new Attributes[11] 0x400 flag, and no other spell the dataset holds does', () => {
+  it('every rank of Windfury, Grace of Air and Flametongue Totem, and Tranquil Air, carry the same new Attributes[11] 0x400 flag, and no other spell the dataset holds does (shaman.md#totems)', () => {
     const flagged = Object.entries(spells).filter(([, s]) => ((s.misc?.attributes?.[11] ?? 0) & 0x400) !== 0)
-    expect(flagged.map(([id]) => id).sort()).toEqual(['10612', '25360', '25909'])
+    const byName = (name: string) => flagged.filter(([, s]) => s.name === name).map(([id]) => Number(id)).sort((a, b) => a - b)
+    expect(byName('Windfury Totem')).toEqual([8515, 10609, 10612])
+    expect(byName('Grace of Air')).toEqual([8836, 10626, 25360])
+    // The notes: Flametongue Totem no longer stacks with Windfury. Not in the catalogue.
+    expect(byName('Flametongue Totem')).toEqual([8230, 8250, 10521, 15036])
+    expect(byName('Tranquil Air')).toEqual([25909])
+    expect(flagged).toHaveLength(11)
   })
 
   it('keeps one of Windfury Totem and Grace of Air Totem when a setup has both, and says why', () => {

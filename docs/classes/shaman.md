@@ -313,9 +313,15 @@ shaman in the raid and Self only brings them
 Values, durations (5 min, [F]) and exclusivity are the
 [buffs doc](../mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit)'s: one air
 totem, and since 1.60.1.70009 Windfury, Grace of Air and Tranquil Air don't stack **even from
-different shamans** in the group, so a second shaman can't add the other one
-([Forever development notes][dev-70009]; their auras 10612, 25360 and 25909 gain the same new
-`Attributes[11]` flag, 0x400 [F] [client] (SpellMisc, 1.60.1.70009)).
+different shamans** in the group, so a second shaman can't add the other one, and Flametongue
+Totem no longer stacks with Windfury ([Forever development notes][dev-70009]). The client marks
+them all with the same new `Attributes[11]` flag, 0x400, on every rank's aura [F] [client]
+(SpellMisc, 1.60.1.70009):
+
+- Windfury Totem 8515, 10609 and 10612, and Grace of Air 8836, 10626 and 25360;
+- Flametongue Totem 8230, 8250, 10521 and 15036, and Tranquil Air 25909.
+
+The sim models the rank-3 Windfury and Grace of Air; Flametongue Totem isn't in the catalogue.
 
 - **Windfury Totem and Windfury Weapon.** Windfury Weapon's Forever tooltip: "When applied to main
   hand, disables any benefit you personally receive from Windfury Totem" [F]. So no preset gives

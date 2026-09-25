@@ -1044,7 +1044,7 @@ stones, `buffUnusedReason`) did nothing, so it goes without a note.
 | `blessing:<type>` | Blessing and Greater Blessing of the same type; one Blessing per paladin (model it as one toggle per type) | [F] |
 | `party-crit-aura` | Leader of the Pack, Moonkin Aura, Camp Chair | [F] (Camp Chair vs LotP [?]) |
 | `camp:<copied buff>` | Each camp object and the class buff it copies (Lodestone / Might, Sharpening Wheel / Strength of Earth, Fish Bowl / Kings, Enchanted Lute / Mark of the Wild, First Aid Kit / Fortitude, …) | [F] |
-| `totem:air` (one per group, even from different shamans, since 1.60.1.70009) | Windfury Totem, Grace of Air Totem (and Tranquil Air, not in the catalogue) | [F] [dev-70009]; [client] (SpellMisc `Attributes[11]` 0x400 on 10612, 25360 and 25909, 1.60.1.70009) |
+| `totem:air` (one per group, even from different shamans, since 1.60.1.70009) | Windfury Totem, Grace of Air Totem (and Tranquil Air and Flametongue Totem, not in the catalogue; the notes say Flametongue no longer stacks with Windfury) | [F] [dev-70009]; [client] (SpellMisc `Attributes[11]` 0x400 on every rank's aura: Windfury Totem 8515, 10609, 10612; Grace of Air 8836, 10626, 25360; Flametongue Totem 8230, 8250, 10521, 15036; Tranquil Air 25909; 1.60.1.70009) |
 | `totem:earth` (per shaman) | Strength of Earth Totem, Stoneskin Totem | [F] |
 | `flask` | All flasks | [F] |
 | `elixir:strength` | Elixir of Greater Strength (Giants), Juju Power; probably Brute Force, and maybe the new Str elixirs | [C] core, [?] rest |

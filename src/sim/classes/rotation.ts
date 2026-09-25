@@ -23,7 +23,7 @@ import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_APL, ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
-import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
+import { ELEMENTAL_APL, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
@@ -125,13 +125,14 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return ENHANCEMENT_APL
+  // docs/classes/shaman.md "Elemental priority".
+  if (spec === 'shaman-elemental') return ELEMENTAL_APL
   return undefined
 }
 
 /** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
-  if (spec === 'shaman-elemental') return ELEMENTAL_FIXED_ROWS
   // docs/classes/priest.md §6: Shadowform, up all fight.
   if (spec === 'priest-shadow') return SHADOW_FIXED_ROWS
   // docs/classes/hunter.md §8: Aspect of the Hawk, Trueshot Aura, the pet and Auto Shot.
@@ -333,7 +334,7 @@ export function classRotation(
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context, order)
   // docs/classes/shaman.md "Elemental priority".
-  if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context)
+  if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context, order)
   // docs/classes/rogue.md §6.
   if (spec === 'rogue-combat') return combatRotation(values, talents, context)
   if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)

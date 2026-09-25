@@ -4,15 +4,17 @@
 // the boss for Lava Burst, Lava Burst on cooldown, Chain Lightning with Clearcasting, Earth Shock above
 // a mana threshold, and Lightning Bolt as the filler: rank 10 while Clearcasting makes it free or mana
 // is above a threshold, rank 4 below it, the Classic Era downrank. The mana potion and rune go when all
-// they restore fits. The shaman casts from range: no swings (docs/mechanics/spells.md §12). Its totems
-// are the Buffs tab's (their `selfCast`). Setting ids are `shaman.elemental.<ability>.<param>`; mana
-// thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
+// they restore fits. The rows are a priority list you reorder (ELEMENTAL_APL, decision D31); the
+// consumables are spec-wide. The shaman casts from range: no swings (docs/mechanics/spells.md §12).
+// Its totems are the Buffs tab's (their `selfCast`). Setting ids are
+// `shaman.elemental.<ability>.<param>`; mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) before their costs or spells feed anything. The defaults are the common priority with a
 // first-pass search (decision D27; shaman.md "Elemental first-pass defaults").
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { FixedRotationRow, RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
+import { compileAplRows } from '../apl'
 import { CASTER_RACIALS } from '../caster-racials'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
@@ -240,16 +242,63 @@ export const ELEMENTAL_OPTIONS: RotationOption[] = [
   },
 ]
 
-/** What the Elemental shaman always does, shown on the Rotation tab without a control (docs/ux.md "Rotation"). */
-export const ELEMENTAL_FIXED_ROWS: FixedRotationRow[] = [
-  {
-    id: `${S}.lightningBolt`,
-    label: 'Lightning Bolt',
-    group: 'Fillers',
-    help: 'Cast whenever nothing above is ready. You cast from range, so you never swing your weapon.',
-    value: 'Always on',
-  },
-]
+/**
+ * The Elemental priority list (decision D31; shaman.md "Elemental priority"): the rows of its table in
+ * their default order, each with its switch and its own settings. Lightning Bolt, the filler, was a
+ * fixed row before the list; it's a row without a switch now, which you can move like any other.
+ * Nothing is pinned. The mana potion and rune are spec-wide, above the list, and take their turn with
+ * Mana Tide Totem's row, wherever it sits, as they did before the list.
+ */
+export const ELEMENTAL_APL: AplDefinition = {
+  rows: [
+    { id: 'racial', label: 'Racial cooldown', icon: 'racial_orc_berserkerstrength', enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: 'spell_holy_powerinfusion', enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'manaTide',
+      label: 'Mana Tide Totem',
+      icon: MANA_TIDE_TOTEM.icon,
+      enabledId: ID.manaTide,
+      optionIds: [ID.manaTideMissing],
+      summary: [{ option: ID.manaTideMissing, text: 'when missing {}' }],
+    },
+    { id: 'flameShock', label: 'Flame Shock', icon: FLAME_SHOCK.icon, enabledId: ID.flameShock, optionIds: [], summary: [{ text: 'when it’s off the boss' }] },
+    {
+      id: 'lavaBurst',
+      label: 'Lava Burst',
+      icon: LAVA_BURST.icon,
+      enabledId: ID.lavaBurst,
+      optionIds: [ID.lavaBurstFlameShock],
+      summary: [{ text: 'on cooldown' }, { option: ID.lavaBurstFlameShock, text: 'only with Flame Shock', alsoOn: [ID.flameShock] }],
+    },
+    {
+      id: 'chainLightning',
+      label: 'Chain Lightning',
+      icon: CHAIN_LIGHTNING.icon,
+      optionIds: [ID.chainLightning],
+      summary: [{ option: ID.chainLightning, text: '{}' }],
+      help: 'Chain Lightning with Clearcasting, on cooldown, or never.',
+    },
+    {
+      id: 'earthShock',
+      label: 'Earth Shock',
+      icon: EARTH_SHOCK.icon,
+      enabledId: ID.earthShock,
+      optionIds: [ID.earthShockMana],
+      summary: [{ option: ID.earthShockMana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'lightningBolt',
+      label: 'Lightning Bolt',
+      icon: LIGHTNING_BOLT.icon,
+      optionIds: [ID.boltDownrank, ID.boltMaxRank],
+      summary: [{ text: 'rank 10' }, { option: ID.boltMaxRank, text: 'rank 4 below {}', hideWhen: 0 }],
+      help: 'The filler: cast whenever nothing above is ready. You cast from range, so you never swing your weapon.',
+    },
+  ],
+  specWide: [ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+  presets: [],
+}
 
 /** An on-use item or consumable as a shaman `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
 const consumable = (use: OnUseSpec): AbilityDef => ({
@@ -267,15 +316,17 @@ const consumable = (use: OnUseSpec): AbilityDef => ({
 
 
 /**
- * The Elemental priority list from the settings (shaman.md "Elemental priority"). `context` gives the
- * maximum mana (the mana thresholds are shares of it), the race (its racial cooldown), the equipped
- * items (the relics, on-use trinkets) and the selected consumables.
+ * The Elemental priority list from the settings (shaman.md "Elemental priority"), its rows in `order`
+ * (ELEMENTAL_APL; absent: the default order). `context` gives the maximum mana (the mana thresholds are
+ * shares of it), the race (its racial cooldown), the equipped items (the relics, on-use trinkets) and
+ * the selected consumables.
  */
 export function elementalRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<PaladinContext & { equipped: ReadonlySet<number> }> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(ELEMENTAL_OPTIONS, values, talents)
@@ -299,64 +350,77 @@ export function elementalRotation(
   const pct = (p: number): RotationCondition => ({ code: COND.minMana, a: Math.round((p / 100) * maxManaTenths), b: 0 })
   const missing = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
 
-  // Off the GCD, on cooldown from the pull: the racial cooldown (the caster's: Berserking's casting
-  // speed, Blood Fury's spell power) and on-use trinkets.
-  const racial = CASTER_RACIALS[ctx.race]
-  if (racial && v.on(ID.racial)) add(racial)
+  // The on-use items and consumables, when selected, are the rotation's to press (its `onUse`), switch on or off.
   const pressed: string[] = ctx.items.map((i) => i.id)
-  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const infusion = ctx.consumables.find((c) => c.id === POWER_INFUSION_ID)
-  if (infusion) {
-    pressed.push(POWER_INFUSION_ID)
-    if (v.on(ID.powerInfusion)) add(consumable(infusion))
-  }
-
-  // Mana Tide Totem once all its mana fits (a 1 s GCD).
-  if (v.on(ID.manaTide) && rank(talents, 'Mana Tide Totem') > 0) add(MANA_TIDE_TOTEM, [missing(v.num(ID.manaTideMissing))])
-
-  // The mana potion and rune (off the GCD), when selected in Buffs: once the most they restore fits.
-  for (const [id, setting, need] of [
+  if (infusion) pressed.push(POWER_INFUSION_ID)
+  const mana = ([
     [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
     [MANA_RUNE, ID.rune, ID.runeMissing],
-  ] as const) {
+  ] as const).flatMap(([id, setting, need]) => {
     const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
-    pressed.push(id)
-    if (v.on(setting)) add(consumable(use), [missing(v.num(need))])
-  }
-
-  // Flame Shock kept on the boss, for Lava Burst's +20%.
-  const flameShock = v.on(ID.flameShock) ? index(FLAME_SHOCK) : -1
-  if (flameShock >= 0) rotation.push({ ability: flameShock, conditions: [{ code: COND.abilityAuraDown, a: flameShock, b: 0 }], unqueueBelowTenths: 0 })
-
-  // Lava Burst on cooldown, or only while Flame Shock is up.
-  if (v.on(ID.lavaBurst) && rank(talents, 'Lava Burst') > 0) {
-    const onlyWithShock = v.on(ID.lavaBurstFlameShock) && flameShock >= 0
-    add(LAVA_BURST, onlyWithShock ? [{ code: COND.abilityAuraUp, a: flameShock, b: 0 }] : [])
-  }
+    return use ? [{ use, setting, need }] : []
+  })
+  pressed.push(...mana.map((m) => m.use.id))
 
   // Clearcasting (Elemental Focus's) is the plan's free-cast aura, when the build has it.
   const clearcasting = auraIndex(ELEMENTAL_CLEARCASTING.id)
   const withClearcasting: RotationCondition[] = clearcasting >= 0 ? [{ code: COND.auraUp, a: clearcasting, b: 0 }] : []
 
-  // Chain Lightning with Clearcasting, or on cooldown.
-  const chain = v.str(ID.chainLightning)
-  if (chain === 'cooldown') add(CHAIN_LIGHTNING)
-  else if (chain === 'clearcasting' && clearcasting >= 0) add(CHAIN_LIGHTNING, withClearcasting)
-
-  // Earth Shock at mana ≥ x%.
-  if (v.on(ID.earthShock)) {
-    const p = v.num(ID.earthShockMana)
-    add(EARTH_SHOCK, p > 0 ? [pct(p)] : [])
-  }
-
-  // Lightning Bolt: rank 10 with Clearcasting or at mana ≥ x%, rank 4 below it.
-  const maxRankFrom = v.on(ID.boltDownrank) ? v.num(ID.boltMaxRank) : 0
-  if (maxRankFrom > 0) {
-    if (clearcasting >= 0) add(LIGHTNING_BOLT, withClearcasting)
-    add(LIGHTNING_BOLT, [pct(maxRankFrom)])
-    add(LIGHTNING_BOLT_R4)
-  } else add(LIGHTNING_BOLT)
+  // The rows in `order` (ELEMENTAL_APL): each row's conditions are its own wherever it sits.
+  compileAplRows(ELEMENTAL_APL, order, {
+    // Rows 1–3, off the GCD, on cooldown from the pull: the racial cooldown (the caster's:
+    // Berserking's casting speed, Blood Fury's spell power), on-use trinkets and Power Infusion.
+    racial: () => {
+      const racial = CASTER_RACIALS[ctx.race]
+      if (racial && v.on(ID.racial)) add(racial)
+    },
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
+    },
+    powerInfusion: () => {
+      if (infusion && v.on(ID.powerInfusion)) add(consumable(infusion))
+    },
+    // Row 4: Mana Tide Totem once all its mana fits (a 1 s GCD). Row 5, the mana potion and rune (off the
+    // GCD, spec-wide), take their turn with it, once the most they restore fits.
+    manaTide: () => {
+      if (v.on(ID.manaTide) && rank(talents, 'Mana Tide Totem') > 0) add(MANA_TIDE_TOTEM, [missing(v.num(ID.manaTideMissing))])
+      for (const { use, setting, need } of mana) if (v.on(setting)) add(consumable(use), [missing(v.num(need))])
+    },
+    // Row 6: Flame Shock kept on the boss, for Lava Burst's +20%.
+    flameShock: () => {
+      if (!v.on(ID.flameShock)) return
+      const flameShock = index(FLAME_SHOCK)
+      rotation.push({ ability: flameShock, conditions: [{ code: COND.abilityAuraDown, a: flameShock, b: 0 }], unqueueBelowTenths: 0 })
+    },
+    // Row 7: Lava Burst on cooldown, or only while Flame Shock (row 6, on) is up.
+    lavaBurst: () => {
+      if (!v.on(ID.lavaBurst) || rank(talents, 'Lava Burst') <= 0) return
+      const onlyWithShock = v.on(ID.lavaBurstFlameShock) && v.on(ID.flameShock)
+      add(LAVA_BURST, onlyWithShock ? [{ code: COND.abilityAuraUp, a: index(FLAME_SHOCK), b: 0 }] : [])
+    },
+    // Row 8: Chain Lightning with Clearcasting, or on cooldown.
+    chainLightning: () => {
+      const chain = v.str(ID.chainLightning)
+      if (chain === 'cooldown') add(CHAIN_LIGHTNING)
+      else if (chain === 'clearcasting' && clearcasting >= 0) add(CHAIN_LIGHTNING, withClearcasting)
+    },
+    // Row 9: Earth Shock at mana ≥ x%.
+    earthShock: () => {
+      if (!v.on(ID.earthShock)) return
+      const p = v.num(ID.earthShockMana)
+      add(EARTH_SHOCK, p > 0 ? [pct(p)] : [])
+    },
+    // Rows 10 and 11: Lightning Bolt, rank 10 with Clearcasting or at mana ≥ x%, rank 4 below it.
+    lightningBolt: () => {
+      const maxRankFrom = v.on(ID.boltDownrank) ? v.num(ID.boltMaxRank) : 0
+      if (maxRankFrom > 0) {
+        if (clearcasting >= 0) add(LIGHTNING_BOLT, withClearcasting)
+        add(LIGHTNING_BOLT, [pct(maxRankFrom)])
+        add(LIGHTNING_BOLT_R4)
+      } else add(LIGHTNING_BOLT)
+    },
+  })
 
   // Lightning Overload: a half-damage copy of each Lightning Bolt and Chain Lightning the list casts.
   const overload = LIGHTNING_OVERLOAD_PCT[rank(talents, 'Lightning Overload')] ?? 10

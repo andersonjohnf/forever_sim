@@ -24,6 +24,13 @@ const SPECS: ShamanSpec[] = [
     keyboard: { id: 'lightningBolt', label: 'Lightning Bolt', passes: 'stormstrike' },
     buttons: { id: 'shock', label: 'Shock' },
   },
+  {
+    name: 'Elemental',
+    menu: /Elemental/,
+    order: ['racial', 'trinkets', 'powerInfusion', 'manaTide', 'flameShock', 'lavaBurst', 'chainLightning', 'earthShock', 'lightningBolt'],
+    keyboard: { id: 'lavaBurst', label: 'Lava Burst', passes: 'flameShock' },
+    buttons: { id: 'lightningBolt', label: 'Lightning Bolt' },
+  },
 ]
 
 /** The rows' ids in the list's order (by attribute: a sheet hides the list from the accessibility tree). */

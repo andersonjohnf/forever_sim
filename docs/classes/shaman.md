@@ -869,7 +869,9 @@ All pre-August-2021 Wayback snapshots, [C]:
 #### Forever priority list (default)
 
 Evaluated top to bottom whenever the shaman is free. Setting ids are `shaman.elemental.<x>`
-(written without the prefix below). A mana threshold is a share of maximum mana.
+(written without the prefix below). Every row but 5 is the Rotation tab's priority list
+([below](#elemental-priority-list-a2)); the mana potion and rune are its spec-wide settings. A mana
+threshold is a share of maximum mana.
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -877,7 +879,7 @@ Evaluated top to bottom whenever the shaman is free. Setting ids are `shaman.ele
 | 2 | On-use trinkets (Weakness Analyzer), off the GCD | `trinkets.enabled`; on cooldown | on |
 | 3 | Power Infusion, off the GCD | `powerInfusion.enabled`, with it selected in Buffs (a priest's); on cooldown | on |
 | 4 | Mana Tide Totem (1 s GCD) | `manaTide.enabled`, with the talent; missing at least `manaTide.missingMana` | on, 3,000 |
-| 5 | Major Mana Potion, Demonic Rune, off the GCD | `manaPotion.enabled`, `rune.enabled`, selected in Buffs; missing at least `manaPotion.missingMana`, `rune.missingMana` | on, 2,250 and 1,500 |
+| 5 | Major Mana Potion, Demonic Rune, off the GCD, with row 4 | `manaPotion.enabled`, `rune.enabled`, selected in Buffs; missing at least `manaPotion.missingMana`, `rune.missingMana` | on, 2,250 and 1,500 |
 | 6 | Flame Shock | `flameShock.enabled` (default on with Lava Burst); your Flame Shock isn't on the boss | on |
 | 7 | Lava Burst | `lavaBurst.enabled`, with the talent; ready; with `lavaBurst.withFlameShock`, only while your Flame Shock is up | on, any time |
 | 8 | Chain Lightning | `chainLightning.use`: with Clearcasting, on cooldown or never | with Clearcasting |
@@ -886,8 +888,43 @@ Evaluated top to bottom whenever the shaman is free. Setting ids are `shaman.ele
 | 11 | Lightning Bolt rank 4 | `lightningBolt.downrank` | on |
 
 The Rotation tab says: "The defaults are the common priority, with a first quick search; they
-aren't tuned yet. Flame Shock is there for Lava Burst, which Classic Era didn't have." It shows
-Lightning Bolt as an always-on filler row.
+aren't tuned yet. Flame Shock is there for Lava Burst, which Classic Era didn't have."
+
+#### Elemental priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`ELEMENTAL_APL` in `elemental.ts`), in this order, each with its switch and its own settings. Each
+row keeps its conditions wherever you move it:
+
+| Row (`id`) | Switch | Its settings | Condition |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | on cooldown (row 1) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown (row 2) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | selected in Buffs, on cooldown (row 3) |
+| Mana Tide Totem (`manaTide`) | `manaTide.enabled` | `manaTide.missingMana` | with the talent, missing the mana (row 4); the mana potion and rune (row 5) take their turn here |
+| Flame Shock (`flameShock`) | `flameShock.enabled` | | your Flame Shock isn't on the boss (row 6) |
+| Lava Burst (`lavaBurst`) | `lavaBurst.enabled` | `lavaBurst.withFlameShock` | with the talent, ready; waits for your Flame Shock only while Flame Shock's row is on (row 7) |
+| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8) |
+| Earth Shock (`earthShock`) | `earthShock.enabled` | `earthShock.minManaPct` | mana ≥ the share (row 9) |
+| Lightning Bolt (`lightningBolt`) | — (always there: the filler) | `lightningBolt.downrank`, `lightningBolt.maxRankFromPct` | rank 10 with Clearcasting or from the share, rank 4 below it (rows 10 and 11) |
+
+- **Lightning Bolt is a row.** Before the list it was a fixed row with no control ("Always on"); it
+  has no switch still, since the filler is what you cast when nothing else is ready, but it moves
+  like any row, and its downrank settings are its own.
+- **Pinned:** nothing. There's no pre-pull.
+- **Spec-wide, above the list:** the Major Mana Potion and Demonic Rune, with their mana limits,
+  under Consumables. They take their turn in the list with Mana Tide Totem's row, wherever that
+  sits, as they did before the list, and are used whether that row is on or off.
+- **No named rotations:** the implicit Default only, the common priority (D27).
+- **Equivalence:** in the default order every plan is the one it was before the list, byte for
+  byte: 200 random setups (settings, talents, race, relic, Weakness Analyzer, Buffs, fight and
+  rules) are fingerprinted against the code before it (`elemental-apl.test.ts`).
+- **What reordering does:** rows 1–3 and the consumables are off the GCD and pressed as soon as
+  they're ready wherever they sit. The rest share the GCD: a row moved up takes it first when both
+  are ready, and Lightning Bolt above a row leaves that row almost no GCD, since the bolt's last
+  line (rank 4, or rank 10 without the downrank) has no condition but its mana.
+  Not measured yet: the tuning milestone searches the order (D27, D30).
 
 ### Elemental defaults
 

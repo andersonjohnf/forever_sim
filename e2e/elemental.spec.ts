@@ -42,27 +42,25 @@ async function noSideScroll(page: Page, what = 'no horizontal page scroll') {
   expect(overflow, what).toBeLessThanOrEqual(0)
 }
 
-/** What the Rotation tab shows by default, at any width. */
+/** What the Rotation tab shows by default, at any width: the consumables above the priority list (D31). */
 async function expectDefaultRotation(tab: Locator) {
   await expect(tab.getByText(/The defaults are the common priority, with a first quick search; they aren’t tuned yet\. Flame Shock is there for Lava Burst/)).toBeVisible()
-  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
-  for (const name of ['Racial cooldown', 'On-use trinkets', 'Mana Tide Totem', 'Flame Shock', 'Lava Burst', 'Rank 4 Lightning Bolt', 'Major Mana Potion']) {
-    await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+  const list = tab.getByRole('list', { name: 'Priority list' })
+  for (const name of ['Racial cooldown', 'On-use trinkets', 'Mana Tide Totem', 'Flame Shock', 'Lava Burst']) {
+    await expect(list.getByRole('switch', { name, exact: true })).toBeChecked()
   }
-  for (const name of ['Lava Burst only with Flame Shock', 'Earth Shock']) await expect(tab.getByRole('switch', { name, exact: true })).not.toBeChecked()
-  await expect(tab.getByRole('radio', { name: 'Clearcasting', exact: true })).toBeChecked()
-  // Lightning Bolt is the filler, always on, with no control.
-  await expect(tab.getByRole('region', { name: 'Fillers' }).getByText('Always on')).toBeVisible()
+  await expect(list.getByRole('switch', { name: 'Earth Shock', exact: true })).not.toBeChecked()
+  await expect(tab.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeChecked()
+  // The rows say their settings; Lightning Bolt, the filler, is a row without a switch.
+  const row = (id: string) => list.locator(`[data-apl-row="${id}"]`)
+  await expect(row('manaTide')).toContainText('When missing 3,000 mana')
+  await expect(row('chainLightning')).toContainText('Clearcasting')
+  await expect(row('lightningBolt')).toContainText('Rank 10 · rank 4 below 10% mana')
+  await expect(row('lightningBolt').getByRole('switch')).toHaveCount(0)
   // Power Infusion and the rune wait for the Buffs tab, which the Standard raid preset leaves off.
-  await expect(tab.getByRole('switch', { name: 'Power Infusion', exact: true })).toHaveAccessibleDescription(/Not used: turn on Power Infusion in Buffs first/)
+  await expect(list.getByRole('switch', { name: 'Power Infusion', exact: true })).toHaveAccessibleDescription(/Not used: turn on Power Infusion in Buffs first/)
   await expect(tab.getByRole('switch', { name: 'Demonic Rune', exact: true })).toHaveAccessibleDescription(/Not used: turn on Demonic Rune in Buffs first/)
-  // The thresholds wait behind Advanced: Mana Tide at 3,000 missing, rank 10 from 10% mana.
-  const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-  await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
-  await expect(cooldowns.getByRole('textbox', { name: 'Mana Tide Totem when missing', exact: true })).toHaveValue('3,000')
-  const fillers = tab.getByRole('region', { name: 'Fillers' })
-  await fillers.getByRole('button', { name: /^Advanced settings for Fillers/ }).click()
-  await expect(fillers.getByRole('textbox', { name: 'Rank 10 from', exact: true })).toHaveValue('10')
   await expect(tab).not.toContainText(OTHER_CLASS)
 }
 
@@ -124,7 +122,7 @@ test.describe('Elemental shaman', () => {
     await expect(page.getByRole('dialog').getByText(/^Covers .+ · Shamans: Enhancement and Elemental · Rogues: .+\.$/)).toBeVisible()
   })
 
-  test('its Rotation tab: the common priority under the usual headings, its thresholds behind Advanced, and no other class’s words', async ({ page }) => {
+  test('its Rotation tab: the consumables above the common priority’s list, the rows’ settings in their summaries, and no other class’s words', async ({ page }) => {
     await switchToElemental(page)
     await expectDefaultRotation(await openTab(page, 'Rotation'))
   })
@@ -148,9 +146,12 @@ test.describe('Elemental shaman', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await switchToElemental(page)
     const tab = await openTab(page, 'Rotation')
-    await tab.getByRole('radio', { name: 'Never', exact: true }).click()
+    // Chain Lightning's choice is its row's setting, beside the list on a desktop.
+    await tab.getByRole('button', { name: 'Chain Lightning', exact: true }).click()
+    const chain = page.getByRole('complementary', { name: 'Chain Lightning settings' })
+    await chain.getByRole('radio', { name: 'Never', exact: true }).click()
     await tab.getByRole('switch', { name: 'Earth Shock', exact: true }).click()
-    await expect(tab.getByRole('radio', { name: 'Never', exact: true })).toBeChecked()
+    await expect(chain.getByRole('radio', { name: 'Never', exact: true })).toBeChecked()
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const url = await page.evaluate(() => navigator.clipboard.readText())
@@ -164,8 +165,7 @@ test.describe('Elemental shaman', () => {
     await expect(other.getByRole('button', { name: SPEC })).toBeVisible()
     await other.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const shared = other.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(shared.getByRole('radio', { name: 'Never', exact: true })).toBeChecked()
-    await expect(shared.getByRole('radio', { name: 'Clearcasting', exact: true })).not.toBeChecked()
+    await expect(shared.locator('[data-apl-row="chainLightning"]')).toContainText('Never')
     await expect(shared.getByRole('switch', { name: 'Earth Shock', exact: true })).toBeChecked()
     await expect(shared.getByRole('switch', { name: 'Flame Shock', exact: true })).toBeChecked()
     expect(new URL(other.url()).hash).toBe('')
@@ -181,12 +181,16 @@ test.describe('Elemental shaman on a phone', () => {
     const tab = await openTab(page, 'Rotation')
     await noSideScroll(page)
     await expectDefaultRotation(tab)
-    await noSideScroll(page, 'no horizontal page scroll with Advanced open')
-    // The Chain Lightning choice fits its row.
-    const choice = tab.getByRole('radio', { name: 'Clearcasting', exact: true })
+    // The Chain Lightning choice fits its row's sheet.
+    await tab.getByRole('button', { name: 'Chain Lightning', exact: true }).click()
+    const choice = page.getByRole('dialog', { name: 'Chain Lightning' }).getByRole('radio', { name: 'Clearcasting', exact: true })
+    await expect(choice).toBeChecked()
     const box = (await choice.boundingBox())!
     expect(box.x).toBeGreaterThanOrEqual(0)
     expect(await choice.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
+    await noSideScroll(page, 'no horizontal page scroll with the sheet open')
+    await page.getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
 
     await simulate(page)
     const bar = page.getByRole('button', { name: 'Show results' })

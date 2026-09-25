@@ -21,6 +21,13 @@ describe('the race-change toast', () => {
     expect(message.description).toMatch(/Champion's Plate Shoulders.*, with the same stats\.$/)
   })
 
+  it('says when a piece’s set bonus differs (GV-1)', () => {
+    const rogue = defaultConfig('rogue-combat', 'horde-orc')
+    const helm: SimConfig = { ...rogue, gear: { ...rogue.gear, head: { itemId: 23257 } } }
+    const message = raceChangeMessage(changeRace(helm, 'alliance-human'), 'Alliance')!
+    expect(message.description).toContain("Lieutenant Commander's Leather Helm, with the same stats but not the same set bonus.")
+  })
+
   it('says which items stayed, and says nothing within a faction', () => {
     const cape: SimConfig = { ...human, gear: { back: { itemId: 16337 } } }
     expect(raceChangeMessage(changeRace(cape, 'horde-orc'), 'Horde')).toEqual({

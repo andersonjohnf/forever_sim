@@ -524,9 +524,17 @@ export interface Item {
   /**
    * The pool's items whose client rows match this one's on everything but their names, price and
    * what binds them to a side or class (docs/data/items.md#faction-twins). `factionTwin`
-   * (src/features/character/faction-gear.ts) picks the other faction's from these.
+   * (src/features/character/faction-gear.ts) picks the other faction's from these, for the lists'
+   * ranks.
    */
   twins: number[];
+  /**
+   * The pool's items that match this one as `twins` do but with the set's bonuses ignored: every
+   * twin, and the other faction's pieces with the same stats and effects in another set or none
+   * (the Alliance's Rank 7 to 10 silk and leather). A race change swaps between these
+   * (`raceChangeTwin`, docs/data/items.md#faction-twins).
+   */
+  statTwins: number[];
   /** Copper. */
   sellPrice: number | null;
   /** The item's flavor text. */

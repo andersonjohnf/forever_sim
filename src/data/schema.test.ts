@@ -85,6 +85,7 @@ const ITEM = {
   source: true,
   preRaidBis: true,
   twins: true,
+  statTwins: true,
   sellPrice: true,
   flavor: true,
   classic: true,

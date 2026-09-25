@@ -27,7 +27,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
-import { buildPool, measureRatingConversions } from "./lib/item-pool.mjs";
+import { buildPool, itemsLeavingPool, measureRatingConversions } from "./lib/item-pool.mjs";
 import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
 import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
@@ -335,9 +335,8 @@ async function write() {
   const committed = committedJson(REPO_ROOT, OUT_FILE, opts.against);
   if (!committed) warn(`can't read the committed ${OUT_FILE} (${opts.against}), so items leaving the pool weren't checked`);
   else
-    for (const old of committed.items)
-      if (!byId.has(old.id) && !REMOVED_ITEMS.has(old.id))
-        fail(`${old.id} ${old.name} would leave the pool, and saved setups and share links that wear it would lose it: keep it (the kept section of ${PRE_RAID_BIS_FILE}) or add it to REMOVED_ITEMS with a reason`);
+    for (const old of itemsLeavingPool(committed.items, byId, REMOVED_ITEMS))
+      fail(`${old.id} ${old.name} would leave the pool, and saved setups and share links that wear it would lose it: keep it (the kept section of ${PRE_RAID_BIS_FILE}) or add it to REMOVED_ITEMS with a reason`);
   for (const w of noClientRow) console.log(`  still no client row: ${w.id} ${w.name}`);
   for (const [id, name] of WATCH_ITEMS)
     if (byId.has(id)) console.log(`NOTE: watched item ${id} ${name} now has a client row and is in the pool; remove it from WATCH_ITEMS`);
@@ -415,7 +414,7 @@ function printSummary(out, report) {
   console.log(`excluded by name ${report.excludedByName.length}, by id ${report.excludedById.length}, SoD guard ${report.sod.length}, no Item row ${report.missingItemRow.length}`);
   for (const x of report.missingItemRow) warn(`${x.id} ${x.name}: an ItemSparse row but no Item row; left out`);
   console.log(`pre-raid BiS: ${preRaidBis.listedItems} listed, ${preRaidBis.inPool} in the pool, ${preRaidBis.twinsListed} more as a listed item's faction twin, ${preRaidBis.addedByList} only because listed, ${preRaidBis.notInData.length} with no row`);
-  console.log(`faction twins: ${out.items.filter((i) => i.twins.length).length} items have one (${report.twinsAddedByList} joined the pool as a listed item's)`);
+  console.log(`faction twins: ${out.items.filter((i) => i.twins.length).length} items have one (${report.twinsAddedByList} joined the pool as a listed item's); stat twins, set bonuses ignored: ${out.items.filter((i) => i.statTwins.length).length}`);
   console.log(`no client row (watched): ${noClientRow.length}`);
   console.log(`descriptions: ${dc.rendered} rendered, ${dc.generated} generated, ${dc.fallback} fallback, ${dc.hidden} hidden`);
   const fe = out.meta.fallbackEffects;

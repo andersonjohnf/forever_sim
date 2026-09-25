@@ -669,8 +669,9 @@ proc adds nothing to a paired run), so each such effect on a candidate is listed
 file's `kept` section keeps it in the pool with no rank (`meta.preRaidBis.kept`), so saved setups and
 share links that wear it keep it. So far that's the five items only Wowhead's warlock list had (Deathmist
 Mask, Felcloth Robe and Pants, Band of the Unicorn, Inventor's Focal Sword). **No item leaves the pool
-without a reason** (DV2-5): the scraper compares its pool with the committed one and fails when an id
-would go, unless it's kept or named in `REMOVED_ITEMS` (`items-client.mjs`) with why it may go.
+without a reason** (DV2-5): the scraper compares its pool with the committed one
+(`itemsLeavingPool` in [`lib/item-pool.mjs`](../../scripts/scrape/lib/item-pool.mjs), GV-11) and fails
+when an id would go, unless it's kept or named in `REMOVED_ITEMS` (`items-client.mjs`) with why it may go.
 
 ### Faction twins
 
@@ -681,7 +682,9 @@ twin entries that had missed one). The scraper (`twinKey` and `findTwins` in
 [`lib/item-pool.mjs`](../../scripts/scrape/lib/item-pool.mjs)) compares every equippable row of the
 build the item's stats come from:
 
-- **May differ:** the id; the names (`Display_lang`); `SellPrice` and `BuyPrice`; what binds the item to
+- **May differ:** the id; the names (`Display_lang`); the price (`SellPrice`, `BuyPrice`, and
+  `PriceRandomValue`, the vendor price's random part, in which Forever's "Premier" PvP pairs and its
+  Theramore and Darkspear rewards differ: GV-2); what binds the item to
   a side or class: the reputation it needs (`MinFactionID`, `MinReputation`), `AllowableRace`,
   `AllowableClass`, and the Horde-only and Alliance-only flags (`Flags[1]` bits 0x1 and 0x2); and its
   `ItemSet`, whose bonuses are compared instead.
@@ -690,18 +693,45 @@ build the item's stats come from:
   subclass, each item effect's spell, trigger, cooldowns and charges (a use matches by its cooldowns and
   charges alone: the Alterac Valley insignias' uses return you to each side's base), and the set's bonuses
   (pieces and spell).
-- Two matching rows are twins when their names or their side bindings differ.
+- Two matching rows are twins when their names or their side bindings differ. So twins include
+  **class twins**, one side's pieces for different classes (Lieutenant Commander's Plate Helm for the
+  warrior and Lamellar Headguard for the paladin; the Dreadweave, Satin and Silk shoulders) and **quest
+  twins**, a quest's reward choices (Vision of Voodress for the shaman, Enchanted South Seas Kelp for the
+  druid), as well as the faction twins (GV-10). The app picks among them by faction and class.
 
-Each pool item carries its twins in the pool as `twins` (item ids). **A listed item's twins join the pool
+**Two tiers** (the step-6 narrowing of the caster gear verification, GV-1: the third round in a row
+with twin problems). The client-exact rule above missed pieces a race change had swapped before it:
+the Alliance's Rank 7 to 10 silk, satin and leather have the Horde pieces' rows but no item set, and
+the Arathi Basin mail's sets give other bonuses, so 138 swaps were lost (every Rank 7 to 10
+leather, satin and silk piece, and the Highlander's and Defiler's mail). So each tier gets the match
+its job needs:
+
+- **The lists' ranks** use the exact twins, `twins`: a twin takes a list's rank only when its set
+  bonuses match too, since a piece without its set isn't worth the same.
+- **A race change** uses `statTwins`: the same key with the set's bonuses left out (`twinKey(…, { sets:
+  false })`), so every twin and the other faction's pieces with the same stats and effects in another
+  set or none. `raceChangeTwin` (`src/features/character/faction-gear.ts`) takes the item's twin when
+  it has one, else its stat twin, and says when the set bonus differs; the notice names those pieces
+  ("…, with the same stats but not the same set bonus"). This is the match the app made before the
+  step-6 change, now read from the client: over the pool it gives the same piece for 768 of the old
+  match's 770 (item, class) swaps, and a different one for 4 (Defiler's Mail Greaves takes its exact
+  twin, Highlander's Chain Greaves, where the old name match took Highlander's Mail Greaves). The
+  two it drops are the hunters' Rank 10 chain helms, one of them a Classic Era fallback row: a Forever
+  row never matches a Classic Era one (a known gap).
+
+Each pool item carries its twins in the pool as `twins` and its stat twins as `statTwins` (item ids). **A listed item's twins join the pool
 and take its list entries**, the same spec, slot and rank, unless the twin is on that list itself or the
 spec's class can't wear it; `meta.preRaidBis.twinsListed` counts them. So each list names one side's item.
 Which twin is the other faction's is the app's call: `factionTwin`
 (`src/features/character/faction-gear.ts`) picks, among an item's twins, the one bound to the other
 faction ([Equipping rules](#equipping-rules)) that the class can wear, preferring the name that ends the
-same way (Highlander's Chain Greaves → Defiler's Chain Greaves, not Defiler's Mail Greaves); a race
-change and the tanks' interim picks (`INTERIM_GEAR`) use the same twins.
+same way (Highlander's Chain Greaves → Defiler's Chain Greaves, not Defiler's Mail Greaves); the tanks'
+interim picks (`INTERIM_GEAR`) use the same twins, and a race change its stat twins (above).
 
-**What it found** (1.60.1.70009): 213 pool items have a twin, in 99 groups. It found twins the hand-written
+**What it found** (1.60.1.70009): 433 pool items have a twin, in 207 groups (213 in 99 before GV-2
+freed `PriceRandomValue`; the rest are Forever's "Premier" PvP pairs, which suit both factions, and
+its Theramore and Darkspear rewards, Seal of the Expedition and Darkspear Warding Pendant, Theramore
+Signet and Insurgent's Band). 506 have a stat twin, in 239 groups. It found twins the hand-written
 lists missed, The Defilers' Ironbark Staff (20220) for the League of Arathor's (20069), the Deathguard's
 Cloak and Cloak of the Honor Guard (Enhancement's and the hunters' cloaks), and the hunters' Knight-Lieutenant's Chain Greaves for Blood Guard's Chain Greaves; and it found
 pairs the lists called twins that the client says aren't:
@@ -709,15 +739,19 @@ pairs the lists called twins that the client says aren't:
 - the Alliance's Rank 7 to 10 silk (Lieutenant Commander's Silk Cowl and Mantle, Knight-Captain's Silk
   Legguards, Knight-Lieutenant's Silk Handwraps and Walkers): the Horde pieces' stats, but no item set in
   Forever's rows, so they miss the Champion's Arcanum bonuses. The mage lists name them on their own, at
-  the Horde piece's rank.
+  the Horde piece's rank. They're each other's stat twins, so a race change still swaps them.
 - Highlander's Mail Pauldrons and Mail Greaves: the Defilers' stats, but a 3-piece bonus of spell crit
-  where the Defilers' is melee crit. Enhancement names the pauldrons on their own.
+  where the Defilers' is melee crit. Enhancement names the pauldrons on their own; they're stat twins.
 - Knight-Lieutenant's Chain Greaves, which Enhancement listed as Blood Guard's Mail Greaves' twin, is the
   hunter's, with other stats: a shaman can't wear it, so it left that list.
 
 Tests: `faction-gear.test.ts` checks that every one-faction item on a list has its other faction's twin
-at the same rank, when the client has one, and that twins pair both ways with the same slot, stats and
-effects.
+at the same rank, when the client has one, that twins and stat twins pair both ways with the same slot,
+stats and effects, that every twin is a stat twin, and the race changes GV-1 found lost (a Combat
+rogue's Champion's Leather Helm and Blood Guard's Leather Grips going Alliance, a Shadow Priest's
+Knight-Lieutenant's Satin Handwraps going Horde, an Enhancement shaman's Defiler's Mail Pauldrons going
+Dwarf); `lib/item-pool.test.mjs` checks the key's rules (a price's random part may differ; set bonuses
+count for twins and not for stat twins).
 
 ### Coverage
 
@@ -912,9 +946,10 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - `normalizeConfig` leaves them alone.
 - A race change on the Character tab that crosses factions swaps each item the new race can't
   wear for its [faction twin](#faction-twins), read from the client (the closest name when several
-  match), keeping the slot's enchant. An item with no twin, or whose
-  twin would break a Unique rule, stays. A notice names the items swapped and those
-  kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
+  match), or else its stat twin, the other faction's piece with the same stats in another set,
+  keeping the slot's enchant. An item with neither, or whose
+  match would break a Unique rule, stays. A notice names the items swapped, those whose set bonus
+  differs and those kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
 
 ## Caveats
 

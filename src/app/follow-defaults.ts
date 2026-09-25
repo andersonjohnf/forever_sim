@@ -7,7 +7,7 @@
 // player's. The save lists those parts (`Following`), and the next load puts the defaults of the
 // day in them. Only the automatic save does this: a share link, an imported code and a saved setup
 // keep exactly what they carry.
-import { factionOf, factionTwin } from '@/features/character/faction-gear'
+import { factionOf, raceChangeTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
 import { GEAR_SLOTS, refundNotice, SPEC_META, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentRefund } from '@/sim'
@@ -163,8 +163,8 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
     // A race change swapped a faction's item for its twin (src/features/character/faction-gear.ts).
     for (const id of [...ids]) {
       const item = itemsById.get(id)
-      const twin = item && faction ? factionTwin(item, faction, classId) : null
-      if (twin) ids.add(twin.id)
+      const match = item && faction ? raceChangeTwin(item, faction, classId) : null
+      if (match) ids.add(match.twin.id)
     }
     const enchants = new Set<string | undefined>(defaults.flatMap((d) => (d[slot] ? [d[slot].enchantId] : [])))
     if (FORMER_UNENCHANTED[spec]?.includes(slot)) enchants.add(undefined)

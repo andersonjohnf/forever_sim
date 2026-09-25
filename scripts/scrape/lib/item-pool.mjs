@@ -257,9 +257,11 @@ export function createCoverage() {
 // ---------------------------------------------------------------------------
 
 /**
- * The ItemSparse columns a faction twin may differ in: its id and names, its price, and what binds
- * it to a side (the reputation it needs, the races and classes that may wear it, its item set,
- * whose bonuses are compared instead). Every other column must match.
+ * The ItemSparse columns a faction twin may differ in: its id and names, its price (SellPrice,
+ * BuyPrice, and PriceRandomValue, the vendor price's random part, in which Forever's "Premier" PvP
+ * pairs and its Theramore and Darkspear rewards differ: GV-2), and what binds it to a side (the
+ * reputation it needs, the races and classes that may wear it, its item set, whose bonuses are
+ * compared instead). Every other column must match.
  */
 export const TWIN_FREE_COLUMNS = new Set([
   "ID",
@@ -269,6 +271,7 @@ export const TWIN_FREE_COLUMNS = new Set([
   "Display3_lang",
   "SellPrice",
   "BuyPrice",
+  "PriceRandomValue",
   "MinFactionID",
   "MinReputation",
   "AllowableRace",
@@ -285,9 +288,10 @@ const FLAGS2_FACTION = 0x3;
  * faction flags, its Item class and subclass, its item effects (spell, trigger, cooldowns) and its
  * set's bonuses (pieces, spell). `ctx` is the context the item is described with (Forever's, or
  * the fallback's for an item with no Forever row), and `build` which one, so a Forever row never
- * matches a Classic Era one.
+ * matches a Classic Era one. With `{ sets: false }` the set's bonuses are left out too: the key of
+ * the stat twins a race change swaps between (docs/data/items.md#faction-twins).
  */
-export function twinKey(ctx, build, id) {
+export function twinKey(ctx, build, id, { sets = true } = {}) {
   const row = ctx.sparse.get(id);
   const item = ctx.item.get(id);
   if (!row || !item) return null;
@@ -306,8 +310,8 @@ export function twinKey(ctx, build, id) {
   // A use's spell can name a faction's base (the Alterac Valley insignias return you to Dun Baldar
   // or Frostwolf Keep), so a use matches by its cooldowns and charges; every other effect by its spell.
   const effects = (ctx.itemEffects.get(id) ?? []).map((e) => [e.TriggerType === 0 ? "use" : e.SpellID, e.TriggerType, e.CoolDownMSec, e.CategoryCoolDownMSec, e.Charges]);
-  const set = row.ItemSet ? deriveSet(ctx, row.ItemSet) : null;
-  const bonuses = set ? set.bonuses.map((b) => [b.pieces, b.spellId]) : row.ItemSet ? ["unknown set"] : [];
+  const set = sets && row.ItemSet ? deriveSet(ctx, row.ItemSet) : null;
+  const bonuses = !sets ? [] : set ? set.bonuses.map((b) => [b.pieces, b.spellId]) : row.ItemSet ? ["unknown set"] : [];
   return JSON.stringify([build, item.ClassID, item.SubclassID, fields, stats, effects, bonuses]);
 }
 
@@ -435,6 +439,15 @@ function signature(d) {
 }
 
 /**
+ * The committed pool's items a new pool would lose without a reason (docs/data/items.md#pre-raid-bis-lists,
+ * "Kept items"): each id in `committedItems` that isn't in `poolIds` or named in `removed` (id → why it
+ * may go). Saved setups and share links that wear one would lose it on load, so the scraper fails on any.
+ */
+export function itemsLeavingPool(committedItems, poolIds, removed) {
+  return committedItems.filter((old) => !poolIds.has(old.id) && !removed.has(old.id)).map(({ id, name }) => ({ id, name }));
+}
+
+/**
  * An item's pre-raid list entries: its own, then each entry of a listed twin for a spec and slot
  * the item isn't listed in itself, when the spec's class can wear it (`classes` null: every class).
  * So a list names one side's item and the other side's twin takes the same rank
@@ -480,16 +493,21 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
   const ids = [...new Set([...forever.ctx.sparse.keys(), ...classic.ctx.sparse.keys()])].sort((a, b) => a - b);
   const eligible = (id) => id < filter.maxClassicItemId || (forever.ctx.sparse.has(id) && !classic.ctx.sparse.has(id));
 
-  // docs/data/items.md#faction-twins: every equippable, eligible row's twins, read from the client.
+  // docs/data/items.md#faction-twins: every equippable, eligible row's twins, read from the client:
+  // the lists' twins (set bonuses must match) and the race change's stat twins (set bonuses ignored).
   const keyed = [];
+  const statKeyed = [];
   for (const id of ids) {
     const fRow = forever.ctx.sparse.get(id);
     const row = fRow ?? classic.ctx.sparse.get(id);
     const itemRow = (fRow ? forever : classic).ctx.item.get(id);
     if (!eligible(id) || !itemRow || !isEquippable(itemRow, row) || filter.junkName.test(row.Display_lang)) continue;
-    keyed.push([id, fRow ? twinKey(forever.ctx, "forever", id) : twinKey(fallback.ctx, "classic", id), row]);
+    const key = (o) => (fRow ? twinKey(forever.ctx, "forever", id, o) : twinKey(fallback.ctx, "classic", id, o));
+    keyed.push([id, key(), row]);
+    statKeyed.push([id, key({ sets: false }), row]);
   }
   const twinsOf = findTwins(keyed);
+  const statTwinsOf = findTwins(statKeyed);
   // A listed item's twins join the pool and take its list entries (listedTwins).
   const listedIds = [...bis.byId.keys(), ...(bis.kept?.keys() ?? [])];
   const twinOfListed = new Set(listedIds.flatMap((id) => twinsOf.get(id) ?? []).filter((id) => !bis.byId.has(id) && !(bis.kept?.has(id) ?? false)));
@@ -629,8 +647,11 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
   }
 
   const inPool = new Set(items.map((i) => i.id));
-  // Each item's faction twins in the pool (docs/data/items.md#faction-twins).
-  for (const item of items) item.twins = (twinsOf.get(item.id) ?? []).filter((t) => inPool.has(t));
+  // Each item's faction twins and stat twins in the pool (docs/data/items.md#faction-twins).
+  for (const item of items) {
+    item.twins = (twinsOf.get(item.id) ?? []).filter((t) => inPool.has(t));
+    item.statTwins = (statTwinsOf.get(item.id) ?? []).filter((t) => inPool.has(t));
+  }
   report.twinsAddedByList = report.addedByList.filter((id) => twinOfListed.has(id)).length;
   const noClientRow = [...watch].filter(([id]) => !inPool.has(id) && !forever.ctx.sparse.has(id) && !classic.ctx.sparse.has(id)).map(([id, name]) => ({ id, name }));
   const byTab = { new: 0, changed: 0, unchanged: 0, missing: 0 };

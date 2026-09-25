@@ -141,7 +141,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     their race went.
   - A race on the other side swaps the faction-bound gear (PvP, battleground and reputation
     rewards, [items.md](data/items.md#equipping-rules)) for the new faction's twin, which has
-    the same stats, and keeps the slot's enchant. A twin's class restriction counts only as
+    the same stats, and keeps the slot's enchant. Where the other side's piece has the same stats
+    in another set or none (the Alliance's Rank 7 to 10 silk and leather have no set bonus), it
+    swaps too, and the notice says so: "…, with the same stats but not the same set bonus"
+    ([items.md "Faction twins"](data/items.md#faction-twins)). A twin's class restriction counts only as
     whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
     and paladins) swap for First Sergeant's Plate Bracers (warriors). The swap happens out of
     sight, on the Gear tab, so a notice names the new items. An item with no twin stays, and the

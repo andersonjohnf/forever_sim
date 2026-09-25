@@ -698,6 +698,10 @@ const REGISTRY = {
     text: 'Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick. The rest is untested: a cap of 100 (more with Vigor), a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back and keeps its combo points).',
     docRef: `${ROGUE}#21-energy`,
   },
+  rogueFinisherTalents: {
+    text: 'Improved Eviscerate and Aggression raise the attack-power part of Eviscerate, and Serrated Blades the attack-power part of Rupture, as they raise the rest of the damage. A guild test measured those parts (Eviscerate 4% of your attack power a point, Rupture 1–3% a tick) without saying which talents the tester had: if its numbers already included these talents, the sim counts them twice. Untested.',
+    docRef: `${ROGUE}#34-eviscerate-r9-31016`,
+  },
   rogueTwoRolls: {
     text: 'Eviscerate and Expose Armor roll to hit and then to crit, since they deal no weapon damage; Sinister Strike and Backstab roll once. Untested for rogues.',
     docRef: `${ROGUE}#3-abilities`,

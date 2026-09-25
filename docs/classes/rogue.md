@@ -216,7 +216,8 @@ Classic Era guide's opener names both durations [wh-rot].
 [F] [guild-0925]: a guild tester measured it in game, up from the 3% Classic Era sims use. The
 tooltip says only "increased by Attack Power" and the client carries no coefficient
 (`BonusCoefficientFromAP` 0). Improved Eviscerate and Aggression multiply the attack-power term with
-the rest [?], as in Classic Era; the test didn't separate them.
+the rest [?], as in Classic Era; the test didn't separate them, and if its 4% already included them
+the sim counts them twice ([Q3](#10-open-questions); the results' `rogueFinisherTalents` assumption).
 
 ### 3.5 Rupture (r6, 11275)
 
@@ -224,7 +225,8 @@ A bleed of **3 + CP ticks** every 2 s, each `35 + 4.73 × CP + 0.01 × min(CP, 3
 Blades (+10% per rank) [F] [client] (SpellEffect, SpellDuration `DurationPerResource` 2000). The AP
 term, **1% a tick at 1 point, 2% at 2 and 3% at 3 to 5**, is [F] [guild-0925]: a guild tester
 measured it in game, unchanged from Classic Era sims' (4/10/18/21/24% of AP over the whole bleed at
-1–5 points). It ignores armor and
+1–5 points). Serrated Blades multiplies the attack-power term with the rest [?], as Improved
+Eviscerate does Eviscerate's ([Q3](#10-open-questions)). It ignores armor and
 snapshots at application; its ticks crit in `forever` ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)).
 
 ### 3.6 Expose Armor (r5, 11198)
@@ -726,10 +728,18 @@ R11–R13 are in `subtlety.test.ts`.
 - **Q2 Backstab's flat bonus.** 225 (inside the 150%, the Classic Era rule, Mutilate's Forever
   tooltip) or 150 (Forever's Backstab tooltip)? About 3% of a Backstab. Test: the average of 50
   non-crit Backstabs with a known dagger and AP.
-- **Q3 Finishers' attack power. Answered 2026-09-25** by a guild test ([guild-0925]): Eviscerate
+- **Q3 Finishers' attack power. Measured 2026-09-25** by a guild test ([guild-0925]): Eviscerate
   4% of AP per point (Classic Era sims' 3%), Rupture 1% per point per tick up to 3 points (unchanged),
-  both in the sim (§3.4, §3.5). Left open: whether Improved Eviscerate and Aggression multiply the
-  AP share (the sim's reading), and the test's build and sample size, which weren't reported.
+  both in the sim (§3.4, §3.5). **Still open: the tester's talents.** The test reported totals
+  without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
+  and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
+  the results' assumptions (`rogueFinisherTalents`) whenever one of them is taken. If the tester had
+  them, the measurement already includes them and the sim counts them twice: Classic Era's 3% ×
+  Improved Eviscerate 1.20 × Aggression 1.06 = 3.82%, which rounds to the reported 4%. Counted twice,
+  the defaults read high by about 0.5% (Combat), 0.9% (Assassination) and 0.1% (Subtlety, through
+  Serrated Blades on Rupture). The values stay until the tester's talents are known. Test: the
+  tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression at two
+  attack-power levels.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee
   spells; untested for rogues.
 - **Q5 Poison hit and crit.** Spell hit (with Precision's), partial resists and spell crit ×1.5

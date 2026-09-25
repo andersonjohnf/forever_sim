@@ -43,7 +43,8 @@
 //   --keep <talent>[=r]   in every build at rank r (default: its max); repeatable, or comma-separated.
 //                         No talent is kept by default (D30)
 //   --exclude <talent>    never taken; repeatable, or comma-separated
-//   --partials            search partial ranks too, one per build (a far larger space)
+//   --no-partials         search max ranks only: leftover points still go to partial ranks, by score per
+//                         point. By default every rank of one talent a build is searched too (OG-2)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
 // Constraints on the character sheet (docs/optimizer.md#constraints), repeatable:
@@ -204,7 +205,7 @@ async function main() {
       'crit-immune': { type: 'boolean', default: false },
       'crush-immune': { type: 'boolean', default: false },
       talents: { type: 'string' },
-      partials: { type: 'boolean', default: false },
+      'no-partials': { type: 'boolean', default: false },
       'screen-fights': { type: 'string', default: '400' },
       require: { type: 'string', multiple: true, default: [] },
       goal: { type: 'string' },
@@ -252,7 +253,7 @@ async function main() {
   const searchTalents = args.turns || args.search !== 'rotation'
   // A rotation-only search keeps the setup's talents with no talent constraints: say so, rather than drop the flags (OV2-2).
   if (!searchTalents) {
-    const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['partials'].filter((f) => args[f]))
+    const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['no-partials'].filter((f) => args[f]))
     if (given.length) throw new Error(`--search rotation keeps the setup's talents, with no talent constraints: drop ${given.map((f) => `--${f}`).join(', ')}, or search talents too (--search both or --turns)`)
   }
   if ((args.turns || args.search !== 'talents') && rotations.length === 0) throw new Error('Searching the rotation needs variants: --sweep or --rotation')
@@ -365,7 +366,7 @@ async function main() {
   let lastRound = -1
   // In turns, a pass's header prints on its first progress event, before its space and rounds (OV2-6).
   let pendingPass = args.turns ? 0 : null
-  const talents = searchTalents ? { ...(Object.keys(minPoints).length ? { minPoints } : {}), keep, exclude, searchPartials: args.partials, screenFights: flagNumber('screen-fights', args['screen-fights'], { min: 10, whole: true }) } : undefined
+  const talents = searchTalents ? { ...(Object.keys(minPoints).length ? { minPoints } : {}), keep, exclude, searchPartials: !args['no-partials'], screenFights: flagNumber('screen-fights', args['screen-fights'], { min: 10, whole: true }) } : undefined
   const common = {
     config,
     goal,
@@ -427,14 +428,14 @@ async function main() {
       const others = dims.filter((d) => !objectiveIds.has(d.id)).map((d) => d.name)
       const dimensions = `${dims.length} dimensions (${dims.length - others.length} objective${others.length ? ` + ${others.join(', ')}` : ''})`
       console.log(
-        `talent space: ${plural(r.space.builds, 'build')}${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}; ${plural(r.space.cores, 'legal core')}, ${count(r.space.dominated)} dominated`,
+        `talent space: ${plural(r.space.builds, 'build')}${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}, ${r.space.searchPartials ? 'every rank of one talent a build' : 'max ranks only'}; ${plural(r.space.cores, 'legal core')}, ${count(r.space.dominated)} dominated`,
       )
       const kept = Object.keys(keep)
       if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
       if (r.space.constrained.length) console.log(`  searched for the constraints (they change what a limit reads): ${r.space.constrained.map(name).join(', ')}`)
       if (r.space.notBinding?.length)
-        console.log(`  not searched for the constraints: every build meets them without it (${r.space.notBinding.map(name).join(', ')} stay fillers)`)
+        console.log(`  not searched for the constraints (every build meets them with these as fillers): ${r.space.notBinding.map(name).join(', ')}`)
       if (r.space.minPoints && Object.values(r.space.minPoints).some((n) => n > 0))
         console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}${t in minPoints ? '' : " (the tank's default)"}`).join(', ')}`)
     }

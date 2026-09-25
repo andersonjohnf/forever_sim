@@ -11,25 +11,26 @@
 //   ties. Fillers take the points the objective talents leave, in the order of what they measurably
 //   do for the goal's tie-break (`byTieBreak`: the ones that help it most a point first, those
 //   with no effect next, those that hurt it last), then by tree and tier.
-// - An objective talent is at 0 or its max rank in a build's core. Points the cores leave over go
-//   first to partial ranks of objective talents, where the sim can measure them, in the order of the
-//   score per point the screen measured, and only then to fillers. So a partial rank is where the
-//   leftover points do the most, not a dimension of its own (`searchPartials` makes it one, for a
-//   small space).
+// - An objective talent is at 0 or its max rank in a build's core, but one talent a build may be at
+//   any rank (`searchPartials`, the default, OG-2): a talent's ranks needn't add up to its max
+//   rank's effect, so a talent whose max rank screens below zero may still help at 2 of 3. Points the
+//   cores leave over go first to partial ranks of objective talents, where the sim can measure them,
+//   in the order of the score per point the screen measured, and only then to fillers.
 // - A talent that changes what a sheet constraint reads (health, armor, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): under the effective-health
 //   floor, a build with Toughness and one without both race. It reads the character sheet, not the
 //   talent's name.
 // - Kept talents (the player's) sit at their rank in every build; excluded and **harmful** talents
-//   (those that lower the score wherever they act, measured) are never taken unless a constraint
-//   reads them. A prerequisite comes with its talent, as a filler if it's not objective itself.
-// - A build must be **maximal**, the one pruning rule, and an objective one: if another objective
-//   talent that the screen didn't measure below zero fits at max rank in the points the core leaves
-//   over (they'd otherwise go to partial ranks and fillers, which the goal can't tell from spare
-//   points), the build that takes it scores at least as well, so only that one is kept. A dimension a
-//   constraint alone made has no screened value, and an objective one whose screened effect is below
-//   zero, though not clearly (Feral Swiftness for a bear), might lower the score: builds with and
-//   without either race.
+//   (those that lower the score wherever they act, measured) are never taken, not even to fill a
+//   tier gate, unless a constraint reads them (a pruning rule too, OG-9). A prerequisite comes with
+//   its talent, as a filler if it's not objective itself.
+// - A build must be **maximal**, a pruning rule that's objective: if another objective talent that
+//   the screen didn't measure below zero fits at max rank in the points the fill would give to
+//   fillers (which the goal can't tell from spare points; not those it gives to an objective talent's
+//   partial rank, OG-3), the build that takes it scores at least as well, so only that one is kept.
+//   A dimension a constraint alone made has no screened value, and an objective one whose screened
+//   effect is below zero, though not clearly (Feral Swiftness for a bear), might lower the score:
+//   builds with and without either race.
 //   The trees are enumerated one at a time and combined by their points, since the tree rules
 //   never reach across trees: only the 51-point total does.
 // Every build is checked with the app's own validator (validateTalentBuild) and encoded with its
@@ -86,7 +87,7 @@ export interface TalentSpaceOptions extends TalentConstraints {
    * harmful one is never taken to fill leftover points, nor counted as a raise).
    */
   constrained?: ReadonlySet<string>
-  /** Search partial ranks too, one per build, instead of only filling leftover points with them (a far larger space). */
+  /** Search every rank of one talent a build, not only 0 or max (default yes, OG-2); leftover points go to partial ranks either way. */
   searchPartials?: boolean
   /** Stop after this many builds (the space is reported as larger). Default 200,000. */
   limit?: number
@@ -250,7 +251,15 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   const objectivePartials = partials.filter((i) => nodes[i].role === 'objective').sort((a, b) => value(b) - value(a) || a - b)
   const rest = [...partials.filter((i) => nodes[i].role !== 'objective'), ...fillerOrder].sort(byTieBreak)
   const fillOrder = [...objectivePartials, ...rest]
-  const searchPartials = options.searchPartials ?? false
+  const isObjectivePartial = new Uint8Array(count)
+  for (const i of objectivePartials) isObjectivePartial[i] = 1
+  /**
+   * The most leftover points that can go to one objective talent's partial rank (its ranks less
+   * one): the fill leaves at most that on a talent it doesn't take to max. A build whose fill takes
+   * more tops some talent up to max, and it's the same build as the core with that talent at max.
+   */
+  const partialRoom = Math.max(0, ...objectivePartials.map((i) => nodes[i].max - 1))
+  const searchPartials = options.searchPartials ?? true
 
   const treeCount = data.trees.length
   const inTree = Array.from({ length: treeCount }, (_, tree) => nodes.map((_, i) => i).filter((i) => nodes[i].tree === tree))
@@ -388,7 +397,8 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   }
 
   // Combine one core per tree: at most one partial rank in all, within 51 points, and maximal: the
-  // points left over (which fillers take) are fewer than any tree's cheapest raise.
+  // points left over that fillers take (not the objective partial ranks they go to first) are fewer
+  // than any tree's cheapest raise (OG-3).
   const byUsed = treeCores.map((list) => {
     const buckets: TreeCore[][] = Array.from({ length: maxPoints + 1 }, () => [])
     for (const c of list) buckets[c.used].push(c)
@@ -404,17 +414,27 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     if (partials > 1) return
     let cheapest = Infinity
     for (const c of chosen) cheapest = Math.min(cheapest, partials > 0 || c.partial ? c.raiseKeepingPartials : c.raiseAny)
-    if (slack >= cheapest) {
+    // Even with the most the fill can leave on a partial rank, the rest would fit a raise.
+    if (slack - partialRoom >= cheapest) {
       dominated++
       return
     }
     const ranks = new Int8Array(count)
     for (const c of chosen) for (let i = 0; i < count; i++) ranks[i] += c.ranks[i]
     // The rest of the points, by preference, a point at a time (a point can open a deeper filler's gate).
+    let toObjective = 0
     for (let left = slack; left > 0; left--) {
       const f = fillOrder.find((i) => canFill(ranks, i))
       if (f === undefined) break
       ranks[f]++
+      toObjective += isObjectivePartial[f]
+    }
+    // A raise dominates only when it fits in the points the score can't see (OG-3): taking it from
+    // points on an objective talent's partial rank could cost more than it gains (a cheap raise of a
+    // weak talent in place of a strong talent's ranks).
+    if (slack - toObjective >= cheapest) {
+      dominated++
+      return
     }
     const byId: TalentRanksById = {}
     nodes.forEach((n, i) => {
@@ -437,8 +457,9 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   const combine = (tree: number, used: number, widest: number) => {
     if (truncated) return
     const last = tree === treeCount - 1
-    // Maximal needs slack < every tree's raise cost, so the last tree's points can't be far below what's left.
-    const lowest = last ? Math.max(0, maxPoints - used - Math.min(widest, Math.max(...treeCores[tree].map((c) => c.raiseKeepingPartials), 0)) + 1) : 0
+    // Maximal needs the filler points under every tree's raise cost, and the fill leaves at most
+    // `partialRoom` on a partial rank, so the last tree's points can't be far below what's left.
+    const lowest = last ? Math.max(0, maxPoints - used - Math.min(widest, Math.max(...treeCores[tree].map((c) => c.raiseKeepingPartials), 0)) - partialRoom + 1) : 0
     for (let u = maxPoints - used; u >= lowest; u--) {
       for (const c of byUsed[tree][u]) {
         chosen.push(c)

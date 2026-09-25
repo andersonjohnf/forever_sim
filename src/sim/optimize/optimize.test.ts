@@ -103,9 +103,12 @@ describe('screenTalents', () => {
 describe('optimize', () => {
   // The bear's Feral talents with everything but a few kept: a space of a handful of builds.
   const bear = fixed(defaultConfig('druid-feral-bear'))
+  // Max ranks only: the default searches every rank of one talent a build too (OG-2), a space ten
+  // times the size, and these tests are about other rules.
   const search = {
     minPoints: { 'Feral Combat': 31 },
     screenFights: 40,
+    searchPartials: false,
   }
 
   it('races a small talent space to a leader, and does it the same way twice', async () => {
@@ -170,6 +173,24 @@ describe('optimize', () => {
     expect(high.space!.builds).toBeGreaterThan(none.space!.builds)
   }, 60_000)
 
+  it('searches partial ranks by default, and max ranks only when that space passes the limit, saying so (OG-2)', async () => {
+    const run = (talents: { minPoints: Record<string, number>; screenFights: number; searchPartials?: boolean; limit?: number }) =>
+      optimize({ config: bear, talents, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    const plain = await run(search)
+    const byDefault = { minPoints: search.minPoints, screenFights: search.screenFights }
+    const partials = await run(byDefault)
+    expect(plain.space!.searchPartials).toBe(false)
+    expect(partials.space!.searchPartials).toBe(true)
+    expect(partials.space!.builds).toBeGreaterThan(plain.space!.builds)
+    expect(partials.notes).toEqual([])
+    // A limit the max-rank space fits and the partial one doesn't.
+    const capped = await run({ ...byDefault, limit: plain.space!.builds + 1 })
+    expect(capped.space!.searchPartials).toBe(false)
+    expect(capped.space!.truncated).toBe(false)
+    expect(capped.space!.builds).toBe(plain.space!.builds)
+    expect(capped.notes[0]).toMatch(/tries max ranks only/)
+  }, 60_000)
+
   it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
     // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).
     const candidate = { talents: OLD_BEAR, rotation: {} }
@@ -187,7 +208,7 @@ describe('optimize', () => {
 
   it('a tank’s talent search spends 31 points in its tank tree unless told otherwise (D30)', async () => {
     const run = (minPoints?: Record<string, number>) =>
-      optimize({ config: bear, talents: { screenFights: 20, ...(minPoints ? { minPoints } : {}) }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+      optimize({ config: bear, talents: { screenFights: 20, searchPartials: false, ...(minPoints ? { minPoints } : {}) }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
     const byDefault = await run()
     expect(byDefault.space!.minPoints).toEqual({ 'Feral Combat': 31 })
     const feral = TALENT_DATA.druid.trees.findIndex((t) => t.id === 'Feral Combat')
@@ -229,7 +250,7 @@ describe('optimize', () => {
 
   it('the baseline is only the measuring stick: a setup that breaks the talent constraints is never a candidate (D30)', async () => {
     // The default bear has Feral Swiftness 2; a search that keeps it at 1 can't answer with the default.
-    const report = await optimize({ config: bear, talents: { screenFights: 20, keep: { 'Feral Swiftness': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 3 })
+    const report = await optimize({ config: bear, talents: { screenFights: 20, searchPartials: false, keep: { 'Feral Swiftness': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 3 })
     expect(report.setupFails).toEqual(['Feral Swiftness 2/1'])
     expect(report.excluded.talents).toBe(1)
     expect(report.candidates[0]).toEqual(setupCandidate(bear))
@@ -239,7 +260,7 @@ describe('optimize', () => {
     expect(report.race.standings.some((st) => st.candidate === 0)).toBe(false)
     expect(report.blocked).toEqual([])
     // Keeping what the default has, a copy of it is a candidate like any build.
-    const keeps = await optimize({ config: bear, talents: { screenFights: 20 }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    const keeps = await optimize({ config: bear, talents: { screenFights: 20, searchPartials: false }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
     expect(keeps.setupFails).toEqual([])
     expect(keeps.candidates[1]).toEqual(setupCandidate(bear))
   }, 60_000)
@@ -260,7 +281,7 @@ describe('optimize', () => {
     const paladin = fixed(defaultConfig('paladin-protection'))
     const report = await optimize({
       config: paladin,
-      talents: { screenFights: 10 },
+      talents: { screenFights: 10, searchPartials: false },
       constraints: [...defaultConstraints('tank'), CRIT_IMMUNE],
       budget: { fights: 4_000, initialFights: 2 },
       runner: localFightRunner(),
@@ -279,7 +300,7 @@ describe('optimize', () => {
 
   it('with no legal build fitting the talent constraints, it says so and lists them together (OV2-3)', async () => {
     // Moonkin Form kept (Balance's 31-point talent), beside 31 in Feral Combat: no 51-point build fits.
-    const report = await optimize({ config: bear, talents: { screenFights: 10, keep: { 'Moonkin Form': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner() })
+    const report = await optimize({ config: bear, talents: { screenFights: 10, searchPartials: false, keep: { 'Moonkin Form': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner() })
     expect(report.space!.builds).toBe(0)
     expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual([
@@ -291,7 +312,7 @@ describe('optimize', () => {
     // A rotation pass holds the talents without searching them: the default takes Ferocity.
     const report = await optimize({
       config: bear,
-      talents: { fixedBuild: true, exclude: ['Ferocity'] },
+      talents: { fixedBuild: true, exclude: ['Ferocity'], searchPartials: false },
       rotations: [{ [MAUL]: 90 }],
       budget: { fights: 4_000, initialFights: 2 },
       runner: localFightRunner(),
@@ -303,7 +324,7 @@ describe('optimize', () => {
   it('names sheet constraints each met but never together (OV2-8)', async () => {
     // The warrior's builds differ in armor (Toughness): at least the most and at most the least can't both hold.
     const warrior = fixed(defaultConfig('warrior-protection'))
-    const talents = { screenFights: 10 }
+    const talents = { screenFights: 10, searchPartials: false }
     const probe = await optimize({ config: warrior, talents, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
     const armor = probe.candidates.slice(1).map((c) => buildPlan(applyCandidate(warrior, c)).sheet.armor)
     expect(Math.max(...armor)).toBeGreaterThan(Math.min(...armor))
@@ -323,7 +344,7 @@ describe('optimize', () => {
 
   it('answers with the leader, and keeps no talent by its name: the space is the screen’s alone (D30)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))
-    const report = await optimize({ config: warrior, talents: { screenFights: 20 }, budget: { fights: 60_000, initialFights: 40 }, runner: localFightRunner(), top: 3 })
+    const report = await optimize({ config: warrior, talents: { screenFights: 20, searchPartials: false }, budget: { fights: 60_000, initialFights: 40 }, runner: localFightRunner(), top: 3 })
     // No talent is kept, and every dimension is an objective talent or one a constraint reads.
     expect(report.space).not.toHaveProperty('floor')
     expect(report.space).not.toHaveProperty('preferred')
@@ -337,7 +358,7 @@ describe('optimize', () => {
 
   it('Defense: the screen reads damage taken, and the answer takes less of it than the default (D30, the goals)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))
-    const report = await optimize({ config: warrior, goal: 'defense', talents: { screenFights: 40 }, budget: { fights: 200_000, initialFights: 100 }, runner: localFightRunner(), top: 3 })
+    const report = await optimize({ config: warrior, goal: 'defense', talents: { screenFights: 40, searchPartials: false }, budget: { fights: 200_000, initialFights: 100 }, runner: localFightRunner(), top: 3 })
     expect(report.goal).toBe('defense')
     expect(report.scoredGoal).toBe('defense')
     const verdict = (name: string) => report.screen!.verdicts.find((v) => v.name === name)!
@@ -393,7 +414,7 @@ describe('optimize', () => {
   it('searching talents and rotation together tries every build with the setup’s own rotation too (O1-1)', async () => {
     const report = await optimize({
       config: bear,
-      talents: { screenFights: 20 },
+      talents: { screenFights: 20, searchPartials: false },
       rotations: [{ [MAUL]: 90 }],
       budget: { fights: 20_000, initialFights: 2 },
       runner: localFightRunner(),
@@ -420,7 +441,7 @@ describe('optimize', () => {
     const old = { ...bear, talents: OLD_BEAR }
     const passes = await optimizeInTurns({
       config: old,
-      talents: { screenFights: 40 },
+      talents: { screenFights: 40, searchPartials: false },
       rotations: [{ [MAUL]: 90 }],
       budget: { fights: 60_000, initialFights: 100 },
       runner: localFightRunner(),
@@ -447,7 +468,7 @@ describe('optimize', () => {
     const exclude = ['Ferocity']
     const passes = await optimizeInTurns({
       config: bear,
-      talents: { screenFights: 20, exclude },
+      talents: { screenFights: 20, searchPartials: false, exclude },
       rotations: [{ [MAUL]: 90 }],
       budget: { fights: 20_000, initialFights: 50 },
       runner: localFightRunner(),

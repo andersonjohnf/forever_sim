@@ -273,7 +273,7 @@ That reads the character sheet, never the talent's name. The check is exact, not
 space is built first with those talents as fillers, and if every build in it (with every rotation
 variant) meets every sheet constraint, they stay fillers, since searching them would only add
 builds that give up objective points or tie-break for a limit already met (the report's
-`space.notBinding`; the CLI says "not searched for the constraints"). Otherwise they're dimensions
+`space.notBinding`; the CLI lists them as "not searched for the constraints"). Otherwise they're dimensions
 (`space.constrained`). The Protection paladin's default floor never binds in a talent search, so
 Toughness and Sacred Duty stay fillers; searching them had made its space 23,841 builds for the
 same leader as 1,254. A bear's Thick Hide armor is modelled (BR6,
@@ -325,10 +325,20 @@ alike** (D30, user decision after O1's fifth review round): what the screen meas
 the goal decides its part, never its name. There's no survival floor, no preferred filler and no
 talent kept by default.
 
-- **Objective talents are the search.** Each is at 0 or its max rank in a build's **core**. One
+- **Objective talents are the search.** Each is at 0 or its max rank in a build's **core**, and
+  **one talent a build may be at any rank** (`searchPartials`, the default; OG-2). A talent's ranks
+  needn't add up to its max rank's effect: the warrior's Boundless Rage screened −0.18 points at
+  3/3 for Balanced, so leftover points never went to it, yet Booming Voice 3 and Boundless Rage 2
+  beat the max-rank search's leader (Booming Voice 5) by +0.42 ± 0.13 points, paired. Searching
+  every rank of one talent is what keeps "every legal build that could win" true without trusting
+  the screen's per-point value; the alternative, screening each rank and searching the ranks of a
+  talent whose effect isn't flat, would rest on 400 fights telling a small curve from noise. One
   whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
   for a bear), is never forced by the maximality rule below nor given leftover points: builds with
-  and without it both race.
+  and without it, and with each of its ranks, race. The CLI's `--no-partials` searches max ranks
+  only. A space with partial ranks that passes the limit (200,000 builds) is built with max ranks
+  only instead, and the report's notes say so: a space cut off in the middle would drop builds by
+  where they fall in the enumeration.
 - **So is a talent a constraint reads, where the constraint could bind.** One that changes a sheet
   number a constraint reads (Toughness's armor, Sacred Duty's health, under the effective-health
   floor) is a dimension too, whatever its role, so builds with and without it both race, unless
@@ -343,8 +353,8 @@ talent kept by default.
   tie-break (`byTieBreak`): those that help it first, the most a point first; then those with no
   effect; then those that hurt it. Then the spec's own tree, the shallower tier, and code order.
   So for Balanced, a talent that lowers damage taken takes spare points before one that does
-  nothing, and for Defense one that adds threat does. `--partials` (`searchPartials`) searches
-  partial ranks instead, one per build, a far larger space.
+  nothing, and for Defense one that adds threat does. With a searched partial rank, the fill still
+  gives leftover points to the other objective talents' partial ranks, so a build can hold two.
 - **Tier gates and arrows** (5 points a tier in the lower tiers of the same tree; an arrow's
   prerequisite at max rank, [talents.md](data/talents.md#tier-gates)) are met with fillers where
   the core doesn't meet them, the least needed. A prerequisite that isn't objective comes with its
@@ -355,20 +365,36 @@ talent kept by default.
   `src/sim/optimize/optimize.ts`): Protection for the warrior and paladin, Feral Combat for the
   bear. It's a rule on a tree's points, not on any talent. `--min-tree` merges with it: a minimum
   for the tank tree replaces its 31 (`--min-tree Protection=0` drops it), and one for another tree
-  joins it. Harmful talents are never taken unless kept or searched for a constraint.
-- **Maximal builds only**, the one pruning rule, and an objective one. A point in a filler is, to
-  the goal, a spare point: it can't change the score. So if another objective talent that the
-  screen didn't measure below zero fits at max rank in the points a core leaves, the build that
-  takes it scores at least as well as the one that spends them on fillers, and only that one is
-  kept. A dimension only a constraint made has no screened value, so it's never a raise, and a
-  core that leaves room for it keeps its points for the fill order instead of being dropped. The
-  check is one talent at a time: a build that could only do better by swapping one talent for
-  another stays, and the race decides.
-- **One tree at a time.** Tier gates and arrows never cross trees; only the 51-point total does.
-  So each tree's cores are enumerated alone, each with the least points it can be legal in and the
-  fewest extra points any one more objective talent would cost, and cores are combined across trees
-  by points. A combination is kept when its leftover points are fewer than every tree's cheapest
-  raise.
+  joins it.
+
+**What the space leaves out, and why** (OG-9). Three rules narrow it, each stated here:
+
+- **Harmful talents are never taken**, not as a dimension, not for leftover points, not even to
+  fill a tier gate, unless kept or searched for a constraint. The screen found each one lowering the
+  score with 95% confidence in every context where it acts, so a build that takes it scores below
+  the same build with those points elsewhere.
+- **The tank tree's 31 points** are a default constraint (above), not a finding: a tank's search
+  never tries a build with fewer, unless told to with `--min-tree`.
+- **Maximal builds only**, a pruning rule that's objective. A point in a filler is, to the goal, a
+  spare point: it can't change the score. So if another objective talent that the screen didn't
+  measure below zero fits at max rank in the points the fill would give to fillers, the build that
+  takes it scores at least as well, and only that one is kept. **Only the fillers' points count**
+  (OG-3): the fill gives leftover points to objective talents' partial ranks first, and a cheap
+  raise of a weak talent in their place could cost more than it gains. The review's toy: with 4
+  points outside Protection, Deflection at 1 a point and 5 ranks, Improved Rend at 0.01 a point and
+  3, the raise of Improved Rend (3 points) had shadowed Deflection 4; now it dominates only where
+  it fits in filler points, and Deflection 4 races. A dimension only a constraint made has no
+  screened value, so it's never a raise, and a core that leaves room for it keeps its points for
+  the fill order instead of being dropped. The check is one talent at a time: a build that could
+  only do better by swapping one talent for another stays, and the race decides.
+
+**One tree at a time.** Tier gates and arrows never cross trees; only the 51-point total does. So
+each tree's cores are enumerated alone, each with the least points it can be legal in and the
+fewest extra points any one more objective talent would cost, and cores are combined across trees
+by points. A combination is kept when the points its fill gives to fillers are fewer than every
+tree's cheapest raise. A fill that gives more than a talent's ranks less one to objective talents
+takes some talent to max rank, which is the same build as the core with it at max, so only
+combinations within that many points of the cheapest raise are tried.
 
 Every build is checked with the app's own `validateTalentBuild`, encoded with `encodeTalentCode`,
 and must decode back to the same ranks.
@@ -428,7 +454,7 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   relative to it.
 - **Rotation only** (`--search rotation`): the variants with the setup's talents. No talent is
   searched, so there are no talent constraints; sheet constraints still hold. The CLI
-  refuses the talent flags with it (`--keep`, `--exclude`, `--min-tree`, `--partials`) rather
+  refuses the talent flags with it (`--keep`, `--exclude`, `--min-tree`, `--no-partials`) rather
   than drop them: search talents too (`--search both` or `--turns`) to use them.
 
 In turns, the CLI prints each pass's header (`=== pass 2: rotation ===`) before its space and
@@ -544,6 +570,13 @@ compares the leader, the answer, with the default.
   fights would be merged; with 50 or more three-minute fights that's an effect far below anything
   the race could separate.
 - **Maximality is one talent at a time** (above): swaps are left to the race.
+- **One searched partial rank a build.** Every rank of one talent is searched, and leftover points
+  go to the others' partial ranks by their screened score per point, so a build can hold two
+  partial ranks. What isn't tried is two talents each at a partial rank the fill wouldn't give,
+  such as two talents whose max ranks both screen below zero, each at 1 of 3. Searching every pair
+  would multiply the space by the ranks of every other talent.
+- **Harmful talents' partial ranks aren't tried.** A talent the screen finds lowering the score at
+  max rank in every context is never taken, so a rank of it that alone would help is missed.
 
 ## Worked examples
 
@@ -566,6 +599,16 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   450,000, 64 fights each. Over 10 plans it's capped at 1,000.
 - **Capstones.** With only Mortal Strike, Bloodthirst and Shield Slam objective, every build has
   exactly one of them: two need 62 points, and a build with none has the points for one.
+- **Partial ranks searched** (OG-2). Cruelty, Booming Voice and Boundless Rage objective, Boundless
+  Rage's screen at −0.06 a point, 36 points in Protection: with max ranks only, Boundless Rage is at
+  0 or 3 in every build; by default it's at 0, 1, 2 or 3 (`talents.test.ts`).
+- **A cheap raise doesn't shadow a partial rank** (OG-3). 47 points in Protection leave 4:
+  Deflection (1 a point, 5 ranks) at 4 races, where Improved Rend's 3-point raise (0.01 a point)
+  used to drop it; with 46 in Protection, Deflection 5 fits and the builds are Deflection 5 and
+  Deflection 2 with Improved Rend 3 (`talents.test.ts`).
+- **A constraint that can't bind** (OG-1). The bear with a floor at half its effective health: no
+  build falls below it, so Heart of the Wild and Thick Hide stay fillers and the space is the one
+  with no constraint; at the whole of it they're dimensions again (`optimize.test.ts`).
 - **A toy race.** Twenty candidates at 1,000–1,019 DPS and one at 1,030, with noise they share
   each fight: the race finds the 1,030 one and separates it at 95%, the same with 1 lane or 7 and
   whatever order the jobs finish in.

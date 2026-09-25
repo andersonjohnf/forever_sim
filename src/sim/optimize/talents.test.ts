@@ -85,7 +85,8 @@ describe('talentSpace', () => {
 
   it('puts leftover points in the objective talent with the most score per point', () => {
     // Arms at 47 leaves 4 points for Fury's first tier: Cruelty or Unbridled Wrath (tier 2 needs 5 above).
-    const base = { data: warrior, roles: roles(['Cruelty', 'Booming Voice']), minPoints: { Arms: 47 } }
+    // Max ranks only, so the fill alone decides the partial rank.
+    const base = { data: warrior, roles: roles(['Cruelty', 'Booming Voice']), minPoints: { Arms: 47 }, searchPartials: false }
     const cruelFirst = talentSpace({ ...base, values: new Map([[id('Cruelty'), 2], [id('Booming Voice'), 1]]) })
     const voiceFirst = talentSpace({ ...base, values: new Map([[id('Cruelty'), 1], [id('Booming Voice'), 2]]) })
     for (const s of [cruelFirst, voiceFirst]) expectLegal(s.builds.map((b) => b.code))
@@ -94,21 +95,51 @@ describe('talentSpace', () => {
     expect(cruelFirst.builds[0].partial).toEqual([id('Cruelty')])
   })
 
-  it('searches partial ranks when asked, one per build', () => {
-    const plain = talentSpace({ data: warrior, roles: roles(['Cruelty', 'Unbridled Wrath', 'Improved Heroic Strike']) })
-    const partial = talentSpace({ data: warrior, roles: roles(['Cruelty', 'Unbridled Wrath', 'Improved Heroic Strike']), searchPartials: true })
+  it('searches partial ranks by default, one per build; searchPartials: false searches max ranks only', () => {
+    const plain = talentSpace({ data: warrior, roles: roles(['Cruelty', 'Unbridled Wrath', 'Improved Heroic Strike']), searchPartials: false })
+    const partial = talentSpace({ data: warrior, roles: roles(['Cruelty', 'Unbridled Wrath', 'Improved Heroic Strike']) })
     expect(plain.builds).toHaveLength(1)
     expect(partial.builds.length).toBe(1)
     const tight = { data: warrior, roles: roles(['Cruelty', 'Unbridled Wrath', 'Shield Slam']), minPoints: { Protection: 43 } }
     // 8 points left for Fury: 5 + 3 of the other, which is a partial either way.
-    expect(talentSpace(tight).builds.length).toBeGreaterThan(0)
-    const searched = talentSpace({ ...tight, searchPartials: true })
+    expect(talentSpace({ ...tight, searchPartials: false }).builds.length).toBeGreaterThan(0)
+    const searched = talentSpace(tight)
     expectLegal(searched.builds.map((b) => b.code))
     for (const b of searched.builds) expect(b.partial.length).toBeLessThanOrEqual(1)
   })
 
+  it('searches the partial ranks of a talent whose max rank screens below zero (OG-2)', () => {
+    // The review's warrior: Boundless Rage screened −0.18 at max rank, so it never took leftover
+    // points, and its 2 of 3 ranks beside Booming Voice 3 were never tried. Searched by default, every
+    // rank of it races: a talent's ranks needn't add up to its max rank's effect.
+    const base = { data: warrior, roles: roles(['Cruelty', 'Booming Voice', 'Boundless Rage']), minPoints: { Protection: 36 } }
+    const values = new Map([[id('Cruelty'), 1.4], [id('Booming Voice'), 0.3], [id('Boundless Rage'), -0.06]])
+    const byRank = (space: ReturnType<typeof talentSpace>) => new Set(space.builds.map((b) => rank(b.code, 'Boundless Rage')))
+    expect(byRank(talentSpace({ ...base, values, searchPartials: false }))).toEqual(new Set([0, 3]))
+    const searched = talentSpace({ ...base, values })
+    expect(byRank(searched)).toEqual(new Set([0, 1, 2, 3]))
+    expectLegal(searched.builds.map((b) => b.code))
+  })
+
+  it('a cheap raise of a weak talent doesn’t shadow a strong talent’s partial ranks (OG-3)', () => {
+    // The review's toy: 4 points outside Protection, for Deflection (1 a point, 5 ranks) or Improved
+    // Rend (0.01 a point, 3 ranks). Improved Rend's 3 points fit, and Deflection's 5 don't, but a
+    // raise dominates only when it fits in points no objective talent would take: Deflection 4 races.
+    const base = { data: warrior, roles: roles(['Deflection', 'Improved Rend']), minPoints: { Protection: 47 }, values: new Map([[id('Deflection'), 1], [id('Improved Rend'), 0.01]]) }
+    const pairs = (space: ReturnType<typeof talentSpace>) => space.builds.map((b) => `${rank(b.code, 'Deflection')}/${rank(b.code, 'Improved Rend')}`)
+    for (const searchPartials of [false, true]) {
+      const space = talentSpace({ ...base, searchPartials })
+      expect(pairs(space)).toContain('4/0')
+      expectLegal(space.builds.map((b) => b.code))
+    }
+    // Where the raise fits in filler points, it still dominates: 5 points outside Protection take
+    // Deflection 5, and no build spends them on Improved Rend and fillers.
+    expect(pairs(talentSpace({ ...base, minPoints: { Protection: 46 }, searchPartials: false }))).toEqual(['5/0', '2/3'])
+  })
+
   it('searches a talent a constraint reads, and never forces a harmful one', () => {
-    const base = { data: warrior, minPoints: { Protection: 31 }, keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 } }
+    // Max ranks only, to keep the spaces small.
+    const base = { data: warrior, minPoints: { Protection: 31 }, keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 }, searchPartials: false }
     const objective = MODELLED.filter((n) => n !== 'Toughness')
     const withFive = (space: ReturnType<typeof talentSpace>) => space.builds.filter((b) => rank(b.code, 'Toughness') === 5).length
     // As a filler, Toughness gets only leftover points.
@@ -128,7 +159,7 @@ describe('talentSpace', () => {
   it('never forces an objective talent whose screened effect is below zero: builds with and without it race (O1-5)', () => {
     // Deflection's screen mean below zero (it's objective: its interval reaches zero). With room
     // for it, a build without it isn't dropped as dominated, and leftover points don't go to it.
-    const base = { data: warrior, roles: roles(['Cruelty', 'Deflection']) }
+    const base = { data: warrior, roles: roles(['Cruelty', 'Deflection']), searchPartials: false }
     const positive = talentSpace({ ...base, values: new Map([[id('Cruelty'), 2], [id('Deflection'), 0.1]]) })
     expect(new Set(positive.builds.map((b) => rank(b.code, 'Deflection')))).toEqual(new Set([5]))
     const negative = talentSpace({ ...base, values: new Map([[id('Cruelty'), 2], [id('Deflection'), -0.1]]) })
@@ -201,13 +232,18 @@ describe('talentSpace', () => {
     'Master of Defense', 'Improved Revenge', 'Defiance', 'Improved Sunder Armor', 'Bastion', 'Focused Rage', 'Shield Slam',
   ]
   it('counts the Protection space on the real tree, and every build is legal', () => {
-    const space = talentSpace({
+    const options = {
       data: warrior,
       roles: roles(MODELLED, { Toughness: 'tie-break' }),
       keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 },
       minPoints: { Protection: 31 },
       preferTree: 'Protection',
-    })
+    }
+    // With every rank of one talent a build searched (the default, OG-2), and max ranks only.
+    const partials = talentSpace(options)
+    expect(partials.builds.length).toBe(COUNT_PROTECTION_PARTIALS)
+    expectLegal(partials.builds.filter((_, i) => i % 97 === 0).map((b) => b.code))
+    const space = talentSpace({ ...options, searchPartials: false })
     expect(space.builds.length).toBe(COUNT_PROTECTION)
     expectLegal(space.builds.map((b) => b.code))
     // Every build keeps the kept talents and the minimum; one with Shield Slam has its arrow.
@@ -220,4 +256,5 @@ describe('talentSpace', () => {
 })
 
 /** Pinned: a change here means the space's rules changed (update it on purpose, with the reason). */
-const COUNT_PROTECTION = 2283
+const COUNT_PROTECTION = 4730
+const COUNT_PROTECTION_PARTIALS = 57_558

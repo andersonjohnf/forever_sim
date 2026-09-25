@@ -126,6 +126,10 @@ export interface TalentSearch extends TalentConstraints {
   preferTree?: string
   /** Fights per plan in the screen (default 400). */
   screenFights?: number
+  /**
+   * Search every rank of one talent a build, not only 0 or max (default yes, OG-2). A space that
+   * passes `limit` with them searches max ranks only, and the report's notes say so.
+   */
   searchPartials?: boolean
   /** Most builds (default 200,000). */
   limit?: number
@@ -224,6 +228,8 @@ export interface OptimizeReport {
      * constraint already (OG-1).
      */
     notBinding: string[]
+    /** Whether every rank of one talent a build was searched (OG-2), or max ranks only. */
+    searchPartials: boolean
     minPoints?: Readonly<Record<string, number>>
   }
   /**
@@ -334,6 +340,8 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   let screen: TalentScreen | undefined
   let space: OptimizeReport['space']
   let builds = [start.talents]
+  /** What building the space changed, in words (a space too large for partial ranks). */
+  const spaceNotes: string[] = []
   if (search && talentRules && !search.fixedBuild) {
     screen = await screenTalents({
       config: applyCandidate(config, start),
@@ -356,6 +364,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // score can't see (the fillers), or in fewer points on objective talents, so none scores better.
     const reads = (v: TalentVerdict) => constraints.some((c) => v.sheetStats.includes(c.stat))
     const readByConstraint = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
+    let partials = search.searchPartials ?? true
     const spaceWith = (constrained: ReadonlySet<string>) =>
       talentSpace({
         data,
@@ -367,7 +376,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
         exclude,
         minPoints,
         preferTree: search.preferTree ?? mainTree(data, start.talents),
-        searchPartials: search.searchPartials,
+        searchPartials: partials,
         limit: search.limit,
       })
     let found = spaceWith(new Set())
@@ -376,6 +385,16 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
       (found.builds.length === 0 ||
         found.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
     if (binds) found = spaceWith(readByConstraint)
+    // Past the limit, a space cut off in the middle would drop builds by where they fall in the
+    // enumeration; max ranks alone drop them by a rule the report can state.
+    if (found.truncated && partials) {
+      const cut = found.builds.length
+      partials = false
+      found = spaceWith(binds ? readByConstraint : new Set())
+      spaceNotes.push(
+        `Searching every rank of one talent a build passed ${cut.toLocaleString('en-US')} builds, so this search tries max ranks only: leftover points still go to partial ranks, by score per point. Keep or exclude talents to search partial ranks too.`,
+      )
+    }
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
     space = {
@@ -383,6 +402,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
       builds: list.length,
       constrained: binds ? [...readByConstraint] : [],
       notBinding: binds ? [] : [...readByConstraint],
+      searchPartials: partials,
       ...(minPoints ? { minPoints } : {}),
     }
   }
@@ -420,7 +440,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     candidates: valid.length,
     excluded,
     budget: { fights: planned.fights, initialFights: planned.initialFights },
-    notes: planned.notes,
+    notes: [...spaceNotes, ...planned.notes],
     setupFails,
     ...(screen ? { screen } : {}),
     ...(space ? { space } : {}),
@@ -451,7 +471,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     scoredGoal: scored,
     seed,
     budget: { fights: planned.fights, initialFights: planned.initialFights },
-    notes: planned.notes,
+    notes: [...spaceNotes, ...planned.notes],
     ...(screen ? { screen } : {}),
     ...(space ? { space } : {}),
     candidates,

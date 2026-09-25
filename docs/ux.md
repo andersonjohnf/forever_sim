@@ -561,18 +561,36 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
     Every spec is on the list (Fury first, then the three tanks, then the rest in M5.65 A2), and each
     shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
-    stance, a pet, the consumables) sit under their headings above the list, as below. From a
-    53 rem setup pane (every width from 1440 px, whose pane is 55 rem, 54 beside a classic scrollbar;
-    D34) each of their cards flows its rows into two columns, as the Buffs tab's groups do,
-    reading across, with a rule between them; a last row alone on its line takes both, and a
-    dependent setting stays under its parent, in its cell. There a choice's options sit under its
-    label, sharing the cell's width (a warlock's Demon), so its help isn't squeezed beside them. Under
+    stance, a pet, the consumables) sit under their headings above the list, as below (from
+    1440 px in a column beside it: **Wide layout**, below). Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+  - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)
+    as amended; `src/features/rotation/layout.ts`). From 1440 px nothing pushes the list down:
+    - **The spec-wide settings are a column on the left,** first the unheaded ones (Arms' stance,
+      Demonic Sacrifice), then each heading's, one setting a line with its numbers and choices under
+      its label. Every heading shows its thresholds: there's room, so there's no **Advanced**
+      (principle 4).
+    - **The priority list is at the top of the next column,** its heading, preset picker and Reset
+      order first; a tank's **Preset** picker, with its line and info, heads that column, above
+      Priority list.
+    - **Where a third column fits** (a setup pane of 72 rem, from a window of about 1,850 px, 1,870
+      beside a classic scrollbar), the selected row's settings are a panel in it, sticky as below
+      and level with the list column's top. **Where it doesn't** (1440 to about 1,850 px), they open
+      **inline under the selected row**, in its list item, with the leading bar running down them,
+      and the rows below move down. There the row's button opens and closes them
+      (`aria-expanded`), and the row already shows its icon and name, so its settings start with its
+      place beside Move up and Move down; the name is their heading for screen readers, which takes
+      focus as the panel's does, and Escape goes back to the row.
+    - **No Back to list:** the settings sit beside or inside the list, so it's only below 1440 px;
+      Escape still goes back. Move up and Move down are as wide as their labels.
+    - **Nothing stretches:** the settings and the panel run from 22 to 28 rem and the list from 24
+      to 36 rem, each taking an equal share of the room; past those widths (about 2,400 px) the rest
+      of the pane stays empty.
   - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
     A spec with named rotations (a tank's **Defensive**, **Balanced** and **Max TPS**) has its
-    picker at the top of the tab instead, under a **Preset** heading, first as a tank's priority
-    choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
+    picker at the top of the tab instead (from 1440 px, of the list's column), under a **Preset**
+    heading, first as a tank's priority choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
@@ -611,18 +629,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       row's settings are already one level down. From 1024 px they sit in a panel beside the
       list, which stays in view as you scroll, and the selected row has a bar in the primary
       colour on its leading edge. Until you select one the panel says to. Selecting a row moves
-      focus to the panel's heading, as the sheet's title takes it; **Back to list** above it, or
-      Escape anywhere in the panel, returns focus to the row. The panel reaches down to 1rem
+      focus to the panel's heading, as the sheet's title takes it; **Back to list** above it (below
+      1440 px), or Escape anywhere in the panel, returns focus to the row. The panel reaches down to 1rem
       above the window's bottom; settings taller than that scroll inside it, with a fade on
       each edge that has more past it. Its switch is named "Use Battle Shout", so it isn't a
       second switch with the row's name. Below 1024 px they
       open in a bottom sheet, titled with the ability and its place, and closing it returns
-      focus to the row. **From 1440 px** (D34) the panel grows with the setup pane: 24 rem from a
-      53 rem pane (a 1440 px window's is 55 rem, 54 with a scrollbar) and 28 rem from 64 rem (a
-      window of about 1,660 px, 1,680 beside a classic scrollbar), so a threshold's help isn't
-      wrapped to three lines beside half-empty rows. There the ability's name
-      shows once, in the heading with its place: the switch's line is its help, at the label's size
-      and colour, and screen readers still hear "Use Battle Shout".
+      focus to the row. **From 1440 px** they sit beside the list or inline under the row (**Wide
+      layout**, above), and the ability's name shows once, in the heading with its place (inline,
+      in the row): the switch's line is its help, at the label's size and colour, and screen
+      readers still hear "Use Battle Shout".
     - **Moving a row.** Drag its handle, or focus the handle and press Space, move with the Up
       and Down arrow keys, and press Space again (Escape cancels); a screen reader hears where
       it is at each step ("Whirlwind is over position 10 of 16"). Move up and Move down in its
@@ -735,8 +751,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     on"). A number setting can need a second switch under another heading as well
     (`alsoDependsOn`: "Recklessness before the execute phase" and "Mighty Rage Potion up to" need
     Execute); it's dimmed while either is off, and its help names the second.
-  - **Advanced** (principle 2): switches and choices are always in view, and each heading's
-    number settings (rage and timing thresholds) wait behind an **Advanced** button on the
+  - **Advanced** (principle 2; below 1440 px, since from there every threshold shows): switches
+    and choices are always in view, and each heading's number settings (rage and timing thresholds) wait behind an **Advanced** button on the
     heading's right. Opening it shows them in place, under the switch each one tunes, so a
     label like "Shout again with" keeps its context. A heading opens by itself when one of its
     hidden settings differs from its default, and its button counts them ("1 changed") even

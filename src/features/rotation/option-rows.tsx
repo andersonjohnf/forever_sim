@@ -22,7 +22,8 @@ import { formatSetting, groupsThousands, type RowState, unitFor } from './logic'
  * indented on a rule (docs/ux.md "Rotation"). `all` is every setting under the heading, shown or
  * not, so a hidden parent's children don't come up to the top level. `fixed` rows, what the spec
  * always does, come first, with no control. `stacked` puts every number and choice under its label,
- * for a narrow panel (a priority-list row's settings beside the list).
+ * for a narrow panel (a priority-list row's settings beside the list); `flow` puts the rows in two
+ * columns on a wide setup pane.
  */
 export function OptionList({
   options,
@@ -30,6 +31,7 @@ export function OptionList({
   fixed = [],
   ctx,
   stacked = false,
+  flow = false,
   rowSwitch,
 }: {
   options: RotationOption[]
@@ -37,6 +39,12 @@ export function OptionList({
   fixed?: FixedRotationRow[]
   ctx: RowContext
   stacked?: boolean
+  /**
+   * The tab's spec-wide settings above the list: from an 80 rem setup pane (1440 px and wider,
+   * where the pane is a container), their rows flow into two columns, so a switch isn't a whole
+   * pane's width from its name (docs/ux.md "Rotation").
+   */
+  flow?: boolean
   /**
    * A priority-list row's switch, in its settings: named "Use Battle Shout" rather than by its
    * label, so it isn't a second switch with the list row's name beside it (docs/ux.md "Rotation").
@@ -59,23 +67,39 @@ export function OptionList({
       </ul>
     )
   }
-  return (
-    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
-      {fixed.map((row) => (
-        <li key={row.id}>
-          <FixedRow row={row} />
-        </li>
-      ))}
-      {options
-        .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
-        .map((option) => (
-          <li key={option.id}>
+  const top = [
+    ...fixed.map((row) => ({ key: row.id, node: <FixedRow row={row} /> })),
+    ...options
+      .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
+      .map((option) => ({
+        key: option.id,
+        node: (
+          <>
             <OptionRow option={option} ctx={ctx} stacked={stacked} rowSwitch={rowSwitch} />
             {renderChildren(option.id)}
-          </li>
-        ))}
+          </>
+        ),
+      })),
+  ]
+  return (
+    <ul className={cn('flex flex-col divide-y overflow-hidden rounded-xl border', flow && '@min-[80rem]/setup:grid @min-[80rem]/setup:grid-cols-2 @min-[80rem]/setup:divide-y-0')}>
+      {top.map(({ key, node }, i) => (
+        <li key={key} className={flow ? flowCell(i, top.length) : undefined}>
+          {node}
+        </li>
+      ))}
     </ul>
   )
+}
+
+/**
+ * A top-level row's place in a card that flows its rows into two columns (OptionList's `flow`):
+ * rules between rows and columns, and a last row alone on its line takes both columns, so the card
+ * has no hole. Its dependent settings stay under it, in its cell.
+ */
+function flowCell(i: number, count: number): string {
+  const spans = i === count - 1 && i % 2 === 0
+  return cn(i >= 2 && '@min-[80rem]/setup:border-t', spans ? '@min-[80rem]/setup:col-span-2' : i % 2 === 0 && '@min-[80rem]/setup:border-r')
 }
 
 /**
@@ -240,11 +264,15 @@ function ToggleRow({
           locked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
         )}
       >
+        {/* A row's own switch in its settings panel, from 1440 px (where the setup pane is the
+            container `setup`, so `@min-[0px]/setup:` means "in the wide layout"): the panel's heading
+            already names the ability, with its place, so the switch's line is its help, at the
+            label's size and colour, and the name stays for screen readers (docs/ux.md "Rotation"). */}
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span id={ids.label} className="text-sm font-medium">
+          <span id={ids.label} className={cn('text-sm font-medium', name !== undefined && '@min-[0px]/setup:sr-only')}>
             {option.label}
           </span>
-          <span id={ids.help} className="text-xs text-muted-foreground">
+          <span id={ids.help} className={cn('text-xs text-muted-foreground', name !== undefined && '@min-[0px]/setup:text-sm @min-[0px]/setup:text-inherit')}>
             {option.help}
           </span>
         </span>

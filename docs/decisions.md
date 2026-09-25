@@ -682,3 +682,22 @@ recommended, to land in the next update:
 - **Two sections side by side** at 1920+ isn't in this cut; look again once it ships (and with the
   Optimizer's screen).
 - **The review gate adds 1920 px** to its screenshot widths, beside 390 and 1280.
+
+### D35: Firebase Hosting, beside GitHub Pages until the cutover (2026-09-25)
+User decision. The site moves to **Firebase Hosting**: project `decades-prod`, site `decades-sim`
+(`https://decades-sim.web.app`). Until the user confirms the cutover, every push to `main` deploys
+the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover is a DNS change.
+- **Independent jobs.** The deploy workflow builds once; the Pages and Firebase jobs each deploy
+  that build, and a Firebase failure never blocks Pages during the transition. At the cutover the
+  Pages job and its setup go.
+- **Workload Identity Federation, no keys.** GitHub's OIDC token is exchanged for a short-lived
+  token of the service account `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`, through
+  a provider that trusts only this repository's `main` branch. No JSON key exists to leak.
+- **Analytics are Firebase Hosting's request logs in Cloud Logging,** switched on in the console.
+  Nothing in the app: no script, cookie or beacon, and no change to the Content-Security-Policy.
+- **Security headers are real headers now** (`firebase.json`): the same policy as `index.html`'s
+  meta tag plus `frame-ancestors 'none'`, which a meta tag can't set, with `nosniff`, a
+  referrer policy and a restrictive Permissions-Policy. The meta tag stays, for `vite preview`, the
+  e2e suite and Pages; a unit test keeps the two policies the same.
+- **Caching:** Vite's hashed `/assets/` are immutable for a year, the page revalidates on every
+  load, and the unhashed files in `public/` cache for an hour.

@@ -33,3 +33,6 @@ blob-report/
 
 # Agent git worktrees (Claude Code)
 .claude/worktrees/
+
+# Firebase CLI: its deploy cache (firebase-debug.log is covered by *.log above)
+.firebase/

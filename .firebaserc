@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "decades-prod"
+  },
+  "targets": {
+    "decades-prod": {
+      "hosting": {
+        "decades-sim": ["decades-sim"]
+      }
+    }
+  }
+}

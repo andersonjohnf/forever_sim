@@ -7,11 +7,13 @@ simulation runs in the visitor's browser.
 
 - **Build:** Vite 8, React 19, TypeScript 6, Tailwind CSS v4, shadcn/ui (Radix base, Nova
   preset, Lucide icons), oxlint, Vitest.
-- **Hosting:** GitHub Pages on the custom domain `https://sim.decades.gg/` (a CNAME to
-  `andersonjohnf.github.io`), deployed by `.github/workflows/deploy.yml` on every push to
-  `main`. The old `https://andersonjohnf.github.io/forever_sim/` redirects there, keeping a
+- **Hosting:** Firebase Hosting (project `decades-prod`, site `decades-sim`,
+  `https://decades-sim.web.app`), with GitHub Pages in parallel until the user confirms the
+  cutover (decision D35). `.github/workflows/deploy.yml` deploys every push to `main` to both.
+  The custom domain `https://sim.decades.gg/` is a CNAME to `andersonjohnf.github.io` until the
+  cutover moves it by DNS. The old `https://andersonjohnf.github.io/forever_sim/` redirects there, keeping a
   shared link's `#s=` setup. The Vite `base` is `/`. Use `import.meta.env.BASE_URL` for runtime asset URLs. If routing is ever
-  needed, use hash routing, because Pages can't rewrite deep links.
+  needed, use hash routing: it needs no rewrites on either host, and Pages can't rewrite deep links.
 
 ## Layout
 
@@ -649,8 +651,8 @@ A spec is data plus small ability modules, never its own loop.
 - **End to end:** Playwright drives headless Chromium against the production build, served
   by `vite preview` at the root, exactly as deployed (`e2e/`, `npm run test:e2e`). A
   shared fixture fails any test with a console error, an uncaught exception, or an HTTP error.
-  Vite runs with `appType: 'mpa'`, so missing assets 404 as they would on GitHub Pages instead
-  of falling back to `index.html`. For quick visual checks, `npm run snap` screenshots a page
+  Vite runs with `appType: 'mpa'`, so missing assets 404 as they do on the hosts (neither
+  rewrites to `index.html`) instead of falling back to `index.html`. For quick visual checks, `npm run snap` screenshots a page
   (light or dark, any width) and lists problems.
 - **Golden runs:** fixed config + seed → exact result snapshot. Update one only with an
   explanation in the commit.
@@ -672,9 +674,44 @@ A spec is data plus small ability modules, never its own loop.
 ## Deployment
 
 1. Push to `main`. The deploy workflow runs lint → the smoke suite → build, then deploys
-   `dist/`. The full suite has passed locally before the push (CLAUDE.md), and Full regression
-   runs it again beside the deploy, without holding it up.
-2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.
+   `dist/` twice, in independent jobs: to GitHub Pages (`deploy`) and to Firebase Hosting
+   (`deploy-firebase`), so a Firebase failure never holds up Pages until the cutover (D35). The
+   full suite has passed locally before the push (CLAUDE.md), and Full regression runs it again
+   beside the deploy, without holding it up.
+2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**, and for Firebase
+   the setup under [Firebase Hosting](#firebase-hosting).
+
+### Firebase Hosting
+
+`firebase.json` serves `dist/` as the hosting target `decades-sim`, which `.firebaserc` maps to the
+site `decades-sim` in the default project `decades-prod`. No rewrites or redirects: the app is one
+page with hash routing, and a missing file is a 404.
+
+- **Deploy.** `deploy-firebase` downloads the build job's `dist` artifact, authenticates with
+  `google-github-actions/auth` through Workload Identity Federation (the provider
+  `projects/232648440272/locations/global/workloadIdentityPools/github/providers/forever-sim`,
+  trusting only this repository's `main`; the service account
+  `forever-sim-deploy@decades-prod.iam.gserviceaccount.com`), and runs
+  `firebase-tools@15 deploy --only hosting:decades-sim`. No JSON key exists. The job has only
+  `contents: read` and `id-token: write`, and its GitHub environment is `firebase`.
+- **Analytics** are Hosting's request logs in Cloud Logging, switched on in the Firebase console.
+  The app has nothing for them: no script, cookie or beacon.
+- **Headers,** on every response unless the row says otherwise:
+
+| Path | Header | Value |
+| --- | --- | --- |
+| every path | `Content-Security-Policy` | `index.html`'s policy plus `frame-ancestors 'none'` ([below](#content-security-policy)) |
+| every path | `X-Content-Type-Options` | `nosniff` |
+| every path | `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| every path | `Permissions-Policy` | every powerful feature off (camera, microphone, geolocation, payment, USB and the like), except `clipboard-write=(self)` for Share and Export |
+| `/`, `/index.html` | `Cache-Control` | `no-cache`: revalidated on every load, so a deploy shows at once |
+| `/assets/**` | `Cache-Control` | `public, max-age=31536000, immutable`: Vite's hashed bundle, stylesheet, worker and fonts |
+| `/favicon.svg`, `/brand/**`, `/attribution/**` | `Cache-Control` | `public, max-age=3600`: `public/`'s unhashed files |
+
+Hosting serves `.js` as `application/javascript`, `.woff2` as `font/woff2` and `.svg` as
+`image/svg+xml`, so `nosniff` blocks nothing. `src/app/hosting.test.ts` holds `firebase.json` to
+this table: the header policy is the meta one plus `frame-ancestors`, and every file in `public/`
+has its hour. A new top-level folder in `public/` needs a row.
 
 ### Release stamp
 
@@ -726,7 +763,9 @@ e2e fixtures read it too.
 
 ### Content-Security-Policy
 
-GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in `index.html`:
+The policy is a `<meta http-equiv>` in `index.html`, since GitHub Pages sets no response headers,
+and Firebase Hosting also sends it as a header with `frame-ancestors 'none'` added
+([Firebase Hosting](#firebase-hosting)):
 
 | Directive | Allows | Why |
 | --- | --- | --- |
@@ -735,12 +774,13 @@ GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in
 | `style-src` | `'self' 'unsafe-inline'` | The stylesheet, plus the `<style>` elements the drawer, toasts, scroll lock and theme switch add at runtime with computed values, which no hash or nonce can cover on a static host |
 | `object-src` | `'none'` | |
 | `base-uri`, `form-action` | `'self'` | |
+| `frame-ancestors` (header only) | `'none'` | No site may frame the app (clickjacking); a meta policy can't carry it |
 
 `worker-src` governs loading the worker, not what it does: a same-origin dedicated worker takes
-its own policy from its script's response headers, which Pages doesn't send, so nothing but
-`worker-src` applies to it. It fetches nothing today. A meta policy can't carry
-`frame-ancestors` or reporting. `vite dev` strips the tag
+its own policy from its script's response headers. Pages sends none, so there nothing but
+`worker-src` applies to it; Firebase Hosting sends the same policy on the worker's script, which
+it satisfies, since it fetches and evaluates nothing. A meta policy can't carry reporting. `vite dev` strips the tag
 (`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
-forbids; `vite preview`, the e2e suite and the deploy all serve the build with it. The e2e
+forbids; `vite preview`, the e2e suite and both hosts serve the build with it. The e2e
 fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so
 a new external resource shows up there first.

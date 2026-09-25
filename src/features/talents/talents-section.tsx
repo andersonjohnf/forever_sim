@@ -59,7 +59,7 @@ export function TalentsSection() {
   }, [meta.classId, meta.id])
   const isDesktop = useIsDesktop()
   // From 1440 px the talents report the pointer and focus to the detail panel beside the trees,
-  // which shows from an 80 rem setup pane (talent-detail-panel.tsx). While it shows, the pointer
+  // which shows from a 73 rem setup pane (talent-detail-panel.tsx). While it shows, the pointer
   // doesn't also open a talent's tooltip (DB-7); focus still does.
   const wide = useIsWide()
   const tracker = useTalentTracker()
@@ -157,11 +157,12 @@ export function TalentsSection() {
       </div>
 
       {isDesktop ? (
-        // From a 64 rem setup pane (about 1,660 px; the pane is a container only from 1440 px) each
-        // tree's card stops at 26 rem and the three sit centred; from 80 rem (about 2,040 px) the
-        // detail panel sits beside them, a tree's gap away (docs/ux.md "Talents"; the fit is worked in talent-detail-panel.tsx).
-        <div className="@min-[80rem]/setup:grid @min-[80rem]/setup:grid-cols-[minmax(0,1fr)_22rem] @min-[80rem]/setup:items-start @min-[80rem]/setup:gap-4">
-          <div className="grid grid-cols-3 gap-4 @min-[64rem]/setup:grid-cols-[repeat(3,minmax(0,26rem))] @min-[64rem]/setup:justify-center">
+        // In the wide layout (a container only from 1440 px) each tree's card stops at 18 rem, about
+        // its width at 1280 px, left-aligned, and its icons stay 44 px: extra width isn't spent
+        // enlarging them. From a 73 rem pane (about 1,870 px) the detail panel sits beside the trees,
+        // a tree's gap away (docs/ux.md "Talents"; the fit is worked in talent-detail-panel.tsx).
+        <div className="@min-[73rem]/setup:grid @min-[73rem]/setup:grid-cols-[minmax(0,56rem)_21rem] @min-[73rem]/setup:items-start @min-[73rem]/setup:gap-4">
+          <div className="grid grid-cols-3 gap-4 @min-[53rem]/setup:grid-cols-[repeat(3,minmax(0,18rem))]">
             {data.trees.map((tree, i) => (
               <TreeGrid
                 key={tree.id}
@@ -351,8 +352,8 @@ function TalentCell({
               : 'border-transparent',
       )}
     >
-      {/* 44 px, and 52 px from a 64 rem setup pane (docs/ux.md "Talents"). */}
-      <WowIcon icon={talent.icon} size="lg" grayscale={locked} className="border-0 @min-[64rem]/setup:size-13" />
+      {/* 44 px at every width (docs/ux.md "Talents"). */}
+      <WowIcon icon={talent.icon} size="lg" grayscale={locked} className="border-0" />
       {/* A locked talent's badge is dimmed by colour alone (the muted text colour, AA), never by
           opacity (docs/ux.md "Visual language"); its icon turns gray and its border goes. */}
       <span

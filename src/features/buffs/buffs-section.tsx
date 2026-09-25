@@ -167,7 +167,10 @@ export function BuffsSection() {
           value={activePreset ?? ''}
           onValueChange={(v) => v && applyPreset(v as BuffPreset['id'])}
           aria-label="Preset"
-          className="grid w-full grid-cols-2 items-stretch sm:grid-cols-4"
+          // In the wide layout each preset stops at 16 rem, left-aligned, rather than stretching a
+          // quarter of the pane (docs/ux.md principle 4, "Never enlarge to fill"); at 1440 px a quarter
+          // is under 16 rem anyway. Below 1440 px the pane isn't a container, so this changes nothing.
+          className="grid w-full grid-cols-2 items-stretch sm:grid-cols-4 @min-[53rem]/setup:grid-cols-[repeat(4,minmax(0,16rem))]"
         >
           {/* Each preset says what it brings in visible text, never a hover-only title (docs/ux.md "Accessibility"). */}
           {buffPresets.map((p) => (
@@ -226,11 +229,13 @@ export function BuffsSection() {
               <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{CATEGORY_LABEL[category]}</h3>
               {/*
                * In the wide layout the category's groups flow into columns by the setup pane's width
-               * (D34, docs/ux.md "Buffs"): 2 from 53 rem, 3 from 84 rem. CSS columns keep the reading
-               * order top to bottom, column by column, and no group splits across two. Below 1440 px
-               * the pane isn't a container, so this stays the one column of cards it always was.
+               * (D34, docs/ux.md "Buffs"): 2 from 53 rem, 3 from 72 rem, where each column is still
+               * about 23 rem, room for a buff's name and a line or two of help beside its switch (at
+               * 1920 px, a 75 rem pane, they're 24.3). CSS columns keep the reading order top to bottom,
+               * column by column, and no group splits across two. Below 1440 px the pane isn't a
+               * container, so this stays the one column of cards it always was.
                */}
-              <div className="flex flex-col gap-3 @min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-4 @min-[84rem]/setup:columns-3">
+              <div className="flex flex-col gap-3 @min-[53rem]/setup:block @min-[53rem]/setup:columns-2 @min-[53rem]/setup:gap-4 @min-[72rem]/setup:columns-3">
                 {groups.map((group) => (
                   <div
                     key={group}

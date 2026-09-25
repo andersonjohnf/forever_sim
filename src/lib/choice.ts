@@ -17,3 +17,18 @@ export const CHOICE_ITEM_INACTIVE =
 
 /** Secondary text inside a choice option (Boss armor's "Most raid bosses"), readable on the selected fill. */
 export const CHOICE_HINT = 'text-muted-foreground group-data-[state=on]/toggle:text-primary-foreground/80'
+
+/*
+ * In the wide layout a choice is never stretched across the setup pane (docs/ux.md principle 4, "Never
+ * enlarge to fill"): the group is as wide as its options, left-aligned, and each option is as wide as
+ * its name, at least 7 rem, so a pair reads as a pair ("Forever" and "Classic Era" side by side, not two
+ * 570 px bars). By the `setup` container, which exists only from 1440 px (its pane is 53 rem or more),
+ * so nothing changes under 1440. Pass the group's after its own width classes, and the option's after
+ * its own flex classes, which they override there.
+ */
+
+/** A segmented choice's group className in the wide layout: as wide as its options. */
+export const CHOICE_GROUP_WIDE = '@min-[53rem]/setup:w-fit'
+
+/** A segmented choice's option className in the wide layout: sized by its name, 7 rem at least. */
+export const CHOICE_ITEM_WIDE = '@min-[53rem]/setup:min-w-28 @min-[53rem]/setup:flex-none @min-[53rem]/setup:px-4'

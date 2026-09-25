@@ -7,12 +7,13 @@ import { useSpecMeta } from '@/app/specs'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
+import { useIsWide } from '@/hooks/use-media-query'
 import raceJson from '@/data/races/races.json'
 import { racesForClass, racialEffectForClass, type Faction, type Race, type RaceData } from '@/data/races/types'
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
-import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
+import { CHOICE_GROUP_WIDE, CHOICE_ITEM, CHOICE_ITEM_INACTIVE, CHOICE_ITEM_WIDE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { defaultConfig, rotationValues, type RuleProfileId, type SimConfig } from '@/sim'
 import { RULE_PROFILE_ID } from './classic-era-note'
@@ -48,6 +49,8 @@ const selectedRace = () => document.querySelector<HTMLElement>('[aria-labelledby
 
 export function CharacterSection() {
   const meta = useSpecMeta()
+  // From 1440 px there's room, so Advanced is shown open rather than behind a disclosure (docs/ux.md principle 4).
+  const wide = useIsWide()
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
   const races = racesForClass(raceData, meta.classId)
@@ -148,7 +151,7 @@ export function CharacterSection() {
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}
-      <Advanced changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
+      <Advanced shown={wide} changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
         <div className="flex flex-col gap-2">
           <Field
             label="Rules"
@@ -173,12 +176,12 @@ export function CharacterSection() {
               onValueChange={(profile) => profile && setRules({ profile: profile as RuleProfileId })}
               aria-label="Rules"
               aria-describedby={profileChanged ? 'rules-help rules-default' : 'rules-help'}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
-              <ToggleGroupItem value="forever" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="forever" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 Forever
               </ToggleGroupItem>
-              <ToggleGroupItem value="classicEra" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="classicEra" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 Classic Era
               </ToggleGroupItem>
             </ToggleGroup>
@@ -244,10 +247,10 @@ export function CharacterSection() {
               onValueChange={(value) => value && setJotc(value as JotcBonus)}
               aria-labelledby="jotc-label"
               aria-describedby={['jotc-help', jotcUnused && 'jotc-off', jotcChanged && 'jotc-default'].filter(Boolean).join(' ')}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
               {(['coefficient', 'flat'] as const).map((value) => (
-                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, jotcUnused && CHOICE_ITEM_INACTIVE)}>
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM, jotcUnused && CHOICE_ITEM_INACTIVE)}>
                   {JOTC_LABEL[value]}
                 </ToggleGroupItem>
               ))}
@@ -291,10 +294,10 @@ export function CharacterSection() {
               onValueChange={(value) => value && setHotr(value as HotrWeaponDps)}
               aria-labelledby="hotr-label"
               aria-describedby={['hotr-help', hotrOff && 'hotr-off', hotrChanged && 'hotr-default'].filter(Boolean).join(' ')}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
               {(['withAttackPower', 'weaponOnly'] as const).map((value) => (
-                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
                   {HOTR_LABEL[value]}
                 </ToggleGroupItem>
               ))}

@@ -6,9 +6,10 @@ import { expect, test } from './fixtures.ts'
 // 1600, 75 at 1920, 80 at 2040 and about 102 at 2560 (e2e/wide-shell.spec.ts has the shell).
 // Rotation: the row settings panel is 24 rem from a 53 rem pane and 28 rem from 64 rem (about
 // 1,660 px); it names the ability once, with its place; the spec-wide settings above the list flow
-// into two columns from 53 rem, every width from 1440 px. Talents: icons grow from 44 to 52 px and
-// each tree's card stops at 26 rem from a 64 rem pane; from 80 rem (about 2,040 px) a detail panel
-// beside the trees shows the talent under the pointer or focused, and then the pointer no longer
+// into two columns from 53 rem, every width from 1440 px, and their choices are as wide as their
+// options, never stretched across a column. Talents: icons stay 44 px at every width, each tree's card
+// stops at 18 rem, left-aligned; from a 73 rem pane (about 1,870 px, so every 1920 px window) a detail
+// panel beside the trees shows the talent under the pointer or focused, and then the pointer no longer
 // opens a talent's tooltip (focus still does). Under 1440 px nothing changes (the rest of the suite
 // runs at 1280).
 
@@ -149,6 +150,12 @@ test.describe('every spec’s spec-wide settings in two columns', () => {
             for (const item of cell.querySelectorAll('[data-slot="toggle-group-item"]')) {
               const r = item.getBoundingClientRect()
               if (item.scrollWidth > item.clientWidth + 0.5 || r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`${item.textContent} clipped or outside its cell`)
+              // Not stretched either: as wide as its name and padding (1 rem a side, the border), or
+              // the 7 rem floor a short name gets (docs/ux.md principle 4, CHOICE_ITEM_WIDE).
+              const range = document.createRange()
+              range.selectNodeContents(item)
+              const words = Math.max(0, ...[...range.getClientRects()].map((rect) => rect.width))
+              if (r.width > Math.max(7 * 16, words + 2 * 16 + 2) + 1) out.push(`${item.textContent} stretched to ${Math.round(r.width)} px`)
             }
           }
           return out
@@ -170,6 +177,7 @@ test.describe('the Talents tab at wide widths', () => {
       .first()
       .evaluate((el) => el.getBoundingClientRect().width)
   const cards = (page: Page) => page.locator('section[aria-label$=" tree"]')
+  const setup = (page: Page) => page.evaluate(() => document.querySelector('main')!.firstElementChild!.getBoundingClientRect().toJSON() as DOMRect)
 
   test('at 1280 px the trees are as they were: 44 px icons and no detail panel', async ({ page }) => {
     await open(page, 1280, 'Talents')
@@ -177,58 +185,49 @@ test.describe('the Talents tab at wide widths', () => {
     await expect(page.getByRole('complementary', { name: 'Talent details' })).toHaveCount(0)
   })
 
-  test('at 1440 px (a 55 rem pane) the trees are unchanged, and the detail panel is hidden', async ({ page }) => {
-    await open(page, 1440, 'Talents')
-    expect(await iconSize(page, 'Bloodthirst')).toBe(44)
-    await expect(page.getByRole('complementary', { name: 'Talent details' })).toBeHidden()
-    await noSidewaysScroll(page)
-  })
+  for (const viewport of [1440, 1600, 1920, 2560]) {
+    test(`at ${viewport} px the icons are 44 px and the cards 18 rem at most, left-aligned; the detail panel shows from a 73 rem pane`, async ({ page }) => {
+      await open(page, viewport, 'Talents')
+      const pane = await setup(page)
+      // Never enlarged to fill the width (docs/ux.md principle 4).
+      expect(await iconSize(page, 'Bloodthirst')).toBe(44)
+      const boxes = await Promise.all((await cards(page).all()).map(async (card) => (await card.boundingBox())!))
+      for (const box of boxes) expect(box.width).toBeLessThanOrEqual(18 * REM + 0.5)
+      expect(boxes[0].x).toBeCloseTo(pane.left, 0)
+      // Every talent fits its tree's card, and no two overlap.
+      for (const card of await cards(page).all()) {
+        const box = (await card.boundingBox())!
+        const cells = await card.locator('button').evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().toJSON() as DOMRect))
+        for (const cell of cells) expect(cell.right).toBeLessThanOrEqual(box.x + box.width)
+        for (const a of cells) for (const b of cells) if (a !== b && a.top === b.top && a.left < b.left) expect(a.right).toBeLessThanOrEqual(b.left)
+      }
+      const details = page.getByRole('complementary', { name: 'Talent details' })
+      if (pane.width >= 73 * REM) {
+        await expect(details).toBeVisible()
+        const panel = (await details.boundingBox())!
+        const last = boxes[boxes.length - 1]
+        expect(panel.x).toBeGreaterThan(last.x + last.width)
+        expect(panel.x + panel.width).toBeLessThanOrEqual(pane.right + 0.5)
+      } else {
+        await expect(details).toBeHidden()
+      }
+      // A 1920 px window has the panel: its pane is 75 rem, 74 beside a scrollbar.
+      if (viewport >= 1920) await expect(details).toBeVisible()
+      await noSidewaysScroll(page)
+    })
+  }
 
-  test('at 1920 px (a 75 rem pane) the icons are 52 px and the cards share the pane, 26 rem at most', async ({ page }) => {
-    await open(page, 1920, 'Talents')
-    expect(await iconSize(page, 'Bloodthirst')).toBe(52)
-    for (const card of await cards(page).all()) expect(await width(card)).toBeLessThanOrEqual(26 * REM)
-    await expect(page.getByRole('complementary', { name: 'Talent details' })).toBeHidden()
-    // Every talent is still a 44 px target or more.
-    const smallest = await page
-      .locator('section[aria-label$=" tree"] button')
-      .evaluateAll((buttons) => Math.min(...buttons.map((b) => Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height))))
-    expect(smallest).toBeGreaterThanOrEqual(44)
-    await noSidewaysScroll(page)
-  })
-
-  test('at 2040 px (an 80 rem pane) the detail panel shows beside the trees, which keep their 52 px icons', async ({ page }) => {
-    await open(page, 2040, 'Talents')
-    const details = page.getByRole('complementary', { name: 'Talent details' })
-    await expect(details).toBeVisible()
-    expect(await iconSize(page, 'Bloodthirst')).toBe(52)
-    // Every talent fits its tree's card, and no two overlap.
-    for (const card of await cards(page).all()) {
-      const box = (await card.boundingBox())!
-      const cells = await card.locator('button').evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().toJSON() as DOMRect))
-      for (const cell of cells) expect(cell.right).toBeLessThanOrEqual(box.x + box.width)
-      for (const a of cells) for (const b of cells) if (a !== b && a.top === b.top && a.left < b.left) expect(a.right).toBeLessThanOrEqual(b.left)
-    }
-    const lastCard = (await cards(page).last().boundingBox())!
-    expect((await details.boundingBox())!.x).toBeGreaterThan(lastCard.x + lastCard.width)
-    await noSidewaysScroll(page)
-  })
-
-  test('at 1920 px, with no panel, pointing at a talent opens its tooltip', async ({ page }) => {
-    const tab = await open(page, 1920, 'Talents')
+  test('at 1440 px, with no panel, pointing at a talent opens its tooltip', async ({ page }) => {
+    const tab = await open(page, 1440, 'Talents')
     await tab.getByRole('button', { name: /^Bloodthirst, 1 of 1$/ }).hover()
     await expect(page.getByRole('tooltip')).toContainText('Bloodthirst')
   })
 
-  test('at 2560 px the detail panel follows the pointer, then focus; the pointer opens no tooltip, focus does', async ({ page }) => {
-    const tab = await open(page, 2560, 'Talents')
+  test('at 1920 px the detail panel follows the pointer, then focus; the pointer opens no tooltip, focus does', async ({ page }) => {
+    const tab = await open(page, 1920, 'Talents')
     const details = page.getByRole('complementary', { name: 'Talent details' })
     await expect(details).toBeVisible()
     await expect(details).toHaveText('Point at a talent, or focus it, to see what it does and what it needs here.')
-    // The cards stop at 26 rem, and the panel sits to their right.
-    for (const card of await cards(page).all()) expect(await width(card)).toBeLessThanOrEqual(26 * REM)
-    const lastCard = (await cards(page).last().boundingBox())!
-    expect((await details.boundingBox())!.x).toBeGreaterThan(lastCard.x + lastCard.width)
 
     // Pointing at Bloodthirst: its name, rank and what it needs, met; its tooltip still shows.
     const bloodthirst = tab.getByRole('button', { name: /^Bloodthirst, 1 of 1$/ })

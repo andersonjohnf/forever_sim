@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
@@ -54,8 +54,37 @@ export function Field({
  * The "Advanced" disclosure (docs/ux.md principle 2): depth one level down, never removed. Like the
  * Rotation tab's headings, it opens by itself when `changed` settings inside it differ from their
  * defaults, and counts them even while closed.
+ *
+ * `shown` is for a wide screen, where there's room (docs/ux.md principle 4, "Show it when there's
+ * room"): the same card, headed "Advanced", open, with no disclosure to press. Each setting inside
+ * still marks its own change, so no count is needed. `id` then names the heading.
  */
-export function Advanced({ children, label = 'Advanced', changed = 0, id }: { children: ReactNode; label?: string; changed?: number; id?: string }) {
+export function Advanced({
+  children,
+  label = 'Advanced',
+  changed = 0,
+  id,
+  shown = false,
+}: {
+  children: ReactNode
+  label?: string
+  changed?: number
+  id?: string
+  shown?: boolean
+}) {
+  const content = 'flex flex-col gap-5 border-t px-4 py-4'
+  const ownId = useId()
+  if (shown) {
+    const headingId = id ?? ownId
+    return (
+      <section aria-labelledby={headingId} className="rounded-lg border">
+        <h3 id={headingId} className="flex min-h-11 items-center px-4 text-sm font-medium">
+          {label}
+        </h3>
+        <div className={content}>{children}</div>
+      </section>
+    )
+  }
   return (
     <Collapsible className="rounded-lg border" defaultOpen={changed > 0}>
       <CollapsibleTrigger
@@ -72,7 +101,7 @@ export function Advanced({ children, label = 'Advanced', changed = 0, id }: { ch
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-col gap-5 border-t px-4 py-4">{children}</CollapsibleContent>
+      <CollapsibleContent className={content}>{children}</CollapsibleContent>
     </Collapsible>
   )
 }

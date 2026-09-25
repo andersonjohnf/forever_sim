@@ -241,14 +241,19 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Ironfoe procs. Racials, talents, other abilities and the rest of the gear stay Forever's.
   - **Changed settings are marked,** as on the Rotation tab: the race and each Advanced setting,
     when it differs from the spec's default, gets a line under it with its default ("Default:
-    Human", "Default: Forever") and a **Reset** that moves focus back to its control. Advanced
-    opens by itself while a setting in it differs from its default, and its button counts them
-    ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
+    Human", "Default: Forever") and a **Reset** that moves focus back to its control. Under 1440 px
+    Advanced opens by itself while a setting in it differs from its default, and its button counts
+    them ("Advanced, 1 changed"), so Classic Era rules are never out of sight; wider, it's always
+    open (below).
   - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
     from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
     the races sit on the left, three to a row, and the chosen race's racials beside them on the right,
-    so a pick and what it brings are in view together. Advanced spans the pane below both. Narrower,
-    the racials come under the races, as at every width under 1440 px.
+    so a pick and what it brings are in view together. Advanced spans the pane below both, **shown
+    open** (principle 4, "Show it when there's room"): a card headed "Advanced" with its settings in
+    view and no disclosure to press, so each changed setting's own "Default: …" line marks it, with no
+    count. Its choices (the rule profile, a paladin's two untested rules) are as wide as their options,
+    left-aligned ([Visual language](#visual-language)), not two halves of the pane. Narrower, the
+    racials come under the races and Advanced is a disclosure, as at every width under 1440 px.
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): a druid sees the Feral cat's build and the bear's, and a
@@ -267,12 +272,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     point and Backspace removes one (Delete and − work too); the hint above the trees and each
     talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's
     icon turns gray and its rank badge takes the muted text colour (AA), never opacity.
-  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): from a 64 rem pane (a
-    window of about 1,660 px, 1,680 beside a classic scrollbar) the talent icons grow from 44 to 52 px
-    and each tree's card stops at 26 rem, the three centred. From an 80 rem pane (about 2,040 px, or
-    2,060 beside a scrollbar; not at 1920, whose pane is 75 rem) a **talent detail panel**, 22 rem,
-    sits beside the trees, which keep their 52 px icons, sticky as the Rotation
-    panel is: the talent under the pointer, or else the focused one, or else the last one shown, with
+  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): the talent icons stay
+    44 px, as at every width (principle 4: extra width is never spent enlarging them), and each tree's
+    card stops at 18 rem, about its width at 1280 px, the three left-aligned. From a 73 rem pane (a
+    window of about 1,870 px, or 1,895 beside a classic scrollbar, so **every 1920 px window**) a
+    **talent detail panel**, 21 rem, sits beside the trees, sticky as the Rotation panel is. It can't
+    come sooner: at 1440 px (a 55 rem pane) the panel would leave each tree 10 rem, and a tree of
+    44 px icons needs 16.1 (`talent-detail-panel.tsx` works the fit), so there each talent's tooltip
+    carries its details. The panel shows the talent under the pointer, or else the focused one, or else the last one shown, with
     its tree and tier, rank, the current and next rank's text, why a point can't move, and what it
     **needs**: the tree's points above its tier and its arrow's talent, each met or not with the
     count ("30 points in Fury, 30 of 30"; a first-tier talent needs nothing). Until you point at
@@ -525,12 +532,16 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     under Max TPS, then going back to Defensive, leaves the preset as it was.
   - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
     each category's groups flow into columns by the setup pane's width, 2 from 53 rem (every width
-    from 1,440 px, whose pane is 54 to 55 rem) and 3 from 84 rem (a window of about 2,140 px, 2,160
-    beside a classic scrollbar), with CSS columns, so they
+    from 1,440 px, whose pane is 54 to 55 rem) and 3 from 72 rem (a window of about 1,850 px, 1,870
+    beside a classic scrollbar, so every 1920 px window, whose columns are about 24 rem), with CSS
+    columns, so they
     read top to bottom, then on to the next column, and no group splits between two. Each group is its
     own narrower card with its switches at its end, not across the pane from their names. The category
-    headings, the presets and "In your raid" stay full width above them. Narrower, the groups are one
-    column, as at every width under 1440 px.
+    headings, the presets and "In your raid" stay above them. Three columns wait for 72 rem because a
+    column under about 23 rem squeezes a buff's help beside its switch (at 1440 px three would be
+    17.7 rem). The four presets stop at 16 rem each, left-aligned, rather than each taking a quarter of
+    the pane (principle 4: at 1440 px a quarter is under 16 rem anyway). Narrower, the groups are one
+    column and the presets share the width, as at every width under 1440 px.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
@@ -800,16 +811,21 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **Changed settings are marked,** as on the Rotation tab: each one that differs from the
     spec's default gets a line under it with its default ("Default: 3:00", "Default: 63") and a
     **Reset** that moves focus back to its control; a screen reader hears "Changed. Default: …"
-    as the control's description. Advanced opens by itself while a setting in it differs from
-    its default, and its button counts them ("Advanced, 2 changed").
+    as the control's description. Under 1440 px Advanced opens by itself while a setting in it
+    differs from its default, and its button counts them ("Advanced, 2 changed"); wider, it's always
+    open (below).
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
   - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
     from a setup pane of 53 rem (a 1,440 px window: 55 rem, or 54 beside a scrollbar that takes room),
     two columns: the length, boss armor, position and execute phase on the left, and Advanced on the
-    right, still a disclosure (principle 2), so opening it pushes nothing down. Narrower, Advanced
-    comes under them, as at every width under 1440 px.
+    right, **shown open** (principle 4, "Show it when there's room"): a card headed "Advanced" with
+    every setting in view and no disclosure to press, so each changed setting's own "Default: …" line
+    marks it, with no count, and Rotation's "set Creature type" link lands straight on the menu. Boss
+    armor, position and precision are as wide as their options, left-aligned
+    ([Visual language](#visual-language)). Narrower, Advanced is a disclosure under them, as at every
+    width under 1440 px.
   - Advanced: precision and seed, then the fight's details. Every field is labelled, the
     Creature type and Zone menus included, and its accessible name contains its visible label
     ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their
@@ -1078,7 +1094,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   phone, the item picker's filter, a tank's Threat / Damage switch): the selected option is
   filled with the primary color and its text in the primary foreground (`CHOICE_ITEM` in
   `src/lib/choice.ts`), so it reads at a glance in both themes. Secondary text inside an option
-  (the armor presets' "Most raid bosses") switches to match (`CHOICE_HINT`).
+  (the armor presets' "Most raid bosses") switches to match (`CHOICE_HINT`). **In the wide layout**
+  (from 1440 px, by the `setup` container) a choice is never stretched to fill (principle 4): the
+  group is as wide as its options, left-aligned, and each option as wide as its name, at least 7 rem
+  (`CHOICE_GROUP_WIDE`, `CHOICE_ITEM_WIDE`): Character's rule profile, Fight's boss armor, position
+  and precision, and a choice in a Rotation card's column, which wraps where the column is narrow.
+  Under 1440 px they keep their widths (sharing a row on a phone and in the 1024–1439 layout); a
+  choice in Rotation's settings panel, 24–28 rem wide, shares the panel's width at every size.
 - **Type:** Geist, one scale. Use tabular numbers for every stat and result. The brand's
   lettering alone takes the guild's Josefin Sans ([Brand](#brand)).
 - **Color:**

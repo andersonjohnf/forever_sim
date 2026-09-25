@@ -10,7 +10,8 @@ import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
 import { CREATURE_TYPES, FIGHT_ADVANCED_ID } from './ids'
-import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
+import { CHOICE_GROUP_WIDE, CHOICE_HINT, CHOICE_ITEM, CHOICE_ITEM_WIDE } from '@/lib/choice'
+import { useIsWide } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 import { defaultConfig, type ClassId, type CreatureType, type FightConfig, type SimConfig, type SpecId } from '@/sim'
 import { formatDuration } from './duration'
@@ -73,6 +74,8 @@ const byId = (id: string) => () => document.getElementById(id)
 
 export function FightSection() {
   const meta = useSpecMeta()
+  // From 1440 px Advanced sits beside the fight, shown open: there's room (docs/ux.md principle 4).
+  const wide = useIsWide()
   const fight = useSetup((s) => s.config.fight)
   const update = useSetup((s) => s.update)
   const set = (patch: Partial<FightConfig>) => update((c) => ({ ...c, fight: { ...c.fight, ...patch } }))
@@ -123,9 +126,9 @@ export function FightSection() {
       />
 
       {/*
-       * In the wide layout, from a 53 rem setup pane, two columns: the fight on the left, Advanced on
-       * the right, still a disclosure, so opening it pushes nothing down (D34, docs/ux.md "Fight").
-       * Below 1440 px the pane isn't a container, so this stays one column.
+       * In the wide layout, from a 53 rem setup pane, two columns: the fight on the left, and Advanced
+       * on the right, shown open, with no disclosure (D34, docs/ux.md "Fight"). Below 1440 px the pane
+       * isn't a container, so this stays one column, with Advanced a disclosure under the fight.
        */}
       <div className="flex flex-col gap-6 @min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-2 @min-[53rem]/setup:items-start @min-[53rem]/setup:gap-8">
         <div className="flex flex-col gap-6">
@@ -163,15 +166,15 @@ export function FightSection() {
               onValueChange={(v) => v && v !== 'custom' && set({ bossArmor: Number(v) })}
               aria-label="Boss armor"
               aria-describedby={describedBy(changed.armor, 'armor')}
-              className="w-full items-stretch"
+              className={cn('w-full items-stretch', CHOICE_GROUP_WIDE)}
             >
               {ARMOR_PRESETS.map((p) => (
-                <ToggleGroupItem key={p.value} value={String(p.value)} className={cn('h-auto min-h-14 flex-1 flex-col py-1.5', CHOICE_ITEM)}>
+                <ToggleGroupItem key={p.value} value={String(p.value)} className={cn('h-auto min-h-14 flex-1 flex-col py-1.5', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                   <span className="tabular-nums">{p.label}</span>
                   <span className={cn('text-center text-xs font-normal whitespace-normal', CHOICE_HINT)}>{p.help}</span>
                 </ToggleGroupItem>
               ))}
-              <ToggleGroupItem value="custom" className={cn('h-auto min-h-14 flex-1', CHOICE_ITEM)} onClick={() => isPreset && set({ bossArmor: 3500 })}>
+              <ToggleGroupItem value="custom" className={cn('h-auto min-h-14 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)} onClick={() => isPreset && set({ bossArmor: 3500 })}>
                 Custom
               </ToggleGroupItem>
             </ToggleGroup>
@@ -202,12 +205,12 @@ export function FightSection() {
               onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
               aria-label="Position"
               aria-describedby={describedBy(changed.position, 'position')}
-              className="w-full"
+              className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
-              <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 {POSITIONS.behind}
               </ToggleGroupItem>
-              <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+              <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 {POSITIONS.front}
               </ToggleGroupItem>
             </ToggleGroup>
@@ -237,7 +240,7 @@ export function FightSection() {
           )}
         </div>
 
-        <Advanced changed={advancedChanged} id={FIGHT_ADVANCED_ID}>
+        <Advanced shown={wide} changed={advancedChanged} id={FIGHT_ADVANCED_ID}>
           <Field
             label="Precision"
             help={
@@ -255,12 +258,12 @@ export function FightSection() {
               onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
               aria-label="Precision"
               aria-describedby={describedBy(changed.precision, 'precision')}
-              className="w-full sm:w-auto"
+              className={cn('w-full sm:w-auto', CHOICE_GROUP_WIDE)}
             >
-              <ToggleGroupItem value="adaptive" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM)}>
+              <ToggleGroupItem value="adaptive" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 {PRECISION.adaptive}
               </ToggleGroupItem>
-              <ToggleGroupItem value="fixed" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM)}>
+              <ToggleGroupItem value="fixed" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM_WIDE, CHOICE_ITEM)}>
                 {PRECISION.fixed}
               </ToggleGroupItem>
             </ToggleGroup>

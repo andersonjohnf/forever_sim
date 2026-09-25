@@ -706,12 +706,17 @@ page with hash routing, and a missing file is a 404.
 | every path | `Permissions-Policy` | every powerful feature off (camera, microphone, geolocation, payment, USB and the like), except `clipboard-write=(self)` for Share and Export |
 | `/`, `/index.html` | `Cache-Control` | `no-cache`: revalidated on every load, so a deploy shows at once |
 | `/assets/**` | `Cache-Control` | `public, max-age=31536000, immutable`: Vite's hashed bundle, stylesheet, worker and fonts |
-| `/favicon.svg`, `/brand/**`, `/attribution/**` | `Cache-Control` | `public, max-age=3600`: `public/`'s unhashed files |
+| `/favicon.svg`, `/404.html`, `/brand/**`, `/attribution/**` | `Cache-Control` | `public, max-age=3600`: `public/`'s unhashed files |
 
 Hosting serves `.js` as `application/javascript`, `.woff2` as `font/woff2` and `.svg` as
 `image/svg+xml`, so `nosniff` blocks nothing. `src/app/hosting.test.ts` holds `firebase.json` to
 this table: the header policy is the meta one plus `frame-ancestors`, and every file in `public/`
 has its hour. A new top-level folder in `public/` needs a row.
+
+`public/404.html` is the page both hosts serve for a path that doesn't exist: plain HTML with no
+script, carrying its own meta policy (no worker, font or Wowhead images), which the header policy
+also allows. A missing `/assets/` file still gets the immutable header with its 404; that's accepted
+(known gaps), since hashed names are never reused.
 
 ### Release stamp
 

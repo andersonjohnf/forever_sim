@@ -172,15 +172,29 @@ export const groupsThousands = (option: RotationOption) => option.kind === 'numb
 /**
  * A priority-list row's one-line summary (docs/ux.md "Rotation"): "Off" while its switch is off;
  * otherwise its summary parts that apply ("From 40 rage · cancel below 20 rage"), a setting that
- * can't apply (its own switch is off) left out; "None" for a row without a switch that does
- * nothing (the pre-pull with every part off).
+ * can't apply (its own switch is off) left out, and so is one a choice rules out (`choiceIs`,
+ * `choiceIsNot`: no "between Auto Shots" with Neither) or the setup lacks what it `requires` (the
+ * hunter's Trueshot Aura without its talent; without `setup`, such a part is left out); "None" for
+ * a row without a switch that does nothing (the pre-pull with every part off).
  */
-export function aplRowSummary(row: AplRow, options: readonly RotationOption[], rows: ReadonlyMap<string, RowState>): string {
+export function aplRowSummary(
+  row: AplRow,
+  options: readonly RotationOption[],
+  rows: ReadonlyMap<string, RowState>,
+  setup?: Pick<SimConfig, 'spec' | 'talents' | 'gear'>,
+): string {
   if (row.enabledId !== undefined && !rows.get(row.enabledId)?.on) return 'Off'
   const byId = new Map(options.map((o) => [o.id, o]))
+  const choiceIn = (choice: { option: string; values: readonly string[] }) => choice.values.includes(String(rows.get(choice.option)?.value))
   const parts: string[] = []
   for (const part of row.summary ?? []) {
     if (part.alsoOn?.some((id) => !rows.get(id)?.on || rows.get(id)?.inactive)) continue
+    if (part.choiceIs && !choiceIn(part.choiceIs)) continue
+    if (part.choiceIsNot && choiceIn(part.choiceIsNot)) continue
+    if (part.requires) {
+      const unmet = setup && unmetRequirements(setup, part.requires)
+      if (!unmet || unmet.talent !== undefined || unmet.shield) continue
+    }
     if (part.option === undefined) {
       parts.push(part.text)
       continue

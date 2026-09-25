@@ -415,7 +415,7 @@ function ListRow({
   const off = state !== undefined && !state.on
   const dim = off || state?.inactive === true
   const note = aplRowNote(row, ctx.rows)
-  const summary = note ?? aplRowSummary(row, options, ctx.rows)
+  const summary = note ?? aplRowSummary(row, options, ctx.rows, ctx.setup)
   const changed = aplRowChanged(row, ctx.rows)
   // Its name is its label; that it's changed, and its summary, are its description.
   const described = [changed && ids.changed, summary && ids.summary].filter(Boolean).join(' ') || undefined

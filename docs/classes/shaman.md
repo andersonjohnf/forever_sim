@@ -466,7 +466,7 @@ Each row keeps its conditions wherever you move it:
 | On-use trinkets (`trinkets`) | `trinkets.enabled` | | on cooldown (row 3); Juju Flurry (row 4) takes its turn here |
 | Stormstrike (`stormstrike`) | `stormstrike.enabled` | | with the talent, on cooldown (row 5) |
 | Lightning Bolt (`lightningBolt`) | `lightningBolt.enabled` | `lightningBolt.minStacks` | with Maelstrom Weapon, at the stacks (row 6) |
-| Shock (`shock`) | — (`None` in its choice) | `shock.spell`, `shock.minManaPct` | ready, mana ≥ the share (row 7) |
+| Shock (`shock`) | — (`None` in its choice) | `shock.spell`, `shock.minManaPct` | ready, mana ≥ the share (row 7); at None its summary reads just "None", without the share |
 
 - **Pinned:** nothing. The imbue goes on 3 s before the pull whatever the order.
 - **Spec-wide, above the list:** the weapon imbue (row 0), and the consumables: Juju Flurry, the
@@ -905,7 +905,7 @@ row keeps its conditions wherever you move it:
 | Mana Tide Totem (`manaTide`) | `manaTide.enabled` | `manaTide.missingMana` | with the talent, missing the mana (row 4); the mana potion and rune (row 5) take their turn here |
 | Flame Shock (`flameShock`) | `flameShock.enabled` | | your Flame Shock isn't on the boss (row 6) |
 | Lava Burst (`lavaBurst`) | `lavaBurst.enabled` | `lavaBurst.withFlameShock` | with the talent, ready; waits for your Flame Shock only while Flame Shock's row is on (row 7) |
-| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8) |
+| Chain Lightning (`chainLightning`) | — (`never` in its choice) | `chainLightning.use` | with Clearcasting or on cooldown (row 8); its summary reads "With Clearcasting", "On cooldown" or "Never" |
 | Earth Shock (`earthShock`) | `earthShock.enabled` | `earthShock.minManaPct` | mana ≥ the share (row 9) |
 | Lightning Bolt (`lightningBolt`) | — (always there: the filler) | `lightningBolt.downrank`, `lightningBolt.maxRankFromPct` | rank 10 with Clearcasting or from the share, rank 4 below it (rows 10 and 11) |
 

@@ -317,7 +317,10 @@ each with its switch and its own settings (`hunter.<spec>.…`):
 | Sniper Shot (`sniperShot`) | `sniperShot.enabled` | | on cooldown, with the talent (§3.5) |
 
 - **Pinned:** only the pre-pull. It casts nothing in the fight: Aspect of the Hawk and Trueshot Aura
-  are static ranged attack power (§9), so it's there to show what's up from the pull.
+  are static ranged attack power (§9), so it's there to show what's up from the pull. Its summary
+  names Trueshot Aura only with the talent ("Aspect of the Hawk · Trueshot Aura").
+- **The shared shot's summary** is the choice, with "between Auto Shots" while it waits for Auto
+  Shot; at Neither it reads just "Neither", since there's no shot to wait.
 - **Spec-wide, above the list:** the pet's Claw threshold (`pet.clawFocus`, §6), under Core
   abilities with Auto Shot and the pet, which the tab shows without a control; and the Major Mana
   Potion and Demonic Rune with their thresholds, under Consumables. The consumables are off the

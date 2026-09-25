@@ -392,3 +392,54 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(JSON.stringify(withRotationOrder(withOrder, undefined))).toBe(JSON.stringify(fury))
   })
 })
+
+describe('a summary part a choice or the setup rules out (choiceIs, choiceIsNot, requires)', () => {
+  const summaryOf = (config: SimConfig, id: string, rotation: SimConfig['rotation'] = {}, setup: Pick<SimConfig, 'spec' | 'talents' | 'gear'> | null = config) => {
+    const row = getSpec(config.spec).rotationApl!.rows.find((r) => r.id === id)!
+    return aplRowSummary(row, getSpec(config.spec).rotationOptions, rows(config, rotation), setup ?? undefined)
+  }
+  const mm = defaultConfig('hunter-marksmanship')
+  const enh = defaultConfig('shaman-enhancement')
+  const ele = defaultConfig('shaman-elemental')
+  const shot = 'hunter.marksmanship.sharedCooldown.shot'
+
+  it('leaves out a part while its choice is (choiceIsNot) one of the values: the hunter’s Neither, the Shock’s None', () => {
+    expect(summaryOf(mm, 'sharedShot')).toBe('Aimed Shot · between Auto Shots')
+    expect(summaryOf(mm, 'sharedShot', { [shot]: 'multi' })).toBe('Multi-Shot · between Auto Shots')
+    expect(summaryOf(mm, 'sharedShot', { [shot]: 'none' })).toBe('Neither')
+    expect(summaryOf(enh, 'shock')).toBe('Earth Shock · from 10% mana')
+    expect(summaryOf(enh, 'shock', { 'shaman.enhancement.shock.spell': 'frost' })).toBe('Frost Shock · from 10% mana')
+    expect(summaryOf(enh, 'shock', { 'shaman.enhancement.shock.spell': 'none' })).toBe('None')
+  })
+
+  it('shows a part only while its choice is (choiceIs) one of the values: Chain Lightning with Clearcasting', () => {
+    const use = 'shaman.elemental.chainLightning.use'
+    expect(summaryOf(ele, 'chainLightning')).toBe('With Clearcasting')
+    expect(summaryOf(ele, 'chainLightning', { [use]: 'cooldown' })).toBe('On cooldown')
+    expect(summaryOf(ele, 'chainLightning', { [use]: 'never' })).toBe('Never')
+  })
+
+  it('names, in every spec’s rows, a choice setting of the spec and values it offers', () => {
+    for (const spec of specs) {
+      const options = getSpec(spec.id).rotationOptions
+      for (const row of getSpec(spec.id).rotationApl?.rows ?? []) {
+        for (const part of row.summary ?? []) {
+          for (const choice of [part.choiceIs, part.choiceIsNot]) {
+            if (!choice) continue
+            const option = options.find((o) => o.id === choice.option)
+            expect(option?.kind, `${spec.id} ${row.id}`).toBe('choice')
+            const offered = option?.kind === 'choice' ? option.choices.map((c) => c.value) : []
+            for (const value of choice.values) expect(offered, `${spec.id} ${row.id}`).toContain(value)
+          }
+        }
+      }
+    }
+  })
+
+  it('shows a part that requires a talent only with it: Trueshot Aura before the pull', () => {
+    expect(summaryOf(mm, 'prepull')).toBe('Aspect of the Hawk · Trueshot Aura')
+    expect(summaryOf({ ...mm, talents: '' }, 'prepull')).toBe('Aspect of the Hawk')
+    // Without the setup to read, the part is left out rather than guessed.
+    expect(summaryOf(mm, 'prepull', {}, null)).toBe('Aspect of the Hawk')
+  })
+})

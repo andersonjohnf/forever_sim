@@ -248,7 +248,7 @@ export const ENHANCEMENT_APL: AplDefinition = {
       optionIds: [ID.shock, ID.shockMana],
       summary: [
         { option: ID.shock, text: '{}' },
-        { option: ID.shockMana, text: 'from {}', hideWhen: 0 },
+        { option: ID.shockMana, text: 'from {}', hideWhen: 0, choiceIsNot: { option: ID.shock, values: ['none'] } },
       ],
       help: 'Earth Shock or Frost Shock, whenever the shocks’ cooldown is ready.',
     },

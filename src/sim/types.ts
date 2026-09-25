@@ -311,8 +311,9 @@ export interface FixedRotationRow {
  * A part of a priority-list row's one-line summary ("From 40 rage · cancel below 20 rage"), from
  * one of its settings: `text` with `{}` replaced by the value as the Rotation tab writes it ("40
  * rage"). A switch's part shows while the switch is on, or at `when`; a number's always, unless
- * it's at `hideWhen`. A part without `option` is fixed text. A part whose setting can't apply
- * (its switch is off) is left out.
+ * it's at `hideWhen`; a choice's, as its label. A part without `option` is fixed text. A part whose
+ * setting can't apply (its switch is off) is left out, and so is one whose `choiceIs`,
+ * `choiceIsNot` or `requires` doesn't hold.
  */
 export interface AplSummaryPart {
   option?: string
@@ -328,6 +329,18 @@ export interface AplSummaryPart {
    * "while Bloodthirst and Whirlwind cool down").
    */
   alsoOn?: readonly string[]
+  /**
+   * A choice setting (this part's own, or another) whose value must be one of `values` for the part
+   * to show (Chain Lightning's "with Clearcasting" at that choice only).
+   */
+  choiceIs?: { option: string; values: readonly string[] }
+  /**
+   * A choice setting whose value must be none of `values` for the part to show (the hunter's "between
+   * Auto Shots" not with Neither; the Shock's mana threshold not with None).
+   */
+  choiceIsNot?: { option: string; values: readonly string[] }
+  /** What the setup must have for the part to show (the hunter's Trueshot Aura: its talent). */
+  requires?: RotationRequirement
 }
 
 /**

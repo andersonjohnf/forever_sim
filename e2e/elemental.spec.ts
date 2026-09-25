@@ -55,7 +55,7 @@ async function expectDefaultRotation(tab: Locator) {
   // The rows say their settings; Lightning Bolt, the filler, is a row without a switch.
   const row = (id: string) => list.locator(`[data-apl-row="${id}"]`)
   await expect(row('manaTide')).toContainText('When missing 3,000 mana')
-  await expect(row('chainLightning')).toContainText('Clearcasting')
+  await expect(row('chainLightning')).toContainText('With Clearcasting')
   await expect(row('lightningBolt')).toContainText('Rank 10 · rank 4 below 10% mana')
   await expect(row('lightningBolt').getByRole('switch')).toHaveCount(0)
   // Power Infusion and the rune wait for the Buffs tab, which the Standard raid preset leaves off.

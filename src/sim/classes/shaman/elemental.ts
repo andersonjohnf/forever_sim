@@ -276,7 +276,10 @@ export const ELEMENTAL_APL: AplDefinition = {
       label: 'Chain Lightning',
       icon: CHAIN_LIGHTNING.icon,
       optionIds: [ID.chainLightning],
-      summary: [{ option: ID.chainLightning, text: '{}' }],
+      summary: [
+        { text: 'with Clearcasting', choiceIs: { option: ID.chainLightning, values: ['clearcasting'] } },
+        { option: ID.chainLightning, text: '{}', choiceIsNot: { option: ID.chainLightning, values: ['clearcasting'] } },
+      ],
       help: 'Chain Lightning with Clearcasting, on cooldown, or never.',
     },
     {

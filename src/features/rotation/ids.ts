@@ -1,10 +1,14 @@
 // Ids and shared bits of the Rotation tab's setting rows (option-rows.tsx, docs/ux.md "Rotation").
-import type { AplDefinition, RotationOption, RotationValue } from '@/sim'
+import type { AplDefinition, RotationOption, RotationValue, SimConfig } from '@/sim'
 import type { RowState } from './logic'
 
-/** What every row needs: its state, and setting or resetting a value. */
+/**
+ * What every row needs: its state, and setting or resetting a value; and the setup, which a
+ * priority-list row's summary reads for what a part `requires` (the hunter's Trueshot Aura).
+ */
 export interface RowContext {
   rows: Map<string, RowState>
+  setup: Pick<SimConfig, 'spec' | 'talents' | 'gear'>
   set: (id: string, value: RotationValue) => void
   reset: (id: string) => void
 }

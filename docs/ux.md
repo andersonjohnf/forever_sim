@@ -1305,13 +1305,36 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   choice in Rotation's settings panel, 24–28 rem wide, shares the panel's width at every size.
 - **Type:** Geist, one scale. Use tabular numbers for every stat and result. The brand's
   lettering alone takes the guild's Josefin Sans ([Brand](#brand)).
+- **Surfaces** (user decision, 2026-09-25: the light theme had "no contrast anywhere"). In the
+  light theme the page is a soft grey-blue, `--page` (#f4f4fa: the guild's ink hue at a trace of
+  chroma), and what sits on it is white: every bordered panel (talent trees and the wide detail
+  panel, the gear slots and the Gear status line, buff groups, Rotation's option cards, a section's
+  Advanced box, the results' headline box and their collapsible details), with a light shadow
+  (`bg-surface shadow-surface`), and the race cards; the cards (Character sheet, Your setup);
+  sheets, dialogs, menus, popovers and tooltips; and the controls' own fills (`--background` stays
+  white: outline buttons, segmented choices, switches' thumbs, the priority list's rows). Muted rows
+  and hover fills (`--muted`) are a step below the page, so a hovered row shows on either. The page,
+  the sticky section tabs and the phone's sim bar take `--page`. What was never boxed stays on the
+  page, since boxing it would change the layout: a tab's own controls (Fight's, Character's) and the
+  results' breakdown in the desktop panel (from 1440 px a white card's padding would cost the
+  column about 26 px, and each breakdown row's outcomes line has about 17 px to spare at 1440×900
+  with a classic scrollbar). In the dark theme nothing moved: `--surface` is transparent and the
+  shadow none, so a panel is its border on the page (or on a sheet) as before. Contrast on the light
+  surfaces is measured on the darkest one text sits on, a muted row.
+- **Tooltips** take the popover's colours in both themes, with a border, a light shadow and an arrow
+  of the same surface (`src/components/ui/tooltip.tsx`, one commented edit): shadcn's inverted box
+  was a white box in the dark theme. The talent tooltip's reasons are in the notice colour, as in its
+  popover: 5.3:1 light, 10.4:1 dark.
 - **Color:**
-  - Neutral tokens for surfaces and text.
+  - Neutral tokens for surfaces and text. Muted text, `--muted-foreground`, is 5.8:1 on white,
+    5.3:1 on the page and 5.1:1 on muted rows in the light theme.
   - **Class colors** as accents only: Warrior `#C69B6D`, Druid `#FF7C0A`, Paladin `#F48CBA`.
-    As text on light surfaces they're darkened in OKLCH, keeping the hue, to meet AA:
-    Warrior `#92642D`, Druid `#C54600`, Paladin `#AB4B79` (the `--class-*` tokens in
-    `src/index.css`, used through `CLASS_TEXT` in `src/app/specs.ts`). Dark mode uses the class
-    colors themselves.
+    As text on light surfaces they're darkened in OKLCH, keeping the hue, to meet AA on white, the
+    page and muted rows (4.6:1 or more on muted rows): Warrior `#90622C`, Druid `#BF4100`, Paladin
+    `#AA4977`, Shaman `#016AD2`, Mage `#007497` (the `--class-*` tokens in `src/index.css`, used
+    through `CLASS_TEXT` in `src/app/specs.ts`). Dark mode uses the class colors themselves, and so
+    does the header's navy ([Brand](#brand)), with lighter tints of the shaman's blue and the
+    warlock's purple there.
   - **Status text** uses tokens, never raw palette classes: `text-positive` (emerald: better,
     a partly ranked talent), `text-negative` (red: worse) and `text-notice` (amber: a maxed
     talent, a warning). Light mode takes Tailwind's -700 shades and dark mode the -400 shades,
@@ -1324,7 +1347,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Color never carries meaning alone; always pair it with a label, sign or icon.
 - **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. Text fields,
   selects, segmented choices and outline buttons draw their edge with `--input`: a mid gray in
-  light mode (3.6:1 on the page and cards, 3.3:1 on muted rows) and white at 38% in dark mode
+  light mode (4.0:1 on white, 3.6:1 on the page, 3.5:1 on muted rows) and white at 38% in dark mode
   (3.5:1 and 3.4:1), whose fields fill with 30% of it. An outline button takes it whatever its
   slot, so one that opens a menu ("Gear options") does too. So does an outline badge that's the
   face of a button (the gear flags, which open a popover); a badge that only labels keeps the
@@ -1337,8 +1360,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   focus ring is the app's.
 - **The focus ring** meets 3:1 too. The shadcn components draw it at half strength
   (`ring-ring/50`), so the `--ring` token is near-black in light mode and light gray in dark
-  mode, which puts the composited ring at about 3.7:1 or more on the page, on cards and
-  dialogs, and on muted rows in both themes.
+  mode, which puts the composited ring at about 3.6:1 or more on the page, on cards and
+  dialogs, and on muted rows in both themes. On the header's navy the ring is white, 5.0:1 (4.5:1
+  on a hovered button).
 - **Stale results** (and a kept result during a re-run) are dimmed by color, not opacity: their
   text turns to the muted text color, and bars and icons fade to gray (`data-dimmed` in
   `src/features/results/results-panel.tsx`). Muted text at 60% opacity would fall to about
@@ -1355,6 +1379,18 @@ Forever Sim is made by **Decades**, a gaming community since 2005, whose site is
 the sim (principle 1).
 
 - **Where it appears,** and nowhere else:
+  - **The header's toolbar,** in the guild's ink navy (#1f1c3d, `oklch(0.25 0.06 285)`) in both
+    themes (user decision, 2026-09-25), with near-white text and icons. It's solid, so what scrolls
+    under it never changes its contrast. In the dark theme it stands a clear step above the page
+    (0.25 against 0.145 lightness, with more chroma), as a raised app bar does. `.ink` in
+    `src/index.css` re-points the theme tokens inside it, so its buttons need no colours of their
+    own; the menus and sheets it opens are portalled out and keep the page's theme. Its ghost
+    buttons take the full hover fill (#302e50) in both themes (`ON_INK`), the same fill an open
+    menu's button shows. Measured on the navy and on that fill: text 15.5:1 and 12.3:1, muted text
+    8.6:1 and 6.9:1, the focus ring 5.0:1 and 4.5:1, the crest's gold 7.0:1 and 5.5:1, and every
+    class colour 5.4:1 or more and 4.8:1 or more (the dark theme's colours, with the shaman's blue
+    and the warlock's purple a tint lighter, `oklch(0.7 0.15 255)` and `oklch(0.72 0.12 280)`,
+    since theirs were 4.3:1 and 4.2:1 on the fill).
   - **The header's lockup:** the crest, "Forever Sim" and "Decades" under it, in the guild's
     lettering (Josefin Sans, uppercase, spaced, 12 px) in the muted text colour, not gold, so it
     never reads as a class colour beside the spec switcher. The whole lockup is one link, 44 px
@@ -1363,7 +1399,7 @@ the sim (principle 1).
     pointer can hover, so a tap on a phone leaves no highlight. "Forever Sim" comes before the link
     in the DOM, so a screen reader hears the page's name and then the link; the crest still shows
     first. On a phone it's the crest alone, 44 px square, before the spec switcher.
-  - **The header's bottom edge,** a gold hairline.
+  - **The header's bottom edge,** a gold hairline, the guild's gold at 60% over the navy.
   - **About's last section, "Made by Decades":** under a gold hairline, its heading in the guild's
     lettering in gold, the guild's full logo, one line of the guild's own positioning ("a gaming
     community since 2005. Community first: we invest in our players."), and **Visit decades.gg**.
@@ -1373,7 +1409,8 @@ the sim (principle 1).
     stacks its wordmark under the crest and can't be read at 24 px, so the mark is the crest with
     "Decades" beside it in the guild's lettering (14 px, the text colour), as the header has it.
   - **The dark theme's surfaces** lean toward the guild's ink navy (hue 285, a little chroma) at the
-    stock lightness, so every contrast measured on them holds (within 0.03:1).
+    stock lightness, so every contrast measured on them holds (within 0.03:1). The light theme's page
+    leans to the same hue ([Visual language](#visual-language), "Surfaces").
   - Not the favicon: the sim keeps its own mark there, since the crest's detail is lost at 16 px.
 - **Links** to the guild's site open in a new tab, with `rel="noopener"`, and say so to screen
   readers ("opens in a new tab"). The header's is named "Decades: decades.gg, opens in a new tab",
@@ -1392,13 +1429,13 @@ the sim (principle 1).
 
   | Token | Light | Dark | Use and limit |
   | --- | --- | --- | --- |
-  | `--brand-gold` | `oklch(0.62 0.1 85)` (#a28137): 3.7:1 on the page, 3.4:1 on muted rows | #c4a75e: 8.5:1 on the page, 7.7:1 on cards | The crest's hourglass: a graphic, 3:1. The hairlines draw it at 40–50%: dividers, which need no contrast, like `--border`. |
-  | `--brand-gold-text` | `oklch(0.53 0.09 80)` (#876527): 5.3:1 on the page and sheets, 4.9:1 on muted rows | #c4a75e: 8.5:1 and 7.7:1 | Brand lettering, AA 4.5:1. |
+  | `--brand-gold` | `oklch(0.62 0.1 85)` (#a28137): 3.7:1 on white, 3.3:1 on the page, 3.2:1 on muted rows | #c4a75e: 8.5:1 on the page, 7.7:1 on cards | The crest's hourglass: a graphic, 3:1. The header's navy takes #c4a75e in both themes (7.0:1). The hairlines draw it at 40–60%: dividers, which need no contrast, like `--border`. |
+  | `--brand-gold-text` | `oklch(0.53 0.09 80)` (#876527): 5.3:1 on white and sheets, 4.9:1 on the page, 4.7:1 on muted rows | #c4a75e: 8.5:1 and 7.7:1 | Brand lettering, AA 4.5:1. |
 
   The guild's own gold, #c4a75e, is 2.3:1 on white, so light surfaces never take it, as text or as
-  a graphic. The lockup's "Decades" is muted text (4.7:1 light, 7.7:1 dark), and on hover the text
-  colour on the hover fill (18:1 light, 17:1 dark). The footer's lead-in is muted text too (4.7:1,
-  7.7:1) and its "Decades" the text colour (20:1, 19:1).
+  a graphic. The lockup's "Decades" is the navy's muted text (8.6:1 in both themes), and on hover the
+  text colour on the hover fill (12.3:1). The footer's lead-in is muted text too (5.3:1 on the light
+  page, 7.7:1 dark) and its "Decades" the text colour (18:1, 19:1).
 - **What the brand may say** follows the guild's own rules (its site's content guide): the game is
   World of Warcraft: Forever, never renamed. About's first mention of it gives the full name (its
   description line, which the page's meta description shares); after that, "WoW Forever" is the

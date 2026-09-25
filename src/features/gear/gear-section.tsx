@@ -270,10 +270,10 @@ export function GearSection() {
       />
       <div
         className={cn(
-          'flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
+          'flex flex-col gap-2 rounded-xl border bg-surface shadow-surface px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
           offDefault > 0 && 'bg-muted/50',
           // From 1440 px it's a line under the intro rather than a box, leaving the height to the slots.
-          'wide:-mt-2 wide:border-0 wide:bg-transparent wide:p-0',
+          'wide:-mt-2 wide:border-0 wide:bg-transparent wide:p-0 wide:shadow-none',
         )}
       >
         {/* Focus lands here when the button that equipped the set goes away (docs/ux.md#accessibility). */}
@@ -382,7 +382,7 @@ export function GearSection() {
                 {group.slots.map((slot) => {
                   const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
                   return (
-                    <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
+                    <li key={slot} className="flex min-w-0 flex-col rounded-xl border bg-surface shadow-surface">
                       {/* The slot's button covers the row; the flag badges and the enchant chip sit above it, so a
                           tap on one explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps
                           it over faded content too (an empty slot's icon), which opacity would lift above it. */}

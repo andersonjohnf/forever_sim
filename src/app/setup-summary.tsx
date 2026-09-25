@@ -44,7 +44,7 @@ export function SetupSummary({
   const headingId = useId()
   return (
     <section aria-labelledby={headingId}>
-      <Card size="sm" className="gap-2">
+      <Card size="sm" className="gap-2 shadow-surface">
         <CardHeader>
           {/* A section heading's size, as the sheet's above it, with no icon (D34, after the user's look at the fixes). */}
           <h3 id={headingId} className="text-base font-semibold tracking-tight">

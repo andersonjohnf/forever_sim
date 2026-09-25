@@ -63,7 +63,7 @@ export function TalentDetailPanel({
       ref={ref}
       aria-label="Talent details"
       data-talent-detail={talent?.id}
-      className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] hidden max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] flex-col gap-4 overflow-y-auto rounded-xl border p-4 @min-[73rem]/setup:flex"
+      className="sticky top-[calc(var(--sticky-top,7rem)+1rem)] hidden max-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] flex-col gap-4 overflow-y-auto rounded-xl border bg-surface shadow-surface p-4 @min-[73rem]/setup:flex"
     >
       {talent && tree ? (
         <>

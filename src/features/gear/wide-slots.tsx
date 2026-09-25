@@ -61,7 +61,7 @@ export function WideSlotGrid({ classId, renderSlot }: { classId: ClassId; render
         return (
           <section key={group.label} className={cn('min-w-0', bottom && 'col-span-2')}>
             <h3 className="sr-only">{group.label}</h3>
-            <ul style={{ gridTemplateRows: template } as CSSProperties} className={cn('grid overflow-hidden rounded-xl border', bottom ? 'grid-cols-3' : 'grid-cols-1')}>
+            <ul style={{ gridTemplateRows: template } as CSSProperties} className={cn('grid overflow-hidden rounded-xl border bg-surface shadow-surface', bottom ? 'grid-cols-3' : 'grid-cols-1')}>
               {group.slots.map((slot, index) => {
                 const [row, column] = [Math.floor(index / columns), index % columns]
                 return renderSlot(slot, {

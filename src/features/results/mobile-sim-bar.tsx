@@ -35,7 +35,7 @@ export function MobileSimBar() {
       {/* data-sim-bar: App measures this bar so toasts sit above it (src/App.tsx). */}
       <div
         data-sim-bar
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t bg-page/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
         {running && <Progress value={progressPct ?? 0} aria-hidden className="absolute inset-x-0 top-0 h-0.5 rounded-none" />}
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2">

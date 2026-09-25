@@ -50,7 +50,7 @@ export function SectionTabs({
   const { ref: listRef, fade } = useScrollFade<HTMLDivElement>(active)
   const bar = useStickyTop()
   return (
-    <div ref={bar} data-sticky-tabs className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0">
+    <div ref={bar} data-sticky-tabs className="sticky top-14 z-30 -mx-4 border-b bg-page/95 px-4 backdrop-blur lg:mx-0 lg:px-0">
       {/*
        * On narrow screens the tabs scroll sideways, and a fade marks each edge with more past it.
        * Tabs are 44 px tall (docs/ux.md principle 4), their underline on the bar's edge.

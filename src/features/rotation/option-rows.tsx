@@ -75,7 +75,7 @@ export function OptionList({
       })),
   ]
   return (
-    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
+    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-surface shadow-surface">
       {top.map(({ key, node }) => (
         <li key={key}>{node}</li>
       ))}

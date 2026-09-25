@@ -24,7 +24,7 @@ import { DECADES_URL } from './brand'
 import { copyText } from './clipboard'
 import { ComingSoonSheet } from './coming-soon-sheet'
 import { HEADER_SHEETS, type HeaderSheet, useResetSetup } from './header-items'
-import { ThemeChoices, WideTools } from './header-tools'
+import { ON_INK, ThemeChoices, WideTools } from './header-tools'
 import { releaseToasts } from './held-toasts'
 import { onOpenReleaseHistory } from './release-history-request'
 import { ReleaseHistorySheet } from './release-history-sheet'
@@ -89,7 +89,9 @@ export function Header() {
     },
   }
   return (
-    <header className="sticky top-0 z-40 border-b border-brand-gold/40 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+    // The guild's ink navy in both themes (`.ink` in src/index.css, docs/ux.md#brand): solid, so what
+    // scrolls under it never changes its contrast, over a gold hairline.
+    <header className="ink sticky top-0 z-40 border-b border-brand-gold/60">
       {/*
        * Below 360 px the row's edge and gaps tighten, and the crest and the More button reach a little
        * into the edge, so the widest spec's name ("Marksmanship") still fits at 320 px; a longer one
@@ -157,7 +159,7 @@ export function Header() {
  */
 function Lockup() {
   return (
-    <div className="group/lockup relative -ml-1.5 flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-lg px-1.5 transition-colors hover:bg-muted has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:pr-2.5 max-[360px]:-ml-2 dark:hover:bg-muted/50">
+    <div className="group/lockup relative -ml-1.5 flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-lg px-1.5 transition-colors hover:bg-muted has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:pr-2.5 max-[360px]:-ml-2">
       <div className="order-last flex flex-col gap-1 max-sm:sr-only">
         <h1 className="leading-none font-semibold tracking-tight">Forever Sim</h1>
         {/* The link says it for screen readers. On hover it takes the text colour, as a ghost button's does. */}
@@ -195,7 +197,7 @@ function SpecSwitcher() {
         {/* It gives way first when the row is tight: a name too long for it truncates, never the page scrolling sideways. */}
         <Button
           variant="ghost"
-          className="h-11 min-w-0 shrink gap-2 px-2 max-[360px]:gap-1.5 max-[360px]:px-1.5"
+          className={cn('h-11 min-w-0 shrink gap-2 px-2 max-[360px]:gap-1.5 max-[360px]:px-1.5', ON_INK)}
           aria-label={`Spec: ${meta.name} ${meta.className}. Change spec`}
         >
           <WowIcon icon={meta.icon} size="sm" />
@@ -244,7 +246,7 @@ function ShareButton() {
   }
   return (
     // At least 44 px wide on a phone, where it's the icon alone (docs/ux.md principle 4).
-    <Button variant="ghost" className="h-11 min-w-11 gap-2 px-3" onClick={share}>
+    <Button variant="ghost" className={cn('h-11 min-w-11 gap-2 px-3', ON_INK)} onClick={share}>
       <Link2 />
       <span className="hidden sm:inline">Share</span>
       <span className="sr-only sm:hidden">Share setup</span>
@@ -261,7 +263,7 @@ function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: HeaderSheet) => void
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button ref={triggerRef} variant="ghost" size="icon" className="size-11" aria-label="More">
+        <Button ref={triggerRef} variant="ghost" size="icon" className={cn('size-11', ON_INK)} aria-label="More">
           <MoreHorizontal />
         </Button>
       </DropdownMenuTrigger>

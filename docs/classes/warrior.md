@@ -1168,9 +1168,55 @@ have.
 | 13 | Heroic Strike queue (off the GCD) | Off by default: its swing gives no rage ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), and Arms' rage does more elsewhere (notes). When it's on: rage ≥ `minRage` (125, near the 130 cap); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (off), `.minRage` (125), `.unqueue` (off), `.unqueueBelow` (20) | no |
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
-| 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
+| 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its row comes before row 3's by default (the priority list, below); the racial and trinkets wait for it wherever they sit | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
 | 17 | Mighty Rage Potion (off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 4 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3). Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, after row 4's swap from Battle Stance. See the notes | `arms.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
 | 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
+
+**The priority list** ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`ARMS_APL` in `src/sim/classes/warrior/arms.ts`, since M5.65 A2). The Rotation tab shows these rows
+in this order, the default, and you can reorder them. It's the order the rotation has always built
+its lines in, so Death Wish (row 16) comes before the racial and trinkets (row 3), as the table's
+row 16 says. Each row has its switch and its own settings (ids under `warrior.arms.`):
+
+| Row (`id`) | Table row | Switch | Its settings | What it does (defaults) |
+| --- | --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | 0 | — | `prepull.battleShout`, `prepull.bloodrage`, `prepull.charge` | Battle Shout at −3 s, Bloodrage at −1 s, Charge off |
+| Battle Shout (`battleShout`) | 1 | `battleShout.enabled` | `battleShout.refreshBelowSec` | Again once it runs out |
+| Rend (`rend`) | 2 | `rend.enabled` | `rend.refreshBelowSec` | Again with 3 s left; from Berserker Stance, a dance at rage ≤ the swap's cap |
+| Death Wish (`deathWish`) | 16 | `deathWish.enabled` | `deathWish.alignToEnd` | With the talent; the last one held for the end |
+| Racial cooldown (`racial`) | 3 | `racial.enabled` | `cooldowns.syncWithDeathWish` | With Death Wish when it's used, else on cooldown |
+| On-use trinkets (`trinkets`) | 3 | `trinkets.enabled` | `cooldowns.syncWithDeathWish` (shared with the racial) | As the racial |
+| Recklessness (`recklessness`) | 4 | `recklessness.enabled` | `recklessness.beforeExecuteSec`, `recklessness.lastSec` | 1.5 s before the execute phase, or in the last 15 s; from Battle Stance it swaps and stays |
+| Bloodrage (`bloodrage`) | 5 | `bloodrage.enabled` | `bloodrage.maxRage` | Up to 110 rage |
+| Slam in the execute phase (`executeSlam`) | 6 | `execute.slamInExecute` | | In the phase, with rage for an Execute after it |
+| Mortal Strike in the execute phase (`executeMortalStrike`) | 7 | `execute.mortalStrikeInExecute` | | In the phase, on cooldown |
+| Execute (`execute`) | 7 | `execute.enabled` | | In the phase, whenever it can pay |
+| Mortal Strike (`mortalStrike`) | 8 | `mortalStrike.enabled` | | On cooldown, outside the phase |
+| Overpower (`overpower`) | 9 | `overpower.enabled` | | After a dodge or Bloodthrill; Mortal Strike GCD-safe or rage for both; in both phases |
+| Slam (`slam`) | 10 | `slam.enabled` | `slam.reserve` | 5 rage reserve; Mortal Strike GCD-safe; outside the phase |
+| Spearing Strike (`spearingStrike`) | 11 | `spearingStrike.enabled` | `spearingStrike.minRageOtherTargets` | On cooldown against Giants and Dragonkin, else from 35 rage with Mortal Strike GCD-safe; outside the phase |
+| Whirlwind (`whirlwind`) | 12 | `whirlwind.enabled` | `whirlwind.maxRage` | From Battle Stance, a dance up to 30 rage; Mortal Strike GCD-safe; outside the phase |
+| Heroic Strike (`heroicStrike`) | 13 | `heroicStrike.enabled` | `heroicStrike.minRage`, `heroicStrike.unqueue`, `heroicStrike.unqueueBelow` | Off; from 125 when on; outside the phase |
+| Hamstring filler (`hamstring`) | 14 | `hamstring.enabled` | `hamstring.minRage` | From 40 rage; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind; outside the phase |
+
+- **Pinned:** only the pre-pull, first.
+- **Spec-wide, above the list:** the base stance (`baseStance`), and the Mighty Rage Potion (with
+  its limit) and Juju Flurry (rows 17 and 18), under Consumables. The consumables are off the GCD
+  and always come after the list, as they always did.
+- **Rows 6 and 7 are three rows:** Slam and Mortal Strike in the execute phase each have their own
+  switch, as they had, and Execute has the phase's. Mortal Strike's in-phase row reads only its own
+  switch and Execute's: with the Mortal Strike row off, it's still used in the phase.
+- **A row's conditions are its own and don't change when it moves.** Slam, Spearing Strike and
+  Whirlwind stay GCD-safe for Mortal Strike, Overpower still weighs Mortal Strike's cost, Hamstring
+  stays GCD-safe for every strike with a cooldown, and the racial and trinkets still wait for
+  Death Wish, wherever they sit; only which usable row comes first changes. So "GCD-safe" (§5.1)
+  names the same abilities whatever their place. Moved below Execute, a row gets a global cooldown in
+  the phase only while Execute waits for rage, as Overpower does by default.
+- **No named presets:** the defaults are the list's one preset, "Default" (they're the tuned
+  defaults below, D23). In the default order the plan is the one before the list, byte for byte:
+  200 random setups (settings, talents, race, on-use trinkets, two-hander or dual wield, Buffs,
+  fight and rules) are fingerprinted against the code before it (`arms-apl.test.ts`), and a setup
+  saved before the list loads unchanged.
 
 Notes:
 
@@ -1193,8 +1239,8 @@ Notes:
   Mortal Strike (30 rage, about 737) loses to an Execute at 30 rage (825) when that's all the
   rage there is. With rage to spare (the Mighty Rage Potion's, and what Heroic Strike no longer
   takes), its 30 rage does more as a Mortal Strike than as 15 damage a point of an Execute's
-  extra rage ([W10](#w10-execute)), so it's on by default since M2.5a (+0.14%, below). Its line
-  comes just before Execute, since below it Execute would take every GCD it could pay for.
+  extra rage ([W10](#w10-execute)), so it's on by default since M2.5a (+0.14%, below). Its row
+  comes just before Execute by default, since below it Execute would take every GCD it could pay for.
 - **What the execute phase changes** (with `arms.execute.enabled` on). Rows 6 and 7 apply only
   in the phase; rows 8 and 10–14 only outside it, and a Heroic Strike already queued is
   cancelled when the phase starts, as Fury's is. Rows 1–5, 9 and 16–18 apply in both phases.

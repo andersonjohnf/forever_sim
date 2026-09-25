@@ -163,13 +163,39 @@ test.describe('a spec switch while a run is under way', () => {
     }
   }
 
-  /** Workers that hold each answer for `ms`, so even a run on warm workers is under way long enough to switch. */
-  async function slowWorkers(page: Page, ms: number) {
-    await page.route('**/assets/sim.worker*.js', async (route) => {
-      const response = await route.fetch()
-      const delay = `const post = self.postMessage.bind(self); self.postMessage = (m, t) => setTimeout(() => post(m, t), m.type === 'ready' ? 0 : ${ms});\n`
-      return route.fulfill({ response, body: delay + (await response.text()) })
+  /**
+   * holdWorkers for workers already warm, which don't fetch their script again: from `hold()` until
+   * `release()`, the page keeps the workers' answers from the pool (their 'ready' still gets through),
+   * so a run started meanwhile stays under way however fast the workers are. Delaying each answer
+   * instead left a race a run on warm workers sometimes won (review FL-6).
+   */
+  async function holdAnswers(page: Page) {
+    await page.addInitScript(() => {
+      const w = window as unknown as { __heldAnswers: (() => void)[] | null; Worker: typeof Worker }
+      w.__heldAnswers = null
+      w.Worker = class extends w.Worker {
+        set onmessage(handler: ((event: MessageEvent) => void) | null) {
+          super.onmessage = handler && ((event: MessageEvent) => {
+            if (w.__heldAnswers && event.data?.type !== 'ready') w.__heldAnswers.push(() => handler.call(this, event))
+            else handler.call(this, event)
+          })
+        }
+        get onmessage() {
+          return super.onmessage
+        }
+      }
     })
+    type Held = { __heldAnswers: (() => void)[] | null }
+    return {
+      hold: () => page.evaluate(() => void ((window as unknown as Held).__heldAnswers ??= [])),
+      release: () =>
+        page.evaluate(() => {
+          const w = window as unknown as Held
+          const held = w.__heldAnswers ?? []
+          w.__heldAnswers = null
+          for (const answer of held) answer()
+        }),
+    }
   }
 
   test('cancels it: Arms is ready to simulate, Fury is left as Cancel would leave it, and the run never lands', async ({ page }) => {
@@ -211,7 +237,7 @@ test.describe('a spec switch while a run is under way', () => {
 
   test('each spec keeps its last result: the one switched to shows its own, and switching back shows the last completed', async ({ page }) => {
     test.setTimeout(120_000)
-    await slowWorkers(page, 1_000)
+    const answers = await holdAnswers(page)
     await page.goto('./')
     const panel = page.getByRole('complementary', { name: 'Results' })
     const dps = panel.getByRole('group', { name: 'DPS' })
@@ -226,8 +252,10 @@ test.describe('a spec switch while a run is under way', () => {
     const arms = (await dps.textContent())!
     expect(arms).not.toBe(fury)
 
-    // Fury again, mid-run: the switch cancels it, and Arms shows its own result, as it was.
+    // Fury again, mid-run (its workers' answers held, so it can't finish first): the switch cancels
+    // it, and Arms shows its own result, as it was.
     await switchSpec(page, 'Fury')
+    await answers.hold()
     await again.click()
     await expect(panel.getByText(/^Simulating…/)).toBeVisible()
     await switchSpec(page, 'Arms')
@@ -243,6 +271,10 @@ test.describe('a spec switch while a run is under way', () => {
     await expect(dps.locator('[data-dimmed="true"]')).toHaveCount(0)
     await expect(panel.getByRole('progressbar')).toHaveCount(0)
     await expect(again).toBeVisible()
+    // The cancelled run's held answers go to workers it abandoned: nothing lands.
+    await answers.release()
+    await page.waitForTimeout(500)
+    await expect(dps).toHaveText(fury)
   })
 
   test('on a phone, the switch cancels it too: the bar shows no progress on either spec', async ({ page }) => {

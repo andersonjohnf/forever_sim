@@ -720,11 +720,35 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the color says that on screen: "up 12.3 from the last run, better" (`Delta` in
   `src/features/results/delta.tsx`). Under it, one line says what was run: "2,750 fights of 180 s ·
   Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
-  varied fights; the run time is labelled.
+  varied fights; the run time is labelled. The Simulate button names its shortcut, Ctrl+Enter or
+  ⌘+Enter, in `aria-keyshortcuts` and in its tooltip ("Simulate (Ctrl+Enter or ⌘+Enter)", or "Run
+  again (…)" after a run).
 - **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
   put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
   that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a
   phone the results sheet scrolls as a whole.
+- **The wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)),
+  by container queries on the `results` pane ([Layout](#layout)), so nothing changes under 1440 px:
+  - **From 1440 px** (a 30 rem pane) **Cooldowns and buffs** and the **Character sheet** are open
+    by default. A reader who closes one keeps it closed, and one reopened stays open: each browser
+    remembers them (`forever-sim:results-closed` in `localStorage`, a list of the closed ones; a
+    value it can't read counts as none closed). **Assumptions** stays collapsed: it's long and read
+    rarely. The wider pane keeps each breakdown row's first outcome line on one line.
+  - **From 1920 px** (a pane of 40 rem or more) the headline card is a **strip**: the values with
+    their ± and change, then the run's summary, then Simulate, on one row, with any message
+    (ready, setup changed, no damage, an error) under them across the card. A tank's TPS and DPS
+    sit side by side in it as usual.
+  - The details sit in **two columns**: on the left what the result is made of (Damage taken, the
+    breakdown, How the boss's swings landed, Mana per fight), on the right what explains it
+    (Cooldowns and buffs, and the Character sheet with the Boss's attack table). With nothing on
+    the left (no weapon, so no breakdown), the right takes both. **Assumptions** spans both
+    columns under them, collapsed. From a 64 rem pane it's a **third column**, open by default and
+    remembered like the others; with the page capped at 2560 px the pane reaches about 60 rem, so
+    that's for a wider pane later. In two columns at 1920 a long outcome line may wrap again, as
+    in the 22 rem panel; at 2560 each fits one line.
+  - The DOM keeps the order this section gives, so a screen reader hears the same sequence at
+    every width: the columns are wrappers that are `display: contents` below 1920.
+  - The pane still never runs past the viewport, and scrolls inside with its fades.
 - **A result with no damage** says why and what to do next: with no main-hand weapon, "Add a
   weapon in Gear", with a button that opens the tab (and closes the sheet on a phone). The
   button is left out beside the desktop panel when that tab is already open.
@@ -827,7 +851,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   the end" (never below 0). A line under it says what "Regenerated" counts: "Spirit and mana per
   5 s." It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
   against; the potion's and rune's casts per fight are under Cooldowns and buffs.
-- **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
+- **Cooldowns and buffs:** a collapsed section, like the character sheet (open by default from
+  1440 px, above). It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
   then one per other buff on you (Holy Strength, Flurry, Enrage, the Overpower window) and per

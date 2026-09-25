@@ -732,14 +732,19 @@ its job needs:
   bonuses match too, since a piece without its set isn't worth the same.
 - **A race change** uses `statTwins`: the same key with the set's bonuses left out (`twinKey(…, { sets:
   false })`), so every twin and the other faction's pieces with the same stats and effects in another
-  set or none. `raceChangeTwin` (`src/features/character/faction-gear.ts`) takes the item's twin when
-  it has one, else its stat twin, and says when the set bonus differs; the notice names those pieces
-  ("…, with the same stats but not the same set bonus"). This is the match the app made before the
-  step-6 change, now read from the client: over the pool it gives the same piece for 768 of the old
-  match's 770 (item, class) swaps, and a different one for 4 (Defiler's Mail Greaves takes its exact
-  twin, Highlander's Chain Greaves, where the old name match took Highlander's Mail Greaves). The
-  two it drops are the hunters' Rank 10 chain helms, one of them a Classic Era fallback row: a Forever
-  row never matches a Classic Era one (a known gap).
+  set or none. `raceChangeTwin` (`src/features/character/faction-gear.ts`) takes, among the stat
+  twins, the one whose set name ends the same way, so a set's pieces move to one set on the other
+  side; then the exact twin, the name that ends the same way, and the lower id. It says when the set
+  bonus differs (the piece isn't an exact twin); the notice names those pieces ("…, with the same
+  stats but not the same set bonus"). The set comes first because an exact twin can sit in another
+  set: The Defiler's Fortitude's greaves have one in The Highlander's Determination (Highlander's
+  Chain Greaves), while its pauldrons and girdle only have stat twins in The Highlander's Fortitude,
+  so taking the exact twin split the set and lost its 3-piece bonus on the way back (GC-1). Every
+  piece now comes back to itself on a round trip. This is the match the app made before the step-6
+  change, now read from the client: over the pool it gives the same piece for 772 of the old match's
+  774 (item, class) swaps (768 before GC-1, when Defiler's Mail Greaves took Highlander's Chain
+  Greaves for 4 classes). The two it drops are the hunters' Rank 10 chain helms, one of them a
+  Classic Era fallback row: a Forever row never matches a Classic Era one (a known gap).
 
 Each pool item carries its twins in the pool as `twins` and its stat twins as `statTwins` (item ids). **A listed item's twins join the pool
 and take its list entries**, the same spec, slot and rank, unless the twin is on that list itself or the

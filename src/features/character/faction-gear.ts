@@ -5,7 +5,7 @@
 import type { Item } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { Faction, RaceData } from '@/data/races/types'
-import { itemsById } from '@/lib/items'
+import { itemData, itemsById } from '@/lib/items'
 import { canUse, fitsFaction, GEAR_SLOTS, itemFaction, SPEC_META, uniqueConflicts, type ClassId, type GearSlot, type SimConfig } from '@/sim'
 import { followDefaults, following } from '@/features/gear/default-set'
 
@@ -44,19 +44,34 @@ export function factionTwin(item: Item, faction: Faction, classId: ClassId): Ite
   return otherSide(item, item.twins, faction, classId)[0] ?? null
 }
 
+/** The name of the item's set, or '' for none: "The Defiler's Fortitude". */
+function setName(item: Item): string {
+  return (item.setId && itemData.sets[item.setId]?.name) || ''
+}
+
 /**
  * The piece a race change swaps a faction-bound item for (docs/data/items.md#faction-twins, "Two
- * tiers"): its faction twin when it has one, else the other faction's piece with the same stats and
- * effects in another set, or none (`statTwins`: the Alliance's Rank 7 to 10 silk and leather have no
- * item set, Highlander's Mail Pauldrons a spell-crit 3-piece bonus where the Defilers' is melee
- * crit). `setDiffers` says the new piece's set bonus isn't the old one's, which the race change's
- * notice names. Null when the item isn't bound to the other side or nothing there matches.
+ * tiers"): among its `statTwins`, the other faction's pieces with the same stats and effects whatever
+ * their set, the one the class can wear whose set name ends the same way, so a set's pieces move
+ * together (The Defiler's Fortitude's greaves take The Highlander's Fortitude's, as its pauldrons and
+ * girdle do, not their exact twin in The Highlander's Determination: GC-1); then its exact twin, the
+ * name that ends the same way, and the lower id. `setDiffers` says the new piece isn't an exact twin,
+ * so its set bonus isn't the old one's (the Alliance's Rank 7 to 10 silk and leather have no item
+ * set, Highlander's Mail Pauldrons a spell-crit 3-piece bonus where the Defilers' is melee crit),
+ * which the race change's notice names. Null when the item isn't bound to the other side or nothing
+ * there matches.
  */
 export function raceChangeTwin(item: Item, faction: Faction, classId: ClassId): { twin: Item; setDiffers: boolean } | null {
-  const exact = factionTwin(item, faction, classId)
-  if (exact) return { twin: exact, setDiffers: false }
-  const twin = otherSide(item, item.statTwins, faction, classId)[0]
-  return twin ? { twin, setDiffers: true } : null
+  const set = setName(item)
+  const exact = (other: Item) => (item.twins.includes(other.id) ? 1 : 0)
+  const twin = otherSide(item, item.statTwins, faction, classId).sort(
+    (a, b) =>
+      sharedSuffix(setName(b), set) - sharedSuffix(setName(a), set) ||
+      exact(b) - exact(a) ||
+      sharedSuffix(b.name, item.name) - sharedSuffix(a.name, item.name) ||
+      a.id - b.id,
+  )[0]
+  return twin ? { twin, setDiffers: !item.twins.includes(twin.id) } : null
 }
 
 export interface FactionGearChange {

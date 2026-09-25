@@ -594,6 +594,11 @@ describe('golden run (fixed config and seed)', () => {
   //   and DPS 396.35 → 391.29, Defensive 939.19 → 932.66 and 372.00 → 367.72; the bear's Balanced
   //   1,132.71 → 1,125.69 and 557.95 → 552.65, Defensive 1,099.84 → 1,092.83 and 543.37 → 538.08. With
   //   Thorns set back to 53, this snapshot reproduces exactly. Fury, Arms and the cat are unchanged.
+  // - D36, pre-Ahn'Qiraj ranks (W2): the warrior's Heroic Strike r8 (+138, threat +145), Revenge r5 (121 ± 12,
+  //   2.25 × dmg + 243) and Battle Shout r6 (+115), and the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5). Fury
+  //   716.09 → 695.06, Arms 690.40 → 674.75 DPS; Protection 1,001.65 → 944.45 TPS (Defensive 932.66 →
+  //   882.32); the bear 1,125.69 → 1,100.47 TPS (Defensive 1,092.83 → 1,068.36); the cat 567.60 → 554.10
+  //   DPS.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

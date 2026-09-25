@@ -29,6 +29,8 @@ describe('golden run (fixed config and seed)', () => {
   //   +10% spell power a live multiplier, so Earth Shock and Lightning Bolt get it too (the warrior's
   //   had attack power only): DPS 556.06 → 556.16, TPS 394.92 → 394.99 (20,000 fights: 555.84 →
   //   555.94, ± 0.63).
+  // - D36, pre-Ahn'Qiraj ranks (W2): the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5), your own totems among them.
+  //   556.16 → 539.17 DPS.
   it('keeps the default Enhancement shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-enhancement'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

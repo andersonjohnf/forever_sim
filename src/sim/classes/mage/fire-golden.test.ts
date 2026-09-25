@@ -37,6 +37,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Streak with DV2-4's procs and re-rank. 501.69 (casters alone) / 543.10 (gear alone) → 529.59
   //   DPS. Checked both ways: with either side's code reverted, the other side's snapshot reproduces
   //   exactly.
+  // - D36, pre-Ahn'Qiraj ranks (W2): Fireball r11 (10151: 396.57–505.43, 395 mana, DoT 14) for r12, and
+  //   Blessing of Wisdom r5 (36 mp5). 529.59 → 524.79 DPS.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

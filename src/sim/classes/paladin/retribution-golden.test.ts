@@ -47,6 +47,8 @@ describe('golden run (fixed config and seed)', () => {
   //   thresholds searched together, 51003-503-05225331001330321 (Divine Intellect 1, Holy Conduit 2),
   //   Consecration from 20% and rank 1 from 10% (cheaper Consecrations, 282 and 67 mana). On this
   //   seed's 1,000 fights: DPS 613.51 → 624.30, TPS 361.01 → 364.67.
+  // - D36, pre-Ahn'Qiraj ranks (W2): the raid's buffs at the trainers' ranks (Battle Shout r6 +115, Blessing of Might r6 +112, Strength of Earth r4 +42, Grace of Air r2 +77, Blessing of Wisdom r5 36 mp5); your own Might is rank 6's +112.
+  //   624.30 → 610.58 DPS.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

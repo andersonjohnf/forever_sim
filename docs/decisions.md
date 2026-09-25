@@ -675,7 +675,10 @@ recommended, to land in the next update:
   and the Character sheet open by default (remembered per browser). Gear's item picker opens inline
   beside the slot list, like Rotation's row panel, and stays on the slot after a pick so you can
   compare. Sections reflow by their own container width (Buffs in 2–3 columns, larger talent trees).
-- **From 1920 px** the result's headline becomes a strip and its details split into 2–3 columns.
+- **From 1920 px** the result's headline becomes a strip and its details split into two columns,
+  Assumptions across both. (The proposal's third column, from a 64 rem pane, was cut: the capped page
+  never gives the pane that width. The results pane grows smoothly from 1440 rather than stepping at
+  1920, so no setup section loses a column at that width: the reviews' DA-2.)
 - **Tabs, not a side rail**: a rail costs about 200 px that 1440 can't spare.
 - **Keyboard:** Ctrl/Cmd+Enter runs Simulate, and a "Skip to results" link. No Alt+digit section
   shortcuts: Option+digit types characters on a Mac.

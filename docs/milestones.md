@@ -433,7 +433,7 @@ where it changes) and updates only its own ux.md subsection.
       header, the `setup` and `results` named containers, a `3xl` breakpoint at 1920, the tabs as their
       own component with a summary slot, the skip link; ux.md "Layout"
 - [ ] **S2 Section summaries:** each tab's summary line, a pure function with tests
-- [ ] **S3 Results pane:** details open at wide (remembered), the headline strip and 2–3 columns at 1920+
+- [ ] **S3 Results pane:** details open at wide (remembered), the headline strip and two columns at 1920+
 - [ ] **S4 Gear list and inline picker**, staying on the slot after a pick
 - [ ] **S5 Buffs, Character and Fight** reflow by container width
 - [ ] **S6 Rotation and Talents** at width: the wider row panel, larger talent trees and a talent detail panel

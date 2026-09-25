@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // Review finding DL2-3 (D34): a layout that changes under focus keeps it on the same control, as
-// Gear's does when the window crosses 1440 px (e2e/wide-gear.spec.ts). Fight's and Character's
+// Gear's grid does when the window crosses 1440 px (e2e/wide-gear.spec.ts, the same helper). Fight's and Character's
 // Advanced is a disclosure below 1440 px and shown open from there, the same elements either way
 // (src/features/section.tsx), so a window crossing 1440 px (browser zoom, snapping a window) leaves
 // focus where it was, with the disclosure open. The selected Rotation row's settings are inline

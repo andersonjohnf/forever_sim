@@ -75,7 +75,7 @@ const withKey = (root: HTMLElement, key: string) => [...root.querySelectorAll<HT
  * Keeps focus on the same control when what holds it moves in the page as the layout changes under
  * it: the selected row's settings, inline under the row where two columns fit and a panel in the
  * third where three do, so a window crossing about 1,850 px (browser zoom, snapping a window) moves
- * them to new elements (review finding DL2-3; Gear keeps its elements instead, docs/ux.md "Gear").
+ * them to new elements (review finding DL2-3; Gear uses it too, for its grid from 1440 px).
  * Give `onFocus` and `onBlur` to each place the settings render. When `place` changes and the
  * control that had focus went with the old place, focus goes to the same control in the new one
  * (`container`), found by its id or else its role and name (`focusKey`), or else to `fallback`, the

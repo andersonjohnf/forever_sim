@@ -362,7 +362,11 @@ export const ARMS_APL: AplDefinition = {
       icon: 'racial_orc_berserkerstrength',
       enabledId: ID.racialEnabled,
       optionIds: [ID.cdSync],
-      summary: [{ option: ID.cdSync, text: 'with Death Wish' }],
+      // On cooldown without the sync, as the trinkets row reads (UA-4's pair).
+      summary: [
+        { option: ID.cdSync, text: 'with Death Wish', inactiveText: 'on cooldown' },
+        { option: ID.cdSync, text: 'on cooldown', when: false },
+      ],
     },
     {
       id: 'trinkets',

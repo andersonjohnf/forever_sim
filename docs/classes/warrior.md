@@ -2017,13 +2017,13 @@ than the default, and with Max TPS, which doesn't use Thunder Clap, 22.64 less (
 hold them (`scripts/scrape/stored-builds.json`). Builds aren't tuned by the sim (D23), so these
 numbers settle only the preset's question.
 
-**D30's survival floor** (user decisions, 2026-09-24): no default or search drops **Last Stand**,
-**Improved Shield Wall 2/2** (the big cuts to defensive cooldowns) or **Deflection 5/5** (+5%
-parry: an avoided hit costs a warrior rage, so a threat-first search would drop it, but tanks take
-it). **Anticipation isn't in the floor** (user decision, after the paladin theorycrafter's build
-measured +1.0% TPS with Anticipation 2/5): it's the **preferred filler**, where a build's points
-left after its threat talents go before Toughness or other weaker talents. The default keeps
-Anticipation 5/5. **Toughness is optional.** A unit test holds the floor (`defaults.test.ts`).
+**No talent is kept by its name** ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24), user decision after O1's fifth review round): the
+optimizer has no survival floor and no preferred filler, so a search keeps Last Stand, Improved
+Shield Wall, Deflection, Anticipation or Toughness only when the player keeps them (`--keep`) or
+the goal measures them worth their points. A player who wants survival first picks the **Defense**
+goal or sets a sheet constraint ([optimizer.md](../optimizer.md#goals)). The default build (Last
+Stand, Improved Shield Wall 2/2, Deflection 5/5, Anticipation 5/5) stands until the optimizer's
+result replaces it (O4).
 
 ### 6.2 Race, weapons and consumables
 
@@ -2133,7 +2133,6 @@ factions. The table is before a raid druid's Thorns joined every tank's Standard
 and nothing else moves; the paladin gained the same Thorns and its fix round's talents (823.6 TPS,
 seed 12345). The enchants stay the spec's
 ([buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec)).
-
 ## 7. Implementation notes
 
 - **Where rank values come from.** Read talent ranks from `src/data/talents/warrior.json`.

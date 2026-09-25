@@ -367,11 +367,23 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
 sets. Each spec's defaults are then its results.
-- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
+- [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
-      enumerator (tree rules, required talents, the minimum points in a tree, the class's
-      survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`)
+      enumerator (tree rules, kept and excluded talents, the minimum points in a tree), rotation
+      settings as candidates, and a CLI (`npm run optimize`). Also constraints on the sheet, with
+      effective health and a tank's 90% floor (D30), a fresh-seed confirmation, and the pool's
+      `fightRunner` for O3 ([optimizer.md](optimizer.md)). After its review
+      ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination
+      bar corrects for the winner's curse, crit and crush immunity (off by default, no
+      damage-taken cap), a tank's 31 points in its tree by default, and budgets that fit a large
+      space. After its verifications: the setup is only ever the baseline, never an answer; every
+      candidate meets every constraint, or the search says which block (user decision, simpler
+      design); empty spaces and blocked searches say why, and the setup's copy costs no fights;
+      the leader is the answer, and the race takes no result limits (step 6, D30). After its
+      fifth round (user decision, D30): **the player picks the goal**, Defense, DPS, TPS or
+      Balanced (`--goal`; tanks Balanced, DPS specs DPS by default), and **no talent-specific
+      rules**: the survival floor and the preferred filler are gone, and every talent is judged
+      by what the screen measures it doing for the goal
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
@@ -580,6 +592,9 @@ slice is worked:
 - **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
   shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
   on the TPS row instead.
+- **The optimizer (O1):** `WorkerPool.fightRunner` runs real workers only in a browser: a unit
+  test drives it against stub workers (its plan sending and cache mirror), and O3's e2e tests are
+  the first to run it for real.
 - **Encounter settings the contract lacks:** `biome`, `extraTargetUptimePct` and
   `bossExtraDtps` ([encounter.md](mechanics/encounter.md#encounter-settings)).
 - **Engine choices where the docs are silent (made in M1):**

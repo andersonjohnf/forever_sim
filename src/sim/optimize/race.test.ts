@@ -1,0 +1,344 @@
+// The racing on a toy goal with a known best (docs/optimizer.md#racing): fake fights whose
+// DPS is the candidate's true mean, plus noise every candidate shares on a fight (common random
+// numbers), plus a little of its own.
+import { describe, expect, it } from 'vitest'
+import { Rng } from '../core/rng'
+import type { Plan } from '../plan/types'
+import type { FightRunner, FightSamples, PlanSource } from './fights'
+import { defaultGoal, eliminationZ, normalQuantile, pairedInterval, scoredGoal, scoreReads, scorer, tieBreaker, tQuantile, tTail, Z99 } from './objective'
+import { race, type RaceOptions } from './race'
+
+/** A candidate's fight: its mean, the fight's shared swing, its own noise; TPS and damage taken likewise. */
+interface Toy {
+  dps: number
+  tps?: number
+  taken?: number
+  /** Its own noise's size (the shared noise is 60). */
+  own?: number
+}
+
+const rng = (seed: number, fight: number, stream: number) => {
+  const r = new Rng()
+  r.seed(seed, fight, stream)
+  return r
+}
+/** A standard normal draw (Box–Muller). */
+const normal = (r: Rng) => Math.sqrt(-2 * Math.log(1 - r.next())) * Math.cos(2 * Math.PI * r.next())
+const shared = (fight: number) => normal(rng(0x5eed, fight, 1)) * 60
+
+/** A runner over toy candidates (the source key indexes `toys`), finishing jobs in a shuffled order. */
+function toyRunner(toys: Toy[], lanes = 3, shuffleSeed = 1, delays = true): FightRunner & { fights: number } {
+  const order = rng(shuffleSeed, 9, 9)
+  const runner = {
+    lanes,
+    fights: 0,
+    run(source: PlanSource, from: number, count: number): Promise<FightSamples> {
+      const toy = toys[source.key]
+      const out: FightSamples = { dps: new Float64Array(count), tps: new Float64Array(count), taken: new Float64Array(count) }
+      for (let i = 0; i < count; i++) {
+        const fight = from + i
+        const own = rng(source.key + 1, fight, 3)
+        const s = shared(fight)
+        out.dps[i] = toy.dps + s + normal(own) * (toy.own ?? 10)
+        out.tps[i] = (toy.tps ?? toy.dps) + s + normal(own) * (toy.own ?? 10)
+        out.taken[i] = (toy.taken ?? 500) + normal(own) * 20
+      }
+      runner.fights += count
+      // Finish out of order, so the race can't depend on which job came back first.
+      const delay = Math.floor(order.next() * 3)
+      return delays ? new Promise((resolve) => setTimeout(() => resolve(out), delay)) : Promise.resolve(out)
+    },
+  }
+  return runner
+}
+
+const sources = (n: number): PlanSource[] => Array.from({ length: n }, (_, key) => ({ key, plan: () => ({}) as Plan }))
+
+const options = (toys: Toy[], extra: Partial<RaceOptions> = {}): RaceOptions => ({
+  sources: sources(toys.length),
+  runner: toyRunner(toys),
+  goal: 'dps',
+  budget: 400_000,
+  initialFights: 100,
+  jobFights: 50,
+  ...extra,
+})
+
+describe('race', () => {
+  // Twenty candidates, 1,000 to 1,019 DPS but the best at 1,030: the best is 1% ahead of the next.
+  const field: Toy[] = Array.from({ length: 20 }, (_, i) => ({ dps: 1000 + i }))
+  field[7] = { dps: 1030 }
+
+  it('finds the known best and separates it at 95%', async () => {
+    const result = await race(options(field))
+    expect(result.leader).toBe(7)
+    expect(result.status).toBe('separated')
+    expect(result.standings[0].candidate).toBe(7)
+    // Its paired change from the baseline (1,000) is about +30.
+    const vs = result.standings[0].vsBaseline.dps
+    expect(vs.mean).toBeGreaterThan(30 - 3 * vs.halfWidth)
+    expect(vs.mean).toBeLessThan(30 + 3 * vs.halfWidth)
+    // The shared noise cancels in pairs: the paired interval is far narrower than the mean's own.
+    expect(vs.halfWidth).toBeLessThan(5)
+  })
+
+  it('is deterministic: the same result whatever the lanes and the order jobs finish in', async () => {
+    const a = await race(options(field, { runner: toyRunner(field, 1, 1) }))
+    const b = await race(options(field, { runner: toyRunner(field, 7, 99) }))
+    expect(b).toEqual({ ...a, ms: b.ms })
+  })
+
+  it('drops the clearly worse early and spends most fights on the close ones', async () => {
+    const result = await race(options(field))
+    expect(result.rounds[0].dropped).toBeGreaterThan(10)
+    const late = result.standings.filter((s) => s.state === 'dropped' && s.droppedInRound! > 0)
+    for (const s of late) expect(s.mean.dps).toBeGreaterThan(1010)
+  })
+
+  it('reports "budget" when two candidates can not be told apart', async () => {
+    const twins: Toy[] = [{ dps: 1000 }, { dps: 1020 }, { dps: 1020 }]
+    const result = await race(options(twins, { budget: 60_000 }))
+    expect(result.status).toBe('budget')
+    expect(result.unseparated).toHaveLength(1)
+    expect([1, 2]).toContain(result.leader)
+    expect(result.spent).toBeLessThanOrEqual(60_000)
+    // The closest survivor, and how far behind (O1-4): the other twin, about level with the leader.
+    expect(result.closest!.candidate).toBe(result.unseparated[0])
+    expect(Math.abs(result.closest!.vsLeader.mean)).toBeLessThan(result.closest!.vsLeader.halfWidth)
+  })
+
+  it('counts as unseparated only the survivors the leader isn’t clear of at 95%, and names a closest only on a budget ending (OV-5)', async () => {
+    // Twins, and a third well behind that an elimination bar too high to drop anyone keeps in the race: the budget
+    // ends it with the third a survivor the leader is clear of, so only the other twin is unseparated.
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1020 }, { dps: 1020 }, { dps: 1005 }]
+    const result = await race(options(toys, { budget: 20_000, eliminationZ: 1e6 }))
+    expect(result.status).toBe('budget')
+    const third = result.standings.find((st) => st.candidate === 3)!
+    expect(third.state).toBe('survivor')
+    expect(third.vsLeader.mean - third.vsLeader.halfWidth).toBeGreaterThan(0)
+    const twin = result.leader === 1 ? 2 : 1
+    expect(result.unseparated).toEqual([twin])
+    expect(result.closest!.candidate).toBe(twin)
+    // A separated race has neither.
+    const clear = await race(options(field))
+    expect(clear.status).toBe('separated')
+    expect(clear.unseparated).toEqual([])
+    expect(clear.closest).toBeUndefined()
+  })
+
+  it('corrects the elimination bar for the number of survivors, so the true best survives the first round (O1-2)', async () => {
+    // The winner's curse: 1,000 candidates level at 1,000 and one ahead by 0.1, a small share of a
+    // candidate's own standard error over the first round's 50 fights (1.4). The leader is the
+    // luckiest of the 1,000, about 3 standard errors up, so an uncorrected 99% bar knocks the true
+    // best out in the first round about one time in six, where it should be 0.5%; the
+    // corrected bar doesn't.
+    const count = 1000
+    let fixedDrops = 0
+    let correctedDrops = 0
+    for (let rep = 0; rep < 20; rep++) {
+      const toys: Toy[] = Array.from({ length: count }, () => ({ dps: 1000 }))
+      const best = 1 + ((rep * 379) % (count - 1))
+      toys[best] = { dps: 1000.1 }
+      const run = (extra: Partial<RaceOptions>) =>
+        race({ ...options(toys), runner: toyRunner(toys, 4, rep, false), initialFights: 50, budget: count * 50, jobFights: 50, top: count, ...extra })
+      const dropped = (r: Awaited<ReturnType<typeof race>>) => r.standings.find((st) => st.candidate === best)!.droppedInRound === 0
+      if (dropped(await run({ eliminationZ: Z99 }))) fixedDrops++
+      const corrected = await run({})
+      if (dropped(corrected)) correctedDrops++
+      // The bar is Student's t at 0.5% ÷ the survivors compared with the leader: the 999 candidates
+      // (the baseline is none) less the leader.
+      expect(corrected.rounds[0].eliminationZ).toBeCloseTo(eliminationZ(count - 2, 50), 12)
+    }
+    expect(fixedDrops).toBeGreaterThan(0)
+    expect(correctedDrops).toBe(0)
+  }, 60_000)
+
+  it('merges exact ties, and damage taken breaks them (D30)', async () => {
+    // Candidates 2 and 3 fight identically to 1 but for damage taken (their own noise has no DPS part).
+    const runner = toyRunner([{ dps: 1000 }, { dps: 1010, own: 0 }, { dps: 1010, own: 0 }, { dps: 1010, own: 0 }])
+    const tieRunner: FightRunner = {
+      lanes: 2,
+      run: async (source, from, count) => {
+        const s = await runner.run({ ...source, key: Math.min(source.key, 1) }, from, count)
+        const taken = s.taken.map((x) => x + [0, 30, -30, 0][source.key])
+        return { ...s, taken }
+      },
+    }
+    const result = await race({ ...options([]), sources: sources(4), runner: tieRunner })
+    expect(result.leader).toBe(2)
+    expect(result.standings[0].ties.sort()).toEqual([1, 3])
+    expect(result.status).toBe('separated')
+  })
+
+  it('keeps the baseline running and pairs every standing with its fights', async () => {
+    const result = await race(options(field))
+    expect(result.baseline.fights).toBe(Math.max(...result.standings.map((s) => s.fights)))
+    expect(result.standings.some((s) => s.candidate === 0)).toBe(false)
+  })
+
+  it('takes no result limits: the best mean leads whatever its damage taken (D30, step 6)', async () => {
+    // The best DPS takes 20% more damage: with no limits on results, it leads all the same.
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, taken: 600 }, { dps: 1030 }, { dps: 1010 }]
+    const result = await race(options(toys))
+    expect(result.leader).toBe(1)
+    expect(result.status).toBe('separated')
+    for (const round of result.rounds) expect(round.leader).toBe(1)
+    // Nothing is dropped as outside a limit: a standing is the leader, a survivor or dropped as worse.
+    for (const st of result.standings) for (const key of ['droppedAs', 'feasible']) expect(st).not.toHaveProperty(key)
+  })
+
+  it('the baseline is only the measuring stick: it runs every round but never leads, drops another or stands', async () => {
+    // The baseline is the best here, but it's never an answer.
+    const toys: Toy[] = [{ dps: 1050 }, { dps: 1000 }, { dps: 1030 }, { dps: 1010 }]
+    const result = await race(options(toys))
+    expect(result.leader).toBe(2)
+    expect(result.status).toBe('separated')
+    expect(result.standings.map((st) => st.candidate)).not.toContain(0)
+    expect(result.baseline.fights).toBe(Math.max(...result.standings.map((st) => st.fights)))
+    // The leader's change from it is below zero: it's still what every candidate is measured against.
+    expect(result.standings[0].vsBaseline.dps.mean).toBeLessThan(0)
+    // With the baseline alone there's no candidate and no answer; its first round still runs.
+    const alone = await race(options(toys.slice(0, 1)))
+    expect(alone).toMatchObject({ status: 'none', leader: null, standings: [], spent: 100 })
+    expect(alone.baseline.fights).toBe(100)
+  })
+
+  it('a copy of the baseline takes its samples and costs no fights (OV2-5)', async () => {
+    // Candidate 1 is the baseline's own plan; it races as a candidate, at 0 ± 0 against it.
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1000 }, { dps: 1030 }]
+    const runner = toyRunner(toys)
+    const result = await race({ ...options(toys), runner, copies: [1] })
+    const copy = result.standings.find((s) => s.candidate === 1)!
+    expect(copy.vsBaseline.dps).toEqual({ mean: 0, halfWidth: 0 })
+    expect(result.leader).toBe(2)
+    // Only the baseline and candidate 2 ran fights.
+    expect(runner.fights).toBe(result.spent)
+    expect(result.spent).toBe(2 * result.baseline.fights)
+    expect(result.rounds[0].ran).toBe(2)
+  })
+
+  it('Defense: the least damage taken leads, and a positive score is less damage taken (D30, the goals)', async () => {
+    // The best DPS and TPS takes the most damage; the Defense goal ranks by damage taken alone.
+    const toys: Toy[] = [{ dps: 1000, taken: 500 }, { dps: 1050, taken: 480 }, { dps: 1000, taken: 450 }, { dps: 1030, taken: 470 }]
+    const result = await race(options(toys, { goal: 'defense' }))
+    expect(result.leader).toBe(2)
+    expect(result.status).toBe('separated')
+    const lead = result.standings[0]
+    expect(lead.candidate).toBe(2)
+    // Its score is minus the damage taken: 50 less a second is +50, the leader's mean the highest.
+    expect(lead.vsBaseline.taken.mean).toBeLessThan(0)
+    expect(lead.vsBaseline.score.mean).toBeCloseTo(-lead.vsBaseline.taken.mean, 9)
+    expect(lead.vsBaseline.score.mean - lead.vsBaseline.score.halfWidth).toBeGreaterThan(0)
+    expect(lead.mean.score).toBeCloseTo(-lead.mean.taken, 9)
+    for (const st of result.standings.slice(1)) expect(st.mean.taken).toBeGreaterThan(lead.mean.taken)
+    // The same toys under DPS lead with the most DPS instead.
+    expect((await race(options(toys, { goal: 'dps' }))).leader).toBe(1)
+  })
+
+  it('Defense merges candidates with the same damage taken on every fight, and TPS breaks the tie (D30)', async () => {
+    // Candidates 1 to 3 take the same damage on every fight; their TPS differs.
+    const runner = toyRunner([{ dps: 1000, taken: 500 }, { dps: 1000, taken: 450 }])
+    const tieRunner: FightRunner = {
+      lanes: 2,
+      run: async (source, from, count) => {
+        const s = await runner.run({ ...source, key: Math.min(source.key, 1) }, from, count)
+        return { ...s, tps: s.tps.map((x) => x + [0, 0, 30, -30][source.key]) }
+      },
+    }
+    const result = await race({ ...options([]), goal: 'defense', sources: sources(4), runner: tieRunner })
+    expect(result.leader).toBe(2)
+    expect(result.standings[0].ties.sort()).toEqual([1, 3])
+    expect(result.status).toBe('separated')
+  })
+
+  it('TPS: the most TPS leads, whatever the DPS (D30, the goals)', async () => {
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, tps: 1000 }, { dps: 1000, tps: 1040 }, { dps: 1010 }]
+    const result = await race(options(toys, { goal: 'tps' }))
+    expect(result.leader).toBe(2)
+    expect(result.status).toBe('separated')
+    expect(result.standings[0].vsBaseline.score.mean).toBeCloseTo(result.standings[0].vsBaseline.tps.mean, 9)
+  })
+
+  it('rejects a budget that does not cover the first round', async () => {
+    await expect(race(options(field, { budget: 1000 }))).rejects.toThrow(/doesn't cover a first round/)
+  })
+
+  it('stops when the signal aborts', async () => {
+    const controller = new AbortController()
+    const run = race(options(field, { signal: controller.signal, onProgress: (p) => p.jobsDone > 3 && controller.abort() }))
+    await expect(run).rejects.toThrow(/cancelled/)
+  })
+})
+
+describe('goals', () => {
+  it('each goal’s score is higher when better: Defense is minus the damage taken (D30)', () => {
+    const base = { dps: 400, tps: 800 }
+    expect(scorer('dps', base)(410, 900, 500)).toBe(410)
+    expect(scorer('tps', base)(410, 900, 500)).toBe(900)
+    expect(scorer('defense', base)(410, 900, 500)).toBe(-500)
+    expect(scorer('defense', base)(410, 900, 450)).toBeGreaterThan(scorer('defense', base)(410, 900, 500))
+    // Worked example: +38.3 TPS on 687.4 (+5.57%) and +16.3 DPS on 359.9 (+4.53%) is +10.1 points.
+    const balanced = scorer('balanced', { dps: 359.9, tps: 687.4 })
+    expect(balanced(359.9 + 16.3, 687.4 + 38.3, 0) - balanced(359.9, 687.4, 0)).toBeCloseTo(10.1, 1)
+    // The tie-break: the least damage taken, or for Defense the most TPS; and what the score reads.
+    expect(tieBreaker('balanced')(0, 900, 500)).toBe(-500)
+    expect(tieBreaker('defense')(0, 900, 500)).toBe(900)
+    expect(scoreReads('defense')).toEqual(['taken'])
+    expect(scoreReads('balanced')).toEqual(['dps', 'tps'])
+    // Each goal reads only its own metric (OG-4).
+    expect(scoreReads('dps')).toEqual(['dps'])
+    expect(scoreReads('tps')).toEqual(['tps'])
+  })
+
+  it('a tank defaults to Balanced and a DPS spec to DPS; Balanced for a DPS spec scores DPS, and Defense is a tank’s', () => {
+    expect(defaultGoal('tank')).toBe('balanced')
+    expect(defaultGoal('dps')).toBe('dps')
+    expect(scoredGoal('balanced', 'tank')).toBe('balanced')
+    expect(scoredGoal('balanced', 'dps')).toBe('dps')
+    expect(scoredGoal('defense', 'tank')).toBe('defense')
+    expect(scoredGoal('tps', 'dps')).toBe('tps')
+    expect(() => scoredGoal('defense', 'dps')).toThrow(/Defense goal is for a tank/)
+  })
+})
+
+describe('quantiles', () => {
+  it('the normal’s and Student’s t’s match their tables', () => {
+    expect(normalQuantile(0.025)).toBeCloseTo(1.959963984540054, 9)
+    expect(normalQuantile(0.005)).toBeCloseTo(Z99, 9)
+    expect(normalQuantile(1e-8)).toBeCloseTo(5.612001244174789, 7)
+    expect(normalQuantile(0.975)).toBeCloseTo(-1.959963984540054, 9)
+    // Student's t, from its tables: ν = 1, 10, 49, 60.
+    expect(tQuantile(0.025, 1)).toBeCloseTo(12.7062047, 5)
+    expect(tQuantile(0.025, 10)).toBeCloseTo(2.2281389, 6)
+    expect(tQuantile(0.005, 49)).toBeCloseTo(2.6799519, 6)
+    expect(tQuantile(0.0005, 60)).toBeCloseTo(3.4602004, 6)
+    expect(tTail(2.2281388519649385, 10)).toBeCloseTo(0.025, 10)
+    // At zero and below it, by symmetry (OV-3: zero once recursed forever).
+    expect(tTail(0, 10)).toBe(0.5)
+    expect(tTail(-0, 10)).toBe(0.5)
+    expect(tTail(-2.2281388519649385, 10)).toBeCloseTo(0.975, 10)
+    expect(tTail(-3, 5) + tTail(3, 5)).toBeCloseTo(1, 12)
+    expect(tTail(Number.NaN, 5)).toBeNaN()
+    // Many degrees of freedom: the normal's.
+    expect(tQuantile(0.005, 1e7)).toBeCloseTo(Z99, 9)
+  })
+
+  it('the elimination bar is the uncorrected 99% one for one comparison, and grows with the survivors', () => {
+    expect(eliminationZ(1, 1e7)).toBeCloseTo(Z99, 9)
+    expect(eliminationZ(0, 1e7)).toBeCloseTo(Z99, 9)
+    expect(eliminationZ(1, 50)).toBeCloseTo(tQuantile(0.005, 49), 12)
+    expect(eliminationZ(7311, 61)).toBeCloseTo(tQuantile(0.005 / 7311, 60), 12)
+    expect(eliminationZ(7311, 61)).toBeGreaterThan(5)
+  })
+})
+
+describe('pairedInterval', () => {
+  it('is the mean and 1.96 standard errors of the differences', () => {
+    const a = [3, 5, 7, 9]
+    const b = [1, 2, 3, 4]
+    // Differences 2, 3, 4, 5: mean 3.5, sd √(5/3).
+    const i = pairedInterval(a, b, 4)
+    expect(i.mean).toBeCloseTo(3.5, 12)
+    expect(i.halfWidth).toBeCloseTo((1.959963984540054 * Math.sqrt(5 / 3)) / 2, 12)
+  })
+})

@@ -19,6 +19,7 @@ import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
 import { WorkerPool } from './run/pool'
+import { type FightRunner, localFightRunner } from './optimize/fights'
 import { PROFILES } from './rules/profiles'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type {
@@ -360,6 +361,24 @@ function executorFor(plan: Parameters<typeof localExecutor>[0]): ChunkExecutor {
     }
   }
   return localExecutor(plan)
+}
+
+/**
+ * Where an optimizer search runs its fights (docs/optimizer.md#fights-and-runners): the pool's
+ * workers, or this thread where there are none or where they've failed to start in two runs in a
+ * row, as `executorFor` decides for a run (OG-6). Making the pool's runner counts as a run, so a
+ * search whose workers fail to start moves the next one to this thread too.
+ */
+export function optimizerRunner(): FightRunner {
+  if (WorkerPool.supported() && !pool?.unstartable) {
+    try {
+      pool ??= new WorkerPool(WorkerPool.defaultSize())
+      return pool.fightRunner()
+    } catch {
+      pool = null
+    }
+  }
+  return localFightRunner()
 }
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : 0)

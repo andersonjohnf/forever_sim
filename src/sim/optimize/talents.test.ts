@@ -272,7 +272,7 @@ describe('talentSpace', () => {
     const maxRanks = talentSpace({ ...options, searchPartials: false })
     expect(maxRanks.builds.length).toBe(COUNT_WARRIOR_EHP103)
     for (const code of partialAnswers) expect(maxRanks.builds.map((b) => b.code)).not.toContain(code)
-  })
+  }, SLOW_SPACE_MS)
 
   it('sizes a space before listing it, exactly, and stops counting past a limit (OGV-5)', () => {
     const options = { data: warrior, roles: roles(MODELLED, { Toughness: 'tie-break' }), keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 }, minPoints: { Protection: 31 }, preferTree: 'Protection', searchPartials: false }
@@ -316,8 +316,14 @@ describe('talentSpace', () => {
       if (rank(code, 'Shield Slam')) expect(rank(code, 'Concussion Blow')).toBe(1)
       expect(treePoints(code, 'Protection')).toBeGreaterThanOrEqual(31)
     }
-  })
+  }, SLOW_SPACE_MS)
 })
+
+/**
+ * The two tests that list a real tree's whole space (about 50,000 builds) take 1.2 to 1.5 s here and
+ * over vitest's 5 s default on the shared CI runner, so they get their own limit.
+ */
+const SLOW_SPACE_MS = 30_000
 
 /** Pinned: a change here means the space's rules changed (update it on purpose, with the reason). */
 const COUNT_PROTECTION = 4730

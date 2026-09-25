@@ -1,4 +1,4 @@
-import { Check, Info } from 'lucide-react'
+import { Check, FlaskConicalOff, History, Info, type LucideIcon } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -13,8 +13,12 @@ import { statsLine, unsimulatedEffects } from './item-flags'
  * A badge that explains itself on tap, click or Enter (docs/ux.md "Gear": nothing is hover-only).
  * It sits on top of its row's button, never inside it, and its hit area is 44 px tall while it
  * takes a badge's height in the layout.
+ *
+ * `icon` shows the badge as its icon alone, for the wide Gear grid (docs/ux.md "Gear"), where
+ * the words on every other slot would take a line of their own; the label is its name and its
+ * hover title, and the popover says it in full.
  */
-function FlagBadge({ label, children }: { label: string; children: ReactNode }) {
+function FlagBadge({ label, icon: Icon, children }: { label: string; icon?: LucideIcon; children: ReactNode }) {
   // The popover is a dialog, named by its heading (docs/ux.md#accessibility).
   const titleId = useId()
   return (
@@ -22,12 +26,24 @@ function FlagBadge({ label, children }: { label: string; children: ReactNode }) 
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="group/flag relative z-10 -my-3 inline-flex h-11 min-w-11 items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          aria-label={Icon ? label : undefined}
+          title={Icon ? label : undefined}
+          className={cn(
+            'group/flag relative z-10 -my-3 inline-flex h-11 min-w-11 items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+            // An icon takes its own width in the layout, its hit area 12 px past it each side too.
+            Icon && '-mx-3 justify-center',
+          )}
         >
-          <Badge variant="outline" className="gap-1 group-hover/flag:bg-muted">
-            {label}
-            <Info aria-hidden />
-          </Badge>
+          {Icon ? (
+            <Badge variant="outline" className="size-5 p-0 group-hover/flag:bg-muted">
+              <Icon aria-hidden />
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="gap-1 group-hover/flag:bg-muted">
+              {label}
+              <Info aria-hidden />
+            </Badge>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" aria-labelledby={titleId} className="w-[min(20rem,calc(100vw-2rem))]">
@@ -41,9 +57,9 @@ function FlagBadge({ label, children }: { label: string; children: ReactNode }) 
 }
 
 /** Items with no Forever data yet (decision D6). */
-export function ClassicStatsBadge() {
+export function ClassicStatsBadge({ iconOnly = false }: { iconOnly?: boolean }) {
   return (
-    <FlagBadge label="Classic stats">
+    <FlagBadge label="Classic stats" icon={iconOnly ? History : undefined}>
       <p className="text-muted-foreground">
         The Forever beta client has no data for this item yet, so the sim uses its Classic Era stats. It updates when a
         client build ships the item.
@@ -53,9 +69,9 @@ export function ClassicStatsBadge() {
 }
 
 /** Items with an effect the sim leaves out; the result's assumptions list them too. */
-export function UnsimulatedBadge({ effects }: { effects: string[] }) {
+export function UnsimulatedBadge({ effects, iconOnly = false }: { effects: string[]; iconOnly?: boolean }) {
   return (
-    <FlagBadge label={effects.length === 1 ? 'Effect not simulated' : 'Effects not simulated'}>
+    <FlagBadge label={effects.length === 1 ? 'Effect not simulated' : 'Effects not simulated'} icon={iconOnly ? FlaskConicalOff : undefined}>
       <p className="text-muted-foreground">The sim doesn’t simulate {effects.length === 1 ? 'this effect' : 'these effects'} yet, so results leave {effects.length === 1 ? 'it' : 'them'} out:</p>
       <ul className="flex list-disc flex-col gap-1 pl-5">
         {effects.map((effect) => (
@@ -63,6 +79,21 @@ export function UnsimulatedBadge({ effects }: { effects: string[] }) {
         ))}
       </ul>
     </FlagBadge>
+  )
+}
+
+/**
+ * An item's flags as icons, for the wide Gear grid, where they follow the enchant chip (docs/ux.md
+ * "Gear"). 24 px apart, so their 44 px hit areas don't meet.
+ */
+export function ItemFlags({ item, className }: { item: Item; className?: string }) {
+  const effects = unsimulatedEffects(item, useSpecMeta().id)
+  if (item.foreverData && effects.length === 0) return null
+  return (
+    <span className={cn('flex shrink-0 items-center gap-x-6', className)}>
+      {!item.foreverData && <ClassicStatsBadge iconOnly />}
+      {effects.length > 0 && <UnsimulatedBadge effects={effects} iconOnly />}
+    </span>
   )
 }
 
@@ -103,42 +134,32 @@ export function ItemSummary({
    */
   equipped?: boolean
   /**
-   * The wide layout's slot list (docs/ux.md "Gear"): the name and its BiS rank on one line, then
-   * `meta` and the stats on the next, with the flags beside them, so a row is about 56 px.
+   * The wide layout's slot grid (docs/ux.md "Gear"): the name and its BiS rank, then `meta` and the
+   * stats, each wrapping rather than cut short, so an item with a short name and stats is two lines.
+   * The flags go on the slot's action line, beside its enchant (`ItemFlags`).
    */
   compact?: boolean
   className?: string
 }) {
   const fade = dimmed && 'opacity-60'
   const effects = unsimulatedEffects(item, useSpecMeta().id)
-  const flags = (!item.foreverData || effects.length > 0) && (
-    <>
-      {!item.foreverData && <ClassicStatsBadge />}
-      {effects.length > 0 && <UnsimulatedBadge effects={effects} />}
-    </>
-  )
   if (compact) {
     return (
       <div className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
-        <WowIcon icon={item.icon} size="lg" className={cn(fade)} />
+        <WowIcon icon={item.icon} size="md" className={cn(fade)} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span aria-hidden className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>
-              {item.name}
-            </span>
+          {/* The rank follows the name's last word, wrapping with it. Up to two lines each, the
+              whole text on hover, where an effect's words stand in for stats (Earthstrike's Use:). */}
+          <span aria-hidden title={item.name} className={cn('line-clamp-2 text-sm font-medium break-words', fade)}>
+            <span className={QUALITY_CLASS[item.quality]}>{item.name}</span>
             {bis ? (
-              <span aria-hidden className={cn('shrink-0', fade)}>
+              <span className="ml-1.5 inline-block align-text-bottom">
                 <BisBadge rank={bis} />
               </span>
             ) : null}
           </span>
-          {/* The flags wrap under the stats when they'd squeeze them, and a line of flags that wraps
-              starts 24 px lower, so their 44 px hit areas never overlap. */}
-          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <span aria-hidden className={cn('line-clamp-2 max-w-full min-w-0 text-xs text-muted-foreground tabular-nums', fade)}>
-              {[meta, statsLine(item)].filter(Boolean).join(' · ')}
-            </span>
-            {flags && <span className="flex flex-wrap items-center gap-x-1 gap-y-6">{flags}</span>}
+          <span aria-hidden title={statsLine(item)} className={cn('line-clamp-2 text-xs break-words text-muted-foreground tabular-nums', fade)}>
+            {[meta, statsLine(item)].filter(Boolean).join(' · ')}
           </span>
           {note && (
             <span aria-hidden className="mt-1 flex items-start gap-1.5 text-xs text-foreground">

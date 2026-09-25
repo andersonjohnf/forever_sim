@@ -1,5 +1,5 @@
 import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -10,6 +10,7 @@ import type { Item } from '@/data/items/types'
 import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { changeAndFocus } from '@/features/refocus'
 import { SectionHeader } from '@/features/section'
+import { useIsWide } from '@/hooks/use-media-query'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
@@ -17,10 +18,8 @@ import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
-import { PICKER_HEADING_ID, PickerPanel } from './picker-panel'
-import { useInlinePicker } from './use-inline-picker'
 import { itemDescription } from './item-flags'
-import { ItemSummary } from './item-row'
+import { ItemFlags, ItemSummary } from './item-row'
 import { ammoNote, bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
@@ -69,13 +68,20 @@ function slotList(slots: readonly GearSlot[]): string {
 }
 
 /**
- * The slot whose row, enchant or item picker holds focus. Each carries `data-gear-row`: the slot
- * rows, the inline panel, and the dialog, sheet and popover, which sit in portals.
+ * How each group lays out in the wide grid (docs/ux.md "Gear"), whose three columns are 0.75 rem
+ * apart: Armor spans two and has a column in each, filled down each one, left side then right, as
+ * the character pane has them; Jewelry is the third; Weapons run across all three, their dividers
+ * lined up with Armor's and with the middle of the gap beside Jewelry.
  */
-function focusedSlot(): GearSlot | null {
-  const active = document.activeElement
-  const row = active instanceof Element ? active.closest<HTMLElement>('[data-gear-row]') : null
-  return (row?.dataset.gearRow as GearSlot | undefined) ?? null
+const WIDE_GRID: Record<string, { columns: number; down: boolean; span: string; template: string }> = {
+  Armor: { columns: 2, down: true, span: 'wide:col-span-2', template: 'wide:grid-cols-[repeat(2,minmax(0,1fr))]' },
+  Jewelry: { columns: 1, down: true, span: '', template: 'wide:grid-cols-[minmax(0,1fr)]' },
+  Weapons: {
+    columns: 3,
+    down: false,
+    span: 'wide:col-span-3',
+    template: 'wide:grid-cols-[calc((100%_-_1.5rem)/3_+_0.375rem)_calc((100%_-_1.5rem)/3_+_0.75rem)_minmax(0,1fr)]',
+  },
 }
 
 /** An empty slot's icon and name, or why a two-hander leaves the off hand empty. */
@@ -128,65 +134,15 @@ export function GearSection() {
     announce('Removed all gear.')
   }
 
-  // From 1440 px the picker opens inline beside a compact slot list (docs/ux.md "Gear", D34). A slot
-  // chosen in one layout doesn't carry into the other: the dialog doesn't pop up when the window
-  // narrows past it.
-  const rootRef = useRef<HTMLDivElement>(null)
-  const listRef = useRef<HTMLDivElement>(null)
-  const inline = useInlinePicker(rootRef)
-  const [wasInline, setWasInline] = useState(inline)
-  if (wasInline !== inline) {
-    setWasInline(inline)
-    setPicking(null)
-  }
-  // The two layouts are different element trees, so focus in a slot's row, its enchant or its
-  // picker would fall to the page as the window crosses 1440 px (browser zoom, snapping a window).
-  // The slot that had it gets it back, on its button (review finding DL-1).
-  const focusedRow = useRef<GearSlot | null>(null)
-  useEffect(() => {
-    const track = () => {
-      focusedRow.current = focusedSlot()
-    }
-    document.addEventListener('focusin', track)
-    return () => document.removeEventListener('focusin', track)
-  }, [])
-  useLayoutEffect(() => {
-    const slot = focusedRow.current
-    const active = document.activeElement
-    if (!slot || (active && active !== document.body)) return
-    const button = slotButtons.current.get(slot)
-    ;(button && !button.disabled ? button : slotButtons.current.get('mainHand'))?.focus()
-  }, [inline])
-  // The off hand can't be chosen while a two-hander locks it, so the panel lets it go.
-  const panelSlot = inline && picking && !(picking === 'offHand' && twoHanded) ? picking : null
+  // From 1440 px the slots are a grid that shows them all at once (docs/ux.md "Gear", D34).
+  const wide = useIsWide()
   const groups = slotGroups(meta.classId)
 
-  /** Opens a slot's picker. Inline, focus moves to the panel's heading, as a Rotation row's does. */
-  const choose = (slot: GearSlot) => {
-    if (!inline) return setPicking(slot)
-    changeAndFocus(
-      () => setPicking(slot),
-      () => document.getElementById(PICKER_HEADING_ID),
-    )
-  }
-
-  /** Equips a pick. The dialog closes on it; the inline panel stays on the slot to compare (D34). */
   const pick = (slot: GearSlot, item: Item | null) => {
-    const before = config.gear
-    const after = equip(config, slot, item).gear
-    const swapped = slot === 'ranged' ? suppliesSwapped(before, after) : null
-    if (!inline) {
-      update((c) => equip(c, slot, item))
-      if (swapped) announce(swapped)
-      return setPicking(null)
-    }
-    // The row that left the slot empty goes with the item, so focus moves to the panel's heading.
-    changeAndFocus(
-      () => update((c) => equip(c, slot, item)),
-      () => (item ? null : document.getElementById(PICKER_HEADING_ID)),
-    )
-    // Focus stays on the item, so screen readers hear what changed.
-    announce([item ? `Equipped ${item.name}.` : `${SLOT_LABEL[slot]} left empty.`, swapped].filter(Boolean).join(' '))
+    const swapped = slot === 'ranged' ? suppliesSwapped(config.gear, equip(config, slot, item).gear) : null
+    update((c) => equip(c, slot, item))
+    if (swapped) announce(swapped)
+    setPicking(null)
   }
 
   /** What a slot holds, and how its row shows it. */
@@ -214,12 +170,10 @@ export function GearSection() {
       // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
       data-gear-slot={slot}
       disabled={locked}
-      onClick={() => choose(slot)}
+      onClick={() => setPicking(slot)}
       className={className}
       aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (locked ? 'two-handed weapon equipped' : 'empty')}`}
       aria-describedby={item ? `slot-${slot}-description` : undefined}
-      // Inline, the slot whose items the panel shows, as the Rotation list's selected row.
-      aria-current={inline && panelSlot === slot ? 'true' : undefined}
     >
       {item && (
         <span id={`slot-${slot}-description`} className="sr-only">
@@ -237,12 +191,12 @@ export function GearSection() {
       </>
     )
 
-  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined, stacked = false) => (
+  const enchantPicker = (slot: GearSlot, item: Item, enchantId: string | undefined) => (
     <EnchantPicker
       slot={slot}
       item={item}
       enchantId={enchantId}
-      stacked={stacked}
+      whole={wide}
       // The slot's button, or the main hand's if a two-hander now locks this slot.
       fallbackFocus={() => {
         const button = slotButtons.current.get(slot)
@@ -257,62 +211,8 @@ export function GearSection() {
     />
   )
 
-  /**
-   * Up and Down from anywhere in a slot's row move to the slot above or below, across the groups;
-   * Enter on the slot opens it. Keys from a badge's popover, which React passes up from its portal,
-   * and the enchant list's own arrows are left alone.
-   */
-  const slotKeys = (e: KeyboardEvent<HTMLLIElement>, slot: GearSlot) => {
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
-    if (e.defaultPrevented || !e.currentTarget.contains(e.target as Node)) return
-    const order = groups.flatMap((g) => g.slots).filter((s) => s === slot || slotButtons.current.get(s)?.disabled === false)
-    const next = order[order.indexOf(slot) + (e.key === 'ArrowDown' ? 1 : -1)]
-    if (!next) return
-    e.preventDefault()
-    slotButtons.current.get(next)?.focus()
-  }
-
-  /** A group of the wide layout's compact slot list: one row a slot, about 56 px, with its enchant chip at the end. */
-  const compactGroup = (group: { label: string; slots: GearSlot[] }) => (
-    <section key={group.label} className="flex min-w-0 flex-col gap-2">
-      <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
-      <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
-        {group.slots.map((slot) => {
-          const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
-          return (
-            <li key={slot} data-gear-row={slot} onKeyDown={(e) => slotKeys(e, slot)} className="relative flex min-h-14 min-w-0">
-              {/* The chosen slot: a bar in the primary colour on its leading edge, as a Rotation row's. */}
-              {panelSlot === slot && <span aria-hidden className="absolute inset-y-0 left-0 z-2 w-[3px] bg-primary" />}
-              <div
-                className={cn(
-                  'relative flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 transition-colors',
-                  lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                )}
-              >
-                {/* Its ring is inset, so the list's rounded edge doesn't clip it. */}
-                {slotButton(slot, item, lockedByTwoHand, bis, unused, 'absolute inset-0 z-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset disabled:cursor-not-allowed')}
-                {item ? (
-                  <ItemSummary compact item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
-                ) : (
-                  <EmptySlot slot={slot} locked={lockedByTwoHand} />
-                )}
-              </div>
-              {item && enchantable && (
-                // The chip fills its cell, square-cornered and with an inset ring, beside the item. It
-                // shows the enchant's whole name, on up to two lines, with its effect under it.
-                <div className="flex w-[min(34%,15rem)] shrink-0 border-l [&>button]:rounded-none [&>button]:focus-visible:ring-inset">
-                  {enchantPicker(slot, item, equipped?.enchantId, true)}
-                </div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </section>
-  )
-
   return (
-    <div ref={rootRef} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 wide:gap-4">
       <SectionHeader
         title="Gear"
         description={
@@ -321,24 +221,33 @@ export function GearSection() {
             : `Starts as ${defaultSet}. Choose a slot to change its item.`
         }
         action={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="size-11 shrink-0" aria-label="Gear options">
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
-                Remove all gear
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          // From 1440 px the action is in view rather than in a menu (docs/ux.md principle 4), sized to its label.
+          wide ? (
+            <Button variant="outline" className="h-11 px-4" onClick={clearAll}>
+              Remove all gear
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="size-11 shrink-0" aria-label="Gear options">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
+                  Remove all gear
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
         }
       />
       <div
         className={cn(
           'flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
           offDefault > 0 && 'bg-muted/50',
+          // From 1440 px it's a line under the intro rather than a box, leaving the height to the slots.
+          'wide:-mt-2 wide:border-0 wide:bg-transparent wide:p-0',
         )}
       >
         {/* Focus lands here when the button that equipped the set goes away (docs/ux.md#accessibility). */}
@@ -361,75 +270,106 @@ export function GearSection() {
         </p>
         {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}
         {offDefault > 0 && (
-          <Button className="h-11 w-full px-4 sm:w-auto" aria-describedby="gear-default-status" onClick={loadBis}>
+          <Button
+            // From 1440 px it takes the line's height: 32 px, with a 44 px hit area (from inside its
+            // border) into the space above and below.
+            className="h-11 w-full px-4 sm:w-auto wide:relative wide:-my-1.5 wide:h-8 wide:px-3 wide:after:absolute wide:after:inset-x-0 wide:after:-inset-y-[7px]"
+            aria-describedby="gear-default-status"
+            onClick={loadBis}
+          >
             {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
           </Button>
         )}
       </div>
       <ClassicEraNote what="Enchants" />
 
-      {inline ? (
-        // The wide layout (docs/ux.md "Gear", D34): the slots as a compact list, and the item picker
-        // in a panel beside it. The panel is 24 rem, 30 rem from a 64.5 rem pane (about 1,670 px, or
-        // 1,690 px where a scrollbar takes room: review findings DB-4, DL-2), and 40% of the pane
-        // from 75 rem (1,920 px), about 41 rem at 2,560 px. The list stays one column: two columns
-        // were each narrower than the one column at 1,920 px, and names truncated (DB-6).
-        // The list is at least as tall as the panel, so the panel keeps its height beside it
-        // (picker-panel.tsx).
-        <div className="grid grid-cols-[minmax(0,1fr)_24rem] items-start gap-6 @min-[64.5rem]/setup:grid-cols-[minmax(0,1fr)_max(30rem,40%)]">
-          <div ref={listRef} className="flex min-h-[calc(100svh-var(--sticky-top,7rem)-2rem)] min-w-0 flex-col gap-6">
-            {groups.map(compactGroup)}
-          </div>
-          <PickerPanel
-            key={panelSlot ?? 'none'}
-            listRef={listRef}
-            slot={panelSlot}
-            spec={config.spec}
-            race={config.race}
-            equippedId={panelSlot ? (config.gear[panelSlot]?.itemId ?? null) : null}
-            worn={wornItems(config.gear)}
-            onPick={(item) => panelSlot && pick(panelSlot, item)}
-            onBack={() => panelSlot && slotButtons.current.get(panelSlot)?.focus()}
-          />
-        </div>
-      ) : (
-        groups.map((group) => (
-          <section key={group.label} className="flex min-w-0 flex-col gap-2">
-            <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
-            {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
-            <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
-              {group.slots.map((slot) => {
-                const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
-                return (
-                  <li key={slot} data-gear-row={slot} className="flex min-w-0 flex-col rounded-xl border">
-                    {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
-                        explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
-                        over faded content too (an empty slot's icon), which opacity would lift above it. */}
-                    <div
+      {/* Under 1440 px the groups stack, each a list of cards. From 1440 px (docs/ux.md "Gear", D34)
+          they're one grid, laid out like the character pane, that shows every slot without scrolling
+          at 1440×900: Armor in two columns (its left and right sides), Jewelry in a third, and the
+          Weapons in a row across the bottom. The same elements either way, in the same order, so
+          focus stays put as the window crosses 1440 px. */}
+      <div className="flex flex-col gap-6 wide:grid wide:grid-cols-3 wide:items-start wide:gap-3">
+        {groups.map((group) => {
+          const { columns, down, span, template } = WIDE_GRID[group.label] ?? WIDE_GRID.Jewelry
+          const rows = Math.ceil(group.slots.length / columns)
+          return (
+            <section key={group.label} className={cn('flex min-w-0 flex-col gap-2', span)}>
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase wide:sr-only">{group.label}</h3>
+              {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the
+                  page. At wide, one bordered list a group, with a divider between its slots. */}
+              <ul
+                style={down ? ({ '--rows': rows } as CSSProperties) : undefined}
+                className={cn(
+                  'grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]',
+                  'wide:gap-0 wide:overflow-hidden wide:rounded-xl wide:border',
+                  template,
+                  down && 'wide:grid-flow-col wide:grid-rows-[repeat(var(--rows),auto)]',
+                )}
+              >
+                {group.slots.map((slot, index) => {
+                  const [row, column] = down ? [index % rows, Math.floor(index / rows)] : [Math.floor(index / columns), index % columns]
+                  const { equipped, item, lockedByTwoHand, bis, unused, enchantable } = slotState(slot)
+                  return (
+                    <li
+                      key={slot}
                       className={cn(
-                        'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                        lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                        enchantable && 'rounded-b-none',
+                        'flex min-w-0 flex-col rounded-xl border wide:relative wide:rounded-none wide:border-0',
+                        !lockedByTwoHand && 'wide:hover:bg-muted/60',
+                        // At wide, a divider under each slot but the last row's, and after each column but the last.
+                        row < rows - 1 && 'wide:border-b',
+                        column < columns - 1 && 'wide:border-r',
                       )}
                     >
-                      {slotButton(slot, item, lockedByTwoHand, bis, unused, 'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed')}
-                      {item ? (
-                        <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
-                      ) : (
-                        <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                      {/* The slot's button covers the row (at wide, the whole slot, action line and all); the
+                          flag badges and the enchant chip sit above it, so a tap on one explains it rather
+                          than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it over faded content
+                          too (an empty slot's icon), which opacity would lift above it. */}
+                      <div
+                        className={cn(
+                          'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors wide:static wide:min-h-0 wide:rounded-none wide:hover:bg-transparent',
+                          enchantable ? 'wide:pt-1.5 wide:pb-1' : 'wide:py-1.5',
+                          lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                          enchantable && 'rounded-b-none',
+                        )}
+                      >
+                        {/* At wide its ring is inset, so the list's rounded edge doesn't clip it. */}
+                        {slotButton(
+                          slot,
+                          item,
+                          lockedByTwoHand,
+                          bis,
+                          unused,
+                          'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed wide:focus-visible:ring-inset',
+                        )}
+                        {item ? (
+                          <ItemSummary compact={wide} item={item} bis={bis} meta={wide ? null : SLOT_LABEL[slot]} dimmed={Boolean(unused)} note={unusedNote(unused)} />
+                        ) : (
+                          <EmptySlot slot={slot} locked={lockedByTwoHand} />
+                        )}
+                        {/* At wide the flags sit at the slot's right edge: here beside an item with no enchant,
+                            otherwise on the enchant chip's line. */}
+                        {wide && item && !enchantable && <ItemFlags item={item} className="mr-1" />}
+                        {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground wide:hidden" aria-hidden />}
+                      </div>
+                      {item && enchantable && (
+                        // At wide one line of 44 px hit areas that each take 20 px, the chip's text wrapping
+                        // beside the flags; the slot's bottom padding leaves room for their hit areas, and
+                        // the 12 px gap keeps the chip's clear of the first flag's.
+                        <div className="border-t wide:flex wide:items-start wide:gap-x-3 wide:border-t-0 wide:pr-4 wide:pb-3 wide:pl-2">
+                          {enchantPicker(slot, item, equipped?.enchantId)}
+                          {wide && <ItemFlags item={item} className="mr-1 ml-auto" />}
+                        </div>
                       )}
-                      {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                    </div>
-                    {item && enchantable && <div className="border-t">{enchantPicker(slot, item, equipped?.enchantId)}</div>}
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-        ))
-      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })}
+      </div>
 
-      {picking && !inline && (
+      {picking && (
         <ItemPicker
           open
           onOpenChange={(open) => !open && setPicking(null)}

@@ -293,9 +293,10 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
         </Button>
       </div>
       {/* From 1440 px the panel grows with the setup pane (a container only there): 24 rem from a 53 rem
-          pane, 28 rem from 80 rem, so a threshold's help isn't wrapped to three lines beside half-empty rows
-          (docs/ux.md "Rotation"). */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start @min-[53rem]/setup:grid-cols-[minmax(0,1fr)_24rem] @min-[80rem]/setup:grid-cols-[minmax(0,1fr)_28rem]">
+          pane (every width from 1440 px), 28 rem from 64 rem (about 1,660 px), where the list still has
+          35 rem, so a threshold's help isn't wrapped to three lines beside half-empty rows (docs/ux.md
+          "Rotation", DB-5). */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start @min-[53rem]/setup:grid-cols-[minmax(0,1fr)_24rem] @min-[64rem]/setup:grid-cols-[minmax(0,1fr)_28rem]">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

@@ -40,9 +40,10 @@ export function OptionList({
   ctx: RowContext
   stacked?: boolean
   /**
-   * The tab's spec-wide settings above the list: from an 80 rem setup pane (1440 px and wider,
-   * where the pane is a container), their rows flow into two columns, so a switch isn't a whole
-   * pane's width from its name (docs/ux.md "Rotation").
+   * The tab's spec-wide settings above the list: from a 53 rem setup pane (every width from 1440 px,
+   * where the pane is a container and 55 rem, 54 beside a classic scrollbar), their rows flow into
+   * two columns, as the Buffs tab's groups do, so a switch isn't a whole pane's width from its name
+   * (docs/ux.md "Rotation", DB-5).
    */
   flow?: boolean
   /**
@@ -60,7 +61,7 @@ export function OptionList({
       <ul className="mb-2 ml-4 flex flex-col border-l">
         {children.map((child) => (
           <li key={child.id}>
-            <OptionRow option={child} ctx={ctx} nested stacked={stacked} rowSwitch={rowSwitch} />
+            <OptionRow option={child} ctx={ctx} nested stacked={stacked} flow={flow} rowSwitch={rowSwitch} />
             {renderChildren(child.id)}
           </li>
         ))}
@@ -75,14 +76,14 @@ export function OptionList({
         key: option.id,
         node: (
           <>
-            <OptionRow option={option} ctx={ctx} stacked={stacked} rowSwitch={rowSwitch} />
+            <OptionRow option={option} ctx={ctx} stacked={stacked} flow={flow} rowSwitch={rowSwitch} />
             {renderChildren(option.id)}
           </>
         ),
       })),
   ]
   return (
-    <ul className={cn('flex flex-col divide-y overflow-hidden rounded-xl border', flow && '@min-[80rem]/setup:grid @min-[80rem]/setup:grid-cols-2 @min-[80rem]/setup:divide-y-0')}>
+    <ul className={cn('flex flex-col divide-y overflow-hidden rounded-xl border', flow && '@min-[53rem]/setup:grid @min-[53rem]/setup:grid-cols-2 @min-[53rem]/setup:divide-y-0')}>
       {top.map(({ key, node }, i) => (
         <li key={key} className={flow ? flowCell(i, top.length) : undefined}>
           {node}
@@ -99,7 +100,7 @@ export function OptionList({
  */
 function flowCell(i: number, count: number): string {
   const spans = i === count - 1 && i % 2 === 0
-  return cn(i >= 2 && '@min-[80rem]/setup:border-t', spans ? '@min-[80rem]/setup:col-span-2' : i % 2 === 0 && '@min-[80rem]/setup:border-r')
+  return cn(i >= 2 && '@min-[53rem]/setup:border-t', spans ? '@min-[53rem]/setup:col-span-2' : i % 2 === 0 && '@min-[53rem]/setup:border-r')
 }
 
 /**
@@ -130,15 +131,23 @@ function OptionRow({
   ctx,
   nested = false,
   stacked = false,
+  flow = false,
   rowSwitch,
 }: {
   option: RotationOption
   ctx: RowContext
   nested?: boolean
   stacked?: boolean
+  /**
+   * In a card whose rows flow into two columns (OptionList's `flow`): there a choice's options go
+   * under its label, sharing the cell's width, since half the pane beside them would squeeze its
+   * help to a word a line (docs/ux.md "Rotation").
+   */
+  flow?: boolean
   rowSwitch?: string
 }) {
   const row = ctx.rows.get(option.id)!
+  const flowStack = flow && option.kind === 'choice'
   const pad = nested ? 'px-4 py-3' : 'p-4'
   if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} name={option.id === rowSwitch ? `Use ${option.label}` : undefined} />
   const ids = rowIds(option.id)
@@ -149,6 +158,7 @@ function OptionRow({
         // Number inputs and choices go under their label on a phone, and in a narrow panel.
         'flex flex-col gap-3',
         !stacked && 'sm:flex-row sm:items-center sm:justify-between',
+        flowStack && '@min-[53rem]/setup:flex-col @min-[53rem]/setup:items-stretch',
         pad,
         // Room for the Reset's hit area below its line, clear of the control under it on a phone
         // and of the next row (LINK_HIT_AREA).
@@ -184,7 +194,7 @@ function OptionRow({
           // where they don't (a phone, the desktop panel beside the list); four sit two to a line
           // on a phone, so a line never holds three and one. No name is ever clipped, nor the page
           // scrolled sideways (docs/ux.md "Layout"; e2e/rotation-choices-fit.spec.ts).
-          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap')}
+          className={cn('w-full shrink-0 flex-wrap', !stacked && 'sm:w-auto sm:flex-nowrap', flowStack && '@min-[53rem]/setup:w-full @min-[53rem]/setup:flex-wrap')}
         >
           {option.choices.map((choice) => (
             <ToggleGroupItem
@@ -194,6 +204,7 @@ function OptionRow({
                 'h-11 min-w-fit flex-1 px-4',
                 option.choices.length === 4 && 'max-[27rem]:basis-[calc(50%-0.25rem)]',
                 !stacked && 'sm:flex-none',
+                flowStack && '@min-[53rem]/setup:flex-1',
                 CHOICE_ITEM,
                 row.inactive && CHOICE_ITEM_INACTIVE,
               )}

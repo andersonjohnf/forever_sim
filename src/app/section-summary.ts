@@ -59,12 +59,14 @@ function talentsSummary(config: Pick<SimConfig, 'spec' | 'talents'>): string {
 }
 
 /**
- * Gear: the default set's name while every slot holds it, else how many slots differ, by the Gear
- * tab's own comparison (slotsOffDefault). A tank's default is its threat set, as the tab says.
+ * Gear: the default set's name while every slot holds it, "No gear" with every slot empty (as after
+ * Remove all gear), else how many slots differ, by the Gear tab's own comparison (slotsOffDefault).
+ * A tank's default is its threat set, as the tab says.
  */
 function gearSummary(config: Pick<SimConfig, 'spec' | 'race' | 'gear'>): string {
   const off = slotsOffDefault(config).length
   if (off === 0) return hasThreatSet(config.spec) ? 'Threat set' : 'Pre-raid best in slot'
+  if (Object.values(config.gear).every((item) => !item)) return 'No gear'
   return `${off} ${off === 1 ? 'slot' : 'slots'} changed`
 }
 

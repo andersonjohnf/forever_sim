@@ -166,7 +166,8 @@ characters, about what fits under a tab at 1440 px:
   width: "Skyborne · Classic Era".
 - **Talents:** the points in each tree, in tree order: "17/34/0".
 - **Gear:** "Pre-raid best in slot" (a tank's "Threat set") while every slot holds the default
-  set, by the Gear tab's own comparison; otherwise "1 slot changed", "3 slots changed".
+  set, by the Gear tab's own comparison; "No gear" with every slot empty (after Remove all gear);
+  otherwise "1 slot changed", "3 slots changed".
 - **Buffs:** the preset the Buffs tab's picker shows ("Standard raid"), or "Custom".
 - **Rotation:** the preset the Rotation tab's picker shows ("Default", "Balanced"), or "Custom".
 - **Fight:** the length as the Fight tab shows it ("3:00"), and the boss's level only when it
@@ -248,15 +249,19 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     point and Backspace removes one (Delete and − work too); the hint above the trees and each
     talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's
     icon turns gray and its rank badge takes the muted text colour (AA), never opacity.
-  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): from a 64 rem pane the
-    talent icons grow from 44 to 52 px and each tree's card stops at 26 rem, the three centred. From
-    90 rem (about 2,450 px) a **talent detail panel** sits beside the trees, sticky as the Rotation
+  - **At wide widths** (from 1440 px, by the setup pane's own width, D34): from a 64 rem pane (a
+    window of about 1,660 px, 1,680 beside a classic scrollbar) the talent icons grow from 44 to 52 px
+    and each tree's card stops at 26 rem, the three centred. From an 80 rem pane (about 2,040 px, or
+    2,060 beside a scrollbar; not at 1920, whose pane is 75 rem) a **talent detail panel**, 22 rem,
+    sits beside the trees, which keep their 52 px icons, sticky as the Rotation
     panel is: the talent under the pointer, or else the focused one, or else the last one shown, with
     its tree and tier, rank, the current and next rank's text, why a point can't move, and what it
     **needs**: the tree's points above its tier and its arrow's talent, each met or not with the
     count ("30 points in Fury, 30 of 30"; a first-tier talent needs nothing). Until you point at
-    one it says to. It isn't a live region, and the tooltips, popovers and every click and key stay
-    as they are (`src/features/talents/talent-detail-panel.tsx`).
+    one it says to. While it shows, pointing at a talent doesn't also open its tooltip, which would
+    repeat the panel over the neighbouring talents; focusing one still does. It isn't a live region,
+    and the popovers and every click and key stay as they are
+    (`src/features/talents/talent-detail-panel.tsx`).
   - **A point that can't move says why.** A talent that can't take a point says what it needs
     ("Requires 5 points in Fury."). One whose point can't come back names what depends on it:
     the talent its arrow leads to ("Can't remove a point: Bloodthirst needs 1 point in Death
@@ -478,8 +483,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
     under Max TPS, then going back to Defensive, leaves the preset as it was.
   - **Wide layout** ([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25)):
-    each category's groups flow into columns by the setup pane's width, 2 from 53 rem (a 1,440 px
-    window, whose pane is 54 to 55 rem) and 3 from 84 rem (about 2,270 px), with CSS columns, so they
+    each category's groups flow into columns by the setup pane's width, 2 from 53 rem (every width
+    from 1,440 px, whose pane is 54 to 55 rem) and 3 from 84 rem (a window of about 2,140 px, 2,160
+    beside a classic scrollbar), with CSS columns, so they
     read top to bottom, then on to the next column, and no group splits between two. Each group is its
     own narrower card with its switches at its end, not across the pane from their names. The category
     headings, the presets and "In your raid" stay full width above them. Narrower, the groups are one
@@ -492,10 +498,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
     Every spec is on the list (Fury first, then the three tanks, then the rest in M5.65 A2), and each
     shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
-    stance, a pet, the consumables) sit under their headings above the list, as below. From an
-    80 rem setup pane (1440 px and wider, D34) each of their cards flows its rows into two columns,
+    stance, a pet, the consumables) sit under their headings above the list, as below. From a
+    53 rem setup pane (every width from 1440 px, whose pane is 55 rem, 54 beside a classic scrollbar;
+    D34) each of their cards flows its rows into two columns, as the Buffs tab's groups do,
     reading across, with a rule between them; a last row alone on its line takes both, and a
-    dependent setting stays under its parent, in its cell. Under
+    dependent setting stays under its parent, in its cell. There a choice's options sit under its
+    label, sharing the cell's width (a warlock's Demon), so its help isn't squeezed beside them. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
   - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
@@ -547,8 +555,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       second switch with the row's name. Below 1024 px they
       open in a bottom sheet, titled with the ability and its place, and closing it returns
       focus to the row. **From 1440 px** (D34) the panel grows with the setup pane: 24 rem from a
-      53 rem pane (a 1440 px window's is 55 rem, 54 with a scrollbar) and 28 rem from 80 rem, so a
-      threshold's help isn't wrapped to three lines beside half-empty rows. There the ability's name
+      53 rem pane (a 1440 px window's is 55 rem, 54 with a scrollbar) and 28 rem from 64 rem (a
+      window of about 1,660 px, 1,680 beside a classic scrollbar), so a threshold's help isn't
+      wrapped to three lines beside half-empty rows. There the ability's name
       shows once, in the heading with its place: the switch's line is its help, at the label's size
       and colour, and screen readers still hear "Use Battle Shout".
     - **Moving a row.** Drag its handle, or focus the handle and press Space, move with the Up
@@ -1455,8 +1464,10 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
 - **Ctrl+Enter, or ⌘+Enter on a Mac, runs Simulate** from anywhere on the page at every width,
-  as the button does (decision D34, `src/app/shortcuts.ts`). In a text or number field the field
-  commits what you typed first and keeps focus, so the run takes the new value. It does nothing
+  as the button does (decision D34, `src/app/shortcuts.ts`). It's heard before the focused control
+  and taken when it runs, so a control that also acts on Enter doesn't: a focused select (the
+  Rotation preset) stays closed and a drag handle doesn't pick its row up. In a text or number field
+  the field commits what you typed first and keeps focus, so the run takes the new value. It does nothing
   while a run is under way, or while a sheet, dialog or popover with a form of its own (the item
   picker, Setups, a pasted build code, the enchant picker) or an open menu or list has the key;
   a sheet without one, such as the phone's results, leaves it on. It always takes a modifier, so

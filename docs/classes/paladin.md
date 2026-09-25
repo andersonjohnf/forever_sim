@@ -136,11 +136,15 @@ carry the new values.
 
 The default builds lost their Improved Holy Strike and Crusade points; the sim places them by
 measurement ([Retribution defaults](#retribution-defaults), [Protection defaults](#protection-defaults)).
-In the default Protection setup (seed 31101, 100,000 fights) the build makes **749.2 TPS** and 466.8 DPS,
-against 828.9 and 448.0 on 1.60.1.70009's data with the old values: Righteous Fury's cut is most of
-it, which Holy Strike's 10 s and 50%, the scaling Thorns and Conviction 1 partly return. That's below
-the guild's 800–900, an open plausibility finding ([milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
-Retribution makes **612.7 DPS** (611.0 before on this data, with 3 points unspent).
+In the default Protection setup (seed 31101, 100,000 fights) the slice's build made **749.2 TPS** and
+466.8 DPS, against 828.9 and 448.0 on 1.60.1.70009's data with the old values: Righteous Fury's cut is
+most of it, which Holy Strike's 10 s and 50% and the scaling Thorns partly return. With the paladin
+review's order and Holy Conduit 1 (PR-1) and a raid Restoration druid's Thorns (PR-4) it makes
+**752.6 TPS** and 466.6 DPS. On the same seed the warrior makes 1,001.6 and the bear 1,126.6
+(+33.1% and +49.7%): observations for the guild's tests, not a target missed (D29 has no numeric
+target; [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
+Retribution makes **621.9 DPS** with the review's joint search (PR-2; 612.7 with the slice's
+placement, 611.0 on this data with 3 points unspent).
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -410,7 +414,7 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 40% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` **50%** (40% before 1.60.1.70009), read as the tooltip prints them, "50% weapon damage plus an additional 81 to 105" ⇒ **0.50 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +20% damage. No threat wording, so no threat of its own (D29) | 20 mana; **10 s** (category 2404, shared with HotR; 12 s before 1.60.1.70009, which removed Improved Holy Strike and made its −2 s baseline); GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.70009; [10333][f10333]). The flat part outside the 50% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40% of them, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.70009; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
@@ -823,16 +827,17 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
 
 ### Threat sources, in expected order of size
 
-Measured in the default setup on 1.60.1.70009 (2026-09-24: 180 s, the Standard raid with a druid's
-Thorns, your own Judgement of the Crusader from the opener, the interim gear, the default talents,
-379 Holy spell damage; 750.3 TPS and 467.4 DPS over 10,000 fights on seed 31101): Seal of Fury's
-procs (19.4% of TPS, 146 TPS), Judgement of Fury (14.8%, 111), Consecration (14.8%, 111, rank 1's
-0.2% with it), Holy Shield's block damage (12.6%, 95, ×1.92 threat), Holy Strike (10.2%, 77, ×2.0;
-17.8 a fight), white hits with their Windfury, Flurry Axe and Reckoning extra attacks (15.6%
-together, 117, ×1), Hammer of Wrath in the execute phase (4.3%, 33), the mana Shield
-Specialization, Improved Seal of Fury and the potion give (5.3%, 40, 0.5 a mana), and Thorns
-(2.9%, 22). Retribution Aura adds 6.8% with Max TPS; Exorcism counts only against Undead and
-Demons. After T2's fix round, before 1.60.1.70009 (823.6 TPS, seed 12345), the shares were much the
+Measured in the default setup on 1.60.1.70009 (2026-09-24, after the paladin review's PR-1 and PR-4:
+180 s, the Standard raid with a raid Restoration druid's Thorns, your own Judgement of the Crusader
+from the opener, the interim gear, the default talents and order, 379 Holy spell damage; 752.6 TPS
+and 466.6 DPS over 100,000 fights on seed 31101): Seal of Fury's procs (19.0% of TPS, 143 TPS),
+Consecration (16.9%, 127, rank 1's 0.1% with it; 21.3 a fight), Judgement of Fury (14.6%, 110),
+Holy Shield's block damage (12.3%, 93, ×1.92 threat), white hits with their Windfury, Flurry Axe
+and Reckoning extra attacks (15.3% together, 115, ×1), Holy Strike (9.7%, 73, ×2.0; 17.4 a fight),
+Hammer of Wrath in the execute phase (4.8%, 36), the mana Shield Specialization, Improved Seal of
+Fury and the potion give (5.2%, 39, 0.5 a mana), and Thorns (2.1%, 16). Retribution Aura adds 6.8%
+with Max TPS; Exorcism counts only against Undead and Demons. Before PR-1 (750.3 TPS, 10,000
+fights, a raid druid's Thorns at 53) Consecration was 14.8% and Holy Strike 10.2%. After T2's fix round, before 1.60.1.70009 (823.6 TPS, seed 12345), the shares were much the
 same (Consecration 19%, Holy Strike 9%, Thorns 1%); before T2 (C3's setup, 2026-09-23, 424.8 TPS)
 Holy Shield led with 24%.
 Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
@@ -1049,7 +1054,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS ((30 + 0.08 × SP) × 1.6 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
 | Rotation | **Balanced** (D28): Defensive's list, Holy Strike kept (user decision), with Exorcism, Hammer of Wrath and Consecration above it (PR-1); Defensive and Max TPS selectable | first pass (D27), [above](#priority-defensive-balanced-or-max-tps) |
-| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +46 spell damage in the Standard raid (+52, worth 5.8% of TPS (+25.9) in the default setup, until 1.60.1.70009 cut Wizard Oil from +30 to +24). The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a raid Restoration druid's Thorns on you, as every tank's raid preset does (+15.6 TPS, 2.2%, with its caster's 200 spell damage since 1.60.1.70009, seed 424242, 20,000 fights; +21.8 at the Balance druid's 389 until the paladin review's PR-4; +9 TPS before 1.60.1.70009; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +46 spell damage in the Standard raid (+52, worth 5.8% of TPS (+25.9) in the default setup, until 1.60.1.70009 cut Wizard Oil from +30 to +24). Wizard Oil's +24 is worth **12.4 TPS (1.7%)** and 7.3 DPS in today's default setup (seed 424242, 20,000 fights, 2026-09-24). The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a raid Restoration druid's Thorns on you, as every tank's raid preset does (+15.6 TPS, 2.1%, with its caster's 200 spell damage since 1.60.1.70009, seed 424242, 20,000 fights, after PR-1; +21.8 at the Balance druid's 389 until the paladin review's PR-4; +9 TPS before 1.60.1.70009; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
 
 #### The interim talents (T2's fix round)
 

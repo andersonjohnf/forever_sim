@@ -4422,7 +4422,7 @@ export class Sim {
       const speed = this.splNormalized[s] ? this.wNormSpeed[h] : this.wSpeedSec[h]
       const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
       const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
-      // paladin.md#other-abilities: Holy Strike's flat 81–105 comes after its 40% (flatApart) [?].
+      // paladin.md#other-abilities: Holy Strike's flat 81–105 comes after its 50% (flatApart) [?].
       base = this.splFlatApart[s] === 1 ? (roll + this.wFlat[h] + (this.ap / 14) * speed) * pct + flat : (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
     } else if (this.splWeaponDps[s] > 0) {
       // paladin.md#other-abilities: Hammer of the Righteous, 3 × the main hand's weapon DPS, with its

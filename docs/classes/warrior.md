@@ -2057,9 +2057,11 @@ rage, and Heroic Strike from 45 rather than 84% of it. On the same fights that's
 Before the build, Balanced made 1,240.98 TPS and Max TPS 1,290.09 (41% more damage taken, without
 Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D29):** Balanced's
 993 TPS is 19% over the Protection paladin's 832 and 11% under the bear's 1,115 on the same seed
-(both measured on this branch, their own 1.60.1.70009 slices pending). The guild's benchmark puts the
-paladin and the bear at 800–900 TPS with the warrior at most about 50% ahead, so the warrior is
-inside it; the bear's 1,115 is above that range, which is the druid slice's to explain. Sunder Armor
+(both measured on this branch, their own 1.60.1.70009 slices pending). With every slice merged
+(the paladin review's PR-7, seed 31101, 100,000 fights) Balanced makes 1,001.6 TPS against the
+paladin's 752.6 (+33.1%) and the bear's 1,126.6 (−11.1%). D29 has no numeric target (user decision,
+2026-09-24, withdrawing the officers' 800–900 feel), so these are observations for the guild's
+tests (milestones T6). Sunder Armor
 is now 11% of the warrior's threat (33% before), and Shield Slam 27% (18%; seed 12345, 500 fights).
 
 ### 5.5 Multi-target options (light)
@@ -2222,7 +2224,7 @@ The gain is in every hit's threat: Sunder Armor 309 → 348 TPS, Shield Slam 185
 156 → 177, Heroic Strike 112 → 150, Windfury 53 → 79. The expertise lowers the boss's parries,
 and more Strength, crit and hit do the rest. The warrior takes 1.8% more damage a second than in
 the v1 gear. The default warrior is 1.39× the Protection paladin's TPS (810.8) and 1.04× the bear's
-(1,081.9), within D29's benchmark. A unit test holds the floor (`defaults.test.ts`), for both
+(1,081.9), then within the officers' feel for the tanks, since withdrawn (D29). A unit test holds the floor (`defaults.test.ts`), for both
 factions. The table is before a raid druid's Thorns joined every tank's Standard raid preset
 (T3R-2, 2026-09-24): +9.6 TPS (+0.9%) and +6.3 DPS in the golden run (1,123.3 → 1,132.9 TPS),
 and nothing else moves; the paladin gained the same Thorns and its fix round's talents (823.6 TPS,

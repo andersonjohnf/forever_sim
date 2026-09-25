@@ -534,8 +534,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   Sep ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)) add one clean bear auto of
   +11.3 rage (`4.5 × 2.5`, the two-hander's rate; +1.8% bear TPS if it holds), 49 hits taken that
   fit the damage-taken formula's shape, and shifts that start at 0 (weak: rage was likely 0
-  already). None is adopted: one swing, and the bear is already above the guild's 800–900 TPS
-  benchmark.
+  already). None is adopted: one swing, and the bear already leads the tanks (1,126.6 TPS on
+  1.60.1.70009, seed 31101; D29 has no numeric target).
 - **Test:** bear form, auto attack only, no damage taken and nothing else giving rage (no Enrage,
   Furor or Blood Frenzy): rage per landed swing. Then take hits as in B9, including hits fully
   absorbed by Power Word: Shield (players report bears get none there). Shift out and back in at a
@@ -1710,8 +1710,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C20. Holy Shield
 **Medium · M5 (tier 7)**
-- **Assumes:** block-damage threat ×1.2, multiplicative with Righteous Fury (×2.28) [?]; the
-  additive alternative is ×2.1; whether block damage can miss or crit [?].
+- **Assumes:** block-damage threat ×1.2, multiplicative with Righteous Fury (×1.92 with its +60%
+  since 1.60.1.70009; ×2.28 at the +90% before) [?]; the additive alternative is ×1.8 (×2.1 before);
+  whether block damage can miss or crit [?].
 - **Test:** threat macro around Holy Shield block hits with Righteous Fury; log misses and crits.
 - **Samples:** ≥20 blocks.
 - **Changes:** the top Prot paladin threat source.

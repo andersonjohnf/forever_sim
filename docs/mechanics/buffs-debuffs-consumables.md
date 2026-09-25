@@ -215,7 +215,7 @@ a known effect isn't left at zero). Only a tank takes the boss's swings, so for 
 nothing, and the Buffs tab says so. At the flat 22 it was about 10 TPS for a bear (+1.0%), 9.5 for a
 warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000
 fights); with the scaling below, a raid druid's 38 a swing is 15.6 TPS for the Protection paladin
-(+2.2%), 19.6 for the warrior (+2.0%) and 17.8 for the bear (+1.6%) in their default setups (seed
+(+2.1%, after the paladin review's PR-1), 19.6 for the warrior (+2.0%) and 17.8 for the bear (+1.6%) in their default setups (seed
 424242, 20,000 fights, 2026-09-24; at the Balance druid's 389, 53 a swing, the paladin's was 21.8).
 
 **Damage shields that scale with spell power** (1.60.1.70009). The build's dev notes say Thorns and

@@ -533,7 +533,7 @@ Checked against build `1.60.1.69913` (Forever) and `1.15.9.69722` (Classic Era) 
 | D15 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30 | matches | -20 / -20 / 30 |
 | D15 | Bear Passive2 21178 +30; Cat 3025 −29 | matches | 30 / -29 |
 | D15 | Defiance 12792 curve 5/10/15 | matches | 5/10/15 |
-| D15 | Righteous Fury 25780 = 90 (Classic 59+1), school mask 2 | matches | Forever 90 on school mask 2 (×1.9); Classic 59+1 |
+| D15 | Righteous Fury 25780 = 60 (90 until 1.60.1.70009; Classic 59+1), school mask 2 | matches on 1.60.1.70009 (this row read by hand from the committed `spells.json`, since `--claims` has no offline mode; the report is otherwise 1.60.1.69913's, where it was 90, ×1.9) | Forever 60 on school mask 2 (×1.6); Classic 59+1 |
 | D15 | Improved Righteous Fury 20468 −2/−4/−6 (curve 82954) | matches | curve 82954: -2/-4/-6 |
 | D15 | Instrument of Law 1311085 10/20 | matches | 10/20 (effect 1); effect 0 -500/-1000 |
 | D15 | Iron Creed 1311034 aura 108, modifier 2, 5…25 | matches | aura 108, modifier 2, curve 5/10/15/20/25 |

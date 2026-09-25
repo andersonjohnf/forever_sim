@@ -2156,6 +2156,45 @@ fights). The same search again, paired: the Wrath filler changes nothing (Starfi
 there), no Eclipse weaving −25.34 (−5.9%), and no Eclipse with the Wrath filler −46.01 (−10.6%). So
 the defaults stand: Wrath is still worth only its Eclipse weave.
 
+#### Balance's priority list (A2)
+
+Since M5.65 A2 the rows above are the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`BALANCE_APL` in `balance.ts`), in this order, each with its switch, its own settings and the
+conditions in the table above (ids `druid.balance.…`):
+
+| Row (`id`) | Switch | Its settings | When it's used |
+| --- | --- | --- | --- |
+| Before the pull (`prepull`), pinned first | none | | Moonkin Form (row 0) |
+| Racial cooldown (`racial`) | `racial.enabled` | | Elune's Light on cooldown, a Night Elf's (row 1) |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | On cooldown, if worn (row 1) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | On cooldown, if a priest gives it in Buffs (row 1) |
+| Innervate yourself (`innervate`) | `innervate.enabled` | `innervate.maxManaPct` | At or below that share of your mana (row 3) |
+| Faerie Fire (`faerieFire`) | `faerieFire.enabled` | | When it's off the boss (row 4) |
+| Insect Swarm (`insectSwarm`) | `insectSwarm.enabled` | `dots.minFightLeftSec` | When it's off the boss, with the talent (row 5) |
+| Moonfire (`moonfire`) | `moonfire.enabled` | `dots.minFightLeftSec` | When it's off the boss (row 6) |
+| Clearcasting (`clearcasting`) | none | | Starfire while Clearcasting is up (row 7) |
+| Wrath for Eclipse (`eclipse`) | `eclipse.enabled` | | Starfire on its charges, otherwise Wrath, with the talent (row 8) |
+| Filler (`filler`) | none | `filler.spell` | Starfire, then Wrath without its mana; or Wrath (row 9) |
+
+- **Pinned:** only Moonkin Form before the pull, which has nothing to set. Its only preset is the
+  implicit Default, the first-pass defaults above.
+- **Clearcasting and the Filler** were always steps of the priority (rows 7 and 9), so they're rows
+  of their own, without a switch. The DoTs' `dots.minFightLeftSec` is one setting in both their rows.
+- **Spec-wide, above the list:** the Major Mana Potion and Demonic Rune with their "when missing"
+  mana, under Consumables (row 2). They take their turn just before the first row on the global
+  cooldown, wherever it sits: after Power Infusion in the default order, as before the list.
+- **A row that casts on every global cooldown:** Wrath for Eclipse (with the talent) and the Filler
+  each cast whenever there's the mana for Wrath. The higher of the two leaves the lower nothing, and
+  the lower says so: by default the filler, "not used while Wrath for Eclipse is on". A row on the
+  global cooldown moved below it gets a global cooldown only without the mana for Wrath, and says
+  "Below Wrath for Eclipse" (or "Below the Filler"). Nothing else reads the order: no row reads
+  another's spell.
+- **Byte-identical in the default order:** 200 random setups (settings, talents in every tree, race,
+  the on-use trinkets, the mana consumables, Power Infusion and Faerie Fire in Buffs, the raid's
+  priest, the fight and the rules) build the plans they built before the list
+  (`balance-apl.test.ts`), fingerprinted on the code before it.
+
 ### 11.6 Defaults
 
 | What | Default | Tag |

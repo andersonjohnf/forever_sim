@@ -15,7 +15,7 @@ import { compileAplRows } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, NO_CONTEXT, reader, seconds, timeLeftAtLeast, timeLeftAtMost } from '../warrior/shared'
-import { MAX_ENERGY_TENTHS, WOLFSHEAD_HELM } from './abilities'
+import { CLEARCASTING_ICON, MAX_ENERGY_TENTHS, WOLFSHEAD_HELM } from './abilities'
 import {
   BERSERK,
   CLAW,
@@ -65,8 +65,6 @@ const RAKE_MIN_FIGHT_LEFT_MS = 9000
 
 /** Tiger's Fury's icon, whatever its Energy, for its row. */
 const TIGERS_FURY_ICON = tigersFury(0, false).icon
-/** Clearcasting's (16870), for its row (druid.md §2.7). */
-const CLEARCASTING_ICON = 'spell_shadow_manaburn'
 
 /** An Energy threshold input, 0 to the 100 cap, in its parent's group. */
 const energyOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: 'Cooldowns and buffs' | 'Core abilities', min = 0): RotationOption => ({

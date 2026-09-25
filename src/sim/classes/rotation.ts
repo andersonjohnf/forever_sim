@@ -8,7 +8,7 @@ import { NO_PREPULL } from '../plan/types'
 import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_APL, CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
-import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
+import { BALANCE_APL, BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
 import {
@@ -123,6 +123,8 @@ export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'druid-feral-bear') return BEAR_APL
   // docs/classes/druid.md §6.2 "The priority list".
   if (spec === 'druid-feral-cat') return CAT_APL
+  // docs/classes/druid.md §11.5 "Balance's priority list".
+  if (spec === 'druid-balance') return BALANCE_APL
   // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
   return undefined
@@ -264,7 +266,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'warlock-demonology') Object.assign(out, demonologyUnusedSettings(values, setup.talents ?? new Map()))
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
-  if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/druid.md §11.5 "Balance's priority list": the filler below Wrath for Eclipse, or a row below whichever sits higher.
+  if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.
   if (spec === 'warrior-protection') Object.assign(out, protectionUnusedSettings(values, setup.talents ?? new Map(), setup.order))
   // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
@@ -329,7 +332,7 @@ export function classRotation(
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context, order)
   // docs/classes/druid.md §11.5.
-  if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)
+  if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context, order)
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Elemental priority".

@@ -6,17 +6,20 @@
 // it (Buffs), and the mana potion and rune once they fit. On the GCD: Innervate on yourself below a
 // share of your mana, Faerie Fire's upkeep if it's your duty, Insect Swarm's and Moonfire's upkeep,
 // Starfire with Clearcasting, Starfire on Eclipse's charges and Wrath to build them, and the filler.
+// The rows are a priority list you reorder (BALANCE_APL, decision D31), each with its own settings.
 // Setting ids are `druid.balance.<ability>.<param>`; mana thresholds are shares of maximum mana.
 import { POWER_INFUSION } from '../../effects/buffs'
 import type { OnUseSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type AbilityDef, COND, type Plan, type RotationCondition } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, RotationOption, RotationValue } from '../../types'
+import { compileAplRows, normalizeAplOrder } from '../apl'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, NO_CONTEXT, reader, RotationBuilder, timeLeftAtLeast } from '../warrior/shared'
 import { ECLIPSE, ECLIPSE_AURA, FAERIE_FIRE_MOONKIN, INNERVATE, INSECT_SWARM, MOONFIRE, NATURES_GRACE, STARFIRE, withBalanceTalents, WRATH } from './balance-abilities'
-import { CLEARCASTING } from './abilities'
+import { CLEARCASTING, CLEARCASTING_ICON } from './abilities'
+import { FORM_ICON } from './forms'
 import { onUseCast } from './cat-abilities'
 import type { TalentRanks } from './modifiers'
 
@@ -192,15 +195,38 @@ export const BALANCE_OPTIONS: RotationOption[] = [
   missingOption(ID.runeMissing, 'Demonic Rune when missing', 'Use it when you’re missing at least this much mana. 1,500 is the most it restores.', 1500, ID.rune),
 ]
 
+/** The switched rows on the global cooldown, each with any talent it needs, which a row that casts on every one can starve. */
+const GCD_SWITCH_ROWS: readonly { row: string; enabled: string; talent?: string }[] = [
+  { row: 'innervate', enabled: ID.innervate },
+  { row: 'faerieFire', enabled: ID.faerieFire },
+  { row: 'insectSwarm', enabled: ID.insectSwarm, talent: 'Insect Swarm' },
+  { row: 'moonfire', enabled: ID.moonfire },
+  { row: 'eclipse', enabled: ID.eclipse, talent: 'Eclipse' },
+]
+
 /**
- * The Balance settings that do nothing in this setup, with why (docs/ux.md "Rotation"): the filler
- * while Wrath for Eclipse is on, since Starfire and Wrath then alternate and the filler is never
- * reached (druid.md §11.5).
+ * The Balance settings that do nothing in this setup, with why (docs/ux.md "Rotation"; druid.md §11.5
+ * "Balance's priority list"). Wrath for Eclipse (with the talent) and the Filler each cast on every
+ * global cooldown there's the mana for Wrath, so the higher of the two leaves the lower nothing: in
+ * the default order, the filler, since Starfire and Wrath then alternate. A row on the global cooldown
+ * moved below it gets one only without the mana for Wrath.
  */
-export function balanceUnusedSettings(values: Record<string, RotationValue>, talents: ReadonlyMap<string, number>): Record<string, string> {
+export function balanceUnusedSettings(values: Record<string, RotationValue>, talents: ReadonlyMap<string, number>, order?: readonly string[]): Record<string, string> {
   const v = reader(BALANCE_OPTIONS, values, talents)
-  if (!v.on(ID.eclipse) || !talents.has('Eclipse')) return {}
-  return { [ID.filler]: 'Not used while “Wrath for Eclipse” is on: Starfire and Wrath already take turns. Turn “Wrath for Eclipse” off to cast only the filler.' }
+  const current = normalizeAplOrder(BALANCE_APL, order)
+  const eclipseOn = v.on(ID.eclipse) && talents.has('Eclipse')
+  const stopper = eclipseOn && current.indexOf('eclipse') < current.indexOf('filler') ? 'eclipse' : 'filler'
+  const at = current.indexOf(stopper)
+  const out: Record<string, string> = {}
+  if (stopper === 'eclipse') {
+    out[ID.filler] = 'Not used while “Wrath for Eclipse” is on: Starfire and Wrath already take turns. Turn “Wrath for Eclipse” off to cast only the filler.'
+  }
+  const note = `Below ${stopper === 'eclipse' ? 'Wrath for Eclipse' : 'the Filler'}: used only while you haven’t the mana for Wrath.`
+  for (const { row, enabled, talent } of GCD_SWITCH_ROWS) {
+    if (row === stopper || current.indexOf(row) < at || !v.on(enabled) || (talent !== undefined && !talents.has(talent))) continue
+    out[enabled] = note
+  }
+  return out
 }
 
 /** Buff catalogue ids the Balance druid keeps up itself with these settings: its Faerie Fire, if it's its duty. */
@@ -224,66 +250,183 @@ const consumable = (use: OnUseSpec): AbilityDef => ({ ...onUseCast(use), resourc
 const refresh = (a: number): RotationCondition => ({ code: COND.abilityAuraRefresh, a, b: 0 })
 
 /**
- * The Balance priority list from the settings (druid.md §11.5). `talents` resolves the spells and
- * gates Insect Swarm and Eclipse; `auraIndex` finds Clearcasting's and Eclipse's auras; `context`
- * gives the race (Elune's Light), the equipped on-use trinkets, the selected consumables and Power
- * Infusion, and the maximum mana the thresholds are shares of.
+ * Balance's rotation as a priority list (decision D31; druid.md §11.5 "Balance's priority list"):
+ * §11.5's rows in its order, each with its switch and its own settings. Moonkin Form before the pull
+ * (row 0) is pinned first; it has nothing to set. Starfire with Clearcasting (row 7), a step the
+ * priority always had, and the Filler (row 9) are rows without a switch. The mana potion and rune are
+ * spec-wide, above the list; they take their turn just before the first row on the global cooldown,
+ * wherever it sits (after Power Infusion in the default order, as before the list).
+ */
+export const BALANCE_APL: AplDefinition = {
+  rows: [
+    {
+      id: 'prepull',
+      label: 'Before the pull',
+      icon: FORM_ICON.moonkin,
+      optionIds: [],
+      summary: [{ text: 'Moonkin Form' }],
+      help: 'You’re in Moonkin Form from before the pull. It always comes first.',
+      pinned: true,
+    },
+    { id: 'racial', label: 'Racial cooldown', icon: ELUNES_LIGHT.icon, enabledId: ID.racial, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'trinkets', label: 'On-use trinkets', icon: 'inv_jewelry_talisman_01', enabledId: ID.trinkets, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    { id: 'powerInfusion', label: 'Power Infusion', icon: POWER_INFUSION.icon, enabledId: ID.powerInfusion, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'innervate',
+      label: 'Innervate yourself',
+      icon: INNERVATE.icon,
+      enabledId: ID.innervate,
+      optionIds: [ID.innervateMana],
+      summary: [{ option: ID.innervateMana, text: 'at or below {}' }],
+    },
+    { id: 'faerieFire', label: 'Faerie Fire', icon: FAERIE_FIRE_MOONKIN.icon, enabledId: ID.faerieFire, optionIds: [], summary: [{ text: 'when it’s off the boss' }] },
+    {
+      id: 'insectSwarm',
+      label: 'Insect Swarm',
+      icon: INSECT_SWARM.icon,
+      enabledId: ID.insectSwarm,
+      optionIds: [ID.dotsLeft],
+      summary: [{ text: 'when it’s off the boss' }, { option: ID.dotsLeft, text: 'while the fight has {}' }],
+    },
+    {
+      id: 'moonfire',
+      label: 'Moonfire',
+      icon: MOONFIRE.icon,
+      enabledId: ID.moonfire,
+      optionIds: [ID.dotsLeft],
+      summary: [{ text: 'when it’s off the boss' }, { option: ID.dotsLeft, text: 'while the fight has {}' }],
+    },
+    {
+      id: 'clearcasting',
+      label: 'Clearcasting',
+      icon: CLEARCASTING_ICON,
+      optionIds: [],
+      summary: [{ text: 'Starfire first: it’s free' }],
+      help: 'With Clearcasting up, your next Starfire costs nothing, so it comes here: the most mana Clearcasting can save.',
+    },
+    {
+      id: 'eclipse',
+      label: 'Wrath for Eclipse',
+      icon: ECLIPSE.icon,
+      enabledId: ID.eclipse,
+      optionIds: [],
+      summary: [{ text: 'Starfire on its charges, Wrath to build them' }],
+    },
+    {
+      id: 'filler',
+      label: 'Filler',
+      icon: STARFIRE.icon,
+      optionIds: [ID.filler],
+      // While Wrath for Eclipse above it is on, the filler is never reached, and its setting says so.
+      summary: [
+        { option: ID.filler, text: '{}' },
+        { text: 'not used while “Wrath for Eclipse” is on', alsoOn: [ID.eclipse] },
+      ],
+      help: 'What you cast the rest of the time, and Wrath when there isn’t the mana for Starfire.',
+    },
+  ],
+  specWide: [ID.manaPotion, ID.manaPotionMissing, ID.rune, ID.runeMissing],
+  presets: [],
+}
+
+/**
+ * The Balance priority list from the settings (druid.md §11.5), its rows in `order` (BALANCE_APL;
+ * absent: the default order). `talents` resolves the spells and gates Insect Swarm and Eclipse;
+ * `auraIndex` finds Clearcasting's and Eclipse's auras; `context` gives the race (Elune's Light), the
+ * equipped on-use trinkets, the selected consumables and Power Infusion, and the maximum mana the
+ * thresholds are shares of. No row reads another's ability, so a row's lines are the same wherever it
+ * sits.
  */
 export function balanceRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
   context: Partial<ClassRotationContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx: ClassRotationContext = { ...NO_CONTEXT, equipped: new Set(), othersBleed: false, front: false, ...context }
   const v = reader(BALANCE_OPTIONS, values, talents)
   const b = new BalanceRotationBuilder(talents)
   const maxManaTenths = 10 * (ctx.maxMana ?? 0)
-  const pressed: string[] = ctx.items.map((i) => i.id)
-
-  // --- Off the GCD, on cooldown from the pull: nothing in the list is worth saving them for ----------
-  if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
-  if (v.on(ID.trinkets)) for (const item of ctx.items) b.add(consumable(item), [])
   const pi = ctx.consumables.find((c) => c.id === POWER_INFUSION.id)
-  if (pi) {
-    pressed.push(pi.id)
-    if (v.on(ID.powerInfusion)) b.add(consumable(pi), [])
-  }
-  // The mana potion and rune (off the GCD), when selected in Buffs: once you're missing their mana.
-  for (const [id, setting, missing] of [
+  const manaConsumables = [
     [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
     [MANA_RUNE, ID.rune, ID.runeMissing],
-  ] as const) {
-    const use = ctx.consumables.find((c) => c.id === id)
-    if (!use) continue
-    pressed.push(id)
-    if (v.on(setting)) b.add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
-  }
+  ] as const
+  // What the rotation can press: the on-use trinkets, Power Infusion and the mana consumables selected in Buffs.
+  const pressed: string[] = [
+    ...ctx.items.map((i) => i.id),
+    ...(pi ? [pi.id] : []),
+    ...manaConsumables.map(([id]) => id).filter((id) => ctx.consumables.some((c) => c.id === id)),
+  ]
 
-  // --- On the GCD --------------------------------------------------------------------------------------
-  // Innervate on yourself at or below x% mana.
-  if (v.on(ID.innervate)) b.add(INNERVATE, [{ code: COND.maxMana, a: Math.round((v.num(ID.innervateMana) / 100) * maxManaTenths), b: 0 }])
-  // Faerie Fire's upkeep, when it's your duty.
-  if (v.on(ID.faerieFire)) b.add(FAERIE_FIRE_MOONKIN, [refresh(b.ability(FAERIE_FIRE_MOONKIN))])
+  /**
+   * Before the first row on the GCD, wherever it sits (after Power Infusion in the default order): row
+   * 2, the mana potion and rune (off the GCD) when selected in Buffs, spec-wide settings that take
+   * their turn here, each once you're missing its mana.
+   */
+  let gcdStarted = false
+  const onGcd = (emit: () => void) => () => {
+    if (!gcdStarted) {
+      gcdStarted = true
+      for (const [id, setting, missing] of manaConsumables) {
+        const use = ctx.consumables.find((c) => c.id === id)
+        if (use && v.on(setting)) b.add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
+      }
+    }
+    emit()
+  }
   // The DoTs' upkeep: back on once they're off the boss, while the fight has time for their ticks.
   const left = timeLeftAtLeast(1000 * v.num(ID.dotsLeft))
-  if (v.on(ID.insectSwarm) && talents.has('Insect Swarm')) b.add(INSECT_SWARM, [refresh(b.ability(INSECT_SWARM)), left])
-  if (v.on(ID.moonfire)) b.add(MOONFIRE, [refresh(b.ability(MOONFIRE)), left])
-  // Starfire with Clearcasting: the most mana it can save.
-  const clearcasting = auraIndex(CLEARCASTING.id)
-  if (clearcasting >= 0) b.add(STARFIRE, [{ code: COND.auraUp, a: clearcasting, b: 0 }])
-  // Eclipse: Starfire on its charges, and Wrath to build them when there are none.
-  const eclipse = auraIndex(ECLIPSE_AURA.id)
-  if (v.on(ID.eclipse) && eclipse >= 0) {
-    b.add(STARFIRE, [{ code: COND.auraStacksAtLeast, a: eclipse, b: 1 }])
-    b.add(WRATH, [])
-  }
-  // The filler, and Wrath when there isn't the mana for Starfire.
-  if (v.str(ID.filler) === 'wrath') b.add(WRATH, [])
-  else {
-    b.add(STARFIRE, [])
-    b.add(WRATH, [])
-  }
+
+  compileAplRows(BALANCE_APL, order, {
+    // --- Off the GCD, on cooldown from the pull: nothing in the list is worth saving them for (row 1) --
+    racial: () => {
+      if (ctx.race === 'alliance-night-elf' && v.on(ID.racial)) b.add(ELUNES_LIGHT, [])
+    },
+    trinkets: () => {
+      if (v.on(ID.trinkets)) for (const item of ctx.items) b.add(consumable(item), [])
+    },
+    powerInfusion: () => {
+      if (pi && v.on(ID.powerInfusion)) b.add(consumable(pi), [])
+    },
+    // --- On the GCD --------------------------------------------------------------------------------------
+    // Row 3: Innervate on yourself at or below x% mana.
+    innervate: onGcd(() => {
+      if (v.on(ID.innervate)) b.add(INNERVATE, [{ code: COND.maxMana, a: Math.round((v.num(ID.innervateMana) / 100) * maxManaTenths), b: 0 }])
+    }),
+    // Row 4: Faerie Fire's upkeep, when it's your duty.
+    faerieFire: onGcd(() => {
+      if (v.on(ID.faerieFire)) b.add(FAERIE_FIRE_MOONKIN, [refresh(b.ability(FAERIE_FIRE_MOONKIN))])
+    }),
+    // Rows 5 and 6: Insect Swarm (with the talent) and Moonfire once they're off the boss.
+    insectSwarm: onGcd(() => {
+      if (v.on(ID.insectSwarm) && talents.has('Insect Swarm')) b.add(INSECT_SWARM, [refresh(b.ability(INSECT_SWARM)), left])
+    }),
+    moonfire: onGcd(() => {
+      if (v.on(ID.moonfire)) b.add(MOONFIRE, [refresh(b.ability(MOONFIRE)), left])
+    }),
+    // Row 7: Starfire with Clearcasting: the most mana it can save.
+    clearcasting: onGcd(() => {
+      const clearcasting = auraIndex(CLEARCASTING.id)
+      if (clearcasting >= 0) b.add(STARFIRE, [{ code: COND.auraUp, a: clearcasting, b: 0 }])
+    }),
+    // Row 8: Eclipse: Starfire on its charges, and Wrath to build them when there are none.
+    eclipse: onGcd(() => {
+      const eclipse = auraIndex(ECLIPSE_AURA.id)
+      if (!v.on(ID.eclipse) || eclipse < 0) return
+      b.add(STARFIRE, [{ code: COND.auraStacksAtLeast, a: eclipse, b: 1 }])
+      b.add(WRATH, [])
+    }),
+    // Row 9: the filler, and Wrath when there isn't the mana for Starfire.
+    filler: onGcd(() => {
+      if (v.str(ID.filler) === 'wrath') b.add(WRATH, [])
+      else {
+        b.add(STARFIRE, [])
+        b.add(WRATH, [])
+      }
+    }),
+  })
   return b.result(pressed)
 }
 

@@ -6,7 +6,7 @@
 import type { RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import type { ClassRotation } from '../warrior/shared'
-import { CURSE_BUFF, demonologyOptions, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
+import { CURSE_BUFF, demonologyOptions, warlockApl, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
 import type { TalentRanks } from './talents'
 
 /**
@@ -27,6 +27,8 @@ export const DEMONOLOGY_DEFAULTS: WarlockDefaults = {
 }
 export const DEMONOLOGY_OPTIONS = demonologyOptions(DEMONOLOGY_DEFAULTS)
 export const DEMONOLOGY_IDS = warlockIds('demonology')
+/** Its rotation as a priority list (decision D31; warlock.md §11.5). */
+export const DEMONOLOGY_APL = warlockApl('demonology')
 
 /** The settings with their defaults under what the setup sets. */
 const withDefaults = (values: Record<string, RotationValue>): Record<string, RotationValue> => ({
@@ -34,8 +36,8 @@ const withDefaults = (values: Record<string, RotationValue>): Record<string, Rot
   ...values,
 })
 
-export function demonologyRotation(values: Record<string, RotationValue>, talents: TalentRanks, auraIndex: (id: string) => number, context: Partial<ClassRotationContext> = {}): ClassRotation {
-  return warlockRotation('demonology', DEMONOLOGY_OPTIONS, values, talents, auraIndex, context)
+export function demonologyRotation(values: Record<string, RotationValue>, talents: TalentRanks, auraIndex: (id: string) => number, context: Partial<ClassRotationContext> = {}, order?: readonly string[]): ClassRotation {
+  return warlockRotation('demonology', DEMONOLOGY_OPTIONS, values, talents, auraIndex, context, order)
 }
 
 /** Its own Curse of the Elements, while the rotation keeps it up. */

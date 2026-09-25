@@ -288,6 +288,44 @@ Siphon Life on, the Imp and Life Tap at 10%. Keeping Immolate up too would add a
 against 402.1 in the K3 review's probe, 6,000 fights); its rotation has no Immolate yet, left for the
 tuning milestone.
 
+### 6.4 The priority list (A2)
+
+Since M5.65 A2 each spec's priority above is the Rotation tab's priority list
+([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
+`warlockApl` in `shared.ts`, registered as `DESTRUCTION_APL`), in this order, each row with its
+switch and its own settings (setting ids are `warlock.destruction.…`). Each row keeps its own
+conditions wherever you move it; only its place in the priority changes.
+
+**Destruction** (§6.1):
+
+| Row (`id`) | Switch | Its settings | Its conditions |
+| --- | --- | --- | --- |
+| Racial cooldown (`racial`) | `racial.enabled` | | Off the GCD, on cooldown |
+| On-use trinkets (`trinkets`) | `trinkets.enabled` | | Off the GCD, on cooldown (none of the modelled ones is a caster's yet) |
+| Power Infusion (`powerInfusion`) | `powerInfusion.enabled` | | Off the GCD, on cooldown, with a priest's in Buffs. The mana potion and rune take their turn here |
+| Curse of the Elements (`curse`) | `curseOfTheElements.enabled` | | Recast when it's down |
+| Immolate (`immolate`) | `immolate.enabled` | | Recast as it runs out (from its cast time before its end) |
+| Conflagrate (`conflagrate`) | `conflagrate.enabled` | | On cooldown while Immolate is up; needs the talent and Immolate's row on |
+| Shadowburn (`shadowburn`) | `shadowburn.enabled` | | On cooldown; needs the talent |
+| Corruption (`corruption`) | `corruption.enabled` | | Recast as it runs out |
+| Bane (`bane`) | — | `bane.spell` | Doom while at least 61 s are left, then Agony for the last minute once the last Doom has landed; or Agony kept up, or none |
+| Life Tap (`lifeTap`) | — | `lifeTap.maxManaPct` | At or below that share of your maximum mana (0: never here) |
+| Filler (`filler`) | — | `filler.spell` | Incinerate (with the talent) or Shadow Bolt, whenever it can be paid for |
+
+- **Pinned:** nothing. The pre-pull is Demonic Sacrifice, a spec-wide setting.
+- **Spec-wide, above the list:** Demonic Sacrifice, under Cooldowns and buffs; the Major Mana Potion
+  and Demonic Rune with their missing-mana limits, under Consumables. The potion and the rune take
+  their turn with Power Infusion's row, wherever it sits, as they did before the list.
+- **After the list, always last:** Life Tap whenever nothing on the list can be cast, as when the
+  filler can't be paid for. It has no row: above the filler it would tap every global cooldown.
+- **No named presets:** the defaults are the implicit Default (D27's common priority).
+- **Byte for byte:** in the default order the plans are the ones Destruction built before the list:
+  200 random setups (settings, talents, race, Buffs, fight and rules) are fingerprinted against the
+  code before it (`destruction-apl.test.ts`).
+- **A filler choice** is the Filler row's own setting, so a new filler (issue #17's) is a new value
+  of `filler.spell`, or a new row with its own id that an old saved order places by its default
+  neighbours.
+
 ## 7. Sensible defaults
 
 ### 7.1 Talents

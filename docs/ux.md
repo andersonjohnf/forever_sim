@@ -599,8 +599,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     own narrower card with its switches at its end, not across the pane from their names. The category
     headings, the presets and "In your raid" stay above them. Three columns wait for 72 rem because a
     column under about 23 rem squeezes a buff's help beside its switch (at 1440 px three would be
-    17.7 rem, 17.3 beside a classic scrollbar: (55 − 2 gaps of 1 rem) ÷ 3). So Buffs is the one
-    section that scrolls at 1440×900, and by design (review finding DU1-8, waived): it's every raid
+    17.7 rem, 17.3 beside a classic scrollbar: (55 − 2 gaps of 1 rem) ÷ 3). So Buffs scrolls at
+    1440×900 (as a tank's Fight tab and Prot Paladin's Character tab do, a little), by design (review finding DU1-8, waived): it's every raid
     buff, debuff and consumable, some 60 switches, about 2,750 px of page in two columns and 2,240 in
     three at 1920×1080, and a third column at 1440 px would buy height with lines of help too narrow
     to read. "In your raid" is two even rows of equal chips at 53 rem, as many columns as half the

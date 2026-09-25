@@ -19,7 +19,8 @@
 // - A talent that changes what a sheet constraint reads (health, armor, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): under the effective-health
 //   floor, a build with Toughness and one without both race. It reads the character sheet, not the
-//   talent's name.
+//   talent's name. It's at 0 or its max rank in a core, never a searched partial rank (OGV-1): it
+//   has no screened value to search ranks by, and its ranks multiplied the space.
 // - Kept talents (the player's) sit at their rank in every build; excluded and **harmful** talents
 //   (those that lower the score wherever they act, measured) are never taken, not even to fill a
 //   tier gate, unless a constraint reads them (a pruning rule too, OG-9). A prerequisite comes with
@@ -87,9 +88,13 @@ export interface TalentSpaceOptions extends TalentConstraints {
    * harmful one is never taken to fill leftover points, nor counted as a raise).
    */
   constrained?: ReadonlySet<string>
-  /** Search every rank of one talent a build, not only 0 or max (default yes, OG-2); leftover points go to partial ranks either way. */
+  /**
+   * Search every rank of one objective talent a build, not only 0 or max (default yes, OG-2); a
+   * dimension only a constraint made is at 0 or max either way (OGV-1), and leftover points go to
+   * partial ranks either way.
+   */
   searchPartials?: boolean
-  /** Stop after this many builds (the space is reported as larger). Default 200,000. */
+  /** Stop after this many builds (the space is reported as larger). Default MAX_BUILDS, 200,000. */
   limit?: number
 }
 
@@ -127,7 +132,11 @@ interface Node {
   role: TalentRole
 }
 
-const DEFAULT_LIMIT = 200_000
+/**
+ * The most builds a talent space lists (D30's hard ceiling, OGV-2; docs/optimizer.md#budgets): a
+ * search whose space would pass it narrows to max ranks, and says so.
+ */
+export const MAX_BUILDS = 200_000
 
 /**
  * The ways a build breaks the talent constraints, in words (none: it keeps them): a kept talent at
@@ -156,6 +165,18 @@ export function brokenConstraints(data: TalentData, code: string, constraints: T
 
 /** Every sensible build under the constraints, in a fixed order: the same inputs give the same list. */
 export function talentSpace(options: TalentSpaceOptions): TalentSpace {
+  return enumerate(options, false) as TalentSpace
+}
+
+/**
+ * The space's size before it's built (OGV-5): the builds `talentSpace` would list with the same
+ * options, counted without encoding, validating or listing them. It stops counting past `stopAt`.
+ */
+export function talentSpaceSize(options: TalentSpaceOptions & { stopAt?: number }): { builds: number; stopped: boolean } {
+  return enumerate(options, true) as { builds: number; stopped: boolean }
+}
+
+function enumerate(options: TalentSpaceOptions & { stopAt?: number }, counting: boolean): TalentSpace | { builds: number; stopped: boolean } {
   const { data, roles } = options
   const perTier = data.rules.pointsPerTier
   const maxPoints = data.rules.maxPoints
@@ -383,7 +404,9 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
         core[i] = max
         visit(d + 1, spent + max, partial)
       }
-      if (searchPartials && partial < 0)
+      // Partial ranks only for objective talents (OGV-1): a dimension only a constraint made has no
+      // screened value, so it's at 0 or max, and the fill still gives it leftover points by its tie-break.
+      if (searchPartials && partial < 0 && nodes[i].role === 'objective')
         for (let r = max - 1; r >= 1; r--) {
           if (spent + r > maxPoints) continue
           core[i] = r
@@ -406,8 +429,9 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   })
   const builds: TalentBuild[] = []
   const seen = new Set<string>()
-  const limit = options.limit ?? DEFAULT_LIMIT
+  const limit = counting ? (options.stopAt ?? Infinity) : (options.limit ?? MAX_BUILDS)
   let truncated = false
+  let counted = 0
   const chosen: TreeCore[] = []
   const emit = (slack: number) => {
     const partials = chosen.filter((c) => c.partial).length
@@ -434,6 +458,14 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     // weak talent in place of a strong talent's ranks).
     if (slack - toObjective >= cheapest) {
       dominated++
+      return
+    }
+    if (counting) {
+      // The ranks themselves as the key: the same build as the code, without encoding it.
+      const key = String.fromCharCode(...ranks)
+      if (seen.has(key)) return
+      seen.add(key)
+      if (++counted > limit) truncated = true
       return
     }
     const byId: TalentRanksById = {}
@@ -472,6 +504,7 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   }
   combine(0, 0, Infinity)
 
+  if (counting) return { builds: counted, stopped: truncated }
   return {
     builds,
     truncated,

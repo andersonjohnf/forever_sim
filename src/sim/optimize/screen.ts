@@ -23,7 +23,7 @@ import { buildPlan } from '../plan/build'
 import type { Plan } from '../plan/types'
 import type { RotationValue, SimConfig } from '../types'
 import { SHEET_STATS, type SheetStat, sheetValues, type SheetValues } from './constraints'
-import { type FightRunner, type FightSamples, type PlanSource, planKey } from './fights'
+import { type FightRunner, type FightSamples, type PlanSource, planKey, SearchTooLargeError } from './fights'
 import { type Goal, type Interval, meanInterval, pairedInterval, scoreReads, scorer, tieBreaker, upper } from './objective'
 import type { TalentRole } from './talents'
 
@@ -36,6 +36,8 @@ export interface ScreenOptions {
   goal: Goal
   /** Fights per plan (default 400). */
   fights?: number
+  /** The most fights it may run (a search's hard ceiling, OGV-2): past it, it throws before any fight. */
+  maxFights?: number
   /** Fights per job handed to the runner (default SCREEN_JOB_FIGHTS). */
   jobFights?: number
   /** Rotation settings to screen under besides the setup's own (a search's rotation variants). */
@@ -121,6 +123,10 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
   )
   const differing = pairs.flat().filter((p) => p.off !== p.on)
   const texts = [...new Set(differing.flatMap((p) => [p.off, p.on]))]
+  if (options.maxFights !== undefined && texts.length * fights > options.maxFights)
+    throw new SearchTooLargeError(
+      `The talent screen runs ${(texts.length * fights).toLocaleString('en-US')} fights, more than the cap of ${options.maxFights.toLocaleString('en-US')} a search: fewer screen fights a plan, or fewer rotation variants, fit it.`,
+    )
   // Each plan's fights, in jobs of at most `jobFights`, into fixed positions of its samples.
   const jobFights = Math.max(1, Math.floor(options.jobFights ?? SCREEN_JOB_FIGHTS))
   const results = new Map<string, FightSamples>()

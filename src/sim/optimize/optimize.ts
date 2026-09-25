@@ -20,12 +20,12 @@ import { buildPlan } from '../plan/build'
 import type { Plan } from '../plan/types'
 import { SPEC_META } from '../specs'
 import type { Assumption, RotationValue, SimConfig, SpecId } from '../types'
-import { type FightRunner, type PlanSource, planKey } from './fights'
+import { type FightRunner, type PlanSource, planKey, SearchTooLargeError } from './fights'
 import { type Constraint, constraintName, limits, meetsSheet, sheetValues, type SheetValues } from './constraints'
 import { defaultGoal, type Goal, type Interval, lower, scoredGoal } from './objective'
 import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
-import { brokenConstraints, type TalentConstraints, talentSpace, type TalentSpace } from './talents'
+import { brokenConstraints, MAX_BUILDS, type TalentConstraints, talentSpace, type TalentSpace, talentSpaceSize } from './talents'
 
 /** A candidate: the base setup with these talents and these rotation settings on top of its own. */
 export interface Candidate {
@@ -78,37 +78,78 @@ export function firstRound(budget: Budget, plans: number): number {
   return Math.max(FIRST_ROUND_MIN, Math.min(1000, Math.floor((0.3 * budget.fights) / Math.max(1, plans))))
 }
 
-/** The fewest first-round fights a candidate runs when a large space shrinks the first round (`fitBudget`). */
+/**
+ * The most fights a search runs, the screen's and the race's together (D30's hard ceiling, user
+ * decision: "there does need to be some reasonable limit to iterations"; OGV-2,
+ * docs/optimizer.md#budgets): the `thorough` budget's. It's never raised automatically; a caller
+ * raises it only by passing `maxFights` (the CLI's `--max-fights`).
+ */
+export const MAX_SEARCH_FIGHTS = BUDGETS.thorough.fights
+
+/**
+ * The fewest first-round fights a candidate runs when even max ranks don't fit the cap at
+ * FIRST_ROUND_MIN (`fitBudget`); below it, the search refuses to run (`SearchTooLargeError`).
+ */
 export const MIN_FIRST_ROUND = 20
+
+/** A race's budget and first round, fitted to its plans within the cap (`fitBudget`). */
+export interface FittedBudget {
+  fights: number
+  initialFights: number
+  /** What fitting changed, in words: a budget clamped to the cap, a larger budget, a smaller first round. */
+  notes: string[]
+  /** Whether every plan runs its first round (FIRST_ROUND_MIN at least) within the cap. When not, the caller narrows the space. */
+  fits: boolean
+}
+
+const fmt = (x: number) => x.toLocaleString('en-US')
 
 /**
  * The budget and first round a race of this many plans runs, the baseline included, since it runs
- * every round too (docs/optimizer.md#budgets; the CLI's "candidates" count leaves it out). The
- * first round is `firstRound`'s while it fits in 90% of the budget; past that it shrinks to fit, to no
- * fewer than MIN_FIRST_ROUND fights; past that the budget grows to cover that first round and as much
- * again. A search on a space too big for its budget still runs, and `notes` says what changed.
+ * every round too (docs/optimizer.md#budgets; the CLI's "candidates" count leaves it out), never
+ * past `cap` fights, what the search's hard ceiling leaves the race (D30, OGV-2). A budget over it
+ * is cut to it. The first round is `firstRound`'s while it fits in 90% of the budget; past that the
+ * budget grows, up to the cap, to a first round of FIRST_ROUND_MIN fights each and as much again.
+ * Past the cap it doesn't fit (`fits` false): the caller narrows the space, and as a last resort
+ * the first round shrinks to fit 90% of the cap.
  */
-export function fitBudget(budget: Budget, plans: number): { fights: number; initialFights: number; notes: string[] } {
+export function fitBudget(budget: Budget, plans: number, cap = MAX_SEARCH_FIGHTS): FittedBudget {
   const n = Math.max(1, plans)
-  const wanted = firstRound(budget, n)
-  const fmt = (x: number) => x.toLocaleString('en-US')
-  if (wanted * n <= 0.9 * budget.fights) return { fights: budget.fights, initialFights: wanted, notes: [] }
-  if (budget.initialFights !== undefined && wanted * n <= budget.fights) return { fights: budget.fights, initialFights: wanted, notes: [] }
-  const fit = Math.floor((0.9 * budget.fights) / n)
-  if (fit >= MIN_FIRST_ROUND)
-    return {
-      fights: budget.fights,
-      initialFights: fit,
-      notes: [`${fmt(n)} plans (the baseline included) are many for a budget of ${fmt(budget.fights)} fights: the first round runs ${fmt(fit)} fights each instead of ${fmt(wanted)}, so it drops fewer, and the race may end on the budget. A larger budget sharpens it.`],
-    }
-  const fights = 2 * MIN_FIRST_ROUND * n
-  return {
-    fights,
-    initialFights: MIN_FIRST_ROUND,
-    notes: [
-      `${fmt(n)} plans (the baseline included) don't fit a budget of ${fmt(budget.fights)} fights: the budget grew to ${fmt(fights)}, a first round of ${MIN_FIRST_ROUND} fights each and as much again. Narrow the search (keep or exclude talents, fewer rotation variants) or pick a larger budget.`,
-    ],
+  const notes: string[] = []
+  let fights = budget.fights
+  if (fights > cap) {
+    notes.push(`The budget of ${fmt(fights)} fights passes the ${fmt(cap)} the search's cap leaves the race, so the race runs at most ${fmt(cap)}.`)
+    fights = cap
   }
+  const wanted = firstRound({ ...budget, fights }, n)
+  if (wanted * n <= 0.9 * fights) return { fights, initialFights: wanted, notes, fits: true }
+  if (budget.initialFights !== undefined && wanted * n <= fights) return { fights, initialFights: wanted, notes, fits: true }
+  // Here the first round is FIRST_ROUND_MIN, or the caller's (30% of the budget never passes 90% of it).
+  if (wanted * n <= 0.9 * cap) {
+    const grown = Math.min(cap, Math.max(fights, 2 * wanted * n))
+    notes.push(
+      `${fmt(n)} plans (the baseline included) need ${fmt(wanted * n)} fights for a first round of ${fmt(wanted)} each: the budget grew from ${fmt(fights)} to ${fmt(grown)} fights (the cap leaves the race ${fmt(cap)}).`,
+    )
+    return { fights: grown, initialFights: wanted, notes, fits: true }
+  }
+  const fit = Math.floor((0.9 * cap) / n)
+  notes.push(
+    `${fmt(n)} plans (the baseline included) don't fit the ${fmt(cap)} fights the search's cap leaves the race at ${fmt(wanted)} fights each: the first round runs ${fmt(fit)} each, so it drops fewer, and the race may end on the budget. Narrowing the search (keep or exclude talents, fewer rotation variants) sharpens it.`,
+  )
+  return { fights: cap, initialFights: fit, notes, fits: false }
+}
+
+/**
+ * How the talent space was narrowed to fit the hard ceiling (OGV-2), when it was: every rank of one
+ * talent a build would make `builds` builds (at least that many when the count stopped at the
+ * limit), past the enumeration's limit (`builds`) or more plans than the fight cap races at
+ * FIRST_ROUND_MIN fights each (`fights`), so the search tried max ranks only.
+ */
+export interface Narrowed {
+  to: 'max ranks'
+  passes: 'builds' | 'fights'
+  builds: number
+  atLeast: boolean
 }
 
 /**
@@ -130,11 +171,13 @@ export interface TalentSearch extends TalentConstraints {
   /** Fights per plan in the screen (default 400). */
   screenFights?: number
   /**
-   * Search every rank of one talent a build, not only 0 or max (default yes, OG-2). A space that
-   * passes `limit` with them searches max ranks only, and the report's notes say so.
+   * Search every rank of one objective talent a build, not only 0 or max (default yes, OG-2; a
+   * dimension only a constraint made is at 0 or max, OGV-1). A space that passes `limit` with them,
+   * or the fight cap at FIRST_ROUND_MIN fights a plan, searches max ranks only, and the report says
+   * so (`space.narrowed`, `notes`).
    */
   searchPartials?: boolean
-  /** Most builds (default 200,000). */
+  /** Most builds the space lists (default MAX_BUILDS, 200,000; OGV-2). */
   limit?: number
   /**
    * Hold every candidate to the talent constraints, but search no builds: each has the start's (a
@@ -175,6 +218,12 @@ export interface OptimizeOptions {
    */
   reference?: SimConfig
   budget: Budget
+  /**
+   * The most fights the search runs, the screen's and the race's together (default
+   * MAX_SEARCH_FIGHTS, the `thorough` budget's; D30's hard ceiling, OGV-2). The budget grows up to
+   * it and never past it.
+   */
+  maxFights?: number
   runner: FightRunner
   /** Standings to report (default 10). */
   top?: number
@@ -197,14 +246,28 @@ export type OptimizeProgress =
       /** Candidates that race (the baseline not counted). */
       candidates: number
       excluded: Excluded
-      /** The race's budget and first round, fitted to the candidates, and what fitting them changed. */
-      budget: { fights: number; initialFights: number }
+      /** The race's budget and first round, fitted to the candidates within the cap, and what fitting them changed. */
+      budget: { fights: number; initialFights: number; cap: number }
+      /** The most the search can still run, before the race starts: its fights, and roughly how long at the screen's pace. */
+      estimate: Estimate
       notes: string[]
       setupFails: string[]
       screen?: TalentScreen
       space?: OptimizeReport['space']
     }
   | ({ phase: 'race' } & RaceProgress)
+
+/**
+ * What a search can still run once its space is known, before the race's first fight (OGV-2): the
+ * screen's fights, run, and the race's budget, the most it can spend (a race usually stops sooner).
+ * `seconds` is the race's budget at the pace the screen ran, when there was one.
+ */
+export interface Estimate {
+  fights: number
+  screenFights: number
+  raceFights: number
+  seconds?: number
+}
 
 export interface OptimizeReport {
   spec: SpecId
@@ -213,9 +276,11 @@ export interface OptimizeReport {
   /** The goal the score read: the player's, but Balanced for a DPS spec is DPS (`scoredGoal`). */
   scoredGoal: Goal
   seed: number
-  /** The race's budget and first round, after fitting them to the candidates (`fitBudget`). */
-  budget: { fights: number; initialFights: number }
-  /** What the search changed to run at all, in words: a smaller first round, a larger budget. */
+  /** The race's budget and first round, after fitting them to the candidates within the cap (`fitBudget`), and the cap. */
+  budget: { fights: number; initialFights: number; cap: number }
+  /** What the race could run at most, told before it ran (`Estimate`). */
+  estimate: Estimate
+  /** What the search changed to run at all, in words: a space narrowed to max ranks, a larger budget, a smaller first round. */
   notes: string[]
   screen?: TalentScreen
   /**
@@ -233,6 +298,8 @@ export interface OptimizeReport {
     notBinding: string[]
     /** Whether every rank of one talent a build was searched (OG-2), or max ranks only. */
     searchPartials: boolean
+    /** Why partial ranks weren't searched though they were asked for: the space passed a ceiling (OGV-2). */
+    narrowed?: Narrowed
     minPoints?: Readonly<Record<string, number>>
   }
   /**
@@ -252,6 +319,8 @@ export interface OptimizeReport {
   race: RaceResult
   /** Why no setup meets the constraints, a line a blocking constraint; empty when there's an answer. */
   blocked: string[]
+  /** A search in turns whose next pass no longer fit the cap ends on this report, saying so (OGV-2). */
+  turnsStopped?: string
   /** Fights run: the screen's and the race's. */
   fights: number
   ms: number
@@ -340,22 +409,27 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const baselineSheet = sheetOf(baseline)
   const reference = options.reference ? sheetValues(buildPlan({ ...options.reference, run: { mode: 'fixed', iterations: 0, seed } })) : baselineSheet
   const sheetRules = constraints
+  const cap = options.maxFights ?? MAX_SEARCH_FIGHTS
   let screen: TalentScreen | undefined
+  let screenMs = 0
   let space: OptimizeReport['space']
   let builds = [start.talents]
-  /** What building the space changed, in words (a space too large for partial ranks). */
-  const spaceNotes: string[] = []
+  /** What building the space changed, in words (a space narrowed to max ranks, OGV-2). */
+  let spaceNotes: string[] = []
   if (search && talentRules && !search.fixedBuild) {
+    const screenStarted = now()
     screen = await screenTalents({
       config: applyCandidate(config, start),
       data,
       runner,
       goal: scored,
       fights: search.screenFights,
+      maxFights: cap,
       rotations: options.screenRotations ?? options.rotations,
       signal,
       onProgress: (done, total) => options.onProgress?.({ phase: 'screen', done, total }),
     })
+    screenMs = now() - screenStarted
     const { keep = {}, exclude = [], minPoints } = talentRules
     const maxRank = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t.maxRank]))
     const values = new Map(screen.verdicts.filter((v) => v.effect).map((v) => [v.id, v.effect!.mean / maxRank.get(v.id)!]))
@@ -363,56 +437,77 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // A talent that changes what a constraint reads is searched, not a filler (./talents.ts), but
     // only where the constraint could bind without it (OG-1): if every build of the space made
     // without these dimensions meets every sheet constraint, searching them only adds builds that
-    // trade score for a limit already met. Those builds differ from the space's only in points the
-    // score can't see (the fillers), or in fewer points on objective talents, so none scores better.
+    // trade score for a limit already met. Where talents' effects add up, those builds differ from
+    // the space's only in points the score can't see (the fillers), or in fewer points on objective
+    // talents, so none scores better.
     const reads = (v: TalentVerdict) => constraints.some((c) => v.sheetStats.includes(c.stat))
     const readByConstraint = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
-    let partials = search.searchPartials ?? true
-    const spaceWith = (constrained: ReadonlySet<string>) =>
-      talentSpace({
-        data,
-        roles: screen!.roles,
-        values,
-        tieValues,
-        constrained,
-        keep,
-        exclude,
-        minPoints,
-        preferTree: search.preferTree ?? mainTree(data, start.talents),
-        searchPartials: partials,
-        limit: search.limit,
-      })
-    // Past the limit, a space cut off in the middle would drop builds by where they fall in the
-    // enumeration; max ranks alone drop them by a rule the report can state. And a space the budget
-    // can't race at FIRST_ROUND_MIN fights each would be judged on too few fights to drop anything:
-    // max ranks raced properly beat every rank raced blind.
+    const limit = search.limit ?? MAX_BUILDS
+    const spaceOptions = (constrained: ReadonlySet<string>, searchPartials: boolean) => ({
+      data,
+      roles: screen!.roles,
+      values,
+      tieValues,
+      constrained,
+      keep,
+      exclude,
+      minPoints,
+      preferTree: search.preferTree ?? mainTree(data, start.talents),
+      searchPartials,
+      limit,
+    })
+    // The hard ceiling (D30, OGV-2): the race gets what the screen left of the cap. A space is sized
+    // before it's listed (`talentSpaceSize`), and one that passes the builds' limit, or has more
+    // plans (before the sheet constraints leave any out) than the cap races at FIRST_ROUND_MIN
+    // fights each, narrows to max ranks, and says so. Cut off in the middle, a space would drop
+    // builds by where they fall in the enumeration; max ranks drop them by a rule the report states.
+    const raceCap = cap - screen.fights
     const plans = (n: number) => n * rotations.length + 2
+    const fitsCap = (n: number) => fitBudget(options.budget, plans(n), raceCap).fits
     const fitted = (constrained: ReadonlySet<string>) => {
-      const space = spaceWith(constrained)
-      const tooBig = options.budget.initialFights === undefined && fitBudget(options.budget, plans(space.builds.length)).initialFights < FIRST_ROUND_MIN
-      if (!partials || !(space.truncated || tooBig)) return space
-      const size = space.builds.length.toLocaleString('en-US')
-      const why = space.truncated ? `passes the limit of ${size} builds` : `makes ${size} builds, more than this budget races at ${FIRST_ROUND_MIN} fights each`
-      spaceNotes.push(
-        `Every rank of one talent a build ${why}, so this search tries max ranks only: leftover points still go to partial ranks, by score per point. ${space.truncated ? 'Keeping or excluding talents' : 'A larger budget, or keeping or excluding talents,'} searches partial ranks too.`,
-      )
-      partials = false
-      return spaceWith(constrained)
+      const notes: string[] = []
+      let partials = search.searchPartials ?? true
+      let narrowed: Narrowed | undefined
+      if (partials) {
+        const size = talentSpaceSize({ ...spaceOptions(constrained, true), stopAt: limit })
+        const passes = size.stopped ? 'builds' : fitsCap(size.builds) ? undefined : 'fights'
+        if (passes) {
+          partials = false
+          narrowed = { to: 'max ranks', passes, builds: size.builds, atLeast: size.stopped }
+          const why =
+            passes === 'builds'
+              ? `makes more than ${fmt(limit)} builds, the most a search lists`
+              : `makes ${fmt(size.builds)} builds, more than the cap of ${fmt(cap)} fights a search races at ${FIRST_ROUND_MIN} fights each`
+          notes.push(
+            `Narrowed to max ranks: every rank of one talent a build ${why}, so this search tries each talent at 0 or its max rank only (leftover points still go to partial ranks, by score per point). Keeping or excluding talents searches partial ranks too.`,
+          )
+        }
+      }
+      if (!partials) {
+        const size = talentSpaceSize({ ...spaceOptions(constrained, false), stopAt: limit })
+        if (size.stopped)
+          throw new SearchTooLargeError(
+            `The talent space makes more than ${fmt(limit)} builds even with max ranks only, the most a search lists (D30's hard ceiling): keep or exclude talents, or set a tree's minimum points, to narrow it.`,
+          )
+      }
+      return { space: talentSpace(spaceOptions(constrained, partials)), partials, narrowed, notes }
     }
     let found = fitted(new Set())
     const binds =
       readByConstraint.size > 0 &&
-      (found.builds.length === 0 ||
-        found.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
+      (found.space.builds.length === 0 ||
+        found.space.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
     if (binds) found = fitted(readByConstraint)
-    builds = found.builds.map((b) => b.code)
-    const { builds: list, ...rest } = found
+    spaceNotes = found.notes
+    builds = found.space.builds.map((b) => b.code)
+    const { builds: list, ...rest } = found.space
     space = {
       ...rest,
       builds: list.length,
       constrained: binds ? [...readByConstraint] : [],
       notBinding: binds ? [] : [...readByConstraint],
-      searchPartials: partials,
+      searchPartials: found.partials,
+      ...(found.narrowed ? { narrowed: found.narrowed } : {}),
       ...(minPoints ? { minPoints } : {}),
     }
   }
@@ -442,15 +537,32 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const setupFails = [...talentFails(baseline), ...sheetRules.filter((c) => !meetsSheet(baselineSheet, reference, [c])).map(constraintName)]
 
   const candidates = [baseline, ...valid]
-  // The baseline runs every round too, so the budget is fitted to every plan (OV4-5).
-  const planned = fitBudget(options.budget, candidates.length)
+  // The baseline runs every round too, so the budget is fitted to every plan (OV4-5), within what
+  // the screen left of the cap (OGV-2). Past the cap, the first round shrinks to fit it, to no fewer
+  // than MIN_FIRST_ROUND fights; below that the search doesn't run.
+  const screenFights = screen?.fights ?? 0
+  const planned = fitBudget(options.budget, candidates.length, cap - screenFights)
+  if (!planned.fits && planned.initialFights < MIN_FIRST_ROUND)
+    throw new SearchTooLargeError(
+      `${fmt(candidates.length)} plans (the baseline included) don't fit the cap of ${fmt(cap)} fights a search${space && !space.searchPartials ? ', even with max ranks only' : ''}, at ${MIN_FIRST_ROUND} fights each: keep or exclude talents, or try fewer rotation variants, to narrow it.`,
+    )
+  const budget = { fights: planned.fights, initialFights: planned.initialFights, cap }
+  const notes = [...spaceNotes, ...planned.notes]
+  // Told before the race runs: at most its budget more, at the pace the screen ran.
+  const estimate: Estimate = {
+    fights: screenFights + planned.fights,
+    screenFights,
+    raceFights: planned.fights,
+    ...(screen && screenMs > 0 && screen.fights > 0 ? { seconds: (planned.fights * screenMs) / screen.fights / 1000 } : {}),
+  }
   options.onProgress?.({
     phase: 'space',
     builds: builds.length,
     candidates: valid.length,
     excluded,
-    budget: { fights: planned.fights, initialFights: planned.initialFights },
-    notes: [...spaceNotes, ...planned.notes],
+    budget,
+    estimate,
+    notes,
     setupFails,
     ...(screen ? { screen } : {}),
     ...(space ? { space } : {}),
@@ -480,8 +592,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     goal,
     scoredGoal: scored,
     seed,
-    budget: { fights: planned.fights, initialFights: planned.initialFights },
-    notes: [...spaceNotes, ...planned.notes],
+    budget,
+    estimate,
+    notes,
     ...(screen ? { screen } : {}),
     ...(space ? { space } : {}),
     candidates,
@@ -641,22 +754,43 @@ function sameRotation(a: Record<string, RotationValue>, b: Record<string, Rotati
  * the start's rotation, then the rotation variants with the winning talents, then the talents again
  * with the winning rotation, until a pass's winner is where it started, `passes` run out, or a pass
  * has no answer. Each pass spends the whole budget and holds every candidate to every constraint,
- * the talent ones included. The baseline is the setup itself throughout.
+ * the talent ones included. The baseline is the setup itself throughout. The hard ceiling holds for
+ * the whole search (OGV-2): each pass gets what the passes before it left of the cap, and when a
+ * later pass no longer fits, the turns end there and the last report's `turnsStopped` says so.
  */
 export async function optimizeInTurns(options: OptimizeOptions & { passes?: number; onPass?: (report: OptimizeReport, pass: number) => void }): Promise<OptimizeReport[]> {
   if (!options.talents || !options.rotations?.length) throw new Error('Taking turns needs a talent search and rotation variants.')
   const reports: OptimizeReport[] = []
   let start: Candidate = options.start ?? setupCandidate(options.config)
   const passes = options.passes ?? 4
+  const cap = options.maxFights ?? MAX_SEARCH_FIGHTS
+  let spent = 0
   for (let pass = 0; pass < passes; pass++) {
     const talents = pass % 2 === 0
-    const report = await optimize({
-      ...options,
-      start,
-      // A talent pass screens under the rotation variants too, so a talent only they use counts; a
-      // rotation pass keeps the start's build, held to the same talent constraints.
-      ...(talents ? { rotations: [], screenRotations: options.rotations } : { talents: { ...options.talents, fixedBuild: true } }),
-    })
+    const stop = (why: string) => {
+      reports[reports.length - 1].turnsStopped = `The cap of ${fmt(cap)} fights a search ended the turns after pass ${pass}, with ${fmt(cap - spent)} left: ${why}`
+    }
+    if (pass > 0 && cap - spent <= 0) {
+      stop('none left for another pass.')
+      break
+    }
+    let report: OptimizeReport
+    try {
+      report = await optimize({
+        ...options,
+        maxFights: cap - spent,
+        start,
+        // A talent pass screens under the rotation variants too, so a talent only they use counts; a
+        // rotation pass keeps the start's build, held to the same talent constraints.
+        ...(talents ? { rotations: [], screenRotations: options.rotations } : { talents: { ...options.talents, fixedBuild: true } }),
+      })
+    } catch (error) {
+      // The first pass fails as a single search would; a later one ends the turns on the last answer.
+      if (pass === 0 || !(error instanceof SearchTooLargeError)) throw error
+      stop(error.message)
+      break
+    }
+    spent += report.fights
     reports.push(report)
     options.onPass?.(report, pass)
     if (report.race.leader === null) break

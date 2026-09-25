@@ -383,12 +383,19 @@ sets. Each spec's defaults are then its results.
       fifth round (user decision, D30): **the player picks the goal**, Defense, DPS, TPS or
       Balanced (`--goal`; tanks Balanced, DPS specs DPS by default), and **no talent-specific
       rules**: the survival floor and the preferred filler are gone, and every talent is judged
-      by what the screen measures it doing for the goal
+      by what the screen measures it doing for the goal. After the goals review's verification (user
+      decision, D30): **a hard ceiling** on a search's fights (thorough's 24 million) and builds
+      (200,000); the budget grows to it, the space narrows to max ranks past it and says so, and the
+      estimate is told before the search runs
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
 - [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
-      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
+      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px.
+      It shows the hard ceiling's estimate (fights and time) before the search and again before the
+      race, and says when the space was narrowed (D30; [budgets](optimizer.md#budgets)). It calls
+      `optimize()` in a worker, not on the page's thread: sizing and listing a space and building
+      every candidate's plan and sheet take seconds (OGV-5)
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 

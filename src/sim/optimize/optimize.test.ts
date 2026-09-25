@@ -9,8 +9,24 @@ import type { SimConfig } from '../types'
 import { bossOutcomeShares } from '../core/attack-table'
 import { CRIT_IMMUNE, CRUSH_IMMUNE, defaultConstraints, effectiveHealth, formatConstraint, meetsSheet, parseConstraint, sheetValues } from './constraints'
 import { describeBuildChange } from './describe'
-import { type FightRunner, localFightRunner } from './fights'
-import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate } from './optimize'
+import { type FightRunner, localFightRunner, SearchTooLargeError } from './fights'
+import {
+  applyCandidate,
+  BUDGETS,
+  confirm,
+  FIRST_ROUND_MIN,
+  firstRound,
+  fitBudget,
+  isSetup,
+  MAX_SEARCH_FIGHTS,
+  MIN_FIRST_ROUND,
+  optimize,
+  optimizeInTurns,
+  type OptimizeOptions,
+  type OptimizeProgress,
+  type TalentSearch,
+  setupCandidate,
+} from './optimize'
 import { SCREEN_JOB_FIGHTS, screenTalents } from './screen'
 import { brokenConstraints } from './talents'
 
@@ -173,31 +189,96 @@ describe('optimize', () => {
     expect(high.space!.builds).toBeGreaterThan(none.space!.builds)
   }, 60_000)
 
-  it('searches partial ranks by default, and max ranks only when that space passes the limit or the budget, saying so (OG-2)', async () => {
-    const run = (talents: { minPoints: Record<string, number>; screenFights: number; searchPartials?: boolean; limit?: number }) =>
-      optimize({ config: bear, talents, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+  it('searches partial ranks by default, and max ranks only when that space passes the builds’ limit or the fight cap, saying so (OG-2, OGV-2)', async () => {
+    const run = (talents: TalentSearch, extra: Partial<OptimizeOptions> = {}) =>
+      optimize({ config: bear, talents, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1, ...extra })
     const plain = await run(search)
     const byDefault = { minPoints: search.minPoints, screenFights: search.screenFights }
     const partials = await run(byDefault)
     expect(plain.space!.searchPartials).toBe(false)
     expect(partials.space!.searchPartials).toBe(true)
     expect(partials.space!.builds).toBeGreaterThan(plain.space!.builds)
+    expect(partials.space!.narrowed).toBeUndefined()
     expect(partials.notes).toEqual([])
-    // A limit the max-rank space fits and the partial one doesn't.
-    const capped = await run({ ...byDefault, limit: plain.space!.builds + 1 })
+    // A limit the max-rank space fits and the partial one doesn't: sized before it's listed (OGV-5).
+    const limit = plain.space!.builds + 1
+    const capped = await run({ ...byDefault, limit })
     expect(capped.space!.searchPartials).toBe(false)
     expect(capped.space!.truncated).toBe(false)
     expect(capped.space!.builds).toBe(plain.space!.builds)
-    expect(capped.notes[0]).toMatch(/passes the limit of .* tries max ranks only/)
-    // A budget that can't race the partial space at 50 fights each races max ranks instead.
-    const fights = Math.ceil((50 * (plain.space!.builds + 3)) / 0.9)
-    expect(partials.space!.builds * 50).toBeGreaterThan(0.9 * fights)
-    const small = await optimize({ config: bear, talents: byDefault, budget: { fights }, runner: localFightRunner(), top: 1 })
+    expect(capped.space!.narrowed).toEqual({ to: 'max ranks', passes: 'builds', builds: limit + 1, atLeast: true })
+    expect(capped.notes[0]).toMatch(/^Narrowed to max ranks: every rank of one talent a build makes more than [\d,]+ builds, the most a search lists/)
+    // A cap on fights that races the max-rank space at 50 fights each and not the partial one: the
+    // budget grows to the cap, not past it, and the space narrows (OGV-2).
+    const maxFights = plain.screen!.fights + Math.ceil((50 * (plain.space!.builds + 3)) / 0.9)
+    expect(50 * (partials.space!.builds + 2)).toBeGreaterThan(0.9 * (maxFights - plain.screen!.fights))
+    const small = await run(byDefault, { budget: { fights: 3_000 }, maxFights })
     expect(small.space!.searchPartials).toBe(false)
     expect(small.space!.builds).toBe(plain.space!.builds)
-    expect(small.notes[0]).toMatch(/more than this budget races at 50 fights each, so this search tries max ranks only/)
-    expect(small.budget.initialFights).toBeGreaterThanOrEqual(50)
-  }, 90_000)
+    expect(small.space!.narrowed).toEqual({ to: 'max ranks', passes: 'fights', builds: partials.space!.builds, atLeast: false })
+    expect(small.notes[0]).toMatch(/^Narrowed to max ranks: every rank of one talent a build makes [\d,]+ builds, more than the cap of [\d,]+ fights a search races at 50 fights each/)
+    expect(small.budget.initialFights).toBe(50)
+    expect(small.budget.cap).toBe(maxFights)
+    expect(small.budget.fights).toBeLessThanOrEqual(maxFights - small.screen!.fights)
+    expect(small.fights).toBeLessThanOrEqual(maxFights)
+  }, 120_000)
+
+  it('grows a small budget up to the cap so every plan runs 50 fights first, and tells the fights and time before the race (OGV-2)', async () => {
+    // Stopped once the space is known: the budget, the estimate and the notes come before any race fight.
+    const controller = new AbortController()
+    let space: Extract<OptimizeProgress, { phase: 'space' }> | undefined
+    const run = optimize({
+      config: bear,
+      talents: { minPoints: search.minPoints, screenFights: search.screenFights },
+      budget: { fights: 3_000 },
+      runner: localFightRunner(),
+      signal: controller.signal,
+      onProgress: (p) => {
+        if (p.phase !== 'space') return
+        space = p
+        controller.abort()
+      },
+    })
+    await expect(run).rejects.toThrow(/cancelled/)
+    const plans = space!.candidates + 1
+    expect(space!.space!.searchPartials).toBe(true)
+    expect(space!.budget).toEqual({ fights: 2 * FIRST_ROUND_MIN * plans, initialFights: FIRST_ROUND_MIN, cap: MAX_SEARCH_FIGHTS })
+    expect(space!.notes).toEqual([
+      `${plans.toLocaleString('en-US')} plans (the baseline included) need ${(FIRST_ROUND_MIN * plans).toLocaleString('en-US')} fights for a first round of 50 each: the budget grew from 3,000 to ${(2 * FIRST_ROUND_MIN * plans).toLocaleString('en-US')} fights (the cap leaves the race ${(MAX_SEARCH_FIGHTS - space!.screen!.fights).toLocaleString('en-US')}).`,
+    ])
+    expect(space!.estimate.screenFights).toBe(space!.screen!.fights)
+    expect(space!.estimate.raceFights).toBe(space!.budget.fights)
+    expect(space!.estimate.fights).toBe(space!.screen!.fights + space!.budget.fights)
+    expect(space!.estimate.seconds).toBeGreaterThan(0)
+  }, 120_000)
+
+  it('refuses a search too large for the cap even at its narrowest, before the fights it can’t afford (OGV-2)', async () => {
+    let fights = 0
+    const counting: FightRunner = {
+      lanes: 1,
+      run: (source, from, count) => {
+        fights += count
+        return localFightRunner().run(source, from, count)
+      },
+    }
+    // A cap below the screen's fights: it throws before the first fight.
+    await expect(optimize({ config: bear, talents: search, budget: { fights: 3_000 }, maxFights: 1_000, runner: counting })).rejects.toThrow(
+      /^The talent screen runs [\d,]+ fights, more than the cap of 1,000 a search/,
+    )
+    expect(fights).toBe(0)
+    // A cap the screen fits but whose rest can't race the max-rank space at 20 fights each.
+    const probe = await optimize({ config: bear, talents: search, budget: { fights: 3_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    const tooSmall = probe.screen!.fights + 10 * probe.candidates.length
+    await expect(optimize({ config: bear, talents: search, budget: { fights: 3_000 }, maxFights: tooSmall, runner: localFightRunner() })).rejects.toThrow(SearchTooLargeError)
+    await expect(optimize({ config: bear, talents: search, budget: { fights: 3_000 }, maxFights: tooSmall, runner: localFightRunner() })).rejects.toThrow(
+      /plans \(the baseline included\) don't fit the cap of [\d,]+ fights a search, even with max ranks only, at 20 fights each/,
+    )
+    // A budget over the cap is cut to it, and says so.
+    const cut = await optimize({ config: bear, talents: search, budget: { fights: 3_000, initialFights: 2 }, maxFights: probe.screen!.fights + 2_000, runner: localFightRunner(), top: 1 })
+    expect(cut.budget.fights).toBe(2_000)
+    expect(cut.notes[0]).toMatch(/^The budget of 3,000 fights passes the 2,000 the search's cap leaves the race/)
+    expect(cut.fights).toBeLessThanOrEqual(probe.screen!.fights + 2_000)
+  }, 120_000)
 
   it('confirms a winner on a fresh seed against the baseline (D23), and names the [?] assumptions it relies on', async () => {
     // The bear's 8/43/0 build before T3 (the default now is the optimizer's winner over it).
@@ -238,22 +319,31 @@ describe('optimize', () => {
     expect(firstRound({ fights: 1_000, initialFights: 7 }, 7000)).toBe(7)
   })
 
-  it('fits a large space into its budget rather than failing: a smaller first round, then a larger budget, and says so (O1-9)', () => {
-    // quick over 7,000 candidates: 64 fights each, 30% of the budget, as firstRound says.
-    expect(fitBudget({ fights: 1_500_000 }, 7000)).toEqual({ fights: 1_500_000, initialFights: 64, notes: [] })
+  it('fits a large space into its budget up to the hard cap, and says when it can’t (O1-9, OGV-2)', () => {
+    // quick over 7,000 plans: 64 fights each, 30% of the budget, as firstRound says.
+    expect(fitBudget({ fights: 1_500_000 }, 7000)).toEqual({ fights: 1_500_000, initialFights: 64, notes: [], fits: true })
     // quick over 27,000: 50 each is exactly 90% of the budget, still the usual first round.
-    expect(fitBudget({ fights: 1_500_000 }, 27_000)).toEqual({ fights: 1_500_000, initialFights: 50, notes: [] })
-    // quick over 50,000: 50 each would be 2.5M; the first round shrinks to 27 (90% of the budget).
-    const shrunk = fitBudget({ fights: 1_500_000 }, 50_000)
-    expect(shrunk.fights).toBe(1_500_000)
-    expect(shrunk.initialFights).toBe(27)
-    expect(shrunk.notes[0]).toMatch(/first round runs 27 fights each instead of 50/)
-    // It counts plans, the baseline included, and says so, beside the CLI's count of candidates (OV4-5).
-    expect(shrunk.notes[0]).toMatch(/^50,000 plans \(the baseline included\) are many/)
-    // quick over 100,000: even 20 each doesn't fit, so the budget grows to 20 each and as much again.
-    const grown = fitBudget({ fights: 1_500_000 }, 100_000)
-    expect(grown).toMatchObject({ fights: 2 * MIN_FIRST_ROUND * 100_000, initialFights: MIN_FIRST_ROUND })
-    expect(grown.notes[0]).toMatch(/the budget grew to 4,000,000/)
+    expect(fitBudget({ fights: 1_500_000 }, 27_000)).toEqual({ fights: 1_500_000, initialFights: 50, notes: [], fits: true })
+    // quick over 50,000: 50 each would be 2.5M, so the budget grows to 50 each and as much again,
+    // under the cap (thorough's 24M). It counts plans, the baseline included, and says so (OV4-5).
+    const grown = fitBudget({ fights: 1_500_000 }, 50_000)
+    expect(grown).toMatchObject({ fights: 5_000_000, initialFights: FIRST_ROUND_MIN, fits: true })
+    expect(grown.notes).toEqual(['50,000 plans (the baseline included) need 2,500,000 fights for a first round of 50 each: the budget grew from 1,500,000 to 5,000,000 fights (the cap leaves the race 24,000,000).'])
+    // quick over 300,000: 50 each is 15M, under 90% of the cap, so the budget grows to the cap.
+    expect(fitBudget({ fights: 1_500_000 }, 300_000)).toMatchObject({ fights: MAX_SEARCH_FIGHTS, initialFights: 50, fits: true })
+    // 500,000 plans at 50 each is 25M, past 90% of the cap: it doesn't fit, and the caller narrows the
+    // space; as a last resort the first round shrinks to fit the cap (43 each).
+    const over = fitBudget({ fights: 1_500_000 }, 500_000)
+    expect(over).toMatchObject({ fights: MAX_SEARCH_FIGHTS, initialFights: 43, fits: false })
+    expect(over.notes[0]).toMatch(/^500,000 plans \(the baseline included\) don't fit the 24,000,000 fights the search's cap leaves the race at 50 fights each: the first round runs 43 each/)
+    // 1,200,000 plans: fewer than MIN_FIRST_ROUND each fit; optimize() refuses that.
+    expect(fitBudget({ fights: 1_500_000 }, 1_200_000).initialFights).toBeLessThan(MIN_FIRST_ROUND)
+    // A budget over the cap is cut to it, and a cap given is never passed.
+    expect(fitBudget({ fights: 50_000_000 }, 10)).toMatchObject({ fights: MAX_SEARCH_FIGHTS, initialFights: 1000, fits: true })
+    expect(fitBudget({ fights: 50_000_000 }, 10).notes[0]).toMatch(/^The budget of 50,000,000 fights passes the 24,000,000 the search's cap leaves the race/)
+    expect(fitBudget({ fights: 1_500_000 }, 50_000, 3_000_000)).toMatchObject({ fights: 3_000_000, initialFights: 50, fits: true })
+    // The cap is thorough's budget, never raised automatically.
+    expect(MAX_SEARCH_FIGHTS).toBe(BUDGETS.thorough.fights)
   })
 
   it('the baseline is only the measuring stick: a setup that breaks the talent constraints is never a candidate (D30)', async () => {
@@ -492,6 +582,20 @@ describe('optimize', () => {
     // The rotation pass left the setup out (it takes Ferocity) and kept the talent pass's build.
     expect(passes[1].excluded.talents).toBe(1)
     expect(passes[1].candidates.slice(1).every((c) => c.talents === passes[0].candidates[passes[0].race.leader!].talents)).toBe(true)
+  }, 120_000)
+
+  it('in turns, the hard ceiling holds for the whole search: a pass that no longer fits ends the turns, saying so (OGV-2)', async () => {
+    const options = { config: bear, talents: { screenFights: 20, searchPartials: false }, rotations: [{ [MAUL]: 90 }], budget: { fights: 4_000, initialFights: 20 }, runner: localFightRunner(), top: 1 }
+    // The first pass on its own: a talent pass, screened under the variant too.
+    const first = await optimize({ ...options, rotations: [], screenRotations: options.rotations })
+    // A cap one fight over it leaves the rotation pass nothing to race with.
+    const passes = await optimizeInTurns({ ...options, maxFights: first.fights + 1 })
+    expect(passes).toHaveLength(1)
+    expect(passes[0].race.leader).toBe(first.race.leader)
+    expect(passes[0].fights).toBeLessThanOrEqual(first.fights + 1)
+    expect(passes[0].turnsStopped).toMatch(/^The cap of [\d,]+ fights a search ended the turns after pass 1, with [01] left/)
+    // Without the cap the turns go on.
+    expect(first.turnsStopped).toBeUndefined()
   }, 120_000)
 
   it('applies a candidate on top of the setup, at a fixed seed', () => {

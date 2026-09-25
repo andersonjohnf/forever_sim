@@ -11,6 +11,19 @@ import { Sim } from '../engine/sim'
 import type { Plan } from '../plan/types'
 
 /** One value per fight, fights `from` … `from + count − 1`, in order. */
+/**
+ * A search too large for the hard ceiling even at its narrowest (D30's hard ceiling, OGV-2;
+ * docs/optimizer.md#budgets): a screen with more fights than the cap, a talent space past the builds'
+ * limit with max ranks only, or more plans than the cap races at MIN_FIRST_ROUND fights each. It
+ * doesn't run, and the message says how to narrow it.
+ */
+export class SearchTooLargeError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SearchTooLargeError'
+  }
+}
+
 export interface FightSamples {
   /** Damage per second. */
   dps: Float64Array

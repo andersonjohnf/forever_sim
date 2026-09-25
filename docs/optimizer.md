@@ -13,7 +13,8 @@ the four goals, constraints with effective health and crit and crush immunity, a
 line (`npm run optimize`), with the review's and the verifications' fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
 answer (user decision); the leader is the answer, and the race takes no result limits (step 6 of
-the review, D30). **No talent-specific rules** (user decision after the fifth review round, D30):
+the review, D30); a search has a hard ceiling on fights and builds, and past it narrows to max
+ranks and says so (D30, user decision; [budgets](#budgets)). **No talent-specific rules** (user decision after the fifth review round, D30):
 there's no survival floor and no preferred filler, and no talent is kept, dropped or ordered by its
 name; every talent is judged by what the screen measures it doing for the goal. Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
@@ -57,7 +58,9 @@ the constraints and a budget:
    fight results ([constraints](#constraints)).
 4. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
    or the budget runs out ([below](#racing)), beside the **baseline**. The budget and the first
-   round are fitted to the number of candidates first ([budgets](#budgets)).
+   round are fitted to the number of candidates first, within the search's hard ceiling on fights
+   and builds, and the fights and time it can take are told before the race starts
+   ([budgets](#budgets)).
 5. **Answer** with the race's leader (`race.leader`), the best mean by the goal.
 6. **Confirm** the answer against the baseline on a fresh seed (D23; the CLI's `--confirm`).
 
@@ -269,10 +272,11 @@ A talent that changes what a constraint reads is searched, whatever it does to t
 ([the talent space](#the-talent-space)), **where the constraint could bind without it** (OG-1):
 with the effective-health floor, a talent that adds armor or health is then a search dimension,
 not a filler that only gets leftover points; under crit immunity, so is one that adds defense.
-That reads the character sheet, never the talent's name. The check is exact, not a guess: the
-space is built first with those talents as fillers, and if every build in it (with every rotation
-variant) meets every sheet constraint, they stay fillers, since searching them would only add
-builds that give up objective points or tie-break for a limit already met (the report's
+That reads the character sheet, never the talent's name. The check is exact where talents'
+effects add up (maximality's own assumption, [below](#the-talent-space)), not a guess: the space is
+built first with those talents as fillers, and if every build in it (with every rotation variant)
+meets every sheet constraint, they stay fillers, since searching them would only add builds that
+give up objective points or tie-break for a limit already met (the report's
 `space.notBinding`; the CLI lists them as "not searched for the constraints"). Otherwise they're dimensions
 (`space.constrained`). The Protection paladin's default floor never binds in a talent search, so
 Toughness and Sacred Duty stay fillers; searching them had made its space 23,841 builds for the
@@ -336,19 +340,23 @@ talent kept by default.
   whose screened effect is below zero, though not clearly enough to be harmful (Feral Swiftness
   for a bear), is never forced by the maximality rule below nor given leftover points: builds with
   and without it, and with each of its ranks, race. The CLI's `--no-partials` searches max ranks
-  only. A space with partial ranks that passes the limit (200,000 builds), or that the budget can't
-  race at 50 fights a plan in its first round ([budgets](#budgets)), is built with max ranks only
-  instead, and the report's notes say so: a space cut off in the middle would drop builds by where
-  they fall in the enumeration, and one raced on 20 fights a build drops almost nothing and ends on
-  the budget. The Protection paladin's Defense space is the one that does: 135,311 builds with
-  partial ranks, 9,006 without, so `quick` and `standard` search its max ranks and `thorough` its
-  partial ranks.
+  only. Only objective talents' ranks are searched (OGV-1): a dimension only a constraint made has
+  no screened value to search its ranks by (below). A space whose partial ranks pass the search's
+  ceiling, 200,000 builds or more plans than the fight cap races at 50 fights each, **narrows to max
+  ranks**, and the report says so ([budgets](#budgets)).
 - **So is a talent a constraint reads, where the constraint could bind.** One that changes a sheet
   number a constraint reads (Toughness's armor, Sacred Duty's health, under the effective-health
   floor) is a dimension too, whatever its role, so builds with and without it both race, unless
   every build made without it as a dimension meets the constraints already
   ([constraints](#constraints), OG-1). It has no screened value, so it's never forced by the
-  maximality rule. A harmful one (Heart of the Wild, for Balanced) is searched but never given
+  maximality rule, and it's at **0 or its max rank** in a build's core, never a searched partial
+  rank (OGV-1): searching its ranks multiplied the space for ranks the screen can't order, and a
+  space that large fell back to max ranks everywhere, dropping the objective talents' partial ranks
+  with them. The warrior under `ehp>=103%` is the case: 52,506 builds with Toughness's ranks
+  searched, too many for `quick` then, so its max ranks raced and missed Booming Voice 3 with
+  Boundless Rage 2, +0.36 ± 0.10 points over the leader it found, paired; with Toughness at 0 or 5
+  it's 46,814 builds, and that build races. The fill can still give it leftover points, by its
+  tie-break (below). A harmful one (Heart of the Wild, for Balanced) is searched but never given
   leftover points.
 - **Leftover points go to partial ranks, then by the tie-break.** Points the core leaves go first
   to partial ranks of objective talents, where the sim measures them, the most score per point
@@ -397,11 +405,19 @@ each tree's cores are enumerated alone, each with the least points it can be leg
 fewest extra points any one more objective talent would cost, and cores are combined across trees
 by points. A combination is kept when the points its fill gives to fillers are fewer than every
 tree's cheapest raise. A fill that gives more than a talent's ranks less one to objective talents
-takes some talent to max rank, which is the same build as the core with it at max, so only
-combinations within that many points of the cheapest raise are tried.
+takes some talent to max rank, and the core with that talent at max, filled, gives a build at least
+as good (the same build, unless a tier gate made the fill skip a talent and come back to it), so
+only combinations within that many points of the cheapest raise are tried.
 
 Every build is checked with the app's own `validateTalentBuild`, encoded with `encodeTalentCode`,
 and must decode back to the same ranks.
+
+**Sized before it's listed** (OGV-5). `talentSpaceSize` runs the same enumeration and counts the
+builds, keyed by their ranks, without encoding, validating or listing them, and stops counting past
+a limit. It's exact, and about a third of the listing's time (the warrior's `ehp>=103%` space:
+46,814 builds counted in 0.5 s, listed in 1 s; the paladin's `ehp>=100%` space with partial ranks,
+554,943 builds, would take seven seconds to list, and its count stops at 200,000 in two). The
+search counts a space before listing it, so a space past the ceiling narrows without being built.
 
 **What changed with the talent rules' removal** (D30's superseding paragraph). Until then a tank's
 search kept a **survival floor** in every build (the defensive cooldowns, Deflection 5/5, the bear's
@@ -419,8 +435,9 @@ talent searches (OG-1), so no talent is a dimension for it: the talents it reads
 Duty, Heart of the Wild, Thick Hide) stay fillers, or objective ones where the goal measures them
 (Toughness for Defense). The goal changes the space: for Defense a talent that only adds threat is a
 filler, and for TPS one the screen measures lowering threat (the warrior's Shield Slam, on this
-setup) is never taken. "Builds" is the default space, every rank of one talent a build (OG-2);
-"max ranks" is `--no-partials`'s, and what a budget too small for the default races.
+setup) is never taken. "Builds" is the default space, every rank of one objective talent a build
+(OG-2); "max ranks" is `--no-partials`'s, and what a space past the ceiling races
+([budgets](#budgets)).
 
 | Spec | Goal | Dimensions | Builds | Max ranks | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -428,14 +445,24 @@ setup) is never taken. "Builds" is the default space, every rank of one talent a
 | `warrior-protection` | TPS | 22 objective | 918 | 119 | 9,808 | 10,040 |
 | `warrior-protection` | Defense | 17 objective (Toughness among them) | 2,326 | 222 | 3,720 | 3,740 |
 | `paladin-protection` | Balanced | 29 objective | 26,762 | 1,779 | 45,568 | 44,362 |
-| `paladin-protection` | Defense | 23 objective | 135,311 (`thorough` only) | 9,006 | 15,952 | 28,278 |
+| `paladin-protection` | Defense | 23 objective | 135,311 | 9,006 | 15,952 | 28,278 |
 | `druid-feral-bear` | Balanced | 18 objective | 502 | 56 | 26,022 | 25,738 |
 | `warrior-fury` (no constraints) | DPS | 20 objective | 3,310 | 369 | 19,146 | 19,111 |
 
 So on `quick` the warrior's Balanced space runs 112 fights each in the first round, the paladin's
 50 (its 26,764 plans fit 50 each in 90% of the budget; `standard` suits it better), the bear's 892
-and Fury's 135. The paladin's Defense space fits only `thorough` at 50 fights a plan, so `quick` and
-`standard` race its 9,006 max-rank builds ([the talent space](#the-talent-space)). Before the goals
+and Fury's 135. The paladin's Defense space races its partial ranks on every budget: 50 fights each
+over 135,313 plans is 6.8 million, so `quick`'s and `standard`'s budgets grow to 13.5 million, under
+the cap ([budgets](#budgets)); before the hard ceiling (OGV-2) they raced its 9,006 max-rank builds.
+
+Where a constraint binds, the talents it reads are dimensions, at 0 or max (OGV-1):
+
+| Spec | Goal and constraint | Dimensions | Builds | Max ranks | What races |
+| --- | --- | --- | --- | --- | --- |
+| `warrior-protection` | Balanced, `ehp>=103%` | 23 objective + Toughness | 46,814 (52,506 with Toughness's ranks searched) | 3,945 | every rank; `quick`'s budget grows to 4.3 million |
+| `paladin-protection` | Balanced, `ehp>=100%` | 29 objective + Toughness, Sacred Duty | 554,943 | 31,755 | max ranks, narrowed: past 200,000 builds |
+
+Before the goals
 review (OG-1, OG-2, OG-3) the floor made the talents it reads dimensions and only max ranks were
 searched: the warrior's Balanced space was 2,087 builds, its TPS 700, the paladin's Balanced 23,841,
 its Defense 15,135, the bear's 303 and Fury's 288. With the survival floor and the preferred filler
@@ -443,7 +470,8 @@ its Defense 15,135, the bear's 303 and Fury's 288. With the survival floor and t
 the bear's 129: the floor kept Deflection, the cooldowns and the bear's Heart of the Wild, Thick
 Hide and Feral Swiftness out of the search, and without it more builds are legal and different.
 
-Enumerating takes about a second (two for the paladin's Defense space with partial ranks). Before the tree-by-tree combination and the leftover-point rule,
+Enumerating takes about a second (two for the paladin's Defense space with partial ranks), and
+sizing a space first about a third of that ([below](#the-talent-space)). Before the tree-by-tree combination and the leftover-point rule,
 the Protection warrior's space was 17,644 builds and took eight minutes to list; the paladin's
 passed 50,000.
 
@@ -456,7 +484,8 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   variant too, so a talent that only a variant uses counts.
 - **In turns** (`--turns`, `optimizeInTurns`): the talents with the setup's rotation, then the
   variants with the winning build, then the talents again with the winning variant, until a pass
-  keeps its start or has no answer. Each pass spends the whole budget. Every pass races its start,
+  keeps its start or has no answer. Each pass spends the whole budget, within what the passes before
+  it left of the search's cap ([budgets](#budgets)). Every pass races its start,
   the last pass's winner, beside the new candidates, so a rotation pass whose variants are all
   worse keeps the talent pass's winner; the answer never gets worse from one pass to the next, up
   to the race's own error. Every pass holds every candidate to every constraint, the talent ones
@@ -485,26 +514,70 @@ again (a third of a rotation search with one variant).
 | `standard` | 6,000,000 | at most ~75 s | ~2.5 min |
 | `thorough` | 24,000,000 | at most ~5 min | ~10 min |
 
+**The hard ceiling** (D30, user decision: "there does need to be some reasonable limit to
+iterations, we don't want to fire off a 10 billion iteration sim"; OGV-2). A search never runs
+more than **24,000,000 fights**, the screen's and the race's together, over every pass of a search
+in turns (`MAX_SEARCH_FIGHTS`, `thorough`'s budget), and never lists more than **200,000 builds**
+(`MAX_BUILDS`). Nothing raises the cap on its own: a caller raises it only by asking
+(`maxFights`, the CLI's `--max-fights`). A budget over it is cut to it. The confirmation
+([below](#confirmation)) is a separate check after the search, 160,000 fights with the CLI's
+defaults, and isn't counted in it.
+
 The first round runs 30% of the budget over the plans that run it, between 50 and 1,000 fights
-each (`firstRound`): 20,000 plans get 90 each on `standard`, 129 get 1,000. `fitBudget` fits a
-space too big for its budget rather than failing, and the CLI prints a note saying what it
-changed. Both count plans, the baseline included, since the baseline runs every round too; the
-note says so, beside the CLI's count of candidates, which leaves it out (OV4-5, OV5-2):
+each (`firstRound`): 20,000 plans get 90 each on `standard`, 129 get 1,000. `fitBudget` fits the
+budget to the plans within what the cap leaves the race (the cap less the screen's fights, and less
+the passes before it in turns), and the CLI prints a note saying what it changed. Both count plans,
+the baseline included, since the baseline runs every round too; the note says so, beside the CLI's
+count of candidates, which leaves it out (OV4-5, OV5-2):
 
 | Plans (the candidates and the baseline) | What the first round does | `quick` | `standard` | `thorough` |
 | --- | --- | --- | --- | --- |
 | up to 30% of the budget ÷ 1,000 | 1,000 fights each | ≤ 450 | ≤ 1,800 | ≤ 7,200 |
 | up to 30% ÷ 50 | 30% of the budget, 50 to 1,000 each | ≤ 9,000 | ≤ 36,000 | ≤ 144,000 |
 | up to 90% ÷ 50 | 50 each, up to 90% of the budget | ≤ 27,000 | ≤ 108,000 | ≤ 432,000 |
-| up to 90% ÷ 20 | 90% of the budget, fewer than 50 each (down to 20): it drops fewer, and the race may end on the budget | ≤ 67,500 | ≤ 270,000 | ≤ 1,080,000 |
-| more | 20 each, and the budget grows to twice that first round | | | |
+| up to 90% of the cap ÷ 50 | 50 each; **the budget grows** to twice that first round, up to the cap | ≤ 432,000 | ≤ 432,000 | |
+| more | **the space narrows**, below | | | |
 
-So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough`
-144,000; past three times that, pick the next budget or narrow the search (keep or exclude
-talents, fewer rotation variants). The tanks' default spaces are in [the talent space](#the-talent-space). A race usually stops long
-before its budget: most candidates are clearly worse after the first round. The speeds are this
-machine's under load (80,000 a second on 12–15 threads is about 6,000 fights a second a thread;
-the engine does 6,000–10,000 per core by spec).
+**Up to the cap, the budget grows** so every plan runs 50 fights in its first round
+(`FIRST_ROUND_MIN`): a race on fewer drops almost nothing and ends on its budget, and a space raced
+blind is worse than a narrower one raced properly. **Beyond the cap, the space narrows** rather
+than the fights: a talent space whose partial ranks pass 200,000 builds, or make more plans than the
+cap races at 50 fights each (before the sheet constraints leave any out), is searched with **max
+ranks only**. The dimensions a constraint made are at max ranks already (OGV-1, [the talent
+space](#the-talent-space)), so this is the one narrowing left: max ranks everywhere. The space is
+sized before it's listed (`talentSpaceSize`), so one past the ceiling is never built. The report
+says so plainly: `space.narrowed` (why, and how many builds the partial ranks made), a note that
+starts "Narrowed to max ranks", and the CLI's line "NARROWED to max ranks"; the JSON has all three.
+If even max ranks are past the ceiling, a last resort: past 200,000 builds, or with fewer than 20
+fights a plan (`MIN_FIRST_ROUND`) in 90% of the cap, the search doesn't run
+(`SearchTooLargeError`) and says how to narrow it (keep or exclude talents, a tree's minimum, fewer
+rotation variants); between 20 and 50 a plan, the first round shrinks to fit the cap, and the note
+says it drops fewer and may end on the budget. A talent screen with more fights than the cap is
+refused before its first fight. In turns, a pass that no longer fits what the passes before it left
+ends the turns on the last answer, and the last report's `turnsStopped` says so.
+
+So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough` 144,000; a
+larger one costs more than its budget (to 100 fights a plan) up to the cap, and past about 432,000
+plans it narrows. The tanks' default spaces are in [the talent space](#the-talent-space): the
+paladin's Defense space, 135,311 builds with partial ranks, grows `quick`'s and `standard`'s budgets
+to 13.5 million; the paladin's Balanced space under `ehp>=100%`, where Toughness and Sacred Duty are
+dimensions, makes 554,943 builds with partial ranks and narrows to its 31,755 max-rank builds on
+every budget. A race usually stops long before its budget: most candidates are clearly worse after
+the first round. The speeds are this machine's under load (80,000 a second on 12–15 threads is about
+6,000 fights a second a thread; the engine does 6,000–10,000 per core by spec).
+
+**The estimate before it runs** (OGV-2). The CLI prints the ceiling before anything runs, with a
+rough time at 6,000 fights a second a thread. Once the space is known, before the race's first
+fight, the search reports `estimate` (in the `space` progress and the report): the screen's fights,
+run, and the race's budget, the most it can spend, with the time that budget takes at the pace the
+screen ran. The app's Optimize flow (O3) shows both before the player starts and before the race.
+
+**Run it off the main thread** (a note for O3, OGV-5). The fights run in the worker pool, but the
+search's own work runs where `optimize()` is called: sizing and listing the space (up to a few
+seconds for the largest), building a plan and a sheet for every candidate (about 0.3 ms each, 15
+seconds for 46,814 builds) and the race's bookkeeping. On a phone that would freeze the page, so O3
+calls `optimize()` inside a worker (a dedicated one that hands the fights to the pool, or the pool's
+own), not on the page's thread.
 
 ## Confirmation
 
@@ -540,9 +613,11 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 
 ## Reading the results
 
-The CLI prints the goal, the screen, the space, each round, a table of standings and the result,
-and writes a JSON report under `.cache/optimize/` (its `setup.goal` the player's pick, and
-`scoredGoal` what the score read). A standing has:
+The CLI prints the goal and the ceiling, the screen, the space (and, plainly, when the ceiling
+narrowed it), the estimate before the race, each round, a table of standings and the result, and
+writes a JSON report under `.cache/optimize/` (its `setup.goal` the player's pick, `scoredGoal` what
+the score read, `setup.maxFights` the cap, and each pass's `budget`, `estimate`, `notes` and
+`space.narrowed`). A standing has:
 
 - the build and its changes from the default ("Shredding Attacks 0→3"), or "the setup itself"
   for the copy of the setup that raced as a candidate
@@ -589,6 +664,14 @@ compares the leader, the answer, with the default.
   would multiply the space by the ranks of every other talent.
 - **Harmful talents' partial ranks aren't tried.** A talent the screen finds lowering the score at
   max rank in every context is never taken, so a rank of it that alone would help is missed.
+- **With max ranks only, a partial rank comes from the fill alone** (`--no-partials`, or a space
+  the ceiling narrowed). The fill places leftover points a point at a time, greedily, in its order,
+  and never spends points to open a tier gate for a partial rank: a partial rank behind a gate the
+  core doesn't open isn't tried. Searching every rank (the default, where the space fits the
+  ceiling) tries it.
+- **A dimension only a constraint made takes a partial rank only from the fill** (OGV-1): its
+  searched ranks are 0 and max, so a build that needs, say, Toughness 3 to meet a floor gets it
+  only where the fill's leftover points land there.
 
 ## Worked examples
 
@@ -629,8 +712,18 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   round at least once; the corrected bar, z = 4.92 (Student's t at 0.5% ÷ 999, 49 degrees of
   freedom), never does.
 - **Fitting the budget.** `quick` (1,500,000) over 50,000 plans: 50 fights each would be
-  2,500,000, so the first round runs 27 each (90% of the budget, rounded down); over 100,000, even
-  20 each doesn't fit, so the budget grows to 4,000,000.
+  2,500,000, so the budget grows to 5,000,000, a first round of 50 each and as much again; over
+  300,000 it grows to the cap, 24,000,000; over 500,000, 50 each is 25,000,000, past 90% of the cap,
+  so it doesn't fit: the search narrows the space, and as a last resort runs 43 fights each
+  (`optimize.test.ts`).
+- **The ceiling narrows the space** (OGV-2). The bear with a cap that races its max-rank space at
+  50 fights a plan and not its partial ranks: it races max ranks, `space.narrowed` says the cap on
+  fights did it, and the search runs no more than the cap; a builds' limit just over the max-rank
+  space does the same for builds. A cap below the screen's fights is refused before any fight, and
+  in turns a pass that doesn't fit ends the turns, saying so (`optimize.test.ts`).
+- **A constraint's dimension at 0 or max** (OGV-1). The warrior under `ehp>=103%`, with the
+  verification's screen: 46,814 builds (3,945 with max ranks only), among them Booming Voice 3 with
+  Boundless Rage 2, which max ranks miss (`talents.test.ts`).
 - **In turns.** From the bear's 8/43/0 (`--talents 050012-5523032120132210551-`), the talent pass
   finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
   pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline

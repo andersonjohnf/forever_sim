@@ -1,6 +1,6 @@
 // The optimizer's public API (docs/optimizer.md, decision D30): what the CLI
 // (scripts/tune/optimize.mjs) and the app's Optimize flow use.
-export { ENGINES_PER_LANE, EngineCache, type FightRunner, type FightSamples, localFightRunner, type PlanSource, planKey, runFights } from './fights'
+export { ENGINES_PER_LANE, EngineCache, type FightRunner, type FightSamples, localFightRunner, type PlanSource, planKey, runFights, SearchTooLargeError } from './fights'
 export {
   type Bound,
   type Constraint,
@@ -52,12 +52,16 @@ export {
   candidatePlan,
   confirm,
   type Confirmation,
+  type Estimate,
   type Excluded,
+  type FittedBudget,
   FIRST_ROUND_MIN,
   firstRound,
   fitBudget,
   isSetup,
+  MAX_SEARCH_FIGHTS,
   MIN_FIRST_ROUND,
+  type Narrowed,
   optimize,
   optimizeInTurns,
   type OptimizeOptions,
@@ -71,5 +75,5 @@ export {
 } from './optimize'
 export { race, type RaceOptions, type RaceProgress, type RaceResult, type RaceStatus, type RoundLog, type Standing } from './race'
 export { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
-export { type TalentBuild, type TalentConstraints, type TalentRole, talentSpace, type TalentSpace } from './talents'
+export { type TalentBuild, type TalentConstraints, type TalentRole, MAX_BUILDS, talentSpace, talentSpaceSize, type TalentSpace } from './talents'
 export { describeBuildChange } from './describe'

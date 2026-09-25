@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, type TalentData, talentsInCodeOrder, validateTalentBuild } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import { type TalentRole, talentSpace } from './talents'
+import { type TalentRole, talentSpace, talentSpaceSize } from './talents'
 
 const warrior = TALENT_DATA.warrior
 const byName = (data: TalentData, name: string) => talentsInCodeOrder(data).flat().find((t) => t.name === name)!
@@ -216,6 +216,66 @@ describe('talentSpace', () => {
     expect(kinds).toContain('A0/T5')
   })
 
+  it('searches partial ranks only for objective talents: a dimension a constraint made is at 0 or max (OGV-1)', () => {
+    // Toughness hurts the tie-break here, so the fill never gives it points: every rank it has is
+    // the core's, and a core puts a constraint's dimension at 0 or its max, never between.
+    const base = { data: warrior, roles: roles(['Cruelty', 'Booming Voice'], { Toughness: 'tie-break' }), constrained: new Set([id('Toughness')]), tieValues: new Map([[id('Toughness'), -1]]), minPoints: { Protection: 43 } }
+    const space = talentSpace(base)
+    expect(new Set(space.builds.map((b) => rank(b.code, 'Toughness')))).toEqual(new Set([0, 5]))
+    // The objective talents' partial ranks are still searched.
+    expect(space.builds.some((b) => b.partial.includes(id('Booming Voice')))).toBe(true)
+    expect(space.builds.some((b) => b.partial.includes(id('Cruelty')))).toBe(true)
+    expectLegal(space.builds.map((b) => b.code))
+  })
+
+  it('the warrior under ehp>=103%: every rank of one objective talent, Toughness at 0 or 5, finds the better build (OGV-1)', () => {
+    // The verification's screen for Balanced (quick, seed 1): each objective talent's change in score
+    // at max rank, and the tie-break (less damage taken a second) at max rank. The floor at 103% of
+    // the default's effective health binds, so Toughness is a dimension. Before OGV-1 it searched
+    // Toughness's partial ranks too: 52,506 builds, too many for quick's budget at 50 fights each, so
+    // the search fell back to max ranks and missed Booming Voice 3 with Boundless Rage 2, +0.36 ±
+    // 0.10 points over the leader it found, paired.
+    const effect: Record<string, number> = {
+      'Improved Heroic Strike': 2.759, Deflection: -0.067, 'Improved Charge': -0.042, 'Anger Management': 1.279, 'Deep Wounds': 5.25,
+      Impale: 4.545, Weaponmaster: 8.077, Cruelty: 7.148, 'Unbridled Wrath': 1.165, 'Boundless Rage': -0.177, Enrage: 11.299, Flurry: 16.448,
+      'Shield Specialization': 12.904, Anticipation: -0.918, 'Improved Bloodrage': 0.743, 'Master of Defense': 4.01, 'Improved Revenge': 7.921,
+      Defiance: 14.782, 'Improved Sunder Armor': 5.081, Vanguard: 0.623, Bastion: 14.791, 'Focused Rage': 14.082, 'Shield Slam': 31.662,
+    }
+    const tie: Record<string, number> = {
+      'Improved Heroic Strike': 0.473, Deflection: 51.336, 'Improved Charge': -0.231, 'Anger Management': -1.353, Weaponmaster: -2.607, Cruelty: -0.693,
+      'Unbridled Wrath': -0.764, 'Boundless Rage': -0.459, Enrage: -0.945, Flurry: -4.676, 'Shield Specialization': -0.036, Anticipation: 26.569,
+      'Improved Bloodrage': 0.474, Toughness: 32.244, 'Master of Defense': -0.093, 'Improved Sunder Armor': 0.385, Vanguard: 0.708, 'Focused Rage': -0.292,
+      'Shield Slam': 1.266,
+    }
+    const perPoint = (table: Record<string, number>) => new Map(Object.entries(table).map(([n, x]) => [id(n), x / byName(warrior, n).maxRank]))
+    const options = {
+      data: warrior,
+      roles: roles(Object.keys(effect), { Toughness: 'tie-break' }),
+      values: perPoint(effect),
+      tieValues: perPoint(tie),
+      constrained: new Set([id('Toughness')]),
+      minPoints: { Protection: 31 },
+      preferTree: 'Protection',
+    }
+    const space = talentSpace(options)
+    expect(space.builds.length).toBe(COUNT_WARRIOR_EHP103_PARTIALS)
+    expect(talentSpaceSize(options)).toEqual({ builds: COUNT_WARRIOR_EHP103_PARTIALS, stopped: false })
+    const codes = space.builds.map((b) => b.code)
+    // The verification's better build, and the leader the max-rank fallback found.
+    expect(codes).toContain('-35050002005-500500233300010531')
+    expect(codes).toContain('-25050003005-500500233300010531')
+    expectLegal(codes.filter((_, i) => i % 211 === 0))
+    const maxRanks = talentSpace({ ...options, searchPartials: false })
+    expect(maxRanks.builds.length).toBe(COUNT_WARRIOR_EHP103)
+    expect(maxRanks.builds.map((b) => b.code)).not.toContain('-35050002005-500500233300010531')
+  })
+
+  it('sizes a space before listing it, exactly, and stops counting past a limit (OGV-5)', () => {
+    const options = { data: warrior, roles: roles(MODELLED, { Toughness: 'tie-break' }), keep: { [id('Last Stand')]: 1, [id('Improved Shield Wall')]: 2 }, minPoints: { Protection: 31 }, preferTree: 'Protection', searchPartials: false }
+    expect(talentSpaceSize(options)).toEqual({ builds: COUNT_PROTECTION, stopped: false })
+    expect(talentSpaceSize({ ...options, stopAt: 100 })).toEqual({ builds: 101, stopped: true })
+  })
+
   it('rejects contradictory constraints', () => {
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), keep: { [id('Cruelty')]: 5 }, exclude: [id('Cruelty')] })).toThrow(/both kept and excluded/)
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), minPoints: { Arms: 31, Fury: 31 } })).toThrow(/more than 51/)
@@ -258,3 +318,6 @@ describe('talentSpace', () => {
 /** Pinned: a change here means the space's rules changed (update it on purpose, with the reason). */
 const COUNT_PROTECTION = 4730
 const COUNT_PROTECTION_PARTIALS = 57_558
+/** The warrior's space under ehp>=103% (OGV-1), with every rank of one objective talent and with max ranks only. */
+const COUNT_WARRIOR_EHP103_PARTIALS = 46_814
+const COUNT_WARRIOR_EHP103 = 3945

@@ -44,7 +44,8 @@
 //                         No talent is kept by default (D30)
 //   --exclude <talent>    never taken; repeatable, or comma-separated
 //   --no-partials         search max ranks only: leftover points still go to partial ranks, by score per
-//                         point. By default every rank of one talent a build is searched too (OG-2)
+//                         point. By default every rank of one objective talent a build is searched too (OG-2;
+//                         a talent searched only for a constraint is at 0 or max, OGV-1)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
 // Constraints on the character sheet (docs/optimizer.md#constraints), repeatable:
@@ -67,7 +68,11 @@
 //                         balanced: the sum of the TPS and DPS changes relative to the setup's own (DPS alone
 //                         for a DPS spec)
 //   --budget quick|standard|thorough|<fights>   fights for the whole race (default standard: 1.5M, 6M, 24M).
-//                         A space too big for it runs a smaller first round, or a larger budget, and says so
+//                         A space too big for it grows the budget, up to the cap, so every plan runs 50 fights
+//                         in the first round, and says so
+//   --max-fights <n>      the hard ceiling: the most fights the search runs, the screen's and the race's, over
+//                         every pass (default thorough's 24,000,000; never raised automatically). A space past it,
+//                         or past 200,000 builds, narrows to max ranks and says so; one past it even then isn't run
 //   --first <n>           fights each candidate runs in the first round (default: 30% of the budget, 50 to 1,000)
 //   --seed <n>            the master seed, 0 to 4294967295 (default 1)
 //   --threads <n>         worker threads (default: available cores − 1)
@@ -189,6 +194,13 @@ const ci = (i, digits = 2) => `${fmt(i.mean, digits)} (${fmt(i.mean - i.halfWidt
 const count = (n) => n.toLocaleString('en-US')
 /** A count and its noun, singular for one (OV5-4): "1 build", "3,690 builds". */
 const plural = (n, noun) => `${count(n)} ${noun}${n === 1 ? '' : 's'}`
+/**
+ * A rough pace for estimates before anything has run: fights a second a thread on this machine
+ * under load (docs/optimizer.md#budgets: about 80,000 a second on 12–15 threads).
+ */
+const PER_THREAD = 6000
+/** Seconds as "about 40 s" or "about 5 min". */
+const duration = (seconds) => (seconds < 90 ? `about ${Math.max(1, Math.round(seconds))} s` : `about ${Math.round(seconds / 60)} min`)
 
 async function main() {
   const { values: args } = parseArgs({
@@ -211,6 +223,7 @@ async function main() {
       goal: { type: 'string' },
       budget: { type: 'string', default: 'standard' },
       first: { type: 'string' },
+      'max-fights': { type: 'string' },
       seed: { type: 'string', default: '1' },
       threads: { type: 'string', default: String(Math.max(1, availableParallelism() - 1)) },
       top: { type: 'string', default: '10' },
@@ -333,6 +346,7 @@ async function main() {
   const units = { balanced: ' points', defense: ' less damage taken a second', dps: ' DPS', tps: ' TPS' }[scored]
   const budget = engine.BUDGETS[args.budget] ?? { fights: flagNumber('budget', args.budget, { min: 100, whole: true }) }
   if (args.first !== undefined) budget.initialFights = flagNumber('first', args.first, { min: 2, whole: true })
+  const maxFights = args['max-fights'] === undefined ? engine.MAX_SEARCH_FIGHTS : flagNumber('max-fights', args['max-fights'], { min: 1, whole: true })
 
   console.log(
     [
@@ -360,6 +374,10 @@ async function main() {
     `goal: ${goal === scored ? goalText[goal] : `${goal}, which for a DPS spec is ${goalText[scored]}`}; budget ${args.budget} (${count(budget.fights)} fights)` +
       (constraints.length ? `; constraints ${constraints.map(engine.formatConstraint).join(', ')}` : ''),
   )
+  // The hard ceiling (D30, OGV-2), and roughly how long it could take, before anything runs.
+  console.log(
+    `ceiling: at most ${plural(maxFights, 'fight')} for the whole search${args['max-fights'] === undefined ? ' (the cap, thorough’s budget)' : ' (--max-fights)'}; the budget ${count(budget.fights)} is ${duration(Math.min(budget.fights, maxFights) / (threads * PER_THREAD))} and the cap ${duration(maxFights / (threads * PER_THREAD))} at a rough ${count(PER_THREAD)} fights a second a thread`,
+  )
 
   const runner = threadRunner(engine, bundle, threads)
   const started = performance.now()
@@ -372,6 +390,7 @@ async function main() {
     goal,
     constraints,
     budget,
+    maxFights,
     runner,
     top,
     onProgress: (p) => {
@@ -383,6 +402,10 @@ async function main() {
         describeSpace(p)
         console.log(`${plural(p.candidates, 'candidate')}, each paired with the baseline; first round ${plural(p.budget.initialFights, 'fight')} each${p.budget.fights !== budget.fights ? `, budget ${plural(p.budget.fights, 'fight')}` : ''}`)
         for (const note of p.notes) console.log(`  note: ${note}`)
+        // Before the race's first fight: the most it can run, and how long at the screen's pace (OGV-2).
+        const e = p.estimate
+        const pace = e.seconds !== undefined ? `, ${duration(e.seconds)} at the screen's pace` : `, ${duration(e.raceFights / (threads * PER_THREAD))} at a rough ${count(PER_THREAD)} fights a second a thread`
+        console.log(`estimate: the race runs at most ${plural(e.raceFights, 'fight')}${pace}; the search at most ${plural(e.fights, 'fight')} with the screen's ${count(e.screenFights)} (the cap is ${count(p.budget.cap)})`)
       }
       if (p.phase === 'race' && p.jobsDone === p.jobs && p.round !== lastRound) {
         lastRound = p.round
@@ -402,6 +425,8 @@ async function main() {
   } finally {
     await runner.close()
   }
+  const stopped = reports[reports.length - 1].turnsStopped
+  if (stopped) console.log(`\nturns: ${stopped}`)
   function report(r, pass) {
     lastRound = -1
     printStandings(r)
@@ -430,6 +455,12 @@ async function main() {
       console.log(
         `talent space: ${plural(r.space.builds, 'build')}${r.space.truncated ? ' (truncated)' : ''} from ${dimensions}, ${r.space.searchPartials ? 'every rank of one talent a build' : 'max ranks only'}; ${plural(r.space.cores, 'legal core')}, ${count(r.space.dominated)} dominated`,
       )
+      // Plainly, when the ceiling narrowed it (OGV-2): the note below says why.
+      const n = r.space.narrowed
+      if (n)
+        console.log(
+          `  NARROWED to max ranks: every rank of one talent a build makes ${n.atLeast ? 'more than ' : ''}${plural(n.atLeast ? n.builds - 1 : n.builds, 'build')}, past ${n.passes === 'builds' ? 'the 200,000 builds a search lists' : `the fights the cap races at ${engine.FIRST_ROUND_MIN} each`}`,
+        )
       const kept = Object.keys(keep)
       if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
@@ -536,7 +567,7 @@ async function main() {
   })
   writeFileSync(
     path,
-    JSON.stringify({ setup: { spec: specId, seed, goal, scoredGoal: scored, budget, args, config }, passes: reports.map(annotate), winner, confirmation, seconds: (performance.now() - started) / 1000 }, null, 1),
+    JSON.stringify({ setup: { spec: specId, seed, goal, scoredGoal: scored, budget, maxFights, args, config }, passes: reports.map(annotate), winner, confirmation, seconds: (performance.now() - started) / 1000 }, null, 1),
   )
   console.log(`\nreport: ${relative(process.cwd(), path)}`)
 }

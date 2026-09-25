@@ -4,8 +4,8 @@ import { expect, test } from './fixtures.ts'
 // The Rotation tab (docs/ux.md "Rotation"): its intro per spec, dependent switches, changed
 // settings and their defaults, each heading's Advanced thresholds and their descriptions, Reset
 // rotation, and consumables that need their Buffs switch. Fury's settings sit in its priority
-// list's rows (decision D31; e2e/priority-list.spec.ts has the list itself); a spec still on
-// switches, Arms, covers the headings' Advanced.
+// list's rows (decision D31; e2e/priority-list.spec.ts has the list itself); a hunter's spec-wide
+// settings above its list, under two headings with thresholds, cover the headings' Advanced.
 
 const openRotation = async (page: Page) => {
   await page.goto('./')
@@ -18,6 +18,16 @@ const openArmsRotation = async (page: Page) => {
   await page.goto('./')
   await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
   await page.getByRole('menuitem', { name: /Arms/ }).click()
+  await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+  return page.getByRole('tabpanel', { name: 'Rotation' })
+}
+
+/** The Rotation tab of Marksmanship, a hunter: a pet's threshold and the consumables above the list. */
+const openMarksmanshipRotation = async (page: Page) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('group', { name: 'Hunter' }).getByRole('menuitem', { name: /Marksmanship/ }).click()
+  await expect(page.getByRole('button', { name: /^Spec: Marksmanship Hunter/ })).toBeVisible()
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
   return page.getByRole('tabpanel', { name: 'Rotation' })
 }
@@ -171,29 +181,31 @@ test.describe('rotation tab', () => {
     await expect(tab.getByRole('button', { name: 'Reset Slam, default off' })).toHaveCount(0)
   })
 
-  test('thresholds wait behind each heading’s Advanced button, which opens by itself for a changed one (Arms, still on switches)', async ({ page }) => {
-    const tab = await openArmsRotation(page)
-    const fillers = tab.getByRole('region', { name: 'Fillers' })
+  test('thresholds wait behind each heading’s Advanced button, which opens by itself for a changed one (a hunter’s, above its list)', async ({ page }) => {
+    const tab = await openMarksmanshipRotation(page)
+    const consumables = tab.getByRole('region', { name: 'Consumables' })
     // Switches stay in view; the thresholds don't.
-    await expect(fillers.getByRole('switch', { name: 'Hamstring filler', exact: true })).toBeVisible()
-    await expect(fillers.getByRole('textbox', { name: 'Hamstring from' })).toHaveCount(0)
-    const advanced = fillers.getByRole('button', { name: /^Advanced settings for Fillers/ })
+    await expect(consumables.getByRole('switch', { name: 'Major Mana Potion', exact: true })).toBeVisible()
+    await expect(consumables.getByRole('textbox', { name: 'Major Mana Potion when missing' })).toHaveCount(0)
+    const advanced = consumables.getByRole('button', { name: /^Advanced settings for Consumables/ })
     await expect(advanced).toHaveAttribute('aria-expanded', 'false')
     await advanced.click()
     await expect(advanced).toHaveAttribute('aria-expanded', 'true')
     // In place, under the switch it tunes.
-    const hamstring = fillers.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Hamstring filler', exact: true }) })
-    const threshold = hamstring.getByRole('textbox', { name: 'Hamstring from' })
-    await expect(threshold).toHaveValue('40')
-    await threshold.fill('50')
+    const potion = consumables.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Major Mana Potion', exact: true }) })
+    const threshold = potion.getByRole('textbox', { name: 'Major Mana Potion when missing' })
+    await expect(threshold).toHaveValue('2,250')
+    // Focused first, so the field shows its plain "2250" before the fill replaces it.
+    await threshold.focus()
+    await threshold.fill('2000')
     await threshold.press('Enter')
-    await expect(hamstring.getByText('Default: 40 rage')).toBeVisible()
-    await expect(advanced).toHaveAccessibleName('Advanced settings for Fillers, 1 changed')
+    await expect(potion.getByText('Default: 2,250 mana')).toBeVisible()
+    await expect(advanced).toHaveAccessibleName('Advanced settings for Consumables, 1 changed')
 
-    // Next visit, the heading with a changed threshold is open; closed, it still counts it.
+    // Next visit, the heading with a changed threshold is open; the other stays closed; closed, it still counts it.
     await page.reload()
     await expect(page.getByRole('tab', { name: 'Rotation', exact: true })).toHaveAttribute('aria-selected', 'true')
-    await expect(threshold).toHaveValue('50')
+    await expect(threshold).toHaveValue('2,000')
     await expect(advanced).toHaveAttribute('aria-expanded', 'true')
     await expect(tab.getByRole('button', { name: /^Advanced settings for Core abilities/ })).toHaveAttribute('aria-expanded', 'false')
     await advanced.click()

@@ -349,21 +349,25 @@ test.describe('rotation and buffs', () => {
 })
 
 test.describe('rotation groups', () => {
-  test('groups a spec’s settings under headings, each dependent setting under its parent (Arms, still on switches)', async ({ page }) => {
+  test('groups a spec’s settings above its list under headings, each dependent setting under its parent (Retribution)', async ({ page }) => {
     await page.goto('./')
-    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
-    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('menuitem', { name: /Retribution/ }).click()
+    await expect(page.getByRole('button', { name: /^Spec: Retribution Paladin/ })).toBeVisible()
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const headings = page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('heading', { level: 3 })
-    await expect(headings).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
-    const core = page.getByRole('region', { name: 'Core abilities' })
-    await expect(core.getByRole('switch', { name: 'Mortal Strike', exact: true })).toBeVisible()
-    // Slam's reserve waits behind the heading's Advanced button, then sits in Slam's own list item, under it.
-    const slam = core.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Slam', exact: true }) })
-    await expect(slam.getByRole('textbox', { name: 'Slam rage reserve' })).toHaveCount(0)
-    await core.getByRole('button', { name: /^Advanced/ }).click()
-    await expect(slam.getByRole('textbox', { name: 'Slam rage reserve' })).toBeVisible()
-    await expect(page.getByRole('region', { name: 'Execute phase' }).getByRole('switch', { name: 'Execute', exact: true })).toBeVisible()
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
+    await expect(tab.getByRole('region', { name: 'Cooldowns and buffs' }).getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeVisible()
+    // The potion's thresholds wait behind the heading's Advanced button, then sit in the potion's own list item, under it.
+    const consumables = tab.getByRole('region', { name: 'Consumables' })
+    const potion = consumables.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Major Mana Potion', exact: true }) })
+    await expect(potion.getByRole('textbox', { name: 'Major Mana Potion when missing' })).toHaveCount(0)
+    await consumables.getByRole('button', { name: /^Advanced/ }).click()
+    await expect(potion.getByRole('textbox', { name: 'Major Mana Potion early, when missing' })).toBeVisible()
+    await expect(potion.getByRole('textbox', { name: 'Major Mana Potion when missing' })).toBeVisible()
+    // Every heading sits above the list.
+    const list = (await tab.getByRole('list', { name: 'Priority list' }).boundingBox())!
+    expect((await consumables.boundingBox())!.y).toBeLessThan(list.y)
   })
 
   test('shows Fury’s consumables under their heading, above its priority list', async ({ page }) => {
@@ -375,17 +379,20 @@ test.describe('rotation groups', () => {
     expect(consumables.y).toBeLessThan((await tab.getByRole('list', { name: 'Priority list' }).boundingBox())!.y)
   })
 
-  test('puts Arms’ stance first, above the headings', async ({ page }) => {
+  test('puts Arms’ stance first, above its headings and its list', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await page.getByRole('menuitem', { name: /Arms/ }).click()
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const stance = page.getByRole('radiogroup', { name: 'Stance' })
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    const stance = tab.getByRole('radiogroup', { name: 'Stance' })
     await expect(stance).toBeVisible()
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
     const stanceTop = (await stance.boundingBox())!.y
-    const firstHeading = (await page.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y
-    expect(stanceTop).toBeLessThan(firstHeading)
-    await expect(page.getByRole('region', { name: 'Core abilities' }).getByRole('switch', { name: 'Rend', exact: true })).toBeVisible()
+    expect(stanceTop).toBeLessThan((await tab.getByRole('heading', { name: 'Consumables' }).boundingBox())!.y)
+    expect(stanceTop).toBeLessThan((await tab.getByRole('list', { name: 'Priority list' }).boundingBox())!.y)
+    // Rend is a row on the list.
+    await expect(tab.locator('[data-apl-row="rend"]')).toBeVisible()
   })
 })
 

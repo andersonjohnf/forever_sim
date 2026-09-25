@@ -563,6 +563,10 @@ default, as above; Defense = the least damage taken), and it searches every lega
 rotation in scope and takes the best by that goal, measured. Sheet constraints stay, as options the
 player sets (the effective-health floor, crit and crush immunity); they read the character sheet,
 not talent names. Where this paragraph and the ones above disagree, this one holds.
+**A search has a hard ceiling** (user decision, same day: "there does need to be some reasonable
+limit to iterations"). The optimizer grows its budget to race every plan fairly, but never past a
+fixed cap on total fights (and on builds enumerated); beyond it, it narrows the space (max ranks
+first) and says so, and it shows the estimated fights and time before it runs.
 
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority

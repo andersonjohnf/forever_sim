@@ -593,8 +593,11 @@ function ListRow({
       )}
     </>
   )
-  // The row's line: the item itself, or, inline, its first part, with its settings under it.
-  const line = 'flex min-h-16 items-center gap-1 pr-2'
+  // The row's line, with its settings under it when they open inline. The same elements in every
+  // place, so a window crossing the third column's width (inline to the panel and back) keeps the
+  // row's handle, button and switch rather than remounting them, and focus on one stays there
+  // (e2e/wide-focus.spec.ts). Only the classes differ: without settings under it the item holds
+  // the 4 rem least height, its divider inside it, as it always has.
   return (
     <li
       ref={setNodeRef}
@@ -605,21 +608,15 @@ function ListRow({
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
         'relative bg-background',
-        !inline && line,
+        !inline && 'flex min-h-16 flex-col',
         // Selected: a bar in the primary colour on its leading edge, so its dimmed text keeps AA on
         // the page's background. Inline it runs down the row's settings too, which are the row's.
         selected && desktop && 'shadow-[inset_3px_0_0_var(--color-primary)]',
         isDragging && 'z-10 shadow-lg ring-2 ring-ring/50',
       )}
     >
-      {inline ? (
-        <>
-          <div className={line}>{content}</div>
-          {children}
-        </>
-      ) : (
-        content
-      )}
+      <div className={cn('flex items-center gap-1 pr-2', inline ? 'min-h-16' : 'flex-1')}>{content}</div>
+      {children}
     </li>
   )
 }

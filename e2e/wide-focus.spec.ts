@@ -91,12 +91,30 @@ test.describe('focus through a change of layout', () => {
     await resize(page, 1600, 1000)
     await expect(inline.getByRole('button', { name: 'Move down' })).toBeFocused()
 
-    // Focus that left the settings stays where it went.
+    // Focus that left the settings stays where it went, both ways: the list's rows are the same
+    // elements in either layout. Each check waits for the new layout first, since the tab measures
+    // its width after the resize (a check before then passed on the old layout's elements, and
+    // the rows used to remount: this flaked about 2 in 20 under load).
+    const whirlwind = list.getByRole('switch', { name: 'Whirlwind', exact: true })
     const row = list.getByRole('button', { name: 'Whirlwind', exact: true })
-    await list.getByRole('switch', { name: 'Whirlwind', exact: true }).focus()
-    await resize(page, 1920, 1000)
-    await expect(list.getByRole('switch', { name: 'Whirlwind', exact: true })).toBeFocused()
+    const bloodrage = list.getByRole('button', { name: 'Bloodrage', exact: true })
+    const moved = async (width: number, control: Locator) => {
+      await control.evaluate((el) => (el.dataset.focusMark = 'kept'))
+      await resize(page, width, 1000)
+      await expect(width === 1920 ? panel : inline).toBeVisible()
+      await expect(width === 1920 ? inline : panel).toHaveCount(0)
+      await expect(control).toBeFocused()
+      // The same element, not a new one that took focus.
+      await expect(control).toHaveAttribute('data-focus-mark', 'kept')
+    }
+    await whirlwind.focus()
+    await moved(1920, whirlwind)
     await expect(row).not.toBeFocused()
+    await moved(1600, whirlwind)
+    // The selected row's own button, which Escape from its settings goes back to.
+    await bloodrage.focus()
+    await moved(1920, bloodrage)
+    await moved(1600, bloodrage)
   })
 
   // Review finding V2-1: a control without an id was found by its place in the tab order, which a

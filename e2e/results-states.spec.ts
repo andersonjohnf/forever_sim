@@ -327,7 +327,8 @@ test.describe('on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
   test('a failed first run shows in the bar and opens the sheet with the reason', async ({ page }) => {
-    await seed(page, { race: 'alliance-skyborne-high-order' })
+    // A hunter with no ranged weapon: the engine refuses it (ranged-and-pets.md §12).
+    await seed(page, { spec: 'hunter-marksmanship', gear: {} })
     await page.goto('./')
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
@@ -336,7 +337,8 @@ test.describe('on a phone', () => {
     await expect(status(page)).toContainText('Couldn’t simulate')
     await bar.click()
     const sheet = page.getByRole('dialog', { name: 'Results' })
-    await expect(sheet.getByRole('alert')).toContainText('a Skyborne warrior can’t be simulated')
+    await expect(sheet.getByRole('alert')).toContainText('This setup can’t be simulated')
+    await expect(sheet.getByRole('alert')).toContainText('Add a ranged weapon')
     // A setup the engine refuses says what to change; retrying wouldn't help.
     await expect(sheet.getByRole('alert')).not.toContainText('Try again')
   })
@@ -355,10 +357,13 @@ test.describe('on a phone', () => {
   })
 
   test('a failed re-run shows in the bar too, and the sheet keeps the last result', async ({ page }) => {
+    await seed(page, { spec: 'hunter-marksmanship' })
     await page.goto('./')
     await simulate(page)
-    await page.getByRole('tab', { name: 'Character', exact: true }).click()
-    await page.getByRole('radio', { name: /Skyborne \(High Order\)/ }).click()
+    // Empty the ranged slot: the engine refuses a hunter with nothing to shoot.
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await page.getByRole('tabpanel', { name: 'Gear' }).getByRole('button', { name: /^Ranged: / }).click({ position: { x: 24, y: 24 } })
+    await page.getByRole('dialog', { name: 'Choose ranged' }).getByRole('button', { name: 'Leave this slot empty' }).click()
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
     await expect(bar).toContainText('Failed')

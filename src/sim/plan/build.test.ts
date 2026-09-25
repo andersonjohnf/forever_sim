@@ -610,12 +610,12 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
     expect(buildPlan(defaultConfig('warrior-fury', 'alliance-human')).sheet.placeholders).not.toContain('base attributes')
   })
 
-  it('simulates every race each spec’s class can be: none reaches the missing-row blocker', () => {
+  it('simulates every race each spec’s class can be: none reaches the missing-row blocker or leaves a base value out', () => {
     for (const spec of SPEC_IDS) {
       for (const race of racesForClass(raceJson as RaceData, SPEC_META[spec].classId)) {
         const bundle = buildPlan(defaultConfig(spec, race.id))
         expect(bundle.blockers, `${spec} ${race.id}`).toEqual([])
-        expect(bundle.sheet.unknown, `${spec} ${race.id}`).not.toContain('base attributes')
+        expect(bundle.sheet.unknown, `${spec} ${race.id}`).toEqual([])
       }
     }
   })

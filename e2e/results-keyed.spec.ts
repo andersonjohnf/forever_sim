@@ -18,7 +18,33 @@ async function seed(page: Page, config: Record<string, unknown>, section = 'gear
   )
 }
 
-const SKYBORNE = { race: 'alliance-skyborne-high-order' }
+/**
+ * A Marksmanship hunter with arrows and a quiver but no ranged weapon: the engine refuses it, as it
+ * shoots nothing (docs/mechanics/ranged-and-pets.md §12). Riphook fires those arrows, so picking it
+ * and emptying the slot again gives back this very setup.
+ */
+const NO_RANGED = { spec: 'hunter-marksmanship', gear: { ammo: { itemId: 18042 }, quiver: { itemId: 19319 } } }
+const MM = /^Spec: Marksmanship Hunter/
+const BM = /^Spec: Beast\sMastery Hunter/
+const switchHunter = async (page: Page, name: RegExp, spec: RegExp) => {
+  await page.getByRole('button', { name: /^Spec: / }).click()
+  await page.getByRole('group', { name: 'Hunter' }).getByRole('menuitem', { name }).click()
+  await expect(page.getByRole('button', { name: spec })).toBeVisible()
+}
+/** Picks the ranged weapon in the Gear tab: an item by name, or null to leave the slot empty. */
+const pickRanged = async (page: Page, item: 'Riphook' | null) => {
+  await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+  // A row's flag badges can sit mid-row, so tap its icon (hunter.spec.ts).
+  await page.getByRole('tabpanel', { name: 'Gear' }).getByRole('button', { name: /^Ranged: / }).click({ position: { x: 24, y: 24 } })
+  const picker = page.getByRole('dialog', { name: 'Choose ranged' })
+  if (item) {
+    await picker.getByLabel('Search items').fill(item)
+    await picker.getByRole('button', { name: new RegExp(`^${item}`) }).click({ position: { x: 24, y: 24 } })
+  } else {
+    await picker.getByRole('button', { name: 'Leave this slot empty' }).click()
+  }
+  await expect(picker).toBeHidden()
+}
 
 const switchSpec = async (page: Page, name: 'Fury' | 'Arms') => {
   await page.getByRole('button', { name: /^Spec: / }).click()
@@ -34,39 +60,41 @@ test.describe('a failed run, on desktop (RU4)', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
   test('shows only while the setup is the one that failed: set aside on a spec switch, gone once fixed', async ({ page }) => {
-    await seed(page, SKYBORNE)
+    await seed(page, NO_RANGED)
     await page.goto('./')
     const panel = page.getByRole('complementary', { name: 'Results' })
     await panel.getByRole('button', { name: 'Simulate' }).click()
     const alert = panel.getByRole('alert')
-    await expect(alert).toContainText('can’t be simulated')
+    await expect(alert).toContainText('This setup can’t be simulated')
+    await expect(alert).toContainText('Add a ranged weapon')
 
-    // Arms is another setup: nothing failed there.
-    await switchSpec(page, 'Arms')
+    // Beast Mastery is another setup: nothing failed there.
+    await switchHunter(page, /Beast\sMastery/, BM)
     await expect(alert).toHaveCount(0)
     await expect(panel).toContainText('Simulate to see your DPS.')
-    // Back on the same Fury setup, the failure still applies.
-    await switchSpec(page, 'Fury')
-    await expect(alert).toContainText('can’t be simulated')
+    // Back on the same Marksmanship setup, the failure still applies.
+    await switchHunter(page, /Marksmanship/, MM)
+    await expect(alert).toContainText('Add a ranged weapon')
 
     // Fixing the setup clears it; there's no result yet, so the panel is ready to simulate.
-    await chooseRace(page, 'Human')
+    await pickRanged(page, 'Riphook')
     await expect(alert).toHaveCount(0)
     await expect(panel).toContainText('Simulate to see your DPS.')
-    // Going back to the failing race shows it again, as a result would come back.
-    await chooseRace(page, 'Skyborne (High Order)')
-    await expect(alert).toContainText('can’t be simulated')
+    // Going back to the failing setup shows it again, as a result would come back.
+    await pickRanged(page, null)
+    await expect(alert).toContainText('Add a ranged weapon')
   })
 
   test('after a failed re-run, fixing the setup leaves the last result, stale, without the error', async ({ page }) => {
+    await seed(page, { spec: 'hunter-marksmanship' })
     await page.goto('./')
     const panel = page.getByRole('complementary', { name: 'Results' })
     await panel.getByRole('button', { name: 'Simulate' }).click()
     await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
-    await chooseRace(page, 'Skyborne (High Order)')
+    await pickRanged(page, null)
     await panel.getByRole('button', { name: 'Simulate' }).click()
     await expect(panel.getByRole('alert')).toBeVisible()
-    await chooseRace(page, 'Orc')
+    await pickRanged(page, 'Riphook')
     await expect(panel.getByRole('alert')).toHaveCount(0)
     await expect(panel.getByRole('group', { name: 'DPS' })).toContainText('Setup changed')
     await expect(panel).toContainText('Your setup changed since this run.')
@@ -77,19 +105,19 @@ test.describe('a failed run, on a phone (RU4)', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
   test('the bar shows the failure only while the setup is the one that failed', async ({ page }) => {
-    await seed(page, SKYBORNE)
+    await seed(page, NO_RANGED)
     await page.goto('./')
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
     await expect(bar).toContainText('Failed')
 
-    await switchSpec(page, 'Arms')
+    await switchHunter(page, /Beast\sMastery/, BM)
     await expect(bar).not.toContainText('Failed')
     await expect(bar).toBeDisabled()
-    await switchSpec(page, 'Fury')
+    await switchHunter(page, /Marksmanship/, MM)
     await expect(bar).toContainText('Failed')
 
-    await chooseRace(page, 'Human')
+    await pickRanged(page, 'Riphook')
     await expect(bar).not.toContainText('Failed')
     await expect(bar).toContainText('DPS')
     await expect(bar).toBeDisabled()

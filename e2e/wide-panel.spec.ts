@@ -201,7 +201,8 @@ test.describe('the wide panel at 1440×900', () => {
   })
 
   test('a run that fails says so in the action row, its message below', async ({ page }) => {
-    await seed(page, { race: 'alliance-skyborne-high-order' })
+    // A hunter with no ranged weapon: the engine refuses it (ranged-and-pets.md §12).
+    await seed(page, { spec: 'hunter-marksmanship', gear: {} })
     await page.goto('./')
     const panel = results(page)
     await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
@@ -479,7 +480,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       })
 
       test('its whole edge shows after a run that fails', async ({ page }) => {
-        await seed(page, { race: 'alliance-skyborne-high-order' })
+        await seed(page, { spec: 'hunter-marksmanship', gear: {} })
         await page.goto('./')
         const panel = results(page)
         await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()

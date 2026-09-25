@@ -280,14 +280,16 @@ test.describe('the wide right panel, 1440 px', () => {
   })
 
   test('a setup the run refuses keeps its sheet, and the refusal shows under your setup', async ({ page }) => {
-    await seed(page, { race: 'alliance-skyborne-high-order' })
+    // A hunter with no ranged weapon shoots nothing, so the engine refuses it (ranged-and-pets.md §12).
+    await seed(page, { spec: 'hunter-marksmanship', gear: {} })
     await page.goto('./')
     const panel = results(page)
-    // The sheet is the setup's, whatever a run makes of it: it names what it leaves out.
-    await expect(sheetOf(panel)).toContainText('Not known for Forever yet, so left out: base attributes.')
+    // The sheet is the setup's, whatever a run makes of it: it says there's nothing to shoot.
+    await expect(sheetOf(panel)).toContainText('No ranged weapon')
     await setupOf(panel).getByRole('button', { name: 'Simulate' }).click()
     const alert = panel.getByRole('alert')
-    await expect(alert).toContainText('a Skyborne warrior can’t be simulated')
+    await expect(alert).toContainText('This setup can’t be simulated')
+    await expect(alert).toContainText('Add a ranged weapon')
     expect((await box(alert)).y).toBeGreaterThan((await box(setupOf(panel))).y)
     // No headline for a run with no result.
     await expect(panel.getByRole('group', { name: 'DPS' })).toHaveCount(0)

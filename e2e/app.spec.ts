@@ -356,8 +356,9 @@ test.describe('rotation groups', () => {
     await expect(page.getByRole('button', { name: /^Spec: Retribution Paladin/ })).toBeVisible()
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Consumables', 'Priority list'])
-    await expect(tab.getByRole('region', { name: 'Cooldowns and buffs' }).getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeVisible()
+    // Juju Flurry sits with the mana consumables, and the on-use trinkets are a row of the list, as every spec's.
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Consumables', 'Priority list'])
+    await expect(tab.getByRole('list', { name: 'Priority list' }).getByRole('switch', { name: 'On-use trinkets', exact: true })).toBeVisible()
     // The potion's thresholds wait behind the heading's Advanced button, then sit in the potion's own list item, under it.
     const consumables = tab.getByRole('region', { name: 'Consumables' })
     const potion = consumables.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Major Mana Potion', exact: true }) })

@@ -15,7 +15,7 @@ import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
+import { fitsFaction, fitsSlot, isTwoHand, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
 import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
@@ -141,7 +141,11 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
   // the items worn for a set's count, and the info control only where nothing hovers.
   const profile = useSetup((s) => s.config.rules.profile)
   const enchantId = useSetup((s) => s.config.gear[slot]?.enchantId)
-  const wornIds = useMemo(() => Object.values(worn).flatMap((item) => (item ? [item.id] : [])), [worn])
+  // An off-hand a two-hander locks doesn't count toward a set, as the engine skips it (src/sim/plan/build.ts).
+  const wornIds = useMemo(() => {
+    const twoHanded = worn.mainHand ? isTwoHand(worn.mainHand) : false
+    return (Object.entries(worn) as [GearSlot, Item | undefined][]).flatMap(([at, item]) => (item && !(at === 'offHand' && twoHanded) ? [item.id] : []))
+  }, [worn])
   const hovers = useMediaQuery('(hover: hover) and (pointer: fine)')
   const candidates = useMemo(
     () =>

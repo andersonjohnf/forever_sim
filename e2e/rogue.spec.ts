@@ -118,7 +118,7 @@ test.describe('Combat rogue', () => {
     await expect(results.getByRole('heading', { name: 'Rogue mechanics' })).toBeVisible()
     await expect(results.getByText(/^Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick/)).toBeVisible()
     await expect(results.getByText(/^Poisons roll spell hit/)).toBeVisible()
-    await expect(results.getByText(/^Instant Poison adds 0\.5% of your attack power a hit and Deadly Poison 0\.1125% a stack each tick/)).toBeVisible()
+    await expect(results.getByText(/^Instant Poison adds 0\.5% of your attack power a hit, as a guild test measured, and Deadly Poison 0\.1125% a stack each tick, measured on Deadly Poison V; rank IV is taken to be the same\./)).toBeVisible()
     // Eviscerate's attack power is the guild's measurement; which talents the tester had is still
     // an assumption (rogue.md Q3).
     await expect(results.getByText(/Eviscerate gains 3%/)).toHaveCount(0)

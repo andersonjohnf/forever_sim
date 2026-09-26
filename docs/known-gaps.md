@@ -8,10 +8,6 @@ of fixing it only when it's low and breaks no promise in [ux.md](ux.md), the doc
 or class doc. **When an entry is fixed, delete it here** and name the fixing commit in that
 review's log under [reviews/](reviews/). The milestones are in [milestones.md](milestones.md).
 
-- **Deep Wounds' rolling bleed is re-checked under D37 (review AL-5).** It rests on D36's
-  evidence plus WarriorSim's SoD code, which D37 makes unconfirmed data; no M5.669 slice
-  schedules the re-check (Blizzard's SoD patch notes for 412609, or Classic Era's restart, about
-  14% less warrior DPS). [open-questions B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer).
 - **Item tooltips, three pre-existing lows (review VT-2, VT-3, VT-4).** Closing the picker with
   Escape while the mouse rests on another slot can leave two tooltips open (the returned slot's focus
   one and the hovered one); the next Escape closes both. One probe saw the phone picker's sheet

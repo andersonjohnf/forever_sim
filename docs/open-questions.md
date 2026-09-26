@@ -425,10 +425,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   rolling bleed as "SoD behaviour as the closest analog", an exception D37 replaced with
   [doctrine §2 tier 4's scoped SoD rule](doctrine.md#2-where-numbers-come-from-non-negotiable):
   only Blizzard's own SoD client data or patch notes for 412609 may supply its behaviour.
-  "Rolls" rests on the evidence above (the BlizzCon stream, the Forever client's SoD spells, one
-  beta log) plus WarriorSim's SoD `DeepWounds` code, which is unconfirmed data, not a source. It
-  stays the default until the re-check: Blizzard's SoD patch notes for Deep Wounds, or back to
-  Classic Era's restart if nothing allowed supports rolling.
+  "Rolls" rests on the evidence above (the BlizzCon stream and the Forever client's SoD spells;
+  the beta log is neutral) plus WarriorSim's SoD `DeepWounds` code, which is unconfirmed data,
+  not a source. The user's D36 decision stands until the re-check, which
+  [M5.669's B3](milestones.md#m5669-only-sourced-values--next-update) schedules: Blizzard's SoD
+  patch notes for Deep Wounds (412609), or back to Classic Era's restart if nothing allowed
+  supports rolling.
 - **Test:** with Deep Wounds (1/3 is enough) vs a mob three levels higher, crit it every 1–2 s
   (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times and amounts
   from the combat log. Rolling: ticks come every 3 s from the first application, whatever crits

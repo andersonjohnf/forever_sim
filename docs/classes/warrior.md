@@ -369,9 +369,10 @@ SpellMisc, 1.60.1.69913); the rolling model [?] ([D36](../decisions.md#d36-what-
   `SpellMisc` row, and not encrypted) [F] [client] (SpellName, SpellEffect, SpellMisc,
   1.60.1.69913). 412609 is the Season of Discovery spell, which the Classic Era 1.15.9 client
   also carries. The sim has it roll, on [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)'s
-  evidence: the BlizzCon demo stream ("stacking SoD-style"), the Forever client carrying only
-  SoD's spells, and one beta log, plus WarriorSim's SoD `DeepWounds` class [ws-spell] as
-  unconfirmed data, not a source. It's `[?]` and re-checked under
+  evidence: the BlizzCon demo stream ("stacking SoD-style") and the Forever client carrying only
+  SoD's spells, plus WarriorSim's SoD `DeepWounds` class [ws-spell] as unconfirmed data, not a
+  source. The one beta log with the bleed is neutral: it shows a single crit, so it can't tell
+  rolling from restarting (B79). It's `[?]` and re-checked under
   [D37](../decisions.md#d37-only-sourced-values-2026-09-26), whose scoped SoD rule admits only
   Blizzard's own SoD data or patch notes for 412609 (Q21, [open-questions
   B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)), until an
@@ -3247,8 +3248,9 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     Discovery spell, also in the Classic Era 1.15.9 client. The sim has the bleed **roll** (each
     crit adds its snapshotted amount to a pool the next 4 ticks pay out, and the pending tick
     keeps its time, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?], on D36's evidence (the
-    BlizzCon stream, the Forever client's SoD spells, one beta log) plus WarriorSim's SoD code as
-    unconfirmed data; it's re-checked under D37 ([open-questions
+    BlizzCon stream, the Forever client's SoD spells) plus WarriorSim's SoD code as unconfirmed
+    data; the one beta log with the bleed can't tell the models apart. It's re-checked under D37
+    in M5.669's B3 ([open-questions
     B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)). It's the largest change D36 brought: the
     earlier restart model, which lost what was left of the bleed at every crit, gave the default
     Fury warrior about 14% less DPS and Arms about 14% less: on the defaults since W4, at the

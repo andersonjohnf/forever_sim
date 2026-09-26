@@ -216,6 +216,9 @@ provenance is M5.668's P3.
 - [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
 - [ ] **B2 Attack-power terms and procs from the client and logs:** Revenge, Thunder Clap, Rend,
       Arcane Shot, Serpent Sting, Unbridled Wrath, off-hand rage
+- [ ] **B3 Deep Wounds under D37:** Blizzard's SoD patch notes for spell 412609 or Classic Era's
+      restart; the user's D36 decision stands until then
+      ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
 - [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite, the rage fit, Maul's ×1.75 provenance
 - [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
 - [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked

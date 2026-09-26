@@ -1,5 +1,7 @@
 import type { Faction } from '@/data/races/types'
-import { computeSheet, defaultConfig, hasThreatSet, type SpecId } from '@/sim'
+import { itemsById } from '@/lib/items'
+import { computeSheet, defaultConfig, hasThreatSet, isTwoHand, type SpecId } from '@/sim'
+import { SLOT_LABEL } from '@/features/gear/slots'
 import type { FactionGearChange } from './faction-gear'
 
 const simulatable = new Map<string, boolean>()
@@ -46,19 +48,27 @@ const SWAP_WORDS = {
   other: 'with the same stats but in another set',
 } as const
 
+/** Why the new default leaves a slot empty: ": Whiteout Staff takes both hands" for the off hand beside a two-hander. */
+function clearedBecause(change: FactionGearChange, slot: string): string {
+  const main = change.config.gear.mainHand && itemsById.get(change.config.gear.mainHand.itemId)
+  return slot === 'offHand' && main && isTwoHand(main) ? `: ${main.name} takes both hands` : ''
+}
+
 /**
  * The toast after a race change that moved faction-bound gear, or null when nothing changed. Default
- * pieces that became the new race's own default, not their twin, say which set they come from, and
- * a piece whose set bonus isn't the old one's says how (docs/ux.md "Character").
+ * pieces that became the new race's own default, not their twin, say which set they come from (a slot
+ * that was empty too: an Alliance caster's off hand), a piece whose set bonus isn't the old one's says
+ * how, and a slot the new default leaves empty says why (a Horde caster's Whiteout Staff takes both
+ * hands). The title counts every slot that moved (docs/ux.md "Character").
  */
 export function raceChangeMessage(change: FactionGearChange, faction: Faction): { title: string; description: string } | null {
-  const { swapped, defaulted, kept } = change
-  if (swapped.length === 0 && defaulted.length === 0 && kept.length === 0) return null
+  const { swapped, defaulted, cleared, kept } = change
+  if (swapped.length === 0 && defaulted.length === 0 && cleared.length === 0 && kept.length === 0) return null
   const keptNames = list(kept.map((k) => k.item.name))
   const keptLine = kept.length
     ? `Kept ${keptNames}: ${kept.length === 1 ? 'it has' : 'they have'} no ${faction} version, so pick ${kept.length === 1 ? 'a replacement' : 'replacements'} under Gear.`
     : ''
-  if (swapped.length === 0 && defaulted.length === 0) return { title: `Your gear includes items a ${faction} character can’t wear`, description: keptLine }
+  if (swapped.length === 0 && defaulted.length === 0 && cleared.length === 0) return { title: `Your gear includes items a ${faction} character can’t wear`, description: keptLine }
   const set = hasThreatSet(change.config.spec) ? `the ${faction} threat set` : `${faction} pre-raid best in slot`
   const swapLines = (Object.keys(SWAP_WORDS) as (keyof typeof SWAP_WORDS)[]).map((kind) => {
     const names = swapped.filter((s) => setChange(s) === kind).map((s) => s.to.name)
@@ -67,16 +77,19 @@ export function raceChangeMessage(change: FactionGearChange, faction: Faction): 
   const lines = [
     ...swapLines,
     defaulted.length ? `${list(defaulted.map((s) => s.to.name))}, from ${set}.` : '',
+    ...cleared.map(({ slot }) => `${SLOT_LABEL[slot]} cleared${clearedBecause(change, slot)}.`),
     keptLine,
   ]
-  const moved = swapped.length + defaulted.length
+  const moved = swapped.length + defaulted.length + cleared.length
   return {
     title:
-      defaulted.length > 0
-        ? `Swapped ${moved} ${moved === 1 ? 'item' : 'items'} for ${faction} gear`
-        : swapped.length === 1
-          ? `Swapped 1 item for its ${faction} version`
-          : `Swapped ${swapped.length} items for their ${faction} versions`,
+      cleared.length > 0
+        ? `Changed ${moved} ${moved === 1 ? 'slot' : 'slots'} for ${faction} gear`
+        : defaulted.length > 0
+          ? `Swapped ${moved} ${moved === 1 ? 'item' : 'items'} for ${faction} gear`
+          : swapped.length === 1
+            ? `Swapped 1 item for its ${faction} version`
+            : `Swapped ${swapped.length} items for their ${faction} versions`,
     description: lines.filter(Boolean).join(' '),
   }
 }

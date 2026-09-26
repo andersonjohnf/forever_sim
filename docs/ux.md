@@ -249,7 +249,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([architecture, "Following the defaults"](architecture.md#following-the-defaults)), so an
     untouched set stays the default set: a Horde paladin gets the Horde threat set's own pieces,
     and the notice says where they're from ("Swapped 4 items for Horde gear": "Premier Scaled
-    Shoulders, …, from the Horde threat set.").
+    Shoulders, …, from the Horde threat set."). A default slot that was empty and now isn't is named
+    the same way, and one the new default leaves empty says why, so the title counts every slot that
+    moved: a Human Fire mage turned Troll reads "Changed 4 slots for Horde gear", ending "Whiteout
+    Staff, from Horde pre-raid best in slot. Off hand cleared: Whiteout Staff takes both hands.",
+    and back to Human the off hand's Tome of Fiery Arcana is named with Sageclaw.
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).

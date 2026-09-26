@@ -82,10 +82,16 @@ export interface FactionGearChange {
    */
   swapped: { slot: GearSlot; from: Item; to: Item; setDiffers: boolean }[]
   /**
-   * Default items swapped for the new race's default, which isn't their twin (a Horde paladin's own
-   * threat set pieces), in paper-doll order.
+   * Default slots that take the new race's default, which isn't their twin (a Horde paladin's own
+   * threat set pieces), in paper-doll order; `from` is null for a slot that was empty (an Alliance
+   * caster's off hand, after a Horde caster's two-hander).
    */
-  defaulted: { slot: GearSlot; from: Item; to: Item }[]
+  defaulted: { slot: GearSlot; from: Item | null; to: Item }[]
+  /**
+   * Default slots the new race's default leaves empty (a Horde caster's off hand, beside Whiteout
+   * Staff), in paper-doll order.
+   */
+  cleared: { slot: GearSlot; item: Item }[]
   /** The other faction's items with no twin, kept as they are. */
   kept: { slot: GearSlot; item: Item }[]
 }
@@ -102,13 +108,22 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
   const { classId } = SPEC_META[config.spec]
   const swapped: FactionGearChange['swapped'] = []
   const defaulted: FactionGearChange['defaulted'] = []
+  const cleared: FactionGearChange['cleared'] = []
   const kept: FactionGearChange['kept'] = []
   const follow = following(config)
   const gear = { ...followDefaults({ ...config, race }, { gear: follow.gear, talents: false }).config.gear }
   for (const slot of follow.gear) {
     const from = config.gear[slot] && itemsById.get(config.gear[slot].itemId)
     const to = gear[slot] && itemsById.get(gear[slot].itemId)
-    if (!from || !to || from.id === to.id) continue
+    if (from?.id === to?.id) continue
+    if (!to) {
+      if (from) cleared.push({ slot, item: from })
+      continue
+    }
+    if (!from) {
+      defaulted.push({ slot, from: null, to })
+      continue
+    }
     const twin = faction ? raceChangeTwin(from, faction, classId) : null
     if (twin?.twin.id === to.id) swapped.push({ slot, from, to, setDiffers: twin.setDiffers })
     else defaulted.push({ slot, from, to })
@@ -133,5 +148,5 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
     }
   }
   const order = (a: { slot: GearSlot }, b: { slot: GearSlot }) => GEAR_SLOTS.indexOf(a.slot) - GEAR_SLOTS.indexOf(b.slot)
-  return { config: { ...config, race, gear }, swapped: swapped.sort(order), defaulted, kept }
+  return { config: { ...config, race, gear }, swapped: swapped.sort(order), defaulted, cleared, kept }
 }

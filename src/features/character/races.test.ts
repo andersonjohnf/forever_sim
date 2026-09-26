@@ -40,6 +40,25 @@ describe('the race-change toast', () => {
     )
   })
 
+  it('names a slot the new default fills or empties, and counts it (EU-1)', () => {
+    const troll = defaultConfig('mage-fire', 'horde-troll')
+    const toHuman = changeRace(troll, 'alliance-human')
+    expect(toHuman.cleared).toEqual([])
+    expect(raceChangeMessage(toHuman, 'Alliance')).toEqual({
+      title: 'Swapped 4 items for Alliance gear',
+      description:
+        "Lieutenant Commander's Silk Mantle, with the same stats but no set bonus. Inferno Gloves, Sageclaw and Tome of Fiery Arcana, from Alliance pre-raid best in slot.",
+    })
+    const back = changeRace(toHuman.config, 'horde-troll')
+    expect(back.cleared.map((c) => [c.slot, c.item.name])).toEqual([['offHand', 'Tome of Fiery Arcana']])
+    expect(raceChangeMessage(back, 'Horde')).toEqual({
+      title: 'Changed 4 slots for Horde gear',
+      description:
+        "Champion's Silk Mantle, with the same stats, now with a set bonus. Blood Guard's Silk Handwraps and Whiteout Staff, from Horde pre-raid best in slot. Off hand cleared: Whiteout Staff takes both hands.",
+    })
+    expect(back.config.gear).toEqual(troll.gear)
+  })
+
   it('says which items stayed, and says nothing within a faction', () => {
     const cape: SimConfig = { ...human, gear: { back: { itemId: 16337 } } }
     expect(raceChangeMessage(changeRace(cape, 'horde-orc'), 'Horde')).toEqual({

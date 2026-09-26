@@ -25,6 +25,12 @@ review's log under [reviews/](reviews/). The milestones are in [milestones.md](m
 - **What's New and pasted links (WQ-2, WQ-4).** A refused link pasted while What's New is open drops
   the opening link's held "Loaded" notice, though the opening link did load; no e2e test pastes a link
   while a notice is held (the review's probe covered both). Rare.
+- **A search for another class's quest reward finds nothing, without saying why (review FU-4,
+  low).** A druid searching "darkmantle" in the head picker, as a bear used to wear Darkmantle Cap by
+  default, gets "No items match", under "Items a druid can equip here." The picker leaves other
+  classes' quest rewards out as it leaves out plate or the other faction's PvP gear
+  ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)), with no reason either. The
+  fix would have the empty state name whose reward a match is.
 - **A flaky spec-switch test (EM-7).** `e2e/results-keyed.spec.ts` "cancels on a spec switch" can see
   the Fury run finish before the switch under heavy load.
 

@@ -93,23 +93,25 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
 export const SEAL_OF_RIGHTEOUSNESS_VALUE = atLevel60(1786, 47, 58, 64) / 100
 
 /**
- * The seal procs' flat base (paladin.md#seal-of-righteousness-sor, #seal-of-fury-sof-new-the-protection-seal):
- * Forever's Seal of Righteousness proc 25713 and Seal of Fury proc 20418 both carry 35 on effect 0 [F]
- * (Classic Era's 25713 had 0, so Forever set it deliberately). The sim reads the two procs the same
- * way, the 35 plus the seal value [?] (OQ 4, OQ 10, guild test T1 on both seals; D29).
+ * Seal of Righteousness's spell damage coefficient per proc (paladin.md#the-beta-logs-seal-of-righteousness):
+ * 0.2, measured [?]. The proc's client coefficient is 0.1, but at spell damage 10 and more the beta
+ * logs' 16 procs from 4 characters all fit 0.2 and only 5 fit 0.1 (the two characters whose level and
+ * weapon pin it down fit 0.2 alone). Its share of Judgement of the Crusader's bonus stays the client's
+ * 0.1, as measured (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
  */
-export const SEAL_PROC_BASE = 35
+export const SEAL_OF_RIGHTEOUSNESS_SP = 0.2
 
 /**
- * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor):
- * Forever's flat 35, plus the seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed`
- * with a one-hander [?] (OQ 4, OQ 10, guild test T1), plus 0.1 × SP: the same reading as Seal of
- * Fury's. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
- * It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives Vengeance a
- * stack: Vengeance's aura can proc from procs (Attr3 0x4000000, paladin.md#retribution-tree) [?].
+ * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor): the
+ * seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed` with a one-hander (Classic
+ * Era's rule, and what the beta logs show at ranks 1–4), + 0.2 × SP [?]. The proc's own base points (35
+ * at rank 8) aren't added: at ranks 1–4 their 4 to 9 fit 23 of 727 procs where the seal value alone fits
+ * 587 (the beta logs). Melee class with No Active Defense and Always Hit: it can't be avoided, and crits
+ * ×2 [?]. It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives
+ * Vengeance a stack: Vengeance's aura can proc from procs (Attr3 0x4000000, paladin.md#retribution-tree) [?].
  */
 export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): SpellDef {
-  const damage = SEAL_PROC_BASE + (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
+  const damage = (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
   return {
     ...HOLY_MELEE,
     id: 'sealOfRighteousnessProc',
@@ -120,7 +122,7 @@ export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): Spe
     triggersProcs: false,
     min: damage,
     max: damage,
-    spCoefficient: 0.1,
+    spCoefficient: SEAL_OF_RIGHTEOUSNESS_SP,
     takenScale: 0.1,
   }
 }

@@ -40,7 +40,7 @@ import {
   SEAL_OF_FURY_ABSORB_PCT,
   SEAL_OF_FURY_BASE,
   SEAL_OF_FURY_SHIELD_AURA,
-  SEAL_PROC_BASE,
+  SEAL_OF_RIGHTEOUSNESS_SP,
   sealOfFuryProc,
   SEAL_OF_RIGHTEOUSNESS_VALUE,
   sealOfRighteousnessProc,
@@ -76,13 +76,15 @@ const DEFENSE_TYPE = { none: 0, magic: 1, melee: 2, ranged: 3 } as const
 const HOLY_MASK = 2
 
 /** A spell def against its client row: school, damage class, attributes and coefficient. */
-function matches(def: SpellDef, id: number, coefficientEffect = 0) {
+function matches(def: SpellDef, id: number, coefficientEffect = 0, measured = false) {
   const s = spell(id)
   expect(s.misc!.schoolMask, def.id).toBe(HOLY_MASK)
   expect(s.categories?.defenseType ?? 0, def.id).toBe(DEFENSE_TYPE[def.defense])
   expect(attrs(id), def.id).toEqual({ noActiveDefense: def.noActiveDefense, alwaysHit: def.alwaysHit })
   const e = effect(id, coefficientEffect)
-  expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(def.weaponPercent > 0 && def.id !== 'holyStrike' ? def.spCoefficient / def.weaponPercent : def.spCoefficient, 12)
+  // A measured coefficient (Seal of Righteousness's 0.2) keeps the client's as its JotC share.
+  const coefficient = measured ? def.takenScale : def.weaponPercent > 0 && def.id !== 'holyStrike' ? def.spCoefficient / def.weaponPercent : def.spCoefficient
+  expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(coefficient, 12)
 }
 
 describe('paladin spells against the client (paladin.md#seals, #judgement, #other-abilities)', () => {
@@ -117,8 +119,8 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186, 5)
   })
 
-  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1; Seal of Fury flat, with its 50% absorb; Seal of Righteousness’s seal value 1786 + 47/level from 58', () => {
-    matches(sealOfRighteousnessProc(3.5, true), 25713)
+  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1 in the client; Seal of Fury flat, with its 50% absorb; Seal of Righteousness’s seal value 1786 + 47/level from 58 at 0.2 × SP', () => {
+    matches(sealOfRighteousnessProc(3.5, true), 25713, 0, true)
     matches(sealOfFuryProc(), 20418)
     // Seal of Fury: the proc's flat 35 + 0.1 × SP, whatever the weapon (the beta logs); the aura's
     // weapon-speed dummy (20423 effect 0) is undescribed, so it models as zero.
@@ -131,13 +133,14 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)
-    // Seal of Righteousness: Forever's proc carries the same 35 as Seal of Fury's, read the same way,
-    // on top of the seal value [?] (OQ 4, OQ 10). Worked example 6: 35 + 1.2 × 18.80 × 3.5 = 113.96 before
-    // spell damage; the same weapon one-handed (0.85) 90.93.
-    expect(effect(25713, 0).effectBasePointsF).toBe(SEAL_PROC_BASE)
-    expect(SEAL_OF_FURY_BASE).toBe(SEAL_PROC_BASE)
-    expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(113.96, 9)
-    expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(90.93, 9)
+    // Seal of Righteousness: the seal value alone, not the proc's base points (35 at rank 8), + 0.2 × SP,
+    // measured [?]; its JotC share the client's 0.1 (the beta logs). Worked example 6: 1.2 × 18.80 × 3.5 =
+    // 78.96 before spell damage; the same weapon one-handed (0.85) 55.93.
+    expect(effect(25713, 0)).toMatchObject({ effectBasePointsF: 35, effectBonusCoefficient: 0.1 })
+    expect(sealOfRighteousnessProc(3.5, true)).toMatchObject({ spCoefficient: SEAL_OF_RIGHTEOUSNESS_SP, takenScale: 0.1 })
+    expect(SEAL_OF_RIGHTEOUSNESS_SP).toBe(0.2)
+    expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(78.96, 9)
+    expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(55.93, 9)
   })
 
   it('Holy Strike: normalized weapon + 93 ± 12.5% (effect 121), then 50% (effect 31; 40% before 1.60.1.70009), 0.429; category 2404 with Hammer of the Righteous', () => {

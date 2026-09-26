@@ -92,7 +92,8 @@ describe('Protection paladin’s priority list (D31)', () => {
     // more trigger list (`damageLanded`), and an Undead's its proc and row. With the lists held at the
     // 27 codes before it, exactly the 49 Undead cases move, and the other 151 reproduce the snapshot.
     // Re-taken for the beta-log check (paladin.md#the-beta-log-check-2026-09-26): Seal of Fury's proc
-    // lost its weapon-speed value and carries its absorb (no separate absorb proc), so every plan moved.
+    // lost its weapon-speed value and carries its absorb (no separate absorb proc), so every plan moved;
+    // re-taken at each later step that moves a spell's numbers (Seal of Righteousness's, then others).
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

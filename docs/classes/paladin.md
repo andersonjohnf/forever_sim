@@ -157,7 +157,8 @@ headline, the default setups at 10,000 fights:
 | Step | What changed | Protection TPS | Protection DPS, damage taken | Retribution DPS |
 | --- | --- | --- | --- | --- |
 | Before | | 746.8 | 461.4, 918.9 | 608.6 |
-| 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.4 | 608.6 |
+| 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.5 | 608.6 |
+| 2 | [Seal of Righteousness](#the-beta-logs-seal-of-righteousness): the seal value alone (no base points) + 0.2 × SP; no default uses it | 718.3 | 443.9, 900.5 | 608.6 |
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -315,11 +316,36 @@ always uses the halved value.
 | Spell (r8) | 20293, trained at 58; proc 25713 | [F] [F 20293][f20293], [F 25713][f25713] |
 | Cost | 200 mana | [F] |
 | Seal value `v` | dummy points 1786 + 47/level from 58 to 60 → **v = 18.80** per second of weapon speed at 60 | [F] data (same as [C]) |
-| Damage per landed white hit | **35 +** **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 35 + 18.8 × 1.2 × 3.5 = 114.0 before SP. The flat 35 is Forever's: proc 25713 carries base 35 on effect 0, where Classic Era's had 0 (and rank 1's proc 25742 went from 0 to 4), the same 35 as Seal of Fury's 20418 [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]). Adding it to the seal value, rather than in its place, is [?]: the same reading as Seal of Fury's ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24), [open question 10](#open-questions), guild test T1). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C]/[?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?] |
-| SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [client] (SpellEffect, 1.60.1.70009; [25713][f25713]), [C 25713][c25713] |
+| Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.2 × SP**. So 18.8 × 1.2 × 3.5 = 78.96 before SP. The proc's own base points (35 at rank 8, where Classic Era's 25713 had 0) aren't added: at ranks 1–4 the beta logs fit the seal value alone ([below](#the-beta-logs-seal-of-righteousness)). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C], and what the beta logs show at ranks 1–4 [?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?]. The base points: [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]) |
+| SP coefficient | **0.2 per proc**, measured [?]: at 10+ spell damage the beta logs fit 0.2, not the client's 0.1 ([below](#the-beta-logs-seal-of-righteousness)). The client carries 0.1 on the proc spell at every rank (Classic r8 also 0.1), and that 0.1 is its share of Judgement of the Crusader's bonus, as measured ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)) | 0.1: [F] [client] (SpellEffect, 1.60.1.70009; [25713][f25713]), [C 25713][c25713]; 0.2: the beta logs [?] ([open question 4](#open-questions)) |
 | Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.70009; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, JotC | [F] |
 | Triggers | **Nothing**: the proc triggers no Windfury, Crusader, Hand of Justice, Vengeance or Vindication, even when it crits. The white hit that carries it still does [?] | 25713's Attr3 is `0x40000` (Always Hit) only, without NOT_A_PROC `0x200` [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
+
+##### The beta logs: Seal of Righteousness
+
+The same logs as Seal of Fury's ([method](#the-beta-logs-seal-of-fury)): 1,130 Seal of Righteousness
+procs from 62 characters, all ranks 1–4 (25742, 25741, 25740, 25739; base points 4, 4, 6 and 9, each
+with 0.1; seal values 108 + 18/level, 216 + 17/level and 352 + 23/level). The weapon's speed is the
+time between the two swings before the proc, ±0.05 s; the character's level isn't in the log, so a
+reading fits a proc when some level in the rank's range and either hand's factor (0.85 or 1.2) gives
+`floor(base + factor × v × speed + c × SP)` exactly.
+
+| Reading | Fits (727 non-crit procs with a swing time, 52 characters) |
+| --- | --- |
+| The seal value alone, + 0.1 or 0.2 × SP | 680 (0.1), 692 (0.2) |
+| The base points + the seal value | 128 (0.1), 116 (0.2) |
+| Only one of the two fits | the seal value alone **587**, the base points + seal value 23 |
+
+**The seal value alone**, as in Classic Era: the proc's base points aren't added, so rank 8's 35
+isn't either. That's the rule the sim applies at rank 8 [?] (the logs stop at rank 4).
+
+**0.2 × SP.** Only 16 procs from 4 characters have 10 or more spell damage. 0.2 fits all 16; the
+client's 0.1 fits 5; the base points + seal value at 0.1 fits 11. Two characters decide it: one at
+level 20 (its Judgement of Righteousness pins the level), SP 84, a 2.6 s one-hander, hits 25 (seal
+value 8.8 + 0.2 × 84 = 25.6; 0.1 gives 17, the base points + 0.1 give 26); the other, SP 48 with a
+two-hander, fits 0.2 at levels 19–20 and 0.1 at no level. It's thin, so it stays [?]
+([open question 4](#open-questions)); no default setup uses Seal of Righteousness.
 
 **Judgement of Righteousness** (r8, 20286): **162–178 + 8 = 170–186 at level 60**,
 plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
@@ -378,7 +404,7 @@ It corroborates the client data above but isn't a guild measurement.
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
 | Per landed white hit | **35 Holy + 0.1 × SP**, whatever the weapon (proc 20418) | [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]), and measured: the beta logs ([below](#the-beta-logs-seal-of-fury)) |
-| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, which takes that much off the next hits you take | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces (what's left of the last one is lost), and which hits you take spend before they cost health; it ends when spent, or with the seal's 30 s. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays ([open question 10](#open-questions)). It takes about 2.5% off the default Protection setup's damage taken |
+| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, which takes that much off the next hits you take | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces (what's left of the last one is lost), and which hits you take spend before they cost health; it ends when spent, or with the seal's 30 s. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays ([open question 10](#open-questions)). It takes 2.0% off the default Protection setup's damage taken (918.9 → 900.5 a second) |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146.3–159.7 + 7 = 153.3–166.7 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
@@ -1547,8 +1573,8 @@ default setup.
    = **402.33**; Sacred Arbiter ×1.20 = **482.79**. Range with Sacred Arbiter and a 200–300 weapon:
    **438.84–526.74**. Holy school: boss armor doesn't reduce it. (The other reading, 0.50 ×
    (532.857 + 93) + 42.9, is 355.83: [open question 6](#open-questions).)
-6. **SoR proc, 2H, r8 at 60**: 35 + 1.2 × 18.80 × 3.5 = 113.96 + 0.1 × 100 = **123.96**; ×1.15 =
-   **142.55**. Same weapon 1H-style (0.85): 35 + 55.93 + 10 = 100.93.
+6. **SoR proc, 2H, r8 at 60**: 1.2 × 18.80 × 3.5 = 78.96 + 0.2 × 100 = **98.96**; ×1.15 =
+   **113.80**. Same weapon 1H-style (0.85): 55.93 + 20 = 75.93.
 7. **Consecration r5, SP 300, one target**: per tick 12 + 27 + 0.095 × 300 = **67.5**; 8 ticks
    = **540**. A fifth enemy takes only 12 per tick = **96**. Rank 1 on one target: 8 × (2 +
    4 + 28.5) = **276** for 135 mana.
@@ -1631,11 +1657,13 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    top? *Test:* average non-crit proc with and without a +100 spell damage item.
 3. **SoC proc avoidance**: can procs be dodged or parried, and do they partially resist?
    *Test:* combat log on a mob attacked from the front.
-4. **SoR formula**: per-hit damage vs weapon speed and SP, 1H and 2H, whether Forever's flat 35
-   is added to the seal value (the sim's reading, [open question 10](#open-questions)), and whether a
-   `+0.03 × weapon average ±1` term exists (that term is from TBC-era wiki text, so it's
-   forbidden to adopt without a beta test). *Test:* two 2H weapons of different speed and
-   one 1H, with no SP; then +SP.
+4. **SoR formula**: the beta logs settle the shape at ranks 1–4, the seal value alone
+   (`1.2 × v × speed` two-handed, `0.85 ×` one-handed), not the proc's base points
+   ([the logs](#the-beta-logs-seal-of-righteousness)); the sim applies it at rank 8, whose base points
+   are 35 [?]. Open: the spell damage coefficient, 0.2 in 16 procs from 4 characters, against the
+   client's 0.1; and whether a `+0.03 × weapon average ±1` term exists (that term is from TBC-era wiki
+   text, so it's forbidden to adopt without a beta test). *Test:* 50+ procs at level 60 with a
+   known weapon, with and without +100 spell damage.
 5. **JotC interaction**: flat +161 per Holy hit, or scaled by each spell's coefficient? And
    does it come after your own damage multipliers (the sim's default) or before them?
    *Test:* JoC and SoC-proc damage with and without your JotC on a mob, then again with

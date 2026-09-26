@@ -66,13 +66,16 @@ test.describe('faction gear on a race change', () => {
     await expect(page.getByRole('button', { name: /^Spec: Frost Mage/ })).toBeVisible()
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: 'Human' }).click()
-    // The Alliance's Rank 7 to 10 silk has the Horde pieces' stats but no item set.
-    const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 3 items for their Alliance versions' })
-    await expect(notice).toContainText('Sageclaw, with the same stats.')
+    // The Alliance's Rank 7 to 10 silk has the Horde pieces' stats but no item set. A Troll's Whiteout
+    // Staff (Horde only, no Alliance twin; EL-2) gives way to the Human default's Sageclaw and off hand.
+    const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 3 items for Alliance gear' })
     await expect(notice).toContainText("Knight-Captain's Silk Legguards and Knight-Lieutenant's Silk Walkers, with the same stats but no set bonus.")
+    await expect(notice).toContainText('Sageclaw, from Alliance pre-raid best in slot.')
 
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(page.getByRole('button', { name: "Legs: Knight-Captain's Silk Legguards" })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Main hand: Sageclaw/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Off hand: Therazane's Touch/ })).toBeVisible()
   })
 
   test('a race on the same side changes no gear and shows no toast', async ({ page }) => {

@@ -382,6 +382,21 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   each crit, old damage lost) gives the default Fury and Arms warriors about **13% less DPS**
   (the engine's golden runs). Deadly Poison's stacks keep their
   timer too ([rogue Q8](classes/rogue.md#10-open-questions)), so the two models now agree.
+- **Evidence so far** (searched 2026-09-25, no level-60 data: the beta is capped at 20):
+  - WarriorSim's author, watching Pikaboo's BlizzCon demo stream, saw "Deep Wounds stacking
+    SoD-style" ([PR #10](https://github.com/tzcnt/WarriorSim/pull/10), 2026-09-14; the moment is
+    [1:51:22](https://www.twitch.tv/videos/2872621915?t=1h51m22s)) and no Deep Wounds tick
+    crit ([PR #11](https://github.com/tzcnt/WarriorSim/pull/11)). Second-hand, from a demo build.
+  - Forever's client carries only SoD's pair, 412609 (a periodic dummy the server computes) and
+    412613, with rows identical to 1.15.9's but for flags Forever sets on hundreds of spells;
+    Classic's 12721 is gone. It also keeps SoD's rolling Ignite 412545, which the mage model
+    already pools ([mage.md](classes/mage.md)). A beta log (build 69977, magey/forever-warrior
+    discussion #13) shows 412609 applied and one 412613 tick 2.98 s later: one crit, so it can't
+    tell the models apart.
+  - ElliotWood/Forever restarts the bleed, marked "TODO: Test in-game"; no source.
+  - One forum post says "rend/deep wounds dots also crit"
+    ([RIP Warriors](https://us.forums.blizzard.com/en/wow/t/rip-warriors/2348963)); the client's
+    412609 lacks the periodic-crit flag, so the sim keeps no crit.
 - **Test:** with Deep Wounds (1/3 is enough) vs a mob three levels higher, crit it every 1–2 s
   (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times and amounts
   from the combat log. Rolling: ticks come every 3 s from the first application, whatever crits

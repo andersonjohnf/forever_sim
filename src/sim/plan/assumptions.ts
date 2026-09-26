@@ -413,7 +413,7 @@ const REGISTRY = {
     docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   bearWhiteRage: {
-    text: 'Each landed bear swing gives 8.65 rage (3.46 per second of its 2.5 s swing, the one-handed rate); bear rage in Forever is unmeasured.',
+    text: 'Each landed bear swing gives 11.25 rage (4.5 per second of its 2.5 s swing, a two-handed weapon’s rate), crits no more, as bears’ swings in public beta combat logs gave at low level; untested at 60.',
     docRef: `${RAGE}#bear-druid-rage`,
   },
   bearArmor: {
@@ -596,7 +596,7 @@ const REGISTRY = {
     docRef: `${DRUID}#44-swipe-r5-9908`,
   },
   bearRage: {
-    text: 'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
+    text: 'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
     docRef: `${RAGE}#bear-druid-rage`,
   },
   demoralizingRoar: {
@@ -1151,7 +1151,7 @@ export const BEAR_TEXT = {
   /** Maul's swing and the refunds, in the profile's white rage. */
   rage(o: { maul: boolean; swipe: boolean; normalizedRage: boolean }): string {
     const maul = o.maul
-      ? `A Maul swing gives no rage: the white swing it replaces would give ${o.normalizedRage ? '8.65 rage' : 'rage for its damage'}. `
+      ? `A Maul swing gives no rage: the white swing it replaces would give ${o.normalizedRage ? '11.25 rage' : 'rage for its damage'}. `
       : ''
     return `${maul}A bear attack that misses or is dodged or parried refunds 80% of its rage${o.swipe ? ' (Swipe nothing, like a warrior’s area attacks)' : ''}, as in Classic Era; untested for bears in Forever.`
   },

@@ -395,9 +395,10 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(forever.stats.staMult).toBeCloseTo(1.2, 12)
     expect(forever.forms![FORM_INDEX.cat].stats.staMult).toBe(1)
     expect(forever.stats.health).toBe(1240)
-    // The bear weapon: 2.5 s, one-handed rate for Forever's normalized rage (8.65 per swing [?])
+    // The bear weapon: 2.5 s, the two-handed rate for Forever's normalized rage (11.25 per swing [?],
+    // 22 of 26 clean pairs of bear swings in the public beta logs: rage.md#bear-druid-rage)
     expect(forever.weapons[0]!.speedSec).toBe(2.5)
-    expect(forever.weapons[0]!.twoHand).toBe(false)
+    expect(forever.weapons[0]!.twoHand).toBe(true)
     expect(buildPlan(d).assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['bearWhiteRage', 'bearArmor', 'formWeapon', 'omenOfClarity']))
   })
 

@@ -123,12 +123,12 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     const ratio = counter(sim, row(plan, maul), FIELD.threat) / counter(sim, row(plan, maul), FIELD.damage)
     expect(ratio).toBeCloseTo(1.75 * plan.threatMult, 12)
     expect(plan.threatMult).toBeCloseTo(1.3 * 1.02, 12) // Dire Bear Form and the threat gloves
-    // Without Maul the same swings are white, and each gives 8.65 rage (no cap here).
+    // Without Maul the same swings are white, and each gives 11.25 rage (no cap here).
     const white = bearPlan(120000)
     white.rage.maxTenths = 1e9
     const whiteSim = new Sim(white)
     whiteSim.runFight(0)
-    expect(whiteSim.totalRageGainedTenths).toBe(Math.floor(48 * 86.5))
+    expect(whiteSim.totalRageGainedTenths).toBe(Math.floor(48 * 112.5))
   })
 
   it('a Maul that’s dodged or parried refunds 80% of its 10 rage; with too little rage the swing stays white', () => {
@@ -146,7 +146,7 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     poor.prepull = { casts: [], chargeTenths: 90, keepTenths: -1 }
     const m = addBearAbility(poor, MAUL)
     line(poor, m)
-    // 9 rage at the first swing: it stays white, and its 8.65 rage pays for the Maul at 2.5 s.
+    // 9 rage at the first swing: it stays white, and its 11.25 rage pays for the Maul at 2.5 s.
     const s = timeline(poor).sim
     expect(counter(s, SOURCE_MAIN_HAND, FIELD.casts)).toBe(1)
     expect(counter(s, row(poor, m), FIELD.casts)).toBe(1)

@@ -589,7 +589,7 @@ describe('the default bear’s plan', () => {
     const d = defensiveConfig()
     const forever = text(d)
     expect(forever.bearRage).toBe(
-      'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
+      'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
       'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1.5 threat per damage, Blizzard’s value for Season of Discovery’s Mangle (Bear), the spell Primal Bite is in Forever’s game files. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Sunder’s value in Forever’s game files). None is measured in Forever.',

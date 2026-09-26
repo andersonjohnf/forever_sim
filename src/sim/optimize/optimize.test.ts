@@ -256,9 +256,10 @@ describe('optimize', () => {
   }, 120_000)
 
   it('a caller’s large first round never narrows the space: it shrinks to fit the cap (OGV2-1, the verification’s bear probe)', async () => {
-    // `--first 2000 --max-fights 1000000 --screen-fights 40` on quick: the plans at 2,000 each pass
-    // the cap (the CLI's makes 1,034 on 1.60.1.70009; the probe's 504 were 69913's, with the default
-    // screen, which on 70009 makes 238 that fit at 2,000), but at 50
+    // `--first 2000 --max-fights 1000000 --screen-fights 40` on quick, with a first round of 2,500 so
+    // the case holds whatever the screen keeps (488 plans since the bear's 2026-09-26 threat and rage
+    // values, which fit whole at 2,000): the plans pass the cap (the CLI's makes 1,034 on
+    // 1.60.1.70009; the probe's 504 were 69913's, with the default screen), but at 50
     // each they fit, so every rank is searched and the first round shrinks. The test checks that the
     // case holds before relying on it. Stopped once the space is known.
     const controller = new AbortController()
@@ -266,7 +267,7 @@ describe('optimize', () => {
     const run = optimize({
       config: bear,
       talents: { minPoints: search.minPoints, screenFights: search.screenFights },
-      budget: { ...BUDGETS.quick, initialFights: 2_000 },
+      budget: { ...BUDGETS.quick, initialFights: 2_500 },
       maxFights: 1_000_000,
       runner: localFightRunner(),
       signal: controller.signal,
@@ -279,14 +280,15 @@ describe('optimize', () => {
     await expect(run).rejects.toThrow(/cancelled/)
     const plans = space!.candidates + 1
     const raceCap = 1_000_000 - space!.screen!.fights
-    // The probe's case: at 2,000 fights each the plans pass 90% of what the cap leaves the race.
-    expect(2_000 * plans).toBeGreaterThan(0.9 * raceCap)
+    // The probe's case: at 2,500 fights each the plans pass what the cap leaves the race (fitBudget
+    // keeps a caller's first round that fits the race whole, even past 90% of it).
+    expect(2_500 * plans).toBeGreaterThan(raceCap)
     expect(space!.space!.searchPartials).toBe(true)
     expect(space!.space!.narrowed).toBeUndefined()
     expect(space!.notes.some((n) => n.startsWith('Narrowed'))).toBe(false)
     expect(space!.budget).toEqual({ fights: raceCap, initialFights: Math.floor((0.9 * raceCap) / plans), cap: 1_000_000 })
-    expect(space!.budget.initialFights).toBeLessThan(2_000)
-    expect(space!.notes.at(-1)).toMatch(/^A first round of 2,000 fights each over [\d,]+ plans \(the baseline included\) passes the [\d,]+ fights the search's cap leaves the race: it runs [\d,]+ each\.$/)
+    expect(space!.budget.initialFights).toBeLessThan(2_500)
+    expect(space!.notes.at(-1)).toMatch(/^A first round of 2,500 fights each over [\d,]+ plans \(the baseline included\) passes the [\d,]+ fights the search's cap leaves the race: it runs [\d,]+ each\.$/)
   }, 120_000)
 
   it('refuses a search too large for the cap even at its narrowest, before the fights it can’t afford (OGV-2)', async () => {
@@ -677,11 +679,14 @@ describe('optimize', () => {
     // The last pass allowed may run all that's left.
     // Without it, the talent pass ends on its budget with the whole cap spent, and the turns stop there.
     expect(passes[0].race.status).toBe('budget')
-    expect(passes[0].fights).toBe(share)
+    // All of it but what a last round can't split evenly: under 2 fights for each source it ran.
+    expect(passes[0].fights).toBeLessThanOrEqual(share)
+    expect(share - passes[0].fights).toBeLessThan(2 * passes[0].race.rounds.at(-1)!.ran)
     const none = await optimizeInTurns({ ...options, reserve: 0 })
     expect(none).toHaveLength(1)
-    expect(none[0].fights).toBe(maxFights)
-    expect(none[0].turnsStopped).toMatch(/^The cap of 30,000 fights a search ended the turns after pass 1, with 0 left/)
+    expect(none[0].fights).toBeLessThanOrEqual(maxFights)
+    expect(maxFights - none[0].fights).toBeLessThan(2 * none[0].race.rounds.at(-1)!.ran)
+    expect(none[0].turnsStopped).toMatch(/^The cap of 30,000 fights a search ended the turns after pass 1, with \d+ left/)
     const two = await optimizeInTurns({ ...options, passes: 2 })
     expect(two[1].budget.cap).toBe(maxFights - two[0].fights)
   }, 120_000)

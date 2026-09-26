@@ -167,7 +167,7 @@ server-side, so the client tables can't confirm it.
 | Hasted or base speed | Base (unhasted) weapon speed | With the hasted interval, haste would be rage-neutral per second. Both Forever sims use base speed. |
 | Level scaling | None: the same `k` at every level | Nothing points to scaling, but it is untested. |
 | Extra attacks (Windfury, Sword procs, Reckoning) | Give rage like a normal landed hit | Same as Classic. Untested. |
-| Bear form | The one-hander's `k × 2.5 s` = 8.65 per landed bear auto | Players report "these rage changes also affect bears". The ElliotWood sim uses the 1H factor on the bear's 2.5 s attack. One logged bear auto gave 11.3, the two-hander's `4.5 × 2.5` ([bear logs](#bear-logs-of-23-and-24-sep-), n = 1); the default stays until 20 or more are logged. |
+| Bear form | The two-hander's `k × 2.5 s` = **11.25** per landed bear auto | Measured: 22 of 26 clean pairs of bear swings in the public beta logs, from 17 druids, rose by 11.2–11.3 ([bear white hits](#bear-white-hits-in-the-public-beta-logs-)). |
 
 ### Outcome summary for a white swing
 
@@ -392,11 +392,10 @@ log's rounding floor. By attacker level:
   | Attacker level | about 16.5 (the fit gives 16.8) | +4.9% | +8.5% | unchanged |
 
 **Bear white rage.** One clean bear auto, a glancing hit for 9, gave +11.3 rage. That is
-`4.5 × 2.5` = 11.25, the two-hander's rate, where the default gives `3.46 × 2.5` = 8.65
-([bear rage](#bear-druid-rage)). It matches one player's report of about 11 per hit
+`4.5 × 2.5` = 11.25, the two-hander's rate, and matches one player's report of about 11 per hit
 ([US 2355684 #97][f-bear]). It is one swing (n = 1), read across a Bash cast in the same
-millisecond with Bash's 10-rage cost added back. If it holds, bear TPS rises 1.8% (1,081.3 to
-1,100.4), and 8.7% together with the attacker-level model's `F`.
+millisecond with Bash's 10-rage cost added back. The public beta logs have since given 22 more
+([bear white hits](#bear-white-hits-in-the-public-beta-logs-)), and 11.25 is the default.
 
 **Other sources in these logs:**
 
@@ -413,17 +412,13 @@ millisecond with Bash's 10-rage cost added back. If it holds, bear TPS rises 1.8
   when rage had most likely decayed to 0 already, so a reset and a carried-over pool look the
   same.
 
-**The defaults don't change** (user decision, 2026-09-24: "change no numbers yet"). `F` stays 10
-and a bear auto 8.65 until the logs below settle them, because:
-
-- The data is two characters at about level 20, and the two models disagree on the effect at 60
-  by more than tenfold (+0.4% or +4.9% Protection warrior TPS).
-- The bear already leads the tanks: 1,126.6 TPS by default on 1.60.1.70009 (seed 31101), 12.5%
-  above the warrior's 1,001.6 and 49.7% above the paladin's 752.6. There's no numeric target
-  ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)),
-  so that's an observation for the guild's tests
-  ([milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), but either
-  change would widen the lead on one level-20 sample, so the logs decide.
+**`F` stays 10**, the formula measured on about 2,000 hits from about 50 characters
+([above](#forever-)). The level term these logs suggest isn't adopted: it comes from two testers at
+about level 20, short of what
+[D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)
+asks (many independent characters), and its two models disagree on the effect at 60 by more than
+tenfold (+0.4% or +4.9% Protection warrior TPS). How the tanks' TPS compare plays no part in it: no
+value moves to close or keep a gap (doctrine §2).
 
 **Logs that would settle it** (advanced combat logging and `UNIT_POWER_UPDATE`, recording each
 hit as in [open question 1](#open-questions)):
@@ -433,8 +428,8 @@ hit as in [open question 1](#open-questions)):
    against the same mobs. If `F` follows the gap, the level-gap model holds; if it follows the
    mob's level alone, the attacker-level model does.
 2. **A level-60 tank against a level-63 mob**, which settles the value the sim uses directly.
-3. **20 or more bear autos with nothing else giving rage** (no hits taken, no Enrage, Furor or
-   Blood Frenzy), to confirm 11.25 or 8.65 per landed swing.
+3. **Bear autos at 60 with nothing else giving rage** (no hits taken, no Enrage, Furor or
+   Blood Frenzy), to confirm the low-level logs' 11.25 per landed swing holds there.
 4. **Rend or other spell ticks alongside swings from the same mob**, to measure the periodic
    rate against the swing rate on one character.
 
@@ -599,7 +594,7 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | --- | --- | --- | --- |
 | Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever [?]: the [bear logs](#bear-logs-of-23-and-24-sep-) start each shift at 0, but each shift came before the pull, when it was likely 0 already (weak) |
 | Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
-| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.46 × 2.5` = 8.65 per landed auto, crits no bonus. One logged auto gave 11.3 (`4.5 × 2.5`); not adopted, n = 1 | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-), [bear logs](#bear-logs-of-23-and-24-sep-)) |
+| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | **`4.5 × 2.5` = 11.25 per landed auto**, the two-hander's rate, crits and glancing blows no more: measured in the public beta logs at levels 3–14 ([below](#bear-white-hits-in-the-public-beta-logs-)) | [C]; Forever [?] (third-party logs, D22; see [Forever model](#forever-normalized-rage-per-swing-)) |
 | Rage in Cat and caster form | Their power isn't rage | The sim gives no rage from white hits or hits taken outside bear; a hit taken still fires the damage-taken procs, and an energize adds rage in whatever form it fires in (outside bear, Natural Reaction and a Mighty Rage Potion; Furor's and Blood Frenzy's fire only in bear). A druid gains rage from hits taken only if its fight can be in bear (the plan's `rage.fromDamageTaken`), and then only while in bear | [?] (the sim's model; [druid.md §8](../classes/druid.md#8-implementation-notes) "Rage from hits", [§4.8](../classes/druid.md#48-bear-threat-and-druid-rage-numbers-summary-for-the-shared-docs)) |
 | Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93, and 49 hits on two known bears keep its division by maximum health, with a factor that rises with the mob's level (10.5–16.0; not adopted). Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), [bear logs](#bear-logs-of-23-and-24-sep-), open question 3) |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
@@ -615,6 +610,37 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | Rage costs (max rank) | Maul 15, Swipe 20, Demoralizing Roar 10 | Plus Primal Bite (Mangle (Bear) until 1.60.1.70009) 20 rage with a 6 s CD, and Lacerate 15 | [F] [spellbook › druid](https://foreverchanges.pro/spellbook/druid) |
 
 Feral Instinct no longer touches threat or rage in Forever. See [threat.md](threat.md#stance-and-form-modifiers).
+
+### Bear white hits in the public beta logs [?]
+
+A landed bear auto gives **`4.5 × 2.5` = 11.25 rage**, the two-hander's `k` on the form's 2.5 s
+swing, whatever it hits for: the engine counts the bear's form weapon as two-handed for
+normalized rage (`formWeapon`, `src/sim/classes/druid/forms.ts`). It's tagged `[?]`: third-party
+logs, at low level, read under
+[D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23).
+Until 2026-09-26 the default was the one-hander's `3.46 × 2.5` = 8.65, a rate taken over from
+warriors that no bear log showed.
+
+**Method.** The same parse of the advanced combat logs as the warriors' `k` (the logs are listed
+below). A druid's swing event carries its own power snapshot; power type 1 (rage) means Bear or
+Dire Bear Form. Take every pair of consecutive landed white swings by one druid with nothing else
+involving the druid between them (no cast, no hit or spell taken, no energize, no missed swing),
+1.5–4.5 s apart and below the rage cap: the second snapshot's rise is that swing's rage. The same
+filter on warriors returns their measured `k`, for example 6.9–7.0 for a 2.0 s one-hander and 14.8
+for a 3.3 s two-hander.
+
+**Result.** 26 pairs from 18 druids at levels 3–14, build 1.60.1, logged 20–25 Sep 2026:
+
+| Rise per swing | Pairs | Druids | Notes |
+| --- | --- | --- | --- |
+| 11.2 or 11.3 | 22 | 17 | Crits (3) and a glancing blow give the same |
+| 8.7 | 1 | 1 | Across a 3.9 s gap |
+| 15.3, 17.2, 19.2 | 3 | 3 | More than any swing rate: most likely a hit taken that the log didn't record (these are other players' logs, which miss events out of their range) |
+
+No 2.5 s pair rose by 8.65's 8.6–8.7. The rate matches the one auto in the
+[bear logs](#bear-logs-of-23-and-24-sep-) and a player's report of about 11 per hit ([US 2355684
+#97][f-bear]). **Effect:** the default bear 1,160.2 → 1,177.0 TPS (+1.45%), 540.5 → 545.9 DPS (seed
+1, 10,000 fights, 2026-09-26). **Open:** level 60 (open question 3), as for the warriors' `k`.
 
 ---
 
@@ -882,16 +908,15 @@ sample size (doctrine §2, tier 2).
    - Hasted or base speed: log with and without Flurry or a haste effect.
    - The off-hand base rate: 50% or 100%, and how DWS scales it.
    - Whether extra attacks (Windfury, Sword Weaponmaster, Reckoning) give rage.
-3. **Bear rage.** Does normalization apply? If so, with what factor per landed bear auto (the
-   default 3.46 × 2.5 = 8.65)? One player reports "11 rage per hit no matter what, 1 rage when i
-   get hit" ([US 2355684 #97][f-bear]); one anecdote, so the default stays. Log landed bear autos
-   and the rage each gives. Does the damage-taken formula apply to bears too? 33 logged hits on
+3. **Bear rage.** Normalization applies to bears, at the two-hander's rate: 11.25 per landed
+   auto at levels 3–14 in the public beta logs (22 of 26 clean pairs, 17 druids;
+   [bear white hits](#bear-white-hits-in-the-public-beta-logs-)), the default since 2026-09-26.
+   Open: whether it holds at 60. Does the damage-taken formula apply to bears too? 33 logged hits on
    likely bears fit it at a median ratio of 0.93 ([Forever](#forever-)); log rage per hit taken in
    Bear Form as in item 1. **Partly answered** by the
    [bear logs of 23–24 Sep](#bear-logs-of-23-and-24-sep-): 49 hits on two known bears fit the
-   damage-taken formula's shape, with a factor that rises with the mob's level; one clean bear
-   auto gave 11.3 rage, the two-hander's `4.5 × 2.5`. Not adopted (n = 1, and the bear already
-   leads the tanks); log 20 or more autos with nothing else giving rage.
+   damage-taken formula's shape, with a factor that rises with the mob's level (not adopted:
+   two testers, D22).
 4. **Refunds in Forever**: miss/dodge/parry refund percentage, and which abilities are exempt.
    Specifically:
    - Does Cleave refund? Magey says no; WarriorSim says yes.
@@ -948,6 +973,7 @@ sample size (doctrine §2, tier 2).
 | [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) | Beta combat-log measurement: rage per landed white hit ∝ weapon speed (63 pairs, 9 warriors, levels 10–15) | Forever (third-party measurement) |
 | [ClassicWoWCommunity/forever-bugs #47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47), [#72][fb72], [#78][fb78] | Crit normalization "intentional"; damage-taken rage measurements and fits; #78, closed 2026-09-23 as "[Incorrect Report]": a warrior hit through Power Word: Shield still gains rage, and hitting a shielded target gives none, by design | Forever (community tracker) |
 | [tzcnt/forever-data @c7d1746 › raw-logs][fd-logs] | 7 public advanced combat logs, 18–19 Sep 2026, build 1.60.1, many players: our 2026-09-23 re-analysis of rage from damage taken (about 2,000 hits; blocks, absorbs, several attackers, low armor, likely bears) | Forever (third-party logs) |
+| Public beta logs with bear swings: [magey/forever-warrior #4][bw-mf4], discussions [#6][bw-mf6], [#9][bw-mf9], [#10][bw-mf10], [#11][bw-mf11], [#13][bw-mf13]; [forever-bugs #54][bw-fb54], [#81][bw-fb81] (their attached logs) | Advanced combat logs, 20–25 Sep 2026, build 1.60.1, many players: 26 clean pairs of bear swings from 18 druids, our 2026-09-26 read ([bear white hits](#bear-white-hits-in-the-public-beta-logs-)) | Forever (third-party logs) |
 | [Bear Form combat-log sheet][bear-sheet] | Two Bear Form druids' logs, 23–24 Sep 2026, build 1.60.1 (ClassicBetaPvE and ClassicBetaPvE2): 49 hits taken from mobs of level 25–56 at two maximum-health levels, one bear auto, Rend ticks, Enrage; our 2026-09-24 fit ([bear logs](#bear-logs-of-23-and-24-sep-)) | Forever (third-party logs, two testers) |
 | [1337LutZ's logs (gist)][lutz-gist] and [magey/forever-warrior#3][fw3] | 12 logs of one warrior at levels 8–9 (22 Sep 2026), and his write-up fitting `10 × damage before armor ÷ max health` | Forever (third-party measurement) |
 | [wowsims/forever f9f9f21883][wsf-rage] | A Forever sim's rage port (1337LutZ, 2026-09-22): 3.46 / 4.5, off hand half, damage taken as `10 × damage before armor ÷ max health`, Berserker Rage ×2 as a guess | Forever (secondary sim) |
@@ -965,6 +991,14 @@ sample size (doctrine §2, tier 2).
 [fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
 [lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623
 [bear-sheet]: https://docs.google.com/spreadsheets/d/1weJmcrnK-Zj7tW6iWY4InpKZRsJ9c685fxzn0Ec-qXs
+[bw-mf4]: https://github.com/magey/forever-warrior/issues/4
+[bw-mf6]: https://github.com/magey/forever-warrior/discussions/6
+[bw-mf9]: https://github.com/magey/forever-warrior/discussions/9
+[bw-mf10]: https://github.com/magey/forever-warrior/discussions/10
+[bw-mf11]: https://github.com/magey/forever-warrior/discussions/11
+[bw-mf13]: https://github.com/magey/forever-warrior/discussions/13
+[bw-fb54]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/54
+[bw-fb81]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/81
 [fb72]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/72
 [fb78]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/78
 [fw3]: https://github.com/magey/forever-warrior/issues/3

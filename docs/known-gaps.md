@@ -321,9 +321,6 @@ slice is worked:
     of the Wild raise, so a bear gets less rage a hit than a warrior of the same gear; the evidence
     for bears is 33 low-level hits [?]. ±20% rage moves TPS about ±10%. Guild test G3: 30+ hits at
     two maximum-health levels, fit rage = k × damage ÷ max health.
-  - **BR8, the bear's white rage uses the one-handed rate** (8.65 a landed swing; the two-handed
-    11.25 would be +0.8% to +2.4% TPS) [?] ([rage.md](mechanics/rage.md#bear-druid-rage)). Guild
-    test G4: 30+ auto attacks in Dire Bear Form.
   - **BR9, spell 414647** (20% weapon damage, server-triggered) may be Lacerate's hit; the model
     follows the tooltip's 10% a stack already there (druid.md Q16). Guild test G5.
 - **The shaman's review lows** ([its log](reviews/2026-09-24-enhancement-shaman.md)): Rockbiter

@@ -351,7 +351,7 @@ threat talents are out of scope.
 | Righteous Fury | +60% Holy; Improved RF up to +90% | **+60% baseline** (+90% until 1.60.1.70009); Improved RF gives damage reduction | [F] |
 | New paladin threat talents | — | Iron Creed (Holy Strike +25%), Instrument of Law (−20% without RF) | [F] |
 | Thunder Clap | Battle Stance only, 10% slow, 4 s CD | **Usable in Defensive Stance**, 20% slow, 6 s CD | [F] |
-| Revenge / Shield Slam damage | 81–99 / 342–358 | 138–168 / 640–670 (threat grows with damage) | [F] damage; threat formula [?] |
+| Revenge / Shield Slam damage | 81–99 (r6) / 342–358 | Revenge r6 138–168, but the sim uses r5, the trainer's (109–133; r6 is an Ahn'Qiraj book, [D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)) / Shield Slam 640–670 (threat grows with damage) | [F] damage; threat formula [?] |
 | Shield Slam tooltip | "a high amount of threat" | "a **very high** amount of threat": dmg + 475 by the [wording table](#threat-wording-table) | [F] text; value [?] |
 | Tranquil Air Totem | ×0.8 | Its aura unchanged, exclusive with Windfury and Grace of Air even from another shaman (1.60.1.70009); the totem spell isn't in the client | [F] notes; [?] |
 | Blessing of Sanctuary | Talent; Holy damage on block | **Removed** | [F] |

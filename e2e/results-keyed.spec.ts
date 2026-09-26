@@ -39,7 +39,7 @@ const pickRanged = async (page: Page, item: 'Riphook' | null) => {
   const picker = page.getByRole('dialog', { name: 'Choose ranged' })
   if (item) {
     await picker.getByLabel('Search items').fill(item)
-    await picker.getByRole('button', { name: new RegExp(`^${item}`) }).click({ position: { x: 24, y: 24 } })
+    await picker.getByRole('button', { name: new RegExp(`^${item}\\.`) }).click({ position: { x: 24, y: 24 } })
   } else {
     await picker.getByRole('button', { name: 'Leave this slot empty' }).click()
   }

@@ -165,6 +165,12 @@ librams' values, and whether a trainer teaches it before a paladin has learned t
 isn't in any allowed source; the sim takes it to come with the libram, so the raid's blessings are
 rank 6 and Greater rank 1 [?] ([OQ 22](#open-questions)). Books that drop outside Ahn'Qiraj (the
 Arcane Brilliance, Gift of the Wild and Prayer of Fortitude books, from content open at launch) stay.
+The results say so (the `preAqRanks` assumption) for every setup that uses one of these buffs,
+Deadly Poison or an ability whose next rank is a book's (Heroic Strike, Revenge, Backstab,
+Frostbolt, Fireball, Arcane Missiles, Shadow Bolt, Immolate, Corruption, Starfire, Multi-Shot,
+Serpent Sting): "Abilities and buffs use the ranks trainable before Ahn'Qiraj, not the higher ones
+its books teach", adding "and the Greater Blessings' rank 2 is taken to need Ahn'Qiraj too" when a
+Blessing of Might or Wisdom is on.
 
 | Name | ID | Effect (the rank at 60) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |

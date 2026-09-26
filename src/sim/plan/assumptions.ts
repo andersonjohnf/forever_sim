@@ -429,6 +429,12 @@ const REGISTRY = {
     text: 'Your own Thorns deals its base 22 Nature damage: the 0.08 × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
+  // buffs doc §1.1 (D36): no Ahn'Qiraj book's rank (src/sim/aq-ranks.test.ts), and the Greater Blessings'
+  // rank 2 taken to need Ahn'Qiraj too [?] (OQ 22). The plan words it for the setup (`preAqRanksText`).
+  preAqRanks: {
+    text: 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach.',
+    docRef: `${BUFFS}#11-attack-power-stats-and-crit`,
+  },
   // buffs doc §4.2 (W5): Gift of Arthas on the boss; where its flat +8 adds (damage-and-timing §2.4, B70).
   giftOfArthas: {
     text: 'Gift of Arthas is on the boss all fight, and each direct physical hit on it deals +8: added after the damage bonuses and before the boss’s armor, so the hit’s crit multiplier applies to it too (×2 on a white crit). Bleed ticks get none. Untested.',
@@ -1081,6 +1087,12 @@ const REGISTRY = {
 } satisfies Record<string, { text: string; docRef: string }>
 
 export type AssumptionId = keyof typeof REGISTRY
+
+/** The `preAqRanks` assumption, with the Greater Blessings' rank 2 when a Blessing of Might or Wisdom is on. */
+export const preAqRanksText = (blessings: boolean): string =>
+  blessings
+    ? 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach, and the Greater Blessings’ rank 2 is taken to need Ahn’Qiraj too.'
+    : REGISTRY.preAqRanks.text
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

@@ -39,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT } from './assumptions'
+import { Assumptions, BEAR_TEXT, preAqRanksText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -207,6 +207,30 @@ const BASE_MAX_RAGE = 100
  * taken reads (rage.md#forever-).
  */
 const DPS_DAMAGE_INTERVAL_MS = 2000
+
+/**
+ * What an Ahn'Qiraj book would raise (buffs doc §1.1, D36; the books in src/sim/aq-ranks.test.ts): the
+ * sim uses the rank before it, which the `preAqRanks` assumption says. The buffs, and the abilities
+ * by name.
+ */
+const PRE_AQ_BUFFS: ReadonlySet<string> = new Set(['battleShout', 'blessingOfMight', 'blessingOfWisdom', 'strengthOfEarth', 'graceOfAir', 'deadlyPoisonMainHand', 'deadlyPoisonOffHand'])
+const PRE_AQ_ABILITIES: ReadonlySet<string> = new Set([
+  'Battle Shout',
+  'Heroic Strike',
+  'Revenge',
+  'Backstab',
+  'Feint',
+  'Frostbolt',
+  'Fireball',
+  'Arcane Missiles',
+  'Shadow Bolt',
+  'Immolate',
+  'Corruption',
+  'Starfire',
+  'Multi-Shot',
+  'Serpent Sting',
+  'Aspect of the Hawk',
+])
 
 interface Weapon {
   hand: 0 | 1
@@ -605,6 +629,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A buff the talents bring takes its exclusive group too: a Balance druid's own Moonkin Aura leaves a
   // Leader of the Pack out, as the game's "exclusive with" does (docs/classes/druid.md §11.1).
   const talentGroups = new Set((setup.replacesBuffs ?? []).flatMap((id) => BUFFS_BY_ID.get(id)?.exclusiveGroup ?? []))
+  /** The Buffs tab's entries the plan applies (the pre-Ahn'Qiraj ranks' note below). */
+  const appliedBuffs = new Set<string>(maintained)
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec, settings)) continue
@@ -612,6 +638,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (buff.exclusiveGroup !== undefined && talentGroups.has(buff.exclusiveGroup)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
+    appliedBuffs.add(id)
     if (PET_BUFFS.has(id)) petBuffs.push(...effects.filter((e) => holds(e.when)))
     for (const e of effects) {
       if (e.kind === 'targetArmor') hasDebuffs.armor = true
@@ -1638,6 +1665,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // buffs doc §4.2, damage-and-timing §2.4: where Gift of Arthas' +8 adds, and which hits get it [?].
   if (c.physicalTaken) notes.add('giftOfArthas')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
+  // buffs doc §1.1 (D36): a buff or ability whose next rank an Ahn'Qiraj book teaches (src/sim/aq-ranks.test.ts).
+  const blessings = appliedBuffs.has('blessingOfMight') || appliedBuffs.has('blessingOfWisdom')
+  if (blessings || [...appliedBuffs].some((id) => PRE_AQ_BUFFS.has(id)) || abilities.some((a) => PRE_AQ_ABILITIES.has(a.name))) {
+    notes.addText('preAqRanks', preAqRanksText(blessings))
+  }
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
   // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's plus a share of the
   // attack power [?] (its own note), the rest Classic Era's; in `classicEra` all are Classic Era's,

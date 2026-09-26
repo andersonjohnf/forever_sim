@@ -911,3 +911,33 @@ describe('the Deep Wounds assumption', () => {
     expect(ids('classicEra')).not.toContain('deepWounds')
   })
 })
+
+// buffs doc §1.1 (D36, review DU-8): the ranks trainable before Ahn'Qiraj, said for every setup whose
+// buffs or abilities an Ahn'Qiraj book would raise.
+describe('the pre-Ahn’Qiraj ranks assumption', () => {
+  const text = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'preAqRanks')?.text
+  const withBuffs = (spec: SpecId, enabled: string[]): SimConfig => {
+    const d = defaultConfig(spec)
+    return { ...d, buffs: { ...d.buffs, enabled } }
+  }
+  const PLAIN = 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach.'
+  const BLESSINGS = 'Abilities and buffs use the ranks trainable before Ahn’Qiraj, not the higher ones its books teach, and the Greater Blessings’ rank 2 is taken to need Ahn’Qiraj too.'
+
+  it('is in every spec’s default results, naming the Greater Blessings where a Blessing of Might or Wisdom is on', () => {
+    for (const spec of SPEC_IDS) {
+      const d = defaultConfig(spec)
+      const blessing = d.buffs.enabled.includes('blessingOfMight') || d.buffs.enabled.includes('blessingOfWisdom')
+      expect(text(d), spec).toBe(blessing ? BLESSINGS : PLAIN)
+    }
+  })
+
+  it('follows the setup: a Fury warrior’s own Battle Shout, a mage’s Frostbolt; none for a Shadow priest with no such buff', () => {
+    // Fury keeps its own Battle Shout up, and its Heroic Strike is a book's rank too.
+    expect(text(withBuffs('warrior-fury', []))).toBe(PLAIN)
+    expect(text(withBuffs('mage-frost', []))).toBe(PLAIN)
+    // Mind Blast, Mind Flay and Shadow Word: Pain have no Ahn'Qiraj book, nor Kings.
+    expect(text(withBuffs('priest-shadow', []))).toBeUndefined()
+    expect(text(withBuffs('priest-shadow', ['blessingOfKings']))).toBeUndefined()
+    expect(text(withBuffs('priest-shadow', ['blessingOfWisdom']))).toBe(BLESSINGS)
+  })
+})

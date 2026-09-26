@@ -52,6 +52,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     "classicItems",
     "unmodelledProcs",
     "draconicEmblemChance",
+    "preAqRanks",
     "balanceSpells",
     "balanceDotCrits",
     "balanceNaturesGrace",

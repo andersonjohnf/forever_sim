@@ -561,7 +561,7 @@ known: a 2.6 s weapon gives 8.9 or 9.0, never 9.1
 | Cleave | **No refund** | [C] | Magey issue #27: a dodged Cleave cost its full 20 rage in the video. **Disagreement:** WarriorSim's post-SoD code ([ad5ac8b spell.js](https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js)) leaves Cleave on the default 80% refund; its 2021 revision has no Cleave. We follow Magey's observation, and [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) lists Cleave among the exceptions. |
 | Heroic Strike | Refund 80% | [C] | Magey issue #27 (video shows HS and Hamstring cost "only a fraction on whiffs"), WarriorSim |
 | Execute | **The base cost is spent with no refund. The extra rage is not consumed**, so only the cost is lost. | [C], medium | Same rule as [warrior.md §3.1 "Execute details"](../classes/warrior.md#31-damage-abilities) and WarriorSim (`refund = false`). Magey issue #27 reports that "Execute refunds 84%". That fits this rule if it means the rage the tester still had after a miss (e.g. 79 of 94 left after losing the 15 cost). It does not fit if 84% of the cost came back. Q4 |
-| Maul | Assumed to work like Heroic Strike: 80% | [?] | No Classic test found |
+| Maul | Assumed to work like Heroic Strike: 80%. The user's one dodged Maul on the beta cost 20% of its 12 ([Maul's rage](#mauls-rage-in-the-users-test-)) | [?] | No Classic test found; one Forever dodge |
 | Blocked abilities (a mob blocking your attack) | No refund; the attack landed | [C] | Same sources (only miss, dodge and parry refund) |
 | Forever | No Forever data. Classic rules assumed. | [?] | — |
 
@@ -645,6 +645,31 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | Rage costs (max rank) | Maul 15, Swipe 20, Demoralizing Roar 10 | Plus Primal Bite (Mangle (Bear) until 1.60.1.70009) 20 rage with a 6 s CD, and Lacerate 15 | [F] [spellbook › druid](https://foreverchanges.pro/spellbook/druid) |
 
 Feral Instinct no longer touches threat or rage in Forever. See [threat.md](threat.md#stance-and-form-modifiers).
+
+### Maul's rage in the user's test [?]
+
+The user's in-game Maul test (1.60.1, 2026-09-26, Ragefire Chasm, level 12, advanced combat logging
+on, no Enrage; [druid.md §4.1](../classes/druid.md#mauls-threat-and-rage-in-the-users-test-) has
+the method) also shows Maul's rage. **It changes nothing in the sim**: the extra rage is the bear's
+Ferocity, which the sim already applies.
+
+- **Reading the rage.** The bear's rage is on each event it's the source of: after its own rage on a
+  white swing, and before Maul's cost on Maul's `SPELL_CAST_SUCCESS`, whose cost field reads 15 on
+  every Maul. Between two readings the rage should move by +11.25 per landed white swing
+  ([bear white hits](#bear-white-hits-in-the-public-beta-logs-)) and −15 per landed Maul; an interval
+  with a hit taken, a heal or anything else on the bear is left out.
+- **What it shows.** 22 Mauls; in the 10 clean intervals with one landed Maul, the bear kept **3.0**
+  rage more than that every time (29.5–30.5 tenths, the log's whole tenths around a carried half). The
+  one dodged Maul cost **2.4** (210 → 186 tenths, nothing else between).
+- **Why: the Maul cost 12.** One Maul went off with the bear at **12.0** rage (10:49:17 in the second
+  log, its rage never above 12.0 since the pull), and landed; a 15-rage Maul can't. A level-12 druid has
+  3 talent points, and Ferocity 3/5 takes 3 off Maul: 12. The log's cost field shows the base 15.
+  Then the dodged Maul is 80% of its 12 refunded, net 2.4, as the sim's refund rule
+  ([refunds](#rage-refunds-on-avoided-abilities)) gives: one Forever sample for Maul's 80%.
+- **Left open.** The bear's talents weren't recorded, so this rests on the one 12-rage Maul
+  ([druid.md Q39](../classes/druid.md#10-open-questions)). Read as 3 rage given back on each Maul,
+  on top of Ferocity 5/5's 5 off, which the sim already applies, it would add about 5% to the bear's
+  TPS (1,088.8 → 1,143.6 on the 5,000 boss; seed 31101, 100,000 fights).
 
 ### Bear white hits in the public beta logs [?]
 
@@ -961,7 +986,9 @@ sample size (doctrine §2, tier 2).
    - Does Cleave refund? Magey says no; WarriorSim says yes.
    - What happens to Execute's cost and extra rage on a miss? Read rage before and after a
      dodged Execute at a known rage.
-   - Does Maul refund?
+   - Does Maul refund? The user's one dodged Maul cost 20% of its 12
+     ([Maul's rage](#mauls-rage-in-the-users-test-)), as 80% does; more dodges and parries would
+     confirm it.
 5. **Berserker Rage multiplier on damage-taken rage.** We only found it in forbidden code, so it
    is **not adopted**: the vmangos emulator uses `addRage *= 1.3f` when aura 18499 is present
    ([vmangos Player.cpp `RewardRage`](https://github.com/vmangos/core/blob/development/src/game/Objects/Player.cpp)).

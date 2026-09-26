@@ -643,6 +643,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   never measured on Classic Era; kept by user decision, 2026-09-26]; Primal Bite (Mangle until
   1.60.1.70009) dmg × 1 [?: its tooltip names no threat; Season of Discovery's ×1.5 for Mangle
   (Bear) doesn't carry over to Forever's reworked spell, user decision, 2026-09-26]; bear form ×1.3 with no Feral Instinct threat [F].
+- **Partly answered:** the user's paladin-then-bear flip test (1.60.1, 2026-09-26, level 12, one
+  Maul pull and one white-only control) puts Maul between ×1.71 and ×2.25 and fits Bear Form's ×1.3
+  and the 110% rule ([druid.md §4.1](classes/druid.md#mauls-threat-and-rage-in-the-users-test-)).
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
@@ -1127,6 +1130,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M5 · ≤20**
 - **Assumes:** taunts like Taunt: sets you to top threat, and does nothing if you are already
   there [?]; the client's scripted 1607 + 42.3/level value isn't threat [?].
+- **Partly answered:** the user's reverse flip test (1.60.1, 2026-09-26, rank 1311655, two pulls)
+  finds 12 to 35 hidden threat a judgement against its dummy's 367, so the dummy isn't flat threat;
+  the taunt is its own spell, 20232 (effect 114, aura 11), 4 s
+  ([paladin.md](classes/paladin.md#seal-of-fury-sof-new-the-protection-seal)).
 - **Test:** two players on a mob; the non-tank judges JoF; read both players' threat before and
   after with the threat macro.
 - **Samples:** ≥5 judgements.

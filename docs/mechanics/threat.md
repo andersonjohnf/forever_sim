@@ -268,7 +268,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 | Ability (rank, spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| Maul (r7, 9881; +128 dmg) | **1.75 × dmg** [?] | [?] | Provenance: every Classic and Season of Discovery threat tool has used it since 2019; it traces to a 2006 guide and was never measured on Classic Era. [LTC2 Druid.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua) carries it, and Icy Veins' Classic spell summary ([Icy Veins](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary)) and Warcraft Tavern's Classic threat table repeat "1.75x" without a source. Kept as the default (user decision, 2026-09-26). Spell unchanged [F]. |
+| Maul (r7, 9881; +128 dmg) | **1.75 × dmg** [?] | [?] | Provenance: every Classic and Season of Discovery threat tool has used it since 2019; it traces to a 2006 guide and was never measured on Classic Era. [LTC2 Druid.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua) carries it, and Icy Veins' Classic spell summary ([Icy Veins](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary)) and Warcraft Tavern's Classic threat table repeat "1.75x" without a source. Kept as the default (user decision, 2026-09-26). Spell unchanged [F]. **The user's in-game test** (1.60.1, 2026-09-26, level 12, one paladin-then-bear flip; [druid.md §4.1](../classes/druid.md#mauls-threat-and-rage-in-the-users-test-)) puts it between ×1.71 and ×2.25: ×1.75 fits, ×1.0 is ruled out; multiplier or flat bonus not separated. |
 | Swipe (r5, 9908; 83 dmg, 3 targets) | **1.75 × dmg** per target [?] (Maul's lineage) | [?] | Forever: Feral Instinct is +10% / +20% / +30% Swipe damage [F]. Savage Fury is +10% at 2/2. |
 | Demoralizing Roar (r5, 9898) | **39** per enemy [?] (Maul's lineage) | [?] | Forever: −204 AP at 60 [F] |
 | Faerie Fire (r4, 9907) | **108** [?] (Maul's lineage; same value for Faerie Fire (Feral) r4) | [?] | **Forever: Faerie Fire (Feral) is removed.** Plain Faerie Fire r4 can now be cast in Cat, Bear and Dire Bear Form [F] ([spellbook/druid](https://foreverchanges.pro/spellbook/druid)). The caster tooltip shows 115 mana. [druid.md](../classes/druid.md) models it in form as free with a 6 s CD; that doc owns cost and cooldown. The cat sim counts no threat for it ([druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4)): the 108 is [?] and a cat's TPS isn't its headline. |
@@ -529,7 +529,10 @@ threat-value scale with a plain white hit in a known stance.
 4. **Bear** [?]: Maul and Swipe multipliers (1.75), Demoralizing Roar (39) and Faerie Fire (108):
    every Classic and Season of Discovery threat tool has used them since 2019; they trace to a 2006
    guide and were never measured on Classic Era. Both profiles use them, and they stay the defaults
-   (user decision, 2026-09-26). **Lacerate**'s bonus is the wording table's, Forever's Sunder Armor
+   (user decision, 2026-09-26). The user's flip test (2026-09-26, level 12, one pull) brackets Maul at
+   ×1.71–2.25 ([druid.md §4.1](../classes/druid.md#mauls-threat-and-rage-in-the-users-test-)); more
+   Maul pulls at 60, and a Maul whose damage varies more, would pin it and tell a multiplier from a
+   flat bonus. **Lacerate**'s bonus is the wording table's, Forever's Sunder Armor
    r5's client value at the same level: a flat 206 (Classic Era's 4.5 × level 58 = 261 before build
    1.60.1.70009). Blizzard's own Season of Discovery hotfix (2 December 2024) sets Lacerate (414644,
    Forever's rank 1 under the same id) to 3.33 × damage on the hit and the ticks; the user kept the

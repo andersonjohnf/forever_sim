@@ -588,7 +588,7 @@ describe('the default bear’s plan', () => {
       'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
-      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. None is measured in Forever.',
+      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. Only Maul’s has been tested in Forever: the user’s in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.',
     )
     expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
     expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
@@ -605,7 +605,7 @@ describe('the default bear’s plan', () => {
       rotation: { [BEAR_IDS.swipeEnabled]: true, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false },
       buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') },
     })
-    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. None is measured in Forever.')
+    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Only Maul’s has been tested in Forever: the user’s in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.')
     // One value alone reads in the singular.
     const faerieOnly = text({ ...d, rotation: { [BEAR_IDS.maulEnabled]: false, [BEAR_IDS.mangleEnabled]: false, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false } })
     expect(faerieOnly.bearThreat).toBe('Faerie Fire makes 108 threat: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era. None is measured in Forever.')

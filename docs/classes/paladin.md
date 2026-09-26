@@ -507,8 +507,31 @@ and whose Classic Era damage is only its own 170–186 + 0.5 × SP [C]. Nothing 
 Fury's (its tooltip names only its damage and taunt), and an undescribed dummy models as zero, so the
 sim gives it no damage and no threat. As flat threat, 1,691.6 × 1.6 a landed judgement, it would add
 **383 TPS** (+55%) to the default Protection setup (697.3 → 1,080.2, 10,000 fights, 2026-09-26; the
-+454 quoted before was at Righteous Fury's old +90%). No measurement supports it; guild test T5 would
-check it ([open question 28](#open-questions)).
++454 quoted before was at Righteous Fury's old +90%). **The user's in-game test rules that out**
+(below; [open question 28](#open-questions)).
+
+**The user's reverse flip test** (tier 2 in [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable);
+build 1.60.1, 2026-09-26, Ragefire Chasm, advanced combat logging on, the user's log
+`WoWCombatLog-092626_104907.txt`, kept out of the repo). The paladin, with Righteous Fury off,
+pulls, tanks and judges twice with its rank of Judgement of Fury, 1311655 (learned at level 18; its
+dummy is 316.8 + 25.2 a level, about 367 at level 20, as the user read the client); then the bear
+attacks until the mob turns to it. The paladin's known threat is its damage at
+×1 (white swings, Seal of Fury, Judgement of Fury's own damage) and half its healing; the bear's is
+Bear Form's ×1.3 × (white damage + 1.75 × Maul damage) with no Enrage, and the mob turns when the
+bear's passes 110% of the paladin's ([druid.md §4.1](druid.md#mauls-threat-and-rage-in-the-users-test-)
+tests those rules). What's left over is the judgements' hidden threat.
+- **One pull with no turn** (the mob died on the paladin; 2 judgements): the bear reached 615 threat
+  against the paladin's known 536, so the paladin had at least 559: **at least 12 hidden a judgement**.
+- **One pull that turned** (2 judgements): **at most 35 hidden a judgement** at Maul's ×1.75, and at
+  most 81 at ×2.25, the top of the user's Maul bracket.
+- A third pull is left out: the paladin kept acting after the bear started.
+- **Result.** Far below the dummy's 367 a judgement, and it only shrinks as a share at 60: the dummy
+  isn't its value as flat threat, and the +383 TPS reading is ruled out. The sim's zero stands [?]: a
+  hidden 12–35 a judgement, if real, rests on the 110% rule and Maul's ×1.75, and D37 models an
+  undescribed dummy as zero.
+- **The taunt** is a separate spell, 20232 (effect 114, taunt, and aura 11), 4 s.
+- **Caveats.** Two usable pulls, one character, a low level and rank; the brackets assume Bear
+  Form's ×1.3, the 110% rule and Maul's ×1.75, which the user's Maul test is consistent with.
 
 ##### The beta logs: Light's Fury
 
@@ -1922,8 +1945,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 28. **Judgement of Fury's scripted dummy** (1607 + 42.3/level, coefficient 0.18): the sim gives it no
     damage and no threat, as the Classic Era client's identical dummy on Judgement of Righteousness
     has none, and nothing describes it ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)). As
-    flat threat it would be +383 TPS (+55%) in the default Protection setup. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
-    judged while you already have top threat (so the taunt does nothing).
+    flat threat it would be +383 TPS (+55%) in the default Protection setup. **Partly answered** by the
+    user's reverse flip test (1.60.1, 2026-09-26, rank 1311655, two pulls;
+    [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): the hidden threat is at least 12 and
+    at most 35 a judgement (81 at Maul's ×2.25), far below the dummy's 367 at level 20, so it isn't
+    flat threat and the +383 TPS reading is ruled out; the sim's zero stands. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
+    judged while you already have top threat (so the taunt does nothing), at 60 with the threat macro.
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy
     Shield's 0.08 [?] and, for Thorns on another tank, a raid Restoration druid's spell damage, 313

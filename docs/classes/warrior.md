@@ -3244,8 +3244,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     snapshotted amount to a pool the next 4 ticks pay out, and the pending tick keeps its time,
     [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. It's the largest change D36 brought: the
     earlier restart model, which lost what was left of the bleed at every crit, gave the default
-    Fury warrior about 13% less DPS (714.7 against 824.7 on the engine's golden run) and Arms
-    about 13% less (707.3 against 812.5). That settles the conflict this question
+    Fury warrior about 14% less DPS and Arms about 14% less: on the defaults since W4, at the
+    default seed (1) over 5,000 fights with only the rolling switched off, Fury 842.3 → 727.0
+    (−13.7%) and Arms 821.8 → 710.4 (−13.6%), the figure the results' assumption gives (before W4,
+    on the engine's golden run, Fury 824.7 → 714.7 and Arms 812.5 → 707.3, about 13%). That settles the conflict this question
     raised with the rogue model: Deadly Poison's new stack renews the duration without restarting
     the tick timer ([rogue Q8](rogue.md#10-open-questions)), and the rolling bleed keeps its timer
     too, so the two now agree. Still for the guild to check in game: the rolling itself and its

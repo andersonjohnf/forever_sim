@@ -1304,10 +1304,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B67. Seal of Righteousness formula
 **Low · M5 · ≤20**
 - **Assumes:** two-hander `1.20 × v × speed`, one-hander `0.85 × v × speed`, with v = 18.80 at
-  60, and not the proc's base points (35 at rank 8): the beta logs at ranks 1–4 [C/?]; 0.2 × SP, in
-  16 procs from 4 characters, against the client's 0.1 [?]; the TBC-era `+0.03 × weapon average`
+  60, and not the proc's base points (35 at rank 8): the beta logs at ranks 1–4 [C/?]; 0.1 × SP at
+  rank 8, the proc's 0.1 plus the aura dummy's none there [F]; at ranks 1–4 the logs' 0.2 (16 procs
+  from 4 characters) is the proc's 0.1 plus the dummy's 0.1 [?]; the TBC-era `+0.03 × weapon average`
   term is refused.
-- **Test:** SoR procs at level 60 with a known weapon, with and without +100 spell damage.
+- **Test:** SoR procs at level 60 with a known weapon, with and without +100 spell damage (0.1 × SP
+  adds 10 a proc; 0.2 would add 20).
 - **Samples:** ≥50 procs per state.
 - **Changes:** SoR (the alternative seal and twisting partner).
 - **Docs:** [paladin § SoR](classes/paladin.md#seal-of-righteousness-sor),

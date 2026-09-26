@@ -53,7 +53,7 @@ describe('Retribution’s priority list (D31)', () => {
     // at random, none with a stored order. The snapshot is of the plans before the priority list (A2),
     // taken on that code: a change to it is a change to what the default order plays. Re-taken for
     // the beta-log check (paladin.md#the-beta-log-check-2026-09-26), each step that moves a spell's
-    // numbers: Seal of Righteousness (its proc's base points gone, 0.2 × SP) moved every case with it.
+    // numbers: Seal of Righteousness (its proc's base points gone) moved every case with it.
     const plans = retributionCases(200).map((config) => buildPlan(config).plan)
     const hashes = plans.map((plan) => fingerprint(planJson(plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)

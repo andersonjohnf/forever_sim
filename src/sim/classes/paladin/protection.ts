@@ -315,17 +315,18 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 // --- Settings (paladin.md "Forever priority list (default)") -------------------------------------
 
 /**
- * What the presets' help and Hammer of the Righteous's say, measured in the default setup (paladin.md
- * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, re-measured 2026-09-26 for
- * the beta-log check, paladin.md#the-beta-log-check-2026-09-26): Defensive's
- * TPS, DPS and damage taken a second, and Max TPS and Hammer of the Righteous turned on against it, in
- * percent. protection-presets.test.ts measures them again, so a change that moves them fails until
+ * What the presets' help, Hammer of the Righteous's and the seal's say, measured in the default setup
+ * (paladin.md "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, re-measured
+ * 2026-09-26 for the beta-log check, paladin.md#the-beta-log-check-2026-09-26): Defensive's
+ * TPS, DPS and damage taken a second, and Max TPS, Hammer of the Righteous turned on and Seal of
+ * Righteousness in Seal of Fury's place against it, in percent. protection-presets.test.ts measures them again, so a change that moves them fails until
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
   defensive: { tps: 697.48, dps: 433.76, damageTaken: 900.4 },
   maxTps: { tpsPct: 7.29, dpsPct: 7.18, damageTakenPct: 5.83 },
   hammerOfTheRighteous: { tpsPct: -5.2, dpsPct: -3.72, damageTakenPct: 5.01 },
+  sealOfRighteousness: { tpsPct: -7.64, dpsPct: -5.46, damageTakenPct: 2.13 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
@@ -407,7 +408,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.seal,
     group: 'Core abilities',
     label: 'Seal',
-    help: 'Seal of Fury adds 35 Holy damage plus a tenth of your spell damage to each of your auto attacks, whatever the weapon. With a shield, each also shields you for half that damage from the next hit you take, and when a hit uses it up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds more the slower your weapon (24 with a 1.5 s one-hander) plus a fifth of your spell damage, but no shield or mana: about as much threat with a one-hander, for more damage taken; it does better only with a two-hander, and so without a shield.',
+    help: `Seal of Fury adds 35 Holy damage plus a tenth of your spell damage to each of your auto attacks, whatever the weapon. With a shield, each also shields you for half that damage from the next hit you take, and when a hit uses it up, Improved Seal of Fury restores mana (87 against a raid boss). Its judgement taunts. Seal of Righteousness adds more the slower your weapon (24 with a 1.5 s one-hander) plus a tenth of your spell damage, but no shield or mana: about ${helpPct(M.sealOfRighteousness.tpsPct, 1)} less TPS in the default setup, for ${helpPct(M.sealOfRighteousness.damageTakenPct, 1)} more damage taken; it does better only with a two-hander, and so without a shield.`,
     choices: [
       { value: 'fury', label: 'Fury' },
       { value: 'righteousness', label: 'Righteousness' },

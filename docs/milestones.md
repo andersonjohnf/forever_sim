@@ -198,7 +198,7 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
 - [x] **P1 Seal of Fury flat:** 35 + 0.1 × SP per hit, dropping the weapon-speed term the logs
       disprove (rank 1 hits 6 every time, whatever the weapon); Protection Paladin re-tuned. Its
       absorb now comes off the next hit taken. With the log check's other paladin findings: Seal of
-      Righteousness the seal value alone + 0.2 × SP, Holy Strike's flat part and spell damage inside
+      Righteousness the seal value alone + 0.1 × SP at rank 8, Holy Strike's flat part and spell damage inside
       its 50%, Judgement of Command can miss, Retribution Aura's coefficient left open
       ([the beta-log check](classes/paladin.md#the-beta-log-check-2026-09-26): Protection 746.8 →
       697.3 TPS, Retribution 608.6 → 597.3 DPS; first-pass re-checks hold the defaults)

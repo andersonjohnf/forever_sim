@@ -469,7 +469,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-command-soc`,
   },
   sealOfRighteousness: {
-    text: 'Seal of Righteousness deals 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander) plus 0.2 × spell damage on each landed auto attack, as beta combat logs of its low ranks show; the spell damage part comes from few logs, and its data says 0.1.',
+    text: 'Seal of Righteousness deals 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander) plus 0.1 × spell damage on each landed auto attack. Beta combat logs below level 40 show the weapon part, and 0.2 × spell damage, which the game’s data at those ranks gives as 0.1 from the seal and 0.1 from each hit; at rank 8 the seal’s 0.1 is gone from its data. Untested at level 60.',
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {

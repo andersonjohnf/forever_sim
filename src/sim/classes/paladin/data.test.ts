@@ -75,15 +75,14 @@ const DEFENSE_TYPE = { none: 0, magic: 1, melee: 2, ranged: 3 } as const
 const HOLY_MASK = 2
 
 /** A spell def against its client row: school, damage class, attributes and coefficient. */
-function matches(def: SpellDef, id: number, coefficientEffect = 0, measured = false) {
+function matches(def: SpellDef, id: number, coefficientEffect = 0) {
   const s = spell(id)
   expect(s.misc!.schoolMask, def.id).toBe(HOLY_MASK)
   expect(s.categories?.defenseType ?? 0, def.id).toBe(DEFENSE_TYPE[def.defense])
   expect(attrs(id), def.id).toEqual({ noActiveDefense: def.noActiveDefense, alwaysHit: def.alwaysHit })
   const e = effect(id, coefficientEffect)
-  // A measured coefficient (Seal of Righteousness's 0.2) keeps the client's as its JotC share; a
-  // weapon share's coefficient is inside it (Seal of Command's 0.29, Holy Strike's 0.429).
-  const coefficient = measured ? def.takenScale : def.weaponPercent > 0 ? def.spCoefficient / def.weaponPercent : def.spCoefficient
+  // A weapon share's coefficient is inside it (Seal of Command's 0.29, Holy Strike's 0.429).
+  const coefficient = def.weaponPercent > 0 ? def.spCoefficient / def.weaponPercent : def.spCoefficient
   expect(e.effectBonusCoefficient ?? 0, def.id).toBeCloseTo(coefficient, 12)
 }
 
@@ -123,8 +122,8 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186, 5)
   })
 
-  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1 in the client; Seal of Fury flat, with its 50% absorb; Seal of Righteousness’s seal value 1786 + 47/level from 58 at 0.2 × SP', () => {
-    matches(sealOfRighteousnessProc(3.5, true), 25713, 0, true)
+  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1 in the client; Seal of Fury flat, with its 50% absorb; Seal of Righteousness’s seal value 1786 + 47/level from 58 at 0.1 × SP (its rank-8 dummy has none)', () => {
+    matches(sealOfRighteousnessProc(3.5, true), 25713)
     matches(sealOfFuryProc(), 20418)
     // Seal of Fury: the proc's flat 35 + 0.1 × SP, whatever the weapon (the beta logs); the aura's
     // weapon-speed dummy (20423 effect 0) is undescribed, so it models as zero.
@@ -137,12 +136,15 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)
-    // Seal of Righteousness: the seal value alone, not the proc's base points (35 at rank 8), + 0.2 × SP,
-    // measured [?]; its JotC share the client's 0.1 (the beta logs). Worked example 6: 1.2 × 18.80 × 3.5 =
+    // Seal of Righteousness: the seal value alone, not the proc's base points (35 at rank 8) [?], + the
+    // proc's 0.1 × SP and the aura dummy's: 0.1 at ranks 1–7 (the beta logs' 0.2 at ranks 1–4), none at
+    // rank 8. Its JotC share is the proc's 0.1 (the beta logs). Worked example 6: 1.2 × 18.80 × 3.5 =
     // 78.96 before spell damage; the same weapon one-handed (0.85) 55.93.
     expect(effect(25713, 0)).toMatchObject({ effectBasePointsF: 35, effectBonusCoefficient: 0.1 })
-    expect(sealOfRighteousnessProc(3.5, true)).toMatchObject({ spCoefficient: SEAL_OF_RIGHTEOUSNESS_SP, takenScale: 0.1 })
-    expect(SEAL_OF_RIGHTEOUSNESS_SP).toBe(0.2)
+    for (const id of [20154, 20287, 20288, 20289, 20290, 20291, 20292]) expect(effect(id, 0).effectBonusCoefficient, String(id)).toBe(0.1)
+    expect(effect(20293, 0).effectBonusCoefficient ?? 0).toBe(0)
+    expect(SEAL_OF_RIGHTEOUSNESS_SP).toBe(effect(25713, 0).effectBonusCoefficient! + (effect(20293, 0).effectBonusCoefficient ?? 0))
+    expect(sealOfRighteousnessProc(3.5, true)).toMatchObject({ spCoefficient: 0.1, takenScale: 0.1 })
     expect(sealOfRighteousnessProc(3.5, true).min).toBeCloseTo(78.96, 9)
     expect(sealOfRighteousnessProc(3.5, false).max).toBeCloseTo(55.93, 9)
   })

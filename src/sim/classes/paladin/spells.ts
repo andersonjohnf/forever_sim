@@ -95,18 +95,19 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
 export const SEAL_OF_RIGHTEOUSNESS_VALUE = atLevel60(1786, 47, 58, 64) / 100
 
 /**
- * Seal of Righteousness's spell damage coefficient per proc (paladin.md#the-beta-logs-seal-of-righteousness):
- * 0.2, measured [?]. The proc's client coefficient is 0.1, but at spell damage 10 and more the beta
- * logs' 16 procs from 4 characters all fit 0.2 and only 5 fit 0.1 (the two characters whose level and
- * weapon pin it down fit 0.2 alone). Its share of Judgement of the Crusader's bonus stays the client's
- * 0.1, as measured (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
+ * Seal of Righteousness's spell damage coefficient per proc at rank 8 (paladin.md#the-beta-logs-seal-of-righteousness):
+ * 0.1, the proc's (25713) 0.1 plus the rank-8 aura's weapon-speed dummy's 0 (20293 effect 0) [F] client.
+ * The beta logs' 0.2 at ranks 1–4 is the same sum there: the proc's 0.1 plus that rank's dummy's 0.1
+ * (20154, 20287, 20288, 20289; ranks 5–7 carry it too), which rank 8's dummy doesn't have [?] (OQ 4).
+ * Its share of Judgement of the Crusader's bonus is the proc's 0.1, as measured
+ * (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
  */
-export const SEAL_OF_RIGHTEOUSNESS_SP = 0.2
+export const SEAL_OF_RIGHTEOUSNESS_SP = 0.1
 
 /**
  * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor): the
  * seal value, `1.2 × v × speed` with a two-hander and `0.85 × v × speed` with a one-hander (Classic
- * Era's rule, and what the beta logs show at ranks 1–4), + 0.2 × SP [?]. The proc's own base points (35
+ * Era's rule, and what the beta logs show at ranks 1–4), + 0.1 × SP at rank 8 [?]. The proc's own base points (35
  * at rank 8) aren't added: at ranks 1–4 their 4 to 9 fit 23 of 727 procs where the seal value alone fits
  * 587 (the beta logs). Melee class with No Active Defense and Always Hit: it can't be avoided, and crits
  * ×2 [?]. It lacks NOT_A_PROC, so it triggers no procs, no Windfury or Crusader, but its crit gives

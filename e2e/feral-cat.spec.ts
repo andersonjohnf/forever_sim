@@ -42,7 +42,7 @@ test.describe('Feral cat', () => {
     await expect(page.getByText('9 / 37 / 5')).toBeVisible()
     await presets.click()
     // Both druid builds, the bear's since it shipped (B4); only the cat's is marked "(default)" here.
-    await expect(page.getByRole('option')).toHaveText(['Feral cat (default)', 'Feral bear default', 'Balance default'])
+    await expect(page.getByRole('option')).toHaveText(['Feral cat (default) 9/37/5', 'Feral bear default 9/42/0', 'Balance default 41/5/0'])
   })
 
   test('its Rotation tab says its defaults are tuned and why it never powershifts', async ({ page }) => {

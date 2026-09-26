@@ -170,8 +170,9 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS were
-  // tuned on 1.60.1.69913 and had D27's first-pass check on 1.60.1.70009 (warrior.md §5.4 "Build 1.60.1.70009").
-  if (spec === 'warrior-protection') return 'Defensive and Max TPS were tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn’t been fully tuned yet.'
+  // tuned on 1.60.1.69913, had D27's first-pass check on 1.60.1.70009 (warrior.md §5.4 "Build 1.60.1.70009"),
+  // and their Heroic Strike thresholds were searched again on the boss melee of 2026-09-26 (JL-5, JU-5).
+  if (spec === 'warrior-protection') return 'Defensive and Max TPS were tuned on an earlier game build and had a quick search on this one and the default boss; Balanced, the default, hasn’t been fully tuned yet.'
   if (spec === 'warrior-arms' || spec === 'warrior-fury') return 'The defaults are tuned for the default setup.'
   // D27 (the paladin review's PR-6, the warrior's WR-11 wording): Retribution was tuned on 1.60.1.69913 and had a
   // first-pass search with its talents on 1.60.1.70009 (paladin.md "The 1.60.1.70009 re-check").
@@ -182,8 +183,9 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
-  // docs/classes/druid.md §6.3 "Balanced", "Max TPS": D28's default and Max TPS's Maul, a first pass (D27) around Defensive's tuned settings.
-  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven’t been fully tuned yet.'
+  // docs/classes/druid.md §6.3 "Balanced", "Max TPS": D28's default, a first pass (D27) around Defensive's tuned settings, which
+  // had a quick check on the boss melee of 2026-09-26 (nothing moved; JU-5); Max TPS plays as Balanced since then (JL-1).
+  if (spec === 'druid-feral-bear') return 'Defensive is tuned and had a quick check on the default boss; Balanced, the default, hasn’t been fully tuned yet, and Max TPS plays as it.'
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'

@@ -135,8 +135,14 @@ talent build, and what they changed stays theirs.
   `normalizeConfig`; [talents.md § Tree versions](data/talents.md#tree-versions)), is said in the
   defaults notice, naming the spec; the load then saves, on today's trees, so the next one says
   nothing.
-- **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
-  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
+- **A tank's boss melee that was the former default** (4,500 to 5,500 every 2.0 s, in a setup
+  written before version 4) takes today's default on any load, and is said: `normalizeConfig` moves
+  it and reports `bossMeleeMoved`, which the autosave's defaults notice names by spec
+  ([ux.md](ux.md#persistence-and-sharing)). It isn't in `following`: the setup's version says whether
+  the swing was written while it was the default.
+- **Share links, setup codes and saved setups are deliberate** and are loaded as they are:
+  they're `SimConfig`s with no `following`, loaded with `replace`, and never follow the defaults; only the
+  version migrations above apply (the former boss melee among them). After that,
   the autosave treats one as any setup: its slots that happen to hold today's defaults follow them
   from then on, and the rest are the player's.
 

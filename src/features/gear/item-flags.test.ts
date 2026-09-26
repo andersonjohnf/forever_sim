@@ -32,6 +32,20 @@ describe('gear-row badge for effects the sim leaves out', () => {
     expect(listed(buildPlan(cat).assumptions, 'unmodelledProcs')).not.toContain('Idol of Brutality')
   })
 
+  it('leaves out an effect that only moves you: the default bear’s Defiler’s Leather Boots’ run speed (JL-12, JU-6)', () => {
+    const boots = itemData.items.find((i) => i.name === 'Defiler’s Leather Boots' || i.name === "Defiler's Leather Boots")!
+    expect(boots.otherEquip.map((e) => e.spellId)).toEqual([23990])
+    expect(unsimulatedEffects(boots, 'druid-feral-bear')).toEqual([])
+    const bear = defaultConfig('druid-feral-bear')
+    expect(bear.gear.feet?.itemId).toBe(boots.id)
+    expect(listed(buildPlan(bear).assumptions, 'unmodelledProcs')).not.toContain(boots.name)
+    // Ghost Wolf's speed and Sprint's duration only move you too.
+    for (const spellId of [22801, 23049]) {
+      const item = itemData.items.find((i) => i.otherEquip.some((e) => e.spellId === spellId))!
+      expect(unsimulatedEffects(item).filter((line) => item.otherEquip.some((e) => e.spellId === spellId && e.raw === line)), item.name).toEqual([])
+    }
+  })
+
   it('agrees with the plan’s assumptions for every item with an effect a warrior can wear', () => {
     const base = defaultConfig('warrior-fury')
     const withEffects = itemData.items.filter(

@@ -641,9 +641,11 @@ describe('the default bear (druid.md §6.3)', () => {
     }
     const uptime = (id: string) => sim.auraUpMs[plan.auras.findIndex((a) => a.id === id)] / ms
     // The roar goes up with the first GCD, and by the duty rule is refreshed from 1.5 s left, so a
-    // miss is recast as it falls off: 99.68% over 40,000 fights (druid.md §6.3). Faerie Fire follows
-    // at 1.5 s, and from 6 s left a resisted one is recast once its cooldown ends: 98.40%.
-    expect(uptime('demoralizingRoar')).toBeGreaterThanOrEqual(0.995)
+    // miss is recast as it falls off: 99.62% over 40,000 fights (druid.md §6.3; 99.68% before the boss
+    // melee of 2026-09-26, whose smaller hits leave the bear short of its 10 rage now and then; these
+    // 100 fights 99.46%). Faerie Fire follows at 1.5 s, and from 6 s left a resisted one is recast once
+    // its cooldown ends: 98.38%.
+    expect(uptime('demoralizingRoar')).toBeGreaterThanOrEqual(0.994)
     expect(uptime('faerieFire')).toBeGreaterThanOrEqual(0.98)
     // Its settings name every duty.
     expect(Object.values(BEAR_IDS)).toEqual(expect.arrayContaining(['druid.bear.demoRoar.enabled', 'druid.bear.faerieFire.enabled', 'druid.bear.enrage.inCombat']))
@@ -686,20 +688,17 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     const duties = run(config(DEFENSIVE))
     const balanced = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Max TPS": Balanced +2.8% TPS, +2.6% DPS and +0.7% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
+    // §6.3 "Max TPS": Balanced +3.3% TPS, +3.1% DPS and +1.3% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
     expect(balanced.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
     expect(balanced.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
     expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
     expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.05)
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
-    // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS (0.16% less with Shadowcraft Cap on
-    // the head, BEAR_PRESET_MEASURES). On 6,000 fights: 2,000 put the DPS gap within the noise once the
-    // default head changed (2026-09-26; 0.25% less over 50,000 fights, before the bear slice's values).
-    expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
-    expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
-    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)
-    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.994)
+    // Max TPS drops the roar as Balanced does, and since the boss melee of 2026-09-26 keeps Balanced's
+    // Maul from 20: no threshold made more threat on TPS alone (§6.3 "Max TPS", T5, JL-1), so it plays
+    // as Balanced, fight for fight (14 made 0.2% more TPS for 0.2% less DPS on the 5,000 boss).
+    expect(max.tps!.mean).toBe(balanced.tps!.mean)
+    expect(max.dps.mean).toBe(balanced.dps.mean)
   }, 60_000)
 })

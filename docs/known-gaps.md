@@ -8,6 +8,30 @@ of fixing it only when it's low and breaks no promise in [ux.md](ux.md), the doc
 or class doc. **When an entry is fixed, delete it here** and name the fixing commit in that
 review's log under [reviews/](reviews/). The milestones are in [milestones.md](milestones.md).
 
+- **The Golemagg log that sizes the default boss melee has no link yet (review JL-9, introduced,
+  low).** [encounter.md's sources](mechanics/encounter.md#sources) name it ([wcl-golemagg]: a Classic
+  Era rank-100 Golemagg kill, tank Mangox) with "TODO: add the report link"; the user deferred adding
+  it (2026-09-26). Until it's there, nobody can re-derive the 24 swings, the 2.0 s gaps, the crit and
+  crushing checks or the tank's armor between them (encounter OQ 3). Add the link, then read the
+  tank's buffs, debuffs and other damage in it.
+- **The tank gear-search test catches the shield rule only incidentally (review JV-2, introduced by
+  the JL-4 fix, low).** `gear-search.test.ts`'s tank case fails if the whole one-hander-and-shield rule
+  goes, but through its "main hand changed" assertion; with only the two-hander filter removed it still
+  passes. Assert on the weapons step's candidates directly: no two-handers, only shields in the off hand.
+- **The bear preset's PvP-rank and Darkmoon pieces, and FL-1's joint head-and-feet pick (review
+  JL-13, pre-existing, low).** The bear's default set still wears Champion's Dragonhide Shoulders
+  (rank 10), Legionnaire's Dragonhide Leggings (rank 8) and the Darkmoon amulet, against D38 #20 and
+  #23; M5.671's preset pass (slice H) replaces them. FL-1's pick of Eye of Rend with the Defiler's
+  boots, and its effective-health margin (91.1% of the survival preset's, over the 90% floor), were
+  measured with them on, so once H lands, re-run FL-1's head-and-feet search on the new set
+  ([druid §7.3a](classes/druid.md#73a-interim-gear-m56-t3)).
+- **Protection's Heroic Strike fight-end dump wasn't searched again on the new boss (JL-5's
+  re-search, low).** The dump (any rage in the fight's last 12 s) is one setting all three warrior
+  presets share, tuned with Defensive's Heroic Strike from 76 on the 4,500–5,500 stand-in. With
+  Defensive's 95 on Golemagg's boss melee, 8 s is +0.12% TPS and 10 s +0.07% for Defensive (seed 9191,
+  40,000 paired fights; [warrior §5.4](classes/warrior.md#build-160170009-protection)). Moving it
+  moves Balanced, the default, too, so it waits for the tuning milestone (D27), searched across the
+  three presets.
 - **Arcane Blast's stacks and Missile Barrage aren't modelled** (the user's call, D38 #4): no
   rotation casts Arcane Blast yet ([mage.md](classes/mage.md)). M5.671's slice I models them.
 - **Item tooltips, three pre-existing lows (review VT-2, VT-3, VT-4).** Closing the picker with

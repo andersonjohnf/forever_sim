@@ -21,7 +21,7 @@ const REFUSED: [string, unknown, string, RegExp][] = [
   ['an empty object', {}, 'That share link is broken', /It doesn’t hold a setup, so your own setup is unchanged\./],
   [
     'a newer version',
-    { version: 4, spec: 'warrior-arms', race: 'horde-orc' },
+    { version: 5, spec: 'warrior-arms', race: 'horde-orc' },
     'That link is from a newer version of Forever Sim',
     /Reload this page to update it, then open the link again\. Your own setup is unchanged\./,
   ],

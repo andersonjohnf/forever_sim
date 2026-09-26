@@ -59,7 +59,7 @@ export const CODE_ERRORS = {
  * (normalizing would turn anything into a default setup, and replace yours with it):
  * - notASetup: not an object, an empty one, a version that isn't a number, or nested deeper than
  *   any setup (MAX_CONFIG_DEPTH)
- * - newer: a version after CONFIG_VERSION (3), so a newer version of the app made it
+ * - newer: a version after CONFIG_VERSION (4), so a newer version of the app made it
  * - unknownSpec: a spec that isn't one of the sim's (SPEC_IDS)
  * A setup with no version is taken as version 1, as normalizing and saved setups take it; version 1's
  * talent code is on older trees, which normalizing maps (docs/data/talents.md#tree-versions).

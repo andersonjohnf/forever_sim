@@ -633,7 +633,40 @@ reads it from the equipped items (`withIdolOfBrutality`, as Wolfshead Helm's Enr
 results don't list it as not simulated.
 
 Threat ×1.75 before the form modifier [?]: every Classic and Season of Discovery threat tool has used it since 2019 (LibThreatClassic2, [ltc2], and the tools built on it); it traces to a 2006 guide and was never measured on Classic Era. It stays the default (user
-decision, 2026-09-26) ([threat.md](../mechanics/threat.md#druid-bear); Q15).
+decision, 2026-09-26) ([threat.md](../mechanics/threat.md#druid-bear); Q15). The user's in-game test
+below puts it between ×1.71 and ×2.25, so ×1.75 fits and ×1.0 is ruled out.
+
+#### Maul's threat and rage in the user's test [?]
+
+The user's own in-game test (tier 2 in [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)),
+recorded here with its caveats. It brackets Maul's threat without pinning it, so ×1.75 stays `[?]`
+(Q15), now with a measurement it agrees with.
+
+- **Build, date, place.** 1.60.1, 2026-09-26, Ragefire Chasm, at level 12, advanced combat logging
+  on, the user's two logs (`WoWCombatLog-092626_102457.txt` and `…_104907.txt`, kept out of the repo).
+- **Method: a paladin-then-bear flip.** The paladin (Righteous Fury off, no Salvation) pulls and
+  attacks alone, so its threat is its damage at ×1; then the bear attacks, with no Enrage. The mob
+  turns to the bear when the bear's threat passes 110% of the paladin's (the melee pull-off rule,
+  [threat.md](../mechanics/threat.md)), so the bear's threat before its last hit is under 1.1 × the
+  paladin's and with it at or over. The bear's threat is ×1.3 (Bear Form) × (its white damage + k ×
+  its Maul damage), which brackets k.
+- **Maul pull (one pull).** Paladin 479 white; bear 131 white and 160 Maul (4 Mauls), the mob turning
+  on the fourth: **k between 1.71 and 2.25**. So ×1.75 is consistent and ×1.0 is excluded. Whether
+  Maul is a multiplier or a flat bonus isn't separated: every Maul hit 37–43.
+- **Control (one pull, white only).** Paladin 393 white, 44 Touch of the Grave and 12 threat from
+  healing, 449 in all; the bear 366 white before its last hit and 394 with it, when the mob turned:
+  at the 110% rule the bear's multiplier is between 1.25 and 1.35 (493.9 ÷ 394 to 493.9 ÷ 366), so
+  Bear Form's ×1.3 and the 110% rule are consistent.
+- **The rage.** Every clean landed Maul left the bear 3.0 rage more than a 15-rage Maul would (10 of
+  10 in clean intervals), and its one dodged Maul cost 2.4. But one Maul went off with the bear at
+  12.0 rage (10:49:17, the second log), which a 15-rage Maul can't: **the Maul cost 12**, as Ferocity
+  3/5 makes it (a level-12 druid has 3 talent points; the log's cost field shows the base 15). The
+  dodged one is then 80% of 12 refunded, as the sim assumes
+  ([rage.md](../mechanics/rage.md#mauls-rage-in-the-users-test-)). The sim, which applies Ferocity
+  from the build, gives Maul no extra rage. The user confirmed the bear had Ferocity 3/5 (2026-09-26), which closes Q39.
+- **Caveats.** One Maul pull and one control, at level 12 with rank 1 Maul; one character.
+  The Maul bracket rests on the 110% rule and Bear Form's ×1.3, which the control supports but one pull
+  can't pin.
 
 **In the engine** it's an on-next-swing row (the warrior's Heroic Strike queue, §8 "Maul"): queued
 off the GCD, paid when its swing lands, one roll on the special table. The swing it replaces gives
@@ -1132,11 +1165,11 @@ control of its own:
 - **Max TPS** (`maxTps`) drops the roar, from a first-pass search on TPS alone
   ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as Defensive does). It keeps
   Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
-  dropping its upkeep costs 1% of TPS. Its search moved one thing: it Mauls from 14 rage, where
-  Balanced waits for 20, a little more threat for a little less damage (on seed 31101, 100,000
-  paired fights, against Balanced: +0.16% TPS, −0.22% DPS, the same damage taken; against
-  Defensive +3.3% TPS, +2.6% DPS and 0.7% more damage taken). The roar is the only duty that costs
-  threat.
+  dropping its upkeep costs 1% of TPS. Its search moved one thing on the 5,000 boss, Maul from 14
+  rather than Balanced's 20 (+0.16% TPS for −0.22% DPS against Balanced; seed 31101, 100,000 paired
+  fights). On the boss melee of 2026-09-26 no threshold makes more threat than 20 by D23's bar, so
+  since JL-1 it Mauls from 20 too and **plays as Balanced** in the default setup, which its lines say
+  ([Max TPS](#max-tps-b4)). The roar is the only duty that costs threat.
 
 The Buffs tab's Demoralizing Roar is the bear's own, so no preset turns it on: with Balanced or
 Max TPS the boss is at full attack power unless you turn it on there because another druid keeps
@@ -1225,8 +1258,8 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
   Consumables. They take their turn in the list with the on-use items (row 3), wherever that row
   sits, as they did before the list. The priority is the preset picker.
 - **The presets move no row:** Defensive, Balanced and Max TPS share the default order. Defensive
-  keeps the roar; Balanced and Max TPS drop it, and Max TPS Mauls from 14 rather than 20
-  ([Max TPS](#max-tps-b4)). In the default order Defensive's plan and Max TPS's with Maul from 20
+  keeps the roar; Balanced and Max TPS drop it, and Max TPS keeps Balanced's Maul from 20 since the
+  boss melee of 2026-09-26 (14 before; [Max TPS](#max-tps-b4)), so it plays as Balanced. In the default order Defensive's plan and Max TPS's with Maul from 20
   are the ones they had before the list, byte for byte: 200 random setups (settings, talents,
   race, items, Buffs, raid, fight and rules) are fingerprinted against the code before it
   (`bear-apl.test.ts`).
@@ -1245,9 +1278,9 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; in every preset), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
 | `priority` | **Balanced** | The preset picker: Defensive (`duties`), Balanced (`balanced`) or Max TPS (`maxTps`), which move the defaults marked with their names |
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
-| `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
+| `maul.enabled`, `maul.minRage` | **on**, 20 (20 with Max TPS too) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 20 as well since the boss melee of 2026-09-26, when no other threshold cleared D23's bar (14 before; [Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 14% of TPS and 16% of DPS (1,104.0 → 944.0 TPS, 549.0 → 461.4 DPS; seed 1, 20,000 fights, 2026-09-26, at the slice's fix round); refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 7% of TPS and 11% of DPS on Golemagg's boss melee (991.76 → 923.85 TPS, 510.91 → 453.39 DPS; seed 28401, 200,000 paired fights, 2026-09-26, JL-2; `LACERATE_ALONE_MEASURES`, which the setting's help quotes and bear-presets.test.ts measures again), about 14% and 16% on the 4,500–5,500 stand-in (1,104.0 → 944.0 TPS, 549.0 → 461.4 DPS; seed 1, 20,000 fights, at the bear slice's fix round): with smaller hits there's less rage for Maul to take from Lacerate; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1438,9 +1471,35 @@ and Lacerate instead.
   from 40 −1.1); Faerie Fire's refresh, Enrage's limit and the potion's are level; everything
   else loses (Primal Bite off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
   Enrage in combat off −5.2).
-- **Max TPS differs by Maul's threshold** (T5, below): tuned on TPS alone, it Mauls from 14.
+- **Max TPS differed by Maul's threshold** (T5, below): tuned on TPS alone, it Mauled from 14 until
+  the boss melee of 2026-09-26; since then it keeps 20, as no threshold makes more threat (JL-1).
+- **A quick check of Defensive on Golemagg's boss melee** (2026-09-26, JU-5; seed 5151, 40,000 paired
+  fights, Defensive as the baseline): Maul from 16 +0.01% TPS (95% CI −0.50 to +0.76), 18 +0.04%
+  (−0.22 to +0.91), 22 −0.00% and 25 −0.18%; Lacerate's refresh at 10 s −0.29% and 14 s −0.54%; Swipe
+  on −0.00%. Nothing clears D23's bar, so Defensive's settings stay.
 
 #### Max TPS (B4)
+
+**On the boss melee of 2026-09-26** (Golemagg's in a Classic Era log, 2,200–3,200 before armor
+every 2.0 s, for the 4,500–5,500 stand-in; [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)),
+the smaller hits give the bear less rage, and Maul from 14 made less threat than Balanced (−0.06%
+TPS, −0.84% DPS; seed 28401, 200,000 paired fights). Maul's threshold, searched again on TPS alone
+(seed 7474, 40,000 paired fights a candidate, 8 to 30 rage in steps of 2; then, with §7.3a step 4's
+head and feet, 100,000 from 12 to 24): **16** is best, +0.06% TPS over 14 (95% CI +0.03% to +0.10%)
+with 18 and 20 level with it; 12 and below, and 24 and above, lose. But that search was against 14,
+Max TPS's old value, not against Balanced's 20, and **no threshold clears D23's bar against Balanced**
+(JL-1, 2026-09-26): on seed 5151 (40,000 paired fights, Balanced as the baseline) Maul from 14 is
+−0.02% TPS (95% CI −0.81 to +0.47 TPS) for −4.06 DPS, 16 −0.00% (−0.66 to +0.59) for −2.63 DPS, 18
++0.04% (−0.17 to +0.95) for −0.91 DPS. So **Max TPS Mauls from 20, as Balanced does, and plays as
+Balanced** in the default setup; its line says so ("Plays as Balanced: Mauls from 20 rage too, as no other threshold makes more threat; 1.3% more damage taken than Defensive."),
+from its threshold against Balanced's, and its measures are Balanced's. From 16 (the slice's first
+pick, 2026-09-26) it made the same threat as Balanced (−0.007% TPS) for 0.5% less DPS: Max TPS
++3.29%, +2.56% and +1.16% against Defensive. Against Defensive on seed 28401 (200,000 paired fights,
+with step 4's head and feet): Defensive 960.01 TPS, 495.49 DPS, 342.09 damage taken a second;
+Balanced, and so Max TPS, +3.30% TPS, +3.10% DPS and +1.26% damage taken. These are
+`BEAR_PRESET_MEASURES`; with Shadowcraft Cap and Dunestalker's Boots they were Defensive 956.50,
+493.62 and 339.72, Balanced +3.26%, +3.07% and +1.26%, Max TPS +3.27%, +2.54% and +1.16%. Everything
+below is on the 5,000 boss.
 
 Since T5, Max TPS moves the roar and Maul's threshold, **20 → 14 rage**: tuned on TPS alone
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
@@ -1451,7 +1510,7 @@ didn't use): **+2.10 TPS (+0.19%, 95% CI +1.83 to +2.36)** and **−1.08 DPS (�
 candidate, Maul from 10 to 18): 13 to 15 best and level (+0.18% to +0.21%), 10 to 12 and 16
 +0.16%, 17 and 18 +0.07%; on the fresh seed 13 +0.20%, 14 +0.19% and 15 +0.18%, all within each
 other's intervals. 14, the middle, is the default; T3's re-check had found the same (+0.19%,
-seed 28101). Against Defensive on seed 28401 (200,000 paired fights, re-measured 2026-09-26 with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing, a raid druid's Thorns at 47 and the default head's Shadowcraft Cap, §7.3a), Max TPS is +2.92% TPS (1,059.64 → 1,090.58), +2.41% DPS (528.33 → 541.06) and +0.69% damage taken (633.00 → 637.39 a second); Balanced +2.75%, +2.57% and +0.72%; Max TPS against Balanced +0.16% TPS (+1.51 to +2.00), −0.16% DPS and the same damage taken. With Darkmantle Cap on the head they were Max TPS +2.93% TPS (1,075.14 → 1,106.69), +2.44% DPS (535.56 → 548.63) and +0.69% damage taken (629.09 → 633.45); Balanced +2.77%, +2.59% and +0.72%; Max TPS against Balanced +0.16% TPS, −0.14% DPS. These are `BEAR_PRESET_MEASURES`, which the Rotation tab's lines quote and bear-presets.test.ts guards. Before 2026-09-26 they were Max TPS +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS and +0.69% damage taken; Balanced +3.12%, +2.83% and +0.71%.
+seed 28101). Against Defensive on seed 28401 (200,000 paired fights, re-measured 2026-09-26 with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing, a raid druid's Thorns at 47 and the default head's Shadowcraft Cap, §7.3a), Max TPS is +2.92% TPS (1,059.64 → 1,090.58), +2.41% DPS (528.33 → 541.06) and +0.69% damage taken (633.00 → 637.39 a second); Balanced +2.75%, +2.57% and +0.72%; Max TPS against Balanced +0.16% TPS (+1.51 to +2.00), −0.16% DPS and the same damage taken. With Darkmantle Cap on the head they were Max TPS +2.93% TPS (1,075.14 → 1,106.69), +2.44% DPS (535.56 → 548.63) and +0.69% damage taken (629.09 → 633.45); Balanced +2.77%, +2.59% and +0.72%; Max TPS against Balanced +0.16% TPS, −0.14% DPS. Those were `BEAR_PRESET_MEASURES`, which the Rotation tab's lines quote and bear-presets.test.ts guards, until the boss melee of 2026-09-26 (above). Before 2026-09-26 they were Max TPS +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS and +0.69% damage taken; Balanced +3.12%, +2.83% and +0.71%.
 
 Its Lacerate refresh (4.5 s, below) lost to the default's 12 s in T3's setup
 ([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this section is B4's first pass,
@@ -1667,7 +1726,8 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    review's set had 74.2% (20,468 against 27,579: health 5,956 against 6,964, armor 14,022 against
    17,036). Six swaps, each the one that gained the most effective health per 1% of TPS it cost
    among the items the pre-raid lists rank (no unmodelled use effect, no armor-only item), bring
-   it to 90.3%, for 4.5% of the TPS and 3.7% of the DPS (seed 424242, 4,000 fights a candidate):
+   it to 90.3%, for 4.5% of the TPS and 3.7% of the DPS (seed 424242, 4,000 fights a candidate, on
+   2026-09-24's model):
 
    | Step | Slot | Out | In | TPS | Effective health |
    | --- | --- | --- | --- | --- | --- |
@@ -1709,17 +1769,51 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    | **Shadowcraft Cap** | Alliance (Night Elf) | **1,112.9** | **542.9** | 624.6 | 6,663 | 14,577 | 23,540 (90.1%) |
 
    The bear loses 1.4% of its TPS and 1.3% of its DPS for a head it can actually get, and 65 effective
-   health. The table below the preset is from before, on 2026-09-25's model. On today's model the
-   default's golden run (seed 12345, 500 fights) moved 1,101.83 → 1,087.98 TPS and 548.03 → 541.37 DPS
-   with the new head. **To redo on today's model:** the class-quest review's FL-1, a joint re-pick of the
-   head and feet (Eye of Rend with the Defiler's boots, Alliance: Highlander's, against Shadowcraft
-   Cap with Dunestalker's Boots), since the head alone was searched and the pick above predates the
-   bear's new values.
+   health. The table below the preset is from before, on 2026-09-25's model. On the model of that day
+   the default's golden run (seed 12345, 500 fights) moved 1,101.83 → 1,087.98 TPS and 548.03 → 541.37
+   DPS with the new head. Step 4 re-picks the head and feet together on today's model.
+4. **The head and feet, re-picked together 2026-09-26** (the class-quest review's FL-1), on today's
+   model: the bear's 2026-09-26 values and the boss melee of Golemagg's Classic Era log
+   ([encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)). Step 3
+   searched the head alone, and a head that misses the floor can clear it beside tougher boots.
+   - **Method.** `headfeet.mjs` (a scratch script on the engine bundle, as step 3's): every head and
+     every pair of boots in the default pool a druid of the race can wear (the optimizer's
+     `slotPool`: its class and faction, Dungeon Set 2 only for its own class, no later raid's item),
+     less PvP rank rewards and Darkmoon Faire rewards (D38 #20, #23): 32 heads and 46 boots. Each keeps
+     its slot's enchant (Lesser Arcanum of Voracity, Agility; Greater Agility). Each alone at 5,000
+     fights on seed 424242, with the other slot as it was; then every pair of the ten best heads and
+     ten best boots by TPS, with Eye of Rend, Shadowcraft Cap and the Defiler's, Highlander's and
+     Dunestalker's boots added, whose effective health is at least 90% of the v1 preset's, at 20,000
+     fights on the same seed. Both factions.
+   - **Result: Eye of Rend (12587) with Defiler's Leather Boots (20186; Alliance: Highlander's,
+     20052)**, the most TPS at or above the floor for both factions. The boots and the default's
+     Defiler's (Highlander's) Leather Girdle make The Defiler's Purpose's 2-piece, +5 Stamina [F].
+     Eye of Rend's stats are Classic Era's: the Forever client has no row for it
+     ([items.md](../data/items.md)). Paired against Shadowcraft Cap with Dunestalker's Boots on seeds
+     1 to 5 (20,000 fights each) it's +0.33% to +0.47% TPS for the Horde and +0.36% to +0.45% for the
+     Alliance, on every seed.
+
+   | Head and feet | Faction | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
+   | --- | --- | --- | --- | --- | --- | --- | --- |
+   | Shadowcraft Cap, Dunestalker's Boots (before) | Horde (Tauren) | 988.2 | 509.0 | 343.9 | 7,038 | 14,555 | 24,838 (90.1%) |
+   | **Eye of Rend, Defiler's Leather Boots** | Horde (Tauren) | **992.1** | **511.1** | 346.5 | 7,038 | 14,780 | 25,113 (91.1%) |
+   | Mask of the Unforgiven, Defiler's Leather Boots | Horde (Tauren) | 988.4 | 510.1 | 347.2 | 7,101 | 14,729 | 25,275 (91.6%) |
+   | Shadowcraft Cap, Boots of Ferocity | Horde (Tauren) | 986.2 | 508.4 | 345.8 | 7,069 | 14,527 | 24,913 (90.3%) |
+   | Eye of Rend, Dunestalker's Boots | Horde (Tauren) | — | — | — | 6,880 | 14,520 | 24,238 (87.9%, under the floor) |
+   | Shadowcraft Cap, Dunestalker's Boots (before) | Alliance (Night Elf) | 1,008.3 | 516.3 | 337.1 | 6,663 | 14,577 | 23,540 (90.1%) |
+   | **Eye of Rend, Highlander's Leather Boots** | Alliance (Night Elf) | **1,012.4** | **518.4** | 339.6 | 6,663 | 14,802 | 23,800 (91.1%) |
+
+   The floor is 24,821 for the Horde and 23,521 for the Alliance (90% of the v1 preset's 27,579 and
+   26,135). Alone, the most TPS a head makes is Bloodvine Goggles (a Tailoring item), 85–86% of the
+   v1 preset's effective health with any boots searched, under the floor. The bear gains 0.4% of its
+   TPS and 0.4% of its DPS and 275 effective health (Horde; 260 Alliance). The default's golden run
+   (seed 12345, 500 fights) moved 986.51 → 990.19 TPS and 508.73 → 510.65 DPS; Balanced on seed 31101
+   (100,000 fights) 987.41 → 991.36 TPS, 508.68 → 510.74 DPS, 343.83 → 346.27 damage taken a second.
 
 | Slot | Item | Slot | Item |
 | --- | --- | --- | --- |
-| Head | Shadowcraft Cap (16707) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
-| Neck | Amulet of the Darkmoon (19491) | Feet | Dunestalker's Boots (20715) |
+| Head | Eye of Rend (12587) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
+| Neck | Amulet of the Darkmoon (19491) | Feet | Defiler's Leather Boots (20186; Alliance: Highlander's, 20052) |
 | Shoulder | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | Rings | Painweaver Band (13098), Don Julio's Band (19325) |
 | Back | Windshear Cape (20691) | Trinkets | Earthstrike (21180), Hand of Justice (11815) |
 | Chest | Breastplate of Bloodthirst (12757) | Two-hand | Manual Crowd Pummeler (9449, §7.3) |
@@ -1727,9 +1821,10 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
 | Hands | Timbermaw Brawlers (19049) | | |
 | Waist | Defiler's Leather Girdle (20190; Alliance: Highlander's, 20045) | | |
 
-At the defaults (seed 424242, 20,000 fights, with Thorns and Thick Hide), against the v1 list's
-gear and talents in today's model (re-measured 2026-09-25 on 1.60.1.70009; the v1 rows play
-Defensive, and v1's talents read onto today's trees with nothing refunded):
+At the defaults of 2026-09-25 (seed 424242, 20,000 fights, with Thorns and Thick Hide), against the
+v1 list's gear and talents in that day's model (measured on 1.60.1.70009, before the steps 3 and 4
+gear, the bear's 2026-09-26 values and the boss melee of 2026-09-26; the v1 rows play Defensive, and
+v1's talents read onto today's trees with nothing refunded):
 
 | Setup | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2034,7 +2129,7 @@ ranks.
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all. Maul, Swipe, FF and Demo Roar: every Classic and Season of Discovery threat tool has used them since 2019 (LibThreatClassic2 [ltc2] and the tools built on it); they trace to a 2006 guide and were never measured on Classic Era; kept as the defaults (user decision, 2026-09-26; [threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1 (user decision, 2026-09-26: nothing in its tooltip says increased threat). Considered and rejected: Blizzard's ×1.5 for Season of Discovery's Mangle (Bear), 407995's id there [sod-hotfix], since Forever reworked the spell (100% + 26, no bleed debuff) and ranks 2–4 are new Forever ids, so the SoD hotfix doesn't carry over; it would be +7.0% TPS (§4.2). Lacerate's bonus is **+206 per landed application**, flat: Forever's Sunder Armor r5 client value at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; user decision, 2026-09-26: no attack power term; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Blizzard's own Season of Discovery hotfix (2 December 2024) sets Lacerate, the same spell (414644, Forever's rank 1 under the same id, with nearly the same tooltip), to 3.33 × damage on the hit and the ticks (was 3.5) [sod-hotfix]; the user kept the flat 206 by the rule that the same threat words make the same threat on every tank (user decision, 2026-09-26). ×3.33 on the hit and the ticks, with no flat bonus, would make the default bear 1,383.4 TPS (+25.3%), about 40% over the warrior and 84% over the paladin (seed 1, 10,000 fights; 48% and 96% with Primal Bite's ×1.5 as well, measured before Thorns' 313). Leaving Lacerate out while warriors keep the boss bleeding costs 14% of TPS (§6.3) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all. Maul, Swipe, FF and Demo Roar: every Classic and Season of Discovery threat tool has used them since 2019 (LibThreatClassic2 [ltc2] and the tools built on it); they trace to a 2006 guide and were never measured on Classic Era; kept as the defaults (user decision, 2026-09-26; [threat.md OQ 4](../mechanics/threat.md#open-questions)). **The user's flip test** (1.60.1, 2026-09-26, level 12, one Maul pull; [§4.1](#mauls-threat-and-rage-in-the-users-test-)) puts Maul between ×1.71 and ×2.25: ×1.75 fits, ×1.0 is ruled out, and a multiplier isn't told from a flat bonus (every Maul hit 37–43). Primal Bite has no threat words: ×1 (user decision, 2026-09-26: nothing in its tooltip says increased threat). Considered and rejected: Blizzard's ×1.5 for Season of Discovery's Mangle (Bear), 407995's id there [sod-hotfix], since Forever reworked the spell (100% + 26, no bleed debuff) and ranks 2–4 are new Forever ids, so the SoD hotfix doesn't carry over; it would be +7.0% TPS (§4.2). Lacerate's bonus is **+206 per landed application**, flat: Forever's Sunder Armor r5 client value at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; user decision, 2026-09-26: no attack power term; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Blizzard's own Season of Discovery hotfix (2 December 2024) sets Lacerate, the same spell (414644, Forever's rank 1 under the same id, with nearly the same tooltip), to 3.33 × damage on the hit and the ticks (was 3.5) [sod-hotfix]; the user kept the flat 206 by the rule that the same threat words make the same threat on every tank (user decision, 2026-09-26). ×3.33 on the hit and the ticks, with no flat bonus, would make the default bear 1,383.4 TPS (+25.3%), about 40% over the warrior and 84% over the paladin (seed 1, 10,000 fights; 48% and 96% with Primal Bite's ×1.5 as well, measured before Thorns' 313). Leaving Lacerate out while warriors keep the boss bleeding costs about 7% of TPS and 11% of DPS on the default boss melee (`LACERATE_ALONE_MEASURES`, §6.3's table; 14% of TPS on the 4,500–5,500 stand-in) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]. Season of Discovery's Lacerate is the same spell (Forever's rank 1 reuses its id and tooltip), so Blizzard's SoD client data and patch notes may inform it (D36, D37); none found says whether an application restarts the ticks, and SoD sims' code isn't evidence. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick **G5:** the damage of the 1st to 5th applications against the weapon damage: 0/10/20/30/40% as modelled, or a 20% base (spell 414647) |
 | Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, and Ferocious Bite rank 5 from the trainer or its book | [F] spellbook lists ranks. Rank 5's book, Book of Ferocious Bite V, drops in Upper Blackrock Spire [C] [fb-v], not Ahn'Qiraj, so D36 keeps rank 5 either way; the AQ books' ranks are out (D36, [open-questions C13](../open-questions.md#c13-rank-availability-at-launch)) | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
@@ -2057,6 +2152,7 @@ ranks.
 | Q35 | Enrage's armor loss: 16% of which armor, and how does it combine with Dire Bear Form's +360%? | Tooltip only [F]: the client's effect is a dummy. The engine takes 16% of item armor, added to the +360% (§4.5) [?]. The other reading, 16% of the whole form armor, loses about five times as much. It moves damage taken only, not rage (`forever`) or threat | Character-sheet armor in Dire Bear Form before and during Enrage, with and without an armor buff |
 | Q37 | Idol of Brutality on Primal Bite: does its −2 rage reach Primal Bite, as its class mask says, or only Maul and Swipe, as its tooltip says? | 28855's mask [2048, 64] covers Maul, Swipe (0x800) and Primal Bite (0x40, second word) [F] [client]; the tooltip names Maul and Swipe [F]. The engine takes 2 off all three [?]; Primal Bite's 2 rage is 2.4% of the default bear's TPS, the idol 6.6% in all (seed 424242, 20,000 fights) | **G2:** with the idol equipped, the costs on Maul's, Swipe's and Primal Bite's tooltips in Dire Bear Form: Primal Bite 13 means the mask applies, 15 that it doesn't |
 | Q38 | Thorns on the tank: does every boss swing that lands (a block too) trigger it, does it never miss or crit, and is its threat its damage × the form's 1.3, with no bonus? | 9910 is a damage shield (aura 15) of 22 [F] [client]; the rest is Retribution Aura's model [?] (buffs doc §1.2). About 1% of the default bear's TPS | Alone on a mob with Thorns up and auto attack off (`/stopattack`), the threat macro before and after each of the mob's hits, blocked and not: the change ÷ 1.3 should be 22 less the mob's resist; a crit never |
+| Q39 | Maul's rage: the user's test bear gained 3.0 more on every landed Maul than a 15-rage Maul explains. Is that Ferocity 3/5 (a 12-rage Maul), or rage Forever gives back? | One Maul went off at 12.0 rage, which a 15-rage Maul can't, and the dodged Maul cost 20% of 12: both say a 12-rage Maul, Ferocity 3/5 at level 12 ([§4.1](#mauls-threat-and-rage-in-the-users-test-)). The sim gives no extra rage. The log's cost field reads 15 either way | **Closed:** the user confirmed Ferocity 3/5 (2026-09-26). At 60, a log of 30+ Mauls between white swings would still show Ferocity 5/5's 10-rage net Maul |
 | Q36 | Berserk and a Primal Bite already on cooldown: does it reset the cooldown, or only stop new ones? | 417141 #1 is a −100% cooldown modifier on Primal Bite [F] [client]; the engine lets a running cooldown run (§4.6) [?] | Primal Bite, then Berserk 1 s later; see whether Primal Bite is ready at once |
 
 ---

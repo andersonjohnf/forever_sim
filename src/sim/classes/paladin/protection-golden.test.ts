@@ -139,6 +139,10 @@ describe('golden run (fixed config and seed)', () => {
   // - Merging the beta-log check with the bear slice's Thorns (2026-09-26): both at once, both goldens
   //   695.29 → 699.00 TPS, 432.57 → 436.21 DPS, damage taken 900.2 a second unchanged. With Thorns set
   //   back to 38, the beta-log check's snapshot reproduces exactly.
+  // - The boss melee of 2026-09-26 (encounter.md §5): Golemagg's in a Classic Era log, 2,200–3,200
+  //   before armor every 2.0 s, for the 4,500–5,500 stand-in. Both goldens' damage taken 900.25 →
+  //   471.85 a second; TPS, DPS and mana unchanged, since a paladin's threat and mana don't come from
+  //   the size of the hits it takes.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

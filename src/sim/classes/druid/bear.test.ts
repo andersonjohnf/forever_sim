@@ -396,13 +396,14 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     const moved = Object.keys(duties).filter((id) => duties[id] !== balanced[id])
     expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
     expect([balanced[BEAR_IDS.ffEnabled], balanced[BEAR_IDS.ffFiller], balanced[BEAR_IDS.roarEnabled]]).toEqual([true, true, false])
-    // Max TPS, tuned on TPS alone, Mauls from less rage (T5): otherwise the same rows.
+    // Max TPS, tuned on TPS alone, found no Maul threshold better than Balanced's 20 on the boss melee of
+    // 2026-09-26 (T5, JL-1): it plays as Balanced, only the priority differs.
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
-    expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority, BEAR_IDS.maulMinRage])
-    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 14])
+    expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority])
+    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 20])
   })
 
-  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 14', () => {
+  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 20', () => {
     const duties = resolveRotationValues(BEAR_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
@@ -410,13 +411,13 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
     expect(LACERATE_REFRESH_SEC).toBe(12)
     expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([12, 12])
-    // Maul from 14 on TPS alone (§6.3 "Max TPS", T5); nothing else moves: T3's first-pass search
-    // found no other setting better (D27).
+    // Maul from Balanced's 20 on TPS alone (§6.3 "Max TPS", T5; 14 before the boss melee of 2026-09-26, JL-1); nothing else moves:
+    // T3's first-pass search found no other setting better (D27).
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.maulMinRage].sort())
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
     // Each setting's help says how it follows the choice.
     const help = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.help
-    expect(help(BEAR_IDS.maulMinRage)).toContain('With Max TPS it’s 14 by default')
+    expect(help(BEAR_IDS.maulMinRage)).toContain('Max TPS keeps 20 too: tuned on threat alone, no other threshold makes more in the default setup.')
     expect(help(BEAR_IDS.roarEnabled)).toContain('On with Defensive; off by default with Balanced and Max TPS.')
     expect(help(BEAR_IDS.ffEnabled)).toContain('Every preset keeps it')
   })
@@ -577,7 +578,7 @@ describe('the default bear’s plan', () => {
     // Its duties are its own, in no preset, and its preset has no warrior tank's Demoralizing Shout
     // (D26's amendment, BU3).
     for (const id of ['demoralizingRoar', 'faerieFire', 'demoralizingShout']) expect(defaultConfig('druid-feral-bear').buffs.enabled).not.toContain(id)
-    expect(plan.fight.bossSwing!.minDamage).toBe(4500)
+    expect(plan.fight.bossSwing!.minDamage).toBe(2200)
   })
 
   it('its assumptions follow the setup: what it uses, the raid and the profile’s numbers (BL4, BU12)', () => {
@@ -588,7 +589,7 @@ describe('the default bear’s plan', () => {
       'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
-      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. None is measured in Forever.',
+      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. Only Maul’s threat has been tested in Forever: an in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.',
     )
     expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
     expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
@@ -605,7 +606,7 @@ describe('the default bear’s plan', () => {
       rotation: { [BEAR_IDS.swipeEnabled]: true, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false },
       buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') },
     })
-    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. None is measured in Forever.')
+    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Only Maul’s threat has been tested in Forever: an in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.')
     // One value alone reads in the singular.
     const faerieOnly = text({ ...d, rotation: { [BEAR_IDS.maulEnabled]: false, [BEAR_IDS.mangleEnabled]: false, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false } })
     expect(faerieOnly.bearThreat).toBe('Faerie Fire makes 108 threat: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era. None is measured in Forever.')
@@ -624,7 +625,7 @@ describe('the default bear’s plan', () => {
     const shout = buildPlan({ ...d, buffs }).plan
     expect(shout.abilities.map((a) => a.id)).not.toContain('demoralizingRoar')
     expect(shout.auras.map((a) => a.id)).not.toContain('demoralizingRoar')
-    expect(shout.fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 / 14) * 2, 9)
+    expect(shout.fight.bossSwing!.minDamage).toBeCloseTo(2200 - (204 / 14) * 2, 9)
     // The Rotation tab says why.
     const unused = (config: SimConfig) => unusedRotationSettings(config)[BEAR_IDS.roarEnabled]
     expect(unused(d)).toBeUndefined()

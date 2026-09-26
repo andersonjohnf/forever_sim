@@ -194,7 +194,7 @@ describe('damageTakenText', () => {
   it('says it counts the boss’s melee after avoidance, how often it swung, its swing size and the debuffs on it (TU4)', () => {
     expect(damageTakenText(80.46, protection().fight.boss, 'warrior-protection')).toBe(
       'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions. ' +
-        'It swung 80.5 times a fight on average, set to 4,500 to 5,500 a swing before armor (Fight\u00a0→\u00a0Advanced). ' +
+        'It swung 80.5 times a fight on average, set to 2,200 to 3,200 a swing before armor (Fight\u00a0→\u00a0Advanced). ' +
         'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).',
     )
   })
@@ -242,7 +242,7 @@ describe('formatCritReduction', () => {
 
 describe('swingDamageText', () => {
   it('gives the boss’s swing range as the Fight tab does, or one value when it’s fixed', () => {
-    expect(swingDamageText(protection().fight.boss)).toBe('4,500 to 5,500')
+    expect(swingDamageText(protection().fight.boss)).toBe('2,200 to 3,200')
     expect(swingDamageText({ damageMin: 5000, damageMax: 5000 })).toBe('5,000')
     expect(swingDamageText({ damageMin: 0, damageMax: 0 })).toBe('0')
   })

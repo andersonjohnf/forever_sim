@@ -287,8 +287,8 @@ const REGISTRY = {
     docRef: `${THREAT}#open-questions`,
   },
   bossMelee: {
-    text: 'Boss melee (swing speed, damage and table) is a stand-in: Forever raid bosses haven’t been logged yet.',
-    docRef: `${ENC}#5-boss-melee-tank-modeling`,
+    text: 'The boss’s melee by default is Golemagg’s in a Classic Era log: about 2,200–3,200 a hit every 2 s before armor. Forever’s bosses aren’t known yet.',
+    docRef: `${ENC}#how-the-default-boss-melee-was-measured-`,
   },
   bossFlags: {
     text: 'From the front the boss can dodge, parry and block like a Classic Era raid boss; a boss’s block removes nothing.',
@@ -609,7 +609,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. Only Maul’s threat has been tested in Forever: an in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.',
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
@@ -1284,7 +1284,10 @@ export const BEAR_TEXT = {
               : `Lacerate makes 1 per damage and ${lacerate} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate} in Classic Era).`,
           ]
         : []),
-      'None is measured in Forever.',
+      // druid.md §4.1 "Maul's threat and rage in the user's test": one flip pull brackets Maul.
+      uses.maul
+        ? 'Only Maul’s threat has been tested in Forever: an in-game test at level 12 put it between 1.71 and 2.25 threat per damage, which 1.75 fits.'
+        : 'None is measured in Forever.',
     ]
     return sentences.join(' ')
   },

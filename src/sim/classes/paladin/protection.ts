@@ -320,14 +320,15 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
  * 2026-09-26 for the beta-log check, paladin.md#the-beta-log-check-2026-09-26, and again with a raid
  * druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs doc §1.2): Defensive's
  * TPS, DPS and damage taken a second, and Max TPS, Hammer of the Righteous turned on and Seal of
- * Righteousness in Seal of Fury's place against it, in percent. protection-presets.test.ts measures them again, so a change that moves them fails until
+ * Righteousness in Seal of Fury's place against it, in percent; re-measured again for the boss melee of
+ * Golemagg's Classic Era log, 2,200–3,200 every 2.0 s (encounter.md §5), which moves only damage taken. protection-presets.test.ts measures them again, so a change that moves them fails until
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 701.2, dps: 437.41, damageTaken: 900.4 },
-  maxTps: { tpsPct: 7.25, dpsPct: 7.12, damageTakenPct: 5.83 },
-  hammerOfTheRighteous: { tpsPct: -5.2, dpsPct: -3.69, damageTakenPct: 5.01 },
-  sealOfRighteousness: { tpsPct: -7.59, dpsPct: -5.41, damageTakenPct: 2.13 },
+  defensive: { tps: 701.2, dps: 437.41, damageTaken: 471.74 },
+  maxTps: { tpsPct: 7.25, dpsPct: 7.12, damageTakenPct: 6.01 },
+  hammerOfTheRighteous: { tpsPct: -5.16, dpsPct: -3.69, damageTakenPct: 5.16 },
+  sealOfRighteousness: { tpsPct: -7.59, dpsPct: -5.41, damageTakenPct: 4.03 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES

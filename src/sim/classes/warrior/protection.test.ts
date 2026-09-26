@@ -268,7 +268,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   /** The duties whose upkeep costs threat, which Max TPS drops (D26's rule). */
   const DUTIES = [ID.tcEnabled, ID.demoEnabled]
 
-  it('drops Thunder Clap and Demoralizing Shout by default, keeps Shield Block and Shield Slam, and queues Heroic Strike from 45', () => {
+  it('drops Thunder Clap and Demoralizing Shout by default, keeps Shield Block and Shield Slam, and queues Heroic Strike from 85', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
@@ -276,7 +276,8 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     // blocks make more threat than its rage would since Sunder Armor's fell (1.60.1.70009), so it stays.
     expect([duties[ID.sbEnabled], max[ID.sbEnabled]]).toEqual([true, true])
     expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
-    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([76, 45])
+    // Heroic Strike from 85 since the boss melee of 2026-09-26 (45 before; §5.4 "Max TPS"), and Defensive's from 95 (76 before; JL-5).
+    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([95, 85])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
     expect(moved.sort()).toEqual([ID.priority, ...DUTIES, ID.hsMinRage].sort())
@@ -306,7 +307,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
       'heroicStrike',
       'heroicStrike',
     ])
-    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 450, b: 0 }])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 850, b: 0 }])
   })
 })
 
@@ -404,8 +405,8 @@ describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
 
     it('only Balanced’s defaults scale: a value you set, and Defensive’s and Max TPS’s, stay in rage points', () => {
       expect(thresholds(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(60, 84))
-      expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.fillerMinRage]: 9, [ID.hsMinRage]: 76 })
-      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 45 })
+      expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.fillerMinRage]: 9, [ID.hsMinRage]: 95 })
+      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 85 })
     })
 
     it('the Rotation tab reads the same values as the sim, and a Gnome at the defaults is still on Balanced', () => {
@@ -449,7 +450,7 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       [ID.prepullBloodrage]: false,
       [ID.bsRefresh]: 0,
       [ID.fillerSafe]: false,
-      [ID.hsMinRage]: 76,
+      [ID.hsMinRage]: 95,
       [ID.hsLastSec]: 12,
       [ID.fillerMinRage]: 9,
       // The duties' refresh: D26's fixed rule, never tuned (the next test).
@@ -482,9 +483,9 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     expect(DEMORALIZING_SHOUT.cooldownMs).toBe(0)
     expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 6000 }])
     expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 1500 }])
-    // From 76 rage, and in the fight's last 12 s from its cost: rage left at the end is wasted.
+    // From 95 rage (76 before the boss melee of 2026-09-26; JL-5), and in the fight's last 12 s from its cost: rage left at the end is wasted.
     expect(linesOf(r, 'heroicStrike').map((e) => e.conditions)).toEqual([
-      [{ code: COND.minRage, a: 760, b: 0 }],
+      [{ code: COND.minRage, a: 950, b: 0 }],
       [
         { code: COND.timeLeftAtMost, a: 12000, b: 0 },
         { code: COND.minRage, a: 0, b: 0 },

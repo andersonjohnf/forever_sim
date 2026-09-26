@@ -479,7 +479,17 @@ Strike's flat part and spell damage inside its 50%) and the bear's Shadowcraft C
 Balanced makes **914.4 TPS for the warrior, 701.2 for the paladin and 1,088.8 for the bear** (seed
 31101, 100,000 fights): the warrior 30.4% over the paladin and 16.0% under the bear, the bear 55.3%
 over the paladin. All three are still above every DPS spec's TPS and no tank is at twice another;
-the gaps are open questions, not findings.
+the gaps are open questions, not findings. The boss melee of 2026-09-26 (Golemagg's in a Classic Era
+log, 2,200–3,200 before armor every 2.0 s, for the 4,500–5,500 stand-in;
+[encounter §5](mechanics/encounter.md#how-the-default-boss-melee-was-measured-), D38 #11) gives the
+warrior and the bear less rage from hits taken: Balanced makes **865.6 TPS for the warrior, 701.2
+for the paladin and 987.4 for the bear** (seed 31101, 100,000 fights; damage taken 391.7, 471.7 and
+343.8 a second): the warrior 23.4% over the paladin and 12.3% under the bear, the bear 40.8% over
+the paladin. The paladin's threat doesn't come from rage, so only its damage taken moved. All three
+are still above every DPS spec's TPS (Fury's 492.5 the highest) and no tank is at twice another.
+With the bear's head and feet re-picked together on that boss (Eye of Rend and the Defiler's boots,
+[druid.md §7.3a](classes/druid.md#73a-interim-gear-m56-t3)) the bear makes **991.4 TPS** (346.3 taken a
+second): the warrior 12.7% under it, the bear 41.4% over the paladin.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 **Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,

@@ -277,7 +277,7 @@ describe('the saved list', () => {
   test('a save for a spec the app doesn’t offer, or from a newer app, is kept but not shown', () => {
     const list = [
       stored('arcane', 'Tank', stamp(3), { version: 1, spec: 'mage-spellblade' }),
-      stored('newer', 'Newer', stamp(2), { version: 4, spec: 'warrior-fury' }),
+      stored('newer', 'Newer', stamp(2), { version: 5, spec: 'warrior-fury' }),
       stored('unknown', 'Unknown', stamp(1), { version: 1, spec: 'warrior-gladiator' }),
       stored('fury', 'Fury', stamp(4)),
     ]

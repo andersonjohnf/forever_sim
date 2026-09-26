@@ -45,16 +45,16 @@ function exactly(text: string) {
   return new RegExp(`^${escaped}$`)
 }
 
-/** Weakens the boss: every swing at 4,500, the bottom of the default range (Fight → Advanced). */
+/** Weakens the boss: every swing at 2,200, the bottom of the default range (Fight → Advanced). */
 async function weakenBoss(page: Page) {
   await page.getByRole('tab', { name: 'Fight', exact: true }).click()
   await page.getByRole('button', { name: 'Advanced' }).click()
   const max = page.getByRole('textbox', { name: 'Maximum damage per swing' })
-  // Focused first, as a person would: focusing swaps "5,500" for "5500" (docs/ux.md, Fight).
+  // Focused first, as a person would: focusing swaps "3,200" for "3200" (docs/ux.md, Fight).
   await max.focus()
-  await max.fill('4500')
+  await max.fill('2200')
   await max.press('Enter')
-  await expect(max).toHaveValue('4500')
+  await expect(max).toHaveValue('2200')
 }
 
 test.describe('tank results', () => {
@@ -106,7 +106,7 @@ test.describe('tank results', () => {
     await expect(taken).toContainText(
       new RegExp(
         'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions\\. ' +
-          'It swung \\d+\\.\\d times a fight on average, set to 4,500 to 5,500 a swing before armor \\(Fight\\s→\\sAdvanced\\)\\. ' +
+          'It swung \\d+\\.\\d times a fight on average, set to 2,200 to 3,200 a swing before armor \\(Fight\\s→\\sAdvanced\\)\\. ' +
           'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours \\(Rotation\\) or the raid’s \\(Buffs\\)\\.',
       ),
     )
@@ -135,14 +135,14 @@ test.describe('tank results', () => {
     await page.getByRole('tab', { name: 'Fight', exact: true }).click()
     await page.getByRole('button', { name: 'Advanced' }).click()
     const max = page.getByRole('textbox', { name: 'Maximum damage per swing' })
-    // Focused first, as a person would: focusing swaps "5,500" for "5500" (docs/ux.md, Fight).
+    // Focused first, as a person would: focusing swaps "3,200" for "3200" (docs/ux.md, Fight).
     await max.focus()
     await max.fill('9000')
     await max.press('Enter')
     await expect(max).toHaveValue('9000')
     await simulate(results)
     await expect(taken).toContainText(WITH_CHANGE)
-    await expect(taken).toContainText('set to 4,500 to 9,000 a swing before armor')
+    await expect(taken).toContainText('set to 2,200 to 9,000 a swing before armor')
     const heard = taken.getByText(HEARD_CHANGE)
     await expect(heard).toHaveText(/^up [\d,]+\.\d from the last run, worse$/)
     const shown = heard.locator('..')
@@ -158,7 +158,7 @@ test.describe('tank results', () => {
     await simulate(results)
     await expect(taken).toContainText(VALUE_WITH_CI)
 
-    // A weaker boss: every swing at 4,500 rather than 4,500 to 5,500.
+    // A weaker boss: every swing at 2,200 rather than 2,200 to 3,200.
     await weakenBoss(page)
     await simulate(results)
     await expect(taken).toContainText(WITH_CHANGE)

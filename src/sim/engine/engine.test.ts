@@ -701,6 +701,11 @@ describe('golden run (fixed config and seed)', () => {
   //   992.47 → 917.34; every ability's damage, parries and blocks and the DPS unchanged (Defensive
   //   below: 929.52 → 861.03 TPS). With Thorns set back to 38, the warrior branch's snapshot
   //   reproduces exactly; the bear's rows and every other spec's are main's.
+  // - The boss melee of 2026-09-26 (encounter.md §5): Golemagg's in a Classic Era log, 2,200–3,200
+  //   before armor every 2.0 s, for the 4,500–5,500 stand-in. Smaller hits give less rage from damage
+  //   taken (rage.md#forever-), so fewer Heroic Strikes and Sunder Armors: TPS 917.34 → 865.63, DPS
+  //   413.26 → 394.52. Only the boss's damage moved: Balanced's rotation is unchanged (Max TPS's Heroic
+  //   Strike threshold, re-searched with it, isn't played here).
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -713,6 +718,10 @@ describe('golden run (fixed config and seed)', () => {
   //   setups too).
   // - D37, as above: Shield Slam's threat 22.71 M → 18.76 M, Sunder Armor's 8.53 M → 6.33 M; TPS
   //   925.59 → 857.09, DPS unchanged.
+  // - The boss melee of 2026-09-26, as above: TPS 861.03 → 814.43, DPS 389.07 → 369.65.
+  // - Defensive's Heroic Strike searched again on that boss (warrior.md §5.4, JL-5): from 95 rage for 76.
+  //   On this seed's 500 fights TPS 814.43 → 814.29, DPS 369.65 → 370.15 (over 100,000 paired fights on
+  //   seed 9191, +0.41% TPS); with 76 put back, the snapshot before it reproduces exactly.
   it('keeps the Defensive Protection warrior’s result unchanged', () => {
     const d = defaultConfig('warrior-protection')
     const bundle = buildPlan({ ...d, rotation: { 'warrior.protection.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })
@@ -747,7 +756,7 @@ describe('golden run (fixed config and seed)', () => {
   //   default before; its plans unchanged, bear-apl.test.ts) gives TPS 1,081.78, DPS 532.43 and 629.00
   //   damage taken a second, as before; Balanced TPS 1,114.45, DPS 547.00 and 633.32. The roar's
   //   3,747 casts go: Maul 35,653 → 36,750, Mangle 18,198 → 18,936, Lacerate 24,790 → 26,578.
-  //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"):
+  //   Max TPS, which Mauls from 14 rather than 20 (tuned on TPS alone, druid.md §6.3 "Max TPS"; 20, Balanced's, since the boss melee of 2026-09-26, JL-1):
   //   TPS 1,115.32, DPS 545.44, damage taken 633.07.
   // - Build 1.60.1.70009 (druid.md §4.2, §4.3): Mangle is Primal Bite, which moves nothing here (the
   //   ability keeps its id); Lacerate's "high amount of threat" follows Forever's new Sunder Armor,
@@ -762,6 +771,12 @@ describe('golden run (fixed config and seed)', () => {
   //   rage a white swing, Thorns 47.04; main's bullet at the Fury warrior's golden). TPS 1,101.83 →
   //   1,087.98, DPS 548.03 → 541.37. With Darkmantle Cap back on the head (and allowed a druid), main's
   //   snapshot reproduces exactly.
+  // - The boss melee of 2026-09-26 (the warrior's bullet above): less rage from hits taken, so fewer
+  //   Mauls and Lacerates. TPS 1,087.98 → 986.51, DPS 541.37 → 508.73. Only the boss's damage moved:
+  //   Balanced's rotation is unchanged (Max TPS's Maul threshold, re-searched with it, isn't played here).
+  // - The head and feet re-picked together on that boss (druid.md §7.3a, FL-1): Eye of Rend with
+  //   Defiler's Leather Boots, for Shadowcraft Cap with Dunestalker's Boots. TPS 986.51 → 990.19, DPS
+  //   508.73 → 510.65; only the two slots moved.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -781,6 +796,8 @@ describe('golden run (fixed config and seed)', () => {
   // - Shadowcraft Cap for Darkmantle Cap, as above: TPS 1,069.95 → 1,054.01, DPS 526.21 → 518.84 (before
   //   the bear slice's values).
   // - 2026-09-26 merge, as above: TPS 1,076.02 → 1,059.69, DPS 536.15 → 528.23.
+  // - The boss melee of 2026-09-26, as above: TPS 1,059.69 → 957.08, DPS 528.23 → 494.06.
+  // - Eye of Rend and the Defiler's boots, as above: TPS 957.08 → 962.57, DPS 494.06 → 496.69.
   it('keeps the Defensive Feral bear’s result unchanged', () => {
     const d = defaultConfig('druid-feral-bear')
     const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

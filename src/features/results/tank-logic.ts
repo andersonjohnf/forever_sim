@@ -181,7 +181,7 @@ export function formatCritReduction(pct: number): string {
   return rounded < 0 ? `−${formatPct(-rounded)}` : formatPct(Math.abs(rounded))
 }
 
-/** The boss's swing size for the damage-taken line: "4,500 to 5,500", or "5,000" when fixed. */
+/** The boss's swing size for the damage-taken line: "2,200 to 3,200", or "5,000" when fixed. */
 export function swingDamageText(boss: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'>): string {
   return boss.damageMin === boss.damageMax ? formatInt(boss.damageMin) : `${formatInt(boss.damageMin)} to ${formatInt(boss.damageMax)}`
 }

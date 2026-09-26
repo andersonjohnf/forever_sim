@@ -26,8 +26,8 @@ const byName = (classId: ClassId, code: string) => {
 }
 
 describe('setup versions', () => {
-  it('version 1 is 1.60.1.69913’s trees, frozen; versions 2 and 3, today’s', () => {
-    expect(CONFIG_VERSION).toBe(3)
+  it('version 1 is 1.60.1.69913’s trees, frozen; versions 2 to 4, today’s', () => {
+    expect(CONFIG_VERSION).toBe(4)
     expect(TALENT_TREES_OF_VERSION).toEqual({ 1: OLD })
     expect(Object.keys(frozen.builds)).toEqual([OLD])
     for (const data of Object.values(TALENT_DATA)) expect(data.meta.foreverBuild, data.class).toBe('1.60.1.70009')

@@ -39,6 +39,19 @@ const ITEM_EFFECT_SPECS: Record<number, readonly SpecId[]> = {
 /** Whether an item's equip effects can do anything for this spec (ITEM_EFFECT_SPECS). */
 export const itemEffectsApply = (itemId: number, spec: SpecId): boolean => ITEM_EFFECT_SPECS[itemId]?.includes(spec) ?? true
 
+/**
+ * Equip effects that only move the character, by spell id: "Run speed increased slightly." (23990,
+ * the Defiler's and Highlander's boots), "Increases the speed of your Ghost Wolf ability by 15%."
+ * (22801) and "Increases the duration of your Sprint ability by 3 sec." (23049). The sim's fight is
+ * stationary (docs/mechanics/encounter.md), so there's nothing in them to simulate, and they're never
+ * listed as not simulated (JL-12, JU-6).
+ */
+export const MOVEMENT_ONLY_EQUIP_SPELLS: ReadonlySet<number> = new Set([23990, 22801, 23049])
+
+/** An item's equip effects that can matter in the fight: all but the movement-only ones (MOVEMENT_ONLY_EQUIP_SPELLS). */
+export const fightEquipEffects = <T extends { spellId?: number }>(effects: readonly T[]): T[] =>
+  effects.filter((e) => e.spellId === undefined || !MOVEMENT_ONLY_EQUIP_SPELLS.has(e.spellId))
+
 /** Naglering's thorns (15438): 3 Arcane to each attacker that hits you, a damage shield that always lands and never crits [?]. */
 const NAGLERING_THORNS: SpellDef = {
   id: 'naglering',

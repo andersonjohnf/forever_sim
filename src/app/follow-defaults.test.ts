@@ -181,6 +181,22 @@ describe('the notice', () => {
     expect(defaultsUpdateNotice([], PROT_PALADIN)).toBeNull()
   })
 
+  it('names a tank whose boss melee moved from the former default, alone or beside gear (JL-3, JU-1)', () => {
+    const boss = { spec: 'warrior-protection' as const, gear: false, talents: false, boss: true as const }
+    expect(defaultsUpdateNotice([boss], 'warrior-protection')).toEqual({
+      title: 'Updated to the new default boss melee for Protection Warrior',
+      description: 'The boss’s melee in your Protection Warrior setup was the old default, 4,500 to 5,500 a swing, so it’s now today’s: 2,200 to 3,200 (Fight → Advanced).',
+    })
+    const bear = { spec: 'druid-feral-bear' as const, gear: true, talents: false, boss: true as const }
+    expect(defaultsUpdateNotice([bear, boss], 'druid-feral-bear')).toEqual({
+      title: 'Updated to the new default gear and boss melee for Feral (Bear) Druid and Protection Warrior',
+      description:
+        'Gear and talents you changed yourself are kept. ' +
+        'The boss’s melee in your Feral (Bear) Druid and Protection Warrior setups was the old default, 4,500 to 5,500 a swing, so it’s now today’s: 2,200 to 3,200 (Fight → Advanced).',
+    })
+    expect(defaultsUpdateNotice([{ ...bear, talents: true }], 'druid-feral-bear')?.title).toBe('Updated to the new default gear, talents and boss melee for Feral (Bear) Druid')
+  })
+
   it('says which of the player’s own pieces went as another class’s quest reward, naming the spec (FU-1)', () => {
     const cap = { slot: 'head' as const, classId: 'rogue' as const, name: 'Darkmantle Cap' }
     const spaulders = { slot: 'shoulder' as const, classId: 'rogue' as const, name: 'Darkmantle Spaulders' }

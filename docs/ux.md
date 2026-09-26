@@ -544,7 +544,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
       leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
       list. An effect that names only another spec's abilities isn't one: Idol of Brutality's
-      Maul and Swipe, a bear's, aren't flagged for a cat.
+      Maul and Swipe, a bear's, aren't flagged for a cat. Nor is one that only moves you, since
+      the fight is stationary: run speed (the Defiler's boots), Ghost Wolf's speed and Sprint's
+      duration (`MOVEMENT_ONLY_EQUIP_SPELLS`, JL-12).
 
     The two flags open a popover on tap, click or Enter that explains them and, for effects,
     quotes each one; the popover is named by its heading ("Classic stats"). They sit over the
@@ -722,9 +724,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
-    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's and a
-    warrior's Max TPS against Balanced too, whose rows they share: a bear's differs by one setting,
-    a warrior's by two thresholds), when to pick it, and the Buffs
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a warrior's Max TPS
+    against Balanced too, whose rows it shares and differs from by two thresholds; a bear's Max TPS
+    plays as Balanced since no Maul threshold makes more threat, and says so), when to pick it, and the Buffs
     tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
     the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
     most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken
@@ -839,10 +841,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
     which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS were
-    tuned on an earlier game build and had a quick check on this one; Balanced, the default, hasn't
-    been fully tuned yet." (the warrior, whose presets had a first-pass check on 1.60.1.70009);
-    "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
-    tuned yet." (the bear); "Defensive and Max TPS were tuned on an earlier game build and had a
+    tuned on an earlier game build and had a quick search on this one and the default boss; Balanced,
+    the default, hasn't been fully tuned yet." (the warrior, whose presets had a first-pass check on
+    1.60.1.70009, and whose Heroic Strike thresholds were searched again on Golemagg's boss melee);
+    "Defensive is tuned and had a quick check on the default boss; Balanced, the default, hasn't been
+    fully tuned yet, and Max TPS plays as it." (the bear); "Defensive and Max TPS were tuned on an earlier game build and had a
     quick search on this one; Balanced, the default, plays as Defensive." (the paladin, whose list,
     talents and thresholds had a first-pass search on 1.60.1.70009, the paladin review's PR-6).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
@@ -1173,7 +1176,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     and a screen reader hears "down 12.3 from the last run, better".
   - A line says what it counts and what drove it: "The health the boss's melee swings cost you,
     after avoidance, armor, block and other reductions. It swung 80.5 times a fight on average,
-    set to 4,500 to 5,500 a swing before armor (Fight → Advanced). Debuffs on it, such as
+    set to 2,200 to 3,200 a swing before armor (Fight → Advanced). Debuffs on it, such as
     Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours
     (Rotation) or the raid's (Buffs)." For another tank, whose rotation never uses a warrior
     tank's debuffs, its last sentence reads "Debuffs on it, such as a warrior tank's Demoralizing
@@ -1801,6 +1804,18 @@ Every view handles these states:
   Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character →
   Advanced for the old reading." A visit's stored setup takes the same changes without a word, as
   above; the release's What's New entry is where a returning visitor reads of them.
+- **A tank's boss melee that was the former default** (4,500 to 5,500 a swing every 2.0 s, the
+  default until Golemagg's melee replaced it: [encounter.md](mechanics/encounter.md#how-the-default-boss-melee-was-measured-))
+  was never the player's choice, so a setup written before then (version 3 or older) that still holds
+  exactly that swing, whatever its boss switches, takes today's default, 2,200 to 3,200, as a gear slot
+  that follows the default does. Its results move, so every load says so: a link, a code or a Load
+  among its changes ("The boss's melee was the old default, 4,500 to 5,500 a swing, so it's now
+  today's: 2,200 to 3,200 (Fight → Advanced)."), and a visit in its defaults notice, one sentence
+  naming every such spec ("Updated to the new default boss melee for Protection Warrior", "… gear and
+  boss melee for …"; "The boss's melee in your Protection Warrior setup was the old default, …").
+  Setups are written as version 4 from then on, so a swing of 4,500 to 5,500 the player sets later
+  stays theirs. Any other range or speed stays too. A DPS spec's boss melee does nothing, so its moves
+  without a word (`FORMER_BOSS_MELEE` in `src/sim/config/normalize.ts`; JL-3, JU-1).
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A notice that
   says more (a load's changes, a talent build's refunds, a race change's set bonus) stays long

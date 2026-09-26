@@ -152,7 +152,7 @@ placement, 611.0 on this data with 3 points unspent).
 
 A reproducible read of the 47 public beta logs (build 1.60.1, 18–25 Sep 2026;
 [D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23),
-methods with each section) and the one guild test there is, the user's level-20 paladin (2026-09-25),
+methods with each section) and the user's own level-20 paladin test (2026-09-25), the first of their in-game tests,
 replaced every paladin value that had been fitted to a TPS figure rather than sourced. Each step's
 headline, the default setups at 10,000 fights:
 
@@ -507,8 +507,31 @@ and whose Classic Era damage is only its own 170–186 + 0.5 × SP [C]. Nothing 
 Fury's (its tooltip names only its damage and taunt), and an undescribed dummy models as zero, so the
 sim gives it no damage and no threat. As flat threat, 1,691.6 × 1.6 a landed judgement, it would add
 **383 TPS** (+55%) to the default Protection setup (697.3 → 1,080.2, 10,000 fights, 2026-09-26; the
-+454 quoted before was at Righteous Fury's old +90%). No measurement supports it; guild test T5 would
-check it ([open question 28](#open-questions)).
++454 quoted before was at Righteous Fury's old +90%). **The user's in-game test rules that out**
+(below; [open question 28](#open-questions)).
+
+**The user's reverse flip test** (tier 2 in [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable);
+build 1.60.1, 2026-09-26, Ragefire Chasm, advanced combat logging on, the user's log
+`WoWCombatLog-092626_104907.txt`, kept out of the repo). The paladin, with Righteous Fury off,
+pulls, tanks and judges twice with its rank of Judgement of Fury, 1311655 (learned at level 18; its
+dummy is 316.8 + 25.2 a level, about 367 at level 20, as the user read the client); then the bear
+attacks until the mob turns to it. The paladin's known threat is its damage at
+×1 (white swings, Seal of Fury, Judgement of Fury's own damage) and half its healing; the bear's is
+Bear Form's ×1.3 × (white damage + 1.75 × Maul damage) with no Enrage, and the mob turns when the
+bear's passes 110% of the paladin's ([druid.md §4.1](druid.md#mauls-threat-and-rage-in-the-users-test-)
+tests those rules). What's left over is the judgements' hidden threat.
+- **One pull with no turn** (the mob died on the paladin; 2 judgements): the bear reached 615 threat
+  against the paladin's known 536, so the paladin had at least 559: **at least 12 hidden a judgement**.
+- **One pull that turned** (2 judgements): **at most 35 hidden a judgement** at Maul's ×1.75, and at
+  most 81 at ×2.25, the top of the user's Maul bracket.
+- A third pull is left out: the paladin kept acting after the bear started.
+- **Result.** Far below the dummy's 367 a judgement, and it only shrinks as a share at 60: the dummy
+  isn't its value as flat threat, and the +383 TPS reading is ruled out. The sim's zero stands [?]: a
+  hidden 12–35 a judgement, if real, rests on the 110% rule and Maul's ×1.75, and D37 models an
+  undescribed dummy as zero.
+- **The taunt** is a separate spell, 20232 (effect 114, taunt, and aura 11), 4 s.
+- **Caveats.** Two usable pulls, one character, a low level and rank; the brackets assume Bear
+  Form's ×1.3, the 110% rule and Maul's ×1.75, which the user's Maul test is consistent with.
 
 ##### The beta logs: Light's Fury
 
@@ -1222,6 +1245,13 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
     - **Re-measured with both** (the beta-log check and a raid druid's Thorns at 47.04, 2026-09-26;
       seed 31101, 100,000 fights): **701.20 TPS, 437.41 DPS and 900.4 damage taken a second** for Balanced and Defensive; Max TPS against it +7.25% TPS, +7.12% DPS and +5.83% damage taken;
       Hammer of the Righteous turned on −5.2% TPS, −3.69% DPS and +5.01% damage taken; Seal of Righteousness in Seal of Fury's place −7.59% TPS, −5.41% DPS and +2.13% damage taken.
+    - **Re-measured for the boss melee of 2026-09-26** (Golemagg's in a Classic Era log, 2,200–3,200
+      before armor every 2.0 s, for the 4,500–5,500 stand-in; [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-);
+      seed 31101, 100,000 fights): only damage taken moves, since a paladin's threat and mana don't
+      come from the size of the hits it takes. **701.20 TPS, 437.41 DPS and 471.7 damage taken a
+      second** for Balanced and Defensive; Max TPS against it +7.25% TPS, +7.12% DPS and +6.01% damage
+      taken; Hammer of the Righteous turned on −5.16% TPS, −3.69% DPS and +5.16% damage taken; Seal of
+      Righteousness in Seal of Fury's place −7.59% TPS, −5.41% DPS and +4.03% damage taken.
       The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
       `protection-presets.test.ts` measures again), each change with its direction.
 
@@ -1782,7 +1812,13 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    curve)? *Test:* count Redoubt procs per melee hit taken at 1–5 ranks. The sim uses 10% at
    every rank; at the default 5/5 both readings agree, so no default moves. Without Redoubt the
    default Protection setup makes 7.5% less TPS: its blocks feed Holy Shield and Shield
-   Specialization.
+   Specialization. **The user's logs** (1.60.1.70009, 2026-09-26, a level-20 paladin tanking
+   Ragefire Chasm pulls, two logs): 17 procs from 116 landed melee hits, about 15% (roughly 9–22% at
+   this sample), none from 12 landed spell hits; each lasts 10 s, a proc refreshes it and blocks use its
+   charges, as modelled. Uptime while being hit was 42% and 46%; the sim's default fight gives 34.8%,
+   against one boss's melee only. Adds and a boss's extra attacks give more swings to proc it, so
+   the multi-target fight (M6) will show a higher uptime; the single-target default keeps the tooltip's
+   10%. Always up, it would be +9% TPS and −1.5% damage taken (seed 31101, 2,000 fights).
 9. **Reckoning** extra-attack stacking cap and block-trigger rate. *Test:* block-heavy
    tanking log. The sim swings each at once, so in combat no stack builds (one given during Hammer
    of Wrath's cast swings when the cast ends); without Reckoning the default Protection setup makes
@@ -1915,8 +1951,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 28. **Judgement of Fury's scripted dummy** (1607 + 42.3/level, coefficient 0.18): the sim gives it no
     damage and no threat, as the Classic Era client's identical dummy on Judgement of Righteousness
     has none, and nothing describes it ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)). As
-    flat threat it would be +383 TPS (+55%) in the default Protection setup. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
-    judged while you already have top threat (so the taunt does nothing).
+    flat threat it would be +383 TPS (+55%) in the default Protection setup. **Partly answered** by the
+    user's reverse flip test (1.60.1, 2026-09-26, rank 1311655, two pulls;
+    [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): the hidden threat is at least 12 and
+    at most 35 a judgement (81 at Maul's ×2.25), far below the dummy's 367 at level 20, so it isn't
+    flat threat and the +383 TPS reading is ruled out; the sim's zero stands. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
+    judged while you already have top threat (so the taunt does nothing), at 60 with the threat macro.
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy
     Shield's 0.08 [?] and, for Thorns on another tank, a raid Restoration druid's spell damage, 313

@@ -8,7 +8,7 @@ import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { SPEC_IDS } from '../specs'
 import type { SimConfig } from '../types'
-import { compareEffects, HOTR_NOW_WEAPON_ONLY, JOTC_ALL_GONE, normalizeConfig } from './normalize'
+import { bossMeleeMovedNotice, compareEffects, FORMER_BOSS_MELEE, HOTR_NOW_WEAPON_ONLY, JOTC_ALL_GONE, normalizeConfig } from './normalize'
 import { CONFIG_VERSION } from './talent-trees'
 
 describe('normalizeConfig', () => {
@@ -35,7 +35,7 @@ describe('normalizeConfig', () => {
   })
 
   it('resets a config from a newer version, keeping its spec', () => {
-    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 4 })
+    const { config, warnings } = normalizeConfig({ ...defaultConfig('warrior-arms'), version: 5 })
     expect(config).toEqual(defaultConfig('warrior-arms'))
     expect(warnings).toHaveLength(1)
   })
@@ -397,7 +397,7 @@ describe('normalizeConfig', () => {
       expect(out.warnings, String(version)).toContain(HOTR_NOW_WEAPON_ONLY)
       // It loads on today's default, weapon only.
       expect(out.config.rules.hotrWeaponDps).toBeUndefined()
-      expect(out.config.version).toBe(3)
+      expect(out.config.version).toBe(CONFIG_VERSION)
     }
     // Nothing changed for it: today's setup, Hammer of the Righteous off, or a reading it chose.
     expect(load(3, on).warnings).toEqual([])
@@ -408,6 +408,44 @@ describe('normalizeConfig', () => {
     // A Retribution setup has no Hammer of the Righteous.
     const ret = defaultConfig('paladin-retribution')
     expect(normalizeConfig({ ...ret, version: 2, rotation: { ...ret.rotation, [HOTR]: true } }).warnings).not.toContain(HOTR_NOW_WEAPON_ONLY)
+  })
+
+  it('a tank’s setup from before version 4 whose boss melee was the former default takes today’s, and says so (JL-3, JU-1)', () => {
+    // docs/mechanics/encounter.md#how-the-default-boss-melee-was-measured-: the former stand-in, frozen.
+    expect(FORMER_BOSS_MELEE).toEqual({ swingSpeedSec: 2, damageMin: 4500, damageMax: 5500 })
+    const MOVED = 'The boss’s melee was the old default, 4,500 to 5,500 a swing, so it’s now today’s: 2,200 to 3,200 (Fight → Advanced).'
+    const load = (spec: SimConfig['spec'], version: number | undefined, boss: Partial<SimConfig['fight']['boss']> = {}) => {
+      const d = defaultConfig(spec)
+      return normalizeConfig({ ...d, version, fight: { ...d.fight, boss: { ...d.fight.boss, ...FORMER_BOSS_MELEE, ...boss } } })
+    }
+    for (const spec of ['warrior-protection', 'druid-feral-bear', 'paladin-protection'] as const) {
+      // Versions 2 and 3 (a version 1 setup's talent code is on older trees; today's default isn't one).
+      for (const version of [2, 3]) {
+        const out = load(spec, version)
+        expect(out.config.fight.boss, `${spec} v${version}`).toEqual(defaultConfig(spec).fight.boss)
+        expect(out.warnings).toEqual([MOVED])
+        expect(out.bossMeleeMoved).toBe(true)
+        expect(out.config.version).toBe(CONFIG_VERSION)
+      }
+    }
+    expect(bossMeleeMovedNotice(defaultConfig('warrior-protection').fight.boss)).toBe(MOVED)
+    // Its flags aren't part of the swing: a boss that can't parry still had the former damage.
+    const noParry = load('warrior-protection', 3, { canParry: false })
+    expect(noParry.config.fight.boss).toEqual({ ...defaultConfig('warrior-protection').fight.boss, canParry: false })
+    // A swing the player changed stays theirs: another range, another speed, or one set from version 4 on.
+    for (const boss of [{ damageMax: 5600 }, { damageMin: 4400 }, { swingSpeedSec: 2.5 }]) {
+      const out = load('warrior-protection', 3, boss)
+      expect(out.config.fight.boss, JSON.stringify(boss)).toMatchObject({ ...FORMER_BOSS_MELEE, ...boss })
+      expect(out.warnings).toEqual([])
+      expect(out.bossMeleeMoved).toBeUndefined()
+    }
+    expect(load('druid-feral-bear', 4).config.fight.boss).toMatchObject(FORMER_BOSS_MELEE)
+    expect(load('druid-feral-bear', 4).warnings).toEqual([])
+    // A DPS spec's boss melee does nothing, so it moves without a word.
+    const fury = load('warrior-fury', 3)
+    expect(fury.config.fight.boss).toEqual(defaultConfig('warrior-fury').fight.boss)
+    expect(fury.warnings).toEqual([])
+    expect(fury.bossMeleeMoved).toBeUndefined()
   })
 
   it('says Hammer of the Righteous’s reading changed only when the plan casts it (protection.ts row 5b, DV-1)', () => {

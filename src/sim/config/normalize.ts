@@ -78,6 +78,20 @@ export const JOTC_ALL_GONE = 'Judgement of the Crusader’s “All of it” sett
 /** The load's line for a setup from before version 3 that uses Hammer of the Righteous (DL-8, DU-3). */
 export const HOTR_NOW_WEAPON_ONLY =
   'Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.'
+/**
+ * The boss melee every setup had by default before version 4 (2026-09-26), frozen: 4,500 to 5,500 a
+ * swing every 2.0 s, the stand-in that Golemagg's melee replaced (docs/mechanics/encounter.md
+ * #how-the-default-boss-melee-was-measured-). A setup from then that still holds it never chose it,
+ * so a load moves it to today's default (JL-3, JU-1).
+ */
+export const FORMER_BOSS_MELEE = { swingSpeedSec: 2, damageMin: 4500, damageMax: 5500 } as const
+const grouped = (n: number) => n.toLocaleString('en-US')
+/** The load's line for a tank's setup from before version 4 whose boss melee was the former default (JL-3, JU-1). */
+export function bossMeleeMovedNotice(to: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'>, whose?: { names: string; count: number }): string {
+  const from = `${grouped(FORMER_BOSS_MELEE.damageMin)} to ${grouped(FORMER_BOSS_MELEE.damageMax)}`
+  const where = whose ? ` in your ${whose.names} ${whose.count === 1 ? 'setup' : 'setups'}` : ''
+  return `The boss’s melee${where} was the old default, ${from} a swing, so it’s now today’s: ${grouped(to.damageMin)} to ${grouped(to.damageMax)} (Fight → Advanced).`
+}
 /** The main hand's hands and type, as the plan reads it for Hammer of the Righteous (plan/build.ts mainHandWeapon). */
 function mainHandWeapon(gear: SimConfig['gear']): { twoHand: boolean; type?: WeaponType } | null {
   const mh = gear.mainHand && items.get(gear.mainHand.itemId)
@@ -151,6 +165,12 @@ export interface NormalizedConfig {
    * replacement (docs/ux.md#persistence-and-sharing).
    */
   questRemovals?: QuestRemoval[]
+  /**
+   * A tank's setup from before version 4 whose boss melee was the former default (FORMER_BOSS_MELEE),
+   * moved to today's, which `warnings` also says: the automatic save says this one too, in its
+   * defaults notice (docs/ux.md#persistence-and-sharing).
+   */
+  bossMeleeMoved?: true
 }
 
 /**
@@ -296,6 +316,18 @@ function normalize(input: unknown): NormalizedConfig {
     r.add(HOTR_NOW_WEAPON_ONLY)
   }
   const fight = normalizeFight(input.fight, d.fight, r)
+  // Before version 4 the default boss melee was 4,500 to 5,500 a swing (FORMER_BOSS_MELEE). A setup
+  // from then that still holds it exactly never chose it: it takes today's default, as a slot that
+  // follows the default gear does. A tank's results move, so its load says so; any other spec's boss
+  // melee does nothing, so it moves without a word (JL-3, JU-1).
+  let bossMeleeMoved = false
+  if ((version as number) < 4 && isFormerBossMelee(fight.boss)) {
+    fight.boss = { ...fight.boss, damageMin: d.fight.boss.damageMin, damageMax: d.fight.boss.damageMax }
+    if (meta.role === 'tank') {
+      bossMeleeMoved = true
+      r.add(bossMeleeMovedNotice(fight.boss))
+    }
+  }
 
   const runIn = isObj(input.run) ? input.run : {}
   if (input.run !== undefined && !isObj(input.run)) r.add('The run settings couldn’t be read, so they were reset.')
@@ -321,7 +353,13 @@ function normalize(input: unknown): NormalizedConfig {
     warnings: r.warnings,
     ...(talentChange ? { talentChange } : {}),
     ...(questRemovals.length > 0 ? { questRemovals } : {}),
+    ...(bossMeleeMoved ? { bossMeleeMoved: true as const } : {}),
   }
+}
+
+/** Whether a boss melee is the former default's swing (FORMER_BOSS_MELEE): its speed and damage range, whatever its flags. */
+function isFormerBossMelee(boss: FightConfig['boss']): boolean {
+  return boss.swingSpeedSec === FORMER_BOSS_MELEE.swingSpeedSec && boss.damageMin === FORMER_BOSS_MELEE.damageMin && boss.damageMax === FORMER_BOSS_MELEE.damageMax
 }
 
 function normalizeGear(input: unknown, spec: SpecId, race: string, classId: ClassId, r: Repairs, questRemovals: QuestRemoval[]): SimConfig['gear'] {

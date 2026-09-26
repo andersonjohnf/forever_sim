@@ -643,6 +643,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   never measured on Classic Era; kept by user decision, 2026-09-26]; Primal Bite (Mangle until
   1.60.1.70009) dmg × 1 [?: its tooltip names no threat; Season of Discovery's ×1.5 for Mangle
   (Bear) doesn't carry over to Forever's reworked spell, user decision, 2026-09-26]; bear form ×1.3 with no Feral Instinct threat [F].
+- **Partly answered:** the user's paladin-then-bear flip test (1.60.1, 2026-09-26, level 12, one
+  Maul pull and one white-only control) puts Maul between ×1.71 and ×2.25 and fits Bear Form's ×1.3
+  and the 110% rule ([druid.md §4.1](classes/druid.md#mauls-threat-and-rage-in-the-users-test-)).
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
@@ -1127,6 +1130,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M5 · ≤20**
 - **Assumes:** taunts like Taunt: sets you to top threat, and does nothing if you are already
   there [?]; the client's scripted 1607 + 42.3/level value isn't threat [?].
+- **Partly answered:** the user's reverse flip test (1.60.1, 2026-09-26, rank 1311655, two pulls)
+  finds 12 to 35 hidden threat a judgement against its dummy's 367, so the dummy isn't flat threat;
+  the taunt is its own spell, 20232 (effect 114, aura 11), 4 s
+  ([paladin.md](classes/paladin.md#seal-of-fury-sof-new-the-protection-seal)).
 - **Test:** two players on a mob; the non-tank judges JoF; read both players' threat before and
   after with the threat macro.
 - **Samples:** ≥5 judgements.
@@ -1451,6 +1458,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [?]; Reckoning's stacking cap [?]; Sanctified Judgement returns 60% of the seal's base cost
   and nothing on a missed judgement [?]; Vindication effectively permanent (100% proc in data)
   [?]; Benediction and Holy Conduit add [?]; Seal and Judgement of Wisdom proc rates [?].
+- **Measured:** the user's two logs, 17 procs from 116 landed melee hits (about 15%, small sample), none from 12 spell hits; uptime 42–46% while being hit, against the default fight's 34.8%
 - **Test:** Redoubt procs per hit taken at 1–5 ranks; a block-heavy log for Reckoning; mana
   before and after landed and missed judgements; Vindication uptime; Consecration's cost with
   both talents; mana procs per hit with Wisdom.
@@ -1715,8 +1723,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C5. Raid-boss melee and incoming damage
 **High · M3**
-- **Assumes:** 2.0 s boss swings for 4,500–5,500 pre-armor damage [?]; DPS players take no
-  damage (so no Enrage or damage rage for DPS) [?].
+- **Assumes:** 2.0 s boss swings for 2,200–3,200 pre-armor damage [?], Golemagg's melee in a
+  Classic Era log ([encounter §5](mechanics/encounter.md#how-the-default-boss-melee-was-measured-));
+  DPS players take no damage (so no Enrage or damage rage for DPS) [?].
 - **Test:** raid logs: boss swing interval and damage on tanks (before and after mitigation);
   damage events per minute on DPS warriors.
 - **Samples:** ≥100 boss swings per boss.

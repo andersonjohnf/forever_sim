@@ -10,7 +10,7 @@
 import { factionOf, raceChangeTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { GEAR_SLOTS, questRemovalNotice, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type QuestRemoval, type SimConfig, type SpecId, type TalentChange } from '@/sim'
+import { bossMeleeMovedNotice, defaultConfig, GEAR_SLOTS, questRemovalNotice, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type QuestRemoval, type SimConfig, type SpecId, type TalentChange } from '@/sim'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
@@ -208,9 +208,17 @@ export interface DefaultsUpdate {
   talents: boolean
   change?: TalentChange
   removed?: QuestRemoval[]
+  /** A tank's boss melee that was the former default, moved to today's (FORMER_BOSS_MELEE in normalize.ts; JL-3). */
+  boss?: true
 }
 
 const specName = (spec: SpecId) => `${SPEC_META[spec].name} ${SPEC_META[spec].className}`
+
+/** Specs by name, every one: "A", "A and B", "A, B and C". */
+function joinSpecs(specs: readonly SpecId[]): string {
+  const names = specs.map(specName)
+  return names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
 
 /** Specs by name: one, two, or the first and a count. */
 function whoseOf(specs: readonly SpecId[]): string {
@@ -232,12 +240,15 @@ function whoseOf(specs: readonly SpecId[]): string {
  * kept." (review TMV-3). The player's own items removed as another class's quest reward
  * (questRemovalNotice, naming each spec) open the description, and "kept" becomes "Other gear …";
  * with nothing moved, the title is "Gear removed from …", or "Gear and talents changed for …" beside
- * a talent change (FU-1). Null when nothing changed.
+ * a talent change (FU-1). A tank's boss melee that was the former default and took today's is a part
+ * that moved ("Updated to the new default gear and boss melee for …"), and one sentence names every
+ * such spec (bossMeleeMovedNotice) after the "kept" line, which only gear or talents that moved need
+ * (JL-3, JU-1). Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
   const ordered = [...updates].sort((a, b) => Number(b.spec === current) - Number(a.spec === current))
-  const moved = ordered.filter((u) => u.gear || u.talents)
+  const moved = ordered.filter((u) => u.gear || u.talents || u.boss)
   const changed = ordered.filter((u) => u.change)
   const succeeded = changed.filter((u) => u.change!.successor)
   const refunded = changed.filter((u) => !u.change!.successor && u.change!.refunds.length > 0)
@@ -261,13 +272,18 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   }
   const gear = moved.some((u) => u.gear)
   const talents = moved.some((u) => u.talents)
-  const what = gear && talents ? 'gear and talents' : gear ? 'gear' : 'talents'
+  const bosses = moved.filter((u) => u.boss).map((u) => u.spec)
+  const parts = [...(gear ? ['gear'] : []), ...(talents ? ['talents'] : []), ...(bosses.length > 0 ? ['boss melee'] : [])]
+  const what = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+  const boss = bosses.length > 0 ? bossMeleeMovedNotice(defaultConfig(bosses[0]).fight.boss, { names: joinSpecs(bosses), count: bosses.length }) : ''
   // A successor stands in for a build the player picked, so "talents … kept" wouldn't hold for it:
   // the sentences after it say what became of the talents.
   const kept = succeeded.length > 0 ? 'Gear you changed yourself is kept.' : 'Gear and talents you changed yourself are kept.'
+  // "Kept" answers gear or talents that moved; a boss melee alone says only what moved.
+  const keptLine = gear || talents || removal || succeeded.length > 0 ? (removal ? `Other ${kept[0].toLowerCase()}${kept.slice(1)}` : kept) : ''
   return {
     title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
     // After a removal, "kept" holds for the rest of what the player changed.
-    description: [removal, removal ? `Other ${kept[0].toLowerCase()}${kept.slice(1)}` : kept, ...talentWords].filter(Boolean).join(' '),
+    description: [removal, keptLine, boss, ...talentWords].filter(Boolean).join(' '),
   }
 }

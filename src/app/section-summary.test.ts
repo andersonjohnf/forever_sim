@@ -29,9 +29,9 @@ const fresh = (spec: SpecId): SimConfig => normalizeConfig(defaultConfig(spec)).
 
 /** Every spec's default setup, tab by tab: race, tree split, gear, Buffs preset, Rotation preset, fight. */
 const DEFAULTS: Record<SpecId, [string, string, string, string, string, string]> = {
-  'warrior-fury': ['Human', '17/34/0', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],
-  'warrior-arms': ['Human', '37/14/0', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],
-  'warrior-protection': ['Human', '8/5/38', 'Threat set', 'Standard raid', 'Balanced', '3:00'],
+  'warrior-fury': ['Human', '13/38/0', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],
+  'warrior-arms': ['Human', '35/16/0', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],
+  'warrior-protection': ['Human', '13/5/33', 'Threat set', 'Standard raid', 'Balanced', '3:00'],
   'druid-feral-cat': ['Tauren', '9/37/5', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],
   'druid-feral-bear': ['Tauren', '9/42/0', 'Threat set', 'Standard raid', 'Balanced', '3:00'],
   'druid-balance': ['Tauren', '41/5/0', 'Pre-raid best in slot', 'Standard raid', 'Default', '3:00'],

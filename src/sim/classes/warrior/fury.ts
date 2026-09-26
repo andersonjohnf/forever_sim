@@ -2,8 +2,8 @@
 //
 // This covers the pre-pull (row 0), Battle Shout (row 1), the cooldowns (rows 2–5: Death Wish,
 // the racial and on-use trinkets, Recklessness, Bloodrage), the execute phase (rows 6 and 7),
-// Bloodthirst, Whirlwind, the Overpower stance dance, Heroic Strike and Hamstring (rows 8–12),
-// Berserker Rage (row 13), Slam (row 15), the Mighty Rage Potion (row 16) and Juju Flurry (row 17).
+// Bloodthirst, Whirlwind, the Overpower stance dance, the Rend stance dance (row 10b, since W4),
+// Heroic Strike and Hamstring (rows 8–12), Berserker Rage (row 13), Slam (row 15), the Mighty Rage Potion (row 16) and Juju Flurry (row 17).
 // Rows 12 and 15 are off by default; Sunder Armor (row 14) isn't simulated. The rows are a priority
 // list you reorder (FURY_APL, decision D31), each with its own settings. Setting ids are
 // `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
@@ -25,6 +25,8 @@ import {
   OVERPOWER,
   overpowerWindowProcs,
   recklessness,
+  rend,
+  REND,
   SLAM,
   WHIRLWIND,
 } from './abilities'
@@ -81,6 +83,9 @@ const ID = {
   wwEnabled: 'warrior.fury.whirlwind.enabled',
   wwReserve: 'warrior.fury.whirlwind.reserve',
   wwBtCdMin: 'warrior.fury.whirlwind.btCdMinSec',
+  rendEnabled: 'warrior.fury.rend.enabled',
+  rendRefresh: 'warrior.fury.rend.refreshBelowSec',
+  rendMaxRage: 'warrior.fury.rend.maxRage',
   opEnabled: 'warrior.fury.overpower.enabled',
   opMaxRage: 'warrior.fury.overpower.maxRage',
   hamEnabled: 'warrior.fury.hamstring.enabled',
@@ -101,11 +106,14 @@ export const FURY_RENAMED_OPTIONS: Readonly<Record<string, string>> = {
 export { PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './shared'
 
 /**
- * Bloodthirst over Execute from this AP: W11's break-even at the default build's Execute cost
- * (15, no Improved Execute), 2220. A static default: the option framework has no per-build
- * defaults, so an Improved Execute build should set its own (2434 at cost 10; warrior.md §5.2).
+ * Bloodthirst over Execute from this AP: W11's break-even at the default build's Execute cost, 10
+ * with its Improved Execute 2/2 (warrior.md §6.1), 2434. A static default: the option framework has
+ * no per-build defaults, so a build without Improved Execute should set its own (2220 at cost 15;
+ * warrior.md §5.2).
  */
-const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
+const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10 - 5))
+/** The break-even without Improved Execute, which the setting's help names. */
+const BT_OVER_EXECUTE_AP_UNTALENTED = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
 
 /**
  * In the execute phase, the potion's last chance: if it hasn't been drunk by the phase's last 2 s,
@@ -202,7 +210,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     group: 'Execute phase',
     label: 'Bloodthirst over Execute from',
     // Its field groups thousands ("2,220 AP"), so the help writes them the same way.
-    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP.toLocaleString('en-US')} is the break-even at Execute’s 15 rage cost; use 2,434 with Improved Execute 2/2.`,
+    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP.toLocaleString('en-US')} is the break-even at Execute’s 10 rage cost with Improved Execute 2/2, as the default talents have; use ${BT_OVER_EXECUTE_AP_UNTALENTED.toLocaleString('en-US')} without Improved Execute.`,
     unit: 'AP',
     min: 0,
     max: 5000,
@@ -270,9 +278,38 @@ export const FURY_OPTIONS: RotationOption[] = [
   rageOption(
     ID.opMaxRage,
     'Overpower up to',
-    'Dance only at or below this much rage. At 40, a dance can lose up to 15 rage, which an Overpower sooner is worth. Lower it by 3 for each Improved Tactical Mastery rank you don’t have.',
-    40,
+    'Dance only at or below this much rage. A swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank (19 with the default talents), so at 45 a dance can lose up to 26, which an Overpower sooner is worth.',
+    45,
     ID.opEnabled,
+    'Fillers',
+  ),
+  {
+    kind: 'toggle',
+    id: ID.rendEnabled,
+    group: 'Fillers',
+    label: 'Rend (stance dance)',
+    help: 'Keep your Rend on the boss: swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
+    default: true,
+  },
+  {
+    kind: 'number',
+    id: ID.rendRefresh,
+    group: 'Fillers',
+    label: 'Rend again with',
+    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight.',
+    unit: 's left',
+    min: 0,
+    max: 21,
+    step: 0.5,
+    default: 3,
+    dependsOn: ID.rendEnabled,
+  },
+  rageOption(
+    ID.rendMaxRage,
+    'Rend up to',
+    'Dance for Rend only at or below this much rage. At 25, with the default talents’ 19 kept on a swap, a dance can lose up to 6.',
+    25,
+    ID.rendEnabled,
     'Fillers',
   ),
   ...heroicStrikeOptions(
@@ -479,6 +516,14 @@ export const FURY_APL: AplDefinition = {
       summary: [{ option: ID.opMaxRage, text: 'up to {}' }, AFTER_BT_WW],
     },
     {
+      id: 'rend',
+      label: 'Rend (stance dance)',
+      icon: REND.icon,
+      enabledId: ID.rendEnabled,
+      optionIds: [ID.rendRefresh, ID.rendMaxRage],
+      summary: [{ option: ID.rendRefresh, text: 'again with {}' }, { option: ID.rendMaxRage, text: 'up to {}' }, NOT_IN_PHASE, AFTER_BT_WW],
+    },
+    {
       id: 'heroicStrike',
       label: 'Heroic Strike',
       icon: HEROIC_STRIKE.icon,
@@ -630,6 +675,20 @@ export function furyRotation(
       } else {
         b.add(WHIRLWIND, [...outsideExecute(inExecute), minRage, ...btWait])
       }
+    },
+    // Row 10b (warrior.md §5.2, W4): a dance to Battle Stance for Rend and back, when your Rend is missing or has
+    // at most refreshBelowSec of ticks left (unless it lasts to the end of the fight), at rage ≤
+    // maxRage, Bloodthirst and Whirlwind GCD-safe, and never in the execute phase, where the GCDs are
+    // Execute's. Its ticks add 0.02 × AP in forever (D36, §3.1).
+    rend: () => {
+      if (!v.on(ID.rendEnabled)) return
+      const def = rend(ctx.profile)
+      b.dance(def, STANCE.battle, [
+        ...outsideExecute(false),
+        { code: COND.abilityAuraRefresh, a: b.ability(def), b: seconds(v, ID.rendRefresh) },
+        maxRage(v.num(ID.rendMaxRage)),
+        ...gcdSafe(bit(btIndex()) | bit(wwIndex())),
+      ])
     },
     // Row 10: the Overpower stance dance (on by default since M2.5b): while the window a dodge opened
     // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (40 by default: the swap in

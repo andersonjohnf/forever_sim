@@ -2020,8 +2020,9 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 
 ## Not tests: settled by the sim or by a guild decision
 
-- **Warrior build variants** (Fury 17/34 vs "Fury + Precision" 15/36; Protection's is settled, warrior §6.1) and
-  **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
+- **Warrior build variants**: settled by the sim in W4 (warrior §6.1): "Fury + Precision" 15/36 is +0.44%
+  over the popular 17/34, and WarriorSim's 13/38 (Precision and Improved Execute, no Impale) +3.5%, now the
+  default. **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
   ([warrior Q23, Q24](classes/warrior.md#9-open-questions)). The base stance's first run (M2.3c):
   Battle 630 DPS, Berserker 604, Berserker dancing for Rend and Overpower 631, so Battle stays
   the default.

@@ -6,12 +6,17 @@
 // in and without an execute phase (row 17), the Berserker base stance (Q24), and determinism.
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
-import { defaultConfig, TALENT_DATA } from '../defaults'
+import { defaultConfig as todaysDefaultConfig, TALENT_DATA } from '../defaults'
+import { withPopularTalents } from '../classes/warrior/popular-builds'
 import { buildPlan } from '../plan/build'
 import { type Plan, STANCE } from '../plan/types'
 import type { SimConfig } from '../types'
 import { FIELD, Sim } from './sim'
 import { counter } from './test-helpers'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 const ARMS = defaultConfig('warrior-arms')
 
@@ -227,7 +232,7 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     expect(dances).toBeGreaterThan(50 * 10)
   })
 
-  it('row 14: Hamstring at rage ≥ 40, outside the execute phase, only while Mortal Strike, Slam and Spearing Strike have a GCD of cooldown left', () => {
+  it('row 14: Hamstring at rage ≥ 30, outside the execute phase, only while Mortal Strike, Slam and Spearing Strike have a GCD of cooldown left', () => {
     const plan = armsPlan() // on by default
     expect(armsPlan({ 'warrior.arms.hamstring.enabled': false }).abilities.map((a) => a.id)).not.toContain('hamstring')
     const ability = (id: string) => plan.abilities.find((a) => a.id === id)!
@@ -239,7 +244,7 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
       for (const c of f.casts) {
         if (c.id === 'hamstring') {
           count++
-          expect(c.rage).toBeGreaterThanOrEqual(400)
+          expect(c.rage).toBeGreaterThanOrEqual(300)
           expect(c.t).toBeLessThan(f.executeAt)
           for (const id of ['mortalStrike', 'slam', 'spearingStrike']) expect((readyAt.get(id) ?? 0) - c.t, id).toBeGreaterThanOrEqual(1500)
         }
@@ -249,7 +254,7 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
         }
       }
     }
-    // Seeds 1–4 and 12345 give 1,733–1,877 in 200 fights, about 9 a fight: from 40 rage it's a regular filler.
+    // Seeds 1–4 and 12345 gave 1,733–1,877 in 200 fights from 40 rage, about 9 a fight, before W4's 30: a regular filler.
     expect(count).toBeGreaterThan(200 * 5)
   })
 
@@ -384,7 +389,11 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
     const noSwap: SimConfig['rotation'][] = [{ 'warrior.arms.recklessness.enabled': false }, { 'warrior.arms.baseStance': 'berserker' }]
     for (const rotation of noSwap) {
-      const times = fights(armsPlan(rotation, noExecute), 30).out.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
+      // A fight whose bar never falls to 55 in its last 20 s goes without it (1 of these 30 with Recklessness off, since
+      // W4's Hamstring from 30 and Overpower first).
+      const drunk = fights(armsPlan(rotation, noExecute), 30).out.filter((f) => uses(f, 'mightyRagePotion').length > 0)
+      expect(drunk.length).toBeGreaterThanOrEqual(28)
+      const times = drunk.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
       for (const left of times) expect(left).toBeLessThanOrEqual(20000)
       expect(Math.max(...times)).toBeGreaterThan(15000)
     }

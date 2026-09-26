@@ -429,8 +429,8 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 - **What changed from Classic.** Sword, Axe and Polearm used the same numbers in Classic,
   but each cost its own 5 points. Mace Specialization used to be a stun proc, useless against
   bosses; in Forever maces and staves get armor penetration [F] [cls].
-- **Weaponmaster isn't available to Fury.** Fury's popular 17/34 build can't reach Arms tier
-  5.
+- **Weaponmaster isn't available to Fury.** Fury's builds (the default 13/38, the popular 17/34)
+  can't reach Arms tier 5.
 - **Windfury** is a shaman buff; its numbers belong to
   [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md). The rules that
   involve warriors [C] [magey-wf]:
@@ -751,7 +751,8 @@ Two more were replaced:
   `berserker`), shown as a segmented control ([ux.md](../ux.md#sections) "Rotation").
 - **Stance-dance lines** swap to the stance their ability needs, use it, and swap back. Each
   swap keeps at most the Tactical Mastery cap ([§2.1](#21-stances)), so the line's `maxRage`
-  (default: the cap, 25 with the default build) stops the swap in from wasting rage.
+  (Arms' default: the cap, 25 with its build) stops the swap in from wasting rage. Fury's dances
+  take a little loss for a sooner Overpower or Rend ([§5.2](#52-fury-dual-wield) rows 10 and 10b).
 - **Reaction time and latency** are zero: the rotation acts at the very millisecond a GCD or
   cooldown ends, rage arrives or a window opens. [damage-and-timing §3.6](../mechanics/damage-and-timing.md#36-server-tick-and-spell-batching)
   owns that assumption [?]; there's no setting for it.
@@ -760,29 +761,32 @@ Two more were replaced:
 
 ### 5.2 Fury (dual wield)
 
-Base stance: **Berserker**. Weapons: two one-handers. The default talents are the popular
-17/34/0 build ([§6.1](#61-talent-builds)), so these values follow from it:
+Base stance: **Berserker**. Weapons: two one-handers. The default talents are the 13/38/0 build
+([§6.1](#61-talent-builds); the popular 17/34/0 until W4), so these values follow from it:
 
 | Value | Default build | How it's derived |
 | --- | --- | --- |
-| Heroic Strike cost | 12 | 15 − 3 (Improved Heroic Strike 3/3) |
-| Cleave cost | 15 | 20 − 3 (Improved Cleave 3/3) − 2 (Raging Blows) |
-| Execute cost | 15 | No Improved Execute |
+| Heroic Strike cost | 13 | 15 − 2 (Improved Heroic Strike 2/3) |
+| Cleave cost | 16 | 20 − 2 (Improved Cleave 2/3) − 2 (Raging Blows) |
+| Execute cost | 10 | 15 − 5 (Improved Execute 2/2) |
 | Max rage | 130 | Boundless Rage 3/3 |
-| Rage kept on a stance swap | 25 | Tactical Mastery 10 + Improved Tactical Mastery 5/5 |
+| Rage kept on a stance swap | 19 | Tactical Mastery 10 + Improved Tactical Mastery 3/5 |
 | Flurry | 25% | 5/5 |
 | Unbridled Wrath | 60% | 5/5 |
 | Off-hand rage | ×2.0 | Dual Wield Specialization 5/5 |
 | Off-hand hit | +10% | Dual Wield Specialization 5/5 |
 | Enrage | +10% | 5/5 |
-| Ability crit multiplier | 2.2 | Impale 2/2 |
-| Precision | not taken | The popular build skips it; the 15/36 variant in [§6.1](#61-talent-builds) takes it |
+| Hit | +3% | Precision 3/3 |
+| Ability crit multiplier | 2.0 | No Impale (the popular 17/34/0 build's 2/2 gives 2.2) |
+| Rend | +35% | Improved Rend 3/3 |
+| Not taken | Impale, Anger Management | [§6.1](#61-talent-builds) |
 
 It began as the Classic Era community priority [wh-fury] [marrow] [ws-spells], adjusted for
 Forever. The defaults are now the best rotation found for the default setup
 ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-[Tuning the defaults](#tuning-the-defaults-m25b) below): the Overpower dance is on, Hamstring is
-off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute phase.
+[Tuning the defaults](#tuning-the-defaults-m25b) and [Re-tuning after D36](#re-tuning-after-d36-w4)
+below): the Overpower dance is on, and since W4 so is a Rend dance below it; Hamstring is off; and
+Death Wish, Recklessness and the Mighty Rage Potion follow the execute phase.
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
@@ -792,11 +796,12 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking, Elune's Light and Eureka! ([§2.9](#29-racials-for-warriors), §7), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute off, only the latter. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off), `.lastSec` (16) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
-| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.bloodthirst` (on; new with the priority list, below, so the row has its own switch), `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
+| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.bloodthirst` (on; new with the priority list, below, so the row has its own switch), `fury.execute.btOverExecuteAp`, default **2434**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 10 (Improved Execute 2/2; 2220 until W4, at cost 15). The default doesn't follow the build: without Improved Execute set 2220 | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost + `minExtraRage`. Uses Execute on every GCD; Heroic Strike keeps queueing unless `heroicStrikeInExecute` is off | `fury.execute.enabled` (on), `.minExtraRage` (0), `.whirlwindInExecute` (off), `.heroicStrikeInExecute` (on) | yes |
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (0.5) | yes |
-| 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; the swap keeps at most 25, so above that it loses the rest. See the notes | `fury.overpower.enabled` (on), `.maxRage` (40) | yes |
+| 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; the swap keeps at most 19 with the default build (25 with Improved Tactical Mastery 5/5), so above that it loses the rest. See the notes | `fury.overpower.enabled` (on), `.maxRage` (45; 40 until W4) | yes |
+| 10b | Rend (stance dance) | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe; outside the execute phase. Swap to Battle, Rend, swap back. New in W4, now that Rend's ticks add 0.02 × AP (D36). See the notes | `fury.rend.enabled` (on), `.refreshBelowSec` (3), `.maxRage` (25) | yes |
 | 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; with `unqueue` on, unqueue if rage falls below `unqueueBelow` before the swing. In both phases unless `heroicStrikeInExecute` (row 7) is off | `fury.heroicStrike.enabled` (on), `.minRage` (40), `.unqueue` (on), `.unqueueBelow` (20) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (off), `.minRage` (60), `.onlyWhenFlurryDown` (off) | no |
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
@@ -814,11 +819,13 @@ doesn't wait for it and the Overpower dance and Berserker Rage there are GCD-saf
 alone. It needs row 8's switch too: with Bloodthirst off it does nothing, and the tab dims it
 ("Not used: Bloodthirst is off."). Rows 16 and 17 are spec-wide settings above the list, and always come after it: they're
 off the GCD. **A row's conditions are its own and don't change when it moves.** Whirlwind still
-waits on Bloodthirst's cooldown, and rows 10, 12, 13 and 15 stay GCD-safe for Bloodthirst and
+waits on Bloodthirst's cooldown, and rows 10, 10b, 12, 13 and 15 stay GCD-safe for Bloodthirst and
 Whirlwind, wherever they sit; only which usable row comes first changes. So "GCD-safe" (§5.1)
 names Bloodthirst and Whirlwind for Fury, whatever their place. In the default order the engine's
 priority list is the same, entry for entry and fight for fight, as before the list (the golden
-run, and 400 random settings' plans compared byte for byte in A1).
+run, and 400 random settings' plans compared byte for byte in A1). W4 added row 10b, the Rend
+dance, below the Overpower dance; the random settings' check holds it off, and the two defaults
+W4 moved at their old values, so it still compares against the plans from before the list.
 
 Notes:
 
@@ -838,9 +845,11 @@ Notes:
   −0.22 DPS in the default setup and up to −0.4% in fights of 30–90 s (below).
 - **Execute versus Bloodthirst.** The Classic rule is "Bloodthirst over Execute above 2000 AP"
   [wh-fury] [marrow]. The Forever Bloodthirst nerf moves the break-even up by 220–430 AP
-  ([W11](#w11-bloodthirst-versus-execute-break-even)). The setting's default is a fixed 2220:
+  ([W11](#w11-bloodthirst-versus-execute-break-even)). The setting's default is a fixed 2434, the
+  break-even at the default build's cost 10 (Improved Execute 2/2; 2220 at cost 15 until W4):
   rotation settings have one default per spec, not per build, so it can't follow Improved
-  Execute; the setting's help says to use 2434 at cost 10.
+  Execute; the setting's help says to use 2220 without it. In the default setup AP stays below
+  both in the phase, so the setting changes nothing there (W4: 2000, 2220 and 2434 are level).
 - **What the execute phase changes** (with `fury.execute.enabled` on). Rows 6 and 7 apply only
   in the phase. Rows 8 and 12 (Bloodthirst without the AP condition, and Hamstring) apply only
   outside it, and so does row 9 unless `whirlwindInExecute` is on, and row 11 (the Heroic Strike
@@ -851,8 +860,9 @@ Notes:
   `btOverExecuteAp`); below it Bloodthirst is never pressed, and waiting on it would block
   Whirlwind for good. With the setting off, the phase changes nothing and rows 8–12 run to the
   end.
-- **Rows 10 and 15 in the execute phase.** Slam (row 15) is a filler like Hamstring, so it
-  applies only outside the phase. The Overpower dance (row 10) isn't among the rows the phase
+- **Rows 10, 10b and 15 in the execute phase.** Slam (row 15) is a filler like Hamstring, so it
+  applies only outside the phase, and so does the Rend dance (row 10b): the phase's GCDs are
+  Execute's, and a Rend there wouldn't tick out. The Overpower dance (row 10) isn't among the rows the phase
   stops, so it applies in both, GCD-safe the way Berserker Rage is there (the row 13 note below):
   Bloodthirst counts only while row 6 uses it, Whirlwind only with `whirlwindInExecute`. It comes
   after Execute, so in the phase it gets a GCD only while Execute waits for rage. Both are engine
@@ -860,16 +870,29 @@ Notes:
 - **The Overpower dance** (row 10), on by default since M2.5b: the biggest single gain the
   tuning found, +29.29 DPS (+4.1%). When a dodge has opened the window
   ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) and the row's conditions hold,
-  the warrior swaps to Battle Stance (keeping at most 25 rage), uses Overpower, and swaps back to
-  Berserker Stance 1 s later, when the shared swap cooldown ends ([§2.1](#21-stances)). That swap
-  keeps at most 25 again, so rage gained in that second above 25 is lost. For that second the
-  warrior has Battle Stance's numbers: no +3% crit. Whirlwind, Recklessness and Berserker Rage
-  need Berserker Stance, but the Overpower GCD outlasts the second. The default `maxRage` of 40
-  lets it dance with up to 15 rage to lose on the swap in: an Overpower sooner (5 rage for 590
+  the warrior swaps to Battle Stance (keeping at most 19 rage with the default build's Improved
+  Tactical Mastery 3/5; 25 with 5/5), uses Overpower, and swaps back to Berserker Stance 1 s
+  later, when the shared swap cooldown ends ([§2.1](#21-stances)). That swap keeps at most the
+  same again, so rage gained in that second above it is lost. For that second the warrior has
+  Battle Stance's numbers: no +3% crit. Whirlwind, Recklessness and Berserker Rage need Berserker
+  Stance, but the Overpower GCD outlasts the second. The default `maxRage` of 45 (40 until W4)
+  lets it dance with up to 26 rage to lose on the swap in: an Overpower sooner (5 rage for 590
   damage on average in the golden run, and it can't be dodged) is worth more than that rage, and
-  the global cooldowns it takes would otherwise go to Hamstring or nothing. 40 measured best of
-  15–130; 25, which loses nothing on the swap, is −4.24 DPS (below). How the engine does it is in
-  [§7](#7-implementation-notes) ("Stance dancing").
+  the global cooldowns it takes would otherwise go to Hamstring or nothing. With the popular
+  build's 5/5, 40 measured best of 15–130, and 25, which lost nothing on the swap, −4.24 DPS
+  (M2.5b, below); with the default build's 3/5, 45–60 are level and best, 35 −0.17% and 19 (what
+  the swap keeps) −1.8% ([Re-tuning after D36](#re-tuning-after-d36-w4)). How the engine does it
+  is in [§7](#7-implementation-notes) ("Stance dancing").
+- **The Rend dance** (row 10b), new and on by default since W4: when your Rend has at most 3 s of
+  ticks left (or is missing), rage is at most 25 and Bloodthirst and Whirlwind are GCD-safe, the
+  warrior swaps to Battle Stance, uses Rend, and swaps back, as the Overpower dance does. Rend was
+  a 21-damage tick before D36; with its ticks at `21 + 0.02 × AP`, times Improved Rend 3/3's 1.35
+  (W13, [?]), a Rend is worth about 540 damage over 21 s at 1,800 AP for 10 rage and a GCD that
+  would otherwise go to nothing, and the 13/38/0 build keeps Improved Rend for Deep Wounds anyway.
+  It comes below the Overpower dance, which then takes a window first (+0.6% over above it), and
+  it stays out of the execute phase. With the tuned defaults it's +1.4% DPS (below). An engine
+  choice, measured; no source covers a Fury warrior dancing for Rend, though WarriorSim's
+  comparison for D36 noted the AP term would make it worth it.
 - **Heroic Strike in the execute phase** (`heroicStrikeInExecute`, on since M2.5b). The queue
   keeps running at its `minRage`, and its cancel below `unqueueBelow` applies there too, so a
   queued one gives way when an Execute empties the bar first. With it off, the phase stops the
@@ -1153,15 +1176,127 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
     −23.07, the potion −16.87, Death Wish's alignment −7.08, Whirlwind in the execute phase
     −6.97, Bloodthirst in it at any AP −6.91, Bloodrage −6.74; Slam on −35.34.
 
+#### Re-tuning after D36 (W4)
+
+[D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25) changed what a Fury warrior's
+points and global cooldowns are worth: Deep Wounds rolls (every crit's bleed pays out), Unbridled
+Wrath procs only from auto attacks, Rend's ticks add 0.02 × AP, and the ranks are the trainers'
+(Heroic Strike r8, Battle Shout r6). W4 re-tuned the talents and the rotation on those rules,
+2026-09-25, in the default Fury setup (Human, pre-raid BiS, the Standard raid buffs with the Mighty
+Rage Potion, 180 s ± 10%, 20% execute, armor 3,731), with the tools of M2.5b: paired fights on the
+real engine (`scripts/tune/rotation.mjs`, `talents=` for builds; `scripts/tune/optimize.mjs` for
+the talent space), searched on some seeds and confirmed on others. Against the defaults before W4
+(the popular 17/34/0 and M2.5b's rotation, `--against main --base talents=30305013002-050530035150010051-`,
+seed 36501, 400,000 paired fights) the result is **+40.25 DPS (+5.02%, 95% CI +40.07 to +40.44)**,
+802.53 → 842.78.
+
+- **The talents: WarriorSim's 13/38/0.** Its optimizer's Fury build (Precision 3/3, Improved
+  Execute 2/2, Improved Overpower 2/2 and Improved Tactical Mastery 3/5, no Impale or Anger
+  Management; [§6.1](#61-talent-builds)) against the popular 17/34/0, both with M2.5b's rotation
+  (seed 36401, 60,000 paired fights): **+27.96 DPS (+3.48%, +27.50 to +28.42)**. The "Fury +
+  Precision" 15/36/0 is +3.50 (+0.44%), and the 1.60.1.70009 optimizer answer without Deep Wounds
+  (`3200521-250500035152310051-`) −79.10 (−9.86%): with Deep Wounds rolling, its 3 points are
+  worth 120.55 DPS (14.3%) in the default build (seed 36510). The sim's own search agrees: the
+  optimizer (DPS, `thorough`, seed 36403) leads with the same build, +27.66 (+25.88 to +29.43)
+  against 17/34/0, with Booming Voice 5/5 in place of Improved Cleave 2/3 and Boundless Rage 3/3,
+  which do nothing the sim measures (the fill puts spare points in tree order); the default keeps
+  WarriorSim's, as players take them. Every one-point change from 13/38/0 (111 legal ones, seed
+  36402, 40,000 paired fights) loses or is level: the level ones only move those filler points;
+  the closest losses are an Improved Heroic Strike point to Deflection (−0.14%), an Improved
+  Tactical Mastery point to Improved Heroic Strike (−0.16%) or Deflection (−0.32%), an Unbridled
+  Wrath point (−0.35%), Improved Execute's second point (−0.46% to −0.74%) and Precision's third
+  (−0.72%). After the rotation below, the one-point changes again (seed 36416) and the optimizer
+  again (seed 36417, `thorough`) find nothing better: the build itself leads and clears every
+  candidate at 95%. Impale needs 15 points above it in Arms, so it costs Precision or Improved
+  Execute; the best build with it (Impale 2/2, Improved Tactical Mastery 5/5, Improved Execute 1,
+  no Precision) is −4.13 (−0.49%, seed 36417).
+- **The Rend dance (row 10b), new.** On the 13/38/0 build (seed 36410, 40,000 fights): the dance
+  above the Overpower dance, up to 25 rage and again once Rend has run out, +7.43 (+0.89%, +6.87
+  to +7.98); up to 19 (what a swap keeps) +6.50, 31–49 level with 25 or a little below. Moved
+  below the Overpower dance: +3.77 more (+0.45%, seed 36412). Then, with it there (seed 36414,
+  200,000 fights), refreshed with 3 s left and the Overpower dance up to 45: +0.80 (+0.10%, +0.61
+  to +1.00) over 0 s and 40; 2.5 s level with 3 s, 1.5 s and 2 s a little behind. Its rage limit
+  (seed 36413): 16 −0.53%, 20 −0.15%, 24 −0.02%, 28–36 level with 25, 40 −0.04%.
+- **Nothing else moved.** One change at a time on the new build with the Rend dance (seed
+  36411, 40,000 fights): Heroic Strike from 30 −0.26%, 35 −0.07%, 50 −0.07% (45 level); its cancel
+  below 10 −0.36%, 15 −0.18% (25 and 30 level), or off −0.34%; the Overpower dance up to 19
+  −1.82%, 30 −0.51%, or off −5.13%; Whirlwind at 1 s of Bloodthirst's cooldown −0.20% (0 level)
+  and with a 10 rage reserve −1.09%; Execute waiting for 5 extra rage −0.87%; Whirlwind in the
+  execute phase −0.96%; Heroic Strike out of it −0.14%; Bloodthirst over Execute from 1,800 AP
+  −0.09% (2,000 level, as is Bloodthirst off in the phase: the AP stays below the break-even);
+  Bloodrage up to 90 or 100 level; Hamstring on level; Slam on −4.33%; the last Death Wish 2 s
+  before the phase −0.13% (4 s level); Recklessness 1 s before −0.12%, 2 s −0.03%; Battle Shout's
+  refresh at 0 s level; the potion up to 10 rage −0.04%.
+- **In the winner** (seed 36504, which no search used, 400,000 paired fights), each change
+  reverted: the talents back to 17/34/0 −27.01 (−3.21%, −27.19 to −26.83), or to 15/36/0 −23.36
+  (−2.77%); the Rend dance off −11.84 (−1.40%), or above the Overpower dance −5.33 (−0.63%);
+  Rend again once it's run out −0.52 (−0.06%); the Overpower dance up to 40 −0.31 (−0.04%).
+- **Robustness** (seed 36506, 100,000 paired fights each): the new defaults against the old, by
+  fight length and execute phase. The new build's Improved Execute pays in the phase; in short
+  fights without one, the popular 17/34/0's Impale and Anger Management do better (at 30 s with no
+  phase it's +3.24% over the new build with the new rotation, seed 36509, while the Rend dance
+  still gains 0.76% there). Its code is in [§6.1](#61-talent-builds), for a player whose fights
+  are short with no phase.
+
+  | Fight | 0% | 10% | 20% |
+  | --- | --- | --- | --- |
+  | 30 s | −24.75 (−25.54 to −23.95), −2.39% | −15.83 (−16.63 to −15.03), −1.46% | −2.59 (−3.42 to −1.77), −0.23% |
+  | 45 s | −8.61 (−9.32 to −7.91), −0.94% | +1.19 (+0.47 to +1.90), +0.12% | +18.66 (+17.93 to +19.39), +1.87% |
+  | 60 s | +1.93 (+1.32 to +2.54), +0.22% | +12.22 (+11.60 to +12.84), +1.34% | +29.82 (+29.18 to +30.46), +3.17% |
+  | 90 s | +10.63 (+10.13 to +11.12), +1.31% | +24.20 (+23.69 to +24.70), +2.85% | +37.56 (+37.04 to +38.07), +4.29% |
+  | 180 s | +21.11 (+20.75 to +21.46), +2.82% | +32.95 (+32.59 to +33.30), +4.24% | +40.44 (+40.07 to +40.80), +5.04% |
+  | 300 s | +24.15 (+23.88 to +24.43), +3.27% | +35.60 (+35.32 to +35.89), +4.62% | +42.24 (+41.95 to +42.53), +5.33% |
+
+- **Not adopted.** Rend in the execute phase: not built, as the phase's global cooldowns are
+  Execute's and a Rend there can't tick out. The optimizer's filler points (Booming Voice) for
+  WarriorSim's: level in the sim.
+- **Plausibility ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)): an open finding.**
+  Every spec's default headline at its default seed (20,000 fights, W4's merge base and W4): Fury
+  802.0 → **842.5** DPS and Arms 796.0 → **821.1**; the next DPS spec, Demonology, 663.1 and Combat
+  rogue 569.1, unchanged. Fury is 27% over Demonology and 48% over Combat, Arms 24% and 44%;
+  before D36 (M2.5b's golden run, 713.5, against Combat's 586.7) Fury was 22% over Combat. Where the
+  273 DPS between Fury and Combat come from, taking one away at a time (seed 36510, 100,000 paired
+  fights):
+  - **The execute phase, 72 DPS (27% of the gap).** With Execute off Fury makes 770.0, the same as
+    with no phase at all: Execute (cost 10 with Improved Execute 2/2, 600 + 15 a rage) and the
+    cooldowns and potion timed into the phase. A rogue has nothing that changes below 20%.
+  - **Deep Wounds, 112 DPS more (41%).** Without a phase its 3 points are worth 112.34; with one,
+    120.55, **14.3% of Fury's damage** (Arms 129.93, 15.8%; the tank's 11%): D36's rolling bleed
+    ([§2.5](#25-crits-impale-flurry-deep-wounds), [?], SoD's behaviour for the SoD spell Forever
+    uses). WarriorSim's own Forever Fury fixture has it at 12.1% ([wsf-golden], "forever-dw-fury":
+    28,325 of 234,751). Ours is higher for reasons that are cited, not wrong: more crits to feed it
+    (our 2.4-point crit suppression against WarriorSim's 4.8, [combat-tables §2.2](../mechanics/combat-tables.md#22-outcome-formulas),
+    which D36 kept), a 180 s fight rather than its 50–60 s ones, where the pool pays out after a
+    ramp, and an execute phase whose Executes crit on the critting weapon's average hit.
+  - **The rest, 89 DPS (32%).** Without Deep Wounds and without a phase, Fury makes 657.7, 16% over
+    Combat: Death Wish (31.6 DPS in the default setup), Recklessness (36.7), the Overpower dance
+    (46.3), Heroic Strike's rage (34.1, with Forever's Unbridled Wrath at 12% a rank) and Precision's
+    hit. The attack table's 25% glancing penalty (WarriorSim's 35%) and 2.4-point suppression lift a
+    rogue's white damage as much as a warrior's, so they widen no gap between them; the queued Heroic
+    Strike's off-hand rule ([§2.4](#24-heroic-strike-and-cleave-on-next-swing), [?], kept by D36) is
+    worth about 1–2% to Fury alone.
+  - **Nothing looks wrong in W1's Deep Wounds.** It matches D36 and §2.5 point by point: each crit,
+    white or yellow, either hand, adds 0.2 × rank × the critting weapon's average hit (the off hand's
+    × 0.625) with its attack power and physical multipliers at the crit; the pool pays out over the
+    next 4 ticks and the pending tick keeps its time; Rend's tick crits fire no procs, so they don't
+    feed it; the ticks ignore armor and don't crit.
+
+  So the gap is the cited mechanics' (four tenths of it D36's `[?]` rolling Deep Wounds), not a
+  formula error found, and it stays a D29 finding until the guild's test of the rolling bleed
+  ([Q21](#9-open-questions), [open-questions B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
+  confirms or moves it. D29 has no numeric target, so no value moves for it; the gap goes to the
+  guild's tests.
+
 ### 5.3 Arms (two-hander)
 
 Base stance: **Battle** (Rend, Overpower, Bloodthrill and Sweeping Strikes all need it).
-Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([§6.1](#61-talent-builds)):
+Weapon: a slow two-hander. The default talents are the 35/16/0 build ([§6.1](#61-talent-builds); the
+popular 37/14/0 until W4):
 
 | Value | Default build | How it's derived |
 | --- | --- | --- |
-| Heroic Strike cost | 12 | 15 − 3 (Improved Heroic Strike 3/3) |
-| Execute cost | 15 | No Improved Execute |
+| Heroic Strike cost | 13 | 15 − 2 (Improved Heroic Strike 2/3) |
+| Execute cost | 12 | 15 − 3 (Improved Execute 1/2) |
 | Max rage | 130 | Boundless Rage 3/3 |
 | Unbridled Wrath | 60%, 2 rage per proc | 5/5 with a two-hander |
 | Two-Handed Weapon Specialization | ×1.03 | 3/3 |
@@ -1171,8 +1306,8 @@ Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([�
 | Improved Overpower | +50% crit | 2/2 |
 | Bloodthrill | 20%, any main-hand attack | 5/5 |
 | Slam | 1.0 s cast and GCD, 15 s cooldown, no swing reset | Improved Slam 2/2 |
-| Rage kept on a stance swap | 25 | |
-| Not taken | Flurry, Death Wish | |
+| Rage kept on a stance swap | 25 | Tactical Mastery 10 + Improved Tactical Mastery 5/5 |
+| Not taken | Spearing Strike, Piercing Howl, Flurry, Death Wish | The popular 37/14/0 takes Spearing Strike and Piercing Howl |
 
 This priority is **derived for Forever**. Classic Era raid Arms leaned on Slam spam, which the
 Slam cooldown (18 s, 15 s with Improved Slam 2/2) removes. The table is the list as built (`sim/classes/warrior/arms.ts`).
@@ -1198,12 +1333,12 @@ have.
 | 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (on) | yes |
 | 8 | Mortal Strike | Off cooldown; rage ≥ 30; outside the execute phase | `arms.mortalStrike.enabled` (on; needs the talent) | yes |
-| 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25 | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
+| 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25. **First in the list since W4**, just after Battle Shout (row 1): see the notes | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
 | 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (5) | yes |
-| 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (35) | yes |
+| 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent, which the default build doesn't take since W4, and a two-hander), `.minRageOtherTargets` (35) | with the talent |
 | 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance (the base stance, or after Recklessness's swap), no dance and no rage limit | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
 | 13 | Heroic Strike queue (off the GCD) | Off by default: its swing gives no rage ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), and Arms' rage does more elsewhere (notes). When it's on: rage ≥ `minRage` (125, near the 130 cap); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (off), `.minRage` (125), `.unqueue` (off), `.unqueueBelow` (20) | no |
-| 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
+| 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (30; 40 until W4) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
 | 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its row comes before row 3's by default (the priority list, below); the racial and trinkets wait for it wherever they sit | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
 | 17 | Mighty Rage Potion (off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 4 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3). Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, after row 4's swap from Battle Stance. See the notes | `arms.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
@@ -1211,14 +1346,16 @@ have.
 
 **The priority list** ([D31](../decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24);
 `ARMS_APL` in `src/sim/classes/warrior/arms.ts`, since M5.65 A2). The Rotation tab shows these rows
-in this order, the default, and you can reorder them. It's the order the rotation has always built
-its lines in, so Death Wish (row 16) comes before the racial and trinkets (row 3), as the table's
-row 16 says. Each row has its switch and its own settings (ids under `warrior.arms.`):
+in this order, the default, and you can reorder them. It's the order the rotation built its lines
+in before the list, but for Overpower, which W4 moved from below Mortal Strike to just after Battle
+Shout ([Re-tuning after D36](#re-tuning-after-d36-w4-arms)). Death Wish (row 16) comes before the
+racial and trinkets (row 3), as the table's row 16 says. Each row has its switch and its own settings (ids under `warrior.arms.`):
 
 | Row (`id`) | Table row | Switch | Its settings | What it does (defaults) |
 | --- | --- | --- | --- | --- |
 | Before the pull (`prepull`), pinned first | 0 | — | `prepull.battleShout`, `prepull.bloodrage`, `prepull.charge` | Battle Shout at −3 s, Bloodrage at −1 s, Charge off |
 | Battle Shout (`battleShout`) | 1 | `battleShout.enabled` | `battleShout.refreshBelowSec` | Again once it runs out |
+| Overpower (`overpower`) | 9 | `overpower.enabled` | | After a dodge or Bloodthrill; Mortal Strike GCD-safe or rage for both; in both phases |
 | Rend (`rend`) | 2 | `rend.enabled` | `rend.refreshBelowSec` | Again with 3 s left; from Berserker Stance, a dance at rage ≤ the swap's cap |
 | Death Wish (`deathWish`) | 16 | `deathWish.enabled` | `deathWish.alignToEnd` | With the talent; the last one held for the end |
 | Racial cooldown (`racial`) | 3 | `racial.enabled` | `cooldowns.syncWithDeathWish` | With Death Wish when it's used, else on cooldown |
@@ -1229,12 +1366,11 @@ row 16 says. Each row has its switch and its own settings (ids under `warrior.ar
 | Mortal Strike in the execute phase (`executeMortalStrike`) | 7 | `execute.mortalStrikeInExecute` | | In the phase, on cooldown |
 | Execute (`execute`) | 7 | `execute.enabled` | | In the phase, whenever it can pay |
 | Mortal Strike (`mortalStrike`) | 8 | `mortalStrike.enabled` | | On cooldown, outside the phase |
-| Overpower (`overpower`) | 9 | `overpower.enabled` | | After a dodge or Bloodthrill; Mortal Strike GCD-safe or rage for both; in both phases |
 | Slam (`slam`) | 10 | `slam.enabled` | `slam.reserve` | 5 rage reserve; Mortal Strike GCD-safe; outside the phase |
 | Spearing Strike (`spearingStrike`) | 11 | `spearingStrike.enabled` | `spearingStrike.minRageOtherTargets` | On cooldown against Giants and Dragonkin, else from 35 rage with Mortal Strike GCD-safe; outside the phase |
 | Whirlwind (`whirlwind`) | 12 | `whirlwind.enabled` | `whirlwind.maxRage` | From Battle Stance, a dance up to 30 rage; Mortal Strike GCD-safe; outside the phase |
 | Heroic Strike (`heroicStrike`) | 13 | `heroicStrike.enabled` | `heroicStrike.minRage`, `heroicStrike.unqueue`, `heroicStrike.unqueueBelow` | Off; from 125 when on; outside the phase |
-| Hamstring filler (`hamstring`) | 14 | `hamstring.enabled` | `hamstring.minRage` | From 40 rage; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind; outside the phase |
+| Hamstring filler (`hamstring`) | 14 | `hamstring.enabled` | `hamstring.minRage` | From 30 rage; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind; outside the phase |
 
 - **Pinned:** only the pre-pull, first.
 - **Spec-wide, above the list:** the base stance (`baseStance`), and the Mighty Rage Potion (with
@@ -1250,14 +1386,15 @@ row 16 says. Each row has its switch and its own settings (ids under `warrior.ar
   names the same abilities whatever their place. Moved below Execute, a row gets a global cooldown in
   the phase only while Execute waits for rage, as Overpower does by default.
 - **No named presets:** the defaults are the list's one preset, "Default" (they're the tuned
-  defaults below, D23). In the default order the plan is the one before the list, byte for byte:
+  defaults below, D23). In the order before W4 the plan is the one before the list, byte for byte:
   200 random setups (settings, talents, race, on-use trinkets, two-hander or dual wield, Buffs,
-  fight and rules) are fingerprinted against the code before it (`arms-apl.test.ts`), and a setup
-  saved before the list loads unchanged.
+  fight and rules) are fingerprinted against the code before it (`arms-apl.test.ts`, with the
+  order, Hamstring's 40 and the talents the defaults had until W4), and a setup saved before the
+  list loads unchanged.
 
 Notes:
 
-- **Why Battle Stance.** The popular build invests in Bloodthrill 5/5 and Improved Overpower
+- **Why Battle Stance.** The default build invests in Bloodthrill 5/5 and Improved Overpower
   2/2, which pay off only in Battle Stance with Rend up. The alternative is a Berserker-base
   profile: +3% crit and Whirlwind without dancing, but Rend and Overpower need a dance. It is
   available by setting `arms.baseStance = berserker`, which turns on #12 and turns off #2 and
@@ -1281,8 +1418,10 @@ Notes:
 - **What the execute phase changes** (with `arms.execute.enabled` on). Rows 6 and 7 apply only
   in the phase; rows 8 and 10–14 only outside it, and a Heroic Strike already queued is
   cancelled when the phase starts, as Fury's is. Rows 1–5, 9 and 16–18 apply in both phases.
-  Overpower comes after Execute, so in the phase it gets a GCD only while Execute waits for rage,
-  and at 5 rage it's worth it. Rend keeps running there too: with the default setup, leaving it
+  Overpower comes first since W4, ahead of Execute too, so in the phase an open window takes a GCD
+  before the next Execute, while Mortal Strike is GCD-safe or there's rage for both: at 5 rage, with
+  Improved Overpower's +50% crit feeding Deep Wounds' pool, it's worth it. Until W4 it came after
+  Execute and got a GCD there only while Execute waited for rage. Rend keeps running there too: with the default setup, leaving it
   out of the phase measured about +0.1% (0.7 DPS, near the ± 0.6 interval), so the row order
   stands. With the setting off, the phase changes nothing. These are engine choices; no
   source covers them.
@@ -1352,7 +1491,7 @@ Notes:
   phase, 606.8 → 616.6 DPS with Whirlwind on, seed 12345, 20,000 fights; the default, Whirlwind off,
   is unchanged.) Before that swap it counts in Hamstring's GCD-safe check (row 14) only at rage
   its dance could use (25–30): above `maxRage` it isn't coming up ([§7](#7-implementation-notes)
-  "GCD-safe and stances"), so it no longer holds Hamstring back at its 40 rage or more.
+  "GCD-safe and stances"), so it no longer holds Hamstring back above 30.
 - **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
   with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
   Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower
@@ -1361,7 +1500,8 @@ Notes:
   the default build, so the swap loses none ([§5.1](#51-conventions-for-rotation-settings)). The
   cap follows the build and the profile; it isn't a setting.
 - **Spearing Strike** at 40% weapon damage is a weak filler, about 229 at 1800 AP
-  ([W6](#w6-spearing-strike)). Against Giants, Dragonkin (Onyxia and most Blackwing Lair
+  ([W6](#w6-spearing-strike)); the default build doesn't take it since W4, whose search measured
+  its point better spent elsewhere ([below](#re-tuning-after-d36-w4-arms)). Against Giants, Dragonkin (Onyxia and most Blackwing Lair
   bosses) or mounted targets it does 120%, which puts it on par with Mortal Strike for half
   the rage. The rotation reads the creature type set under Fight
   ([encounter.md](../mechanics/encounter.md)); raid bosses aren't mounted, so there's no setting
@@ -1379,8 +1519,8 @@ Notes:
   about 77 at 1800 AP; the re-tune revisits it).
 - **Heroic Strike** (row 13) is off by default. Its swing replaces a white swing that would have
   given 15.75 rage with the default 3.5 s two-hander, and is reported to give none
-  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 12 rage
-  plus that swing's. Since the default rests on that report, Arms' result lists the assumption
+  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 13 rage
+  (12 with Improved Heroic Strike 3/3) plus that swing's. Since the default rests on that report, Arms' result lists the assumption
   even with Heroic Strike off.
   For about 138 more damage than the swing, that's the worst use of rage Arms has: Slam, Mortal
   Strike, Overpower and Hamstring all do more with it, and Execute turns what's left into 15
@@ -1568,17 +1708,75 @@ Overpowers, a first-pass check (D27): **647.22 → 690.03 DPS (+6.61%, +42.46 to
 Hamstring off (−3.79); Overpower off −108.44 (−15.7%), Rend off −72.54 (−10.5%), Berserker Stance
 −87.73. Fury has neither Bloodthrill nor Slam in its default build, so it's unchanged (713.47).
 
+#### Re-tuning after D36 (W4, Arms)
+
+As Fury's ([Re-tuning after D36](#re-tuning-after-d36-w4)), on D36's rules, 2026-09-25, in the
+default Arms setup (Human, pre-raid BiS, the Standard raid buffs, 180 s ± 10%, 20% execute,
+armor 3,731). Against the defaults before W4 (the popular 37/14/0 and M2.5a's rotation,
+`--against main --base talents=30305213132515201-05050103-`, seed 36502, 400,000 paired fights):
+**+24.38 DPS (+3.06%, 95% CI +24.17 to +24.59)**, 796.86 → 821.24.
+
+- **The talents: WarriorSim's 35/16/0.** Improved Execute 1/2 and Improved Cleave 2/3 (a tier's
+  gate) for Spearing Strike, Piercing Howl and a point of Improved Heroic Strike, which Arms
+  doesn't queue by default ([§6.1](#61-talent-builds)). Against 37/14/0 with M2.5a's rotation
+  (seed 36404, 60,000 paired fights): **+5.49 (+0.69%, +4.98 to +6.01)**. The optimizer (DPS,
+  `thorough`, seed 36405) raced it with an Improved Slam point moved to Improved Execute's second:
+  that build led after 12 rounds, +5.69 (+5.60 to +5.78) against 37/14/0, and WarriorSim's +5.54
+  (+5.46 to +5.63), 0.15 DPS (0.02%) apart over 2,048,000 fights. WarriorSim's own latest change
+  went the other way ("Improved Slam 2/2 is now better than Improved Execute 2/2"); for 0.02% the
+  default keeps the build its players run (D29). (The optimizer's builds put Booming Voice's filler
+  points where Improved Cleave's are, which the sim can't tell apart.) The screen measured Spearing Strike's point
+  at −5.13 DPS with M2.5a's use of it (from 35 rage).
+- **The rotation: Overpower first, Hamstring from 30.** On the new build (seed 36418, 40,000
+  fights), Overpower above Mortal Strike: **+12.08 (+1.51%)**; then (seed 36419, 60,000) above Rend
+  and the cooldowns, just after Battle Shout: +3.87 more (+0.48%; above Recklessness only, +0.97);
+  from there, just below Rend again loses 0.33% (seed 36420). Improved Overpower's +50% crit and Deep Wounds'
+  pool make an open window worth a GCD before anything with a cooldown. With it there, Hamstring
+  from 30: +3.88 (+0.47%; 20 +2.69, 25 +3.65, 35 +2.02, seed 36420).
+- **Nothing else moved** (seed 36421, 60,000 fights, on top): Rend again with 2.5 s −0.06% or 3.5 s
+  −0.22%; Recklessness 1 s before the phase level, 2 s −0.05%, the last 16 s level; Slam's reserve
+  0, 3 or 8 level; Heroic Strike on −0.01% (from 110 −0.04%); the Whirlwind dance −1.13%; Slam out
+  of the execute phase −0.82%, Mortal Strike out of it −0.30%; the potion up to 5 −0.03%; Bloodrage
+  up to 100 or 120 level; Battle Shout again with 2 s −0.04%; Hamstring above Slam −2.25%, Slam
+  above Mortal Strike −2.74%. Earlier in the search (seed 36418): Berserker Stance −15.8%, Rend off
+  −12.7%, Overpower off −17.0%, Slam off −2.8%, Hamstring off −2.6%.
+- **The talents again, with the new rotation.** The optimizer (seed 36422, `thorough`): the build
+  itself leads and clears every candidate at 95%. Every one-point change (172 legal ones, seed
+  36423, 40,000 fights) loses or is level; the closest, an Improved Slam point to Improved Execute,
+  −0.20%, and a Two-Handed Weapon Specialization point to it −0.42%.
+- **In the winner** (seed 36505, 400,000 paired fights), each change reverted: the talents back to
+  37/14/0 −5.52 (−0.67%, −5.72 to −5.32); Overpower back below Mortal Strike −13.50 (−1.64%), or
+  just below Rend −3.19 (−0.39%); Hamstring from 40 −3.71 (−0.45%).
+- **Robustness** (seed 36507, 100,000 paired fights each), against the defaults before W4: they win
+  everywhere.
+
+  | Fight | 0% | 10% | 20% |
+  | --- | --- | --- | --- |
+  | 30 s | +11.71 (+11.12 to +12.29), +1.45% | +26.80 (+26.08 to +27.51), +3.11% | +31.34 (+30.61 to +32.07), +3.48% |
+  | 45 s | +17.92 (+17.33 to +18.51), +2.28% | +27.04 (+26.39 to +27.70), +3.24% | +31.17 (+30.48 to +31.87), +3.60% |
+  | 60 s | +19.48 (+18.91 to +20.05), +2.51% | +28.45 (+27.83 to +29.07), +3.45% | +34.21 (+33.57 to +34.86), +4.02% |
+  | 90 s | +20.03 (+19.52 to +20.54), +2.59% | +26.83 (+26.28 to +27.38), +3.29% | +28.08 (+27.52 to +28.64), +3.39% |
+  | 180 s | +19.91 (+19.50 to +20.31), +2.59% | +24.11 (+23.69 to +24.53), +3.03% | +24.49 (+24.06 to +24.91), +3.07% |
+  | 300 s | +20.25 (+19.92 to +20.58), +2.64% | +23.46 (+23.13 to +23.80), +2.99% | +23.95 (+23.61 to +24.28), +3.07% |
+
+- **Plausibility (D29)**, as Fury's ([Re-tuning after D36](#re-tuning-after-d36-w4)): Arms' 821.1 DPS
+  is 24% over Demonology and 44% over Combat rogue. Deep Wounds' 3 points are 129.93 DPS of it (15.8%)
+  and Execute (against none in the phase) 33.10 (4.0%; seed 36511, 100,000 paired fights). An open
+  finding for the guild's test of the rolling bleed (Q21).
+
 ### 5.4 Protection (TPS)
 
-Base stance: **Defensive**. Weapon: a one-hander and a shield. The default talents are 8/5/38:
-the popular 5/5/36 build and the five points it left unspent ([§6.1](#61-talent-builds)):
+Base stance: **Defensive**. Weapon: a one-hander and a shield. The default talents are 13/5/33
+since W4: Deep Wounds with Improved Rend, and the popular build's survival talents kept
+([§6.1](#61-talent-builds)). Until W4 they were 8/5/38, the popular 5/5/36 and the five points
+it left unspent, which most of this section's tuning used:
 
 | Ability | Cost in the default build | How it's derived |
 | --- | --- | --- |
-| Sunder Armor | 9 | 15 − 3 (Improved Sunder Armor 3/3) − 3 (Focused Rage) |
+| Sunder Armor | 12 | 15 − 3 (Focused Rage); 9 with Improved Sunder Armor 3/3, as 8/5/38 had |
 | Shield Slam | 17 | 20 − 3 |
 | Revenge | 2 | 5 − 3 |
-| Heroic Strike | 9 | 15 − 3 (Improved Heroic Strike 3/3) − 3 |
+| Heroic Strike | 10 | 15 − 2 (Improved Heroic Strike 2/3) − 3; 9 with 3/3 |
 | Thunder Clap | 17 | 20 − 3 (no Improved Thunder Clap) |
 | Demoralizing Shout | 7 | 10 − 3 |
 | Shield Block | 10 | Focused Rage doesn't apply |
@@ -1592,11 +1790,13 @@ Other effects of the build:
 - Improved Revenge 3/3: Revenge ×1.6
 - Improved Bloodrage 2/2: 30 rage per use
 - Anticipation 5/5: +20 defense
-- Vanguard: Charge in Defensive Stance
-- Toughness 1/5: +2% armor from items
+- Last Stand, Improved Shield Wall 2/2: the cooldowns, not simulated
 - Deflection 5/5 (Arms): +5% parry
-- Improved Heroic Strike 3/3 (Arms): Heroic Strike costs 3 less
+- Improved Heroic Strike 2/3 (Arms): Heroic Strike costs 2 less
+- Improved Rend 3/3 and Deep Wounds 3/3 (Arms): every crit's bleed, rolling (§2.5); Rend isn't used
 - Cruelty 5/5 (Fury): +5% crit
+- Not taken since W4: Vanguard (so Charge is off by default, row 0), Toughness, Improved Sunder
+  Armor
 - No Boundless Rage: the rage cap is 100, so the rage thresholds below are on that scale
 
 This started from the Classic Era tank priority [wh-tank], adjusted for Forever's cheaper
@@ -1692,7 +1892,7 @@ taken
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
-| 0 | Pre-pull | Battle Shout at −3 s (with row 9 on); optionally Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (off: at the pull instead, row 2), `.charge` (on with Vanguard) | yes |
+| 0 | Pre-pull | Battle Shout at −3 s (with row 9 on); optionally Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (off: at the pull instead, row 2), `.charge` (on with Vanguard, which the default build doesn't take since W4) | yes |
 | 1 | Shield Block (off the GCD) | Off cooldown at rage ≥ `minRage`, in Defensive Stance with a shield: +75% block for 7 s or 2 blocks. Each block gives 5 rage (Shield Specialization) and opens Revenge | `warrior.protection.shieldBlock.enabled` (on, with Max TPS too), `.minRage` (10: its cost) | yes |
 | 2 | Bloodrage (off the GCD) | On cooldown at rage ≤ `maxRage` | `warrior.protection.bloodrage.enabled` (on), `.maxRage` (70: the 100 cap minus its 30) | yes |
 | 3 | Racial or trinket cooldowns (off the GCD) | On cooldown: there's no Death Wish to sync them with. Blood Fury, Berserking, Elune's Light and Eureka! (Gnome, §7); Weakness Analyzer | `warrior.protection.racial.enabled` (on), `.trinkets.enabled` (on) | yes |
@@ -2131,25 +2331,32 @@ presets' thresholds (seed 31101, 20,000 paired fights a candidate):
   seed 31101, 6,000 fights; [Q34](#9-open-questions)).
 
 The presets against Defensive, on seed 31101 (100,000 paired fights), in the default setup,
-re-measured 2026-09-25 with the trainers' ranks ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25):
-Heroic Strike r8, Revenge r5 and Battle Shout r6, and the raid's Blessing of Might r6 and Strength of
-Earth r4; the table before gave Defensive 933.23 TPS, 367.63 DPS; Balanced 1,001.62; Max TPS
-1,011.74, and before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993.37; Max
-TPS 1,003.49). `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
+re-measured 2026-09-25 with W4's talents (13/5/33 with Deep Wounds, [§6.1](#61-talent-builds); the
+rotation is unchanged). Before, on 8/5/38: with the trainers' ranks
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25): Heroic Strike r8, Revenge r5 and
+Battle Shout r6, and the raid's Blessing of Might r6 and Strength of Earth r4) Defensive 882.83 TPS,
+351.55 DPS, 610.74 taken; Balanced 944.64 (+7.00%), 373.58 DPS; Max TPS 953.75 (+8.03%), 375.22 DPS;
+before those ranks, Defensive 933.23 TPS, 367.63 DPS; Balanced 1,001.62; Max TPS 1,011.74; and
+before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993.37; Max TPS
+1,003.49. `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
 `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 882.83 | 351.55 | 610.74 |
-| Balanced (the default) | 944.64, **+7.00%** (+61.52 to +62.11) | 373.58, +6.27% | 739.28, +21.0% |
-| Max TPS | 953.75, **+8.03%** (+70.63 to +71.22) | 375.22, +6.73% | 739.68, +21.1% |
+| Defensive | 925.39 | 386.07 | 616.34 |
+| Balanced (the default) | 984.94, **+6.44%** (+59.18 to +59.92) | 408.52, +5.82% | 745.71, +21.0% |
+| Max TPS | 989.32, **+6.91%** (+63.57 to +64.30) | 407.52, +5.56% | 746.42, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
-in thresholds: Max TPS uses the Sunder Armor filler from its cost (9) rather than 60% of the max
-rage, and Heroic Strike from 45 rage rather than 84% of the max rage. On the same fights that's
-**+9.11 TPS (+0.96%, +8.91 to +9.31)**, +1.63 DPS (+0.44%, +1.52 to +1.75) and +0.40 damage taken a second
-(+0.05%, +0.32 to +0.48): the same damage taken (before the trainers' ranks, +10.12 TPS, +1.01%). The preset's line and help name that difference
-(`MAX_TPS_SUMMARY`, `MAX_TPS_HELP`), since against Defensive the two read alike.
+in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9
+with Improved Sunder Armor 3/3) rather than 60% of the max rage, and Heroic Strike from 45 rage
+rather than 84% of the max rage. On the same fights that's **+4.38 TPS (+0.44%, +4.08 to +4.68)**,
+−1.00 DPS (−0.24%, −1.17 to −0.82) and +0.70 damage taken a second (+0.09%, +0.61 to +0.80): the
+same damage taken. On 8/5/38 it was +9.11 TPS (+0.96%) and +1.63 DPS (+0.44%) (before the
+trainers' ranks, +10.12 TPS, +1.01%): with Deep Wounds, the rage the filler takes from Heroic
+Strike costs more damage, and Sunder Armor costs 3 more. The preset's line and help name that
+difference and its direction (`MAX_TPS_SUMMARY`, `MAX_TPS_HELP`), since against Defensive the two
+read alike.
 
 Before the build, Balanced made 1,240.98 TPS and Max TPS 1,290.09 (41% more damage taken, without
 Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D29):** Balanced's
@@ -2160,6 +2367,9 @@ paladin's 752.6 (+33.1%) and the bear's 1,126.6 (−11.1%). D29 has no numeric t
 2026-09-24, withdrawing the officers' 800–900 feel), so these are observations for the guild's
 tests (milestones T6). Sunder Armor
 is now 11% of the warrior's threat (33% before), and Shield Slam 27% (18%; seed 12345, 500 fights).
+With W4's 13/5/33 (Deep Wounds 11% of its damage) Balanced makes 985 TPS against the
+paladin's 747 (+31.9%) and the bear's 1,102 (−10.6%; each default headline at its default seed,
+20,000 fights; [§6.1](#61-talent-builds)).
 
 ### 5.5 Multi-target options (light)
 
@@ -2180,44 +2390,58 @@ Splitting threat across targets is out of scope ([doctrine §1](../doctrine.md#1
 
 ### 6.1 Talent builds
 
-Per [doctrine §5](../doctrine.md#5-defaults), each spec's default is the build below. Each was
-the most popular Forever build for its spec when chosen (2026-09-22) [tal], and the app offers
-them as presets with the variants. All three decode and validate
-([data/talents.md](../data/talents.md#build-codes-verified)).
+Per [doctrine §5](../doctrine.md#5-defaults), each spec's default is the build below, and the app
+offers them as presets with the variants. Until W4 each was the most popular Forever build for its
+spec when chosen (2026-09-22) [tal]; W4 re-tuned them after
+[D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), whose rolling Deep Wounds makes
+every crit, and so Deep Wounds, Impale and the crit talents, worth more. The candidates were the
+defaults, WarriorSim's Forever builds (its optimizer's, at `069329b`), the sim's own optimizer
+(`scripts/tune/optimize.mjs`) and every one-point change from the leader; the numbers are in
+[§5.2](#re-tuning-after-d36-w4) and [§5.3](#re-tuning-after-d36-w4-arms), and Protection's below.
+All decode and validate ([data/talents.md](../data/talents.md#build-codes-verified)).
 
 | Spec | Build (points) | Code | Fit | Alternative preset |
 | --- | --- | --- | --- | --- |
-| Fury | 17/34/0 | `30305013002-050530035150010051-` | **Good.** Arms: Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management, Deep Wounds 3, Impale 2. Fury: Cruelty 5, Unbridled Wrath 5, Improved Cleave 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows, Enrage 5, Death Wish, Flurry 5, Bloodthirst. **It skips Precision (+3% hit).** | **"Fury + Precision" 15/36/0: `30305013-050520035150310051-`**. Drop Impale 2 and one point of Improved Cleave (2/3 is enough for the tier gate) to take Precision 3/3. A rough estimate favours it with less than 9% hit from gear (Q23). Offer it as a preset and let the sim decide |
-| Arms | 37/14/0 | `30305213132515201-05050103-` | **Good.** Every damage talent in Arms, plus Cruelty 5, Unbridled Wrath 5 (2 rage per proc with a two-hander), Piercing Howl and Boundless Rage 3 | none |
-| Protection | 8/5/38 | `35-05-552101233301210531` | **Good for TPS.** The popular 5/5/36, with the five points it left unspent: Improved Heroic Strike 3 (Heroic Strike costs 9), Improved Sunder Armor's third point (Sunder Armor costs 9) and Toughness 1. Deflection 5 feeds Revenge and Master of Defense. | **"Protection + Improved Thunder Clap" 5/5/41: `05-05-552131233301210531`**. Improved Thunder Clap 3 (Thunder Clap costs 11) instead of Improved Heroic Strike 3. The sim favours the default (Q23, below) |
+| Fury | 13/38/0 | `20303203-050520035152310051-` | **WarriorSim's Forever build, which the sim's search confirms.** Arms: Improved Heroic Strike 2, Improved Rend 3, Improved Tactical Mastery 3, Improved Overpower 2, Deep Wounds 3. Fury: Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows, Enrage 5, **Improved Execute 2**, **Precision 3**, Death Wish, Flurry 5, Bloodthirst. **No Impale or Anger Management.** +27.01 DPS (+3.31%) over the popular 17/34/0 with the tuned rotation (seed 36504, 400,000 paired fights); the popular build is better only in short fights without an execute phase (+3.2% at 30 s) | **"Fury + Precision" 15/36/0: `30305013-050520035150310051-`**, the popular build with Precision 3/3 for Impale 2/2 and a point of Improved Cleave: −23.36 DPS (−2.77%) against the default (Q23). The popular 17/34/0 itself, the default until W4, is `30305013002-050530035150010051-` |
+| Arms | 35/16/0 | `20305213032515201-050520030001-` | **WarriorSim's Forever build.** Every damage talent in Arms but Spearing Strike, with Improved Heroic Strike 2 (Arms doesn't queue Heroic Strike by default), plus Cruelty 5, Unbridled Wrath 5 (2 rage per proc with a two-hander), Improved Cleave 2 (for Boundless Rage's tier), Boundless Rage 3 and **Improved Execute 1**. +5.52 DPS (+0.68%) over the popular 37/14/0 with the tuned rotation (seed 36505). The sim's search puts an Improved Slam point in Improved Execute instead, 0.02% ahead; the default keeps WarriorSim's | none. The popular 37/14/0 (Spearing Strike, Piercing Howl, Improved Heroic Strike 3), the default until W4, is `30305213132515201-05050103-` |
+| Protection | 13/5/33 | `25300003-05-552001233000210531` | **Balanced, with Deep Wounds.** Arms: Improved Heroic Strike 2, Deflection 5, Improved Rend 3, **Deep Wounds 3**. Fury: Cruelty 5. Protection: Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Shield Wall 2, Concussion Blow, Bastion 5, Focused Rage 3, Shield Slam. The survival talents a raid tank takes stay; Deep Wounds' 6 points come from Improved Sunder Armor 3, Vanguard, Toughness 1 and an Improved Heroic Strike point. +39.64 TPS (+4.19%) and +34.78 DPS (+9.3%) over 8/5/38, for 6.5 more damage taken a second (seed 7105, 200,000 paired fights) | **"Protection + Improved Thunder Clap" 5/5/41: `05-05-552131233301210531`**, 8/5/38 with Improved Thunder Clap 3 for Improved Heroic Strike 3: −53.13 TPS (−5.4%) and −39.48 DPS against the default (seed 7105), −50.08 TPS with Max TPS. The 8/5/38 itself, the default from P2's review until W4, is `35-05-552101233301210531`: −39.64 TPS (Max TPS −35.13) |
 
-The variant codes and Protection's two were built by hand and pass `decodeTalentCode`,
+The variant codes and the defaults decode and validate by `decodeTalentCode`,
 `validateTalentBuild` (no violations) and a byte-exact round trip through `encodeTalentCode`
-against `src/data/talents/warrior.json`. The Fury tier gates hold 15 points in tiers 1–3 before
-Dual Wield Specialization, 26 before Precision, 30 before Flurry and 35 before Bloodthirst.
+against `src/data/talents/warrior.json`, and `scripts/scrape/stored-builds.json` keeps every one of
+them, the former defaults too, since saved setups and share links may hold them. The Fury tier
+gates hold 15 points in tiers 1–3 before Dual Wield Specialization (Improved Cleave 2 and Boundless
+Rage 3 are there for it), 26 before Precision, 30 before Flurry and 35 before Bloodthirst; Arms'
+Deep Wounds needs Improved Rend 3/3 and 10 points above it.
 
-**Protection's 51 points.** The popular Protection build [tal] spends only 46 points, and so did
-the "TPS" variant beside it, which traded three of Deflection's points for Improved Heroic Strike.
-A raid tank spends all 51, so the default is the popular build plus the five: first the threat
-talents it was missing, Improved Heroic Strike 3/3, the warrior tank's Arms pick since Classic, and
-Improved Sunder Armor's third point, for the filler; then the last point in armor, Toughness 1/5,
-since a raid tank's next choice is its survival. At 51 points Improved Heroic Strike no longer
-costs Deflection, so the "TPS" variant is gone, and its preset is now the other way to spend
-three points on a tank's own rotation: Improved Thunder Clap, for the duty it keeps up. The sim
-settles Q23 for Protection: with the default rotation (seed 7105, 200,000 paired fights) the
-Improved Thunder Clap build makes 5.63 less TPS (−0.56%, 95% CI −5.70 to −5.56) and 1.90 less DPS
-than the default, and with Max TPS, which doesn't use Thunder Clap, 22.64 less (−2.01%). The old
-46-point build makes 18.47 less (−1.85%). Those two codes stay decodable, since saved setups may
-hold them (`scripts/scrape/stored-builds.json`). Builds aren't tuned by the sim (D23), so these
-numbers settle only the preset's question.
+**Protection: balanced, not bare threat** ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)).
+A raid tank's build keeps the survival talents: Deflection 5/5, Anticipation 5/5, Last Stand and
+Improved Shield Wall 2/2, as 8/5/38 did (the popular build's, and the floor D30 once named). W4's
+search kept them (`optimize.mjs --spec warrior-protection --keep "Last Stand,Improved Shield
+Wall,Deflection,Anticipation"`, the Balanced goal, 31 points in Protection and the tanks' effective-health
+floor, `standard`, seed 36409) and moved only threat and utility points: its leader is the default
+above, **+13.73 points** on the balanced score (TPS +40.6, DPS +35.2; damage taken +6.2 a second),
+separated after 5 rounds from the next (Master of Defense 1 and Improved Sunder Armor 1 for Toughness's
+point and the second Master of Defense point, +13.21). Every one-point change from it that keeps those
+talents loses or is level (seed 36425, 40,000 paired fights); the ones that gain drop a survival point
+(an Anticipation point for Improved Sunder Armor's first, +0.87% TPS). Without the survival talents
+the search goes further: dropping Deflection, Anticipation, Last Stand and Improved Shield Wall as
+well it finds +21.03 points (seed 36407), and keeping Anticipation's but not the rest +17.19 (seed
+36408). Those are D29's "pure threat" builds and not defaults. Deep Wounds is the reason: rolling,
+it's 11% of the default tank's damage, and before D36 the 8/5/38 had no room for it that paid. The
+effective health is 13,323 (Toughness's point gone), 90.7% of the v1 preset's, above the tanks'
+90% floor ([§6.3](#63-protection-gear-interim-measured-m56-t4)). The rotation was re-checked on the
+new build (seed 36424, 40,000 paired fights) and nothing moved: the filler from 50 rather than the
+user's 60 is +0.85 points, as before (§5.4), Charge in +0.22 (Vanguard's gone, so it's off by
+default; D23 leaves Charge to the encounter), Battle Shout off +0.16, the rest level or worse.
 
 **No talent is kept by its name** ([D30](../decisions.md#d30-the-sim-finds-the-best-talents-gear-and-rotation-itself-defaults-are-its-results-2026-09-24), user decision after O1's fifth review round): the
 optimizer has no survival floor and no preferred filler, so a search keeps Last Stand, Improved
 Shield Wall, Deflection, Anticipation or Toughness only when the player keeps them (`--keep`) or
 the goal measures them worth their points. A player who wants survival first picks the **Defense**
-goal or sets a sheet constraint ([optimizer.md](../optimizer.md#goals)). The default build (Last
-Stand, Improved Shield Wall 2/2, Deflection 5/5, Anticipation 5/5) stands until the optimizer's
-result replaces it (O4).
+goal or sets a sheet constraint ([optimizer.md](../optimizer.md#goals)). The default build keeps
+them (Last Stand, Improved Shield Wall 2/2, Deflection 5/5, Anticipation 5/5; W4's search kept them
+by `--keep`, above) until the optimizer's result replaces it (O4).
 
 ### 6.2 Race, weapons and consumables
 
@@ -2260,8 +2484,10 @@ M5.7 O4), the default Protection warrior wears an interim set, built the way the
 ([paladin.md "Protection defaults"](paladin.md#protection-defaults)) and the bear's
 ([druid.md §7.3a](druid.md#73a-interim-gear-m56-t3)) were, so the three tanks' presets are like
 for like. It's set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's. The talents (§6.1)
-and the rotation (§5.4) are unchanged: the rotation was tuned on the v1 gear, and O4 re-tunes it
-with the talents and gear.
+and the rotation (§5.4) were unchanged by it: the rotation was tuned on the v1 gear, and O4 re-tunes
+it with the talents and gear. The tables below are on 8/5/38; W4's 13/5/33 (§6.1) drops Toughness's
+point, so the default's effective health is 13,323 for a Human (armor 8,038, 90.7% of the v1
+preset's) and 13,365 for an Orc (8,032, 90.7%), still above the floor.
 
 1. **The gear review's set** (2026-09-24: a paired, slot-by-slot search over the pool on TPS, plate
    and a shield, PvP rank 10 at most, no raid drops), with **Darksoul Shoulders** for its Abyssal
@@ -2776,17 +3002,21 @@ they keep **10** (Classic 0/5 kept 0). At 18 rage they keep 18.
 With Improved Bloodrage 2/2, the warrior gains 15 rage at t = 0, then 1.5 rage per second
 from t = 1 to t = 10 s, for 30 in total. Without the talent: 10, then 1 per second, for 20.
 
-### W20: Rage-cost table, Protection default build
+### W20: Rage-cost table, Protection 8/5/38
 
-Sunder Armor 9, Shield Slam 17, Revenge 2, Heroic Strike 9, Thunder Clap 17, Demoralizing
-Shout 7, Battle Shout 10, Shield Block 10, Death Wish (if talented) 7. With the Improved Thunder
-Clap preset instead ([§6.1](#61-talent-builds)): Heroic Strike 12, Thunder Clap 11.
+The 8/5/38 build, the default until W4: Sunder Armor 9, Shield Slam 17, Revenge 2, Heroic Strike 9,
+Thunder Clap 17, Demoralizing Shout 7, Battle Shout 10, Shield Block 10, Death Wish (if talented) 7.
+With the Improved Thunder Clap preset instead ([§6.1](#61-talent-builds)): Heroic Strike 12, Thunder
+Clap 11. The default since W4, 13/5/33 (Improved Heroic Strike 2/3, no Improved Sunder Armor):
+Sunder Armor 12, Heroic Strike 10, the rest the same.
 
-### W21: Rage-cost table, Fury default build
+### W21: Rage-cost table, Fury 17/34/0
 
-Heroic Strike 12, Cleave 15, Bloodthirst 30, Whirlwind 25, Execute 15, Hamstring 10,
-Overpower 5, Battle Shout 10, Death Wish 10. The "Fury + Precision" variant has Improved
-Cleave 2/3, so Cleave costs 16.
+The popular 17/34/0, the default until W4: Heroic Strike 12, Cleave 15, Bloodthirst 30, Whirlwind
+25, Execute 15, Hamstring 10, Overpower 5, Battle Shout 10, Death Wish 10. The "Fury + Precision"
+variant has Improved Cleave 2/3, so Cleave costs 16. The default since W4, 13/38/0 (Improved Heroic
+Strike 2/3, Improved Cleave 2/3, Improved Execute 2/2): Heroic Strike 13, Cleave 16, Execute 10,
+Rend 10, the rest the same.
 
 ### W22: Unbridled Wrath expected rage
 
@@ -2824,7 +3054,7 @@ Weaponmaster 5/5 with a mace brings it to `471 × 0.85 = 400.35` [?] (Q9).
 
 ### W26: Threat per global cooldown, Protection
 
-The default build in Defensive Stance with Defiance 3/3 and a shield (×1.495, W16), average
+The 8/5/38 build (the default until W4) in Defensive Stance with Defiance 3/3 and a shield (×1.495, W16), average
 hits, no crits, no armor, the default setup's block value of 62, and 1,400 attack power, about the
 default setup's in a fight (the threat values are [threat.md](../mechanics/threat.md#warrior)'s,
 build 1.60.1.70009; before it, Sunder Armor made 1,514.44 a cast, 168.27 a rage, and Shield Slam
@@ -3012,10 +3242,15 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     the tooltip was the base value rendered without the per-level term (review finding L9).
     Whether the debuff applies −204 in combat is [?]. Owner: [buffs-debuffs-consumables OQ
     19](../mechanics/buffs-debuffs-consumables.md#open-questions) (Route C: read it at 60).
-23. **Build variants.** "Fury + Precision" (15/36) versus the popular 17/34. Settle it with the
-    sim once M2 exists. Protection's is settled: at 51 points its default takes both Improved
-    Heroic Strike and Deflection 5, and the sim favours it over its Improved Thunder Clap preset
-    ([§6.1](#61-talent-builds)).
+23. **Build variants.** ✅ Settled by the sim in W4 ([§6.1](#61-talent-builds)). "Fury + Precision"
+    (15/36) against the popular 17/34: **+3.50 DPS (+0.44%, +3.05 to +3.95)** with M2.5b's rotation
+    (seed 36401, 60,000 paired fights), so Precision beats Impale on its own. But both lose to
+    WarriorSim's 13/38, which takes Precision 3/3 and Improved Execute 2/2 and drops Impale and
+    Anger Management: +27.96 (+3.48%) over 17/34 there, and, with the re-tuned rotation, 17/34
+    −27.01 and 15/36 −23.36 against it (seed 36504, 400,000 paired fights). 13/38 is the default
+    since W4, and "Fury + Precision" stays a preset. Only in short fights without an execute phase
+    does 17/34 still lead (+3.2% at 30 s, [§5.2](#re-tuning-after-d36-w4)). Protection's: its
+    default (13/5/33 since W4) beats its Improved Thunder Clap preset by 53.13 TPS (5.4%).
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
     +3% crit and Whirlwind? Settle this with the sim. **The sim's first answer** (M2.3c, the
     default setup, 20,000 fights): Battle Stance 630 DPS, Berserker Stance 604, and Berserker
@@ -3284,6 +3519,7 @@ the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. 
 [ws-spell]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/spell.js
 [ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
 [ws-spells]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/spells.js
+[wsf-golden]: https://github.com/tzcnt/WarriorSim/blob/069329b/test/wasm/golden-reports.json
 [fw-2]: https://github.com/magey/forever-warrior/issues/2
 [marrow]: https://bookdown.org/marrowwar/marrow_compendium/abilities.html
 [marrow-mech]: https://bookdown.org/marrowwar/marrow_compendium/mechanics.html

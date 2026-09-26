@@ -40,9 +40,15 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
  * Forever builds of September 2026 (doctrine §5; validated in src/data/data.test.ts).
  */
 const DEFAULT_TALENTS: Record<SpecId, string> = {
-  'warrior-fury': '30305013002-050530035150010051-', // popular Fury (docs/classes/warrior.md §6.1)
-  'warrior-arms': '30305213132515201-05050103-', // popular Arms
-  'warrior-protection': '35-05-552101233301210531', // Protection 8/5/38 (docs/classes/warrior.md §6.1)
+  // docs/classes/warrior.md#61-talent-builds: Fury 13/38/0, WarriorSim's Forever build (Precision 3, Improved Execute 2, no
+  // Impale or Anger Management), which leads the sim's own talent search after D36 (W4)
+  'warrior-fury': '20303203-050520035152310051-',
+  // docs/classes/warrior.md#61-talent-builds: Arms 35/16/0, WarriorSim's Forever build (Improved Execute 1, Improved
+  // Cleave 2, no Spearing Strike or Piercing Howl), which leads the sim's own talent search after D36 (W4)
+  'warrior-arms': '20305213032515201-050520030001-',
+  // docs/classes/warrior.md#61-talent-builds: Protection 13/5/33 with Deep Wounds, the best balanced build that keeps
+  // Deflection 5, Anticipation 5, Last Stand and Improved Shield Wall 2 (W4)
+  'warrior-protection': '25300003-05-552001233000210531',
   'druid-feral-cat': '050022-5520002123032213051-05', // popular Feral (docs/classes/druid.md)
   // docs/classes/druid.md#71-talents: 9/42/0, interim (M5.6 T3, measured); the optimizer replaces it (D30)
   'druid-feral-bear': '050022-5520032023132210551-',
@@ -98,15 +104,17 @@ export interface TalentPreset {
  */
 const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
   warrior: [
-    // docs/classes/warrior.md#61-talent-builds: Fury 17/34/0
+    // docs/classes/warrior.md#61-talent-builds: Fury 13/38/0
     { name: 'Fury (default)', code: DEFAULT_TALENTS['warrior-fury'] },
-    // docs/classes/warrior.md#61-talent-builds: "Fury + Precision" 15/36/0, the Fury alternative
+    // docs/classes/warrior.md#61-talent-builds: "Fury + Precision" 15/36/0, the Fury alternative: the former popular 17/34/0
+    // with Precision for Impale
     { name: 'Fury + Precision', code: '30305013-050520035150310051-' },
-    // docs/classes/warrior.md#61-talent-builds: Arms 37/14/0
+    // docs/classes/warrior.md#61-talent-builds: Arms 35/16/0
     { name: 'Arms (default)', code: DEFAULT_TALENTS['warrior-arms'] },
-    // docs/classes/warrior.md#61-talent-builds: Protection 8/5/38
+    // docs/classes/warrior.md#61-talent-builds: Protection 13/5/33
     { name: 'Protection (default)', code: DEFAULT_TALENTS['warrior-protection'] },
-    // docs/classes/warrior.md#61-talent-builds: Protection 5/5/41, Improved Thunder Clap 3 for Improved Heroic Strike 3
+    // docs/classes/warrior.md#61-talent-builds: Protection 5/5/41, the former 8/5/38 with Improved Thunder Clap 3 for Improved
+    // Heroic Strike 3
     { name: 'Protection + Improved Thunder Clap', code: '05-05-552131233301210531' },
   ],
   druid: [

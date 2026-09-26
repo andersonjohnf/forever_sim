@@ -185,7 +185,7 @@ describe('rotation rows', () => {
     expect(grouped.map((o) => o.id)).toContain('warrior.fury.execute.btOverExecuteAp')
     for (const option of grouped) expect(option.help, option.id).not.toMatch(/\b\d{4,}\b/)
     const fury = getSpec('warrior-fury').rotationOptions.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
-    expect(fury.help).toContain('2,220 is the break-even at Execute’s 15 rage cost; use 2,434 with Improved Execute 2/2.')
+    expect(fury.help).toContain('2,434 is the break-even at Execute’s 10 rage cost with Improved Execute 2/2, as the default talents have; use 2,220 without Improved Execute.')
   })
 
   it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {
@@ -343,7 +343,7 @@ describe('a priority list’s rows (decision D31)', () => {
     // A number at its hideWhen is left out; fixed text stays.
     expect(summary('execute')).toBe('Execute phase')
     expect(summary('execute', { 'warrior.fury.execute.minExtraRage': 10 })).toBe('Execute phase · 10 rage extra')
-    expect(summary('executeBloodthirst')).toBe('From 2,220 AP')
+    expect(summary('executeBloodthirst')).toBe('From 2,434 AP')
     // A number with a zeroText reads it at 0 (review finding TM-3: not "again with 0 s left").
     expect(summary('battleShout', { 'warrior.fury.battleShout.refreshBelowSec': 0 })).toBe('Again once it runs out')
     expect(summary('battleShout', { 'warrior.fury.battleShout.refreshBelowSec': 3 })).toBe('Again with 3 s left')
@@ -385,7 +385,8 @@ describe('a priority list’s rows (decision D31)', () => {
   it('says which rows stop in the execute phase, and which wait for Bloodthirst and Whirlwind, while that holds', () => {
     const fillers = { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.slam.enabled': true }
     expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')
-    expect(summary('overpower')).toBe('Up to 40 rage · while Bloodthirst and Whirlwind cool down')
+    expect(summary('overpower')).toBe('Up to 45 rage · while Bloodthirst and Whirlwind cool down')
+    expect(summary('rend')).toBe('Again with 3 s left · up to 25 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('hamstring', fillers)).toBe('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('slam', fillers)).toBe('Not in the execute phase · while Bloodthirst and Whirlwind cool down')
     // Execute off, or no phase: they don't stop for it.
@@ -395,7 +396,7 @@ describe('a priority list’s rows (decision D31)', () => {
     // Without Bloodthirst, the fillers don't claim to wait for it, nor Whirlwind.
     const noBt = { ...fillers, 'warrior.fury.bloodthirst.enabled': false }
     expect(summary('slam', noBt)).toBe('Not in the execute phase')
-    expect(summary('overpower', noBt)).toBe('Up to 40 rage')
+    expect(summary('overpower', noBt)).toBe('Up to 45 rage')
     expect(summary('whirlwind', noBt)).toBe('')
   })
 

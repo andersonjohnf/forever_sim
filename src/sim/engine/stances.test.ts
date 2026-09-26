@@ -6,7 +6,8 @@
 // §5.3 row 4); the Fury rows 10 and 15 (§5.2); determinism.
 import { describe, expect, it } from 'vitest'
 import { BERSERKER_RAGE, HAMSTRING, HEROIC_STRIKE, OVERPOWER, OVERPOWER_WINDOW, RECKLESSNESS, REND, WHIRLWIND } from '../classes/warrior/abilities'
-import { defaultConfig } from '../defaults'
+import { defaultConfig as todaysDefaultConfig } from '../defaults'
+import { withPopularTalents } from '../classes/warrior/popular-builds'
 import { buildPlan } from '../plan/build'
 import { ACTION, COND, type Plan, STANCE, TRIGGER } from '../plan/types'
 import { FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
@@ -29,6 +30,10 @@ import {
   timeline,
   W,
 } from './test-helpers'
+
+/** Today's default setup with the popular warrior builds, the defaults until W4, which these tests were written
+ * for (popular-builds.ts; warrior.md §6.1). */
+const defaultConfig = (...args: Parameters<typeof todaysDefaultConfig>) => withPopularTalents(todaysDefaultConfig(...args))
 
 const AP_NORMALIZED = (1800 / 14) * 3.3 // 424.29
 const AP_REAL = (1800 / 14) * 3.8 // 488.57
@@ -549,7 +554,8 @@ describe('stance effects while swapped (warrior.md §2.1, §7)', () => {
 describe('the Fury rows 10 and 15 in the engine (warrior.md §5.2)', () => {
   const furyRun = (rotation: Record<string, boolean | number>, seed = 12345, fights = 200) => {
     const d = defaultConfig('warrior-fury')
-    const { plan } = buildPlan({ ...d, rotation, run: { ...d.run, seed } })
+    // The Rend dance (W4) off, so every swap to Battle Stance is an Overpower's.
+    const { plan } = buildPlan({ ...d, rotation: { 'warrior.fury.rend.enabled': false, ...rotation }, run: { ...d.run, seed } })
     const sim = new Sim(plan)
     const toBattle: { before: number; after: number }[] = []
     const opTimes: number[] = []
@@ -571,7 +577,7 @@ describe('the Fury rows 10 and 15 in the engine (warrior.md §5.2)', () => {
   }
 
   it('row 10: every Overpower is a dance to Battle Stance at rage ≤ maxRage; at 25, what a swap keeps, the swap in loses nothing', () => {
-    // By default (M2.5b) up to 40 rage: a swap in above 25 keeps 25.
+    // By default (W4) up to 45 rage: a swap in above 25 keeps 25 (the popular build's Improved Tactical Mastery 5/5).
     const { plan, sim, toBattle, opTimes, inBattleUses } = furyRun({})
     const row = plan.abilities.find((a) => a.id === 'overpower')!.source
     expect(counter(sim, row, FIELD.casts)).toBeGreaterThan(200)
@@ -579,7 +585,7 @@ describe('the Fury rows 10 and 15 in the engine (warrior.md §5.2)', () => {
     expect(inBattleUses).toBe(opTimes.length)
     expect(toBattle.length).toBe(opTimes.length)
     for (const s of toBattle) {
-      expect(s.before).toBeLessThanOrEqual(400)
+      expect(s.before).toBeLessThanOrEqual(450)
       expect(s.after).toBe(Math.min(s.before, 250))
     }
     expect(toBattle.some((s) => s.before > 250)).toBe(true)

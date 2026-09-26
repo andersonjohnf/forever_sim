@@ -1762,7 +1762,7 @@ Every view handles these states:
   Choose another in Gear." Several pieces of one class's set share one sentence. It opens the
   defaults notice, whose "kept" line then reads "Other gear and talents you changed yourself are
   kept."; on its own, the notice is "Gear removed from Feral (Bear) Druid" ("Gear and talents
-  changed for …" beside a talent change, "Gear removed and defaults updated for …", naming every spec either touches,
+  changed for …" beside a talent change, "Gear removed and defaults updated for …", naming the specs either touches,
   beside a default that moved). One in a slot that follows the defaults was the default,
   and today's takes its place: that move is all the notice says.
 - **A talent build from the game's older talent trees** (a setup saved or shared before

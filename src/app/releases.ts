@@ -33,17 +33,17 @@ export const RELEASES: readonly Release[] = [
           'Protection Warrior about 985 to 866 TPS: Sunder Armor makes Forever’s flat threat, Shield Slam Classic Era’s, and smaller hits bring less rage. Defensive and Max TPS wait for more rage before Heroic Strike.',
           'Feral Bear about 1,100 to 990 TPS: Lacerate makes a flat 206 threat and Primal Bite threat equal to its damage. New helm and boots: Eye of Rend with Defiler’s Leather Boots (Highlander’s for the Alliance). Max TPS now plays as Balanced.',
           'Protection Paladin about 747 to 701 TPS: Seal of Fury deals its flat damage per hit, Judgement of the Crusader adds each Holy hit’s share, and Hammer of the Righteous counts your weapon’s own DPS, as its tooltip reads (the old reading is in Character → Advanced).',
-          'An in-game test puts Maul’s threat between about 1.7 and 2.25 times its damage, which fits the sim’s 1.75.',
+          'An in-game test puts Maul’s threat at 1.7 to 2.25 times its damage, which fits the sim’s 1.75.',
         ],
       },
       {
         label: 'DPS',
         items: [
           'Epic caster weapons carry Classic Era’s spell damage: most casters −5% to −6%. Horde casters default to Whiteout Staff.',
-          'Demonology Warlock 663 to 590 DPS, still the top caster: Improved Imp no longer adds damage its tooltip doesn’t describe, and the default is now the Succubus build.',
+          'Demonology Warlock 663 to 590 DPS, still the top caster: the weapons, and Improved Imp no longer speeds up the Imp’s Firebolt, which its tooltip doesn’t say, so the default is the Succubus build.',
           'Enhancement Shaman’s Earth Shock makes double threat: +10% TPS.',
           'Retribution Paladin −2%: Seal of Righteousness and Holy Strike follow the beta logs.',
-          'Hunters’ Serpent Sting ticks crit for double: up to +0.7%.',
+          'Hunters’ Serpent Sting ticks crit like shots: up to +0.7%.',
         ],
       },
       {

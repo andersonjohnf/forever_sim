@@ -974,7 +974,7 @@ export const BUFFS: BuffSpec[] = [
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#42-other-debuffs`,
     // 20303 #0: aura 14, school mask 2 (Holy), 161 [F]; Classic Era's 139 + 1 [C] (SpellEffect,
-    // 1.60.1.69913 and 1.15.9.69722). Each Holy hit's share is the Character → Advanced rule.
+    // 1.60.1.69913 and 1.15.9.69722). Each Holy hit gets its coefficient's share (paladin.md, measured).
     effects: [{ kind: 'holyTaken', value: 161 }],
     classicEra: { summary: '+140 Holy damage taken', effects: [{ kind: 'holyTaken', value: 140 }] },
     presets: NOT_IN_PRESETS,

@@ -12,7 +12,6 @@ import type { WeaponType } from '@/data/items/types'
 import type { SpecId } from '../../types'
 import type { ClassRotation, RotationContext } from '../warrior/shared'
 import { JOTC_REFRESH, JUDGE_CRUSADER, JUDGEMENT_OF, SEAL_OF_COMMAND, SEAL_OF_FURY, sealProcs } from './abilities'
-import { type JotcRule, withJotcRule } from './spells'
 import { reverenceShare, righteousFuryEffects, TALENT_EFFECTS, type TalentRanks, withSpellTalents, withTalents } from './talents'
 
 /**
@@ -49,14 +48,12 @@ export function paladinEffects(spec: SpecId, talents: TalentRanks): Effect[] {
 /**
  * The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness), the
  * maximum mana, which the "mana% ≥ x" settings are shares of (paladin.md#forever-priority-list-default),
- * the Judgement of the Crusader rule (Character → Advanced, `rules.jotcBonus`; OQ 5), and whether a
- * shield is equipped (Protection).
+ * and whether a shield is equipped (Protection).
  */
 export interface PaladinContext extends RotationContext {
   /** The main hand's base speed, whether it's a two-hander, and its type (Hammer of the Righteous needs a one-handed axe, mace or sword). */
   mainHand?: { speedSec: number; twoHand: boolean; type?: WeaponType } | null
   maxMana?: number
-  jotcRule?: JotcRule
   /** Whether Hammer of the Righteous's weapon DPS counts attack power (Character → Advanced, `rules.hotrWeaponDps`; OQ 11). */
   hotrWeaponDps?: 'withAttackPower' | 'weaponOnly'
   /** A shield is equipped: Holy Shield and Seal of Fury's absorb need one (paladin.md#protection-model-and-rotation). */
@@ -84,10 +81,9 @@ export function paladinProcs(
   abilities: readonly AbilityDef[],
   talents: TalentRanks,
   context: PaladinContext,
-  jotcRule: JotcRule = 'coefficient',
 ): ProcSpec[] {
   const has = (id: string) => abilities.some((a) => a.id === id)
-  const seals = sealProcs(context.mainHand ?? null, (s) => withJotcRule(withSpellTalents(s, talents), jotcRule), context.hasShield ?? false)
+  const seals = sealProcs(context.mainHand ?? null, (s) => withSpellTalents(s, talents), context.hasShield ?? false)
   return [...seals.filter((p) => p.requiresAura !== undefined && has(p.requiresAura)), ...(has(JUDGE_CRUSADER.id) ? [JOTC_REFRESH] : [])]
 }
 
@@ -97,11 +93,10 @@ export function paladinProcs(
  * ready, which needs the seal up and leaves it up. Abilities 0 and 1 are the seal and its
  * judgement; a spec's rotation adds its rows after them.
  */
-export function paladinCore(spec: SpecId, talents: TalentRanks, context: PaladinContext, jotcRule: JotcRule = context.jotcRule ?? 'coefficient'): ClassRotation {
+export function paladinCore(spec: SpecId, talents: TalentRanks, context: PaladinContext): ClassRotation {
   const seal = SPEC_SEAL[spec]
   if (!seal) return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
-  const rule = (a: AbilityDef): AbilityDef => (a.spellDef ? { ...a, spellDef: withJotcRule(a.spellDef, jotcRule) } : a)
-  const abilities = [withTalents(seal, talents), rule(withTalents(JUDGEMENT_OF[seal.id], talents))]
+  const abilities = [withTalents(seal, talents), withTalents(JUDGEMENT_OF[seal.id], talents)]
   const rotation: RotationEntry[] = [
     { ability: 0, conditions: [{ code: COND.abilityAuraRefresh, a: 0, b: SEAL_REFRESH_MS }], unqueueBelowTenths: 0 },
     { ability: 1, conditions: [{ code: COND.abilityAuraUp, a: 0, b: 0 }], unqueueBelowTenths: 0 },
@@ -111,7 +106,7 @@ export function paladinCore(spec: SpecId, talents: TalentRanks, context: Paladin
     rotation,
     prepull: { casts: [{ ability: 0, atMs: PREPULL_SEAL_MS }], chargeTenths: 0, keepTenths: -1 },
     onUse: [],
-    procs: paladinProcs(abilities, talents, context, jotcRule),
+    procs: paladinProcs(abilities, talents, context),
   }
 }
 
@@ -129,13 +124,10 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   if (procs.has('sealOfFuryProc')) ids.push('sealOfFury')
   if (abilities.has('judgementOfCommand')) ids.push('judgementOfCommand')
   if ((plan.spells ?? []).some((s) => s.defense === DEFENSE.melee)) ids.push('meleeSpellProcs')
-  // The Judgement of the Crusader rule (Character → Advanced): flat gives melee-class hits all of it.
+  // Judgement of the Crusader's share of each Holy hit (the spell's coefficient, measured).
   // Another paladin's Judgement of the Crusader, from the Buffs tab (buffs doc §4.2), counts the same way.
   const raidJotc = (plan.holyTaken ?? 0) > 0
-  if (raidJotc || plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) {
-    const flat = (plan.spells ?? []).some((s) => s.defense === DEFENSE.melee && s.takenScale === 1)
-    ids.push(flat ? 'jotcBonusFlat' : 'jotcBonus')
-  }
+  if (raidJotc || plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) ids.push('jotcBonus')
   if (raidJotc) ids.push('jotcRaid')
   if (abilities.has('holyStrike')) ids.push('holyStrike')
   if (abilities.has('consecration') || abilities.has('consecrationRank1')) ids.push('consecrationTicks')

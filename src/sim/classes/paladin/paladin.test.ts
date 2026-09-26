@@ -327,8 +327,8 @@ describe('Hammer of Wrath’s 1 s cast, without Instrument of Law [?] (paladin.m
   })
 })
 
-describe('worked example 11: Judgement of the Crusader’s bonus (the default coefficient rule)', () => {
-  it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.203 = 32.68 to a Seal of Command proc', () => {
+describe('worked example 11: Judgement of the Crusader’s bonus', () => {
+  it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.29 = 46.69 to a Seal of Command proc, its whole coefficient', () => {
     const fixed = { min: 250, max: 250, speedSec: 3.5 }
     const plan = (jotc: boolean) => {
       const p = examplePlan({ weapon: fixed, core: false })
@@ -340,7 +340,7 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
     const exo = (jotc: boolean) => avg(damagesOf(plan(jotc), 'exorcism', 200))
     expect(exo(true) - exo(false)).toBeCloseTo(161 * 0.429, 0)
     const soc = (jotc: boolean) => damagesOf(plan(jotc), 'sealOfCommandProc')[0]
-    expect(soc(true) - soc(false)).toBeCloseTo(161 * 0.203, 9)
+    expect(soc(true) - soc(false)).toBeCloseTo(161 * 0.29, 9)
   })
 
   it('lasts 40 s, always lands, is one per paladin with the other judgement debuffs, and your auto attacks refresh it', () => {

@@ -182,15 +182,13 @@ test.describe('Protection paladin', () => {
     await expect(jotc).toBeChecked()
     await expect(jotc).toBeDisabled()
     await expect(jotc).toHaveAccessibleDescription(YOURS_JOTC)
-    // Character → Advanced: the JotC rule is in use; Hammer of the Righteous's is dimmed while it's off
-    // in Rotation, as every preset has it (D28).
+    // Character → Advanced: no JotC switch (its share is measured); Hammer of the Righteous's rule is
+    // dimmed while it's off in Rotation, as every preset has it (D28).
     await openTab(page, 'Rotation')
     await pickPreset(page, 'Defensive')
     const character = await openTab(page, 'Character')
     await character.getByRole('button', { name: /^Advanced/ }).click()
-    const bonus = character.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' })
-    await expect(bonus).toHaveAccessibleDescription(/how much of the \+161 Holy damage each Holy hit gets.*Seal of Fury proc 10%/)
-    await expect(character.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toHaveCount(0)
+    await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
     const hammer = character.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' })
     await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeChecked()
     await expect(character.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toBeVisible()
@@ -198,8 +196,8 @@ test.describe('Protection paladin', () => {
     await expect(character.getByText(/Default: With attack power/)).toBeVisible()
     await character.getByRole('button', { name: /^Reset Hammer of the Righteous’s weapon DPS/ }).click()
     await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeFocused()
-    // With Hammer of the Righteous on in Rotation, its rule is in use; with your judgement off, the JotC rule isn't,
-    // and the Buffs tab's becomes another paladin's, off.
+    // With Hammer of the Righteous on in Rotation, its rule is in use; with your judgement off, the Buffs
+    // tab's becomes another paladin's, off.
     const rotation = await openTab(page, 'Rotation')
     await rotation.getByRole('switch', { name: 'Hammer of the Righteous', exact: true }).click()
     const prepull = await prepullSettings(page, rotation)
@@ -211,7 +209,6 @@ test.describe('Protection paladin', () => {
     const again = await openTab(page, 'Character')
     await again.getByRole('button', { name: /^Advanced/ }).click()
     await expect(again.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toHaveCount(0)
-    await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
   })
 
   test('a run reads as a paladin tank’s: TPS and DPS, damage taken, Holy Shield, mana and the boss’s table', async ({ page }) => {

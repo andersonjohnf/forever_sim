@@ -113,7 +113,7 @@ export function protectionCases(count: number, seed = 20260924): SimConfig[] {
       rotation,
       rotationOrder: [...PRE_LIST_ORDER],
       fight: { ...base.fight, executePct: rnd() < 0.7 ? 20 : 0, creatureType: pick(CREATURES) },
-      rules: { ...base.rules, jotcBonus: rnd() < 0.7 ? 'coefficient' : 'flat', hotrWeaponDps: rnd() < 0.7 ? 'withAttackPower' : 'weaponOnly' },
+      rules: { ...base.rules, hotrWeaponDps: rnd() < 0.7 ? 'withAttackPower' : 'weaponOnly' },
       run: { mode: 'fixed', iterations: 100, seed: 1 },
     })
   }

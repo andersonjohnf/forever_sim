@@ -52,6 +52,8 @@ describe('golden run (fixed config and seed)', () => {
   // - The beta-log check (paladin.md#the-beta-log-check-2026-09-26), step 3: Holy Strike's flat part and
   //   spell damage inside its 50%, as the beta logs show (T2 had put the flat part after it): DPS
   //   610.58 → 597.26.
+  // - Step 6: Judgement of the Crusader's share on Seal of Command's proc is its whole 0.29 (was 0.203):
+  //   DPS 597.26 → 599.49.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

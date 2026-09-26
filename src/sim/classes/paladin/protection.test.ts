@@ -1067,19 +1067,14 @@ describe('Judgement of the Crusader, your own (paladin.md "the opener", worked e
     expect(buildPlan(config()).assumptions.map((a) => a.id)).not.toContain('jotcRaid')
   })
 
-  it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1; with the flat rule 161 each', () => {
-    for (const [rule, jof, sof] of [
-      ['coefficient', 161 * 0.45, 161 * 0.1],
-      ['flat', 161, 161],
-    ] as const) {
-      const rules = { ...defaultConfig(PROT).rules, ...(rule === 'flat' ? { jotcBonus: 'flat' as const } : {}) }
+  it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1', () => {
+    for (const [rule, jof, sof] of [['coefficient', 161 * 0.45, 161 * 0.1]] as const) {
       // The Buffs tab's, from the pull, against none: the same fights, so the bonus is all that differs.
-      const on = protPlan({ buffs: RAID_JOTC, rules, rotation: NO_JOTC })
-      const off = protPlan({ rules, rotation: NO_JOTC })
-      expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual(rule === 'flat' ? [1, 1] : [0.45, 0.1])
-      // Your own judgement's spells take the rule too (A1b).
-      const own = protPlan({ rules })
-      expect(spellOf(own, 'judgementOfFury').takenScale).toBe(rule === 'flat' ? 1 : 0.45)
+      const on = protPlan({ buffs: RAID_JOTC, rotation: NO_JOTC })
+      const off = protPlan({ rotation: NO_JOTC })
+      expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual([0.45, 0.1])
+      // Your own judgement's spells get the same share (A1b).
+      expect(spellOf(protPlan(), 'judgementOfFury').takenScale).toBe(0.45)
       const extra = (id: string) => {
         const [a, b] = [new Sim(on), new Sim(off)]
         for (let i = 0; i < 3; i++) {

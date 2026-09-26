@@ -60,10 +60,8 @@ const defaultsOf = (spec: SimConfig['spec']): SimConfig => {
 function characterChanged(config: Pick<SimConfig, 'spec' | 'rules'>): boolean {
   const rules = config.rules
   const defaults = defaultsOf(config.spec).rules
-  const paladin = SPEC_META[config.spec].classId === 'paladin'
   return (
     rules.unmeasuredRatings !== defaults.unmeasuredRatings ||
-    (paladin && (rules.jotcBonus ?? 'coefficient') !== (defaults.jotcBonus ?? 'coefficient')) ||
     (config.spec === 'paladin-protection' && (rules.hotrWeaponDps ?? 'withAttackPower') !== (defaults.hotrWeaponDps ?? 'withAttackPower'))
   )
 }

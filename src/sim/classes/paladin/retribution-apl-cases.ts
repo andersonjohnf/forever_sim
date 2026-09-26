@@ -83,7 +83,6 @@ export function retributionCases(count: number, seed = 20260925): SimConfig[] {
       buffs: { ...base.buffs, enabled: [...base.buffs.enabled.filter((id) => !CONSUMABLES.includes(id)), ...consumables] },
       rotation,
       fight: { ...base.fight, executePct: rnd() < 0.7 ? 20 : 0, creatureType: pick(CREATURES) },
-      rules: { ...base.rules, jotcBonus: rnd() < 0.7 ? 'coefficient' : 'flat' },
       run: { mode: 'fixed', iterations: 100, seed: 1 },
     })
   }

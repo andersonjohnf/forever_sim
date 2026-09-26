@@ -211,10 +211,8 @@ function normalize(input: unknown): NormalizedConfig {
     if (model) rules.damageTakenRage = model
     else r.add('The damage-taken rage model wasn’t recognised, so the profile’s default is used.')
   }
-  // A paladin's Judgement of the Crusader rule (paladin.md OQ 5): kept only when it isn't the default.
-  if (rulesIn.jotcBonus !== undefined && meta.classId === 'paladin') {
-    if (oneOf(rulesIn.jotcBonus, ['coefficient', 'flat'] as const, 'coefficient', 'The Judgement of the Crusader rule', r) === 'flat') rules.jotcBonus = 'flat'
-  }
+  // A saved setup's Judgement of the Crusader rule (`jotcBonus`) is dropped without a word: its share is
+  // measured since 2026-09-26, and the "All of it" setting is gone (user decision; paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
   // A paladin's Hammer of the Righteous rule (paladin.md OQ 11): kept only when it isn't the default.
   if (rulesIn.hotrWeaponDps !== undefined && meta.classId === 'paladin') {
     if (oneOf(rulesIn.hotrWeaponDps, ['withAttackPower', 'weaponOnly'] as const, 'withAttackPower', 'The Hammer of the Righteous rule', r) === 'weaponOnly') rules.hotrWeaponDps = 'weaponOnly'

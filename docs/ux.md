@@ -254,11 +254,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
     A switch's whole row, with its help, is its label, as in Buffs. Switches for untested
-    mechanics live here, not on the Rotation tab, since they aren't rotation choices: a paladin's
-    also has **Judgement of the Crusader's bonus** (A share, the default, or All of it;
-    [paladin.md open question 5](classes/paladin.md#open-questions)), a segmented control whose
-    help says in plain words what each means. It's dimmed, with "Not used: Judgement of the
-    Crusader is off in Rotation.", while the rotation doesn't judge the Crusader.
+    mechanics live here, not on the Rotation tab, since they aren't rotation choices: a Protection
+    paladin's also has **Hammer of the Righteous's weapon DPS** (With attack power, the default, or
+    Weapon only; [paladin.md open question 11](classes/paladin.md#open-questions)), a segmented
+    control whose help says in plain words what each means. It's dimmed, with "Not used: Hammer of
+    the Righteous is off in Rotation.", while the rotation doesn't use it. (Judgement of the
+    Crusader's share, once a switch here too, is measured since 2026-09-26.)
   - The rule profile's help says what Classic Era changes and what it doesn't
     ([architecture, "Rules and stats"](architecture.md#rules-and-stats)), naming every
     exception: Classic's combat rules; its raid buff, debuff, consumable and enchant values; the

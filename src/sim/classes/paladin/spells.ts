@@ -9,7 +9,7 @@
 // number (docs/data/items.md#per-level-values), and a range is
 // base × (1 ± variance/2) (paladin.md#conventions-used-below). These are the base spells: talents
 // (Improved Seals, Sacred Arbiter, Iron Creed) are applied by `withSpellTalents` in talents.ts,
-// and the Judgement of the Crusader rule by `withJotcRule` below.
+// JotC's share (`takenScale`) is measured (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
 import { CRIT_MULTIPLIER } from '../../core/formulas'
 import type { AuraSpec } from '../../effects/types'
 import type { SpellDef } from '../../plan/types'
@@ -64,7 +64,8 @@ export const SEAL_OF_COMMAND_PROC: SpellDef = {
   icon: 'ability_warrior_innerrage',
   weaponPercent: 0.7,
   spCoefficient: 0.7 * 0.29,
-  takenScale: 0.7 * 0.29,
+  // JotC's share is the whole 0.29, outside the 70%, as Holy Strike's measured 0.429 is outside its 50%.
+  takenScale: 0.29,
 }
 
 /**
@@ -326,15 +327,3 @@ export const CONSECRATION_RANK1_TICK: SpellDef = {
   max: 2 + 4,
 }
 
-/**
- * How much of the target's flat Holy damage taken (Judgement of the Crusader's +161) a Holy hit gets
- * (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc, OQ 5): `coefficient`,
- * the default, scales it by the hit's own spell damage coefficient; `flat` gives melee-class hits
- * all of it, and other hits their coefficient's share.
- */
-export type JotcRule = 'coefficient' | 'flat'
-
-export function withJotcRule(spell: SpellDef, rule: JotcRule): SpellDef {
-  if (rule === 'coefficient' || spell.defense !== 'melee') return spell
-  return { ...spell, takenScale: 1 }
-}

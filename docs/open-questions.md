@@ -627,15 +627,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [Q3](classes/druid.md#10-open-questions)
 
 #### B18. Judgement of the Crusader: flat or coefficient-scaled bonus
-**High · M5 · ≤20**
-- **Assumes:** each Holy hit gets `161 × c`, where `c` is its spell-power coefficient [?], added
-  after your own damage multipliers and before a crit's [?]. The alternative, a flat +161 per
-  Holy hit, roughly doubles JotC's value. The paladin doc calls this the biggest single
-  uncertainty for Ret DPS.
-- **Test:** JoC, Seal of Command proc and Holy Strike damage with and without your own JotC on
-  the target (any rank available), then the same with Vengeance stacked.
+**Medium · M5 · ≤20**
+- **Settled (2026-09-26):** each Holy hit gets `bonus × c`, `c` its client spell-power coefficient,
+  whole (outside a weapon percentage): the beta logs, 23 hits from 6 characters, 1.001 ± 0.039; the
+  user's level-20 test rules out the flat reading [F]. The "All of it" switch is gone.
+- **Assumes:** Seal of Command's share is its whole 0.29, by Holy Strike's [?]; the share comes
+  after your own damage multipliers and before a crit's [?].
+- **Test:** Seal of Command proc damage with and without your own JotC on the target, then the
+  same with Vengeance stacked.
 - **Samples:** ≥30 non-crit hits of each, with and without.
-- **Changes:** the JotC engine switch; Ret DPS and every player's Holy damage.
+- **Changes:** Retribution DPS (Seal of Command's share).
 - **Docs:** [paladin § JotC](classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc),
   [OQ 5](classes/paladin.md#open-questions);
   [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs)

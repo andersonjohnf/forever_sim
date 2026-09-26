@@ -161,6 +161,8 @@ headline, the default setups at 10,000 fights:
 | 2 | [Seal of Righteousness](#the-beta-logs-seal-of-righteousness): the seal value alone (no base points) + 0.2 × SP; no default uses it | 718.3 | 443.9, 900.5 | 608.6 |
 | 3 | [Holy Strike](#the-beta-logs-holy-strike): its flat part and spell damage inside the 50% | 697.3 | 433.6, 900.5 | 595.1 |
 | 4 | [Judgement of Command](#seal-of-command-soc) can miss, as the logs show (the default Retribution setup is at the special-attack hit cap, so it doesn't) | 697.3 | 433.6, 900.5 | 595.1 |
+| 5 | Retribution Aura: the logs don't settle its coefficient ([open question 32](#open-questions)); no change | 697.3 | 433.6, 900.5 | 595.1 |
+| 6 | [Judgement of the Crusader](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): each hit's share measured; Seal of Command's 0.29, outside its 70%; the "All of it" switch gone | 697.3 | 433.6, 900.5 | 597.3 |
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -395,28 +397,39 @@ It corroborates the client data above but isn't a guild measurement.
   paladin per target [F]/[C]. Direct damage judgements (JoC, JoR, JoF) are **not** debuffs
   and don't replace it [C] (Classic practice: apply JotC, then SoC and judge SoC,
   [Warcraft Tavern Classic](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/)).
-- **How much of the +161 each hit gets** is a server rule [?]. Default: add
-  `161 × c`, where `c` is that hit's effective SP coefficient (SoC proc 0.203, JoC 0.429,
-  JoR 0.5, SoR proc 0.1, Holy Strike 0.429, Exorcism/HoW 0.429, Consecration 0.095 per tick).
-  JotC benefits **every** paladin's and every player's Holy damage, not only yours. The main
-  alternative, a flat +161 on each melee-class Holy hit, would roughly double JotC's value.
-  Expose it as an engine switch until measured ([open questions](#open-questions)): the spell
-  builder takes the rule (`coefficient`, the default, or `flat`), set as `rules.jotcBonus` under
-  **Character → Advanced**, beside the other untested switch, "Count untested ratings" ("A share"
-  or "All of it"). It's not a rotation choice, so the Rotation tab doesn't show it.
+- **How much of the +161 each hit gets: its share, the spell's client coefficient × the bonus**,
+  measured. Seal of Command's proc 0.29 (outside its 70%: `161 × 0.29 = 46.69`), JoC 0.429, JoR 0.5,
+  SoR's and SoF's procs 0.1, Holy Strike 0.429 (outside its 50%), JoF 0.45, Exorcism and Hammer of
+  Wrath 0.429, Consecration 0.095 a tick, Holy Shield 0.08, Hammer of the Righteous 0 (no
+  coefficient). JotC benefits **every** paladin's and every player's Holy damage, not only yours.
+  - *The beta logs* ([method](#the-beta-logs-seal-of-fury)): 23 non-crit hits under a JotC of +35 or
+    +23 (Seal of Fury, Seal of Righteousness, Holy Strike, Judgement of Fury and of Righteousness, from
+    6 characters), each compared with the same character's hits without it. The extra damage ÷
+    (coefficient × bonus) is **1.001 ± 0.039** (95% CI). Holy Strike's +15 on a +35 JotC is 0.429 × 35,
+    its whole coefficient, though its spell damage is inside its weapon percentage
+    ([Holy Strike](#the-beta-logs-holy-strike)); Seal of Righteousness's +3.4 and +2.4 are its client
+    0.1's, though its spell damage scales at 0.2. So the share is the client coefficient, whole, and
+    Seal of Command's is 0.29, not 0.203 [?] (no Seal of Command hit under JotC in the logs).
+  - *The user's in-game test* (2026-09-25, level 20: Seal of the Crusader rank 2, whose judgement is
+    +35; Holy Strike rank 3; Seal of Fury rank 2) [F]: Holy Strike hit 27 with no judgement on the
+    target, 36 with Judgement of the Crusader, and 43 with Seal of Fury up as well. A Holy Strike gets
+    part of the bonus and far less than all of it (27 + 35 = 62), so the "All of it" reading is ruled
+    out. These are single hits, which the weapon's roll moves by a few points; the logs' share predicts
+    27 + 15 = 42.
+  The Character → Advanced switch that offered "All of it" is gone (user decision, 2026-09-26); a saved
+  setup that had it loads with the measured share and no notice.
 - **A Protection paladin judges it too** (user, 2026-09-24): it opens with Seal of the Crusader
   before the pull, judges it at the pull to place JotC, then puts Seal of Fury up and judges Fury for
   every judgement after; its landed auto attacks keep JotC up all fight
   ([the opener](#forever-priority-list-default-1)). In the T2 default setup that's **+84.7 TPS
   (+11.7%) and +41.6 DPS** against no JotC (40,000 paired fights, seed 777), for one Judgement of Fury
-  and 90 mana at the pull. The Character → Advanced rule applies to Protection's Holy hits as to
-  Retribution's (it didn't before T2). The Buffs tab's `judgementOfTheCrusader` is then yours, counted
+  and 90 mana at the pull. Protection's Holy hits get their share as Retribution's do. The Buffs tab's `judgementOfTheCrusader` is then yours, counted
   once; with your own off it's another paladin's, on the boss from the pull
   ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
 - **Where the bonus goes** [?]: as a flat bonus on the *target*, it's added after your own damage
   multipliers (Improved Seals, Vengeance), which don't raise it, and before the crit
   multiplier, which does. That follows the Classic engine's order for flat damage taken; it's
-  untested in Forever ([open question 5](#open-questions)).
+  untested in Forever (the logs' hits were non-crits; [open question 5](#open-questions)).
 
 ### Seal of Fury (SoF), new: the Protection seal
 
@@ -702,9 +715,8 @@ priority list you reorder ([The priority list (A2)](#the-priority-list-a2) below
 | — | Demonic Rune (a Dark Rune is the same) | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
 | — | Holy Wrath | Undead/Demon AoE | off; not simulated |
 
-Judgement of the Crusader's rule (A share, the default, or All of it) isn't a rotation setting:
-it's the engine switch of [open question 5](#open-questions), how much of the +161 each Holy hit
-gets, under Character → Advanced (`rules.jotcBonus`). Tuning leaves it at the documented default.
+How much of Judgement of the Crusader's +161 each Holy hit gets is measured, not a setting
+([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)).
 
 The fight's end is known exactly: the early potion line's "another will be ready" needs it, where a
 player has to judge it. The results list it (`knownFightEnd`) with what misjudging it costs
@@ -1609,9 +1621,9 @@ default setup.
    proc (Holy): 1.15 (Improved Seals) × 1.09 = **×1.2535**.
 10. **Hammer of Wrath r3, SP 300**: 498 + 128.7 = **626.7** average; with Instrument of Law
     2/2 it's instant with a 1.0 s GCD.
-11. **JotC on Exorcism (default coefficient rule)**: +161 × 0.429 = **+69.07** per Exorcism.
-    On a SoC proc: 161 × 0.203 = +32.68, added after your own damage multipliers and before a
-    crit's.
+11. **JotC on Exorcism**: +161 × 0.429 = **+69.07** per Exorcism. On a SoC proc: 161 × 0.29 =
+    **+46.69** (its whole coefficient, outside the 70%), added after your own damage multipliers and
+    before a crit's.
 12. **Protection Holy Shield, SP 300**: 221 + 0.08 × 300 = **245** damage per block; threat
     245 × 1.6 × 1.2 = **470.4** (additive-modifier alternative: 245 × 1.8 = 441). After
     4 blocks the buff ends even if 10 s haven't passed.
@@ -1652,7 +1664,7 @@ default setup.
 
 23. **Judgement of the Crusader on a Protection paladin's hits**: each landed Judgement of Fury gets
     161 × 0.45 = **+72.45** (a crit ×2: +144.9), each Seal of Fury proc 161 × 0.1 = **+16.1**, after
-    your own damage multipliers; with the flat rule, +161 each. Runs in `protection.test.ts`.
+    your own damage multipliers. Runs in `protection.test.ts`.
 24. **Hammer of the Righteous**, a 150-damage one-hander of 2.7 s speed and 1,200 attack power:
     3 × (150 + 1,200 / 14 × 2.7) / 2.7 = **423.81** Holy, threat ×1.6 = 678.10; weapon only,
     3 × 150 / 2.7 = **166.67**. Runs in `protection.test.ts`.
@@ -1684,10 +1696,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    client's 0.1; and whether a `+0.03 × weapon average ±1` term exists (that term is from TBC-era wiki
    text, so it's forbidden to adopt without a beta test). *Test:* 50+ procs at level 60 with a
    known weapon, with and without +100 spell damage.
-5. **JotC interaction**: flat +161 per Holy hit, or scaled by each spell's coefficient? And
-   does it come after your own damage multipliers (the sim's default) or before them?
-   *Test:* JoC and SoC-proc damage with and without your JotC on a mob, then again with
-   Vengeance stacked. This is the biggest single uncertainty for Ret DPS.
+5. **JotC interaction.** ✅ Each Holy hit's share is its client coefficient × the bonus, measured
+   ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): the beta logs, 1.001 ±
+   0.039, and the user's in-game test, which rules out the flat reading). Open: Seal of Command's share
+   (0.29, by Holy Strike's, which the logs show whole outside its weapon percentage), and whether the
+   share comes after your own damage multipliers (the sim's default) or before them. *Test:* SoC-proc
+   damage with and without your JotC on a mob, then again with Vengeance stacked.
 6. **Holy Strike formula**: the beta logs put the flat part and the 0.429 × SP inside the weapon
    percentage, 0.5 × (normalized weapon + 81–105 + 0.429 × SP) at rank 8
    ([the logs](#the-beta-logs-holy-strike)), not the tooltip's order (the flat part after the 50%);

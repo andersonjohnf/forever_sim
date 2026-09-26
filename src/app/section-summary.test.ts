@@ -188,12 +188,11 @@ describe('sectionSummaries', () => {
 
   it('counts a paladin’s untested rules as a Character change, only for a paladin', () => {
     const ret = fresh('paladin-retribution')
-    expect(sectionSummaries({ ...ret, rules: { ...ret.rules, jotcBonus: 'flat' } }).character).toBe('Human · changed')
     const prot = fresh('paladin-protection')
     expect(sectionSummaries({ ...prot, rules: { ...prot.rules, hotrWeaponDps: 'weaponOnly' } }).character).toBe('Human · changed')
     expect(sectionSummaries({ ...ret, rules: { ...ret.rules, hotrWeaponDps: 'weaponOnly' } }).character).toBe('Human')
     const fury = fresh('warrior-fury')
-    expect(sectionSummaries({ ...fury, rules: { ...fury.rules, jotcBonus: 'flat' } }).character).toBe('Human')
+    expect(sectionSummaries({ ...fury, rules: { ...fury.rules, hotrWeaponDps: 'weaponOnly' } }).character).toBe('Human')
   })
 
   it('lets a Skyborne race’s variant, then the rules, give way to "changed" where the line would run long', () => {

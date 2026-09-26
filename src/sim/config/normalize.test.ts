@@ -370,17 +370,13 @@ describe('normalizeConfig', () => {
     }
   })
 
-  it('keeps a paladin’s Judgement of the Crusader rule when it’s flat, and drops it otherwise (paladin.md OQ 5)', () => {
+  it('drops a saved Judgement of the Crusader rule without a word: the setting is gone (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)', () => {
     const ret = defaultConfig('paladin-retribution')
-    const rules = (jotcBonus: unknown, spec = ret) => normalizeConfig({ ...spec, rules: { ...spec.rules, jotcBonus } })
-    expect(rules('flat').config.rules).toEqual({ ...ret.rules, jotcBonus: 'flat' })
-    expect(rules('flat').warnings).toEqual([])
-    // The default is left out, so a setup that never changed it compares equal to the default.
-    expect(rules('coefficient').config.rules).toEqual(ret.rules)
-    expect(rules('always').config.rules).toEqual(ret.rules)
-    expect(rules('always').warnings).toEqual(['The Judgement of the Crusader rule wasn\'t recognised, so it was reset.'])
-    // It does nothing for a warrior.
-    expect(rules('flat', defaultConfig('warrior-fury')).config.rules).toEqual(defaultConfig('warrior-fury').rules)
+    for (const jotcBonus of ['flat', 'coefficient', 'always']) {
+      const out = normalizeConfig({ ...ret, rules: { ...ret.rules, jotcBonus } })
+      expect(out.config.rules).toEqual(ret.rules)
+      expect(out.warnings).toEqual([])
+    }
   })
 
   it('maps the legacy damage-taken rage ids to their new names, without a warning (rage.md#rage-from-damage-taken)', () => {

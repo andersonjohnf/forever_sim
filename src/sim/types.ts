@@ -130,13 +130,6 @@ export interface SimConfig {
      */
     damageTakenRage?: DamageTakenRageModel
     /**
-     * How much of Judgement of the Crusader's +161 Holy damage taken each Holy hit gets, a
-     * paladin's untested-mechanic switch (docs/classes/paladin.md open question 5, Character →
-     * Advanced). Omitted: `coefficient`, a share by the spell's damage coefficient; `flat`, all of
-     * it on melee-class hits (seal procs, judgements, Holy Strike). Kept for paladins only.
-     */
-    jotcBonus?: 'coefficient' | 'flat'
-    /**
      * Whether Hammer of the Righteous's "damage per second of your main hand weapon" counts attack
      * power, a Protection paladin's untested-mechanic switch (docs/classes/paladin.md open question
      * 11, Character → Advanced). Omitted: `withAttackPower`, the weapon's DPS as the character sheet

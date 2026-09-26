@@ -85,7 +85,7 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
     [
       "sealOfCommandProc",
-      16850812.685096707,
+      17252743.550096713,
       23174,
       14703,
       6996,
@@ -95,9 +95,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     ],
   ],
   "dps": {
-    "ci95": 2.190402026276653,
-    "mean": 597.2567247692515,
-    "stdev": 35.34074834598399,
+    "ci95": 2.2074010244080156,
+    "mean": 599.4947102043126,
+    "stdev": 35.615016406316066,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -119,9 +119,9 @@ exports[`golden run (fixed config and seed) > keeps the default Retribution pala
     "spentPerFight": 10311.301,
   },
   "tps": {
-    "ci95": 1.2246466317224296,
-    "mean": 349.6612738567603,
-    "stdev": 19.758897182006606,
+    "ci95": 1.2341164201633918,
+    "mean": 350.91454570039417,
+    "stdev": 19.91168621624186,
   },
 }
 `;

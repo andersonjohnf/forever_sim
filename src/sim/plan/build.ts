@@ -1114,7 +1114,6 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         front: fight.position === 'front',
         weaponTypes: [weapons[HAND.main]?.type ?? null, weapons[HAND.off]?.type ?? null],
         maxMana: block.hasMana ? derived.mana : 0,
-        jotcRule: config.rules.jotcBonus ?? 'coefficient',
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,

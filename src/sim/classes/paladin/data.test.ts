@@ -45,7 +45,6 @@ import {
   SEAL_OF_RIGHTEOUSNESS_VALUE,
   sealOfRighteousnessProc,
   spread,
-  withJotcRule,
 } from './spells'
 import {
   IMPROVED_SEALS,
@@ -294,11 +293,13 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     }
   })
 
-  it('the default JotC rule scales the bonus by each spell’s coefficient; the flat rule gives melee-class spells all of it', () => {
-    expect(withJotcRule(JUDGEMENT_OF_COMMAND, 'coefficient').takenScale).toBe(0.429)
-    expect(withJotcRule(JUDGEMENT_OF_COMMAND, 'flat').takenScale).toBe(1)
-    expect(withJotcRule(EXORCISM, 'flat').takenScale).toBe(0.429)
-    expect(SEAL_OF_COMMAND_PROC.takenScale).toBeCloseTo(0.203, 12)
+  it('JotC’s share is each spell’s client coefficient, whole, outside a weapon share (the beta logs, paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)', () => {
+    for (const def of allSpells()) {
+      const e = spell(CLIENT[def.id][0]).effects.find((x) => (x.effectBonusCoefficient ?? 0) > 0)
+      expect(def.takenScale, def.id).toBeCloseTo(e?.effectBonusCoefficient ?? 0, 12)
+    }
+    expect(SEAL_OF_COMMAND_PROC.takenScale).toBe(0.29)
+    expect(EXORCISM.takenScale).toBe(0.429)
   })
 })
 

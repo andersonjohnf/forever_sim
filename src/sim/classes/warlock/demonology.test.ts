@@ -368,7 +368,9 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     // The default spends nothing on Improved Imp (EL-6), so the Imp out raises it only with the talent.
     expect(buildPlan(fixed(impRotation)).assumptions.map((a) => a.id)).not.toContain('improvedImpHidden')
     const imp = buildPlan(fixed(impRotation, { talents: IMPROVED_IMP_TALENTS }))
-    expect(imp.assumptions.find((a) => a.id === 'improvedImpHidden')!.text).toContain('(−1000 at your rank). Nothing says what it does, so the sim gives it no effect')
+    expect(imp.assumptions.find((a) => a.id === 'improvedImpHidden')!.text).toContain('hidden value its tooltip doesn’t show. Nothing says what it does, so the sim gives it no effect')
+    // It doesn't quote the bare number (EU-6).
+    expect(imp.assumptions.find((a) => a.id === 'improvedImpHidden')!.text).not.toMatch(/\d{3}/)
   })
 
   it('its demon’s assumptions name only what that demon has: the Imp no swing, the Felhunter no spell', () => {

@@ -58,13 +58,13 @@ export function warlockAssumptions(plan: Plan, talents: TalentRanks): { id: Assu
   if (has('baneOfAgony')) ids.push('baneOfAgonyRamp')
   ids.push('warlockTalentStacking')
   // Improved Imp's hidden value, given no effect (§11.7 Q19), when the Imp you keep out has the talent.
+  // The row doesn't quote the number, which means nothing to a player (review finding EU-6).
   const improvedImp = talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImpHidden)
   if (plan.pet?.id === 'imp' && improvedImp) ids.push('improvedImpHidden')
   // Improved Shadow Bolt's text names the rank's Shadow Vulnerability: +4% a rank (warlock.md §4.1).
   const vulnerability = plan.auras.find((a) => a.id === 'shadowVulnerability')?.schoolTaken ?? 0
   const detail: Partial<Record<AssumptionId, string>> = {
     improvedShadowBolt: String(vulnerability),
-    improvedImpHidden: `−${Math.abs(improvedImp)}`,
     ...(plan.pet ? demonDetails(plan.pet) : {}),
     ...(plan.pet ? { masterDemonologist: masterDemonologistDetail(plan) } : {}),
     ...(brand && plan.pet ? { demonicBrand: demonicBrandDetail(plan, brand.school) } : {}),

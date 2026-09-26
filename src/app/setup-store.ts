@@ -7,7 +7,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { sameEntry } from '@/features/gear/default-set'
 import { defaultConfig, GEAR_SLOTS, normalizeConfig, SPEC_IDS, type EquippedItem, type GearSlot, type SimConfig, type SpecId } from '@/sim'
-import { followDefaults, following, legacyFollowing, readFollowing, writtenV1Talents, type DefaultsUpdate, type Following } from './follow-defaults'
+import { followDefaults, following, legacyFollowing, readFollowing, writtenGearOf, writtenV1Talents, type DefaultsUpdate, type Following } from './follow-defaults'
 import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
@@ -208,7 +208,7 @@ export const useSetup = create<SetupState>()(
           const { config: normalized, talentChange } = normalizeConfig(raw)
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
-          const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw)))
+          const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw), writtenGearOf(raw)))
           // What reading a build from older talent trees changed is said (docs/data/talents.md
           // #tree-versions); a build that follows the default takes today's, which changes nothing.
           const change = moved.talents ? undefined : talentChange

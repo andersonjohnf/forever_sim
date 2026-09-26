@@ -140,15 +140,36 @@ export function writtenV1Talents(saved: unknown): string | undefined {
 }
 
 /**
+ * The gear a saved setup holds as it was written, for `legacyFollowing`: each slot's entry that reads
+ * as one (an item id, and an enchant id or none), before loading removes what the class can't wear.
+ */
+export function writtenGearOf(saved: unknown): SimConfig['gear'] {
+  const out: SimConfig['gear'] = {}
+  const gear = typeof saved === 'object' && saved !== null ? (saved as { gear?: unknown }).gear : undefined
+  if (typeof gear !== 'object' || gear === null) return out
+  for (const slot of GEAR_SLOTS) {
+    const entry = Object.hasOwn(gear, slot) ? (gear as Record<string, unknown>)[slot] : undefined
+    if (typeof entry !== 'object' || entry === null) continue
+    const { itemId, enchantId } = entry as { itemId?: unknown; enchantId?: unknown }
+    if (typeof itemId !== 'number') continue
+    out[slot] = typeof enchantId === 'string' ? { itemId, enchantId } : { itemId }
+  }
+  return out
+}
+
+/**
  * The parts of a setup saved before saves said what follows the defaults that held a default then,
  * by the frozen tables alone, never today's defaults: a slot with the snapshot's default, its v1
  * pick or a former interim item (with one of the slot's frozen enchants, or none where the former
  * default had none), for the setup's race or the class's default race, or a race change's twin of
  * one of those; and a talent build that was the spec's default. Everything else is the player's.
  * `writtenTalents` is the talent code as the save held it (writtenV1Talents): the frozen codes are on
- * 1.60.1.69913's trees, and `config`, loaded, has it on today's.
+ * 1.60.1.69913's trees, and `config`, loaded, has it on today's. `writtenGear` is the gear as the save
+ * held it (writtenGearOf): a slot loading emptied (a default item the class can no longer wear, such as
+ * the bear's former Darkmantle Cap, a rogue's quest reward: docs/data/items.md#class-quest-rewards) is
+ * judged by what it held, so it still follows and takes today's default.
  */
-export function legacyFollowing(config: SimConfig, writtenTalents: string | undefined): Following {
+export function legacyFollowing(config: SimConfig, writtenTalents: string | undefined, writtenGear?: SimConfig['gear']): Following {
   const { spec, race } = config
   const { classId } = SPEC_META[spec]
   const faction = factionOf(race)
@@ -156,7 +177,7 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
   const races = [...new Set([race, frozen?.race ?? race])]
   const defaults = races.flatMap((r) => frozenGear(spec, r))
   const gear = GEAR_SLOTS.filter((slot) => {
-    const entry = config.gear[slot]
+    const entry = config.gear[slot] ?? writtenGear?.[slot]
     if (defaults.some((d) => sameEntry(entry, d[slot]))) return true
     if (!entry) return false
     const ids = new Set<number>([...defaults.flatMap((d) => d[slot]?.itemId ?? []), ...(FORMER_GEAR[spec]?.[slot] ?? [])])

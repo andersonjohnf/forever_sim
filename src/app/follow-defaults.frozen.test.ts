@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { defaultConfig, GEAR_SLOTS, normalizeConfig, preRaidListGear, type GearSlot, type SimConfig, type SpecId } from '@/sim'
-import { followDefaults, legacyFollowing } from './follow-defaults'
+import { followDefaults, legacyFollowing, writtenGearOf } from './follow-defaults'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 // docs/architecture.md "Following the defaults": the migration reads a frozen snapshot, never
@@ -108,5 +108,26 @@ describe('a save from before `following`, after the defaults change', () => {
     expect(moved.talents).toBe(false)
     expect(moved.config.gear.head).toEqual(NEW_FURY_HEAD)
     expect({ ...moved.config.gear, head: old.gear.head }).toEqual(old.gear)
+  })
+
+  it('moves a slot whose default the class can no longer wear: the bear’s Darkmantle Cap (docs/data/items.md#class-quest-rewards)', async () => {
+    const sim = await vi.importActual<typeof import('@/sim')>('@/sim')
+    const frozen = LEGACY_DEFAULTS['druid-feral-bear']!
+    const written: SimConfig['gear'] = {}
+    for (const [slot, [itemId, enchantId]] of Object.entries(frozen.sets[frozen.races['horde-tauren'][0]]) as [GearSlot, LegacyEntry][]) {
+      written[slot] = enchantId === undefined ? { itemId } : { itemId, enchantId }
+    }
+    expect(written.head).toEqual({ itemId: 22005, enchantId: 'arcanumVoracityAgility' })
+    const raw = { ...sim.defaultConfig('druid-feral-bear', 'horde-tauren'), version: 1, talents: frozen.talents, gear: written }
+    // Loading removes the rogue's quest reward...
+    const old = normalizeConfig(raw).config
+    expect(old.gear.head).toBeUndefined()
+    // ...and the slot still follows the default, by what the save held, so it takes today's head.
+    expect(legacyFollowing(old, frozen.talents).gear).not.toContain('head')
+    const follow = legacyFollowing(old, frozen.talents, writtenGearOf(raw))
+    expect(follow.gear).toEqual(GEAR_SLOTS)
+    const moved = followDefaults(old, follow)
+    expect(moved.config.gear.head).toEqual(defaultConfig('druid-feral-bear', 'horde-tauren').gear.head)
+    expect(moved.config.gear.head?.itemId).not.toBe(22005)
   })
 })

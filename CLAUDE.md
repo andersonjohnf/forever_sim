@@ -197,16 +197,19 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   database (D24); and Blizzard's own SoD client data or patch notes for a spell Forever reuses
   from SoD ([D37](docs/decisions.md#d37-only-sourced-values-2026-09-26)). Both are `[?]`.
   **Other sims are never authoritative** (wowsims, WarriorSim, LibThreatClassic2, Warcraft Logs
-  threat configs): unconfirmed data to consider. **The user's offhand numbers are never
+  threat configs): unconfirmed data to consider, never a value on their own. **The user's offhand numbers are never
   evidence or targets.** There are no guild tests apart from the user's paladin test; a player's
   tests shared elsewhere are third-party `[?]`.
 - **Only sourced values; every described effect has a default (D29, D37).** No invented
   multipliers, ratios, scalings or fitted terms. A default is an allowed source's value used as
   is: the same ability's Classic Era value, a similar known value unchanged, Blizzard's SoD data
   for a reused spell, client data as the client defines it, or a measurement (D22 log analysis,
-  in-game test). It's tagged `[?]` and shown in the results' assumptions. An effect a tooltip,
-  talent, the client or observed play describes is never left out; **an undescribed client
-  dummy models as zero.** **The same threat wording means the same threat on every tank:** "a
+  in-game test). A stand-in for an unknown Forever value is tagged `[?]` and shown in the
+  results' assumptions; a tier 1–3 value for the ability itself keeps its `[F]` or `[C]`. An
+  effect a tooltip, talent, the client or observed play describes is never left out: with no
+  allowed value, it takes the closest similar known value as is (`[?]`, provenance stated), or
+  zero `[?]` with an open question if nothing similar exists, never a number reasoned into
+  being. **An undescribed client dummy models as zero.** **The same threat wording means the same threat on every tank:** "a
   high amount of threat" on a bear's or paladin's ability carries the bonus the warrior's
   abilities with those words carry, used as is (threat.md's wording table).
 - **Defaults are what the spec's players actually run (D29).** Talent builds suit the role as

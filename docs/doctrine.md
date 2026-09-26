@@ -57,8 +57,8 @@ Rules come from four tiers. Use the highest tier that has an answer.
    ([client.md § Hotfix caveat](data/client.md#hotfix-caveat)).
 2. **WoW Forever, measured**: in-game tests on the Forever beta by the user or guild members,
    recorded in the relevant doc with the build, date, method, and sample size. If a
-   measurement contradicts a tooltip, the measurement wins; flag the conflict. So far the only
-   one is the user's level-20 paladin test
+   measurement contradicts a tooltip, the measurement wins; flag the conflict. This tier is
+   unchanged by D37, but so far the only such test is the user's level-20 paladin test
    ([D37](decisions.md#d37-only-sourced-values-2026-09-26)); a test shared by someone else is a
    third-party measurement (below), not tier 2.
 3. **Classic Era**: the 2019+ WoW Classic re-release, clients 1.13–1.15. Its client
@@ -86,10 +86,11 @@ Rules come from four tiers. Use the highest tier that has an answer.
 
 **Secondary Forever sources** include Wowhead news posts, streamer tooltip captures, and
 community Forever sims such as [wowsims/forever](https://github.com/wowsims/forever) and
-[ElliotWood/Forever](https://github.com/ElliotWood/Forever). They may be cited for
-Forever-specific facts but are tagged **[?]** until client data or a tier 2 measurement
-confirms them. Never adopt a value they carried over from a forbidden ruleset: both are
-built on wowsims code with Season of Discovery or TBC lineage.
+[ElliotWood/Forever](https://github.com/ElliotWood/Forever). News posts and tooltip captures
+may be cited for Forever-specific facts, tagged **[?]** until client data or a tier 2
+measurement confirms them. The community sims are other sims (below): they can corroborate a
+value or point to its source, never set one. Never adopt a value they carried over from a
+forbidden ruleset: both are built on wowsims code with Season of Discovery or TBC lineage.
 
 Two more kinds of evidence are secondary and tagged **[?]**:
 
@@ -104,10 +105,11 @@ Two more kinds of evidence are secondary and tagged **[?]**:
 **Mixed-lineage Classic sims are secondary too.** For example,
 [wowsims/classic](https://github.com/wowsims/classic) describes itself as a Season of
 Discovery sim and still contains SoD rune code. The same goes for tools with SoD or TBC
-modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). A value supported only
-by such a source is **[?]**, not **[C]**, until a genuine Classic Era source corroborates
-it. Exception: code pinned to a commit from **before Season of Discovery launched
-(2023-11-30)** is Classic Era and can back a **[C]** value.
+modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). Their code, even pinned to
+a commit from before Season of Discovery launched (2023-11-30), can corroborate a value or
+point to a Classic Era source, but never sets one: a value kept from such a source for want of
+anything better is **[?]**, with its provenance stated plainly, until a genuine Classic Era
+source gives it.
 
 **Other sims are never authoritative**
 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). wowsims classic and SoD, WarriorSim,
@@ -156,13 +158,19 @@ So:
     from SoD (tier 4's scoped exception);
   - client data, with the meaning the client defines for it;
   - a measurement: a D22 log analysis or a tier 2 test.
+- **A described effect no allowed source gives a value takes the closest similar known value**
+  (the user's words: "finding something similar and using it"), used as is, tagged **[?]**
+  with where it came from stated plainly, and listed as an open question. If nothing similar
+  exists, it models as zero, tagged **[?]** with an open question. It's never an estimate
+  reasoned into a new number.
 - **No invented multipliers, ratios, scalings or fitted terms.** A coefficient chosen to make a
   result look right, or fitted to one tester's numbers, is not a default.
 - **An undescribed client dummy effect models as zero.** A dummy aura or effect with no
   tooltip, talent text or defined client meaning has nothing to default from; giving it a
   meaning by analogy is invention. The zero is tagged **[?]** and listed as an open question.
-- Every such default is tagged **[?]**, listed in the doc's open questions and shown in the
-  results' assumptions, until a tier 1–2 source replaces it.
+- A value that stands in for an unknown Forever value is tagged **[?]**, listed in the doc's
+  open questions and shown in the results' assumptions, until a tier 1–2 source replaces it. A
+  value a tier 1–3 source gives for this very ability keeps its **[F]** or **[C]**.
 - The tier 4 rule still holds: a default is never copied from a forbidden source.
 
 **The same threat wording means the same threat on every tank** (D29). "A high amount of threat"

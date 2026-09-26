@@ -842,7 +842,15 @@ Classic-based default), D36 (the Season of Discovery exception) and [doctrine §
     Forever client carries the SoD spell (see below);
   - client data, with the meaning the client defines for it;
   - measurements: a reproducible beta-log analysis (D22), or in-game tests by the user or guild
-    members, recorded with the build, date, method and sample size.
+    members, recorded with the build, date, method and sample size. Tier 2 is unchanged from
+    before D37; so far none exist except the user's own (below).
+- **A described effect no allowed source gives a value takes the closest similar known value**
+  (the user's words: "finding something similar and using it"). That value is used as is,
+  tagged `[?]` with where it came from stated plainly, and listed as an open question. If
+  nothing similar exists, the effect models as zero, tagged `[?]` with an open question. It's
+  never an estimate reasoned into a new number.
+- **Only a stand-in is `[?]`.** A value that stands in for an unknown Forever value is `[?]`;
+  a value a tier 1–3 source gives for this very ability keeps its `[F]` or `[C]`.
 - **An undescribed client dummy effect models as zero.** D29's "every value has a default" covers
   only effects that a tooltip, a talent's text, the client's defined meaning or observed play
   describes. Giving a dummy effect a meaning by analogy is making a number up. A zero for a dummy
@@ -850,13 +858,15 @@ Classic-based default), D36 (the Season of Discovery exception) and [doctrine §
 - **The user's offhand numbers are never evidence or targets.** No value moves to close a gap to
   a feeling (such as "800–900 TPS"). A gap no cited mechanic explains is an open question.
 - **There are no guild tests or benchmarks** apart from the user's own level-20 paladin test
-  (Holy Strike 27 threat, 36 with Judgement of the Crusader, 43 with Seal of Fury as well).
+  (Holy Strike did 27 damage, 36 with Judgement of the Crusader, 43 with Seal of Fury as well).
   Anything else labelled a guild test, benchmark or measurement was mislabelled and is relabelled
   by where it came from: a player's in-game tests shared on Discord are third-party Forever
   measurements, `[?]`.
 - **Other sims are never authoritative.** wowsims classic and SoD, WarriorSim, LibThreatClassic2
   and the Warcraft Logs threat configs are unconfirmed data we may consider, never a source that
-  sets a value on its own. Their bear and most of their warrior threat constants cite no source.
+  sets a value on its own. Their code, pinned to a commit or not, can corroborate a value or
+  point to a source; a value kept from one for want of anything better is `[?]` with its
+  provenance stated plainly. Their bear and most of their warrior threat constants cite no source.
 - **Season of Discovery, scoped.** SoD stays forbidden, except Blizzard's own SoD client data or
   patch notes for a spell Forever reuses from SoD (the same spell ID in the Forever client). This
   replaces D36's "SoD behaviour as the closest analog" exception: a value from another sim's SoD

@@ -554,7 +554,7 @@ async function main() {
     const shown = Object.entries(w.weights).filter(([, v]) => Math.abs(v) > 1e-9).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12)
     if (shown.length)
       console.log(
-        `stat weights (the first ranking, at the setup's gear, ${plural(g.ranking.weightFights, 'fight')} a plan; score per point, 95%): ${shown.map(([k, v]) => `${k} ${fmt(v, 3)} ± ${fmt(w.intervals[k]?.halfWidth ?? 0, 3)}`).join(', ')}`,
+        `stat weights (the first ranking, at the setup's gear, ${plural(g.ranking.weightFights, 'fight')} a plan; score per point, 95%): ${shown.map(([k, v]) => `${k} ${v.toFixed(3)} ± ${(w.intervals[k]?.halfWidth ?? 0).toFixed(3)}`).join(', ')}`,
       )
     if (g.final) printStandings(g.final)
     else console.log('the final race did not run')

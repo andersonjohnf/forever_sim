@@ -500,7 +500,14 @@ sets. Each spec's defaults are then its results.
       (a two-hander against a main and an off hand) in pairs; a shield tank's shield; set pieces
       swapped in together; the Zandalar and Scourge shoulder enchants left out by default; a tank's
       effective-health floor against its survival preset; `--search gear` and `--search all`
-      (talents, gear and rotation in turns). Awaiting its review
+      (talents, gear and rotation in turns). Reviewed; the fix round (O2L-1 to O2L-12): the default
+      pool is pre-raid gear and the launch raids, the later raids opt-in (`--include-later-raids`; user
+      decision, D30 2026-09-25), every piece labelled with its source; a step moves only when it
+      clears the current gear at 95% and applies D30's unmeasured-rating rule; a locked ring or trinket
+      ranks through the other slot; pairs race unordered; the rankings keep the hard ceiling and the
+      first ranking is the whole search's; Presence of Might left out; Balanced ranks against the
+      setup; the final race on its own seed. Fury `quick`: +24.1 DPS (+2.9%) in the default pool, +46.4
+      (+5.5%) with the later raids. Awaiting the fix round's verification
 - [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px.
       It shows the hard ceiling's estimate (fights and time) before the search and again before the

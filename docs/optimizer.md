@@ -27,7 +27,11 @@ ranked by the setup's own stat weights or a measured swap; enchants with their s
 a two-hander against a main and an off hand, a shield tank's shield, set pieces swapped in together;
 coordinate ascent with O1's race, restarts from the default preset and a greedy set, and a final
 race; and [talents, gear and rotation in turns](#talents-gear-and-rotation-together) until stable
-(`--search gear`, `--search all`). Not yet reviewed.
+(`--search gear`, `--search all`). Reviewed, with the fix round's changes (O2L-1 to O2L-12): [the
+default pool](#the-default-pool) is pre-raid gear and the launch raids, the later raids only when the
+player opts in (user decision, D30 2026-09-25); a step moves only on a clear win and applies D30's
+unmeasured-rating rule; the rankings keep the hard ceiling; the final race runs on its own seed.
+Awaiting the fix round's verification.
 
 **Data build.** O1 was built and reviewed on 1.60.1.69913's data and talent trees, then merged onto
 1.60.1.70009's: the paladin's Improved Holy Strike and Crusade gone, the shaman's Elemental swap,
@@ -867,10 +871,11 @@ last answer, and the last report's `turnsStopped` says so.
 
 **A gear search's budget** is its own: `--budget` is every fight of the gear search (the rankings,
 the steps and the final race), clamped to the cap ([gear](#gear)). On 1.60.1.70009, Fury's first
-ranking is 104,600 fights, most of them the 300-fight swaps of its weapons and effect items (the
-pilot sets 25 of its 33 stat fields aside), and a later one about 18,500, its weights alone; a step
-races 5 to 60 gear sets, 1,000 to 15,000 fights on `quick`. Fury's `quick` search ran two starts (4
-passes, then 2 to stable) and the final race in 890,917 fights, 18 s on 8 threads.
+ranking is 91,400 fights in the default pool (104,600 with the later raids), most of them the 300-fight
+swaps of its weapons and effect items (the pilot sets 25 of its 33 stat fields aside), and a later one
+18,500, its weights alone; a step races 5 to 54 gear sets, about 2,000 to 31,000 fights on `quick`. Fury's
+`quick` search ran two starts (2 passes and 1, both to stable) and the final race in 699,760 fights,
+19 s on 6 threads ([the answers](#defaults-from-the-results)).
 
 So `quick` suits a space of up to about 9,000 plans, `standard` 36,000 and `thorough` 144,000; a
 larger one costs more than its budget (to 100 fights a plan) up to the cap, and past about 432,000
@@ -955,27 +960,44 @@ default, paired over the leader's fights:
 
 The logs and reports are in `.cache/demos/70009/` of the merge's worktree.
 
-**Gear on 1.60.1.70009 so far** (O2, `--search gear`, `quick`, seed 1, not O4's `thorough`, so no
-default has changed). Fury, from its default set: the greedy start's end led the final race by
-**+49.7 DPS** (+46.1 to +53.3) and **confirmed at +48.3 DPS** (+47.5 to +49.1, +6.0%) on a fresh
-seed at 20,000 fights each, with the unmeasured ratings applied or ignored alike. Its changes: Arcanum
-of Rapidity on the head and legs, Fury of the Forgotten Swarm, Truestrike Shoulders, Earthweave
-Cloak, Forest Stalker's Bracers, Sacrificial Gauntlets with Superior Strength, Belt of Preserved
-Heads, Sentinel's Chain Leggings (a Warsong Gulch reward), Slime Kickers, Band of Earthen Might,
-Earthstrike with Hand of Justice, and Bloodseeker; the weapons stayed. The setup’s own start ended
-at +29.5, **20.1 DPS behind it** (16.5 to 23.8), after 4 passes without settling (Adaptive Combat
-Assistant in place of Hand of Justice, Mark of Fordring kept): the restart is what found the better
-set. The report is
-`.cache/optimize/o2-fury-quick.json` of the O2 worktree.
+**Gear on 1.60.1.70009 so far** (O2 after its review's fixes, `--search gear`, `quick`, seed 1, not
+O4's `thorough`, so no default has changed). Fury, from its default set (the W4 re-tune's
+`20303203-050520035152310051-`), which is also its default preset, so the restarts are the greedy set
+alone:
+
+- **The default pool** (pre-raid gear and the launch raids). The first ranking ran 91,400 fights and
+  each later one 18,500. The setup's start was **stable after 2 passes** (271,787 fights; 6 of its
+  steps kept the gear because the leader wasn't clear of it at 95%, its neck twice, +1.31 and +1.24),
+  and the greedy start after 1 (330,573). The final race, on its own seed, took the setup's start's end
+  by +24.04 (+23.57 to +24.51) over the greedy end's +20.75, and it **confirmed at +24.1 DPS** (+23.9 to
+  +24.2, **+2.9%**) on fresh seed 2654435770 at 20,000 fights each, with the unmeasured ratings applied
+  or ignored alike. Its changes: Earthweave Cloak, Superior Strength on the Devilsaur Gauntlets (an
+  option, not a default: O4 would set Greater Strength and record it, [above](#defaults-from-the-results)),
+  Might of the Timbermaw, Band of Earthen Might in place of Tarnished Elven Ring, and Earthstrike in place
+  of Blackhand's Breadth. 699,760 fights in 19 s on 6 threads.
+- **With the later raids** (`--include-later-raids`). The first ranking ran 104,600 fights; the setup's
+  start was stable after 3 passes and the greedy start after 2; the greedy end led the final race by
+  +46.28 (+42.75 to +49.82) and **confirmed at +46.4 DPS** (+45.6 to +47.2, **+5.5%**), ratings applied
+  or ignored alike. Its changes add five later pieces, each labelled "later content (item level N, on
+  no pre-raid list), opted in": Fury of the Forgotten Swarm (71), Sacrificial Gauntlets (68), Belt of
+  Preserved Heads (70), Slime Kickers (73) and Fahrad's Reloading Repeater (65); with Truestrike
+  Shoulders, Earthweave Cloak, Sentinel's Chain Leggings, Band of Earthen Might, and Earthstrike with
+  Hand of Justice. 932,753 fights in 37 s.
+
+So about 22 of O2's first +48 came from Zul'Gurub, Ahn'Qiraj and later-patch Rares (O2L-1). The
+reports are `.cache/optimize/o2fix-fury-quick.json` and `o2fix-fury-quick-later.json` of the O2
+worktree; before the fixes the answer was +48.3 (+6.0%), and its setup's start never settled in 4 passes.
 
 ## Reading the results
 
 **A gear search** prints each start's rankings and steps as they finish ("hands: 14 candidates,
 CHANGED"), then each start's end as changes from the setup ("Hands: Devilsaur Gauntlets (+Greater
 Strength) → Sacrificial Gauntlets (+Superior Strength)", with a new piece's source in brackets), the
-notes, the fights it ran, the setup's stat weights, and the final race's standings, whose changes list
-the talents, the rotation and the gear that differ from the setup (`describeGearChange`). The JSON
-report adds each start's steps, passes and weights, and the winner's gear.
+notes, the fights it ran, the first ranking's stat weights with their 95% intervals ("str 0.746 ±
+0.003"), and the final race's standings, whose changes list the talents, the rotation and the gear that
+differ from the setup (`describeGearChange`). A step that kept the gear says why ("the leader is 1.31
+ahead of the current gear, not clear of it at 95%: the gear stays"). The JSON report adds the first
+ranking, each start's steps (with their notes), passes and weights, and the winner's gear.
 
 
 The CLI prints the goal and the ceiling, the screen, the space (and, plainly, when the ceiling

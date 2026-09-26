@@ -40,7 +40,7 @@ const SPELL = {
   takenScale: 0,
 } as const
 
-/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60 (paladin.md#conventions-used-below). */
+/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60, truncated (docs/data/items.md#per-level-values). */
 const range = (base: number, variance: number, perLevel: number, baseLevel: number, maxLevel: number) => {
   const grow = atLevel60(0, perLevel, baseLevel, maxLevel)
   const [min, max] = spread(base, variance)
@@ -49,7 +49,7 @@ const range = (base: number, variance: number, perLevel: number, baseLevel: numb
 
 /**
  * Starfire r6 (9876), the trainer's top rank (r7 is an Ahn'Qiraj book, D36; druid.md §11.2): 337 base
- * points, variance 0.16494845, +2.3 a level from 58 to 64, so 313.81–369.39 at 60; coefficient 1.0;
+ * points, variance 0.16494845, +2.3 a level from 58 to 64, truncated (+4), so 313.21–368.79 at 60, the tooltip's 313–369; coefficient 1.0;
  * Arcane (Classic Era: 451–531) [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009; §11.2).
  */
 export const STARFIRE_SPELL: SpellDef = {
@@ -84,8 +84,8 @@ export const MOONFIRE_TICK_MS = 3000
 export const MOONFIRE_TICKS = 4
 
 /**
- * Moonfire r10 (9835): a hit of 135 base points, variance 0.15609756, +2.3 a level from 58 to 63, so
- * 129.06–150.14 at 60, coefficient 0.15; and a DoT of 60 every 3 s for 12 s at 0.13 a tick, whose
+ * Moonfire r10 (9835): a hit of 135 base points, variance 0.15609756, +2.3 a level from 58 to 63,
+ * truncated (+4), so 128.46–149.54 at 60 (the tooltip's 128–150), coefficient 0.15; and a DoT of 60 every 3 s for 12 s at 0.13 a tick, whose
  * ticks carry the periodic-crit flag (SpellMisc Attributes[8] 0x200); Arcane [F] [client]
  * (SpellEffect, SpellMisc, SpellLevels, SpellDuration, 1.60.1.69913; §11.2). One hit roll for both
  * (spells.md §7). Not binary: its effects are damage only.

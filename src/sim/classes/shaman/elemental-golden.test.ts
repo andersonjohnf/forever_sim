@@ -49,6 +49,8 @@ describe('golden run (fixed config and seed)', () => {
   //   other side's snapshot reproduces exactly.
   // - D36, pre-Ahn'Qiraj ranks (W2): Blessing of Wisdom r5 (36 mp5) and the own totems' trainer ranks (Strength
   //   of Earth r4, Grace of Air r2). 403.17 → 401.62 DPS.
+  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values):
+  //   Lightning Bolt r10 + 4, Chain Lightning r4 + 3 (189.38–210.62, 119.17–132.83). 401.62 → 401.41 DPS.
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

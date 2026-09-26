@@ -95,7 +95,8 @@ export const SHADOW_WORD_PAIN: AbilityDef = {
 
 /**
  * Mind Blast r9 (10947) [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913): 485 base points,
- * variance 0.054158606, +2.6 a level from 58 to 63, so 477.07–503.33 at 60 (the tooltip's 477 to 503;
+ * variance 0.054158606, + trunc(2.6 a level from 58 to 63) = 5 (docs/data/items.md#per-level-values), so
+ * 476.87–503.13 at 60 (the tooltip's 477 to 503;
  * Classic Era 508–536), coefficient 0.429, Shadow. Pure damage: partially resisted.
  */
 const [MB_MIN, MB_MAX] = spread(485, 0.054158606)

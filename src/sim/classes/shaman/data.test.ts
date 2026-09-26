@@ -147,16 +147,16 @@ describe('the shocks and Lightning Bolt against the client (shaman.md#shocks-and
     expect(EARTH_SHOCK_SPELL.max).toBeCloseTo(308.93597, 5)
   })
 
-  it('Frost Shock r4: 283 ± 5.6%, +1.8 a level from 58 (278.68–294.52), 0.386, Frost, magic', () => {
+  it('Frost Shock r4: 283 ± 5.6%, + trunc(1.8 a level from 58) = 3 (278.08–293.92), 0.386, Frost, magic', () => {
     matches(FROST_SHOCK_SPELL, FS, 1)
-    expect(FROST_SHOCK_SPELL.min).toBeCloseTo(278.676, 9)
-    expect(FROST_SHOCK_SPELL.max).toBeCloseTo(294.524, 9)
+    expect(FROST_SHOCK_SPELL.min).toBeCloseTo(278.076, 9)
+    expect(FROST_SHOCK_SPELL.max).toBeCloseTo(293.924, 9)
   })
 
-  it('Lightning Bolt r10: 196 ± 10.8%, +1.2 a level from 56 (190.18–211.42), 0.714, Nature, magic', () => {
+  it('Lightning Bolt r10: 196 ± 10.8%, + trunc(1.2 a level from 56) = 4 (189.38–210.62), 0.714, Nature, magic', () => {
     matches(LIGHTNING_BOLT_SPELL, LB, 0)
-    expect(LIGHTNING_BOLT_SPELL.min).toBeCloseTo(190.18149, 5)
-    expect(LIGHTNING_BOLT_SPELL.max).toBeCloseTo(211.41851, 5)
+    expect(LIGHTNING_BOLT_SPELL.min).toBeCloseTo(189.38149, 5)
+    expect(LIGHTNING_BOLT_SPELL.max).toBeCloseTo(210.61851, 5)
   })
 
   it('costs, cooldowns, GCDs and cast times: the shocks 450 and 430 in category 19 (6 s); Lightning Bolt 220 and 2.5 s', () => {
@@ -423,7 +423,7 @@ describe('the Elemental spells against the client (shaman.md#elemental-abilities
     expect(classMask(915)).toBe(classMask(LB))
   })
 
-  it('Chain Lightning r4 (10605): 123 ± 5.6%, +0.8 a level from 56 to 61 (119.37–133.03), 0.571, 485 mana, 2.0 s, its own 6 s', () => {
+  it('Chain Lightning r4 (10605): 123 ± 5.6%, + trunc(0.8 a level from 56 to 61) = 3 (119.17–132.83), 0.571, 485 mana, 2.0 s, its own 6 s', () => {
     matches(CHAIN_LIGHTNING_SPELL, CL, 0)
     costs(CHAIN_LIGHTNING, CL)
     expect(CHAIN_LIGHTNING.castHasted).toBe(true)

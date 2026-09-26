@@ -110,9 +110,10 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
       expect(def.max).toBeCloseTo(b + scaled, 9)
       matches(def, id)
     }
-    // The client's variance is stored to 8 digits: 162.0000 and 178.0000 before the level scaling.
-    expect(JUDGEMENT_OF_RIGHTEOUSNESS.min).toBeCloseTo(170.2, 5)
-    expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186.2, 5)
+    // The client's variance is stored to 8 digits: 162.0000 and 178.0000 before the level scaling,
+    // then + trunc(8.2) = 8 (docs/data/items.md#per-level-values): Classic Era's 170–186.
+    expect(JUDGEMENT_OF_RIGHTEOUSNESS.min).toBeCloseTo(170, 5)
+    expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186, 5)
   })
 
   it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1; the seal values 1786 + 47/level and 1607 + 42/level from 58', () => {

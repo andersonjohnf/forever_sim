@@ -38,23 +38,23 @@ const uses = (plan: Plan, id: string, fight = 0) =>
     .map((e) => e.t)
 
 describe('worked example 1: Lightning Bolt rank 10', () => {
-  it('deals (190.18–211.42 + 0.714 × SP) × 1.05 × 0.94: 469.60–490.56, 480.08 at SP 400; costs 198 and casts in 2.0 s', () => {
+  it('deals (189.38–210.62 + 0.714 × SP) × 1.05 × 0.94: 468.81–489.77, 479.29 at SP 400; costs 198 and casts in 2.0 s', () => {
     const plan = elementalPlan({ dropProcs: NO_PROCS })
     expect(ability(plan, 'lightningBolt')).toMatchObject({ costTenths: 1980, castMs: 2000, castHasted: true, clearcastable: true })
     const lb = damagesOf(plan, 'lightningBolt', 20)
-    expect(Math.min(...lb)).toBeGreaterThanOrEqual((190.1814893 + 0.714 * SP) * 1.05 * RESIST - 1e-6)
-    expect(Math.max(...lb)).toBeLessThanOrEqual((211.4185107 + 0.714 * SP) * 1.05 * RESIST + 1e-6)
-    expectMean(lb, 480.0768)
+    expect(Math.min(...lb)).toBeGreaterThanOrEqual((189.3814893 + 0.714 * SP) * 1.05 * RESIST - 1e-6)
+    expect(Math.max(...lb)).toBeLessThanOrEqual((210.6185107 + 0.714 * SP) * 1.05 * RESIST + 1e-6)
+    expectMean(lb, 479.2872)
     // Back to back: nothing else in the list, and the cast holds the GCD.
     const t = uses(plan, 'lightningBolt')
     for (let i = 1; i < t.length; i++) expect(t[i] - t[i - 1]).toBe(2000)
   })
 
-  it('crits for ×2.0 with Elemental Fury 5/5: 960.15', () => {
+  it('crits for ×2.0 with Elemental Fury 5/5: 958.57', () => {
     const plan = elementalPlan({ dropProcs: NO_PROCS })
     plan.stats.spellCrit = 100
-    Object.assign(spellOf(plan, 'lightningBolt'), { min: 200.8, max: 200.8 })
-    for (const d of damagesOf(plan, 'lightningBolt')) expect(d).toBeCloseTo(960.1536, 9)
+    Object.assign(spellOf(plan, 'lightningBolt'), { min: 200, max: 200 })
+    for (const d of damagesOf(plan, 'lightningBolt')) expect(d).toBeCloseTo(958.5744, 9)
   })
 
   it('casts in 1,818 ms with a Troll’s Berserking (+10% casting speed), and back to 2,000 ms after its 10 s', () => {
@@ -66,14 +66,14 @@ describe('worked example 1: Lightning Bolt rank 10', () => {
     expect(late[1] - late[0]).toBe(2000)
   })
 
-  it('adds Totem of the Storm’s 33 spell damage × 0.714 = 23.56 to the base (503.33 on average)', () => {
+  it('adds Totem of the Storm’s 33 spell damage × 0.714 = 23.56 to the base (502.54 on average)', () => {
     const base = spellOf(elementalPlan(), 'lightningBolt')
     const d = defaultConfig(ELE)
     const withRelic = buildPlan({ ...d, gear: { ranged: { itemId: 23199 } } }).plan
     const bare = buildPlan({ ...d, gear: {} }).plan
     expect(spellOf(withRelic, 'lightningBolt').min - spellOf(bare, 'lightningBolt').min).toBeCloseTo(23.562, 9)
     expect(spellOf(withRelic, 'chainLightning').max - spellOf(bare, 'chainLightning').max).toBeCloseTo(18.843, 9)
-    expect(base.min).toBeCloseTo(190.1814893, 6)
+    expect(base.min).toBeCloseTo(189.3814893, 6)
     expect(buildPlan({ ...d, gear: { ranged: { itemId: 23199 } } }).assumptions.map((a) => a.id)).toContain('totemOfTheStorm')
   })
 })
@@ -92,13 +92,13 @@ describe('worked example 2: Lightning Bolt rank 4', () => {
 })
 
 describe('worked example 3: Chain Lightning', () => {
-  it('deals (119.37–133.03 + 0.571 × SP) × 1.05 × 0.94 = 349.99 on one target for 436 mana, a 1.5 s cast and a 6 s cooldown', () => {
+  it('deals (119.17–132.83 + 0.571 × SP) × 1.05 × 0.94 = 349.79 on one target for 436 mana, a 1.5 s cast and a 6 s cooldown', () => {
     const plan = elementalPlan({ dropProcs: NO_PROCS, rotation: { [ID.chainLightning]: 'cooldown' } })
     expect(ability(plan, 'chainLightning')).toMatchObject({ costTenths: 4360, castMs: 1500, cooldownMs: 6000, castHasted: true })
     const cl = damagesOf(plan, 'chainLightning', 40)
-    expect(Math.min(...cl)).toBeGreaterThanOrEqual((119.366666735 + 0.571 * SP) * 1.05 * RESIST - 1e-6)
-    expect(Math.max(...cl)).toBeLessThanOrEqual((133.033333265 + 0.571 * SP) * 1.05 * RESIST + 1e-6)
-    expectMean(cl, 349.9902)
+    expect(Math.min(...cl)).toBeGreaterThanOrEqual((119.166666735 + 0.571 * SP) * 1.05 * RESIST - 1e-6)
+    expect(Math.max(...cl)).toBeLessThanOrEqual((132.833333265 + 0.571 * SP) * 1.05 * RESIST + 1e-6)
+    expectMean(cl, 349.7928)
     // On its cooldown, between Lightning Bolts: 6 s from its cast's end.
     const t = uses(plan, 'chainLightning')
     expect(t[0]).toBe(0)

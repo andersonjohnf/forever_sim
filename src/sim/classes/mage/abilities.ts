@@ -35,7 +35,7 @@ const SPELL = {
   takenScale: 0,
 } as const
 
-/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60 (docs/mechanics/spells.md §5). */
+/** A rank's range at level 60: base × (1 ± variance / 2), plus its per-level points up to 60, truncated (docs/data/items.md#per-level-values). */
 const range = (base: number, variance: number, perLevel = 0, spellLevel = 60, maxLevel = 60) => {
   const grow = atLevel60(0, perLevel, spellLevel, maxLevel)
   const [min, max] = spread(base, variance)
@@ -65,7 +65,7 @@ export const FIREBALL_SPELL: SpellDef = {
   dotCanCrit: true,
 }
 
-/** Scorch r7 (10207): 178 base points, variance 0.16535433, +1.7 a level from 58 to 62, so 166.68–196.12 at 60 (Classic Era 237–279), coefficient 0.429 [F] [client]. */
+/** Scorch r7 (10207): 178 base points, variance 0.16535433, +1.7 a level from 58 to 62, so 166.28–195.72 at 60 (+ trunc(3.4) = 3) (Classic Era 237–279), coefficient 0.429 [F] [client]. */
 export const SCORCH_SPELL: SpellDef = {
   ...SPELL,
   id: 'scorch',
@@ -110,7 +110,7 @@ export const PYROBLAST_SPELL: SpellDef = {
 
 /**
  * Frostbolt r10 (10181), the trainer's top rank (r11 is an Ahn'Qiraj book, D36): 386 base points, variance
- * 0.076233186, +2.9 a level from 56 to 60, so 382.89–412.31 at 60 (Classic Era 440.6–474.6), coefficient 0.814; its slow makes it binary: resisted whole or not at all (docs/mechanics/spells.md §3) [F] [client].
+ * 0.076233186, +2.9 a level from 56 to 60, so 382.29–411.71 at 60 (+ trunc(11.6) = 11; Classic Era 440–474), coefficient 0.814; its slow makes it binary: resisted whole or not at all (docs/mechanics/spells.md §3) [F] [client].
  */
 export const FROSTBOLT_SPELL: SpellDef = {
   ...SPELL,
@@ -127,7 +127,7 @@ export const FROSTBOLT_SPELL: SpellDef = {
 
 /**
  * Arcane Missiles r7's missile (10274), the trainer's top rank (r8 is an Ahn'Qiraj book, D36): 171 base
- * points, +0.9 a level from 56 to 60, so 174.6 a missile at 60 (Classic Era 195.6), coefficient 0.286
+ * points, +0.9 a level from 56 to 60, so 174 a missile at 60 (+ trunc(3.6) = 3; Classic Era 195), coefficient 0.286
  * (Classic Era 0.24) [F] [client] (SpellEffect, SpellLevels, 1.60.1.70009). Each is its own spell, with its own hit, crit and resist (docs/mechanics/spells.md §6).
  */
 export const ARCANE_MISSILE_SPELL: SpellDef = {

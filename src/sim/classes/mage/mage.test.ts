@@ -49,16 +49,16 @@ describe('worked examples (docs/classes/mage.md#worked-examples)', () => {
     expect(((fb.max + 400) * 1.1 * 1.03 * 1.15 * 1.1 * RESIST).toFixed(2)).toBe('1219.84')
   })
 
-  it('2. a Frostbolt r10 crit with Ice Shards 5/5: (397.6 + 0.814 × 400) × 2.0 = 1,446.4; binary, so no partial resist', () => {
+  it('2. a Frostbolt r10 crit with Ice Shards 5/5: (397 + 0.814 × 400) × 2.0 = 1,445.2; binary, so no partial resist', () => {
     const plan = examplePlan({ spec: 'frost', talents: { 'Ice Shards': 5 }, sp: 400, spellCrit: 200 })
     expect(spellOf(plan, 'frostbolt').critMultiplier).toBeCloseTo(2, 12)
-    fixSpell(plan, 'frostbolt', 397.6)
+    fixSpell(plan, 'frostbolt', 397)
     const bolts = damagesOf(plan, 'frostbolt')
     expect(bolts.length).toBeGreaterThan(10)
-    for (const d of bolts) expect(d).toBeCloseTo(1446.4, 9)
+    for (const d of bolts) expect(d).toBeCloseTo(1445.2, 9)
     const fb = spellOf(examplePlan({ spec: 'frost' }), 'frostbolt')
-    expect(((fb.min + 325.6) * 2).toFixed(2)).toBe('1416.97')
-    expect(((fb.max + 325.6) * 2).toFixed(2)).toBe('1475.83')
+    expect(((fb.min + 325.6) * 2).toFixed(2)).toBe('1415.77')
+    expect(((fb.max + 325.6) * 2).toFixed(2)).toBe('1474.63')
   })
 
   it('3. Ignite from one 1,000 crit: 40% = 400 in the pool, 2 ticks of 200 × 0.94 = 188, 2 s and 4 s after it', () => {
@@ -404,7 +404,7 @@ describe('Arcane Power (docs/classes/mage.md#arcane-power)', () => {
     expect(spent(am)[3]).toBe(5950)
     const missiles = damage('arcaneMissiles')
     expect(missiles.length).toBeGreaterThan(20)
-    for (const d of missiles.filter((x) => x.t !== 15000)) expect(d.value, String(d.t)).toBeCloseTo(174.6 * RESIST * (d.t < 15000 ? 1.3 : 1), 9)
+    for (const d of missiles.filter((x) => x.t !== 15000)) expect(d.value, String(d.t)).toBeCloseTo(174 * RESIST * (d.t < 15000 ? 1.3 : 1), 9)
   })
 })
 

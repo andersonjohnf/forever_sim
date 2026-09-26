@@ -74,7 +74,8 @@ trainer row teaches it in this build, so the sim doesn't cast it ([OQ-P7](#9-ope
 - The caster core's rules apply ([spells.md](../mechanics/spells.md)): spell hit (17% miss at a
   level-63 boss, 0% floor in Forever), spell crit ×1.5, the boss's 24 resistance (6% on average),
   DoTs that snapshot your side and read the boss's at each tick, channels, the five-second rule.
-- A rank learned below 60 grows by its per-level points to 60; a range is base × (1 ± variance / 2)
+- A rank learned below 60 grows by its per-level points to 60, truncated to a whole number
+  ([per-level values](../data/items.md#per-level-values)); a range is base × (1 ± variance / 2)
   ([paladin conventions](paladin.md#conventions-used-below)).
 - Mana costs are whole mana, rounded down after every cut ([§4](#4-talents)).
 
@@ -90,7 +91,8 @@ instant, on the GCD [F]. Its one effect is damage, so it's partially resisted on
 
 ### 3.2 Mind Blast (r9, 10947)
 
-485 base points, variance 0.054, +2.6 a level from 58 to 63: **477.07–503.33** at 60 (the tooltip's
+485 base points, variance 0.054, +2.6 a level from 58 to 63, truncated to +5
+([per-level values](../data/items.md#per-level-values)): **476.87–503.13** at 60 (the tooltip's
 477 to 503), +0.429 × Shadow spell damage, 350 mana, a 1.5 s cast that casting speed shortens, an
 8 s cooldown (category 19), on the GCD [F]. Pure damage: partially resisted. Improved Mind Blast cuts
 the cooldown 0.5 s a rank (5.5 s at 5/5).
@@ -399,7 +401,7 @@ Each is a unit test (`src/sim/classes/priest/priest.test.ts`). A level-60 priest
 2. **In the default build.** Shadowform ×1.1, Darkness 5/5 ×1.1, Twin Disciplines 5/5 ×1.05:
    `227 × 1.2705 × 0.94 = 271.10` a tick; a crit ×2.0: 542.20; with 5 Shadow Weaving stacks ×1.10:
    298.21.
-3. **Mind Blast.** `(477.07 to 503.33) + 214.5`, `704.7 × 0.94 = 662.42` on average; cooldown 5.5 s
+3. **Mind Blast.** `(476.87 to 503.13) + 214.5`, `704.5 × 0.94 = 662.23` on average; cooldown 5.5 s
    with Improved Mind Blast 5/5, from the cast's end, so one every 7 s when nothing else is cast.
 4. **Mind Flay.** `130 + 0.167 × 500 = 213.5` a tick, no partial resist (binary); Improved Mind Flay
    2/2: 256.2. With no hit it lands `1 − (0.17 + 0.83 × 0.06) = 78.02%` of the time; with 7% gear hit
@@ -409,7 +411,7 @@ Each is a unit test (`src/sim/classes/priest/priest.test.ts`). A level-60 priest
 6. **Regeneration.** 200 Spirit: `13 + 200 / 4 = 63` mana a tick outside the five-second rule, and
    Meditation 3/3's half, 31.5, inside it.
 7. **Shadow Weaving.** Each landed Shadow spell adds a stack (1–5), ×1.02 to ×1.10 on the priest's
-   Shadow damage; Mind Blast at 5 stacks: `662.42 × 1.1 = 728.66`. A lone Shadow Word: Pain's stack
+   Shadow damage; Mind Blast at 5 stacks: `662.23 × 1.1 = 728.45`. A lone Shadow Word: Pain's stack
    covers its ticks at 3–12 s (×1.02): it expires at 15 s, before that moment's tick.
 8. **Inner Focus.** The Mind Blast after it costs 0 and crits at the sheet's spell crit + 25%.
 9. **Dark Sacrifice.** 5 ticks of 320 + Spirit ÷ 5: 1,600 mana plus your Spirit over 15 s; at 250

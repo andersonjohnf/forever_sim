@@ -288,7 +288,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.mangleEnabled,
     group: 'Core abilities',
     label: 'Primal Bite',
-    help: 'Use Primal Bite whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality), at 1.5 threat per damage. Needs the Primal Bite talent (formerly Mangle).',
+    help: 'Use Primal Bite whenever it’s ready: your Dire Bear Form attack’s damage plus 77, every 6 s, for 15 rage with Ferocity 5/5 (13 with Idol of Brutality). Needs the Primal Bite talent (formerly Mangle).',
     default: true,
   },
   {

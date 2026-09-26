@@ -44,7 +44,6 @@ import {
   PRIMAL_BITE,
   MAUL,
   MAUL_THREAT_MULT,
-  PRIMAL_BITE_THREAT_MULT,
   SWIPE,
   SWIPE_THREAT_MULT,
 } from './bear-abilities'
@@ -96,11 +95,10 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(effect(1238073, 1)).toMatchObject({ effect: 31, effectBasePointsF: 100 * PRIMAL_BITE.weaponPercent })
     expect(s.cooldowns).toMatchObject({ categoryRecoveryTime: PRIMAL_BITE.cooldownMs, startRecoveryTime: PRIMAL_BITE.gcdMs })
     expect(s.shapeshift?.shapeshiftMask?.[0]).toBe(144)
-    // Its tooltip names no threat; its talent spell 407995 is Season of Discovery's Mangle (Bear), whose
-    // threat Blizzard set to 1.5× per damage (threat.md#druid-bear, Q15) [?].
+    // Its tooltip names no threat, so one per damage (threat.md#druid-bear, Q15) [?]. Season of Discovery's
+    // ×1.5 for Mangle (Bear), 407995's id there, doesn't carry over to Forever's reworked spell (user decision, 2026-09-26).
     expect(spell(407995).name).toBe('Primal Bite')
-    expect(PRIMAL_BITE_THREAT_MULT).toBe(1.5)
-    expect(PRIMAL_BITE).toMatchObject({ kind: 'weaponStrike', threatMult: PRIMAL_BITE_THREAT_MULT, noCooldownWhile: 'berserk' })
+    expect(PRIMAL_BITE).toMatchObject({ kind: 'weaponStrike', threatMult: 1, noCooldownWhile: 'berserk' })
   })
 
   it('Primal Bite keeps all four ranks under its new name (Mangle until 1.60.1.70009): +26/38/59/77 at levels 25/36/48/60, the same cost, cooldown and class mask', () => {
@@ -295,11 +293,11 @@ describe('the default bear build on each row (druid.md §5.1, W14–W16, W19)', 
     expect(maul.critMultiplier).toBeCloseTo(2.2, 12)
   })
 
-  it('W15: Primal Bite at 1200 AP is 351.286 + 77 = 428.286 (no Savage Fury); threat × 1.5 × 1.3 = 835.158', () => {
+  it('W15: Primal Bite at 1200 AP is 351.286 + 77 = 428.286 (no Savage Fury); threat × 1.3 = 556.77', () => {
     const mangle = resolved(PRIMAL_BITE)
     const damage = ((109.6 + 164.4) / 2 + (1200 * 2.5) / 14 + mangle.flatDamage) * mangle.weaponPercent
     expect(damage).toBeCloseTo(428.286, 3)
-    expect(damage * mangle.threatMult * 1.3).toBeCloseTo(835.158, 2)
+    expect(damage * mangle.threatMult * 1.3).toBeCloseTo(556.77, 2)
     expect(mangle.critMultiplier).toBeCloseTo(2.2, 12)
   })
 
@@ -592,7 +590,7 @@ describe('the default bear’s plan', () => {
       'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
     )
     expect(forever.bearThreat).toBe(
-      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1.5 threat per damage, Blizzard’s value for Season of Discovery’s Mangle (Bear), the spell Primal Bite is in Forever’s game files. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Sunder’s value in Forever’s game files). None is measured in Forever.',
+      'Maul makes 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. None is measured in Forever.',
     )
     expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
     expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
@@ -609,7 +607,7 @@ describe('the default bear’s plan', () => {
       rotation: { [BEAR_IDS.swipeEnabled]: true, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false },
       buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') },
     })
-    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1.5 threat per damage, Blizzard’s value for Season of Discovery’s Mangle (Bear), the spell Primal Bite is in Forever’s game files. None is measured in Forever.')
+    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. None is measured in Forever.')
     // One value alone reads in the singular.
     const faerieOnly = text({ ...d, rotation: { [BEAR_IDS.maulEnabled]: false, [BEAR_IDS.mangleEnabled]: false, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false } })
     expect(faerieOnly.bearThreat).toBe('Faerie Fire makes 108 threat: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era. None is measured in Forever.')

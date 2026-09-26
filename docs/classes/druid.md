@@ -659,15 +659,16 @@ no rage, where a landed white swing would give 11.25 [?]
   it as before [F] [client] (SpellName, Spell, SpellMisc, SpellEffect, SpellClassOptions,
   1.60.1.69913 against 1.60.1.70009). The rename alone moves neither damage nor threat (§6.3
   "Build 1.60.1.70009").
-- Threat **×1.5** before the form modifier [?] (Q15). Its tooltip has no threat words, so the
-  [wording table](../mechanics/threat.md#threat-wording-table) adds nothing. Its talent spell,
-  407995, is Season of Discovery's Mangle (Bear), which the Forever client carries in place of a
-  Classic spell, and Blizzard's SoD hotfixes of 2 December 2024 set that spell's threat to "1.5x
-  threat per damage (was 1.0x threat per damage)" [sod-hotfix]: the closest analog for how the
-  server runs it ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), D37). It was
-  ×1.0 until 2026-09-26; ×1.5 moves the default bear **1,083.3 → 1,160.2 TPS (+7.1%)**, DPS
-  unchanged (the default setup, seed 1, 10,000 fights), with the rotation's settings as they were
-  tuned at ×1.0.
+- Threat **×1.0** before the form modifier [?] (Q15): its tooltip has no threat words, so the
+  [wording table](../mechanics/threat.md#threat-wording-table)'s "no threat words" row, one per
+  damage (user decision, 2026-09-26: nothing in its tooltip says increased threat).
+  - **Considered and rejected: Season of Discovery's ×1.5.** Its talent spell's id, 407995, is Season
+    of Discovery's Mangle (Bear), and Blizzard's SoD hotfixes of 2 December 2024 set that spell's
+    threat to "1.5x threat per damage (was 1.0x threat per damage)" [sod-hotfix]. It doesn't carry
+    over (the user): Forever reworked the spell (SoD's is 160% weapon damage with a +30% bleed
+    damage debuff; Forever's is 100% + 26 at rank 1 with no debuff), and ranks 2–4, the level-60
+    rank the sim casts among them, are new Forever ids SoD never had. Tried on 2026-09-26 and never
+    shipped, it made the default bear about 7% more TPS (1,092.5 → 1,169.5, seed 1, 10,000 fights).
 - **In the engine**: one roll on the special table (it deals weapon damage, like Shred). The
   ability, its setting and its priority-list row keep the id `mangle`, so saved setups and links
   still find it; everything a player sees says Primal Bite.
@@ -704,7 +705,9 @@ no rage, where a landed white swing would give 11.25 [?]
   - Season of Discovery's Lacerate is the same spell (Forever's rank 1 reuses its spell id and its
     tooltip), and Blizzard's SoD hotfixes of 2 December 2024 set its threat to 3.33 × damage on the
     hit and the ticks (was 3.5) [sod-hotfix]. That's an allowed analog (D36, D37), not adopted:
-    the user chose Sunder's 206 by the wording rule (Q15).
+    the user kept Sunder's 206 by the rule that the same threat words make the same threat on
+    every tank (user decision, 2026-09-26). ×3.33 would make the default bear about 40% more
+    threat than the warrior and 85% more than the paladin (Q15).
 - In `forever` its ticks may crit [?] (§2.9).
 - [F] [client] (SpellEffect, SpellDuration, SpellAuraOptions, 1.60.1.69913: period 3000 ms,
   15,000 ms, `CumulativeAura` 5)
@@ -826,7 +829,7 @@ One target: the extra targets add nothing.
 | Faerie Fire | 108 threat (rank 4) | [?], the same lineage (Q15) |
 | Demoralizing Roar | 39 threat per target (rank 5) | [?], the same lineage (Q15) |
 | Cower | −1208 (Forever) vs −608 (Classic) at 60 | [F] [client] (SpellEffect, 1.60.1.69913) |
-| Primal Bite | ×1.5 damage-to-threat (no threat words; Blizzard's value for Season of Discovery's Mangle (Bear), the same spell, [sod-hotfix]) | [?] Q15, D36 |
+| Primal Bite | ×1.0 damage-to-threat (no threat words; Season of Discovery's ×1.5 for Mangle (Bear) considered and rejected, §4.2) | [?] Q15 |
 | Lacerate | ×1.0 on the hit and ticks, **+206** per landed application ("high threat": Forever's Sunder Armor r5 at the same level 58, the [wording table](../mechanics/threat.md#threat-wording-table); flat, no attack power term; `classicEra` 261) | 206 [F] (Sunder's client value); its use for Lacerate [?] Q15, D29 |
 | Enrage | +10 Rage immediately, 20 over 10 s | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Furor 5/5 | +10 Rage on shifting into bear (100%) | [F] [client] (SpellEffect 17057, 1.60.1.69913) |
@@ -1102,7 +1105,7 @@ above (ids `druid.cat.…`):
 ### 6.3 Forever bear priority (TPS)
 
 This is derived for Forever [?]. Primal Bite and Lacerate have no Classic analogue. Primal Bite's threat is
-1.5 per damage (Season of Discovery's Mangle (Bear)'s, the same spell), and Lacerate's "high amount of threat" is +206 an application by the
+assumed one per damage (its tooltip names none), and Lacerate's "high amount of threat" is +206 an application by the
 wording table (D29); neither is measured (Q15).
 
 **A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
@@ -1571,11 +1574,14 @@ default setups; `scripts/tune/rotation.mjs`):
   and taken, both [?], [rage.md](../mechanics/rage.md)); the build changed none of them. Those are
   T6's open in-game tests ([milestones M5.6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)),
   and the model stays as the cited mechanics put it until they report. **Since 2026-09-26** (no
-  invented values: Lacerate's flat 206, Primal Bite's ×1.5 from Blizzard's Season of Discovery
-  notes, 11.25 rage a bear swing from the beta logs, a raid druid's Thorns at 22) the defaults make
-  the bear **1,169.5 TPS**, the warrior 977.0 and the paladin 740.2 (seed 1, 10,000 fights): the
-  bear 19.7% above the warrior and 58% above the paladin. Each move is a cited value's (Primal
-  Bite's +7.1% the largest), none a target; the gap is an open question for in-game tests.
+  invented values: Lacerate's flat 206, Primal Bite at one threat per damage as its tooltip names
+  none, 11.25 rage a bear swing from the beta logs, a raid druid's Thorns at 22) the defaults make
+  the bear **1,092.5 TPS**, the warrior 977.0 and the paladin 740.2 (seed 1, 10,000 fights): the
+  bear 11.8% above the warrior and 47.6% above the paladin, no tank at twice another. Each move is a
+  cited value's (Lacerate's flat 206 −1.7%, the bear's rage +1.5%, Thorns −0.6% for every tank),
+  none a target. Two Season of Discovery values were weighed and not adopted (§4.2, §4.3, Q15):
+  Primal Bite's ×1.5 would put the bear 19.7% above the warrior, and Lacerate's 3.33 × damage about
+  40% above it. The paladin gap is the widest and stays an open question for in-game tests.
 
 ---
 
@@ -1940,8 +1946,8 @@ and Classic Era's 261). W12 compares W6 and W7 by hand.
     **378.686**; average **351.286**.
 14. **Maul at 1200 AP.** (351.286 + 128) × 1.10 = **527.214**. Threat × 1.75 × 1.3 =
     **1199.41**. [F] damage, [?] threat (§4.1's lineage)
-15. **Primal Bite at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat × 1.5 × 1.3 =
-    **835.158**. [?] threat (§4.2)
+15. **Primal Bite at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat with the
+    ×1.0 ability multiplier: × 1.3 = **556.77**. [?] threat (§4.2)
 16. **Swipe.** 83 × 1.10 × 1.30 = **118.69** per target; threat × 1.75 [?] × 1.3 = **270.02**
     per target.
 17. **Bear AP.** Str 250, +150 AP from gear and buffs, Predatory Strikes 3/3:
@@ -1987,7 +1993,7 @@ ranks.
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1.5? Lacerate's "high amount of threat" | [?] for all. Maul, Swipe, FF and Demo Roar: every Classic and Season of Discovery threat tool has used them since 2019 (LibThreatClassic2 [ltc2] and the tools built on it); they trace to a 2006 guide and were never measured on Classic Era; kept as the defaults (user decision, 2026-09-26; [threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words; its ×1.5 is Blizzard's for Season of Discovery's Mangle (Bear), the spell it is [sod-hotfix] (§4.2; ×1.0 would be −6.6% TPS). Lacerate's bonus is **+206 per landed application**, flat: Forever's Sunder Armor r5 client value at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; user decision, 2026-09-26: no attack power term; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Season of Discovery's Lacerate, the same spell (Forever's rank 1 reuses its id), has Blizzard's 3.33 × damage on the hit and ticks [sod-hotfix]: an allowed analog, not adopted. Leaving Lacerate out while warriors keep the boss bleeding costs 14% of TPS (§6.3) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.5 (divide by 1.02 more with the gloves' threat enchant) |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Primal Bite ×1? Lacerate's "high amount of threat" | [?] for all. Maul, Swipe, FF and Demo Roar: every Classic and Season of Discovery threat tool has used them since 2019 (LibThreatClassic2 [ltc2] and the tools built on it); they trace to a 2006 guide and were never measured on Classic Era; kept as the defaults (user decision, 2026-09-26; [threat.md OQ 4](../mechanics/threat.md#open-questions)). Primal Bite has no threat words: ×1 (user decision, 2026-09-26: nothing in its tooltip says increased threat). Considered and rejected: Blizzard's ×1.5 for Season of Discovery's Mangle (Bear), 407995's id there [sod-hotfix], since Forever reworked the spell (100% + 26, no bleed debuff) and ranks 2–4 are new Forever ids, so the SoD hotfix doesn't carry over; it would be +7.0% TPS (§4.2). Lacerate's bonus is **+206 per landed application**, flat: Forever's Sunder Armor r5 client value at the same level by the [wording table](../mechanics/threat.md#threat-wording-table) (D29; user decision, 2026-09-26: no attack power term; Classic Era's 4.5 × level 58 = 261 until build 1.60.1.70009, §4.3), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.3%, none at all −6.6%, the old 1013 +19.1% (seed 424242, 20,000 fights, T3's defaults, the rotation unchanged). Blizzard's own Season of Discovery hotfix (2 December 2024) sets Lacerate, the same spell (414644, Forever's rank 1 under the same id, with nearly the same tooltip), to 3.33 × damage on the hit and the ticks (was 3.5) [sod-hotfix]; the user kept the flat 206 by the rule that the same threat words make the same threat on every tank (user decision, 2026-09-26). ×3.33 on the hit and the ticks, with no flat bonus, would make the default bear 1,371.7 TPS (+25.6%), about 40% over the warrior and 85% over the paladin (48% and 96% with Primal Bite's ×1.5 as well; seed 1, 10,000 fights). Leaving Lacerate out while warriors keep the boss bleeding costs 14% of TPS (§6.3) | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Primal Bite 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]. Season of Discovery's Lacerate is the same spell (Forever's rank 1 reuses its id and tooltip), so Blizzard's SoD client data and patch notes may inform it (D36, D37); none found says whether an application restarts the ticks, and SoD sims' code isn't evidence. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick **G5:** the damage of the 1st to 5th applications against the weapon damage: 0/10/20/30/40% as modelled, or a 20% base (spell 414647) |
 | Q17 | Ranks available from the trainer: Primal Bite ranks 2–4, and Ferocious Bite rank 5 from the trainer or its book | [F] spellbook lists ranks. Rank 5's book, Book of Ferocious Bite V, drops in Upper Blackrock Spire [C] [fb-v], not Ahn'Qiraj, so D36 keeps rank 5 either way; the AQ books' ranks are out (D36, [open-questions C13](../open-questions.md#c13-rank-availability-at-launch)) | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
@@ -2361,8 +2367,10 @@ behaviour. **Season of Discovery** is forbidden except where the Forever client 
 in place of a Classic one (the same id: Lacerate, Primal Bite's talent 407995, Berserk, King of the
 Jungle, all in the 1.15.9 client under the same ids): then Blizzard's SoD client data and patch
 notes for that spell are an allowed analog for how the server runs it, tagged [?]
-([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), D37). Primal Bite's ×1.5
-threat is one ([sod-hotfix], §4.2). SoD values from anywhere else (sims, guides, the runes Forever
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25), D37). Two were weighed and
+not adopted by user decision (2026-09-26): Mangle (Bear)'s ×1.5 threat, since Forever reworked
+Primal Bite and its higher ranks are new ids, and Lacerate's 3.33 × damage, since the same threat
+words make the same threat on every tank ([sod-hotfix], §4.2, §4.3, Q15). SoD values from anywhere else (sims, guides, the runes Forever
 doesn't carry) stay unused, and so do SoD values of a spell Forever changed (its own numbers win).
 
 <!-- Reference-link definitions: the short labels used throughout the doc render as links. -->

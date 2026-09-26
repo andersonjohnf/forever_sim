@@ -152,7 +152,7 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     expect(counter(s, row(poor, m), FIELD.casts)).toBe(1)
   })
 
-  it('W15: Primal Bite at 1200 AP deals 351.286 + 77 = 428.286 on average (no Savage Fury), at 1.5 × the form’s threat, every 6 s', () => {
+  it('W15: Primal Bite at 1200 AP deals 351.286 + 77 = 428.286 on average (no Savage Fury), at the form’s threat, every 6 s', () => {
     const plan = bearPlan(60000)
     setAttackPower(plan, 1200)
     const mangle = addBearAbility(plan, PRIMAL_BITE, { free: true })
@@ -160,7 +160,7 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     expectMean(damages(plan, row(plan, mangle), 60), 428.286)
     const { sim, uses } = timeline(plan)
     expect(uses[mangle].slice(0, 4)).toEqual([0, 6000, 12000, 18000])
-    expect(counter(sim, row(plan, mangle), FIELD.threat) / counter(sim, row(plan, mangle), FIELD.damage)).toBeCloseTo(1.5 * plan.threatMult, 12)
+    expect(counter(sim, row(plan, mangle), FIELD.threat) / counter(sim, row(plan, mangle), FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
   })
 
   it('W16: Swipe deals 83 × 1.10 × 1.30 = 118.69, at 1.75 × the form’s threat, whatever the attack power', () => {
@@ -500,7 +500,7 @@ describe('the default bear (druid.md §6.3)', () => {
       return counter(sim, r, FIELD.threat) / (counter(sim, r, FIELD.casts) - counter(sim, r, FIELD.misses))
     }
     expect(ratio('maul')).toBeCloseTo(1.75 * t, 12)
-    expect(ratio('mangle')).toBeCloseTo(1.5 * t, 12)
+    expect(ratio('mangle')).toBeCloseTo(t, 12)
     expect(ratio('mainHand')).toBeCloseTo(t, 12)
     expect(flat('faerieFire')).toBeCloseTo(108 * t, 9)
     expect(flat('demoralizingRoar')).toBeCloseTo(39 * t, 9)

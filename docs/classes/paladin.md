@@ -454,7 +454,7 @@ It corroborates the client data above but isn't a guild measurement.
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
 | Per landed white hit | **35 Holy + 0.1 × SP**, whatever the weapon (proc 20418) | [F] [client] (SpellEffect, 1.60.1.70009; [20418][f20418]), and measured: the beta logs ([below](#the-beta-logs-seal-of-fury)) |
-| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, which takes that much off the next hits you take | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces (what's left of the last one is lost), and which hits you take spend before they cost health; it ends when spent, or with the seal's 30 s. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays ([open question 10](#open-questions)). It takes 2.0% off the default Protection setup's damage taken (918.9 → 900.5 a second) |
+| Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt**, Light's Fury (1310927): every school, **10 s**. Hits you take spend it before they cost health; it ends when spent or after its 10 s. **Each proc replaces it** (what's left of the last one is lost; it never adds up), and **Improved Seal of Fury's mana comes with the hit that uses it up**. A boss's hit is thousands, so the next one takes all of it, which is when [Improved Seal of Fury](#protection-tree) pays. It takes 2.0% off the default Protection setup's damage taken (918.9 → 900.5 a second) | The 50%: [F] (20423 effect 1 = 50). The aura: [F] [client] (SpellEffect aura 69, misc 127; SpellMisc DurationIndex 1 = 10 s; 1.60.1.70009; [1310927][f1310927]). Replacing, the 50% and the mana's timing: measured, the beta logs ([below](#the-beta-logs-lights-fury)) |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.70009); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146.3–159.7 + 7 = 153.3–166.7 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.70009; [20414][f20414]); taunt: tooltip |
@@ -495,6 +495,19 @@ sim gives it no damage and no threat. As flat threat, 1,691.6 × 1.6 a landed ju
 **383 TPS** (+55%) to the default Protection setup (697.3 → 1,080.2, 10,000 fights, 2026-09-26; the
 +454 quoted before was at Righteous Fury's old +90%). No measurement supports it; guild test T5 would
 check it ([open question 28](#open-questions)).
+
+##### The beta logs: Light's Fury
+
+The same logs ([method](#the-beta-logs-seal-of-fury)): 224 `SPELL_ABSORBED` events of Light's Fury
+(1310927, Seal of Fury's absorb), each compared with the same paladin's Seal of Fury procs before it.
+**214 equal half of the last proc** (7 of them after a crit proc, so the crit's damage counts), and
+**none fits half the sum** of the procs since the last absorb, so each proc **replaces** the absorb; the
+other 10 are what was left of one after an earlier hit took part of it. **Improved Seal of Fury's mana
+(1314104) lands with the hit that spends the absorb 221 of 224 times.** The aura lasts 10 s in the client
+(DurationIndex 1) [F] [client]; the sim ends it then, or when spent. The sim does exactly this, as
+measured ([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23));
+the 10 s, in place of the seal's 30 s it had before, moves nothing, since a proc refreshes it every swing. How much mana Improved Seal of Fury
+restores at level 60 is the rank text's, unmeasured ([open question 10](#open-questions)).
 
 ### Utility seals (not in default rotations)
 
@@ -597,7 +610,7 @@ Improved Seal of the Crusader [F].
 | Precision (3) | "Improves your chance to hit by 3%." ([F 20189][f20189]) | melee only | **+3% melee and +3% spell hit** (two auras) |
 | Guardian's Favor (2) | BoP/BoF cooldowns | same | not modelled |
 | Anticipation (5) | "Increases your Defense Skill by 20." | +10 | +20 defense skill |
-| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit uses up Seal of Fury's absorb (the tooltip's "fully absorbed"): 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules are the sim's [?] ([Seal of Fury](#seal-of-fury-sof-new-the-protection-seal), [open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
+| Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]; the rank text in [`src/data/talents/paladin.json`](../../src/data/talents/paladin.json)) | — | foreverchanges printed "0"; the client's rank text reads 60 (0 + 1 a level) [F]. When a hit uses up Seal of Fury's absorb (the tooltip's "fully absorbed"): 60 mana, 15% more a level the boss is above you, up to 45% more: **87** against a level-63 boss, 0.5 threat a mana. The absorb's rules and the mana's timing are measured ([the beta logs](#the-beta-logs-lights-fury)); the amount at 60 is the rank text's [F], unmeasured ([open question 10](#open-questions)). Without it the default Protection setup makes 16.5% less TPS: it's short of mana ([mana model](#mana-model)) |
 | Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." ([F 20468][f20468]) | +50% RF threat | −6% damage taken (curve −2/−4/−6, [client] (TraitDefinitionEffectPoints, 1.60.1.70009)); **no threat effect** |
 | Shield Specialization (3) | "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec." ([F 1310925][f1310925]) | block value only | block value ×1.30; on block, +6% max mana (33/66/100%), 3 s ICD |
 | Sacred Duty (2), new | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." ([F 1224697][f1224697]) | — | Stamina ×1.04 |
@@ -646,7 +659,7 @@ and aren't modelled.
 | The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
 | Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained, a threat library's value, unmeasured ([open question 31](#open-questions); [threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
-| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit uses up Seal of Fury's absorb | [F] rank text; the absorb's rules [?] ([Protection tree](#protection-tree)) |
+| Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit uses up Seal of Fury's absorb | [F] rank text; the absorb's rules and the timing measured ([the beta logs](#the-beta-logs-lights-fury)) |
 | Judgement of Wisdom (another paladin's) | chance on each of your hits to restore 59 mana (Classic 50% [?]) | [F]/[?] |
 | Consumables | Major Mana Potion (1350–2250, 2 min, potion cooldown); Demonic Rune / Dark Rune (900–1500, 2 min, shared rune cooldown, separate from potions). Mageblood Potion and Brilliant Mana Oil for mp5 (Nightfin Soup was mp5 in Classic Era; Forever's is +22 spell damage). **Values and cooldowns are owned by** [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) | [C] |
 
@@ -1745,14 +1758,15 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    2.8% less TPS.
 10. **Seal of Fury's absorb.** ✅ The proc's damage is settled: a flat 35 + 0.1 × SP, whatever the
     weapon, measured in the beta logs ([Seal of Fury](#the-beta-logs-seal-of-fury)); the aura's
-    weapon-speed dummy models as zero. Still open: absorb stacking, and Improved Seal of Fury's actual
-    mana return ("restore 0 Mana")? The client's rank text reads 60 (0 + 1 a level) [F]. The sim
-    keeps one absorb, which each proc replaces and hits you take spend (at most the seal's 30 s); the
-    hit that uses it up restores 87 mana against a level-63 boss. Without Improved Seal of Fury the
-    default Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)); if every
-    hit taken while an absorb exists restored mana (the absorb never used up), it would make 2.0% more.
-    *Test:* mana per boss hit taken with Seal of Fury up, with and without Improved Seal of Fury,
-    and whether two boss hits between two of your swings both restore it.
+    weapon-speed dummy models as zero. ✅ The absorb is settled too
+    ([Light's Fury](#the-beta-logs-lights-fury)): one shield of half the last proc's damage, which each
+    proc replaces (214 of 224 absorbs; none fits a sum) and which lasts 10 s (the client's
+    1310927); Improved Seal of Fury's mana comes with the hit that uses it up (221 of 224). Still open:
+    Improved Seal of Fury's mana at level 60 ("restore 0 Mana" in foreverchanges; the client's rank text
+    reads 60, 0 + 1 a level [F]): the sim restores 87 against a level-63 boss. Without Improved Seal of
+    Fury the default Protection setup makes 16.5% less TPS, short of mana ([mana model](#mana-model)).
+    *Test:* at level 60 with Seal of Fury and a shield, the mana each Improved Seal of Fury restore
+    gives against mobs of your level and three above.
 11. **Hammer of the Righteous**: target count (3 or 4 in total?), whether "weapon DPS"
     includes AP, avoidance, and whether its SP coefficient is really 0. The sim leaves attack power
     out, the tooltip's reading [?] (Character → Advanced counts it), rolls the full table in two rolls, and gives it no
@@ -1932,6 +1946,7 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f20966]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20966
 [f25713]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=25713
 [f20293]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20293
+[f1310927]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=1310927
 [f20286]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20286
 [f20308]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20308
 [f20303]: https://wago.tools/db2/SpellEffect?build=1.60.1.70009&filter%5BSpellID%5D=20303

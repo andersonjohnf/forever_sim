@@ -575,7 +575,7 @@ const REGISTRY = {
     docRef: `${PAL}#other-abilities`,
   },
   improvedSealOfFury: {
-    text: 'Seal of Fury’s absorb is one shield, half of its last proc’s damage: each proc replaces it, and hits you take spend it before they cost health. The hit that uses it up restores Improved Seal of Fury’s mana (87 against a level-63 boss). Untested.',
+    text: 'Seal of Fury’s absorb, Light’s Fury, is one shield of half its last proc’s damage, for 10 s: each proc replaces it, and hits you take spend it before they cost health, as beta combat logs below level 40 show. The hit that uses it up restores Improved Seal of Fury’s mana, as the logs show too; the 87 against a level-63 boss is its tooltip’s, untested at level 60.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.

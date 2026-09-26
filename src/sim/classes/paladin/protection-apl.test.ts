@@ -93,7 +93,8 @@ describe('Protection paladin’s priority list (D31)', () => {
     // 27 codes before it, exactly the 49 Undead cases move, and the other 151 reproduce the snapshot.
     // Re-taken for the beta-log check (paladin.md#the-beta-log-check-2026-09-26): Seal of Fury's proc
     // lost its weapon-speed value and carries its absorb (no separate absorb proc), so every plan moved;
-    // re-taken at each later step that moves a spell's numbers (Seal of Righteousness's, then others).
+    // re-taken at each later step that moves a spell's numbers (Seal of Righteousness's, then others),
+    // and for the absorb's 10 s and name (Light's Fury, paladin.md#the-beta-logs-lights-fury).
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

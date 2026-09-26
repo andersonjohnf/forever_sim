@@ -156,21 +156,23 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
 export const SEAL_OF_FURY_BASE = 35
 
 /**
- * Seal of Fury's absorb (20423 effect 1, 50; paladin.md#seal-of-fury-sof-new-the-protection-seal): with a
- * shield equipped, each landed proc shields you for half the Holy damage it dealt [F]. Hits you take
- * spend it before they cost health; it ends when spent or with the seal's 30 s. How it stacks is the
- * server's: the sim keeps one, which each proc replaces [?] (OQ 10). Improved Seal of Fury restores mana
- * when a hit uses it up (talents.ts).
+ * Seal of Fury's absorb, Light's Fury (1310927, paladin.md#the-beta-logs-lights-fury): with a shield
+ * equipped, each landed proc shields you for half the Holy damage it dealt (20423 effect 1, 50) [F], an
+ * absorb of every school (aura 69, misc 127) that lasts 10 s (DurationIndex 1) [F] client. Hits you take
+ * spend it before they cost health; it ends when spent or after its 10 s. Each proc replaces it, what's
+ * left of the last one lost, never added to: measured (the beta logs: 214 of 224 absorbs are half the
+ * last proc, crits included, and none fits a sum). Improved Seal of Fury restores mana when a hit uses
+ * it up (talents.ts), with that hit, as the logs show.
  */
 export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
   id: 'sealOfFuryShield',
-  name: 'Seal of Fury’s absorb',
-  durationMs: 30000,
+  name: 'Light’s Fury',
+  durationMs: 10000,
   absorb: true,
   mods: {},
 }
 
-/** The absorb's share of the proc's Holy damage, % (20423 effect 1: 50) [F]. */
+/** The absorb's share of the proc's Holy damage, % (20423 effect 1: 50) [F], and measured (the beta logs). */
 export const SEAL_OF_FURY_ABSORB_PCT = 50
 
 /**

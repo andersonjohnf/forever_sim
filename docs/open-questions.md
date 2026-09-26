@@ -658,12 +658,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [F tooltip, client], measured in the beta logs (179 of 179 procs from 24 characters,
   [paladin § SoF](classes/paladin.md#the-beta-logs-seal-of-fury)); the aura's undescribed
   weapon-speed dummy adds nothing.
-- **Assumes:** one absorb, 50% of the last proc's damage, which hits you take spend [?]; Improved
-  Seal of Fury's mana (the client's rank text reads 60, which foreverchanges printed as 0) [?].
-- **Test:** Seal of Fury up with a shield against a mob: mana per hit taken with and without
-  Improved Seal of Fury, and whether two hits between two of your swings both restore it.
-- **Samples:** ≥100 hits taken per state.
-- **Changes:** Seal of Fury's absorb and Improved Seal of Fury's mana, which fund a Protection paladin's rotation.
+- **Settled (2026-09-26), the absorb:** Light's Fury (1310927), all schools, 10 s [F client]; one
+  absorb of 50% of the last proc's damage, which each proc replaces (214 of 224 absorbs; none fits a
+  sum) and hits you take spend; Improved Seal of Fury's mana comes with the hit that uses it up (221
+  of 224), measured in the beta logs ([paladin § Light's Fury](classes/paladin.md#the-beta-logs-lights-fury)).
+- **Assumes:** Improved Seal of Fury's mana at level 60 (the client's rank text reads 60, which
+  foreverchanges printed as 0), 87 against a level-63 boss [?].
+- **Test:** at level 60, Seal of Fury up with a shield: the mana each Improved Seal of Fury restore
+  gives against mobs of your level and three above.
+- **Samples:** ≥30 restores per state.
+- **Changes:** Improved Seal of Fury's mana, which funds a Protection paladin's rotation.
 - **Docs:** [paladin § SoF](classes/paladin.md#seal-of-fury-sof-new-the-protection-seal),
   [OQ 10](classes/paladin.md#open-questions);
   [threat § paladin](mechanics/threat.md#paladin)

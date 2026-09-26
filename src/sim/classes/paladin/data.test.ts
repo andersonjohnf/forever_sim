@@ -133,6 +133,8 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     // Its absorb with a shield: 50% of the Holy damage dealt (20423 effect 1).
     expect(effect(20423, 1).effectBasePointsF).toBe(SEAL_OF_FURY_ABSORB_PCT)
     expect(sealOfFuryProc(true).absorb).toEqual({ aura: SEAL_OF_FURY_SHIELD_AURA, pct: 50 })
+    // The absorb is Light's Fury (1310927, not in the app's dataset): an all-schools absorb of DurationIndex 1, 10 s.
+    expect(SEAL_OF_FURY_SHIELD_AURA).toMatchObject({ name: 'Light’s Fury', durationMs: 10000, absorb: true })
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)

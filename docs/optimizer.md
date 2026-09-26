@@ -570,7 +570,9 @@ wear there (`slotPool`):
   off-hand weapon, a relic in the ranged slot for the classes that have one.
 - **The faction:** the race's (`fitsFaction`); the CLI's `--faction` picks the class's default race of
   that faction.
-- **The item level range** (`--ilvl 58-66`, `60-`, `-63`), inclusive.
+- **The item level range** (`--ilvl 58-66`, `60-`, `-63`), inclusive. The CLI takes `--ilvl -63` as
+  written (O2L-10: node's argument parser reads a dash-led value as an option, so the CLI joins it to
+  its flag first); `--ilvl=-63` works too.
 - **Sources** (`--sources`), from what the client says, since its Encounter Journal ships empty
   ([items.md](data/items.md)): `pvp` (a PvP rank requirement, a battleground's reputation, or an Alterac
   Valley or Warsong Gulch reward's name), `reputation` (another faction's standing), `profession` (a

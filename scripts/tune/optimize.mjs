@@ -58,7 +58,7 @@
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
 // Gear (with --search gear or all; docs/optimizer.md#gear):
-//   --ilvl <min>-<max>    item levels to search ("58-66", "60-", "-63"); default the whole pool
+//   --ilvl <min>-<max>    item levels to search ("58-66", "60-", "-63"), inclusive; default every level in the pool
 //   --sources <list>      pvp, reputation, profession, other (drops, quests, crafts): comma-separated; default all
 //   --include-later-raids search the later raids' loot and later patches' items too: Zul'Gurub, Ahn'Qiraj, Molten
 //                         Core, Blackwing Lair, Naxxramas, and any item above item level 63 on no pre-raid list. By
@@ -238,7 +238,12 @@ const PACE_FIGHT_SEC = 180
 const duration = (seconds) => (seconds < 90 ? `about ${Math.max(1, Math.round(seconds))} s` : `about ${Math.round(seconds / 60)} min`)
 
 async function main() {
+  // `--ilvl -63` (O2L-10): node's parseArgs reads a value that starts with a dash as an option, and takes
+  // one only after "=", so a dash-led item level range is joined to its flag first.
+  const argv = [...process.argv.slice(2)]
+  for (let i = 0; i < argv.length - 1; i++) if (argv[i] === '--ilvl' && /^-\d+$/.test(argv[i + 1])) argv.splice(i, 2, `--ilvl=${argv[i + 1]}`)
   const { values: args } = parseArgs({
+    args: argv,
     options: {
       spec: { type: 'string' },
       search: { type: 'string', default: 'talents' },
@@ -473,7 +478,7 @@ async function main() {
     if (args['include-later-raids']) filters.laterRaids = true
     const f = filters
     console.log(
-      `gear: ${f.laterRaids ? 'every raid, the later ones opted in' : `pre-raid gear and the launch raids (no item above item level ${engine.PRE_RAID_MAX_ITEM_LEVEL} on no pre-raid list, no Zul'Gurub; --include-later-raids searches them)`}; ` +
+      `gear: ${f.laterRaids ? 'pre-raid gear and every raid, the later ones opted in' : `pre-raid gear and the launch raids (later raids left out: Zul'Gurub, Ahn'Qiraj and any item above item level ${engine.PRE_RAID_MAX_ITEM_LEVEL} that no pre-raid list names; --include-later-raids searches them)`}; ` +
         `${f.itemLevel ? `item level ${f.itemLevel.min ?? ''}-${f.itemLevel.max ?? ''}` : 'every item level'}; ${f.sources ? `sources ${f.sources.join(', ')}` : 'every source'}; ${d.race} (${racesJson.races.find((r) => r.id === d.race)?.faction ?? '?'} gear)` +
         `${f.locked ? `; locked ${f.locked.join(', ')}` : ''}; ${f.excludedEnchants ? 'every enchant' : `every enchant but ${engine.UNCONFIRMED_ENCHANTS.join(', ')}`}`,
     )

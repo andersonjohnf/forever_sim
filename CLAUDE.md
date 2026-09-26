@@ -200,7 +200,7 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   **Other sims are never authoritative** (wowsims, WarriorSim, LibThreatClassic2, Warcraft Logs
   threat configs): unconfirmed data to consider; what they may supply follows doctrine §2's
   fallback order. **The user's offhand numbers are never evidence or targets.** There are no
-  guild tests apart from the user's paladin test; a player's tests shared elsewhere are
+  guild tests apart from the user's own in-game tests (paladin, Maul, Judgement of Fury, Redoubt); a player's tests shared elsewhere are
   third-party `[?]`.
 - **Only sourced values; every described effect has a default (D29, D37).** No invented
   multipliers, ratios, scalings or fitted terms. Defaults follow doctrine §2's fallback order; its

@@ -167,6 +167,13 @@ headline, the default setups at 10,000 fights:
 | 6 | [Judgement of the Crusader](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc): each hit's share measured; Seal of Command's 0.29, outside its 70%; the "All of it" switch gone | 697.3 | 433.6, 900.5 | 597.3 |
 | 7 | Provenance: [Hammer of the Righteous](#other-abilities) by default counts the weapon's own DPS, as its tooltip reads (it's in no default); Judgement of Fury's dummy stays zero (+383 TPS as flat threat) | 697.3 | 433.6, 900.5 | 597.3 |
 
+The defaults hold after it (first pass, CLAUDE.md step 7; `scripts/tune/rotation.mjs`, seed 778, 20,000
+paired fights): for Protection, Consecration from 10% or rank 1 from 0% gain under 0.02% TPS, and
+every other candidate (Holy Strike or Hammer of Wrath off, other thresholds) loses; for Retribution,
+Holy Strike off, Consecration from 10% or 30%, or Consecration above Holy Strike all lose. The gap to
+the other tanks widens (Protection 697.3 TPS); it's the cited mechanics' result, with no threat
+modifier to close it, and the unmeasured parts are the open questions below.
+
 ### Forever system rules that matter here (owned elsewhere)
 
 These are owned by [forever-system-changes.md](../mechanics/forever-system-changes.md#2-combat-rules)

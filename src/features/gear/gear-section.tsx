@@ -446,7 +446,7 @@ export function GearSection() {
                         <div
                           className={cn(
                             'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                            lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
+                            !lockedByTwoHand && 'hover:bg-muted',
                             enchantable && 'rounded-b-none',
                           )}
                         >

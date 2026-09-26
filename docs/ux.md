@@ -445,7 +445,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       line, never over the stats above (review finding DU1-5). A slot with no enchant to choose has no
       chip; with no chip and no flag, the item's name and stats are centred in the row. An empty slot
       shows its faded icon, name and "Empty", and an off hand beside a two-hander "Your two-hander
-      uses both hands".
+      uses both hands" (below 1440 px, "Your two-handed weapon uses both hands"). The locked slot is
+      dimmed by colour, never opacity: muted text and the grey icon, so its reason stays AA in both
+      themes (review finding EU-3).
     - The **flags** follow the item: on the enchant line after the chip where the row has one (a
       ranged weapon beside the main and off hand too), otherwise after the name and stats; mirrored
       on the right side. A clock-and-arrow is **Classic stats** and a crossed-out flask **Effect not

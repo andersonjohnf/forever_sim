@@ -118,6 +118,35 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape')
   })
 
+  // EU-3: a locked off hand's reason was muted text at 60% opacity, 2.5:1 in light mode and 3.4:1
+  // in dark, below AA. It dims by colour now, like the stale results and the unavailable buffs.
+  test(`a locked off hand's reason is AA, in the list and the wide grid, ${colorScheme} (EU-3)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme })
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Troll' }).click()
+    for (const [width, words] of [
+      [390, 'Your two-handed weapon uses both hands'],
+      [1920, 'Your two-hander uses both hands'],
+    ] as const) {
+      await page.setViewportSize({ width, height: 1000 })
+      await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+      const reason = page.getByText(words, { exact: true }).filter({ visible: true })
+      await expect(reason).toHaveCount(1)
+      const opacity = await reason.evaluate((el) => {
+        let o = 1
+        for (let e: Element | null = el; e; e = e.parentElement) o *= Number(getComputedStyle(e).opacity)
+        return o
+      })
+      expect(opacity, `${width} px: nothing fades it`).toBe(1)
+      const contrast = await textContrast(reason)
+      console.log(`${colorScheme} locked off hand at ${width} px: ${contrast.toFixed(2)}:1`)
+      expect.soft(contrast, `${width} px`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   // VF1: the Delete that confirms a save's deletion was red text on a 10% red tint, 4.0:1 in light
   // mode (3.3:1 on hover) and 3.8:1 on hover in dark mode, under AA's 4.5:1 for text.
   test(`a destructive button's text is AA at rest and on hover, and its focus ring 3:1, ${colorScheme} (VF1)`, async ({ page }) => {

@@ -205,15 +205,25 @@ export const useSetup = create<SetupState>()(
         blockedSlots = {}
         // A saved setup, normalized, with the parts the player never changed on today's defaults.
         const load = (raw: unknown): SimConfig => {
-          const { config: normalized, talentChange } = normalizeConfig(raw)
+          const { config: normalized, talentChange, questRemovals = [] } = normalizeConfig(raw)
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
           const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw), writtenGearOf(raw)))
           // What reading a build from older talent trees changed is said (docs/data/talents.md
           // #tree-versions); a build that follows the default takes today's, which changes nothing.
           const change = moved.talents ? undefined : talentChange
-          if (moved.gear || moved.talents || change) {
-            updates.push({ spec: normalized.spec, gear: moved.gear, talents: moved.talents, ...(change ? { change } : {}) })
+          // Another class's quest reward the player chose is gone, and they must pick another, so
+          // it's said (docs/data/items.md#class-quest-rewards). One in a slot that follows the
+          // defaults was the default, and today's default took its place: that move says enough.
+          const removed = questRemovals.filter((q) => !moved.config.gear[q.slot])
+          if (moved.gear || moved.talents || change || removed.length > 0) {
+            updates.push({
+              spec: normalized.spec,
+              gear: moved.gear,
+              talents: moved.talents,
+              ...(change ? { change } : {}),
+              ...(removed.length > 0 ? { removed } : {}),
+            })
             moves.push(moved.config)
           }
           if (moved.blocked.length > 0) {

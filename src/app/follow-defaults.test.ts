@@ -181,6 +181,26 @@ describe('the notice', () => {
     expect(defaultsUpdateNotice([], PROT_PALADIN)).toBeNull()
   })
 
+  it('says which of the player’s own pieces went as another class’s quest reward, naming the spec (FU-1)', () => {
+    const cap = { slot: 'head' as const, classId: 'rogue' as const, name: 'Darkmantle Cap' }
+    const spaulders = { slot: 'shoulder' as const, classId: 'rogue' as const, name: 'Darkmantle Spaulders' }
+    const bear = { spec: 'druid-feral-bear' as const, gear: false, talents: false, removed: [cap] }
+    expect(defaultsUpdateNotice([bear], 'druid-feral-bear')).toEqual({
+      title: 'Gear removed from Feral (Bear) Druid',
+      description: 'Darkmantle Cap is a quest reward only rogues receive, so it was removed from your Feral (Bear) Druid setup. Choose another in Gear.',
+    })
+    // Beside a move, "kept" holds for the rest.
+    expect(defaultsUpdateNotice([{ ...bear, gear: true, removed: [spaulders, cap] }], 'druid-feral-bear')).toEqual({
+      title: 'Updated to the new default gear for Feral (Bear) Druid',
+      description:
+        'Darkmantle Cap and Darkmantle Spaulders are quest rewards only rogues receive, so they were removed from your Feral (Bear) Druid setup. ' +
+        'Choose others in Gear. Other gear and talents you changed yourself are kept.',
+    })
+    // Beside a talent change alone.
+    const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, change: { refunds: [{ name: 'Crusade', points: 2, cause: 'removed' as const }] } }
+    expect(defaultsUpdateNotice([ret, bear], 'druid-feral-bear')?.title).toBe('Gear and talents changed for Feral (Bear) Druid and Retribution Paladin')
+  })
+
   it('says what the player’s own talent build lost on the game’s new trees, after what moved or on its own', () => {
     const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, change: { refunds: [{ name: 'Crusade', points: 2, cause: 'removed' as const }] } }
     const refund = 'The game’s new talent trees refunded 2 of your Retribution Paladin talent points: Crusade left the game. Spend them again in Talents.'

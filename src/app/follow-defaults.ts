@@ -10,7 +10,7 @@
 import { factionOf, raceChangeTwin } from '@/features/character/faction-gear'
 import { sameEntry, type Following } from '@/features/gear/default-set'
 import { itemsById } from '@/lib/items'
-import { GEAR_SLOTS, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type SimConfig, type SpecId, type TalentChange } from '@/sim'
+import { GEAR_SLOTS, questRemovalNotice, refundNotice, SPEC_META, successorNotice, type EquippedItem, type GearSlot, type QuestRemoval, type SimConfig, type SpecId, type TalentChange } from '@/sim'
 import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 export { followDefaults, following, type Following } from '@/features/gear/default-set'
@@ -196,15 +196,18 @@ export function legacyFollowing(config: SimConfig, writtenTalents: string | unde
 }
 
 /**
- * What a load changed for one spec: parts moved to newer defaults, and what reading a talent build
+ * What a load changed for one spec: parts moved to newer defaults, what reading a talent build
  * from the game's older talent trees changed (`change`, docs/data/talents.md#tree-versions): the
- * points the player's own build lost, or the build that succeeds a code the sim shipped.
+ * points the player's own build lost, or the build that succeeds a code the sim shipped; and the
+ * player's own items removed as another class's quest reward (`removed`,
+ * docs/data/items.md#class-quest-rewards).
  */
 export interface DefaultsUpdate {
   spec: SpecId
   gear: boolean
   talents: boolean
   change?: TalentChange
+  removed?: QuestRemoval[]
 }
 
 const specName = (spec: SpecId) => `${SPEC_META[spec].name} ${SPEC_META[spec].className}`
@@ -226,7 +229,10 @@ function whoseOf(specs: readonly SpecId[]): string {
  * moved onto the game’s new trees for …". "Gear and talents you changed yourself are kept." opens
  * the notice when parts moved; when a successor replaced a build the player picked (a shipped code
  * their setup no longer followed), where that wouldn't hold, it's "Gear you changed yourself is
- * kept." (review TMV-3). Null when nothing changed.
+ * kept." (review TMV-3). The player's own items removed as another class's quest reward
+ * (questRemovalNotice, naming each spec) open the description, and "kept" becomes "Other gear …";
+ * with nothing moved, the title is "Gear removed from …", or "Gear and talents changed for …" beside
+ * a talent change (FU-1). Null when nothing changed.
  */
 export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current: SpecId): { title: string; description: string } | null {
   if (updates.length === 0) return null
@@ -244,9 +250,14 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   ]
     .sort((a, b) => a.at - b.at)
     .map((t) => t.words)
+  // The player's own pieces removed as another class's quest reward come first: they must pick others.
+  const removedFrom = ordered.filter((u) => u.removed && u.removed.length > 0)
+  const removal = questRemovalNotice(removedFrom.map((u) => ({ removals: u.removed!, whose: specName(u.spec) })))
   if (moved.length === 0) {
-    const title = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
-    return { title: `${title} ${whoseOf(changed.map((u) => u.spec))}`, description: talentWords.join(' ') }
+    const talentTitle = succeeded.length > 0 ? 'Talents moved onto the game’s new trees for' : 'Talent points refunded for'
+    const title = changed.length === 0 ? 'Gear removed from' : removedFrom.length === 0 ? talentTitle : 'Gear and talents changed for'
+    const specs = ordered.filter((u) => u.change || removedFrom.includes(u)).map((u) => u.spec)
+    return { title: `${title} ${whoseOf(specs)}`, description: [removal, ...talentWords].filter(Boolean).join(' ') }
   }
   const gear = moved.some((u) => u.gear)
   const talents = moved.some((u) => u.talents)
@@ -256,6 +267,7 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   const kept = succeeded.length > 0 ? 'Gear you changed yourself is kept.' : 'Gear and talents you changed yourself are kept.'
   return {
     title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
-    description: [kept, ...talentWords].join(' '),
+    // After a removal, "kept" holds for the rest of what the player changed.
+    description: [removal, removal ? `Other ${kept[0].toLowerCase()}${kept.slice(1)}` : kept, ...talentWords].filter(Boolean).join(' '),
   }
 }

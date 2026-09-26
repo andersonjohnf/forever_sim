@@ -163,4 +163,29 @@ test.describe('class-quest rewards', () => {
     await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Neck: Amulet of the Darkmoon' })).toBeVisible()
   })
+
+  test('a visit that removes the bear’s own Darkmantle Cap from the automatic save says so, once (FU-1)', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      // The player chose the head (the bear's `following` leaves it out) while the picker offered the cap.
+      const config = { version: 2, spec: 'druid-feral-bear', race: 'horde-tauren', gear: { head: { itemId: 22005 }, neck: { itemId: 19491 } } }
+      const state = { config, bySpec: {}, section: 'gear', following: { 'druid-feral-bear': { gear: [], talents: true } } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    const toasts = page.locator('[data-sonner-toast]:not([data-removed="true"])')
+    const notice = toasts.filter({ hasText: 'Gear removed from Feral (Bear) Druid' })
+    await expect(notice).toHaveCount(1)
+    await expect(notice).toContainText(
+      'Darkmantle Cap is a quest reward only rogues receive, so it was removed from your Feral (Bear) Druid setup. Choose another in Gear.',
+    )
+    await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Neck: Amulet of the Darkmoon' })).toBeVisible()
+
+    // The visit saved without it, so a reload says nothing.
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
+    await expect(toasts).toHaveCount(0)
+  })
 })

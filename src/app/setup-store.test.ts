@@ -201,6 +201,47 @@ describe('the automatic save follows the defaults', () => {
     expect(takeDefaultsUpdates()).toEqual([{ spec: 'paladin-protection', gear: true, talents: false }])
   })
 
+  test('the player’s own piece of another class’s quest reward is removed, and said, once (FU-1, FL-3)', async () => {
+    // docs/data/items.md#class-quest-rewards: a bear who chose Darkmantle Cap and Spaulders, a rogue's,
+    // and a cat (another spec) who chose the cap, when the picker offered them.
+    const bear = normalizeConfig(defaultConfig('druid-feral-bear')).config
+    const cat = normalizeConfig(defaultConfig('druid-feral-cat')).config
+    const config = { ...bear, gear: { ...bear.gear, head: { itemId: 22005 }, shoulder: { itemId: 22008 } } }
+    const catOwn = { ...cat, gear: { ...cat.gear, head: { itemId: 22005 } } }
+    const own = (d: SimConfig) => ({ gear: Object.keys(d.gear).filter((slot) => slot !== 'head' && slot !== 'shoulder'), talents: true })
+    seed({ config, bySpec: { 'druid-feral-cat': catOwn }, section: 'gear', following: { 'druid-feral-bear': own(bear), 'druid-feral-cat': own(cat) } })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.gear.head).toBeUndefined()
+    expect(store().config.gear.shoulder).toBeUndefined()
+    expect(takeDefaultsUpdates()).toEqual([
+      {
+        spec: 'druid-feral-bear',
+        gear: false,
+        talents: false,
+        removed: [
+          { slot: 'head', classId: 'rogue', name: 'Darkmantle Cap' },
+          { slot: 'shoulder', classId: 'rogue', name: 'Darkmantle Spaulders' },
+        ],
+      },
+      { spec: 'druid-feral-cat', gear: false, talents: false, removed: [{ slot: 'head', classId: 'rogue', name: 'Darkmantle Cap' }] },
+    ])
+    // The load saved without them, so the next one has nothing to say.
+    expect(saved().config.gear.head).toBeUndefined()
+    await load()
+    expect(takeDefaultsUpdates()).toEqual([])
+  })
+
+  test('a quest reward in a slot that follows the defaults takes today’s default, and only the move is said', async () => {
+    const bear = normalizeConfig(defaultConfig('druid-feral-bear')).config
+    const config = { ...bear, gear: { ...bear.gear, head: { itemId: 22005 } } }
+    seed({ config, bySpec: {}, section: 'gear', following: { 'druid-feral-bear': { gear: Object.keys(bear.gear), talents: true } } })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.gear.head).toEqual(bear.gear.head)
+    expect(takeDefaultsUpdates()).toEqual([{ spec: 'druid-feral-bear', gear: true, talents: false }])
+  })
+
   test('the player’s own build on 1.60.1.69913’s trees is mapped by name, says what it lost once, and saves on today’s', async () => {
     // Saved after saves said what follows, before 1.60.1.70009: version 1, the player's own Retribution
     // talents (the default then, one point off).

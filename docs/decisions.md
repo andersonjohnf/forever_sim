@@ -395,7 +395,9 @@ pieces separately. So, for new specs until the tuning milestone:
   one.
 - **Shared engine first, then thin class slices.** A caster core (casts, channels, DoTs, spell
   power, spell hit, crit and resists) and a ranged core (Auto Shot, ranged weapons, pets) are
-  built once; each class is then data, talents and a rotation.
+  built once; each class is then data, talents and a rotation. A class slice delivers its class
+  doc (Forever's changes from the client, the Classic Era priority, open questions), its scraped
+  data, talents and default build, abilities, rotation, defaults and e2e tests, and ships the spec.
 - **A merge queue.** A branch rebases once, just before its review, and merges as soon as it's
   green. **Agents run in parallel on disjoint files, at most 10 at once** (user decision,
   2026-09-25, replacing 8, which replaced "about four"), and new ones wait while the machine is saturated, that is,

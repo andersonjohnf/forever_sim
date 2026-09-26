@@ -27,258 +27,35 @@ sources, worked examples, and open questions.
 
 ## M1: Engine core ✅
 
-Built as D15 describes: rule profiles, stats pipeline with Forever ratings, attack tables,
-rage, threat and TPS, auras and procs, a deterministic chunked worker pool with adaptive
-stopping, and normalizeConfig. An auto-attack-only warrior matches the hand calculation
-within 0.03%. Default Fury runs at about 18k fights/s per core.
+The engine core D15 describes (rule profiles, stats with Forever ratings, attack tables, rage, threat, auras and procs, a deterministic worker pool), reviewed with the [first release](reviews/2026-09-23-first-release.md).
 
 ## M1.5: Client data, one source ✅
 
-Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts)):
-- [x] **M1.5a Pipeline:** raw DB2 and game-table files for `wow_classic_beta` 1.60.1.69913 and
-      `wow_classic_era` 1.15.9.69722 through the wago.tools API (D16), parsed with WoWDBDefs,
-      into `src/data/client/`. 123 of 129 doc claims confirmed, none contradicted
-      ([data/client.md](data/client.md)).
-- [x] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
-      entries in open-questions.md, and fix the 6 partial matches
-- [x] **M1.5c Items from client**, in two slices:
-  - [x] **c-1 Stats derivation:** turn `ItemSparse` budget allocations, the damage and armor
-        tables, equip spells and item sets into stats, for both builds, and validate every item
-        field by field against the current snapshot. All engine-read fields match except two
-        old tooltip-parser errors (`npm run compare:items`,
-        [client.md](data/client.md#items-from-the-client)).
-        16 new Forever items exist only as server hotfixes, so they leave the pool (D17).
-        None is on a pre-raid BiS list.
-  - [x] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
-        shape), with Classic Era rows for items whose Forever row is empty (D6, D17). Tooltip
-        text comes from spell descriptions, and drop sources go away, since the Encounter
-        Journal ships empty. Now 1,629 items; the picker shows type and levels instead of
-        sources ([items.md](data/items.md)).
-- [x] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
-      Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
-      documented presets.
-- [x] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
-      races and racials via ChrRaces and CharBaseInfo, with Classic comparisons from the Era
-      build
-- [x] **M1.5f Retire foreverchanges (D17):** delete its scrapers and attribution, and make
-      tier 1 of the doctrine the client files via wago.tools. `npm run scrape` rebuilds every
-      dataset from the client; `-- --version=<build> --diff` diffs a new build against the
-      committed data.
+Every dataset scraped from the Forever client through wago.tools, with foreverchanges.pro retired (D16, D17), reviewed with the [first release](reviews/2026-09-23-first-release.md).
 
 ## M2: Warrior DPS with the production UX ✅
 
-The production UX shell is built ([ux.md](ux.md)): spec switcher, Character, Talents, Gear
-with enchants, Buffs, Rotation, Fight, results, persistence and share links. The engine
-work is in slices:
-- [x] **M2.1 Ability framework + core Fury:**
-  - GCD and cooldown events, and the ability kinds (one-roll strike, two-roll melee spell,
-    on-next-swing)
-  - rage costs and refunds, and the priority-list rotation with option plumbing
-  - Bloodthirst, Whirlwind, Heroic Strike and Hamstring, with numbers from
-    `src/data/client/spells.json` and doc fallback
-  - tests W1, W3, W7, W24, and rotation sanity checks
-- [x] **M2.2 Complete Fury**, in three slices (M2.1's handoff list, split):
-  - [x] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
-        Unbridled Wrath on Heroic Strike swings (Q5), the execute-phase event, Execute (§5.2
-        rows 6–7), Raging Blows, and stance gating
-  - [x] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
-        with a wake-up event; Bloodrage, Berserker Rage, Death Wish (`alignToEnd`),
-        Recklessness (`lastSec`), and the racial cooldowns (§5.2 rows 2–5 and 13)
-  - [x] **M2.2c Upkeep, pre-pull and consumables:** Battle Shout upkeep, the pre-pull actions,
-        Mighty Rage Potion, on-use trinkets (§5.2 rows 0, 1 and 16); re-snapshot the goldens,
-        then warrior-fury becomes **available**
-  - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
-    abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
-    targets wait for multi-target support ([M6](#m6-multi-target-)).
-- [x] **M2.3 Arms**, in three slices:
-  - [x] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
-        Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
-        with Improved Rend and Forever's tick crits). Fix the docs on Impale's class mask,
-        which includes Rend and Sunder Armor (W2, W4, W6, W13).
-  - [x] **M2.3b Stances and reactive windows:** stance swaps (1 s cooldown, rage kept per
-        Tactical Mastery, stance effects swapped), the Overpower window from dodges and
-        Bloodthrill, Improved Overpower, stance-dance lines, and GCD-safe that respects
-        stances. Then Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)
-        (W5, W18).
-  - [x] **M2.3c Arms rotation:** §5.3's priority list and options, including the Berserker
-        base-stance alternative (Q24), the Whirlwind dance, and Recklessness swapping to
-        Berserker Stance for the rest of the fight. Re-snapshot the goldens, then
-        warrior-arms becomes **available**.
-  - Sweeping Strikes waits for multi-target support ([M6](#m6-multi-target-)); Deep Wounds and
-    Weaponmaster are already simulated.
-- [x] **M2.4 Results and review**, in slices:
-  - [x] **M2.4a Results and rotation polish:**
-    - show cooldown casts and aura uptimes in the results
-    - split Rend's application avoidance from its ticks
-    - group the Rotation tab (Fury 27 rows, Arms about 42)
-    - make the choice control's selected state clearer
-    - the Buffs tab reads maintained buffs through `rotationValues`
-  - [x] **M2.4b Adversarial logic review:** fresh reviewers, briefed to break the engine and
-        the data pipeline, check everything since the first commit against doctrine and the
-        owning docs. Every finding is fixed or waived, logged in `docs/reviews/`.
-  - [x] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
-        on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
-  - [x] **M2.4e Number fields** (RV1, RV7): the field shows the plain number while you edit
-        it and its separators once you leave, and half steps snap evenly.
-  - [x] **M2.4f Remove Undo**
-        ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
-        changes happen without an Undo toast. Toasts become plain notices that go after
-        10 s, and the waiting toasts go, with the code that made room for them (RV2–RV6).
-  - [x] **M2.4g Setups** (D21):
-    - [x] Save a named copy of the current setup, and Load, rename or delete one; announce
-          bulk changes that have no notice (part 1)
-    - [x] Export a setup code for the current setup, or a `.json` file of every saved setup
-          plus the current one; import a code or share link as the current setup, or a file
-          into the list (part 2)
-  - [x] **M2.4h Rage from damage taken:** make `10 × damage before armor, block and absorb ÷
-        maximum health` the Forever default, from about 2,000 logged beta hits (research
-        2026-09-23, [rage.md](mechanics/rage.md#rage-from-damage-taken)). Blocks and absorbs
-        don't reduce it, and hits from several attackers each count.
-  - [x] **M2.4i Review of e–h:** the full logic and UX reviews for new work, then a
-        verification pass (D20).
-  - [x] **M2.4j First deploy:** pushed, and the Pages deploy and Full regression are green.
-
-## Session handoff (2026-09-23)
-
-State: `main` is green (lint, typecheck, 1,050 unit, 225 e2e with 3 deferred to M3), pushed and
-deployed. Fury and Arms are available.
-
-**The first release is live** at https://andersonjohnf.github.io/forever_sim/. Its review log
-is [reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md), and pushes now
-happen at every stable state (D25).
-- **First pass:** 38 logic and 34 UX findings.
-- **Second pass** (a review of the fixes): 10 logic and 17 UX findings.
-- **Third pass:** 6 logic and 12 UX findings.
-- All of those are fixed.
-- **Final verification:** nothing blocking. Of its 7 polish findings, 3 are fixed and 4 are
-  deferred with reasons (listed under known gaps below).
-- **Review of the post-verification commits:** 9 findings (PV1–PV9), one blocking (PV1: the
-  sheets got no toast clearance). All fixed.
-- **Review of the PV fixes:** 10 findings (QV1–QV10), one blocking (QV1: selects listed their
-  options under a waiting toast). 9 fixed, 1 waived (QV8, extra room).
-- **Review of the QV fixes:** 8 findings (RV1–RV8), one blocking (RV1: editing a grouped
-  number field's display misread it). Number fields get a simpler design (M2.4e), and Undo
-  goes (D21), which retires the toast findings.
-- **Full review of M2.4e–h** (new work): 13 logic and 15 UX findings, one blocking (UX1: Save
-  overwrote a same-named save across specs). All fixed, except UX2's safety net (waived, D21)
-  and UX15 (deferred). Its verification found 12 more (VF1 blocking: the Delete confirm's
-  contrast), all fixed, and the quick check of those fixes passed, waiving 3 nits (QC1–QC3).
-
-Golden runs (then): Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS. Each golden's history
-comment in `engine.test.ts` has today's.
-
-**Next:** the parallel tracks below (tank core, druid, paladin, Warrior Protection).
-
-**Rotation defaults** follow D23: the best one found becomes the default (M2.5).
+Fury and Arms on the production UX shell, the first release: [first release](reviews/2026-09-23-first-release.md), [CI and tests](reviews/2026-09-23-ci-and-tests.md).
 
 ## M2.5: Best rotations as defaults ✅
 
-Per [D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), each
-spec's default rotation is the best one we've found.
-- [x] **M2.5a Arms:** re-measure the tuning findings on the current engine and adopt what beats
-      the default:
-  - Heroic Strike from 55 rage
-  - the Whirlwind dance
-  - Spearing Strike from 40 rage
-  - Rend refresh at 3 s
-
-  Also search the other Arms options. The findings are in the known gaps and warrior.md §5.3.
-- [x] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2). Adopted:
-      +6.4% (670.6 → 713.5 DPS), plus a potion rule for short execute phases
-      Ahead at every fight length and execute phase measured. The Overpower dance is on (up to 40
-      rage), Hamstring off, Heroic Strike from 40 with its cancel and in the execute phase, and
-      Death Wish, Recklessness and the potion follow the phase
-      ([warrior.md §5.2](classes/warrior.md#tuning-the-defaults-m25b)).
-- Each slice records its method and numbers in warrior.md, re-snapshots the goldens, and goes
-  through the review gate.
-- The Rotation tab's intro says what each spec's defaults are: "tuned for the default setup"
-  once a slice has tuned them (Arms since M2.5a, Fury since M2.5b), "the common priority" until
-  then (`rotationDefaultsNote` in `src/sim/classes/rotation.ts`).
-
-## Parallel tracks: the tank specs first, and every remaining spec (user priority, 2026-09-23)
-
-The goal is every DPS and tank spec. The tracks run at the same time, each in its own worktree
-with its own review gate, and the lead merges them one at a time (D25). Tracks B and C start
-without waiting for A; only the Bear and Paladin Protection slices need the tank-core slice.
-
-| Track | Slices | Milestone | Depends on |
-| --- | --- | --- | --- |
-| A. Tank core | Tank core (T1): the boss attacking the player, mitigation, tank stats; tank results UI (T2) | M3 (its first bullets) | – |
-| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | M4 | Bear needs T1 |
-| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | M5 | Protection needs T1 |
-| Warrior Protection | its abilities, rotation and defaults | M3 | T1 |
-| Fury tuning | search Fury's rotation options under D23, as M2.5a did for Arms | M2.5b | the M2.5a fixes, which change shared warrior options |
-
-Unknown base values don't gate any of it
-([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)): they ship as flagged
-placeholders, and M9 replaces them.
+Arms' and Fury's defaults are the best rotations found (D23): [Arms](reviews/2026-09-23-arms-rotation.md), [Fury](reviews/2026-09-23-fury-rotation.md).
 
 ## M3: Warrior Protection (TPS) ✅
 
-- [x] **T1 tank core and T2 tank results:** the boss's swings on the player (avoidance, block,
-      crushing blows, rage from damage taken), mitigation, TPS and damage taken in the results
-      ([T1](reviews/2026-09-23-tank-core.md), [T2](reviews/2026-09-23-tank-results.md))
-- [x] **P1 and P2 Warrior Protection:** its abilities and rotation, tuned on TPS with the tank's
-      duties kept (D26), a selectable Max TPS priority, a 51-point default build, and shipped:
-      the app is "A DPS and TPS simulator"
-      ([review](reviews/2026-09-23-warrior-protection.md)). The share-link tank tests run
-      without `?preview`.
-- Shields' block value, which the item data lacks and M7's stat boosts need too, still comes
-  from a flagged Classic Era fallback shield.
+The tank core (the boss's swings, mitigation, TPS and damage taken) and Warrior Protection: [tank core](reviews/2026-09-23-tank-core.md), [tank results](reviews/2026-09-23-tank-results.md), [Warrior Protection](reviews/2026-09-23-warrior-protection.md).
 
 ## M4: Feral Druid ✅
 
-- [x] **B1 druid foundation:** forms, Energy, combo points, mana and the power tick, shifting and
-      Furor, Omen of Clarity, form weapons and attack power, bear armor, talents
-      ([review](reviews/2026-09-23-druid-foundation.md)). No druid spec is offered yet.
-- [x] **B2 Cat DPS:** its rotation (bleeds, finishers, Faerie Fire; no powershifting in Forever),
-      +3.7% over the doc's first priority under D23, and shipped
-      ([review](reviews/2026-09-23-feral-cat.md))
-- [x] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
-- [x] **B4 Bear:** the Max TPS rotation (D26), and shipped
-      ([review](reviews/2026-09-24-feral-bear.md))
+The druid foundation, Cat DPS and Bear TPS: [foundation](reviews/2026-09-23-druid-foundation.md), [Cat](reviews/2026-09-23-feral-cat.md), [Bear](reviews/2026-09-24-feral-bear.md).
 
 ## M5: Paladin ✅
 
-- [x] **C1 paladin foundation:** spells and the Holy school, seals, Judgement, Consecration,
-      Righteous Fury, talents, and mana on the druid's model
-      ([review](reviews/2026-09-23-paladin-foundation.md)). No paladin spec is offered yet.
-- [x] **C2 Retribution DPS:** its rotation, mana potions and runes, trinkets and Juju Flurry,
-      +1.3% over the doc's first priority under D23, a mana ledger, and shipped
-      ([review](reviews/2026-09-23-retribution.md))
-- [x] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
-      default and a Max TPS priority (D26), tuned, and shipped
-      ([review](reviews/2026-09-24-paladin-protection.md))
+The paladin foundation, Retribution DPS and Protection TPS: [foundation](reviews/2026-09-23-paladin-foundation.md), [Retribution](reviews/2026-09-23-retribution.md), [Protection](reviews/2026-09-24-paladin-protection.md).
 
 ## M5.5: Every other DPS spec (D27) ✅
 
-Every DPS spec in the game, before multi-target, landed in the 90/10 mode of
-[D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24):
-first-pass defaults within about ±5%, one combined review, shared engine cores before class
-slices. Melee and physical first (user decision, 2026-09-24). Each class slice: a class doc
-(Forever changes from the client, the Classic Era priority, open questions), its scraped data,
-talents and default build, abilities, rotation, defaults, e2e, shipped.
-- [x] **R1 Rogue:** Combat, Assassination, Subtlety. Energy and combo points reuse the cat's;
-      poisons, Slice and Dice, Blade Flurry, Adrenaline Rush, dual wield
-      ([review](reviews/2026-09-24-rogue.md))
-- [x] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
-      totems as its own buffs, mana ([review](reviews/2026-09-24-enhancement-shaman.md))
-- [x] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,
-      crit and partial resists, the caster debuffs (Curse of the Elements, Shadow Weaving,
-      Scorch, Winter's Chill), mana with the five-second rule
-      ([review](reviews/2026-09-24-caster-core.md))
-- [x] **K2 Mage:** Fire, Frost, Arcane ([review](reviews/2026-09-24-mage.md))
-- [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, H3 below)
-      ([warlock.md](classes/warlock.md)) ([review](reviews/2026-09-24-warlock.md))
-- [x] **K4 Shadow Priest** ([review](reviews/2026-09-24-shadow-priest.md))
-- [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
-- [x] **K6 Balance Druid:** Moonkin Form ([review](reviews/2026-09-24-balance-druid.md))
-- [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
-      attacks ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
-- [x] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
-      first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md))
-- [x] **H3 Demonology Warlock:** a demon kept out beside a sacrificed one (Demonic Pact), on the pet
-      core ([warlock.md §11](classes/warlock.md#11-demonology)) ([review](reviews/2026-09-24-demonology.md))
+Every other DPS spec in D27's 90/10 mode, on shared caster and ranged-and-pet cores: [rogue](reviews/2026-09-24-rogue.md), [Enhancement](reviews/2026-09-24-enhancement-shaman.md), [caster core](reviews/2026-09-24-caster-core.md), [mage](reviews/2026-09-24-mage.md), [warlock](reviews/2026-09-24-warlock.md), [Shadow priest](reviews/2026-09-24-shadow-priest.md), [Elemental](reviews/2026-09-24-elemental-shaman.md), [Balance](reviews/2026-09-24-balance-druid.md), [ranged and pet core](reviews/2026-09-24-ranged-and-pet-core.md), [hunter](reviews/2026-09-24-hunter.md), [Demonology](reviews/2026-09-24-demonology.md).
 
 ## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
 
@@ -396,49 +173,11 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
 
 ## M5.65: The Rotation tab as a priority list (D31) ✅
 
-- [x] **A1 APL core and the Rotation tab:** rotation rows as data with their own options, a stored
-      order, the plan compiler following it, pinned rows, D28's rotations as named presets and
-      "Custom"; the drag-and-drop list with keyboard and button moves, per-row switches, the
-      selected row's options (side panel on desktop, sheet on phones); Fury as the pilot spec.
-      Fury's plans are byte-identical at the default order (its golden run, and 400 random
-      settings compared against the engine before the list); presets are built but only A2's
-      tanks declare named ones
-- [x] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
-      batches; each spec's toggles become rows and row options, with its goldens unchanged at the
-      default order
-      - [x] The three tanks (Protection warrior, Feral bear, Protection paladin): their rows in
-            their class docs' order, only the pre-pull and opener pinned, D26's duties movable with
-            their timing rule, D28's rotations as one preset mechanism (the `default` preset named
-            and placed by the spec, the Priority set only by the picker, which sits at the top of
-            the tab with a short line and every preset's numbers in its info). Defensive's and Max
-            TPS's plans byte-identical to before the list for 200 random setups each, and a
-            Defensive golden per tank equal to its old default's
-            ([architecture.md](architecture.md), "Rotation as a priority list")
-      - [x] The rest, one slice a class in parallel (user priority, 2026-09-25: "getting the true
-            APL on all specs is priority"), each with a 200-setup plan snapshot taken before the
-            move and byte-identical plans at the default order: Arms; Retribution; Feral cat and
-            Balance; Enhancement and Elemental; the three rogues; the three hunters; the three
-            mages; the three warlocks (then issue #17's Incinerate filler and Searing Pain with
-            Demonic Brand); Shadow
+Every spec's Rotation tab is a priority list you reorder, with D28's tank rotations as presets: [A1](reviews/2026-09-24-rotation-apl.md), [A2](reviews/2026-09-25-priority-lists.md).
 
 ## M5.66: The wide desktop layout (D34) ✅
 
-From 1440 px the app becomes a power-user workspace; nothing under 1440 changes
-([D34](decisions.md#d34-a-power-user-desktop-layout-at-wide-widths-2026-09-25); the audit's proposal
-in `.cache/probes/desktop-audit/proposal.md`). Each slice keeps the phone and 1024–1439 layouts
-pixel-identical (before and after snaps at 390, 1024 and 1280), adds its own e2e at 1440 (and 1920
-where it changes) and updates only its own ux.md subsection.
-- [x] **S0:** opening Assumptions on desktop no longer adds blank page (the audit's bug)
-- [x] **S1 Shell:** the wide grid to 2560 px, the results pane growing smoothly, the `setup` and
-      `results` containers, the skip link, and the toolbar's items inline
-- [x] **The right panel** (amended twice by the user): the character sheet, then Your setup with
-      Simulate and the result's headline, then the breakdown in one column; nothing pinned
-- [x] **Gear** in the game's character-pane order, every slot in view at 1440×900, the picker a modal
-- [x] **Buffs, Character and Fight** in balanced columns with everything shown; **Rotation**'s
-      settings in a column beside the list; **Talents** at normal size with a detail panel
-- [x] **Ctrl/Cmd+Enter runs Simulate**; focus kept through every change of layout
-- [x] **The light theme's contrast** (user decision): a navy toolbar, white panels on a tinted page,
-      tooltips that follow the theme
+From 1440 px the app is a power-user workspace: [review](reviews/2026-09-25-desktop-layout.md).
 
 ## M5.665: What we take from WarriorSim (D36) 🚧 next update
 
@@ -454,16 +193,7 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
 
 ## M5.67: Item tooltips ✅
 
-A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
-2026-09-25: its own milestone, shipping in the update after the priority lists and the wide
-layout, ahead of the optimizer). It shows the item as the game does: name in its quality colour,
-slot and type, armor, weapon damage and speed, stats, equip and use effects, set and its bonuses, and
-the item level, plus the enchant on it. On desktop it opens on hover and on keyboard
-focus; on a phone, where nothing hovers (docs/ux.md), a tap on the item's info control or a long
-press opens it, and it closes on a tap outside or Escape.
-- [x] **T1 Tooltip content:** a pure function from an item (and its enchant) to the tooltip's lines,
-      with tests against the client data, and the tooltip component
-- [x] **T2 Where it shows:** the gear slots and the item picker, at every width (the character sheet shows no items)
+A WoW-style tooltip for every item in the gear slots and the item picker, from the client's data ([ux.md](ux.md#item-tooltips)): [review](reviews/2026-09-25-item-tooltips.md).
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

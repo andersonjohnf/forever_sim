@@ -77,8 +77,8 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
     [
       "thorns",
-      2748118.199998702,
-      2803080.5640012724,
+      1591015.7999995546,
+      1622836.1160003347,
       76935,
       76935,
       0,
@@ -247,9 +247,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     ],
   ],
   "dps": {
-    "ci95": 1.1341414043159859,
-    "mean": 460.3403761659591,
-    "stdev": 18.298652702958087,
+    "ci95": 1.1309474616251194,
+    "mean": 453.9010737924626,
+    "stdev": 18.247120462065627,
   },
   "dtps": {
     "ci95": 3.5351873457963494,
@@ -281,9 +281,9 @@ exports[`golden run (fixed config and seed) > keeps the Defensive Protection pal
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.842931929057356,
-    "mean": 744.8114790314988,
-    "stdev": 29.734538565190633,
+    "ci95": 1.8383084318702396,
+    "mean": 738.2433906105324,
+    "stdev": 29.659941368599284,
   },
 }
 `;
@@ -365,8 +365,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "thorns",
-      2748118.199998702,
-      2803080.5640012724,
+      1591015.7999995546,
+      1622836.1160003347,
       76935,
       76935,
       0,
@@ -535,9 +535,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 1.1341414043159859,
-    "mean": 460.3403761659591,
-    "stdev": 18.298652702958087,
+    "ci95": 1.1309474616251194,
+    "mean": 453.9010737924626,
+    "stdev": 18.247120462065627,
   },
   "dtps": {
     "ci95": 3.5351873457963494,
@@ -569,9 +569,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 19439.756,
   },
   "tps": {
-    "ci95": 1.842931929057356,
-    "mean": 744.8114790314988,
-    "stdev": 29.734538565190633,
+    "ci95": 1.8383084318702396,
+    "mean": 738.2433906105324,
+    "stdev": 29.659941368599284,
   },
 }
 `;

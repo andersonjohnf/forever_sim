@@ -422,7 +422,7 @@ const REGISTRY = {
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
   thorns: {
-    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): 38 in all, its caster’s spell damage taken as a raid healer’s 200, a third of +600 healing on its gear, as Forever’s items give. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: 'Thorns deals its base 22 Nature damage. In Forever it also grows with its caster’s spell damage, but how much a raid healer’s gear carries isn’t known, so none is counted. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   thornsOwn: {

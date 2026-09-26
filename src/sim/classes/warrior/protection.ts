@@ -155,16 +155,17 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3, why
 
 /**
  * What the presets' help and short lines say, measured in the default setup (warrior.md §5.4 "Build
- * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-25 with W4's talents, D36):
+ * 1.60.1.70009"; seed 31101, 100,000 paired fights, re-measured 2026-09-25 with W4's talents, D36,
+ * and 2026-09-26 with a raid druid's Thorns at its base 22, buffs doc §1.2):
  * Defensive's TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max
  * TPS against Balanced, since the two share their rows. protection-presets.test.ts measures them again,
  * so a change that moves them fails until they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 925.39, dps: 386.07, damageTaken: 616.34 },
-  balanced: { tpsPct: 6.44, dpsPct: 5.82, damageTakenPct: 20.99 },
-  maxTps: { tpsPct: 6.91, dpsPct: 5.56, damageTakenPct: 21.11 },
-  maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: 0.09 },
+  defensive: { tps: 918.43, dps: 381.5, damageTaken: 616.34 },
+  balanced: { tpsPct: 6.34, dpsPct: 5.66, damageTakenPct: 20.99 },
+  maxTps: { tpsPct: 6.82, dpsPct: 5.4, damageTakenPct: 21.1 },
+  maxTpsOverBalanced: { tpsPct: 0.448, dpsPct: -0.249, damageTakenPct: 0.09 },
 } as const
 
 /** A preset measured against another: its TPS, DPS and damage taken a second, in percent. */

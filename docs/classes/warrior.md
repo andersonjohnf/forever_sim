@@ -2353,14 +2353,16 @@ Battle Shout r6, and the raid's Blessing of Might r6 and Strength of Earth r4) D
 351.55 DPS, 610.74 taken; Balanced 944.64 (+7.00%), 373.58 DPS; Max TPS 953.75 (+8.03%), 375.22 DPS;
 before those ranks, Defensive 933.23 TPS, 367.63 DPS; Balanced 1,001.62; Max TPS 1,011.74; and
 before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993.37; Max TPS
-1,003.49. `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
+1,003.49; and before a raid druid's Thorns went back to its base 22 (2026-09-26, buffs doc §1.2)
+Defensive 925.39, 386.07 DPS; Balanced 984.94 (+6.44%); Max TPS 989.32 (+6.91%).
+`PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
 `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 925.39 | 386.07 | 616.34 |
-| Balanced (the default) | 984.94, **+6.44%** (+59.18 to +59.92) | 408.52, +5.82% | 745.71, +21.0% |
-| Max TPS | 989.32, **+6.91%** (+63.57 to +64.30) | 407.52, +5.56% | 746.42, +21.1% |
+| Defensive | 918.43 | 381.50 | 616.34 |
+| Balanced (the default) | 976.69, **+6.34%** | 403.11, +5.66% | 745.71, +21.0% |
+| Max TPS | 981.07, **+6.82%** | 402.10, +5.40% | 746.42, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9

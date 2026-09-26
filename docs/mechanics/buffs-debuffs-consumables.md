@@ -229,7 +229,7 @@ It's two
 entries, by its caster (PR-4): **a raid druid's** (`thorns`), which a Restoration druid puts on the
 main tank, and **the bear's own** (`thornsOwn`, "Thorns (your own)", druids only), cast on itself
 before the pull (it lasts 10 min) where no other druid does. They don't stack (one `thorns` group),
-and the raid druid's is the larger. In a raid a druid puts it on the main tank, so every tank's
+and both deal 22 (below). In a raid a druid puts it on the main tank, so every tank's
 Standard and Max-consumables raid presets have the raid druid's, as they have Devotion Aura, when a
 druid is in the raid; a bear's Self only and Dungeon presets have its own (`selfCast`), and so do its
 raid presets without a druid in the raid (T2's fix round, T3R-2;
@@ -237,9 +237,10 @@ raid presets without a druid in the raid (T2's fix round, T3R-2;
 a known effect isn't left at zero). Only a tank takes the boss's swings, so for any other spec it does
 nothing, and the Buffs tab says so. At the flat 22 it was about 10 TPS for a bear (+1.0%), 9.5 for a
 warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000
-fights); with the scaling below, a raid druid's 38 a swing is 15.6 TPS for the Protection paladin
-(+2.1%, after the paladin review's PR-1), 19.6 for the warrior (+2.0%) and 17.8 for the bear (+1.6%) in their default setups (seed
-424242, 20,000 fights, 2026-09-24; at the Balance druid's 389, 53 a swing, the paladin's was 21.8).
+fights). While a raid druid's was taken at 38 a swing (200 spell damage, below) it was 15.6 TPS for
+the Protection paladin, 19.6 for the warrior and 17.8 for the bear (seed 424242, 20,000 fights,
+2026-09-24); back at 22 on 2026-09-26 the default tanks lost 0.64% (bear), 0.84% (warrior) and
+0.88% (paladin) of TPS (seed 1, 10,000 fights).
 
 **Damage shields that scale with spell power** (1.60.1.70009). The build's dev notes say Thorns and
 Retribution Aura "will now dynamically update [their] values based on the caster's spell power" (Thorns
@@ -250,18 +251,21 @@ aura [F] [client] (SpellEffect, 1.60.1.70009)), so the server holds it, and the 
 - **The coefficient, 0.08** [?]: Holy Shield's damage on each block (20928 effect 1, aura 43, 221 +
   0.08 × spell damage), the Forever client's closest analog: a damage shield that deals its damage on
   every attack it meets, with no internal cooldown. Lightning Shield's 0.267 a ball (26363) is the
-  other allowed reading, but its balls fire at most every few seconds and are used up. At 0.267,
-  Thorns on a Protection paladin would make about 31 TPS rather than 16 (paladin.md open question 29).
+  other allowed reading, but its balls fire at most every few seconds and are used up. It reaches
+  Retribution Aura (your spell damage) and not a raid druid's Thorns, whose caster's spell damage is
+  taken as none (below); while that was 200, 0.267 made Thorns about 31 TPS for a Protection paladin
+  rather than 16 (paladin.md open question 29).
 - **The caster's spell damage.** Retribution Aura is your own, so it's your spell damage (a
   Protection paladin's 379 in its default setup: 30 + 30.3 a swing). Thorns on a tank in a raid comes
-  from a **Restoration druid**, the raid's healers, not its Balance druid: Forever's healing gear
-  carries spell damage at a third of its healing ([character-stats](character-stats.md); Whitesoul
-  Helm's +35 healing with +12 spell damage [F]), so a pre-raid healer's +600 or so healing gives about
-  **200** [?] (a reasoned estimate, D29: the sim has no healer setups; it was the default Balance
-  druid's 389 until the paladin review's PR-4): 22 + 0.08 × 200 = **38** a swing, for every tank
-  alike. **The bear's own** (`thornsOwn`) has no spell damage behind it, a bear's gear carrying almost
-  none, so it deals the base **22** (`THORNS_CASTER_SPELL_DAMAGE`, `DAMAGE_SHIELD_SP_COEFFICIENT` in
-  `src/sim/effects/buffs.ts`).
+  from a **Restoration druid**, the raid's healers, not its Balance druid, and the sim has no healer
+  setups and no measured healer's gear, so that druid's spell damage has no allowed source: it's
+  taken as **none** [?], and a raid druid's Thorns deals the base **22** a swing, for every tank
+  alike ([open question 24](#open-questions)). Until 2026-09-26 it was 200, a third of a guessed +600 healing (Forever's
+  healing gear carries spell damage at about a third of its healing, Whitesoul Helm's +35 healing
+  with +12 spell damage [F]): the +600 had no source, so the 38 a swing it made was invented.
+  **The bear's own** (`thornsOwn`) has no spell damage behind it either, a bear's gear carrying
+  almost none, so it deals the base **22** too (`THORNS_CASTER_SPELL_DAMAGE`,
+  `DAMAGE_SHIELD_SP_COEFFICIENT` in `src/sim/effects/buffs.ts`).
 - **No rounding** [?]: both damage shields deal their unrounded value, 30 + 0.08 × SP for
   Retribution Aura (60.32 at 379) and 22 + 0.08 × SP for Thorns, as Holy Shield's 221 + 0.08 × SP and
   every other spell-power damage in the engine are. The server deals a whole number each hit, but
@@ -1800,6 +1804,13 @@ Each item says what was found and how the guild can check it on the Forever beta
     off, as in every preset, the error is 0%. *Check (on Classic Era or on Forever):* an Arcane mage uses Arcane Power,
     and a priest casts Power Infusion on them: does it land, or say "A more powerful spell is already
     active"? Then the other way round, and read the buffs and a Frostbolt's damage.
+24. **A raid druid's Thorns and its caster's spell damage** [?] ([Thorns on the tank](#12-threat-defense-and-mana)).
+    Since 1.60.1.70009 Thorns grows with its caster's spell power (the dev notes), by a coefficient
+    the client doesn't carry (the sim takes Holy Shield's 0.08) and from a Restoration druid's gear,
+    which the sim has no source for. It takes that spell damage as none, so a raid druid's Thorns
+    deals the base 22 a swing, as the bear's own does. At 200 spell damage (the old guess) it was 38
+    a swing, about +0.6% to +0.9% of the tanks' TPS. *Check:* a druid with known spell damage casts
+    Thorns on a tank; read the damage on the mob's hits, then again with +100 spell damage.
 
 ---
 

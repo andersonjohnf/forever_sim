@@ -1078,8 +1078,12 @@ one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
       31101, 100,000 fights): **746.42 TPS, 460.97 DPS and 918.9 damage taken a second** for Balanced
       and Defensive; Max TPS against it +6.81% TPS, +6.76% DPS and +5.72% damage taken; Hammer of the
       Righteous turned on −2.00% TPS (−15.13 to −14.77), −0.13% DPS (−0.73 to −0.50) and +4.92% damage
-      taken. The presets' help quotes these (`PROTECTION_PRESET_MEASURES`, which
-      `protection-presets.test.ts` measures again), each change with its direction.
+      taken. **Re-measured 2026-09-26** with a raid druid's Thorns at its base 22 (its caster's spell
+      damage taken as none, buffs doc §1.2): **740.33 TPS, 455.04 DPS and 918.9 damage taken a
+      second**; Max TPS +6.87% TPS, +6.85% DPS and +5.72% damage taken; Hammer of the Righteous
+      −2.02% TPS, −0.13% DPS and +4.92% damage taken. The presets' help quotes these
+      (`PROTECTION_PRESET_MEASURES`, which `protection-presets.test.ts` measures again), each change
+      with its direction.
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
@@ -1760,11 +1764,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     judged while you already have top threat (so the taunt does nothing).
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy
-    Shield's 0.08 [?] and, for Thorns on another tank, a raid Restoration druid's 200 spell damage
-    [?], both unrounded
+    Shield's 0.08 [?] and, for Thorns on another tank, a raid Restoration druid's spell damage,
+    taken as none since 2026-09-26 (no allowed source; buffs doc open question 24) [?], both unrounded
     ([buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)). Lightning
-    Shield's 0.267 a ball is the other allowed analog: at 0.267, Thorns would be about 31 TPS for a
-    Protection paladin rather than 16. *Test:* Retribution Aura's damage on a mob with and without
+    Shield's 0.267 a ball is the other allowed analog (at 200 spell damage it made Thorns about 31
+    TPS for a Protection paladin rather than 16; at none it doesn't reach Thorns). *Test:* Retribution Aura's damage on a mob with and without
     +100 spell damage; and Thorns' from a druid with known spell damage.
 30. **Twist of Light's cost cut with Benediction**: added (210 × 0.7 = 147, the sim's) or multiplied
     (210 × 0.9 × 0.8 = 151)? The same question as 19. *Test:* Seal of Command's cost with both.

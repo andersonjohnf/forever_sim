@@ -522,7 +522,7 @@ describe('the default bear (druid.md §6.3)', () => {
     }
   })
 
-  it('Thorns (Buffs, BR5): 22 + 0.08 × a raid Restoration druid’s 200 spell damage (38) on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
+  it('Thorns (Buffs, BR5): 22, a raid Restoration druid’s spell damage taken as none, on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
     const { plan } = buildPlan(config())
     const sim = new Sim(plan)
     for (let i = 0; i < 30; i++) sim.runFight(i)
@@ -532,9 +532,9 @@ describe('the default bear (druid.md §6.3)', () => {
     const landed = o[BOSS_OUTCOME.hit] + o[BOSS_OUTCOME.crit] + o[BOSS_OUTCOME.crush] + o[BOSS_OUTCOME.block]
     expect(counter(sim, r, FIELD.casts)).toBe(landed)
     expect(counter(sim, r, FIELD.crits)).toBe(0)
-    // buffs doc §1.2: (22 + 0.08 × 200, unrounded) × (1 − 0.75 × 24 / 300), Nature's average resist
-    // against a level-63 boss; the spell damage is its caster's, a raid Restoration druid's (PR-4).
-    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(38 * 0.94, 9)
+    // buffs doc §1.2: 22 × (1 − 0.75 × 24 / 300), Nature's average resist against a level-63 boss; a
+    // raid Restoration druid's spell damage (PR-4) is taken as none, since no allowed source gives it.
+    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(22 * 0.94, 9)
     expect(counter(sim, r, FIELD.threat) / counter(sim, r, FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
     // Without it in Buffs, no row.
     const d = config()

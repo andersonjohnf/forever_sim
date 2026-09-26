@@ -1864,8 +1864,12 @@ puts the list's settings at that preset's defaults and keeps the consumables' se
   costs TPS; [Build 1.60.1.70009](#build-160170009-protection)), and Shield Slam (row 7), which
   now makes the most threat of any global cooldown ([Max TPS](#max-tps-p2)). So it now keeps
   Balanced's rows and differs in its thresholds, the Sunder Armor filler from its cost and Heroic
-  Strike from 45: about +1% TPS over Balanced for the same damage taken, which its line under the
-  picker says ([Build 1.60.1.70009](#build-160170009-protection)). The Buffs tab's Thunder Clap and Demoralizing
+  Strike from 45: about +0.4% TPS over Balanced for the same damage taken (re-measured with W4's
+  talents), which its line under the picker says ([Build 1.60.1.70009](#build-160170009-protection)).
+  Its help's advice follows those numbers: it takes no more damage than Balanced, so pick it when
+  every bit of threat counts (W4's fix round). Every figure in the presets' help and lines takes its
+  word from its value: more, less, or the same when it rounds to zero, which for damage taken is
+  under 0.5%. The Buffs tab's Thunder Clap and Demoralizing
   Shout are the tank's own too, so no preset turns them on for a Protection warrior (the buffs
   doc's [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): with
   Max TPS the boss goes unslowed and at full attack power, unless you turn them on there because

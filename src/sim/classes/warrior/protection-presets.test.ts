@@ -11,7 +11,7 @@ import { buildPlan } from '../../plan/build'
 import { emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import type { RotationValue } from '../../types'
 import { aplPresets } from '../apl'
-import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_PRESET_MEASURES as M, PROTECTION_PRIORITY } from './protection'
+import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRESET_MEASURES as M, PROTECTION_PRIORITY, protectionPresetText } from './protection'
 
 const FIGHTS = 4000
 
@@ -59,5 +59,36 @@ describe('the Protection warrior presets’ help numbers (FU-3)', () => {
     expect(presets.maxTps.summary).toContain('about +0.4% TPS over Balanced for the same damage taken')
     // Heroic Strike's two thresholds in the units each is set in (FU-4).
     expect(help('maxTps')).toContain('Heroic Strike from 45 rage rather than 84% of your max rage')
+    // Its advice matches its numbers: no more damage taken than Balanced (W4U-8).
+    expect(help('maxTps')).toContain('It takes no more damage than Balanced for about 0.4% more threat: pick it when every bit of threat counts.')
+  })
+
+  it('takes every word of direction from the value (W4U-6): more, less, or the same under 0.5% damage taken', () => {
+    const flipped = protectionPresetText({
+      defensive: M.defensive,
+      balanced: { tpsPct: -1.26, dpsPct: 0.02, damageTakenPct: -0.4 },
+      maxTps: { tpsPct: 0.04, dpsPct: -5.56, damageTakenPct: -2.6 },
+      maxTpsOverBalanced: { tpsPct: -0.44, dpsPct: 0.24, damageTakenPct: 0.6 },
+    })
+    expect(flipped.balanced.summary).toBe('Shield Block and 5 Sunders kept, no Thunder Clap or Shout: −1% TPS, ±0% DPS, the same damage taken as Defensive.')
+    expect(flipped.balanced.help).toContain('Against Defensive in the default setup: 1.3% less TPS, the same DPS and the same damage taken.')
+    expect(flipped.maxTps.summary).toContain('about −0.4% TPS over Balanced for 1% more damage taken.')
+    expect(flipped.maxTps.help).toContain('Against Balanced in the default setup: 0.4% less TPS, 0.2% more DPS and 1% more damage taken; against Defensive, the same TPS, 5.6% less DPS and 3% less damage taken.')
+    expect(flipped.maxTps.help).toContain('It takes 1% more damage than Balanced for about 0.4% less threat: pick it when another tank or the raid covers your survival.')
+    // Less damage taken than Balanced reads as less, and the advice is threat's.
+    const less = protectionPresetText({ ...M, maxTpsOverBalanced: { tpsPct: 0.44, dpsPct: -0.24, damageTakenPct: -0.7 } })
+    expect(less.maxTps.help).toContain('It takes 1% less damage than Balanced for about 0.4% more threat: pick it when every bit of threat counts.')
+    // Today's measures: every direction as measured, and 0.09% damage taken is the same.
+    const today = protectionPresetText(M)
+    expect(today.balanced.summary).toContain('+6% TPS, +6% DPS, 21% more damage taken than Defensive.')
+    expect(today.maxTps.summary).toBe('Sunder Armor filler from its cost, Heroic Strike from 45 rage: about +0.4% TPS over Balanced for the same damage taken.')
+  })
+})
+
+describe('the Sunder Armor filler’s help (W4U-5)', () => {
+  it('says 9 uses it whenever you can pay for it, with either talent build', () => {
+    const filler = PROTECTION_OPTIONS.find((o) => o.id === ID.fillerMinRage)!
+    expect(filler.help).toContain('At 9 it’s used whenever you can pay for it: 12 rage with the default talents, 9 with Improved Sunder Armor 3/3.')
+    expect(filler.kind === 'number' && filler.default).toBe(9)
   })
 })

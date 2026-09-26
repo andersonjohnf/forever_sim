@@ -363,14 +363,15 @@ Item
   weapon       { min, max, speed, dps, school, skill, extraDamage? } | null
   weaponSkill  { "Daggers": 5, … } | null
   statSpellIds[]                                               // equip spells whose auras are in stats
-  procs[{ raw, spellId }], useEffects[{ raw, spellId, cooldownSec? }], otherEquip[{ raw, spellId }]
-                                                               // rendered tooltip lines
+  statEquip[{ raw, spellId, stats, weaponSkill? }]             // their rendered tooltip lines
+  procs[{ raw, spellId, generated? }], useEffects[{ raw, spellId, cooldownSec?, generated? }],
+  otherEquip[{ raw, spellId, generated? }]                     // rendered tooltip lines
   setId, source (always null), preRaidBis [{ spec, slot, rank }]
   sellPrice (copper), flavor, classic { stats, weapon, weaponSkill } | null
   classicShieldBlockValue?, notes[]
 ```
 
-The browser build drops `classic`, `flavor`, `sellPrice`, `notes`, `statSpellIds` and the bulky
+The browser build drops `classic`, `flavor`, `sellPrice`, `notes`, `statSpellIds` (not `statEquip`) and the bulky
 `meta` blocks (`tables`, `descriptionCoverage`, `preRaidBis`, `noClientRow`, `fallbackEffects`);
 see `SLIMMERS` in `vite.config.ts`. `src/data/client/spells.json` extracts every spell the pool
 names (`statSpellIds`, the effect lines' and set bonuses' `spellId`), so the Forever values
@@ -388,6 +389,7 @@ behind any line can be read there.
 | `stats`, `weapon`, `weaponSkill`, `setId` | the derivation, [client.md, "Items from the client"](client.md#items-from-the-client) |
 | `procs`, `useEffects`, `otherEquip` | `ItemEffect` spells, text [below](#effect-and-set-bonus-text); fallback items' come from Forever where it has them ([above](#effects-of-fallback-items)) |
 | `statSpellIds` | the equip spells whose auras are part of `stats` ([below](#stats-armor-and-block-value)) |
+| `statEquip` | each of those spells' rendered description as an Equip line, with what it adds to `stats` and `weaponSkill` ([below](#stat-spell-text)) |
 | `icon` | [above](#how-the-data-was-obtained) |
 | `sellPrice`, `flavor` | `SellPrice`, `Description_lang` |
 | `classicName` | the Classic Era row's name when Forever renamed the item (none in this pool) |
@@ -459,7 +461,9 @@ Attack Power.") or its name. **Coverage in this snapshot** (`meta.descriptionCov
 The two generated lines are Rune of the Guard Captain's area-restricted spell 1287704: "Equip:
 +28 Attack Power in certain areas." (its always-on +14 AP is a stat; together they are the
 tooltip's "tripled in Forest and Grassland areas") and Briarwood Reed's Marsh and Swamp
-doubling (1318327, "+15 Spell Power in certain areas."). The hidden spells are Seal of
+doubling (1318327, "+15 Spell Power in certain areas."). They carry `generated: true`: the game
+shows nothing for them, so the item tooltip leaves them out (docs/ux.md "Item tooltips"), while
+the gear's stats summary keeps them. The hidden spells are Seal of
 Ascension's use and equip spells (16349, 16372) and Forever equip dummies (Arcanite
 Dragonling 1318325, Cannonball Runner 1300668, Blackhand's Breadth 1318945, Eye of the Beast
 1318846 and Barov Peasant Caller 1298508).
@@ -511,6 +515,21 @@ spells and equip spells with a proc aura (15 "when struck", 42, 43); `useEffects
 spells; `otherEquip` are the other equip spells, including conditional ones. The engine lists
 items with procs or other equip effects it doesn't model with each result, and active set
 bonuses without `parsed` stats or a `weaponSkill` ([Equipping rules](#equipping-rules)).
+
+### Stat-spell text
+
+`statEquip` holds each stat spell's own Equip line (review finding TL-1): the spell's rendered
+description, as above, from the client the spell is read from (Forever wherever it has it,
+fallback items included), in the order the item lists its effects. Each entry also carries the
+`stats` and `weaponSkill` the spell adds to the item's, so the item tooltip shows the client's
+line for them and words only what's left: the stat columns, armor and resistances. The client's
+line keeps what a stat can't say: "Improves your chance to get a critical strike with melee
+attacks by 1.0%." (melee only, one decimal), "+48 Attack Power against Beasts.", "+30 Attack
+Power, doubled against Mechanical units." (one line for two stats), "+14 Attack Power. This effect
+is tripled in Forest and Grassland areas.", and Royal Seal of Eldre'Thalas's "+200 Armor." as an
+Equip line, not white armor. A spell whose description is empty or can't be fully rendered has
+no entry, and its stats keep the tooltip's wording; all 537 of the pool's stat spells render. The
+browser build keeps `statEquip` (about 83 KB of JSON, 9 KB gzipped).
 
 ### Modelled item effects
 

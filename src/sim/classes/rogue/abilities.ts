@@ -209,13 +209,13 @@ export const PREMEDITATION: AbilityDef = {
 
 // --- Finishers (rogue.md §3.3–§3.6) -----------------------------------------------------------------
 
-/** Eviscerate's attack power per combo point, 4% [F] (guild in-game test, 2026-09-25; rogue.md §3.4). */
+/** Eviscerate's attack power per combo point, 4% [?] (a player's in-game tests shared on Discord, 2026-09-25; rogue.md §3.4). */
 export const EVISCERATE_AP_PER_CP = 0.04
 
 /**
  * Eviscerate rank 9 (spells.json 31016): 35 Energy and every combo point, GCD 1000; `SCHOOL_DAMAGE`
  * 108 with `Variance` 1, so 54–162, + 170 per combo point (`EffectPointsPerResource`) [F], + 4% of
- * attack power per point [F] (guild in-game test, 2026-09-25; Classic Era sims' 3%; rogue.md §3.4).
+ * attack power per point [?] (a player's in-game tests shared on Discord, 2026-09-25; Classic Era sims' 3%; rogue.md §3.4).
  * No weapon damage, so it rolls twice [?] (rogue.md §3.4, Q4).
  */
 export const EVISCERATE: AbilityDef = {
@@ -256,7 +256,7 @@ export const SLICE_AND_DICE: AbilityDef = {
 
 /**
  * Rupture's attack power per combo point per tick, 1%, counting at most 3 points: 1% a tick at 1
- * point, 2% at 2, 3% at 3 to 5 [F] (guild in-game test, 2026-09-25; rogue.md §3.5).
+ * point, 2% at 2, 3% at 3 to 5 [?] (a player's in-game tests shared on Discord, 2026-09-25; rogue.md §3.5).
  */
 export const RUPTURE_AP_PER_CP_PER_TICK = 0.01
 export const RUPTURE_AP_CP_CAP = 3
@@ -265,7 +265,7 @@ export const RUPTURE_AP_CP_CAP = 3
  * Rupture rank 6 (spells.json 11275): 25 Energy and every combo point, GCD 1000; a bleed of 35 + 4.73
  * per point every 2000 ms (`EffectPointsPerResource` 4.73) for 6 s + 2 s per point (`SpellDuration`
  * 6000, `DurationPerResource` 2000), so 3 ticks + 1 per point [F]; + 1% of attack power per point per
- * tick, 3% at 3 points and above [F] (guild in-game test, 2026-09-25). Its ticks carry the
+ * tick, 3% at 3 points and above [?] (a player's in-game tests shared on Discord, 2026-09-25). Its ticks carry the
  * periodic-crit flag (rogue.md §3.5).
  */
 export const RUPTURE: AbilityDef = {

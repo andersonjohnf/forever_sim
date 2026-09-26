@@ -339,8 +339,8 @@ describe('worked examples (rogue.md §9)', () => {
     expectMean(hits, 1.272 * (108 + 850 + 200))
   })
 
-  it('R3b: the guild’s 4% of attack power per point: a 5-point Eviscerate at 2,000 AP adds 400 (1,727.4 on average with Combat’s talents)', () => {
-    // docs/classes/rogue.md#34-eviscerate-r9-31016: guild in-game test, 2026-09-25 (Classic Era sims' 3%).
+  it('R3b: the Discord tests’ 4% of attack power per point: a 5-point Eviscerate at 2,000 AP adds 400 (1,727.4 on average with Combat’s talents)', () => {
+    // docs/classes/rogue.md#34-eviscerate-r9-31016: a player's in-game tests shared on Discord, 2026-09-25 (Classic Era sims' 3%).
     expect(EVISCERATE.apCoefficientPerComboPoint).toBe(0.04)
     expect(EVISCERATE_AP_PER_CP * 5 * 2000).toBeCloseTo(400, 9)
     const plan = quiet(combatWith({ 'rogue.combat.eviscerate.enabled': true }))
@@ -372,8 +372,8 @@ describe('worked examples (rogue.md §9)', () => {
     expect(counter(sim, r, FIELD.hits)).toBeLessThanOrEqual(8 * counter(sim, r, FIELD.casts))
   })
 
-  it('R5b: the guild’s Rupture AP share per tick, 1% at 1 point, 2% at 2, 3% at 3 and above; a 3-point Rupture at 2,000 AP ticks 109.19, 655.1 in all', () => {
-    // docs/classes/rogue.md#35-rupture-r6-11275: guild in-game test, 2026-09-25.
+  it('R5b: the Discord tests’ Rupture AP share per tick, 1% at 1 point, 2% at 2, 3% at 3 and above; a 3-point Rupture at 2,000 AP ticks 109.19, 655.1 in all', () => {
+    // docs/classes/rogue.md#35-rupture-r6-11275: a player's in-game tests shared on Discord, 2026-09-25.
     expect([1, 2, 3, 4, 5].map((cp) => RUPTURE_AP_PER_CP_PER_TICK * Math.min(cp, RUPTURE_AP_CP_CAP))).toEqual([0.01, 0.02, 0.03, 0.03, 0.03])
     const tick = (cp: number) => 35 + 4.73 * cp + 0.01 * Math.min(cp, 3) * 2000
     expect(tick(3)).toBeCloseTo(109.19, 9)
@@ -437,8 +437,8 @@ describe('worked examples (rogue.md §9)', () => {
     expect([p.a, p.b]).toEqual([76 * 1.2, 100 * 1.2])
   })
 
-  it('R9b: the guild’s 0.5% of attack power a proc: Instant Poison at 2,000 AP hits for 86–110 (98 on average) before resists', () => {
-    // docs/classes/rogue.md#41-instant-poison-vi: guild in-game test, 2026-09-25.
+  it('R9b: the Discord tests’ 0.5% of attack power a proc: Instant Poison at 2,000 AP hits for 86–110 (98 on average) before resists', () => {
+    // docs/classes/rogue.md#41-instant-poison-vi: a player's in-game tests shared on Discord, 2026-09-25.
     expect(INSTANT_POISON_AP * 2000).toBeCloseTo(10, 12)
     const instantOnly = (ap: number) => {
       const plan = quiet({ ...combatWith({}), buffs: { raid: [], enabled: ['instantPoisonMainHand'] } })
@@ -493,8 +493,8 @@ describe('worked examples (rogue.md §9)', () => {
     expect(ticks.filter((t) => Math.abs(t - top) < 1e-6).length).toBeGreaterThan(ticks.length / 2)
   })
 
-  it('R10b: the guild’s 0.1125% of attack power per stack a tick: Deadly Poison at 5 stacks and 2,000 AP ticks 101.25, before resists', () => {
-    // docs/classes/rogue.md#42-deadly-poison-iv: guild in-game test, 2026-09-25 (0.45% over its 4 ticks).
+  it('R10b: the Discord tests’ 0.1125% of attack power per stack a tick: Deadly Poison at 5 stacks and 2,000 AP ticks 101.25, before resists', () => {
+    // docs/classes/rogue.md#42-deadly-poison-iv: a player's in-game tests shared on Discord, 2026-09-25 (0.45% over its 4 ticks).
     expect(DEADLY_POISON_AP_PER_TICK * 4).toBeCloseTo(0.0045, 12)
     expect(5 * (18 + DEADLY_POISON_AP_PER_TICK * 2000)).toBeCloseTo(101.25, 9)
     const deadlyOnly = (ap: number) => {
@@ -534,7 +534,7 @@ describe('worked examples (rogue.md §9)', () => {
     expect(rogueAssumptions(unpoisoned, COMBAT)).not.toContain('poisonAp')
   })
 
-  it('lists the finisher talents on the guild-tested attack-power shares only when one raises a finisher the plan uses (rogue.md Q3)', () => {
+  it('lists the finisher talents on the Discord-tested attack-power shares only when one raises a finisher the plan uses (rogue.md Q3)', () => {
     const forever = buildPlan(defaultConfig('rogue-combat')).plan
     // Every default build takes one of them, and every build uses Eviscerate.
     for (const spec of ['rogue-combat', 'rogue-assassination', 'rogue-subtlety'] as const) {
@@ -806,10 +806,10 @@ describe('golden run (fixed config and seed)', () => {
   // - R1: the default Assassination rogue (rogue.md §6.2, §7): daggers, the same poisons, Mutilate,
   //   Slice and Dice at 2 points, Cold Blood at 5, Eviscerate at 4, Venom off; 524.1 DPS over 20,000
   //   fights on seed 2701.
-  // - Guild test (2026-09-25): Eviscerate gains 4% of attack power per point, not Classic Era sims'
+  // - A player's Discord tests (2026-09-25): Eviscerate gains 4% of attack power per point, not Classic Era sims'
   //   3% (rogue.md §3.4); Rupture's 1/2/3% a tick was confirmed and is unchanged. Combat 580.3 →
   //   583.8 DPS (+0.6%), Assassination 524.1 → 529.6 (+1.0%), over 20,000 fights on seed 2701.
-  // - Guild test (2026-09-25): the poisons gain attack power, Instant Poison 0.5% a hit and Deadly
+  // - A player's Discord tests (2026-09-25): the poisons gain attack power, Instant Poison 0.5% a hit and Deadly
   //   Poison 0.1125% a stack each tick, read at the tick and scaled by Vile Poisons and Venom [?]
   //   (rogue.md §4.1, §4.2). Combat 583.8 → 586.5 DPS (+0.5%), Assassination 529.6 → 534.1 (+0.8%),
   //   over 20,000 fights on seed 2701.

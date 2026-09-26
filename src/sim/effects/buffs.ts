@@ -67,7 +67,7 @@ const ROGUE_DOC = 'docs/classes/rogue.md'
  * Instant Poison VI (item 8928 → 11340, enchant 625; docs/classes/rogue.md §4.1): each hit of the
  * weapon it's on has a 20% chance of 11337's 88 Nature damage with `Variance` 0.2769, 75.8–100.2,
  * whole numbers 76–100 as its tooltip shows them [F] [client] (SpellEffect, SpellItemEnchantment,
- * 1.60.1.69913), plus 0.5% of attack power a proc [F] [guild-0925] (the client carries no
+ * 1.60.1.69913), plus 0.5% of attack power a proc [?] [discord-0925] (the client carries no
  * coefficient). Classic Era's is 112–148 (111 + 1d37) with no attack-power share [C].
  */
 const instantPoison = (min: number, max: number, apCoefficient: number): ProcSpec => ({
@@ -81,7 +81,7 @@ const instantPoison = (min: number, max: number, apCoefficient: number): ProcSpe
   poison: true,
   docRef: `${ROGUE_DOC}#41-instant-poison-vi`,
 })
-/** docs/classes/rogue.md §4.1: Instant Poison's share of attack power a proc, 0.5% [F] [guild-0925]. */
+/** docs/classes/rogue.md §4.1: Instant Poison's share of attack power a proc, 0.5% [?] [discord-0925]. */
 export const INSTANT_POISON_AP = 0.005
 const INSTANT_POISON = instantPoison(76, 100, INSTANT_POISON_AP)
 const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148, 0)
@@ -92,7 +92,7 @@ const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148, 0)
  * it's on has a 30% chance of 11354, 18 Nature damage per stack every 3 s for 12 s, stacking to 5,
  * whose ticks carry the periodic-crit flag [F] [client] (SpellEffect, SpellAuraOptions, SpellMisc,
  * SpellItemEnchantment, 1.60.1.70009; Classic Era's 27 a tick), plus 0.1125% of attack power per
- * stack a tick, 0.45% over its 4 ticks [F] [guild-0925] (measured on rank V; the same share on rank
+ * stack a tick, 0.45% over its 4 ticks [?] [discord-0925] (measured on rank V; the same share on rank
  * IV is [?]), read at each tick [?].
  */
 const deadlyPoison = (tick: number, periodicCanCrit: boolean, apCoefficient: number): ProcSpec => ({
@@ -115,7 +115,7 @@ const deadlyPoison = (tick: number, periodicCanCrit: boolean, apCoefficient: num
   poison: true,
   docRef: `${ROGUE_DOC}#42-deadly-poison-iv`,
 })
-/** docs/classes/rogue.md §4.2: Deadly Poison's share of attack power per stack a tick, 0.45% over 4 ticks [F] [guild-0925]. */
+/** docs/classes/rogue.md §4.2: Deadly Poison's share of attack power per stack a tick, 0.45% over 4 ticks [?] [discord-0925]. */
 export const DEADLY_POISON_AP_PER_TICK = 0.0045 / 4
 const DEADLY_POISON = deadlyPoison(18, true, DEADLY_POISON_AP_PER_TICK)
 /** Classic Era's 11354: 27 a tick, no periodic-crit flag (SpellMisc Attributes[8] 0) and no attack-power share [C]. */

@@ -526,6 +526,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** 16.5% parry vs a +3 target at 300 skill, from the client tooltip [F client
   strings; ? in combat]; Classic Era 14%, and another client string still says 14%. Mob block
   5% [C].
+- **Evidence so far:** 47 public beta logs read 14.3% ± 1.5 from the front against +3 mobs at
+  levels 1–20 (not bosses; the audit of 2026-09-26), nearer 14% than 16.5%. Not yet a D22 default:
+  the method isn't documented in combat-tables and no log is at 60 against a boss
+  ([combat-tables OQ 3](mechanics/combat-tables.md#open-questions)).
 - **Test:** white swings from the front vs mobs three levels higher that can parry; count
   parries and blocks.
 - **Samples:** ≥3,500 front swings.

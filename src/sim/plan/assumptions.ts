@@ -94,7 +94,7 @@ const REGISTRY = {
     docRef: `${CT}#1-rules-profiles`,
   },
   foreverBossParry: {
-    text: 'From the front the boss parries 16.5% of attacks, as the Forever client shows (Classic Era: 14%); unmeasured in combat.',
+    text: 'From the front the boss parries 16.5% of attacks, as the Forever client shows (Classic Era: 14%). Unmeasured against a raid boss; beta logs of low-level mobs read nearer 14%.',
     docRef: `${CT}#11-profile-parameters-player-level-60-vs-boss-level-63-defense-315`,
   },
   foreverGlancing: {

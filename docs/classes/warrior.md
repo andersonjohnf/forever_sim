@@ -845,11 +845,13 @@ Notes:
   −0.22 DPS in the default setup and up to −0.4% in fights of 30–90 s (below).
 - **Execute versus Bloodthirst.** The Classic rule is "Bloodthirst over Execute above 2000 AP"
   [wh-fury] [marrow]. The Forever Bloodthirst nerf moves the break-even up by 220–430 AP
-  ([W11](#w11-bloodthirst-versus-execute-break-even)). The setting's default is a fixed 2434, the
-  break-even at the default build's cost 10 (Improved Execute 2/2; 2220 at cost 15 until W4):
-  rotation settings have one default per spec, not per build, so it can't follow Improved
-  Execute; the setting's help says to use 2220 without it. In the default setup AP stays below
-  both in the phase, so the setting changes nothing there (W4: 2000, 2220 and 2434 are level).
+  ([W11](#w11-bloodthirst-versus-execute-break-even)). The setting's default follows the build
+  (`defaultWhen`, since W4's fix round, W4L-4): 2220, the break-even at Execute's full cost 15, or
+  2434 with Improved Execute, the break-even at 2/2's cost 10 (the default build's), both computed
+  from Improved Execute's table (§7). A build with Improved Execute 1/2 (cost 12, break-even 2349)
+  gets 2/2's 2434 too, as a default can follow whether a talent is taken but not its rank. In the
+  default setup AP stays below both in the phase, so the setting changes nothing there (W4: 2000,
+  2220 and 2434 are level).
 - **What the execute phase changes** (with `fury.execute.enabled` on). Rows 6 and 7 apply only
   in the phase. Rows 8 and 12 (Bloodthirst without the AP condition, and Hamstring) apply only
   outside it, and so does row 9 unless `whirlwindInExecute` is on, and row 11 (the Heroic Strike

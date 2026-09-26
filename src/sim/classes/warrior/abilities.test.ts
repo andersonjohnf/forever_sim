@@ -7,10 +7,10 @@ import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
-import { TALENT_DATA } from '../../defaults'
+import { defaultTalents, TALENT_DATA } from '../../defaults'
 import { COND, STANCE, STANCE_ANY, weaponPercentVs } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
-import type { CreatureType } from '../../types'
+import type { CreatureType, RotationValue } from '../../types'
 import { talentRanksByName } from '../index'
 import { BUFFS_BY_ID, JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { ITEM_EFFECTS } from '../../effects/items'
@@ -53,7 +53,8 @@ import {
   stanceSwapKeepTenths,
   WHIRLWIND,
 } from './abilities'
-import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
+import { BT_OVER_EXECUTE_AP_IMPROVED_1, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
+import { POPULAR_WARRIOR_TALENTS } from './popular-builds'
 import {
   abilityCritMultiplier,
   costReduction,
@@ -672,6 +673,20 @@ describe('Execute worked examples', () => {
     expect(executeBreakEvenAp(10)).toBeCloseTo(2434.2857142857, 9)
     expect(executeBreakEvenAp(12)).toBeCloseTo(2348.5714285714, 9)
   })
+
+  it('W11 in the rotation: Bloodthirst over Execute defaults to the build’s break-even, 2220 without Improved Execute and 2434 with it (W4L-4)', () => {
+    const option = FURY_OPTIONS.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
+    expect(option).toMatchObject({ default: 2220, defaultWhen: [{ talent: 'Improved Execute', default: 2434 }] })
+    expect(BT_OVER_EXECUTE_AP_IMPROVED_1).toBe(2349)
+    const btFrom = (code: string, values: Record<string, RotationValue> = {}) => {
+      const r = furyRotation(values, talentRanksByName(TALENT_DATA.warrior, code), () => -1)
+      return r.rotation.flatMap((e) => e.conditions).find((c) => c.code === COND.apAtLeast)?.a
+    }
+    expect(btFrom(defaultTalents('warrior-fury'))).toBe(2434) // 13/38/0, Improved Execute 2/2
+    expect(btFrom(POPULAR_WARRIOR_TALENTS['warrior-fury'])).toBe(2220) // 17/34/0, none
+    // A saved value wins over either.
+    expect(btFrom(defaultTalents('warrior-fury'), { 'warrior.fury.execute.btOverExecuteAp': 2000 })).toBe(2000)
+  })
 })
 
 describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
@@ -724,7 +739,8 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
     expect(defaults).toMatchObject({
       'warrior.fury.execute.enabled': true,
       'warrior.fury.execute.minExtraRage': 0,
-      'warrior.fury.execute.btOverExecuteAp': 2434,
+      // Without Improved Execute; with it, 2434 (defaultWhen, below).
+      'warrior.fury.execute.btOverExecuteAp': 2220,
       'warrior.fury.execute.whirlwindInExecute': false,
       'warrior.fury.execute.heroicStrikeInExecute': true,
       'warrior.fury.bloodthirst.enabled': true,
@@ -815,14 +831,14 @@ describe('furyRotation', () => {
     expect(rotation.map((e) => e.ability)).toEqual([0, 1, 0, 2, 3, 3, 3, 4])
     const upTo45 = { code: COND.maxRage, a: 450, b: 0 }
     expect(rotation.map((e) => e.conditions)).toEqual([
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }], // 6: Bloodthirst in the execute phase
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }], // 6: Bloodthirst in the execute phase
       [{ code: COND.minRage, a: 150, b: 0 }], // 7: Execute
       [notExec], // 8: Bloodthirst
       [notExec, { code: COND.minRage, a: 250, b: 0 }, { code: COND.cooldownAtLeast, a: 0, b: 500 }], // 9: Whirlwind
       // 10: the Overpower dance at rage ≤ 45, GCD-safe as Berserker Rage is in each phase (row 13).
       [notExec, { code: COND.gcdSafe, a: 0b101, b: 1500 }, upTo45],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo45],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, upTo45],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo45],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, upTo45],
       [{ code: COND.minRage, a: 400, b: 0 }], // 11: Heroic Strike, in both phases
     ])
     expect(rotation.slice(4, 7).map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
@@ -902,8 +918,8 @@ describe('furyRotation', () => {
     const btWait = { code: COND.cooldownAtLeast, a: 0, b: 500 }
     expect(rotation.filter((e) => e.ability === ww).map((e) => e.conditions)).toEqual([
       [notExec, minRage, btWait],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, minRage, btWait],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, minRage],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, minRage, btWait],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, minRage],
     ])
     // Without Bloodthirst there is nothing to wait on: one line for both phases.
     const noBt = furyRotation({ ...NO_CD, 'warrior.fury.execute.whirlwindInExecute': true }, new Map(), noAura)
@@ -1021,8 +1037,8 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
     expect(linesOf(r, 'berserkerRage')).toEqual([
       [{ code: COND.executePhase, a: 0, b: 0 }, safe((1 << bt) | (1 << ww)), limit],
       // In the phase: Bloodthirst counts only while row 6 uses it; Whirlwind only with whirlwindInExecute.
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
-      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2434, b: 0 }, limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
+      [{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.apBelow, a: 2220, b: 0 }, limit],
     ])
     expect(r.abilities[at(r, 'berserkerRage')].rageTenths).toBe(100)
     const withWw = furyRotation({ 'warrior.fury.execute.whirlwindInExecute': true }, talents, noAura)
@@ -1218,8 +1234,8 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, safe((1 << bt) | (1 << ww)), limit],
-      [inExec, { code: COND.apAtLeast, a: 2434, b: 0 }, safe(1 << bt), limit],
-      [inExec, { code: COND.apBelow, a: 2434, b: 0 }, limit],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, limit],
     ])
     expect(r.abilities[op]).toMatchObject({ costTenths: 50, stances: STANCE.battle, unavoidable: true, window: OVERPOWER_WINDOW })
     // Its window's opener comes with it: a dodge; Bloodthrill too when talented (the plan drops it without Rend).

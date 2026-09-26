@@ -30,7 +30,7 @@ import {
   SLAM,
   WHIRLWIND,
 } from './abilities'
-import type { TalentRanks } from './modifiers'
+import { IMPROVED_EXECUTE, type TalentRanks } from './modifiers'
 import {
   battleShoutLine,
   battleShoutOptions,
@@ -107,14 +107,17 @@ export const FURY_RENAMED_OPTIONS: Readonly<Record<string, string>> = {
 export { PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './shared'
 
 /**
- * Bloodthirst over Execute from this AP: W11's break-even at the default build's Execute cost, 10
- * with its Improved Execute 2/2 (warrior.md §6.1), 2434. A static default: the option framework has
- * no per-build defaults, so a build without Improved Execute should set its own (2220 at cost 15;
- * warrior.md §5.2).
+ * Bloodthirst over Execute from this AP: W11's break-even at the build's Execute cost (warrior.md
+ * §5.2, W11). The setting's default follows the talents (`defaultWhen`): 2220 at Execute's full 15
+ * rage, or 2434 with Improved Execute, at 2/2's cost of 10 (the default build's, §6.1), from the
+ * talent's table (modifiers.ts). A build with 1/2 (cost 12) gets 2/2's too, as `defaultWhen` reads
+ * only whether a talent is taken; its own break-even, BT_OVER_EXECUTE_AP_IMPROVED_1, is 2349 (2348.57).
  */
-const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10 - 5))
-/** The break-even without Improved Execute, which the setting's help names. */
-const BT_OVER_EXECUTE_AP_UNTALENTED = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
+const executeCostWith = (improvedExecuteRank: number) => EXECUTE.costTenths / 10 - IMPROVED_EXECUTE[improvedExecuteRank]
+const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(executeCostWith(0)))
+const BT_OVER_EXECUTE_AP_IMPROVED = Math.round(executeBreakEvenAp(executeCostWith(IMPROVED_EXECUTE.length - 1)))
+/** Improved Execute 1/2's break-even, for the comment above and its test. */
+export const BT_OVER_EXECUTE_AP_IMPROVED_1 = Math.round(executeBreakEvenAp(executeCostWith(1)))
 
 /**
  * In the execute phase, the potion's last chance: if it hasn't been drunk by the phase's last 2 s,
@@ -211,12 +214,13 @@ export const FURY_OPTIONS: RotationOption[] = [
     group: 'Execute phase',
     label: 'Bloodthirst over Execute from',
     // Its field groups thousands ("2,220 AP"), so the help writes them the same way.
-    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP.toLocaleString('en-US')} is the break-even at Execute’s 10 rage cost with Improved Execute 2/2, as the default talents have; use ${BT_OVER_EXECUTE_AP_UNTALENTED.toLocaleString('en-US')} without Improved Execute.`,
+    help: `In the execute phase, keep using Bloodthirst at or above this attack power. The default is the break-even for your talents: ${BT_OVER_EXECUTE_AP_IMPROVED.toLocaleString('en-US')} with Improved Execute, as the default talents have (Execute costs 10 rage at 2/2), or ${BT_OVER_EXECUTE_AP.toLocaleString('en-US')} without it (15 rage).`,
     unit: 'AP',
     min: 0,
     max: 5000,
     step: 1,
     default: BT_OVER_EXECUTE_AP,
+    defaultWhen: [{ talent: 'Improved Execute', default: BT_OVER_EXECUTE_AP_IMPROVED }],
     dependsOn: ID.exBtEnabled,
   },
   {

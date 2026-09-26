@@ -185,7 +185,7 @@ describe('rotation rows', () => {
     expect(grouped.map((o) => o.id)).toContain('warrior.fury.execute.btOverExecuteAp')
     for (const option of grouped) expect(option.help, option.id).not.toMatch(/\b\d{4,}\b/)
     const fury = getSpec('warrior-fury').rotationOptions.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
-    expect(fury.help).toContain('2,434 is the break-even at Execute’s 10 rage cost with Improved Execute 2/2, as the default talents have; use 2,220 without Improved Execute.')
+    expect(fury.help).toContain('The default is the break-even for your talents: 2,434 with Improved Execute, as the default talents have (Execute costs 10 rage at 2/2), or 2,220 without it (15 rage).')
   })
 
   it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {

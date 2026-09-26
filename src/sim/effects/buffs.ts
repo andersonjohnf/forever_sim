@@ -610,7 +610,9 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_windfury',
     category: 'raidBuff',
     group: 'Shaman totems',
-    summary: '20% chance on a main-hand hit for an extra attack, then +246 attack power for 1 s on it, your next auto attack and your abilities',
+    // The attack power's 1 s in a phrase; only the first auto attack after the extra one takes its second
+    // charge (buffs doc, Windfury Totem).
+    summary: '20% chance on a main-hand hit for an extra attack; it, and whatever you swing or cast in the next 1 s, gets +246 attack power',
     providedBy: 'shaman',
     exclusiveGroup: 'totem:air',
     forSpecs: 'melee',
@@ -896,8 +898,10 @@ export const BUFFS: BuffSpec[] = [
     name: 'Gift of Arthas',
     icon: 'inv_potion_28',
     category: 'targetDebuff',
-    group: 'Physical damage',
-    summary: '+8 damage on each of your physical hits (a tank’s potion, on the boss)',
+    // "taken", so it doesn't read as the boss's own attacks beside Boss damage. The Buffs tab says whose
+    // hits for a spec with a pet (sim/index.ts `buffSummaryFor`).
+    group: 'Physical damage taken',
+    summary: '+8 damage taken from each physical hit (the boss’s debuff from a tank who drank Gift of Arthas)',
     forSpecs: 'melee',
     docRef: `${DOC}#42-other-debuffs`,
     effects: [{ kind: 'physicalTaken', value: 8 }],

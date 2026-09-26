@@ -13,13 +13,13 @@ import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { type CharacterSheet as CharacterSheetData, computeSheet, type FightConfig, WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
+import { type CharacterSheet as CharacterSheetData, computeSheet, type FightConfig, type GearSlot, WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { ManaPerFight } from './mana-results'
 import { outcomeLines } from './outcomes'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
-import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
+import { breakdownRows, carriesItsOwnAdvice, isSetupError, needsRangedWeapon, neverHit } from './run-logic'
 import { isDefensive, type SheetRow, sheetGroups, sheetRows, WEAPON_SKILL_LABEL, weaponSkillValue } from './sheet-groups'
 import { avoidanceOf, CRIT_REDUCTION_LABEL } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
@@ -239,13 +239,19 @@ function StaleBadge() {
   return <span className="rounded bg-amber-100 px-1.5 text-amber-900 dark:bg-amber-400/15 dark:text-amber-300">Setup changed</span>
 }
 
-/** What a failed run says, and the way forward (docs/ux.md#states "Error"). */
-function RunError({ message }: { message: string }) {
+/**
+ * What a failed run says, and the way forward (docs/ux.md#states "Error"). A refusal that asks for a
+ * ranged weapon offers Open Gear, which lands on the Ranged slot, as a result with no main-hand weapon
+ * offers it for the main hand (`NoDamage`).
+ */
+function RunError({ message, variant = 'panel', onNavigate }: { message: string; variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
+  const { offer, open } = useOpenSection(variant, onNavigate)
   // The engine's refusals name what to change, a hung worker's message says to run it again, and
   // workers that couldn't start say to reload, with a button for it; only other failures get the
   // retry advice.
   const setup = isSetupError(message)
   const advice = !carriesItsOwnAdvice(message)
+  const ranged = needsRangedWeapon(message) && offer('gear')
   return (
     <div role="alert" className="flex gap-2 rounded-lg border border-destructive/50 p-3 text-sm">
       <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
@@ -260,6 +266,11 @@ function RunError({ message }: { message: string }) {
         {message === WORKER_START_MESSAGE && (
           <Button variant="outline" className="mt-1 h-11 self-start" onClick={() => window.location.reload()}>
             <RefreshCw aria-hidden /> Reload page
+          </Button>
+        )}
+        {ranged && (
+          <Button variant="outline" className="mt-1 h-11 self-start" onClick={() => open('gear', 'ranged')}>
+            Open Gear
           </Button>
         )}
       </div>
@@ -291,27 +302,36 @@ function RunSummary({ result, runConfig }: { result: SimResult; runConfig: SimCo
 type Navigate = (then: () => void) => void
 
 /**
+ * A result's or a refusal's way to a setup tab: whether to offer it (beside the desktop panel, the tab
+ * you're on is already in view; the phone's sheet covers it), and opening it with focus in it, the
+ * sheet closed first (`onNavigate`).
+ */
+function useOpenSection(variant: 'panel' | 'sheet', onNavigate?: Navigate) {
+  const section = useSetup((s) => s.section)
+  const setSection = useSetup((s) => s.setSection)
+  const offer = (target: Section) => variant === 'sheet' || section !== target
+  const open = (target: Section, gearSlot?: GearSlot) => {
+    setSection(target)
+    window.scrollTo({ top: 0 })
+    const focus = () => focusSection(target, gearSlot)
+    if (onNavigate) onNavigate(focus)
+    else requestAnimationFrame(focus)
+  }
+  return { offer, open }
+}
+
+/**
  * A result with nothing to show (docs/ux.md#states): no main-hand weapon, or nothing that deals
  * damage. It says what to do next and takes you there, focus included: the button goes away once
  * its tab is open beside the desktop panel, so focus moves into the tab (the main hand in Gear).
  */
 function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant: 'panel' | 'sheet'; onNavigate?: Navigate }) {
-  const section = useSetup((s) => s.section)
-  const setSection = useSetup((s) => s.setSection)
+  const { offer, open } = useOpenSection(variant, onNavigate)
   // A warrior's Protection attacks that need no weapon (noWeaponSomeUsed) and a paladin's spells
   // (noWeaponSpells) still deal damage without one (docs/ux.md#states).
   const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon' || a.id === 'noWeaponSomeUsed' || a.id === 'noWeaponSpells')
   if (!noWeapon && result.abilities.length > 0) return null
   const spellsOnly = result.abilities.length > 0 && result.assumptions.some((a) => a.id === 'noWeaponSpells')
-  // Beside the desktop panel, the tab you're on is already in view; the phone's sheet covers it.
-  const offer = (target: Section) => variant === 'sheet' || section !== target
-  const open = (target: Section) => {
-    setSection(target)
-    window.scrollTo({ top: 0 })
-    const focus = () => focusSection(target)
-    if (onNavigate) onNavigate(focus)
-    else requestAnimationFrame(focus)
-  }
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-dashed p-3 text-sm">
       <p className="font-medium">{noWeapon ? 'No main-hand weapon' : 'Nothing deals damage'}</p>
@@ -393,7 +413,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
         </div>
         {error !== null && (
           <div>
-            <RunError message={error} />
+            <RunError message={error} variant={variant} onNavigate={onNavigate} />
           </div>
         )}
         {result && !running && (
@@ -421,7 +441,9 @@ export function ResultsPanel({ variant = 'panel', onNavigate, setup }: { variant
 export function WideRunStatus() {
   const { result, previous, runConfig, stale, running, error, metricLabel, progressPct } = useRunState()
   if (running) return <RunProgress pct={progressPct} />
-  if (error !== null) return <p className="text-sm text-muted-foreground">This run didn’t finish. See why below.</p>
+  // A refused setup never ran (docs/ux.md#results).
+  if (error !== null)
+    return <p className="text-sm text-muted-foreground">{isSetupError(error) ? 'This setup can’t be simulated. See why below.' : 'This run didn’t finish. See why below.'}</p>
   if (!result) return <p className="text-sm text-muted-foreground">Your setup is ready. Simulate to see your {metricLabel}.</p>
   return (
     <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-1">

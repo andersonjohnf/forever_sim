@@ -73,6 +73,8 @@ export const ASSUMPTION_GROUP = {
   baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
+  // The ranks trainable before Ahn'Qiraj, for the abilities and buffs (buffs doc §1.1).
+  preAqRanks: 'class',
   formWeapon: 'class',
   formWeaponCat: 'class',
   omenOfClarity: 'class',

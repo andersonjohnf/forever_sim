@@ -165,6 +165,12 @@ librams' values, and whether a trainer teaches it before a paladin has learned t
 isn't in any allowed source; the sim takes it to come with the libram, so the raid's blessings are
 rank 6 and Greater rank 1 [?] ([OQ 22](#open-questions)). Books that drop outside Ahn'Qiraj (the
 Arcane Brilliance, Gift of the Wild and Prayer of Fortitude books, from content open at launch) stay.
+The results say so (the `preAqRanks` assumption) for every setup that uses one of these buffs,
+Deadly Poison or an ability whose next rank is a book's (Heroic Strike, Revenge, Backstab,
+Frostbolt, Fireball, Arcane Missiles, Shadow Bolt, Immolate, Corruption, Starfire, Multi-Shot,
+Serpent Sting): "Abilities and buffs use the ranks trainable before Ahn'Qiraj, not the higher ones
+its books teach", adding "and the Greater Blessings' rank 2 is taken to need Ahn'Qiraj too" when a
+Blessing of Might or Wisdom is on.
 
 | Name | ID | Effect (the rank at 60) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -312,6 +318,9 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   (1.5 s in Classic Era, DurationIndex 65 in 1.15.9), and each auto attack while it's up gets the
   +246 and uses a charge: the extra attack, then the next auto attack of either hand within the
   second. Abilities in that second get it and use none (its proc mask is auto attacks, 0x4) [?].
+  The Buffs entry says it in a phrase: "20% chance on a main-hand hit for an extra attack; it,
+  and whatever you swing or cast in the next 1 s, gets +246 attack power", where "whatever you
+  swing" is the one auto attack the second charge covers.
   [warrior.md §2.7](../classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury) owns the
   details.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
@@ -635,7 +644,7 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 | Curse of Weakness (r6) | 11708 | Target's **physical** damage done −37 (C: −31, all damage) | 2 min | One curse per warlock. Improved Curse of Weakness removed | Warlock | [F] | [fc-sb-warlock] |
 | Stormstrike | 17364 | Forever: **self only**, +20% to the shaman's own next Lightning Bolt, Chain Lightning or Earth Shock (C: target takes +20% from the next 2 Nature damage sources, 12 s) | 12 s | — | Shaman talent. No longer a raid debuff | [F] | [fc-changes] |
 | Nightfall: Spell Vulnerability | item 19169 → 23605 | +15% spell damage taken (paladin Holy damage included) | 5 s | Proc rate is server-side [?] | Same | [F] effect | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
-| Gift of Arthas (proc) (`giftOfArthas`) | 11374 | **+8 physical damage taken** (aura 14, school mask 1; Classic Era's the same 8). The sim adds it to each direct physical hit, yours and your pet's, after your damage multipliers, before the crit's (a crit gets +16) and the boss's armor; a bleed's ticks get none [?] ([damage-and-timing §2.4](damage-and-timing.md#24-damage-modifier-stacking), [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes)). The Buffs entry is on the boss all fight, from the pull [?]: a tank's first few hits taken put it up, 30% each, and every one refreshes its 3 min | 3 min | A tank that drank the potion puts it on the boss; one debuff whoever applies it | Any tank (the potion, [§3.2](#32-elixirs)). Max consumables ([§6.2](#62-buffs-and-debuffs-by-preset)) | [F] value · [?] application | [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009 and 1.15.9.69722) |
+| Gift of Arthas (proc) (`giftOfArthas`) | 11374 | **+8 physical damage taken** (aura 14, school mask 1; Classic Era's the same 8). The sim adds it to each direct physical hit, yours and your pet's, after the damage multipliers and before the crit's and the boss's armor, so the hit's own crit multiplier applies to it too (a white crit's ×2 makes it +16, an ability's ×2.2 with Impale 2/2 +17.6); a bleed's ticks get none [?] ([damage-and-timing §2.4](damage-and-timing.md#24-damage-modifier-stacking), [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes)). The Buffs entry is on the boss all fight, from the pull [?]: a tank's first few hits taken put it up, 30% each, and every one refreshes its 3 min | 3 min | A tank that drank the potion puts it on the boss; one debuff whoever applies it | Any tank (the potion, [§3.2](#32-elixirs)). Max consumables ([§6.2](#62-buffs-and-debuffs-by-preset)) | [F] value · [?] application | [client] (SpellEffect, SpellAuraOptions, 1.60.1.70009 and 1.15.9.69722) |
 
 Improved Scorch, Winter's Chill and Improved Shadow Bolt don't affect melee. Shadow
 Weaving is now a debuff on the boss that counts only the priest's own Shadow damage [F]
@@ -1313,7 +1322,10 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   boss's armor entries and Gift of Arthas, in its Buffs tab and presets alike: its pet's swings meet the boss's armor
   and get the +8
   ([ranged-and-pets §8](ranged-and-pets.md#8-how-owner-buffs-reach-the-pet),
-  [warlock §11.2](../classes/warlock.md#112-your-demon)).
+  [warlock §11.2](../classes/warlock.md#112-your-demon)). With the Imp or no demon out (its Rotation
+  setting), nothing of its meets them: one rule (`buffUnusedReason` in `effects/presets.ts`, from the
+  resolved Rotation settings) locks them off in the Buffs tab, saying why, and leaves them out of the
+  plan, so the results list no assumption about them either.
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
   Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
   warlock's and the priest's by class too (`forClasses`).

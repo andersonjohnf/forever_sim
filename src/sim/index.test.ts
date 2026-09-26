@@ -425,6 +425,15 @@ describe('catalogues and presets', () => {
     for (const b of buffCatalogue) if (b.id !== 'ezThroDarkBomb') expect(buffSummaryFor(b, 'mage-fire'), b.id).toBe(b.summary)
   })
 
+  it('names whose physical hits take Gift of Arthas’ +8 for a spec with a pet: a hunter’s and its pet’s, a Demonology warlock’s demon’s (G5U-4)', () => {
+    const gift = buffCatalogue.find((b) => b.id === 'giftOfArthas')!
+    expect(gift.summary).toBe('+8 damage taken from each physical hit (the boss’s debuff from a tank who drank Gift of Arthas)')
+    expect(buffSummaryFor(gift, 'warrior-fury')).toBe(gift.summary)
+    expect(buffSummaryFor(gift, 'rogue-combat')).toBe(gift.summary)
+    expect(buffSummaryFor(gift, 'hunter-survival')).toBe('+8 damage taken from each physical hit, yours and your pet’s (the boss’s debuff from a tank who drank Gift of Arthas)')
+    expect(buffSummaryFor(gift, 'warlock-demonology')).toBe('+8 damage taken from each physical hit, your demon’s (the boss’s debuff from a tank who drank Gift of Arthas)')
+  })
+
   it('follows composition, not faction', () => {
     const noShaman = presetBuffs('raid', 'warrior-fury', FULL_RAID.filter((c) => c !== 'shaman'))
     expect(noShaman).not.toContain('windfuryTotem')
@@ -489,6 +498,22 @@ describe('catalogues and presets', () => {
     const alone = { ...cat, buffs: { raid: noDruid, enabled: presetBuffs('raid', 'druid-feral-cat', noDruid) } }
     expect(computeSheet(alone)!.strength).toBe(computeSheet(cat)!.strength)
     expect(normalizeConfig(alone).config.buffs.enabled).toContain('markOfTheWild')
+  })
+
+  it('locks the boss’s physical debuffs off for a Demonology warlock whose demon doesn’t swing, from its Rotation settings (G5L-1)', () => {
+    const demo = defaultConfig('warlock-demonology')
+    const withDemon = (demon: string) => rotationValues({ ...demo, rotation: { ...demo.rotation, 'warlock.demonology.demon.summoned': demon } })
+    const physical = ['sunderArmor', 'exposeArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter', 'giftOfArthas']
+    // The default demon is the Imp.
+    const imp = unusedBuffs('warlock-demonology', rotationValues(demo))
+    expect(Object.keys(imp).sort()).toEqual([...physical].sort())
+    expect(imp.giftOfArthas).toBe('Not used: only your demon’s swings take the +8, and your Imp (see Rotation) doesn’t swing')
+    expect(imp.sunderArmor).toBe('Not used: only your demon’s swings meet the boss’s armor, and your Imp (see Rotation) doesn’t swing')
+    expect(unusedBuffs('warlock-demonology', withDemon('none')).giftOfArthas).toBe('Not used: only your demon’s swings take the +8, and you keep no demon out (see Rotation)')
+    expect(unusedBuffs('warlock-demonology', withDemon('succubus'))).toEqual({})
+    expect(unusedBuffs('warlock-demonology', withDemon('felhunter'))).toEqual({})
+    // Another spec's Rotation settings never lock them.
+    expect(unusedBuffs('warrior-fury', rotationValues(defaultConfig('warrior-fury')))).toEqual({})
   })
 
   it('locks a weapon stone’s damage off for a cat, whose attacks in Cat Form don’t use the weapon’s damage (Q25)', () => {

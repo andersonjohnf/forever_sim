@@ -535,13 +535,18 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage."). One that a Rotation setting leaves doing nothing says so the same
     way, naming the setting: Windfury Totem beside an Enhancement shaman's Windfury Weapon, and the
-    boss's armor debuffs for a Demonology warlock with the Imp or no demon out ("Not used: only your
-    demon's swings meet the boss's armor, and your Imp (see Rotation) doesn't swing.").
+    boss's armor debuffs and its physical-damage debuff (Gift of Arthas) for a Demonology warlock
+    with the Imp or no demon out ("Not used: only your demon's swings meet the boss's armor, and your
+    Imp (see Rotation) doesn't swing."; "Not used: only your demon's swings take the +8, and your Imp
+    (see Rotation) doesn't swing."). The plan leaves those out too, by the same rule, so the results
+    never assume what the tab says isn't used.
   - Only what does something for your class and spec is listed at all: mana and spell damage
     entries (Blessing of Wisdom, mana potions, spell damage elixirs) show for the classes that
     spend mana (the paladin, the shaman, the mage), and what changes only attacks (attack power,
-    Strength and Agility, weapon stones, Windfury Totem, the boss's armor) never shows for a caster,
-    nor the casters' own (Moonkin Aura, Curse of the Elements, Power Infusion) for anyone else
+    Strength and Agility, weapon stones, Windfury Totem, the boss's armor and its physical damage
+    taken) never shows for a caster, except the boss's armor and physical damage taken for a
+    Demonology warlock, whose demon's swings meet them; nor do the casters' own (Moonkin Aura, Curse
+    of the Elements, Power Infusion) for anyone else
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't in a form (the weapon stones in Cat Form) is listed, locked off,
     as above. The Boss damage debuffs below are listed for every DPS spec, casters too.
@@ -1067,7 +1072,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - once the setup changes, the same headline dimmed and marked **Setup changed** (the amber
       badge), with Simulate in place of Run again;
     - when a run fails, "This run didn't finish. See why below.", the failure's message first under
-      the card.
+      the card; for a setup the engine refuses, which never ran, "This setup can't be simulated. See
+      why below."
 
     The button keeps its shortcut (`aria-keyshortcuts`, the hover tooltip) and is the skip link's
     target (`[data-simulate]`). A screen reader hears a run's outcome from the run's live region
@@ -1485,7 +1491,9 @@ Every view handles these states:
 - **Error:** the worker failed or a shared link is invalid. Show a plain message and a way
   forward (retry, or reset to defaults).
   - A setup the engine refuses (a hunter with no ranged weapon) is titled "This setup can't be simulated",
-    and its message says what to change, so no retry advice follows it. Any other failure is
+    and its message says what to change, so no retry advice follows it. The hunter's has an **Open
+    Gear** button (44 px) that lands on the Ranged slot, as a result with no main-hand weapon's does
+    on the main hand: in the phone's sheet always, beside the desktop panel until Gear is open. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec, except a
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so
     it was stopped. Run it again." says all there is to say, since no setup causes a hang. Nor does
@@ -1779,9 +1787,9 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
   picker gives it back to the slot's button after Escape, its close button or a pick. Radix does
   this only for its own Trigger, so one opened from state uses `useSheetFocus`
   (`src/app/sheet-focus.ts`).
-- A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage)
-  takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
-  or the tab's panel. From the phone's results sheet, this replaces handing focus back to
+- A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage, or
+  "Open Gear" on a refused hunter) takes focus into that tab, never leaving it on `<body>`: Gear's
+  main hand or Ranged slot, the weapon to add, or the tab's panel. From the phone's results sheet, this replaces handing focus back to
   "Show results and details".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).

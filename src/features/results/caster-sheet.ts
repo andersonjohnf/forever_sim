@@ -56,7 +56,8 @@ export function rangedSheetRows(s: CharacterSheet): [string, string][] | null {
     ['Ranged attack power', formatInt(r.rangedAttackPower)],
     ['Ranged crit', formatPct(r.critPct)],
     ['Ranged hit', formatPct(r.hitPct)],
-    ['Shot speed', r.speedSec === null ? 'No ranged weapon' : `${r.speedSec.toFixed(2)} s`],
+    // "None" without a ranged weapon, as Ammo damage says (a short value keeps the wide sheet's row on one line).
+    ['Shot speed', r.speedSec === null ? 'None' : `${r.speedSec.toFixed(2)} s`],
     ['Ranged weapon skill', formatInt(r.weaponSkill)],
     ['Ammo damage', r.ammoDps > 0 ? `${r.ammoDps.toFixed(1)} a second` : 'None'],
     ['Agility', formatInt(s.agility)],

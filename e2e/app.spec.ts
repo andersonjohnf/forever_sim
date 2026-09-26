@@ -330,7 +330,7 @@ test.describe('simulation', () => {
     await expect(results.getByRole('group', { name: 'DPS' })).toBeVisible()
     await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
     await expect(
-      results.getByText(/base attributes Str 120, Agi 80, Sta 110, Int 30, Spi 45, the class row with no race adjustment, as Skyborne’s is unknown;/),
+      results.getByText(/base attributes Str 120, Agi 80, Sta 110, Int 30, Spi 45, a warrior’s base stats before any racial bonus, as the Skyborne’s aren’t known;/),
     ).toBeVisible()
   })
 })

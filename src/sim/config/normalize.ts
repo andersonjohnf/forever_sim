@@ -2,7 +2,7 @@
 // (docs/ux.md#persistence-and-sharing). It never throws: anything it can't use is repaired or
 // reset to the spec default, with one plain-language warning per repair.
 import itemJson from '@/data/items/pre-bis.json'
-import type { Item, ItemData } from '@/data/items/types'
+import type { Item, ItemData, WeaponType } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { ClassSlug, RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
@@ -16,6 +16,7 @@ import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rul
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { normalizeAplOrder, storedAplOrder } from '../classes/apl'
 import { renamedRotationOptions, rotationApl, rotationOptions } from '../classes/rotation'
+import { protectionUsesHammer } from '../classes/paladin/protection'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
 import { migrateOlderCode } from './talent-successors'
 import { CONFIG_VERSION, isReadableVersion, migrationNotice, TALENT_TREES_OF_VERSION, type TalentMigration } from './talent-trees'
@@ -77,8 +78,12 @@ export const JOTC_ALL_GONE = 'Judgement of the Crusader’s “All of it” sett
 /** The load's line for a setup from before version 3 that uses Hammer of the Righteous (DL-8, DU-3). */
 export const HOTR_NOW_WEAPON_ONLY =
   'Hammer of the Righteous now counts your weapon’s own DPS by default; choose “With attack power” in Character → Advanced for the old reading.'
-/** Protection's switch for Hammer of the Righteous (PROTECTION_IDS.hammerOfTheRighteous). */
-const HOTR_ENABLED = 'paladin.protection.hammerOfTheRighteous.enabled'
+/** The main hand's hands and type, as the plan reads it for Hammer of the Righteous (plan/build.ts mainHandWeapon). */
+function mainHandWeapon(gear: SimConfig['gear']): { twoHand: boolean; type?: WeaponType } | null {
+  const mh = gear.mainHand && items.get(gear.mainHand.itemId)
+  if (!mh || mh.itemClass !== 'Weapon') return null
+  return { twoHand: isTwoHand(mh), ...(mh.weaponType ? { type: mh.weaponType } : {}) }
+}
 
 class Repairs {
   readonly warnings: string[] = []
@@ -233,11 +238,14 @@ function normalize(input: unknown): NormalizedConfig {
   const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)
   const rotation = normalizeRotation(input.rotation, spec, r)
+  const rotationOrder = normalizeRotationOrder(input.rotationOrder, spec, r)
   // Before version 3 a Protection paladin's Hammer of the Righteous counted attack power unless the
   // setup said otherwise; now it counts the weapon's own DPS (paladin.md OQ 11). A setup from then that
-  // uses it, and never chose, now gets other results, so a link, a code or a Load says so.
-  if (spec === 'paladin-protection' && (version as number) < 3 && rulesIn.hotrWeaponDps === undefined && rotation[HOTR_ENABLED] === true) r.add(HOTR_NOW_WEAPON_ONLY)
-  const rotationOrder = normalizeRotationOrder(input.rotationOrder, spec, r)
+  // casts it, and never chose, now gets other results, so a link, a code or a Load says so. One whose
+  // plan never casts it (no one-handed axe, mace or sword, or under Holy Strike) moves nothing (DV-1).
+  if (spec === 'paladin-protection' && (version as number) < 3 && rulesIn.hotrWeaponDps === undefined && protectionUsesHammer(rotation, mainHandWeapon(gear), rotationOrder)) {
+    r.add(HOTR_NOW_WEAPON_ONLY)
+  }
   const fight = normalizeFight(input.fight, d.fight, r)
 
   const runIn = isObj(input.run) ? input.run : {}

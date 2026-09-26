@@ -1913,9 +1913,9 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     (210 × 0.9 × 0.8 = 151)? The same question as 19. *Test:* Seal of Command's cost with both.
 31. **Threat from mana gained** [?]. Each mana you gain from a spell or item (Improved Seal of Fury,
     Shield Specialization, Sanctified Judgement, a Major Mana Potion) makes 0.5 threat. That value is
-    LibThreatClassic2's alone, another tool's, kept as the fourth step of the fallback order the user
-    confirmed (2026-09-26: another sim's value, labelled with where it comes from), since no client
-    data, measurement or similar known value gives one; Magey's Classic tests confirm mana gains make
+    LibThreatClassic2's alone, another tool's, kept as step 4 of
+    [doctrine §2's fallback order](../doctrine.md#2-where-numbers-come-from-non-negotiable), since no
+    earlier step gives one; Magey's Classic tests confirm mana gains make
     threat but give no number ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)).
     The results label it so ("a Classic Era threat library's value"). It's about **5.7%**
     of the default Protection paladin's TPS (Improved Seal of Fury 2.1%, Shield Specialization 2.4%,

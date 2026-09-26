@@ -410,6 +410,30 @@ describe('normalizeConfig', () => {
     expect(normalizeConfig({ ...ret, version: 2, rotation: { ...ret.rotation, [HOTR]: true } }).warnings).not.toContain(HOTR_NOW_WEAPON_ONLY)
   })
 
+  it('says Hammer of the Righteous’s reading changed only when the plan casts it (protection.ts row 5b, DV-1)', () => {
+    const prot = defaultConfig('paladin-protection')
+    const HOTR = 'paladin.protection.hammerOfTheRighteous.enabled'
+    const STRIKE = 'paladin.protection.holyStrike.enabled'
+    const apl = rotationApl('paladin-protection')!
+    const below = moveAplRow(apl, defaultAplOrder(apl), 'hammerOfTheRighteous', defaultAplOrder(apl).indexOf('holyStrike'))!
+    const casts = (config: SimConfig) => buildPlan(config).plan.abilities.some((a) => a.id === 'hammerOfTheRighteous')
+    const cases: [string, SimConfig, boolean][] = [
+      ['a one-handed weapon, above Holy Strike (the default order)', { ...prot, rotation: { [HOTR]: true } }, true],
+      ['no main hand', { ...prot, rotation: { [HOTR]: true }, gear: { ...prot.gear, mainHand: undefined } }, false],
+      ['a two-handed axe', { ...prot, rotation: { [HOTR]: true }, gear: { ...prot.gear, mainHand: { itemId: 12784 }, offHand: undefined } }, false],
+      ['under Holy Strike', { ...prot, rotation: { [HOTR]: true }, rotationOrder: below }, false],
+      ['under Holy Strike, with Holy Strike off', { ...prot, rotation: { [HOTR]: true, [STRIKE]: false }, rotationOrder: below }, true],
+    ]
+    expect(below.indexOf('hammerOfTheRighteous')).toBeGreaterThan(below.indexOf('holyStrike'))
+    for (const [what, config, used] of cases) {
+      const now = normalizeConfig(config)
+      expect(now.warnings, what).toEqual([])
+      // The line says what the plan does: it's there exactly when the plan casts Hammer of the Righteous.
+      expect(casts(now.config), what).toBe(used)
+      expect(normalizeConfig({ ...config, version: 2 }).warnings.includes(HOTR_NOW_WEAPON_ONLY), what).toBe(used)
+    }
+  })
+
   it('maps the legacy damage-taken rage ids to their new names, without a warning (rage.md#rage-from-damage-taken)', () => {
     const d = defaultConfig('warrior-protection')
     const legacy = { foreverHp: 'foreverHealthLost', foreverHpPreArmor: 'forever' } as const

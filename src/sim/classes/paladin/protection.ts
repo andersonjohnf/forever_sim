@@ -623,6 +623,21 @@ const hammerAbove = (order: readonly string[] | undefined): boolean => {
   return current.indexOf('hammerOfTheRighteous') < current.indexOf('holyStrike')
 }
 
+/**
+ * Whether the plan casts Hammer of the Righteous (row 5b): it's on, the main hand takes it, and it
+ * sits above Holy Strike or Holy Strike is off. Below Holy Strike (on), which costs less, it's never
+ * cast. The load's notice that its reading changed asks the same (config/normalize.ts, DV-1).
+ */
+export function protectionUsesHammer(
+  values: Record<string, RotationValue>,
+  mainHand: { twoHand: boolean; type?: WeaponType } | null | undefined,
+  order: readonly string[] | undefined,
+  talents?: TalentRanks,
+): boolean {
+  const v = reader(PROTECTION_OPTIONS, values, talents)
+  return v.on(ID.hammerOfTheRighteous) && hammerFits(mainHand) && (hammerAbove(order) || !v.on(ID.holyStrike))
+}
+
 /** The two Consecration rows, rank 5 and rank 1 (paladin.md rows 7 and 7b), which share one cooldown. */
 const CONSECRATION_ROWS = [
   { row: 'consecration', label: 'Consecration', on: ID.consecration, mana: ID.consecrationMana },
@@ -842,7 +857,7 @@ export function protectionRotation(
   // higher row is used whenever it can be, and the lower when it can't (Holy Strike when Hammer's 90
   // mana isn't there). Below Holy Strike (on), which costs less, it's never cast, so it's left out
   // of the plan, and with it its weapon-DPS assumption (TV-2).
-  const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand) && (hammerAbove(order) || !v.on(ID.holyStrike))
+  const hammer = protectionUsesHammer(values, ctx.mainHand, order, talents)
 
   compileAplRows(PROTECTION_APL, order, {
     // Row 0c (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s before

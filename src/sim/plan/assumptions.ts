@@ -486,7 +486,7 @@ const REGISTRY = {
   },
   // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: Seal of Command's share, by Holy Strike's (DU-9).
   jotcSealOfCommand: {
-    text: 'Seal of Command’s proc gets its whole 0.29 share of Judgement of the Crusader’s bonus (+46.7), outside its 70% of weapon damage, as Holy Strike’s whole 0.429 is outside its half in beta combat logs; no log shows Seal of Command under the judgement.',
+    text: 'Seal of Command’s proc gets its whole 0.29 share of Judgement of the Crusader’s bonus (+46.7), outside its 70% of weapon damage, as Holy Strike’s judgement share, its whole 0.429 (+69), comes on top of its half in beta combat logs; no log shows Seal of Command under the judgement.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
   // The Buffs tab's Judgement of the Crusader, another paladin's, with your own off (buffs doc §4.2).

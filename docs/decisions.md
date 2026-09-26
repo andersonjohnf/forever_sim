@@ -487,6 +487,9 @@ for the paladin and 987.4 for the bear** (seed 31101, 100,000 fights; damage tak
 343.8 a second): the warrior 23.4% over the paladin and 12.3% under the bear, the bear 40.8% over
 the paladin. The paladin's threat doesn't come from rage, so only its damage taken moved. All three
 are still above every DPS spec's TPS (Fury's 492.5 the highest) and no tank is at twice another.
+With the bear's head and feet re-picked together on that boss (Eye of Rend and the Defiler's boots,
+[druid.md §7.3a](classes/druid.md#73a-interim-gear-m56-t3)) the bear makes **991.4 TPS** (346.3 taken a
+second): the warrior 12.7% under it, the bear 41.4% over the paladin.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 **Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,

@@ -771,6 +771,9 @@ describe('golden run (fixed config and seed)', () => {
   // - The boss melee of 2026-09-26 (the warrior's bullet above): less rage from hits taken, so fewer
   //   Mauls and Lacerates. TPS 1,087.98 → 986.51, DPS 541.37 → 508.73. Only the boss's damage moved:
   //   Balanced's rotation is unchanged (Max TPS's Maul threshold, re-searched with it, isn't played here).
+  // - The head and feet re-picked together on that boss (druid.md §7.3a, FL-1): Eye of Rend with
+  //   Defiler's Leather Boots, for Shadowcraft Cap with Dunestalker's Boots. TPS 986.51 → 990.19, DPS
+  //   508.73 → 510.65; only the two slots moved.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -791,6 +794,7 @@ describe('golden run (fixed config and seed)', () => {
   //   the bear slice's values).
   // - 2026-09-26 merge, as above: TPS 1,076.02 → 1,059.69, DPS 536.15 → 528.23.
   // - The boss melee of 2026-09-26, as above: TPS 1,059.69 → 957.08, DPS 528.23 → 494.06.
+  // - Eye of Rend and the Defiler's boots, as above: TPS 957.08 → 962.57, DPS 494.06 → 496.69.
   it('keeps the Defensive Feral bear’s result unchanged', () => {
     const d = defaultConfig('druid-feral-bear')
     const bundle = buildPlan({ ...d, rotation: { 'druid.bear.priority': 'duties' }, run: { mode: 'fixed', iterations: 500, seed: 12345 } })

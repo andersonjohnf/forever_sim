@@ -641,9 +641,11 @@ describe('the default bear (druid.md §6.3)', () => {
     }
     const uptime = (id: string) => sim.auraUpMs[plan.auras.findIndex((a) => a.id === id)] / ms
     // The roar goes up with the first GCD, and by the duty rule is refreshed from 1.5 s left, so a
-    // miss is recast as it falls off: 99.68% over 40,000 fights (druid.md §6.3). Faerie Fire follows
-    // at 1.5 s, and from 6 s left a resisted one is recast once its cooldown ends: 98.40%.
-    expect(uptime('demoralizingRoar')).toBeGreaterThanOrEqual(0.995)
+    // miss is recast as it falls off: 99.62% over 40,000 fights (druid.md §6.3; 99.68% before the boss
+    // melee of 2026-09-26, whose smaller hits leave the bear short of its 10 rage now and then; these
+    // 100 fights 99.46%). Faerie Fire follows at 1.5 s, and from 6 s left a resisted one is recast once
+    // its cooldown ends: 98.38%.
+    expect(uptime('demoralizingRoar')).toBeGreaterThanOrEqual(0.994)
     expect(uptime('faerieFire')).toBeGreaterThanOrEqual(0.98)
     // Its settings name every duty.
     expect(Object.values(BEAR_IDS)).toEqual(expect.arrayContaining(['druid.bear.demoRoar.enabled', 'druid.bear.faerieFire.enabled', 'druid.bear.enrage.inCombat']))

@@ -1447,13 +1447,16 @@ and Lacerate instead.
 every 2.0 s, for the 4,500–5,500 stand-in; [encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)),
 the smaller hits give the bear less rage, and Maul from 14 made less threat than Balanced (−0.06%
 TPS, −0.84% DPS; seed 28401, 200,000 paired fights). Maul's threshold, searched again on TPS alone
-(seed 7474, 40,000 paired fights a candidate, 8 to 30 rage in steps of 2; then 100,000 from 12 to 24):
-**16** is best, +0.06% TPS over 14 (95% CI +0.03% to +0.10%) with 18 and 20 level with it; 12 and
-below, and 24 and above, lose. So Max TPS Mauls from 16. It now makes **the same threat as Balanced**
-in the default setup (+0.004% TPS) for 0.5% less DPS; the preset's line says so, from the measures.
-Against Defensive on seed 28401 (200,000 paired fights): Defensive 956.50 TPS, 493.62 DPS, 339.72
-damage taken a second; Balanced +3.26% TPS, +3.07% DPS and +1.26% damage taken; Max TPS +3.27%,
-+2.54% and +1.16%. These are `BEAR_PRESET_MEASURES`. Everything below is on the 5,000 boss.
+(seed 7474, 40,000 paired fights a candidate, 8 to 30 rage in steps of 2; then, with §7.3a step 4's
+head and feet, 100,000 from 12 to 24): **16** is best, +0.06% TPS over 14 (95% CI +0.03% to +0.10%)
+with 18 and 20 level with it; 12 and below, and 24 and above, lose. So Max TPS Mauls from 16. It now
+makes **the same threat as Balanced** in the default setup (−0.007% TPS) for 0.5% less DPS; the
+preset's line says so, from the measures. Against Defensive on seed 28401 (200,000 paired fights,
+with step 4's head and feet): Defensive 960.01 TPS, 495.49 DPS, 342.09 damage taken a second;
+Balanced +3.30% TPS, +3.10% DPS and +1.26% damage taken; Max TPS +3.29%, +2.56% and +1.16%. These are
+`BEAR_PRESET_MEASURES`; with Shadowcraft Cap and Dunestalker's Boots they were Defensive 956.50,
+493.62 and 339.72, Balanced +3.26%, +3.07% and +1.26%, Max TPS +3.27%, +2.54% and +1.16%. Everything
+below is on the 5,000 boss.
 
 Since T5, Max TPS moves the roar and Maul's threshold, **20 → 14 rage**: tuned on TPS alone
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
@@ -1464,7 +1467,7 @@ didn't use): **+2.10 TPS (+0.19%, 95% CI +1.83 to +2.36)** and **−1.08 DPS (�
 candidate, Maul from 10 to 18): 13 to 15 best and level (+0.18% to +0.21%), 10 to 12 and 16
 +0.16%, 17 and 18 +0.07%; on the fresh seed 13 +0.20%, 14 +0.19% and 15 +0.18%, all within each
 other's intervals. 14, the middle, is the default; T3's re-check had found the same (+0.19%,
-seed 28101). Against Defensive on seed 28401 (200,000 paired fights, re-measured 2026-09-26 with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing, a raid druid's Thorns at 47 and the default head's Shadowcraft Cap, §7.3a), Max TPS is +2.92% TPS (1,059.64 → 1,090.58), +2.41% DPS (528.33 → 541.06) and +0.69% damage taken (633.00 → 637.39 a second); Balanced +2.75%, +2.57% and +0.72%; Max TPS against Balanced +0.16% TPS (+1.51 to +2.00), −0.16% DPS and the same damage taken. With Darkmantle Cap on the head they were Max TPS +2.93% TPS (1,075.14 → 1,106.69), +2.44% DPS (535.56 → 548.63) and +0.69% damage taken (629.09 → 633.45); Balanced +2.77%, +2.59% and +0.72%; Max TPS against Balanced +0.16% TPS, −0.14% DPS. These are `BEAR_PRESET_MEASURES`, which the Rotation tab's lines quote and bear-presets.test.ts guards. Before 2026-09-26 they were Max TPS +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS and +0.69% damage taken; Balanced +3.12%, +2.83% and +0.71%.
+seed 28101). Against Defensive on seed 28401 (200,000 paired fights, re-measured 2026-09-26 with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing, a raid druid's Thorns at 47 and the default head's Shadowcraft Cap, §7.3a), Max TPS is +2.92% TPS (1,059.64 → 1,090.58), +2.41% DPS (528.33 → 541.06) and +0.69% damage taken (633.00 → 637.39 a second); Balanced +2.75%, +2.57% and +0.72%; Max TPS against Balanced +0.16% TPS (+1.51 to +2.00), −0.16% DPS and the same damage taken. With Darkmantle Cap on the head they were Max TPS +2.93% TPS (1,075.14 → 1,106.69), +2.44% DPS (535.56 → 548.63) and +0.69% damage taken (629.09 → 633.45); Balanced +2.77%, +2.59% and +0.72%; Max TPS against Balanced +0.16% TPS, −0.14% DPS. Those were `BEAR_PRESET_MEASURES`, which the Rotation tab's lines quote and bear-presets.test.ts guards, until the boss melee of 2026-09-26 (above). Before 2026-09-26 they were Max TPS +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS and +0.69% damage taken; Balanced +3.12%, +2.83% and +0.71%.
 
 Its Lacerate refresh (4.5 s, below) lost to the default's 12 s in T3's setup
 ([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this section is B4's first pass,
@@ -1680,7 +1683,8 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    review's set had 74.2% (20,468 against 27,579: health 5,956 against 6,964, armor 14,022 against
    17,036). Six swaps, each the one that gained the most effective health per 1% of TPS it cost
    among the items the pre-raid lists rank (no unmodelled use effect, no armor-only item), bring
-   it to 90.3%, for 4.5% of the TPS and 3.7% of the DPS (seed 424242, 4,000 fights a candidate):
+   it to 90.3%, for 4.5% of the TPS and 3.7% of the DPS (seed 424242, 4,000 fights a candidate, on
+   2026-09-24's model):
 
    | Step | Slot | Out | In | TPS | Effective health |
    | --- | --- | --- | --- | --- | --- |
@@ -1722,17 +1726,51 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    | **Shadowcraft Cap** | Alliance (Night Elf) | **1,112.9** | **542.9** | 624.6 | 6,663 | 14,577 | 23,540 (90.1%) |
 
    The bear loses 1.4% of its TPS and 1.3% of its DPS for a head it can actually get, and 65 effective
-   health. The table below the preset is from before, on 2026-09-25's model. On today's model the
-   default's golden run (seed 12345, 500 fights) moved 1,101.83 → 1,087.98 TPS and 548.03 → 541.37 DPS
-   with the new head. **To redo on today's model:** the class-quest review's FL-1, a joint re-pick of the
-   head and feet (Eye of Rend with the Defiler's boots, Alliance: Highlander's, against Shadowcraft
-   Cap with Dunestalker's Boots), since the head alone was searched and the pick above predates the
-   bear's new values.
+   health. The table below the preset is from before, on 2026-09-25's model. On the model of that day
+   the default's golden run (seed 12345, 500 fights) moved 1,101.83 → 1,087.98 TPS and 548.03 → 541.37
+   DPS with the new head. Step 4 re-picks the head and feet together on today's model.
+4. **The head and feet, re-picked together 2026-09-26** (the class-quest review's FL-1), on today's
+   model: the bear's 2026-09-26 values and the boss melee of Golemagg's Classic Era log
+   ([encounter §5](../mechanics/encounter.md#how-the-default-boss-melee-was-measured-)). Step 3
+   searched the head alone, and a head that misses the floor can clear it beside tougher boots.
+   - **Method.** `headfeet.mjs` (a scratch script on the engine bundle, as step 3's): every head and
+     every pair of boots in the default pool a druid of the race can wear (the optimizer's
+     `slotPool`: its class and faction, Dungeon Set 2 only for its own class, no later raid's item),
+     less PvP rank rewards and Darkmoon Faire rewards (D38 #20, #23): 32 heads and 46 boots. Each keeps
+     its slot's enchant (Lesser Arcanum of Voracity, Agility; Greater Agility). Each alone at 5,000
+     fights on seed 424242, with the other slot as it was; then every pair of the ten best heads and
+     ten best boots by TPS, with Eye of Rend, Shadowcraft Cap and the Defiler's, Highlander's and
+     Dunestalker's boots added, whose effective health is at least 90% of the v1 preset's, at 20,000
+     fights on the same seed. Both factions.
+   - **Result: Eye of Rend (12587) with Defiler's Leather Boots (20186; Alliance: Highlander's,
+     20052)**, the most TPS at or above the floor for both factions. The boots and the default's
+     Defiler's (Highlander's) Leather Girdle make The Defiler's Purpose's 2-piece, +5 Stamina [F].
+     Eye of Rend's stats are Classic Era's: the Forever client has no row for it
+     ([items.md](../data/items.md)). Paired against Shadowcraft Cap with Dunestalker's Boots on seeds
+     1 to 5 (20,000 fights each) it's +0.33% to +0.47% TPS for the Horde and +0.36% to +0.45% for the
+     Alliance, on every seed.
+
+   | Head and feet | Faction | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
+   | --- | --- | --- | --- | --- | --- | --- | --- |
+   | Shadowcraft Cap, Dunestalker's Boots (before) | Horde (Tauren) | 988.2 | 509.0 | 343.9 | 7,038 | 14,555 | 24,838 (90.1%) |
+   | **Eye of Rend, Defiler's Leather Boots** | Horde (Tauren) | **992.1** | **511.1** | 346.5 | 7,038 | 14,780 | 25,113 (91.1%) |
+   | Mask of the Unforgiven, Defiler's Leather Boots | Horde (Tauren) | 988.4 | 510.1 | 347.2 | 7,101 | 14,729 | 25,275 (91.6%) |
+   | Shadowcraft Cap, Boots of Ferocity | Horde (Tauren) | 986.2 | 508.4 | 345.8 | 7,069 | 14,527 | 24,913 (90.3%) |
+   | Eye of Rend, Dunestalker's Boots | Horde (Tauren) | — | — | — | 6,880 | 14,520 | 24,238 (87.9%, under the floor) |
+   | Shadowcraft Cap, Dunestalker's Boots (before) | Alliance (Night Elf) | 1,008.3 | 516.3 | 337.1 | 6,663 | 14,577 | 23,540 (90.1%) |
+   | **Eye of Rend, Highlander's Leather Boots** | Alliance (Night Elf) | **1,012.4** | **518.4** | 339.6 | 6,663 | 14,802 | 23,800 (91.1%) |
+
+   The floor is 24,821 for the Horde and 23,521 for the Alliance (90% of the v1 preset's 27,579 and
+   26,135). Alone, the most TPS a head makes is Bloodvine Goggles (a Tailoring item), 85–86% of the
+   v1 preset's effective health with any boots searched, under the floor. The bear gains 0.4% of its
+   TPS and 0.4% of its DPS and 275 effective health (Horde; 260 Alliance). The default's golden run
+   (seed 12345, 500 fights) moved 986.51 → 990.19 TPS and 508.73 → 510.65 DPS; Balanced on seed 31101
+   (100,000 fights) 987.41 → 991.36 TPS, 508.68 → 510.74 DPS, 343.83 → 346.27 damage taken a second.
 
 | Slot | Item | Slot | Item |
 | --- | --- | --- | --- |
-| Head | Shadowcraft Cap (16707) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
-| Neck | Amulet of the Darkmoon (19491) | Feet | Dunestalker's Boots (20715) |
+| Head | Eye of Rend (12587) | Legs | Legionnaire's Dragonhide Leggings (22878; Alliance: Knight-Captain's, 23295) |
+| Neck | Amulet of the Darkmoon (19491) | Feet | Defiler's Leather Boots (20186; Alliance: Highlander's, 20052) |
 | Shoulder | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | Rings | Painweaver Band (13098), Don Julio's Band (19325) |
 | Back | Windshear Cape (20691) | Trinkets | Earthstrike (21180), Hand of Justice (11815) |
 | Chest | Breastplate of Bloodthirst (12757) | Two-hand | Manual Crowd Pummeler (9449, §7.3) |
@@ -1740,9 +1778,10 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
 | Hands | Timbermaw Brawlers (19049) | | |
 | Waist | Defiler's Leather Girdle (20190; Alliance: Highlander's, 20045) | | |
 
-At the defaults (seed 424242, 20,000 fights, with Thorns and Thick Hide), against the v1 list's
-gear and talents in today's model (re-measured 2026-09-25 on 1.60.1.70009; the v1 rows play
-Defensive, and v1's talents read onto today's trees with nothing refunded):
+At the defaults of 2026-09-25 (seed 424242, 20,000 fights, with Thorns and Thick Hide), against the
+v1 list's gear and talents in that day's model (measured on 1.60.1.70009, before the steps 3 and 4
+gear, the bear's 2026-09-26 values and the boss melee of 2026-09-26; the v1 rows play Defensive, and
+v1's talents read onto today's trees with nothing refunded):
 
 | Setup | TPS | DPS | Damage taken a second | Health | Armor | Effective health |
 | --- | --- | --- | --- | --- | --- | --- |

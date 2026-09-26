@@ -52,9 +52,9 @@ describe('the Feral bear presets’ help numbers (CU-1)', () => {
     const presets = Object.fromEntries(aplPresets(BEAR_APL).map((p) => [p.id, p]))
     expect(presets.default.summary).toBe('Faerie Fire kept, Demoralizing Roar dropped: +3.3% TPS, +3.1% DPS and 1.3% more damage taken than Defensive.')
     expect(presets.default.help).toContain('3.3% more TPS and 3.1% more DPS than Defensive in the default setup, for 1.3% more damage taken.')
-    // Since the boss melee of 2026-09-26 Max TPS makes the same threat as Balanced in the default setup (druid.md §6.3 "Max TPS").
+    // Since the boss melee of 2026-09-26 Max TPS makes the same threat as Balanced in the default setup (druid.md §6.3 "Max TPS"): −0.007%.
     expect(presets.maxTps.summary).toBe('Balanced, but Mauls from 16 rage: ±0.0% TPS, −0.5% DPS, the same damage taken (1.2% more than Defensive).')
-    expect(presets.maxTps.help).toContain('Against Balanced in the default setup that’s the same TPS and 0.5% less DPS, and the same damage taken; against Defensive, 3.3% more TPS, 2.5% more DPS and 1.2% more damage taken. In the default setup it makes the same threat as Balanced.')
+    expect(presets.maxTps.help).toContain('Against Balanced in the default setup that’s the same TPS and 0.5% less DPS, and the same damage taken; against Defensive, 3.3% more TPS, 2.6% more DPS and 1.2% more damage taken. In the default setup it makes the same threat as Balanced.')
     expect(presets.defensive.help).toContain('1.2% less damage taken than Balanced, for 3.2% less TPS and 3.0% less DPS in the default setup')
     // A Max TPS ahead or behind reads so, and advises so.
     const ahead = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: 0.16, dpsPct: -0.16, damageTakenPct: -0.02 } })

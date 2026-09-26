@@ -510,7 +510,7 @@ describe('druid defaults (druid.md §7)', () => {
     // druid.md §7.3a: the review's measured threat preset, until the optimizer's (D30).
     const items = Object.fromEntries(Object.entries(d.gear).map(([slot, e]) => [slot, e!.itemId]))
     expect(items).toEqual({
-      head: 16707, // Shadowcraft Cap: Darkmantle Cap is a rogue’s quest reward (items.md#class-quest-rewards)
+      head: 12587, // Eye of Rend, with the Defiler's boots: the joint re-pick of 2026-09-26 (§7.3a)
       neck: 19491,
       shoulder: 23254, // Champion's Dragonhide Shoulders
       back: 20691,
@@ -519,7 +519,7 @@ describe('druid defaults (druid.md §7)', () => {
       hands: 19049,
       waist: 20190, // Defiler's Leather Girdle
       legs: 22878, // Legionnaire's Dragonhide Leggings
-      feet: 20715,
+      feet: 20186, // Defiler's Leather Boots
       finger1: 13098,
       finger2: 19325,
       trinket1: 21180,
@@ -528,10 +528,10 @@ describe('druid defaults (druid.md §7)', () => {
       ranged: 23198, // Idol of Brutality
     })
     // An Alliance bear wears its faction's twins: Lieutenant Commander's shoulders, Highlander's girdle,
-    // Knight-Captain's leggings.
+    // Knight-Captain's leggings, Highlander's boots.
     const alliance = defaultConfig('druid-feral-bear', 'alliance-night-elf').gear
-    expect([alliance.shoulder?.itemId, alliance.waist?.itemId, alliance.legs?.itemId]).toEqual([23309, 20045, 23295])
-    expect({ ...alliance, shoulder: d.gear.shoulder, waist: d.gear.waist, legs: d.gear.legs }).toEqual(d.gear)
+    expect([alliance.shoulder?.itemId, alliance.waist?.itemId, alliance.legs?.itemId, alliance.feet?.itemId]).toEqual([23309, 20045, 23295, 20052])
+    expect({ ...alliance, shoulder: d.gear.shoulder, waist: d.gear.waist, legs: d.gear.legs, feet: d.gear.feet }).toEqual(d.gear)
     // The tanks' effective-health floor (druid.md §7.3a): health ÷ (1 − armor's reduction against the
     // level-63 boss) in Dire Bear Form, at least 90% of the v1 preset's (its pre-raid list).
     const ehp = (config: SimConfig) => {

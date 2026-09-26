@@ -155,16 +155,17 @@ const MAX_TPS_MAUL_MIN_RAGE = 16
  * with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing and a raid
  * druid's Thorns at 47, again for the default head's Shadowcraft Cap, druid.md §7.3a, and again for the
  * boss melee of Golemagg's Classic Era log, 2,200–3,200 every 2.0 s, encounter.md §5, with Max TPS's
- * Maul from 16): Defensive's
+ * Maul from 16, and again for the head and feet's joint re-pick, Eye of Rend with the Defiler's boots,
+ * druid.md §7.3a): Defensive's
  * TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max TPS against
  * Balanced. bear-presets.test.ts measures them again, so a change
  * that moves them fails until they're re-measured here.
  */
 export const BEAR_PRESET_MEASURES: BearPresetMeasures = {
-  defensive: { tps: 956.5, dps: 493.62, damageTaken: 339.72 },
-  balanced: { tpsPct: 3.26, dpsPct: 3.07, damageTakenPct: 1.26 },
-  maxTps: { tpsPct: 3.27, dpsPct: 2.54, damageTakenPct: 1.16 },
-  maxTpsOverBalanced: { tpsPct: 0.004, dpsPct: -0.51, damageTakenPct: -0.1 },
+  defensive: { tps: 960.01, dps: 495.49, damageTaken: 342.09 },
+  balanced: { tpsPct: 3.3, dpsPct: 3.1, damageTakenPct: 1.26 },
+  maxTps: { tpsPct: 3.29, dpsPct: 2.56, damageTakenPct: 1.16 },
+  maxTpsOverBalanced: { tpsPct: -0.007, dpsPct: -0.53, damageTakenPct: -0.1 },
 }
 const BALANCED = { option: ID.priority, is: BEAR_PRIORITY.balanced } as const
 

@@ -408,7 +408,7 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
   // quest reward (docs/data/items.md#class-quest-rewards): the head is the most TPS within the floor
   // among the heads a druid can get (2026-09-26, druid.md §7.3a).
   'druid-feral-bear': {
-    head: [16707], // Shadowcraft Cap (for Darkmantle Cap, a rogue's)
+    head: [12587], // Eye of Rend, with the Defiler's boots (druid.md §7.3a, the joint re-pick of 2026-09-26)
     neck: [19491], // Amulet of the Darkmoon (EHP swap for Mark of Fordring)
     shoulder: [23254], // Champion's Dragonhide Shoulders, or its twin (EHP swap for Truestrike Shoulders)
     back: [20691], // Windshear Cape (EHP swap for Cape of the Black Baron)
@@ -417,7 +417,7 @@ export const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, reado
     hands: [19049], // Timbermaw Brawlers
     waist: [20190], // Defiler's Leather Girdle, or its twin
     legs: [22878], // Legionnaire's Dragonhide Leggings, or its twin
-    feet: [20715], // Dunestalker's Boots
+    feet: [20186], // Defiler's Leather Boots, or its twin (with the girdle, The Defiler's Purpose's +5 Stamina)
     finger1: [13098], // Painweaver Band
     finger2: [19325], // Don Julio's Band (EHP swap for Band of Earthen Might)
     trinket1: [21180], // Earthstrike

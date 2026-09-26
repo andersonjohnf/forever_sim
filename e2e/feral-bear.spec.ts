@@ -64,7 +64,7 @@ const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 /** Each preset's short line under the picker: what it keeps and drops, with a number or two against Defensive (D28). */
 const BALANCED_LINE = 'Faerie Fire kept, Demoralizing Roar dropped: +3.3% TPS, +3.1% DPS and 1.3% more damage taken than Defensive.'
 const DEFENSIVE_LINE = 'Demoralizing Roar and Faerie Fire kept on the boss: the least damage taken. Tuned on threat.'
-const MAX_TPS_LINE = 'Balanced, but Mauls from 16 rage: ±0.0% TPS, −0.5% DPS, the same damage taken (1.2% more than Defensive).'
+const MAX_TPS_LINE = 'Plays as Balanced: Mauls from 20 rage too, as no other threshold makes more threat; 1.3% more damage taken than Defensive.'
 
 test.describe('Feral bear in the switcher', () => {
   test('is under Druid as a tank, with its own talent build, a Tauren and the Manual Crowd Pummeler', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
     await expect(info).toContainText('3.3% more TPS and 3.1% more DPS than Defensive in the default setup, for 1.3% more damage taken')
-    await expect(info).toContainText('Mauls from 16 rage rather than Balanced’s 20')
+    await expect(info).toContainText('No Maul threshold makes more threat than Balanced’s 20 rage in the default setup, so it Mauls from 20 too and plays as Balanced')
     await page.keyboard.press('Escape')
     expect(await order(page)).toEqual(DEFAULT_ORDER)
     // The priority is the picker, first: no Priority choice of its own, and only the consumables between it and the list.
@@ -130,7 +130,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     await expect(page.getByRole('button', { name: 'Reset order' })).toBeDisabled()
   })
 
-  test('switches presets: Defensive keeps the roar, Max TPS drops it and Mauls sooner, and each says what it is', async ({ page }) => {
+  test('switches presets: Defensive keeps the roar, Max TPS drops it and plays as Balanced, and each says what it is', async ({ page }) => {
     const { tab, list } = await openRotation(page)
     await preset(page).click()
     await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
@@ -148,9 +148,9 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     await pickPreset(page, 'Max TPS')
     await expect(preset(page)).toHaveAccessibleDescription(MAX_TPS_LINE)
     await expect(roar).not.toBeChecked()
-    // Tuned on threat alone, it Mauls from 16 (druid.md §6.3 "Max TPS"), unmarked: its own default.
-    await expect(row(list, 'maul')).toContainText('From 16 rage')
-    await expect(list.getByRole('button', { name: 'Maul', exact: true })).toHaveAccessibleDescription('From 16 rage')
+    // Tuned on threat alone, it keeps Balanced's Maul from 20 (druid.md §6.3 "Max TPS", JL-1), unmarked: its own default.
+    await expect(row(list, 'maul')).toContainText('From 20 rage')
+    await expect(list.getByRole('button', { name: 'Maul', exact: true })).toHaveAccessibleDescription('From 20 rage')
     await expect(list.getByRole('switch', { name: 'Faerie Fire', exact: true })).toBeChecked()
     // The settings they don't name stay as they were, and so does the order.
     expect(await order(page)).toEqual(DEFAULT_ORDER)

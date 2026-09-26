@@ -52,16 +52,20 @@ describe('the Feral bear presets’ help numbers (CU-1)', () => {
     const presets = Object.fromEntries(aplPresets(BEAR_APL).map((p) => [p.id, p]))
     expect(presets.default.summary).toBe('Faerie Fire kept, Demoralizing Roar dropped: +3.3% TPS, +3.1% DPS and 1.3% more damage taken than Defensive.')
     expect(presets.default.help).toContain('3.3% more TPS and 3.1% more DPS than Defensive in the default setup, for 1.3% more damage taken.')
-    // Since the boss melee of 2026-09-26 Max TPS makes the same threat as Balanced in the default setup (druid.md §6.3 "Max TPS"): −0.007%.
-    expect(presets.maxTps.summary).toBe('Balanced, but Mauls from 16 rage: ±0.0% TPS, −0.5% DPS, the same damage taken (1.2% more than Defensive).')
-    expect(presets.maxTps.help).toContain('Against Balanced in the default setup that’s the same TPS and 0.5% less DPS, and the same damage taken; against Defensive, 3.3% more TPS, 2.6% more DPS and 1.2% more damage taken. In the default setup it makes the same threat as Balanced.')
+    // Since the boss melee of 2026-09-26 no Maul threshold makes more threat than Balanced's 20, so Max TPS keeps it and plays as Balanced (druid.md §6.3 "Max TPS", JL-1).
+    expect(presets.maxTps.summary).toBe('Plays as Balanced: Mauls from 20 rage too, as no other threshold makes more threat; 1.3% more damage taken than Defensive.')
+    expect(presets.maxTps.help).toContain('so it Mauls from 20 too and plays as Balanced: against Defensive, 3.3% more TPS, 3.1% more DPS and 1.3% more damage taken.')
+    // A Max TPS level with Balanced at another threshold reads "the same TPS", not "±0.0%" (± is an interval elsewhere; JU-3), and says it once.
+    const level = bearPresetText({ ...M, maxTps: { tpsPct: 3.29, dpsPct: 2.56, damageTakenPct: 1.16 }, maxTpsOverBalanced: { tpsPct: -0.007, dpsPct: -0.53, damageTakenPct: -0.1 } }, { maxTps: 16, balanced: 20 })
+    expect(level.maxTps.summary).toBe('Balanced, but Mauls from 16 rage: the same TPS, −0.5% DPS, the same damage taken (1.2% more than Defensive).')
+    expect(level.maxTps.help).toContain('and Mauls from 16 rage rather than Balanced’s 20. Against Balanced in the default setup that’s the same TPS and 0.5% less DPS, and the same damage taken; against Defensive, 3.3% more TPS, 2.6% more DPS and 1.2% more damage taken. The Buffs tab’s')
     expect(presets.defensive.help).toContain('1.2% less damage taken than Balanced, for 3.2% less TPS and 3.0% less DPS in the default setup')
     // A Max TPS ahead or behind reads so, and advises so.
-    const ahead = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: 0.16, dpsPct: -0.16, damageTakenPct: -0.02 } })
+    const ahead = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: 0.16, dpsPct: -0.16, damageTakenPct: -0.02 } }, { maxTps: 14, balanced: 20 })
     expect(ahead.maxTps.summary).toContain(': +0.2% TPS, −0.2% DPS, the same damage taken (')
     expect(ahead.maxTps.help).toContain('0.2% more TPS and 0.2% less DPS, and the same damage taken')
     expect(ahead.maxTps.help).toContain('Pick it when threat is all that matters')
-    const behind = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: -0.3, dpsPct: 0.2, damageTakenPct: 0.8 } })
+    const behind = bearPresetText({ ...M, maxTpsOverBalanced: { tpsPct: -0.3, dpsPct: 0.2, damageTakenPct: 0.8 } }, { maxTps: 14, balanced: 20 })
     expect(behind.maxTps.summary).toContain(': −0.3% TPS, +0.2% DPS, 0.8% more damage taken (')
     expect(behind.maxTps.help).toContain('In the default setup Balanced makes more threat.')
   })

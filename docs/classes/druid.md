@@ -1165,11 +1165,11 @@ control of its own:
 - **Max TPS** (`maxTps`) drops the roar, from a first-pass search on TPS alone
   ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as Defensive does). It keeps
   Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
-  dropping its upkeep costs 1% of TPS. Its search moved one thing: it Mauls sooner than Balanced's
-  20, from 16 rage since the boss melee of 2026-09-26 (14 before), which now makes the same threat
-  as Balanced for 0.5% less damage ([Max TPS](#max-tps-b4)); on the 5,000 boss, 14 made +0.16% TPS for
-  −0.22% DPS against Balanced (seed 31101, 100,000 paired fights). The roar is the only duty that costs
-  threat.
+  dropping its upkeep costs 1% of TPS. Its search moved one thing on the 5,000 boss, Maul from 14
+  rather than Balanced's 20 (+0.16% TPS for −0.22% DPS against Balanced; seed 31101, 100,000 paired
+  fights). On the boss melee of 2026-09-26 no threshold makes more threat than 20 by D23's bar, so
+  since JL-1 it Mauls from 20 too and **plays as Balanced** in the default setup, which its lines say
+  ([Max TPS](#max-tps-b4)). The roar is the only duty that costs threat.
 
 The Buffs tab's Demoralizing Roar is the bear's own, so no preset turns it on: with Balanced or
 Max TPS the boss is at full attack power unless you turn it on there because another druid keeps
@@ -1258,8 +1258,8 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
   Consumables. They take their turn in the list with the on-use items (row 3), wherever that row
   sits, as they did before the list. The priority is the preset picker.
 - **The presets move no row:** Defensive, Balanced and Max TPS share the default order. Defensive
-  keeps the roar; Balanced and Max TPS drop it, and Max TPS Mauls from 16 rather than 20
-  ([Max TPS](#max-tps-b4)). In the default order Defensive's plan and Max TPS's with Maul from 20
+  keeps the roar; Balanced and Max TPS drop it, and Max TPS keeps Balanced's Maul from 20 since the
+  boss melee of 2026-09-26 (14 before; [Max TPS](#max-tps-b4)), so it plays as Balanced. In the default order Defensive's plan and Max TPS's with Maul from 20
   are the ones they had before the list, byte for byte: 200 random setups (settings, talents,
   race, items, Buffs, raid, fight and rules) are fingerprinted against the code before it
   (`bear-apl.test.ts`).
@@ -1278,7 +1278,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; in every preset), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
 | `priority` | **Balanced** | The preset picker: Defensive (`duties`), Balanced (`balanced`) or Max TPS (`maxTps`), which move the defaults marked with their names |
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
-| `maul.enabled`, `maul.minRage` | **on**, 20 (16 with Max TPS) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 16 (14 before the boss melee of 2026-09-26; [Max TPS](#max-tps-b4)) |
+| `maul.enabled`, `maul.minRage` | **on**, 20 (20 with Max TPS too) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 20 as well since the boss melee of 2026-09-26, when no other threshold cleared D23's bar (14 before; [Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
 | `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 14% of TPS and 16% of DPS (1,104.0 → 944.0 TPS, 549.0 → 461.4 DPS; seed 1, 20,000 fights, 2026-09-26, at the slice's fix round); refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
@@ -1471,8 +1471,8 @@ and Lacerate instead.
   from 40 −1.1); Faerie Fire's refresh, Enrage's limit and the potion's are level; everything
   else loses (Primal Bite off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
   Enrage in combat off −5.2).
-- **Max TPS differs by Maul's threshold** (T5, below): tuned on TPS alone, it Mauls from 16 (14
-  before the boss melee of 2026-09-26).
+- **Max TPS differed by Maul's threshold** (T5, below): tuned on TPS alone, it Mauled from 14 until
+  the boss melee of 2026-09-26; since then it keeps 20, as no threshold makes more threat (JL-1).
 
 #### Max TPS (B4)
 
@@ -1482,11 +1482,17 @@ the smaller hits give the bear less rage, and Maul from 14 made less threat than
 TPS, −0.84% DPS; seed 28401, 200,000 paired fights). Maul's threshold, searched again on TPS alone
 (seed 7474, 40,000 paired fights a candidate, 8 to 30 rage in steps of 2; then, with §7.3a step 4's
 head and feet, 100,000 from 12 to 24): **16** is best, +0.06% TPS over 14 (95% CI +0.03% to +0.10%)
-with 18 and 20 level with it; 12 and below, and 24 and above, lose. So Max TPS Mauls from 16. It now
-makes **the same threat as Balanced** in the default setup (−0.007% TPS) for 0.5% less DPS; the
-preset's line says so, from the measures. Against Defensive on seed 28401 (200,000 paired fights,
+with 18 and 20 level with it; 12 and below, and 24 and above, lose. But that search was against 14,
+Max TPS's old value, not against Balanced's 20, and **no threshold clears D23's bar against Balanced**
+(JL-1, 2026-09-26): on seed 5151 (40,000 paired fights, Balanced as the baseline) Maul from 14 is
+−0.02% TPS (95% CI −0.81 to +0.47 TPS) for −4.06 DPS, 16 −0.00% (−0.66 to +0.59) for −2.63 DPS, 18
++0.04% (−0.17 to +0.95) for −0.91 DPS. So **Max TPS Mauls from 20, as Balanced does, and plays as
+Balanced** in the default setup; its line says so ("Plays as Balanced: Mauls from 20 rage too, as no other threshold makes more threat; 1.3% more damage taken than Defensive."),
+from its threshold against Balanced's, and its measures are Balanced's. From 16 (the slice's first
+pick, 2026-09-26) it made the same threat as Balanced (−0.007% TPS) for 0.5% less DPS: Max TPS
++3.29%, +2.56% and +1.16% against Defensive. Against Defensive on seed 28401 (200,000 paired fights,
 with step 4's head and feet): Defensive 960.01 TPS, 495.49 DPS, 342.09 damage taken a second;
-Balanced +3.30% TPS, +3.10% DPS and +1.26% damage taken; Max TPS +3.29%, +2.56% and +1.16%. These are
+Balanced, and so Max TPS, +3.30% TPS, +3.10% DPS and +1.26% damage taken. These are
 `BEAR_PRESET_MEASURES`; with Shadowcraft Cap and Dunestalker's Boots they were Defensive 956.50,
 493.62 and 339.72, Balanced +3.26%, +3.07% and +1.26%, Max TPS +3.27%, +2.54% and +1.16%. Everything
 below is on the 5,000 boss.

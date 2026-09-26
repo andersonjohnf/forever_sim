@@ -695,11 +695,10 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.05)
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
-    // Max TPS drops the roar as Balanced does, and Mauls from 16 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5). Since the boss melee of 2026-09-26 that's the same TPS as Balanced (+0.004%)
-    // for 0.5% less DPS (BEAR_PRESET_MEASURES; 14 made 0.2% more TPS for 0.2% less DPS on the 5,000 boss).
-    expect(Math.abs(max.tps!.mean / balanced.tps!.mean - 1)).toBeLessThan(0.003)
-    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(0.999)
-    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.99)
+    // Max TPS drops the roar as Balanced does, and since the boss melee of 2026-09-26 keeps Balanced's
+    // Maul from 20: no threshold made more threat on TPS alone (§6.3 "Max TPS", T5, JL-1), so it plays
+    // as Balanced, fight for fight (14 made 0.2% more TPS for 0.2% less DPS on the 5,000 boss).
+    expect(max.tps!.mean).toBe(balanced.tps!.mean)
+    expect(max.dps.mean).toBe(balanced.dps.mean)
   }, 60_000)
 })

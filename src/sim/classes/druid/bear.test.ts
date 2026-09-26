@@ -396,13 +396,14 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     const moved = Object.keys(duties).filter((id) => duties[id] !== balanced[id])
     expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
     expect([balanced[BEAR_IDS.ffEnabled], balanced[BEAR_IDS.ffFiller], balanced[BEAR_IDS.roarEnabled]]).toEqual([true, true, false])
-    // Max TPS, tuned on TPS alone, Mauls from less rage (T5): otherwise the same rows.
+    // Max TPS, tuned on TPS alone, found no Maul threshold better than Balanced's 20 on the boss melee of
+    // 2026-09-26 (T5, JL-1): it plays as Balanced, only the priority differs.
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
-    expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority, BEAR_IDS.maulMinRage])
-    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 16])
+    expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority])
+    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 20])
   })
 
-  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 16', () => {
+  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 20', () => {
     const duties = resolveRotationValues(BEAR_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
@@ -410,13 +411,13 @@ describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)'
     for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
     expect(LACERATE_REFRESH_SEC).toBe(12)
     expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([12, 12])
-    // Maul from 16 on TPS alone (§6.3 "Max TPS", T5; 14 before the boss melee of 2026-09-26); nothing else moves: T3's first-pass search
-    // found no other setting better (D27).
+    // Maul from Balanced's 20 on TPS alone (§6.3 "Max TPS", T5; 14 before the boss melee of 2026-09-26, JL-1); nothing else moves:
+    // T3's first-pass search found no other setting better (D27).
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.maulMinRage].sort())
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
     // Each setting's help says how it follows the choice.
     const help = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.help
-    expect(help(BEAR_IDS.maulMinRage)).toContain('With Max TPS it’s 16 by default')
+    expect(help(BEAR_IDS.maulMinRage)).toContain('Max TPS keeps 20 too: tuned on threat alone, no other threshold makes more in the default setup.')
     expect(help(BEAR_IDS.roarEnabled)).toContain('On with Defensive; off by default with Balanced and Max TPS.')
     expect(help(BEAR_IDS.ffEnabled)).toContain('Every preset keeps it')
   })

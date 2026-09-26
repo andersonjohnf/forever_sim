@@ -141,31 +141,33 @@ const DUTY_RULE = (sec: number, why: string) =>
  */
 export const BEAR_PRIORITY = { duties: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: BEAR_PRIORITY.maxTps } as const
+/** Maul's threshold for Defensive and Balanced: 20 rage (druid.md §6.3 "Tuning the defaults"). */
+const MAUL_MIN_RAGE = 20
 /**
- * Max TPS's Maul threshold (druid.md §6.3 "Max TPS", T5): tuned on TPS alone (D26), 16 rage, where
- * Defensive and Balanced keep 20. It was 14 until the boss melee of 2026-09-26 (Golemagg's,
- * encounter.md §5): the smaller hits give less rage, and 16 makes more threat than 14 (+0.06%, 95% CI
- * +0.03% to +0.10%; seed 7474, 100,000 paired fights), level with 18 and 20.
+ * Max TPS's Maul threshold (druid.md §6.3 "Max TPS", T5): tuned on TPS alone (D26), and since the boss
+ * melee of 2026-09-26 (Golemagg's, encounter.md §5) Balanced's 20. It was 14 until then; on the new
+ * boss no threshold makes more threat than Balanced's 20 by D23's bar (16 and 18 are level on TPS for
+ * less DPS; JL-1), so Max TPS keeps 20 and plays as Balanced in the default setup.
  */
-const MAX_TPS_MAUL_MIN_RAGE = 16
+const MAX_TPS_MAUL_MIN_RAGE = MAUL_MIN_RAGE
 
 /**
  * What the presets' help and short lines say, measured in the default setup (druid.md §6.3 "Max
  * TPS"; seed 28401, 200,000 paired fights with scripts/tune/rotation.mjs, re-measured 2026-09-26
  * with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing and a raid
  * druid's Thorns at 47, again for the default head's Shadowcraft Cap, druid.md §7.3a, and again for the
- * boss melee of Golemagg's Classic Era log, 2,200–3,200 every 2.0 s, encounter.md §5, with Max TPS's
- * Maul from 16, and again for the head and feet's joint re-pick, Eye of Rend with the Defiler's boots,
- * druid.md §7.3a): Defensive's
+ * boss melee of Golemagg's Classic Era log, 2,200–3,200 every 2.0 s, encounter.md §5, and again for
+ * the head and feet's joint re-pick, Eye of Rend with the Defiler's boots, druid.md §7.3a): Defensive's
  * TPS, DPS and damage taken a second, Balanced and Max TPS against it in percent, and Max TPS against
- * Balanced. bear-presets.test.ts measures them again, so a change
+ * Balanced. Since JL-1 Max TPS Mauls from Balanced's 20, so it plays as Balanced: its measures are
+ * Balanced's, and zero against it. bear-presets.test.ts measures them again, so a change
  * that moves them fails until they're re-measured here.
  */
 export const BEAR_PRESET_MEASURES: BearPresetMeasures = {
   defensive: { tps: 960.01, dps: 495.49, damageTaken: 342.09 },
   balanced: { tpsPct: 3.3, dpsPct: 3.1, damageTakenPct: 1.26 },
-  maxTps: { tpsPct: 3.29, dpsPct: 2.56, damageTakenPct: 1.16 },
-  maxTpsOverBalanced: { tpsPct: -0.007, dpsPct: -0.53, damageTakenPct: -0.1 },
+  maxTps: { tpsPct: 3.3, dpsPct: 3.1, damageTakenPct: 1.26 },
+  maxTpsOverBalanced: { tpsPct: 0, dpsPct: 0, damageTakenPct: 0 },
 }
 const BALANCED = { option: ID.priority, is: BEAR_PRIORITY.balanced } as const
 
@@ -188,17 +190,18 @@ const pct = (x: number) => `${Math.abs(x).toFixed(1)}%`
 const shownAsZero = (x: number) => Number(Math.abs(x).toFixed(1)) === 0
 /** A change with its direction: "2.8% more", "0.2% less", or "the same" when it shows as zero. */
 const moreOrLess = (x: number) => (shownAsZero(x) ? 'the same' : `${pct(x)} ${x < 0 ? 'less' : 'more'}`)
-/** A change for a short line, signed: "+2.8%", "−0.2%", "±0.0%". */
-const signed = (x: number) => `${shownAsZero(x) ? '±' : x < 0 ? '−' : '+'}${pct(x)}`
+/** A change for a short line, signed, or "the same" when it shows as zero: "+2.8% TPS", "−0.2% DPS", "the same TPS" ("±" reads as an interval, JU-3). */
+const signed = (x: number, what: string) => (shownAsZero(x) ? `the same ${what}` : `${x < 0 ? '−' : '+'}${pct(x)} ${what}`)
 /** Damage taken against Balanced, where under 0.5% is the same (whole percent, as the warrior's). */
 const sameTaken = (x: number) => Number(Math.abs(x).toFixed(0)) === 0
 
 /**
  * The presets' help and short lines (docs/ux.md "Rotation"), every figure's direction from its value,
  * as the Protection warrior's `protectionPresetText` does, so a re-measure that turns one can't print a
- * wrong word.
+ * wrong word. Max TPS's words come from its Maul threshold against Balanced's (`maul`): at the same
+ * threshold it plays as Balanced, and says so (JL-1, JU-3).
  */
-export function bearPresetText(m: BearPresetMeasures) {
+export function bearPresetText(m: BearPresetMeasures, maul: { maxTps: number; balanced: number } = { maxTps: MAX_TPS_MAUL_MIN_RAGE, balanced: MAUL_MIN_RAGE }) {
   const vs = m.maxTpsOverBalanced
   const takenVsBalanced = sameTaken(vs.damageTakenPct) ? 'the same damage taken' : `${pct(vs.damageTakenPct)} ${vs.damageTakenPct < 0 ? 'less' : 'more'} damage taken`
   // Defensive against Balanced: Balanced's percents turned round (Defensive is their base).
@@ -209,19 +212,25 @@ export function bearPresetText(m: BearPresetMeasures) {
       help: `Keeps both tank duties first, Demoralizing Roar and Faerie Fire on the boss, and is tuned on threat. The roar’s −204 attack power means ${moreOrLess(-below(m.balanced.damageTakenPct))} damage taken than Balanced, for ${moreOrLess(-below(m.balanced.tpsPct))} TPS and ${moreOrLess(-below(m.balanced.dpsPct))} DPS in the default setup. Pick it for progression fights.`,
     },
     balanced: {
-      summary: `Faerie Fire kept, Demoralizing Roar dropped: ${signed(m.balanced.tpsPct)} TPS, ${signed(m.balanced.dpsPct)} DPS and ${moreOrLess(m.balanced.damageTakenPct)} damage taken than Defensive.`,
+      summary: `Faerie Fire kept, Demoralizing Roar dropped: ${signed(m.balanced.tpsPct, 'TPS')}, ${signed(m.balanced.dpsPct, 'DPS')} and ${moreOrLess(m.balanced.damageTakenPct)} damage taken than Defensive.`,
       help: `The default, as most tanks play fights short of progression. Drops Demoralizing Roar and keeps Faerie Fire, the raid’s armor debuff: ${moreOrLess(m.balanced.tpsPct)} TPS and ${moreOrLess(m.balanced.dpsPct)} DPS than Defensive in the default setup, for ${moreOrLess(m.balanced.damageTakenPct)} damage taken. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.`,
     },
-    maxTps: {
-      summary: `Balanced, but Mauls from ${MAX_TPS_MAUL_MIN_RAGE} rage: ${signed(vs.tpsPct)} TPS, ${signed(vs.dpsPct)} DPS, ${takenVsBalanced} (${moreOrLess(m.maxTps.damageTakenPct)} than Defensive).`,
-      help: `Tuned on threat alone: drops Demoralizing Roar, keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger, and Mauls from ${MAX_TPS_MAUL_MIN_RAGE} rage rather than Balanced’s 20. Against Balanced in the default setup that’s ${moreOrLess(vs.tpsPct)} TPS and ${moreOrLess(vs.dpsPct)} DPS, and ${takenVsBalanced}; against Defensive, ${moreOrLess(m.maxTps.tpsPct)} TPS, ${moreOrLess(m.maxTps.dpsPct)} DPS and ${moreOrLess(m.maxTps.damageTakenPct)} damage taken. ${
-        shownAsZero(vs.tpsPct)
-          ? 'In the default setup it makes the same threat as Balanced.'
-          : vs.tpsPct > 0
-            ? 'Pick it when threat is all that matters and another tank or the raid covers your survival.'
-            : 'In the default setup Balanced makes more threat.'
-      } The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.`,
-    },
+    maxTps:
+      maul.maxTps === maul.balanced
+        ? {
+            summary: `Plays as Balanced: Mauls from ${maul.balanced} rage too, as no other threshold makes more threat; ${moreOrLess(m.maxTps.damageTakenPct)} damage taken than Defensive.`,
+            help: `Tuned on threat alone: drops Demoralizing Roar and keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. No Maul threshold makes more threat than Balanced’s ${maul.balanced} rage in the default setup, so it Mauls from ${maul.balanced} too and plays as Balanced: against Defensive, ${moreOrLess(m.maxTps.tpsPct)} TPS, ${moreOrLess(m.maxTps.dpsPct)} DPS and ${moreOrLess(m.maxTps.damageTakenPct)} damage taken. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.`,
+          }
+        : {
+            summary: `Balanced, but Mauls from ${maul.maxTps} rage: ${signed(vs.tpsPct, 'TPS')}, ${signed(vs.dpsPct, 'DPS')}, ${takenVsBalanced} (${moreOrLess(m.maxTps.damageTakenPct)} than Defensive).`,
+            help: `Tuned on threat alone: drops Demoralizing Roar, keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger, and Mauls from ${maul.maxTps} rage rather than Balanced’s ${maul.balanced}. Against Balanced in the default setup that’s ${moreOrLess(vs.tpsPct)} TPS and ${moreOrLess(vs.dpsPct)} DPS, and ${takenVsBalanced}; against Defensive, ${moreOrLess(m.maxTps.tpsPct)} TPS, ${moreOrLess(m.maxTps.dpsPct)} DPS and ${moreOrLess(m.maxTps.damageTakenPct)} damage taken.${
+              shownAsZero(vs.tpsPct)
+                ? ''
+                : vs.tpsPct > 0
+                  ? ' Pick it when threat is all that matters and another tank or the raid covers your survival.'
+                  : ' In the default setup Balanced makes more threat.'
+            } The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.`,
+          },
   }
 }
 const PRESET_TEXT = bearPresetText(BEAR_PRESET_MEASURES)
@@ -352,12 +361,16 @@ export const BEAR_OPTIONS: RotationOption[] = [
     ...rageOption(
       ID.maulMinRage,
       'Maul from',
-      `Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Primal Bite and Lacerate. In fights under a minute, 10 makes more threat. With Max TPS it’s ${MAX_TPS_MAUL_MIN_RAGE} by default, tuned on threat alone.`,
-      20,
+      `Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from ${MAUL_MIN_RAGE}, rage stays for Primal Bite and Lacerate. In fights under a minute, 10 makes more threat. ${
+        MAX_TPS_MAUL_MIN_RAGE === MAUL_MIN_RAGE
+          ? `Max TPS keeps ${MAUL_MIN_RAGE} too: tuned on threat alone, no other threshold makes more in the default setup.`
+          : `With Max TPS it’s ${MAX_TPS_MAUL_MIN_RAGE} by default, tuned on threat alone.`
+      }`,
+      MAUL_MIN_RAGE,
       ID.maulEnabled,
       'Core abilities',
     ),
-    // druid.md §6.3 "Max TPS": tuned on TPS alone (D26), 14 makes 0.19% more TPS than 20 for 0.20% of the DPS.
+    // druid.md §6.3 "Max TPS": tuned on TPS alone (D26); since the boss melee of 2026-09-26, Balanced's 20 (JL-1).
     defaultWhen: [{ ...MAX_TPS, default: MAX_TPS_MAUL_MIN_RAGE }],
   },
   {

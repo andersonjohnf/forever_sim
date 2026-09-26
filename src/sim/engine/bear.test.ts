@@ -686,7 +686,7 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     const duties = run(config(DEFENSIVE))
     const balanced = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Balanced": +3.1% TPS, +2.8% DPS and +0.7% damage taken in the default setup (200,000 fights).
+    // §6.3 "Max TPS": Balanced +2.8% TPS, +2.6% DPS and +0.7% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
     expect(balanced.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
     expect(balanced.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
     expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
@@ -694,7 +694,7 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
     // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS.
+    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.1% less DPS.
     expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
     expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
     expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)

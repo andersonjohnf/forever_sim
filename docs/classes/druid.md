@@ -1247,7 +1247,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Primal Bite and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 14% of TPS and 16% of DPS (1,169.3 → 1,010.2 TPS, 540.1 → 452.8 DPS; seed 1, 20,000 fights, 2026-09-26); refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +206 threat an application [?], leaving it out costs about 14% of TPS and 16% of DPS (1,104.0 → 944.0 TPS, 549.0 → 461.4 DPS; seed 1, 20,000 fights, 2026-09-26, at the slice's fix round); refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1451,7 +1451,7 @@ didn't use): **+2.10 TPS (+0.19%, 95% CI +1.83 to +2.36)** and **−1.08 DPS (�
 candidate, Maul from 10 to 18): 13 to 15 best and level (+0.18% to +0.21%), 10 to 12 and 16
 +0.16%, 17 and 18 +0.07%; on the fresh seed 13 +0.20%, 14 +0.19% and 15 +0.18%, all within each
 other's intervals. 14, the middle, is the default; T3's re-check had found the same (+0.19%,
-seed 28101). Against Defensive on seed 28401 (200,000 fights), Max TPS is +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS (532.44 → 546.40) and +0.69% damage taken (629.07 → 633.44 a second); Balanced +3.12%, +2.83% and +0.71%.
+seed 28101). Against Defensive on seed 28401 (200,000 paired fights, re-measured 2026-09-26 with Primal Bite at one threat per damage, Lacerate's flat 206, 11.25 rage a bear swing and a raid druid's Thorns at 47), Max TPS is +2.93% TPS (1,075.14 → 1,106.69), +2.44% DPS (535.56 → 548.63) and +0.69% damage taken (629.09 → 633.45 a second); Balanced +2.77%, +2.59% and +0.72%; Max TPS against Balanced +0.16% TPS (+1.55 to +2.04), −0.14% DPS and the same damage taken. These are `BEAR_PRESET_MEASURES`, which the Rotation tab's lines quote and bear-presets.test.ts guards. Before 2026-09-26 they were Max TPS +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS and +0.69% damage taken; Balanced +3.12%, +2.83% and +0.71%.
 
 Its Lacerate refresh (4.5 s, below) lost to the default's 12 s in T3's setup
 ([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this section is B4's first pass,

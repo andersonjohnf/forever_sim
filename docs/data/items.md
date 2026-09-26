@@ -698,7 +698,8 @@ direct paired run. Within the 95% interval, a guide's pick keeps its place. The 
 `source`, since the guide's picks are among the candidates, and its `note` says how the list was
 ranked. So far that's the three warlocks ([warlock.md §7.3](../classes/warlock.md#73-gear)): Wowhead's
 one warlock list is a Shadow list written for Classic Era's items, Destruction's and Demonology's
-defaults are Fire builds, and Forever gave the Arathi Basin daggers +94 spell power `[?]`. Frost, Arcane
+defaults were Fire builds, and the sim then gave the Arathi Basin daggers +94 spell power (Classic Era's
++30 since 2026-09-26, [client.md](client.md#weapon-damage)). Frost, Arcane
 and Shadow keep their guide lists with that dagger added at rank 1 (DG-2); ranking them too is a known
 gap. **Item effects the sim doesn't model count as zero** in a sim-ranked list (an unmodelled use or
 proc adds nothing to a paired run), so each such effect on a candidate is listed in the

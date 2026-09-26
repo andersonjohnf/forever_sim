@@ -71,6 +71,17 @@ describe("weapons (docs/data/client.md#weapon-damage)", () => {
     expect(crackling.stats).toEqual({ intellect: 25, spellPower: 25 });
   });
 
+  it("an Epic caster weapon takes its Classic Era item's spell power and no DPS cut (Mindfang +30, not the extrapolated +94)", () => {
+    const linked = { ...forever, classic };
+    const mindfang = deriveItem(linked, 20214);
+    expect(mindfang.stats.spellPower).toBe(30);
+    expect(deriveItem(classic, 20214).stats.spellPower).toBe(30);
+    // No cut: the ItemDamageOneHand value as is (47.4 DPS; Classic Era stores 56–105 too).
+    expect(mindfang.weapon).toMatchObject({ min: 56, max: 105, dps: 47.4, dpsSource: "ItemDamageOneHand" });
+    // Without a linked Classic Era context there's nothing to take: no spell power.
+    expect(deriveItem(forever, 20214).stats.spellPower).toBeUndefined();
+  });
+
   it("Classic Era extra damage counts toward DPS; its school is Item.DamageType[1]", () => {
     const item = deriveItem(classic, 13982);
     expect(item.weapon).toMatchObject({ min: 142, max: 214, speed: 3.3, dps: 57.4, extraDamage: [{ min: 1, max: 22, school: "Frost" }] });

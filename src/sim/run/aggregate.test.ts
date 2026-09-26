@@ -190,7 +190,7 @@ describe('what each breakdown row counts (AbilityResult.unit, docs/ux.md#results
     ['mage-arcane', { arcaneMissiles: 'casts', pyroblast: 'casts', pyroblastDot: 'applications' }],
     ['warlock-destruction', { incinerate: 'casts', immolate: 'casts', immolateDot: 'applications', conflagrate: 'casts', shadowburn: 'casts', corruption: 'applications', baneOfAgony: 'applications' }],
     ['warlock-affliction', { corruption: 'applications', siphonLife: 'applications', baneOfAgony: 'applications', shadowBolt: 'casts' }],
-    ['warlock-demonology', { 'imp.firebolt': 'casts', shadowBolt: 'casts', soulFire: 'casts', corruption: 'applications' }],
+    ['warlock-demonology', { 'succubus.melee': 'swings', 'succubus.lashOfPain': 'casts', shadowBolt: 'casts', corruption: 'applications' }],
     // Mind Flay is a channel you cast, though its ticks are a DoT's (review finding PC-3); the DoTs
     // you put up count applications.
     ['priest-shadow', { mindFlay: 'casts', mindBlast: 'casts', shadowWordPain: 'applications', devouringPlague: 'applications' }],

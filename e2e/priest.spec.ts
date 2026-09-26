@@ -110,8 +110,8 @@ test.describe('Shadow Priest', () => {
     await openTab(page, 'Character')
     await expect(page.getByRole('radio', { name: /Troll/ })).toHaveAttribute('aria-checked', 'true')
     const gear = await openTab(page, 'Gear')
-    // Mindfang leads the list's main hand (priest.md §7.5): Forever's +94 spell power passes the guide's
-    // Scepter of the Unholy.
+    // Mindfang leads the list's main hand (priest.md §7.5): its +30 spell power (Classic Era's) and
+    // Forever's crit rating pass the guide's Scepter of the Unholy.
     await expect(gear.getByRole('button', { name: 'Main hand: Mindfang' })).toBeVisible()
     await expect(gear.getByRole('button', { name: 'Ranged: Skul’s Ghastly Touch' }).or(gear.getByRole('button', { name: "Ranged: Skul's Ghastly Touch" }))).toBeVisible()
 

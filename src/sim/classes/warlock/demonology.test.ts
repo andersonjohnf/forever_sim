@@ -92,7 +92,7 @@ describe('rows against the Forever client (warlock.md §11.1)', () => {
 
   it('the talents’ curves are the client’s', () => {
     expect(curve('Improved Imp', 1)).toEqual(DEMO_CURVE.improvedImp)
-    expect(curve('Improved Imp', 2)).toEqual(DEMO_CURVE.improvedImpCast)
+    expect(curve('Improved Imp', 2)).toEqual(DEMO_CURVE.improvedImpHidden)
     expect(curve('Unholy Power')).toEqual(DEMO_CURVE.unholyPower)
     expect(curve('Improved Sayaad')).toEqual(DEMO_CURVE.improvedSayaad)
     expect(curve('Fel Vitality')).toEqual(DEMO_CURVE.felVitality)
@@ -154,7 +154,7 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
   })
 
-  it('8. What the Succubus inherits: 253.8 attack power; your 11.65% melee crit (9.25% on its swings vs the boss) and 5% melee hit on its swings; 123.4 spell damage, your 14.42% spell crit and 10% spell miss on Lash of Pain, 153.95', () => {
+  it('8. What the Succubus inherits: 253.8 attack power; your 11.65% melee crit (9.25% on its swings vs the boss) and 5% melee hit on its swings; 117 spell damage, your 14.42% spell crit and 10% spell miss on Lash of Pain, 149.84', () => {
     // Briarwood Reed in the first trinket, where the default wears Draconic Infused Emblem since DV2-4:
     // its proc's +35 would be in the sheet only while it's up.
     const d = defaultConfig('warlock-demonology')
@@ -189,23 +189,23 @@ describe('worked examples (warlock.md §11.8)', () => {
     expect(s.petSpellCritNow).toBeCloseTo(14.419, 9)
     expect(s.derived.spellHit).toBe(7)
     expect(s.petSpellMissPct).toBe(10)
-    // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 634 Shadow (574 + your own 60).
-    expect(s.spSchool[SCHOOL.shadow]).toBe(634)
+    // Lash of Pain's spell damage: Demonic Knowledge's 60 + 10% of your 570 Shadow (510 + your own 60).
+    expect(s.spSchool[SCHOOL.shadow]).toBe(570)
     const lash = plan.pet!.abilities[0]
     const sp = plan.pet!.spellDamage + PET_INHERITANCE.spellDamage * s.spSchool[SCHOOL.shadow]
-    expect(sp).toBeCloseTo(123.4, 9)
-    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(153.951, 3)
+    expect(sp).toBeCloseTo(117, 9)
+    expect((lash.min + lash.spCoefficient * sp) * plan.pet!.damageMult).toBeCloseTo(149.845, 3)
   })
 
-  it('9. Improved Imp’s hidden effect as Firebolt’s cast time: 1.7 / 1.3 / 1 s', () => {
-    expect([1, 2, 3].map((r) => demonPet('imp', ranks([['Improved Imp', r]]))!.abilities[0].castMs)).toEqual([1700, 1300, 1000])
-    expect(demonPet('imp', ranks([]))!.abilities[0].castMs).toBe(FIREBOLT.castMs)
+  it('9. Improved Imp’s hidden value has no effect: Firebolt keeps its 2 s cast at every rank (Q19)', () => {
+    expect([0, 1, 2, 3].map((r) => demonPet('imp', ranks([['Improved Imp', r]]))!.abilities[0].castMs)).toEqual([2000, 2000, 2000, 2000])
+    expect(FIREBOLT.castMs).toBe(2000)
   })
 
-  it('7. Fire in the default, Shadow with the Succubus out: ×1.30295 from the sacrifice, Master Demonologist and Soul Link', () => {
+  it('7. Shadow in the default (the Succubus out), Fire with the Imp out: ×1.30295 from the sacrifice, Master Demonologist and Soul Link', () => {
     const cases = [
-      [fixed(), SCHOOL.fire, 'touchOfFire'],
-      [fixed(SUCCUBUS), SCHOOL.shadow, 'burningShadow'],
+      [fixed(IMP), SCHOOL.fire, 'touchOfFire'],
+      [fixed(), SCHOOL.shadow, 'burningShadow'],
     ] as const
     for (const [config, school, sacrifice] of cases) {
       const { plan } = buildPlan(config)
@@ -226,20 +226,26 @@ function fixed(rotation: SimConfig['rotation'] = {}, extra: Partial<SimConfig> =
   const d = defaultConfig('warlock-demonology')
   return { ...d, ...extra, rotation: { ...d.rotation, ...rotation }, run: { mode: 'fixed', iterations: 500, seed: 4242 } }
 }
-/** The Succubus out with the Imp sacrificed, Soul Fire off: the Shadow build (warlock.md §11.6). */
+/** The Succubus out with the Imp sacrificed, Soul Fire off: the Shadow build, the default (warlock.md §11.6). */
 const SUCCUBUS = { [DEMONOLOGY_IDS.demon]: 'succubus', [DEMONOLOGY_IDS.sacrifice]: 'imp', [DEMONOLOGY_IDS.soulFire]: false }
+/** The Imp out with the Succubus sacrificed, Soul Fire on: the Fire build, the default until Q19's reading went (§11.6). */
+const IMP = { [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus', [DEMONOLOGY_IDS.soulFire]: true }
 const row = (plan: Plan, id: string) => plan.sources.findIndex((s) => s.id === id)
 const perFight = (plan: Plan, agg: Aggregate, id: string, field: keyof typeof FIELD) => agg.counters[row(plan, id) * FIELD_COUNT + FIELD[field]] / agg.fights
 const prepull = (plan: Plan) => plan.prepull.casts.map((c) => [plan.abilities[c.ability].id, c.atMs])
 
 describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => {
-  it('defaults to the Imp out with the Succubus sacrificed and Soul Fire below 35% (§11.6)', () => {
+  it('defaults to the Succubus out with the Imp sacrificed and Soul Fire off (§11.6); the Imp build casts its 2 s Firebolt', () => {
     const { plan } = buildPlan(fixed())
-    expect(plan.pet).toMatchObject({ id: 'imp', weapon: null })
-    expect(plan.pet!.abilities.map((a) => [a.id, a.castMs])).toEqual([['firebolt', 1000]])
-    expect(plan.auras.find((a) => a.id === 'touchOfFire')).toBeDefined()
-    expect(plan.abilities.some((a) => a.id === 'soulFire')).toBe(true)
+    expect(plan.pet).toMatchObject({ id: 'succubus' })
+    expect(plan.auras.find((a) => a.id === 'burningShadow')).toBeDefined()
+    expect(plan.abilities.some((a) => a.id === 'soulFire')).toBe(false)
     expect(prepull(plan).map(([id]) => id)).toEqual(['demonicSacrifice', 'soulLink', 'masterDemonologist', 'demonicKnowledge'])
+    const imp = buildPlan(fixed(IMP)).plan
+    expect(imp.pet).toMatchObject({ id: 'imp', weapon: null })
+    expect(imp.pet!.abilities.map((a) => [a.id, a.castMs])).toEqual([['firebolt', 2000]])
+    expect(imp.auras.find((a) => a.id === 'touchOfFire')).toBeDefined()
+    expect(imp.abilities.some((a) => a.id === 'soulFire')).toBe(true)
   })
 
   it('keeps the Succubus out with the Imp sacrificed (Demonic Pact), its passives up before the pull', () => {
@@ -346,10 +352,10 @@ describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => 
     expect(result.abilities.filter((a) => a.pet).map((a) => a.name)).toEqual(['Auto attack', 'Lash of Pain'])
     expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'petInheritance', 'demonTable', 'demonMana', 'masterDemonologist']))
     expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
-    // Improved Imp's cast time is the Imp's alone (Q19).
-    expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpCast')
+    // Improved Imp's hidden value is the Imp's alone (Q19), and says it's given no effect.
+    expect(result.assumptions.map((a) => a.id)).not.toContain('improvedImpHidden')
     const imp = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }))
-    expect(imp.assumptions.find((a) => a.id === 'improvedImpCast')!.text).toContain('time off Firebolt’s 2 s cast, so it’s 1 s.')
+    expect(imp.assumptions.find((a) => a.id === 'improvedImpHidden')!.text).toContain('(−1000 at your rank). Nothing says what it does, so the sim gives it no effect')
   })
 
   it('its demon’s assumptions name only what that demon has: the Imp no swing, the Felhunter no spell', () => {
@@ -474,6 +480,10 @@ describe('golden runs (fixed config and seed)', () => {
   //   for the Ahn'Qiraj books' ranks. 675.56 → 663.04 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): the
   //   Imp's Firebolt r7 + 1 (42.50–47.50), Soul Fire r2 + 7. 663.04 → 662.73 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94.
+  //   Improved Imp's hidden value given no effect (§11.3, Q19), so the default is the Succubus out with the
+  //   Imp sacrificed and Soul Fire off (§11.6). Both together: 662.73 → 583.75 DPS.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

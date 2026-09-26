@@ -32,10 +32,11 @@ const curve = (name: string, index = 0) => clientTalents.find((t) => t.name === 
 const BRAND_BUILD = '-0305003221020301351-0450305003'
 const DEFAULT = defaultConfig('warlock-demonology')
 const BRAND = talentRanksByName(TALENT_DATA.warlock, BRAND_BUILD)
+/** The Imp out and the Succubus sacrificed, as the brand's examples are (warlock.md §11.8 ex. 10), unless `rotation` says otherwise. */
 const config = (rotation: SimConfig['rotation'] = {}, talents = BRAND_BUILD): SimConfig => ({
   ...DEFAULT,
   talents,
-  rotation: { ...DEFAULT.rotation, ...rotation },
+  rotation: { ...DEFAULT.rotation, [ID.demon]: 'imp', [ID.sacrifice]: 'succubus', ...rotation },
   run: { mode: 'fixed', iterations: 400, seed: 2701 },
 })
 

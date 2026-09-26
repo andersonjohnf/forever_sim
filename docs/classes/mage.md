@@ -747,10 +747,12 @@ nothing for a mage.
   Guard's Silk Walkers, Rune Band of Wizardry, Don Mauricio's Band of Domination, Briarwood Reed, Eye of
   the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger, Sageclaw,
   needs the League of Arathor (Alliance); its Horde twin, Mindfang, read from the client, takes the
-  same rank (the Destruction gear review, DG-2; [items.md](../data/items.md#faction-twins)). Forever gave both +94 spell power (a `[?]` estimate from the derived
-  caster-weapon rule, [client.md](../data/client.md#weapon-damage); Classic Era +30), so a Troll's
-  default gains 8.9% (Frost, 410.9 → 447.3 DPS) and 8.1% (Arcane, 402.2 → 434.8) over the rank-2
-  Witchblade it wore (20,000 fights on seed 2701). **The head is re-ranked by the sim** among the
+  same rank (the Destruction gear review, DG-2; [items.md](../data/items.md#faction-twins)). While the sim
+  gave both +94 spell power (the Rare caster-weapon rule extrapolated to Epic quality), a Troll's
+  default gained 8.9% (Frost, 410.9 → 447.3 DPS) and 8.1% (Arcane, 402.2 → 434.8) over the rank-2
+  Witchblade it wore (20,000 fights on seed 2701). Since 2026-09-26 they carry Classic Era's +30
+  ([client.md "Epic caster weapons"](../data/client.md#weapon-damage)) and still lead Witchblade by 9
+  to 10 DPS (paired, 10,000 fights). **The head is re-ranked by the sim** among the
   list's own items (GV-4, paired in each faction's default set, 20,000 fights on seed 2701):
   Spellweaver's Turban leads, over the guide's rank-1 Champion's Silk Cowl (a Troll +5.7 in Frost and
   Arcane, set bonus and all) and its Alliance piece, Lieutenant Commander's Silk Cowl (a Human +6.3 and

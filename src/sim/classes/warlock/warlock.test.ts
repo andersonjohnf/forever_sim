@@ -358,14 +358,15 @@ describe('the warlocks’ sim-ranked gear (warlock.md §7.3)', () => {
     offHand: { itemId: 19315 },
   }
 
-  // Each spec's own list beats the guide's by about a quarter or more (Destruction +31%, Affliction
-  // +25%, Demonology +24% over 20,000 fights; §7.3).
+  // Each spec's own list beats the guide's by about a fifth or more (Destruction +31%, Affliction
+  // +25%, Demonology +24% over 20,000 fights with Mindfang's former +94 spell power, §7.3; Demonology's
+  // Succubus build, the default since Q19's reading went, about +20% here with Mindfang's +30).
   it.each(['warlock-destruction', 'warlock-affliction', 'warlock-demonology'] as const)('%s: its own list beats the guide’s shared Shadow list it replaced', (spec) => {
     const run = (gear: SimConfig['gear']) => {
       const bundle = buildPlan({ ...fixed(spec), gear })
       return toResult(bundle, runFights(bundle.plan, 300), 0).dps.mean
     }
-    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.2)
+    expect(run(defaultConfig(spec).gear) / run(GUIDE)).toBeGreaterThan(1.15)
   })
 })
 
@@ -395,6 +396,9 @@ describe('golden runs (fixed config and seed)', () => {
   //   597.86 → 590.44, Affliction 514.05 → 502.87 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Shadowburn r6 + 7 (258.47–287.53). Destruction 590.44 → 590.43 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. Destruction 590.43 → 551.24,
+  //   Affliction 502.87 → 468.39 DPS.
   for (const spec of ['warlock-destruction', 'warlock-affliction'] as const) {
     it(`keeps the default ${spec}’s result unchanged`, () => {
       const bundle = buildPlan({ ...defaultConfig(spec), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })

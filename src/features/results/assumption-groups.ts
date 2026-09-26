@@ -149,7 +149,7 @@ export const ASSUMPTION_GROUP = {
   warlockTalentStacking: 'class',
   // The Demonology warlock's (docs/classes/warlock.md §11.7): the demon's placeholders first.
   demonStats: 'class',
-  improvedImpCast: 'class',
+  improvedImpHidden: 'class',
   // Only with the talent and Searing Pain's row, where it's about a tenth of the damage (§11.3).
   demonicBrand: 'class',
   demonTable: 'combat',

@@ -910,8 +910,8 @@ const REGISTRY = {
     text: 'Your demon’s stats are placeholders: {detail}. Untested.',
     docRef: `${LOCK}#112-your-demon`,
   },
-  improvedImpCast: {
-    text: 'Improved Imp also carries an effect its tooltip doesn’t show (−0.3/−0.7/−1 s); the sim reads it as time off Firebolt’s 2 s cast, so it’s {detail} s. Untested.',
+  improvedImpHidden: {
+    text: 'Improved Imp also carries a hidden value its tooltip doesn’t show ({detail} at your rank). Nothing says what it does, so the sim gives it no effect, and your Imp’s Firebolt keeps its 2 s cast. Untested.',
     docRef: `${LOCK}#117-open-questions`,
   },
   demonTable: {

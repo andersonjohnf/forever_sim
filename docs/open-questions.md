@@ -666,6 +666,31 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [OQ 10](classes/paladin.md#open-questions);
   [threat § paladin](mechanics/threat.md#paladin)
 
+#### B82. Epic caster weapons' spell power
+**High · every caster · any level (a chat-linked tooltip)**
+- **Assumes** [C]: Mindfang and Sageclaw carry Classic Era's **+30** spell power and both Ironbark
+  Staffs **+41**. Forever's client gives caster weapons their spell power from a flag, and the rule
+  that reproduces the Rare ones (2 × the item level's budget) isn't extrapolated to Epic quality,
+  where it would give +94.
+- **Test:** link Mindfang, Sageclaw or Ironbark Staff in chat on the beta and read its spell power
+  line (and its DPS).
+- **Samples:** one tooltip each.
+- **Changes:** every caster's main hand: +94 would be +5 to +8% DPS for the 9 caster specs.
+- **Docs:** [client.md "Epic caster weapons"](data/client.md#weapon-damage),
+  [warlock §7.3](classes/warlock.md#73-gear)
+
+#### B83. Improved Imp's hidden value
+**High · Demonology warlock · ≤20 (tier 1)**
+- **Assumes** [?]: Improved Imp's third effect (a dummy of −300/−700/−1000 its tooltip doesn't show)
+  does nothing, so the Imp's Firebolt keeps its 2 s cast, and Demonology defaults to the Succubus
+  out with the Imp sacrificed.
+- **Test:** watch the Imp's Firebolt cast bar with Improved Imp 0/3 and 3/3 (or time 20 Firebolts
+  in the combat log).
+- **Samples:** 20 casts at each rank.
+- **Changes:** if it's 1 s off the cast at 3/3, the Imp build gains about 11.5% and becomes the
+  default again (about +4% on the Demonology headline).
+- **Docs:** [warlock §11.3, Q19](classes/warlock.md#117-open-questions)
+
 ### Medium
 
 #### B21. Special attacks: one roll or two?

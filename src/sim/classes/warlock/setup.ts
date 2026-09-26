@@ -6,7 +6,7 @@ import type { Effect } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type ManaPlan, type Plan, POWER_TICK_MS, SCHOOL } from '../../plan/types'
 import type { DerivedStats } from '../../stats/stat-block'
-import { FIREBOLT, SOUL_LINK_PCT } from './demons'
+import { DEMO_CURVE, SOUL_LINK_PCT, talentValue } from './demons'
 import { type TalentRanks, warlockTalentEffects } from './talents'
 
 /** The warlock's passive effects for this build (warlock.md §4). */
@@ -33,7 +33,7 @@ export function warlockManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, 
  * no pet, Conflagrate and Incinerate, Nightfall, Bane of Agony's ramp and the multiplying talents.
  * Each comes with the detail its text fills in, if any (Improved Shadow Bolt's rank).
  */
-export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: string }[] {
+export function warlockAssumptions(plan: Plan, talents: TalentRanks): { id: AssumptionId; detail?: string }[] {
   if (plan.classId !== 'warlock') return []
   const ids: AssumptionId[] = ['warlockMana', 'casterSpellRules']
   const has = (id: string) => plan.abilities.some((a) => a.id === id)
@@ -57,14 +57,14 @@ export function warlockAssumptions(plan: Plan): { id: AssumptionId; detail?: str
   if (plan.procs.some((p) => p.id === 'improvedShadowBolt')) ids.push('improvedShadowBolt')
   if (has('baneOfAgony')) ids.push('baneOfAgonyRamp')
   ids.push('warlockTalentStacking')
-  // Improved Imp's hidden effect, read as Firebolt's cast time (§11.7 Q19), when it shortens the Imp's.
-  const firebolt = plan.pet?.abilities.find((a) => a.id === 'firebolt')
-  if (firebolt && firebolt.castMs < FIREBOLT.castMs) ids.push('improvedImpCast')
+  // Improved Imp's hidden value, given no effect (§11.7 Q19), when the Imp you keep out has the talent.
+  const improvedImp = talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImpHidden)
+  if (plan.pet?.id === 'imp' && improvedImp) ids.push('improvedImpHidden')
   // Improved Shadow Bolt's text names the rank's Shadow Vulnerability: +4% a rank (warlock.md §4.1).
   const vulnerability = plan.auras.find((a) => a.id === 'shadowVulnerability')?.schoolTaken ?? 0
   const detail: Partial<Record<AssumptionId, string>> = {
     improvedShadowBolt: String(vulnerability),
-    improvedImpCast: String((firebolt?.castMs ?? 0) / 1000),
+    improvedImpHidden: `−${Math.abs(improvedImp)}`,
     ...(plan.pet ? demonDetails(plan.pet) : {}),
     ...(plan.pet ? { masterDemonologist: masterDemonologistDetail(plan) } : {}),
     ...(brand && plan.pet ? { demonicBrand: demonicBrandDetail(plan, brand.school) } : {}),

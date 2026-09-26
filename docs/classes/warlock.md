@@ -437,11 +437,14 @@ its weapon: its stats count, its procs don't. The lists are in `scripts/scrape/p
 [items.md "Forever caveat"](../data/items.md#forever-caveat): let the sim decide). Wowhead's one Classic
 warlock guide, archived on 2021-05-18 ([wh-bis]), is a Shadow list written for Classic Era's items. It
 never considers the Fire items the Fire builds can use (Destruction's, §7.1, and Demonology's, whose
-buffs are all Fire, §11.6; issue #16), and Forever re-itemized its main hand past it: Mindfang and
-Sageclaw carry +94 spell power in Forever (Classic Era: +30), worth +41 to +55 DPS on their own. That +94
-is the derived caster-weapon rule's estimate `[?]`: the rule was fitted on Rare weapons and these are
-Epic ([client.md "Caster weapons"](../data/client.md#weapon-damage), open question in
-[client.md](../data/client.md#open-questions)). The guide's picks are among the candidates.
+buffs were all Fire until §11.6's change; issue #16), and Forever re-itemized its main hand: Mindfang
+and Sageclaw gained Forever's crit rating. **Their spell power is Classic Era's +30 `[C]`** since
+2026-09-26 ([client.md "Epic caster weapons"](../data/client.md#weapon-damage)): the lists below were
+searched while the sim gave them +94, the Rare caster-weapon rule extrapolated to Epic quality, which
+made them worth +41 to +55 DPS on their own. At +30 Mindfang still leads every candidate a list allows
+(paired, 10,000 fights, each default setup: Ironbark Staff 6 to 9 DPS behind, Dark Whisper Blade 9 to
+12), so the lists' ranks stand; the figures in the tables below are the +94 ones. The guide's picks
+are among the candidates.
 
 The candidates are every pool item a warlock can wear with spell damage of any school, spell hit or
 crit, Intellect or an effect, from pre-raid sources: dungeons, quests, reputation, crafting, world drops
@@ -449,9 +452,10 @@ and PvP Rank 10 or lower. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); 
 from the Scourge Invasion (Chains of the Lich and Staff of Balzaphon, from Balzaphon in Stratholme, and
 the invasion's other bosses' loot: [items.md "Sources"](../data/items.md#sources-c)); Forever-new items
 (no known source yet); random-suffix items; and four weapons whose Classic Era source couldn't be
-confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power
-`[?]`; they would rank second and third in the main hand), Whiteout Staff (+74 spell power: Ironbark
-Staff and its faction twin, below, would still lead the two-handers) and Amethyst War Staff. A
+confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 Rare caster-weapon spell
+power `[?]`; with Mindfang at +30 they would rank first and second in the main hand, 21 to 23 DPS ahead
+of it), Whiteout Staff (+74 spell power: it would lead the two-handers, 4 to 6 DPS ahead of Mindfang
+and the off hand) and Amethyst War Staff. Confirming their sources would move each warlock's main hand. A
 slot-by-slot paired search from the guide's gear (each spec's default Orc setup, 6,000 fights a
 candidate on seed 2701) swapped items until no swap helped. Each slot's alternatives are then ranked
 by their paired DPS in the finished set (20,000 fights), close calls on a direct paired run (40,000
@@ -486,7 +490,7 @@ Destruction's set, and each swap's gain: alone on the guide's gear, and left out
 
 | Slot | Guide's gear | Destruction's list | Alone | Left out |
 | --- | --- | --- | --: | --: |
-| Main hand | Blade of the New Moon | **Mindfang** (Horde) / Sageclaw (Alliance), Arathi Basin Exalted: +94 spell power in Forever `[?]` (Classic Era: +30) | +55.2 | +58.0 |
+| Main hand | Blade of the New Moon | **Mindfang** (Horde) / Sageclaw (Alliance), Arathi Basin Exalted: measured at the former +94 spell power; +30 (Classic Era's) since 2026-09-26 | +55.2 | +58.0 |
 | Head | Deathmist Mask | Champion's / Lieutenant Commander's Dreadweave Cowl (Rank 10): the Dreadgear 2-piece, +23 spell power | +13.7 | +14.3 |
 | Feet | Maleki's Footwraps | Bloodvine Boots | +12.3 | +22.8 |
 | Wrist | Sublime Wristguards | Rockfury Bracers | +12.2 | +13.0 |
@@ -543,8 +547,8 @@ Cenarius** (5%: +132 for 10 s) takes Destruction's third ring (−1.1 against El
 of Maiden's Circle's −2.8, so Eye of Orgrimmar leaves), and stays below Affliction's and Demonology's
 four (−3.1 and −2.8).
 
-**Two-handers.** Ironbark Staff (League of Arathor Exalted: +94 spell power `[?]` and 2% spell crit)
-leads them, ahead of Lord Valthalak's Staff (paired, a Human in each spec's set: −12.9, −13.9 and −11.9
+**Two-handers.** Ironbark Staff (League of Arathor Exalted: +41 spell power, Classic Era's, since
+2026-09-26, when these runs gave it +94; and Forever's 28 crit rating) leads them, ahead of Lord Valthalak's Staff (paired, a Human in each spec's set: −12.9, −13.9 and −11.9
 DPS against Sageclaw and the off hand for Destruction, Affliction and Demonology; Lord Valthalak's
 −54.1, −48.7 and −52.7). **A Horde warlock has it too**: The Defilers' Ironbark Staff (20220), whose
 client row matches the League of Arathor's but for the faction and price, is its faction twin and takes
@@ -561,9 +565,11 @@ for Destruction, a Human).
 | Demonology | 534.2 | 663.7 | +24.2% | **675.0** |
 
 The first three columns were measured on 1.60.1.69913; the lists give the same DPS on 1.60.1.70009
-(585.97, 502.51 and 663.66 before the trinket change), and the last column is 1.60.1.70009. The order
-of §6.3 and §11.6 holds: Demonology leads Destruction by 13% (77 DPS), and Affliction trails it by 14%.
-42 of Demonology's 77-DPS lead rests on Q19 `[?]` (§11.6; the milestones' plausibility findings). The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
+(585.97, 502.51 and 663.66 before the trinket change), and the last column is 1.60.1.70009. All of them
+had Mindfang at +94 and Demonology's former Imp default. **Since 2026-09-26** (Mindfang's Classic Era
++30, and Demonology's Succubus default once Improved Imp's hidden value lost its reading, §11.6), the
+defaults deal Destruction **552.3**, Affliction **467.1** and Demonology **584.1** (20,000 fights on
+seed 2701). Demonology leads Destruction by 5.8% (32 DPS) and Affliction trails it by 15%. The items the guide's list alone brought into the pool (Deathmist Mask, Felcloth Robe and Pants,
 Band of the Unicorn and Inventor's Focal Sword) stay in it with no rank, so saved setups and share links
 that wear them keep them ([items.md](../data/items.md#pre-raid-bis-lists)).
 
@@ -688,7 +694,7 @@ The tree, talent by talent, with its Forever values per rank from the Trait curv
 
 | Talent (id) | Forever, per rank | Classic Era | In the sim |
 | --- | --- | --- | --- |
-| Improved Imp (18694) | Firebolt +10% (#1, aura 108, mask 4096), Fire Shield +10% (#0); #2 a dummy of −300/−700/−1000 its tooltip doesn't show (Q19) | Firebolt, Fire Shield and Blood Pact +10% | Firebolt, and #2 as its cast time [?] (§11.3) |
+| Improved Imp (18694) | Firebolt +10% (#1, aura 108, mask 4096), Fire Shield +10% (#0); #2 a dummy of −300/−700/−1000 its tooltip doesn't show (Q19) | Firebolt, Fire Shield and Blood Pact +10% | Firebolt; #2 no effect [?] (§11.3) |
 | Demonic Embrace (18697) | +3% Stamina | the same, −1% Spirit | §4.3 |
 | Unholy Power (18769) | all your demon's damage +2% (its tooltip: Imp, Voidwalker, Succubus, Felhunter) | melee +4% (the Imp's Firebolt not in 1.15's tooltip) | all its damage |
 | Fel Vitality (18731) | your demon's health and mana +5% (#0), your mana +5% (#1) | Fel Intellect: the demon's mana +3% | both manas |
@@ -772,8 +778,8 @@ it inherits is every pet's one rule
   its swings, from behind, miss (6% with your 2% melee hit on a special), are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
   a caster whose demon swings (`SpecMeta.petMelee`), so its Buffs tab keeps the melee's armor debuffs
   on the boss ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
-  With the Imp (the default) or no demon out, nothing of yours meets the boss's armor, so the tab
-  locks them off and says why (docs/ux.md "Buffs").
+  With the Imp or no demon out, nothing of yours meets the boss's armor, so the tab locks them off
+  and says why (docs/ux.md "Buffs"); the default Succubus keeps them.
   Your Curse of the Elements raises its spells as yours.
 - Its mana regenerates as the warlock's formula of its Spirit, without the five-second rule [?]
   (Q16); Demonic Energies 2/2 gives it the mana of each Life Tap, so the Imp never runs dry in the
@@ -782,15 +788,12 @@ it inherits is every pet's one rule
 
 ### 11.3 Talents in the sim
 
-- **Improved Imp's #2** (−300/−700/−1000, a dummy its tooltip doesn't show) is taken as **Firebolt's
-  cast time in ms**: 2 s becomes 1.7 / 1.3 / **1 s** [?] (Q19). Where Forever's client shows a dummy
-  like it (−500 to −30000) in a tooltip, it's a time, as `$m1/-1000` seconds: Infusion of Light's −1000
-  is 1 s off Holy Light's cast, Infusion of Souls' −500 0.5 s off the GCD, Field Medicine's −10000 10 s
-  off Recently Bandaged [F] [client] (SpellEffect, Spell, 1.60.1.69913); and its thirds (−0.3, −0.7,
-  −1.0 s) are Demonic Knowledge's 33/67/100% pattern. Firebolt is the Imp's
-  only timed spell a DPS result reads. With a 1 s GCD, a 1 s Firebolt is cast back to back, so the Imp
-  is limited by its mana, on the guide's list: +12.1% on the default (476.6 → 534.2, the Imp out with Soul Fire), +12.4%
-  without Soul Fire (465.0 → 522.7), nothing with the Succubus out.
+- **Improved Imp's #2** (−300/−700/−1000, a dummy its tooltip doesn't show) has **no effect** [?]
+  (Q19): nothing describes it, and an undescribed client dummy models as zero (doctrine §2), so
+  Firebolt keeps its 2 s cast. The sim used to read it as time off Firebolt's cast (1.7 / 1.3 / 1 s),
+  by analogy with Forever dummies whose tooltips do show them as `$m1/-1000` seconds (Infusion of
+  Light, Infusion of Souls, Field Medicine); that was a meaning given by analogy, and it made the Imp
+  build the default (+11.5% on it). The results' assumptions say it's left out.
 - **Unholy Power** and **Soul Link** multiply all your demon's damage; **Improved Imp** Firebolt;
   **Improved Sayaad** Lash of Pain; **Master Demonologist** the demon's spells of its school (the Imp's
   Firebolt, the Succubus's Lash of Pain, not its swings). Different talents multiply (Q10).
@@ -893,9 +896,10 @@ out-damages a 2.4 s Soul Fire, which only Soul Link raises.
 
 **After the review (DM4, Q19) and its verifications (DV3; the third round's one inheritance rule for
 every pet, and DV2-4's talent point),** with the demon's inheritance (§11.2), its inherited crit
-counted as aura crit on its swings, and Improved Imp's cast time (§11.3), 20,000 fights on seed 2701,
-on the default talents below, **on the guide's list** (Demonology has since worn its own, §7.3; the
-figures after the table are on it):
+counted as aura crit on its swings, and Improved Imp's cast time as the sim then read it (§11.3),
+20,000 fights on seed 2701, on the default talents below, **on the guide's list** (Demonology has since
+worn its own, §7.3; the figures after the table are on it). This table is history: the default it
+chose rested on that reading, which has gone (below):
 
 | Demon kept out, demon sacrificed | DPS |
 | --- | --- |
@@ -908,37 +912,44 @@ figures after the table are on it):
 | Imp, Succubus, Soul Fire on, **without Q19's reading** (Firebolt's 2 s cast) | 476.6 |
 | Imp, Succubus, Soul Fire off, without Q19's reading | 465.0 |
 
-So Demonology defaults to the sim's best found build (D30): the **Imp out and the Succubus
-sacrificed**, with Soul Fire below 35%, Immolate, Corruption and Bane of Doom, and Life Tap at 10%.
-Every buff is on Fire, so Soul Fire's 2.4 s cast below 35% adds 2.2%. On the guide's list the default
-is **+19%** on Destruction's default there (447.6, §6.3), the build Classic Era's warlocks raided with,
-and +42% on the same talents with no demon out (376.0). On each spec's own list (§7.3; 1.60.1.70009,
-with the trinket procs modelled) Destruction's default deals 597.9 and Demonology's **675.0**, 13% ahead.
+**Since 2026-09-26 the default is the Succubus build.** Improved Imp's hidden value now has no effect
+(§11.3, Q19), and without it the Imp build falls behind. On Demonology's own list (§7.3; Mindfang's
+Classic Era +30; 20,000 fights on seed 2701, ±0.5):
 
-**Its lead rests on Q19 [?].** The Imp leads the Succubus only through the sim's reading of Improved
-Imp's hidden effect as Firebolt's cast time. On its own list (1.60.1.70009, 20,000 fights on seed 2701)
-the default deals 675.0 and the Succubus build (the Succubus out, the Imp sacrificed, Soul Fire off)
-632.7; without Q19's reading the Imp default falls to 605.2, below the Succubus build, which it doesn't
-touch. So **42 of Demonology's 77-DPS lead over Destruction rests on Q19**: without it the default
-would be the Succubus build, 35 ahead (on the guide's list: 476.6 without it, 5% below the Succubus
-build's 502.2). The optimizer (D30, O4) confirms the build on a fresh seed, and the guild's test of
-Q19 settles the reading; if it fails, the default goes back to the Succubus.
+| Demon kept out, demon sacrificed | DPS |
+| --- | --- |
+| **Succubus, Imp, Soul Fire off** (the default) | **584.1** |
+| Succubus, Imp, Soul Fire on | 581.2 |
+| Imp, Voidwalker, Soul Fire on | 565.4 |
+| Imp, Succubus, Soul Fire on (the default until 2026-09-26) | 560.1 |
+| Imp, Succubus, Soul Fire off | 543.3 |
+| Felhunter, Imp, Soul Fire off | 528.5 |
+| Felhunter, Succubus, Soul Fire on | 496.7 |
+
+So Demonology defaults to the sim's best found build (D30): the **Succubus out and the Imp sacrificed**,
+every buff on Shadow (Burning Shadow, the Succubus's Master Demonologist and Soul Link), Immolate,
+Corruption and Bane of Doom, Life Tap at 10%, and **Soul Fire off**: a Shadow Bolt below 35% out-damages
+a 2.4 s Soul Fire, which only Soul Link raises. It's 4.3% ahead of the Imp build and deals 5.8% more
+than Destruction's default (552.3). Demonology's own list was ranked for the Imp build (every buff on
+Fire), but its items are almost all every-school ones: Affliction's Shadow list gives the Succubus build
+583.9 against its own 584.1, so it keeps its list. The optimizer (D30, O4) confirms the build on a fresh
+seed.
 
 **Talents: Demonology 0/31/20** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
 Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice, Master
 Summoner 1, Decimation 2, Soul Link, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact; Improved
 Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Demonic Pact needs 30 points in the
 tiers above it and the first pass's 0/32/19 (`-0325003231120001351-0350305003`) had 31 there, so one
-point could leave them: with the Imp out, Improved Sayaad's 3rd point did nothing (Lash of Pain is the
-Succubus's), and Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes it, **+0.4%** (531.9 →
-534.2, on the guide's list). The Succubus build gains from the same point too (499.5 → 502.2).
+point could leave them: Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes Improved Sayaad's
+3rd point, **+0.4%** for the Imp build (531.9 → 534.2, on the guide's list) and more for the Succubus
+build, now the default (499.5 → 502.2), since it casts Shadow. Improved Imp's 3 points now do nothing
+for the default (the Imp is sacrificed); they fill the first tier's 5, as Demonic Embrace's would.
 Demonic Embrace's 2 and Master Summoner's 1 add no DPS in the sim; they only fill the tiers.
 **Demonic Brand would do more:** moved into Demonic Brand 3/3 (`-0305003221020301351-0450305003`),
-with Searing Pain's row, the default deals **759.0** against 675.0, **+12.4%** (paired, 20,000 fights
-on seed 2701, 1.60.1.70009); the Succubus build gains +7.3% (632.7 → 678.7). The default talents
-stay as they are until the optimizer's talent search (O4) and the guild's test of the brand (Q21)
-confirm it: most of its gain rides on Q19's 1 s Firebolt, which spends the brand's 6 charges in about
-7 s.
+with Searing Pain's row, the default deals **629.9** against 584.1, **+7.8%** (20,000 fights on seed
+2701, since 2026-09-26; the Imp build with it 617.5). The default talents stay as they are until the
+optimizer's talent search (O4) and a test of the brand (Q21) confirm it. (With Improved Imp's hidden
+value read as a 1 s Firebolt, the Imp build had gained +12.4% from it.)
 
 **Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, its own sim-ranked
 pre-raid list (§7.3; the same set as Destruction's), the caster enchants, the Standard raid's elixirs and
@@ -951,44 +962,39 @@ Each with its estimated effect on Demonology's DPS.
 
 - **Q14 The demon's stats and swing** (§11.2) are placeholders: attributes from an emulator's table
   (D24), and a hunter pet's attack power rule and damage, the closest allowed analog (D29). The
-  default Imp doesn't swing, and its attributes only fill its mana, which Demonic Energies keeps full:
-  nothing on the default. The Succubus's swings are about 8% of the Succubus build's damage; ±30% on
-  them is ±2% there. Test: the pet's sheet and 200 swings on a target dummy.
+  Imp doesn't swing, and its attributes only fill its mana, which Demonic Energies keeps full. The
+  default Succubus's swings are about 8% of its damage; ±30% on them is ±2% on the default. Test: the pet's sheet and 200 swings on a target dummy.
 - **Q15 Inheritance** (§11.2): every pet's one rule (ranged-and-pets §6.1), the hunter's pet's
   reported share read for every slot: 10% of your attack power and spell damage, your melee crit and
-  hit on its swings, your spell crit and hit on its spells. Against inheriting nothing, it's +7.7% on
-  the default and +1.3% on the Succubus build; each 10% more of your spell damage is about +5.6% on
-  the default (the Imp's Firebolt is a quarter of its damage) and +0.6% with the Succubus. Intellect
+  hit on its swings, your spell crit and hit on its spells. Against inheriting nothing, it's +1.3% on
+  the default (the Succubus build) and +7.7% on the Imp build (both measured on the guide's list, the
+  Imp's with its former 1 s Firebolt); each 10% more of your spell damage is about +0.6% on the default
+  and +5.6% with the Imp. Intellect
   and mana regeneration (416189's aura 29 and 85) aren't modelled: they only fill the demon's mana,
   which Demonic Energies 2/2 keeps full. Test: the demon's sheet (attack power, spell damage, crit,
   hit) with two gear sets.
 - **Q16 The demon's mana regeneration** (8 + Spirit / 4, casting or not): with Demonic Energies 2/2
-  nothing changes; without it the Imp would run dry, sooner with Q19's 1 s Firebolt, and then cast at
-  its regeneration's rate. Test: the Imp's
+  nothing changes; without it the Imp would run dry and then cast at its regeneration's rate. Test: the Imp's
   mana over a minute of Firebolt.
 - **Q17 Master Demonologist on the Succubus's swings.** Forever's tooltip says Shadow damage; the
   client has a Master Demonologist aura of +10% all damage (1214101) too, perhaps the demon's. If the
-  Succubus gets +10% on its swings, +0.7% on the Succubus build; nothing on the default.
+  Succubus gets +10% on its swings, +0.7% on the default (the Succubus build).
 - **Q18 Demonic Knowledge's rounding and "up to"** (19 or 20 at 1 rank): nothing at 3/3. Its tooltip
   (412732) and aura (1243120) say "**up to**" 100% of your level; the sim always gives the full 60.
   If "up to" means less on some condition (the demon's health, or its distance), the default loses up
-  to about 15% (60 spell damage on you and the Imp; 7% with the Succubus).
-- **Q19 Improved Imp's #2** (−300/−700/−1000, a dummy): the sim takes it as Firebolt's cast time
-  (§11.3), 1 s at 3/3, so the Imp casts about 1.7 times as often: +11.5% on the default (605.2 →
-  675.0 on its own list, 1.60.1.70009; +12.1% on the guide's, 476.6 → 534.2), and it's why the default
-  keeps the Imp out, 6.7% ahead of the Succubus (632.7, §11.6). If it's
-  something else, the default loses that and falls 4% below the Succubus build, which it doesn't
-  touch, and the default goes back to the Succubus. The optimizer (O4) confirms the build. Test:
-  Firebolt's cast bar with Improved Imp 0/3 and 3/3.
+  to about 7% (60 spell damage on you and the Succubus; 15% with the Imp).
+- **Q19 Improved Imp's #2** (−300/−700/−1000, a dummy its tooltip doesn't show): the sim gives it no
+  effect (§11.3). Read as time off Firebolt's cast (1 s at 3/3), the Imp build would gain about 11.5%
+  and lead the Succubus build again, and the default would go back to the Imp. Test: Firebolt's cast
+  bar with Improved Imp 0/3 and 3/3.
 - **Q20 Decimation's buff** comes from a Shadow Bolt cast below 35%; the sim takes it as up from the
   moment the boss reaches 35%. Under 0.2% with Soul Fire on.
 - **Q21 Demonic Brand** (§11.3) is simulated since issue #17, from the client's formula: 65–68 + 0.078
   × your spell damage a charge, with the demon's multipliers and spell crit. With Demonic Brand 3/3 for
-  the 3 points the default spends on Demonic Embrace and Master Summoner, the default gains **+12.4%**
-  (675.0 → 759.0, §11.6), far above the first estimate's +3%: the Imp's 1 s Firebolt (Q19) spends the 6
-  charges in about 7 s, so Searing Pain goes out about every 8 s and each lands about 5 brand hits,
-  each scaling with your spell damage and the demon's multipliers: about 12% of the damage, and
-  Searing Pain itself 10%. Unknown: whether a charge goes with every Firebolt (the proc mask says any
+  the 3 points the default spends on Demonic Embrace and Master Summoner, the default gains **+7.8%**
+  (584.1 → 629.9, §11.6), each brand hit scaling with your spell damage and the demon's multipliers
+  (on the Imp build, while the sim read Q19 as a 1 s Firebolt, it was +12.4%: that Imp spent the 6
+  charges in about 7 s). Unknown: whether a charge goes with every Firebolt (the proc mask says any
   attack the target takes), whether the brand's hit can crit (×1.5 at the demon's spell crit here;
   with no crits, about −0.9%) and whether Soul Link raises it (about 0.4%). Test: 20 Searing Pains
   with the Imp out, counting the brand's hits and their size in the combat log.
@@ -1027,10 +1033,10 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    (§10 ex. 6) gives it **772.8** with Demonic Energies 2/2.
 6. **Soul Fire with Bane 5/5 and Decimation 2/2.** (6,000 − 2,000) × 0.6 = **2,400 ms**; its cooldown
    60 s × 0.1 = **6 s**.
-7. **Fire in the default, Shadow with the Succubus out.** The Succubus sacrificed (Touch of Fire) 1.15
-   × the Imp's Master Demonologist 1.10 × Soul Link 1.03 = **×1.30295** on your Fire spells; with the
-   Succubus out and the Imp sacrificed, Burning Shadow × Master Demonologist × Soul Link, the same
-   **×1.30295** on your Shadow spells.
+7. **Shadow in the default (the Succubus out), Fire with the Imp out.** The Imp sacrificed (Burning
+   Shadow) 1.15 × the Succubus's Master Demonologist 1.10 × Soul Link 1.03 = **×1.30295** on your
+   Shadow spells; with the Imp out and the Succubus sacrificed, Touch of Fire × Master Demonologist ×
+   Soul Link, the same **×1.30295** on your Fire spells.
 8. **What the Succubus inherits, out with the Imp sacrificed** (§11.2; ranged-and-pets §6.1): attack
    power 240 + 0.1 × 138 = **253.8**; on its swings your **11.65%** melee crit and 5% hit (the gear's
    hit rating), so against the boss its special table crits 11.65 − 0.6 (its skill of 300) − 1.8 (aura
@@ -1040,7 +1046,7 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
    sim-ranked list since 2026-09-24, §7.3, with Briarwood Reed in the first trinket, where the default
    wears Draconic Infused Emblem since DV2-4: its proc adds its +35 only while it's up. On the guide's
    list it was 9.65% and 2% hit, 486 Shadow, 108.6, 144.46, 11.73% and 13%.)
-9. **Improved Imp's cast time** (§11.3): 2,000 − 300 / 700 / 1,000 = **1,700 / 1,300 / 1,000 ms**.
+9. **Improved Imp's hidden value** (§11.3): no effect, so Firebolt's cast stays **2,000 ms** at 0–3/3.
 10. **Demonic Brand with the Imp** (§11.3; `demonic-brand.test.ts`): 600 Fire spell damage and the Imp's
     Master Demonologist 5/5: `((65 + 68) / 2 + 0.078 × 600) × 1.1` = **124.63** a hit on average; ×
     Unholy Power 1.1 × Soul Link 1.03 = **141.21**, before the boss's resist, Curse of the Elements and

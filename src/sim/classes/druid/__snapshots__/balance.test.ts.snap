@@ -5,7 +5,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
   "abilities": [
     [
       "insectSwarm",
-      11335651.852600634,
+      10159970.101049252,
       12223,
       65802,
       12855,
@@ -13,7 +13,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     ],
     [
       "moonfire",
-      3510196.4935057345,
+      3347856.574401735,
       10871,
       7828,
       2844,
@@ -21,7 +21,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     ],
     [
       "moonfireDot",
-      10525561.721945394,
+      9792981.217288733,
       10672,
       39117,
       13954,
@@ -29,7 +29,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     ],
     [
       "starfire",
-      43406159.36363342,
+      39928445.123633355,
       41867,
       34287,
       6744,
@@ -37,7 +37,7 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     ],
     [
       "wrath",
-      11100514.288329555,
+      9904310.96310718,
       25227,
       20701,
       4039,
@@ -61,9 +61,9 @@ exports[`golden run and determinism (docs/doctrine.md#4-engine) > keeps the defa
     "manaRegenBalance",
   ],
   "dps": {
-    "ci95": 1.3025532134720166,
-    "mean": 444.79935554598944,
-    "stdev": 21.015870498812806,
+    "ci95": 1.2011144971960865,
+    "mean": 407.2494305949771,
+    "stdev": 19.379221106855695,
   },
   "durationSec": 179.690222,
   "mana": {

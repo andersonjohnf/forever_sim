@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
   "abilities": [
     [
       "ignite",
-      9150108.927966418,
+      8626835.75197817,
       15907,
       26440,
       0,
@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "scorch",
-      7489825.451477931,
+      6976438.087010813,
       12556,
       7777,
       4424,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblast",
-      17463623.58446551,
+      16445504.111545514,
       10789,
       8004,
       2461,
@@ -35,7 +35,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "pyroblastDot",
-      6688451.913215164,
+      6195284.585084293,
       10465,
       26143,
       7780,
@@ -45,7 +45,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "fireBlast",
-      20384319.33837024,
+      19553551.99885957,
       20281,
       14585,
       5107,
@@ -55,7 +55,7 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
     [
       "fireball",
-      31978558.72901572,
+      29859576.629055753,
       23051,
       18469,
       3915,
@@ -75,9 +75,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     ],
   ],
   "dps": {
-    "ci95": 2.2368920304153876,
-    "mean": 524.7441067415331,
-    "stdev": 36.09083509588698,
+    "ci95": 2.107998720357216,
+    "mean": 494.12897881662786,
+    "stdev": 34.01122323486718,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -109,9 +109,9 @@ exports[`golden run (fixed config and seed) > keeps the default Fire mage’s re
     "spentPerFight": 20536.2,
   },
   "tps": {
-    "ci95": 1.6329416456776207,
-    "mean": 386.8240607830571,
-    "stdev": 26.346478441524653,
+    "ci95": 1.542846067129784,
+    "mean": 365.3934712356227,
+    "stdev": 24.89284338716099,
   },
 }
 `;

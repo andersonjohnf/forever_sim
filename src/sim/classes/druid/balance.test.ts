@@ -364,6 +364,8 @@ describe('golden run and determinism (docs/doctrine.md#4-engine)', () => {
   //   and Blessing of Wisdom r5. 448.73 → 445.04 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): Starfire
   //   r6 and Moonfire r10 add trunc(4.6) = 4 (313.21–368.79, 128.46–149.54). 445.04 → 444.80 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. 444.80 → 407.25 DPS.
   it('keeps the default Balance druid’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(BALANCE), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

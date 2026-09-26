@@ -580,22 +580,34 @@ export function damageTable(row, item) {
 }
 
 /**
- * Forever caster weapons (Flags[4] & 0x100, with 0x200 spell power or 0x400 healing): the
- * weapon trades DPS for spell power worth 2 × the group-0 budget of its quality at its item
- * level, whatever its slot (healing weapons: 3.75 × healing + 1.25 × spell damage). A weapon
- * whose stats already carry spell power, healing or spell damage keeps those instead (Crackling
- * Staff: +25 Spell Power from its stats, and the DPS cut all the same). Returns null for other
- * items. `spellPower` is the spell-power equivalent the DPS cut is based on.
+ * Forever caster weapons (Flags[4] & 0x100, with 0x200 spell power or 0x400 healing), per
+ * docs/data/client.md#weapon-damage ("Caster weapons"). Returns null for other items.
+ * - Rare and below: the weapon trades DPS for spell power worth 2 × the group-0 budget of its
+ *   quality at its item level, whatever its slot (healing weapons: 3.75 × healing + 1.25 × spell
+ *   damage). A weapon whose stats already carry spell power, healing or spell damage keeps those
+ *   instead (Crackling Staff: +25 Spell Power from its stats, and the DPS cut all the same).
+ *   `spellPower` is the spell-power equivalent the DPS cut is based on.
+ * - Epic and above: the rule was fitted on Rare weapons only, so it isn't extrapolated. The
+ *   weapon's spell stats are its Classic Era item's (`ctx.classic`, the Classic Era context the
+ *   scraper links; none without one), and its damage takes no cut (`spellPower` 0): Mindfang
+ *   and Sageclaw +30 Spell Power, Ironbark Staff +41. `fromClassic` marks these.
  */
 export function casterWeapon(ctx, row) {
   const flags = row.Flags?.[4] ?? 0;
   if (storesAmounts(row) || !(flags & CASTER_WEAPON) || !(flags & (CASTER_SPELL_POWER | CASTER_HEALING))) return null;
+  const hasSpellStats = row.StatModifier_bonusStat.some((type, i) => SPELL_STAT_TYPES.has(type) && row.StatPercentEditor[i]);
+  if (row.OverallQualityID >= 4) {
+    const classic = ctx.classic?.sparse.has(row.ID) ? deriveItem(ctx.classic, row.ID).stats : {};
+    const stats = hasSpellStats ? [] : Object.entries(classic).filter(([k]) => CLASSIC_SPELL_STAT.test(k));
+    return { spellPower: 0, stats, fromClassic: true };
+  }
   const p0 = ctx.randPropPoints.get(row.ItemLevel)?.[budgetColumn(row.OverallQualityID)]?.[0];
   if (!p0) return null;
-  const hasSpellStats = row.StatModifier_bonusStat.some((type, i) => SPELL_STAT_TYPES.has(type) && row.StatPercentEditor[i]);
   const stats = hasSpellStats ? [] : flags & CASTER_HEALING ? [["healing", round(3.75 * p0)], ["spellDamage", round(1.25 * p0)]] : [["spellPower", 2 * p0]];
   return { spellPower: 2 * p0, stats };
 }
+/** The Classic Era stats an Epic caster weapon takes: spell power, healing and spell damage (any school). */
+const CLASSIC_SPELL_STAT = /^(spellPower|healing|spellDamage|(holy|fire|nature|frost|shadow|arcane)SpellDamage)$/;
 const SPELL_STAT_TYPES = new Set([41, 42, 45]); // healing, spell damage, spell power
 
 /**
@@ -630,7 +642,7 @@ export function weapon(ctx, row, item) {
     const average = dps * speed;
     min = Math.floor(average * (1 - row.DmgVariance / 2));
     max = Math.floor(average * (1 + row.DmgVariance / 2) + 0.5);
-    dpsSource = caster ? `ItemDamage${table} (caster)` : `ItemDamage${table}`;
+    dpsSource = caster?.spellPower ? `ItemDamage${table} (caster)` : `ItemDamage${table}`;
   }
   // The tooltip's DPS counts the extra damage too (Warblade of Caer Darrow: 142–214 + 1–22).
   const total = min + max + (extraDamage ?? []).reduce((s, x) => s + x.min + x.max, 0);

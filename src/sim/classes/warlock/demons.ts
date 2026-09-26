@@ -24,10 +24,10 @@ export const DEMO_CURVE = {
   /** Improved Imp #1: Firebolt's damage % (aura 108, mask 4096). */
   improvedImp: [10, 20, 30],
   /**
-   * Improved Imp #2, a dummy (aura 4) the tooltip doesn't show: read as Firebolt's cast time in ms, as
-   * the client's tooltips read the dummies like it (`$m1/-1000` sec) [?] (warlock.md §11.3, Q19).
+   * Improved Imp #2, a dummy (aura 4) the tooltip doesn't show. Nothing describes it, so the sim gives
+   * it no effect [?] (warlock.md §11.3, Q19); the curve stays for its assumption and its test.
    */
-  improvedImpCast: [-300, -700, -1000],
+  improvedImpHidden: [-300, -700, -1000],
   /** Unholy Power #0: all your demon's damage %, its Forever tooltip. */
   unholyPower: [2, 4, 6, 8, 10],
   /** Improved Sayaad #0: Lash of Pain's effect % (aura 108, mask 8192). */
@@ -147,7 +147,8 @@ export function demonPet(demon: Demon, talents: TalentRanks): PetDef | null {
   }
   if (demon === 'imp') {
     const mult = (1 + talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImp) / 100) * (1 + md / 100)
-    const firebolt = { ...FIREBOLT, castMs: FIREBOLT.castMs + talentValue(talents, 'Improved Imp', DEMO_CURVE.improvedImpCast) }
+    // Improved Imp's hidden #2 does nothing: an undescribed dummy (warlock.md §11.3, Q19).
+    const firebolt = FIREBOLT
     return {
       ...base,
       id: 'imp',

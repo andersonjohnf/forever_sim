@@ -41,6 +41,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Blessing of Wisdom r5 (36 mp5). 529.59 → 524.79 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): Scorch
   //   r7 + trunc(3.4) = 3 (166.28–195.72). 524.79 → 524.74 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. 524.74 → 494.13 DPS.
   it('keeps the default Fire mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

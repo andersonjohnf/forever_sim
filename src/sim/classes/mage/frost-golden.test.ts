@@ -30,6 +30,8 @@ describe('golden run (fixed config and seed)', () => {
   //   290), and Blessing of Wisdom r5 (36 mp5). 451.79 → 414.14 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Frostbolt r10 adds trunc(11.6) = 11 (382.29–411.71). 414.14 → 413.82 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. 413.82 → 386.65 DPS.
   it('keeps the default Frost mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

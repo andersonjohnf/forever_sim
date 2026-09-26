@@ -922,16 +922,27 @@ instead; its tooltip DPS includes the extra damage (Warblade of Caer Darrow 142�
 or 0x400 (healing) gives up DPS for spell power worth 2 × the group-0 budget of its quality at
 its item level, whatever its slot. For example, Whiteout Staff and Shivsprocket's Shiv (both
 item level 65, Rare, `SuperiorF[0]` = 37) show **+74 Spell Power**, and Elderwild Construction
-Hammer (60, 34) shows +68. Applied to an Epic, the rule gives Mindfang, Sageclaw and Ironbark Staff
-(item level 65, Epic) **+94**, the number every caster's default main hand now rests on
-([warlock.md §7.3](../classes/warlock.md#73-gear)). No Epic was among the weapons it was fitted on,
-so that +94 is `[?]` until a tooltip confirms it (open question below). Healing weapons get 3.75 × and 1.25 × that group-0 budget as
+Hammer (60, 34) shows +68. Healing weapons get 3.75 × and 1.25 × that group-0 budget as
 healing and spell damage (Simone's Cultivating Hammer: +139 Healing, +46 Spell Damage). The
 DPS falls by **0.195 per point** of that spell power (2 × budget). That constant is a fit, not a
 known formula: scanning 0.190–0.200, only 0.19494–0.19505 reproduces all seven pool weapons'
 min and max. Crackling Staff has spell power in its own stats (+25). It takes the same DPS cut
 but doesn't get the extra 74, so the derivation adds the caster spell power only to weapons
 whose stats have no spell power, healing or spell damage. That rule rests on a single item.
+
+**Epic caster weapons `[C]`.** The rule above was fitted on Rare weapons only, and no Epic
+caster weapon's Forever tooltip is on record, so it isn't extrapolated to Epic quality (2 × the
+Epic budget would give +94). An Epic caster weapon takes **its Classic Era item's spell stats**
+([Classic Era 1.15.9 ItemSparse and item effects](#items-from-the-client)): Mindfang and Sageclaw
+**+30 Spell Power**, both Ironbark Staffs **+41**, the casters' pre-raid main hands and two-hander
+([warlock.md §7.3](../classes/warlock.md#73-gear)). Its damage takes no cut, so it is the
+`ItemDamage` table's value as is (Mindfang 56–105, 47.4 DPS, what Classic Era stores; Ironbark
+Staff 167–251 at Forever's damage variance): the cut's size on an Epic is unknown too, and no sim
+result reads a caster weapon's melee damage. The Forever stats the budget gives stay (Mindfang's
+14 crit rating, Ironbark Staff's 28). An Epic caster weapon with no Classic Era item would have no
+spell power to take, so the scraper fails on one in the pool rather than give it none
+(`casterWeapon` in `scripts/scrape/lib/item-stats.mjs`). Before this, the extrapolated +94 made
+the casters' main hand worth 5–8% more DPS than Classic Era's item.
 
 ### Block value
 
@@ -1101,11 +1112,11 @@ Custodian).
 - `[?]` **Caster-weapon DPS.** The 0.195-DPS-per-spell-power cut and "no extra spell power when
   the stats carry some" are fits to 7 and 1 items. A caster weapon's tooltip at another item
   level or quality would confirm them.
-- `[?]` **Epic caster weapons' spell power.** The rule was fitted on Rare weapons; on an Epic it gives
-  Mindfang, Sageclaw and Ironbark Staff +94 spell power (Classic Era: +30), which is most of the
-  casters' pre-raid main-hand value (Mindfang alone is +41 to +55 DPS for a warlock,
-  [warlock.md §7.3](../classes/warlock.md#73-gear)). Guild test: Mindfang's or Sageclaw's tooltip in
-  game (its spell power line), or Ironbark Staff's.
+- `[?]` **Epic caster weapons' spell power.** No Forever tooltip of an Epic caster weapon is on
+  record, so Mindfang, Sageclaw and Ironbark Staff carry their Classic Era spell power (+30, +30,
+  +41) rather than the Rare rule's +94 ([Caster weapons](#weapon-damage)). Test: Mindfang's or
+  Sageclaw's tooltip in game (its spell power line), or Ironbark Staff's; any value but Classic
+  Era's changes every caster's main hand.
 - `[?]` **Hotfix-only rows.** 50 pool items (and all 16 no-row-anywhere items) exist only as
   server hotfixes, and the Undermine trinkets' cooldowns look hotfixed. The raw client files
   can't show these; wago.tools' documented API has no hotfix endpoint.

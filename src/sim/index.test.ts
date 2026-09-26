@@ -504,8 +504,9 @@ describe('catalogues and presets', () => {
     const demo = defaultConfig('warlock-demonology')
     const withDemon = (demon: string) => rotationValues({ ...demo, rotation: { ...demo.rotation, 'warlock.demonology.demon.summoned': demon } })
     const physical = ['sunderArmor', 'exposeArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter', 'giftOfArthas']
-    // The default demon is the Imp.
-    const imp = unusedBuffs('warlock-demonology', rotationValues(demo))
+    // The default demon is the Succubus, which swings; the Imp doesn't.
+    expect(unusedBuffs('warlock-demonology', rotationValues(demo))).toEqual({})
+    const imp = unusedBuffs('warlock-demonology', withDemon('imp'))
     expect(Object.keys(imp).sort()).toEqual([...physical].sort())
     expect(imp.giftOfArthas).toBe('Not used: only your demon’s swings take the +8, and your Imp (see Rotation) doesn’t swing')
     expect(imp.sunderArmor).toBe('Not used: only your demon’s swings meet the boss’s armor, and your Imp (see Rotation) doesn’t swing')

@@ -357,11 +357,13 @@ The pre-raid list is Wowhead's Classic Era Shadow Priest pre-raid BiS guide (Pha
 suffixes ([items.md](../data/items.md#pre-raid-bis-lists)). Most of its items have no Forever row
 yet and use Classic Era stats (`classicItems`).
 
-**The main hand isn't the guide's.** Forever gave the Arathi Basin Exalted daggers, Mindfang (The
-Defilers, Horde) and Sageclaw (League of Arathor, Alliance), +94 spell power (a `[?]` estimate from the
-derived caster-weapon rule, [client.md](../data/client.md#weapon-damage); Classic Era +30), past the
-guide's Scepter of the Unholy (the Destruction gear review, DG-2). They take rank 1, the guide's picks
-move to ranks 2 and 3, and the default gains 7.0% (523.3 → 559.7 DPS, 20,000 fights on seed 2701). A
+**The main hand isn't the guide's.** The Arathi Basin Exalted daggers, Mindfang (The Defilers, Horde)
+and Sageclaw (League of Arathor, Alliance), lead the guide's Scepter of the Unholy (the Destruction gear
+review, DG-2). They take rank 1, the guide's picks move to ranks 2 and 3, and the default gained 7.0%
+(523.3 → 559.7 DPS, 20,000 fights on seed 2701) while the sim gave them +94 spell power, the Rare
+caster-weapon rule extrapolated to Epic quality. Since 2026-09-26 they carry Classic Era's +30
+([client.md "Epic caster weapons"](../data/client.md#weapon-damage)) with Forever's crit rating, and
+still lead the Scepter by 9 DPS (paired, 10,000 fights). A
 sim-ranked list, as the warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent
 more; it's a known gap. Briarwood Reed's Forever effect ("+15 Spell Power in
 certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated: they count as zero (E7 in

@@ -42,6 +42,8 @@ describe('golden run (fixed config and seed)', () => {
   //   209), Frostbolt r10 and Fireball r11, and Blessing of Wisdom r5 (36 mp5). 440.84 → 399.64 DPS.
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values): each
   //   Arcane Missile 174 (171 + trunc(3.6)). 399.64 → 398.88 DPS.
+  // - Epic caster weapons take their Classic Era item's spell power (docs/data/client.md#weapon-damage):
+  //   Mindfang +30, not the Rare rule's extrapolated +94. 398.88 → 374.47 DPS.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

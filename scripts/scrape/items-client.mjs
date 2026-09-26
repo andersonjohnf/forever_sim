@@ -28,7 +28,7 @@ import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { buildPool, itemsLeavingPool, measureRatingConversions } from "./lib/item-pool.mjs";
-import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
+import { ITEM_GAMETABLES, ITEM_TABLES, casterWeapon, createItemContext } from "./lib/item-stats.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
 import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
@@ -181,6 +181,9 @@ async function load(key, build, { lookups = false } = {}) {
 
 const forever = await load("forever", version, { lookups: true });
 const classic = await load("classic", opts.baseline);
+// An Epic Forever caster weapon takes its spell stats from its Classic Era item (casterWeapon in
+// lib/item-stats.mjs; docs/data/client.md#weapon-damage).
+forever.ctx.classic = classic.ctx;
 
 // ---------------------------------------------------------------------------
 // Pre-raid BiS lists
@@ -329,6 +332,10 @@ async function write() {
     if (i.tab !== "new" && i.id >= MAX_CLASSIC_ITEM_ID) fail(`SoD guard: ${i.id} ${i.name} (${i.tab}) has a Classic Era row and id >= ${MAX_CLASSIC_ITEM_ID}`);
     if (!i.icon) warn(`${i.id} ${i.name}: no icon`);
     if (i.weapon && (i.weapon.min === null || i.weapon.max === null)) fail(`${i.id} ${i.name}: weapon without damage`);
+    // docs/data/client.md#weapon-damage: an Epic caster weapon's spell stats are its Classic Era
+    // item's. One Forever added has none to take, so say so rather than give it no spell power.
+    const row = forever.ctx.sparse.get(i.id);
+    if (row && casterWeapon(forever.ctx, row)?.fromClassic && !classic.ctx.sparse.has(i.id)) fail(`${i.id} ${i.name}: an Epic caster weapon without a Classic Era item, so it has no spell power to take (docs/data/client.md#weapon-damage)`);
   }
   for (const [id, s] of Object.entries(sets)) if (!s.name) fail(`set ${id}: no ItemSet row in either client`);
   // docs/data/items.md#pre-raid-bis-lists (Kept items): no item leaves the pool without a reason.
@@ -433,7 +440,7 @@ function printSummary(out, report) {
 /** The rows behind scripts/scrape/lib/item-stats.test.mjs, by build. */
 const FIXTURES = {
   // Lionheart Helm, Annihilator (1H + chance on hit), Arcanite Reaper (2H), Whiteout and
-  // Crackling Staff (caster weapons), Burrow Barricade (shield + bonus armor), Rune of the Guard
+  // Crackling Staff (caster weapons), Mindfang (an Epic caster weapon; also in Classic Era), Burrow Barricade (shield + bonus armor), Rune of the Guard
   // Captain (equip AP + area-restricted AP), Stormpike Insignia Rank 4 (category cooldown).
   // The Gladiator (a set bonus with aura 290, all crit). For the fallback items below (no Forever
   // ItemSparse row): the item effects Forever links to Hand of Justice, Blackhand's Breadth,
@@ -441,12 +448,13 @@ const FIXTURES = {
   // +20 Attack Power 9331, +2% crit 7598, Seal of the Dawn 23930, Barrier Shield's block value
   // 22912 (aura 274) and block chance 13675, Classic Era's Diamond Flask use 363880, Mark of
   // Tyranny's +1% dodge 13669).
-  forever: { items: [12640, 12798, 12784, 19101, 19102, 274418, 19120, 17902, 11815, 13965, 20130, 13966], sets: [281, 1], spells: [9331, 7598, 23930, 22912, 13675, 363880, 13669] },
+  forever: { items: [12640, 12798, 12784, 19101, 19102, 20214, 274418, 19120, 17902, 11815, 13965, 20130, 13966], sets: [281, 1], spells: [9331, 7598, 23930, 22912, 13675, 363880, 13669] },
   // Lionheart Helm (equip crit/hit), Barrier Shield (block chance and value, innate block),
   // Hand of Justice (Classic Era only: AP + proc), Warblade of Caer Darrow (extra damage),
   // Devilsaur Leggings (46 melee / 48 ranged AP), and the fallback items Seal of the Dawn,
-  // Blackhand's Breadth, Diamond Flask and Mark of Tyranny.
-  classic: { items: [12640, 18499, 11815, 13982, 15062, 13209, 13965, 20130, 13966], sets: [1] },
+  // Blackhand's Breadth, Diamond Flask and Mark of Tyranny; Mindfang (the Epic caster weapon's
+  // spell power).
+  classic: { items: [12640, 18499, 11815, 13982, 15062, 13209, 13965, 20130, 13966, 20214], sets: [1] },
 };
 
 function writeFixtures() {

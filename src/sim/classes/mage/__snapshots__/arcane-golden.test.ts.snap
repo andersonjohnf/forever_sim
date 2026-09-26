@@ -5,7 +5,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
   "abilities": [
     [
       "ignite",
-      169133.1844460284,
+      158540.7913387324,
       209,
       392,
       0,
@@ -15,7 +15,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     ],
     [
       "pyroblast",
-      2009494.1142166266,
+      1883762.7747686272,
       1436,
       1051,
       209,
@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     ],
     [
       "pyroblastDot",
-      803766.5409899069,
+      739087.9257887204,
       1260,
       3604,
       717,
@@ -35,7 +35,7 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     ],
     [
       "arcaneMissiles",
-      68740945.3586983,
+      64552583.16330099,
       35924,
       128137,
       36414,
@@ -45,9 +45,9 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     ],
   ],
   "dps": {
-    "ci95": 0.9708746705629907,
-    "mean": 398.8803384916157,
-    "stdev": 15.66444743761534,
+    "ci95": 0.9104477464513229,
+    "mean": 374.47065449473337,
+    "stdev": 14.689497317621887,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -79,9 +79,9 @@ exports[`golden run (fixed config and seed) > keeps the default Arcane mage’s 
     "spentPerFight": 14500.221,
   },
   "tps": {
-    "ci95": 0.6983339973739454,
-    "mean": 291.41577109480306,
-    "stdev": 11.267176420846022,
+    "ci95": 0.6574469035863337,
+    "mean": 274.32899229698376,
+    "stdev": 10.607489078151733,
   },
 }
 `;

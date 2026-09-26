@@ -84693,7 +84693,7 @@
         "bonusArmor": 100,
         "critRating": 28,
         "intellect": 10,
-        "spellPower": 94,
+        "spellPower": 41,
         "stamina": 19
       },
       "statsFrom": "forever",
@@ -84703,9 +84703,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 43.1,
-        "max": 176,
-        "min": 117,
+        "dps": 61.5,
+        "max": 251,
+        "min": 167,
         "school": "Physical",
         "skill": "Staves",
         "speed": 3.4
@@ -84798,7 +84798,7 @@
         "bonusArmor": 100,
         "critRating": 28,
         "intellect": 10,
-        "spellPower": 94,
+        "spellPower": 41,
         "stamina": 19
       },
       "statsFrom": "forever",
@@ -84808,9 +84808,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 43.1,
-        "max": 176,
-        "min": 117,
+        "dps": 61.5,
+        "max": 251,
+        "min": 167,
         "school": "Physical",
         "skill": "Staves",
         "speed": 3.4
@@ -87728,7 +87728,7 @@
       "stats": {
         "bonusArmor": 40,
         "critRating": 14,
-        "spellPower": 94,
+        "spellPower": 30,
         "stamina": 8
       },
       "statsFrom": "forever",
@@ -87738,9 +87738,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 28.8,
-        "max": 64,
-        "min": 34,
+        "dps": 47.4,
+        "max": 105,
+        "min": 56,
         "school": "Physical",
         "skill": "Daggers",
         "speed": 1.7
@@ -87851,7 +87851,7 @@
       "stats": {
         "bonusArmor": 40,
         "critRating": 14,
-        "spellPower": 94,
+        "spellPower": 30,
         "stamina": 8
       },
       "statsFrom": "forever",
@@ -87861,9 +87861,9 @@
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": {
-        "dps": 28.8,
-        "max": 64,
-        "min": 34,
+        "dps": 47.4,
+        "max": 105,
+        "min": 56,
         "school": "Physical",
         "skill": "Daggers",
         "speed": 1.7

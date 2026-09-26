@@ -10,13 +10,13 @@ import { CURSE_BUFF, demonologyOptions, warlockApl, warlockIds, warlockRotation,
 import type { TalentRanks } from './talents'
 
 /**
- * The defaults (warlock.md §11.6): the best build the sim has found (D30), the Imp out with the Succubus
- * sacrificed and Soul Fire below 35%. Its lead over the Succubus rests on Improved Imp's hidden effect
- * (Q19) [?]; the optimizer (O4) confirms it.
+ * The defaults (warlock.md §11.6): the best build the sim has found (D30), the Succubus out with the Imp
+ * sacrificed and Soul Fire off. With Improved Imp's hidden value given no effect (Q19), the Imp out
+ * (the Succubus sacrificed, Soul Fire on) is 4% behind; the optimizer (O4) confirms the build.
  */
 export const DEMONOLOGY_DEFAULTS: WarlockDefaults = {
-  sacrifice: 'succubus',
-  demon: 'imp',
+  sacrifice: 'imp',
+  demon: 'succubus',
   // Incinerate, when it's talented: +3.9% over Shadow Bolt on a 0/20/31 build with Immolate up (warlock.md
   // §6.4); the default talents have none, so Shadow Bolt stays their filler.
   filler: 'incinerate',
@@ -25,7 +25,7 @@ export const DEMONOLOGY_DEFAULTS: WarlockDefaults = {
   corruption: true,
   bane: 'doom',
   immolate: true,
-  soulFire: true,
+  soulFire: false,
 }
 export const DEMONOLOGY_OPTIONS = demonologyOptions(DEMONOLOGY_DEFAULTS)
 export const DEMONOLOGY_IDS = warlockIds('demonology')

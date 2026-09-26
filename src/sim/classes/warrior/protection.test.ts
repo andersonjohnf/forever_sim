@@ -77,7 +77,7 @@ describe('Protection abilities match src/data/client/spells.json (warrior.md §3
     expect(Math.round(dmg.effectBasePointsF! * (1 + dmg.variance! / 2))).toBe(670)
     expect([SHIELD_SLAM.flatDamage - SHIELD_SLAM.flatSpread!, SHIELD_SLAM.flatDamage + SHIELD_SLAM.flatSpread!]).toEqual([640, 670])
     expect(SHIELD_SLAM.blockValueCoefficient).toBe(1)
-    // Threat dmg + 254 [C] in both profiles: Classic Era's rank 4 (threat.md#warrior). Neither client
+    // Threat dmg + 254: [?] in `forever` (Classic Era's [C]), [C] in `classicEra`; Classic Era's rank 4 (threat.md#warrior). Neither client
     // carries a value, so Forever's "very high" adds nothing without a measurement (warrior.md Q34).
     expect(s.effects.find((e) => e.effect === 63)).toBeUndefined()
     expect([SHIELD_SLAM.threatMult, SHIELD_SLAM.threatBonus, SHIELD_SLAM.refundShare]).toEqual([1, 254, 0.8])

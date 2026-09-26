@@ -3370,9 +3370,9 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     the rage a missed one costs, and Thunder Clap's crits and their size against its hits.
 34. **Shield Slam's threat.** Forever's tooltip raised it from "a high amount of threat" to "a very
     high amount" [F], and neither client carries a value. The sim uses Classic Era's rank 4 bonus,
-    **dmg + 254** [C], measured by Magey on 1.13.6 and Resultsmayvary on 1.13.2 (ranks 1–4 178 / 203 /
+    **dmg + 254** [?] (Classic Era's [C]), measured by Magey on 1.13.6 and Resultsmayvary on 1.13.2 (ranks 1–4 178 / 203 /
     229 / 254; [threat.md](../mechanics/threat.md#warrior)); the extra the words promise has no value in
-    any allowed source, so it adds nothing. wowsims' 508 (254 × 2) cites no source. The result lists
+    any allowed source, so the extra is 0 [?]. wowsims' 508 (254 × 2) cites no source. The result lists
     it among its assumptions. Until 2026-09-26 the sim assumed **+475**, 254 scaled by Forever's
     damage ratio (×1.871), a ratio of our own choosing (D37): the default Balanced made 985.3 TPS with
     it and 938.5 without (−4.75%, 10,000 fights at the default seed, Sunder Armor as it was). At +254

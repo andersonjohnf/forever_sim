@@ -51,6 +51,7 @@ export {
   preRaidListGear,
   TALENT_DATA,
   talentPresets,
+  twoHandersOverPair,
   type TalentPreset,
 } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'

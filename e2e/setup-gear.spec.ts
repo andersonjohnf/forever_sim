@@ -130,6 +130,27 @@ test.describe('item picker', () => {
     expect(byLevel).toEqual([...byLevel].sort((a, b) => b - a))
   })
 
+  test('a Horde caster’s main hand lists Whiteout Staff first, above Mindfang at the same rank (EU-4)', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Troll' }).click()
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await page.getByRole('button', { name: /^Main hand: Whiteout Staff/ }).click()
+    const picker = page.getByRole('dialog', { name: 'Choose main hand' })
+    await expect(picker.getByRole('combobox', { name: 'Sort by BiS rank' })).toBeVisible()
+    // "Leave this slot empty" comes first, then the items.
+    const names = (
+      await picker
+        .getByRole('list', { name: 'Items' })
+        .getByRole('listitem')
+        .evaluateAll((els) => els.map((el) => el.querySelector('button')?.textContent ?? ''))
+    ).slice(1, 3)
+    expect(names[0]).toMatch(/^Whiteout Staff/)
+    expect(names[1]).toMatch(/^Mindfang/)
+  })
+
   test('its filter chips, sort menu and clear-search buttons are 44 px targets', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Head: / }).click()

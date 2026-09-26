@@ -394,7 +394,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     desktop. It has a search box (name, type or stat) with a clear button, filter chips
     (**Best in slot** for this spec, or **All items** the class can use), and a sort menu: BiS
     rank (the default where the slot has BiS items), item level or name (sim value, once stat
-    weights exist). Each row's second line says what the item is and its levels, e.g.
+    weights exist). Where a main hand and a two-hander share a rank, the one the sim wears comes
+    first: a Horde caster's Whiteout Staff, which the sim ranks above Mindfang and an off hand
+    (review finding EU-4). Each row's second line says what the item is and its levels, e.g.
     "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
     parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
     shows none.

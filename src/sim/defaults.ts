@@ -475,6 +475,15 @@ const TWO_HANDERS_OVER_PAIR: Partial<Record<SpecId, readonly number[]>> = Object
 )
 
 /**
+ * The two-handers the sim ranks above the spec's main hand and off hand (`TWO_HANDERS_OVER_PAIR`), so
+ * the main-hand picker lists one first among the rank-1 items for a race that can wear it (review
+ * finding EU-4: a Troll Fire mage saw Mindfang, rank 1 of the main hands, above Whiteout Staff).
+ */
+export function twoHandersOverPair(spec: SpecId): readonly number[] {
+  return TWO_HANDERS_OVER_PAIR[spec] ?? []
+}
+
+/**
  * The hunter's default ammo and quiver (docs/classes/hunter.md#73-gear): Thorium Headed Arrows or
  * Thorium Shells (17.715 damage per second, crafted), and the 15% Harpy Hide Quiver or Gnoll Skin
  * Bandolier (required level 55), by what the ranged weapon fires.

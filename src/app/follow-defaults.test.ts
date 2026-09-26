@@ -207,11 +207,15 @@ describe('the notice', () => {
     })
     // Beside a move, "kept" holds for the rest.
     expect(defaultsUpdateNotice([{ ...bear, gear: true, removed: [spaulders, cap] }], 'druid-feral-bear')).toEqual({
-      title: 'Updated to the new default gear for Feral (Bear) Druid',
+      title: 'Gear removed and defaults updated for Feral (Bear) Druid',
       description:
         'Darkmantle Cap and Darkmantle Spaulders are quest rewards only rogues receive, so they were removed from your Feral (Bear) Druid setup. ' +
         'Choose others in Gear. Other gear and talents you changed yourself are kept.',
     })
+    // Beside another spec's boss melee move, the title names the removal and both specs (MV-3).
+    const fury = { spec: 'warrior-fury' as const, gear: false, talents: false, removed: [cap] }
+    const prot = { spec: 'warrior-protection' as const, gear: false, talents: false, boss: true as const }
+    expect(defaultsUpdateNotice([prot, fury], 'warrior-protection')?.title).toBe('Gear removed and defaults updated for Protection Warrior and Fury Warrior')
     // Beside a talent change alone.
     const ret = { spec: 'paladin-retribution' as const, gear: false, talents: false, change: { refunds: [{ name: 'Crusade', points: 2, cause: 'removed' as const }] } }
     expect(defaultsUpdateNotice([ret, bear], 'druid-feral-bear')?.title).toBe('Gear and talents changed for Feral (Bear) Druid and Retribution Paladin')

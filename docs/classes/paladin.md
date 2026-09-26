@@ -143,7 +143,7 @@ In the default Protection setup (seed 31101, 100,000 fights) the slice's build m
 most of it, which Holy Strike's 10 s and 50% and the scaling Thorns partly return. With the paladin
 review's order and Holy Conduit 1 (PR-1) and a raid Restoration druid's Thorns (PR-4) it makes
 **752.6 TPS** and 466.6 DPS. On the same seed the warrior makes 1,001.6 and the bear 1,126.6
-(+33.1% and +49.7%): observations for the guild's tests, not a target missed (D29 has no numeric
+(+33.1% and +49.7%): observations for in-game tests, not a target missed (D29 has no numeric
 target; [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
 Retribution makes **621.9 DPS** with the review's joint search (PR-2; 612.7 with the slice's
 placement, 611.0 on this data with 3 points unspent).
@@ -265,7 +265,7 @@ and the docs it links; this list only summarizes them, with the same tags.
   not your class's, so the sim keeps them outside your class's procs, as it keeps an item's spell
   out of every class's spell procs
   ([buffs §3.7](../mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)); whether Can Proc From Procs lets their
-  crits give stacks on Forever's server is a guild-test candidate (open question 22). Ranged shots
+  crits give stacks on Forever's server is a in-game test candidate (open question 22). Ranged shots
   are the hunter's and never reach a paladin. `paladin.test.ts` holds both item paths.
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an
@@ -582,7 +582,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. The cast stops your auto attacks, which start again from a full swing when it ends, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules) has every cast do, and holds everything else until it ends, the off-GCD Judgement too: in game you can't cast one spell during another [?]. It pays its mana and starts its cooldown when the cast ends. The default Retribution build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s (row 8), where the cast costs 1.8% of TPS against letting swings and Judgement go on | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
-| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (the tooltip's "up to 3 additional"; the client's chain-target fields are 4 on effect 0, 3 on effect 1 and 4 on effect 2 [F] [client] (SpellEffect, 1.60.1.70009), so 4 targets in all with the first); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.70009). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (school damage, 1 base point, which a script sets) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): by default it doesn't, the tooltip's reading, "the damage per second of your main hand weapon", the weapon's own; **Character → Advanced** switches to the DPS a character sheet shows, attack power included (`rules.hotrWeaponDps`). Until 2026-09-26 the default counted attack power, a reading chosen because it fit a TPS figure that was never a measurement; no log (the beta's stop below level 40, where it's trained) or allowed source says which. A setup from before then (version 1 or 2) that has it on and never chose loads on the new default, and a link, a code or a Load says so: "Hammer of the Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character → Advanced for the old reading." Worked example 24 |
+| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (the tooltip's "up to 3 additional"; the client's chain-target fields are 4 on effect 0, 3 on effect 1 and 4 on effect 2 [F] [client] (SpellEffect, 1.60.1.70009), so 4 targets in all with the first); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.70009). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (school damage, 1 base point, which a script sets) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), in-game test T3): by default it doesn't, the tooltip's reading, "the damage per second of your main hand weapon", the weapon's own; **Character → Advanced** switches to the DPS a character sheet shows, attack power included (`rules.hotrWeaponDps`). Until 2026-09-26 the default counted attack power, a reading chosen because it fit a TPS figure that was never a measurement; no log (the beta's stop below level 40, where it's trained) or allowed source says which. A setup from before then (version 1 or 2) that has it on and never chose loads on the new default, and a link, a code or a Load says so: "Hammer of the Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character → Advanced for the old reading." Worked example 24 |
 | **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is the buff's own effect (aura 43, `PROC_TRIGGER_DAMAGE`), with no damage spell of its own. The client marks spell 20928 **magic** (DefenseType 1), which would give the damage the spell table: a miss roll (14% for the default build against a level-63 boss) and spell crit. The sim overrides it and has the damage always land and never crit [?]: 20928's table is the one its cast rolls, on yourself, and nothing in the client says the damage its aura deals rolls one again. Untested ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, SpellCategories, 1.60.1.70009; [20928][f20928]) |
 | **Righteous Fury** (25780) | **+60% threat from Holy damage** (+90% until 1.60.1.70009); Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.70009; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
@@ -1839,7 +1839,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     out, the tooltip's reading [?] (Character → Advanced counts it), rolls the full table in two rolls, and gives it no
     spell damage; it's off by default, as Holy Strike makes more threat on one target. With the
     default Flurry Axe and 1,034 attack power: 3 × 53 / 1.5 = 106 without it, 3 × (53 + 1,034 / 14 ×
-    1.5) / 1.5 = 328 with it. *Test (guild test T3):* 50 non-crit Hammer of the Righteous casts with Blessing of Might
+    1.5) / 1.5 = 328 with it. *Test (in-game test T3):* 50 non-crit Hammer of the Righteous casts with Blessing of Might
     on and off: does the damage move with attack power?
 12. **Sanctified Judgement**: base or modified seal cost; refund on a missed JoR or JoF?
 13. **Seal of Wisdom / Judgement of Wisdom** proc rates in Forever.
@@ -1861,7 +1861,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     spell table (14% for the default build against a boss) about 3.9%, and a crit at spell crit
     would have added about 0.7%. After T2's fix round it's 13% of TPS, so each is about half that
     (the milestones' known gap P9).
-    *Test (guild test T6):* Holy Shield's damage events against a boss (misses, crits), and the
+    *Test (in-game test T6):* Holy Shield's damage events against a boss (misses, crits), and the
     threat of each block ÷ its damage: 1.92 means multiplied, 1.80 additive; count misses over 100
     blocks.
 17. **Seal of the Crusader AP at 60**: 306 or 325? The client value is settled: 306 + 2.4 per
@@ -1870,7 +1870,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     with and without SotC.
 18. **Consecration ticks**: does each tick roll spell hit and crit separately (Forever
     periodic crits)? Since 1.60.1.70009 the tick spells carry Attr3 `0x2000000` (Treat As Periodic,
-    [what changed](#changes-in-160170009)), which may make them periodic damage that rolls no hit. Which 4 targets count as "first to enter" on a multi-mob pull? *Test (guild test
+    [what changed](#changes-in-160170009)), which may make them periodic damage that rolls no hit. Which 4 targets count as "first to enter" on a multi-mob pull? *Test (in-game test
     T7):* count missed Consecration ticks over 300+ on a mob three levels above you.
 19. **Spell modifier stacking** (Benediction + Holy Conduit): additive or multiplicative?
 20. **Vindication proc chance** (data reads 100% on melee damage).
@@ -1945,7 +1945,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     Judgement effects" (Judgement 20271 carries the same effect; Sacred Arbiter's aura 1311087 holds
     only its +20% damage), with no threat of its own, since the tooltip has no threat wording (D29).
     Were it a Heroic Strike-like bonus, about +102 threat a strike (+14 TPS in the review's setup).
-    *Test (guild test T4):* a Holy Strike's threat ÷ (its damage × 1.6 × 1.25 × the gloves' 1.02):
+    *Test (in-game test T4):* a Holy Strike's threat ÷ (its damage × 1.6 × 1.25 × the gloves' 1.02):
     1.00 means no bonus; repeat without Iron Creed.
 
 28. **Judgement of Fury's scripted dummy** (1607 + 42.3/level, coefficient 0.18): the sim gives it no
@@ -1955,7 +1955,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     user's reverse flip test (1.60.1, 2026-09-26, rank 1311655, two pulls;
     [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): the hidden threat is at least 12 and
     at most 35 a judgement (81 at Maul's ×2.25), far below the dummy's 367 at level 20, so it isn't
-    flat threat and the +383 TPS reading is ruled out; the sim's zero stands. *Test (guild test T5):* Judgement of Fury's threat against its damage × 1.6,
+    flat threat and the +383 TPS reading is ruled out; the sim's zero stands. *Test (in-game test T5):* Judgement of Fury's threat against its damage × 1.6,
     judged while you already have top threat (so the taunt does nothing), at 60 with the threat macro.
 29. **Retribution Aura's and Thorns' spell damage coefficient** (1.60.1.70009: both "dynamically
     update" with their caster's spell power; the client carries no coefficient). The sim takes Holy

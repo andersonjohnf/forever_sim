@@ -281,8 +281,10 @@ export function defaultsUpdateNotice(updates: readonly DefaultsUpdate[], current
   const kept = succeeded.length > 0 ? 'Gear you changed yourself is kept.' : 'Gear and talents you changed yourself are kept.'
   // "Kept" answers gear or talents that moved; a boss melee alone says only what moved.
   const keptLine = gear || talents || removal || succeeded.length > 0 ? (removal ? `Other ${kept[0].toLowerCase()}${kept.slice(1)}` : kept) : ''
+  // A removal the player must act on leads the title too, with every spec either names (MV-3).
+  const specs = ordered.filter((u) => moved.includes(u) || removedFrom.includes(u)).map((u) => u.spec)
   return {
-    title: `Updated to the new default ${what} for ${whoseOf(moved.map((u) => u.spec))}`,
+    title: removal ? `Gear removed and defaults updated for ${whoseOf(specs)}` : `Updated to the new default ${what} for ${whoseOf(specs)}`,
     // After a removal, "kept" holds for the rest of what the player changed.
     description: [removal, keptLine, boss, ...talentWords].filter(Boolean).join(' '),
   }

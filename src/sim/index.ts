@@ -336,6 +336,8 @@ export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[]
   return ENCHANT_CATALOGUES[profile]
 }
 
+export { fightEquipEffects }
+
 /**
  * Which of an item's effects the engine models, read the way the plan builder reads its item-effect
  * overrides (`sim/effects/items.ts`): `equip`, its equip and chance-on-hit effects and extra weapon
@@ -344,8 +346,6 @@ export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[]
  * names only other specs' abilities (Totem of Rebirth's Riptide, for a damage spec) counts as
  * modelled: there's nothing in it to simulate.
  */
-export { fightEquipEffects }
-
 export function modelledItemEffects(itemId: number, spec?: SpecId): { equip: boolean; use: boolean } {
   const override = ITEM_EFFECTS[itemId]
   // An equip effect that names only another spec's abilities has nothing to simulate for this one.

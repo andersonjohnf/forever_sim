@@ -492,8 +492,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - It leaves out the other faction's PvP and battleground items, except the one equipped.
     - It leaves out what the class can't wear, and another class's quest rewards: a druid isn't
       offered Darkmantle Cap, a rogue's
-      ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)). A share link, code or
-      saved setup that holds one loads without it, and the load's notice says why.
+      ([items.md, "Class-quest rewards"](data/items.md#class-quest-rewards)). A share link, code,
+      saved setup or visit that holds one loads without it, and the load's notice says why and what
+      to do: "Darkmantle Cap is a quest reward only rogues receive, so it was removed. Choose another
+      in Gear." A search for one finds nothing, as for plate or the other faction's PvP gear
+      ([known gaps](known-gaps.md)).
     - A unique item worn in the other slot of a pair moves over when picked. Its second line
       says so: "Unique: moves from ring 2".
     - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line

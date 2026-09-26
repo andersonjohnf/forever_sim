@@ -1650,8 +1650,9 @@ set instead, set in `src/sim/defaults.ts` (`INTERIM_GEAR`) over the list's:
    | 5 | Neck | Mark of Fordring | Amulet of the Darkmoon (19491) | −0.55% | +560 |
    | 6 | Shoulder | Truestrike Shoulders | Champion's Dragonhide Shoulders (23254; Alliance: Lieutenant Commander's, 23309) | −1.82% | +1,031 |
 
-3. **The head, re-picked 2026-09-26.** Step 1's Darkmantle Cap is a rogue's: Dungeon Set 2 comes from
-   quests only its class can take, though the client lets any leather wearer wear it
+3. **The head, re-picked 2026-09-26.** Step 1's Darkmantle Cap is a rogue's: Dungeon Set 2's pieces
+   are quest rewards only their set's class receives (the quests are open to every class; the reward
+   depends on it), though the client lets any leather wearer wear it
    ([items.md, "Class-quest rewards"](../data/items.md#class-quest-rewards) `[C]`). The head is now
    the most TPS within the floor among the heads a druid can get. The optimizer's gear search with
    every other slot locked (`npm run optimize -- --spec druid-feral-bear --search gear --goal tps

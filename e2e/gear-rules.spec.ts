@@ -118,8 +118,8 @@ test.describe('faction gear', () => {
 })
 
 test.describe('class-quest rewards', () => {
-  // docs/data/items.md#class-quest-rewards: Dungeon Set 2 pieces come from quests only their set's
-  // class can take, though the client lets any class that wears the armor type wear them.
+  // docs/data/items.md#class-quest-rewards: Dungeon Set 2 pieces are quest rewards only their set's
+  // class receives, though the client lets any class that wears the armor type wear them.
   async function switchSpec(page: Page, menuItem: RegExp, button: RegExp) {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
@@ -158,7 +158,7 @@ test.describe('class-quest rewards', () => {
     await page.goto('about:blank')
     await page.goto(`./${hash}`)
     await expect(page.getByText('Loaded a shared setup')).toBeVisible()
-    await expect(page.getByText('Darkmantle Cap comes from a quest only rogues can take, so it was removed.')).toBeVisible()
+    await expect(page.getByText('Darkmantle Cap is a quest reward only rogues receive, so it was removed. Choose another in Gear.')).toBeVisible()
     await expect(page.getByRole('button', { name: /^Spec: Feral \(Bear\) Druid/ })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Head: empty' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Neck: Amulet of the Darkmoon' })).toBeVisible()

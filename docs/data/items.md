@@ -1001,11 +1001,14 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 
 ### Class-quest rewards
 
-**Dungeon Set 2 is its class's alone** `[C]`. Its pieces are rewards of quests only the set's class
-can take ([Dungeon Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2): "The items that form these
-sets are quest rewards", from each class's own upgrade quests), yet their client rows carry no class
-restriction (`classes` is null), so by the client alone any class that wears the armor type could
-wear them. The engine gives each piece to its set's class only (`CLASS_QUEST_SETS` and `canUse`,
+**Dungeon Set 2 is its class's alone** `[C]`. Its pieces are quest rewards ([Dungeon
+Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2): "The items that form these sets are quest
+rewards"). The upgrade quests are open to every class, and only the reward depends on it: each class
+receives its own set's piece ([An Earnest
+Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition), the bracers' quest: "You will
+receive (depending on class)", Darkmantle Bracers for a rogue, Feralheart Bracers for a druid). So
+only the set's class receives a piece, yet their client rows carry no class restriction (`classes`
+is null), so by the client alone any class that wears the armor type could wear them. The engine gives each piece to its set's class only (`CLASS_QUEST_SETS` and `canUse`,
 `src/sim/equip.ts`), reading the pieces from the client's item sets by the sets' names:
 
 | Class | Set | Class | Set |
@@ -1021,8 +1024,15 @@ Feral druid can't wear Darkmantle Cap, which is a rogue's. Like a client class r
 reaches everything `canUse` does:
 - The picker doesn't offer another class's pieces.
 - The optimizer's gear pool and the default gear leave them out.
-- `normalizeConfig` removes one from a loaded setup (a share link, an imported code, a saved setup)
-  and says why: "Darkmantle Cap comes from a quest only rogues can take, so it was removed."
+- `normalizeConfig` removes one from a loaded setup (a share link, an imported code, a saved setup,
+  the automatic save) and says why and what to do, one sentence for each quest class's pieces in
+  paper-doll order, as the race change's faction notice groups its items: "Darkmantle Cap is a
+  quest reward only rogues receive, so it was removed. Choose another in Gear." and "Darkmantle Cap
+  and Darkmantle Boots are quest rewards only rogues receive, so they were removed. Choose others in
+  Gear." (`questRemovalNotice`, `src/sim/config/normalize.ts`). Only a piece the class could
+  otherwise wear there gets this reason: a mage's Darkmantle Cap, which is leather, or a piece in the
+  wrong slot, gets the generic "can't go in that slot for this class". A visit says it in its own
+  notice, naming the spec ([ux.md](../ux.md#persistence-and-sharing)).
 
 Dungeon Set 1 (Tier 0) needs no rule: its pieces drop in dungeons, and anyone can loot them `[C]`.
 Quest rewards aren't in the client's tables, so other class-only quest rewards would need the same

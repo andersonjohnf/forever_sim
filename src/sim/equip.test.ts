@@ -4,7 +4,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { defaultConfig } from './defaults'
-import { normalizeConfig } from './config/normalize'
+import { normalizeConfig, questRemovalNotice } from './config/normalize'
 import { canUse, CLASS_QUEST_SETS, fitsFaction, fitsSlot, itemFaction, questClass, raceFaction, uniqueConflicts, WARSONG_GULCH_PREFIX } from './equip'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type { GearSlot } from './types'
@@ -107,14 +107,58 @@ describe('class-quest rewards (docs/data/items.md#class-quest-rewards)', () => {
     expect(checked).toBeGreaterThan(500)
   })
 
-  it('removes another class’s piece from a loaded setup, saying whose quest it is', () => {
-    const { config, warnings } = normalizeConfig({ ...defaultConfig('druid-feral-bear'), gear: { head: { itemId: 22005 } } })
+  it('removes another class’s piece from a loaded setup, saying whose quest reward it is', () => {
+    const { config, warnings, questRemovals } = normalizeConfig({ ...defaultConfig('druid-feral-bear'), gear: { head: { itemId: 22005 } } })
     expect(config.gear.head).toBeUndefined()
-    expect(warnings).toContain('Darkmantle Cap comes from a quest only rogues can take, so it was removed.')
+    // The quests are open to every class; only the reward depends on it (FL-2).
+    expect(warnings).toContain('Darkmantle Cap is a quest reward only rogues receive, so it was removed. Choose another in Gear.')
+    expect(questRemovals).toEqual([{ slot: 'head', classId: 'rogue', name: 'Darkmantle Cap' }])
     // The rogue's own setup keeps it.
     const rogue = normalizeConfig({ ...defaultConfig('rogue-combat'), gear: { head: { itemId: 22005 } } })
     expect(rogue.config.gear.head).toEqual({ itemId: 22005 })
     expect(rogue.warnings).toEqual([])
+    expect(rogue.questRemovals).toBeUndefined()
+  })
+
+  it('groups several pieces by class into one sentence, in paper-doll order (FU-2, FU-3)', () => {
+    const gear = { feet: { itemId: 22003 }, shoulder: { itemId: 22008 }, head: { itemId: 22005 }, legs: { itemId: 22007 } }
+    const { config, warnings } = normalizeConfig({ ...defaultConfig('druid-feral-cat'), gear })
+    expect(config.gear).toEqual({})
+    expect(warnings).toEqual([
+      'Darkmantle Cap, Darkmantle Spaulders, Darkmantle Pants and Darkmantle Boots are quest rewards only rogues receive, so they were removed. Choose others in Gear.',
+    ])
+    // Two classes: a sentence each, and what to do once.
+    const two = normalizeConfig({ ...defaultConfig('druid-feral-cat'), gear: { head: { itemId: 22005 }, shoulder: { itemId: 22008 }, legs: { itemId: 22092 } } })
+    expect(two.warnings).toContain(
+      'Darkmantle Cap and Darkmantle Spaulders are quest rewards only rogues receive, so they were removed. Choose others in Gear.',
+    )
+    // Soulforge Legplates are plate, which a druid can't wear: the generic reason (FU-6).
+    expect(two.warnings).toContain('Soulforge Legplates can’t go in that slot for this class, so it was removed.')
+  })
+
+  it('gives the generic reason when the class couldn’t wear the piece anyway (FU-6)', () => {
+    // A mage can't wear leather, a rogue can't wear plate.
+    const mage = normalizeConfig({ ...defaultConfig('mage-fire'), gear: { head: { itemId: 22005 } } })
+    expect(mage.warnings).toEqual(['Darkmantle Cap can’t go in that slot for this class, so it was removed.'])
+    expect(mage.questRemovals).toBeUndefined()
+    const rogue = normalizeConfig({ ...defaultConfig('rogue-combat'), gear: { legs: { itemId: 22092 } } })
+    expect(rogue.warnings).toEqual(['Soulforge Legplates can’t go in that slot for this class, so it was removed.'])
+    // Right class, wrong slot: generic too.
+    const wrongSlot = normalizeConfig({ ...defaultConfig('druid-feral-cat'), gear: { feet: { itemId: 22005 } } })
+    expect(wrongSlot.warnings).toEqual(['Darkmantle Cap can’t go in that slot for this class, so it was removed.'])
+  })
+
+  it('names the spec for the visit’s notice (questRemovalNotice)', () => {
+    const cap = { slot: 'head', classId: 'rogue', name: 'Darkmantle Cap' } as const
+    const mask = { slot: 'head', classId: 'warlock', name: 'Deathmist Mask' } as const
+    expect(questRemovalNotice([{ removals: [cap], whose: 'Feral (Bear) Druid' }])).toBe(
+      'Darkmantle Cap is a quest reward only rogues receive, so it was removed from your Feral (Bear) Druid setup. Choose another in Gear.',
+    )
+    expect(questRemovalNotice([{ removals: [cap], whose: 'Feral (Bear) Druid' }, { removals: [mask], whose: 'Fire Mage' }])).toBe(
+      'Darkmantle Cap is a quest reward only rogues receive, so it was removed from your Feral (Bear) Druid setup. ' +
+        'Deathmist Mask is a quest reward only warlocks receive, so it was removed from your Fire Mage setup. Choose others in Gear.',
+    )
+    expect(questRemovalNotice([])).toBe('')
   })
 })
 

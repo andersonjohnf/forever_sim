@@ -160,11 +160,13 @@ export const usesSupplies = (classId: ClassId) => PROFICIENCY[classId].supplies 
 // --- Class-quest rewards (docs/data/items.md#class-quest-rewards) ----------------------------
 
 /**
- * Item sets whose every piece is the reward of a quest only one class can take, by the set's name in
- * the client's ItemSet table, and that class. The item rows carry no class restriction, so the client
- * would let anyone wear them, but no other class can get one. Dungeon Set 2: each class's upgrade
- * quests give its own set's pieces [C]
- * ([Dungeon Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2)).
+ * Item sets whose every piece is a quest reward only one class receives, by the set's name in the
+ * client's ItemSet table, and that class. The item rows carry no class restriction, so the client
+ * would let anyone wear them, but no other class can get one. Dungeon Set 2: the upgrade quests are
+ * open to every class, and each class receives its own set's piece [C]
+ * ([Dungeon Set 2](https://warcraft.wiki.gg/wiki/Dungeon_Set_2);
+ * [An Earnest Proposition](https://warcraft.wiki.gg/wiki/An_Earnest_Proposition): "You will receive
+ * (depending on class)").
  */
 export const CLASS_QUEST_SETS: Readonly<Record<string, ClassId>> = {
   'Battlegear of Heroism': 'warrior',
@@ -185,7 +187,7 @@ for (const set of Object.values((itemJson as unknown as ItemData).sets)) {
   if (classId) for (const id of set.itemIds) QUEST_CLASS.set(id, classId)
 }
 
-/** The one class whose quest gives this item, or null when the item isn't a class-quest reward. */
+/** The one class that receives this item as a quest reward, or null when the item isn't a class-quest reward. */
 export function questClass(item: Pick<Item, 'id'>): ClassId | null {
   return QUEST_CLASS.get(item.id) ?? null
 }
@@ -195,9 +197,14 @@ export function questClass(item: Pick<Item, 'id'>): ClassId | null {
  * class-quest reward's class: docs/data/items.md#class-quest-rewards)?
  */
 export function canUse(classId: ClassId, item: Item): boolean {
-  if (item.classes && !item.classes.includes(CLASS_NAME[classId])) return false
   const quest = QUEST_CLASS.get(item.id)
   if (quest !== undefined && quest !== classId) return false
+  return canWear(classId, item)
+}
+
+/** canUse without the class-quest rule: what the client alone lets the class wear. */
+function canWear(classId: ClassId, item: Item): boolean {
+  if (item.classes && !item.classes.includes(CLASS_NAME[classId])) return false
   const p = PROFICIENCY[classId]
   if (item.itemClass === 'Armor') {
     if (item.slot === 'shield') return p.shield
@@ -217,11 +224,28 @@ export function canUse(classId: ClassId, item: Item): boolean {
 
 /** Does the item fit this paper-doll slot for this class (e.g. off-hand weapons need dual wield)? */
 export function fitsSlot(classId: ClassId, slot: GearSlot, item: Item): boolean {
+  const quest = QUEST_CLASS.get(item.id)
+  return (quest === undefined || quest === classId) && fitsSlotByClient(classId, slot, item)
+}
+
+/** fitsSlot without the class-quest rule. */
+function fitsSlotByClient(classId: ClassId, slot: GearSlot, item: Item): boolean {
   if (!item.equipSlots.includes(SLOT_EQUIPS[slot])) return false
-  if (!canUse(classId, item)) return false
+  if (!canWear(classId, item)) return false
   if (slot === 'offHand' && item.itemClass === 'Weapon') return PROFICIENCY[classId].dualWield
   if (slot === 'ranged' && item.slot === 'relic') return PROFICIENCY[classId].relic !== null
   return true
+}
+
+/**
+ * The class whose quest reward keeps this item out of the slot, when that's the only reason: the
+ * item fits the slot for this class by the client alone (its armor type, slot and class
+ * restriction), but it's another class's quest reward (docs/data/items.md#class-quest-rewards).
+ * Null otherwise, including for an item the class couldn't wear there anyway, whose reason is that.
+ */
+export function questOnlyBar(classId: ClassId, slot: GearSlot, item: Item): ClassId | null {
+  const quest = QUEST_CLASS.get(item.id)
+  return quest !== undefined && quest !== classId && fitsSlotByClient(classId, slot, item) ? quest : null
 }
 
 // --- Unique and Unique-Equipped (docs/data/items.md#equipping-rules) -------------------------

@@ -54,7 +54,7 @@ export {
   type TalentPreset,
 } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, questClass, uniqueConflicts, type UniqueConflict } from './equip'
-export { GEAR_SLOTS, normalizeConfig, type NormalizedConfig, type TalentChange } from './config/normalize'
+export { GEAR_SLOTS, normalizeConfig, questRemovalNotice, type NormalizedConfig, type QuestRemoval, type TalentChange } from './config/normalize'
 export { CONFIG_VERSION, migrationNotice, refundNotice, successorNotice, type TalentMigration, type TalentRefund, type TalentSuccessor } from './config/talent-trees'
 export { readOnOlderTrees } from './config/talent-successors'
 export {

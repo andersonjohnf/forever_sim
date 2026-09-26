@@ -21,13 +21,31 @@ export interface RoadmapEntry {
 /** Every agreed milestone, in the order they're coming: the next update first, "Later" last. */
 export const ROADMAP: readonly RoadmapEntry[] = [
   {
-    id: 'paladin-accuracy',
-    title: 'Sharper paladin numbers',
+    id: 'sharper-numbers',
+    title: 'Sharper numbers across the board',
     when: 'Next update',
     items: [
+      'Values the sim estimated to fill gaps are replaced with ones from the game’s data, Classic, or tests in the game, used as they are, and what’s still unconfirmed is listed in your results’ assumptions.',
       'Seal of Fury deals its flat damage per hit, as its tooltip says, with no extra from weapon speed.',
       'Judgement of the Crusader adds each Holy hit’s share of its bonus, as beta logs and an in-game test show; the “All of it” setting goes.',
       'Protection Paladin’s defaults are re-tuned to match.',
+      'Protection Warrior’s Shield Slam and Sunder Armor make the threat Forever gives them.',
+      'The bear’s Lacerate makes the same threat as Sunder Armor, and its Primal Bite and rage follow the game’s data.',
+      'Revenge, Thunder Clap, Rend, Arcane Shot, Serpent Sting, Unbridled Wrath and off-hand rage use the game’s data and combat logs.',
+      'Casters’ epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock and Thorns are checked against the game’s data the same way.',
+      'Each class’s Dungeon Set 2 joins the gear, and the bear’s helm is picked again.',
+      'Each hit’s damage is rounded down, as the game does.',
+    ],
+  },
+  {
+    id: 'multi-target',
+    title: 'Multi-target',
+    when: 'Planned',
+    items: [
+      'Fight up to 5 enemies at once, and set how long the extra ones are up.',
+      'Each enemy keeps its own debuffs, bleeds and threat.',
+      'Cleave, Whirlwind, Sweeping Strikes and Thunder Clap for warriors, Swipe for bears, and Consecration for paladins.',
+      'Results add up damage and threat across the enemies, and split them by enemy.',
     ],
   },
   {
@@ -43,17 +61,6 @@ export const ROADMAP: readonly RoadmapEntry[] = [
       'Searches have a set limit, so none runs forever, and on a phone a search fits the time you pick.',
       'The top results show their DPS, TPS and damage taken, and one tap applies the one you want.',
       'Every spec’s defaults then come from the Optimizer’s results.',
-    ],
-  },
-  {
-    id: 'multi-target',
-    title: 'Multi-target',
-    when: 'Planned',
-    items: [
-      'Fight up to 5 enemies at once, and set how long the extra ones are up.',
-      'Each enemy keeps its own debuffs, bleeds and threat.',
-      'Cleave, Whirlwind, Sweeping Strikes and Thunder Clap for warriors, Swipe for bears, and Consecration for paladins.',
-      'Results add up damage and threat across the enemies, and split them by enemy.',
     ],
   },
   {
@@ -81,7 +88,7 @@ export const ROADMAP: readonly RoadmapEntry[] = [
     title: 'Checked against the game',
     when: 'Planned',
     items: [
-      'The sim’s numbers compared with the guild’s logs and target dummy tests, and its best guesses replaced with measured values.',
+      'The sim’s numbers compared with beta logs and target dummy tests in the game, and its unconfirmed values replaced with measured ones.',
       'Every spec’s rotation tuned as carefully as the tanks’ are.',
     ],
   },

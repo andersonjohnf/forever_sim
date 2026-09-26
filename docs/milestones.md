@@ -203,14 +203,32 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
 - [ ] **P3 Provenance:** every "guild benchmark" or "guild test" label that isn't one corrected
       (user, 2026-09-25: the guild had run no tests before that one)
 
+## M5.669: Only sourced values 🚧 next update
+
+The user's rules of 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): no
+invented multipliers, ratios, scalings or fitted terms; an undescribed client dummy models as zero;
+other sims and offhand numbers are never evidence. Each slice replaces the values that broke them
+with an allowed source's, used as is, and re-measures the headlines it moves. The paladin's own
+provenance is M5.668's P3.
+- [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
+      "guild test" relabelled as a player's Discord tests; planned tests called in-game tests
+- [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
+- [ ] **B2 Attack-power terms and procs from the client and logs:** Revenge, Thunder Clap, Rend,
+      Arcane Shot, Serpent Sting, Unbridled Wrath, off-hand rage
+- [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite, the rage fit, Maul's ×1.75 provenance
+- [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
+- [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
+- [ ] **G Damage truncated per hit**
+
 ## M5.67: Item tooltips ✅
 
 A WoW-style tooltip for every item in the gear slots and the item picker, from the client's data ([ux.md](ux.md#item-tooltips)): [review](reviews/2026-09-25-item-tooltips.md).
 
-## M5.7: The optimizer (D30) 🚧 top priority
+## M5.7: The optimizer (D30) 🚧 after multi-target
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
-sets. Each spec's defaults are then its results.
+sets. Each spec's defaults are then its results. Its remaining steps, O3 and O4, come after
+multi-target ([M6](#m6-multi-target-); user decision, 2026-09-26).
 - [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
       enumerator (tree rules, kept and excluded talents, the minimum points in a tree), rotation
@@ -267,9 +285,10 @@ sets. Each spec's defaults are then its results.
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 
-## M6: Multi-target 💤
+## M6: Multi-target ⏳
 
-The engine fights one target today. The design is
+**Next after M5.669,** ahead of the optimizer's remaining steps (O3 and O4; user decision,
+2026-09-26). The engine fights one target today. The design is
 [encounter.md §4](mechanics/encounter.md#4-targets-and-position): extra targets are identical
 copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
 - **Engine and config:**

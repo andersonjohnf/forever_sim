@@ -436,7 +436,7 @@ slice is worked:
     (23 spell power) as best in slot and Staff of Jordan as #2, while Ironbark Staff (94 spell power,
     +28 crit, item level 65) is unranked.
   - **The fix:** label each rank with its list, and rank the Frost and Arcane two-handers by sim.
-    Queued with the gear search ([O2](milestones.md#m57-the-optimizer-d30--top-priority)); low because it's the
+    Queued with the gear search ([O2](milestones.md#m57-the-optimizer-d30--after-multi-target)); low because it's the
     picker's ranking, not a result, and the picker still offers every item.
 
 - **From the priority-list reviews (M5.65 A2, 2026-09-25), low, waived for the release:**

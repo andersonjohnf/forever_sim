@@ -452,7 +452,7 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
 - [x] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
 - [ ] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
 
-## M5.67: Item tooltips 🚧 in progress, after the WarriorSim update
+## M5.67: Item tooltips ✅
 
 A WoW-style tooltip for every item, built from the Forever client's own data (user decision,
 2026-09-25: its own milestone, shipping in the update after the priority lists and the wide
@@ -461,9 +461,9 @@ slot and type, armor, weapon damage and speed, stats, equip and use effects, set
 the item level, plus the enchant on it. On desktop it opens on hover and on keyboard
 focus; on a phone, where nothing hovers (docs/ux.md), a tap on the item's info control or a long
 press opens it, and it closes on a tap outside or Escape.
-- [ ] **T1 Tooltip content:** a pure function from an item (and its enchant) to the tooltip's lines,
+- [x] **T1 Tooltip content:** a pure function from an item (and its enchant) to the tooltip's lines,
       with tests against the client data, and the tooltip component
-- [ ] **T2 Where it shows:** the gear slots, the item picker and the character sheet, at every width
+- [x] **T2 Where it shows:** the gear slots and the item picker, at every width (the character sheet shows no items)
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

@@ -369,8 +369,10 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
  * off the GCD, at the pull in the default order), and a spec whose rotation doesn't, the Protection
  * paladin, gets it as a shared line at the pull (classes/shared-consumables.ts). It doesn't stack
  * with a mage's Arcane Power (12042), which outranks it: it doesn't go up while Arcane Power is ("A
- * more powerful spell is already active"), and Arcane Power going up ends it (`yieldsTo`) [C]
- * (Classic Era's rule, which neither client's tables show; buffs doc open question 23 for Forever).
+ * more powerful spell is already active"), and Arcane Power going up ends it (`yieldsTo`): [?]
+ * placeholder (D24); origin: the 1.10.2 and 1.12.0 patch notes (warcraft.wiki.gg: Arcane Power
+ * (Classic)), not evidence. Neither client's tables show it, and no 2019+ Classic Era source confirms
+ * it (buffs doc open question 23, testable on Classic Era or on Forever).
  */
 export const POWER_INFUSION: OnUseSpec = {
   id: 'powerInfusion',
@@ -382,7 +384,7 @@ export const POWER_INFUSION: OnUseSpec = {
     id: 'powerInfusion',
     name: 'Power Infusion',
     durationMs: 15000,
-    // Arcane Power's aura (classes/mage/abilities.ts ARCANE_POWER_AURA) outranks it [C].
+    // Arcane Power's aura (classes/mage/abilities.ts ARCANE_POWER_AURA) outranks it: [?] placeholder (D24), patch 1.12's rule.
     yieldsTo: 'arcanePower',
     mods: { schoolMask: schoolMask(MAGIC_SCHOOLS), schoolDamage: 20 },
   },

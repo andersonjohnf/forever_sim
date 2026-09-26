@@ -427,8 +427,8 @@ export class Sim {
   private readonly aGroupNext: Int32Array
   /**
    * The aura that outranks each (`AuraPlan.yieldsTo`), or −1: while it's up this one doesn't go up;
-   * and the aura each one's going up ends, or −1 (Power Infusion yields to Arcane Power [C], buffs doc
-   * §1.1 "Power Infusion").
+   * and the aura each one's going up ends, or −1 (Power Infusion yields to Arcane Power, a [?]
+   * placeholder (D24), buffs doc §1.1 "Power Infusion"). One yielding aura for each outranking one.
    */
   private readonly aYieldsTo: Int32Array
   private readonly aEnds: Int32Array
@@ -1550,11 +1550,21 @@ export class Sim {
     this.aHoly = Float64Array.from(auras, (a) => a.holy ?? 0)
     this.aHolyTaken = Float64Array.from(auras, (a) => a.holyTaken ?? 0)
     this.aGroupNext = ring(auras.map((a) => a.group))
-    // buffs doc §1.1 "Power Infusion": an aura that outranks another (Arcane Power, Power Infusion) [C].
+    // buffs doc §1.1 "Power Infusion": an aura that outranks another (Arcane Power, Power Infusion):
+    // [?] placeholder (D24), patch 1.12's rule.
     this.aYieldsTo = Int32Array.from(auras, (a) => (a.yieldsTo === undefined ? -1 : auras.findIndex((b) => b.id === a.yieldsTo)))
+    // aEnds holds one yielding aura for each outranking one, so a second aura yielding to the same one
+    // would silently replace the first. The only pair today is Power Infusion and Arcane Power; if a
+    // second pair ever yields to the same aura, make aEnds a list (a ring, as aGroupNext is) and have
+    // startAura end each of them.
     this.aEnds = new Int32Array(na).fill(-1)
     this.aYieldsTo.forEach((over, i) => {
-      if (over >= 0) this.aEnds[over] = i
+      if (over < 0) return
+      if (this.aEnds[over] >= 0)
+        throw new Error(
+          `Sim: auras '${auras[this.aEnds[over]].id}' and '${auras[i].id}' both yield to '${auras[over].id}'; only one aura may yield to another (see aEnds)`,
+        )
+      this.aEnds[over] = i
     })
     this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
@@ -4041,7 +4051,7 @@ export class Sim {
   /** Puts aura a on the warrior (or refreshes it, adding a stack) until `end` (a pre-pull aura ends early). */
   private startAura(a: number, end: number): void {
     // buffs doc §1.1 "Power Infusion": an aura that outranks it is up, so it doesn't go up ("A more
-    // powerful spell is already active"); and one it outranks ends as it goes up [C].
+    // powerful spell is already active"); and one it outranks ends as it goes up: [?] placeholder (D24).
     const over = this.aYieldsTo[a]
     if (over >= 0 && this.auraActive[over] === 1) return
     const under = this.aEnds[a]

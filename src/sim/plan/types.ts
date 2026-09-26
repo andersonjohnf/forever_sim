@@ -434,7 +434,7 @@ export interface AuraPlan {
   group?: string
   /**
    * The id of an aura that outranks it (`AuraSpec.yieldsTo`): while that one is up this one doesn't
-   * go up, and that one going up ends it (Power Infusion yields to Arcane Power [C], buffs doc §1.1
+   * go up, and that one going up ends it (Power Infusion yields to Arcane Power, a [?] placeholder (D24), buffs doc §1.1
    * "Power Infusion"). Absent, or an aura not in the plan: none.
    */
   yieldsTo?: string

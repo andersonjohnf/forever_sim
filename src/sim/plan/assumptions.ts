@@ -441,7 +441,7 @@ const REGISTRY = {
     docRef: `${DT}#24-damage-modifier-stacking`,
   },
   // buffs doc §1.1 "Power Infusion": one cast at the pull (the user's rule); with Arcane Power, the
-  // plan adds that they don't stack (`powerInfusionText`), Classic Era's rule [C] (OQ 23 for Forever).
+  // plan adds that they don't stack (`powerInfusionText`): [?] placeholder (D24), patch 1.12's rule (OQ 23).
   powerInfusion: {
     text: 'A priest casts Power Infusion on you once, at the pull: +20% spell damage from 0 to 15 s. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes.',
     docRef: `${BUFFS}#power-infusion`,
@@ -1102,11 +1102,12 @@ export const preAqRanksText = (blessings: boolean): string =>
 
 /**
  * The `powerInfusion` assumption, adding for a setup that also uses Arcane Power that they don't
- * stack, Classic Era's rule [C] (buffs doc §1.1 "Power Infusion"; open question 23 for Forever).
+ * stack: a [?] placeholder (D24), patch 1.12's rule, which no 2019+ Classic Era source confirms (buffs
+ * doc §1.1 "Power Infusion"; open question 23, testable on Classic Era or on Forever).
  */
 export const powerInfusionText = (arcanePower: boolean): string =>
   arcanePower
-    ? `${REGISTRY.powerInfusion.text} It doesn’t stack with your Arcane Power, as in Classic Era: it can’t land while Arcane Power is up, and Arcane Power ends it. Both come at the pull, so here Power Infusion adds nothing. Untested in Forever.`
+    ? `${REGISTRY.powerInfusion.text} It doesn’t stack with your Arcane Power, as patch 1.12 had it: it can’t land while Arcane Power is up, and Arcane Power ends it. Both come at the pull, so here Power Infusion adds nothing. Untested in Classic Era or Forever.`
     : REGISTRY.powerInfusion.text
 
 /** Items in prose: "a", "a and b", "a, b and c". */

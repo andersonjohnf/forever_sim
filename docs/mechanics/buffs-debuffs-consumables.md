@@ -186,7 +186,7 @@ Blessing of Might or Wisdom is on.
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)); a Balance druid's own Moonkin Form brings it, so its Buffs tab shows it on and locked, and a Leader of the Pack in its group adds nothing ([druid §11.1](../classes/druid.md#111-moonkin-form)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
-| Power Infusion | 10060 | +20% spell damage and +20% healing done (every magic school), 15 s. No mana-cost cut | 3 min cooldown | Doesn't stack with Arcane Power, which wins [C] ([Power Infusion](#power-infusion), OQ 23) | Priest talent, cast on another player. The casters' and the Protection paladin's Buffs entry, **cast on you once, at the pull**; off in every preset ([Power Infusion](#power-infusion)) | [F] | [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009) |
+| Power Infusion | 10060 | +20% spell damage and +20% healing done (every magic school), 15 s. No mana-cost cut | 3 min cooldown | Doesn't stack with Arcane Power, which wins: [?] placeholder (D24), patch 1.12's rule ([Power Infusion](#power-infusion), OQ 23) | Priest talent, cast on another player. The casters' and the Protection paladin's Buffs entry, **cast on you once, at the pull**; off in every preset ([Power Infusion](#power-infusion)) | [F] | [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, 1.60.1.70009) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r4) | 10442 (aura 10441) | **+42** Str (C: 61). Rank 5 (25361, +53) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
 | Grace of Air Totem (r2) | 10627 (aura 10626) | **+77** Agi (C: 67). Rank 3 (25359, +89) is an Ahn'Qiraj tablet (D36) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, 1.60.1.70009) |
@@ -340,13 +340,17 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
   on it, the druid's spell, not yours ([Thorns on the tank](#12-threat-defense-and-mana)) [?].
   Its threat is its damage × its threat multipliers, so its threat gains as its Holy damage does.
   Your pet's damage doesn't gain: the aura is on you, not on your demon.
-- **It doesn't stack with Arcane Power, which wins** [C] ([wowpedia: Arcane Power (Classic)][wp-ap-classic],
-  [wowpedia: Power Infusion (Classic)][wp-pi-classic], [Wowhead Classic: Arcane Power][wh-12042]). In
-  Classic Era a priest who casts Power Infusion on a mage with Arcane Power up gets "A more powerful
-  spell is already active", and a mage who uses Arcane Power with Power Infusion up loses Power
-  Infusion. Neither client's tables show it (no `SpellAuraRestrictions` row, no shared aura group, and
-  Arcane Power, 12042, is a different aura, 108, on the mage's class mask), so it's the server's rule,
-  and Forever may not keep it: [open question 23](#open-questions). The sim models it as an aura that
+- **It doesn't stack with Arcane Power, which wins** [?] placeholder (D24); origin: the 1.10.2 and
+  1.12.0 patch notes ([warcraft.wiki.gg: Arcane Power (Classic)][wiki-ap-classic]), not evidence. As
+  patch 1.12 had it, a priest who casts Power Infusion on a mage with Arcane Power up gets "A more
+  powerful spell is already active", and a mage who uses Arcane Power with Power Infusion up loses
+  Power Infusion. Neither client's tables show it (no `SpellAuraRestrictions` row, no shared aura
+  group, and Arcane Power, 12042, is a different aura, 108, on the mage's class mask), so it's the
+  server's rule. Classic Era runs 1.12's rules, so it very likely keeps it, but no 2019+ Classic Era
+  source confirms it, and Forever may not keep it either: [open question 23](#open-questions), which
+  a test on Classic Era or on Forever settles. The rule is kept as a placeholder because the only
+  alternative, stacking them, is as unsourced and less likely; its error in every default setup is
+  0%, since Power Infusion is off in every preset. The sim models it as an aura that
   **yields** to another (`AuraSpec.yieldsTo`): Power Infusion doesn't go up while Arcane Power is, and
   Arcane Power going up ends it. Both come at the pull, so in either order Power Infusion gives an
   Arcane mage nothing: in the default order Arcane Power (row 1) goes up first and the priest's cast
@@ -1645,7 +1649,8 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
     its 3-minute cooldown would allow two more. While it's up each magic school's damage is ×1.20: a
     Frostbolt of 1,000 deals **1,200**, and one that lands after 15 s the same as without it. With
     Arcane Power up, it doesn't land, so an Arcane mage's spell is ×1.30, **not ×1.30 × 1.20 = ×1.56**
-    [C] (open question 23): its Arcane Power at the pull keeps it out, or, pressed after it, ends it.
+    ([?] placeholder (D24), patch 1.12's rule; open question 23): its Arcane Power at the pull keeps
+    it out, or, pressed after it, ends it.
 
 ---
 
@@ -1777,14 +1782,17 @@ Each item says what was found and how the guild can check it on the Forever beta
     Might is rank 6's +112 and Wisdom rank 5's 36. If a trainer teaches rank 2 at 60 anyway, Might is
     +133 again (+21 attack power, about +1% of a melee spec's DPS). *Check:* a level-60 paladin's
     trainer window, without the librams.
-23. **Power Infusion with Arcane Power in Forever** ([Power Infusion](#power-infusion)). The sim takes
-    Classic Era's rule [C]: they don't stack, and Arcane Power wins, so an Arcane mage's Power
-    Infusion at the pull gives nothing (+0.0 DPS). Neither client's tables show the rule (no aura
-    restrictions, different aura types), so it's the server's, and Forever may not keep 1.12's
-    exclusivity. If it stacks in Forever, both would be ×1.30 × 1.20 = ×1.56 while up, and the Arcane
-    mage would gain about +2.4% of its DPS from it (the sim's figure when it stacked them). *Check:* an Arcane mage uses
-    Arcane Power, and a priest casts Power Infusion on them: does it land, or say "A more powerful
-    spell is already active"? Then the other way round, and read the buffs and a Frostbolt's damage.
+23. **Power Infusion with Arcane Power** [?] ([Power Infusion](#power-infusion)). The sim takes
+    patch 1.12's rule as a placeholder (D24; origin: the 1.10.2 and 1.12.0 patch notes, not
+    evidence): they don't stack, and Arcane Power wins, so an Arcane mage's Power Infusion at the pull
+    gives nothing (+0.0 DPS). Neither client's tables show the rule (no aura restrictions, different
+    aura types), so it's the server's. Classic Era runs 1.12's rules and very likely keeps it, but no
+    2019+ Classic Era source confirms it, and Forever may not keep it either. If they stack, both
+    would be ×1.30 × 1.20 = ×1.56 while up, and the Arcane mage would gain about +2.4% of its DPS from
+    Power Infusion (the sim's figure when it stacked them); with Power Infusion off, as in every
+    preset, the error is 0%. *Check (on Classic Era or on Forever):* an Arcane mage uses Arcane Power,
+    and a priest casts Power Infusion on them: does it land, or say "A more powerful spell is already
+    active"? Then the other way round, and read the buffs and a Frostbolt's damage.
 
 ---
 
@@ -1812,7 +1820,7 @@ Each item says what was found and how the guild can check it on the Forever beta
 | wiki-ppm | https://warcraft.wiki.gg/wiki/Procs_per_minute | Weapon enchant PPM values (unversioned "original WoW" section) | Unclear, so [?] (Icy Chill, Unholy) |
 | ws-gear | https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js | Enchant PPMs at WarriorSim's pre-SoD commit `180a3cc` (2021): Crusader 1, Fiery 6, Lifestealing 6 | Classic Era [C] (pre-SoD) |
 | magey-wf | https://github.com/magey/classic-warrior/wiki/Windfury-Totem | Windfury can't proc itself or twice in one chain (2019 text) | Classic Era [C] |
-| wp-ap-classic / wp-pi-classic / wh-12042 | https://wowpedia.fandom.com/wiki/Arcane_Power_(Classic) · https://wowpedia.fandom.com/wiki/Power_Infusion_(Classic) · https://www.wowhead.com/classic/spell=12042/arcane-power | Arcane Power and Power Infusion don't stack, and Arcane Power wins: "A more powerful spell is already active" (the Classic pages carry the 1.12 rule, "It is no longer possible to gain the benefit of this spell and Power Infusion at the same time") | Classic Era [C] |
+| wiki-ap-classic | https://warcraft.wiki.gg/wiki/Arcane_Power_(Classic) | Where the placeholder's rule is described: Arcane Power and Power Infusion don't stack, and Arcane Power wins, from the 1.10.2 and 1.12.0 patch notes ("It is no longer possible to gain the benefit of this spell and Power Infusion at the same time") | Original Vanilla patch notes: the placeholder's origin (D24), not evidence |
 | turtle-salad | https://database.turtlecraft.gg/?item=83309 | The only "Herbal Salad" found | **Forbidden** (Turtle WoW private server); cited only to explain why it isn't adopted |
 
 Related docs: [character-stats](character-stats.md) (stat pipeline, Kings ordering) ·
@@ -1844,9 +1852,7 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [wh-thor]: https://www.wowhead.com/classic/item=15993
 [wh-zanza]: https://www.wowhead.com/classic/item=20079
 [wh-roids]: https://www.wowhead.com/classic/item=8410
-[wh-12042]: https://www.wowhead.com/classic/spell=12042/arcane-power
-[wp-ap-classic]: https://wowpedia.fandom.com/wiki/Arcane_Power_(Classic)
-[wp-pi-classic]: https://wowpedia.fandom.com/wiki/Power_Infusion_(Classic)
+[wiki-ap-classic]: https://warcraft.wiki.gg/wiki/Arcane_Power_(Classic)
 [fc-camping]: https://foreverchanges.pro/professions/camping
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [bt-1144]: https://www.bluetracker.gg/wow/topic/us-en/1656146-wow-classic-era-version-1144-patch-notes/

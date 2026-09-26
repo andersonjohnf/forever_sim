@@ -345,9 +345,10 @@ SpellCooldowns 3 min; SpellDuration 15 s). Off the GCD and free.
   stays free.
 - Master of Elements returns its share of the spell's base cost, without the 30%.
 - **It doesn't stack with a priest's Power Infusion**, and wins: Power Infusion doesn't land while
-  it's up, and it ends Power Infusion as it goes up, Classic Era's rule [C]
+  it's up, and it ends Power Infusion as it goes up, as patch 1.12 had it: a [?] placeholder (D24)
+  that no 2019+ Classic Era source confirms
   ([buffs "Power Infusion"](../mechanics/buffs-debuffs-consumables.md#power-infusion), open question
-  23 for Forever). Both at the pull, Power Infusion gives the Arcane mage nothing.
+  23, testable on Classic Era or on Forever). Both at the pull, Power Infusion gives the Arcane mage nothing.
 
 ---
 

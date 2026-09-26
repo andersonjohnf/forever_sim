@@ -108,7 +108,7 @@ describe('worked example 14: Power Infusion at the pull', () => {
         }
         sim.runFight(0)
         expect(casts, at).toEqual([0])
-        // The Arcane mage's Arcane Power, at the pull too, keeps it out (Classic Era's rule [C]).
+        // The Arcane mage's Arcane Power, at the pull too, keeps it out (patch 1.12's rule, a [?] placeholder, D24).
         expect(sim.auraUpMs[auraOf(plan, PI)], at).toBe(spec === 'mage-arcane' ? 0 : 15000)
       }
     }
@@ -135,7 +135,7 @@ describe('worked example 14: Power Infusion at the pull', () => {
   })
 })
 
-describe('Power Infusion and Arcane Power don’t stack: Arcane Power wins (Classic Era’s rule [C], worked example 14)', () => {
+describe('Power Infusion and Arcane Power don’t stack: Arcane Power wins (patch 1.12’s rule, a [?] placeholder per D24; worked example 14)', () => {
   const arcane = (on: boolean, patch: Partial<SimConfig> = {}) =>
     withPi('mage-arcane', on, { fight: { ...defaultConfig('mage-arcane').fight, durationSec: 180, durationVariationPct: 0 }, ...patch })
   const run = (config: SimConfig) => {
@@ -180,6 +180,14 @@ describe('Power Infusion and Arcane Power don’t stack: Arcane Power wins (Clas
     const { plan, pi } = run(arcane(true, { rotation: { ...defaultConfig('mage-arcane').rotation, 'mage.arcane.arcanePower.enabled': false } }))
     expect(pi).toEqual({ upMs: 15000, applications: 1 })
     expect(auraOf(plan, ARCANE_POWER_AURA.id)).toBe(-1)
+  })
+
+  it('only one aura may yield to another: a second one yielding to Arcane Power is refused when the Sim is built', () => {
+    const plan = buildPlan(arcane(true)).plan
+    const piAura = plan.auras[auraOf(plan, PI)]
+    expect(() => new Sim(plan)).not.toThrow()
+    const twice: Plan = { ...plan, auras: [...plan.auras, { ...piAura, id: 'secondYielder', name: 'Second yielder' }] }
+    expect(() => new Sim(twice)).toThrow(/'powerInfusion' and 'secondYielder' both yield to 'arcanePower'/)
   })
 })
 
@@ -293,7 +301,7 @@ describe('who sees Power Infusion, and its default', () => {
       const text = buildPlan(withPi(spec, true)).assumptions.find((a) => a.id === PI)?.text
       expect(text, spec).toMatch(/once, at the pull/)
       expect(text?.includes('Arcane Power'), spec).toBe(spec === 'mage-arcane')
-      if (spec === 'mage-arcane') expect(text).toMatch(/doesn’t stack with your Arcane Power/)
+      if (spec === 'mage-arcane') expect(text).toMatch(/doesn’t stack with your Arcane Power, as patch 1\.12 had it: .* Untested in Classic Era or Forever\.$/)
       expect(buildPlan(withPi(spec, false)).assumptions.some((a) => a.id === PI), spec).toBe(false)
     }
   })

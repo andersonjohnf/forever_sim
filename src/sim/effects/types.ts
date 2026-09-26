@@ -301,7 +301,7 @@ export interface AuraSpec {
   /**
    * The id of an aura that outranks it ("A more powerful spell is already active"): while that one is
    * up this one doesn't go up, and that one going up ends it. Power Infusion yields to Arcane Power
-   * [C] (buffs doc §1.1 "Power Infusion"). Absent: none.
+   * ([?] placeholder (D24), patch 1.12's rule; buffs doc §1.1 "Power Infusion"). Absent: none.
    */
   yieldsTo?: string
   /**

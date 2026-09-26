@@ -27,6 +27,7 @@ import {
   ENERGY_PER_TICK_TENTHS,
   MAX_ENERGY_TENTHS,
   NO_STRIKE,
+  START_ENERGY_TENTHS,
   OMEN_OF_CLARITY,
   OMEN_OF_CLARITY_ICD_MS,
   shapeshift,
@@ -271,6 +272,21 @@ describe('worked examples without cat or bear abilities (druid.md §9)', () => {
   it('W11 (regeneration part): 15 power ticks of 20 Energy in 30 s, 300 Energy', () => {
     expect((30000 / 2000) * ENERGY_PER_TICK_TENTHS).toBe(3000)
     expect(MAX_ENERGY_TENTHS).toBe(1000)
+  })
+
+  // PowerType isn't in the committed client data; with the raw Forever tables cached locally
+  // (.cache/client/1.60.1.69977/tables, from `npm run scrape:client`), pin Energy's row (CL-6).
+  const POWER_TYPE = import.meta.glob<string>('/.cache/client/1.60.1.69977/tables/PowerType.ndjson', { query: '?raw', import: 'default' })
+  it.skipIf(Object.keys(POWER_TYPE).length !== 1)('Energy’s cap, full bar and rate are the Forever client’s PowerType row (1.60.1.69977, cached locally; druid.md §2.4)', async () => {
+    const raw = await Object.values(POWER_TYPE)[0]()
+    const energy = raw
+      .split('\n')
+      .filter((line) => line.includes('"NameGlobalStringTag":"ENERGY"'))
+      .map((line) => JSON.parse(line) as Record<string, number>)
+    expect(energy).toHaveLength(1)
+    expect(energy[0]).toMatchObject({ MaxBasePower: MAX_ENERGY_TENTHS / 10, DefaultPower: START_ENERGY_TENTHS / 10 })
+    // RegenCombat is Energy a second: 20 a tick every 2 s is the same 10 a second.
+    expect(energy[0].RegenCombat).toBe(ENERGY_PER_TICK_TENTHS / 10 / 2)
   })
 })
 

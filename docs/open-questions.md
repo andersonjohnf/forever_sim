@@ -570,7 +570,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 
 #### B14. Bear rage
-**High · M4 · ≤20 (bear form at 10)**
+**High · M4 · ≤20 (Bear Form from level 3 in the public beta logs)**
 - **Assumes:** 4.5 × 2.5 = 11.25 rage per landed bear auto, the two-hander's rate, crits no bonus
   [?]: 22 of 26 clean pairs of bear swings in the public beta logs, from 17 druids at levels 3–14
   ([rage.md](mechanics/rage.md#bear-white-hits-in-the-public-beta-logs-); adopted 2026-09-26 under

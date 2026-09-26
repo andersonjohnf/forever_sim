@@ -405,7 +405,7 @@ const REGISTRY = {
     docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   energyTicks: {
-    text: 'Energy comes 20 every 2 s, as in Classic Era, up to 100, and you start the fight with a full bar, as the game’s files have it. The rest is untested: the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
+    text: 'Energy comes 20 every 2 s, up to 100, and you start the fight with a full bar: 10 a second, the cap and the full bar as the game’s files have them, the 2 s ticks as in Classic Era. The rest is untested: the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
     docRef: `${DRUID}#24-energy-cat`,
   },
   shapeshifts: {

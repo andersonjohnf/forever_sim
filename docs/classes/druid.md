@@ -270,11 +270,11 @@ not verified in game; the difference from additive is under 0.5% for the combina
 
 | Rule | Value | Tag, source |
 | --- | --- | --- |
-| Regeneration | **20 Energy per tick, ticks 2 s apart** (10 Energy/s) | [C] [wh-rot] (its powershift cycle table shows +20 Energy at t = 1 s and t = 3 s) |
+| Regeneration | **20 Energy per tick, ticks 2 s apart** (10 Energy/s) | The rate, 10 a second: [F] [client] (PowerType, 1.60.1.69977: ENERGY `RegenCombat` 10; druid.test.ts pins it against the cached table). The 2 s ticks: [C] [wh-rot] (its powershift cycle table shows +20 Energy at t = 1 s and t = 3 s) |
 | Tick refinement | wowsims/classic models **20.2 Energy every 2020 ms** (same 10/s). Default to 20 per 2000 ms until measured | [?] (secondary [ws-energy]) (Q6) |
 | First tick | Random phase in [0, 2000) ms relative to the start of the fight | [?] (secondary [ws-energy]) |
 | Tick cadence across shifts | The tick timer is player-global and **does not reset** when shifting: in the Classic cycle the first tick comes 1 s after the powershift, not 2 s, so the shift didn't restart the timer | [C] [wh-rot] |
-| Cap | 100. Energy above 100 is lost | [F] [client] (PowerType, 1.60.1.69977: ENERGY `MaxBasePower` 100; Classic Era 1.15.9.69722 the same) |
+| Cap | 100. Energy above 100 is lost | [F] [client] (PowerType, 1.60.1.69977: ENERGY `MaxBasePower` 100; Classic Era 1.15.9.69722 the same). PowerType isn't in the committed data; druid.test.ts checks this row against the locally cached table (skipped without it) |
 | Start of fight | 100 Energy (the player comes in full) | [F] [client] (PowerType, 1.60.1.69977: ENERGY `DefaultPower` 100); [encounter.md](../mechanics/encounter.md) may override |
 | Miss, dodge or parry refund | **Builders (Shred, Claw, Rake) refund 80%** of their cost. **Finishers (Rip, FB) refund 0 and keep their combo points** | [?] (secondary [ws-shred] [ws-rip] [ws-fb]) (Q29) |
 | Haste | Does **not** change Energy regeneration | [?] (Q6) |

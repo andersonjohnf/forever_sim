@@ -634,13 +634,16 @@ for a 3.3 s two-hander.
 | Rise per swing | Pairs | Druids | Notes |
 | --- | --- | --- | --- |
 | 11.2 or 11.3 | 22 | 17 | Crits (3) and a glancing blow give the same |
-| 8.7 | 1 | 1 | Across a 3.9 s gap |
+| 8.7 | 1 | 1 | Across a 3.9 s gap; the one-hander's 8.65, but a single pair from one druid that no other shows, so unexplained and not adopted |
 | 15.3, 17.2, 19.2 | 3 | 3 | More than any swing rate: most likely a hit taken that the log didn't record (these are other players' logs, which miss events out of their range) |
 
 No 2.5 s pair rose by 8.65's 8.6–8.7. The rate matches the one auto in the
 [bear logs](#bear-logs-of-23-and-24-sep-) and a player's report of about 11 per hit ([US 2355684
 #97][f-bear]). **Effect:** the default bear 1,160.2 → 1,177.0 TPS (+1.45%), 540.5 → 545.9 DPS (seed
-1, 10,000 fights, 2026-09-26). **Open:** level 60 (open question 3), as for the warriors' `k`.
+1, 10,000 fights, 2026-09-26, with Primal Bite then at 1.5 threat per damage, since reverted:
+[druid §4.2](../classes/druid.md#42-primal-bite-bear-only-1238073-at-level-60)). **Open:** level 60 (open
+question 3), as for the warriors' `k`, and the form: every pair is **Bear Form** (levels 3–14), none
+Dire Bear Form, which the sim's level-60 bear uses; Dire Bear is assumed to give the same.
 
 ---
 

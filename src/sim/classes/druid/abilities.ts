@@ -17,11 +17,15 @@ const DOC = 'docs/classes/druid.md'
 
 // --- Energy (druid.md §2.4) -------------------------------------------------------------------
 
-/** 20 Energy per power tick, every 2 s: 10 a second [C] (druid.md §2.4; the 20.2 per 2.02 s refinement is Q6 [?]). */
+/**
+ * 20 Energy per power tick, every 2 s: 10 a second, the Forever client's rate (PowerType ENERGY
+ * `RegenCombat` 10, 1.60.1.69977) [F]; the 2 s ticks are Classic Era's [C] (druid.md §2.4; the 20.2
+ * per 2.02 s refinement is Q6 [?]). druid.test.ts pins the rate against the cached table.
+ */
 export const ENERGY_PER_TICK_TENTHS = 200
-/** The Energy cap, 100 [?] (druid.md §2.4, Q29). */
+/** The Energy cap, 100: PowerType ENERGY `MaxBasePower` 100 (1.60.1.69977) [F] (druid.md §2.4). */
 export const MAX_ENERGY_TENTHS = 1000
-/** Energy at the pull: full [?] (druid.md §2.4). */
+/** Energy at the pull: full, PowerType ENERGY `DefaultPower` 100 (1.60.1.69977) [F] (druid.md §2.4). */
 export const START_ENERGY_TENTHS = 1000
 
 // --- Combo points (druid.md §2.5) ---------------------------------------------------------------
@@ -164,7 +168,7 @@ export const WOLFSHEAD_HELM = 8345
  * Idol of Brutality (23198, spell 28855): −2 rage (aura 107, misc 14: −20 tenths) on class mask
  * [2048, 64, 0, 0], which is Maul and Swipe (0x800 in the first word) and Primal Bite (0x40 in the second)
  * [F] [client] (SpellEffect, SpellClassOptions, 1.60.1.69913; druid.md §4.1, §4.2, §4.4). Its tooltip
- * names only Maul and Swipe, so Primal Bite's 2 rage is the client data's reading [?] (guild test G2).
+ * names only Maul and Swipe, so Primal Bite's 2 rage is the client data's reading [?] (in-game test G2, druid.md §10).
  */
 export const IDOL_OF_BRUTALITY = 23198
 export const IDOL_OF_BRUTALITY_RAGE_TENTHS = 20

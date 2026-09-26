@@ -147,7 +147,7 @@ export function combatRotation(
 ): ClassRotation {
   const ctx = { race: context.race ?? '', items: context.items ?? [], consumables: context.consumables ?? [] }
   const v = reader(COMBAT_OPTIONS, values, talents)
-  const b = new RogueRotationBuilder(talents)
+  const b = new RogueRotationBuilder(talents, context.profile?.id)
 
   compileAplRows(COMBAT_APL, order, {
     // Off the GCD (§6.1 rows 1–3): the racial, then the on-use items with the consumables selected in Buffs.

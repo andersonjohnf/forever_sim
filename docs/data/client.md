@@ -587,7 +587,7 @@ Things the raw files show that no doc claims yet:
    has `ProcCategoryRecovery` 100. The damage doc models no ICD because its only source was
    SoD-era ([damage-and-timing §5.4](../mechanics/damage-and-timing.md)). 100 ms is far shorter
    than any swing timer; whether it matters depends on how the server chains extra attacks
-   (a question for the guild's logs).
+   (a question for Forever's combat logs).
 2. **Frenzy potions share the potion cooldown** (D13): their spells are in category 4 with a
    120 s category recovery, although the item effects carry no category.
 3. **Judgement of Command can't miss** (D18): its damage spell 20966 carries Always Hit (Attr3
@@ -1097,14 +1097,14 @@ Custodian).
 
 - `[?]` **Shield block value in Forever.** The client ships no `ShieldBlockRegular` table and no
   per-shield block value. Does the server give shields an innate block value, and how much?
-  Guild test: the character sheet's block value with and without a shield equipped.
+  In-game test: the character sheet's block value with and without a shield equipped.
 - `[?]` **Caster-weapon DPS.** The 0.195-DPS-per-spell-power cut and "no extra spell power when
   the stats carry some" are fits to 7 and 1 items. A caster weapon's tooltip at another item
   level or quality would confirm them.
 - `[?]` **Epic caster weapons' spell power.** The rule was fitted on Rare weapons; on an Epic it gives
   Mindfang, Sageclaw and Ironbark Staff +94 spell power (Classic Era: +30), which is most of the
   casters' pre-raid main-hand value (Mindfang alone is +41 to +55 DPS for a warlock,
-  [warlock.md §7.3](../classes/warlock.md#73-gear)). Guild test: Mindfang's or Sageclaw's tooltip in
+  [warlock.md §7.3](../classes/warlock.md#73-gear)). In-game test: Mindfang's or Sageclaw's tooltip in
   game (its spell power line), or Ironbark Staff's.
 - `[?]` **Hotfix-only rows.** 50 pool items (and all 16 no-row-anywhere items) exist only as
   server hotfixes, and the Undermine trinkets' cooldowns look hotfixed. The raw client files

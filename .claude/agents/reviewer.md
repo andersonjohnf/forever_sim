@@ -18,6 +18,11 @@ exact steps or numbers, and suggested fix), and a short "Confirmed" list of what
 
 Always check plausibility (decision D29): compare the headline with the other specs and with
 what the class's players expect, and treat an outlier as a finding until a cited mechanic
-explains it. Flag any value that affects the result but has no default (an effect the client, a tooltip or a talent says exists, modelled as zero), any talent build that doesn't match how the spec is played (tanks talent for the balanced approach, not pure defense), any
-tank ability whose threat wording is treated differently from another tank's, and any gear
-preset built for stats the spec doesn't scale with.
+explains it; what no mechanic explains is an open question, never a reason to move a value
+(decision D37). Flag any value no step of doctrine §2's fallback order gives, or one taken from a
+later step than the first that has a value, or not labelled with where it came from; any
+undescribed client dummy given a meaning by analogy, any value that rests on an offhand number,
+any test called a guild test that isn't the user's or a guild member's recorded one, any talent build
+that doesn't match how the spec is played (tanks talent for the balanced approach, not pure
+defense), any tank ability whose threat wording is treated differently from another tank's, and
+any gear preset built for stats the spec doesn't scale with.

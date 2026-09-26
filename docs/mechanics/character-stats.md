@@ -220,7 +220,7 @@ Combat rogue +2.3%, Affliction +2.0%, Destruction +1.9%, Shadow Priest +1.6%, Fr
 proc it (about 16.5 procs a fight). At this default, Undead beats every Horde caster's default
 race: Arcane +4.3%, Fire +1.5%, Frost +1.1% and Shadow Priest +1.1% over Troll, Destruction +0.9%
 and Affliction +0.7% over Orc. No default race changes on the strength of a `[?]` default;
-the guild test in [OQ-10](#oq-10-touch-of-the-grave) settles the amount first.
+the in-game test in [OQ-10](#oq-10-touch-of-the-grave) settles the amount first.
 
 ---
 

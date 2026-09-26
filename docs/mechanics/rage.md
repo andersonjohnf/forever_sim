@@ -421,7 +421,7 @@ and a bear auto 8.65 until the logs below settle them, because:
 - The bear already leads the tanks: 1,126.6 TPS by default on 1.60.1.70009 (seed 31101), 12.5%
   above the warrior's 1,001.6 and 49.7% above the paladin's 752.6. There's no numeric target
   ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)),
-  so that's an observation for the guild's tests
+  so that's an observation for in-game tests
   ([milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), but either
   change would widen the lead on one level-20 sample, so the logs decide.
 

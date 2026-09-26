@@ -121,6 +121,7 @@ export const ASSUMPTION_GROUP = {
   rogueFlatInside: 'class',
   lethality: 'class',
   rogueTwoRolls: 'class',
+  rogueFinisherAp: 'class',
   rogueFinisherTalents: 'class',
   hackAndSlash: 'class',
   sliceAndDiceHaste: 'class',

@@ -87,8 +87,8 @@ one by its documented hypothesis, tagged [?]:
 - armor penetration: flat armor removed
   ([damage-and-timing](mechanics/damage-and-timing.md))
 
-A profile switch, `unmeasuredRatings: 'apply' | 'ignore'`, lets the guild see how much each
-result depends on them. When the guild measures one, the hypothesis becomes data.
+A profile switch, `unmeasuredRatings: 'apply' | 'ignore'`, shows how much each
+result depends on them. When an in-game test measures one, the hypothesis becomes data.
 
 ### D13: Cross-doc reconciliation rules (2026-09-22)
 A consistency review of the M0 research found 18 cross-doc contradictions and 9
@@ -262,9 +262,11 @@ public beta combat logs**:
 - the result holds across many independent characters, not one tester
 
 The value stays **[?]**, keeps an open question saying how to confirm it at level 60, and moves
-to **[F]** when the guild measures it. Anecdotes and single-tester fits still can't set a default.
-This covers the white-hit rage normalization and the damage-taken formula
-([rage.md](mechanics/rage.md)).
+to **[F]** when an in-game test (tier 2) confirms it. Anecdotes and single-tester fits still can't
+set a default. Where no allowed source has a value, the default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable)
+([D37](#d37-only-sourced-values-2026-09-26)). This covers the white-hit rage normalization and the
+damage-taken formula ([rage.md](mechanics/rage.md)).
 
 ### D23: The default rotation is the best one we've found (2026-09-23)
 User directive. Each spec's default rotation is the best-performing one we can come up with that
@@ -297,6 +299,10 @@ of combat, where a DPS warrior usually walks in after the tank's pull, and your 
 gain depends on the raid's composition (the Buffs tab).
 
 ### D24: Small assumptions don't gate features (2026-09-23)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** rule 1's Classic-based default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable);
+rule 2's stand-in is that order's one exception.
+
 User directive: build with sensible defaults, track them, and fix them once every spec is built.
 It replaces the 2026-09-22 rule "no forbidden-source placeholders" in character-stats.md. Two
 rules:
@@ -460,24 +466,29 @@ by D26's rule, since its blocks now make more threat than its rage would elsewhe
 ([warrior.md §5.4](classes/warrior.md#build-160170009-protection)). With every 1.60.1.70009 slice
 merged (the paladin review's PR-7, 2026-09-24; seed 31101, 100,000 fights), Balanced makes **1,001.6
 TPS for the warrior, 1,126.6 for the bear and 752.6 for the paladin**: the warrior 33.1% over the
-paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for the
-guild's tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
+paladin and 11.1% under the bear. D29 sets no numeric target, so these gaps are observations for
+in-game tests ([milestones T6](milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)), not
 failures.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the same-wording bonus is used as is,
+never rescaled; a default follows
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable); an
+undescribed client dummy effect models as zero; and a gap goes to the open questions (there are no organized guild tests).
+
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the
 Paladin and bear presets came from survival guides, and every tank ability whose extra threat
 had no known number was modelled with none. Both are now rules:
 - **Equal threat wording across tanks.** A tooltip's threat wording means the same thing on
   every tank class. "A high amount of threat" on a bear's or a paladin's ability is the same
   bonus as on a warrior's ability that says it. When the ability has no tier 1–2 value, it takes
-  the value of the known abilities with the same wording, scaled the way those values scale,
+  the value of the known abilities with the same wording, scaled the way those values scale (superseded by the header's amendment),
   as a `[?]` assumption shown in the results. A guild measurement replaces it.
 - **Every value that affects the result has a default.** Leaving a known variable blank was
   meant as caution, but it models the effect as zero, and that made the sim far less accurate.
   Anything we know exists (from a tooltip, the client, a talent's text or how the game plays)
   gets a sensible default from the closest allowed analog or an estimate reasoned from allowed
-  sources. It's flagged `[?]` and shown in the results' assumptions, never left out. Only an
+  sources (superseded by the header's amendment). It's flagged `[?]` and shown in the results' assumptions, never left out. Only an
   allowed source that gives no effect at all makes it zero. The forbidden sources still can't
   supply the number; that rule decides where a default comes from, never whether there is one.
 - **Talent builds and gear suit how the spec is played.** A tank talents for the balanced
@@ -500,12 +511,16 @@ had no known number was modelled with none. Both are now rules:
 - **No numeric benchmark for tanks** (user decision, 2026-09-24, withdrawing the earlier one). The
   officers' "paladin and bear about 800–900 TPS, warrior no more than about 50% ahead" was a feel,
   not a measurement, and no longer applies: the model's numbers land where the cited mechanics put
-  them. Unknown values still take reasoned defaults from allowed sources, and the sanity checks
-  above still apply; a gap no cited mechanic explains is an open question for the guild's in-game
-  tests or combat logs, not a reason to move a value.
+  them. Unknown values still take reasoned defaults from allowed sources (superseded by the header's amendment), and the sanity checks
+  above still apply; a gap no cited mechanic explains is an open question for in-game tests or
+  combat logs, not a reason to move a value.
 
 ### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
-User decision, now the top priority. The feature is called **the Optimizer** (user's name for it;
+**Amended 2026-09-26 (user decision):** multi-target ([M6](milestones.md#m6-multi-target-)) now
+comes first; the optimizer's remaining steps, O3 (in the app) and O4 (defaults from its results),
+follow it. The optimizer is no longer the top priority.
+
+User decision, then the top priority. The feature is called **the Optimizer** (user's name for it;
 not "Top Gear", which is Raidbots'). Talent builds, gear sets and rotations have a numerically
 best answer for a given setup, so the sim searches for it rather than assuming one, as Raidbots'
 Top Gear and the retail optimizers do:
@@ -785,6 +800,10 @@ the same build to both hosts, and `sim.decades.gg` stays on Pages; the cutover i
   load, and the unhashed files in `public/` cache for an hour.
 
 ### D36: What we take from WarriorSim (2026-09-25)
+**Amended by [D37](#d37-only-sourced-values-2026-09-26):** the Season of Discovery exception is narrowed to Blizzard's own SoD client
+data or patch notes for a spell Forever reuses, and WarriorSim is unconfirmed data, never
+authoritative; its uncited terms adopted here are re-checked against allowed sources.
+
 User decision, after six researchers compared WarriorSim's Forever mode
 ([tzcnt/WarriorSim](https://github.com/tzcnt/WarriorSim) at `069329b`) with this sim, area by
 area. WarriorSim is the Classic sim with a thin Forever layer; most of that layer cites no source,
@@ -817,3 +836,123 @@ evidence, and no organized guild tests are coming, so each call rests on the evi
   - Hand of Justice's 1% and 2 s;
   - Forever's item, consumable and enchant values;
   - no reaction delay.
+
+### D37: Only sourced values (2026-09-26)
+User decision, after a review of the tank threat terms found multipliers, ratios and fitted terms
+that no source gave: values chosen to close a gap to a feeling, rescaled analogs, and client dummy
+effects given a meaning by analogy. It amends D29 (every value has a default), D24 (the
+Classic-based default), D36 (the Season of Discovery exception) and [doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable).
+- **No invented multipliers, ratios, scalings or fitted terms.** A described effect's default
+  follows [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable),
+  which D37 set out: five steps from an allowed source to zero, with D24's stand-in its one
+  exception. The user confirmed the five-step order on 2026-09-26
+  ([D38](#d38-the-values-audits-calls-2026-09-26)).
+- **An undescribed client dummy effect models as zero.** D29's "every value has a default" covers
+  only effects that a tooltip, a talent's text, the client's defined meaning or observed play
+  describes. Giving a dummy effect a meaning by analogy is making a number up. A zero for a dummy
+  is tagged `[?]` and listed as an open question.
+- **The user's offhand numbers are never evidence or targets.** No value moves to close a gap to
+  a feeling (such as "800–900 TPS"). A gap no cited mechanic explains is an open question.
+- **There are no guild tests or benchmarks** apart from the user's own level-20 paladin test
+  (Holy Strike did 27 damage, 36 with Judgement of the Crusader, 43 with Seal of Fury as well).
+  Anything else labelled a guild test, benchmark or measurement was mislabelled and is relabelled
+  by where it came from: a player's in-game tests shared on Discord are third-party Forever
+  measurements, `[?]`.
+- **The user's exception for third-party measurements (2026-09-26)** is the order's step 2. The
+  rogue's attack-power shares are the first ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
+- **Other sims are never authoritative.** wowsims classic and SoD, WarriorSim, LibThreatClassic2
+  and the Warcraft Logs threat configs are unconfirmed data we may consider. Their code, pinned
+  to a commit or not, can corroborate a value or point to a source; what they may supply is the
+  order's step 4. Their bear and most of their warrior threat constants cite no source.
+- **Season of Discovery, scoped.** SoD stays forbidden, except Blizzard's own SoD client data or
+  patch notes for a spell Forever reuses from SoD (the same spell ID in the Forever client). This
+  replaces D36's "SoD behaviour as the closest analog" exception: a value from another sim's SoD
+  code is still only unconfirmed data. Such values are tagged `[?]` with the spell and source.
+- **Maul ×1.75 stays** `[?]` (step 4), with its provenance stated plainly: every Classic and SoD threat
+  tool has used it since 2019, it traces to a 2006 guide, and it has never been measured on
+  Classic Era. The same lineage covers Swipe ×1.75, Faerie Fire's 108 and Demoralizing Roar's 39.
+- **Lacerate's threat is 206, flat,** by the same-wording rule: Sunder Armor's Forever value,
+  with no attack-power term.
+
+D29's other rules stand: equal threat wording across tanks (now the bonus used as is), talent
+builds and presets suited to how the spec is played, and the plausibility check, whose finding is
+closed by a cited mechanic or recorded as an open question, never by moving a value.
+
+### D38: The values audit's calls (2026-09-26)
+User decisions, on the questions the values audit of 2026-09-26 left open: where the allowed
+sources disagree, or where none gives a value. [M5.671: Audit fixes](milestones.md#m5671-audit-fixes-)
+puts them in the sim after this update, except those that keep today's model and boss melee
+(#11, M5.669's slice J); the effects are the audit's estimates. **The user confirmed the five-step
+order on 2026-09-26:** [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable).
+1. **No level-based spell resistance on the boss in `forever`**, from the beta logs' 810 non-Holy
+   hits with no partial resist (D22), `[?]`; `classicEra` keeps Classic's rule. Most casters
+   about +5–7%, Frost +2% ([spells §3](mechanics/spells.md#3-resistances)).
+2. **Crit suppression against a +3 boss is Classic's rule:** 3 + 1.8 = 4.8 points. The melee specs
+   about −1.6 to −3.1% ([combat-tables §4.4](mechanics/combat-tables.md#44-crit-suppression)).
+3. **Ironfoe procs 6% of the time,** the client's `ProcChance`, not halved. Fury with it about +3.7%
+   ([damage-and-timing §5.2](mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples)).
+4. **Arcane Blast's stacks and Missile Barrage are modelled,** in their own slice (M5.671 I); a
+   known gap until then ([mage.md](classes/mage.md)).
+5. **Arcane Power blocking Power Infusion stays,** labelled; no change
+   ([mage.md](classes/mage.md#arcane-power)).
+6. **Ignite and Curse of the Elements keep today's reading,** with both readings in the open
+   questions; no change ([mage.md](classes/mage.md#open-questions)).
+7. **The rogue's attack-power shares stay,** labelled as a player's Discord tests, under D37's
+   exception; `classicEra` takes the reading from before them
+   ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
+8. **Felstriker and Alcor's Sunrazor proc once a minute,** other sims' rate (step 4), labelled.
+   Assassination and Subtlety at least +2% ([rogue.md §7.3](classes/rogue.md#73-weapons-and-gear)).
+9. **Seal Fate triggers from either Mutilate hand, one point at most,** as the client's 0.5 s
+   proc cooldown gives. Assassination gains ([rogue.md](classes/rogue.md#10-open-questions) Q7).
+10. **Gear mp5 pays at the intended rate;** the beta's every-second bug is noted, not modelled. No
+    change ([spells §8](mechanics/spells.md#8-mana)).
+11. **Boss melee is measured from Classic Era public logs of Golemagg** (Molten Core), physical
+    melee only, and disclosed as an estimate until the logs are measured. The user first named
+    Ragnaros too, then dropped him (2026-09-26): his melee carries fire damage, and the call was for
+    physical melee alone. The tanks' damage taken changes
+    ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)). M5.669's slice J measures
+    Golemagg's.
+12. **The consumable presets are rebuilt:** the tanks' like for like and for threat, every spec
+    what its players use ([buffs doc](mechanics/buffs-debuffs-consumables.md)).
+13. **"Crit with melee attacks" (item effects 7597 and 7598) is melee only,** per Forever's
+    tooltip, `[?]`, and the hunters' presets are re-picked
+    ([hunter.md §7.3](classes/hunter.md#73-gear)).
+14. **Protection paladin enchants are re-picked for threat** within the effective-health floor
+    ([paladin.md](classes/paladin.md)).
+15. **The boss has no creature type by default,** disclosed in the results, and a Fight setting
+    ([encounter §6](mechanics/encounter.md#6-creature-type-biome-and-zone-forever)).
+16. **A DPS spec's damage taken stays 0,** disclosed; no change
+    ([encounter §4](mechanics/encounter.md#4-targets-and-position)).
+17. **Pets inherit 10% of your attack power and your crit,** a labelled exception (a testers'
+    wiki); the hit and spell-damage inheritance by analogy is dropped
+    ([ranged-and-pets §6.1](mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)).
+18. **Unbridled Wrath stays at the talent's 12% a rank** (Blizzard says the beta's lower rate is
+    a bug being fixed); the measured 7.5% a rank is shown in the results
+    ([warrior.md](classes/warrior.md#w22-unbridled-wrath-expected-rage)).
+19. **Earth Shock's threat is ×2 its damage,** labelled with Maul's lineage (every Classic threat
+    tool carries it; never measured). The same-wording rule stays for the tanks' abilities
+    ([threat.md](mechanics/threat.md#per-ability-threat-at-max-rank)).
+20. **PvP rank rewards (ranks 7–10) aren't pre-raid gear for the presets;** Enhancement's trinket
+    and relic are re-ranked within non-PvP gear ([shaman.md](classes/shaman.md)).
+21. **The warlock's demon keeps its stats** (the emulator placeholder, D24) **and its attack power
+    and swing** (a Blizzard-forum report on hunter pets), relabelled plainly under D37; its mana
+    regeneration follows the warlock's five-second rule too, the analog used as is
+    ([warlock.md §11.2](classes/warlock.md#112-your-demon)).
+22. **Base spell crit of 1.7% for warlock, mage and priest stays,** labelled: from wowsims (step
+    4); a pre-SoD RatingBuster reads 0.3 points lower
+    ([character-stats](mechanics/character-stats.md#other-base-values-at-level-60)).
+23. **Darkmoon Faire rewards** (Verimonde's Last Resort, say) **stay out of the presets' gear pool**
+    for now; the picker still offers them ([items.md](data/items.md#pre-raid-bis-lists)).
+24. **Lacerate stays 206 flat** ([D37](#d37-only-sourced-values-2026-09-26)), though Blizzard's own
+    SoD hotfix (2 December 2024) sets 3.33 × damage for the same spell (414644, Forever's rank 1):
+    the same-wording rule across tanks wins, and ×3.33 would put the bear about 48% over the
+    warrior. No change ([druid.md §4.3](classes/druid.md#43-lacerate-r3-1235827)).
+25. **Primal Bite's threat is back to 1 per damage:** its tooltip names no extra threat, and Forever
+    reworked the spell (ranks 2–4 are new ids), so SoD's Mangle (Bear) ×1.5 doesn't carry over.
+    The bear's TPS drops ([druid.md §4.2](classes/druid.md#42-primal-bite-bear-only-1238073-at-level-60)).
+26. **Maelstrom Weapon's chance is the client's 50, read as 50% a melee hit,** kept and labelled:
+    the tooltip describes a chance but never shows it, 50 is the client's only number for it, and
+    zero is certainly wrong. No change ([shaman.md](classes/shaman.md#maelstrom-weapon)).
+27. **Hammer of the Righteous reads its tooltip literally:** 3 × the main hand's damage per second,
+    without attack power, by default; "with attack power" stays a setting (Character → Advanced).
+    Its damage and threat drop ([paladin.md](classes/paladin.md#other-abilities)).

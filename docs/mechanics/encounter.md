@@ -8,7 +8,7 @@ every **2.0 s** for a configurable pre-armor amount. Forever adds two encounter 
 Classic sim doesn't need: the boss's **creature type** (Forever gear and consumables have
 Demon/Undead/Beast/… bonuses) and the **raid zone** (Forever flasks only work in Mount Hyjal,
 Hyjal Summit and the Barrow Deeps). No Forever raid is open yet (unlock 2026-12-09), so every
-boss-specific number is a Classic Era stand-in or `[?]` until the guild has logs.
+boss-specific number is a Classic Era stand-in or `[?]` until Forever raid logs give it.
 
 Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722

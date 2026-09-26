@@ -717,8 +717,12 @@ const REGISTRY = {
     text: 'Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick. The rest is untested: a cap of 100 (more with Vigor), a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back and keeps its combo points).',
     docRef: `${ROGUE}#21-energy`,
   },
+  rogueFinisherAp: {
+    text: 'A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%), without saying which talents the tester had.',
+    docRef: `${ROGUE}#10-open-questions`,
+  },
   rogueFinisherTalents: {
-    text: 'A guild test measured the attack-power part of Eviscerate (4% of your attack power per combo point) and of Rupture (1% per combo point a tick, up to 3%) without saying which talents the tester had. The sim raises those parts by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the test’s numbers already included these talents, they’re counted twice. Untested.',
+    text: 'The sim raises the attack-power part of Eviscerate and Rupture by your Improved Eviscerate, Aggression and Serrated Blades, as it raises the rest of the damage: if the tests’ numbers already included these talents, they’re counted twice. Whether they did is untested.',
     docRef: `${ROGUE}#10-open-questions`,
   },
   rogueTwoRolls: {
@@ -738,7 +742,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#4-poisons`,
   },
   poisonAp: {
-    text: 'Instant Poison adds 0.5% of your attack power a hit, as a guild test measured, and Deadly Poison 0.1125% a stack each tick, measured on Deadly Poison V; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. Untested.',
+    text: 'A player’s in-game tests, shared on Discord and not yet repeated, measured Instant Poison adding 0.5% of your attack power a hit and Deadly Poison V 0.1125% a stack each tick; rank IV is taken to be the same. Deadly Poison reads your attack power at each tick, not when the stack lands, and Vile Poisons and Venom raise the attack-power part as they raise the rest of a poison’s damage. How it scales is untested.',
     docRef: `${ROGUE}#4-poisons`,
   },
   deadlyPoisonTicks: {
@@ -1110,6 +1114,41 @@ export const powerInfusionText = (arcanePower: boolean): string =>
   arcanePower
     ? 'A priest casts Power Infusion on you once, as your Arcane Power ends: +20% spell damage for the 15 s after it. The two don’t stack, as patch 1.12 had it (Power Infusion can’t land while Arcane Power is up, and Arcane Power ends it), so the priest holds it until then. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes. Untested in Classic Era or Forever.'
     : REGISTRY.powerInfusion.text
+
+/**
+ * The finishers' attack-power shares (rogue.md §3.4, §3.5, Q3), naming only the finishers the plan
+ * uses: in `forever` a player's Discord tests (D38 #7), in `classicEra` Classic Era sims' shares.
+ */
+export const rogueFinisherApText = (o: { eviscerate: boolean; rupture: boolean; classicEra: boolean }): string => {
+  const parts = [
+    ...(o.eviscerate ? [`Eviscerate (${o.classicEra ? 3 : 4}% of your attack power per combo point)`] : []),
+    ...(o.rupture ? ['Rupture (1% per combo point a tick, up to 3%)'] : []),
+  ]
+  if (parts.length === 0) return REGISTRY.rogueFinisherAp.text
+  const what = parts.join(' and of ')
+  if (o.classicEra) {
+    return parts.length > 1
+      ? `The attack-power parts of ${parts.join(' and ')} are the shares Classic Era sims use; the game’s data doesn’t give them. Untested.`
+      : `The attack-power part of ${what} is the share Classic Era sims use; the game’s data doesn’t give it. Untested.`
+  }
+  return `A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of ${what}, without saying which talents the tester had.`
+}
+
+/**
+ * The talents that may count twice on the Discord-tested shares (rogue.md Q3), naming only the
+ * finishers the plan uses and the talents you have that raise them: Improved Eviscerate and
+ * Aggression raise Eviscerate, Serrated Blades raises Rupture.
+ */
+export const rogueFinisherTalentsText = (o: { eviscerate: boolean; rupture: boolean; talents: ReadonlyMap<string, number> }): string => {
+  const has = (name: string) => (o.talents.get(name) ?? 0) > 0
+  const eviscerate = o.eviscerate ? ['Improved Eviscerate', 'Aggression'].filter(has) : []
+  const rupture = o.rupture ? ['Serrated Blades'].filter(has) : []
+  const finishers = [...(eviscerate.length ? ['Eviscerate'] : []), ...(rupture.length ? ['Rupture'] : [])]
+  const talents = [...eviscerate, ...rupture]
+  if (talents.length === 0) return REGISTRY.rogueFinisherTalents.text
+  const them = talents.length > 1 ? 'these talents' : 'this talent'
+  return `The sim raises the attack-power part of ${prose(finishers)} by your ${prose(talents)}, as it raises the rest of the damage: if the tests’ numbers already included ${them}, ${talents.length > 1 ? 'they’re' : 'it’s'} counted twice. Whether they did is untested.`
+}
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

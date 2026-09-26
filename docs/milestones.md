@@ -64,7 +64,8 @@ survival presets, known effects modelled as zero, and tank abilities treated dif
 same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
 until each slice logs its own review. There's no numeric target for a tank (D29, user decision,
 2026-09-24, withdrawing the officers' earlier feel for one): results land where the cited mechanics
-put them, and a gap no mechanic explains is an observation for the guild's tests (T6).
+put them, and a gap no mechanic explains is an open question for in-game tests (T6), never a
+reason to move a value ([D37](decisions.md#d37-only-sourced-values-2026-09-26)).
 - [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
       armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
       presets built for threat (the gear review)
@@ -94,7 +95,7 @@ put them, and a gap no mechanic explains is an observation for the guild's tests
       - Paladin ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)): plays as
         Defensive, Holy Strike kept for Iron Creed (user decision); Hammer of the Righteous a row,
         off, above Holy Strike
-- [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
+- [ ] **T6 In-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
       - **The three tanks on build 1.60.1.70009 (the paladin review's PR-7, 2026-09-24),** with
         every 1.60.1.70009 slice merged, a raid Restoration druid's Thorns (PR-4) and the paladin's
@@ -202,14 +203,66 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
 - [ ] **P3 Provenance:** every "guild benchmark" or "guild test" label that isn't one corrected
       (user, 2026-09-25: the guild had run no tests before that one)
 
+## M5.669: Only sourced values 🚧 next update
+
+The user's rules of 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): no
+invented multipliers, ratios, scalings or fitted terms; an undescribed client dummy models as zero;
+other sims are never authoritative; the user's offhand numbers are never evidence. Each slice
+replaces the values that broke them with defaults that follow
+[doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable), and
+re-measures the headlines it moves. The paladin's own provenance is M5.668's P3. This update ships
+A to F and J; B3 and G ship in it only if they land in time, and otherwise move to
+[M5.671](#m5671-audit-fixes-). The audit's other fixes are M5.671's.
+- [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
+      "guild test" relabelled as a player's Discord tests; planned tests called in-game tests
+- [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
+- [ ] **B2 Attack-power terms and procs from the client and logs:** Revenge, Thunder Clap, Rend,
+      Arcane Shot, Serpent Sting, Unbridled Wrath, off-hand rage
+- [ ] **B3 Deep Wounds under D37:** Blizzard's SoD patch notes for spell 412609 or Classic Era's
+      restart; the user's D36 decision stands until then
+      ([B79](open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
+- [ ] **C Bear threat:** Lacerate 206 flat, Primal Bite at 1 threat per damage (D38), the rage
+      fit, Maul's ×1.75 provenance
+- [ ] **D Paladin:** [M5.668](#m5668-sharper-paladin-numbers--next-update)'s P1–P3, with the log
+      check's paladin findings: Seal of Righteousness without a flat term, Holy Strike's flat
+      damage and spell power inside its weapon share, Judgement of the Crusader's misses,
+      Retribution Aura's spell-power share
+- [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
+- [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
+- [ ] **G Damage truncated per hit**
+- [ ] **J Boss melee from logs:** the boss's melee on the tanks measured from Golemagg's Classic
+      Era public logs (D38 #11), disclosed as an estimate until then
+
 ## M5.67: Item tooltips ✅
 
 A WoW-style tooltip for every item in the gear slots and the item picker, from the client's data ([ux.md](ux.md#item-tooltips)): [review](reviews/2026-09-25-item-tooltips.md).
 
-## M5.7: The optimizer (D30) 🚧 top priority
+## M5.671: Audit fixes ⏳
+
+The values audit's calls ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26)) that change
+the sim, after M5.669's update and before multi-target ([M6](#m6-multi-target-)). Boss melee is
+M5.669's J.
+- [ ] **H Audit fixes:**
+  - combat: no level-based spell resistance in `forever`; crit suppression 4.8 vs +3; Ironfoe 6%
+  - procs and talents: Felstriker and Alcor's Sunrazor at 1 a minute; Seal Fate from either
+    Mutilate hand; "crit with melee attacks" melee only; Unbridled Wrath's measured rate shown
+  - tanks: Protection paladin enchants for threat; Hammer of the Righteous without attack power
+    by default, "with attack power" a setting
+  - presets: consumables rebuilt; no PvP rank rewards (Enhancement's trinket and relic); no
+    Darkmoon Faire rewards
+  - pets: 10% of attack power and crit only; the demon's mana under the five-second rule
+  - labels: Earth Shock ×2, Maelstrom Weapon's 50%, Arcane Power and Power Infusion, Ignite and
+    Curse of the Elements, gear mp5, the creature type, DPS damage taken, the demon's stats, base
+    spell crit
+- [ ] **I Arcane Blast's stacks and Missile Barrage** (D38 #4)
+- [ ] **M5.669's B3 and G,** if they miss its update: Deep Wounds under D37, and damage truncated
+      per hit
+
+## M5.7: The optimizer (D30) 🚧 after multi-target
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
-sets. Each spec's defaults are then its results.
+sets. Each spec's defaults are then its results. Its remaining steps, O3 and O4, come after
+multi-target ([M6](#m6-multi-target-); user decision, 2026-09-26).
 - [x] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
       racing over candidates in the worker pool, with confidence intervals), the talent build
       enumerator (tree rules, kept and excluded talents, the minimum points in a tree), rotation
@@ -266,9 +319,10 @@ sets. Each spec's defaults are then its results.
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
 
-## M6: Multi-target 💤
+## M6: Multi-target ⏳
 
-The engine fights one target today. The design is
+**Next after M5.671's audit fixes,** ahead of the optimizer's remaining steps (O3 and O4; user
+decision, 2026-09-26). The engine fights one target today. The design is
 [encounter.md §4](mechanics/encounter.md#4-targets-and-position): extra targets are identical
 copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
 - **Engine and config:**
@@ -339,7 +393,7 @@ stats are simulated by then, the tanks' included.
 - Replace every D24 placeholder with a measured value. The base attributes, base health and base
   avoidance come from naked level-60 Classic Era sheets: character-stats.md OQ-1, OQ-2 and OQ-5.
 
-- Compare against guild beta logs and target-dummy tests
+- Compare against beta logs and in-game target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified
 
 ## M10: Tuning every spec 💤

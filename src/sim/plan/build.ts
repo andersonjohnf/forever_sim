@@ -39,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText } from './assumptions'
+import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText, rogueFinisherApText, rogueFinisherTalentsText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -1797,7 +1797,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/classes/shaman.md#open-questions: what the shaman's procs, spells and mana rely on.
   for (const id of shamanAssumptions(plan)) notes.add(id)
   // docs/classes/rogue.md#10-open-questions: what the rogue's Energy, abilities and poisons rely on.
-  for (const id of rogueAssumptions(plan, setup.talents)) notes.add(id)
+  // The finishers' attack-power shares name only the finishers this plan uses, with the profile's source (AV-3, AV-4).
+  // So does the row on the talents that may count twice in them, with the talents you have (AV2-8).
+  for (const id of rogueAssumptions(plan, setup.talents, profile.id)) {
+    const has = (ability: string) => plan.abilities.some((a) => a.id === ability)
+    if (id === 'rogueFinisherAp') notes.addText(id, rogueFinisherApText({ eviscerate: has('eviscerate'), rupture: has('rupture'), classicEra: profile.id === 'classicEra' }))
+    else if (id === 'rogueFinisherTalents') notes.addText(id, rogueFinisherTalentsText({ eviscerate: has('eviscerate'), rupture: has('rupture'), talents: setup.talents }))
+    else notes.add(id)
+  }
   // docs/classes/mage.md#open-questions: what the mage's spells, procs and mana rely on.
   for (const id of mageAssumptions(plan)) notes.add(id)
   // docs/classes/warlock.md §9: what the warlock's spells, mana and talents rely on.

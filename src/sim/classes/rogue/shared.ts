@@ -5,26 +5,29 @@
 import { JUJU_FLURRY } from '../../effects/buffs'
 import type { OnUseSpec } from '../../effects/types'
 import { COND, type RotationCondition } from '../../plan/types'
-import type { AplRow, RotationGroup, RotationOption } from '../../types'
+import type { AplRow, RotationGroup, RotationOption, RuleProfileId } from '../../types'
 import { onUseCast } from '../druid/cat-abilities'
 import { eurekaFor } from '../eureka'
 import { RACIAL_COOLDOWNS } from '../warrior/abilities'
 import { type Reader, RotationBuilder, seconds } from '../warrior/shared'
-import { type AbilityDef, EVISCERATE, EXPOSE_ARMOR, SLICE_AND_DICE, THISTLE_TEA, THISTLE_TEA_CAST } from './abilities'
+import { type AbilityDef, EVISCERATE, EXPOSE_ARMOR, rogueAbilityFor, SLICE_AND_DICE, THISTLE_TEA, THISTLE_TEA_CAST } from './abilities'
 import { type TalentRanks, withRogueTalents } from './modifiers'
 
 export type RogueSpec = 'combat' | 'assassination' | 'subtlety'
 
-/** Resolves abilities with the rogue's talents (modifiers.ts). */
+/** Resolves abilities in the rule profile (`rogueAbilityFor`) with the rogue's talents (modifiers.ts). */
 export class RogueRotationBuilder extends RotationBuilder {
-  constructor(talents: TalentRanks) {
+  readonly profile: RuleProfileId
+
+  constructor(talents: TalentRanks, profile: RuleProfileId = 'forever') {
     super(talents)
+    this.profile = profile
   }
 
   override ability(def: AbilityDef): number {
     const i = this.abilities.findIndex((a) => a.id === def.id)
     if (i >= 0) return i
-    this.abilities.push(withRogueTalents(def, this.talents))
+    this.abilities.push(withRogueTalents(rogueAbilityFor(def, this.profile), this.talents))
     return this.abilities.length - 1
   }
 }

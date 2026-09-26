@@ -218,7 +218,7 @@ export function subtletyRotation(
 ): ClassRotation {
   const ctx = { race: context.race ?? '', items: context.items ?? [], consumables: context.consumables ?? [] }
   const v = reader(SUBTLETY_OPTIONS, values, talents)
-  const b = new RogueRotationBuilder(talents)
+  const b = new RogueRotationBuilder(talents, context.profile?.id)
   const dagger = context.weaponTypes === undefined || context.weaponTypes[0] === 'dagger'
   const hemorrhage = { ...HEMORRHAGE, weaponPercent: dagger ? HEMORRHAGE_DAGGER_PCT : HEMORRHAGE.weaponPercent }
   const hasHemorrhage = talents.has('Hemorrhage')

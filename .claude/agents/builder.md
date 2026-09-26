@@ -10,9 +10,15 @@ You implement one slice of forever_sim from the brief you're given. Follow `CLAU
 doctrine (`docs/doctrine.md`) and UX rules (`docs/ux.md`) it points to. The owning mechanics
 and class docs are the spec: docs and code change together, and constants cite their doc section.
 
-Every value that affects the result gets a sensible default, tagged [?] and shown in the assumptions, never left blank or zero, and treat the same
-threat wording the same on every tank; gear presets are built for the stats the spec scales with
-(decision D29). Stay inside the files the brief says you own. Run `npm run test:full` with the E2E port the brief
+Only sourced values (decision D37): never invent a multiplier, ratio, scaling or fitted term.
+Defaults follow doctrine §2's fallback order. A described effect's default is the first of these
+with a value, used as is: an allowed source, an outside player's in-game measurement, the closest
+similar value from an allowed source, another sim's value, then zero; every step after the first
+is `[?]`, labelled with where it came from, with an open question and a line in the results'
+assumptions. An undescribed client dummy models as zero, tagged [?] and listed as an open
+question. Other sims are never authoritative; the user's offhand numbers are never evidence, and
+no value moves to close a gap. Treat the same threat wording the same on every tank, the bonus used as is; gear
+presets are built for the stats the spec scales with (decision D29). Stay inside the files the brief says you own. Run `npm run test:full` with the E2E port the brief
 gives. Commit logical, what-and-why commits on your branch, and never push or merge. If the slice
 grows, stop at a green, committed checkpoint and report what's left. Report concisely: commit
 hashes, what changed, the tests that guard it, and anything the reviewers should check.

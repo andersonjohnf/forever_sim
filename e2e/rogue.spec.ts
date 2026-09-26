@@ -118,11 +118,15 @@ test.describe('Combat rogue', () => {
     await expect(results.getByRole('heading', { name: 'Rogue mechanics' })).toBeVisible()
     await expect(results.getByText(/^Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick/)).toBeVisible()
     await expect(results.getByText(/^Poisons roll spell hit/)).toBeVisible()
-    await expect(results.getByText(/^Instant Poison adds 0\.5% of your attack power a hit, as a guild test measured, and Deadly Poison 0\.1125% a stack each tick, measured on Deadly Poison V; rank IV is taken to be the same\./)).toBeVisible()
-    // Eviscerate's attack power is the guild's measurement; which talents the tester had is still
-    // an assumption (rogue.md Q3).
+    await expect(results.getByText(/^A player’s in-game tests, shared on Discord and not yet repeated, measured Instant Poison adding 0\.5% of your attack power a hit and Deadly Poison V 0\.1125% a stack each tick; rank IV is taken to be the same\./)).toBeVisible()
+    // Eviscerate's attack power is a player's measurement shared on Discord (third-party, not a
+    // guild test, D37); it and the tester's talents are assumptions (rogue.md Q3).
     await expect(results.getByText(/Eviscerate gains 3%/)).toHaveCount(0)
-    await expect(results.getByText(/^A guild test measured the attack-power part of Eviscerate/)).toBeVisible()
+    await expect(results.getByText(/guild test/)).toHaveCount(0)
+    await expect(results.getByText(/^A player’s in-game tests, shared on Discord and not yet repeated, measured the attack-power part of Eviscerate/)).toBeVisible()
+    // Combat's default uses no Rupture, so the talent row names Eviscerate and its talents only (AV2-8).
+    await expect(results.getByText(/^The sim raises the attack-power part of Eviscerate by your Improved Eviscerate and Aggression,/)).toBeVisible()
+    await expect(results.getByText(/Serrated Blades/)).toHaveCount(0)
     await expect(results.getByText(/^The rogue’s 1 s global cooldown/)).toBeVisible()
     // Nothing of the warrior's or the druid's: rage, Execute, Clearcasting or Cat Form.
     await expect(results.getByText(/rage arrives|Execute|Clearcasting|Cat Form/)).toHaveCount(0)

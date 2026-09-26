@@ -1,6 +1,6 @@
-# Open questions: the guild's testing checklist
+# Open questions: the in-game testing checklist
 
-This is the guild's testing checklist. It merges the *Open questions* sections of the research
+This is the in-game testing checklist. It merges the *Open questions* sections of the research
 docs (eight mechanics docs, three class docs and the items dataset doc) into one
 deduplicated list of everything the sim currently assumes that a person needs to verify. The
 list is grouped by how each question can be answered today: on a level-60 **Classic Era**
@@ -58,7 +58,7 @@ B41, C11 and C12 rather than new entries.
   addon API limits combat-log detail.
 - **Third-party sweeps.** Magey's group is running the +3 attack-table sweep
   ([magey/forever-warrior#1](https://github.com/magey/forever-warrior/issues/1)). Read its
-  results before starting B2–B7 and B12; a guild run then confirms them as tier-2 data.
+  results before starting B2–B7 and B12; an in-game run then confirms them as tier-2 data.
 
 ## Recording results
 
@@ -369,8 +369,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M2 · ≤20**
 - **Assumes:** while Heroic Strike or Cleave is queued, off-hand white swings use the
   single-weapon miss chance (no +19%), in both profiles [C Classic Era]. For Forever, a
-  third-party beta test agrees (5.19% vs 18.27% over 77 and 394 swings) [? until the guild
-  repeats it].
+  third-party beta test agrees (5.19% vs 18.27% over 77 and 394 swings) [? until an in-game
+  test repeats it].
 - **Test:** dual-wielding warrior from behind vs mobs three levels higher; alternate stretches
   with Heroic Strike always queued and never queued; count off-hand misses separately.
 - **Samples:** ≥1,000 off-hand swings per state.
@@ -398,8 +398,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B79. Deep Wounds' refresh: restart or keep the tick timer
 **High · M2 · ≤20 (Arms tier 3)**
 - **Assumes:** Deep Wounds **rolls**, as Season of Discovery's 412609 does, the bleed the Forever
-  client carries in place of Classic's 12721 ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25),
-  the doctrine's second exception) [?]: each crit adds `0.2 × rank ×` the critting weapon's
+  client carries in place of Classic's 12721 ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25))
+  [?]: each crit adds `0.2 × rank ×` the critting weapon's
   average hit (the off-hand modifier on an off-hand crit), snapshotted with the damage modifiers,
   to a pool; the ticks left go back to 4 and the pending tick keeps its time; each tick pays
   `pool ÷ ticks left`. Nobody has measured it. The Classic Era restart (the next tick 3 s after
@@ -421,6 +421,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   - One forum post says "rend/deep wounds dots also crit"
     ([RIP Warriors](https://us.forums.blizzard.com/en/wow/t/rip-warriors/2348963)); the client's
     412609 lacks the periodic-crit flag, so the sim keeps no crit.
+- **Re-check under [D37](decisions.md#d37-only-sourced-values-2026-09-26).** D36 adopted the
+  rolling bleed as "SoD behaviour as the closest analog", an exception D37 replaced with
+  [doctrine §2 tier 4's scoped SoD rule](doctrine.md#2-where-numbers-come-from-non-negotiable):
+  only Blizzard's own SoD client data or patch notes for 412609 may supply its behaviour.
+  "Rolls" rests on the evidence above (the BlizzCon stream and the Forever client's SoD spells;
+  the beta log is neutral) plus WarriorSim's SoD `DeepWounds` code, which is unconfirmed data,
+  not a source. The user's D36 decision stands until the re-check, which
+  [M5.669's B3](milestones.md#m5669-only-sourced-values--next-update) schedules: Blizzard's SoD
+  patch notes for Deep Wounds (412609), or back to Classic Era's restart if nothing allowed
+  supports rolling.
 - **Test:** with Deep Wounds (1/3 is enough) vs a mob three levels higher, crit it every 1–2 s
   (auto attacks with a fast weapon, or a crit buff) and log the bleed's tick times and amounts
   from the combat log. Rolling: ticks come every 3 s from the first application, whatever crits
@@ -1628,7 +1638,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 plus, for the tooltip's "a high
   amount of threat", 206 + 0.05 × AP per landed application, Forever's Sunder Armor r5 at the same
   level by the wording table (D29; 261, Classic Era's rule, before build 1.60.1.70009) [?]. The only
-  numbers found are SoD values, refused.
+  other numbers found are Season of Discovery values, not used: they'd count only as Blizzard's own
+  SoD client data or patch notes for a spell the Forever client carries (D37; spell 414647, druid
+  Q16, is the one candidate).
 - **Test:** apply 1 to 5 stacks, log hits and ticks, and read threat after each application.
 - **Samples:** ≥10 full stack cycles.
 - **Changes:** Lacerate damage and bear TPS.

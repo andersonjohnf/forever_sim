@@ -559,7 +559,7 @@ What it's worth: at 100% it leads the trinkets of every list that ranks it, +9.7
 counts as zero. It **breaks even near a 12% chance** for Destruction, the Fire mage and Elemental and
 near 17% for Affliction and Demonology (paired against the next trinket, 20,000 fights on seed 2701,
 1.60.1.70009), so it stays in each default's pair of trinkets at any chance above about a fifth. The results' assumptions
-show it (`draconicEmblemChance`), and a guild test (its buff's uptime on a target dummy) is a known gap.
+show it (`draconicEmblemChance`), and an in-game test (its buff's uptime on a target dummy) is a known gap.
 
 Eye of the Beast's use (+7% spell hit for 20 s, 5 min) isn't modelled: the aura model has no spell-hit
 buff yet (known gap E7, [shaman.md](../classes/shaman.md)).
@@ -1004,7 +1004,7 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - **Raw client files, not the server.** The server may still disagree, and server hotfixes
   aren't in the files at all ([client.md, "Hotfix caveat"](client.md#hotfix-caveat)): 16 items
   are missing and 34 fall back to Classic Era for that reason, and the Undermine trinkets'
-  cooldowns may be hotfixed. Guild measurements win (doctrine §2).
+  cooldowns may be hotfixed. In-game tests win (doctrine §2).
 - `[?]` **Fallback items mix two clients.** Their stats are Classic Era's and their effects the
   Forever client's ([above](#effects-of-fallback-items)). Where Forever moved a bonus from an
   equip spell into its `ItemSparse` row the bonus is kept from Classic Era, and where it

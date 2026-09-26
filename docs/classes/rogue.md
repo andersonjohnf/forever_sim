@@ -2,7 +2,7 @@
 
 WoW Forever reworks the rogue's trees more than its spells. The spells barely move: Sinister
 Strike, Slice and Dice, Blade Flurry and Adrenaline Rush read as in Classic Era, **Eviscerate**
-gains 4% of attack power per combo point (a guild test; Classic Era sims use 3%), while
+gains 4% of attack power per combo point (a player's tests shared on Discord [?]; Classic Era sims use 3%), while
 **Rupture** loses about 40% of its base damage and **Expose Armor** grows to −2,250 armor, the same
 as five Sunder Armors. The talents are where Forever differs. **Mutilate** and **Venom** join
 Assassination. **Hack and Slash** replaces the four weapon specializations: axes and swords get an
@@ -10,14 +10,14 @@ extra attack, daggers and fists crit, and maces ignore armor. **Weapon Expertise
 boss's dodge and parry. **Precision** gives only 3% hit, and **Dual Wield Specialization** half its
 Classic off-hand damage. Subtlety gains **Quietus**, **Cutthroat** and **Thousand Cuts**, and
 Hemorrhage now feeds Rupture. **Poisons** hit about a third less hard: Instant Poison VI deals
-76–100 (Classic Era 112–148), and Deadly Poison IV ticks for 18 (27), though a guild test finds both
-scale with attack power ([§4](#4-poisons)). This doc reads every value from
+76–100 (Classic Era 112–148), and Deadly Poison IV ticks for 18 (27), though a player's tests shared on Discord find both
+scale with attack power [?] ([§4](#4-poisons)). This doc reads every value from
 the Forever client, compares it with Classic Era's, and gives the three specs' first-pass rotations
 and defaults under [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24).
 
 Status: researched and built 2026-09-24 (slice R1) · Combat, Assassination and Subtlety shipped
-([§6](#6-rotation-and-priority)) · the finishers' and poisons' attack-power shares measured by the
-guild 2026-09-25 ([guild-0925]) · ruleset tags: [F] Forever ·
+([§6](#6-rotation-and-priority)) · the finishers' and poisons' attack-power shares from a player's
+in-game tests shared on Discord 2026-09-25 ([discord-0925], third-party [?]) · ruleset tags: [F] Forever ·
 [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
@@ -78,9 +78,9 @@ Every row below compares the Forever and Classic Era client tables; the spellboo
 | --- | --- | --- | --- | --- |
 | Sinister Strike r8 (spell 11294) | Normalized weapon + 68, 45 Energy, 1 CP | Same | None | [F] [client] (SpellEffect, SpellPower, 1.60.1.69913) |
 | Backstab r8 (spell 11281), the trainer's ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25): r9, 25300, is an Ahn'Qiraj book, Handbook of Backstab IX) | Rows unchanged: normalized weapon + 140, ×150% (r9: + 150). The tooltip reads the flat alone | Tooltip "plus 210" (140 × 1.5; r9 "plus 225") | The flat's place is Q2 | [F] [client] (SpellEffect); [C] tooltip [client] (Spell, 1.15.9.69722) |
-| Eviscerate r9 (spell 31016) | 108 ± 54 + 170 per CP (904–1012 at 5), 35 Energy; **+ 4% of AP per CP** | Same rows; Classic Era sims use 3% of AP per CP | **+1% of AP per CP**: +100 on a 5-point Eviscerate at 2,000 AP | [F] [client] (SpellEffect, 1.60.1.69913); AP share [F] [guild-0925] |
+| Eviscerate r9 (spell 31016) | 108 ± 54 + 170 per CP (904–1012 at 5), 35 Energy; **+ 4% of AP per CP** | Same rows; Classic Era sims use 3% of AP per CP | **+1% of AP per CP**: +100 on a 5-point Eviscerate at 2,000 AP | [F] [client] (SpellEffect, 1.60.1.69913); AP share [?] [discord-0925] |
 | Slice and Dice r2 (spell 6774) | +30% melee attack speed (aura 319), 6 s + 3 s per CP, 25 Energy | Same speed (aura 138), same time | None | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913) |
-| **Rupture** r6 (spell 11275) | **35 + 4.73 per CP per tick**, 6 s + 2 s per CP: **469 at 5 CP**; + 1% of AP per CP per tick, 3% at 3 CP and above | 60 + 8 per CP: 800 at 5; the same AP share in Classic Era sims | **−41%** base damage | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913); [C] [client] (SpellEffect, 1.15.9.69722); AP share [F] [guild-0925] |
+| **Rupture** r6 (spell 11275) | **35 + 4.73 per CP per tick**, 6 s + 2 s per CP: **469 at 5 CP**; + 1% of AP per CP per tick, 3% at 3 CP and above | 60 + 8 per CP: 800 at 5; the same AP share in Classic Era sims | **−41%** base damage | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913); [C] [client] (SpellEffect, 1.15.9.69722); AP share [?] [discord-0925] |
 | **Expose Armor** r5 (spell 11198) | **−450 armor per CP, −2,250 at 5**, 30 s | −340 per CP, −1,700 at 5 | Equals 5 Sunder Armors | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Blade Flurry (spell 13877) | +20% melee attack speed, 15 s, 2 min, 25 Energy | Same | None (second target: M6) | [F] [client] |
 | Adrenaline Rush (spell 13750) | +100% Energy regeneration, 15 s, 5 min, on the GCD | Same | None | [F] [client] |
@@ -125,9 +125,9 @@ proc chances (20% and 30%) and 5 stacks are unchanged, their charges grow (175 a
 Deadly Poison's ticks now carry the periodic-crit flag [F] [client] (SpellEffect, SpellItemEnchantment,
 SpellMisc, 1.60.1.70009). Deadly Poison V (25349, 23 a tick) is made from Handbook of Deadly
 Poison V's recipe (item 21302 → 25347), an Ahn'Qiraj book, so the sim uses rank IV
-([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); §4.2). The guild measured an
-attack-power share on both: Instant Poison 0.5% of
-AP a hit, Deadly Poison 0.1125% of AP a tick per stack [F] [guild-0925], both in the sim. See
+([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); §4.2). A player's in-game
+tests shared on Discord found an attack-power share on both: Instant Poison 0.5% of
+AP a hit, Deadly Poison 0.1125% of AP a tick per stack [?] [discord-0925], both in the sim. See
 [§4](#4-poisons).
 
 ### 1.4 Weapons
@@ -221,20 +221,27 @@ Classic Era guide's opener names both durations [wh-rot].
 
 `uniform(54, 162) + 170 × CP + 0.04 × CP × AP`, × Improved Eviscerate 1.20 × Aggression 1.06;
 35 − Flawless Execution 10 = **25 Energy** [F] [client]. The attack-power term, **4% per point**, is
-[F] [guild-0925]: a guild tester measured it in game, up from the 3% Classic Era sims use. The
+[?] [discord-0925]: a player measured it in game and shared it on Discord, up from the 3% Classic
+Era sims use; it's a third-party measurement until the user or a guild member reproduces it. The
 tooltip says only "increased by Attack Power" and the client carries no coefficient
 (`BonusCoefficientFromAP` 0). Improved Eviscerate and Aggression multiply the attack-power term with
 the rest [?], as in Classic Era; the test didn't separate them, and if its 4% already included them
 the sim counts them twice ([Q3](#10-open-questions); the results' `rogueFinisherTalents` assumption).
+It stands under the user's exception for third-party measurements (2026-09-26,
+[D37](../decisions.md#d37-only-sourced-values-2026-09-26),
+[D38](../decisions.md#d38-the-values-audits-calls-2026-09-26) #7). **`classicEra`** keeps the
+reading from before the test: **3% per point** [?], the share Classic Era sims use (other sims'
+data, step 4 of doctrine §2's fallback order), as the sim had before the Discord tests.
 
 ### 3.5 Rupture (r6, 11275)
 
 A bleed of **3 + CP ticks** every 2 s, each `35 + 4.73 × CP + 0.01 × min(CP, 3) × AP`, × Serrated
 Blades (+10% per rank) [F] [client] (SpellEffect, SpellDuration `DurationPerResource` 2000). The AP
-term, **1% a tick at 1 point, 2% at 2 and 3% at 3 to 5**, is [F] [guild-0925]: a guild tester
-measured it in game, unchanged from Classic Era sims' (4/10/18/21/24% of AP over the whole bleed at
+term, **1% a tick at 1 point, 2% at 2 and 3% at 3 to 5**, is [?] [discord-0925]: a player measured
+it in game and shared it on Discord, unchanged from Classic Era sims' (4/10/18/21/24% of AP over the whole bleed at
 1–5 points). Serrated Blades multiplies the attack-power term with the rest [?], as Improved
-Eviscerate does Eviscerate's ([Q3](#10-open-questions)). It ignores armor and
+Eviscerate does Eviscerate's ([Q3](#10-open-questions)). **`classicEra`** takes the same share [?]
+as Classic Era sims' (other sims' data), not the Discord tests. It ignores armor and
 snapshots at application; its ticks crit in `forever` ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)).
 
 ### 3.6 Expose Armor (r5, 11198)
@@ -303,7 +310,7 @@ crit ×1.5 [?] (Q5): Malice's Forever tooltip names poisons, so they can crit.
 
 Item 8928 → spell 11340 → enchant 625: 20% per hit of spell 11337, 88 Nature with `Variance`
 0.2769, **76–100** as whole numbers [F] [client] (SpellEffect, SpellItemEnchantment, 1.60.1.69913);
-Classic Era 112–148 [C]. Each proc also deals **0.5% of attack power** [F] [guild-0925] (the client
+Classic Era 112–148 [C]. Each proc also deals **0.5% of attack power** [?] [discord-0925] (the client
 carries no coefficient): 10 more at 2,000 AP, about +11% on the 88 average.
 
 The sim adds the share to each proc at your attack power of that moment: `(76…100 + 0.005 × AP)`,
@@ -321,7 +328,7 @@ SpellItemEnchantment, SpellAuraOptions, 1.60.1.70009); Classic Era 27 a tick [C]
 before Ahn'Qiraj: Deadly Poison V (item 20844 → 25351 → enchant 2630, 23 a tick) needs its recipe
 (25347) from Handbook of Deadly Poison V (item 21302), an Ahn'Qiraj book
 ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)). Each stack also deals **0.45% of
-attack power over its 12 s**, so **0.1125% of AP a tick** over its 4 ticks [F] [guild-0925], measured
+attack power over its 12 s**, so **0.1125% of AP a tick** over its 4 ticks [?] [discord-0925], measured
 on rank V; the same share on rank IV is [?] (Q16): 2.25 more a tick per stack at 2,000 AP, about
 +12.5% on the 18. The sim adds it to each stack's tick, `(18 + 0.001125 × AP) × stacks`, **reading attack power at each tick** [?]
 (Q16): the test doesn't say whether a stack keeps the attack power it was applied with, and Classic
@@ -409,7 +416,7 @@ Improved Distract, Heightened Senses, Dirty Deeds.
 The defaults are the Classic Era community priority adapted to Forever, with one quick search of
 its two or three biggest settings (20,000 paired fights on one seed), per D27; the Rotation tab
 says they're "the common priority". The tuning milestone (M10) tunes them to D23's standard.
-The searches below ran with Classic Era sims' 3% Eviscerate. With the guild's 4% (§3.4) the
+The searches below ran with Classic Era sims' 3% Eviscerate. With the Discord tests' 4% (§3.4) the
 finisher settings still win (40,000 paired fights, 2026-09-25): Combat's Eviscerate at 4 is −0.60
 and Rupture on −24.6; Assassination's Eviscerate at 3 is −6.1 and at 5 −7.5; Subtlety's Rupture
 at 2 is −1.3, at 4 −1.6, at 5 −3.8 and off −29.3.
@@ -740,13 +747,17 @@ R11–R13 are in `subtlety.test.ts`.
 - **Q2 Backstab's flat bonus.** Rank 8's 210 (inside the 150%, the Classic Era rule, Mutilate's
   Forever tooltip) or 140 (Forever's Backstab tooltip)? About 3% of a Backstab. Test: the average of 50
   non-crit Backstabs with a known dagger and AP.
-- **Q3 Finishers' attack power. Measured 2026-09-25** by a guild test ([guild-0925]): Eviscerate
+- **Q3 Finishers' attack power.** A player's in-game tests shared on Discord 2026-09-25
+  ([discord-0925]), a third-party measurement [?] until the user or a guild member reproduces it: Eviscerate
   4% of AP per point (Classic Era sims' 3%), Rupture 1% per point per tick up to 3 points (unchanged),
-  both in the sim (§3.4, §3.5). **Still open: the tester's talents.** The test reported totals
+  both in the sim (§3.4, §3.5) and in the results' assumptions whenever the plan uses Eviscerate
+  or Rupture (`rogueFinisherAp`, naming only the finishers the plan uses; in `classicEra` it names
+  Classic Era sims' shares instead, and the talent line below doesn't show). **Still open: the
+  tester's talents.** The test reported totals
   without the build or sample size. The sim multiplies the measured shares by Improved Eviscerate
   and Aggression (Eviscerate) and Serrated Blades (Rupture) [?], as Classic Era does, and lists it in
-  the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of them
-  raises. If the tester had them, the measurement already includes them and the sim counts them
+  the results' assumptions (`rogueFinisherTalents`) whenever the plan uses a finisher one of your
+  talents raises, naming only those finishers and the talents you have that raise them. If the tester had them, the measurement already includes them and the sim counts them
   twice: Classic Era's 3% × Improved Eviscerate 1.20 × Aggression 1.06 = 3.82%, which rounds to the
   reported 4% (with Improved Eviscerate alone, 3.6%). Counted twice, the defaults read high by about
   0.5% (Combat: both talents), 0.7% (Assassination: Improved Eviscerate only) and 1.3% (Subtlety:
@@ -756,6 +767,14 @@ R11–R13 are in `subtlety.test.ts`.
   tester's talents are known.
   Test: the tester's build, or 20 Eviscerates at 5 points without Improved Eviscerate or Aggression
   and 20 Rupture ticks at 3 points without Serrated Blades, each at two attack-power levels.
+  **User decision (2026-09-26, [D38](../decisions.md#d38-the-values-audits-calls-2026-09-26) #7):
+  the shares stay, labelled.** No allowed source has a value, so they stand under the user's
+  exception for third-party measurements (step 2 of
+  [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)'s fallback order), each in
+  the results' assumptions as a player's unrepeated Discord tests. The reading before the test,
+  Eviscerate at the 3% Classic Era sims use (itself only other sims' data, [?]; the client's
+  coefficient is 0) and no attack-power share on the poisons, would move the defaults Combat −1%,
+  Assassination −2% and Subtlety −0.7%. It's what the `classicEra` profile uses.
 - **Q4 Two rolls.** Eviscerate and Expose Armor roll to hit and then crit, as the warrior's melee
   spells; untested for rogues.
 - **Q5 Poison hit and crit.** Spell hit (with Precision's), partial resists and spell crit ×1.5
@@ -787,14 +806,18 @@ R11–R13 are in `subtlety.test.ts`.
   refresh? Test: 200 Backstabs, the Ambushes allowed.
 - **Q15 Thousand Cuts.** Does a missed Backstab or Hemorrhage use up the stacks? Test: the Energy a
   dodged Hemorrhage costs with stacks up.
-- **Q16 Poisons' attack power. Resolved 2026-09-25** by a guild test ([guild-0925]): Instant Poison
-  0.5% of AP a proc and Deadly Poison 0.45% of AP per stack over its 12 s (0.1125% a tick) [F], both
-  modelled (§4.1, §4.2). The defaults gained 0.5–0.8% DPS (Combat 583.8 → 586.5, Assassination
+- **Q16 Poisons' attack power.** A player's in-game tests shared on Discord 2026-09-25
+  ([discord-0925]), a third-party measurement [?] until the user or a guild member reproduces it:
+  Instant Poison 0.5% of AP a proc and Deadly Poison 0.45% of AP per stack over its 12 s (0.1125% a
+  tick), both modelled (§4.1, §4.2). The defaults gained 0.5–0.8% DPS (Combat 583.8 → 586.5, Assassination
   529.6 → 534.1, Subtlety 505.3 → 508.1; 20,000 fights on seed 2701). Two modelling choices stay [?]
   and are in the results' assumptions: a Deadly Poison stack's share is read at each tick, not fixed
   when it's applied, and Vile Poisons and Venom multiply the share. Test: Deadly Poison's ticks with
   5 stacks on the boss before and after an attack-power buff lands (a Juju Might), without a new
-  application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels.
+  application; Instant Poison's hits with Vile Poisons 5/5 at two AP levels. These shares stand
+  on one outside tester's unrepeated numbers: **the user decided to keep them, labelled**
+  (2026-09-26, D38 #7), under the exception for third-party measurements; Q3 gives the
+  alternative and its effect, and `classicEra` has no poison share, as Classic Era's client.
 
 ---
 
@@ -809,6 +832,6 @@ R11–R13 are in `subtlety.test.ts`.
 | mz-levelstats | <https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql> | Rogue attribute rows (D24 placeholder origin only) | **Forbidden** except as D24 placeholders |
 | mz-classlevelstats | <https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql> | Rogue base health 1,523 (D24 placeholder origin only) | **Forbidden** except as D24 placeholders |
 | rb-vanilla | <https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua> | Rogue base crit, spell crit and dodge 0 | Classic Era addon (pre-SoD); copies an emulator |
-| guild-0925 | Guild in-game test, 2026-09-25, reported by a guild tester (build and sample size not reported) | Eviscerate 4% of AP per CP; Rupture 1/2/3% of AP per tick at 1/2/3+ CP (manual tests); Instant Poison 0.5% of AP a proc; Deadly Poison 0.45% of AP per stack over its duration | Forever, measured (tier 2) |
+| discord-0925 | A player's in-game tests shared on Discord, 2026-09-25, relayed by the user (build and sample size not reported); not a guild test ([D37](../decisions.md#d37-only-sourced-values-2026-09-26)) | Eviscerate 4% of AP per CP; Rupture 1/2/3% of AP per tick at 1/2/3+ CP (manual tests); Instant Poison 0.5% of AP a proc; Deadly Poison 0.45% of AP per stack over its duration | Third-party Forever measurement, secondary [?] (doctrine §2) |
 | evisc-ix | <https://warcraft.wiki.gg/wiki/Manual_of_Eviscerate_IX> | Manual of Eviscerate IX drops from Blackhand Assassins in Upper Blackrock Spire, so Eviscerate r9 isn't an Ahn'Qiraj rank (D36) | Classic Era [C] |
 | wsc-base | <https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go> | Rogue AP 2 × level − 20, health 1,523 | Secondary, SoD lineage |

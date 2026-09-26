@@ -58,7 +58,7 @@ export interface PetDef {
  * school**, **your crit** (the higher of your melee and ranged crit on its swings and specials, your
  * spell crit on its spells) and **your hit** (the same split). The crit arrives through the aura (#13,
  * aura 52), so its physical attacks count it as aura crit (combat-tables §4.4); its spells, as yours,
- * don't. The guild's test replaces it (OQ-6).
+ * don't. An in-game test replaces it (OQ-6).
  */
 export const PET_INHERITANCE: Readonly<PetInheritance> = { attackPower: 0.1, spellDamage: 0.1, crit: 1, hit: 1 }
 

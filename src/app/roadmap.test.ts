@@ -29,6 +29,18 @@ describe('the roadmap (docs/ux.md "Coming soon")', () => {
     for (const e of ROADMAP) expect(order, e.id).toContain(e.when)
   })
 
+  // docs/milestones.md: the next update (M5.668, M5.669), then the audit fixes (M5.671), then
+  // multi-target (M6), then the optimizer's remaining steps (user decisions 2026-09-26: D30's
+  // amendment, D38).
+  it('lists the next update, then the audit fixes, then multi-target, then the Optimizer', () => {
+    const ids = ROADMAP.map((e) => e.id)
+    const order = ['sharper-numbers', 'audit-fixes', 'multi-target', 'optimizer']
+    for (const id of order) expect(ids).toContain(id)
+    expect(order.map((id) => ids.indexOf(id))).toEqual([0, 1, 2, 3])
+    expect(ROADMAP[0].when).toBe('Next update')
+    expect(ROADMAP.filter((e) => e.when === 'Next update').map((e) => e.id)).toEqual(['sharper-numbers'])
+  })
+
   // CLAUDE.md "Release updates": plain text a player reads, as the release notes are.
   it('is written for players: no emoji, no internals, whole sentences', () => {
     for (const e of ROADMAP) {

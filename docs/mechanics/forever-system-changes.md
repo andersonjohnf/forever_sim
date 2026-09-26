@@ -84,7 +84,7 @@ modeled).
 | Spell penetration below 0 resistance | "Spell Vulnerability": negative resistance increases spell damage taken | [F] tooltip text ([gs][gs-forever]); in combat [?] | low | [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic) |
 | **Periodic crits and per-tick evaluation** | "Most periodic effects can critically strike". Per-spell client flag (`PERIODIC_CAN_CRIT`, SpellMisc Attributes[8]): Rend, Rake, Rip, Pounce and Lacerate yes; Deep Wounds (412609) and Consecration no. The `forever` profile lets flagged ticks crit. A third-party sim reports Rend reading AP, modifiers and crit per tick (no snapshot); only its 0.02 × AP a tick is adopted ([D36](../decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)), read as the tick lands: otherwise both profiles snapshot at application (Deep Wounds excepted). | [F] tooltip text ([gs][gs-forever]); per-spell flags [F] [client] (SpellMisc, 1.60.1.69913; [wf-spell] agrees), whether flagged ticks crit in combat [?]; per-tick reads [?] ([tzcnt Forever notes][tz-forever], anecdotal) | medium (bleed specs) | [damage-and-timing §4](damage-and-timing.md#4-dots-and-bleeds); class docs |
 | **Rage normalization** | Swing rage is a fixed amount per landed hit set by weapon speed. [rage.md](rage.md#forever-normalized-rage-per-swing-) owns the model: `k × speed` with k = 3.46 (1H) or 4.5 (2H), no crit bonus [?], fitted to public beta logs once each swing's fraction of a tenth counts ([rage § rounding](rage.md#rounding)). Damage-taken rage is `10 × damage before armor, block and absorbs ÷ max health` [?], fitted to about 2,000 logged beta hits: blocked and absorbed hits give full rage, several attackers each count, and it is much lower than Classic at 60 ([rage § damage taken](rage.md#forever-)). | [?] third-party beta logs ([magey/forever-warrior#3][fw-3]; [wowsims/forever#2][wf-2]; [tzcnt/forever-data][fd-logs]) | **high** (warrior, bear) | [rage.md](rage.md) |
-| HS/Cleave queue and the off-hand DW penalty | The Classic rule (a queued HS/Cleave removes the off-hand penalty) is kept in both profiles [C]; a third-party beta test found it still present (5.19% vs 18.27% off-hand miss, 77 and 394 swings) | [?] third-party measurement ([magey/forever-warrior#2][fw-2]); guild test pending | **high** (Fury) | [combat-tables §5](combat-tables.md#5-dual-wield-and-on-next-swing-queues) |
+| HS/Cleave queue and the off-hand DW penalty | The Classic rule (a queued HS/Cleave removes the off-hand penalty) is kept in both profiles [C]; a third-party beta test found it still present (5.19% vs 18.27% off-hand miss, 77 and 394 swings) | [?] third-party measurement ([magey/forever-warrior#2][fw-2]); in-game test pending | **high** (Fury) | [combat-tables §5](combat-tables.md#5-dual-wield-and-on-next-swing-queues) |
 | Normalized weapon damage | Same rule; new normalized abilities (Holy Strike, Spearing Strike) | [F] client effects as read by the class docs ([damage-and-timing §2.2](damage-and-timing.md#22-normalization-for-instant-attacks)); [wf-spell] corroborates | low | [damage-and-timing §2.2](damage-and-timing.md#22-normalization-for-instant-attacks) |
 | PPM table | Classic Era's 1–10 PPM rows (IDs 454–463) plus a new 2.3 PPM row (ID 479). No client proc references any PPM row, so proc rates are server-side and keep their own [C]/[?] tags | [F] [client] (SpellProcsPerMinute, SpellAuraOptions, 1.60.1.69913) | low | [damage-and-timing §5](damage-and-timing.md#5-procs) |
 | Armor formula | No change found (Classic 400 + 85 × level). The client's `armormitigationbylvl.txt` holds retail values (1,059 at 60, [F] [client]); not adopted | [C]; [?] | high **if** wrong | [damage-and-timing §1.1](damage-and-timing.md#11-formula) |
@@ -140,7 +140,7 @@ built, rather than only its numbers:
 1. **Ratings on gear**, with one hit stat and one crit stat → the stat pipeline converts
    ratings, and one hit % feeds both the melee and spell tables.
 2. **Two attack-table profiles** (`forever` from client UI, `classicEra` from measurement)
-   until the guild measures the Forever table. Per doctrine §2, the client UI values are [F] for
+   until an in-game test measures the Forever table. Per doctrine §2, the client UI values are [F] for
    what the client shows and [?] in combat, so they drive the `forever` defaults and stay open
    questions.
 3. **Periodic crits** → DoT ticks need a crit roll when the spell's flag says so (`forever`; the flags
@@ -215,7 +215,7 @@ with" the class buff they copy).
    the Blizzard forums) agrees that they don't work in instances ([bf-wbuffs]). Revisit only
    if Blizzard says otherwise ([doctrine §1](../doctrine.md#1-what-were-building)).
 8. **Testing constraints.** The beta is capped at level 20 (→ 30), there are no target
-   dummies ([fw-1]), and the modern addon API limits combat-log detail ([fw-2]). Guild tests
+   dummies ([fw-1]), and the modern addon API limits combat-log detail ([fw-2]). In-game tests
    of `+3` rules must use mobs 3 levels above the tester.
 9. **Third-party and secondary findings to repeat** [?]: the HS-queue off-hand result ([fw-2];
    [combat-tables open questions](combat-tables.md#open-questions)), whether ticks with the

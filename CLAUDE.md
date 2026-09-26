@@ -25,8 +25,11 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
      boundaries, zero resources
    - determinism: same config + seed → same result
    - statistical sanity: iterations and confidence interval
-   - plausibility: the headline against the other specs and what players expect; an unknown
-     effect modelled as zero; a gear preset built for the wrong stats (D29)
+   - plausibility: the headline against the other specs and what players expect; a described
+     effect modelled as zero while an earlier step of doctrine §2's order has a value; a gear
+     preset built for the wrong stats (D29)
+   - sourcing: any value no step of doctrine §2's fallback order gives, or an undescribed client
+     dummy given a meaning, is a finding (D37)
    - performance, data integrity, and test gaps
 3. **Adversarial UX review.** An independent reviewer inspects `npm run snap` screenshots of
    every changed screen at **390 px, 1280 px and 1920 px, light and dark** (1920 since D34). It covers the default,
@@ -186,21 +189,28 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
 ## Rules
 
 - **Sourcing (non-negotiable):** use WoW Forever values first (the Forever client's files for
-  builds 1.60.x via the wago.tools API; guild in-game tests), otherwise Classic Era (clients
-  1.13–1.15). **Never** use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or
-  private-server emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]`
-  with a source link. If only a forbidden source has a value, add it to *Open questions*;
-  don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (class base
-  attributes, base health), found only in an emulator database, may stand in as a flagged `[?]`
-  placeholder until a tier 1–3 source replaces it; see D24 for the conditions.
-- **Every value that affects the result has a default (D29).** Never leave a known variable
-  blank: a blank models it as zero, which is the least accurate guess. Anything a tooltip, the
-  client, a talent or how the game plays says exists gets a sensible default from the closest
-  allowed analog or a reasoned estimate, tagged `[?]` and shown in the results' assumptions.
-  "Unknown" or "no allowed source" is never a reason to leave it out; the sourcing rules only
-  decide where a default comes from. **The same threat wording means the same threat on every
-  tank:** "a high amount of threat" on a bear's or paladin's ability carries the bonus the
-  warrior's abilities with those words carry (threat.md's wording table).
+  builds 1.60.x via the wago.tools API; in-game tests by the user or guild members, recorded
+  with build, date, method and sample), otherwise Classic Era (clients 1.13–1.15). **Never**
+  use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or private-server
+  emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]` with a source
+  link. If only a forbidden source has a value, add it to *Open questions*; don't use it.
+  **Exceptions:** a value Classic Era kept unchanged from 1.12, found only in an emulator
+  database (D24); and Blizzard's own SoD client data or patch notes for a spell Forever reuses
+  from SoD ([D37](docs/decisions.md#d37-only-sourced-values-2026-09-26)). Both are `[?]`.
+  **Other sims are never authoritative** (wowsims, WarriorSim, LibThreatClassic2, Warcraft Logs
+  threat configs): unconfirmed data to consider; what they may supply follows doctrine §2's
+  fallback order. **The user's offhand numbers are never evidence or targets.** There are no
+  guild tests apart from the user's paladin test; a player's tests shared elsewhere are
+  third-party `[?]`.
+- **Only sourced values; every described effect has a default (D29, D37).** No invented
+  multipliers, ratios, scalings or fitted terms. Defaults follow doctrine §2's fallback order; its
+  one exception is D24's stand-in above. A described effect's default is the first of these with a
+  value, used as is: an allowed source, an outside player's in-game measurement, the closest similar
+  value from an allowed source, another sim's value, then zero; every step after the first is `[?]`,
+  labelled with where it came from, with an open question and a line in the results' assumptions.
+  **An undescribed client dummy models as zero.** **The same threat wording means the same threat on every tank:** "a
+  high amount of threat" on a bear's or paladin's ability carries the bonus the warrior's
+  abilities with those words carry, used as is (threat.md's wording table).
 - **Defaults are what the spec's players actually run (D29).** Talent builds suit the role as
   it's played: tanks talent for the balanced approach, never pure defense.
 - **Presets are real pre-raid BiS, geared for what the spec measures (D29):** TPS for tanks, DPS otherwise, using
@@ -210,7 +220,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
 - **Sanity-check the headline against the other specs (D29).** A tank below most DPS specs'
   threat, or one tank at twice another, is a finding until a cited mechanic explains it,
   however well each formula matches its doc. There's no numeric target for any spec: a result
-  lands where the cited mechanics put it, and an unexplained gap goes to the guild's tests.
+  lands where the cited mechanics put it. A gap is never a reason to move a value; an
+  unexplained one becomes an open question (D37).
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).
 - **Docs and code stay in sync.** Mechanic constants in `src/sim` cite their doc section

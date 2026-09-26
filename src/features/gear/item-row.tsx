@@ -7,7 +7,7 @@ import type { Item } from '@/data/items/types'
 import { QUALITY_CLASS } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { useSpecMeta } from '@/app/specs'
-import { statsLine, unsimulatedEffects } from './item-flags'
+import { classicFlag, statsLine, unsimulatedEffects } from './item-flags'
 
 /**
  * A badge that explains itself on tap, click or Enter (docs/ux.md "Gear": nothing is hover-only).
@@ -61,13 +61,20 @@ function FlagBadge({ id, label, icon: Icon, words = false, children }: { id?: st
   )
 }
 
-/** Items with no Forever data yet (decision D6). */
-export function ClassicStatsBadge({ id, iconOnly = false, words = false }: { id?: string; iconOnly?: boolean; words?: boolean }) {
+/**
+ * Items whose numbers are Classic Era's (`classicFlag`): one with no Forever data yet (decision D6), or
+ * a Forever item with a stat no Forever tooltip on record gives (Mindfang's and Sageclaw's spell
+ * power), each with its own words.
+ */
+export function ClassicStatsBadge({ id, item, iconOnly = false, words = false }: { id?: string; item: Item; iconOnly?: boolean; words?: boolean }) {
+  const flag = classicFlag(item)
+  if (!flag) return null
   return (
     <FlagBadge id={id} label="Classic stats" icon={iconOnly ? History : undefined} words={words}>
       <p className="text-muted-foreground">
-        The Forever beta client has no data for this item yet, so the sim uses its Classic Era stats. It updates when a
-        client build ships the item.
+        {flag.kind === 'item'
+          ? 'The Forever beta client has no data for this item yet, so the sim uses its Classic Era stats. It updates when a client build ships the item.'
+          : `Its ${flag.stats} is Classic Era’s: no one has recorded its Forever tooltip yet, so the sim uses the Classic Era value. Its other stats are Forever’s.`}
       </p>
     </FlagBadge>
   )
@@ -109,7 +116,8 @@ export function UnsimulatedBadge({ id, effects, iconOnly = false, words = false 
  */
 export function ItemFlags({ item, className, fit, idPrefix }: { item: Item; className?: string; fit?: string; idPrefix?: string }) {
   const effects = unsimulatedEffects(item, useSpecMeta().id)
-  const flagged = !item.foreverData || effects.length > 0
+  const classic = classicFlag(item) !== null
+  const flagged = classic || effects.length > 0
   const own = useRef<HTMLSpanElement>(null)
   const wordsCopy = useRef<HTMLSpanElement>(null)
   const [words, setWords] = useState(false)
@@ -141,12 +149,12 @@ export function ItemFlags({ item, className, fit, idPrefix }: { item: Item; clas
   if (!flagged) return null
   return (
     <span ref={own} className={cn('flex shrink-0 items-center', words ? 'gap-x-1.5' : 'gap-x-6', className)}>
-      {!item.foreverData && <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} iconOnly words={words} />}
+      {classic && <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} item={item} iconOnly words={words} />}
       {effects.length > 0 && <UnsimulatedBadge id={idPrefix && `${idPrefix}-unsimulated`} effects={effects} iconOnly words={words} />}
       {measured && (
         // What the words take, measured, never shown.
         <span ref={wordsCopy} aria-hidden className="pointer-events-none invisible absolute top-0 left-0 flex gap-x-1.5 whitespace-nowrap">
-          {!item.foreverData && (
+          {classic && (
             <Badge variant="outline" className="gap-1.5 px-2">
               <History />
               Classic stats
@@ -236,7 +244,7 @@ export function ItemSummary({
         <span aria-hidden className={cn('line-clamp-2 text-xs text-muted-foreground tabular-nums', fade)}>
           {statsLine(item)}
         </span>
-        {(equipped || bis || !item.foreverData || effects.length > 0) && (
+        {(equipped || bis || classicFlag(item) || effects.length > 0) && (
           // A wrapped line starts 24 px lower, so the flags' 44 px hit areas never overlap.
           <span className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-6">
             {equipped && (
@@ -250,7 +258,7 @@ export function ItemSummary({
                 <BisBadge rank={bis} />
               </span>
             ) : null}
-            {!item.foreverData && <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} />}
+            <ClassicStatsBadge id={idPrefix && `${idPrefix}-classic`} item={item} />
             {effects.length > 0 && <UnsimulatedBadge id={idPrefix && `${idPrefix}-unsimulated`} effects={effects} />}
           </span>
         )}

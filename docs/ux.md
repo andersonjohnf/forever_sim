@@ -506,7 +506,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       ([hunter.md §7.3](classes/hunter.md#73-gear)); screen readers hear what was swapped in.
   - Badges, on slot rows and picker rows alike:
     - the BiS rank;
-    - **Classic stats** for items with no Forever data yet;
+    - **Classic stats** for items with no Forever data yet, and for a Forever item with a stat no
+      Forever tooltip on record gives, so the sim takes Classic Era's (Mindfang's and Sageclaw's
+      spell power, [client.md](data/client.md#weapon-damage)). The same clock badge, with its own
+      popover: "Its spell power is Classic Era's: no one has recorded its Forever tooltip yet…";
+      the result's assumptions name those weapons too;
     - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
       leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
       list. An effect that names only another spec's abilities isn't one: Idol of Brutality's

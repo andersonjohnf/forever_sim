@@ -82,8 +82,9 @@ export function AboutSheet({
           <Section title="Items marked “Classic stats”">
             <p>
               The Forever beta client doesn&apos;t include every item yet, so those items use their Classic Era
-              stats until a client build ships them. They&apos;re marked{' '}
-              <Badge variant="outline">Classic stats</Badge> in the gear picker.
+              stats until a client build ships them. A few Forever caster weapons, such as Sageclaw and Mindfang,
+              take their spell power from Classic Era too, because no one has recorded their Forever tooltip yet.
+              Both are marked <Badge variant="outline">Classic stats</Badge> in the gear picker.
             </p>
           </Section>
           <Section title="Game data">

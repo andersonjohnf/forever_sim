@@ -46,6 +46,22 @@ test.describe('phone', () => {
     await expect(blackblade.getByRole('button').first()).toHaveAttribute('aria-current', 'true')
   })
 
+  test('Sageclaw’s Classic Era spell power is flagged, in its own words (EU-2)', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Human' }).click()
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    const slot = page.getByRole('button', { name: /^Main hand: Sageclaw/ })
+    await expect(slot).toHaveAccessibleDescription(/Classic stats: its spell power is Classic Era’s, with no Forever tooltip on record yet/)
+    const row = page.getByRole('listitem').filter({ has: slot })
+    await row.getByRole('button', { name: 'Classic stats' }).tap()
+    await expect(page.getByRole('dialog', { name: 'Classic stats' })).toContainText(
+      'Its spell power is Classic Era’s: no one has recorded its Forever tooltip yet, so the sim uses the Classic Era value.',
+    )
+  })
+
   test('the flags’ hit areas are 44 px tall', async ({ page }) => {
     await page.goto('./')
     await arms(page)

@@ -19,7 +19,7 @@ import { defaultGearFor, equipEffect, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
-import { itemDescription, unsimulatedEffects } from './item-flags'
+import { classicFlag, itemDescription, unsimulatedEffects } from './item-flags'
 import { ItemFlags, ItemSummary } from './item-row'
 import { ItemTooltip, ItemTooltipInfoButton, ItemTooltipTrigger } from './item-tooltip'
 import { WIDE_TOOLTIP_ANCHOR, WideSlot, WideSlotGrid } from './wide-slots'
@@ -420,7 +420,7 @@ export function GearSection() {
                     // The chip's text lines up with the name above it: its focus ring's 4 px of room goes outside.
                     chip={item && enchantable && enchantPicker(slot, item, equipped?.enchantId, place.mirrored ? '-mr-1' : '-ml-1')}
                     flags={flags}
-                    flagged={Boolean(item && (!item.foreverData || unsimulatedEffects(item, meta.id).length > 0))}
+                    flagged={Boolean(item && (classicFlag(item) || unsimulatedEffects(item, meta.id).length > 0))}
                     info={info}
                   />
                 ),

@@ -76,3 +76,14 @@ fixes results-keyed's `/^Riphook/` (the phone's info control matched too).
 | VF-3 | low | pre-existing | An Escape during the 100 ms fade is spent on the closing tooltip. | Known gap. |
 | VV-1 | low | pre-existing, breaks ux.md | Every shadcn dialog, sheet, popover, menu and select zoomed or slid under reduced motion. | Fixed, baf4c4bc: one rule in src/index.css keeps only the fade; the drawer snaps. e2e/reduced-motion.spec.ts. |
 | VV-2 | low | pre-existing | A closing panel's layer takes Escape for up to a frame. | Same as VF-3. |
+
+## Quick checks of VV-1 and its fix
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| QC-1 | medium | introduced by baf4c4bc | Under reduced motion the phone drawer still slid: vaul opens and closes with keyframes, which the transition duration didn't touch, yet ux.md said it snaps. | Fixed, 961a0711: `animation-duration: 1ms` too; the phone test checks it. Its quick check confirmed it (no visible slide, every close ends, drag still dismisses; motion allowed unchanged). |
+| QC-2 | low | pre-existing | The picker hover test read the tooltip's box before placement (flaky under load). | Fixed, 961a0711: it polls. |
+| QC-3 | low | introduced by 961a0711 | The outer CSS comment still described the drawer's motion as a transition. | Fixed in the release commit (comment only). |
+| QC-4 | low | pre-existing | The phone item picker closes without its exit slide (it unmounts at once). | Known gap: no doc promises it. |
+
+The PV fixes (Power Infusion's copy) were confirmed by the first quick check. The gate passes.

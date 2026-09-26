@@ -24,7 +24,7 @@ export interface Release {
 export const RELEASES: readonly Release[] = [
   {
     id: '2026-09-26.1',
-    time: '2026-09-26T04:30:00Z',
+    time: '2026-09-26T04:14:00Z',
     groups: [
       {
         label: 'Tanks',

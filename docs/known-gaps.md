@@ -14,6 +14,10 @@ review's log under [reviews/](reviews/). The milestones are in [milestones.md](m
   refuse to drag down from its handle while a tooltip was pinned; a second couldn't reproduce it (a
   drag starting on the tooltip scrolls it instead, by design). On a phone card the info
   control shortens the item's name by 32 px (moving it to the slot's line would restore it).
+- **The phone's item picker closes without its exit slide (review QC-4, pre-existing, low).** The
+  Gear tab mounts the picker only while picking (`gear-section.tsx`, `{picking && <ItemPicker …/>}`),
+  so its drawer unmounts before vaul's slide-out plays; the enchant picker slides out as it should.
+  No doc promises the exit slide. The fix keeps the picker mounted and drives `open` from `picking`.
 - **An Escape during a tooltip's fade-out is spent on it (review VF-3, pre-existing, low).** In the
   100 ms a closing tooltip fades, its layer still takes Escape, so a press then closes nothing more
   and the next one closes the picker. Rare: the press must land inside those 100 ms.

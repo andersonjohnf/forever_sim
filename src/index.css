@@ -290,8 +290,8 @@
 /*
  * Reduced motion (docs/ux.md "Motion"): tw-animate's enter and exit keep their fade but lose the
  * zoom, slide, rotate and blur, so every dialog, sheet, popover, menu and select only fades, and
- * closes still end on an animationend (the item tooltip relies on it). Vaul's drawer moves by an
- * inline transform transition; it snaps instead of sliding.
+ * closes still end on an animationend (the item tooltip relies on it). Vaul's drawer opens and
+ * closes with keyframes and settles a drag with an inline transition; both last 1 ms, so it snaps.
  */
 @media (prefers-reduced-motion: reduce) {
   * {

@@ -664,7 +664,7 @@ and aren't modelled.
 | Spirit regen | the class formula with the five-second rule; any mana spent starts a 5 s window with no spirit regen (Reverence lets some continue) | [C] → [character-stats.md](../mechanics/character-stats.md) |
 | mp5 | gear mp5 and Blessing of Wisdom (36 mp5) tick through the five-second rule | [F]/[C] |
 | The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
-| Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained, a threat library's value, unmeasured ([open question 31](#open-questions); [threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
+| Mana from a spell effect | Sanctified Judgement, Shield Specialization, Improved Seal of Fury: 0.5 threat per mana gained, a Classic Era threat library's (LibThreatClassic2's) value, borrowed and unmeasured ([open question 31](#open-questions); [threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
 | Improved Seal of Fury (Prot) | **87 mana** (against a level-63 boss) each time a hit uses up Seal of Fury's absorb | [F] rank text; the absorb's rules and the timing measured ([the beta logs](#the-beta-logs-lights-fury)) |
 | Judgement of Wisdom (another paladin's) | chance on each of your hits to restore 59 mana (Classic 50% [?]) | [F]/[?] |
@@ -1911,8 +1911,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     (210 × 0.9 × 0.8 = 151)? The same question as 19. *Test:* Seal of Command's cost with both.
 31. **Threat from mana gained** [?]. Each mana you gain from a spell or item (Improved Seal of Fury,
     Shield Specialization, Sanctified Judgement, a Major Mana Potion) makes 0.5 threat. That value is
-    LibThreatClassic2's alone; Magey's Classic tests confirm mana gains make threat but give no number
-    ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)). It's about **5.7%**
+    LibThreatClassic2's alone, another tool's, kept as the fourth step of the fallback order the user
+    confirmed (2026-09-26: another sim's value, labelled with where it comes from), since no client
+    data, measurement or similar known value gives one; Magey's Classic tests confirm mana gains make
+    threat but give no number ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)).
+    The results label it so ("a Classic Era threat library's value"). It's about **5.7%**
     of the default Protection paladin's TPS (Improved Seal of Fury 2.1%, Shield Specialization 2.4%,
     the Major Mana Potion 1.1%; seed 31101, 20,000 fights, 2026-09-26). *Test:* the threat a Major Mana
     Potion adds on a threat meter while nothing else changes the mob's threat. Forever's client blocks the

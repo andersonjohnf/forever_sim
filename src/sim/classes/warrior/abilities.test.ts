@@ -1194,14 +1194,17 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
     expect(ids(r).slice(ids(r).lastIndexOf('overpower') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['rend'])
     const lines = linesOf(r, 'rend')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle])
-    // Again with 3 s left (unless it lasts to the end), up to 25 rage.
-    expect(lines.map((e) => e.conditions)).toEqual([[notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))]])
+    // Again with 3 s left (unless it lasts to the end), never with under a tick (3 s) of the fight left (W4L-2), up to 25 rage.
+    const tickLeft = { code: COND.timeLeftAtLeast, a: 3000, b: 0 }
+    expect(lines.map((e) => e.conditions)).toEqual([
+      [notExec, { code: COND.abilityAuraRefresh, a: rend, b: 3000 }, tickLeft, { code: COND.maxRage, a: 250, b: 0 }, safe((1 << bt) | (1 << ww))],
+    ])
     // Its ticks add 0.02 × AP in `forever` (D36), and Improved Rend isn't in these talents.
     expect(r.abilities[rend]).toMatchObject({ costTenths: 100, stances: STANCE.battle | STANCE.defensive, dotTickApCoefficient: 0.02 })
     // The settings: the refresh window and the rage limit; without Execute, no phase condition; off, no Rend.
     const set = furyRotation({ 'warrior.fury.execute.enabled': false, 'warrior.fury.rend.refreshBelowSec': 0, 'warrior.fury.rend.maxRage': 40 }, talents, noAura)
     expect(linesOf(set, 'rend').map((e) => e.conditions)).toEqual([
-      [{ code: COND.abilityAuraRefresh, a: at(set, 'rend'), b: 0 }, { code: COND.maxRage, a: 400, b: 0 }, safe((1 << at(set, 'bloodthirst')) | (1 << at(set, 'whirlwind')))],
+      [{ code: COND.abilityAuraRefresh, a: at(set, 'rend'), b: 0 }, tickLeft, { code: COND.maxRage, a: 400, b: 0 }, safe((1 << at(set, 'bloodthirst')) | (1 << at(set, 'whirlwind')))],
     ])
     expect(ids(furyRotation({ 'warrior.fury.rend.enabled': false }, talents, noAura))).not.toContain('rend')
   })

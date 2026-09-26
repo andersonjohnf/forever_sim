@@ -192,10 +192,17 @@ describe('armsRotation (warrior.md §5.3)', () => {
   it('row 2: Rend when missing or at ≤ refreshBelowSec left, in both phases; from Berserker Stance a dance at rage ≤ the swap’s cap', () => {
     const r = armsRotation({ 'warrior.arms.rend.refreshBelowSec': 1.5 }, TALENTS, noAura)
     const rend = at(r, 'rend')
-    expect(linesOf(r, 'rend')).toEqual([{ ability: rend, conditions: [{ code: COND.abilityAuraRefresh, a: rend, b: 1500 }], unqueueBelowTenths: 0 }])
+    // Never with under a tick (3 s) of the fight left, where it wouldn't tick (W4L-2).
+    const tickLeft = { code: COND.timeLeftAtLeast, a: 3000, b: 0 }
+    expect(linesOf(r, 'rend')).toEqual([{ ability: rend, conditions: [{ code: COND.abilityAuraRefresh, a: rend, b: 1500 }, tickLeft], unqueueBelowTenths: 0 }])
     const b = armsRotation({ ...berserker, 'warrior.arms.rend.enabled': true }, TALENTS, noAura)
     expect(linesOf(b, 'rend')).toEqual([
-      { ability: at(b, 'rend'), conditions: [{ code: COND.abilityAuraRefresh, a: at(b, 'rend'), b: 3000 }, maxRage(250)], unqueueBelowTenths: 0, danceTo: STANCE.battle },
+      {
+        ability: at(b, 'rend'),
+        conditions: [{ code: COND.abilityAuraRefresh, a: at(b, 'rend'), b: 3000 }, tickLeft, maxRage(250)],
+        unqueueBelowTenths: 0,
+        danceTo: STANCE.battle,
+      },
     ])
     expect(ids(armsRotation({}, without('Bloodthrill'), noAura))).not.toContain('rend')
   })

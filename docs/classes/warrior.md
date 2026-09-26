@@ -801,7 +801,7 @@ Death Wish, Recklessness and the Mighty Rage Potion follow the execute phase.
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (0.5) | yes |
 | 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; the swap keeps at most 19 with the default build (25 with Improved Tactical Mastery 5/5), so above that it loses the rest. See the notes | `fury.overpower.enabled` (on), `.maxRage` (45; 40 until W4) | yes |
-| 10b | Rend (stance dance) | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe; outside the execute phase. Swap to Battle, Rend, swap back. New in W4, now that Rend's ticks add 0.02 × AP (D36). See the notes | `fury.rend.enabled` (on), `.refreshBelowSec` (3), `.maxRage` (25) | yes |
+| 10b | Rend (stance dance) | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does; at least one tick (3 s) of the fight left; rage ≤ `maxRage`; Bloodthirst and Whirlwind are GCD-safe; outside the execute phase. Swap to Battle, Rend, swap back. New in W4, now that Rend's ticks add 0.02 × AP (D36). See the notes | `fury.rend.enabled` (on), `.refreshBelowSec` (3), `.maxRage` (25) | yes |
 | 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; with `unqueue` on, unqueue if rage falls below `unqueueBelow` before the swing. In both phases unless `heroicStrikeInExecute` (row 7) is off | `fury.heroicStrike.enabled` (on), `.minRage` (40), `.unqueue` (on), `.unqueueBelow` (20) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (off), `.minRage` (60), `.onlyWhenFlurryDown` (off) | no |
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
@@ -890,7 +890,14 @@ Notes:
   (W13, [?]), a Rend is worth about 540 damage over 21 s at 1,800 AP for 10 rage and a GCD that
   would otherwise go to nothing, and the 13/38/0 build keeps Improved Rend for Deep Wounds anyway.
   It comes below the Overpower dance, which then takes a window first (+0.6% over above it), and
-  it stays out of the execute phase. With the tuned defaults it's +1.4% DPS (below). An engine
+  it stays out of the execute phase. Nor is it cast with less than one tick (3 s) of the fight
+  left, when it would never tick (W4's fix round, W4L-2; Arms' row 2 likewise): without an execute
+  phase or with Execute off, 19 of 200 fights' last Rends had landed with 21–2,804 ms left, each 10
+  rage, a GCD and a dance for nothing. Like the refresh's "unless it lasts to the end", this floor
+  is the upkeep's own, so it doesn't list the known-timings assumption. Because it waits for low
+  rage and leaves the phase alone, Rend is up for part of the fight (about 60% in the default
+  setup), and the setting's help says so rather than "keep it up". With the tuned defaults it's
+  +1.4% DPS (below; turning it off costs 1.37–1.40%, the figure its help gives). An engine
   choice, measured; no source covers a Fury warrior dancing for Rend, though WarriorSim's
   comparison for D36 noted the AP term would make it worth it.
 - **Heroic Strike in the execute phase** (`heroicStrikeInExecute`, on since M2.5b). The queue
@@ -1326,7 +1333,7 @@ have.
 | – | Base stance | Battle Stance, or Berserker Stance; see the notes (Q24) | `arms.baseStance` (`battle`; a choice of `battle` or `berserker`) | Battle |
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s; optional Charge: 15 rage, +3 per Improved Charge rank, all kept in Battle Stance. Fighting in Berserker Stance, the swap after Charge keeps at most 10 + 3 per Improved Tactical Mastery rank | `arms.prepull.battleShout` (on; needs `arms.battleShout.enabled`), `.bloodrage` (on), `.charge` (off) | yes |
 | 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
-| 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
+| 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does, with at least one tick (3 s) of the fight left. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
 | 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off, and its help says it needs an execute phase), `.lastSec` (15: its duration; the help is Fury's); see the notes | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |

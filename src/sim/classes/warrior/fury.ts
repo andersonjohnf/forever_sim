@@ -63,6 +63,7 @@ import {
   type RotationContext,
   seconds,
   sharedIds,
+  timeLeftAtLeast,
   trinketLines,
   WARRIOR_MAX_RAGE,
 } from './shared'
@@ -288,7 +289,9 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.rendEnabled,
     group: 'Fillers',
     label: 'Rend (stance dance)',
-    help: 'Keep your Rend on the boss: swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
+    // Why first (W4U-1): a Fury player from Classic Era never Rends. "About 1.4%": Rend off costs 1.37–1.40% in the
+    // default setup (warrior.md §5.2 "Re-tuning after D36"). Partial uptime, not "keep it up" (W4U-4).
+    help: 'In Forever, Rend’s ticks gain from your attack power, so it’s worth about 1.4% of your damage. When your rage is low, swap to Battle Stance for it and back while Bloodthirst and Whirlwind are cooling down, outside the execute phase, so it’s up for part of the fight. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
     default: true,
   },
   {
@@ -296,7 +299,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.rendRefresh,
     group: 'Fillers',
     label: 'Rend again with',
-    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight.',
+    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight. It’s never cast with under 3 s of the fight left, where it wouldn’t tick.',
     unit: 's left',
     min: 0,
     max: 21,
@@ -521,7 +524,8 @@ export const FURY_APL: AplDefinition = {
       icon: REND.icon,
       enabledId: ID.rendEnabled,
       optionIds: [ID.rendRefresh, ID.rendMaxRage],
-      summary: [{ option: ID.rendRefresh, text: 'again with {}' }, { option: ID.rendMaxRage, text: 'up to {}' }, NOT_IN_PHASE, AFTER_BT_WW],
+      // The rage limit and when it's used; the refresh, a detail that rarely moves, is in its settings (W4U-7).
+      summary: [{ option: ID.rendMaxRage, text: 'up to {}' }, NOT_IN_PHASE, AFTER_BT_WW],
     },
     {
       id: 'heroicStrike',
@@ -679,20 +683,23 @@ export function furyRotation(
     // Row 10b (warrior.md §5.2, W4): a dance to Battle Stance for Rend and back, when your Rend is missing or has
     // at most refreshBelowSec of ticks left (unless it lasts to the end of the fight), at rage ≤
     // maxRage, Bloodthirst and Whirlwind GCD-safe, and never in the execute phase, where the GCDs are
-    // Execute's. Its ticks add 0.02 × AP in forever (D36, §3.1).
+    // Execute's; nor with less than one tick (3 s) of the fight left, when it would never tick (W4L-2).
+    // Its ticks add 0.02 × AP in forever (D36, §3.1).
     rend: () => {
       if (!v.on(ID.rendEnabled)) return
       const def = rend(ctx.profile)
       b.dance(def, STANCE.battle, [
         ...outsideExecute(false),
         { code: COND.abilityAuraRefresh, a: b.ability(def), b: seconds(v, ID.rendRefresh) },
+        timeLeftAtLeast(def.dotTickMs!),
         maxRage(v.num(ID.rendMaxRage)),
         ...gcdSafe(bit(btIndex()) | bit(wwIndex())),
       ])
     },
     // Row 10: the Overpower stance dance (on by default since M2.5b): while the window a dodge opened
-    // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (40 by default: the swap in
-    // keeps at most 25, and an Overpower sooner is worth the rest), swap to Battle Stance, Overpower,
+    // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (45 by default: the swap in
+    // keeps at most 19 with the default build's Improved Tactical Mastery 3/5, and an Overpower sooner
+    // is worth the rest), swap to Battle Stance, Overpower,
     // and swap back when the swap cooldown allows (§2.1, §2.8, §7). It applies in both phases,
     // GCD-safe as row 13 is; in the execute phase it gets a GCD only while Execute waits for rage.
     // The window's openers come with it.

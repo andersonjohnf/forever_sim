@@ -515,10 +515,14 @@ export class RotationBuilder {
    * Lists `knownFightTimings` when a line is timed to the fight's end or its execute phase (Death
    * Wish, the racial synced with it, Recklessness, the potion; warrior.md §5.2 notes), with the
    * spec's measured `detail`: each fight's phase start and end are exact, where a player judges them.
+   * An upkeep's own end-of-fight rule doesn't count, as its refresh "unless it lasts to the end"
+   * doesn't: Rend's "not with under a tick left" (W4L-2) is a line's time-left floor beside its refresh.
    */
   assumeKnownTimings(detail: string): void {
     const timed = new Set<number>([COND.timeLeftAtMost, COND.timeLeftAtLeast, COND.executeWithin, COND.executeNotWithin])
-    if (this.rotation.some((e) => e.conditions.some((c) => timed.has(c.code)))) this.assumes.push({ id: 'knownFightTimings', detail })
+    const upkeep = (conditions: RotationCondition[]) => conditions.some((c) => c.code === COND.abilityAuraRefresh)
+    const isTimed = (c: RotationCondition, conditions: RotationCondition[]) => timed.has(c.code) && !(c.code === COND.timeLeftAtLeast && upkeep(conditions))
+    if (this.rotation.some((e) => e.conditions.some((c) => isTimed(c, e.conditions)))) this.assumes.push({ id: 'knownFightTimings', detail })
   }
 
   result(onUse: string[]): ClassRotation {

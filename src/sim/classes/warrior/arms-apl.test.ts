@@ -62,10 +62,18 @@ describe('Arms’ priority list (D31)', () => {
     // The snapshot is of the plans before the priority list (A2), whole, taken on the code before
     // it: a change to it is a change to what Arms plays. The cases keep the order, the Hamstring
     // threshold and the talents the defaults had until W4 (arms-apl-cases.ts), which are what they
-    // played then.
+    // played then. W4's fix round added Rend's "not with under a tick of the fight left" (W4L-2), taken
+    // out of the Rend lines here, as it didn't exist: everything else plays as it did before the list.
     const cases = armsCases(ARMS_OPTIONS, 200)
     const plans = cases.map((config) => buildPlan(config).plan)
-    const hashes = plans.map((plan) => fingerprint(planJson(plan)))
+    const beforeW4Fix = (plan: Plan): Plan => ({
+      ...plan,
+      rotation: plan.rotation.map((e) =>
+        plan.abilities[e.ability].id === 'rend' ? { ...e, conditions: e.conditions.filter((c) => !(c.code === COND.timeLeftAtLeast && c.a === 3000)) } : e,
+      ),
+    })
+    expect(plans.filter((p) => p.rotation.some((e) => p.abilities[e.ability].id === 'rend')).every((p) => p.rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast)))).toBe(true)
+    const hashes = plans.map((plan) => fingerprint(planJson(beforeW4Fix(plan))))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     // They cover each stance, Death Wish, Spearing Strike, the potion and the Whirlwind dance.
     const using = (id: string) => plans.filter((p) => p.rotation.some((e) => p.abilities[e.ability].id === id)).length

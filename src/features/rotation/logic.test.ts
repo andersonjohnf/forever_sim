@@ -386,7 +386,7 @@ describe('a priority list’s rows (decision D31)', () => {
     const fillers = { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.slam.enabled': true }
     expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')
     expect(summary('overpower')).toBe('Up to 45 rage · while Bloodthirst and Whirlwind cool down')
-    expect(summary('rend')).toBe('Again with 3 s left · up to 25 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
+    expect(summary('rend')).toBe('Up to 25 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('hamstring', fillers)).toBe('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
     expect(summary('slam', fillers)).toBe('Not in the execute phase · while Bloodthirst and Whirlwind cool down')
     // Execute off, or no phase: they don't stop for it.

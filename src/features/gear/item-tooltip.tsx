@@ -334,7 +334,9 @@ export function ItemTooltip({ item, enchantId, profile, worn, side, align = 'sta
               // Resting on the item, the pointer never lands on the panel; a pinned one scrolls.
               openedBy !== 'press' && 'pointer-events-none',
             )}
-            style={{ backgroundColor: panelColour, borderColor: border, color: tone.white }}
+            // Inside a modal, Radix's DismissableLayer sets an inline `pointer-events: auto` that beats the
+            // class above; the style prop wins over it, so a hover or focus tooltip lets the pointer through (VT-1).
+            style={{ backgroundColor: panelColour, borderColor: border, color: tone.white, pointerEvents: openedBy === 'press' ? undefined : 'none' }}
           >
             <ItemTooltipCard id={linesId} lines={lines} />
           </PopoverPrimitive.Content>

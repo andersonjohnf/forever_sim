@@ -463,7 +463,8 @@ test.describe('tall tooltips where the dialog or card leaves no room beside it',
     await expect(tooltip(page)).toContainText('Lightforge Armor (0/8)')
     await expectWhole(page)
     await expect(lastSetBonus(page)).toBeInViewport()
-    // It lets the pointer through: the row under it still picks.
+    // It lets the pointer through, even inside the modal, whose layer sets its own pointer-events (VT-1).
+    expect(await tooltip(page).evaluate((el) => getComputedStyle(el).pointerEvents)).toBe('none')
     await row.click({ position: { x: 30, y: 30 } })
     await expect(picker).toHaveCount(0)
   })

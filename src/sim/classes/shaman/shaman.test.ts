@@ -55,15 +55,15 @@ describe('worked example 1: Earth Shock', () => {
     expectMean(es, 335.1852)
   })
 
-  it('crits for ×1.5; Frost Shock deals (278.68–294.52 + 0.386 × SP) × 0.94 = 305.69, which Concussion doesn’t touch', () => {
+  it('crits for ×1.5; Frost Shock deals (278.08–293.92 + 0.386 × SP) × 0.94 = 305.12, which Concussion doesn’t touch', () => {
     const crits = examplePlan({ talents, rotation: SHOCK_AT_ANY_MANA })
     crits.stats.spellCrit = 100
     fixSpell(crits, 'earthShock', 301)
     for (const d of damagesOf(crits, 'earthShock')) expect(d).toBeCloseTo(335.1852 * 1.5, 9)
     const fs = damagesOf(examplePlan({ talents, rotation: { ...SHOCK_AT_ANY_MANA, [ID.shock]: 'frost' } }), 'frostShock', 40)
-    expect(Math.min(...fs)).toBeGreaterThanOrEqual((278.676 + 38.6) * RESIST - 1e-6)
-    expect(Math.max(...fs)).toBeLessThanOrEqual((294.524 + 38.6) * RESIST + 1e-6)
-    expectMean(fs, 305.688)
+    expect(Math.min(...fs)).toBeGreaterThanOrEqual((278.076 + 38.6) * RESIST - 1e-6)
+    expect(Math.max(...fs)).toBeLessThanOrEqual((293.924 + 38.6) * RESIST + 1e-6)
+    expectMean(fs, 305.124)
   })
 })
 
@@ -76,12 +76,12 @@ describe('worked example 2: Lightning Bolt and Maelstrom Weapon', () => {
     return plan
   }
 
-  it('deals (190.18–211.42 + 0.714 × SP) × 1.05 × 0.94 = 268.66 at SP 100; at 5 stacks it’s instant and free', () => {
+  it('deals (189.38–210.62 + 0.714 × SP) × 1.05 × 0.94 = 267.87 at SP 100; at 5 stacks it’s instant and free', () => {
     const plan = boltPlan(5)
     const lb = damagesOf(plan, 'lightningBolt', 20)
-    expect(Math.min(...lb)).toBeGreaterThanOrEqual((190.1814893 + 71.4) * 1.05 * RESIST - 1e-6)
-    expect(Math.max(...lb)).toBeLessThanOrEqual((211.4185107 + 71.4) * 1.05 * RESIST + 1e-6)
-    expectMean(lb, 268.6614)
+    expect(Math.min(...lb)).toBeGreaterThanOrEqual((189.3814893 + 71.4) * 1.05 * RESIST - 1e-6)
+    expect(Math.max(...lb)).toBeLessThanOrEqual((210.6185107 + 71.4) * 1.05 * RESIST + 1e-6)
+    expectMean(lb, 267.8718)
     const { sim, list } = events(plan)
     expect(sim.totalManaSpentTenths).toBe(0)
     // Instant: each bolt's damage comes at its use, and the swings keep their 3.6 s rhythm.
@@ -168,13 +168,13 @@ describe('worked example 4: Stormstrike’s +20% on your next Earth Shock or Lig
     p.stats.spellHit = spellHit
     for (const [id, base] of [
       ['earthShock', 301],
-      ['lightningBolt', 200.8],
-      ['frostShock', 286.6],
+      ['lightningBolt', 200],
+      ['frostShock', 286],
     ] as const)
       if (p.spells!.some((s) => p.sources[s.source].id === id)) fixSpell(p, id, base)
     return p
   }
-  const BASE: Record<string, number> = { earthShock: 335.1852, lightningBolt: 268.6614, frostShock: 305.688 }
+  const BASE: Record<string, number> = { earthShock: 335.1852, lightningBolt: 267.8718, frostShock: 305.124 }
 
   /**
    * Walks a fight's events: Stormstrike (it always lands here) puts the aura up for 12 s; a landed
@@ -218,7 +218,7 @@ describe('worked example 4: Stormstrike’s +20% on your next Earth Shock or Lig
     expect(shocks[1].value).toBeCloseTo(335.1852, 6)
   })
 
-  it('Lightning Bolt too (268.66 × 1.2 = 322.39); a missed spell keeps it', () => {
+  it('Lightning Bolt too (267.87 × 1.2 = 321.45); a missed spell keeps it', () => {
     const p = plan({ ...SHOCK_AT_ANY_MANA, [ID.bolt]: true }, -10)
     let total = { boosted: 0, plain: 0, misses: 0 }
     for (let f = 0; f < 10; f++) {

@@ -68,7 +68,7 @@ export const DEMON_STATS = {
 export const DEMON_WEAPON = { min: 36.64, max: 54.96, speedSec: 2 } as const
 
 /**
- * Firebolt r7 (11763), the Imp's: 44 Fire, variance 0.11363637, +0.6 a level from 58, so 42.70–47.70
+ * Firebolt r7 (11763), the Imp's: 44 Fire, variance 0.11363637, + trunc(0.6 a level from 58) = 1, so 42.50–47.50
  * at 60 (Classic Era 83–94 +1.2 a level), coefficient 0.571; 115 mana, a 2 s cast, a 1 s GCD [F]
  * [client] (SpellEffect, SpellPower, SpellMisc, SpellCooldowns, SpellLevels, 1.60.1.69913).
  */
@@ -236,8 +236,8 @@ export const PREPULL_DEMON_MS = -2000
 // --- Soul Fire and Decimation (warlock.md §11.3) -----------------------------------------------------
 
 /**
- * Soul Fire r2 (17924): 431 Fire, variance 0.22474748, +1.9 a level from 56, so 390.17–487.03 at 60,
- * coefficient 1.0; 335 mana, a 6 s cast, a 60 s cooldown (category 631) and a Soul Shard [F] [client]
+ * Soul Fire r2 (17924): 431 Fire, variance 0.22474748, + trunc(1.9 a level from 56) = 7, so 389.57–486.43
+ * at 60 (the tooltip's 390–486), coefficient 1.0; 335 mana, a 6 s cast, a 60 s cooldown (category 631) and a Soul Shard [F] [client]
  * (SpellEffect, SpellPower, SpellCooldowns, SpellLevels, 1.60.1.69913).
  */
 export const SOUL_FIRE_SPELL: SpellDef = {

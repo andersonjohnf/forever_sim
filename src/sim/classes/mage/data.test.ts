@@ -9,6 +9,8 @@ import itemsJson from '@/data/client/items.json'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpell, ClientSpells } from '@/data/client/types'
+import mageBookJson from '@/data/spells/mage.json'
+import type { SpellBook } from '@/data/spells/types'
 import { GCD_MS } from '../../core/formulas'
 import { TALENT_DATA } from '../../defaults'
 import type { AbilityDef, SpellDef } from '../../plan/types'
@@ -117,9 +119,9 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect(FIREBALL_SPELL.dotCanCrit).toBe(true)
   })
 
-  it('Scorch r7: 178 ± 8.27%, +1.7 a level from 58 to 62 (166.68–196.12), 0.429', () => {
+  it('Scorch r7: 178 ± 8.27%, + trunc(1.7 a level from 58 to 62) = 3 (166.28–195.72), 0.429', () => {
     matches(SCORCH_SPELL, SC, 0)
-    expect([SCORCH_SPELL.min.toFixed(2), SCORCH_SPELL.max.toFixed(2)]).toEqual(['166.68', '196.12'])
+    expect([SCORCH_SPELL.min.toFixed(2), SCORCH_SPELL.max.toFixed(2)]).toEqual(['166.28', '195.72'])
   })
 
   it('Fire Blast r7: 438 ± 8.30%, +3 a level from 54 to 59 (416.66–489.34), 0.429', () => {
@@ -137,19 +139,32 @@ describe('the damage spells against the client (mage.md#fire-spells, #frost-spel
     expect(PYROBLAST_SPELL.dotCanCrit).toBe(true)
   })
 
-  it('Frostbolt r10 (the trainer’s, D36): 386 ± 3.81%, +2.9 a level from 56 to 60 (382.89–412.31), 0.814; its slow (aura 33) makes it binary', () => {
+  it('Frostbolt r10 (the trainer’s, D36): 386 ± 3.81%, + trunc(2.9 a level from 56 to 60) = 11 (382.29–411.71), 0.814; its slow (aura 33) makes it binary', () => {
     matches(FROSTBOLT_SPELL, FRB, 1)
-    expect([FROSTBOLT_SPELL.min.toFixed(2), FROSTBOLT_SPELL.max.toFixed(2)]).toEqual(['382.89', '412.31'])
+    expect([FROSTBOLT_SPELL.min.toFixed(2), FROSTBOLT_SPELL.max.toFixed(2)]).toEqual(['382.29', '411.71'])
     expect(effect(FRB, 0)).toMatchObject({ effect: 6, effectAura: 33, effectBasePointsF: -40 })
     expect(FROSTBOLT_SPELL.binary).toBe(true)
     for (const def of [FIREBALL_SPELL, SCORCH_SPELL, FIRE_BLAST_SPELL, PYROBLAST_SPELL, ARCANE_MISSILE_SPELL, ARCANE_BLAST_SPELL]) expect(def.binary, def.id).toBeUndefined()
   })
 
-  it('Arcane Missiles r7 (the trainer’s, D36): each missile (10274) 171 + 0.9 a level from 56, 174.6 at 60, 0.286, no variance; Arcane Blast r5 (Forever’s): 394 ± 7.55% (364.25–423.75), 0.714', () => {
+  it('Arcane Missiles r7 (the trainer’s, D36): each missile (10274) 171 + trunc(0.9 a level from 56) = 174 at 60, 0.286, no variance; Arcane Blast r5 (Forever’s): 394 ± 7.55% (364.25–423.75), 0.714', () => {
     matches(ARCANE_MISSILE_SPELL, AMM, 0)
-    expect([ARCANE_MISSILE_SPELL.min, ARCANE_MISSILE_SPELL.max]).toEqual([174.6, 174.6])
+    expect([ARCANE_MISSILE_SPELL.min, ARCANE_MISSILE_SPELL.max]).toEqual([174, 174])
     matches(ARCANE_BLAST_SPELL, AB, 0)
     expect([ARCANE_BLAST_SPELL.min.toFixed(2), ARCANE_BLAST_SPELL.max.toFixed(2)]).toEqual(['364.25', '423.75'])
+  })
+
+  it('the per-level term is truncated, as the client renders it (docs/data/items.md#per-level-values): Frostbolt r10 adds trunc(2.9 × 4) = 11, not 11.6, which gives its tooltip’s "382 to 412"', () => {
+    const e = effect(FRB, 1)
+    const levels = spell(FRB).levels!
+    expect([e.effectRealPointsPerLevel, levels.spellLevel, levels.maxLevel]).toEqual([2.9, 56, 60])
+    expect(atLevel60(0, 2.9, 56, 60)).toBe(11)
+    const [lo, hi] = spread(e.effectBasePointsF!, e.variance!)
+    expect(FROSTBOLT_SPELL.min - lo).toBeCloseTo(11, 9)
+    expect(FROSTBOLT_SPELL.max - hi).toBeCloseTo(11, 9)
+    // The spellbook dataset renders the tooltip by the same rule; the untruncated 382.89 would read 383.
+    const rank = (mageBookJson as unknown as SpellBook).spells.flatMap((s) => s.ranks).find((r) => r.forever?.spellId === FRB)
+    expect(rank?.forever?.text).toContain(`${Math.round(FROSTBOLT_SPELL.min)} to ${Math.round(FROSTBOLT_SPELL.max)} Frost damage`)
   })
 })
 

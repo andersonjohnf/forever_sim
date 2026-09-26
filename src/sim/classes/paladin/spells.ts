@@ -5,16 +5,23 @@
 //
 // Numbers are the Forever client's (src/data/client/spells.json, build 1.60.1.69913), written out
 // here so the app bundle doesn't carry the client dataset; spells.test.ts checks each against it.
-// A rank learned below 60 grows by its per-level points up to its max level, and a range is
+// A rank learned below 60 grows by its per-level points up to its max level, truncated to a whole
+// number (docs/data/items.md#per-level-values), and a range is
 // base × (1 ± variance/2) (paladin.md#conventions-used-below). These are the base spells: talents
 // (Improved Seals, Sacred Arbiter, Iron Creed) are applied by `withSpellTalents` in talents.ts,
 // and the Judgement of the Crusader rule by `withJotcRule` below.
 import { CRIT_MULTIPLIER } from '../../core/formulas'
 import type { SpellDef } from '../../plan/types'
 
-/** A rank's base points at level 60: base + per level × (min(60, max level) − base level) (paladin.md#conventions-used-below). */
+/**
+ * A rank's base points at level 60: base + trunc(per level × levels), counting levels from the
+ * spell's level up to min(60, max level) and never below 0. The per-level term is truncated toward
+ * zero to a whole number, as the client renders it and the datasets are generated
+ * (docs/data/items.md#per-level-values; paladin.md#conventions-used-below): Frostbolt r10's
+ * 2.9 × 4 = 11.6 adds 11.
+ */
 export const atLevel60 = (base: number, perLevel: number, baseLevel: number, maxLevel = Infinity) =>
-  base + perLevel * (Math.min(60, maxLevel) - baseLevel)
+  base + Math.trunc(perLevel * Math.max(0, Math.min(60, maxLevel) - baseLevel))
 
 /** A spell's damage range from its base points and variance: base × (1 ± variance / 2) (paladin.md#conventions-used-below). */
 export const spread = (base: number, variance: number): [number, number] => [base * (1 - variance / 2), base * (1 + variance / 2)]
@@ -119,7 +126,7 @@ export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): Spe
 
 /**
  * Judgement of Righteousness r8 (20286, paladin.md#seal-of-righteousness-sor): 170 base points,
- * variance 0.0941, + 4.1 per level from 58: 170.2–186.2 at 60, + 0.5 × SP. Melee class with No
+ * variance 0.0941, + trunc(4.1 per level from 58) = 8: 170–186 at 60, + 0.5 × SP. Melee class with No
  * Active Defense and no Always Hit: a melee miss, no dodge, parry or block; no weapon damage, so
  * a second roll for crit ×2 on a landed one [?] (combat-tables §3 "melee spells").
  */
@@ -173,7 +180,7 @@ export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } 
 
 /**
  * Judgement of Fury r7 (20414, paladin.md#seal-of-fury-sof-new-the-protection-seal): 153 base
- * points, variance 0.0876, + 3.69 per level from 58: 153.7–167.1 at 60, + 0.45 × SP. Melee class
+ * points, variance 0.0876, + trunc(3.69 per level from 58) = 7: 153.3–166.7 at 60, + 0.45 × SP. Melee class
  * with No Active Defense and no Always Hit, so it can miss, and like JoR rolls crit apart. Its 4 s
  * taunt comes with the Protection rotation.
  */

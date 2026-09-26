@@ -56,7 +56,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "soulFire",
       null,
-      9739681.148708634,
+      9734197.543592567,
       5996,
       4617,
       775,
@@ -76,7 +76,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     [
       "imp.firebolt",
       "Imp",
-      28751251.147057626,
+      28701309.23683193,
       154192,
       118735,
       20221,
@@ -137,9 +137,9 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-demonol
     ],
   ],
   "dps": {
-    "ci95": 1.820663778632694,
-    "mean": 663.0378983024038,
-    "stdev": 29.37525607236614,
+    "ci95": 1.8204523913377513,
+    "mean": 662.7295924714372,
+    "stdev": 29.371845472346376,
   },
   "mana": {
     "max": 6190,

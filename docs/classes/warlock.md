@@ -74,7 +74,7 @@ the books' ranks were 253–283 and 380 mana, 158 then 55 × 5 and 380 mana, and
 | Conflagrate (6, 18932) | 251–313, 10 s cooldown, 255 mana | 18932 is rank 4: 447–557 | 0.429 / 0.429 |
 | Incinerate (3, 1293813) | 201–233, +25% on your Immolate, 2.5 s, 325 mana | none (new) | 0.714 |
 | Shadowburn (6, 18871) | 258–288, 15 s cooldown, 365 mana | 462–514 | 0.429 / 0.429 |
-| Searing Pain (6, 17923) | 107–126 at 60 (114 ± 8.1%, +1.2 a level from 58), 1.5 s, 168 mana | 208–244 | 0.429 / 0.429 |
+| Searing Pain (6, 17923) | 107–125 at 60 (114 ± 8.1%, + trunc(1.2 a level from 58) = 2), 1.5 s, 168 mana | 208–244 | 0.429 / 0.429 |
 | Corruption (6, 11672) | 57 × 6 (3 s), 2 s, 290 mana | 111 × 6 | 0.2 / 0.167 a tick |
 | Bane of Agony (6, 11713) | 46 × 12 (2 s), 552 in all, 215 mana | Curse of Agony: 87 × 12 | 0.133 / 0.083 a tick |
 | Bane of Doom (603) | 1742 after 60 s, 1 min cooldown, 300 mana | Curse of Doom: 3200 | **4.0** / 1.0 |
@@ -716,10 +716,10 @@ SpellCooldowns, SpellLevels, both builds):
 
 | Spell (rank, id) | Forever | Classic Era |
 | --- | --- | --- |
-| Firebolt (7, 11763), the Imp's | 44 Fire, variance 0.1136, +0.6 a level from 58: **42.70–47.70** at 60; coefficient 0.571; 115 mana; a 2 s cast, a 1 s GCD | 83–94 +1.2 a level |
+| Firebolt (7, 11763), the Imp's | 44 Fire, variance 0.1136, +0.6 a level from 58, truncated: **42.50–47.50** at 60; coefficient 0.571; 115 mana; a 2 s cast, a 1 s GCD | 83–94 +1.2 a level |
 | Lash of Pain (6, 11780), the Succubus's | **50** Shadow, coefficient 0.429; 160 mana; instant, a 12 s cooldown | 99 |
 | Blood Pact (5, 11767), the Imp's party aura | +49 Stamina + 0.5 a level from 50 | 38 + 0.4 a level |
-| Soul Fire (2, 17924), yours | 431 Fire, variance 0.2247, +1.9 a level from 56: **390.17–487.03**; coefficient 1.0; 335 mana; a 6 s cast; 60 s cooldown and a Soul Shard | — |
+| Soul Fire (2, 17924), yours | 431 Fire, variance 0.2247, +1.9 a level from 56, truncated: **389.57–486.43**; coefficient 1.0; 335 mana; a 6 s cast; 60 s cooldown and a Soul Shard | — |
 
 Blood Pact is Stamina only, which no DPS result reads (buffs doc "Skipped"); the sim doesn't cast it.
 
@@ -1013,10 +1013,11 @@ Each with its estimated effect on Demonology's DPS.
 
 Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 
-1. **Firebolt at 60.** 44 × (1 ± 0.05681818) + 0.6 × 2 = **42.70–47.70**, average 45.2. With Demonic
+1. **Firebolt at 60.** 44 × (1 ± 0.05681818) + trunc(0.6 × 2) = **42.50–47.50**, average 45
+   ([per-level values](../data/items.md#per-level-values)). With Demonic
    Knowledge 3/3 (60), Improved Imp 3/3 and the Imp's Master Demonologist 5/5:
-   `(45.2 + 0.571 × 60) × 1.3 × 1.1 = 113.63`; with Unholy Power 5/5 and Soul Link, × 1.1 × 1.03 =
-   **128.74**, before the boss's resist and Curse of the Elements.
+   `(45 + 0.571 × 60) × 1.3 × 1.1 = 113.34`; with Unholy Power 5/5 and Soul Link, × 1.1 × 1.03 =
+   **128.42**, before the boss's resist and Curse of the Elements.
 2. **Lash of Pain,** with the default's Improved Sayaad 2/3: `(50 + 0.429 × 60) × 1.2 × 1.1 = 99.98`,
    × 1.133 = **113.27**.
 3. **The Succubus's swing.** 2 × 130 − 20 = 240 attack power: `(45.8 + 240 / 14 × 2) × 1.133` =
@@ -1043,8 +1044,8 @@ Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
 10. **Demonic Brand with the Imp** (§11.3; `demonic-brand.test.ts`): 600 Fire spell damage and the Imp's
     Master Demonologist 5/5: `((65 + 68) / 2 + 0.078 × 600) × 1.1` = **124.63** a hit on average; ×
     Unholy Power 1.1 × Soul Link 1.03 = **141.21**, before the boss's resist, Curse of the Elements and
-    crits. Searing Pain itself, with the default's Agonizing Flames 3/3: `(116.4 + 0.429 × 600) × 1.1`
-    = **411.18**, costing 151 mana (Cataclysm 3/3), its crits ×2.0 (Ruin) at +10% (Agonizing Flames #0).
+    crits. Searing Pain itself, with the default's Agonizing Flames 3/3: `(116 + 0.429 × 600) × 1.1`
+    = **410.74**, costing 151 mana (Cataclysm 3/3), its crits ×2.0 (Ruin) at +10% (Agonizing Flames #0).
 
 ---
 

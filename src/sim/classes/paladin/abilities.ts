@@ -12,6 +12,7 @@ import { GCD_MS } from '../../core/formulas'
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, STANCE_ANY, type SpellDef } from '../../plan/types'
 import {
+  atLevel60,
   CONSECRATION_RANK1_TICK,
   CONSECRATION_TICK,
   EXORCISM,
@@ -116,11 +117,11 @@ export const SEAL_OF_RIGHTEOUSNESS = seal('sealOfRighteousness', 'Seal of Righte
 export const SEAL_OF_FURY = seal('sealOfFury', 'Seal of Fury', 'spell_holy_retributionaura', 200)
 
 /**
- * Seal of the Crusader r6 (20308): 160 mana; +306 + 2.4 per level from 52 = 325 AP at 60 [?]
+ * Seal of the Crusader r6 (20308): 160 mana; +306 + trunc(2.4 × 8) = 325 AP at 60 [?]
  * (OQ 17), +40% attack speed, and "less damage with each attack", which the sim reads as each swing
  * ÷ 1.4 [?] (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
  */
-export const SEAL_OF_THE_CRUSADER_AP = 306 + 2.4 * (60 - 52)
+export const SEAL_OF_THE_CRUSADER_AP = atLevel60(306, 2.4, 52, 60)
 export const SEAL_OF_THE_CRUSADER = seal('sealOfTheCrusader', 'Seal of the Crusader', 'spell_holy_holysmite', 160, {
   ap: SEAL_OF_THE_CRUSADER_AP,
   haste: 40,

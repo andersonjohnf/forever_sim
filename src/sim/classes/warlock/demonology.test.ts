@@ -50,7 +50,7 @@ const ranks = (entries: [string, number][]) => new Map(entries)
 describe('rows against the Forever client (warlock.md §11.1)', () => {
   it('Firebolt r7 (11763): 44 ± 11.36%, +0.6 a level from 58, 0.571, 115 mana, a 2 s cast and a 1 s GCD', () => {
     const e = effect(11763, 0)
-    const grow = e.effectRealPointsPerLevel! * (60 - spell(11763).levels!.baseLevel!)
+    const grow = Math.trunc(e.effectRealPointsPerLevel! * (60 - spell(11763).levels!.baseLevel!))
     expect(FIREBOLT.min).toBeCloseTo(e.effectBasePointsF! * (1 - e.variance! / 2) + grow, 9)
     expect(FIREBOLT.max).toBeCloseTo(e.effectBasePointsF! * (1 + e.variance! / 2) + grow, 9)
     expect(FIREBOLT.spCoefficient).toBe(e.effectBonusCoefficient)
@@ -71,7 +71,7 @@ describe('rows against the Forever client (warlock.md §11.1)', () => {
   it('Soul Fire r2 (17924): 431 ± 22.47%, +1.9 a level from 56, coefficient 1, 335 mana, a 6 s cast, 60 s cooldown', () => {
     const e = effect(17924, 0)
     const s = SOUL_FIRE.spellDef!
-    const grow = e.effectRealPointsPerLevel! * (60 - spell(17924).levels!.baseLevel!)
+    const grow = Math.trunc(e.effectRealPointsPerLevel! * (60 - spell(17924).levels!.baseLevel!))
     expect(s.min).toBeCloseTo(e.effectBasePointsF! * (1 - e.variance! / 2) + grow, 9)
     expect(s.max).toBeCloseTo(e.effectBasePointsF! * (1 + e.variance! / 2) + grow, 9)
     expect(s.spCoefficient).toBe(e.effectBonusCoefficient)
@@ -110,14 +110,14 @@ describe('rows against the Forever client (warlock.md §11.1)', () => {
 })
 
 describe('worked examples (warlock.md §11.8)', () => {
-  it('1. Firebolt: 42.70–47.70 at 60; 113.63 with Demonic Knowledge, Improved Imp and Master Demonologist; 128.74 with Unholy Power and Soul Link', () => {
-    expect(FIREBOLT.min).toBeCloseTo(42.7, 6)
-    expect(FIREBOLT.max).toBeCloseTo(47.7, 6)
+  it('1. Firebolt: 42.50–47.50 at 60; 113.34 with Demonic Knowledge, Improved Imp and Master Demonologist; 128.42 with Unholy Power and Soul Link', () => {
+    expect(FIREBOLT.min).toBeCloseTo(42.5, 6)
+    expect(FIREBOLT.max).toBeCloseTo(47.5, 6)
     const imp = demonPet('imp', DEMONOLOGY)!
     const bolt = imp.abilities[0]
     const avg = (bolt.min + bolt.max) / 2 + bolt.spCoefficient * imp.stats.spellDamage!
-    expect(avg).toBeCloseTo(113.6278, 4)
-    expect(avg * imp.damageMult).toBeCloseTo(128.7403, 3)
+    expect(avg).toBeCloseTo(113.3418, 4)
+    expect(avg * imp.damageMult).toBeCloseTo(128.4163, 3)
   })
 
   it('2. Lash of Pain: 99.98 with Improved Sayaad 2/3, and 113.27 with Unholy Power and Soul Link', () => {
@@ -472,6 +472,8 @@ describe('golden runs (fixed config and seed)', () => {
   //   663.7 → 675.0 over 20,000 fights on seed 2701.
   // - D36, pre-Ahn'Qiraj ranks (W2): Shadow Bolt r9 (237.43–264.57, 370 mana), Immolate r7 and Corruption r6
   //   for the Ahn'Qiraj books' ranks. 675.56 → 663.04 DPS.
+  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): the
+  //   Imp's Firebolt r7 + 1 (42.50–47.50), Soul Fire r2 + 7. 663.04 → 662.73 DPS.
   it('keeps the default warlock-demonology’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const result = toResult(bundle, runFights(bundle.plan, 1000), 0)

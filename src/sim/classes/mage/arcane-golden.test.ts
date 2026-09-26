@@ -40,6 +40,8 @@ describe('golden run (fixed config and seed)', () => {
   //   other side's snapshot reproduces exactly.
   // - D36, pre-Ahn'Qiraj ranks (W2): Arcane Missiles r7 (10212: 595 mana, missiles of 174.6) for r8 (655,
   //   209), Frostbolt r10 and Fireball r11, and Blessing of Wisdom r5 (36 mp5). 440.84 → 399.64 DPS.
+  // - The per-level term truncated, as the client renders it (docs/data/items.md#per-level-values): each
+  //   Arcane Missile 174 (171 + trunc(3.6)). 399.64 → 398.88 DPS.
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

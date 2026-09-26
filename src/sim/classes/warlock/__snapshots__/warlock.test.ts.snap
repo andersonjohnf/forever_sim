@@ -136,7 +136,7 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
     [
       "shadowburn",
-      7806565.772515801,
+      7803633.760047803,
       10870,
       8858,
       1436,
@@ -218,9 +218,9 @@ exports[`golden runs (fixed config and seed) > keeps the default warlock-destruc
     ],
   ],
   "dps": {
-    "ci95": 1.4793921435440245,
-    "mean": 590.4419064952126,
-    "stdev": 23.869054549263712,
+    "ci95": 1.4793568495495462,
+    "mean": 590.425591744809,
+    "stdev": 23.868485103033283,
   },
   "mana": {
     "max": 6190,

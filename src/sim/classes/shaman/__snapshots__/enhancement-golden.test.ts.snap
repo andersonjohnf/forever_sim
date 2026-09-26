@@ -25,7 +25,7 @@ exports[`golden run (fixed config and seed) > keeps the default Enhancement sham
     ],
     [
       "lightningBolt",
-      2605136.471969733,
+      2596426.2364497343,
       9743,
       6928,
       1974,
@@ -55,9 +55,9 @@ exports[`golden run (fixed config and seed) > keeps the default Enhancement sham
     ],
   ],
   "dps": {
-    "ci95": 2.6884227131408758,
-    "mean": 539.1685071857834,
-    "stdev": 43.37599646684179,
+    "ci95": 2.6882072849804493,
+    "mean": 539.1200486645253,
+    "stdev": 43.37252067001868,
   },
   "durationSec": 179.690222,
   "mana": {
@@ -74,9 +74,9 @@ exports[`golden run (fixed config and seed) > keeps the default Enhancement sham
     "spentPerFight": 9744.528,
   },
   "tps": {
-    "ci95": 1.8844783223176722,
-    "mean": 383.23333453209375,
-    "stdev": 30.404863286991574,
+    "ci95": 1.8843278394950058,
+    "mean": 383.1994135672128,
+    "stdev": 30.402435342028756,
   },
 }
 `;

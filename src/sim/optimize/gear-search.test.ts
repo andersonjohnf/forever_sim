@@ -6,8 +6,8 @@ import { localFightRunner, SearchTooLargeError } from './fights'
 import { gearContext, type Gear, groupGears, POOL, SEARCHED_SLOTS, slotPool } from './gear'
 import { decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import { type GearSearchOptions, gearPools, MIN_RANK_FIGHTS, optimizeGear, optimizeTogether, rankGear, rankingPlans } from './gear-search'
-import { gearKey, setupCandidate } from './optimize'
+import { finalSeed, type GearSearchOptions, gearPools, measureStatWeights, MIN_RANK_FIGHTS, optimizeGear, optimizeTogether, rankGear, rankingPlans, runPlans } from './gear-search'
+import { candidatePlan, gearKey, setupCandidate } from './optimize'
 
 const OPEN: GearSlot[] = ['head', 'neck', 'finger1', 'finger2']
 
@@ -89,6 +89,9 @@ describe('the gear search', () => {
     // The new items are the better ones: each open slot's item level went up.
     for (const slot of OPEN) if (answer[slot]?.itemId !== config.gear[slot]?.itemId) expect(POOL.get(answer[slot]!.itemId)!.itemLevel).toBeGreaterThan(POOL.get(config.gear[slot]!.itemId)!.itemLevel)
     expect(a.fights).toBeLessThanOrEqual(24_000)
+    // The final race runs on a seed of its own, out of the steps' sample (O2L-11).
+    expect(a.final!.seed).toBe(finalSeed(config.run.seed))
+    expect(a.final!.seed).not.toBe(config.run.seed)
     // Deterministic: the same inputs and seed give the same answer and the same fights.
     const b = await search(config)
     expect(gearKey(b.answer!.gear!)).toBe(gearKey(answer))
@@ -137,5 +140,30 @@ describe('the hard ceiling (O2L-3)', () => {
     expect(fits.ranking.fights).toBeLessThanOrEqual(0.4 * 80_000 * 0.85 + 1)
     expect(fits.starts[0].steps.length).toBeGreaterThan(0)
     expect(fits.fights).toBeLessThanOrEqual(80_000)
+  })
+})
+
+describe('Balanced’s normaliser (O2L-9)', () => {
+  it('is the setup’s means, in the weights and the swaps alike', { timeout: 120_000 }, async () => {
+    const config: SimConfig = { ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 0, seed: 5 } }
+    const ctx = gearContext(config, { locked: SEARCHED_SLOTS.filter((s) => !['head', 'trinket1', 'trinket2'].includes(s)) })
+    const runner = localFightRunner()
+    // Ranked at other gear than the setup's: the normaliser is still the setup's.
+    const gear: Gear = { ...config.gear, trinket1: { itemId: 21180 } }
+    const ranked = await rankGear({ config, candidate: { ...setupCandidate(config), gear }, ctx, pools: gearPools(ctx), goal: 'balanced', runner, weightFights: 60, measureFights: 20 })
+    const [setup] = await runPlans(runner, [() => candidatePlan(config, setupCandidate(config))], 60)
+    const mean = (a: Float64Array) => a.reduce((t, x) => t + x, 0) / a.length
+    expect(ranked.baseline).toEqual({ dps: mean(setup.dps), tps: mean(setup.tps) })
+    // A weight is per point of Balanced's score: twice the normaliser, half the weight.
+    const weigh = (baseline: { dps: number; tps: number }) =>
+      measureStatWeights({ config, candidate: setupCandidate(config), deltas: { str: 10, sta: 10 }, goal: 'balanced', runner, fights: 60, baseline })
+    const one = await weigh(ranked.baseline!)
+    const two = await weigh({ dps: 2 * ranked.baseline!.dps, tps: 2 * ranked.baseline!.tps })
+    expect(one.weights.str).toBeGreaterThan(0)
+    expect(two.weights.str).toBeCloseTo(one.weights.str! / 2, 9)
+    // A DPS ranking needs no normaliser, and measures none.
+    const fury: SimConfig = { ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 0, seed: 5 } }
+    const furyCtx = gearContext(fury, { locked: SEARCHED_SLOTS.filter((s) => s !== 'head') })
+    expect((await rankGear({ config: fury, candidate: setupCandidate(fury), ctx: furyCtx, pools: gearPools(furyCtx), goal: 'dps', runner, weightFights: 20, measureFights: 10 })).baseline).toBeUndefined()
   })
 })

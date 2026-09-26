@@ -665,7 +665,10 @@ is what it's worth against the slot empty, in the goal's score:
   divides by, the mana pool), by the change the same derivation makes (`perturbPlan`). Only for
   ranking: every candidate the race runs is its own plan, built from its gear. Each field's plans run
   a pilot of 50 fights first (`WEIGHT_PILOT`); a field whose two plans give the same numbers on every
-  one (spell damage for a warrior: the engine never reads it) weighs 0 and runs no more.
+  one (spell damage for a warrior: the engine never reads it) weighs 0 and runs no more. Balanced
+  scores relative to the setup as it is, as the race does (D30), so a Balanced ranking scores the
+  weights and the swaps alike against the setup's own means, measured once a search in the first
+  ranking (O2L-9); the other goals need no normaliser.
 - **What the weights can't price is measured by a swap** (`rankGear`): weapons (their damage and
   speed), relics (their effect on an ability), items whose equip or use effect the engine models
   (`ITEM_EFFECTS`: Hand of Justice, Earthstrike), and items with a weapon skill or a stat the plan
@@ -752,8 +755,11 @@ the best main and off hand), each when it differs from the ones before. Coordina
 the first set no single step improves; a start elsewhere can end at a better one. `--no-restarts`
 runs only the first.
 
-**The answer** is the leader of a final race among where the starts ended, with the setup, on the
-same seed; `--confirm` then checks it on a fresh one ([confirmation](#confirmation)). A tank's
+**The answer** is the leader of a final race among where the starts ended, with the setup, on a seed
+of its own (`finalSeed`, the search's seed XOR 0x85ebca6b; O2L-11): the ends were chosen on the steps'
+fights, so racing them again on those carried the selection's luck into the answer's interval (Fury's
++49.7 on the search's seed, +48.3 on a fresh one). `--confirm` then checks it on another fresh seed
+([confirmation](#confirmation)). A tank's
 effective-health floor is a share of its class's **survival preset**, the v1 tank gear (the pre-raid
 list's, `preRaidListGear`; D30), not of the setup's gear (`survivalReference`).
 

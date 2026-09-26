@@ -51,7 +51,7 @@ import {
   weighedItem,
   weighValues,
 } from './gear'
-import { defaultGoal, type Goal, type Interval, lower, pairedInterval, scoredGoal, scorer } from './objective'
+import { type BaselineMeans, defaultGoal, type Goal, type Interval, lower, pairedInterval, scoredGoal, scorer } from './objective'
 import {
   type Budget,
   type Candidate,
@@ -163,6 +163,11 @@ export async function measureStatWeights(options: {
   goal: Goal
   runner: FightRunner
   fights: number
+  /**
+   * The setup's mean DPS and TPS, which Balanced scores relative to (D30), as the race does (O2L-9).
+   * Default: the mean of every perturbed plan's pilot, about the unperturbed plan's.
+   */
+  baseline?: BaselineMeans
   signal?: AbortSignal
 }): Promise<WeightsMeasured> {
   const { config, candidate, fights } = options
@@ -191,7 +196,7 @@ export async function measureStatWeights(options: {
     }
     return { dps: cat(first[i].dps, tail.dps), tps: cat(first[i].tps, tail.tps), taken: cat(first[i].taken, tail.taken) }
   }
-  const means = { dps: mean(first[0].dps), tps: mean(first[0].tps) }
+  const means = options.baseline ?? { dps: first.reduce((t, x) => t + mean(x.dps), 0) / first.length, tps: first.reduce((t, x) => t + mean(x.tps), 0) / first.length }
   const score = scorer(options.goal, means)
   const weights: StatWeights = {}
   const intervals: WeightsMeasured['intervals'] = {}
@@ -262,11 +267,25 @@ export async function rankGear(options: {
    * a later pass re-measures only the stat weights (hit past its cap), since swaps cost the most.
    */
   reuse?: Rankings
+  /**
+   * The setup's mean DPS and TPS, which Balanced scores relative to (O2L-9): the weights and the swaps
+   * use the race's normaliser. Without it, a Balanced ranking measures the setup first (`weightFights`
+   * fights) and returns it, for the next ranking to reuse.
+   */
+  baseline?: BaselineMeans
   signal?: AbortSignal
-}): Promise<{ rankings: Rankings; weights: WeightsMeasured; fights: number }> {
+}): Promise<{ rankings: Rankings; weights: WeightsMeasured; baseline?: BaselineMeans; fights: number }> {
   const { config, candidate, ctx, pools, goal, runner, reuse } = options
   const gear: Gear = candidate.gear ?? config.gear
-  const weights = await measureStatWeights({ config, candidate, deltas: weightDeltas(ctx, pools), goal, runner, fights: options.weightFights, signal: options.signal })
+  // Balanced scores relative to the setup as it is, as the race does: its means once a search (O2L-9).
+  let baseline = options.baseline
+  let baselineFights = 0
+  if (goal === 'balanced' && !baseline) {
+    const [setup] = await runPlans(runner, [() => candidatePlan(config, setupCandidate(config))], options.weightFights, options.signal)
+    baseline = { dps: mean(setup.dps), tps: mean(setup.tps) }
+    baselineFights = options.weightFights
+  }
+  const weights = await measureStatWeights({ config, candidate, deltas: weightDeltas(ctx, pools), goal, runner, fights: options.weightFights, ...(baseline ? { baseline } : {}), signal: options.signal })
   const items = new Map<RankList, Map<number, number>>()
   const set = (list: RankList, id: number, value: number) => {
     if (!items.has(list)) items.set(list, new Map())
@@ -330,7 +349,7 @@ export async function rankGear(options: {
     const bare = { ...gear, [slot]: { itemId: gear[slot]!.itemId } }
     swaps.push({ gear: { ...gear, [slot]: { itemId: gear[slot]!.itemId, enchantId: enchant.id } }, base: baseIndex(bare), into: { enchant: enchant.id } })
   }
-  let fights = weights.fights
+  let fights = weights.fights + baselineFights
   const run = async (list: Swap[]) => {
     if (list.length === 0) return
     const used = [...new Set(list.map((s) => s.base))]
@@ -346,8 +365,7 @@ export async function rankGear(options: {
     })
     const samples = await runPlans(runner, runnable, options.measureFights, options.signal)
     fights += runnable.length * options.measureFights
-    const means = { dps: mean(samples[0].dps), tps: mean(samples[0].tps) }
-    const score = scorer(goal, means)
+    const score = scorer(goal, baseline ?? { dps: mean(samples[0].dps), tps: mean(samples[0].tps) })
     const total = (s: FightSamples) => {
       let t = 0
       for (let k = 0; k < options.measureFights; k++) t += score(s.dps[k], s.tps[k], s.taken[k])
@@ -376,7 +394,7 @@ export async function rankGear(options: {
     }
     await run(offSwaps)
   }
-  return { rankings: { items, enchants, weights: weights.weights }, weights, fights }
+  return { rankings: { items, enchants, weights: weights.weights }, weights, ...(baseline ? { baseline } : {}), fights }
 }
 
 const bestOf = (values: Map<number, number> | undefined) => {
@@ -584,8 +602,9 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
   const wf0 = options.weightFights ?? WEIGHT_FIGHTS
   const mf0 = options.measureFights ?? MEASURE_FIGHTS
   const { weightPlans, measurePlans } = rankingPlans(ctx, pools)
+  // The first ranking (the one with the swaps) also measures the setup's means for Balanced (O2L-9).
   const rankCost = (wf: number, mf: number, livePlans: number, swaps: boolean) =>
-    weightPlans * Math.min(wf, WEIGHT_PILOT) + livePlans * Math.max(0, wf - WEIGHT_PILOT) + (swaps ? measurePlans * mf : 0)
+    weightPlans * Math.min(wf, WEIGHT_PILOT) + livePlans * Math.max(0, wf - WEIGHT_PILOT) + (swaps ? measurePlans * mf + (scored === 'balanced' ? wf : 0) : 0)
   const least = (x: number) => Math.min(x, MIN_RANK_FIGHTS)
   const minRankCost = (livePlans: number, swaps: boolean) => rankCost(least(wf0), least(mf0), livePlans, swaps)
   const rankFights = (budget: number, livePlans: number, swaps: boolean) => {
@@ -643,7 +662,7 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
           return out()
         }
         const fights = rankFights(budget - used, livePlans, false)
-        const again = await rankGear({ config, candidate: { ...base, gear }, ctx, pools, goal: scored, runner, weightFights: fights.wf, measureFights: fights.mf, reuse: measured, signal })
+        const again = await rankGear({ config, candidate: { ...base, gear }, ctx, pools, goal: scored, runner, weightFights: fights.wf, measureFights: fights.mf, reuse: measured, ...(first.baseline ? { baseline: first.baseline } : {}), signal })
         rankings = again.rankings
         weights = again.weights
         used += again.fights
@@ -735,7 +754,9 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
   let final: OptimizeReport | null = null
   try {
     final = await optimize({
-      config,
+      // On a seed of its own (O2L-11): the ends were chosen on the steps' fights, so racing them again on
+      // those would carry the selection's luck into the answer's interval.
+      config: { ...config, run: { ...config.run, seed: finalSeed(config.run.seed) } },
       goal,
       start: { ...base, gear: ends[0] },
       gears: ends.slice(1),
@@ -769,6 +790,12 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
     ms: now() - began,
   }
 }
+
+/**
+ * The final race's master seed (O2L-11): derived from the search's, and neither it nor the CLI's
+ * confirmation seed (seed + 0x9e3779b9), so its standings are out of sample.
+ */
+export const finalSeed = (seed: number): number => (seed ^ 0x85ebca6b) >>> 0
 
 /** The spec's default preset for the setup's race (its interim set where it has one): the restart D30's build plan names. */
 const preRaidDefault = (config: SimConfig): Gear => defaultGear(config.spec, config.race)

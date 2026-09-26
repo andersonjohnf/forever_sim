@@ -234,6 +234,8 @@ interface Collected {
   targetArmor: number
   /** The boss's static flat Holy damage taken: another paladin's Judgement of the Crusader (buffs doc §4.2). */
   holyTaken: number
+  /** The boss's static flat physical damage taken: a tank's Gift of Arthas (buffs doc §4.2). */
+  physicalTaken: number
   bossAp: number
   bossSlowPct: number
   offHand: { damagePct: number; hit: number; ragePct: number }
@@ -458,6 +460,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     maxEnergyMult: 1,
     targetArmor: 0,
     holyTaken: 0,
+    physicalTaken: 0,
     bossAp: 0,
     bossSlowPct: 0,
     offHand: { damagePct: 0, hit: 0, ragePct: 0 },
@@ -1429,6 +1432,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'hunter' ? { mana: hunterManaPlan(derived, block.mp5, setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     ...(c.holyTaken ? { holyTaken: c.holyTaken } : {}),
+    // docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking: Gift of Arthas on the boss.
+    ...(c.physicalTaken ? { physicalTaken: c.physicalTaken } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
     // docs/classes/mage.md#ignite: the rolling Ignite, when a proc feeds it.
@@ -1621,10 +1626,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add(mainHandPoison ? 'windfuryPoison' : 'windfuryStone')
   // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
   if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
-  if (procIds.has('deepWounds')) notes.add('deepWounds')
+  // warrior.md §2.5: the rolling Deep Wounds is Forever's [?]; `classicEra`'s restart is Classic Era's [C], no assumption.
+  if (procIds.has('deepWounds') && profile.combat.deepWoundsRolls) notes.add('deepWounds')
   // buffs doc §1.2 (BR5): Thorns on the tank, a raid druid's or the bear's own.
   if (procIds.has('thorns')) notes.add('thorns')
   if (procIds.has('thornsOwn')) notes.add('thornsOwn')
+  // buffs doc §4.2, damage-and-timing §2.4: where Gift of Arthas' +8 adds, and which hits get it [?].
+  if (c.physicalTaken) notes.add('giftOfArthas')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
   // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's plus a share of the
@@ -1844,6 +1852,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'holyTaken':
       c.holyTaken += e.value
+      return
+    case 'physicalTaken':
+      c.physicalTaken += e.value
       return
     case 'bossAp':
       c.bossAp += e.value

@@ -315,6 +315,12 @@ export class Sim {
   private readonly avoidedRageShare: number
   private readonly rageConv: number
   private readonly staticPhysMult: number
+  /**
+   * The boss's flat physical damage taken (Gift of Arthas' +8, Plan.physicalTaken): each direct
+   * physical hit adds it after your multipliers, before the outcome's and the armor's; no periodic
+   * tick gets it [?] (docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking).
+   */
+  private readonly physTaken: number
   private readonly staticMagicMult: number
   private readonly bossLevelResist: number
 
@@ -1339,6 +1345,7 @@ export class Sim {
     this.avoidedRageShare = rage.avoidedWhiteShare
     this.rageConv = rageConversion(plan.playerLevel)
     this.staticPhysMult = plan.damageMult * plan.physicalMult
+    this.physTaken = plan.physicalTaken ?? 0
     this.staticMagicMult = plan.damageMult
     this.bossLevelResist = levelResistance(plan.fight.targetLevel, plan.playerLevel)
     this.maxRage = plan.rage.maxTenths
@@ -2920,13 +2927,14 @@ export class Sim {
     if (this.hasDamageLanded) this.fireProcs(TRIGGER.damageLanded, -1)
   }
 
-  /** A landed white swing's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4). */
+  /**
+   * A landed white swing's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4),
+   * the boss's flat physical damage taken added before the armor (§2.4).
+   */
   private whiteDamage(hand: number, bonusAp: number): number {
     const weaponRoll = this.rngDamage.uniform(this.wMin[hand], this.wMax[hand])
     return (
-      (weaponRoll + this.wFlat[hand] + ((this.ap + bonusAp) / 14) * this.wSpeedSec[hand]) *
-      this.wHandMult[hand] *
-      this.physMult *
+      ((weaponRoll + this.wFlat[hand] + ((this.ap + bonusAp) / 14) * this.wSpeedSec[hand]) * this.wHandMult[hand] * this.physMult + this.physTaken) *
       this.armorFactor[hand]
     )
   }
@@ -3704,7 +3712,9 @@ export class Sim {
     if (this.abLowPct[a] !== 0 && this.now >= this.abLowAt[a]) base *= 1 + this.abLowPct[a] / 100
     // src/sim/classes/eureka.ts: the use that took a Eureka! charge deals its +10%, both hands.
     if (this.euA === a) base *= this.euDamage
-    return base * this.physMult * this.armorFactor[hand]
+    // damage-and-timing §2.4: the boss's flat physical damage taken, on a strike that deals damage
+    // (not Sunder Armor, nor Lacerate with none of its stacks on), before the armor.
+    return (base * this.physMult + (base > 0 ? this.physTaken : 0)) * this.armorFactor[hand]
   }
 
   /** Extra crit an aura gives this ability while it's up (Berserk on Shred, Claw and Rake, druid.md §3.7). */
@@ -4656,7 +4666,10 @@ export class Sim {
       damage = (damage * this.magicMult * this.holyMult * this.schDamage[school] + this.holyTaken * this.splTakenScale[s]) * this.schTaken[school]
     } else if (school === SCHOOL.physical) {
       // ranged-and-pets.md §5: a physical shot takes the ranged damage multiplier and armor.
-      damage *= shot ? this.physMult * this.rArmorFactor * this.rDamageMult : this.physMult * this.armorFactor[HAND.main]
+      // damage-and-timing §2.4: a direct one the boss's flat physical damage taken, before the armor.
+      const armor = shot ? this.rArmorFactor : this.armorFactor[HAND.main]
+      const taken = this.splTick[s] === 0 && damage > 0 ? this.physTaken * armor : 0
+      damage = damage * (shot ? this.physMult * this.rArmorFactor * this.rDamageMult : this.physMult * this.armorFactor[HAND.main]) + taken
     } else {
       // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless
       // binary. An item's spell takes your all-damage multiplier and the boss's damage taken, not your
@@ -4986,7 +4999,8 @@ export class Sim {
       return
     }
     const roll = this.rngDamage.uniform(this.rMin, this.rMax)
-    let damage = (roll + this.rFlat + (this.rap / 14) * this.rSpeedSec) * this.rDamageMult * this.physMult * this.rArmorFactor
+    // damage-and-timing §2.4: the boss's flat physical damage taken, before the armor.
+    let damage = ((roll + this.rFlat + (this.rap / 14) * this.rSpeedSec) * this.rDamageMult * this.physMult + this.physTaken) * this.rArmorFactor
     const crit = this.rngTable.roll100() < this.rCritPct
     if (crit) {
       damage *= this.rCritMult
@@ -5165,7 +5179,8 @@ export class Sim {
       if (r >= th[1]) this.onBossParried()
       return
     }
-    let damage = (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec) * this.petDamageMult * this.petArmorFactor
+    // damage-and-timing §2.4: the boss's flat physical damage taken, before the armor.
+    let damage = ((rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec) * this.petDamageMult + this.physTaken) * this.petArmorFactor
     let crit = false
     if (r < th[3]) {
       damage *= rng.uniform(this.petGlanceLow, this.petGlanceHigh)
@@ -5296,7 +5311,8 @@ export class Sim {
       if (this.pabWeaponPct[a] > 0 && this.petHasWeapon) {
         damage += this.pabWeaponPct[a] * (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec)
       }
-      damage *= this.petDamageMult * this.petArmorFactor
+      // damage-and-timing §2.4: the boss's flat physical damage taken, before the armor.
+      damage = damage * (this.petDamageMult * this.petArmorFactor) + (damage > 0 ? this.physTaken * this.petArmorFactor : 0)
     } else {
       const school = this.pabSchool[a]
       if (rng.roll100() < this.petSpellMissPct) {

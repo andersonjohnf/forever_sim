@@ -427,6 +427,11 @@ const REGISTRY = {
     text: 'Your own Thorns deals its base 22 Nature damage: the 0.08 × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
+  // buffs doc §4.2 (W5): Gift of Arthas on the boss; where its flat +8 adds (damage-and-timing §2.4, B70).
+  giftOfArthas: {
+    text: 'Gift of Arthas is on the boss all fight, and each direct physical hit, yours and your pet’s, deals +8: added after your damage bonuses, so a crit doubles it, and before the boss’s armor. Bleed ticks get none. Untested.',
+    docRef: `${DT}#24-damage-modifier-stacking`,
+  },
   // docs/classes/druid.md §4.7 (BR6, Q19): Thick Hide's base armor, a reading of "further increased by multipliers from those forms".
   thickHide: {
     text: 'Thick Hide’s base armor (3 per level and 2 per defense point above 300 at 3/3) is multiplied by Dire Bear Form’s +360%, as armor from items is, a reading of its tooltip’s “further increased by multipliers from those forms”; unmeasured.',

@@ -1306,16 +1306,23 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B70. Classic rules that only a post-SoD sim encodes
 **Low · M2 · ≤20**
-- **Assumes** [?]: flat "damage taken" bonuses on a target (e.g. Gift of Arthas' +8) add after
-  damage multipliers; on multi-target attacks, ordinary weapon procs roll per target hit while
-  extra-attack procs other than Windfury roll once per cast. Only WarriorSim's post-SoD code has
-  these; its pre-SoD commit, the doctrine's Classic Era source, doesn't model them.
-- **Test:** white hits on a mob carrying Gift of Arthas' debuff vs the same mob without it
-  (flat +8 on every hit, or scaled by your multipliers?); Cleave with a weapon enchant on two
-  mobs: procs per Cleave.
-- **Samples:** ≥100 hits per state; ≥200 Cleaves.
-- **Changes:** two small rules in the damage and proc engine.
+- **Assumes** [?]: flat "damage taken" bonuses on a target (Gift of Arthas' +8 physical, a boss
+  debuff in Max consumables) add after your damage multipliers and before the outcome's and the
+  armor's: a crit gets +16, a glancing blow its share, and armor mitigates it. Every direct
+  physical hit that deals damage gets it, white or special, ranged, and a pet's; a bleed's ticks
+  (Deep Wounds, Rend, Rip, Rupture, Garrote) and Sunder Armor don't. On multi-target attacks,
+  ordinary weapon procs roll per target hit while extra-attack procs other than Windfury roll once
+  per cast. Only WarriorSim's post-SoD code has these; its pre-SoD commit, the doctrine's Classic
+  Era source, doesn't model them.
+- **Test:** white hits on a mob carrying Gift of Arthas' debuff vs the same mob without it, at
+  0 armor if one can be found or a known armor: the difference per normal hit (+8, or +8 scaled
+  by your multipliers?) and per crit (+16 or +8?); Rend's or Deep Wounds' ticks on it, +8 or not;
+  Cleave with a weapon enchant on two mobs: procs per Cleave.
+- **Samples:** ≥100 hits per state; ≥50 ticks; ≥200 Cleaves.
+- **Changes:** two small rules in the damage and proc engine; Gift of Arthas' value at Max
+  consumables (+0.5% to +3.2% of a physical spec's DPS, most for the rogues' many small hits).
 - **Docs:** [damage §2.4](mechanics/damage-and-timing.md#24-damage-modifier-stacking),
+  [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs),
   [§5.3](mechanics/damage-and-timing.md#53-what-can-trigger-a-chance-on-hit-proc),
   [OQ 13](mechanics/damage-and-timing.md#open-questions)
 

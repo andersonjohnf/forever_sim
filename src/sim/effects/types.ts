@@ -196,6 +196,12 @@ export type Effect = (
    * your own judgement's (docs/classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
    */
   | { kind: 'holyTaken'; value: number }
+  /**
+   * The boss's flat physical damage taken on each direct physical hit, all fight: Gift of Arthas'
+   * +8 (docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs; where it adds,
+   * docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking).
+   */
+  | { kind: 'physicalTaken'; value: number }
   /** Boss attack power (+ raises it, − lowers it) and attack-speed slow (encounter.md#5-boss-melee-tank-modeling). */
   | { kind: 'bossAp'; value: number }
   | { kind: 'bossSlow'; pct: number }

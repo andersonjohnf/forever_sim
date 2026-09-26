@@ -42,6 +42,8 @@ export const ASSUMPTION_GROUP = {
   unmodelledSetBonuses: 'gear',
   onUseConsumables: 'gear',
   explosiveThrow: 'gear',
+  // A tank's Gift of Arthas on the boss, from Buffs (buffs doc §4.2).
+  giftOfArthas: 'gear',
   hyjalFlask: 'gear',
   procRates: 'gear',
   ironfoeChance: 'gear',

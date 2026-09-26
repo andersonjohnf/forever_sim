@@ -901,3 +901,13 @@ describe('set bonuses', () => {
     expect(agility({ chest: { itemId: 272490 }, legs: { itemId: 272492 } }) - chest).toBe(13 + 20) // its own 13, and the bonus
   })
 })
+
+// warrior.md §2.5 (review DL-4): the rolling Deep Wounds is Forever's assumption; `classicEra` restarts
+// the bleed, Classic Era's own rule, so its results don't say it rolls.
+describe('the Deep Wounds assumption', () => {
+  it('is in a `forever` Fury warrior’s results, and not in a `classicEra` one’s', () => {
+    const ids = (profile: 'forever' | 'classicEra') => buildPlan(withRules(defaultConfig('warrior-fury'), profile)).assumptions.map((a) => a.id)
+    expect(ids('forever')).toContain('deepWounds')
+    expect(ids('classicEra')).not.toContain('deepWounds')
+  })
+})

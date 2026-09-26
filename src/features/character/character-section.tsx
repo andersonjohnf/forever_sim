@@ -226,8 +226,8 @@ export function CharacterSection() {
               ))}
             </ToggleGroup>
             <p id="hotr-help" className="text-xs text-muted-foreground">
-              Untested in Forever: it deals 3 times your main hand’s damage per second. Weapon only (the default), the weapon’s own
-              DPS, as the tooltip reads; or with attack power, the DPS your character sheet shows, about three times that with the default axe.
+              Untested in Forever: it deals 3 × your main hand’s DPS. Weapon only (the default) counts the weapon’s own DPS, as the
+              tooltip reads. With attack power counts the DPS your character sheet shows, about three times as much with the default axe.
             </p>
             {hotrOff && (
               <p id="hotr-off" className="text-xs text-muted-foreground">

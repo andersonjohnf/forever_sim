@@ -185,6 +185,7 @@ export const ASSUMPTION_GROUP = {
   idolOfBrutality: 'class',
   shapeshifts: 'class',
   jotcBonus: 'class',
+  jotcSealOfCommand: 'class',
   jotcRaid: 'class',
   hammerOfTheRighteous: 'class',
   hammerOfTheRighteousWeaponOnly: 'class',

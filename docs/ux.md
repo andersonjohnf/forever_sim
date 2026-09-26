@@ -200,8 +200,8 @@ tab's own test (review finding DL2-6): it says there's more to see there without
 Where a line would run long, what it names gives way to "changed", which is the one that says to
 look.
 - **Character:** the race, and the rules when they aren't Forever's: "Human", "Orc · Classic
-  Era"; "Human · changed" when the untested ratings, or a paladin's Judgement of the Crusader or
-  a Protection paladin's Hammer of the Righteous rule, aren't the default. A Skyborne race drops
+  Era"; "Human · changed" when the untested ratings, or a Protection paladin's Hammer of the
+  Righteous rule, aren't the default. A Skyborne race drops
   its faction variant when the line would run long ("Skyborne · Classic Era"), then the rules
   ("Night Elf · changed" in place of 33 characters).
 - **Talents:** the points in each tree, in tree order: "17/34/0".
@@ -278,14 +278,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     open** (principle 4, "Show it when there's room"): a card headed "Advanced" with its settings in
     view and no disclosure to press, so each changed setting's own "Default: …" line marks it, with no
     count. Its settings flow into balanced columns, read top to bottom and then on (CSS columns, each
-    setting whole in one): 2 from 53 rem and 3 from 72 rem, the Buffs tab's widths, so a paladin's
-    four settings take two short columns rather than one long one (review finding DU1-7: at
-    1440×900 Prot Paladin's tab ends at 971 px, from 1,115; every other spec's fits the window, the
-    longest Retribution's at 859). So Prot Paladin's Character tab scrolls at 1440×900, and by
-    design (review finding V2-3, waived): 71 px past the window's edge, with every setting in view
-    in balanced columns, as principle 4 asks, rather than behind a disclosure, and it fits from
-    1920×1080 (851). Its
-    choices (the rule profile, a paladin's two untested rules) are as wide as their options,
+    setting whole in one): 2 from 53 rem and 3 from 72 rem, the Buffs tab's widths, so a Protection
+    paladin's three settings take two short columns rather than one long one (review finding
+    DU1-7). Every spec's Character tab fits a 1440×900 window: Prot Paladin's Advanced, the longest,
+    ends at 859 px (Fury Warrior's at 823, Retribution's at 767; measured 2026-09-26, review finding
+    DU-2), so the scroll V2-3 waived, from a paladin's fourth setting, is gone. Its
+    choices (the rule profile, a Protection paladin's one untested rule) are as wide as their options,
     left-aligned ([Visual language](#visual-language)), not two halves of the pane. Narrower, the
     racials come under the races and Advanced is a disclosure, as at every width under 1440 px.
     Shown and disclosure are the same elements, the disclosure held open and its button hidden, so a

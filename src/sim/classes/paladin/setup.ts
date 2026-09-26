@@ -127,7 +127,9 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   // Judgement of the Crusader's share of each Holy hit (the spell's coefficient, measured).
   // Another paladin's Judgement of the Crusader, from the Buffs tab (buffs doc §4.2), counts the same way.
   const raidJotc = (plan.holyTaken ?? 0) > 0
-  if (raidJotc || plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) ids.push('jotcBonus')
+  const jotc = raidJotc || plan.auras.some((a) => (a.holyTaken ?? 0) > 0)
+  if (jotc) ids.push('jotcBonus')
+  if (jotc && procs.has('sealOfCommandProc')) ids.push('jotcSealOfCommand')
   if (raidJotc) ids.push('jotcRaid')
   if (abilities.has('holyStrike')) ids.push('holyStrike')
   if (abilities.has('consecration') || abilities.has('consecrationRank1')) ids.push('consecrationTicks')

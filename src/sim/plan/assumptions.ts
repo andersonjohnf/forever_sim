@@ -473,7 +473,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {
-    text: 'Seal of Fury deals 35 Holy plus 0.1 × spell damage on each landed auto attack, whatever the weapon, as its tooltip reads and beta combat logs show; a second value in its data, which nothing describes, adds nothing.',
+    text: 'Seal of Fury deals 35 Holy plus 0.1 × spell damage on each landed auto attack, whatever the weapon: unlike Seal of Righteousness, it gets no bonus from a slower weapon. Its tooltip reads so, and beta combat logs below level 40 show it; untested at level 60.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {
@@ -481,7 +481,12 @@ const REGISTRY = {
     docRef: `${PAL}#open-questions`,
   },
   jotcBonus: {
-    text: 'Each Holy hit gets its spell damage coefficient’s share of Judgement of the Crusader’s +161, as beta combat logs and an in-game test show. That share is added after your own damage bonuses and before a crit doubles it, which is untested.',
+    text: 'Each Holy hit gets its spell damage coefficient’s share of Judgement of the Crusader’s +161, as beta combat logs below level 40 and a level-20 in-game test show; untested at level 60. That share is added after your own damage bonuses and before a crit doubles it, which is untested too.',
+    docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
+  },
+  // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: Seal of Command's share, by Holy Strike's (DU-9).
+  jotcSealOfCommand: {
+    text: 'Seal of Command’s proc gets its whole 0.29 share of Judgement of the Crusader’s bonus (+46.7), outside its 70% of weapon damage, as Holy Strike’s whole 0.429 is outside its half in beta combat logs; no log shows Seal of Command under the judgement.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
   // The Buffs tab's Judgement of the Crusader, another paladin's, with your own off (buffs doc §4.2).
@@ -490,7 +495,7 @@ const REGISTRY = {
     docRef: `${BUFFS}#42-other-debuffs`,
   },
   holyStrike: {
-    text: 'Holy Strike deals 50% of a normalized main-hand swing, its 81–105 and 0.429 × your spell damage together, as beta combat logs of its low ranks show (its tooltip reads as if the 81–105 came after the 50%); its script effect adds no threat. Untested at level 60.',
+    text: 'Holy Strike deals half of (a normalized main-hand swing + 81 to 105 + 0.429 × your spell damage), so 0.21 × spell damage, as beta combat logs below level 40 show; its tooltip reads as if the 81 to 105 and the spell damage came on top of the half. Its script effect adds no threat. Untested at level 60.',
     docRef: `${PAL}#other-abilities`,
   },
   consecrationTicks: {

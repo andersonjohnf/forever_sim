@@ -147,7 +147,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready, every 10 s: 50% of a normalized swing, 81 to 105 and 0.429 × your spell damage together, all Holy, for 18 mana.',
+    help: 'Use Holy Strike whenever it’s ready, every 10 s: half of (a normalized swing + 81 to 105 + 0.429 × your spell damage), so 0.21 × spell damage, all Holy, for 18 mana.',
     default: true,
   },
   {

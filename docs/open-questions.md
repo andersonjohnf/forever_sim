@@ -986,13 +986,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M5 · ≤20**
 - **Assumes:** SoC procs roll the full special table (miss, dodge, parry, block, crit ×2) [F
   data; ? dodge and parry reading]; JoR and JoF can miss but not be dodged, parried or
-  blocked, and crit ×2 [F data; one third-party log]; **JoC can't miss**: its damage spell
-  20966 carries Always Hit, though the dummy 20968 that casts it doesn't [F client `SpellMisc`,
-  found by the client-data check (D18); whether the server honours it ?]; level-based partial
-  resists on melee-class Holy vs +3 [?].
-- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes (a
-  single JoC miss disproves Always Hit; JoR is the control); compare average SoC damage vs +3
-  and +0 mobs.
+  blocked, and crit ×2 [F data; one third-party log]; **JoC can miss too**: its damage spell
+  20966 carries Always Hit, but the dummy 20968 that casts it doesn't [F client `SpellMisc`], and
+  in the beta logs the dummy misses (10 of 43, 5 characters; 2026-09-26), so the sim rolls it the
+  melee special miss chance [?]; level-based partial resists on melee-class Holy vs +3 [?].
+- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes (JoC's
+  miss rate against JoR's, the control); compare average SoC damage vs +3 and +0 mobs.
 - **Samples:** ≥300 SoC procs; ≥200 JoC and ≥50 JoR judgements.
 - **Changes:** Ret hit tables and resist averaging.
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),
@@ -2038,7 +2037,7 @@ doc).
 What raw client files can't settle stays in Routes B and C: server-side behaviour (PPM rates,
 what a dummy effect does, whether the server honours an attribute) and anything a hotfix changed
 ([client.md § hotfix caveat](data/client.md#hotfix-caveat)). The partial matches added checks
-to [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy) (JoC can't miss),
+to [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy) (JoC's miss, which the beta logs later showed),
 [C11](#c11-windfury-totem) (Windfury's 100 ms internal cooldown) and
 [C12](#c12-new-elixirs-and-frenzy-potions) (Frenzy potions share the potion cooldown). For a
 new build, re-run `npm run scrape:client -- --claims` instead of checking in a browser.

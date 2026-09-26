@@ -95,13 +95,17 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     matches(SEAL_OF_COMMAND_PROC, 20424)
   })
 
-  it('the judgements: JoC 356 ± 4.78% halved, 0.429, Always Hit; JoR 170 + 4.1/level from 58, 0.5; JoF 153 + 3.69/level, 0.45', () => {
+  it('the judgements: JoC 356 ± 4.78% halved, 0.429, its dummy’s miss roll; JoR 170 + 4.1/level from 58, 0.5; JoF 153 + 3.69/level, 0.45', () => {
     const joc = effect(20966, 0)
     const [lo, hi] = spread(joc.effectBasePointsF!, joc.variance!)
     expect([JUDGEMENT_OF_COMMAND.min, JUDGEMENT_OF_COMMAND.max]).toEqual([lo / 2, hi / 2])
     expect(lo).toBeCloseTo(339, 3)
     expect(hi).toBeCloseTo(373, 3)
-    matches(JUDGEMENT_OF_COMMAND, 20966)
+    // The damage spell 20966 is Always Hit, but the dummy 20968 that casts it isn't, and the beta logs
+    // show it missing (OQ 23): the judgement takes the dummy's attributes.
+    expect(attrs(20966)).toEqual({ noActiveDefense: true, alwaysHit: true })
+    expect(attrs(20968)).toEqual({ noActiveDefense: true, alwaysHit: false })
+    expect(JUDGEMENT_OF_COMMAND).toMatchObject({ noActiveDefense: true, alwaysHit: false, spCoefficient: effect(20966, 0).effectBonusCoefficient })
     for (const [def, id] of [
       [JUDGEMENT_OF_RIGHTEOUSNESS, 20286],
       [JUDGEMENT_OF_FURY, 20414],

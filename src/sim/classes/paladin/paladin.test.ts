@@ -105,18 +105,24 @@ describe('worked example 2: Seal of Command’s proc damage', () => {
 })
 
 describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteousness', () => {
-  it('JoC: (339–373)/2 + 0.429 × SP, 220.9 on average and 254.04 with Improved Seals; it can’t miss', () => {
-    const plan = examplePlan()
-    plan.stats.hit = -100 // every special that can miss would
-    const joc = damagesOf(plan, 'judgementOfCommand', 40)
+  it('JoC: (339–373)/2 + 0.429 × SP, 220.9 on average and 254.04 with Improved Seals; it can miss (the beta logs), never be dodged, parried or blocked', () => {
+    const joc = damagesOf(examplePlan(), 'judgementOfCommand', 40)
     expect(Math.min(...joc)).toBeGreaterThanOrEqual(169.5 + 42.9 - 1e-6)
     expect(Math.max(...joc)).toBeLessThanOrEqual(186.5 + 42.9 + 1e-6)
     expectMean(joc, 220.9)
-    const sim = new Sim(plan)
-    sim.runFight(0)
-    expect(counter(sim, plan, 'judgementOfCommand', FIELD.misses)).toBe(0)
-    expect(counter(sim, plan, 'judgementOfCommand', FIELD.casts)).toBeGreaterThan(5)
     expectMean(damagesOf(examplePlan({ talents: IMPROVED_SEALS }), 'judgementOfCommand', 40), 254.035)
+    const missing = examplePlan()
+    missing.stats.hit = -100 // every special that can miss does
+    const sim = new Sim(missing)
+    sim.runFight(0)
+    expect(counter(sim, missing, 'judgementOfCommand', FIELD.casts)).toBeGreaterThan(5)
+    expect(counter(sim, missing, 'judgementOfCommand', FIELD.misses)).toBe(counter(sim, missing, 'judgementOfCommand', FIELD.casts))
+    const avoiding = examplePlan()
+    avoiding.fight.bossCanDodge = true
+    avoiding.fight.bossCanParry = true
+    const sim2 = new Sim(avoiding)
+    for (let i = 0; i < 20; i++) sim2.runFight(i)
+    expect(counter(sim2, avoiding, 'judgementOfCommand', FIELD.dodges) + counter(sim2, avoiding, 'judgementOfCommand', FIELD.parries)).toBe(0)
   })
 
   it('JoR r8 at 60: (170–186) + 0.5 × SP, 228 on average and 262.2 with Improved Seals; it can miss', () => {

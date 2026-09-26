@@ -465,7 +465,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-command-soc`,
   },
   judgementOfCommand: {
-    text: 'Judgement of Command deals half its damage, since a boss can’t be stunned, but gets its full spell damage bonus, and never misses; untested.',
+    text: 'Judgement of Command deals half its damage, since a boss can’t be stunned, but gets its full spell damage bonus (untested). It can miss like a melee attack, as beta combat logs show, but can’t be dodged, parried or blocked.',
     docRef: `${PAL}#seal-of-command-soc`,
   },
   sealOfRighteousness: {

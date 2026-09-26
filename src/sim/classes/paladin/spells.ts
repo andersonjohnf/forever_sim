@@ -70,8 +70,10 @@ export const SEAL_OF_COMMAND_PROC: SpellDef = {
 /**
  * Judgement of Command (20968 → 20966, paladin.md#seal-of-command-soc): 356 base points, variance
  * 0.0955, so 339–373, **halved** because raid bosses can't be stunned: 169.5–186.5; the 0.429
- * coefficient isn't halved [?] (OQ 7). Melee class with No Active Defense and Always Hit on 20966:
- * it can't miss, be dodged, parried or blocked, and crits ×2 (OQ 23).
+ * coefficient isn't halved [?] (OQ 7). Melee class with No Active Defense: it can't be dodged, parried
+ * or blocked. The damage spell 20966 carries Always Hit, but the dummy 20968 that casts it doesn't, and
+ * the beta logs show the dummy missing (10 of 43, OQ 23): so it rolls the melee miss, then crit ×2 on a
+ * landed one, as Judgement of Righteousness does [?].
  */
 export const JUDGEMENT_OF_COMMAND: SpellDef = {
   ...HOLY_MELEE,
@@ -79,7 +81,6 @@ export const JUDGEMENT_OF_COMMAND: SpellDef = {
   name: 'Judgement of Command',
   icon: 'ability_warrior_innerrage',
   noActiveDefense: true,
-  alwaysHit: true,
   min: spread(356, 0.09550562)[0] / 2,
   max: spread(356, 0.09550562)[1] / 2,
   spCoefficient: 0.429,

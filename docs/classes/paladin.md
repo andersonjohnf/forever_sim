@@ -3,8 +3,8 @@
 WoW Forever reworks the paladin more than any other class in scope. The biggest change is that
 **Judgement no longer consumes the Seal**, so a paladin keeps one seal up and judges it on
 cooldown. Damage judgements now roll on the **melee** table: they can't be dodged, parried or
-blocked, and they crit for double damage. Judgement of Righteousness and of Fury can miss, but
-Judgement of Command can't (its damage spell is *Always Hit*). Judgement debuffs still
+blocked, and they crit for double damage, and they can miss (Judgement of Command's damage spell
+is *Always Hit*, but the beta logs show its judgement missing). Judgement debuffs still
 always hit and now last 40 s instead of 10 s. Retribution gains a cheap 10 s strike (Holy Strike), a
 spell-damage-from-Intellect capstone line (Champion of the Light), a mana-positive judgement
 talent (Sanctified Judgement), a reworked Vengeance (up to 3 stacks, 30 s) and Twist of
@@ -31,8 +31,8 @@ Both specs need the following. Each item links to its section.
    ([Seals](#seals)).
 2. **Judgement** as an off-GCD, 10 s (8 s talented) cooldown that fires the active seal's
    judgement **without removing the seal**. Damage judgements (JoC, JoR, JoF) roll the melee
-   special-attack table with no dodge, parry or block; JoC's damage spell is *Always Hit*, so
-   only JoR and JoF can miss. Debuff judgements (JotC, JoW, JoL, JoJ) always hit
+   special-attack table with no dodge, parry or block, and can miss (JoC too, by the beta logs,
+   though its damage spell is *Always Hit*). Debuff judgements (JotC, JoW, JoL, JoJ) always hit
    ([Judgement](#judgement)).
 3. **Judgement debuffs** (Crusader, Wisdom, Light, Justice): one per paladin per target,
    40 s (Justice 10 s), refreshed by the paladin's melee strikes and by Holy Strike with
@@ -87,7 +87,7 @@ Charger is Dwarf and Human only [F].
 | Area | Classic Era | WoW Forever | Tag, source |
 | --- | --- | --- | --- |
 | **Judgement consumes seal** | yes | **no**: "Does not consume the Seal." | [F] [spellbook](https://foreverchanges.pro/spellbook/paladin), [F 20271][f20271] |
-| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee crit ×2 and never dodge, parry or block. **JoR and JoF roll melee miss; JoC's damage spell 20966 carries *Always Hit*, so JoC can't miss.** Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] [client] (SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000, 1.60.1.70009; [20286][f20286], [20414][f20414], [20968][f20968], [20966][f20966], [20303][f20303], [20355][f20355]) vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303]. Whether the server honours JoC's Always Hit is [?] ([open question 23](#open-questions)) |
+| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee crit ×2 and never dodge, parry or block. **JoR and JoF roll melee miss, and so does JoC: its damage spell 20966 carries *Always Hit*, but the dummy 20968 that casts it doesn't, and the beta logs show it missing.** Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] [client] (SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000, 1.60.1.70009; [20286][f20286], [20414][f20414], [20968][f20968], [20966][f20966], [20303][f20303], [20355][f20355]) vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303]. JoC's miss: the beta logs ([Seal of Command](#seal-of-command-soc)) |
 | Judgement debuff duration (Crusader, Wisdom, Light) | 10 s | **40 s**, still refreshed by your melee strikes | [F] [client] (SpellDuration, 1.60.1.70009; [20303][f20303], [20355][f20355]) |
 | Judgement of the Crusader (r6) | +140 Holy damage taken | **+161** (Improved SotC's 15% is now baseline) | [F] [F 20303][f20303] |
 | Improved Seals (was Improved SoR) | +15% SoR/JoR, 5 ranks | **+15% all seal procs and judgements**, 3 ranks | [F] [client] (SpellEffect spell masks, TraitDefinitionEffectPoints, 1.60.1.70009; [20224][f20224]) |
@@ -160,6 +160,7 @@ headline, the default setups at 10,000 fights:
 | 1 | [Seal of Fury](#the-beta-logs-seal-of-fury): a flat 35 + 0.1 × SP, its weapon-speed dummy zero; its absorb comes off the next hit | 718.3 | 443.9, 900.5 | 608.6 |
 | 2 | [Seal of Righteousness](#the-beta-logs-seal-of-righteousness): the seal value alone (no base points) + 0.2 × SP; no default uses it | 718.3 | 443.9, 900.5 | 608.6 |
 | 3 | [Holy Strike](#the-beta-logs-holy-strike): its flat part and spell damage inside the 50% | 697.3 | 433.6, 900.5 | 595.1 |
+| 4 | [Judgement of Command](#seal-of-command-soc) can miss, as the logs show (the default Retribution setup is at the special-attack hit cap, so it doesn't) | 697.3 | 433.6, 900.5 | 595.1 |
 
 ### Forever system rules that matter here (owned elsewhere)
 
@@ -197,8 +198,8 @@ and the docs it links; this list only summarizes them, with the same tags.
   categories) come from the raw Forever client files, build 1.60.1.70009, read through the
   wago.tools API and parsed by `scripts/scrape/client.mjs`. Values tagged `[F] [client]` were
   confirmed by the [claims check][client], which covered every value this doc had marked for a
-  browser check, with one correction: Judgement of Command can't miss
-  ([Seal of Command](#seal-of-command-soc)). Raw files lack server hotfixes and server
+  browser check, with one correction: Judgement of Command's damage spell is Always Hit (its
+  dummy isn't, and in the beta logs the judgement misses: [Seal of Command](#seal-of-command-soc)). Raw files lack server hotfixes and server
   scripts, so dummy values such as Judgement of Fury's scripted 1607 + 42.3/level and all PPM
   rates are server-side ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Rank at level 60.** Every table uses the max rank a level-60 paladin has. Where
@@ -227,9 +228,9 @@ and the docs it links; this list only summarizes them, with the same tags.
   block first, then crit on anything that landed, like the warrior's Bloodthirst. That's
   [combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)'s "melee spells"
   split by effect type, applied to the paladin by inference [?]. It matters only for spells that
-  can miss or be avoided and have no weapon share, JoR and JoF: their crits come from the landed
-  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). JoC and SoR's and SoF's
-  procs have nothing to roll first (Always Hit and No Active Defense), so the two models agree.
+  can miss or be avoided and have no weapon share, JoC, JoR and JoF: their crits come from the landed
+  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). SoR's and SoF's procs have
+  nothing to roll first (Always Hit and No Active Defense), so the two models agree.
 - **Which spells trigger procs.** A spell you cast (Holy Strike, Exorcism, Hammer of Wrath)
   triggers procs as any attack or spell does. A spell that another spell or an aura
   triggers (a seal's proc, a judgement's damage spell, Consecration's ticks) triggers them only if
@@ -301,12 +302,15 @@ have the talent ([Twist of Light](#retribution-tree)).
 **Judgement of Command** (JoC, r5): dummy 20968 → damage spell 20966. Base **339–373 Holy,
 halved unless the target is stunned or incapacitated** (tooltip "169.5 to 186.5 … 339 to 373
 if stunned"), plus **0.429 × SP**, ×1.15 Improved Seals. Assume the coefficient is **not**
-halved [?]. Both spells are melee class with No Active Defense, and the damage spell 20966
-also carries **Always Hit** (Attr3 `0x40000`), so JoC **can't miss, be dodged, parried or
-blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffect, 1.60.1.70009;
-[20968][f20968], [20966][f20966]). Unlike JoR and JoF, it has no miss chance in the sim. The
-dummy 20968 lacks Always Hit; whether the server rolls a miss on it anyway is untested, and the
-sim assumes it doesn't [?] ([open question 23](#open-questions)). In Classic JoC was magic
+halved [?]. Both spells are melee class with No Active Defense, so JoC **can't be dodged, parried
+or blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffect, 1.60.1.70009;
+[20968][f20968], [20966][f20966]). The damage spell 20966 also carries **Always Hit** (Attr3
+`0x40000`), but the dummy 20968 that casts it doesn't, and **the dummy misses**: in the beta logs
+([method](#the-beta-logs-seal-of-fury)), 10 of the 43 Judgements of Command at ranks 1–2 were a
+`SPELL_MISSED` MISS of the rank-1 dummy 20425, from 5 of the 10 characters who judged it, and the other
+33 dealt damage. So the sim rolls JoC's miss, as JoR's and JoF's, then its crit on a landed one [?]
+([open question 23](#open-questions)); the logs' 23% misses were against mobs of every level, so the
+rate is the melee special table's. In Classic JoC was magic
 class, rolling spell hit ([C 20968][c20968]) [C]. Raid bosses are stun-immune, so the sim
 always uses the halved value.
 
@@ -482,7 +486,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | GCD | **none** (`StartRecoveryTime 0`) | [F]/[C] [f-SpellCooldowns] |
 | Range | 10 yd | [F] |
 | Requirement | an active seal. **The seal stays up** (Forever) | [F] |
-| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoR and JoF can miss (melee special miss chance); **JoC can't** (its damage spell 20966 is Always Hit). Damage judgements crit ×2. Debuff judgements always hit. The damage spells (20966, 20286, 20414) carry NOT_A_PROC, so a damage judgement triggers on-hit and crit procs [?] ([conventions](#conventions-used-below)) | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009); JoC in game [?] ([open question 23](#open-questions)) |
+| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoC, JoR and JoF can miss (melee special miss chance; JoC's damage spell 20966 is Always Hit, but its dummy misses in the beta logs). Damage judgements crit ×2. Debuff judgements always hit. The damage spells (20966, 20286, 20414) carry NOT_A_PROC, so a damage judgement triggers on-hit and crit procs [?] ([conventions](#conventions-used-below)) | [F] [client] (SpellMisc, SpellCategories, 1.60.1.70009); JoC in game [?] ([open question 23](#open-questions)) |
 | Sanctified Judgement | 3/3: **100% chance to return 60% of the judged seal's mana cost** (SoC → 126). Base vs modified cost [?]: use the base cost | [F] [F 1311074][f1311074] |
 
 ---
@@ -1418,10 +1422,9 @@ its Consecration and seal values; Swift Judgement's held.
 - **Holy Strike/HotR shared cooldown**: model as a category timer set to the cast spell's
   cooldown after talents.
 - **Sanctified Judgement**: grant mana when the Judgement lands [?] (on a missed JoR or JoF,
-  assume no refund; JoC can't miss). Use the seal's base cost.
-- **Judgement miss rolls**: JoR and JoF roll the melee special miss chance, then crit on a
-  landed one (two rolls, no weapon damage); JoC and the debuff judgements skip the miss roll
-  (Always Hit).
+  assume no refund). Use the seal's base cost.
+- **Judgement miss rolls**: JoC, JoR and JoF roll the melee special miss chance, then crit on a
+  landed one (two rolls, no weapon damage); the debuff judgements skip the miss roll (Always Hit).
 - **Level scaling**: store per-rank `base`, `variance`, `perLevel`, `baseLevel`,
   `maxLevel` from the spell data, so the numbers at 60 follow the formula in
   [Conventions](#conventions-used-below).
@@ -1580,9 +1583,9 @@ default setup.
    Two-Handed Weapon Specialization must **not** change it. (The alternative with SP
    outside the 70% gives an average of 414.0 before talents.)
 3. **Judgement of Command** (`forever` profile; target not stunned): (339..373)/2 → average
-   178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. Can't miss (Always Hit on
-   20966), be dodged, parried or blocked, so its expected damage carries no miss factor, unlike
-   JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
+   178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. It can miss, as JoR in example 4
+   can (the beta logs), but can't be dodged, parried or blocked. (`classicEra`: magic class, spell
+   hit and ×1.5 crit.)
 4. **Judgement of Righteousness r8 at 60**: (162..178) + 8 → average 178 + 0.5 × 100 =
    **228**; ×1.15 = **262.2**.
 5. **Holy Strike r8** (1.60.1.70009's 50%), as the beta logs show: normalized MH = 250 + 1200 ×
@@ -1760,8 +1763,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     with 6 s (407632); Consecration tick split 12 + 27 at 0.095 (1280349); Holy Shield 4
     charges and 0.08 (20928); Vengeance stack 5, 30 s (20050); 2HWS/1HWS Physical-only school
     mask (20111, 20196); Improved Seals spell masks (20224); seal-aura proc masks 0x4 vs 0x14.
-    **One correction:** JoC's damage spell 20966 also carries Always Hit, so JoC can't miss
-    ([Seal of Command](#seal-of-command-soc); in game: question 23). The check against
+    **One correction:** JoC's damage spell 20966 also carries Always Hit (its dummy doesn't, and
+    in the beta logs JoC misses: [Seal of Command](#seal-of-command-soc), question 23). The check against
     1.60.1.70009 found the build's changes and nothing else: Holy Strike's 50% and 10 s, Vengeance's
     3 stacks and Righteous Fury's 60 ([what changed](#changes-in-160170009)).
 22. **Which spells trigger procs, and minor mechanics.** The sim follows the client's
@@ -1794,9 +1797,10 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     The minor ones (under 0.5% each, but the defaults are guesses): SotC's per-swing damage
     reduction (÷1.4 assumed); Eye for an Eye's damage school and threat.
 23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
-    dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.70009). The sim assumes
-    JoC never misses. *Test:* 200+ JoC judgements on mobs three levels above you, counting
-    misses, with JoR judgements as the control (they should miss at the melee special rate).
+    dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.70009), and in the beta logs
+    the dummy misses (10 of 43, 5 characters; [Seal of Command](#seal-of-command-soc)). The sim rolls
+    the melee special miss chance for it [?]. *Test:* 200+ JoC judgements on mobs three levels above
+    you, counting misses, with JoR judgements as the control (both should miss at the same rate).
 
 24. **Mana regeneration's timing.** The sim ticks every 2 s from a random phase, and a seal cast
     before the pull is free and starts no five-second rule [?]. *Test:* a combat log of a

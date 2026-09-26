@@ -179,7 +179,7 @@ Every spec's Rotation tab is a priority list you reorder, with D28's tank rotati
 
 From 1440 px the app is a power-user workspace: [review](reviews/2026-09-25-desktop-layout.md).
 
-## M5.665: What we take from WarriorSim (D36) 🚧 next update
+## M5.665: What we take from WarriorSim (D36) ✅
 
 The changes the user adopted after comparing WarriorSim's Forever mode with ours
 ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25); the six comparisons were
@@ -189,7 +189,18 @@ research only). They ship as soon as the gate passes, ahead of the tooltips.
 - [x] **W2 Pre-AQ ranks:** every class's abilities and the buff catalogue drop the AQ books' ranks
 - [x] **W5 Gift of Arthas** joins the boss debuffs (Max consumables), +8 on each direct physical hit
 - [x] **W3 Skyborne warriors and hunters:** the class-row placeholder (D24) in place of the refusal
-- [ ] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
+- [x] **W4 Re-tune:** the warrior defaults after W1–W2, with every spec's headline checked (D29)
+
+## M5.668: Sharper paladin numbers 🚧 next update
+
+What the beta logs and the first guild test (the user's level-20 paladin, 2026-09-25) settle for
+paladins; the research is in the Judgement of the Crusader notes (B18).
+- [ ] **P1 Seal of Fury flat:** 35 + 0.1 × SP per hit, dropping the weapon-speed term the logs
+      disprove (rank 1 hits 6 every time, whatever the weapon); Protection Paladin re-tuned
+- [ ] **P2 Judgement of the Crusader:** each Holy hit's share (coefficient × bonus), measured; the
+      "All of it" switch removed (user decision); Seal of Command's share 0.29 outside its 70%
+- [ ] **P3 Provenance:** every "guild benchmark" or "guild test" label that isn't one corrected
+      (user, 2026-09-25: the guild had run no tests before that one)
 
 ## M5.67: Item tooltips ✅
 

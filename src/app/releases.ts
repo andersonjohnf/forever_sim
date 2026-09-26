@@ -23,6 +23,52 @@ export interface Release {
 /** Every release, newest first. */
 export const RELEASES: readonly Release[] = [
   {
+    id: '2026-09-26.1',
+    time: '2026-09-26T04:30:00Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'Protection Warrior’s default talents take Deep Wounds and Improved Rend and keep the survival talents: about 1,000 to 985 TPS with the lower ranks below. The earlier build is a preset.',
+          'Feral Bear −2% and Protection Paladin −1% TPS from the lower buff ranks.',
+          'Protection Paladins can take a priest’s Power Infusion: one cast at the pull, about +1% TPS.',
+        ],
+      },
+      {
+        label: 'Warriors',
+        items: [
+          'Deep Wounds keeps rolling: a new crit adds its bleed to what’s left instead of restarting it.',
+          'Rend grows with attack power; Fury weaves it in when rage is low.',
+          'Unbridled Wrath procs from your auto attacks only, not Heroic Strike or Cleave.',
+          'New defaults: Fury 13/38/0 with Precision and Improved Execute, Arms 35/16/0 opening with Overpower. Fury about 714 to 843 DPS, Arms 690 to 821.',
+          'The popular 17/34/0 Fury and 37/14/0 Arms are talent presets.',
+        ],
+      },
+      {
+        label: 'Every spec',
+        items: [
+          'Abilities and buffs use the ranks trainable before Ahn’Qiraj (Battle Shout 115, Blessing of Might 112, casters’ top spells one rank down): most specs −1% to −5%, Frost and Arcane mages about −9%.',
+          'Gift of Arthas joins Max consumables’ boss debuffs: +1% to +3% for physical damage.',
+          'Windfury Totem’s attack power also reaches your next swing and abilities for a second.',
+          'Casters’ Power Infusion is one cast a fight, at the pull (Arcane: as Arcane Power ends), not every 3 minutes.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'Item tooltips: hover an item in your gear or the picker, or tap its info button on a phone.',
+          'Talent presets show each build’s point split.',
+          'Skyborne warriors and hunters can be simulated.',
+          'With reduced motion on, windows and menus only fade.',
+        ],
+      },
+      {
+        label: 'Fixes',
+        items: ['A hunter with no ranged weapon is told the setup can’t be simulated, with a button to Gear.'],
+      },
+    ],
+  },
+  {
     id: '2026-09-25.2',
     time: '2026-09-25T21:33:00Z',
     groups: [
@@ -32,7 +78,7 @@ export const RELEASES: readonly Release[] = [
           'Every DPS spec’s Rotation tab is now a priority list: drag a row or use Move up and Move down, turn any step off, and change its settings in place. Your order is saved and travels in share links.',
           'Warlocks can pick Incinerate as their filler once it’s talented: a Demonology build with it gains about 3.9% (the default talents don’t take it).',
           'Searing Pain and Demonic Brand are simulated: Demonology with Demonic Brand is about +12%, on untested values, so the default talents stay for now.',
-          'Rogue: Eviscerate gains 4% of attack power per combo point, up from 3%, and Instant and Deadly Poison gain from attack power, from a guild member’s in-game tests: Combat +1%, Assassination +2%, Subtlety +0.7%.',
+          'Rogue: Eviscerate gains 4% of attack power per combo point, up from 3%, and Instant and Deadly Poison gain from attack power, from a player’s in-game tests shared on Discord: Combat +1%, Assassination +2%, Subtlety +0.7%.',
         ],
       },
       {

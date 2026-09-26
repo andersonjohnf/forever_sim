@@ -60,3 +60,19 @@ wording didn't reproduce), fixed in 2b3af85f. The check noted that a pinned pane
 today's uses.
 
 The gate passes for the item tooltips.
+
+## After the merge: the picker's focus with a notice up
+
+The full suite on main (ea00c298) failed notices.spec: tabbing through the picker with a notice up,
+focus landed on the dialog. Root cause: Radix Presence removed a faded panel inside the next Tab's
+blur, and since TU-1 portals it into the dialog, the dialog's focus trap caught the removal. Fixed in
+934e37b9: the tooltip removes its own panel at its fade's end, never during a focus move; be40cc97
+fixes results-keyed's `/^Riphook/` (the phone's info control matched too).
+
+| id | severity | origin | finding | disposition |
+|---|---|---|---|---|
+| VF-1 | medium, latent | pre-existing | A close with no fade still removed the panel inside the focus move. | Fixed, 45801ecd: only Escape's instant close removes at once; otherwise the next frame. |
+| VF-2 | low | pre-existing, breaks ux.md | The tooltip zoomed and slid under reduced motion. | Fixed, 45801ecd: only the fade. |
+| VF-3 | low | pre-existing | An Escape during the 100 ms fade is spent on the closing tooltip. | Known gap. |
+| VV-1 | low | pre-existing, breaks ux.md | Every shadcn dialog, sheet, popover, menu and select zoomed or slid under reduced motion. | Fixed, baf4c4bc: one rule in src/index.css keeps only the fade; the drawer snaps. e2e/reduced-motion.spec.ts. |
+| VV-2 | low | pre-existing | A closing panel's layer takes Escape for up to a frame. | Same as VF-3. |

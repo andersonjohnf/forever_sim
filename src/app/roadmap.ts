@@ -21,25 +21,13 @@ export interface RoadmapEntry {
 /** Every agreed milestone, in the order they're coming: the next update first, "Later" last. */
 export const ROADMAP: readonly RoadmapEntry[] = [
   {
-    id: 'warrior-accuracy',
-    title: 'Sharper warrior numbers',
+    id: 'paladin-accuracy',
+    title: 'Sharper paladin numbers',
     when: 'Next update',
     items: [
-      'Deep Wounds keeps rolling when a new crit lands, so Fury and Arms deal the bleed damage they really do.',
-      'Rend grows with your attack power.',
-      'Unbridled Wrath procs from your auto attacks only, not from Heroic Strike or Cleave.',
-      'Abilities and buffs use the ranks you can train before Ahn’Qiraj, so no class counts on an AQ book it can’t have yet.',
-      'Gift of Arthas joins the boss debuffs, and Skyborne warriors and hunters can be simulated.',
-      'The warrior talent and rotation defaults are re-tuned to match.',
-    ],
-  },
-  {
-    id: 'item-tooltips',
-    title: 'Item tooltips',
-    when: 'Planned',
-    items: [
-      'Hover over any item, or tap it on a phone, to see its tooltip as the game shows it: stats, effects and set bonuses.',
-      'In your gear, the item picker and the character sheet.',
+      'Seal of Fury deals its flat damage per hit, as its tooltip says, with no extra from weapon speed.',
+      'Judgement of the Crusader adds each Holy hit’s share of its bonus, as beta logs and an in-game test show; the “All of it” setting goes.',
+      'Protection Paladin’s defaults are re-tuned to match.',
     ],
   },
   {

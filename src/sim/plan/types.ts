@@ -1466,6 +1466,14 @@ export interface Plan {
    */
   holyTaken?: number
   /**
+   * The boss's flat physical damage taken all fight, from the Buffs tab: a tank's Gift of Arthas, +8
+   * (buffs doc §4.2). Each direct physical hit, yours and your pet's, adds it after your damage
+   * multipliers and before the outcome's (a crit doubles it) and the boss's armor; a bleed's or
+   * other periodic tick gets none [?] (docs/mechanics/damage-and-timing.md#24-damage-modifier-stacking).
+   * Absent: 0.
+   */
+  physicalTaken?: number
+  /**
    * The spell schools' multipliers, crit and the boss's resistance (docs/mechanics/spells.md §5, §9);
    * absent when every school is plain.
    */

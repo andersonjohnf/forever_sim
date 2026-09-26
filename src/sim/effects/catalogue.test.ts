@@ -47,6 +47,7 @@ function digest(effects: Effect[]): Line[] {
       case 'weaponDamage':
       case 'targetArmor':
       case 'holyTaken':
+      case 'physicalTaken':
       case 'bossAp':
         lines.push([e.kind, e.value])
         break
@@ -192,6 +193,8 @@ const ROWS: Record<string, Row> = {
     classicRows: [S(11717, 1), S(11717, 0)],
   },
   armorShatter: { forever: [['targetArmor', 495]], classicEra: [['targetArmor', 600]], rows: [S(16928, 0, { times: 3 })] },
+  // A tank's Gift of Arthas (buffs doc §4.2): its proc 11374 #0, aura 14 (physical damage taken), 8; Classic Era 7 + 1.
+  giftOfArthas: { rows: [S(11374)] },
   // Forever's rank 4 (1311680) is every magic school; Classic Era's rank 3 (11722) Fire and Frost.
   curseOfTheElements: {
     forever: [['schoolTaken fire/frost/shadow/nature/arcane/holy', 10], ['targetResistance fire/frost/shadow/nature/arcane/holy', -75]],
@@ -361,7 +364,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(127)
+    expect(ENTRIES).toHaveLength(128)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

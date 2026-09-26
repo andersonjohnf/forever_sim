@@ -97,12 +97,16 @@ export function BuffsSection() {
   const inert = useMemo(() => {
     const out = unusedBuffs(meta.id)
     if (values['shaman.enhancement.imbue'] === 'windfury') out.windfuryTotem = 'Not used: your Windfury Weapon (see Rotation) turns it off for you'
-    // A caster whose pet swings gets the boss's armor debuffs for its pet (SpecMeta.petMelee): with the
-    // Imp or no demon out, nothing of yours meets the boss's armor (docs/classes/warlock.md §11.2).
+    // A caster whose pet swings gets the boss's physical debuffs for its pet (SpecMeta.petMelee): the
+    // armor debuffs and Gift of Arthas. With the Imp or no demon out, nothing of yours meets them
+    // (docs/classes/warlock.md §11.2).
     const demon = values['warlock.demonology.demon.summoned']
     if (meta.petMelee && (demon === 'imp' || demon === 'none')) {
       const why = demon === 'imp' ? 'your Imp (see Rotation) doesn’t swing' : 'you keep no demon out (see Rotation)'
-      for (const b of buffCatalogue) if (b.category === 'targetDebuff' && b.group === 'Armor' && b.forSpecs === 'melee') out[b.id] = `Not used: only your demon’s swings meet the boss’s armor, and ${why}`
+      for (const b of buffCatalogue) {
+        if (b.category !== 'targetDebuff' || b.forSpecs !== 'melee') continue
+        out[b.id] = `Not used: only your demon’s swings ${b.group === 'Armor' ? 'meet the boss’s armor' : 'would get its bonus'}, and ${why}`
+      }
     }
     return out
   }, [meta.id, meta.petMelee, values, buffCatalogue])

@@ -207,9 +207,23 @@ Rule for the engine: read the effect type from the class data. Don't hard-code t
   each `dmgmod` source, [ws-player]). Example: two-handed spec 1.05 × a 20% cooldown 1.20 =
   1.26.
 - Flat "damage done" bonuses add before multipliers. Flat "damage taken" bonuses on the target
-  (e.g. Gift of Arthas' +8) add after them [?]. Only WarriorSim's post-SoD code has these terms
-  (`moddmgdone`, `moddmgtaken`, [ws-post-weapon]); its pre-SoD commit has flat *weapon* damage
-  only (§2.1). See [Open questions](#open-questions).
+  (Gift of Arthas' +8 physical, [buffs §4.2](buffs-debuffs-consumables.md#42-other-debuffs)) add
+  after your damage multipliers, and before the outcome's (§2.5) and the boss's armor (§1), so a
+  crit doubles them, a glancing blow takes its share and armor mitigates them [?]. That's
+  WarriorSim's order (`dmg × modifier × dmgmod + moddmgtaken`, then the crit and the armor,
+  [ws-post-weapon]; at `069329b` too), and the sim's for Judgement of the Crusader's flat Holy
+  bonus, after your multipliers and before the crit ([paladin](../classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)).
+  Only WarriorSim's post-SoD code has these terms (`moddmgdone`, `moddmgtaken`); its pre-SoD
+  commit has flat *weapon* damage only (§2.1). See [Open questions](#open-questions).
+- **Which hits get Gift of Arthas' +8** [?]: every direct physical hit that deals damage, white or
+  special, either hand, an extra attack, a ranged shot (Auto Shot, Multi-Shot, Aimed Shot) and your
+  pet's swings and physical abilities. Not a bleed's or any periodic tick (Deep Wounds, Rend, Rip,
+  Rake's and Lacerate's ticks, Rupture, Garrote), nor an attack that deals no damage (Sunder
+  Armor), nor magic. The client's aura (14, school mask 1) doesn't say either way. Classic Era's
+  analog in this sim is Judgement of the Crusader, the same aura for Holy: a periodic tick gets
+  the flat bonus by its spell-damage coefficient (Consecration's 0.095 a tick), and a bleed's
+  ticks have none, so they get nothing; WarriorSim adds it to direct hits only, not to its Deep
+  Wounds or Rend ticks. Guild test: [B70](../open-questions.md#b70-classic-rules-that-only-a-post-sod-sim-encodes).
 - Forever: no change found. Class docs note any talent that says "additively".
 
 ### 2.5 Crit, glancing, crushing and block multipliers
@@ -233,6 +247,7 @@ Their values are in the class docs.
 1. base      = weapon roll + flatWeaponBonus + AP/14 × (real or normalized speed) + ability flat bonus
 2. ability % = base × abilityPercent            (e.g. 110% weapon damage)
 3. mods      = × Π damage multipliers            (talents, buffs, target debuffs; boss → player: damage-taken modifiers)
+3b. taken    = + flat damage taken               (Gift of Arthas' +8 on the boss, §2.4 [?]; not bleeds)
 4. armor     = × (1 − DR)                        (§1; skipped for bleeds and magic)
 5. outcome   = × 2.0 crit | × 1.5 crushing (boss → player) | × glance factor | × 1.0 hit
 6. block     = − block value, floor 0            (tanks being hit; mob block value is 0, see combat-tables §2.4)
@@ -677,7 +692,8 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
     Test: with armor penetration or armor debuffs that exceed a low-armor mob's armor, compare
     average white damage against the same mob at exactly 0 effective armor.
 13. **Classic rules only a post-SoD sim encodes** [?]: flat "damage taken" bonuses added after
-    multipliers (§2.4), and on multi-target attacks ordinary weapon procs rolling per target
+    your multipliers and before the crit's and the armor's, on direct hits only, not bleed ticks
+    (§2.4), and on multi-target attacks ordinary weapon procs rolling per target
     while extra-attack procs other than Windfury roll once per cast (§5.3). Test: a mob with a
     flat damage-taken debuff (Gift of Arthas' +8), and weapon-enchant procs per Cleave that hits
     two mobs.

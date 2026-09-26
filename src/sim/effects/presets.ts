@@ -17,13 +17,14 @@ import { PET_BUFFS } from '../plan/pet'
  * or caster (`forSpecs`, SpecMeta.caster; absent, every spec). The Buffs tab lists only these, and
  * presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries"). A caster
  * whose pet swings (SpecMeta.petMelee: the Demonology warlock's Succubus and Felhunter) gets the
- * melee's armor debuffs on the boss too, which its pet's swings meet (ranged-and-pets.md §8).
+ * melee's debuffs on the boss too, which its pet's swings meet (ranged-and-pets.md §8): the armor
+ * debuffs and Gift of Arthas' +8 on each physical hit (buffs doc §4.2).
  */
 export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forCasterSpecs' | 'forSpecs'> & Partial<Pick<BuffDefinition, 'category' | 'group'>>, spec: SpecId): boolean =>
   (!buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId) || (buff.forCasterSpecs === true && SPEC_META[spec].caster === true)) &&
   (!buff.forSpecs ||
     (buff.forSpecs === 'caster') === (SPEC_META[spec].caster === true) ||
-    (buff.forSpecs === 'melee' && SPEC_META[spec].petMelee === true && buff.category === 'targetDebuff' && buff.group === 'Armor'))
+    (buff.forSpecs === 'melee' && SPEC_META[spec].petMelee === true && buff.category === 'targetDebuff'))
 
 function reaches(audience: Audience, spec: SpecId): boolean {
   if (audience === 'all') return true

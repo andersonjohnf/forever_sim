@@ -880,11 +880,10 @@ closed by a cited mechanic or recorded as an open question, never by moving a va
 
 ### D38: The values audit's calls (2026-09-26)
 User decisions, on the questions the values audit of 2026-09-26 left open: where the allowed
-sources disagree, or where none gives a value. Slices H and I of
-[M5.669](milestones.md#m5669-only-sourced-values--next-update) put them in the sim, except those
-that keep today's model; the effects are the audit's estimates. **The no-value rule is
-confirmed:** [D37](#d37-only-sourced-values-2026-09-26)'s fallback order, with the third-party
-exception at step 2 ([doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable)).
+sources disagree, or where none gives a value. [M5.671: Audit fixes](milestones.md#m5671-audit-fixes-)
+puts them in the sim after this update, except those that keep today's model and boss melee
+(#11, M5.669's slice J); the effects are the audit's estimates. **The user confirmed the five-step
+order on 2026-09-26:** [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable).
 1. **No level-based spell resistance on the boss in `forever`**, from the beta logs' 810 non-Holy
    hits with no partial resist (D22), `[?]`; `classicEra` keeps Classic's rule. Most casters
    about +5–7%, Frost +2% ([spells §3](mechanics/spells.md#3-resistances)).
@@ -892,32 +891,36 @@ exception at step 2 ([doctrine §2](doctrine.md#2-where-numbers-come-from-non-ne
    about −1.6 to −3.1% ([combat-tables §4.4](mechanics/combat-tables.md#44-crit-suppression)).
 3. **Ironfoe procs 6% of the time,** the client's `ProcChance`, not halved. Fury with it about +3.7%
    ([damage-and-timing §5.2](mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples)).
-4. **Arcane Blast's stacks and Missile Barrage are modelled,** in their own slice (M5.669 I); a
+4. **Arcane Blast's stacks and Missile Barrage are modelled,** in their own slice (M5.671 I); a
    known gap until then ([mage.md](classes/mage.md)).
-5. **Arcane Power blocking Power Infusion stays,** labelled; no change.
+5. **Arcane Power blocking Power Infusion stays,** labelled; no change
+   ([mage.md](classes/mage.md#arcane-power)).
 6. **Ignite and Curse of the Elements keep today's reading,** with both readings in the open
    questions; no change ([mage.md](classes/mage.md#open-questions)).
 7. **The rogue's attack-power shares stay,** labelled as a player's Discord tests, under D37's
    exception; `classicEra` takes the reading from before them
    ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
 8. **Felstriker and Alcor's Sunrazor proc once a minute,** other sims' rate (step 4), labelled.
-   Assassination and Subtlety at least +2%.
+   Assassination and Subtlety at least +2% ([rogue.md §7.3](classes/rogue.md#73-weapons-and-gear)).
 9. **Seal Fate triggers from either Mutilate hand, one point at most,** as the client's 0.5 s
    proc cooldown gives. Assassination gains ([rogue.md](classes/rogue.md#10-open-questions) Q7).
 10. **Gear mp5 pays at the intended rate;** the beta's every-second bug is noted, not modelled. No
     change ([spells §8](mechanics/spells.md#8-mana)).
 11. **Boss melee is measured from Classic Era public logs** of Golemagg and Ragnaros (Molten Core),
-    in this build. The tanks' damage taken changes
-    ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)).
+    in this build, and disclosed as an estimate until the logs are measured. The tanks' damage
+    taken changes ([encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)). M5.669's
+    slice J measures Golemagg's.
 12. **The consumable presets are rebuilt:** the tanks' like for like and for threat, every spec
     what its players use ([buffs doc](mechanics/buffs-debuffs-consumables.md)).
 13. **"Crit with melee attacks" (item effects 7597 and 7598) is melee only,** per Forever's
-    tooltip, `[?]`.
+    tooltip, `[?]`, and the hunters' presets are re-picked
+    ([hunter.md §7.3](classes/hunter.md#73-gear)).
 14. **Protection paladin enchants are re-picked for threat** within the effective-health floor
     ([paladin.md](classes/paladin.md)).
 15. **The boss has no creature type by default,** disclosed in the results, and a Fight setting
     ([encounter §6](mechanics/encounter.md#6-creature-type-biome-and-zone-forever)).
-16. **A DPS spec's damage taken stays 0,** disclosed; no change.
+16. **A DPS spec's damage taken stays 0,** disclosed; no change
+    ([encounter §4](mechanics/encounter.md#4-targets-and-position)).
 17. **Pets inherit 10% of your attack power and your crit,** a labelled exception (a testers'
     wiki); the hit and spell-damage inheritance by analogy is dropped
     ([ranged-and-pets §6.1](mechanics/ranged-and-pets.md#61-what-a-pet-inherits-from-you)).
@@ -937,7 +940,7 @@ exception at step 2 ([doctrine §2](doctrine.md#2-where-numbers-come-from-non-ne
     4); a pre-SoD RatingBuster reads 0.3 points lower
     ([character-stats](mechanics/character-stats.md#other-base-values-at-level-60)).
 23. **Darkmoon Faire rewards** (Verimonde's Last Resort, say) **stay out of the presets' gear pool**
-    for now; the picker still offers them.
+    for now; the picker still offers them ([items.md](data/items.md#pre-raid-bis-lists)).
 24. **Lacerate stays 206 flat** ([D37](#d37-only-sourced-values-2026-09-26)), though Blizzard's own
     SoD hotfix (2 December 2024) sets 3.33 × damage for the same spell (414644, Forever's rank 1):
     the same-wording rule across tanks wins, and ×3.33 would put the bear about 48% over the

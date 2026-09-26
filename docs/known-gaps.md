@@ -9,7 +9,7 @@ or class doc. **When an entry is fixed, delete it here** and name the fixing com
 review's log under [reviews/](reviews/). The milestones are in [milestones.md](milestones.md).
 
 - **Arcane Blast's stacks and Missile Barrage aren't modelled** (the user's call, D38 #4): no
-  rotation casts Arcane Blast yet ([mage.md](classes/mage.md)). M5.669's slice I models them.
+  rotation casts Arcane Blast yet ([mage.md](classes/mage.md)). M5.671's slice I models them.
 - **Item tooltips, three pre-existing lows (review VT-2, VT-3, VT-4).** Closing the picker with
   Escape while the mouse rests on another slot can leave two tooltips open (the returned slot's focus
   one and the hovered one); the next Escape closes both. One probe saw the phone picker's sheet

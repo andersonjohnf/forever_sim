@@ -210,7 +210,9 @@ invented multipliers, ratios, scalings or fitted terms; an undescribed client du
 other sims are never authoritative; the user's offhand numbers are never evidence. Each slice
 replaces the values that broke them with defaults that follow
 [doctrine §2's fallback order](doctrine.md#2-where-numbers-come-from-non-negotiable), and
-re-measures the headlines it moves. The paladin's own provenance is M5.668's P3.
+re-measures the headlines it moves. The paladin's own provenance is M5.668's P3. This update ships
+A to F and J; B3 and G ship in it only if they land in time, and otherwise move to
+[M5.671](#m5671-audit-fixes-). The audit's other fixes are M5.671's.
 - [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's
       "guild test" relabelled as a player's Discord tests; planned tests called in-game tests
 - [ ] **B1 Warrior threat:** Shield Slam 254, Sunder Armor 206 flat, the parry check
@@ -224,12 +226,24 @@ re-measures the headlines it moves. The paladin's own provenance is M5.668's P3.
 - [ ] **E Casters:** the epic weapons, Improved Imp, Maelstrom Weapon, Earth Shock, Thorns
 - [ ] **F Class quest sets:** Dungeon Set 2 for each class, the bear's head re-picked
 - [ ] **G Damage truncated per hit**
-- [ ] **H Audit fixes ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26)):**
+- [ ] **J Boss melee from logs:** the boss's melee on the tanks measured from Golemagg's Classic
+      Era public logs (D38 #11), disclosed as an estimate until then
+
+## M5.67: Item tooltips ✅
+
+A WoW-style tooltip for every item in the gear slots and the item picker, from the client's data ([ux.md](ux.md#item-tooltips)): [review](reviews/2026-09-25-item-tooltips.md).
+
+## M5.671: Audit fixes ⏳
+
+The values audit's calls ([D38](decisions.md#d38-the-values-audits-calls-2026-09-26)) that change
+the sim, after M5.669's update and before multi-target ([M6](#m6-multi-target-)). Boss melee is
+M5.669's J.
+- [ ] **H Audit fixes:**
   - combat: no level-based spell resistance in `forever`; crit suppression 4.8 vs +3; Ironfoe 6%
   - procs and talents: Felstriker and Alcor's Sunrazor at 1 a minute; Seal Fate from either
     Mutilate hand; "crit with melee attacks" melee only; Unbridled Wrath's measured rate shown
-  - tanks: boss melee from Classic Era Molten Core logs; Protection paladin enchants for threat;
-    Hammer of the Righteous without attack power by default, "with attack power" a setting
+  - tanks: Protection paladin enchants for threat; Hammer of the Righteous without attack power
+    by default, "with attack power" a setting
   - presets: consumables rebuilt; no PvP rank rewards (Enhancement's trinket and relic); no
     Darkmoon Faire rewards
   - pets: 10% of attack power and crit only; the demon's mana under the five-second rule
@@ -237,10 +251,6 @@ re-measures the headlines it moves. The paladin's own provenance is M5.668's P3.
     Curse of the Elements, gear mp5, the creature type, DPS damage taken, the demon's stats, base
     spell crit
 - [ ] **I Arcane Blast's stacks and Missile Barrage** (D38 #4)
-
-## M5.67: Item tooltips ✅
-
-A WoW-style tooltip for every item in the gear slots and the item picker, from the client's data ([ux.md](ux.md#item-tooltips)): [review](reviews/2026-09-25-item-tooltips.md).
 
 ## M5.7: The optimizer (D30) 🚧 after multi-target
 
@@ -305,8 +315,8 @@ multi-target ([M6](#m6-multi-target-); user decision, 2026-09-26).
 
 ## M6: Multi-target ⏳
 
-**Next after M5.669,** ahead of the optimizer's remaining steps (O3 and O4; user decision,
-2026-09-26). The engine fights one target today. The design is
+**Next after M5.671's audit fixes,** ahead of the optimizer's remaining steps (O3 and O4; user
+decision, 2026-09-26). The engine fights one target today. The design is
 [encounter.md §4](mechanics/encounter.md#4-targets-and-position): extra targets are identical
 copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
 - **Engine and config:**

@@ -62,9 +62,9 @@ const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 /** What a screen reader hears of a change from the last run (docs/ux.md#results). */
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 /** Each preset's short line under the picker: what it keeps and drops, with a number or two against Defensive (D28). */
-const BALANCED_LINE = 'Faerie Fire kept, Demoralizing Roar dropped: +3.1% TPS, +2.8% DPS and 0.7% more damage taken than Defensive.'
+const BALANCED_LINE = 'Faerie Fire kept, Demoralizing Roar dropped: +2.8% TPS, +2.6% DPS and 0.7% more damage taken than Defensive.'
 const DEFENSIVE_LINE = 'Demoralizing Roar and Faerie Fire kept on the boss: the least damage taken. Tuned on threat.'
-const MAX_TPS_LINE = 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.2% DPS, the same damage taken (0.7% more than Defensive).'
+const MAX_TPS_LINE = 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.1% DPS, the same damage taken (0.7% more than Defensive).'
 
 test.describe('Feral bear in the switcher', () => {
   test('is under Druid as a tank, with its own talent build, a Tauren and the Manual Crowd Pummeler', async ({ page }) => {
@@ -108,7 +108,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     // The info has each preset's full help and numbers.
     await tab.getByRole('button', { name: 'About the presets' }).click()
     const info = page.getByRole('dialog', { name: 'The presets' })
-    await expect(info).toContainText('3.1% more TPS and 2.8% more DPS than Defensive in the default setup, for 0.7% more damage taken')
+    await expect(info).toContainText('2.8% more TPS and 2.6% more DPS than Defensive in the default setup, for 0.7% more damage taken')
     await expect(info).toContainText('Mauls from 14 rage rather than Balanced’s 20')
     await page.keyboard.press('Escape')
     expect(await order(page)).toEqual(DEFAULT_ORDER)
@@ -306,7 +306,7 @@ test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, 
     const own = buffs.getByRole('switch', { name: 'Thorns (your own)', exact: true })
     await expect(thorns).toBeChecked()
     await expect(thorns).toBeEnabled()
-    await expect(thorns).toHaveAccessibleDescription(/^38 Nature damage to the boss each time it hits you: a raid Restoration druid’s/)
+    await expect(thorns).toHaveAccessibleDescription(/^47 Nature damage to the boss each time it hits you: a raid Restoration druid’s/)
     await expect(own).not.toBeChecked()
     await expect(own).toHaveAccessibleDescription(/^22 Nature damage to the boss each time it hits you: your own/)
     // Self only is the bear's own; they don't stack, so turning the raid druid's on turns it off.

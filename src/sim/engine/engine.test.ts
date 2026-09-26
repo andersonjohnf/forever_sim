@@ -605,6 +605,13 @@ describe('golden run (fixed config and seed)', () => {
   // - D36's re-tune (W4, warrior.md §5.2 "Re-tuning after D36"): the 13/38/0 build (Precision 3, Improved Execute 2,
   //   no Impale or Anger Management), the Rend dance below the Overpower dance, and that dance up to 45 rage. DPS
   //   805.35 → 844.30, TPS 473.51 → 493.49; Execute's cost 15 → 10, and Rend's 0.02 × AP ticks join the bleeds.
+  // - The Feral bear slice (2026-09-26, CL-4): Lacerate's "high amount of threat" a flat 206 (its 0.05 × AP
+  //   term dropped; druid.md §4.3), the bear form's weapon two-handed for normalized rage (11.25 a landed
+  //   swing; rage.md "Bear white hits"), and a raid druid's Thorns at 22 + 0.08 × 313 = 47.04 a swing (was
+  //   38; buffs doc §1.2). The bear's Balanced 1,102.03 → 1,101.83 TPS and 540.39 → 548.03 DPS, Defensive
+  //   1,069.95 → 1,076.02 and 526.21 → 536.15; the Protection warrior's (Thorns only) Balanced 987.82 →
+  //   992.47 and 410.20 → 413.26, Defensive 925.59 → 929.52 and 386.49 → 389.07. With those three set
+  //   back, main's snapshot reproduces exactly. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

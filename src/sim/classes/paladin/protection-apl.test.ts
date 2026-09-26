@@ -91,6 +91,9 @@ describe('Protection paladin’s priority list (D31)', () => {
     // Re-taken for Touch of the Grave (character-stats.md#touch-of-the-grave): every plan carries one
     // more trigger list (`damageLanded`), and an Undead's its proc and row. With the lists held at the
     // 27 codes before it, exactly the 49 Undead cases move, and the other 151 reproduce the snapshot.
+    // Re-taken for the Feral bear slice (2026-09-26, CL-4): a raid druid's Thorns is 22 + 0.08 × 313 =
+    // 47.04, a pre-raid Restoration druid's spell damage (buffs doc §1.2), was 38; with it set back to
+    // 38, main's snapshot reproduces exactly.
     const hashes = protectionCases(200).map((config) => fingerprint(planJson(buildPlan(config).plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)
     expect(hashes).toMatchSnapshot()

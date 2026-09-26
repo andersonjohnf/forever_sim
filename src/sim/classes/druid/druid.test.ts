@@ -27,6 +27,7 @@ import {
   ENERGY_PER_TICK_TENTHS,
   MAX_ENERGY_TENTHS,
   NO_STRIKE,
+  START_ENERGY_TENTHS,
   OMEN_OF_CLARITY,
   OMEN_OF_CLARITY_ICD_MS,
   shapeshift,
@@ -272,6 +273,21 @@ describe('worked examples without cat or bear abilities (druid.md §9)', () => {
     expect((30000 / 2000) * ENERGY_PER_TICK_TENTHS).toBe(3000)
     expect(MAX_ENERGY_TENTHS).toBe(1000)
   })
+
+  // PowerType isn't in the committed client data; with the raw Forever tables cached locally
+  // (.cache/client/1.60.1.69977/tables, from `npm run scrape:client`), pin Energy's row (CL-6).
+  const POWER_TYPE = import.meta.glob<string>('/.cache/client/1.60.1.69977/tables/PowerType.ndjson', { query: '?raw', import: 'default' })
+  it.skipIf(Object.keys(POWER_TYPE).length !== 1)('Energy’s cap, full bar and rate are the Forever client’s PowerType row (1.60.1.69977, cached locally; druid.md §2.4)', async () => {
+    const raw = await Object.values(POWER_TYPE)[0]()
+    const energy = raw
+      .split('\n')
+      .filter((line) => line.includes('"NameGlobalStringTag":"ENERGY"'))
+      .map((line) => JSON.parse(line) as Record<string, number>)
+    expect(energy).toHaveLength(1)
+    expect(energy[0]).toMatchObject({ MaxBasePower: MAX_ENERGY_TENTHS / 10, DefaultPower: START_ENERGY_TENTHS / 10 })
+    // RegenCombat is Energy a second: 20 a tick every 2 s is the same 10 a second.
+    expect(energy[0].RegenCombat).toBe(ENERGY_PER_TICK_TENTHS / 10 / 2)
+  })
 })
 
 describe('the druid plan (druid.md §2, §7)', () => {
@@ -395,9 +411,10 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(forever.stats.staMult).toBeCloseTo(1.2, 12)
     expect(forever.forms![FORM_INDEX.cat].stats.staMult).toBe(1)
     expect(forever.stats.health).toBe(1240)
-    // The bear weapon: 2.5 s, one-handed rate for Forever's normalized rage (8.65 per swing [?])
+    // The bear weapon: 2.5 s, the two-handed rate for Forever's normalized rage (11.25 per swing [?],
+    // 22 of 26 clean pairs of bear swings in the public beta logs: rage.md#bear-druid-rage)
     expect(forever.weapons[0]!.speedSec).toBe(2.5)
-    expect(forever.weapons[0]!.twoHand).toBe(false)
+    expect(forever.weapons[0]!.twoHand).toBe(true)
     expect(buildPlan(d).assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['bearWhiteRage', 'bearArmor', 'formWeapon', 'omenOfClarity']))
   })
 

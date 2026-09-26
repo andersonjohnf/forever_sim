@@ -4,6 +4,7 @@
 // stays short and specific. Each links to the doc section that owns the value.
 import type { Assumption, RuleProfileId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
+import { DAMAGE_SHIELD_SP_COEFFICIENT, THORNS_BASE_DAMAGE, THORNS_CASTER_SPELL_DAMAGE, THORNS_DAMAGE } from '../effects/buffs'
 
 const CT = 'docs/mechanics/combat-tables.md'
 const DT = 'docs/mechanics/damage-and-timing.md'
@@ -23,6 +24,10 @@ const SPELLS = 'docs/mechanics/spells.md'
 const PRIEST = 'docs/classes/priest.md'
 const HUNTER = 'docs/classes/hunter.md'
 const RANGED = 'docs/mechanics/ranged-and-pets.md'
+
+// buffs doc §1.2 "Thorns": what every Thorns does on a boss swing, whoever cast it and in either profile.
+const THORNS_HITS =
+  'It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -405,7 +410,7 @@ const REGISTRY = {
     docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   energyTicks: {
-    text: 'Energy comes 20 every 2 s, as in Classic Era. The rest is untested: a cap of 100, a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
+    text: 'Energy comes 20 every 2 s, up to 100, and you start the fight with a full bar: 10 a second, the cap and the full bar as the game’s files have them, the 2 s ticks as in Classic Era. The rest is untested: the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
     docRef: `${DRUID}#24-energy-cat`,
   },
   shapeshifts: {
@@ -413,7 +418,7 @@ const REGISTRY = {
     docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   bearWhiteRage: {
-    text: 'Each landed bear swing gives 8.65 rage (3.46 per second of its 2.5 s swing, the one-handed rate); bear rage in Forever is unmeasured.',
+    text: 'Each landed bear swing gives 11.25 rage (4.5 per second of its 2.5 s swing, a two-handed weapon’s rate), a crit or glancing blow the same, as bear swings gave in public beta combat logs at low level; untested at 60.',
     docRef: `${RAGE}#bear-druid-rage`,
   },
   bearArmor: {
@@ -421,12 +426,13 @@ const REGISTRY = {
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
+  // Built from buffs.ts's constants, so the numbers can't drift from the damage the engine deals.
   thorns: {
-    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): 38 in all, its caster’s spell damage taken as a raid healer’s 200, a third of +600 healing on its gear, as Forever’s items give. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: `Thorns deals ${THORNS_BASE_DAMAGE.forever} Nature damage plus ${DAMAGE_SHIELD_SP_COEFFICIENT} × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): about ${Math.round(THORNS_DAMAGE.forever)} in all. A raid healer’s pre-raid gear carries about ${THORNS_CASTER_SPELL_DAMAGE} spell damage in Forever, since Forever’s healing gear adds a third as much spell damage as healing; unmeasured. ${THORNS_HITS}`,
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   thornsOwn: {
-    text: 'Your own Thorns deals its base 22 Nature damage: the 0.08 × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: `Your own Thorns deals its base ${THORNS_DAMAGE.own} Nature damage: the ${DAMAGE_SHIELD_SP_COEFFICIENT} × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. ${THORNS_HITS}`,
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   // buffs doc §1.1 (D36): no Ahn'Qiraj book's rank (src/sim/aq-ranks.test.ts), and the Greater Blessings'
@@ -584,7 +590,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Primal Bite makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 206 plus 5% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (206 is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add). None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era. Primal Bite makes 1 threat per damage, since its tooltip names no threat. Lacerate makes 1 per damage and 206 more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s 206, its value in Forever’s game files. None is measured in Forever.',
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
@@ -596,7 +602,7 @@ const REGISTRY = {
     docRef: `${DRUID}#44-swipe-r5-9908`,
   },
   bearRage: {
-    text: 'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
+    text: 'A Maul swing gives no rage: the white swing it replaces would give 11.25 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
     docRef: `${RAGE}#bear-druid-rage`,
   },
   demoralizingRoar: {
@@ -1150,6 +1156,16 @@ export const rogueFinisherTalentsText = (o: { eviscerate: boolean; rupture: bool
   return `The sim raises the attack-power part of ${prose(finishers)} by your ${prose(talents)}, as it raises the rest of the damage: if the tests’ numbers already included ${them}, ${talents.length > 1 ? 'they’re' : 'it’s'} counted twice. Whether they did is untested.`
 }
 
+/**
+ * The `thorns` and `thornsOwn` assumptions in the rule profile's terms (buffs doc §1.2 "Thorns"):
+ * Forever's scale with the caster's spell damage [?]; Classic Era's deal rank 6's flat 18 [C], so
+ * they say nothing of spell damage.
+ */
+export const thornsText = (own: boolean, profile: RuleProfileId): string =>
+  profile === 'forever'
+    ? REGISTRY[own ? 'thornsOwn' : 'thorns'].text
+    : `${own ? 'Your own Thorns' : 'Thorns'} deals ${THORNS_DAMAGE.classicEra} Nature damage, as in Classic Era, with no spell damage added. ${THORNS_HITS}`
+
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
 
@@ -1168,13 +1184,19 @@ export const BEAR_TEXT = {
     // Armor's at its level, the profile's (bear-abilities.ts LACERATE_THREAT).
     const lacerate = LACERATE_THREAT[profile]
     const sentences = [
-      ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
-      ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its threat is unknown.'] : []),
+      ...(known.length
+        ? [
+            known.length > 1 || multiplied.length > 1
+              ? `${prose(known)}: the values every Classic and Season of Discovery threat meter has used since 2019, which go back to a 2006 guide and were never measured in Classic Era.`
+              : `${prose(known)}: the value every Classic and Season of Discovery threat meter has used since 2019, which goes back to a 2006 guide and was never measured in Classic Era.`,
+          ]
+        : []),
+      ...(uses.mangle ? ['Primal Bite makes 1 threat per damage, since its tooltip names no threat.'] : []),
       ...(uses.lacerate
         ? [
-            lacerate.apCoefficient > 0
-              ? `Lacerate makes 1 per damage and ${lacerate.bonus} plus ${Math.round(100 * lacerate.apCoefficient)}% of your attack power more each time it lands: its tooltip’s “high amount of threat”, valued as the warrior’s Sunder Armor, which has the same words at the same level (${lacerate.bonus} is Forever’s client value; the attack power share is the sim’s guess at the one Blizzard’s notes add).`
-              : `Lacerate makes 1 per damage and ${lacerate.bonus} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate.bonus} in Classic Era).`,
+            profile === 'forever'
+              ? `Lacerate makes 1 per damage and ${lacerate} more each time it lands: its tooltip’s “high amount of threat”, the words Sunder Armor’s tooltip has at the same level, valued at Sunder Armor’s ${lacerate}, its value in Forever’s game files.`
+              : `Lacerate makes 1 per damage and ${lacerate} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s ${lacerate} in Classic Era).`,
           ]
         : []),
       'None is measured in Forever.',
@@ -1184,7 +1206,7 @@ export const BEAR_TEXT = {
   /** Maul's swing and the refunds, in the profile's white rage. */
   rage(o: { maul: boolean; swipe: boolean; normalizedRage: boolean }): string {
     const maul = o.maul
-      ? `A Maul swing gives no rage: the white swing it replaces would give ${o.normalizedRage ? '8.65 rage' : 'rage for its damage'}. `
+      ? `A Maul swing gives no rage: the white swing it replaces would give ${o.normalizedRage ? '11.25 rage' : 'rage for its damage'}. `
       : ''
     return `${maul}A bear attack that misses or is dodged or parried refunds 80% of its rage${o.swipe ? ' (Swipe nothing, like a warrior’s area attacks)' : ''}, as in Classic Era; untested for bears in Forever.`
   },

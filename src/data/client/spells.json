@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 51,
       "consumable": 82,
-      "docs": 623,
+      "docs": 624,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -117977,7 +117977,7 @@
       "shapeshift": {
         "shapeshiftMask": [144, 0]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "414647": {
       "auraOptions": {

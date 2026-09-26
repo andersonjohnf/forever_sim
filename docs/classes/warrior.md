@@ -2358,19 +2358,23 @@ Battle Shout r6, and the raid's Blessing of Might r6 and Strength of Earth r4) D
 351.55 DPS, 610.74 taken; Balanced 944.64 (+7.00%), 373.58 DPS; Max TPS 953.75 (+8.03%), 375.22 DPS;
 before those ranks, Defensive 933.23 TPS, 367.63 DPS; Balanced 1,001.62; Max TPS 1,011.74; and
 before Thorns scaled with spell power Defensive 926.27, 363.06 DPS; Balanced 993.37; Max TPS
-1,003.49. `PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
+1,003.49; and before a raid druid's Thorns went back to its base 22 (2026-09-26, buffs doc §1.2)
+Defensive 925.39, 386.07 DPS; Balanced 984.94 (+6.44%); Max TPS 989.32 (+6.91%); and at that
+base 22 (until a raid druid's Thorns took its pre-raid gear's 313 spell damage, 47 a swing, later on
+2026-09-26) Defensive 918.43, 381.50 DPS; Balanced 976.69 (+6.34%); Max TPS 981.07 (+6.82%).
+`PROTECTION_PRESET_MEASURES` holds these for the Rotation tab's help, and
 `protection-presets.test.ts` measures them again:
 
 | Preset | TPS | DPS | Damage taken a second |
 | --- | --- | --- | --- |
-| Defensive | 925.39 | 386.07 | 616.34 |
-| Balanced (the default) | 984.94, **+6.44%** (+59.18 to +59.92) | 408.52, +5.82% | 745.71, +21.0% |
-| Max TPS | 989.32, **+6.91%** (+63.57 to +64.30) | 407.52, +5.56% | 746.42, +21.1% |
+| Defensive | 929.32 | 388.64 | 616.34 |
+| Balanced (the default) | 989.60, **+6.49%** (+59.91 to +60.64) | 411.57, +5.90% | 745.71, +21.0% |
+| Max TPS | 993.99, **+6.96%** (+64.30 to +65.03) | 410.57, +5.64% | 746.42, +21.1% |
 
 **Max TPS against Balanced.** With Shield Block back, the two keep the same rows and differ only
 in thresholds: Max TPS uses the Sunder Armor filler from its cost (12 with the default build, 9
 with Improved Sunder Armor 3/3) rather than 60% of the max rage, and Heroic Strike from 45 rage
-rather than 84% of the max rage. On the same fights that's **+4.38 TPS (+0.44%, +4.08 to +4.68)**,
+rather than 84% of the max rage. On the same fights that's **+4.39 TPS (+0.44%, +4.09 to +4.69)**,
 −1.00 DPS (−0.24%, −1.17 to −0.82) and +0.70 damage taken a second (+0.09%, +0.61 to +0.80): the
 same damage taken. On 8/5/38 it was +9.11 TPS (+0.96%) and +1.63 DPS (+0.44%) (before the
 trainers' ranks, +10.12 TPS, +1.01%): with Deep Wounds, the rage the filler takes from Heroic

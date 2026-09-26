@@ -580,31 +580,33 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 
 #### B14. Bear rage
-**High · M4 · ≤20 (bear form at 10)**
-- **Assumes:** 3.46 × 2.5 = 8.65 rage per landed bear auto, crits no bonus [?] (one player
-  reports about 11: "11 rage per hit no matter what"); rage from damage taken as for warriors
+**High · M4 · ≤20 (Bear Form from level 3 in the public beta logs)**
+- **Assumes:** 4.5 × 2.5 = 11.25 rage per landed bear auto, the two-hander's rate, crits no bonus
+  [?]: 22 of 26 clean pairs of bear swings in the public beta logs, from 17 druids at levels 3–14
+  ([rage.md](mechanics/rage.md#bear-white-hits-in-the-public-beta-logs-); adopted 2026-09-26 under
+  D22, +1.45% bear TPS; 8.65, the one-hander's rate, before); rage from damage taken as for warriors
   ([B9](#b9-rage-from-damage-taken-confirm-the-logged-fit)) [?], which 33 logged hits on likely
   bears fit weakly; shifting into bear sets rage to 0 [C; Forever ?]. Two bears' logs of 23–24
-  Sep ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)) add one clean bear auto of
-  +11.3 rage (`4.5 × 2.5`, the two-hander's rate; +1.8% bear TPS if it holds), 49 hits taken that
-  fit the damage-taken formula's shape, and shifts that start at 0 (weak: rage was likely 0
-  already). None is adopted: one swing, and the bear already leads the tanks (1,126.6 TPS on
-  1.60.1.70009, seed 31101; D29 has no numeric target).
+  Sep ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)) add 49 hits taken that fit the
+  damage-taken formula's shape with a level term (not adopted: two testers, D22), and shifts that
+  start at 0 (weak: rage was likely 0 already).
 - **Test:** bear form, auto attack only, no damage taken and nothing else giving rage (no Enrage,
   Furor or Blood Frenzy): rage per landed swing. Then take hits as in B9, including hits fully
   absorbed by Power Word: Shield (players report bears get none there). Shift out and back in at a
   known rage (no Furor) and read rage after the shift.
-- **Samples:** ≥50 landed autos (≥20 settles 11.25 against 8.65); ≥50 hits taken; 10 absorbed
-  hits; 5 shifts, with rage above 0 before each.
+- **Samples:** ≥50 landed autos at 60 (the logs' 11.25 is from levels 3–14); ≥50 hits taken; 10
+  absorbed hits; 5 shifts, with rage above 0 before each.
 - **Changes:** the bear rage model.
 - **Docs:** [rage § bear](mechanics/rage.md#bear-druid-rage),
   [rage OQ 3, OQ 6](mechanics/rage.md#open-questions)
 
 #### B15. Bear ability threat
 **High · M4 · ≤20** (Primal Bite ≤30; Lacerate: [C8](#c8-lacerate))
-- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: threat-meter
-  code (LibThreatClassic2) only, in Classic as well as Forever; a Classic guide repeats them
-  uncited]; Primal Bite (Mangle until 1.60.1.70009) dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
+- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: every Classic
+  and Season of Discovery threat tool has used them since 2019; they trace to a 2006 guide and were
+  never measured on Classic Era; kept by user decision, 2026-09-26]; Primal Bite (Mangle until
+  1.60.1.70009) dmg × 1 [?: its tooltip names no threat; Season of Discovery's ×1.5 for Mangle
+  (Bear) doesn't carry over to Forever's reworked spell, user decision, 2026-09-26]; bear form ×1.3 with no Feral Instinct threat [F].
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Primal Bite; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
@@ -1636,11 +1638,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **High · M4 (rank 1 at 42)**
 - **Assumes:** 15 per 3 s per stack, up to 5 stacks, plus an immediate hit of
   `0.10 × W_b × stacks already on the target` [?]; threat dmg × 1 plus, for the tooltip's "a high
-  amount of threat", 206 + 0.05 × AP per landed application, Forever's Sunder Armor r5 at the same
-  level by the wording table (D29; 261, Classic Era's rule, before build 1.60.1.70009) [?]. The only
-  other numbers found are Season of Discovery values, not used: they'd count only as Blizzard's own
-  SoD client data or patch notes for a spell the Forever client carries (D37; spell 414647, druid
-  Q16, is the one candidate).
+  amount of threat", a flat 206 per landed application, Forever's Sunder Armor r5 client value at
+  the same level by the wording table (D29; user decision, 2026-09-26; 261, Classic Era's rule,
+  before build 1.60.1.70009) [?]. Season of Discovery's Lacerate, the same spell (Forever's rank 1 reuses its id), has
+  Blizzard's 3.33 × damage on the hit and ticks: an allowed analog (D37), not adopted: the user kept 206 by the same-wording rule across tanks (D38).
 - **Test:** apply 1 to 5 stacks, log hits and ticks, and read threat after each application.
 - **Samples:** ≥10 full stack cycles.
 - **Changes:** Lacerate damage and bear TPS.

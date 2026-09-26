@@ -74,7 +74,9 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
       // 53, the snapshot before it reproduces exactly. Re-taken for Touch of the Grave's trigger
       // (`damageLanded`, character-stats.md#touch-of-the-grave): every plan carries one more trigger
       // list, empty, since no case is Undead; with the lists held at the 27 codes before it, the
-      // snapshot before it reproduces exactly.
+      // snapshot before it reproduces exactly. Re-taken for the Feral bear slice (2026-09-26, CL-4): a
+      // raid druid's Thorns is 22 + 0.08 × 313 = 47.04, a pre-raid Restoration druid's spell damage
+      // (buffs doc §1.2), was 38; with it set back to 38, main's snapshot reproduces exactly.
       const hashes = CASES.map((c) => fingerprint(planJson(buildPlan(configOf(c, priority)).plan)))
       expect(new Set(hashes).size).toBeGreaterThan(150)
       expect(hashes).toMatchSnapshot()

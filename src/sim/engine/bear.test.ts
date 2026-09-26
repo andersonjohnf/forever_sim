@@ -123,12 +123,12 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     const ratio = counter(sim, row(plan, maul), FIELD.threat) / counter(sim, row(plan, maul), FIELD.damage)
     expect(ratio).toBeCloseTo(1.75 * plan.threatMult, 12)
     expect(plan.threatMult).toBeCloseTo(1.3 * 1.02, 12) // Dire Bear Form and the threat gloves
-    // Without Maul the same swings are white, and each gives 8.65 rage (no cap here).
+    // Without Maul the same swings are white, and each gives 11.25 rage (no cap here).
     const white = bearPlan(120000)
     white.rage.maxTenths = 1e9
     const whiteSim = new Sim(white)
     whiteSim.runFight(0)
-    expect(whiteSim.totalRageGainedTenths).toBe(Math.floor(48 * 86.5))
+    expect(whiteSim.totalRageGainedTenths).toBe(Math.floor(48 * 112.5))
   })
 
   it('a Maul that’s dodged or parried refunds 80% of its 10 rage; with too little rage the swing stays white', () => {
@@ -146,7 +146,7 @@ describe('the bear’s attacks in the engine (druid.md §4.1–§4.4, W14–W16)
     poor.prepull = { casts: [], chargeTenths: 90, keepTenths: -1 }
     const m = addBearAbility(poor, MAUL)
     line(poor, m)
-    // 9 rage at the first swing: it stays white, and its 8.65 rage pays for the Maul at 2.5 s.
+    // 9 rage at the first swing: it stays white, and its 11.25 rage pays for the Maul at 2.5 s.
     const s = timeline(poor).sim
     expect(counter(s, SOURCE_MAIN_HAND, FIELD.casts)).toBe(1)
     expect(counter(s, row(poor, m), FIELD.casts)).toBe(1)
@@ -241,14 +241,14 @@ describe('Lacerate (druid.md §4.3, W19)', () => {
     expect(sim.auraStackMs[marker]).toBe(170000)
   })
 
-  it('W20: each landed application makes 206 + 0.05 × the attack power more threat × the form’s: 266 at 1200 AP, the first one too (D29)', () => {
+  it('W20: each landed application makes 206 more threat × the form’s, whatever the attack power, the first one too (D29)', () => {
     const { plan, lacerate } = stacking()
     const sim = new Sim(plan)
     sim.runFight(0)
     const r = row(plan, lacerate)
     const landed = counter(sim, r, FIELD.hits) + counter(sim, r, FIELD.crits) + counter(sim, r, FIELD.blocks)
     expect(landed).toBe(10)
-    expect((counter(sim, r, FIELD.threat) - counter(sim, r, FIELD.damage) * plan.threatMult) / landed).toBeCloseTo((206 + 0.05 * 1200) * plan.threatMult, 9)
+    expect((counter(sim, r, FIELD.threat) - counter(sim, r, FIELD.damage) * plan.threatMult) / landed).toBeCloseTo(206 * plan.threatMult, 9)
     // Classic Era's rule: 261 flat, whatever the attack power.
     const classic = bearPlan(40000)
     setAttackPower(classic, 1200)
@@ -504,18 +504,14 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(ratio('mainHand')).toBeCloseTo(t, 12)
     expect(flat('faerieFire')).toBeCloseTo(108 * t, 9)
     expect(flat('demoralizingRoar')).toBeCloseTo(39 * t, 9)
-    // Lacerate: 1 per damage plus 206 + 0.05 × the attack power as it lands, per landed application
-    // (threat.md's wording table, D29: Forever's Sunder Armor), the first one of a run too, which deals
-    // nothing; its bleed's ticks 1 per damage. The attack power share averages at least the sheet's
-    // 0.05 × AP, and only on-use items and the potion add to it.
+    // Lacerate: 1 per damage plus 206 per landed application (threat.md's wording table, D29: Forever's
+    // Sunder Armor), the first one of a run too, which deals nothing; its bleed's ticks 1 per damage.
     const lac = plan.sources.findIndex((s) => s.id === 'lacerate')
     const landed = counter(sim, lac, FIELD.hits) + counter(sim, lac, FIELD.crits) + counter(sim, lac, FIELD.blocks)
     expect(landed).toBeGreaterThan(0)
     expect(counter(sim, lac, FIELD.casts) - counter(sim, lac, FIELD.misses) - counter(sim, lac, FIELD.dodges) - counter(sim, lac, FIELD.parries)).toBe(landed)
     const bonus = (counter(sim, lac, FIELD.threat) - counter(sim, lac, FIELD.damage) * t) / landed / t
-    const sheetAp = new Sim(plan).inspect().attackPower
-    expect(bonus).toBeGreaterThanOrEqual(206 + 0.05 * sheetAp - 1e-9)
-    expect(bonus).toBeLessThan(206 + 0.05 * (sheetAp + 150))
+    expect(bonus).toBeCloseTo(206, 9)
     expect(ratio('lacerateBleed')).toBeCloseTo(t, 12)
     // Energizes: 5 threat a rage, whatever the form (Primal Fury, Natural Reaction), for the rage
     // gained in whole tenths: 0.5 a tenth, less than 5 when the cap takes some of it.
@@ -526,7 +522,7 @@ describe('the default bear (druid.md §6.3)', () => {
     }
   })
 
-  it('Thorns (Buffs, BR5): 22 + 0.08 × a raid Restoration druid’s 200 spell damage (38) on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
+  it('Thorns (Buffs, BR5): 22 + 0.08 × a raid Restoration druid’s 313 spell damage (47.04) on each boss swing that lands, less the boss’s 6% average resist, at 1 threat per damage × the form’s', () => {
     const { plan } = buildPlan(config())
     const sim = new Sim(plan)
     for (let i = 0; i < 30; i++) sim.runFight(i)
@@ -536,9 +532,9 @@ describe('the default bear (druid.md §6.3)', () => {
     const landed = o[BOSS_OUTCOME.hit] + o[BOSS_OUTCOME.crit] + o[BOSS_OUTCOME.crush] + o[BOSS_OUTCOME.block]
     expect(counter(sim, r, FIELD.casts)).toBe(landed)
     expect(counter(sim, r, FIELD.crits)).toBe(0)
-    // buffs doc §1.2: (22 + 0.08 × 200, unrounded) × (1 − 0.75 × 24 / 300), Nature's average resist
-    // against a level-63 boss; the spell damage is its caster's, a raid Restoration druid's (PR-4).
-    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(38 * 0.94, 9)
+    // buffs doc §1.2: (22 + 0.08 × 313, unrounded) × (1 − 0.75 × 24 / 300), Nature's average resist
+    // against a level-63 boss; the spell damage is a raid Restoration druid's pre-raid gear's (PR-4).
+    expect(counter(sim, r, FIELD.damage) / landed).toBeCloseTo(47.04 * 0.94, 9)
     expect(counter(sim, r, FIELD.threat) / counter(sim, r, FIELD.damage)).toBeCloseTo(plan.threatMult, 12)
     // Without it in Buffs, no row.
     const d = config()
@@ -690,7 +686,7 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     const duties = run(config(DEFENSIVE))
     const balanced = run(config({}))
     const max = run(config(MAX))
-    // §6.3 "Balanced": +3.1% TPS, +2.8% DPS and +0.7% damage taken in the default setup (200,000 fights).
+    // §6.3 "Max TPS": Balanced +2.8% TPS, +2.6% DPS and +0.7% damage taken in the default setup (200,000 fights; bear.ts BEAR_PRESET_MEASURES).
     expect(balanced.tps!.mean / duties.tps!.mean).toBeGreaterThan(1.02)
     expect(balanced.tps!.mean / duties.tps!.mean).toBeLessThan(1.06)
     expect(balanced.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
@@ -698,7 +694,7 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
     // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
-    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS.
+    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.1% less DPS.
     expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
     expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
     expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)

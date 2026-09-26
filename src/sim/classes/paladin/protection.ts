@@ -346,15 +346,17 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 
 /**
  * What the presets' help and Hammer of the Righteous's say, measured in the default setup (paladin.md
- * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, 2026-09-24): Defensive's
+ * "Priority: Defensive, Balanced or Max TPS"; seed 31101, 100,000 fights, 2026-09-24, re-measured
+ * 2026-09-26 with a raid druid's Thorns at 22 + 0.08 × its pre-raid gear's 313 spell damage, buffs doc
+ * §1.2): Defensive's
  * TPS, DPS and damage taken a second, and Max TPS and Hammer of the Righteous turned on against it, in
  * percent. protection-presets.test.ts measures them again, so a change that moves them fails until
  * they're re-measured here.
  */
 export const PROTECTION_PRESET_MEASURES = {
-  defensive: { tps: 746.42, dps: 460.97, damageTaken: 918.9 },
-  maxTps: { tpsPct: 6.81, dpsPct: 6.76, damageTakenPct: 5.72 },
-  hammerOfTheRighteous: { tpsPct: -2.0, dpsPct: -0.13, damageTakenPct: 4.92 },
+  defensive: { tps: 750.61, dps: 465.12, damageTaken: 918.9 },
+  maxTps: { tpsPct: 6.78, dpsPct: 6.7, damageTakenPct: 5.72 },
+  hammerOfTheRighteous: { tpsPct: -1.99, dpsPct: -0.12, damageTakenPct: 4.92 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES

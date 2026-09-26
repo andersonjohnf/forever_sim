@@ -319,7 +319,7 @@ describe('Clearcasting (druid.md §2.7)', () => {
     const clearcasting = plan.freeCastAura!
     plan.procs.find((p) => p.id === 'omenOfClarity')!.chance = [1, 1]
     const shift = addDruidAbility(plan, shapeshift('bear', 0))
-    // 50 rage: more than the bear has at 2 s (Furor's 10 and a swing's 8.65), so only Clearcasting pays it.
+    // 50 rage: more than the bear has at 2 s (Furor's 10 and a swing's 11.25), so only Clearcasting pays it.
     const bearAttack = addDruidAbility(plan, testRow('testBearAttack', { resource: 'rage', costTenths: 500, clearcastable: true, forms: formBit('bear'), gcdMs: 1000 }))
     line(plan, shift, at(plan, 400))
     line(plan, bearAttack, [from(plan, 2000)])
@@ -495,8 +495,8 @@ describe('shapeshifts, Furor and mana (druid.md §2.8)', () => {
     // Cat swings at 0, 1, 2; the shift at 2.5 s; the 3 s swing is the first with the bear's speed.
     expect(swings[0]).toEqual([0, 1000, 2000, 3000, 5500])
     expect(sim.resources().form).toBe(FORM_INDEX.bear)
-    // Rage: 0 at the shift, +10 Furor, then 5 per crit in bear (2 swings × (Primal Fury 5 + 8.65 white)).
-    expect(sim.resources().rage).toBe(100 + 2 * 50 + Math.floor(2 * 86.5))
+    // Rage: 0 at the shift, +10 Furor, then 5 per crit in bear (2 swings × (Primal Fury 5 + 11.25 white)).
+    expect(sim.resources().rage).toBe(100 + 2 * 50 + Math.floor(2 * 112.5))
     // In bear the Agility stops adding attack power and Dire Bear Form's adds 180 − 120.
     const bearForm = plan.forms![FORM_INDEX.bear].stats
     expect(bearForm.apPerAgi).toBe(0)
@@ -509,14 +509,14 @@ describe('shapeshifts, Furor and mana (druid.md §2.8)', () => {
 })
 
 describe('bear rage (rage.md#bear-druid-rage)', () => {
-  it('Forever: 8.65 rage per landed bear swing, whatever it hits for; Classic Era: from its damage', () => {
+  it('Forever: 11.25 rage per landed bear swing, the two-hander’s 4.5 × 2.5, whatever it hits for; Classic Era: from its damage', () => {
     const plan = druidPlan('druid-feral-bear', 10000)
     landAll(plan)
     plan.fight.bossSwing = null
     const sim = new Sim(plan)
     sim.runFight(0)
-    // Swings at 0, 2.5, 5, 7.5: 4 × 86.5 tenths, the fractions carried (rage.md#rounding).
-    expect(sim.totalRageGainedTenths).toBe(346)
+    // Swings at 0, 2.5, 5, 7.5: 4 × 112.5 tenths, the fractions carried (rage.md#rounding).
+    expect(sim.totalRageGainedTenths).toBe(450)
     // A cat gains none from its swings: its power is Energy.
     const cat = druidPlan('druid-feral-cat', 10000)
     landAll(cat)

@@ -127,6 +127,10 @@ describe('golden run (fixed config and seed)', () => {
   // - The per-level term truncated, the datasets’ rendering by the same rule; how the client itself rounds it is [?] (B74) (docs/data/items.md#per-level-values):
   //   Judgement of Fury r7 adds trunc(7.38) = 7 (153.3–166.7), Judgement of Righteousness r8 trunc(8.2) = 8,
   //   Seal of the Crusader 325 AP. Both goldens 744.92 → 744.81 TPS.
+  // - The Feral bear slice (2026-09-26, CL-4; buffs doc §1.2): a raid druid's Thorns takes a pre-raid
+  //   Restoration druid's 313 spell damage, 22 + 0.08 × 313 = 47.04 a landed swing, was 38. Only the
+  //   Thorns row moves: both goldens 744.81 → 748.52 TPS, 460.34 → 463.98 DPS. With Thorns set back to
+  //   38, this snapshot reproduces exactly.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

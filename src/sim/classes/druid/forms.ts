@@ -98,9 +98,10 @@ export function formEffects(profile: RulesProfile, level = PLAYER_LEVEL): Effect
  * replace the weapon's, and its instant attacks use that speed, unnormalized [?]. What the
  * equipped weapon adds besides its damage (crit and hit from its enchants and effects) carries
  * over from `equipped`; flat weapon damage (a sharpening stone, Superior Striking) is weapon
- * damage, so it doesn't [?] (Q25). The attacks count as one-handed for Forever's normalized rage
- * (8.65 per landed bear swing [?], rage.md#bear-druid-rage), and use the level's base skill: items'
- * weapon skill doesn't apply in form [?] (Q28).
+ * damage, so it doesn't [?] (Q25). The bear's attacks count as two-handed for Forever's normalized
+ * rage: 4.5 × 2.5 = 11.25 per landed swing, as 22 of 26 clean pairs of bear swings in the public
+ * beta logs give, from 17 druids [?] (rage.md#bear-druid-rage, D22). The cat's power isn't rage. Both
+ * use the level's base skill: items' weapon skill doesn't apply in form [?] (Q28).
  */
 export function formWeapon(form: 'cat' | 'bear', equipped: WeaponPlan | null, profile: RulesProfile, bossLevel: number): WeaponPlan {
   const { min, max } = formWeaponRange(form)
@@ -113,7 +114,8 @@ export function formWeapon(form: 'cat' | 'bear', equipped: WeaponPlan | null, pr
     min,
     max,
     speedSec,
-    twoHand: false,
+    // rage.md#bear-druid-rage: the server's normalized rage treats the bear's swing as two-handed [?]
+    twoHand: form === 'bear',
     flatDamage: 0,
     handMult: 1,
     skill,

@@ -331,7 +331,7 @@ export const SPEARING_STRIKE: AbilityDef = {
  * 0x200) (warrior.md §3.1, W13; damage-and-timing §4). The application rolls miss, dodge and
  * parry and can't crit; a miss, dodge or parry refunds 80% [C]
  * (rage.md#rage-refunds-on-avoided-abilities). Improved Rend multiplies the ticks (modifiers.ts),
- * their attack-power part in `forever` included (`rend(profile)`).
+ * an attack-power part included if a profile has one (`rend(profile)`; none today).
  * Its `aura` marks the bleed on the target for 21 s. Threat: each tick's dmg × 1 [C]
  * (threat.md#warrior).
  */
@@ -366,15 +366,16 @@ export const REND: AbilityDef = {
 }
 
 /**
- * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend", W13;
- * [D36](docs/decisions.md#d36-what-we-take-from-warriorsim-2026-09-25)):
- * - `forever`: 0.02 [?], WarriorSim's Forever mode from a low-level test; the coefficient at 60 is
- *   unconfirmed, and the client's 11574 has no attack-power term.
+ * Rend's attack power per tick, read as each tick lands (warrior.md §3.1 "Rend's attack power", W13):
+ * - `forever`: none [?]. The client's 11574 has no attack-power term [F], and Classic Era's Rend has
+ *   none [C]. The Forever beta logs show the ticks growing with the log's attack-power field, but that
+ *   field isn't the character sheet's, so they measure no coefficient (Q37); WarriorSim's 0.02 is
+ *   another sim's unconfirmed value, not a source.
  * - `classicEra`: none [C], as Classic Era's Rend.
  */
-export const REND_AP_PER_TICK = { forever: 0.02, classicEra: 0 } as const
+export const REND_AP_PER_TICK = { forever: 0, classicEra: 0 } as const
 
-/** Rend in the rule profile: `classicEra`'s is `REND`; `forever`'s ticks add `REND_AP_PER_TICK`. */
+/** Rend in the rule profile: `REND`, its ticks adding `REND_AP_PER_TICK` where a profile has one. */
 export function rend(profile: RulesProfile): AbilityDef {
   const ap = REND_AP_PER_TICK[profile.id]
   return ap > 0 ? { ...REND, dotTickApCoefficient: ap } : REND

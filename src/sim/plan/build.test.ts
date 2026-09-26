@@ -686,7 +686,7 @@ describe('assumptions', () => {
     expect(prot.find((a) => a.id === 'revengeWindow')!.text).toMatch(/^A block, dodge or parry of the boss’s swings opens Revenge for 5 s/)
     expect(prot.find((a) => a.id === 'spellTable')!.text).toMatch(/^Thunder Clap and Demoralizing Shout roll the spell table, as the Forever client marks it: one roll for a spell miss/)
     // Only Thunder Clap deals damage, so only it crits (PU9).
-    expect(prot.find((a) => a.id === 'spellTableCrit')!.text).toBe('Thunder Clap crits at your special-attack crit chance, not your spell crit, as a melee ability does; untested.')
+    expect(prot.find((a) => a.id === 'spellTableCrit')!.text).toBe('Thunder Clap crits at your special-attack crit chance, not your spell crit, as a melee ability does. Low-level beta logs show Thunder Clap critting far less often, about 0.3% of the time, so its crits here may be too many.')
     // Neither rides on another's text any more.
     expect(prot.map((a) => a.id)).not.toContain('overpowerWindow')
     expect(prot.find((a) => a.id === 'foreverHitTable')!.text).not.toMatch(/spell table/)

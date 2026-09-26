@@ -407,9 +407,22 @@ describe('Rend (warrior.md §3.1, damage-and-timing §4)', () => {
     expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits)]).toEqual([2, 9, 0])
   })
 
-  it('W13 in `forever`: each tick adds 0.02 × AP read as it lands, × 1.35: 76.95 at 1800 AP, 82.35 once +200 AP is up', () => {
+  it('W13 in `forever`: no attack-power term, so 28.35 a tick with Improved Rend 3/3 at any AP (warrior.md Q37)', () => {
     const plan = armsPlan(30000)
     const r = addAbility(plan, rend(FOREVER), new Map([['Improved Rend', 3]]))
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    setAttackPower(plan, 1800)
+    line(plan, r, at(plan, 100))
+    const d = damages(plan, plan.abilities[r].source, 1)
+    expect(d.length).toBe(7)
+    for (const x of d) expect(x).toBeCloseTo(28.35, 9)
+  })
+
+  it('an attack-power term per tick, when a profile has one, is read as each tick lands, × Improved Rend: 0.02 gives 76.95 at 1800 AP, 82.35 once +200 AP is up', () => {
+    // The engine keeps the mechanism for a measured coefficient (warrior.md §3.1 "Rend's attack power"); 0.02 is only a test value.
+    const plan = armsPlan(30000)
+    const r = addAbility(plan, { ...rend(FOREVER), dotTickApCoefficient: 0.02 }, new Map([['Improved Rend', 3]]))
     alwaysLandNoCrit(plan)
     rageAtPull(plan, 100)
     setAttackPower(plan, 1800)

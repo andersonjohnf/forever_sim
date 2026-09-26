@@ -733,11 +733,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 · ≤20 (Fury tier 2)**
 - **Assumes:** procs on white swings and extra attacks only, not HS/Cleave swings, as the Forever
   data's proc mask (auto attacks) says [F data] ([D36](decisions.md#d36-what-we-take-from-warriorsim-2026-09-25));
-  Classic sims also counted HS swings [C]. Unmeasured on the server.
-- **Test:** 5/5 Unbridled Wrath; spam Heroic Strike from a low-rage setup and log rage gains on
-  HS swings vs white swings.
-- **Samples:** ≥300 Heroic Strike swings.
-- **Changes:** the UW proc mask; Fury and Arms rage.
+  Classic sims also counted HS swings [C]. **Partly answered (2026-09-26):** public beta logs show
+  no procs from about 250 HS and Cleave hits, 2 rage with a two-hander, and no weapon-speed
+  scaling [?]. They also show about 7.5% a rank, not 12%: a bug the developers say a later build
+  fixes, so the sim keeps 12% ([warrior §2.3](classes/warrior.md#unbridled-wrath-on-the-beta-)).
+- **Test:** on the build with the fix, 5/5 Unbridled Wrath: its procs against landed white swings,
+  and HS swings vs white swings.
+- **Samples:** ≥1,000 white swings; ≥300 Heroic Strike swings.
+- **Changes:** the UW chance (at the beta's 7.5% a rank: Fury −0.65%, Arms −1.0% DPS); Fury and
+  Arms rage.
 - **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
   [Q5](classes/warrior.md#9-open-questions);
   [rage § yellow attacks](mechanics/rage.md#yellow-damage-and-on-next-swing-attacks)
@@ -1519,6 +1523,27 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   it), its threat and which talents reach it.
 - **Docs:** [buffs §3.7](mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives),
   [buffs OQ 21](mechanics/buffs-debuffs-consumables.md#open-questions)
+
+#### B82. Attack power in Rend, Revenge and Thunder Clap
+**High · M2, M3 · ≤20**
+- **Assumes** [?]: none. Neither the Forever client nor Classic Era gives these an attack-power
+  term, so Rend ticks 21, Revenge hits 109–133 and Thunder Clap 103, before modifiers. Until
+  2026-09-26 Rend added WarriorSim's 0.02 × AP a tick, which no allowed source backs.
+- **Why it's open:** public beta logs show all three scaling: rank-1 Rend ticks 6–7 for a base of
+  5, rank-1 Revenge hits for 69–78 for a base of 22, Thunder Clap rank 1 for 16–19 for 10. The
+  extra grows with the log's attack-power field, but that field isn't the character sheet's, so
+  no coefficient is measured ([warrior Q37, Q38](classes/warrior.md#9-open-questions)).
+- **Test:** at a known sheet attack power, with no Improved Rend or Improved Revenge, log each
+  ability's hits (Rend's ticks); raise the sheet attack power by a known amount (Battle Shout, a
+  potion, gear) and log again. The change in damage over the change in attack power is the
+  coefficient; note the level, as a coefficient may scale with it.
+- **Samples:** ≥50 of each at each attack power (Revenge's ±1.7 base spread needs the most).
+- **Changes:** Rend's worth (Fury −1.3% and Arms −2.0% DPS since the 0.02 went); Revenge's
+  damage and threat (at 0.21 × AP, about 300 more damage a Revenge at 60, a large rise in
+  Protection's threat); Thunder Clap's.
+- **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),
+  [Q37, Q38](classes/warrior.md#9-open-questions)
+
 
 ---
 

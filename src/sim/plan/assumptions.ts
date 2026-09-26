@@ -82,7 +82,8 @@ const REGISTRY = {
     docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
   },
   unbridledWrathSwings: {
-    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says; untested in combat.',
+    // warrior.md §2.3 "Unbridled Wrath on the beta", Q5: the mask as the logs show it; the chance the talent's, a beta bug to be fixed.
+    text: 'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says and beta logs show. It procs 12% a rank, as the talent says; on the beta it procs about 7.5% a rank, a bug the developers say a later build fixes. At the beta’s rate Fury would lose about 0.7% of its damage and Arms 1%.',
     docRef: `${WAR}#23-rage-warrior-specific`,
   },
   ragingBlows: {
@@ -138,7 +139,8 @@ const REGISTRY = {
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   foreverOffHandRage: {
-    text: 'Off-hand white hits give half the main-hand rate before Dual Wield Specialization.',
+    // rage.md#off-hand-rage-: measured in low-level beta logs (254 off-hand swings, 7 warriors).
+    text: 'Off-hand white hits give half the main-hand rate before Dual Wield Specialization, as low-level beta logs from other players show.',
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   damageTakenRage: {
@@ -332,8 +334,8 @@ const REGISTRY = {
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   revengeWindow: {
-    // warrior.md §2.8, Q12: no tier 1–3 source gives its length; 5 s is Overpower's.
-    text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, assumed like Overpower’s window, and using it closes the window; untested. A 4 s window would cost about 0.05% of your TPS.',
+    // warrior.md §2.8, Q12: no tier 1–3 source gives its length; 5 s is Overpower's. Its damage: §3.1, Q38.
+    text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, assumed like Overpower’s window, and using it closes the window; untested. A 4 s window would cost about 0.05% of your TPS. Revenge deals the flat 109–133 the Forever client gives it, with nothing from your attack power, though low-level beta logs show it hitting harder by an amount nobody has measured.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   spellTable: {
@@ -348,7 +350,7 @@ const REGISTRY = {
   },
   spellTableCrit: {
     // warrior.md §7 "Spell-table abilities" and Q33: the ones that deal damage ({detail}; Demoralizing Shout deals none).
-    text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does; untested.',
+    text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does. Low-level beta logs show Thunder Clap critting far less often, about 0.3% of the time, so its crits here may be too many.',
     docRef: `${WAR}#7-implementation-notes`,
   },
   bloodthrill: {
@@ -364,7 +366,8 @@ const REGISTRY = {
     docRef: `${WAR}#31-damage-abilities`,
   },
   rendTickCrits: {
-    text: 'Each Rend tick adds 2% of your attack power as it lands, a coefficient another Forever sim measured at a low level that nobody has confirmed at 60. The ticks can crit, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
+    // warrior.md §3.1 "Rend's attack power", Q32, Q37.
+    text: 'Rend’s ticks deal their flat damage, with nothing from your attack power, as the Forever client and Classic Era give it. Low-level beta logs show the ticks growing with attack power by an amount nobody has measured, so Rend may be worth more. The ticks can crit, as those logs show, at your special-attack crit chance when Rend landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2).',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   executeRageTenths: {

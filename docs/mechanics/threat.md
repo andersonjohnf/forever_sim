@@ -509,7 +509,8 @@ threat-value scale with a plain white hit in a known stance.
    at the same level: 206 + 0.05 × AP (about 274 at the default bear's ~1,355 AP when its Lacerates land; Classic Era's 4.5 × level 58 = 261 before build
    1.60.1.70009), so a Sunder test settles part of it too, and
    **Primal Bite**'s (Mangle (Bear) until 1.60.1.70009) threat is assumed dmg × 1; neither is measured. The only numbers found are
-   Season of Discovery values and are **not adopted**. Test: a first Lacerate on a fresh mob
+   a Season of Discovery sim's (wowsims_sod), which cite no Blizzard client data or patch notes, and
+   Forever's Lacerate is its own spell (1235827), not SoD's reused, so D37 doesn't admit them. Test: a first Lacerate on a fresh mob
    (threat ÷ 1.3 = the bonus), then applications at 1–4 stacks (÷ 1.3 − the hit = the same bonus)
    ([druid.md](../classes/druid.md#10-open-questions) G1).
 5. **Righteous Fury scope and paladin non-damage threat** [?]: does RF amplify Holy heals and

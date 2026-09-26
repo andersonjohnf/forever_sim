@@ -370,7 +370,7 @@ SpellMisc, 1.60.1.69913); the rolling model [?] ([D36](../decisions.md#d36-what-
   1.60.1.69913). 412609 is the Season of Discovery spell, which the Classic Era 1.15.9 client
   also carries, so SoD's behaviour for it is the closest analog for how Forever's server runs it
   (the doctrine's second exception): it rolls, as WarriorSim's SoD `DeepWounds` class does
-  [ws-spell]. It's `[?]` until a guild test (Q21, [open-questions
+  [ws-spell]. It's `[?]` until an in-game test (Q21, [open-questions
   B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
 - **Modifiers.** The bleed ignores armor. The physical damage-done modifiers at the crit apply
   (Death Wish, Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]; the tick
@@ -1293,10 +1293,10 @@ seed 36501, 400,000 paired fights) the result is **+40.25 DPS (+5.02%, 95% CI +4
     feed it; the ticks ignore armor and don't crit.
 
   So the gap is the cited mechanics' (four tenths of it D36's `[?]` rolling Deep Wounds), not a
-  formula error found, and it stays a D29 finding until the guild's test of the rolling bleed
+  formula error found, and it stays a D29 finding until an in-game test of the rolling bleed
   ([Q21](#9-open-questions), [open-questions B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer))
-  confirms or moves it. D29 has no numeric target, so no value moves for it; the gap goes to the
-  guild's tests.
+  confirms or moves it. D29 has no numeric target, so no value moves for it; the gap stays an open
+  question for in-game tests.
 
 ### 5.3 Arms (two-hander)
 
@@ -1773,7 +1773,7 @@ armor 3,731). Against the defaults before W4 (the popular 37/14/0 and M2.5a's ro
 - **Plausibility (D29)**, as Fury's ([Re-tuning after D36](#re-tuning-after-d36-w4)): Arms' 821.1 DPS
   is 24% over Demonology and 44% over Combat rogue. Deep Wounds' 3 points are 129.93 DPS of it (15.8%)
   and Execute (against none in the phase) 33.10 (4.0%; seed 36511, 100,000 paired fights). An open
-  finding for the guild's test of the rolling bleed (Q21).
+  finding for an in-game test of the rolling bleed (Q21).
 
 ### 5.4 Protection (TPS)
 
@@ -2379,7 +2379,7 @@ Shield Block). The Rotation tab's help quotes the new numbers. **Plausibility (D
 (both measured on this branch, their own 1.60.1.70009 slices pending). With every slice merged
 (the paladin review's PR-7, seed 31101, 100,000 fights) Balanced makes 1,001.6 TPS against the
 paladin's 752.6 (+33.1%) and the bear's 1,126.6 (−11.1%). D29 has no numeric target (user decision,
-2026-09-24, withdrawing the officers' 800–900 feel), so these are observations for the guild's
+2026-09-24, withdrawing the officers' 800–900 feel), so these are observations for in-game
 tests (milestones T6). Sunder Armor
 is now 11% of the warrior's threat (33% before), and Shield Slam 27% (18%; seed 12345, 500 fights).
 With W4's 13/5/33 (Deep Wounds 11% of its damage) Balanced makes 985 TPS against the
@@ -3140,7 +3140,7 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    dual-wield miss penalty from off-hand swings, as in Classic Era's "not a bug" [bnet-hsq]?
    A third-party beta test says yes (5.19% vs 18.27% off-hand miss over 77 and 394 swings,
    [fw-2]); another Forever sim assumes it doesn't [ew]. The sim keeps the Classic rule.
-   **Test:** a guild repeat with ≥1,000 off-hand swings per state, Heroic Strike always queued
+   **Test:** a repeat with ≥1,000 off-hand swings per state, Heroic Strike always queued
    versus never queued.
 7. **Flurry.** Is it 25% (tooltip and rank curve) or 30% (the buff's base in the data)? And
    does a Heroic Strike or Cleave swing consume a Flurry charge (Forever data: no; the pre-SoD
@@ -3188,8 +3188,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     and can it crit and proc?
 14. **Victory Rush damage.** The tooltip says "1 damage", but the data has a dummy effect of 15
     [F] [client] (SpellEffect, 1.60.1.69913), perhaps 15% of AP (the server scripts what a dummy
-    does). SoD's version (45% AP, 30% heal) is a forbidden source. Low priority: it isn't used on
-    bosses.
+    does). Forever reuses SoD's spell (402927), so SoD's value (45% AP, 30% heal) could count if it
+    comes from Blizzard's SoD client data or patch notes (D37), but Forever's own client data for
+    the spell differs (1 damage, 10% heal), so it describes a different tuning. Low priority: it
+    isn't used on bosses.
 15. **Weapon-conditional crit with dual wield: the racials and Weaponmaster's axe.** The racials
     and Weaponmaster's axe and polearm crit (12700) are the same kind of client data (all crit,
     aura 290, with a weapon-type `SpellEquippedItems` mask), but their tooltips differ, and the sim
@@ -3251,7 +3253,7 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     on the engine's golden run, Fury 824.7 → 714.7 and Arms 812.5 → 707.3, about 13%). That settles the conflict this question
     raised with the rogue model: Deadly Poison's new stack renews the duration without restarting
     the tick timer ([rogue Q8](rogue.md#10-open-questions)), and the rolling bleed keeps its timer
-    too, so the two now agree. Still for the guild to check in game: the rolling itself and its
+    too, so the two now agree. Still to check in game: the rolling itself and its
     snapshot, and whether Rend's ticks really crit in combat, as the `forever` profile assumes [?]
     ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions); [open-questions
     B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer)).
@@ -3503,7 +3505,7 @@ the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. 
 
 - [fw-2]: <https://github.com/magey/forever-warrior/issues/2>. A level-20 beta test with a
   custom addon: 5.19% off-hand miss with Heroic Strike queued (77 swings) vs 18.27% without
-  (394). [?] until the guild repeats it.
+  (394). [?] until someone repeats it.
 
 **Not authoritative:**
 

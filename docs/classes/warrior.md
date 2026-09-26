@@ -1948,7 +1948,8 @@ Notes:
   [wording table](../mechanics/threat.md#threat-wording-table)). Under the `classicEra` profile
   Sunder's is Classic Era's 261 [C] and Shield Slam's dmg + 254 [C].
   The Classic reference numbers are the measurements Magey's table collects [magey-thr]: Magey's on
-  1.13.6, and Resultsmayvary's on 1.13.2 for Heroic Strike r8 and Revenge r5, the ranks the sim uses.
+  1.13.6 (threat API), and Resultsmayvary's aggro-rip threshold tests on 1.13.2 for Heroic Strike r8
+  (a thin sample) and Revenge r5, the ranks the sim uses ([threat.md](../mechanics/threat.md#per-ability-threat-at-max-rank)).
 - **Why Sunder Armor still fills the free GCDs.** Since build 1.60.1.70009 it makes about 308
   threat a cast for 9 rage, a fifth of a Shield Slam's and about a third of a Revenge's
   ([W26](#w26-threat-per-global-cooldown-protection)), so Shield Slam and Revenge come first, as

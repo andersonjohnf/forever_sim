@@ -556,7 +556,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B13. Warrior ability threat at low ranks
 **High · M3 · ≤20** (max ranks and Shield Slam: [C6](#c6-warrior-threat-at-max-rank))
 - **Assumes:** Classic Era values for everything except Sunder [?] (Magey's 1.13.6 tests; Heroic
-  Strike r8 and Revenge r5 from Resultsmayvary's 1.13.2 ones): Heroic Strike dmg + 145 (r8), Revenge
+  Strike r8 and Revenge r5 from Resultsmayvary's 1.13.2 aggro-rip threshold tests, Heroic Strike r8's
+  a thin sample): Heroic Strike dmg + 145 (r8), Revenge
   2.25 × dmg + 243 (r5), Shield Bash 1.5 × dmg + 156,
   Cleave dmg + 100 per target, Thunder Clap 2.5 × dmg, Battle Shout 52 per recipient (r6),
   Demoralizing Shout 43.2, Hamstring 1.25 × dmg + 135; Mocking Blow's bonus unknown. (Shield Slam

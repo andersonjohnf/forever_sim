@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
-import { linkFor } from './links.ts'
+import { linkFor, openLinkNotice } from './links.ts'
 
 // docs/architecture.md "Following the defaults"; docs/ux.md "Persistence and sharing" and "Gear".
 
@@ -71,6 +71,46 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
     await expect(toasts(page)).toHaveCount(0)
+  })
+})
+
+test.describe('a returning tank’s boss melee that was the former default (JL-3, JU-1)', () => {
+  /** The boss melee every setup had by default before version 4: 4,500 to 5,500 a swing every 2.0 s. */
+  const FORMER = { swingSpeedSec: 2, damageMin: 4500, damageMax: 5500 }
+  const MOVED = 'was the old default, 4,500 to 5,500 a swing, so it’s now today’s: 2,200 to 3,200 (Fight → Advanced).'
+
+  test('a visit moves it to today’s default, says so once, and the Fight tab shows no change of the player’s', async ({ page }) => {
+    await page.addInitScript((boss) => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const config = { version: 3, spec: 'warrior-protection', race: 'horde-orc', fight: { boss } }
+      const following = { 'warrior-protection': { gear: [], talents: false } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'fight', following }, version: 1 }))
+    }, FORMER)
+    await page.goto('./')
+    const notice = toasts(page).filter({ hasText: 'Updated to the new default boss melee for Protection Warrior' })
+    await expect(notice).toHaveCount(1)
+    await expect(notice).toContainText(`The boss’s melee in your Protection Warrior setup ${MOVED}`)
+
+    const fight = page.getByRole('tabpanel', { name: 'Fight' })
+    const advanced = fight.getByRole('button', { name: 'Advanced' })
+    if ((await advanced.getAttribute('aria-expanded')) === 'false') await advanced.click()
+    await expect(fight.getByRole('textbox', { name: 'Minimum damage per swing' })).toHaveValue('2,200')
+    await expect(fight.getByRole('textbox', { name: 'Maximum damage per swing' })).toHaveValue('3,200')
+    // Today's default, so nothing reads as the player's change.
+    await expect(fight.getByText(/Default: 2,200 to 3,200/)).toHaveCount(0)
+
+    // The load saved it, so a reload moves nothing and says nothing.
+    await page.reload()
+    if ((await advanced.getAttribute('aria-expanded')) === 'false') await advanced.click()
+    await expect(fight.getByRole('textbox', { name: 'Minimum damage per swing' })).toHaveValue('2,200')
+    await expect(toasts(page)).toHaveCount(0)
+  })
+
+  test('a link from then moves it too, and its notice says so', async ({ page }) => {
+    await page.goto('./')
+    const notice = await openLinkNotice(page, { version: 3, spec: 'warrior-protection', race: 'horde-orc', fight: { boss: FORMER } })
+    await expect(notice).toContainText(`The boss’s melee ${MOVED}`)
   })
 })
 

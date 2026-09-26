@@ -181,7 +181,7 @@ for (const [label, device] of [
       await expect(sheet.getByRole('alert')).toHaveText('That’s a talent build code. Paste it in the Talents tab instead.')
 
       // LX1: a code that isn't a usable setup is refused, rather than replacing yours with defaults.
-      await field.fill(await codeFor(page, { version: 4, spec: 'warrior-arms', race: 'horde-orc' }))
+      await field.fill(await codeFor(page, { version: 5, spec: 'warrior-arms', race: 'horde-orc' }))
       await field.press('Enter')
       await expect(sheet.getByRole('alert')).toHaveText('That code is from a newer version of Forever Sim. Reload this page to update it, then try again.')
       await field.fill(await codeFor(page, { version: 1, spec: 'deathknight-frost', race: 'horde-orc', talents: '' }))

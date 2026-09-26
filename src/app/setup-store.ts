@@ -94,9 +94,9 @@ function followingOf(config: SimConfig): Following {
  */
 export const DEFAULTS_NOTICE_KEY = 'forever-sim:defaults-notice'
 
-/** A short digest of what a load moved to: the moved specs' talents and gear (FNV-1a, 32 bits). */
+/** A short digest of what a load moved to: the moved specs' talents, gear and boss melee (FNV-1a, 32 bits). */
 function digest(moved: readonly SimConfig[]): string {
-  const text = JSON.stringify(moved.map((c) => [c.spec, c.talents, GEAR_SLOTS.map((slot) => c.gear[slot] ?? null)]))
+  const text = JSON.stringify(moved.map((c) => [c.spec, c.talents, GEAR_SLOTS.map((slot) => c.gear[slot] ?? null), c.fight.boss.damageMin, c.fight.boss.damageMax]))
   let hash = 0x811c9dc5
   for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 0x01000193)
   return (hash >>> 0).toString(16)
@@ -205,7 +205,7 @@ export const useSetup = create<SetupState>()(
         blockedSlots = {}
         // A saved setup, normalized, with the parts the player never changed on today's defaults.
         const load = (raw: unknown): SimConfig => {
-          const { config: normalized, talentChange, questRemovals = [] } = normalizeConfig(raw)
+          const { config: normalized, talentChange, questRemovals = [], bossMeleeMoved } = normalizeConfig(raw)
           const follow = follows[normalized.spec]
           if (!follow) migrated = true
           const moved = followDefaults(normalized, follow ?? legacyFollowing(normalized, writtenV1Talents(raw), writtenGearOf(raw)))
@@ -216,13 +216,16 @@ export const useSetup = create<SetupState>()(
           // it's said (docs/data/items.md#class-quest-rewards). One in a slot that follows the
           // defaults was the default, and today's default took its place: that move says enough.
           const removed = questRemovals.filter((q) => !moved.config.gear[q.slot])
-          if (moved.gear || moved.talents || change || removed.length > 0) {
+          // A tank's boss melee that was the former default took today's (FORMER_BOSS_MELEE): its
+          // results moved, so it's said (JL-3, JU-1).
+          if (moved.gear || moved.talents || change || removed.length > 0 || bossMeleeMoved) {
             updates.push({
               spec: normalized.spec,
               gear: moved.gear,
               talents: moved.talents,
               ...(change ? { change } : {}),
               ...(removed.length > 0 ? { removed } : {}),
+              ...(bossMeleeMoved ? { boss: true as const } : {}),
             })
             moves.push(moved.config)
           }

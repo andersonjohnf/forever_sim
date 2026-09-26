@@ -201,6 +201,26 @@ describe('the automatic save follows the defaults', () => {
     expect(takeDefaultsUpdates()).toEqual([{ spec: 'paladin-protection', gear: true, talents: false }])
   })
 
+  test('a tank’s boss melee that was the former default takes today’s, and says so once; one set since stays (JL-3, JU-1)', async () => {
+    const d = normalizeConfig(defaultConfig('druid-feral-bear')).config
+    const former = { ...d.fight.boss, swingSpeedSec: 2, damageMin: 4500, damageMax: 5500 }
+    const config = { ...d, version: 3, fight: { ...d.fight, boss: former } }
+    seed({ config, bySpec: {}, section: 'gear', following: { 'druid-feral-bear': { gear: Object.keys(d.gear), talents: true } } })
+    takeDefaultsUpdates()
+    await load()
+    expect(store().config.fight.boss).toEqual(d.fight.boss)
+    expect(takeDefaultsUpdates()).toEqual([{ spec: 'druid-feral-bear', gear: false, talents: false, boss: true }])
+    // Saved as version 4, so the next load moves nothing and says nothing.
+    expect(saved().config).toMatchObject({ version: 4, fight: { boss: d.fight.boss } })
+    await load()
+    expect(takeDefaultsUpdates()).toEqual([])
+    // The player sets the former swing again, now: it's theirs, and stays.
+    store().update((c) => ({ ...c, fight: { ...c.fight, boss: former } }))
+    await load()
+    expect(store().config.fight.boss).toEqual(former)
+    expect(takeDefaultsUpdates()).toEqual([])
+  })
+
   test('the player’s own piece of another class’s quest reward is removed, and said, once (FU-1, FL-3)', async () => {
     // docs/data/items.md#class-quest-rewards: a bear who chose Darkmantle Cap and Spaulders, a rogue's,
     // and a cat (another spec) who chose the cap, when the picker offered them.
@@ -265,7 +285,7 @@ describe('the automatic save follows the defaults', () => {
     ])
     expect(update.change?.refunds.reduce((n, r) => n + r.points, 0)).toBe(15)
     // The load saved it on today's trees, so the next one has nothing to say.
-    expect(saved().config).toMatchObject({ version: 3, talents: '50003-503-05205231001' })
+    expect(saved().config).toMatchObject({ version: 4, talents: '50003-503-05205231001' })
     await load()
     expect(takeDefaultsUpdates()).toEqual([])
   })
@@ -282,7 +302,7 @@ describe('the automatic save follows the defaults', () => {
       { spec: 'paladin-retribution', gear: false, talents: false, change: { refunds: [], successor: { label: 'the Retribution default', now: 'today’s default', spec: 'paladin-retribution' } } },
     ])
     // Saved on today's trees: today's default, so it follows the default from now on, and says nothing again.
-    expect(saved().config).toMatchObject({ version: 3, talents: d.talents })
+    expect(saved().config).toMatchObject({ version: 4, talents: d.talents })
     expect(saved().following['paladin-retribution'].talents).toBe(true)
     await load()
     expect(takeDefaultsUpdates()).toEqual([])

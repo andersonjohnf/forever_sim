@@ -1801,6 +1801,18 @@ Every view handles these states:
   Righteous now counts your weapon's own DPS by default; choose “With attack power” in Character →
   Advanced for the old reading." A visit's stored setup takes the same changes without a word, as
   above; the release's What's New entry is where a returning visitor reads of them.
+- **A tank's boss melee that was the former default** (4,500 to 5,500 a swing every 2.0 s, the
+  default until Golemagg's melee replaced it: [encounter.md](mechanics/encounter.md#how-the-default-boss-melee-was-measured-))
+  was never the player's choice, so a setup written before then (version 3 or older) that still holds
+  exactly that swing, whatever its boss switches, takes today's default, 2,200 to 3,200, as a gear slot
+  that follows the default does. Its results move, so every load says so: a link, a code or a Load
+  among its changes ("The boss's melee was the old default, 4,500 to 5,500 a swing, so it's now
+  today's: 2,200 to 3,200 (Fight → Advanced)."), and a visit in its defaults notice, one sentence
+  naming every such spec ("Updated to the new default boss melee for Protection Warrior", "… gear and
+  boss melee for …"; "The boss's melee in your Protection Warrior setup was the old default, …").
+  Setups are written as version 4 from then on, so a swing of 4,500 to 5,500 the player sets later
+  stays theirs. Any other range or speed stays too. A DPS spec's boss melee does nothing, so its moves
+  without a word (`FORMER_BOSS_MELEE` in `src/sim/config/normalize.ts`; JL-3, JU-1).
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A notice that
   says more (a load's changes, a talent build's refunds, a race change's set bonus) stays long

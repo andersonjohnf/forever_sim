@@ -1,6 +1,7 @@
 // Talent codes written on older talent trees (docs/data/talents.md#tree-versions). A setup's
 // `version` says which trees its build code was written on: version 1 on 1.60.1.69913's, versions 2
-// and 3 on today's (3 since Hammer of the Righteous's default reading changed, ./normalize.ts).
+// to 4 on today's (3 since Hammer of the Righteous's default reading changed, 4 since the default
+// boss melee did, ./normalize.ts).
 // A code from older trees decodes against that build's frozen code order
 // (src/data/talents/frozen.json) and is mapped onto today's trees by talent name, a renamed
 // talent by its new name. Points that have no place on today's trees are refunded, and the load
@@ -16,11 +17,14 @@ const frozen = frozenJson as unknown as FrozenTalentOrders
 /**
  * The setup version this app writes: its talent codes are on today's trees (docs/data/talents.md#tree-versions).
  * 3 since 2026-09-26: a version-2 setup was written while Hammer of the Righteous's weapon DPS counted
- * attack power by default, which its load says (./normalize.ts, paladin.md OQ 11).
+ * attack power by default, which its load says (./normalize.ts, paladin.md OQ 11). 4 since 2026-09-26
+ * too: a setup from before it was written while the default boss melee was 4,500 to 5,500 a swing, and
+ * one that still holds that takes today's default (FORMER_BOSS_MELEE in ./normalize.ts; JL-3). A setup
+ * written from then on keeps a 4,500 to 5,500 swing as the player's own.
  */
-export const CONFIG_VERSION = 3
+export const CONFIG_VERSION = 4
 
-/** Whether a setup's `version` is one this app reads: none (1), 1, 2 or this one; a newer one isn't. */
+/** Whether a setup's `version` is one this app reads: none (1), 1 to 3, or this one; a newer one isn't. */
 export const isReadableVersion = (version: unknown): boolean =>
   version === undefined || (typeof version === 'number' && Number.isInteger(version) && version >= 1 && version <= CONFIG_VERSION)
 

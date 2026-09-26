@@ -92,9 +92,11 @@ export interface SimConfig {
    * Bump on breaking changes; normalizeConfig migrates or rejects old versions. 2 since 1.60.1.70009's
    * talent trees: version 1's talent code is on 1.60.1.69913's trees (docs/data/talents.md#tree-versions).
    * 3 since Hammer of the Righteous's weapon DPS stopped counting attack power by default (2026-09-26):
-   * a version 1 or 2 setup that has it on says so when loaded (normalize.ts).
+   * a version 1 or 2 setup that has it on says so when loaded (normalize.ts). 4 since the default boss
+   * melee became Golemagg's (2026-09-26): an older tank setup that still holds the former 4,500 to 5,500
+   * swing takes today's and says so (FORMER_BOSS_MELEE, normalize.ts).
    */
-  version: 3
+  version: 4
   spec: SpecId
   /** A race id from src/data/races/races.json, legal for the spec's class in Forever. */
   race: string

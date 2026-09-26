@@ -334,6 +334,18 @@ export function gearProblems(ctx: GearContext, gear: Gear, from?: Gear): string[
   return problems
 }
 
+/** D12's unmeasured ratings, the item stats the `forever` profile applies by hypothesis: expertise, haste and armor penetration. */
+export const UNMEASURED_STATS = ['expertiseRating', 'hasteRating', 'armorPenetration'] as const
+
+/** Whether an item carries one of D12's unmeasured ratings. */
+export const hasUnmeasuredRating = (item: Item): boolean => UNMEASURED_STATS.some((key) => (item.stats[key] ?? 0) > 0)
+
+/** The items a gear set wears that another doesn't and that carry an unmeasured rating (D30's rule, O2L-6). */
+export function unmeasuredChanges(from: Gear, to: Gear): Item[] {
+  const was = new Set(Object.values(from).map((e) => e?.itemId))
+  return Object.values(wornItems(to)).filter((item) => !was.has(item.id) && hasUnmeasuredRating(item))
+}
+
 export const sameEquipped = (a: EquippedItem | undefined, b: EquippedItem | undefined): boolean =>
   a?.itemId === b?.itemId && (a?.enchantId ?? null) === (b?.enchantId ?? null)
 

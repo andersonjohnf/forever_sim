@@ -346,6 +346,11 @@ export interface OptimizeReport {
   blocked: string[]
   /** A search in turns whose next pass no longer fit the cap ends on this report, saying so (OGV-2). */
   turnsStopped?: string
+  /**
+   * The start's index among the candidates (never 0, the baseline), when it raced: every standing's
+   * `vsReference` is against it (a gear step's current gear, O2L-4).
+   */
+  startIndex?: number
   /** Fights run: the screen's and the race's. */
   fights: number
   ms: number
@@ -602,6 +607,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     ...(space ? { space } : {}),
   })
 
+  // The start, when it races: every standing is compared with it too (a gear step moves only past it, O2L-4).
+  const startKey = candidateKey(config, start)
+  const startIndex = candidates.findIndex((c, i) => i > 0 && candidateKey(config, c) === startKey)
   const sources: PlanSource[] = candidates.map((c) => ({ key: planKey(), plan: () => candidatePlan(config, c) }))
   // Build the baseline's plan now, so a setup that can't be simulated fails before any fights.
   sources[0].plan()
@@ -614,6 +622,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     budget: planned.fights,
     initialFights: planned.initialFights,
     top: options.top,
+    ...(startIndex > 0 ? { reference: startIndex } : {}),
     signal,
     onProgress: (p) => options.onProgress?.({ phase: 'race', ...p }),
   })
@@ -640,6 +649,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     sheets: Object.fromEntries([0, ...raced.standings.map((st) => st.candidate)].map((i) => [i, i === 0 ? baselineSheet : sheetOf(candidates[i])])),
     race: raced,
     blocked,
+    ...(startIndex > 0 ? { startIndex } : {}),
     fights: (screen?.fights ?? 0) + raced.spent,
     ms: now() - began,
   }

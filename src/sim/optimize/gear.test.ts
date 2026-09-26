@@ -34,8 +34,9 @@ import {
   weighedItem,
   weighValues,
 } from './gear'
-import { gearPools, perturbPlan, weightDeltas } from './gear-search'
-import { candidateKey, gearKey, setupCandidate } from './optimize'
+import { chooseStep, gearPools, perturbPlan, weightDeltas } from './gear-search'
+import { candidateKey, gearKey, type OptimizeReport, setupCandidate } from './optimize'
+import type { Standing } from './race'
 
 const fixed = (config: SimConfig): SimConfig => ({ ...config, run: { mode: 'fixed', iterations: 0, seed: 1 } })
 const setup = (spec: SpecId, race?: string) => fixed(defaultConfig(spec, race))
@@ -394,5 +395,68 @@ describe('a candidate with gear', () => {
     const base = setupCandidate(config)
     expect(candidateKey(config, { ...base, gear: config.gear })).toBe(candidateKey(config, base))
     expect(candidateKey(config, { ...base, gear: { ...config.gear, head: { itemId: 12640 } } })).not.toBe(candidateKey(config, base))
+  })
+})
+
+describe('a step’s choice', () => {
+  const config = setup('warrior-fury')
+  const gear = config.gear
+  const aca: Gear = { ...gear, trinket1: { itemId: 272437 } } // Adaptive Combat Assistant: expertise rating 20, no other stat
+  const earth: Gear = { ...gear, trinket1: { itemId: 21180 } } // Earthstrike: no unmeasured rating
+  const ci = (mean: number, halfWidth: number) => ({ mean, halfWidth })
+  /** A step's report: index 1 the current gear (the start), 2 the leader with Adaptive Combat Assistant, 3 Earthstrike. */
+  function report(o: { leaderScore?: number; behind: [number, number]; leadVsCurrent: [number, number]; earthVsCurrent: [number, number]; goal?: 'dps' | 'balanced' }): OptimizeReport {
+    const lead = o.leaderScore ?? 1000
+    const standing = (candidate: number, score: number, vsLeader: [number, number], vsReference: [number, number]) =>
+      ({ candidate, mean: { dps: score, tps: 0, taken: 0, score }, vsLeader: ci(...vsLeader), vsReference: ci(...vsReference) }) as unknown as Standing
+    return {
+      scoredGoal: o.goal ?? 'dps',
+      candidates: [setupCandidate(config), { ...setupCandidate(config), gear }, { ...setupCandidate(config), gear: aca }, { ...setupCandidate(config), gear: earth }],
+      startIndex: 1,
+      race: {
+        leader: 2,
+        standings: [
+          standing(2, lead, [0, 0], o.leadVsCurrent),
+          standing(3, lead - o.behind[0], o.behind, o.earthVsCurrent),
+          standing(1, lead - o.leadVsCurrent[0], [o.leadVsCurrent[0], o.leadVsCurrent[1]], [0, 0]),
+        ],
+      },
+    } as unknown as OptimizeReport
+  }
+
+  it('takes an item without an unmeasured rating within 0.5% of the leader (D30, O2L-6)', () => {
+    // Earthstrike 3 behind a 1,000 leader (0.3%), and clear of the current gear: taken.
+    const close = chooseStep(report({ behind: [3, 1], leadVsCurrent: [20, 2], earthVsCurrent: [17, 2] }), gear, config)
+    expect(close.moved).toBe(true)
+    expect(close.next.trinket1!.itemId).toBe(21180)
+    expect(close.note).toMatch(/Adaptive Combat Assistant rests on an unmeasured rating/)
+    // Or inside the paired interval: 8 behind (0.8%) but ± 9.
+    expect(chooseStep(report({ behind: [8, 9], leadVsCurrent: [20, 2], earthVsCurrent: [12, 2] }), gear, config).next.trinket1!.itemId).toBe(21180)
+    // Clearly behind, 8 ± 2 (0.8%): the leader stays, as the warrior's Adaptive Combat Assistant did (−3.9%).
+    const far = chooseStep(report({ behind: [8, 2], leadVsCurrent: [20, 2], earthVsCurrent: [12, 2] }), gear, config)
+    expect(far.next.trinket1!.itemId).toBe(272437)
+    expect(far.note).toBeUndefined()
+    // With the unmeasured ratings ignored, the rule has nothing to guard.
+    const ignored = { ...config, rules: { ...config.rules, unmeasuredRatings: 'ignore' as const } }
+    expect(chooseStep(report({ behind: [3, 1], leadVsCurrent: [20, 2], earthVsCurrent: [17, 2] }), gear, ignored).next.trinket1!.itemId).toBe(272437)
+    // Balanced's margin is half a point (0.5% of TPS or DPS), not 0.5% of its ~200-point score.
+    expect(chooseStep(report({ goal: 'balanced', leaderScore: 204, behind: [0.4, 0.1], leadVsCurrent: [4, 0.5], earthVsCurrent: [3.6, 0.5] }), gear, config).next.trinket1!.itemId).toBe(21180)
+    expect(chooseStep(report({ goal: 'balanced', leaderScore: 204, behind: [0.8, 0.1], leadVsCurrent: [4, 0.5], earthVsCurrent: [3.2, 0.5] }), gear, config).next.trinket1!.itemId).toBe(272437)
+  })
+
+  it('keeps the current gear when the choice doesn’t clear it at 95% (O2L-4)', () => {
+    // With the ratings ignored (no D30 rule), a leader 2 ± 3 ahead of the current gear isn't taken.
+    const ignored = { ...config, rules: { ...config.rules, unmeasuredRatings: 'ignore' as const } }
+    const noisy = chooseStep(report({ behind: [30, 2], leadVsCurrent: [2, 3], earthVsCurrent: [-28, 3] }), gear, ignored)
+    expect(noisy.moved).toBe(false)
+    expect(noisy.next).toBe(gear)
+    expect(noisy.note).toMatch(/not clear of it at 95%/)
+    // Earthstrike, taken by the rule, must clear the current gear too.
+    expect(chooseStep(report({ behind: [3, 1], leadVsCurrent: [4, 2], earthVsCurrent: [1, 2] }), gear, config).moved).toBe(false)
+    // The current gear itself close to a rated leader: it stays, and the step is unchanged.
+    const current = report({ behind: [30, 2], leadVsCurrent: [3, 5], earthVsCurrent: [-27, 2] })
+    const kept = chooseStep(current, gear, config)
+    expect(kept.moved).toBe(false)
+    expect(kept.note).toMatch(/unmeasured rating/)
   })
 })

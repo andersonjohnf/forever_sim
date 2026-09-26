@@ -46,11 +46,12 @@ import {
   slotPool,
   type StatWeights,
   UNCONFIRMED_ENCHANTS,
+  unmeasuredChanges,
   weighedEnchant,
   weighedItem,
   weighValues,
 } from './gear'
-import { defaultGoal, type Goal, type Interval, pairedInterval, scoredGoal, scorer } from './objective'
+import { defaultGoal, type Goal, type Interval, lower, pairedInterval, scoredGoal, scorer } from './objective'
 import {
   type Budget,
   type Candidate,
@@ -399,6 +400,57 @@ export function rankingPlans(ctx: GearContext, pools: ReadonlyMap<GearSlot, read
   return { weightPlans, measurePlans }
 }
 
+// --- A step's choice ---------------------------------------------------------------------------
+
+/**
+ * How close a gear set with no unmeasured rating must be to a leader whose new piece has one to be
+ * taken instead (D30): 0.5% of the leader's score, or half a point of Balanced's (0.5% of TPS or DPS).
+ */
+export const UNMEASURED_MARGIN = 0.005
+
+/**
+ * What a step of the ascent takes from its race (docs/optimizer.md#the-ascent-restarts-and-the-answer):
+ * 1. **D30's unmeasured-rating rule** (O2L-6): when the leader's new pieces carry one of D12's
+ *    unmeasured ratings (and the setup applies them), the best gear set whose new pieces carry none,
+ *    the current gear included, is taken instead if it's within 0.5% of the leader or inside the
+ *    paired 95% interval (leader − it not clear of zero).
+ * 2. **A move needs a clear win** (O2L-4): that choice replaces the current gear only if it clears it
+ *    at a paired 95% (`Standing.vsReference`, over the fights both ran). Otherwise the gear stays and
+ *    the step counts as unchanged, so a pass on noise doesn't keep the ascent moving. When the current
+ *    gear didn't race (it misses a sheet constraint), the choice is taken.
+ */
+export function chooseStep(report: OptimizeReport, gear: Gear, config: SimConfig): { next: Gear; moved: boolean; note?: string } {
+  const leader = report.race.leader
+  if (leader === null) return { next: gear, moved: false }
+  const gearOf = (i: number) => report.candidates[i].gear ?? config.gear
+  const standingOf = (i: number) => report.race.standings.find((s) => s.candidate === i)
+  const notes: string[] = []
+  let pick = leader
+  const rated = unmeasuredChanges(gear, gearOf(leader))
+  if (config.rules.unmeasuredRatings === 'apply' && rated.length > 0) {
+    const lead = standingOf(leader)
+    const margin = report.scoredGoal === 'balanced' ? 100 * UNMEASURED_MARGIN : UNMEASURED_MARGIN * Math.abs(lead?.mean.score ?? 0)
+    const close = report.race.standings
+      .filter((s) => s.candidate !== leader && unmeasuredChanges(gear, gearOf(s.candidate)).length === 0)
+      .filter((s) => s.vsLeader.mean <= margin || !(lower(s.vsLeader) > 0))
+      .sort((a, b) => b.mean.score - a.mean.score || a.candidate - b.candidate)[0]
+    if (close) {
+      pick = close.candidate
+      notes.push(`the leader's ${rated.map((i) => i.name).join(' and ')} rests on an unmeasured rating (D12), and a set without one is ${close.vsLeader.mean.toFixed(2)} behind, within 0.5% or the interval: it's taken instead (D30)`)
+    }
+  }
+  const next = gearOf(pick)
+  if (gearKey(next) === gearKey(gear)) return { next: gear, moved: false, ...(notes.length ? { note: notes.join('; ') } : {}) }
+  if (report.startIndex !== undefined) {
+    const vs = standingOf(pick)?.vsReference
+    if (!vs || !(lower(vs) > 0)) {
+      notes.push(`the ${pick === leader ? 'leader' : 'choice'} is ${vs ? vs.mean.toFixed(2) : '?'} ahead of the current gear, not clear of it at 95%: the gear stays`)
+      return { next: gear, moved: false, note: notes.join('; ') }
+    }
+  }
+  return { next, moved: true, ...(notes.length ? { note: notes.join('; ') } : {}) }
+}
+
 // --- The ascent ------------------------------------------------------------------------------
 
 export interface GearSearchOptions extends GroupOptions {
@@ -430,7 +482,7 @@ export type StartName = 'setup' | 'default' | 'greedy'
 
 export type GearProgress =
   | { phase: 'rank'; start: StartName; pass: number; fights: number; spent: number; budget: number }
-  | { phase: 'step'; start: StartName; pass: number; group: GearGroup; candidates: number; changed: boolean; fights: number; spent: number; budget: number }
+  | { phase: 'step'; start: StartName; pass: number; group: GearGroup; candidates: number; changed: boolean; note?: string; fights: number; spent: number; budget: number }
   | { phase: 'final'; ends: number; spent: number; budget: number }
 
 export interface GearStep {
@@ -442,6 +494,12 @@ export interface GearStep {
   fights: number
   /** The step's race ended separated, on its budget, or with no candidate meeting the constraints. */
   status: 'separated' | 'budget' | 'none'
+  /**
+   * Why the step didn't take its race's leader, when it didn't (`chooseStep`): the leader didn't clear
+   * the current gear at 95% (O2L-4), or its new piece rests on an unmeasured rating and a set without
+   * one was close enough (D30, O2L-6).
+   */
+  note?: string
 }
 
 export interface GearStart {
@@ -616,7 +674,8 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
             budget: { fights: stepBudget },
             maxFights: stepBudget,
             runner,
-            top: 3,
+            // Every standing, so the step can weigh each set against the current gear (`chooseStep`).
+            top: gears.length + 3,
             signal,
           })
         } catch (error) {
@@ -626,15 +685,14 @@ export async function optimizeGear(options: GearSearchOptions): Promise<GearRepo
         }
         used += report.fights
         spent += report.fights
-        const leader = report.race.leader === null ? null : report.candidates[report.race.leader]
-        const next = leader ? (leader.gear ?? config.gear) : gear
-        const moved = gearKey(next) !== gearKey(gear)
+        const choice = chooseStep(report, gear, config)
+        const moved = choice.moved
         if (moved) {
-          gear = next
+          gear = choice.next
           changed = true
         }
-        steps.push({ pass, group, candidates: report.candidates.length - 1, changed: moved, fights: report.fights, status: report.race.status })
-        options.onProgress?.({ phase: 'step', start: name, pass, group, candidates: gears.length, changed: moved, fights: report.fights, spent, budget: total })
+        steps.push({ pass, group, candidates: report.candidates.length - 1, changed: moved, fights: report.fights, status: report.race.status, ...(choice.note ? { note: choice.note } : {}) })
+        options.onProgress?.({ phase: 'step', start: name, pass, group, candidates: gears.length, changed: moved, ...(choice.note ? { note: choice.note } : {}), fights: report.fights, spent, budget: total })
       }
       if (!changed) {
         stable = true

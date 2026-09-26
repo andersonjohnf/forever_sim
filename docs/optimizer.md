@@ -722,9 +722,22 @@ tank keeps a one-hander and a shield; each enchant fits its item. Locked slots n
 
 1. **Rank** the slots at the current gear (above).
 2. **Step through the groups**: each group's gear sets race beside the current gear (and the setup
-   itself, as every O1 race has it). The leader is kept, whether it's a new set or the current one.
-   Every candidate meets every sheet constraint first ([constraints](#constraints)); a step where none
-   does keeps the current gear.
+   itself, as every O1 race has it). Every candidate meets every sheet constraint first
+   ([constraints](#constraints)); a step where none does keeps the current gear. What the step takes
+   (`chooseStep`):
+   - **D30's unmeasured-rating rule** (O2L-6). When the leader's new pieces carry one of D12's
+     unmeasured ratings (expertise, haste or armor penetration; `UNMEASURED_STATS`) and the setup
+     applies them, the best gear set whose new pieces carry none, the current gear included, is taken
+     instead if it's within 0.5% of the leader (`UNMEASURED_MARGIN`; for Balanced, half a point, 0.5%
+     of TPS or DPS) or inside the paired 95% interval. So Adaptive Combat Assistant (expertise rating
+     20, nothing else) wins a trinket step only when every trinket without a rating is clearly behind
+     it, as it was for the warrior's preset (−3.9%).
+   - **A move needs a clear win** (O2L-4). That choice replaces the current gear only when it clears
+     it at a paired 95% (the race compares every standing with the current gear, `vsReference`, over
+     the fights both ran). Otherwise the gear stays and the step counts as unchanged, and the step's
+     `note` says why. Before, a step moved to its leader whatever the race said: in Fury's quick search,
+     14 of the setup's start's 17 moves came from races that hadn't separated, and its neck flipped
+     between two Marks of Fordring every pass, so the start never settled.
 3. **Pass again** until a pass changes nothing (**stable**), or after 4 passes (`GEAR_PASSES`,
    `--gear-passes`).
 

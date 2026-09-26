@@ -103,6 +103,7 @@ export {
   greedyGear,
   groupGears,
   GROUP_SLOTS,
+  hasUnmeasuredRating,
   itemSource,
   PER_SLOT,
   POOL,
@@ -112,9 +113,12 @@ export {
   slotPool,
   type StatWeights,
   UNCONFIRMED_ENCHANTS,
+  UNMEASURED_STATS,
+  unmeasuredChanges,
   weighedItem,
 } from './gear'
 export {
+  chooseStep,
   FINAL_SHARE,
   GEAR_PASSES,
   type GearProgress,
@@ -136,6 +140,7 @@ export {
   runPlans,
   survivalReference,
   type TogetherPass,
+  UNMEASURED_MARGIN,
   WEIGHT_FIGHTS,
   type WeightsMeasured,
 } from './gear-search'

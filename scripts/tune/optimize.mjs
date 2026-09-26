@@ -530,7 +530,7 @@ async function main() {
   const gearReports = []
   const onGearProgress = (p) => {
     if (p.phase === 'rank') console.log(`  ${p.start}, pass ${p.pass}: ranked the slots (stat weights and measured swaps, ${plural(p.fights, 'fight')}); ${count(p.spent)} of ${count(p.budget)}`)
-    else if (p.phase === 'step') console.log(`    ${p.group}: ${plural(p.candidates, 'candidate')}, ${p.changed ? 'CHANGED' : 'kept'} (${plural(p.fights, 'fight')})`)
+    else if (p.phase === 'step') console.log(`    ${p.group}: ${plural(p.candidates, 'candidate')}, ${p.changed ? 'CHANGED' : 'kept'} (${plural(p.fights, 'fight')})${p.note ? `: ${p.note}` : ''}`)
     else console.log(`  final race: ${plural(p.ends, 'end')} of the starts, with the setup; ${count(p.spent)} of ${count(p.budget)} spent`)
   }
   const gearPass = (g) => {

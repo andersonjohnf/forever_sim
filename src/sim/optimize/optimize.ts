@@ -27,15 +27,25 @@ import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
 import { brokenConstraints, MAX_BUILDS, type TalentConstraints, talentSpace, type TalentSpace, talentSpaceSize } from './talents'
 
-/** A candidate: the base setup with these talents and these rotation settings on top of its own. */
+/**
+ * A candidate: the base setup with these talents, these rotation settings on top of its own, and
+ * this gear (the whole of it, every slot; absent: the setup's own; docs/optimizer.md#gear).
+ */
 export interface Candidate {
   talents: string
   rotation: Record<string, RotationValue>
+  gear?: SimConfig['gear']
 }
 
 /** The base setup with a candidate's changes, fixed at the seed (a race's fights are counted, not adaptive). */
 export function applyCandidate(config: SimConfig, candidate: Candidate, seed = config.run.seed): SimConfig {
-  return { ...config, talents: candidate.talents, rotation: { ...config.rotation, ...candidate.rotation }, run: { mode: 'fixed', iterations: 0, seed } }
+  return {
+    ...config,
+    talents: candidate.talents,
+    rotation: { ...config.rotation, ...candidate.rotation },
+    gear: candidate.gear ?? config.gear,
+    run: { mode: 'fixed', iterations: 0, seed },
+  }
 }
 
 /** A candidate's plan, or an error if the setup can't be simulated. */
@@ -217,6 +227,12 @@ export interface OptimizeOptions {
    * itself, so `balanced` is always relative to it (D30).
    */
   start?: Candidate
+  /**
+   * Gear sets to try, each a whole gear map (O2, docs/optimizer.md#gear): every build and rotation is
+   * tried with each, and with the start's own gear too. A gear search's step passes the sets its
+   * slot (or pair of slots) makes.
+   */
+  gears?: readonly NonNullable<Candidate['gear']>[]
   /** Rotation settings the talent screen also tries (default: `rotations`), so a talent only they use counts. */
   screenRotations?: readonly Record<string, RotationValue>[]
   /** Limits on the sheet every candidate must meet (./constraints.ts): one that misses any is left out before any fights. */
@@ -474,7 +490,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // round the caller asked for (OGV2-1): a caller's larger one shrinks to fit in the final
     // `fitBudget`, and never narrows the space.
     const raceCap = cap - screen.fights
-    const plans = (n: number) => n * rotations.length + 2
+    const plans = (n: number) => n * rotations.length * (1 + (options.gears?.length ?? 0)) + 2
     const fitsCap = (n: number) => plans(n) * FIRST_ROUND_MIN <= 0.9 * raceCap
     const fitted = (constrained: ReadonlySet<string>) => {
       const notes: string[] = []
@@ -508,7 +524,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const binds =
       readByConstraint.size > 0 &&
       (found.space.builds.length === 0 ||
-        found.space.builds.some((b) => rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r } }), reference, sheetRules))))
+        found.space.builds.some((b) =>
+          rotations.some((r) => !meetsSheet(sheetOf({ talents: b.code, rotation: { ...start.rotation, ...r }, ...(start.gear ? { gear: start.gear } : {}) }), reference, sheetRules)),
+        ))
     if (binds) found = fitted(readByConstraint)
     spaceNotes = found.notes
     builds = found.space.builds.map((b) => b.code)
@@ -537,7 +555,11 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   }
   add(setupCandidate(config))
   add(start)
-  for (const talents of builds) for (const rotation of rotations) add({ talents, rotation: { ...start.rotation, ...rotation } })
+  // The start's own gear is always a variant too, as its rotation is (O2).
+  const gears = [start.gear, ...(options.gears ?? [])]
+  for (const talents of builds)
+    for (const rotation of rotations)
+      for (const gear of gears) add({ talents, rotation: { ...start.rotation, ...rotation }, ...(gear ? { gear } : {}) })
 
   // Every candidate must meet every talent and sheet constraint.
   const talentFails = (c: Candidate) => (talentRules ? brokenConstraints(data, c.talents, talentRules) : [])
@@ -765,10 +787,19 @@ export function confirmFights(requested: number, left: number, checks = 1): { fi
   return fit >= MIN_CONFIRM_FIGHTS ? { fights: fit, clamped: true } : null
 }
 
-/** A candidate's identity: its talents and its whole rotation, on top of the setup's. */
-function candidateKey(config: SimConfig, c: Candidate): string {
+/** A candidate's identity: its talents, its whole rotation on top of the setup's, and its whole gear. */
+export function candidateKey(config: SimConfig, c: Candidate): string {
   const rotation = { ...config.rotation, ...c.rotation }
-  return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}`
+  return `${c.talents}|${JSON.stringify(Object.keys(rotation).sort().map((k) => [k, rotation[k]]))}|${gearKey(c.gear ?? config.gear)}`
+}
+
+/** A gear map's identity: each filled slot's item and enchant, in slot order. */
+export function gearKey(gear: SimConfig['gear']): string {
+  return (Object.keys(gear) as (keyof typeof gear)[])
+    .filter((slot) => gear[slot])
+    .sort()
+    .map((slot) => `${slot}:${gear[slot]!.itemId}${gear[slot]!.enchantId ? `+${gear[slot]!.enchantId}` : ''}`)
+    .join(',')
 }
 
 function sameRotation(a: Record<string, RotationValue>, b: Record<string, RotationValue>): boolean {
@@ -845,7 +876,8 @@ export async function optimizeInTurns(
     options.onPass?.(report, pass)
     if (report.race.leader === null) break
     const winner = report.candidates[report.race.leader]
-    const moved = winner.talents !== start.talents || !sameRotation(winner.rotation, start.rotation)
+    const moved =
+      winner.talents !== start.talents || !sameRotation(winner.rotation, start.rotation) || gearKey(winner.gear ?? options.config.gear) !== gearKey(start.gear ?? options.config.gear)
     start = winner
     if (!moved && pass > 0) break
   }

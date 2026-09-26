@@ -333,7 +333,7 @@ always uses the halved value.
 | Spell (r8) | 20293, trained at 58; proc 25713 | [F] [F 20293][f20293], [F 25713][f25713] |
 | Cost | 200 mana | [F] |
 | Seal value `v` | dummy points 1786 + 47/level from 58 to 60 → **v = 18.80** per second of weapon speed at 60 | [F] data (same as [C]) |
-| Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.2 × SP**. So 18.8 × 1.2 × 3.5 = 78.96 before SP. The proc's own base points (35 at rank 8, where Classic Era's 25713 had 0) aren't added: at ranks 1–4 the beta logs fit the seal value alone ([below](#the-beta-logs-seal-of-righteousness)). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C], and what the beta logs show at ranks 1–4 [?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?]. The base points: [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]) |
+| Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.2 × SP**. So 18.8 × 1.2 × 3.5 = 78.96 before SP. The proc's own base points (35 at rank 8, where Classic Era's 25713 had 0; rank 1's proc 25742 went from 0 to 4) aren't added: at ranks 1–4 the beta logs fit the seal value alone ([below](#the-beta-logs-seal-of-righteousness)). Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C], and what the beta logs show at ranks 1–4 [?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?]. The base points: [F] [client] (SpellEffect, 1.60.1.70009 and 1.15.9.69722; [25713][f25713], [C 25713][c25713]) |
 | SP coefficient | **0.2 per proc**, measured [?]: at 10+ spell damage the beta logs fit 0.2, not the client's 0.1 ([below](#the-beta-logs-seal-of-righteousness)). The client carries 0.1 on the proc spell at every rank (Classic r8 also 0.1), and that 0.1 is its share of Judgement of the Crusader's bonus, as measured ([JotC](#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)) | 0.1: [F] [client] (SpellEffect, 1.60.1.70009; [25713][f25713]), [C 25713][c25713]; 0.2: the beta logs [?] ([open question 4](#open-questions)) |
 | Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.70009; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, JotC | [F] |
@@ -341,8 +341,8 @@ always uses the halved value.
 
 ##### The beta logs: Holy Strike
 
-The same logs ([method](#the-beta-logs-seal-of-fury)): 356 non-crit Holy Strikes (ranks 1–3: 679, 678,
-1866 at 25, 29 and 32% weapon damage, base points 12, 17 and 19) from 44 characters. For each character
+The same logs ([method](#the-beta-logs-seal-of-fury)): 356 non-crit Holy Strikes (ranks 1–3,
+at 25, 29 and 32% weapon damage, base points 12, 17 and 19) from 44 characters. For each character
 and log, the weapon's damage is the mean of its non-glancing, non-crit white hits (a swing's, not
 normalized: close for the weapons the logs show), and each Holy Strike is compared with two readings:
 

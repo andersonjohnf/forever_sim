@@ -16,9 +16,16 @@ import type { AplDefinition, FixedRotationRow, RotationOption, RotationValue, Sp
 import { compileAplRows } from '../apl'
 import type { PaladinContext } from '../paladin/setup'
 import { NO_CONTEXT, reader, timeLeftAtLeast, type ClassRotation } from '../warrior/shared'
-import { AIMED_SHOT, ARCANE_SHOT, BESTIAL_WRATH, HUNTER_RACIALS, HUNTERS_MARK, MULTI_SHOT, RAPID_FIRE, SERPENT_STING, SNIPER_SHOT } from './abilities'
+import { AIMED_SHOT, ARCANE_SHOT, BESTIAL_WRATH, HUNTER_RACIALS, HUNTERS_MARK, MULTI_SHOT, RAPID_FIRE, SERPENT_STING, SERPENT_STING_SPELL, SNIPER_SHOT } from './abilities'
 import { hunterPet } from './pet'
-import { hasPet, rank, type TalentRanks, TRUESHOT_AURA_RAP, withTalents } from './talents'
+import { hasPet, IMPROVED_STINGS, rank, type TalentRanks, TRUESHOT_AURA_RAP, withTalents } from './talents'
+
+/**
+ * Serpent Sting's help, from its rank-8 row (hunter.md §3.4: 83 × 5 = 415; rank 9's 555 is an
+ * Ahn'Qiraj book, D36) and Improved Stings 3/3's +20% (§4).
+ */
+const STING_TOTAL = (SERPENT_STING_SPELL.dotTickDamage ?? 0) * (SERPENT_STING_SPELL.dotTicks ?? 0)
+const STING_HELP = `Keep it on the boss: ${STING_TOTAL} Nature damage over ${((SERPENT_STING_SPELL.dotTickMs ?? 0) * (SERPENT_STING_SPELL.dotTicks ?? 0)) / 1000} s (${Math.round(STING_TOTAL * (1 + IMPROVED_STINGS[3] / 100))} with Improved Stings 3/3), whose ticks can crit in Forever.`
 
 /** The hunter specs and their setting keys. */
 export const HUNTER_SPECS = ['hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival'] as const satisfies readonly SpecId[]
@@ -152,7 +159,7 @@ export function hunterOptions(spec: HunterSpec): RotationOption[] {
       id: ID.sting,
       group: 'Core abilities',
       label: 'Serpent Sting',
-      help: 'Keep it on the boss: 555 Nature damage over 15 s (666 with Improved Stings 3/3), whose ticks can crit in Forever.',
+      help: STING_HELP,
       default: true,
     },
     {

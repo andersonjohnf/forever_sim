@@ -4,6 +4,8 @@
 // stays short and specific. Each links to the doc section that owns the value.
 import type { Assumption, RuleProfileId, SpecId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
+import { ARCANE_SHOT_SPELL, SERPENT_STING_SPELL } from '../classes/hunter/abilities'
+import { IMPROVED_STINGS, withCritBonus } from '../classes/hunter/talents'
 
 const CT = 'docs/mechanics/combat-tables.md'
 const DT = 'docs/mechanics/damage-and-timing.md'
@@ -1135,9 +1137,11 @@ export const powerInfusionText = (arcanePower: boolean): string =>
  * (warrior.md §2.3 "Unbridled Wrath on the beta": Fury −0.7%, Arms −1.0%, the default setups at the
  * default seed, 50,000 fights each). Other specs' losses aren't measured, so their text stops at the rate.
  */
-export const unbridledWrathText = (spec: SpecId): string => {
-  const loss = ({ 'warrior-fury': '0.7%', 'warrior-arms': '1%' } as Partial<Record<SpecId, string>>)[spec]
+export const unbridledWrathText = (spec: SpecId, profile: RuleProfileId = 'forever'): string => {
   const base = REGISTRY.unbridledWrathSwings.text
+  // Classic Era has no beta and its bug: just the swings it procs from (B2V-4).
+  if (profile !== 'forever') return base.replace(/ The sim uses the talent’s .*$/, '')
+  const loss = ({ 'warrior-fury': '0.7%', 'warrior-arms': '1%' } as Partial<Record<SpecId, string>>)[spec]
   return loss ? `${base} At the beta’s rate you’d lose about ${loss} of your damage.` : base
 }
 
@@ -1150,6 +1154,35 @@ export const revengeDamageText = (rank: number): string => {
   const m = 1 + 0.2 * rank
   const range = rank > 0 ? `, ×${m.toFixed(1)} with Improved Revenge ${rank}/3 (${Math.round(109 * m)}–${Math.round(133 * m)})` : ''
   return REGISTRY.revengeDamage.text.replace(', ×1.6 with Improved Revenge 3/3 (174–213)', range)
+}
+
+/** A number to one decimal place, without a trailing ".0". */
+const oneDecimal = (x: number) => String(Math.round(x * 10) / 10)
+
+/**
+ * The `shotScaling` assumption (hunter.md OQ-H9), naming only the shots the rotation uses: Arcane
+ * Shot's flat damage and Serpent Sting's tick, raised by Improved Stings at `stingsRank` (+6 / 13 / 20%,
+ * hunter.md §4), as the plan's tick is (B2V-1). The registry's is both shots without the talent.
+ */
+export const shotScalingText = ({ arcane, sting, stingsRank }: { arcane: boolean; sting: boolean; stingsRank: number }): string => {
+  const tick = SERPENT_STING_SPELL.dotTickDamage ?? 0
+  const raised = stingsRank > 0 ? ` (${oneDecimal(tick * (1 + (IMPROVED_STINGS[stingsRank] ?? 20) / 100))} with Improved Stings ${stingsRank}/3)` : ''
+  const parts = [
+    ...(arcane ? [`Arcane Shot deals a flat ${ARCANE_SHOT_SPELL.min}`] : []),
+    ...(sting ? [`Serpent Sting ${arcane ? '' : 'deals '}${tick} a tick${raised}`] : []),
+  ]
+  const both = parts.length > 1
+  return `${parts.join(' and ')}, with nothing from your attack power, as the Forever client gives ${both ? 'them' : 'it'}. Low-level beta logs show ${both ? 'them' : 'it'} hitting harder, probably from attack power, by an amount nobody has measured, so ${both ? 'they' : 'it'} may be worth more.`
+}
+
+/**
+ * The `serpentStingCrits` assumption with Mortal Shots at `rank` (+6% crit damage a rank on the
+ * sting's tick crits, hunter.md §3.4 and §4: ×2.3 at 5/5), which the talentless text leaves out (B2V-2).
+ */
+export const serpentStingCritsText = (rank: number): string => {
+  if (rank <= 0) return REGISTRY.serpentStingCrits.text
+  const m = withCritBonus(SERPENT_STING_SPELL.critMultiplier, 6 * rank)
+  return REGISTRY.serpentStingCrits.text.replace('like a shot’s crit,', `like a shot’s crit (×${Number(m.toFixed(2))} with Mortal Shots ${rank}/5),`)
 }
 
 /** Items in prose: "a", "a and b", "a, b and c". */

@@ -711,6 +711,10 @@ describe('assumptions', () => {
     // The default build takes 3/3; other ranks give their own range, and none leaves the talent out.
     expect(revengeDamageText(1)).toMatch(/^Revenge deals the Forever client’s 109–133, ×1\.2 with Improved Revenge 1\/3 \(131–160\), with nothing/)
     expect(revengeDamageText(0)).toMatch(/^Revenge deals the Forever client’s 109–133, with nothing from your attack power\./)
+    // What it weighs Revenge against is Forever's beta logs: none under Classic Era's rules, window or not (B2V-4).
+    const classic = buildPlan(withRules(defaultConfig('warrior-protection'), 'classicEra')).assumptions.map((a) => a.id)
+    expect(classic).toContain('revengeWindow')
+    expect(classic).not.toContain('revengeDamage')
   })
 
   it('surfaces Unbridled Wrath on Heroic Strike swings and Raging Blows only when the build relies on them', () => {
@@ -738,6 +742,12 @@ describe('assumptions', () => {
     expect(arms).toMatch(/At the beta’s rate you’d lose about 1% of your damage\.$/)
     expect(arms).not.toMatch(/Fury/)
     expect(unbridledWrathText('warrior-protection')).toMatch(/later build fixes\.$/)
+    // Classic Era has neither the beta's rate nor its loss: just the swings it procs from (B2V-4).
+    for (const spec of ['warrior-fury', 'warrior-arms'] as const) {
+      expect(text(withRules(defaultConfig(spec), 'classicEra')), spec).toBe(
+        'Unbridled Wrath procs only from auto attacks (white swings of either hand and extra attacks), not from Heroic Strike or Cleave swings, as the Forever client’s data says and low-level beta logs show.',
+      )
+    }
   })
 
   it('gives a Gnome of every class its Eureka!: the aura, its charges and cuts, the abilities it modifies, and the assumption with its cut (classes/eureka.ts)', () => {

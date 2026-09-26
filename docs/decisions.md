@@ -262,7 +262,10 @@ public beta combat logs**:
 - the result holds across many independent characters, not one tester
 
 The value stays **[?]**, keeps an open question saying how to confirm it at level 60, and moves
-to **[F]** when an in-game test (tier 2) confirms it. Anecdotes and single-tester fits still can't set a default.
+to **[F]** when an in-game test (tier 2) confirms it. Anecdotes and single-tester fits still can't
+set a server-side rule or override an allowed source's value. The one exception is the user's
+(2026-09-26, [D37](#d37-only-sourced-values-2026-09-26)): where no allowed source has a value at
+all, a third-party in-game measurement of the effect may stand as its default, `[?]` and labelled.
 This covers the white-hit rage normalization and the damage-taken formula
 ([rage.md](mechanics/rage.md)).
 
@@ -838,21 +841,27 @@ User decision, after a review of the tank threat terms found multipliers, ratios
 that no source gave: values chosen to close a gap to a feeling, rescaled analogs, and client dummy
 effects given a meaning by analogy. It amends D29 (every value has a default), D24 (the
 Classic-based default), D36 (the Season of Discovery exception) and [doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable).
-- **No invented multipliers, ratios, scalings or fitted terms.** A default comes only from:
-  - the same ability's Classic Era value;
-  - a similar known value used **as is**, never rescaled by a ratio we chose (by rank, level,
-    cost or anything else);
-  - Season of Discovery values from **Blizzard's own SoD client data or patch notes**, where the
-    Forever client carries the SoD spell (see below);
-  - client data, with the meaning the client defines for it;
-  - measurements: a reproducible beta-log analysis (D22), or in-game tests by the user or guild
-    members, recorded with the build, date, method and sample size. Tier 2 is unchanged from
-    before D37; so far none exist except the user's own (below).
-- **A described effect no allowed source gives a value takes the closest similar known value**
-  (the user's words: "finding something similar and using it"). That value is used as is,
-  tagged `[?]` with where it came from stated plainly, and listed as an open question. If
-  nothing similar exists, the effect models as zero, tagged `[?]` with an open question. It's
-  never an estimate reasoned into a new number.
+- **No invented multipliers, ratios, scalings or fitted terms.** A described effect's default
+  comes from the first of these that has a value, **used as is**, never rescaled by a ratio we
+  chose (by rank, level, cost or anything else); the order is the user's, confirmed 2026-09-26
+  ([D38](#d38-the-values-audits-calls-2026-09-26)):
+  1. **An allowed source:** the same ability's Classic Era value; client data, with the meaning
+     the client defines for it; Season of Discovery values from **Blizzard's own SoD client
+     data or patch notes**, where the Forever client carries the SoD spell (see below);
+     measurements: a reproducible beta-log analysis (D22), or in-game tests by the user or guild
+     members, recorded with the build, date, method and sample size. Tier 2 is unchanged from
+     before D37; so far none exist except the user's own (below).
+  2. **A third-party in-game measurement** of the effect itself, such as a player's tests shared
+     on Discord: `[?]`, labelled by where it came from (the user's exception, below).
+  3. **The closest similar known value from an allowed source** (the user's words: "finding
+     something similar and using it"): `[?]`, with where it came from stated plainly.
+  4. **A value another sim or threat tool carries:** `[?]`, with its provenance stated plainly,
+     never one it carried over from a forbidden ruleset. The user's examples: Maul's ×1.75 and
+     Felstriker's 1 proc a minute.
+  5. **Zero:** `[?]`, with an open question.
+
+  Steps 2–5 are listed as open questions and shown in the results' assumptions. It's never a
+  number reasoned into existence.
 - **Only a stand-in is `[?]`.** A value that stands in for an unknown Forever value is `[?]`;
   a value a tier 1–3 source gives for this very ability keeps its `[F]` or `[C]`.
 - **An undescribed client dummy effect models as zero.** D29's "every value has a default" covers
@@ -866,16 +875,22 @@ Classic-based default), D36 (the Season of Discovery exception) and [doctrine §
   Anything else labelled a guild test, benchmark or measurement was mislabelled and is relabelled
   by where it came from: a player's in-game tests shared on Discord are third-party Forever
   measurements, `[?]`.
+- **The user's exception for third-party measurements (2026-09-26).** Where no allowed source
+  has a value, a third-party in-game measurement of the effect (a player's tests shared on
+  Discord, say) may stand as its default, `[?]` and labelled by where it came from (step 2). It
+  never overrides an allowed source's value, and a fit to a tester's numbers is still never a
+  default. The rogue's attack-power shares are the first
+  ([rogue.md Q3, Q16](classes/rogue.md#10-open-questions)).
 - **Other sims are never authoritative.** wowsims classic and SoD, WarriorSim, LibThreatClassic2
-  and the Warcraft Logs threat configs are unconfirmed data we may consider, never a source that
-  sets a value on its own. Their code, pinned to a commit or not, can corroborate a value or
-  point to a source; a value kept from one for want of anything better is `[?]` with its
-  provenance stated plainly. Their bear and most of their warrior threat constants cite no source.
+  and the Warcraft Logs threat configs are unconfirmed data we may consider. Their code, pinned
+  to a commit or not, can corroborate a value or point to a source. One of their values is used
+  only as the last resort before zero (step 4), as is, `[?]` with its provenance stated plainly.
+  Their bear and most of their warrior threat constants cite no source.
 - **Season of Discovery, scoped.** SoD stays forbidden, except Blizzard's own SoD client data or
   patch notes for a spell Forever reuses from SoD (the same spell ID in the Forever client). This
   replaces D36's "SoD behaviour as the closest analog" exception: a value from another sim's SoD
   code is still only unconfirmed data. Such values are tagged `[?]` with the spell and source.
-- **Maul ×1.75 stays** `[?]`, with its provenance stated plainly: every Classic and SoD threat
+- **Maul ×1.75 stays** `[?]` (step 4), with its provenance stated plainly: every Classic and SoD threat
   tool has used it since 2019, it traces to a 2006 guide, and it has never been measured on
   Classic Era. The same lineage covers Swipe ×1.75, Faerie Fire's 108 and Demoralizing Roar's 39.
 - **Lacerate's threat is 206, flat,** by the same-wording rule: Sunder Armor's Forever value,

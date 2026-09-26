@@ -207,8 +207,8 @@ paladins; the research is in the Judgement of the Crusader notes (B18).
 
 The user's rules of 2026-09-26 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)): no
 invented multipliers, ratios, scalings or fitted terms; an undescribed client dummy models as zero;
-other sims are unconfirmed data we may consider, never authoritative and never a value on their
-own; the user's offhand numbers are never evidence. Each slice replaces the values that broke them
+other sims are unconfirmed data we may consider, never authoritative, and used only as the last
+resort before zero, labelled; the user's offhand numbers are never evidence. Each slice replaces the values that broke them
 with an allowed source's, used as is, and re-measures the headlines it moves. The paladin's own
 provenance is M5.668's P3.
 - [ ] **A Doctrine and provenance:** D37 in the doctrine, CLAUDE.md and the agents; the rogue's

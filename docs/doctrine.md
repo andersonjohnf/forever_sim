@@ -89,15 +89,20 @@ community Forever sims such as [wowsims/forever](https://github.com/wowsims/fore
 [ElliotWood/Forever](https://github.com/ElliotWood/Forever). News posts and tooltip captures
 may be cited for Forever-specific facts, tagged **[?]** until client data or a tier 2
 measurement confirms them. The community sims are other sims (below): they can corroborate a
-value or point to its source, never set one. Never adopt a value they carried over from a
-forbidden ruleset: both are built on wowsims code with Season of Discovery or TBC lineage.
+value or point to its source, and supply one only as the last resort before zero (step 4 of the
+fallback order below), labelled with its provenance. Never adopt a value they carried over
+from a forbidden ruleset: both are built on wowsims code with Season of Discovery or TBC
+lineage.
 
 Two more kinds of evidence are secondary and tagged **[?]**:
 
 - **Third-party Forever measurements**, such as beta tests posted by other theorycrafters,
   a player's in-game tests shared on Discord, or community combat logs, until the user or a
   guild member reproduces them (tier 2). Label them by where they came from ("a player's
-  tests shared on Discord"), never as a guild test.
+  tests shared on Discord"), never as a guild test. **The user's exception (2026-09-26,
+  [D37](decisions.md#d37-only-sourced-values-2026-09-26)):** where no allowed source has a value,
+  a third-party in-game measurement of the effect may stand as its default, `[?]` and labelled
+  (step 2 of the fallback order below). It never overrides an allowed source's value.
 - **Forever client data read through a secondary source**, such as tables extracted in
   wowsims/forever, until the same value is read from the client files (tier 1). Then cite
   the client table and build, and tag it **[F]**.
@@ -107,17 +112,18 @@ Two more kinds of evidence are secondary and tagged **[?]**:
 Discovery sim and still contains SoD rune code. The same goes for tools with SoD or TBC
 modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). Their code, even pinned to
 a commit from before Season of Discovery launched (2023-11-30), can corroborate a value or
-point to a Classic Era source, but never sets one: a value kept from such a source for want of
-anything better is **[?]**, with its provenance stated plainly, until a genuine Classic Era
-source gives it.
+point to a Classic Era source. It supplies a value only as the last resort before zero (step 4
+of the fallback order below): **[?]**, with its provenance stated plainly, until a genuine
+Classic Era source gives it.
 
 **Other sims are never authoritative**
 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). wowsims classic and SoD, WarriorSim,
 LibThreatClassic2 and the Warcraft Logs threat configs are unconfirmed data we may consider: a
-lead to check against the client, Classic Era or a measurement, never a source that sets a value
-on its own. Many of their constants cite nothing (their bear and most warrior threat terms among
-them). Where one is kept for want of anything better, as Maul's ×1.75 is, its provenance is
-stated plainly in the owning doc and it stays **[?]**.
+lead to check against the client, Classic Era or a measurement. Their value is used only as the
+last resort before zero, when no allowed source, third-party measurement or similar known value
+has one (step 4 of the fallback order below), and then as is, **[?]**, with its provenance stated
+plainly in the owning doc: Maul's ×1.75 and Felstriker's 1 proc a minute are the user's examples.
+Many of their constants cite nothing (their bear and most warrior threat terms among them).
 
 **The user's offhand numbers are never evidence or targets**
 ([D37](decisions.md#d37-only-sourced-values-2026-09-26)). A number said in passing ("bears do
@@ -133,7 +139,10 @@ adopts it in two cases:
   ([D22](decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
 
 Either way, tag it **[?]** and list it for confirmation. Anecdotes, and one tester's fit to their
-own logs, don't override Classic Era in the default profile; they become open questions.
+own logs, don't override Classic Era in the default profile; they become open questions. The one
+exception is the user's (2026-09-26): where no allowed source has a value at all, a third-party
+in-game measurement of the effect may stand as its default, `[?]` and labelled (step 2 below). A
+fit to a tester's numbers is still never a default.
 
 **Verbatim mirrors of client files are client data.** A mirror of the Forever client's UI code
 or text strings is **[F]** for what the client *displays or computes*, such as a
@@ -149,20 +158,25 @@ number as **[F]** and record the derived one as an open question.
 narrowed by [D37](decisions.md#d37-only-sourced-values-2026-09-26)). Leaving a described effect
 out models it as zero, which is rarely the most accurate reading; making a number up is worse.
 So:
-- An effect a tooltip, a talent's text, the client's defined meaning or observed play
-  describes gets a default, and it's an allowed source's value **used as is**, one of:
-  - the same ability's Classic Era value;
-  - a similar known value, unchanged: never rescaled by a ratio we chose (by rank, level, cost
-    or anything else);
-  - Blizzard's own Season of Discovery client data or patch notes, for a spell Forever reuses
-    from SoD (tier 4's scoped exception);
-  - client data, with the meaning the client defines for it;
-  - a measurement: a D22 log analysis or a tier 2 test.
-- **A described effect no allowed source gives a value takes the closest similar known value**
-  (the user's words: "finding something similar and using it"), used as is, tagged **[?]**
-  with where it came from stated plainly, and listed as an open question. If nothing similar
-  exists, it models as zero, tagged **[?]** with an open question. It's never an estimate
-  reasoned into a new number.
+- **The fallback order.** An effect a tooltip, a talent's text, the client's defined meaning
+  or observed play describes gets a default from the first of these that has a value, **used
+  as is**: never rescaled by a ratio we chose (by rank, level, cost or anything else).
+  1. **An allowed source:** the same ability's Classic Era value; client data, with the meaning
+     the client defines for it; Blizzard's own Season of Discovery client data or patch notes,
+     for a spell Forever reuses from SoD (tier 4's scoped exception); a measurement (a D22 log
+     analysis or a tier 2 test).
+  2. **A third-party in-game measurement** of the effect itself, such as a player's tests
+     shared on Discord (the user's exception, 2026-09-26): **[?]**, labelled by where it came
+     from, never as a guild test.
+  3. **The closest similar known value from an allowed source** (the user's words: "finding
+     something similar and using it"): **[?]**, with where it came from stated plainly.
+  4. **A value another sim or threat tool carries:** **[?]**, with its provenance stated
+     plainly, never one it carried over from a forbidden ruleset. The user's examples are
+     Maul's ×1.75 and Felstriker's 1 proc a minute.
+  5. **Zero:** **[?]**, with an open question.
+
+  Every step from 2 on is listed as an open question and shown in the results' assumptions.
+  It's never a number reasoned into existence: no estimate, and no value moved to close a gap.
 - **No invented multipliers, ratios, scalings or fitted terms.** A coefficient chosen to make a
   result look right, or fitted to one tester's numbers, is not a default.
 - **An undescribed client dummy effect models as zero.** A dummy aura or effect with no

@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 51,
       "consumable": 82,
-      "docs": 626,
+      "docs": 629,
       "enchant": 124,
       "item": 431,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 884,
     "notInClient": 1,
-    "seeds": 2858,
-    "spells": 3132
+    "seeds": 2861,
+    "spells": 3135
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -65799,6 +65799,52 @@
       ],
       "sources": ["docs", "spellbook", "talent"]
     },
+    "13880": {
+      "auraOptions": {
+        "cumulativeAura": 50,
+        "procChance": 101
+      },
+      "duration": {
+        "duration": 30000,
+        "maxDuration": 30000
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 100,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0],
+          "variance": 0.14
+        },
+        {
+          "effect": 6,
+          "effectAura": 3,
+          "effectAuraPeriod": 3000,
+          "effectBasePointsF": 50,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": -250,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 2,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 13880,
+      "misc": {
+        "attributes": [16, 136, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135817
+      },
+      "name": "Magma Splash",
+      "sources": ["docs"]
+    },
     "13881": {
       "auraOptions": {
         "procChance": 101
@@ -94102,6 +94148,49 @@
         "rangeMax": [100, 100]
       },
       "sources": ["trigger"]
+    },
+    "20232": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": 4000,
+        "maxDuration": 4000
+      },
+      "effects": [
+        {
+          "effect": 114,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 11,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 20232,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [262144, 0, 67109120, 0, 0, 0, 8388608, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135957
+      },
+      "name": "Judgement of Fury",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "20237": {
       "classOptions": {
@@ -138750,6 +138839,56 @@
         "rangeMax": [100, 100]
       },
       "sources": ["trigger"]
+    },
+    "1311655": {
+      "categories": {
+        "defenseType": 2,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [0, 0, 64, 0],
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 36.9,
+          "effectBonusCoefficient": 0.45,
+          "effectIndex": 0,
+          "effectRealPointsPerLevel": 2.16,
+          "implicitTarget": [6, 0],
+          "variance": 0.1
+        },
+        {
+          "effect": 3,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 3,
+          "effectBasePointsF": 316.8,
+          "effectBonusCoefficient": 0.1125,
+          "effectIndex": 2,
+          "effectRealPointsPerLevel": 25.2
+        }
+      ],
+      "id": 1311655,
+      "levels": {
+        "baseLevel": 18,
+        "maxLevel": 24,
+        "spellLevel": 18
+      },
+      "misc": {
+        "attributes": [2424832, 0, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135957
+      },
+      "name": "Judgement of Fury",
+      "nameSubtext": "Rank 2",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "1311656": {
       "auraOptions": {

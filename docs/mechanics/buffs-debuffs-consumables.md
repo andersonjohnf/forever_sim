@@ -222,7 +222,10 @@ Retribution Aura's is ([paladin](../classes/paladin.md#other-abilities)): it alw
 crits [?], and as a pure Nature damage spell the boss's resistance takes its average share (6% at
 24 resistance, [spells §3](spells.md)). Its threat is its damage × the tank's threat multipliers
 (stance, form; not Righteous Fury, which is Holy only) [?]: no tooltip gives it a threat of its
-own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). It's two
+own ([threat.md's wording table](threat.md#threat-wording-table): no threat words). A raid druid's
+is the druid's spell, not yours, so your school damage auras don't reach it: a Protection paladin's
+[Power Infusion](#power-infusion) raises its Holy damage, not the druid's Thorns (`othersSpell`) [?].
+It's two
 entries, by its caster (PR-4): **a raid druid's** (`thorns`), which a Restoration druid puts on the
 main tank, and **the bear's own** (`thornsOwn`, "Thorns (your own)", druids only), cast on itself
 before the pull (it lasts 10 min) where no other druid does. They don't stack (one `thorns` group),
@@ -333,8 +336,9 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
   keeps the +20% for all its ticks, since a DoT snapshots your side as it lands
   ([spells §7](spells.md#7-dots)); so does Ignite's pool. A Protection paladin's Holy damage gains
   the 20% before Judgement of the Crusader's flat bonus, which isn't multiplied (spells §9), so its
-  Holy hits gain a little less; its physical swings gain nothing. Its threat is its damage × its
-  threat multipliers, so its threat gains as its Holy damage does.
+  Holy hits gain a little less; its physical swings gain nothing, and nor does a raid druid's Thorns
+  on it, the druid's spell, not yours ([Thorns on the tank](#12-threat-defense-and-mana)) [?].
+  Its threat is its damage × its threat multipliers, so its threat gains as its Holy damage does.
 - **It doesn't stack with Arcane Power, which wins** [C] ([wowpedia: Arcane Power (Classic)][wp-ap-classic],
   [wowpedia: Power Infusion (Classic)][wp-pi-classic], [Wowhead Classic: Arcane Power][wh-12042]). In
   Classic Era a priest who casts Power Infusion on a mage with Arcane Power up gets "A more powerful
@@ -353,7 +357,7 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
 **What it's worth** in each spec's default setup (Standard raid, seed 424242, 20,000 fights,
 2026-09-25; each ± under 0.5), off → on:
 
-- **Protection paladin:** 747.3 → 755.4 TPS (+8.1, +1.08%).
+- **Protection paladin:** 747.3 → 755.1 TPS (+7.8, +1.05%; +8.1 while it wrongly raised a raid druid's Thorns).
 - **Mages:** Fire 526.3 → 536.4 DPS (+10.1, +1.93%); Arcane 398.8 → 398.8 (+0.0: its Arcane Power
   at the pull keeps it out, and the fights are identical); Frost 414.7 → 421.3 (+6.6, +1.59%).
 - **Warlocks:** Destruction 591.4 → 606.0 (+14.6, +2.46%); Affliction 501.9 → 516.1 (+14.2, +2.83%);
@@ -363,7 +367,8 @@ SpellDuration, SpellCooldowns, SpellPower, SpellCategories, both builds):
 
 15 s of a 180 s fight is 8.3%, and 20% of that is 1.7% of spell damage. The DoT specs gain more,
 their DoTs from the first 15 s keeping it; the Protection paladin gains less, since some of its
-threat is physical or Judgement of the Crusader's flat bonus.
+threat is physical, Judgement of the Crusader's flat bonus or a raid druid's Thorns; the Arcane mage
+gains nothing, its Arcane Power keeping it out.
 
 ### Windfury Totem
 

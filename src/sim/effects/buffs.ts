@@ -423,9 +423,11 @@ export const THORNS_CASTER_SPELL_DAMAGE = 200
  * lands on you (a hit, crit, crushing blow or block) triggers it, as Retribution Aura's does
  * (paladin.md#other-abilities). As a pure Nature damage spell the boss's resistance takes its average
  * share (spells.md §3). Its threat is its damage × your threat multipliers (stance, form, Righteous
- * Fury on Holy only) [?]: no tooltip names a threat of its own.
+ * Fury on Holy only) [?]: no tooltip names a threat of its own. A raid druid's is the druid's spell
+ * (`othersSpell`), so your school damage auras (Power Infusion's +20%) don't reach it; the bear's
+ * own is its own spell.
  */
-const thornsDamage = (damage: number): SpellDef => ({
+const thornsDamage = (damage: number, others: boolean): SpellDef => ({
   id: 'thorns',
   name: 'Thorns',
   icon: 'spell_nature_thorns',
@@ -446,6 +448,7 @@ const thornsDamage = (damage: number): SpellDef => ({
   threatMult: 1,
   threatBonus: 0,
   cannotCrit: true,
+  ...(others ? { othersSpell: true } : {}),
 })
 /**
  * Thorns on the tank: its damage on each of the boss's swings that lands (the `meleeTaken` trigger).
@@ -458,7 +461,7 @@ const thorns = (damage: number, id = 'thorns'): ProcSpec => ({
   trigger: 'meleeTaken',
   from: 'any',
   chance: { pct: 100 },
-  action: { kind: 'spell', spell: thornsDamage(damage) },
+  action: { kind: 'spell', spell: thornsDamage(damage, id === 'thorns') },
   docRef: `${DOC}#12-threat-defense-and-mana`,
 })
 /**

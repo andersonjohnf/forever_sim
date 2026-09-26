@@ -522,6 +522,11 @@ export class Sim {
    * hit, crit or damage, no per-spell crit, no spell procs, and no school-limited crit charge.
    */
   private readonly splItem: Uint8Array
+  /**
+   * Another player's spell (`SpellDef.othersSpell`: a raid druid's Thorns, buffs doc §1.2 "Thorns on
+   * the tank"): none of your school damage auras (Power Infusion's).
+   */
+  private readonly splOthers: Uint8Array
   /** It has a direct part; one without is a pure DoT, which rolls no crit when it lands (§7). */
   private readonly splHasDirect: Uint8Array
   /** Its DoT (§7): ticks, period, damage and coefficient per tick, whether a tick can crit (in this profile), its row and marker. */
@@ -1641,6 +1646,7 @@ export class Sim {
     // flag, in a profile whose periodic effects can (damage-and-timing §4).
     this.splBinary = Uint8Array.from(spells, (x) => (x.binary ? 1 : 0))
     this.splItem = Uint8Array.from(spells, (x) => (x.itemSpell ? 1 : 0))
+    this.splOthers = Uint8Array.from(spells, (x) => (x.othersSpell ? 1 : 0))
     this.splHasDirect = Uint8Array.from(spells, (x) => (x.min > 0 || x.max > 0 || x.spCoefficient > 0 || x.weaponPercent > 0 || (x.weaponDps ?? 0) > 0 || !(x.dotTicks ?? 0) ? 1 : 0))
     this.splDotTicks = Int32Array.from(spells, (x) => x.dotTicks ?? 0)
     this.splDotTickMs = Float64Array.from(spells, (x) => x.dotTickMs ?? 0)
@@ -4692,8 +4698,9 @@ export class Sim {
     } else {
       // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless
       // binary. An item's spell takes your all-damage multiplier and the boss's damage taken, not your
-      // school's (buffs doc §3.7) [?].
-      const yours = this.splItem[s] === 1 ? this.magicMult : this.magicMult * this.schDamage[school]
+      // school's (buffs doc §3.7) [?]; nor does another player's (a raid druid's Thorns, buffs doc §1.2
+      // "Thorns on the tank": Power Infusion's +20% is on you, not on the druid) [?].
+      const yours = this.splItem[s] === 1 || this.splOthers[s] === 1 ? this.magicMult : this.magicMult * this.schDamage[school]
       damage *= yours * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
     }
     // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up;

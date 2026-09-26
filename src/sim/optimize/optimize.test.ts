@@ -346,8 +346,12 @@ describe('optimize', () => {
   })
 
   it('a tank’s talent search spends 31 points in its tank tree unless told otherwise (D30)', async () => {
+    // With its own Thorns, which Moonfury raises (a Balance talent a 31-point Feral build can't reach),
+    // rather than a raid druid's, which your talents don't (buffs doc §1.2 "Thorns on the tank"): so a
+    // build outside the 31 can score differently, and dropping the minimum widens the space.
+    const own = fixed({ ...bear, buffs: { ...bear.buffs, enabled: [...bear.buffs.enabled.filter((id) => id !== 'thorns'), 'thornsOwn'] } })
     const run = (minPoints?: Record<string, number>) =>
-      optimize({ config: bear, talents: { screenFights: 20, searchPartials: false, ...(minPoints ? { minPoints } : {}) }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+      optimize({ config: own, talents: { screenFights: 20, searchPartials: false, ...(minPoints ? { minPoints } : {}) }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
     const byDefault = await run()
     expect(byDefault.space!.minPoints).toEqual({ 'Feral Combat': 31 })
     const feral = TALENT_DATA.druid.trees.findIndex((t) => t.id === 'Feral Combat')

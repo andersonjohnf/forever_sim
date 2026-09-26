@@ -213,6 +213,23 @@ describe('Power Infusion in the fight: only its first 15 s gain', () => {
     expect(threat(on, 0, 15000)).toBeGreaterThan(1.05 * threat(off, 0, 15000))
   })
 
+  it('a raid druid’s Thorns on the Protection paladin doesn’t gain: it’s the druid’s spell (buffs doc §1.2)', () => {
+    const plan = buildPlan(withPi(PROT, true)).plan
+    expect(plan.sources.some((x) => x.id === 'thorns')).toBe(true)
+    expect(plan.spells?.find((x) => plan.sources[x.source].id === 'thorns')?.othersSpell).toBe(true)
+    const [off, on] = [false, true].map((o) => events(buildPlan(withPi(PROT, o)).plan, 5).log.filter((e) => e.source === 'thorns'))
+    expect(on.length).toBe(off.length)
+    expect(on.filter((e) => e.t < 15000).length).toBeGreaterThan(3)
+    for (let k = 0; k < on.length; k++) expect(on[k].damage, `thorns at ${on[k].t}`).toBeCloseTo(off[k].damage, 9)
+  })
+
+  it('a bear’s own Thorns is its own spell', () => {
+    const plan = buildPlan({ ...defaultConfig('druid-feral-bear'), buffs: { raid: [], enabled: ['thornsOwn'] } }).plan
+    const thorns = plan.spells?.find((x) => plan.sources[x.source].id === 'thorns')
+    expect(thorns).toBeDefined()
+    expect(thorns?.othersSpell).toBeUndefined()
+  })
+
   it('the Protection paladin’s spell damage multiplier while it’s up is ×1.2 on Holy, not on physical', () => {
     const plan = buildPlan(withPi(PROT, true)).plan
     const aura = plan.auras[auraOf(plan, PI)]

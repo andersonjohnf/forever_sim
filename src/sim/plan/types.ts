@@ -278,6 +278,13 @@ export interface SpellDef {
    * spell of your class's.
    */
   itemSpell?: boolean
+  /**
+   * Another player's spell that deals its damage from you (a raid druid's Thorns on the tank, buffs
+   * doc §1.2 "Thorns on the tank"): your school damage auras (Power Infusion's +20%, a school talent)
+   * are yours, not its caster's, so they don't reach it [?]. Everything else is as for any spell.
+   * Absent: your own spell.
+   */
+  othersSpell?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {

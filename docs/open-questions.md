@@ -1,6 +1,6 @@
-# Open questions: the guild's testing checklist
+# Open questions: the in-game testing checklist
 
-This is the guild's testing checklist. It merges the *Open questions* sections of the research
+This is the in-game testing checklist. It merges the *Open questions* sections of the research
 docs (eight mechanics docs, three class docs and the items dataset doc) into one
 deduplicated list of everything the sim currently assumes that a person needs to verify. The
 list is grouped by how each question can be answered today: on a level-60 **Classic Era**
@@ -58,7 +58,7 @@ B41, C11 and C12 rather than new entries.
   addon API limits combat-log detail.
 - **Third-party sweeps.** Magey's group is running the +3 attack-table sweep
   ([magey/forever-warrior#1](https://github.com/magey/forever-warrior/issues/1)). Read its
-  results before starting B2–B7 and B12; a guild run then confirms them as tier-2 data.
+  results before starting B2–B7 and B12; an in-game run then confirms them as tier-2 data.
 
 ## Recording results
 
@@ -369,8 +369,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M2 · ≤20**
 - **Assumes:** while Heroic Strike or Cleave is queued, off-hand white swings use the
   single-weapon miss chance (no +19%), in both profiles [C Classic Era]. For Forever, a
-  third-party beta test agrees (5.19% vs 18.27% over 77 and 394 swings) [? until the guild
-  repeats it].
+  third-party beta test agrees (5.19% vs 18.27% over 77 and 394 swings) [? until an in-game
+  test repeats it].
 - **Test:** dual-wielding warrior from behind vs mobs three levels higher; alternate stretches
   with Heroic Strike always queued and never queued; count off-hand misses separately.
 - **Samples:** ≥1,000 off-hand swings per state.

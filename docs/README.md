@@ -16,7 +16,7 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [decisions.md](decisions.md) | Log of significant decisions and their reasons |
 | [optimizer.md](optimizer.md) | The optimizer (D30): racing on common random numbers, the objective, constraints and effective health, the talent space, budgets, and how defaults come from it |
 | [glossary.md](glossary.md) | Quick definitions of WoW and project terms |
-| [open-questions.md](open-questions.md) | **The guild's testing checklist**: every unverified assumption, grouped by how to test it |
+| [open-questions.md](open-questions.md) | **The in-game testing checklist**: every unverified assumption, grouped by how to test it |
 
 ## Data snapshot
 

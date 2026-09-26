@@ -1004,7 +1004,7 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - **Raw client files, not the server.** The server may still disagree, and server hotfixes
   aren't in the files at all ([client.md, "Hotfix caveat"](client.md#hotfix-caveat)): 16 items
   are missing and 34 fall back to Classic Era for that reason, and the Undermine trinkets'
-  cooldowns may be hotfixed. Guild measurements win (doctrine §2).
+  cooldowns may be hotfixed. In-game tests win (doctrine §2).
 - `[?]` **Fallback items mix two clients.** Their stats are Classic Era's and their effects the
   Forever client's ([above](#effects-of-fallback-items)). Where Forever moved a bonus from an
   equip spell into its `ItemSparse` row the bonus is kept from Classic Era, and where it

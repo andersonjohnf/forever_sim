@@ -87,8 +87,8 @@ one by its documented hypothesis, tagged [?]:
 - armor penetration: flat armor removed
   ([damage-and-timing](mechanics/damage-and-timing.md))
 
-A profile switch, `unmeasuredRatings: 'apply' | 'ignore'`, lets the guild see how much each
-result depends on them. When the guild measures one, the hypothesis becomes data.
+A profile switch, `unmeasuredRatings: 'apply' | 'ignore'`, shows how much each
+result depends on them. When an in-game test measures one, the hypothesis becomes data.
 
 ### D13: Cross-doc reconciliation rules (2026-09-22)
 A consistency review of the M0 research found 18 cross-doc contradictions and 9
@@ -262,7 +262,7 @@ public beta combat logs**:
 - the result holds across many independent characters, not one tester
 
 The value stays **[?]**, keeps an open question saying how to confirm it at level 60, and moves
-to **[F]** when the guild measures it. Anecdotes and single-tester fits still can't set a default.
+to **[F]** when an in-game test (tier 2) confirms it. Anecdotes and single-tester fits still can't set a default.
 This covers the white-hit rage normalization and the damage-taken formula
 ([rage.md](mechanics/rage.md)).
 

@@ -587,7 +587,7 @@ Things the raw files show that no doc claims yet:
    has `ProcCategoryRecovery` 100. The damage doc models no ICD because its only source was
    SoD-era ([damage-and-timing §5.4](../mechanics/damage-and-timing.md)). 100 ms is far shorter
    than any swing timer; whether it matters depends on how the server chains extra attacks
-   (a question for the guild's logs).
+   (a question for Forever's combat logs).
 2. **Frenzy potions share the potion cooldown** (D13): their spells are in category 4 with a
    120 s category recovery, although the item effects carry no category.
 3. **Judgement of Command can't miss** (D18): its damage spell 20966 carries Always Hit (Attr3

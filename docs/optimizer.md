@@ -651,7 +651,7 @@ Fury warrior's slots take 966 of them by default and 1,152 opted in.
 Enchants are the catalogue's (buffs doc §5) that fit the item (the Gear tab's `enchantFits`: a
 weapon's, a two-hander's, a shield's). **The Zandalar and Scourge shoulder enchants and Zul'Gurub's
 Presence of Might (head and legs) are left out by default** (`UNCONFIRMED_ENCHANTS`; Presence of Might
-since O2L-5): the default presets leave them off until the guild confirms that content is in Forever
+since O2L-5): the default presets leave them off until that content is confirmed in Forever
 (buffs doc §5.3's "ZG availability [?]", §6.4), so the optimizer's defaults must too; `--enchants all`
 searches them. **The +15 Superior Strength and Superior Agility gloves are searched** (`OPTION_ENCHANTS`):
 buffs doc §6.4 calls them options, not defaults, so a result may take them, and O4 doesn't make them a

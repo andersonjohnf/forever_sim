@@ -177,7 +177,7 @@ heals and buffs, and LTC2 alone is not a [C] source: RF on heals and buffs is [?
 [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)). A tooltip phrase maps to
 the values of the known abilities that carry it, and an ability with that phrase and no tier 1–2
 value of its own takes the value those abilities' scaling gives it, tagged `[?]` and shown in the
-results' assumptions until a guild measurement replaces it. The Forever client carries a threat
+results' assumptions until an in-game test replaces it. The Forever client carries a threat
 value (effect 63) only for Sunder Armor and Cower, so every other row is server-side.
 
 | Tooltip phrase | Known values | How they scale | Applied by the wording (`[?]`) |

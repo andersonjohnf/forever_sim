@@ -111,7 +111,7 @@ export interface GearFilters {
  * Enchants the gear search leaves out unless told otherwise (`GearFilters.excludedEnchants`): the
  * shoulder enchants of Zul'Gurub's and the Argent Dawn's Scourge rewards, and Zul'Gurub's head and
  * legs idol, Presence of Might (O2L-5), whose content Forever may not have ("ZG availability [?]",
- * buffs doc §5.3). The default presets leave them off until the guild confirms it (buffs doc §6.4;
+ * buffs doc §5.3). The default presets leave them off until it's confirmed in Forever (buffs doc §6.4;
  * src/sim/defaults.ts), so the optimizer's defaults (O4) must too. Zul'Gurub's other idol enchants
  * join this list when the catalogue gains them.
  */

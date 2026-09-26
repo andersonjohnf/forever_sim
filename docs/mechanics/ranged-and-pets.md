@@ -17,7 +17,7 @@ ammo damage, Focus), and changes the hunter around it: Aimed Shot is a 2.0 s cas
 have new and reworked abilities, and the demons' spells deal about half their Classic Era damage
 ([WoW Forever deviations](#wow-forever-deviations)). Neither client holds Auto Shot's wind-up, the
 pets' base stats or how much of your stats a pet inherits: those are server-side, so they're [?]
-until the guild measures them ([Open questions](#open-questions)).
+until an in-game test measures them ([Open questions](#open-questions)).
 
 Status: researched 2026-09-24 · Forever client builds 1.60.1.69977 (1.60.1.69913 where that build has
 the table) · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified ·
@@ -160,7 +160,7 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 ### 6.1 What a pet inherits from you
 
 **One rule for every pet**, the hunter's and the warlock's alike (user decision, 2026-09-24): this is
-the only place it's stated, and the class docs point here. All of it is [?] until the guild tests it
+the only place it's stated, and the class docs point here. All of it is [?] until an in-game test settles it
 ([OQ-6](#oq-6-pet-stats-and-inheritance)).
 
 | Your stat | What the pet adds to its own | On |

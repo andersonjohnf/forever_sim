@@ -10,7 +10,7 @@ parry of **16.5%** (Classic Era: 14%). Its new weapon-skill panel computes weapo
 300 skill (Classic Era: 0.1–0.2% per point, 35%). None of this has been measured in game
 yet: the beta is level-capped and its glancing damage is reported broken. So the engine
 implements **two parameter profiles**, `forever` (the default, from client data) and
-`classicEra` (the tested Classic Era table), behind one setting. A guild measurement can then
+`classicEra` (the tested Classic Era table), behind one setting. An in-game test can then
 switch or patch it without code changes. Forever gear also carries **combat ratings** instead
 of percentages, and one hit stat serves both the melee and spell tables. This doc consumes the
 resulting percentages.
@@ -87,7 +87,7 @@ combat. So:
   character: talents, racials (crit from the weapon racials, never Classic's weapon skill), items
   and Forever's new spells stay Forever's in both profiles
   ([architecture](../architecture.md#rules-and-stats)).
-- When the guild measures a value (doctrine tier 2), change the `forever` profile entry and
+- When an in-game test measures a value (doctrine tier 2), change the `forever` profile entry and
   cite the test. Don't add a third profile.
 
 Where the client UI comes from: Blizzard's shipped Lua for the Forever character sheet
@@ -430,7 +430,7 @@ Against a +3 boss, table crit = sheet crit − (skill part) − (aura part):
   ([Blizzard forum][bnet-hsq], linked from [magey/forever-warrior#2][fw-2]). Both profiles keep
   it. A third-party level-20 beta test found it still present in Forever: 5.19% off-hand miss
   while queued vs 18.27% unqueued (77 vs 394 swings, small sample, addon-based) [?]
-  ([magey/forever-warrior#2][fw-2]); a guild repeat would make it [F]
+  ([magey/forever-warrior#2][fw-2]); an in-game repeat would make it [F]
   ([Open questions](#open-questions)).
   - Implement it as a flag on the off-hand swing: `dwPenalty = dualWielding &&
     !mainHandQueue.active`. The main-hand queued ability itself is a special (§3).
@@ -1007,7 +1007,7 @@ adopt its results when they land.
     Only magic procs and paladin Holy damage care.
 21. **Heroic Strike queue and the off-hand penalty in Forever** [?]. A third-party beta test
     (77 queued vs 394 unqueued off-hand swings) found the Classic rule still in place
-    ([fw-2]); both profiles keep it. Test: a guild repeat with ≥1,000 off-hand swings per state
+    ([fw-2]); both profiles keep it. Test: an in-game repeat with ≥1,000 off-hand swings per state
     vs +3 mobs.
 22. **The boss → player table in Forever** [?]. §8's formulas are what the Forever client
     displays ([F] client UI) and Classic Era's measured rules; nobody has logged them against

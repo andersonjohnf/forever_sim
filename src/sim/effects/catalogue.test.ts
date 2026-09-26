@@ -382,13 +382,15 @@ describe('the catalogue in both profiles (buffs doc, Classic Era values)', () =>
   })
 
   it('shows each profile’s own numbers in the summaries of the entries that differ', () => {
-    // Every number but a time ("every 5 s", "for 2 min"), which says how often, not how much. A
-    // summary may show an unrounded value whole (a raid druid's Thorns, 47.04, as 47).
+    // Every number but a time ("every 5 s", "for 2 min"), which says how often, not how much. Only
+    // a raid druid's Thorns may show its unrounded value whole (47.04 as 47); every other summary
+    // shows `round(v)`.
+    const WHOLE = new Set(['thorns'])
     const numbers = (text: string) => [...text.matchAll(/\d[\d,]*(?:\.\d+)?(?! ?(?:s|min)\b)/g)].map((m) => Number(m[0].replaceAll(',', '')))
     for (const [id, entry] of ENTRIES) {
       if (!entry.classicEra) continue
       for (const profile of [FOREVER, CLASSIC_ERA]) {
-        const values = digest(catalogueEffects(entry, profile)).flatMap(([, v]) => [Math.abs(round(v)), Math.abs(Math.round(v))])
+        const values = digest(catalogueEffects(entry, profile)).flatMap(([, v]) => (WHOLE.has(id) ? [Math.abs(round(v)), Math.abs(Math.round(v))] : [Math.abs(round(v))]))
         const summary = catalogueSummary(entry, profile)
         for (const n of numbers(summary)) expect(values, `${id} (${profile.id}): “${summary}”`).toContain(n)
       }

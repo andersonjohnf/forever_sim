@@ -5,6 +5,7 @@ import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { meleeChances } from '../core/attack-table'
 import { defaultConfig as todaysDefaultConfig, TALENT_DATA } from '../defaults'
 import { withPopularTalents } from '../classes/warrior/popular-builds'
+import { DAMAGE_SHIELD_SP_COEFFICIENT, THORNS_BASE_DAMAGE, THORNS_CASTER_SPELL_DAMAGE, THORNS_DAMAGE } from '../effects/buffs'
 import { presetBuffIds } from '../effects/presets'
 import { Sim } from '../engine/sim'
 import { rotationOff } from '../engine/test-helpers'
@@ -951,5 +952,39 @@ describe('the pre-Ahn’Qiraj ranks assumption', () => {
     expect(text(withBuffs('priest-shadow', []))).toBeUndefined()
     expect(text(withBuffs('priest-shadow', ['blessingOfKings']))).toBeUndefined()
     expect(text(withBuffs('priest-shadow', ['blessingOfWisdom']))).toBe(BLESSINGS)
+  })
+})
+
+// buffs doc §1.2 "Thorns" (CV-1, CV-3): the results' Thorns note gives the damage the engine deals, in each profile.
+describe('the Thorns assumption', () => {
+  const note = (spec: SpecId, id: 'thorns' | 'thornsOwn', profile: 'forever' | 'classicEra') => {
+    const d = todaysDefaultConfig(spec)
+    const { plan, assumptions } = buildPlan(withRules({ ...d, buffs: { raid: id === 'thorns' ? d.buffs.raid : [], enabled: [id] } }, profile))
+    // Both deal their damage on the `thorns` row's spell.
+    const spell = plan.spells?.find((x) => plan.sources[x.source].id === 'thorns')
+    return { text: assumptions.find((a) => a.id === id)?.text ?? '', damage: spell?.min }
+  }
+
+  it('in Forever: a raid druid’s names its spell damage, coefficient and total from the constants', () => {
+    const { text, damage } = note('warrior-protection', 'thorns', 'forever')
+    expect(damage).toBeCloseTo(THORNS_DAMAGE.forever, 9)
+    expect(text).toContain(`deals ${THORNS_BASE_DAMAGE.forever} Nature damage plus ${DAMAGE_SHIELD_SP_COEFFICIENT} ×`)
+    expect(text).toContain(`about ${Math.round(THORNS_DAMAGE.forever)} in all`)
+    expect(text).toContain(`about ${THORNS_CASTER_SPELL_DAMAGE} spell damage`)
+    const own = note('druid-feral-bear', 'thornsOwn', 'forever')
+    expect(own.damage).toBe(THORNS_DAMAGE.own)
+    expect(own.text).toContain(`its base ${THORNS_DAMAGE.own} Nature damage`)
+  })
+
+  it('in Classic Era: both give its flat 18 and no spell damage', () => {
+    for (const [spec, id] of [
+      ['warrior-protection', 'thorns'],
+      ['druid-feral-bear', 'thornsOwn'],
+    ] as const) {
+      const { text, damage } = note(spec, id, 'classicEra')
+      expect(damage, id).toBe(THORNS_DAMAGE.classicEra)
+      expect(text, id).toContain(`deals ${THORNS_DAMAGE.classicEra} Nature damage, as in Classic Era, with no spell damage added`)
+      expect(text, id).not.toMatch(/Forever|×|\b(22|47|313)\b/)
+    }
   })
 })

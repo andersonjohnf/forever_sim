@@ -39,7 +39,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText } from './assumptions'
+import { Assumptions, BEAR_TEXT, powerInfusionText, preAqRanksText, thornsText } from './assumptions'
 import { PET_BUFFS, petInheritanceDetail, petPlan } from './pet'
 import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
@@ -1663,8 +1663,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // warrior.md §2.5: the rolling Deep Wounds is Forever's [?]; `classicEra`'s restart is Classic Era's [C], no assumption.
   if (procIds.has('deepWounds') && profile.combat.deepWoundsRolls) notes.add('deepWounds')
   // buffs doc §1.2 (BR5): Thorns on the tank, a raid druid's or the bear's own.
-  if (procIds.has('thorns')) notes.add('thorns')
-  if (procIds.has('thornsOwn')) notes.add('thornsOwn')
+  // Each in the profile's terms: Classic Era's is a flat 18 with no spell damage (`thornsText`).
+  if (procIds.has('thorns')) notes.addText('thorns', thornsText(false, profile.id))
+  if (procIds.has('thornsOwn')) notes.addText('thornsOwn', thornsText(true, profile.id))
   // buffs doc §4.2, damage-and-timing §2.4: where Gift of Arthas' +8 adds, and which hits get it [?].
   if (c.physicalTaken) notes.add('giftOfArthas')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')

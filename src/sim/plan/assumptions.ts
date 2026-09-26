@@ -4,6 +4,7 @@
 // stays short and specific. Each links to the doc section that owns the value.
 import type { Assumption, RuleProfileId } from '../types'
 import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
+import { DAMAGE_SHIELD_SP_COEFFICIENT, THORNS_BASE_DAMAGE, THORNS_CASTER_SPELL_DAMAGE, THORNS_DAMAGE } from '../effects/buffs'
 
 const CT = 'docs/mechanics/combat-tables.md'
 const DT = 'docs/mechanics/damage-and-timing.md'
@@ -23,6 +24,10 @@ const SPELLS = 'docs/mechanics/spells.md'
 const PRIEST = 'docs/classes/priest.md'
 const HUNTER = 'docs/classes/hunter.md'
 const RANGED = 'docs/mechanics/ranged-and-pets.md'
+
+// buffs doc §1.2 "Thorns": what every Thorns does on a boss swing, whoever cast it and in either profile.
+const THORNS_HITS =
+  'It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -421,12 +426,13 @@ const REGISTRY = {
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
   // docs/mechanics/buffs-debuffs-consumables.md §1.2 (BR5): Thorns on the tank, as Retribution Aura's damage shield.
+  // Built from buffs.ts's constants, so the numbers can't drift from the damage the engine deals.
   thorns: {
-    text: 'Thorns deals 22 Nature damage plus 0.08 × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): about 47 in all. A raid healer’s pre-raid gear carries about 313 spell damage in Forever, since Forever’s healing gear adds a third as much spell damage as healing; unmeasured. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: `Thorns deals ${THORNS_BASE_DAMAGE.forever} Nature damage plus ${DAMAGE_SHIELD_SP_COEFFICIENT} × its caster’s spell damage (Holy Shield’s coefficient; Forever’s is on the server): about ${Math.round(THORNS_DAMAGE.forever)} in all. A raid healer’s pre-raid gear carries about ${THORNS_CASTER_SPELL_DAMAGE} spell damage in Forever, since Forever’s healing gear adds a third as much spell damage as healing; unmeasured. ${THORNS_HITS}`,
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   thornsOwn: {
-    text: 'Your own Thorns deals its base 22 Nature damage: the 0.08 × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. It hits on every boss swing that lands on you, a blocked one too, always lands, never crits, and makes threat at your threat multipliers. Untested.',
+    text: `Your own Thorns deals its base ${THORNS_DAMAGE.own} Nature damage: the ${DAMAGE_SHIELD_SP_COEFFICIENT} × its caster’s spell damage it adds is taken as none, since a bear’s gear carries almost none. ${THORNS_HITS}`,
     docRef: 'docs/mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana',
   },
   // buffs doc §1.1 (D36): no Ahn'Qiraj book's rank (src/sim/aq-ranks.test.ts), and the Greater Blessings'
@@ -1110,6 +1116,16 @@ export const powerInfusionText = (arcanePower: boolean): string =>
   arcanePower
     ? 'A priest casts Power Infusion on you once, as your Arcane Power ends: +20% spell damage for the 15 s after it. The two don’t stack, as patch 1.12 had it (Power Infusion can’t land while Arcane Power is up, and Arcane Power ends it), so the priest holds it until then. It isn’t cast again, though its 3-minute cooldown would allow a second in a fight over 3 minutes. Untested in Classic Era or Forever.'
     : REGISTRY.powerInfusion.text
+
+/**
+ * The `thorns` and `thornsOwn` assumptions in the rule profile's terms (buffs doc §1.2 "Thorns"):
+ * Forever's scale with the caster's spell damage [?]; Classic Era's deal rank 6's flat 18 [C], so
+ * they say nothing of spell damage.
+ */
+export const thornsText = (own: boolean, profile: RuleProfileId): string =>
+  profile === 'forever'
+    ? REGISTRY[own ? 'thornsOwn' : 'thorns'].text
+    : `${own ? 'Your own Thorns' : 'Thorns'} deals ${THORNS_DAMAGE.classicEra} Nature damage, as in Classic Era, with no spell damage added. ${THORNS_HITS}`
 
 /** Items in prose: "a", "a and b", "a, b and c". */
 const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)

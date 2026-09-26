@@ -317,7 +317,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready, for its damage and threat: the most threat a global cooldown makes at Classic Era’s threat value, which the sim uses: Forever’s tooltip calls its threat very high but gives no number.',
+    help: 'Use Shield Slam whenever it’s ready: it makes the most threat of any global cooldown. The sim gives it Classic Era’s threat; Forever’s tooltip calls it very high but gives no number.',
     default: true,
     requires: { talent: 'Shield Slam', shield: true },
   },

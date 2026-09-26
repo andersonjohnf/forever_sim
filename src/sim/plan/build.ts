@@ -1684,7 +1684,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // threat.md#threat-wording-table: Forever's "very high" on Shield Slam has no value, so it keeps
     // Classic Era's 254; its note says so.
     const slam = forever ? abilities.find((a) => a.id === 'shieldSlam') : undefined
-    notes.add('whiteThreat', sunder ? 'Sunder Armor uses its own value (below), the other abilities Classic Era’s' : undefined)
+    notes.add('whiteThreat', sunder ? 'Sunder Armor uses its own value (under Warrior mechanics), the other abilities Classic Era’s' : undefined)
     if (sunder) notes.add('sunderThreat', sunder.threatBonus.toLocaleString('en-US'))
     if (slam) notes.add('shieldSlamThreat', slam.threatBonus.toLocaleString('en-US'))
   }

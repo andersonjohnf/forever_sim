@@ -254,7 +254,7 @@ const REGISTRY = {
   },
   // threat.md#threat-wording-table, warrior.md Q34: the plan gives the bonus ({detail}).
   shieldSlamThreat: {
-    text: 'Shield Slam makes its damage plus {detail} in threat, Classic Era’s value from when its tooltip said “high”. Forever’s tooltip says “very high” but gives no number, so the sim adds nothing for it. Untested.',
+    text: 'Shield Slam makes its damage plus {detail} in threat, Classic Era’s value from when its tooltip said “high”. Forever’s tooltip says “very high” but gives no number, so the sim adds nothing extra for “very high”. Untested.',
     docRef: `${THREAT}#threat-wording-table`,
   },
   // threat.md#warrior, warrior.md Q1: the plan gives the client's value ({detail}).

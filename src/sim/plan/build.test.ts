@@ -661,7 +661,7 @@ describe('assumptions', () => {
     const prot1 = defaultConfig('warrior-protection')
     expect([ability(prot1, 'sunderArmor').threatBonus, ability(prot1, 'sunderArmor').threatApCoefficient ?? 0]).toEqual([206, 0])
     expect(ability(prot1, 'shieldSlam').threatBonus).toBe(254)
-    expect(note(prot1, 'whiteThreat')).toMatch(/: Sunder Armor uses its own value \(below\), the other abilities Classic Era’s\.$/)
+    expect(note(prot1, 'whiteThreat')).toMatch(/: Sunder Armor uses its own value \(under Warrior mechanics\), the other abilities Classic Era’s\.$/)
     // Without Shield Slam the notes are the same, less Shield Slam's own.
     const noSlam = { ...prot1, rotation: { ...prot1.rotation, 'warrior.protection.shieldSlam.enabled': false } }
     expect(note(noSlam, 'whiteThreat')).toBe(note(prot1, 'whiteThreat'))

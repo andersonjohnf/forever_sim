@@ -243,12 +243,13 @@ export const HOLY_STRIKE: SpellDef = {
  * damage per second of your main hand weapon" (effect 2's 3; effect 0 is the damage, a script), Holy,
  * no spell damage coefficient in the data. Melee class with neither No Active Defense nor Always Hit:
  * the full special table, crit ×2, and like the other melee-class spells without a weapon share it
- * rolls to hit and then to crit [?]. Whether the weapon's DPS counts attack power is OQ 11's [?]: the
- * default counts it, the character sheet's weapon DPS (`hotrWeaponDps`, Character → Advanced), the
- * reading that fits the guild's benchmark (D29). Its effect 1 (120, 3 chain targets) is the extra
+ * rolls to hit and then to crit [?]. Whether the weapon's DPS counts attack power is OQ 11's [?]: by
+ * default it doesn't, the tooltip's reading, the damage per second of the weapon itself; Character →
+ * Advanced counts it (`hotrWeaponDps`), the DPS a character sheet shows. No log or allowed source says
+ * which (the beta logs stop below level 40, where it's trained). Its effect 1 (120, 3 chain targets) is the extra
  * targets' part, left out on one target (M6). A cast spell, so it triggers procs; not the seals'.
  */
-export function hammerOfTheRighteous(withAttackPower = true): SpellDef {
+export function hammerOfTheRighteous(withAttackPower = false): SpellDef {
   return {
     ...HOLY_MELEE,
     id: 'hammerOfTheRighteous',

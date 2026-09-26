@@ -290,7 +290,7 @@ export const HOLY_STRIKE_ABILITY: AbilityDef = {
  * Casting it holds Holy Strike for 6 s, and Holy Strike holds it for Holy Strike's 10
  * (paladin.md#other-abilities). It doesn't proc the damage seals.
  */
-export const hammerOfTheRighteousAbility = (withAttackPower = true): AbilityDef => ({
+export const hammerOfTheRighteousAbility = (withAttackPower = false): AbilityDef => ({
   ...PALADIN,
   id: 'hammerOfTheRighteous',
   name: 'Hammer of the Righteous',

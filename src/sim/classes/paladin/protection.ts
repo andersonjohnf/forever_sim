@@ -325,7 +325,7 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 export const PROTECTION_PRESET_MEASURES = {
   defensive: { tps: 697.48, dps: 433.76, damageTaken: 900.4 },
   maxTps: { tpsPct: 7.29, dpsPct: 7.18, damageTakenPct: 5.83 },
-  hammerOfTheRighteous: { tpsPct: 0.8, dpsPct: 2.17, damageTakenPct: 5.01 },
+  hammerOfTheRighteous: { tpsPct: -5.2, dpsPct: -3.72, damageTakenPct: 5.01 },
 } as const
 
 const M = PROTECTION_PRESET_MEASURES
@@ -894,7 +894,7 @@ export function protectionRotation(
     // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place: above Holy Strike, or with
     // Holy Strike off (below Holy Strike, `hammer` leaves it out).
     hammerOfTheRighteous: () => {
-      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
+      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps === 'withAttackPower'), [])
     },
     // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
     exorcism: () => {

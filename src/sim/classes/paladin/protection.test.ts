@@ -1119,17 +1119,18 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     // The client row: 6% of base mana, a 6 s cooldown in Holy Strike's category, no spell damage coefficient.
     const hammer = hammerOfTheRighteousAbility()
     expect(hammer).toMatchObject({ costTenths: 900, cooldownMs: 6000, category: 'holyStrike', gcdMs: 1500 })
-    expect(hammer.spellDef).toMatchObject({ school: 'holy', defense: 'melee', noActiveDefense: false, alwaysHit: false, spCoefficient: 0, weaponDps: 3, weaponDpsAp: true })
+    expect(hammer.spellDef).toMatchObject({ school: 'holy', defense: 'melee', noActiveDefense: false, alwaysHit: false, spCoefficient: 0, weaponDps: 3, weaponDpsAp: false })
   })
 
   it('takes Holy Strike’s place when it’s on, with a one-handed axe, mace or sword; Holy Strike otherwise', () => {
     const ctx = { hasShield: true, maxMana: 2000, executePhase: true }
     const on = { [ID.hammerOfTheRighteous]: true }
-    const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'weaponOnly') =>
+    const strikes = (mainHand: { speedSec: number; twoHand: boolean; type?: 'axe' | 'dagger' }, rules?: 'withAttackPower') =>
       protectionRotation(on, TALENTS, () => -1, { ...ctx, mainHand, hotrWeaponDps: rules }).abilities.filter((a) => a.id === 'holyStrike' || a.id === 'hammerOfTheRighteous')
     // Both, Hammer first: the shared cooldown leaves Holy Strike only when Hammer can't be paid (TI-5).
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }).map((a) => a.id)).toEqual(['hammerOfTheRighteous', 'holyStrike'])
-    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'weaponOnly')[0].spellDef?.weaponDpsAp).toBe(false)
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' })[0].spellDef?.weaponDpsAp).toBe(false)
+    expect(strikes({ speedSec: 1.5, twoHand: false, type: 'axe' }, 'withAttackPower')[0].spellDef?.weaponDpsAp).toBe(true)
     expect(strikes({ speedSec: 1.5, twoHand: false, type: 'dagger' }).map((a) => a.id)).toEqual(['holyStrike'])
     expect(strikes({ speedSec: 3.5, twoHand: true, type: 'axe' }).map((a) => a.id)).toEqual(['holyStrike'])
     // Off in every preset: Holy Strike makes more threat, and Balanced keeps its Iron Creed as active
@@ -1147,9 +1148,9 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
     expect(casts).toBeGreaterThan(0.9 * (on.plan.fight.durationMs / 6000) * 0.8)
     // Holy Strike waits under it, for when Hammer's 90 mana isn't there: in the default setup, rarely.
     expect(field(sim, on.plan, 'holyStrike', FIELD.casts) / 3).toBeLessThan(casts / 4)
-    expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
-    const weaponOnly = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'weaponOnly' }, rotation: { [ID.hammerOfTheRighteous]: true } })
-    expect(weaponOnly.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+    expect(on.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
+    const withAp = buildPlan({ ...defaultConfig(PROT), rules: { ...defaultConfig(PROT).rules, hotrWeaponDps: 'withAttackPower' }, rotation: { [ID.hammerOfTheRighteous]: true } })
+    expect(withAp.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
   })
 })
 
@@ -1180,7 +1181,7 @@ describe('Hammer of the Righteous’s fallback, Holy Strike (TI-5)', () => {
     // With Holy Strike off, it's used wherever it sits.
     const alone = buildPlan({ ...defaultConfig(PROT), rotation: { ...on, [ID.holyStrike]: false }, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
     expect(alone.plan.abilities.map((a) => a.id)).toContain('hammerOfTheRighteous')
-    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
+    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteousWeaponOnly')
   })
 })
 

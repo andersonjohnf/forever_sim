@@ -567,11 +567,11 @@ const REGISTRY = {
     docRef: `${PAL}#other-abilities`,
   },
   hammerOfTheRighteous: {
-    text: 'Hammer of the Righteous deals 3 × your main hand’s weapon DPS with your attack power counted in, as the character sheet shows it (Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    text: 'Hammer of the Righteous deals 3 × your main hand’s weapon DPS with your attack power counted in, as the character sheet shows it (as set under Character → Advanced; its tooltip reads as the weapon’s own), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   hammerOfTheRighteousWeaponOnly: {
-    text: 'Hammer of the Righteous deals 3 × your main hand’s own weapon DPS, without your attack power (as set under Character → Advanced), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
+    text: 'Hammer of the Righteous deals 3 × your main hand’s own weapon DPS, as its tooltip reads, without your attack power (Character → Advanced can count it), with no spell damage bonus; like a special attack it can miss or be dodged, parried or blocked, and crits for double. Untested.',
     docRef: `${PAL}#other-abilities`,
   },
   improvedSealOfFury: {

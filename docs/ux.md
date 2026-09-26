@@ -255,8 +255,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
     A switch's whole row, with its help, is its label, as in Buffs. Switches for untested
     mechanics live here, not on the Rotation tab, since they aren't rotation choices: a Protection
-    paladin's also has **Hammer of the Righteous's weapon DPS** (With attack power, the default, or
-    Weapon only; [paladin.md open question 11](classes/paladin.md#open-questions)), a segmented
+    paladin's also has **Hammer of the Righteous's weapon DPS** (Weapon only, the default, or With
+    attack power; [paladin.md open question 11](classes/paladin.md#open-questions)), a segmented
     control whose help says in plain words what each means. It's dimmed, with "Not used: Hammer of
     the Righteous is off in Rotation.", while the rotation doesn't use it. (Judgement of the
     Crusader's share, once a switch here too, is measured since 2026-09-26.)

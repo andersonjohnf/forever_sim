@@ -62,7 +62,7 @@ function characterChanged(config: Pick<SimConfig, 'spec' | 'rules'>): boolean {
   const defaults = defaultsOf(config.spec).rules
   return (
     rules.unmeasuredRatings !== defaults.unmeasuredRatings ||
-    (config.spec === 'paladin-protection' && (rules.hotrWeaponDps ?? 'withAttackPower') !== (defaults.hotrWeaponDps ?? 'withAttackPower'))
+    (config.spec === 'paladin-protection' && (rules.hotrWeaponDps ?? 'weaponOnly') !== (defaults.hotrWeaponDps ?? 'weaponOnly'))
   )
 }
 

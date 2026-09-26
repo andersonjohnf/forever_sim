@@ -190,12 +190,12 @@ test.describe('Protection paladin', () => {
     await character.getByRole('button', { name: /^Advanced/ }).click()
     await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
     const hammer = character.getByRole('radiogroup', { name: 'Hammer of the Righteous’s weapon DPS' })
-    await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeChecked()
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeChecked()
     await expect(character.getByText('Not used: Hammer of the Righteous is off in Rotation.')).toBeVisible()
-    await hammer.getByRole('radio', { name: 'Weapon only' }).click()
-    await expect(character.getByText(/Default: With attack power/)).toBeVisible()
+    await hammer.getByRole('radio', { name: 'With attack power' }).click()
+    await expect(character.getByText(/Default: Weapon only/)).toBeVisible()
     await character.getByRole('button', { name: /^Reset Hammer of the Righteous’s weapon DPS/ }).click()
-    await expect(hammer.getByRole('radio', { name: 'With attack power' })).toBeFocused()
+    await expect(hammer.getByRole('radio', { name: 'Weapon only' })).toBeFocused()
     // With Hammer of the Righteous on in Rotation, its rule is in use; with your judgement off, the Buffs
     // tab's becomes another paladin's, off.
     const rotation = await openTab(page, 'Rotation')

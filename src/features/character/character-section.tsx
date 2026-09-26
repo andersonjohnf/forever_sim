@@ -54,8 +54,8 @@ export function CharacterSection() {
   const protection = meta.id === 'paladin-protection'
   // A Protection paladin's Hammer of the Righteous rule (paladin.md open question 11): it changes
   // nothing while the rotation doesn't use it, and is dimmed then.
-  const hotr: HotrWeaponDps = config.rules.hotrWeaponDps ?? 'withAttackPower'
-  const hotrChanged = protection && hotr !== (defaults.rules.hotrWeaponDps ?? 'withAttackPower')
+  const hotr: HotrWeaponDps = config.rules.hotrWeaponDps ?? 'weaponOnly'
+  const hotrChanged = protection && hotr !== (defaults.rules.hotrWeaponDps ?? 'weaponOnly')
   const hotrOff = useMemo(
     () => protection && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[HOTR_SETTING] !== true,
     [protection, meta.id, config.talents, config.rotation],
@@ -63,7 +63,7 @@ export function CharacterSection() {
   const setHotr = (value: HotrWeaponDps) =>
     update((c) => {
       const { hotrWeaponDps: _, ...rules } = c.rules
-      return { ...c, rules: value === 'withAttackPower' ? rules : { ...rules, hotrWeaponDps: value } }
+      return { ...c, rules: value === 'weaponOnly' ? rules : { ...rules, hotrWeaponDps: value } }
     })
 
   const pick = (race: Race) => {
@@ -219,15 +219,15 @@ export function CharacterSection() {
               aria-describedby={['hotr-help', hotrOff && 'hotr-off', hotrChanged && 'hotr-default'].filter(Boolean).join(' ')}
               className={cn('w-full', CHOICE_GROUP_WIDE)}
             >
-              {(['withAttackPower', 'weaponOnly'] as const).map((value) => (
+              {(['weaponOnly', 'withAttackPower'] as const).map((value) => (
                 <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM_WIDE, CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
                   {HOTR_LABEL[value]}
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
             <p id="hotr-help" className="text-xs text-muted-foreground">
-              Untested in Forever: it deals 3 times your main hand’s damage per second. With attack power (the default), the weapon
-              DPS your character sheet shows; or the weapon’s own damage only, about a third of that with the default axe.
+              Untested in Forever: it deals 3 times your main hand’s damage per second. Weapon only (the default), the weapon’s own
+              DPS, as the tooltip reads; or with attack power, the DPS your character sheet shows, about three times that with the default axe.
             </p>
             {hotrOff && (
               <p id="hotr-off" className="text-xs text-muted-foreground">
@@ -238,10 +238,10 @@ export function CharacterSection() {
               <ChangedHint
                 id="hotr-default"
                 label="Hammer of the Righteous’s weapon DPS"
-                value={HOTR_LABEL.withAttackPower}
+                value={HOTR_LABEL.weaponOnly}
                 onReset={() =>
                   changeAndFocus(
-                    () => setHotr('withAttackPower'),
+                    () => setHotr('weaponOnly'),
                     () => selectedOption(HOTR_ID),
                   )
                 }

@@ -52,8 +52,8 @@ describe('the Protection presets’ help numbers (PR-5)', () => {
     expect(help.defensive).toContain(`${Math.round(M.defensive.tps)} TPS, ${Math.round(M.defensive.dps)} DPS and ${Math.round(M.defensive.damageTaken)} damage taken a second`)
     expect(help.maxTps).toContain(`${M.maxTps.tpsPct.toFixed(0)}% more TPS and ${M.maxTps.dpsPct.toFixed(0)}% more DPS than Defensive, for ${M.maxTps.damageTakenPct.toFixed(0)}% more damage taken`)
     // Since the trainers' ranks (D36) Hammer of the Righteous costs a little DPS too: each change says its direction.
-    expect(help.default).toContain('about 2.2% more DPS and 0.8% more TPS')
+    expect(help.default).toContain('about 3.7% less DPS and 5.2% less TPS')
     const option = PROTECTION_OPTIONS.find((o) => o.id === ID.hammerOfTheRighteous)!
-    expect(option.help).toContain('about 2.2% more DPS and 0.8% more TPS in the default setup')
+    expect(option.help).toContain('about 3.7% less DPS and 5.2% less TPS in the default setup')
   })
 })

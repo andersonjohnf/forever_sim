@@ -132,8 +132,8 @@ export interface SimConfig {
     /**
      * Whether Hammer of the Righteous's "damage per second of your main hand weapon" counts attack
      * power, a Protection paladin's untested-mechanic switch (docs/classes/paladin.md open question
-     * 11, Character → Advanced). Omitted: `withAttackPower`, the weapon's DPS as the character sheet
-     * shows it, attack power included; `weaponOnly`, the weapon's own damage. Kept for paladins only.
+     * 11, Character → Advanced). Omitted: `weaponOnly`, the weapon's own DPS, as the tooltip reads;
+     * `withAttackPower`, the DPS the character sheet shows, attack power included. Kept for paladins only.
      */
     hotrWeaponDps?: 'withAttackPower' | 'weaponOnly'
   }
